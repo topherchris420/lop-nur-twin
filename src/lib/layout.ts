@@ -85,7 +85,24 @@ export const STRUCTURES: StructureDef[] = [
   building("south-west", "warehouse", "South west stores", -77, 210, [52, 8, 18]),
   building("south-west-small", "support", "South west utility", -78, 176, [29, 6, 14]),
   building("south-center", "warehouse", "South central hall", -22, 217, [48, 8, 18]),
+
+  // Prototype parked on the north apron in the supplied September close-up.
+  building(
+    "jxds-prototype",
+    "aircraft-jxds",
+    "J-XDS prototype",
+    -112,
+    -82,
+    [15, 3, 20],
+    COMPOUND_ROT - 0.72,
+    "Dark tailless lambda-wing prototype positioned beside the main assembly hangar.",
+  ),
 ];
+
+export const FPS_SPAWN = {
+  position: compound(-91, -60) as [number, number],
+  target: compound(-112, -82) as [number, number],
+};
 
 export const FLATTEN_PADS: FlattenPad[] = [{ center: COMPOUND_ORIGIN, radius: 430 }];
 export const CINEMATIC_WAYPOINTS: Waypoint[] = [
