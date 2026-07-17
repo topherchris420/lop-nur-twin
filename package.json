@@ -15,7 +15,6 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@react-three/postprocessing": "^3.0.4",
-    "@rolldown/binding-win32-x64-msvc": "^1.1.5",
     "@tanstack/react-router": "^1.170.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -27,6 +26,9 @@
     "tailwind-merge": "^3.3.1",
     "three": "^0.185.1",
     "zustand": "^5.0.14"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.1.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
