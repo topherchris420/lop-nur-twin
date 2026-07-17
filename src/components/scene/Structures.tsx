@@ -1130,6 +1130,195 @@ function AircraftFighter({ def, m }: BuilderProps) {
   );
 }
 
+/** J-36: Large modified delta wing heavy fighter with three engines. */
+function AircraftJ36({ def, m }: BuilderProps) {
+  const [span, , len] = def.size;
+  const cy = 1.4;
+
+  // Large modified delta wing geometry
+  const wingGeometry = useMemo(() => {
+    const s = new THREE.Shape();
+    // Delta wing with slightly swept leading edges
+    s.moveTo(0, len * 0.48);
+    s.lineTo(span * 0.52, -len * 0.35);
+    s.lineTo(span * 0.52 - 1.2, -len * 0.42);
+    s.lineTo(span * 0.18, -len * 0.48);
+    s.lineTo(0, -len * 0.38);
+    s.lineTo(-span * 0.18, -len * 0.48);
+    s.lineTo(-(span * 0.52 - 1.2), -len * 0.42);
+    s.lineTo(-span * 0.52, -len * 0.35);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 0.5,
+      bevelEnabled: true,
+      bevelThickness: 0.3,
+      bevelSize: 0.6,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
+  return (
+    <group>
+      {/* Main delta wing */}
+      <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Large dorsal fuselage fairing - more prominent than UCAV */}
+      <mesh material={m.airframeDark} castShadow position={[0, cy + 0.8, -len * 0.05]} scale={[1.4, 0.7, 2.4]}>
+        <sphereGeometry args={[1.2, 20, 14]} />
+      </mesh>
+
+      {/* Canopy - larger for 2-seat */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 1.1, -len * 0.28]} scale={[0.85, 0.65, 2.2]}>
+        <sphereGeometry args={[0.85, 18, 12]} />
+      </mesh>
+
+      {/* THREE engines - central + two side nozzles */}
+      {/* Central engine */}
+      <mesh material={m.metalDark} position={[0, cy - 0.15, len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.45, 0.5, 1.2, 14]} />
+      </mesh>
+      {/* Left engine */}
+      <mesh material={m.metalDark} position={[span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
+      </mesh>
+      {/* Right engine */}
+      <mesh material={m.metalDark} position={[-span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
+      </mesh>
+
+      {/* Engine inlet - front */}
+      <mesh material={m.metalDark} position={[0, cy, -len * 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.35, 0.35, 0.8, 12]} />
+      </mesh>
+
+      {/* Wing-root engine intakes (characteristic of J-36) */}
+      {[-1, 1].map((side) => (
+        <mesh key={`intake${side}`} material={m.metalDark} castShadow position={[side * span * 0.32, cy - 0.2, -len * 0.15]}>
+          <boxGeometry args={[1.8, 0.6, len * 0.18]} />
+        </mesh>
+      ))}
+
+      {/* Landing gear - nose */}
+      <mesh material={m.metalDark} position={[0, 0.6, -len * 0.3]}>
+        <cylinderGeometry args={[0.08, 0.08, 1.1, 6]} />
+      </mesh>
+      <mesh material={m.tire} position={[0, 0.24, -len * 0.3]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.28, 0.28, 0.2, 12]} />
+      </mesh>
+
+      {/* Landing gear - main (twin wheels each side) */}
+      {[-1, 1].map((side) => (
+        <group key={`g${side}`} position={[side * span * 0.28, 0, len * 0.05]}>
+          <mesh material={m.metalDark} position={[0, 0.65, 0]}>
+            <cylinderGeometry args={[0.09, 0.09, 1.2, 6]} />
+          </mesh>
+          <mesh material={m.tire} position={[0, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.34, 0.34, 0.22, 12]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** J-XDS (J-50): Lambda wing heavy fighter with twin engines. */
+function AircraftJXDS({ def, m }: BuilderProps) {
+  const [span, , len] = def.size;
+  const cy = 1.25;
+
+  // Lambda wing geometry - angular notch in leading edge
+  const wingGeometry = useMemo(() => {
+    const s = new THREE.Shape();
+    // Nose point
+    s.moveTo(0, len * 0.45);
+    // Outer wing - Lambda notch pattern
+    s.lineTo(span * 0.18, len * 0.15);
+    s.lineTo(span * 0.42, -len * 0.25);
+    s.lineTo(span * 0.42, -len * 0.38);
+    s.lineTo(span * 0.12, -len * 0.45);
+    s.lineTo(0, -len * 0.35);
+    // Mirror for left side
+    s.lineTo(-span * 0.12, -len * 0.45);
+    s.lineTo(-span * 0.42, -len * 0.38);
+    s.lineTo(-span * 0.42, -len * 0.25);
+    s.lineTo(-span * 0.18, len * 0.15);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 0.45,
+      bevelEnabled: true,
+      bevelThickness: 0.25,
+      bevelSize: 0.5,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
+  return (
+    <group>
+      {/* Lambda wing */}
+      <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Fuselage - sleeker than J-36 */}
+      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.75, 0.1, len * 0.2, 16]} />
+      </mesh>
+      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.05]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.8, 0.8, len * 0.52, 16]} />
+      </mesh>
+      <mesh material={m.airframeLight} castShadow position={[0, cy, len * 0.3]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.5, 0.8, len * 0.16, 16]} />
+      </mesh>
+
+      {/* Canopy - single seat */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 0.72, -len * 0.2]} scale={[0.7, 0.55, 1.6]}>
+        <sphereGeometry args={[0.75, 18, 12]} />
+      </mesh>
+
+      {/* Twin engine nozzles */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`n${side}`}
+          material={m.metalDark}
+          position={[side * 0.5, cy - 0.1, len * 0.4]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
+        </mesh>
+      ))}
+
+      {/* Side intakes - more forward than J-36 */}
+      {[-1, 1].map((side) => (
+        <mesh key={`i${side}`} material={m.airframeLight} castShadow position={[side * 0.9, cy - 0.25, -len * 0.12]}>
+          <boxGeometry args={[0.5, 0.7, len * 0.14]} />
+        </mesh>
+      ))}
+
+      {/* Landing gear - nose */}
+      <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
+        <cylinderGeometry args={[0.07, 0.07, 1.1, 6]} />
+      </mesh>
+      <mesh material={m.tire} position={[0, 0.26, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.18, 12]} />
+      </mesh>
+
+      {/* Landing gear - main */}
+      {[-1, 1].map((side) => (
+        <group key={`g${side}`} position={[side * 1.25, 0, len * 0.04]}>
+          <mesh material={m.metalDark} position={[0, 0.6, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 1.1, 6]} />
+          </mesh>
+          <mesh material={m.tire} position={[0, 0.28, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.28, 0.28, 0.18, 12]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* New structure builders from satellite imagery                        */
 /* ------------------------------------------------------------------ */
@@ -1467,6 +1656,10 @@ function StructureBody(props: BuilderProps) {
       return <AircraftDelta {...props} />;
     case "aircraft-fighter":
       return <AircraftFighter {...props} />;
+    case "aircraft-j36":
+      return <AircraftJ36 {...props} />;
+    case "aircraft-jxds":
+      return <AircraftJXDS {...props} />;
   }
 }
 
