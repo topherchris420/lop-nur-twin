@@ -7,11 +7,11 @@ import { SITE_SEED } from "@/lib/noise";
 
 const SEGMENTS = 512;
 
-/** Arid palette, gray-brown ground with dusty yellow patches. */
-const C_DARK = new THREE.Color("#6b675b");
-const C_BASE = new THREE.Color("#8d8775");
-const C_DUST = new THREE.Color("#c2af88");
-const C_COMPACT = new THREE.Color("#b1a381");
+/** Arid palette, washed-out tan ground matching overhead aerial reference. */
+const C_DARK = new THREE.Color("#84806e");
+const C_BASE = new THREE.Color("#a19a83");
+const C_DUST = new THREE.Color("#cabc98");
+const C_COMPACT = new THREE.Color("#bcae8c");
 
 export function Terrain() {
   const geometry = useMemo(() => {
@@ -33,8 +33,8 @@ export function Terrain() {
       // mottled desert coloring, lighter compacted halo near pavement
       const m = mottle(x, z);
       const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
-      scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.15, 0.8));
-      const dustiness = Math.pow(Math.max(0, m), 1.6) * 0.85;
+      scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
+      const dustiness = Math.pow(Math.max(0, m), 2.2) * 0.55;
       scratch.lerp(C_DUST, dustiness);
       scratch.lerp(C_COMPACT, (1 - flat) * 0.45);
 

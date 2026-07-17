@@ -112,6 +112,6 @@ export function terrainHeight(x: number, z: number): number {
 /** Slow color-mottling channel used for vertex colors, in [-1, 1]. */
 export function mottle(x: number, z: number): number {
   return (
-    mottleNoise(x / 260, z / 260) * 0.65 + mottleNoise(x / 47, z / 47) * 0.35
+    mottleNoise(x / 260, z / 260) * 0.4 + mottleNoise(x / 47, z / 47) * 0.6
   );
 }

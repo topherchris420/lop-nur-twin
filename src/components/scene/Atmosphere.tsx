@@ -101,7 +101,7 @@ export function Atmosphere() {
         : d + Math.sign(target - d) * Math.min(Math.abs(target - d), delta * 0.45);
     dayFactor.current = next;
 
-    const elev = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(-26, 38, next));
+    const elev = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(-26, 29, next));
     const az = THREE.MathUtils.degToRad(sunAzimuth);
     sunDir.set(
       Math.sin(az) * Math.cos(elev),
