@@ -63,7 +63,9 @@ export type StructureType =
   | "covered-walkway"
   | "sewage-treatment"
   | "aircraft-delta"
-  | "aircraft-fighter";
+  | "aircraft-fighter"
+  | "aircraft-j36"
+  | "aircraft-jxds";
 
 export interface StructureDef {
   id: string;
@@ -617,45 +619,116 @@ export const STRUCTURES: StructureDef[] = [
   },
   /* ---- aircraft ---- */
   {
-    id: "ucav-01",
-    type: "aircraft-delta",
-    name: "UCAV 01",
+    id: "j-36-01",
+    type: "aircraft-j36",
+    name: "J-36",
     position: compound(-18, -82),
     rotation: COMPOUND_ROT + 0.35,
-    size: [14, 3.2, 10],
-    capacity: "Uncrewed",
+    size: [20, 5, 19],
+    capacity: "2 crew",
     description:
-      "Tailless flying-wing combat drone parked on the apron in front of the assembly hangar, matching the airframe seen in overhead imagery.",
+      "Large modified delta wing heavy fighter with three engines. Splinter camouflage scheme. Parked on the apron in front of the assembly hangar.",
   },
   {
-    id: "fighter-01",
-    type: "aircraft-fighter",
-    name: "Fighter 01",
+    id: "j-xds-01",
+    type: "aircraft-jxds",
+    name: "J-XDS",
     position: compound(-95, -160),
     rotation: COMPOUND_ROT - 0.5,
-    size: [11, 4.6, 16],
+    size: [15, 4.2, 14],
     capacity: "1 crew",
-    description: "Twin-tail multirole fighter on the northwest corner of the main apron.",
+    description: "Lambda-wing heavy fighter with twin engines on the northwest corner of the main apron. Tailless design.",
   },
   {
-    id: "fighter-02",
-    type: "aircraft-fighter",
-    name: "Fighter 02",
+    id: "j-xds-02",
+    type: "aircraft-jxds",
+    name: "J-XDS",
     position: compound(-172, -85),
     rotation: COMPOUND_ROT - Math.PI / 2 + 0.1,
-    size: [11, 4.6, 16],
+    size: [15, 4.2, 14],
     capacity: "1 crew",
-    description: "Fighter staged on the shelter pad, nose-out from the middle bay.",
+    description: "Lambda-wing fighter staged on the shelter pad, nose-out from the middle bay.",
   },
   {
-    id: "fighter-03",
-    type: "aircraft-fighter",
-    name: "Fighter 03",
+    id: "j-xds-03",
+    type: "aircraft-jxds",
+    name: "J-XDS",
     position: [652, 362],
     rotation: COMPOUND_ROT + 0.15,
-    size: [11, 4.6, 16],
+    size: [15, 4.2, 14],
     capacity: "1 crew",
-    description: "Fighter taxiing the stub between the compound apron and the runway.",
+    description: "Lambda-wing fighter taxiing the stub between the compound apron and the runway.",
+  },
+  /* ---- ground support equipment ---- */
+  {
+    id: "gpu-01",
+    type: "support",
+    name: "Ground Power Unit",
+    position: compound(-18, -98),
+    rotation: COMPOUND_ROT + 0.8,
+    size: [1.8, 1.2, 2.5],
+    capacity: "28 kVA",
+    description: "Mobile ground power unit providing 400Hz electrical power to parked aircraft.",
+  },
+  {
+    id: "gpu-02",
+    type: "support",
+    name: "Ground Power Unit",
+    position: compound(-95, -145),
+    rotation: COMPOUND_ROT - 0.2,
+    size: [1.8, 1.2, 2.5],
+    capacity: "28 kVA",
+    description: "Mobile ground power unit providing 400Hz electrical power to parked aircraft.",
+  },
+  {
+    id: "gpu-03",
+    type: "support",
+    name: "Ground Power Unit",
+    position: compound(-172, -70),
+    rotation: COMPOUND_ROT - Math.PI / 2 - 0.3,
+    size: [1.8, 1.2, 2.5],
+    capacity: "28 kVA",
+    description: "Mobile ground power unit providing 400Hz electrical power to parked aircraft.",
+  },
+  {
+    id: "fuel-bowser-01",
+    type: "fuel-tank",
+    name: "Fuel Bowser",
+    position: compound(-35, -110),
+    rotation: COMPOUND_ROT + 0.4,
+    size: [2.2, 1.8, 4],
+    capacity: "5000 L",
+    description: "Aircraft fuel bowser for remote refueling operations.",
+  },
+  {
+    id: "fuel-bowser-02",
+    type: "fuel-tank",
+    name: "Fuel Bowser",
+    position: compound(-120, -130),
+    rotation: COMPOUND_ROT - 0.6,
+    size: [2.2, 1.8, 4],
+    capacity: "5000 L",
+    description: "Aircraft fuel bowser for remote refueling operations.",
+  },
+  {
+    id: "equipment-cart-01",
+    type: "support",
+    name: "Equipment Cart",
+    position: compound(-25, -75),
+    rotation: COMPOUND_ROT + 1.2,
+    size: [2, 1, 3],
+    capacity: "Maintenance",
+    description: "Mobile maintenance equipment cart.",
+  },
+  {
+    id: "equipment-cart-02",
+    type: "support",
+    name: "Equipment Cart",
+    position: compound(-88, -165),
+    rotation: COMPOUND_ROT - 0.9,
+    size: [2, 1, 3],
+    capacity: "Maintenance",
+    description: "Mobile maintenance equipment cart.",
   },
 ];
 
@@ -720,7 +793,12 @@ export function getStructure(id: string): StructureDef | undefined {
 }
 
 export function isAircraft(type: StructureType): boolean {
-  return type === "aircraft-delta" || type === "aircraft-fighter";
+  return (
+    type === "aircraft-delta" ||
+    type === "aircraft-fighter" ||
+    type === "aircraft-j36" ||
+    type === "aircraft-jxds"
+  );
 }
 
 export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
@@ -745,4 +823,6 @@ export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   "sewage-treatment": "Power & Utilities",
   "aircraft-delta": "Aircraft",
   "aircraft-fighter": "Aircraft",
+  "aircraft-j36": "Aircraft",
+  "aircraft-jxds": "Aircraft",
 };
