@@ -10,12 +10,12 @@ export interface StructureDef { id: string; type: StructureType; name: string; p
 export interface FlattenPad { center: [number, number]; radius: number }
 export interface Waypoint { position: [number, number, number]; label: string }
 
-/** Reference frame follows the north-up close aerial: +u right, +v down. */
-export const COMPOUND_ROT = 0.47;
-const COMPOUND_ORIGIN: [number, number] = [920, 900];
+/** Local frame follows Screenshot 406: +u right, +v down. */
+export const COMPOUND_ROT = 0.095;
+const COMPOUND_ORIGIN: [number, number] = [900, 845];
 const CU: [number, number] = [Math.cos(COMPOUND_ROT), -Math.sin(COMPOUND_ROT)];
 const CV: [number, number] = [Math.sin(COMPOUND_ROT), Math.cos(COMPOUND_ROT)];
-function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]] }
+function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
 
 export const RUNWAYS: SegmentDef[] = [{ id: "rwy-08-26", kind: "runway", name: "Unmarked concrete runway", from: [-1700, 260], to: [1700, -60], width: 54 }];
 export const STRIPS: SegmentDef[] = [
@@ -23,61 +23,85 @@ export const STRIPS: SegmentDef[] = [
   { id: "tri-east", kind: "strip", name: "Eastern graded strip", from: [-190, -1910], to: [1615, 175], width: 34 },
 ];
 export const TAXIWAYS: SegmentDef[] = [
-  { id: "twy-stub", kind: "taxiway", name: "Runway connector", from: [505, 52], to: [805, 662], width: 42 },
-  { id: "twy-apron", kind: "taxiway", name: "Apron throat", from: [805, 662], to: compound(-44, -150), width: 48 },
+  { id: "twy-stub", kind: "taxiway", name: "Runway connector", from: [505, 52], to: compound(8, -205), width: 42 },
+  { id: "twy-apron", kind: "taxiway", name: "Apron throat", from: compound(8, -205), to: compound(8, -118), width: 46 },
 ];
 
 const street = (id: string, name: string, a: [number, number], b: [number, number], width = 8): SegmentDef => ({ id, kind: "street", name, from: compound(...a), to: compound(...b), width });
 export const STREETS: SegmentDef[] = [
-  street("st-west", "West service road", [-88, -30], [-88, 220], 9),
-  street("st-north", "North cross road", [-86, -12], [190, -12], 9),
-  street("st-mid", "Central cross road", [-88, 88], [190, 88], 8),
-  street("st-south", "South cross road", [-88, 190], [195, 190], 8),
-  street("st-east", "East perimeter road", [190, -35], [190, 230], 8),
-  street("st-center", "Compound spine", [62, -18], [62, 225], 8),
+  street("st-west", "West perimeter", [-205, -72], [-205, 220], 9),
+  street("st-north", "Hangar frontage", [-205, -20], [210, -20], 9),
+  street("st-mid", "Central cross road", [-205, 72], [210, 72], 9),
+  street("st-south", "South cross road", [-205, 188], [210, 188], 8),
+  street("st-east", "East perimeter", [210, -112], [210, 228], 8),
+  street("st-center", "Compound spine", [68, -24], [68, 228], 8),
+  street("st-west-inner", "West inner road", [-74, -20], [-74, 188], 8),
+  street("st-east-inner", "East inner road", [144, -20], [144, 188], 8),
+  street("st-ne-loop", "North east service", [68, -102], [210, -102], 7),
 ];
 export const ROADS: SegmentDef[] = [
-  { id: "road-access", kind: "road", name: "South access track", from: compound(62, 225), to: [1390, 1660], width: 8 },
-  { id: "road-isolated", kind: "road", name: "Isolated building track", from: [505, 52], to: [335, -145], width: 6 },
+  { id: "road-access", kind: "road", name: "South access track", from: compound(68, 228), to: [1160, 1560], width: 8 },
+  { id: "road-west", kind: "road", name: "Western approach", from: compound(-205, 10), to: [320, 1080], width: 7 },
 ];
 export const APRONS: ApronDef[] = [
-  { id: "apron-main", name: "Main concrete apron", center: compound(-64, -106), size: [210, 150], rotation: -COMPOUND_ROT },
-  { id: "apron-hangar", name: "Hangar forecourt", center: compound(-28, -48), size: [126, 108], rotation: -COMPOUND_ROT },
-  { id: "apron-shelter", name: "Three-bay shelter pad", center: compound(-145, 112), size: [96, 78], rotation: -COMPOUND_ROT },
+  { id: "apron-main", name: "Main hangar apron", center: compound(-30, -112), size: [285, 92], rotation: -COMPOUND_ROT },
+  { id: "apron-west", name: "West service pad", center: compound(-158, -4), size: [105, 106], rotation: -COMPOUND_ROT },
+  { id: "apron-center", name: "Operations hardstand", center: compound(53, 118), size: [112, 90], rotation: -COMPOUND_ROT },
 ];
 
-const building = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Structure reconstructed from the supplied overhead reference."): StructureDef => ({ id, type, name, position: compound(u, v), rotation, size, capacity: "Reference footprint", description });
+const building = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Structure reconstructed from Screenshot 406."): StructureDef => ({ id, type, name, position: compound(u, v), rotation, size, capacity: "Reference footprint", description });
 export const STRUCTURES: StructureDef[] = [
-  building("hangar-main", "hangar-monolith", "Main assembly hangar", 0, 0, [62, 22, 88], COMPOUND_ROT, "Large white assembly hall with a shallow roof, bright perimeter cap, twin horizontal facade bands and attached service volumes."),
-  building("shelter-row", "shelter-row", "Three-bay white shelter", -151, 116, [70, 9, 28], COMPOUND_ROT + Math.PI / 2),
-  building("quonset", "quonset", "Arched equipment shed", 51, -137, [32, 8, 18], COMPOUND_ROT + Math.PI / 2),
-  building("utility-north", "support", "North utility building", 96, -126, [18, 6, 14]),
-  building("depot-west", "warehouse", "West stores", -74, 86, [34, 7, 18]),
-  building("service-small", "support", "Service shop", -53, 126, [20, 6, 14]),
-  building("operations", "hq", "Operations block", 82, 50, [28, 9, 20]),
-  building("warehouse-east", "warehouse", "East warehouse", 145, 41, [42, 8, 18]),
-  building("support-east", "support", "East support block", 151, 94, [34, 6, 16]),
-  building("barracks-east", "barracks", "East accommodation", 151, 146, [39, 7, 15]),
-  building("support-center", "support", "Central support block", 74, 122, [28, 6, 16]),
-  building("court-center", "compound-walled", "Central courtyard", 70, 177, [45, 4.5, 34]),
-  building("court-south", "compound-walled", "South courtyard", 127, 213, [52, 4.5, 39]),
-  building("stores-south", "warehouse", "South stores", -18, 205, [42, 7, 17]),
-  building("workshop-south", "support", "South workshop", -62, 164, [28, 6, 16]),
-  { id: "isolated-building", type: "support", name: "Isolated runway building", position: [335, -145], rotation: 0.47, size: [23, 7, 15], capacity: "Reference footprint", description: "Small isolated rectangular building northwest of the taxiway junction." },
+  // North-west service group and dominant assembly hall.
+  building("west-long", "warehouse", "West longitudinal workshop", -177, -7, [24, 8, 78]),
+  building("west-core", "warehouse", "West central shop", -139, -14, [38, 10, 60]),
+  building("west-link", "support", "West connector", -105, -19, [20, 7, 78]),
+  building("hangar-main", "hangar-monolith", "Main assembly hangar", -36, -30, [126, 22, 78], COMPOUND_ROT, "Large white rectangular hall with shallow roof, long facade bands, and runway-facing apron."),
+
+  // North-east isolated structures.
+  building("north-shed", "quonset", "North arched shed", 146, -112, [48, 11, 24], COMPOUND_ROT + Math.PI / 2),
+  building("north-utility", "warehouse", "North utility hall", 202, -112, [36, 9, 20], COMPOUND_ROT + Math.PI / 2),
+  building("tower-main", "tower", "Central test tower", 75, -25, [22, 30, 22]),
+
+  // East block: three long bars and attached technical spine.
+  building("east-north", "warehouse", "East north laboratory", 164, 78, [54, 9, 25]),
+  building("east-middle", "hq", "East technical block", 185, 130, [28, 12, 48]),
+  building("east-middle-wing", "support", "East technical wing", 157, 130, [28, 7, 22]),
+  building("east-south", "warehouse", "East south laboratory", 165, 178, [58, 9, 24]),
+
+  // Central L-shaped operations complex, expressed as its visible wings.
+  building("ops-north", "hq", "Operations north wing", 38, 91, [65, 10, 22]),
+  building("ops-west", "support", "Operations west wing", 11, 126, [23, 9, 60]),
+  building("ops-east", "support", "Operations east wing", 65, 134, [20, 8, 42]),
+  building("ops-court", "compound-walled", "Operations courtyard", 42, 132, [48, 3.5, 42]),
+
+  // West-central U-shaped service courts.
+  building("court-west", "compound-walled", "West equipment court", -151, 128, [62, 4, 65]),
+  building("court-west-core", "support", "West court plant", -151, 119, [20, 6, 17]),
+  building("court-center", "compound-walled", "Central service court", -77, 125, [59, 4, 58]),
+  building("court-center-north", "warehouse", "Central court north hall", -78, 97, [45, 7, 17]),
+  building("court-center-east", "support", "Central court east annex", -50, 124, [14, 7, 38]),
+
+  // Southern buildings and pads.
+  building("south-west", "warehouse", "South west stores", -77, 210, [52, 8, 18]),
+  building("south-west-small", "support", "South west utility", -78, 176, [29, 6, 14]),
+  building("south-center", "warehouse", "South central hall", -22, 217, [48, 8, 18]),
 ];
 
-export const FLATTEN_PADS: FlattenPad[] = [{ center: COMPOUND_ORIGIN, radius: 390 }, { center: [335, -145], radius: 45 }];
+export const FLATTEN_PADS: FlattenPad[] = [{ center: COMPOUND_ORIGIN, radius: 430 }];
 export const CINEMATIC_WAYPOINTS: Waypoint[] = [
-  { position: [-1850, 180, 300], label: "Runway west" }, { position: [500, 150, 120], label: "Runway junction" },
-  { position: [760, 100, 610], label: "Taxiway" }, { position: [870, 125, 735], label: "Compound overview" },
-  { position: [940, 65, 830], label: "Main hangar" }, { position: [1150, 100, 1080], label: "Support compound" },
+  { position: [-1850, 180, 300], label: "Runway west" },
+  { position: [500, 150, 120], label: "Runway junction" },
+  { position: [865, 170, 565], label: "Lop Nur compound" },
+  { position: [850, 80, 770], label: "Main assembly hall" },
+  { position: [1040, 95, 915], label: "Central tower" },
+  { position: [1100, 115, 1080], label: "Eastern laboratories" },
 ];
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
-export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]) }
-export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]) }
-export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2] }
-export function getStructure(id: string): StructureDef | undefined { return STRUCTURES.find((s) => s.id === id) }
-export function isAircraft(type: StructureType): boolean { return type.startsWith("aircraft-") }
+export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
+export function getStructure(id: string): StructureDef | undefined { return STRUCTURES.find((s) => s.id === id); }
+export function isAircraft(type: StructureType): boolean { return type.startsWith("aircraft-"); }
 export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft",
 };
