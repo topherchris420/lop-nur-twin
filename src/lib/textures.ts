@@ -502,6 +502,229 @@ export function makeSolarTexture(seed: number): THREE.CanvasTexture {
 }
 
 /* ------------------------------------------------------------------ */
+/* Rust stain                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Weathered steel surface with rust streaks and water stains. */
+export function makeRustStainTexture(seed: number): THREE.CanvasTexture {
+  const S = 512;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+
+  ctx.fillStyle = "#8a7e6e";
+  ctx.fillRect(0, 0, S, S);
+  speckle(ctx, rand, 8000, ["#7e7264", "#968a7a", "#6e6456", "#a09484"], 3);
+
+  // vertical rust streaks
+  const rustColors = ["#6b3a1f", "#8b4513", "#a0522d"];
+  for (let i = 0; i < 35; i++) {
+    const color = rustColors[Math.floor(rand() * rustColors.length)] ?? rustColors[0]!;
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.06 + rand() * 0.14;
+    ctx.lineWidth = 2 + rand() * 8;
+    const x = rand() * S;
+    const y0 = rand() * S * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x, y0);
+    ctx.lineTo(x + (rand() - 0.5) * 16, y0 + S * (0.3 + rand() * 0.5));
+    ctx.stroke();
+  }
+
+  // water stain patches
+  for (let i = 0; i < 12; i++) {
+    ctx.fillStyle = "#5c5347";
+    ctx.globalAlpha = 0.04 + rand() * 0.08;
+    const r = 16 + rand() * 50;
+    ctx.beginPath();
+    ctx.ellipse(rand() * S, rand() * S, r, r * (0.4 + rand() * 0.6), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // pitting marks
+  for (let i = 0; i < 200; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#4a3a2a" : "#6b5a44";
+    ctx.globalAlpha = 0.06 + rand() * 0.1;
+    const s = 1 + rand() * 3;
+    ctx.fillRect(rand() * S, rand() * S, s, s);
+  }
+  ctx.globalAlpha = 1;
+  return toTexture(ctx);
+}
+
+/* ------------------------------------------------------------------ */
+/* Stucco wall                                                         */
+/* ------------------------------------------------------------------ */
+
+/** Plastered/stucco wall surface with fine granular texture. */
+export function makeStuccoTexture(seed: number, tint = "#c4b99a"): THREE.CanvasTexture {
+  const S = 512;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+
+  ctx.fillStyle = tint;
+  ctx.fillRect(0, 0, S, S);
+  // fine granular speckle (high count, small size)
+  speckle(ctx, rand, 12000, ["#d1c6a8", "#b0a68c", "#c8be9f", "#9e9478"], 2);
+
+  // subtle horizontal trowel marks
+  for (let i = 0; i < 50; i++) {
+    ctx.strokeStyle = rand() > 0.5 ? "#b5aa90" : "#d0c5ab";
+    ctx.globalAlpha = 0.03 + rand() * 0.06;
+    ctx.lineWidth = 1 + rand() * 3;
+    const y = rand() * S;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(S, y + (rand() - 0.5) * 6);
+    ctx.stroke();
+  }
+
+  // weathering stains near the base (bottom 30%)
+  const baseY = S * 0.7;
+  for (let i = 0; i < 18; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#8a7e66" : "#7a7060";
+    ctx.globalAlpha = 0.04 + rand() * 0.08;
+    const w = 20 + rand() * 80;
+    const h = 10 + rand() * 40;
+    ctx.fillRect(rand() * S, baseY + rand() * (S - baseY), w, h);
+  }
+  ctx.globalAlpha = 1;
+
+  // faint gradient darkening toward the base
+  const grad = ctx.createLinearGradient(0, 0, 0, S);
+  grad.addColorStop(0, "rgba(0,0,0,0)");
+  grad.addColorStop(0.75, "rgba(0,0,0,0)");
+  grad.addColorStop(1, "rgba(0,0,0,0.12)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, S, S);
+
+  return toTexture(ctx);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dirty concrete (compounds)                                          */
+/* ------------------------------------------------------------------ */
+
+/** Heavily weathered concrete for walled compounds. */
+export function makeDirtyConcreteTexture(seed: number): THREE.CanvasTexture {
+  const S = 512;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+
+  ctx.fillStyle = "#9b9487";
+  ctx.fillRect(0, 0, S, S);
+  speckle(ctx, rand, 10000, ["#a89f92", "#8c857a", "#b3ab9e", "#7a746a"], 3);
+
+  // heavy dust staining patches
+  for (let i = 0; i < 20; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#7d776b" : "#6e685e";
+    ctx.globalAlpha = 0.05 + rand() * 0.1;
+    const r = 20 + rand() * 60;
+    ctx.beginPath();
+    ctx.ellipse(rand() * S, rand() * S, r, r * (0.5 + rand() * 0.5), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // algae / mold patches (green-gray)
+  for (let i = 0; i < 10; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#6b7a62" : "#5e6e58";
+    ctx.globalAlpha = 0.04 + rand() * 0.08;
+    const r = 12 + rand() * 45;
+    ctx.beginPath();
+    ctx.ellipse(rand() * S, rand() * S, r, r * (0.6 + rand() * 0.4), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // crack lines
+  for (let i = 0; i < 8; i++) {
+    ctx.strokeStyle = "#4a453e";
+    ctx.globalAlpha = 0.12 + rand() * 0.15;
+    ctx.lineWidth = 0.5 + rand() * 1.5;
+    const x0 = rand() * S;
+    const y0 = rand() * S;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    // jagged crack path with 3-5 segments
+    let cx = x0;
+    let cy = y0;
+    const segs = 3 + Math.floor(rand() * 3);
+    for (let s = 0; s < segs; s++) {
+      cx += (rand() - 0.5) * 80;
+      cy += 20 + rand() * 60;
+      ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+  }
+
+  // efflorescence streaks (white mineral deposits)
+  for (let i = 0; i < 14; i++) {
+    ctx.strokeStyle = "#d8d2c8";
+    ctx.globalAlpha = 0.05 + rand() * 0.1;
+    ctx.lineWidth = 3 + rand() * 8;
+    const x = rand() * S;
+    ctx.beginPath();
+    ctx.moveTo(x, rand() * S * 0.3);
+    ctx.lineTo(x + (rand() - 0.5) * 14, S * (0.4 + rand() * 0.5));
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  return toTexture(ctx);
+}
+
+/* ------------------------------------------------------------------ */
+/* Chain-link fence                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Chain-link fence pattern on a mostly transparent background. */
+export function makeChainLinkTexture(seed: number): THREE.CanvasTexture {
+  const S = 256;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+
+  // transparent background with very faint haze
+  ctx.clearRect(0, 0, S, S);
+
+  // diamond wire grid pattern
+  const wireColor = "#4a4a4a";
+  const cellW = 16; // horizontal spacing of the diamond pattern
+  const cellH = 24; // vertical spacing of the diamond pattern
+
+  ctx.strokeStyle = wireColor;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.85;
+
+  // draw diamond pattern — diagonal lines in both directions
+  for (let y = -cellH; y < S + cellH; y += cellH) {
+    for (let x = -cellW; x < S + cellW; x += cellW * 2) {
+      const offsetX = ((y / cellH) % 2) * cellW;
+      const cx = x + offsetX;
+      // downward-right diagonal
+      ctx.beginPath();
+      ctx.moveTo(cx, y);
+      ctx.lineTo(cx + cellW, y + cellH);
+      ctx.stroke();
+      // downward-left diagonal
+      ctx.beginPath();
+      ctx.moveTo(cx + cellW * 2, y);
+      ctx.lineTo(cx + cellW, y + cellH);
+      ctx.stroke();
+    }
+  }
+
+  // slight wire thickness variation for realism
+  for (let i = 0; i < 60; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#5a5a5a" : "#3a3a3a";
+    ctx.globalAlpha = 0.08 + rand() * 0.12;
+    const s = 1 + rand() * 2;
+    ctx.fillRect(rand() * S, rand() * S, s, s);
+  }
+  ctx.globalAlpha = 1;
+
+  const tex = toTexture(ctx);
+  tex.premultiplyAlpha = true;
+  return tex;
+}
+
+/* ------------------------------------------------------------------ */
 /* Terrain detail normal map                                           */
 /* ------------------------------------------------------------------ */
 
