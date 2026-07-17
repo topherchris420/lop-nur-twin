@@ -573,6 +573,12 @@ function Warehouse({ def, m }: BuilderProps) {
           <boxGeometry args={[6, h * 0.72, 0.35]} />
         </mesh>
       ))}
+      {/* rust streaks below the door tracks */}
+      {[-0.28, 0, 0.28].map((f) => (
+        <mesh key={`rust${f}`} material={m.rustyMetal} position={[w * f, h * 0.04, d / 2 + 0.2]}>
+          <boxGeometry args={[6.2, h * 0.08, 0.36]} />
+        </mesh>
+      ))}
       {/* concrete bollards flanking each roller door */}
       {[-0.28, 0, 0.28].map((f) =>
         [-1, 1].map((side) => (
@@ -715,21 +721,38 @@ function SupportBuilding({ def, m }: BuilderProps) {
   const [w, h, d] = def.size;
   return (
     <group>
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, h / 2, 0]}>
+      <mesh material={m.concrete} receiveShadow position={[0, 0.15, 0]}>
+        <boxGeometry args={[w + 0.8, 0.3, d + 0.8]} />
+      </mesh>
+      <mesh material={m.stucco} castShadow receiveShadow position={[0, 0.3 + h / 2, 0]}>
         <boxGeometry args={[w, h, d]} />
       </mesh>
-      <mesh material={m.roofDark} castShadow position={[0, h + 0.12, 0]}>
+      <mesh material={m.roofDark} castShadow position={[0, 0.3 + h + 0.12, 0]}>
         <boxGeometry args={[w + 0.8, 0.25, d + 0.8]} />
       </mesh>
       {/* window strip and door on the +z face */}
-      <mesh material={m.glass} position={[w * 0.08, h * 0.58, d / 2 + 0.04]}>
+      <mesh material={m.glass} position={[w * 0.08, 0.3 + h * 0.58, d / 2 + 0.04]}>
         <boxGeometry args={[w * 0.5, 0.9, 0.1]} />
       </mesh>
-      <mesh material={m.interiorDark} position={[-w * 0.32, h * 0.36, d / 2 + 0.04]}>
+      <mesh material={m.metalDark} position={[w * 0.08, 0.3 + h * 0.58, d / 2 + 0.09]}>
+        <boxGeometry args={[w * 0.5 + 0.12, 0.06, 0.04]} />
+      </mesh>
+      <mesh material={m.interiorDark} position={[-w * 0.32, 0.3 + h * 0.36, d / 2 + 0.04]}>
         <boxGeometry args={[1.3, h * 0.68, 0.12]} />
       </mesh>
-      <mesh material={m.metalDark} castShadow position={[-w * 0.25, h + 0.7, 0]}>
+      <mesh material={m.metalDark} position={[-w * 0.32, 0.3 + h * 0.72, d / 2 + 0.05]}>
+        <boxGeometry args={[1.5, 0.08, 0.06]} />
+      </mesh>
+      {/* rooftop condenser, weathered where it drains onto the wall below */}
+      <mesh material={m.metalDark} castShadow position={[-w * 0.25, 0.3 + h + 0.7, 0]}>
         <boxGeometry args={[1.6, 0.9, 1.6]} />
+      </mesh>
+      <mesh material={m.rustyMetal} position={[-w * 0.25, 0.3 + h * 0.55, -d / 2 - 0.02]}>
+        <boxGeometry args={[1.4, h * 0.8, 0.04]} />
+      </mesh>
+      {/* utility conduit run along the base */}
+      <mesh material={m.pvcPipe} position={[w / 2 + 0.15, 0.6, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, d * 0.6, 8]} />
       </mesh>
     </group>
   );
@@ -744,13 +767,13 @@ function WalledCompound({ def, m }: BuilderProps) {
   return (
     <group>
       {/* perimeter walls; gate gap on the +z side */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, wallH / 2, -d / 2 + 0.25]}>
+      <mesh material={m.dirtyConcreteWall} castShadow receiveShadow position={[0, wallH / 2, -d / 2 + 0.25]}>
         <boxGeometry args={[w, wallH, 0.5]} />
       </mesh>
       {[-1, 1].map((side) => (
         <mesh
           key={`s${side}`}
-          material={m.concreteLight}
+          material={m.dirtyConcreteWall}
           castShadow
           receiveShadow
           position={[(side * (gate + segW)) / 2, wallH / 2, d / 2 - 0.25]}
@@ -761,7 +784,7 @@ function WalledCompound({ def, m }: BuilderProps) {
       {[-1, 1].map((side) => (
         <mesh
           key={`e${side}`}
-          material={m.concreteLight}
+          material={m.dirtyConcreteWall}
           castShadow
           receiveShadow
           position={[side * (w / 2 - 0.25), wallH / 2, 0]}
@@ -814,14 +837,25 @@ function Guardhouse({ def, m }: BuilderProps) {
   void def;
   return (
     <group>
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 1.5, 0]}>
+      <mesh material={m.concrete} receiveShadow position={[0, 0.1, 0]}>
+        <boxGeometry args={[3.8, 0.2, 3.8]} />
+      </mesh>
+      <mesh material={m.stucco} castShadow receiveShadow position={[0, 1.6, 0]}>
         <boxGeometry args={[3.4, 3, 3.4]} />
       </mesh>
-      <mesh material={m.glass} position={[0, 1.95, 0]}>
+      <mesh material={m.glass} position={[0, 2.05, 0]}>
         <boxGeometry args={[3.5, 0.9, 3.5]} />
       </mesh>
-      <mesh material={m.roofDark} castShadow position={[0, 3.15, 0]}>
-        <boxGeometry args={[4.2, 0.25, 4.2]} />
+      <mesh material={m.metalDark} position={[0, 2.05, 0]}>
+        <boxGeometry args={[3.56, 0.06, 3.56]} />
+      </mesh>
+      {/* overhanging eave */}
+      <mesh material={m.roofDark} castShadow position={[0, 3.25, 0]}>
+        <boxGeometry args={[4.6, 0.25, 4.6]} />
+      </mesh>
+      {/* roof-mounted beacon */}
+      <mesh material={m.beacon} position={[1.4, 3.5, 1.4]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
       </mesh>
       {/* barrier arm across the approach */}
       <mesh material={m.metalDark} castShadow position={[1.6, 0.6, 2.2]}>
@@ -829,6 +863,10 @@ function Guardhouse({ def, m }: BuilderProps) {
       </mesh>
       <mesh material={m.hazard} castShadow position={[-1, 1.15, 2.2]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.07, 0.07, 5.4, 8]} />
+      </mesh>
+      {/* counterweight box on the pivot */}
+      <mesh material={m.metalDark} castShadow position={[1.6, 1.3, 2.2]}>
+        <boxGeometry args={[0.5, 0.35, 0.5]} />
       </mesh>
     </group>
   );
@@ -869,6 +907,10 @@ function FuelTank({ def, m }: BuilderProps) {
       </mesh>
       <mesh material={m.tankSteel} castShadow receiveShadow position={[0, h / 2, 0]}>
         <cylinderGeometry args={[r, r, h, 24]} />
+      </mesh>
+      {/* rust bleed at the base seam */}
+      <mesh material={m.rustyMetal} position={[0, h * 0.06, 0]}>
+        <cylinderGeometry args={[r + 0.02, r + 0.02, h * 0.12, 24, 1, true]} />
       </mesh>
       <mesh material={m.tankSteel} castShadow position={[0, h, 0]} scale={[1, 0.25, 1]}>
         <sphereGeometry args={[r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
