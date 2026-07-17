@@ -57,7 +57,8 @@ function RunwayMesh({ seg, index }: StripMeshProps) {
       makePavementTexture({
         lengthM: length,
         widthM: seg.width,
-        markings: "runway",
+        // The supplied imagery shows a pale, unmarked test strip.
+        markings: "none",
         seed: SITE_SEED + 100 + index,
       }),
     [length, seg.width, index],
@@ -77,7 +78,7 @@ function TaxiwayMesh({ seg, index }: StripMeshProps) {
       makePavementTexture({
         lengthM: length,
         widthM: seg.width,
-        markings: "taxiway",
+        markings: "none",
         seed: SITE_SEED + 200 + index,
       }),
     [length, seg.width, index],
@@ -136,6 +137,20 @@ export function Pavements() {
       {TAXIWAYS.map((seg, i) => (
         <TaxiwayMesh key={seg.id} seg={seg} index={i} />
       ))}
+      {/* Circular concrete fillets soften the runway T-junction and apron throat,
+          matching the broad rounded transitions visible in the overhead image. */}
+      {[
+        { id: "runway-fillet", point: TAXIWAYS[0]?.from, radius: 31 },
+        { id: "taxiway-elbow", point: TAXIWAYS[0]?.to, radius: 27 },
+        { id: "apron-fillet", point: TAXIWAYS[1]?.to, radius: 30 },
+      ].map(({ id, point, radius }) =>
+        point ? (
+          <mesh key={id} position={[point[0], 0.085, point[1]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <circleGeometry args={[radius, 48]} />
+            <meshStandardMaterial map={apronTexture} roughness={0.9} metalness={0.02} />
+          </mesh>
+        ) : null,
+      )}
       {STREETS.map((seg, i) => (
         <StreetMesh key={seg.id} seg={seg} index={i} />
       ))}
