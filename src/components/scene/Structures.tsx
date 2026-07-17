@@ -353,113 +353,46 @@ function ControlTower({ def, m }: BuilderProps) {
   );
 }
 
-/** The big white assembly hangar: clerestory bands, low gable, apron door. */
+/** Main hall reconstructed from the close aerial: shallow roof, bright cap and twin facade bands. */
 function MonolithHangar({ def, m }: BuilderProps) {
   const [w, h, d] = def.size;
-  const rise = 3;
+  const rise = 1.4;
   const wallH = h - rise;
-  const roofGeometry = useGableGeometry(w + 1.6, rise, d + 1.6);
-  const wallMaterials = [
-    m.monolithWallLong,
-    m.monolithWallLong,
-    m.monolithRoof,
-    m.monolithRoof,
-    m.monolithWallEnd,
-    m.monolithWallEnd,
-  ];
+  const roofGeometry = useGableGeometry(w + 1.2, rise, d + 1.2);
+  const wallMaterials = [m.monolithWallLong, m.monolithWallLong, m.monolithRoof, m.monolithRoof, m.monolithWallEnd, m.monolithWallEnd];
   return (
     <group>
-      {/* plinth */}
-      <mesh material={m.concrete} receiveShadow position={[0, 0.4, 0]}>
-        <boxGeometry args={[w + 2.4, 0.8, d + 2.4]} />
+      <mesh material={m.concrete} receiveShadow position={[0, 0.3, 0]}>
+        <boxGeometry args={[w + 2, 0.6, d + 2]} />
       </mesh>
-      {/* hall */}
-      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.8 + wallH / 2, 0]}>
+      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.6 + wallH / 2, 0]}>
         <boxGeometry args={[w, wallH, d]} />
       </mesh>
-      <mesh material={m.monolithRoof} geometry={roofGeometry} castShadow position={[0, 0.8 + wallH, 0]} />
-      {/* low ridge monitors */}
-      {[-0.28, 0, 0.28].map((f) => (
-        <mesh key={f} material={m.whitePanel} castShadow position={[0, 0.8 + wallH + rise + 0.25, d * f]}>
-          <boxGeometry args={[1.8, 0.5, d * 0.2]} />
-        </mesh>
-      ))}
-      {/* full-width sliding door on the apron (-z) face */}
-      <mesh material={m.corrugated} castShadow position={[0, 0.8 + wallH * 0.4, -d / 2 - 0.25]}>
-        <boxGeometry args={[w * 0.78, wallH * 0.8, 0.5]} />
-      </mesh>
+      <mesh material={m.monolithRoof} geometry={roofGeometry} castShadow position={[0, 0.6 + wallH, 0]} />
+      {/* Bright raised perimeter cap clearly visible in the reference. */}
       {[-1, 1].map((side) => (
-        <mesh
-          key={side}
-          material={m.whitePanel}
-          castShadow
-          position={[side * w * 0.43, 0.8 + wallH * 0.45, -d / 2 - 0.55]}
-        >
-          <boxGeometry args={[3, wallH * 0.9, 1.4]} />
+        <mesh key={`eave-${side}`} material={m.whitePanel} castShadow position={[side * (w / 2 + 0.45), wallH + 0.75, 0]}>
+          <boxGeometry args={[0.9, 1.1, d + 1.8]} />
         </mesh>
       ))}
-      <mesh material={m.whitePanel} castShadow position={[0, 0.8 + wallH * 0.93, -d / 2 - 0.55]}>
-        <boxGeometry args={[w * 0.9, wallH * 0.14, 1.4]} />
-      </mesh>
-      {/* service annexes along the +x wall */}
-      {[-0.22, 0.22].map((f) => (
-        <group key={f}>
-          <mesh material={m.concreteLight} castShadow receiveShadow position={[w / 2 + 4, 2.75, d * f]}>
-            <boxGeometry args={[8, 5.5, 16]} />
-          </mesh>
-          <mesh material={m.roofDark} position={[w / 2 + 4, 5.62, d * f]}>
-            <boxGeometry args={[8.4, 0.25, 16.4]} />
-          </mesh>
-          <mesh material={m.metalDark} castShadow position={[w / 2 + 4, 6.2, d * f + 5]}>
-            <boxGeometry args={[1.5, 0.9, 1.5]} />
-          </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={`end-cap-${side}`} material={m.whitePanel} castShadow position={[0, wallH + 0.75, side * (d / 2 + 0.45)]}>
+          <boxGeometry args={[w + 1.8, 1.1, 0.9]} />
+        </mesh>
+      ))}
+      {/* Dark lower service strip and the two continuous long-side bands. */}
+      {[-1, 1].map((side) => (
+        <group key={`facade-${side}`} position={[side * (w / 2 + 0.12), 0, 0]}>
+          <mesh material={m.metalDark} position={[0, 2.1, 0]}><boxGeometry args={[0.3, 1.1, d * 0.92]} /></mesh>
+          <mesh material={m.glass} position={[0, wallH * 0.48, 0]}><boxGeometry args={[0.35, 1.15, d * 0.9]} /></mesh>
+          <mesh material={m.glass} position={[0, wallH * 0.68, 0]}><boxGeometry args={[0.35, 1.15, d * 0.9]} /></mesh>
         </group>
       ))}
-      {/* exhaust stacks on the -x wall */}
-      {[-0.32, -0.12].map((f) => (
-        <mesh key={f} material={m.metalDark} castShadow position={[-w / 2 - 0.8, wallH * 0.7, d * f]}>
-          <cylinderGeometry args={[0.5, 0.5, wallH * 1.4, 10]} />
-        </mesh>
-      ))}
-      {/* apron floodlight masts flanking the door */}
-      {[-1, 1].map((side) => (
-        <group key={`mast${side}`} position={[side * w * 0.55, 0, -d / 2 - 8]}>
-          <mesh material={m.metalDark} castShadow position={[0, 6, 0]}>
-            <cylinderGeometry args={[0.14, 0.2, 12, 8]} />
-          </mesh>
-          <mesh material={m.glass} position={[0, 12.2, 0]}>
-            <boxGeometry args={[1.8, 0.5, 0.6]} />
-          </mesh>
-        </group>
-      ))}
-      {/* rooftop HVAC condenser row along the ridge */}
-      {[-0.35, -0.15, 0.05, 0.25].map((f) => (
-        <mesh key={`hvac${f}`} material={m.metalDark} castShadow position={[w * 0.2, 0.8 + wallH + rise * 0.3, d * f]}>
-          <boxGeometry args={[2.2, 1.1, 2.2]} />
-        </mesh>
-      ))}
-      {/* roof drainage gutters along eave edges */}
-      {[-1, 1].map((side) => (
-        <mesh key={`gutter${side}`} material={m.metalDark} position={[side * (w / 2 + 0.6), 0.8 + wallH - 0.1, 0]}>
-          <boxGeometry args={[0.3, 0.25, d + 1]} />
-        </mesh>
-      ))}
-      {/* downspouts at corners */}
-      {[-1, 1].map((sx) =>
-        [-1, 1].map((sz) => (
-          <mesh key={`ds${sx}${sz}`} material={m.metalDark} position={[sx * (w / 2 + 0.6), wallH / 2, sz * (d / 2 - 2)]}>
-            <cylinderGeometry args={[0.12, 0.12, wallH, 6]} />
-          </mesh>
-        )),
-      )}
-      {/* concrete wing walls at service annexes */}
-      {[-0.22, 0.22].map((f) =>
-        [-1, 1].map((side) => (
-          <mesh key={`wing${f}${side}`} material={m.concrete} castShadow position={[w / 2 + 8.2, 1.5, d * f + side * 8.4]}>
-            <boxGeometry args={[0.5, 3, 1.6]} />
-          </mesh>
-        )),
-      )}
+      {/* Compact service volumes clustered at the apron-facing end. */}
+      <mesh material={m.concreteLight} castShadow position={[-w * 0.25, 3, -d / 2 - 4]}><boxGeometry args={[18, 6, 8]} /></mesh>
+      <mesh material={m.roofDark} position={[-w * 0.25, 6.1, -d / 2 - 4]}><boxGeometry args={[18.5, 0.25, 8.5]} /></mesh>
+      <mesh material={m.concreteLight} castShadow position={[w * 0.28, 2.4, -d / 2 - 3]}><boxGeometry args={[10, 4.8, 6]} /></mesh>
+      <mesh material={m.corrugated} castShadow position={[0, wallH * 0.42, d / 2 + 0.2]}><boxGeometry args={[w * 0.78, wallH * 0.76, 0.45]} /></mesh>
     </group>
   );
 }
