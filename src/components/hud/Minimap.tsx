@@ -3,10 +3,12 @@ import {
   APRONS,
   ROADS,
   RUNWAYS,
+  STREETS,
   STRIPS,
   STRUCTURES,
   TAXIWAYS,
   getStructure,
+  isAircraft,
   type SegmentDef,
 } from "@/lib/layout";
 import { flyToPoint } from "@/lib/flyTo";
@@ -26,6 +28,7 @@ const SEGMENT_STYLE: Record<SegmentDef["kind"], { color: string; minWidth: numbe
   runway: { color: "#d8d3c4", minWidth: 3 },
   strip: { color: "#95815c", minWidth: 2.5 },
   taxiway: { color: "#a09a8d", minWidth: 1.5 },
+  street: { color: "#8f897c", minWidth: 1 },
   road: { color: "#7c6e51", minWidth: 1 },
 };
 
@@ -69,24 +72,44 @@ function buildStaticLayer(): HTMLCanvasElement {
   };
   drawSegments(ROADS);
   drawSegments(STRIPS);
+  drawSegments(STREETS);
   drawSegments(TAXIWAYS);
   drawSegments(RUNWAYS);
 
   for (const apron of APRONS) {
     const [ax, ay] = toMap(apron.center[0], apron.center[1]);
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(apron.rotation);
     ctx.fillStyle = "#a8a294";
     ctx.fillRect(
-      ax - (apron.size[0] * SCALE) / 2,
-      ay - (apron.size[1] * SCALE) / 2,
+      -(apron.size[0] * SCALE) / 2,
+      -(apron.size[1] * SCALE) / 2,
       apron.size[0] * SCALE,
       apron.size[1] * SCALE,
     );
+    ctx.restore();
   }
 
-  ctx.fillStyle = "#e8a33d";
   for (const s of STRUCTURES) {
     const [sx, sy] = toMap(s.position[0], s.position[1]);
-    ctx.fillRect(sx - 2, sy - 2, 4, 4);
+    if (isAircraft(s.type)) {
+      // aircraft: cyan triangle pointing along its parked heading
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(-s.rotation);
+      ctx.fillStyle = "#7ee0d0";
+      ctx.beginPath();
+      ctx.moveTo(0, -3.2);
+      ctx.lineTo(2.3, 2.6);
+      ctx.lineTo(-2.3, 2.6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.fillStyle = "#e8a33d";
+      ctx.fillRect(sx - 2, sy - 2, 4, 4);
+    }
   }
 
   // north arrow (north is up: -z)

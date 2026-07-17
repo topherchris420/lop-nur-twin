@@ -6,6 +6,9 @@ import { useTwinStore } from "@/lib/store";
 import {
   makeConcreteWallTexture,
   makeCorrugatedTexture,
+  makeFacadeTextures,
+  makeSolarTexture,
+  makeWhitePanelTexture,
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
 
@@ -14,12 +17,42 @@ interface SharedMaterials {
   concreteLight: THREE.MeshStandardMaterial;
   corrugated: THREE.MeshStandardMaterial;
   corrugatedTan: THREE.MeshStandardMaterial;
+  corrugatedWhite: THREE.MeshStandardMaterial;
+  whitePanel: THREE.MeshStandardMaterial;
+  monolithRoof: THREE.MeshStandardMaterial;
+  monolithWallLong: THREE.MeshStandardMaterial;
+  monolithWallEnd: THREE.MeshStandardMaterial;
+  hqWall: THREE.MeshStandardMaterial;
+  barracksWall: THREE.MeshStandardMaterial;
+  interiorDark: THREE.MeshStandardMaterial;
   metalDark: THREE.MeshStandardMaterial;
   roofDark: THREE.MeshStandardMaterial;
   glass: THREE.MeshStandardMaterial;
   radomeWhite: THREE.MeshStandardMaterial;
   tankSteel: THREE.MeshStandardMaterial;
   beacon: THREE.MeshStandardMaterial;
+  solar: THREE.MeshStandardMaterial;
+  gravel: THREE.MeshStandardMaterial;
+  hazard: THREE.MeshStandardMaterial;
+  airframeDark: THREE.MeshStandardMaterial;
+  airframeLight: THREE.MeshStandardMaterial;
+  canopy: THREE.MeshStandardMaterial;
+  tire: THREE.MeshStandardMaterial;
+}
+
+function facadeMaterial(
+  seed: number,
+  base: string,
+  bands: Parameters<typeof makeFacadeTextures>[0]["bands"],
+): THREE.MeshStandardMaterial {
+  const { map, emissive } = makeFacadeTextures({ seed, base, bands });
+  return new THREE.MeshStandardMaterial({
+    map,
+    emissiveMap: emissive,
+    emissive: new THREE.Color("#ffffff"),
+    emissiveIntensity: 0,
+    roughness: 0.85,
+  });
 }
 
 function useSharedMaterials(): SharedMaterials {
@@ -29,6 +62,10 @@ function useSharedMaterials(): SharedMaterials {
     const concreteLightTex = makeConcreteWallTexture(SITE_SEED + 501, "#b3ac9c");
     const corrTex = makeCorrugatedTexture(SITE_SEED + 502, "#969ca1");
     const corrTanTex = makeCorrugatedTexture(SITE_SEED + 503, "#a89f8a");
+    const corrWhiteTex = makeCorrugatedTexture(SITE_SEED + 504, "#d9d6cc");
+    const whitePanelTex = makeWhitePanelTexture(SITE_SEED + 505);
+    const monolithRoofTex = makeWhitePanelTexture(SITE_SEED + 506);
+    monolithRoofTex.repeat.set(0.06, 0.06);
     return {
       concrete: new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.92 }),
       concreteLight: new THREE.MeshStandardMaterial({
@@ -45,6 +82,29 @@ function useSharedMaterials(): SharedMaterials {
         roughness: 0.65,
         metalness: 0.3,
       }),
+      corrugatedWhite: new THREE.MeshStandardMaterial({
+        map: corrWhiteTex,
+        roughness: 0.6,
+        metalness: 0.25,
+      }),
+      whitePanel: new THREE.MeshStandardMaterial({ map: whitePanelTex, roughness: 0.7 }),
+      monolithRoof: new THREE.MeshStandardMaterial({ map: monolithRoofTex, roughness: 0.65 }),
+      monolithWallLong: facadeMaterial(SITE_SEED + 510, "#dcd8cd", [
+        { top: 0.14, height: 0.1, cols: 16 },
+        { top: 0.32, height: 0.1, cols: 16 },
+      ]),
+      monolithWallEnd: facadeMaterial(SITE_SEED + 511, "#dcd8cd", [
+        { top: 0.14, height: 0.1, cols: 8 },
+        { top: 0.32, height: 0.1, cols: 8 },
+      ]),
+      hqWall: facadeMaterial(SITE_SEED + 512, "#b6ab93", [
+        { top: 0.2, height: 0.2, cols: 10 },
+        { top: 0.56, height: 0.2, cols: 10 },
+      ]),
+      barracksWall: facadeMaterial(SITE_SEED + 513, "#bfb49b", [
+        { top: 0.3, height: 0.26, cols: 12 },
+      ]),
+      interiorDark: new THREE.MeshStandardMaterial({ color: "#15130f", roughness: 1 }),
       metalDark: new THREE.MeshStandardMaterial({
         color: "#4b4f53",
         roughness: 0.5,
@@ -73,15 +133,58 @@ function useSharedMaterials(): SharedMaterials {
         emissive: new THREE.Color("#ff4136"),
         emissiveIntensity: 0.6,
       }),
+      solar: new THREE.MeshStandardMaterial({
+        map: makeSolarTexture(SITE_SEED + 520),
+        roughness: 0.35,
+        metalness: 0.4,
+        side: THREE.DoubleSide,
+      }),
+      gravel: new THREE.MeshStandardMaterial({ color: "#9b8c6f", roughness: 1 }),
+      hazard: new THREE.MeshStandardMaterial({ color: "#c9452c", roughness: 0.6 }),
+      airframeDark: new THREE.MeshStandardMaterial({
+        color: "#33363a",
+        roughness: 0.5,
+        metalness: 0.35,
+      }),
+      airframeLight: new THREE.MeshStandardMaterial({
+        color: "#969ba0",
+        roughness: 0.45,
+        metalness: 0.4,
+      }),
+      canopy: new THREE.MeshStandardMaterial({
+        color: "#182a36",
+        roughness: 0.1,
+        metalness: 0.85,
+      }),
+      tire: new THREE.MeshStandardMaterial({ color: "#17181a", roughness: 0.95 }),
     };
   }, []);
 
   useEffect(() => {
     materials.glass.emissiveIntensity = night ? 1.4 : 0;
     materials.beacon.emissiveIntensity = night ? 3 : 0.6;
+    const facadeGlow = night ? 1.2 : 0;
+    materials.monolithWallLong.emissiveIntensity = facadeGlow;
+    materials.monolithWallEnd.emissiveIntensity = facadeGlow;
+    materials.hqWall.emissiveIntensity = facadeGlow;
+    materials.barracksWall.emissiveIntensity = facadeGlow;
   }, [night, materials]);
 
   return materials;
+}
+
+/** Extruded gable-roof prism: `width` across, `rise` tall, `depth` long. */
+function useGableGeometry(width: number, rise: number, depth: number): THREE.ExtrudeGeometry {
+  return useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-width / 2, 0);
+    shape.lineTo(width / 2, 0);
+    shape.lineTo(0, rise);
+    shape.closePath();
+    const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+    geo.translate(0, 0, -depth / 2);
+    return geo;
+  }, [width, rise, depth]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -98,18 +201,62 @@ function ControlTower({ def, m }: BuilderProps) {
   const shaftH = h - 5;
   return (
     <group>
+      {/* base annex with equipment room */}
       <mesh material={m.concrete} castShadow receiveShadow position={[0, 0.5, 0]}>
-        <boxGeometry args={[10, 1, 10]} />
+        <boxGeometry args={[11, 1, 11]} />
       </mesh>
+      <mesh material={m.concreteLight} castShadow position={[4.6, 2.2, 0]}>
+        <boxGeometry args={[5, 3.4, 8]} />
+      </mesh>
+      <mesh material={m.roofDark} position={[4.6, 4.05, 0]}>
+        <boxGeometry args={[5.4, 0.25, 8.4]} />
+      </mesh>
+      {/* tapered shaft with ring ledges */}
       <mesh material={m.concrete} castShadow position={[0, 1 + shaftH / 2, 0]}>
-        <boxGeometry args={[6.5, shaftH, 6.5]} />
+        <cylinderGeometry args={[3.1, 4.1, shaftH, 8]} />
       </mesh>
+      {[0.35, 0.65].map((f) => (
+        <mesh key={f} material={m.concreteLight} position={[0, 1 + shaftH * f, 0]}>
+          <cylinderGeometry args={[3.55, 3.55, 0.35, 8]} />
+        </mesh>
+      ))}
+      {/* catwalk and cab */}
       <mesh material={m.concreteLight} castShadow position={[0, shaftH + 1.25, 0]}>
-        <boxGeometry args={[9.5, 0.5, 9.5]} />
+        <cylinderGeometry args={[5.1, 4.6, 0.5, 8]} />
+      </mesh>
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <mesh
+          key={i}
+          material={m.metalDark}
+          position={[
+            Math.cos((i / 8) * Math.PI * 2) * 4.9,
+            shaftH + 2.05,
+            Math.sin((i / 8) * Math.PI * 2) * 4.9,
+          ]}
+        >
+          <cylinderGeometry args={[0.05, 0.05, 1.1, 4]} />
+        </mesh>
+      ))}
+      <mesh material={m.metalDark} position={[0, shaftH + 2.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[4.9, 0.05, 6, 24]} />
       </mesh>
       <mesh material={m.glass} castShadow position={[0, shaftH + 3.1, 0]}>
         <cylinderGeometry args={[4, 4.4, 3.2, 8]} />
       </mesh>
+      {/* cab mullions */}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <mesh
+          key={`mul${i}`}
+          material={m.metalDark}
+          position={[
+            Math.cos(((i + 0.5) / 8) * Math.PI * 2) * 4.15,
+            shaftH + 3.1,
+            Math.sin(((i + 0.5) / 8) * Math.PI * 2) * 4.15,
+          ]}
+        >
+          <boxGeometry args={[0.16, 3.2, 0.16]} />
+        </mesh>
+      ))}
       <mesh material={m.concreteLight} castShadow position={[0, shaftH + 5, 0]}>
         <cylinderGeometry args={[4.7, 4.2, 0.6, 8]} />
       </mesh>
@@ -123,67 +270,154 @@ function ControlTower({ def, m }: BuilderProps) {
   );
 }
 
-function BarrelHangar({ def, m }: BuilderProps) {
+/** The big white assembly hangar: clerestory bands, low gable, apron door. */
+function MonolithHangar({ def, m }: BuilderProps) {
   const [w, h, d] = def.size;
-  const wallH = h * 0.45;
-  const r = d / 2;
-  const vaultScale = (h - wallH) / r;
+  const rise = 3;
+  const wallH = h - rise;
+  const roofGeometry = useGableGeometry(w + 1.6, rise, d + 1.6);
+  const wallMaterials = [
+    m.monolithWallLong,
+    m.monolithWallLong,
+    m.monolithRoof,
+    m.monolithRoof,
+    m.monolithWallEnd,
+    m.monolithWallEnd,
+  ];
   return (
     <group>
-      <mesh material={m.corrugated} castShadow receiveShadow position={[0, wallH / 2, 0]}>
+      {/* plinth */}
+      <mesh material={m.concrete} receiveShadow position={[0, 0.4, 0]}>
+        <boxGeometry args={[w + 2.4, 0.8, d + 2.4]} />
+      </mesh>
+      {/* hall */}
+      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.8 + wallH / 2, 0]}>
         <boxGeometry args={[w, wallH, d]} />
       </mesh>
-      <mesh
-        material={m.corrugated}
-        castShadow
-        position={[0, wallH, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-        scale={[1, 1, vaultScale]}
-      >
-        {/* half-cylinder vault: axis re-oriented along x, shell facing up */}
+      <mesh material={m.monolithRoof} geometry={roofGeometry} castShadow position={[0, 0.8 + wallH, 0]} />
+      {/* low ridge monitors */}
+      {[-0.28, 0, 0.28].map((f) => (
+        <mesh key={f} material={m.whitePanel} castShadow position={[0, 0.8 + wallH + rise + 0.25, d * f]}>
+          <boxGeometry args={[1.8, 0.5, d * 0.2]} />
+        </mesh>
+      ))}
+      {/* full-width sliding door on the apron (-z) face */}
+      <mesh material={m.corrugated} castShadow position={[0, 0.8 + wallH * 0.4, -d / 2 - 0.25]}>
+        <boxGeometry args={[w * 0.78, wallH * 0.8, 0.5]} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh
+          key={side}
+          material={m.whitePanel}
+          castShadow
+          position={[side * w * 0.43, 0.8 + wallH * 0.45, -d / 2 - 0.55]}
+        >
+          <boxGeometry args={[3, wallH * 0.9, 1.4]} />
+        </mesh>
+      ))}
+      <mesh material={m.whitePanel} castShadow position={[0, 0.8 + wallH * 0.93, -d / 2 - 0.55]}>
+        <boxGeometry args={[w * 0.9, wallH * 0.14, 1.4]} />
+      </mesh>
+      {/* service annexes along the +x wall */}
+      {[-0.22, 0.22].map((f) => (
+        <group key={f}>
+          <mesh material={m.concreteLight} castShadow receiveShadow position={[w / 2 + 4, 2.75, d * f]}>
+            <boxGeometry args={[8, 5.5, 16]} />
+          </mesh>
+          <mesh material={m.roofDark} position={[w / 2 + 4, 5.62, d * f]}>
+            <boxGeometry args={[8.4, 0.25, 16.4]} />
+          </mesh>
+          <mesh material={m.metalDark} castShadow position={[w / 2 + 4, 6.2, d * f + 5]}>
+            <boxGeometry args={[1.5, 0.9, 1.5]} />
+          </mesh>
+        </group>
+      ))}
+      {/* exhaust stacks on the -x wall */}
+      {[-0.32, -0.12].map((f) => (
+        <mesh key={f} material={m.metalDark} castShadow position={[-w / 2 - 0.8, wallH * 0.7, d * f]}>
+          <cylinderGeometry args={[0.5, 0.5, wallH * 1.4, 10]} />
+        </mesh>
+      ))}
+      {/* apron floodlight masts flanking the door */}
+      {[-1, 1].map((side) => (
+        <group key={`mast${side}`} position={[side * w * 0.55, 0, -d / 2 - 8]}>
+          <mesh material={m.metalDark} castShadow position={[0, 6, 0]}>
+            <cylinderGeometry args={[0.14, 0.2, 12, 8]} />
+          </mesh>
+          <mesh material={m.glass} position={[0, 12.2, 0]}>
+            <boxGeometry args={[1.8, 0.5, 0.6]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** Three gabled shelter bays with dark open mouths on the +z face. */
+function ShelterRow({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const bayW = w / 3;
+  const wallH = h * 0.72;
+  const roofGeometry = useGableGeometry(bayW + 0.7, h - wallH, d + 1);
+  return (
+    <group>
+      <mesh material={m.concrete} receiveShadow position={[0, 0.25, 0]}>
+        <boxGeometry args={[w + 1.6, 0.5, d + 1.6]} />
+      </mesh>
+      {/* back wall */}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 0.5 + wallH * 0.5, -d / 2 + 0.3]}>
+        <boxGeometry args={[w, wallH, 0.6]} />
+      </mesh>
+      {/* dividing + outer side walls */}
+      {[-1.5, -0.5, 0.5, 1.5].map((f) => (
+        <mesh
+          key={f}
+          material={m.concreteLight}
+          castShadow
+          receiveShadow
+          position={[f * bayW, 0.5 + wallH * 0.5, 0]}
+        >
+          <boxGeometry args={[0.7, wallH, d - 0.8]} />
+        </mesh>
+      ))}
+      {/* per-bay gable roofs and dark interiors */}
+      {[-1, 0, 1].map((bay) => (
+        <group key={bay} position={[bay * bayW, 0, 0]}>
+          <mesh material={m.corrugatedWhite} geometry={roofGeometry} castShadow position={[0, 0.5 + wallH, 0]} />
+          <mesh material={m.interiorDark} position={[0, 0.5 + wallH * 0.42, d / 2 - 0.9]}>
+            <boxGeometry args={[bayW - 2.2, wallH * 0.84, 0.7]} />
+          </mesh>
+          <mesh material={m.whitePanel} castShadow position={[0, 0.5 + wallH * 0.92, d / 2 - 0.3]}>
+            <boxGeometry args={[bayW + 0.7, wallH * 0.16, 0.6]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** Ribbed steel arch shed; length runs along local x. */
+function Quonset({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const r = d / 2;
+  return (
+    <group scale={[1, h / r, 1]}>
+      <mesh material={m.corrugatedWhite} castShadow receiveShadow rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[r, r, w, 24, 1, true, 0, Math.PI]} />
       </mesh>
       {[-1, 1].map((side) => (
         <mesh
           key={side}
-          material={m.corrugatedTan}
+          material={m.whitePanel}
           castShadow
-          position={[side * (w / 2), wallH, 0]}
+          position={[side * (w / 2), 0, 0]}
           rotation={[0, (side * Math.PI) / 2, 0]}
-          scale={[1, vaultScale, 1]}
         >
           <circleGeometry args={[r, 24, 0, Math.PI]} />
         </mesh>
       ))}
-      <mesh material={m.metalDark} castShadow position={[0, (wallH * 0.82) / 2, d / 2 + 0.25]}>
-        <boxGeometry args={[w * 0.68, wallH * 0.82, 0.4]} />
-      </mesh>
-    </group>
-  );
-}
-
-function GableHangar({ def, m }: BuilderProps) {
-  const [w, h, d] = def.size;
-  const wallH = h * 0.62;
-  const roofGeometry = useMemo(() => {
-    const rise = h - wallH;
-    const shape = new THREE.Shape();
-    shape.moveTo(-w / 2, 0);
-    shape.lineTo(w / 2, 0);
-    shape.lineTo(0, rise);
-    shape.closePath();
-    const geo = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
-    geo.translate(0, 0, -d / 2);
-    return geo;
-  }, [w, h, d, wallH]);
-  return (
-    <group>
-      <mesh material={m.corrugatedTan} castShadow receiveShadow position={[0, wallH / 2, 0]}>
-        <boxGeometry args={[w, wallH, d]} />
-      </mesh>
-      <mesh material={m.corrugated} geometry={roofGeometry} castShadow position={[0, wallH, 0]} />
-      <mesh material={m.metalDark} castShadow position={[0, (wallH * 0.85) / 2, d / 2 + 0.25]}>
-        <boxGeometry args={[w * 0.6, wallH * 0.85, 0.4]} />
+      <mesh material={m.interiorDark} position={[w / 2 + 0.1, 1.9, 0]}>
+        <boxGeometry args={[0.4, 3.8, 4.4]} />
       </mesh>
     </group>
   );
@@ -210,13 +444,128 @@ function Warehouse({ def, m }: BuilderProps) {
           <boxGeometry args={[0.4, 0.8, d]} />
         </mesh>
       ))}
+      {/* skylight strips */}
+      {[-0.22, 0.22].map((f) => (
+        <mesh key={`s${f}`} material={m.whitePanel} position={[0, h + 0.45, d * f]}>
+          <boxGeometry args={[w * 0.72, 0.4, 1.6]} />
+        </mesh>
+      ))}
+      {/* roof plant */}
+      <mesh material={m.metalDark} castShadow position={[w * 0.3, h + 0.8, 0]}>
+        <boxGeometry args={[2, 1.2, 2]} />
+      </mesh>
+      {/* roller doors on the +z face */}
+      {[-0.28, 0, 0.28].map((f) => (
+        <mesh key={`d${f}`} material={m.corrugated} position={[w * f, h * 0.38, d / 2 + 0.18]}>
+          <boxGeometry args={[6, h * 0.72, 0.35]} />
+        </mesh>
+      ))}
       {/* loading dock */}
       <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 0.6, d / 2 + 2]}>
-        <boxGeometry args={[w * 0.45, 1.2, 4]} />
+        <boxGeometry args={[w * 0.55, 1.2, 4]} />
       </mesh>
-      <mesh material={m.metalDark} position={[0, h * 0.4, d / 2 + 0.15]}>
-        <boxGeometry args={[w * 0.3, h * 0.7, 0.3]} />
+    </group>
+  );
+}
+
+/** Two-storey operations building with window bands and entrance canopy. */
+function HqBuilding({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const wallMaterials = [m.hqWall, m.hqWall, m.roofDark, m.roofDark, m.hqWall, m.hqWall];
+  return (
+    <group>
+      <mesh material={m.concrete} receiveShadow position={[0, 0.25, 0]}>
+        <boxGeometry args={[w + 1.6, 0.5, d + 1.6]} />
       </mesh>
+      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.5 + h / 2, 0]}>
+        <boxGeometry args={[w, h, d]} />
+      </mesh>
+      {/* parapet */}
+      {[-1, 1].map((side) => (
+        <mesh key={`p${side}`} material={m.concreteLight} position={[0, h + 0.75, (side * (d - 0.4)) / 2]}>
+          <boxGeometry args={[w, 0.7, 0.4]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh key={`q${side}`} material={m.concreteLight} position={[(side * (w - 0.4)) / 2, h + 0.75, 0]}>
+          <boxGeometry args={[0.4, 0.7, d]} />
+        </mesh>
+      ))}
+      {/* entrance canopy on the -x (street) face */}
+      <mesh material={m.roofDark} castShadow position={[-w / 2 - 2, 3.4, 0]}>
+        <boxGeometry args={[4, 0.3, 8]} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={`c${side}`} material={m.metalDark} position={[-w / 2 - 3.6, 1.7, side * 3.4]}>
+          <cylinderGeometry args={[0.14, 0.14, 3.4, 8]} />
+        </mesh>
+      ))}
+      <mesh material={m.interiorDark} position={[-w / 2 - 0.05, 1.6, 0]}>
+        <boxGeometry args={[0.3, 2.6, 3.4]} />
+      </mesh>
+      {/* roof plant + comms mast */}
+      {[-0.28, 0.1].map((f) => (
+        <mesh key={`ac${f}`} material={m.metalDark} castShadow position={[w * f, h + 1, d * 0.15]}>
+          <boxGeometry args={[1.8, 1, 1.8]} />
+        </mesh>
+      ))}
+      <group position={[w * 0.32, 0, -d * 0.2]}>
+        <mesh material={m.metalDark} castShadow position={[0, h + 3.6, 0]}>
+          <cylinderGeometry args={[0.08, 0.14, 6.5, 6]} />
+        </mesh>
+        <mesh material={m.metalDark} position={[0, h + 5.4, 0]}>
+          <boxGeometry args={[1.6, 0.12, 0.12]} />
+        </mesh>
+        <mesh material={m.metalDark} position={[0, h + 4.6, 0]}>
+          <boxGeometry args={[2.2, 0.12, 0.12]} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/** Long dormitory block; the whole roof is a tilted photovoltaic array. */
+function Barracks({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const wallMaterials = [
+    m.barracksWall,
+    m.barracksWall,
+    m.roofDark,
+    m.roofDark,
+    m.barracksWall,
+    m.barracksWall,
+  ];
+  return (
+    <group>
+      <mesh material={m.concrete} receiveShadow position={[0, 0.2, 0]}>
+        <boxGeometry args={[w + 1.2, 0.4, d + 1.2]} />
+      </mesh>
+      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.4 + h / 2, 0]}>
+        <boxGeometry args={[w, h, d]} />
+      </mesh>
+      {/* entrance doors with canopies on the +z face */}
+      {[-0.25, 0.25].map((f) => (
+        <group key={f} position={[w * f, 0, d / 2]}>
+          <mesh material={m.interiorDark} position={[0, 1.5, 0.05]}>
+            <boxGeometry args={[1.4, 2.4, 0.25]} />
+          </mesh>
+          <mesh material={m.roofDark} castShadow position={[0, 2.9, 0.8]}>
+            <boxGeometry args={[2.4, 0.2, 1.8]} />
+          </mesh>
+        </group>
+      ))}
+      {/* rooftop photovoltaic rows facing south (+z) */}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh
+          key={i}
+          material={m.solar}
+          castShadow
+          position={[0, h + 1.05, -d / 2 + 2.2 + i * ((d - 4) / 3)]}
+          rotation={[-0.29, 0, 0]}
+        >
+          <boxGeometry args={[w - 3, 0.12, 2.6]} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -231,11 +580,114 @@ function SupportBuilding({ def, m }: BuilderProps) {
       <mesh material={m.roofDark} castShadow position={[0, h + 0.12, 0]}>
         <boxGeometry args={[w + 0.8, 0.25, d + 0.8]} />
       </mesh>
-      <mesh material={m.metalDark} position={[w * 0.2, h * 0.4, d / 2 + 0.08]}>
-        <boxGeometry args={[1.2, h * 0.75, 0.15]} />
+      {/* window strip and door on the +z face */}
+      <mesh material={m.glass} position={[w * 0.08, h * 0.58, d / 2 + 0.04]}>
+        <boxGeometry args={[w * 0.5, 0.9, 0.1]} />
+      </mesh>
+      <mesh material={m.interiorDark} position={[-w * 0.32, h * 0.36, d / 2 + 0.04]}>
+        <boxGeometry args={[1.3, h * 0.68, 0.12]} />
       </mesh>
       <mesh material={m.metalDark} castShadow position={[-w * 0.25, h + 0.7, 0]}>
         <boxGeometry args={[1.6, 0.9, 1.6]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Walled yard: perimeter wall with a gate, workshop block and shed inside. */
+function WalledCompound({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const wallH = 2.8;
+  const gate = 8;
+  const segW = (w - gate) / 2;
+  return (
+    <group>
+      {/* perimeter walls; gate gap on the +z side */}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, wallH / 2, -d / 2 + 0.25]}>
+        <boxGeometry args={[w, wallH, 0.5]} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`s${side}`}
+          material={m.concreteLight}
+          castShadow
+          receiveShadow
+          position={[(side * (gate + segW)) / 2, wallH / 2, d / 2 - 0.25]}
+        >
+          <boxGeometry args={[segW, wallH, 0.5]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`e${side}`}
+          material={m.concreteLight}
+          castShadow
+          receiveShadow
+          position={[side * (w / 2 - 0.25), wallH / 2, 0]}
+        >
+          <boxGeometry args={[0.5, wallH, d - 1]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh key={`g${side}`} material={m.concrete} castShadow position={[(side * gate) / 2, 1.7, d / 2 - 0.25]}>
+          <boxGeometry args={[0.8, 3.4, 0.8]} />
+        </mesh>
+      ))}
+      {/* workshop block */}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[-w * 0.2, h / 2, -d * 0.18]}>
+        <boxGeometry args={[w * 0.4, h, d * 0.36]} />
+      </mesh>
+      <mesh material={m.roofDark} position={[-w * 0.2, h + 0.12, -d * 0.18]}>
+        <boxGeometry args={[w * 0.4 + 0.6, 0.25, d * 0.36 + 0.6]} />
+      </mesh>
+      {/* open-sided shed */}
+      <mesh material={m.corrugatedTan} castShadow position={[w * 0.27, h * 0.62, -d * 0.22]}>
+        <boxGeometry args={[w * 0.24, 0.3, d * 0.24]} />
+      </mesh>
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh
+            key={`leg${sx}${sz}`}
+            material={m.metalDark}
+            position={[w * 0.27 + sx * w * 0.1, h * 0.28, -d * 0.22 + sz * d * 0.1]}
+          >
+            <cylinderGeometry args={[0.08, 0.08, h * 0.6, 6]} />
+          </mesh>
+        )),
+      )}
+      {/* stored crates */}
+      {[
+        { x: w * 0.18, z: d * 0.22, s: 1.6 },
+        { x: w * 0.3, z: d * 0.18, s: 1.2 },
+        { x: -w * 0.05, z: d * 0.25, s: 1.4 },
+      ].map((c, i) => (
+        <mesh key={`crate${i}`} material={m.concrete} castShadow position={[c.x, c.s / 2, c.z]}>
+          <boxGeometry args={[c.s, c.s, c.s]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Guardhouse({ def, m }: BuilderProps) {
+  void def;
+  return (
+    <group>
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 1.5, 0]}>
+        <boxGeometry args={[3.4, 3, 3.4]} />
+      </mesh>
+      <mesh material={m.glass} position={[0, 1.95, 0]}>
+        <boxGeometry args={[3.5, 0.9, 3.5]} />
+      </mesh>
+      <mesh material={m.roofDark} castShadow position={[0, 3.15, 0]}>
+        <boxGeometry args={[4.2, 0.25, 4.2]} />
+      </mesh>
+      {/* barrier arm across the approach */}
+      <mesh material={m.metalDark} castShadow position={[1.6, 0.6, 2.2]}>
+        <boxGeometry args={[0.3, 1.2, 0.3]} />
+      </mesh>
+      <mesh material={m.hazard} castShadow position={[-1, 1.15, 2.2]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.07, 0.07, 5.4, 8]} />
       </mesh>
     </group>
   );
@@ -254,8 +706,12 @@ function Radome({ def, m }: BuilderProps) {
       <mesh material={m.radomeWhite} castShadow position={[0, 8.5 + r * 0.82, 0]}>
         <icosahedronGeometry args={[r, 2]} />
       </mesh>
-      <mesh material={m.metalDark} position={[0, 1.25, 3.4]}>
-        <boxGeometry args={[1.4, 2.5, 1]} />
+      {/* equipment shelter + generator */}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[0.4, 1.25, 4.6]}>
+        <boxGeometry args={[3.4, 2.5, 2.2]} />
+      </mesh>
+      <mesh material={m.metalDark} position={[-3.2, 0.8, 3.4]}>
+        <boxGeometry args={[1.6, 1.6, 1]} />
       </mesh>
     </group>
   );
@@ -281,9 +737,212 @@ function FuelTank({ def, m }: BuilderProps) {
           <torusGeometry args={[r + 0.06, 0.08, 6, 32]} />
         </mesh>
       ))}
+      {/* access ladder and transfer pipe */}
       <mesh material={m.metalDark} castShadow position={[r + 0.3, h / 2, 0]}>
         <boxGeometry args={[0.5, h, 0.2]} />
       </mesh>
+      <mesh material={m.metalDark} position={[0, 0.5, -r - 2.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.16, 0.16, 5, 8]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Ground-mounted photovoltaic field: tilted rows on a graded pad. */
+function SolarArray({ def, m }: BuilderProps) {
+  const [w, , d] = def.size;
+  const rows = 6;
+  const pitch = (d - 8) / (rows - 1);
+  return (
+    <group>
+      <mesh material={m.gravel} receiveShadow position={[0, 0.08, 0]}>
+        <boxGeometry args={[w, 0.16, d]} />
+      </mesh>
+      {Array.from({ length: rows }, (_, i) => (
+        <mesh
+          key={i}
+          material={m.solar}
+          castShadow
+          position={[0, 1.6, -d / 2 + 4 + i * pitch]}
+          rotation={[-0.31, 0, 0]}
+        >
+          <boxGeometry args={[w - 8, 0.14, 3.4]} />
+        </mesh>
+      ))}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[w / 2 - 4, 1.1, d / 2 - 3]}>
+        <boxGeometry args={[3, 2.2, 2]} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Aircraft                                                            */
+/* ------------------------------------------------------------------ */
+
+/** Tailless flying-wing UCAV, nose toward local -z. */
+function AircraftDelta({ def, m }: BuilderProps) {
+  const [span, , len] = def.size;
+  const wingGeometry = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, len * 0.52);
+    s.lineTo(span * 0.5, -len * 0.3);
+    s.lineTo(span * 0.5 - 0.8, -len * 0.4);
+    s.lineTo(span * 0.16, -len * 0.46);
+    s.lineTo(0, -len * 0.34);
+    s.lineTo(-span * 0.16, -len * 0.46);
+    s.lineTo(-(span * 0.5 - 0.8), -len * 0.4);
+    s.lineTo(-span * 0.5, -len * 0.3);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 0.4,
+      bevelEnabled: true,
+      bevelThickness: 0.24,
+      bevelSize: 0.5,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+  return (
+    <group>
+      <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, 1.0, 0]} />
+      {/* dorsal hump: inlet, engine and bay fairing */}
+      <mesh material={m.airframeDark} castShadow position={[0, 1.35, -len * 0.08]} scale={[1.25, 0.55, 2.1]}>
+        <sphereGeometry args={[1.15, 20, 14]} />
+      </mesh>
+      <mesh material={m.metalDark} position={[0, 1.25, len * 0.37]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.3, 0.36, 0.9, 12]} />
+      </mesh>
+      {/* landing gear */}
+      <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
+        <cylinderGeometry args={[0.07, 0.07, 0.9, 6]} />
+      </mesh>
+      <mesh material={m.tire} position={[0, 0.24, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.24, 0.24, 0.16, 12]} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * 1.3, 0, len * 0.1]}>
+          <mesh material={m.metalDark} position={[0, 0.6, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 0.9, 6]} />
+          </mesh>
+          <mesh material={m.tire} position={[0, 0.28, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.28, 0.28, 0.18, 12]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** Twin-tail multirole fighter, nose toward local -z. */
+function AircraftFighter({ def, m }: BuilderProps) {
+  const [span, , len] = def.size;
+  const cy = 1.15;
+  const wingGeometry = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0.8, len * 0.1);
+    s.lineTo(span * 0.5, -len * 0.11);
+    s.lineTo(span * 0.5, -len * 0.16);
+    s.lineTo(0.8, -len * 0.21);
+    s.lineTo(-0.8, -len * 0.21);
+    s.lineTo(-span * 0.5, -len * 0.16);
+    s.lineTo(-span * 0.5, -len * 0.11);
+    s.lineTo(-0.8, len * 0.1);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 0.16,
+      bevelEnabled: true,
+      bevelThickness: 0.05,
+      bevelSize: 0.1,
+      bevelSegments: 1,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+  const stabGeometry = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0.45, 0.6);
+    s.lineTo(2.6, -0.5);
+    s.lineTo(2.6, -1.0);
+    s.lineTo(0.45, -1.1);
+    s.lineTo(-0.45, -1.1);
+    s.lineTo(-2.6, -1.0);
+    s.lineTo(-2.6, -0.5);
+    s.lineTo(-0.45, 0.6);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, { depth: 0.12, bevelEnabled: false });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, []);
+  return (
+    <group>
+      {/* fuselage: nose cone, barrel, tail taper */}
+      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.435]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.85, 0.12, len * 0.22, 16]} />
+      </mesh>
+      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.05]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.85, 0.85, len * 0.55, 16]} />
+      </mesh>
+      <mesh material={m.airframeLight} castShadow position={[0, cy, len * 0.315]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.55, 0.85, len * 0.18, 16]} />
+      </mesh>
+      <mesh material={m.metalDark} position={[0, cy, -len * 0.5 - 0.55]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 1.1, 6]} />
+      </mesh>
+      {/* canopy */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 0.68, -len * 0.22]} scale={[0.75, 0.6, 1.8]}>
+        <sphereGeometry args={[0.8, 18, 12]} />
+      </mesh>
+      {/* intakes */}
+      {[-1, 1].map((side) => (
+        <mesh key={`i${side}`} material={m.airframeLight} castShadow position={[side * 0.95, cy - 0.3, -len * 0.1]}>
+          <boxGeometry args={[0.55, 0.75, len * 0.16]} />
+        </mesh>
+      ))}
+      {/* wings and stabilators */}
+      <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy - 0.28, 0]} />
+      <mesh material={m.airframeLight} geometry={stabGeometry} castShadow position={[0, cy - 0.05, len * 0.36]} />
+      {/* twin canted fins */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`f${side}`}
+          material={m.airframeLight}
+          castShadow
+          position={[side * 0.95, cy + 1.35, len * 0.3]}
+          rotation={[0.42, 0, side * -0.28]}
+        >
+          <boxGeometry args={[0.12, 2.2, 1.7]} />
+        </mesh>
+      ))}
+      {/* engine nozzles */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`n${side}`}
+          material={m.metalDark}
+          position={[side * 0.46, cy - 0.05, len * 0.43]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <cylinderGeometry args={[0.4, 0.44, 1.1, 12]} />
+        </mesh>
+      ))}
+      {/* landing gear */}
+      <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
+        <cylinderGeometry args={[0.06, 0.06, 1.1, 6]} />
+      </mesh>
+      <mesh material={m.tire} position={[0, 0.26, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.18, 12]} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <group key={`g${side}`} position={[side * 1.35, 0, len * 0.06]}>
+          <mesh material={m.metalDark} position={[0, 0.6, 0]}>
+            <cylinderGeometry args={[0.07, 0.07, 1.1, 6]} />
+          </mesh>
+          <mesh material={m.tire} position={[0, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.3, 0.3, 0.2, 12]} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
@@ -296,18 +955,34 @@ function StructureBody(props: BuilderProps) {
   switch (props.def.type) {
     case "tower":
       return <ControlTower {...props} />;
-    case "hangar-barrel":
-      return <BarrelHangar {...props} />;
-    case "hangar-gable":
-      return <GableHangar {...props} />;
+    case "hangar-monolith":
+      return <MonolithHangar {...props} />;
+    case "shelter-row":
+      return <ShelterRow {...props} />;
+    case "quonset":
+      return <Quonset {...props} />;
     case "warehouse":
       return <Warehouse {...props} />;
+    case "hq":
+      return <HqBuilding {...props} />;
+    case "barracks":
+      return <Barracks {...props} />;
     case "support":
       return <SupportBuilding {...props} />;
+    case "compound-walled":
+      return <WalledCompound {...props} />;
+    case "guardhouse":
+      return <Guardhouse {...props} />;
     case "radome":
       return <Radome {...props} />;
     case "fuel-tank":
       return <FuelTank {...props} />;
+    case "solar-array":
+      return <SolarArray {...props} />;
+    case "aircraft-delta":
+      return <AircraftDelta {...props} />;
+    case "aircraft-fighter":
+      return <AircraftFighter {...props} />;
   }
 }
 

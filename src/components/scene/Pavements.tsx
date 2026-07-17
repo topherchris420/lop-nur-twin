@@ -3,6 +3,7 @@ import {
   APRONS,
   ROADS,
   RUNWAYS,
+  STREETS,
   STRIPS,
   TAXIWAYS,
   segmentAngle,
@@ -25,6 +26,7 @@ const LIFT: Record<SegmentDef["kind"], number> = {
   runway: 0.1,
   strip: 0.05,
   taxiway: 0.07,
+  street: 0.12,
   road: 0.14,
 };
 
@@ -40,7 +42,10 @@ function useSegmentTransform(seg: SegmentDef, index: number) {
     return {
       length: segmentLength(seg),
       position: [cx, y, cz] as [number, number, number],
-      rotation: [-Math.PI / 2, 0, -segmentAngle(seg)] as [number, number, number],
+      // With euler [-π/2, 0, θ] the plane's +v axis maps to -(sin θ, cos θ)
+      // in (x, z), so +segmentAngle lays the strip along its from→to line
+      // (the negated variant mirrors angled segments across the x-axis).
+      rotation: [-Math.PI / 2, 0, segmentAngle(seg)] as [number, number, number],
     };
   }, [seg, index]);
 }
@@ -85,6 +90,26 @@ function TaxiwayMesh({ seg, index }: StripMeshProps) {
   );
 }
 
+function StreetMesh({ seg, index }: StripMeshProps) {
+  const { length, position, rotation } = useSegmentTransform(seg, index);
+  const texture = useMemo(
+    () =>
+      makePavementTexture({
+        lengthM: length,
+        widthM: seg.width,
+        markings: "none",
+        seed: SITE_SEED + 250 + index,
+      }),
+    [length, seg.width, index],
+  );
+  return (
+    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+      <planeGeometry args={[seg.width, length]} />
+      <meshStandardMaterial map={texture} roughness={0.9} metalness={0.02} />
+    </mesh>
+  );
+}
+
 function DirtMesh({ seg, index }: StripMeshProps) {
   const { length, position, rotation } = useSegmentTransform(seg, index);
   const texture = useMemo(() => {
@@ -110,6 +135,9 @@ export function Pavements() {
       ))}
       {TAXIWAYS.map((seg, i) => (
         <TaxiwayMesh key={seg.id} seg={seg} index={i} />
+      ))}
+      {STREETS.map((seg, i) => (
+        <StreetMesh key={seg.id} seg={seg} index={i} />
       ))}
       {STRIPS.map((seg, i) => (
         <DirtMesh key={seg.id} seg={seg} index={i} />

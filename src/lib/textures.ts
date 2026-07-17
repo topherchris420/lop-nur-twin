@@ -57,8 +57,9 @@ export interface PavementOptions {
 }
 
 /**
- * Asphalt strip texture. The canvas v-axis runs along the strip's length,
- * u across its width, matching a PlaneGeometry(width, length).
+ * Pale poured-concrete strip texture (the real site's runway and pavements
+ * read almost white from above). The canvas v-axis runs along the strip's
+ * length, u across its width, matching a PlaneGeometry(width, length).
  */
 export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture {
   const { lengthM, widthM, markings, seed } = opts;
@@ -69,21 +70,41 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
   const ctx = makeCanvas(W, H);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#3d3b38";
+  ctx.fillStyle = "#b3aea1";
   ctx.fillRect(0, 0, W, H);
-  speckle(ctx, rand, 9000, ["#55524d", "#2c2a28", "#474540", "#605c54"], 3);
+  speckle(ctx, rand, 9000, ["#c2bdb0", "#a19c8f", "#bab4a5", "#918c80"], 3);
 
   // faded longitudinal weathering bands
-  for (let i = 0; i < 14; i++) {
-    ctx.fillStyle = rand() > 0.5 ? "#454340" : "#343230";
+  for (let i = 0; i < 12; i++) {
+    ctx.fillStyle = rand() > 0.5 ? "#bcb7aa" : "#a29d91";
     ctx.globalAlpha = 0.06 + rand() * 0.08;
     const x = rand() * W;
     ctx.fillRect(x, 0, 6 + rand() * 24, H);
   }
   ctx.globalAlpha = 1;
 
+  // concrete expansion joints: transverse every 25 m, longitudinal thirds
+  ctx.strokeStyle = "#7e7a6f";
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.4;
+  for (let y = 25 * pxPerMy; y < H; y += 25 * pxPerMy) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  const nLong = Math.max(2, Math.round(widthM / 12));
+  for (let i = 1; i < nLong; i++) {
+    const x = (W / nLong) * i;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
   const paint = (alpha: number) => {
-    ctx.fillStyle = "#d9d5c9";
+    ctx.fillStyle = "#f4f1e6";
     ctx.globalAlpha = alpha;
   };
 
@@ -92,33 +113,44 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
     const gapH = 20 * pxPerMy;
     const lineW = Math.max(3, 0.9 * pxPerMx);
     // centerline dashes, skipping the threshold zones
-    paint(0.5);
-    for (let y = 90 * pxPerMy; y < H - 90 * pxPerMy; y += dashH + gapH) {
+    paint(0.75);
+    for (let y = 120 * pxPerMy; y < H - 120 * pxPerMy; y += dashH + gapH) {
       ctx.fillRect(W / 2 - lineW / 2, y, lineW, dashH);
     }
     // edge lines
-    paint(0.3);
+    paint(0.45);
     ctx.fillRect(4, 0, 3, H);
     ctx.fillRect(W - 7, 0, 3, H);
-    // threshold piano keys + chevrons at both ends
+    // threshold piano keys, designators and chevrons at both ends
     for (const end of [0, 1] as const) {
       const dir = end === 0 ? 1 : -1;
       const edge = end === 0 ? 0 : H;
       const keyY = edge + dir * 8 * pxPerMy;
       const keyH = dir * 28 * pxPerMy;
-      paint(0.55);
+      paint(0.8);
       const nKeys = 8;
       const span = W * 0.78;
       const keyW = span / (nKeys * 2 - 1);
       for (let i = 0; i < nKeys; i++) {
         ctx.fillRect((W - span) / 2 + i * keyW * 2, keyY, keyW, keyH);
       }
+      // runway designation numbers, read on approach
+      paint(0.75);
+      ctx.save();
+      ctx.translate(W / 2, edge + dir * 70 * pxPerMy);
+      if (end === 1) ctx.rotate(Math.PI);
+      // canvas top (end 0) renders at the segment's `from` end
+      ctx.font = `bold ${Math.round(24 * pxPerMy)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(end === 0 ? "08" : "26", 0, 0);
+      ctx.restore();
       // inward-pointing chevrons
-      paint(0.45);
-      ctx.strokeStyle = "#d9d5c9";
+      paint(0.6);
+      ctx.strokeStyle = "#f4f1e6";
       ctx.lineWidth = Math.max(3, 0.8 * pxPerMx);
       for (let i = 0; i < 3; i++) {
-        const baseY = edge + dir * (46 + i * 14) * pxPerMy;
+        const baseY = edge + dir * (92 + i * 14) * pxPerMy;
         const tipY = baseY + dir * 10 * pxPerMy;
         ctx.beginPath();
         ctx.moveTo(W * 0.2, baseY);
@@ -128,12 +160,12 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
       }
       // rubber / tire streaks just past the threshold
       ctx.globalAlpha = 1;
-      for (let i = 0; i < 60; i++) {
-        ctx.strokeStyle = "#1f1e1c";
-        ctx.globalAlpha = 0.04 + rand() * 0.09;
+      for (let i = 0; i < 70; i++) {
+        ctx.strokeStyle = "#2b2a27";
+        ctx.globalAlpha = 0.05 + rand() * 0.11;
         ctx.lineWidth = 1 + rand() * 3;
         const x = W * (0.3 + rand() * 0.4);
-        const y0 = edge + dir * (70 + rand() * 260) * pxPerMy;
+        const y0 = edge + dir * (110 + rand() * 260) * pxPerMy;
         ctx.beginPath();
         ctx.moveTo(x, y0);
         ctx.lineTo(x + (rand() - 0.5) * 6, y0 + dir * (30 + rand() * 120) * pxPerMy);
@@ -142,7 +174,7 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
     }
   } else if (markings === "taxiway") {
     ctx.fillStyle = "#c9a83c";
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.6;
     const lineW = Math.max(3, 0.5 * pxPerMx);
     ctx.fillRect(W / 2 - lineW / 2, 0, lineW, H);
   }
@@ -150,10 +182,10 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
 
   // dust encroaching from the edges
   const grad = ctx.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0, "rgba(178,160,127,0.28)");
+  grad.addColorStop(0, "rgba(178,160,127,0.35)");
   grad.addColorStop(0.12, "rgba(178,160,127,0)");
   grad.addColorStop(0.88, "rgba(178,160,127,0)");
-  grad.addColorStop(1, "rgba(178,160,127,0.28)");
+  grad.addColorStop(1, "rgba(178,160,127,0.35)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
@@ -221,9 +253,9 @@ export function makeApronTexture(seed: number): THREE.CanvasTexture {
   const ctx = makeCanvas(S, S);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#8f8a80";
+  ctx.fillStyle = "#a29d92";
   ctx.fillRect(0, 0, S, S);
-  speckle(ctx, rand, 14000, ["#9c968b", "#7e796f", "#a8a296", "#6f6a61"], 3);
+  speckle(ctx, rand, 14000, ["#afa99d", "#8f8a80", "#b7b1a4", "#7e796f"], 3);
 
   // expansion joints every 25 m over a 250 m apron → 10 panels
   ctx.strokeStyle = "#57534a";
@@ -300,6 +332,172 @@ export function makeCorrugatedTexture(seed: number, base = "#8d9297"): THREE.Can
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+  return toTexture(ctx);
+}
+
+/* ------------------------------------------------------------------ */
+/* Building facades                                                    */
+/* ------------------------------------------------------------------ */
+
+export interface WindowBand {
+  /** band top edge as a fraction of wall height, measured from the roofline */
+  top: number;
+  /** band height as a fraction of wall height */
+  height: number;
+  /** windows across one texture tile */
+  cols: number;
+}
+
+export interface FacadeOptions {
+  seed: number;
+  /** wall base color */
+  base: string;
+  bands: WindowBand[];
+  /** fraction of windows lit in the emissive map */
+  litRatio?: number;
+}
+
+export interface FacadeTextures {
+  map: THREE.CanvasTexture;
+  emissive: THREE.CanvasTexture;
+}
+
+/**
+ * Wall texture with horizontal window bands, plus a matching emissive map
+ * (only the lit windows are bright) for night-time glow.
+ */
+export function makeFacadeTextures(opts: FacadeOptions): FacadeTextures {
+  const S = 512;
+  const { seed, base, bands, litRatio = 0.55 } = opts;
+  const rand = mulberry32(seed);
+
+  const ctx = makeCanvas(S, S);
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, S, S);
+  speckle(ctx, rand, 4500, ["#ffffff", "#6f6a5f", "#8f887b"], 2);
+
+  // vertical cladding-panel seams
+  ctx.strokeStyle = "rgba(0,0,0,0.10)";
+  ctx.lineWidth = 1.5;
+  for (let x = 0; x < S; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, S);
+    ctx.stroke();
+  }
+  // dust wash streaks
+  for (let i = 0; i < 26; i++) {
+    ctx.strokeStyle = "#7d7669";
+    ctx.globalAlpha = 0.04 + rand() * 0.06;
+    ctx.lineWidth = 2 + rand() * 6;
+    const x = rand() * S;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + (rand() - 0.5) * 10, rand() * S * 0.6);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  const glowCtx = makeCanvas(S, S);
+  glowCtx.fillStyle = "#000000";
+  glowCtx.fillRect(0, 0, S, S);
+
+  for (const band of bands) {
+    const y0 = band.top * S;
+    const bh = band.height * S;
+    const cell = S / band.cols;
+    const winW = cell * 0.58;
+    for (let c = 0; c < band.cols; c++) {
+      const x0 = c * cell + (cell - winW) / 2;
+      // frame
+      ctx.fillStyle = "#57544c";
+      ctx.fillRect(x0 - 2, y0 - 2, winW + 4, bh + 4);
+      // glass, slightly varied
+      const g = ctx.createLinearGradient(0, y0, 0, y0 + bh);
+      g.addColorStop(0, "#3a4750");
+      g.addColorStop(1, "#232b31");
+      ctx.fillStyle = g;
+      ctx.fillRect(x0, y0, winW, bh);
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.fillRect(x0, y0, winW, bh * 0.18);
+
+      if (rand() < litRatio) {
+        glowCtx.fillStyle = `rgba(255, ${170 + Math.floor(rand() * 50)}, 94, ${0.75 + rand() * 0.25})`;
+        glowCtx.fillRect(x0, y0, winW, bh);
+      }
+    }
+  }
+
+  return { map: toTexture(ctx), emissive: toTexture(glowCtx) };
+}
+
+/** White ribbed / seamed panel skin for the big hangar roof and shelters. */
+export function makeWhitePanelTexture(seed: number): THREE.CanvasTexture {
+  const S = 512;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+  ctx.fillStyle = "#dedbd2";
+  ctx.fillRect(0, 0, S, S);
+  speckle(ctx, rand, 3000, ["#eceae2", "#cbc8bd"], 2);
+  // panel seams
+  ctx.strokeStyle = "rgba(0,0,0,0.12)";
+  ctx.lineWidth = 1.5;
+  for (let x = 0; x < S; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, S);
+    ctx.stroke();
+  }
+  // faint dust runs
+  for (let i = 0; i < 18; i++) {
+    ctx.strokeStyle = "#b3ad9e";
+    ctx.globalAlpha = 0.05 + rand() * 0.07;
+    ctx.lineWidth = 3 + rand() * 8;
+    const x = rand() * S;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, rand() * S);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  return toTexture(ctx);
+}
+
+/** Dark photovoltaic panel grid, for the solar field and rooftop arrays. */
+export function makeSolarTexture(seed: number): THREE.CanvasTexture {
+  const S = 256;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+  ctx.fillStyle = "#16233d";
+  ctx.fillRect(0, 0, S, S);
+  // cell grid
+  ctx.strokeStyle = "#2c436b";
+  ctx.lineWidth = 1.5;
+  for (let p = 0; p <= S; p += 16) {
+    ctx.beginPath();
+    ctx.moveTo(p, 0);
+    ctx.lineTo(p, S);
+    ctx.moveTo(0, p);
+    ctx.lineTo(S, p);
+    ctx.stroke();
+  }
+  // module borders every 4 cells
+  ctx.strokeStyle = "#8f96a1";
+  ctx.lineWidth = 2;
+  for (let p = 0; p <= S; p += 64) {
+    ctx.beginPath();
+    ctx.moveTo(p, 0);
+    ctx.lineTo(p, S);
+    ctx.moveTo(0, p);
+    ctx.lineTo(S, p);
+    ctx.stroke();
+  }
+  // sky glare
+  for (let i = 0; i < 6; i++) {
+    ctx.fillStyle = "rgba(180, 205, 235, 0.08)";
+    const w = 30 + rand() * 80;
+    ctx.fillRect(rand() * S, rand() * S, w, w * 0.4);
+  }
   return toTexture(ctx);
 }
 

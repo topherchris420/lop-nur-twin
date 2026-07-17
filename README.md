@@ -26,15 +26,26 @@ bun run preview    # serve the production build
   ~4 m relief), vertex-color mottling from gray-brown to dusty yellow, a
   generated tiling normal map for grain, and automatic flattening under every
   runway, road and building pad.
-- **Two 2.5 km paved runways** in an asymmetric cross (N–S and E–NW), with
-  faded centerlines, threshold piano keys, chevrons and tire rubber — all
-  painted into `CanvasTexture`s at runtime.
-- **A triangular loop of graded strips** northwest of the field, taxiways and
-  a concrete apron by the building cluster, and dirt roads reaching out to the
-  perimeter radar sites.
-- **12 procedural structures**: control tower with glazed cab, two barrel-roof
-  hangars, a gable hangar, logistics depot, admin/barracks/power/pump support
-  buildings, a fuel tank in its bund, and two perimeter radomes.
+- **A triangular airfield**, as in the source imagery: a single 3.4 km pale
+  concrete runway (08/26) forms the south leg, and two ~2.3–2.5 km
+  graded-earth strips complete the triangle to a northern apex, overshooting
+  the corners just like the real gradings. Centerline dashes, painted
+  designators, threshold piano keys, chevrons, expansion joints and tire
+  rubber are all painted into `CanvasTexture`s at runtime.
+- **A compound on its own rotated street grid**, reached by a wide paved stub
+  taxiway from mid-runway: concrete main apron, paved internal streets, and
+  dirt roads reaching out to the perimeter radar sites.
+- **19 procedural buildings**: a monolithic white assembly hangar with twin
+  clerestory window bands and a full-width apron door, a three-bay flight
+  shelter row, quonset shed, control tower with catwalk and glazed cab,
+  logistics depot with roller doors, two-storey operations HQ, solar-roof
+  barracks, walled vehicle and storage yards, gate post with barrier arm,
+  fuel farm, pump house, met station, ground-mounted solar array and two
+  perimeter radomes.
+- **Four parked aircraft** — a flying-wing UCAV on the apron in front of the
+  assembly hangar (matching the airframe in the overhead imagery) and three
+  twin-tail fighters staged around the site. Aircraft are structures too:
+  clickable, with dossiers, minimap markers and site-index entries.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
   shadows, a drifting ground-level dust layer, and an animated day/night cycle
   (`N`) with stars, moonlight and lit windows at night.
