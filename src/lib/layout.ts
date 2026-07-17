@@ -17,10 +17,13 @@ const CU: [number, number] = [Math.cos(COMPOUND_ROT), -Math.sin(COMPOUND_ROT)];
 const CV: [number, number] = [Math.sin(COMPOUND_ROT), Math.cos(COMPOUND_ROT)];
 function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
 
-export const RUNWAYS: SegmentDef[] = [{ id: "rwy-08-26", kind: "runway", name: "Unmarked concrete runway", from: [-1700, 260], to: [1700, -60], width: 54 }];
+// Lop Nur's main runway is ~5km (16,400+ feet) - one of the longest in the world
+// Runway designation 05/23 per satellite imagery
+export const RUNWAYS: SegmentDef[] = [{ id: "rwy-05-23", kind: "runway", name: "Main concrete runway (05/23)", from: [-2500, 320], to: [2500, -80], width: 60 }];
 export const STRIPS: SegmentDef[] = [
-  { id: "tri-west", kind: "strip", name: "Western graded strip", from: [-1660, 330], to: [10, -1900], width: 34 },
-  { id: "tri-east", kind: "strip", name: "Eastern graded strip", from: [-190, -1910], to: [1615, 175], width: 34 },
+  // Two unpaved graded strips completing the triangular pattern
+  { id: "tri-west", kind: "strip", name: "Western graded strip", from: [-2450, 400], to: [10, -2300], width: 38 },
+  { id: "tri-east", kind: "strip", name: "Eastern graded strip", from: [-200, -2320], to: [2400, 200], width: 38 },
 ];
 export const TAXIWAYS: SegmentDef[] = [
   { id: "twy-stub", kind: "taxiway", name: "Runway connector", from: [505, 52], to: compound(8, -205), width: 42 },
@@ -97,6 +100,17 @@ export const STRUCTURES: StructureDef[] = [
     COMPOUND_ROT - 0.72,
     "Dark tailless lambda-wing prototype positioned beside the main assembly hangar.",
   ),
+  // J-36 sixth-generation stealth fighter - spotted at Lop Nur in 2025
+  building(
+    "j36-prototype",
+    "aircraft-j36",
+    "J-36 sixth-gen fighter",
+    -85,
+    -130,
+    [18, 3, 24],
+    COMPOUND_ROT - 0.65,
+    "Chinese sixth-generation tailless stealth fighter with delta-wing configuration, first seen at Lop Nur in late 2025.",
+  ),
 ];
 
 export const FPS_SPAWN = {
@@ -104,14 +118,19 @@ export const FPS_SPAWN = {
   target: compound(-112, -82) as [number, number],
 };
 
-export const FLATTEN_PADS: FlattenPad[] = [{ center: COMPOUND_ORIGIN, radius: 430 }];
+export const FLATTEN_PADS: FlattenPad[] = [
+  { center: COMPOUND_ORIGIN, radius: 430 }, // Main compound
+  { center: [0, 100], radius: 600 }, // Runway flat area
+];
 export const CINEMATIC_WAYPOINTS: Waypoint[] = [
-  { position: [-1850, 180, 300], label: "Runway west" },
+  { position: [-2650, 200, 350], label: "Runway 05 threshold" },
+  { position: [0, 170, 200], label: "Runway center" },
   { position: [500, 150, 120], label: "Runway junction" },
   { position: [865, 170, 565], label: "Lop Nur compound" },
   { position: [850, 80, 770], label: "Main assembly hall" },
   { position: [1040, 95, 915], label: "Central tower" },
   { position: [1100, 115, 1080], label: "Eastern laboratories" },
+  { position: [2650, 180, 100], label: "Runway 23 threshold" },
 ];
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
