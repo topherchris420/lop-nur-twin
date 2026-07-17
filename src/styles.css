@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root,
+.dark {
+  --background: oklch(0.17 0.01 80);
+  --foreground: oklch(0.93 0.02 85);
+  --card: oklch(0.21 0.012 80 / 88%);
+  --card-foreground: oklch(0.93 0.02 85);
+  --primary: oklch(0.78 0.12 75);
+  --primary-foreground: oklch(0.2 0.03 75);
+  --secondary: oklch(0.3 0.015 80);
+  --secondary-foreground: oklch(0.93 0.02 85);
+  --muted: oklch(0.27 0.012 80);
+  --muted-foreground: oklch(0.68 0.02 82);
+  --accent: oklch(0.32 0.02 78);
+  --accent-foreground: oklch(0.95 0.02 85);
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.95 0.02 85 / 12%);
+  --input: oklch(0.95 0.02 85 / 16%);
+  --ring: oklch(0.78 0.12 75 / 60%);
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* Subtle scanline/vignette flavor on HUD panels */
+.hud-panel {
+  @apply border-border bg-card rounded-lg border shadow-lg backdrop-blur-md;
+}
+
+.kbd {
+  @apply border-border bg-secondary text-secondary-foreground inline-flex h-5 min-w-5 items-center justify-center rounded border px-1 font-mono text-[10px];
+}

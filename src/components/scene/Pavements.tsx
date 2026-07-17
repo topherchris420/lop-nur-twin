@@ -1,0 +1,134 @@
+import { useMemo } from "react";
+import {
+  APRONS,
+  ROADS,
+  RUNWAYS,
+  STRIPS,
+  TAXIWAYS,
+  segmentAngle,
+  segmentCenter,
+  segmentLength,
+  type SegmentDef,
+} from "@/lib/layout";
+import {
+  makeApronTexture,
+  makeDirtTexture,
+  makePavementTexture,
+} from "@/lib/textures";
+import { SITE_SEED } from "@/lib/noise";
+
+/**
+ * Stacking heights keep coplanar surfaces from z-fighting where they cross
+ * (runway over runway, roads over pavement ends).
+ */
+const LIFT: Record<SegmentDef["kind"], number> = {
+  runway: 0.1,
+  strip: 0.05,
+  taxiway: 0.07,
+  road: 0.14,
+};
+
+interface StripMeshProps {
+  seg: SegmentDef;
+  index: number;
+}
+
+function useSegmentTransform(seg: SegmentDef, index: number) {
+  return useMemo(() => {
+    const [cx, cz] = segmentCenter(seg);
+    const y = LIFT[seg.kind] + index * 0.012;
+    return {
+      length: segmentLength(seg),
+      position: [cx, y, cz] as [number, number, number],
+      rotation: [-Math.PI / 2, 0, -segmentAngle(seg)] as [number, number, number],
+    };
+  }, [seg, index]);
+}
+
+function RunwayMesh({ seg, index }: StripMeshProps) {
+  const { length, position, rotation } = useSegmentTransform(seg, index);
+  const texture = useMemo(
+    () =>
+      makePavementTexture({
+        lengthM: length,
+        widthM: seg.width,
+        markings: "runway",
+        seed: SITE_SEED + 100 + index,
+      }),
+    [length, seg.width, index],
+  );
+  return (
+    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+      <planeGeometry args={[seg.width, length]} />
+      <meshStandardMaterial map={texture} roughness={0.85} metalness={0.02} />
+    </mesh>
+  );
+}
+
+function TaxiwayMesh({ seg, index }: StripMeshProps) {
+  const { length, position, rotation } = useSegmentTransform(seg, index);
+  const texture = useMemo(
+    () =>
+      makePavementTexture({
+        lengthM: length,
+        widthM: seg.width,
+        markings: "taxiway",
+        seed: SITE_SEED + 200 + index,
+      }),
+    [length, seg.width, index],
+  );
+  return (
+    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+      <planeGeometry args={[seg.width, length]} />
+      <meshStandardMaterial map={texture} roughness={0.88} metalness={0.02} />
+    </mesh>
+  );
+}
+
+function DirtMesh({ seg, index }: StripMeshProps) {
+  const { length, position, rotation } = useSegmentTransform(seg, index);
+  const texture = useMemo(() => {
+    const tex = makeDirtTexture(SITE_SEED + 300 + index, seg.kind === "road");
+    tex.repeat.set(1, Math.max(1, Math.round(length / 160)));
+    return tex;
+  }, [length, seg.kind, index]);
+  return (
+    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+      <planeGeometry args={[seg.width, length]} />
+      <meshStandardMaterial map={texture} roughness={0.98} metalness={0} />
+    </mesh>
+  );
+}
+
+export function Pavements() {
+  const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
+
+  return (
+    <group name="pavements">
+      {RUNWAYS.map((seg, i) => (
+        <RunwayMesh key={seg.id} seg={seg} index={i} />
+      ))}
+      {TAXIWAYS.map((seg, i) => (
+        <TaxiwayMesh key={seg.id} seg={seg} index={i} />
+      ))}
+      {STRIPS.map((seg, i) => (
+        <DirtMesh key={seg.id} seg={seg} index={i} />
+      ))}
+      {ROADS.map((seg, i) => (
+        <DirtMesh key={seg.id} seg={seg} index={i + 10} />
+      ))}
+      {APRONS.map((apron) => (
+        <mesh
+          key={apron.id}
+          position={[apron.center[0], 0.09, apron.center[1]]}
+          rotation={[-Math.PI / 2, 0, -apron.rotation]}
+          receiveShadow
+          name={apron.id}
+        >
+          <planeGeometry args={apron.size} />
+          <meshStandardMaterial map={apronTexture} roughness={0.9} metalness={0.02} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
