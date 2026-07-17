@@ -15,11 +15,14 @@ import { SITE_SEED, seededNoise2D } from "./noise";
 const bigNoise = seededNoise2D(SITE_SEED);
 const midNoise = seededNoise2D(SITE_SEED + 1);
 const mottleNoise = seededNoise2D(SITE_SEED + 2);
+const fineNoise = seededNoise2D(SITE_SEED + 3);
 
 const BIG_FREQ = 1 / 950;
 const BIG_AMP = 4.2;
 const MID_FREQ = 1 / 190;
 const MID_AMP = 1.1;
+const FINE_FREQ = 1 / 42;
+const FINE_AMP = 0.32;
 
 /** Extra flat margin beyond a segment's half-width, and the blend distance. */
 const FLAT_MARGIN = 30;
@@ -96,7 +99,8 @@ export function flattenFactor(x: number, z: number): number {
 export function rawHeight(x: number, z: number): number {
   return (
     bigNoise(x * BIG_FREQ, z * BIG_FREQ) * BIG_AMP +
-    midNoise(x * MID_FREQ, z * MID_FREQ) * MID_AMP
+    midNoise(x * MID_FREQ, z * MID_FREQ) * MID_AMP +
+    fineNoise(x * FINE_FREQ, z * FINE_FREQ) * FINE_AMP
   );
 }
 

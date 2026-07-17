@@ -32,7 +32,7 @@ export function Atmosphere() {
   const { fogDensityDay, sunAzimuth } = useControls(
     "atmosphere",
     {
-      fogDensityDay: { value: 0.00048, min: 0, max: 0.002, step: 0.00004 },
+      fogDensityDay: { value: 0.0003, min: 0, max: 0.002, step: 0.00004 },
       sunAzimuth: { value: 112, min: 0, max: 360, step: 1 },
     },
     { collapsed: true },
@@ -56,7 +56,7 @@ export function Atmosphere() {
   /** 1 = full day, 0 = full night; eased toward the toggle each frame */
   const dayFactor = useRef(1);
 
-  const fog = useMemo(() => new THREE.FogExp2("#d8c29b", 0.00048), []);
+  const fog = useMemo(() => new THREE.FogExp2("#d8c29b", 0.0003), []);
   useEffect(() => {
     scene.fog = fog;
     gl.toneMapping = THREE.ACESFilmicToneMapping;
