@@ -1,13 +1,12 @@
-# Desert Airfield — Digital Twin
+# Lop Nur Twin — Digital Replica
 
-An interactive, realistic 3D reconstruction of a remote arid-zone airfield,
-built from public aerial imagery as a "digital twin" baseline. Everything —
-terrain, runways, buildings, textures — is **procedural and deterministic**:
-no binary assets, no downloads at runtime, one seed reproduces the whole site.
+> Step into a 3D digital twin of a remote desert airfield — an immersive, procedurally-generated reconstruction built from public satellite imagery. Explore the wasteland base in real-time with orbit, first-person, and cinematic camera modes.
 
-![Overview of the airfield](docs/screenshot-overview.png)
+**What's inside the wire:** A desolate airstrip deep in the arid expanse. Three runways form a triangular pattern — concrete main runway, graded earth strips — surrounded by scattered structures: hangars, control tower, fuel farm, radomes, solar arrays. Four aircraft stand parked on the apron, survivors of a bygone era.
 
-![Structure dossier](docs/screenshot-dossier.png)
+![Aerial overview — triangular runway layout](docs/screenshot-overview.png)
+
+![Structure dossier — click any building for details](docs/screenshot-dossier.png)
 
 ## Run it
 
@@ -20,7 +19,7 @@ bun run preview    # serve the production build
 
 `npm install && npm run dev` works too if Bun isn't available.
 
-## What's in the scene
+## What's Inside the Wire
 
 - **4 km × 4 km desert terrain** — seeded simplex heightfield (two octaves,
   ~4 m relief), vertex-color mottling from gray-brown to dusty yellow, a
@@ -52,7 +51,7 @@ bun run preview    # serve the production build
 - **Postprocessing**: SMAA, N8AO ambient occlusion, subtle bloom and a
   vignette — automatically shed under load (see below).
 
-## Controls
+## Controls — How to Explore
 
 | Key            | Action                                          |
 | -------------- | ----------------------------------------------- |
@@ -79,7 +78,7 @@ off → pixel ratio to 1 → shadow map halved — and steps back up after two
 seconds above 55 FPS. Pin a tier for testing with `?quality=0..3` (this also
 disables the automatic ladder). A Leva tweaks panel is available in dev builds.
 
-## Architecture
+## Under the Hood
 
 ```
 src/
@@ -101,7 +100,7 @@ The 3D scene and the 2D minimap are both projections of `lib/layout.ts`; add a
 structure there and it appears in the world, the minimap, and the site index.
 See [AGENTS.md](AGENTS.md) for extension recipes.
 
-## Stack
+## Built With
 
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
 drei · @react-three/postprocessing · Tailwind CSS 4 · zustand · simplex-noise ·
