@@ -2,7 +2,7 @@
 
 > An immersive 3D digital twin of China's most secretive desert airbase — Lop Nur. Explore this mysterious facility in the Gobi Desert, rebuilt from public satellite imagery. Often called "China's Area 51," this remote airstrip hosts experimental spacecraft and next-generation stealth fighters.
 
-**What's inside the wire:** A massive desert airfield deep in the Xinjiang expanses. Three runways form a triangular pattern — a 3.4 km concrete main strip flanked by graded earth overrun strips. The compound sits on its own rotated street grid: concrete aprons, paved taxiways, dirt perimeter roads. Scattered across the hardstanding: hangars, control tower, fuel farm, radar domes, solar arrays. Four aircraft stand sentinel on the apron — a flying-wing UCAV and three twin-tail fighters, clickable for dossier details.
+**What's inside the wire:** A massive desert airfield deep in the Xinjiang expanses. Three runways form a triangular pattern — a ~5 km (16,400+ ft) concrete main strip (05/23) flanked by graded earth overrun strips. The compound sits on its own rotated street grid: concrete aprons, paved taxiways, dirt perimeter roads. Scattered across the hardstanding: hangars, control tower, fuel farm, radar domes, solar arrays. Five aircraft stand sentinel on the apron — a flying-wing UCAV, three twin-tail fighters, and the new J-36 sixth-generation stealth fighter, clickable for dossier details.
 
 ![Aerial overview — triangular runway layout](docs/screenshot-overview.png)
 
@@ -25,10 +25,10 @@ bun run preview    # serve the production build
   ~4 m relief), vertex-color mottling from gray-brown to dusty yellow, a
   generated tiling normal map for grain, and automatic flattening under every
   runway, road and building pad.
-- **A triangular airfield**, as in the source imagery: a single 3.4 km pale
-  concrete runway (08/26) forms the south leg, and two ~2.3–2.5 km
-  graded-earth strips complete the triangle to a northern apex, overshooting
-  the corners just like the real gradings. Centerline dashes, painted
+- **A triangular airfield**, as in the source imagery: a single ~5 km (16,400+ ft)
+  pale concrete runway (05/23) forms the south leg — one of the longest in the world —
+  and two ~2.3–2.5 km graded-earth strips complete the triangle to a northern apex,
+  overshooting the corners just like the real gradings. Centerline dashes, painted
   designators, threshold piano keys, chevrons, expansion joints and tire
   rubber are all painted into `CanvasTexture`s at runtime.
 - **A compound on its own rotated street grid**, reached by a wide paved stub
