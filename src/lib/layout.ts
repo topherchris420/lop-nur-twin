@@ -56,6 +56,12 @@ export type StructureType =
   | "radome"
   | "fuel-tank"
   | "solar-array"
+  | "water-tower"
+  | "comms-shelter"
+  | "transformer-yard"
+  | "guard-tower"
+  | "covered-walkway"
+  | "sewage-treatment"
   | "aircraft-delta"
   | "aircraft-fighter";
 
@@ -443,6 +449,173 @@ export const STRUCTURES: StructureDef[] = [
     capacity: "X-band precision",
     description: "Perimeter radome covering the southeast approach corridor.",
   },
+  /* ---- new structures from satellite imagery ---- */
+  {
+    id: "water-tower",
+    type: "water-tower",
+    name: "Water Tower",
+    position: compound(230, -45),
+    rotation: 0,
+    size: [6, 18, 6],
+    capacity: "120 m³",
+    description:
+      "Elevated cylindrical water tank on a lattice steel frame, visible from altitude as a circular shadow. Supplies potable and fire-suppression water to the compound.",
+  },
+  {
+    id: "comms-shelter",
+    type: "comms-shelter",
+    name: "Communications Shelter",
+    position: compound(210, -55),
+    rotation: COMPOUND_ROT,
+    size: [12, 4, 8],
+    capacity: "HF / VHF / SATCOM",
+    description:
+      "Hardened electronics shelter housing radio racks and a satellite earth terminal. Multiple whip antennas and a small dish on the roof.",
+  },
+  {
+    id: "transformer-yard",
+    type: "transformer-yard",
+    name: "Transformer Yard",
+    position: compound(310, 30),
+    rotation: COMPOUND_ROT,
+    size: [20, 5, 14],
+    capacity: "10 kV / 400 V",
+    description:
+      "Fenced high-voltage switchyard with step-down transformers feeding the site 400 V distribution. Adjacent to the diesel generator hall.",
+  },
+  {
+    id: "guard-tower-nw",
+    type: "guard-tower",
+    name: "Guard Tower NW",
+    position: compound(-230, -200),
+    rotation: COMPOUND_ROT + Math.PI / 4,
+    size: [4, 10, 4],
+    capacity: "2 sentries",
+    description:
+      "Elevated observation post at the northwest corner of the compound perimeter, with a covered cab and searchlight.",
+  },
+  {
+    id: "guard-tower-se",
+    type: "guard-tower",
+    name: "Guard Tower SE",
+    position: compound(310, 250),
+    rotation: COMPOUND_ROT - Math.PI / 4,
+    size: [4, 10, 4],
+    capacity: "2 sentries",
+    description:
+      "Perimeter watchtower at the southeast corner covering the access track and storage yard approaches.",
+  },
+  {
+    id: "covered-walkway",
+    type: "covered-walkway",
+    name: "Covered Walkway",
+    position: compound(155, 57),
+    rotation: COMPOUND_ROT,
+    size: [3, 3.2, 52],
+    capacity: "Pedestrian",
+    description:
+      "Roofed steel-frame corridor connecting Operations HQ to the barracks, providing shade in the desert heat.",
+  },
+  {
+    id: "sewage-treatment",
+    type: "sewage-treatment",
+    name: "Sewage Treatment Plant",
+    position: compound(-120, 280),
+    rotation: 0,
+    size: [22, 3, 22],
+    capacity: "80 m³/day",
+    description:
+      "Compact wastewater treatment facility with a circular clarifier tank, aeration basin, and a small control building. Located downwind at the compound's southwest periphery.",
+  },
+  {
+    id: "warehouse-2",
+    type: "warehouse",
+    name: "Secondary Warehouse",
+    position: compound(160, -45),
+    rotation: COMPOUND_ROT,
+    size: [36, 7, 18],
+    capacity: "800 t stores",
+    description:
+      "Secondary flat-roof warehouse between the main depot and the apron, handling overflow stores and component staging.",
+  },
+  {
+    id: "maintenance-bay",
+    type: "support",
+    name: "Maintenance Bay",
+    position: compound(-140, -30),
+    rotation: COMPOUND_ROT,
+    size: [22, 6, 14],
+    capacity: "2 airframes",
+    description:
+      "Covered maintenance bay for airframe component work and ground-support equipment repair. Features a large roll-up door on the apron face.",
+  },
+  {
+    id: "cold-storage",
+    type: "support",
+    name: "Cold Storage",
+    position: compound(225, 55),
+    rotation: COMPOUND_ROT,
+    size: [16, 5, 10],
+    capacity: "40 t refrigerated",
+    description:
+      "Insulated cold-storage building for perishable rations and medical supplies. Rooftop condensers visible from altitude.",
+  },
+  {
+    id: "ammo-magazine",
+    type: "compound-walled",
+    name: "Ammunition Magazine",
+    position: compound(-250, 200),
+    rotation: COMPOUND_ROT,
+    size: [28, 4, 20],
+    capacity: "Class V stores",
+    description:
+      "Earth-bermed and walled ordnance storage compound at the compound's western periphery, set back from occupied buildings per explosive safety distances.",
+  },
+  {
+    id: "fire-station",
+    type: "support",
+    name: "Fire Station",
+    position: compound(90, -190),
+    rotation: COMPOUND_ROT,
+    size: [18, 6, 12],
+    capacity: "2 ARFF vehicles",
+    description:
+      "Aircraft rescue and firefighting station near the apron, housing foam tenders and crash rescue equipment.",
+  },
+  {
+    id: "obs-post",
+    type: "support",
+    name: "Observation Post",
+    position: [-80, -1800],
+    rotation: 0,
+    size: [8, 4, 6],
+    capacity: "4 staff",
+    description:
+      "Small observation and scoring post near the triangle apex, used during flight test operations.",
+  },
+  {
+    id: "quonset-2",
+    type: "quonset",
+    name: "Equipment Shelter 2",
+    position: compound(195, -255),
+    rotation: COMPOUND_ROT + Math.PI / 2,
+    size: [24, 6, 14],
+    capacity: "AGE & tooling",
+    description:
+      "Second quonset arch east of the taxiway stub, housing aerospace ground equipment and specialist tooling.",
+  },
+  {
+    id: "fuel-tank-3",
+    type: "fuel-tank",
+    name: "Fuel Tank 3",
+    position: compound(285, -65),
+    rotation: 0,
+    size: [10, 7, 10],
+    capacity: "650 m³ diesel",
+    description:
+      "Smaller diesel storage tank feeding the generator hall. Located at the north end of the fuel farm.",
+  },
+  /* ---- aircraft ---- */
   {
     id: "ucav-01",
     type: "aircraft-delta",
@@ -479,7 +652,7 @@ export const STRUCTURES: StructureDef[] = [
     type: "aircraft-fighter",
     name: "Fighter 03",
     position: [652, 362],
-    rotation: COMPOUND_ROT,
+    rotation: COMPOUND_ROT + 0.15,
     size: [11, 4.6, 16],
     capacity: "1 crew",
     description: "Fighter taxiing the stub between the compound apron and the runway.",
@@ -488,11 +661,12 @@ export const STRUCTURES: StructureDef[] = [
 
 /** Extra circular areas flattened in the heightfield (building pads etc.). */
 export const FLATTEN_PADS: FlattenPad[] = [
-  { center: [920, 900], radius: 410 }, // compound
+  { center: [920, 900], radius: 480 }, // compound (expanded for new structures)
   { center: [340, -160], radius: 55 }, // met station
   { center: [1080, -140], radius: 85 }, // solar array
   { center: [-1720, 780], radius: 70 }, // radar west
   { center: [1620, 1180], radius: 70 }, // radar southeast
+  { center: [-80, -1800], radius: 40 }, // observation post at apex
 ];
 
 /* ------------------------------------------------------------------ */
@@ -563,6 +737,12 @@ export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   radome: "Sensors",
   "fuel-tank": "Fuel Farm",
   "solar-array": "Power & Utilities",
+  "water-tower": "Power & Utilities",
+  "comms-shelter": "Sensors",
+  "transformer-yard": "Power & Utilities",
+  "guard-tower": "Security",
+  "covered-walkway": "Support Buildings",
+  "sewage-treatment": "Power & Utilities",
   "aircraft-delta": "Aircraft",
   "aircraft-fighter": "Aircraft",
 };

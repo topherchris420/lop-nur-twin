@@ -9,6 +9,10 @@ import {
   makeFacadeTextures,
   makeSolarTexture,
   makeWhitePanelTexture,
+  makeRustStainTexture,
+  makeStuccoTexture,
+  makeDirtyConcreteTexture,
+  makeChainLinkTexture,
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
 
@@ -38,6 +42,11 @@ interface SharedMaterials {
   airframeLight: THREE.MeshStandardMaterial;
   canopy: THREE.MeshStandardMaterial;
   tire: THREE.MeshStandardMaterial;
+  stucco: THREE.MeshStandardMaterial;
+  rustyMetal: THREE.MeshStandardMaterial;
+  chainLink: THREE.MeshStandardMaterial;
+  pvcPipe: THREE.MeshStandardMaterial;
+  dirtyConcreteWall: THREE.MeshStandardMaterial;
 }
 
 function facadeMaterial(
@@ -157,6 +166,32 @@ function useSharedMaterials(): SharedMaterials {
         metalness: 0.85,
       }),
       tire: new THREE.MeshStandardMaterial({ color: "#17181a", roughness: 0.95 }),
+      stucco: new THREE.MeshStandardMaterial({
+        map: makeStuccoTexture(SITE_SEED + 530),
+        roughness: 0.92,
+      }),
+      rustyMetal: new THREE.MeshStandardMaterial({
+        map: makeRustStainTexture(SITE_SEED + 531),
+        roughness: 0.7,
+        metalness: 0.35,
+      }),
+      chainLink: new THREE.MeshStandardMaterial({
+        map: makeChainLinkTexture(SITE_SEED + 532),
+        transparent: true,
+        alphaTest: 0.3,
+        roughness: 0.6,
+        metalness: 0.5,
+        side: THREE.DoubleSide,
+      }),
+      pvcPipe: new THREE.MeshStandardMaterial({
+        color: "#5a5e63",
+        roughness: 0.4,
+        metalness: 0.15,
+      }),
+      dirtyConcreteWall: new THREE.MeshStandardMaterial({
+        map: makeDirtyConcreteTexture(SITE_SEED + 533),
+        roughness: 0.95,
+      }),
     };
   }, []);
 
@@ -211,6 +246,14 @@ function ControlTower({ def, m }: BuilderProps) {
       <mesh material={m.roofDark} position={[4.6, 4.05, 0]}>
         <boxGeometry args={[5.4, 0.25, 8.4]} />
       </mesh>
+      {/* HVAC unit on equipment room roof */}
+      <mesh material={m.metalDark} castShadow position={[4.6, 4.5, -2]}>
+        <boxGeometry args={[1.8, 0.7, 1.4]} />
+      </mesh>
+      {/* conduit box on base */}
+      <mesh material={m.metalDark} position={[7.3, 1.2, 0]}>
+        <boxGeometry args={[0.4, 1.2, 0.6]} />
+      </mesh>
       {/* tapered shaft with ring ledges */}
       <mesh material={m.concrete} castShadow position={[0, 1 + shaftH / 2, 0]}>
         <cylinderGeometry args={[3.1, 4.1, shaftH, 8]} />
@@ -220,6 +263,29 @@ function ControlTower({ def, m }: BuilderProps) {
           <cylinderGeometry args={[3.55, 3.55, 0.35, 8]} />
         </mesh>
       ))}
+      {/* external zigzag staircase on +x face */}
+      {Array.from({ length: Math.floor(shaftH / 2.5) }, (_, i) => (
+        <group key={`stair${i}`}>
+          <mesh material={m.metalDark} castShadow position={[
+            3.8 + (i % 2 === 0 ? 0.5 : -0.5),
+            1.5 + i * 2.5,
+            0,
+          ]}>
+            <boxGeometry args={[2.4, 0.12, 1.2]} />
+          </mesh>
+          <mesh material={m.metalDark} position={[
+            3.8 + (i % 2 === 0 ? 1.6 : -1.6),
+            1.5 + i * 2.5 + 1.25,
+            0,
+          ]}>
+            <boxGeometry args={[0.1, 2.5, 0.1]} />
+          </mesh>
+        </group>
+      ))}
+      {/* cable tray running down shaft on -x face */}
+      <mesh material={m.metalDark} position={[-3.6, 1 + shaftH / 2, 0]}>
+        <boxGeometry args={[0.3, shaftH, 0.5]} />
+      </mesh>
       {/* catwalk and cab */}
       <mesh material={m.concreteLight} castShadow position={[0, shaftH + 1.25, 0]}>
         <cylinderGeometry args={[5.1, 4.6, 0.5, 8]} />
@@ -260,8 +326,25 @@ function ControlTower({ def, m }: BuilderProps) {
       <mesh material={m.concreteLight} castShadow position={[0, shaftH + 5, 0]}>
         <cylinderGeometry args={[4.7, 4.2, 0.6, 8]} />
       </mesh>
+      {/* VHF/UHF antenna array on roof */}
       <mesh material={m.metalDark} position={[0, shaftH + 7.4, 0]}>
         <cylinderGeometry args={[0.08, 0.12, 4.5, 6]} />
+      </mesh>
+      {/* cross-arm antenna dipoles */}
+      {[0, Math.PI / 2].map((rot, i) => (
+        <mesh key={`ant${i}`} material={m.metalDark} position={[0, shaftH + 6.8, 0]} rotation={[0, rot, 0]}>
+          <boxGeometry args={[2.4, 0.06, 0.06]} />
+        </mesh>
+      ))}
+      {/* whip antennas */}
+      {[-1, 1].map((side) => (
+        <mesh key={`whip${side}`} material={m.metalDark} position={[side * 2.2, shaftH + 5.8, 0]}>
+          <cylinderGeometry args={[0.02, 0.03, 2.0, 4]} />
+        </mesh>
+      ))}
+      {/* small radar dish */}
+      <mesh material={m.whitePanel} castShadow position={[1.5, shaftH + 6, -1.5]} rotation={[0.3, -0.8, 0]}>
+        <circleGeometry args={[0.8, 12]} />
       </mesh>
       <mesh material={m.beacon} position={[0, shaftH + 9.8, 0]}>
         <sphereGeometry args={[0.35, 12, 12]} />
@@ -349,6 +432,34 @@ function MonolithHangar({ def, m }: BuilderProps) {
           </mesh>
         </group>
       ))}
+      {/* rooftop HVAC condenser row along the ridge */}
+      {[-0.35, -0.15, 0.05, 0.25].map((f) => (
+        <mesh key={`hvac${f}`} material={m.metalDark} castShadow position={[w * 0.2, 0.8 + wallH + rise * 0.3, d * f]}>
+          <boxGeometry args={[2.2, 1.1, 2.2]} />
+        </mesh>
+      ))}
+      {/* roof drainage gutters along eave edges */}
+      {[-1, 1].map((side) => (
+        <mesh key={`gutter${side}`} material={m.metalDark} position={[side * (w / 2 + 0.6), 0.8 + wallH - 0.1, 0]}>
+          <boxGeometry args={[0.3, 0.25, d + 1]} />
+        </mesh>
+      ))}
+      {/* downspouts at corners */}
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`ds${sx}${sz}`} material={m.metalDark} position={[sx * (w / 2 + 0.6), wallH / 2, sz * (d / 2 - 2)]}>
+            <cylinderGeometry args={[0.12, 0.12, wallH, 6]} />
+          </mesh>
+        )),
+      )}
+      {/* concrete wing walls at service annexes */}
+      {[-0.22, 0.22].map((f) =>
+        [-1, 1].map((side) => (
+          <mesh key={`wing${f}${side}`} material={m.concrete} castShadow position={[w / 2 + 8.2, 1.5, d * f + side * 8.4]}>
+            <boxGeometry args={[0.5, 3, 1.6]} />
+          </mesh>
+        )),
+      )}
     </group>
   );
 }
@@ -450,19 +561,49 @@ function Warehouse({ def, m }: BuilderProps) {
           <boxGeometry args={[w * 0.72, 0.4, 1.6]} />
         </mesh>
       ))}
-      {/* roof plant */}
-      <mesh material={m.metalDark} castShadow position={[w * 0.3, h + 0.8, 0]}>
-        <boxGeometry args={[2, 1.2, 2]} />
-      </mesh>
+      {/* roof plant — HVAC units */}
+      {[-0.15, 0.15].map((f) => (
+        <mesh key={`ac${f}`} material={m.metalDark} castShadow position={[w * 0.3, h + 0.8, d * f]}>
+          <boxGeometry args={[2, 1.2, 2]} />
+        </mesh>
+      ))}
       {/* roller doors on the +z face */}
       {[-0.28, 0, 0.28].map((f) => (
         <mesh key={`d${f}`} material={m.corrugated} position={[w * f, h * 0.38, d / 2 + 0.18]}>
           <boxGeometry args={[6, h * 0.72, 0.35]} />
         </mesh>
       ))}
+      {/* concrete bollards flanking each roller door */}
+      {[-0.28, 0, 0.28].map((f) =>
+        [-1, 1].map((side) => (
+          <mesh key={`bol${f}${side}`} material={m.concreteLight} castShadow position={[w * f + side * 3.5, 0.4, d / 2 + 0.6]}>
+            <cylinderGeometry args={[0.25, 0.3, 0.8, 8]} />
+          </mesh>
+        )),
+      )}
       {/* loading dock */}
       <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 0.6, d / 2 + 2]}>
         <boxGeometry args={[w * 0.55, 1.2, 4]} />
+      </mesh>
+      {/* rain canopy over loading dock */}
+      <mesh material={m.roofDark} castShadow position={[0, h * 0.82, d / 2 + 2.5]}>
+        <boxGeometry args={[w * 0.6, 0.15, 5]} />
+      </mesh>
+      {/* canopy support brackets */}
+      {[-0.2, 0, 0.2].map((f) => (
+        <mesh key={`brk${f}`} material={m.metalDark} position={[w * f, h * 0.55, d / 2 + 4.5]}>
+          <cylinderGeometry args={[0.08, 0.08, h * 0.5, 6]} />
+        </mesh>
+      ))}
+      {/* exterior wall lights */}
+      {[-0.35, 0.35].map((f) => (
+        <mesh key={`lt${f}`} material={m.glass} position={[w * f, h * 0.75, d / 2 + 0.22]}>
+          <boxGeometry args={[0.4, 0.3, 0.25]} />
+        </mesh>
+      ))}
+      {/* wall-mounted utility box on -x face */}
+      <mesh material={m.metalDark} position={[-w / 2 - 0.15, h * 0.4, 0]}>
+        <boxGeometry args={[0.3, 0.8, 0.6]} />
       </mesh>
     </group>
   );
@@ -948,6 +1089,295 @@ function AircraftFighter({ def, m }: BuilderProps) {
 }
 
 /* ------------------------------------------------------------------ */
+/* New structure builders from satellite imagery                        */
+/* ------------------------------------------------------------------ */
+
+/** Elevated cylindrical water tank on a lattice steel frame. */
+function WaterTower({ def, m }: BuilderProps) {
+  const h = def.size[1];
+  const tankR = def.size[0] / 2;
+  const tankH = 3.5;
+  const legH = h - tankH;
+  return (
+    <group>
+      {/* four lattice legs */}
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`leg${sx}${sz}`} material={m.metalDark} castShadow position={[sx * (tankR - 0.3), legH / 2, sz * (tankR - 0.3)]}>
+            <boxGeometry args={[0.25, legH, 0.25]} />
+          </mesh>
+        )),
+      )}
+      {/* cross bracing rings */}
+      {[0.25, 0.55, 0.85].map((f) => (
+        <mesh key={`brace${f}`} material={m.metalDark} position={[0, legH * f, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[tankR - 0.3, 0.06, 4, 16]} />
+        </mesh>
+      ))}
+      {/* diagonal bracing */}
+      {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((rot, i) => (
+        <mesh key={`diag${i}`} material={m.metalDark} position={[0, legH * 0.4, 0]} rotation={[0.5, rot, 0]}>
+          <boxGeometry args={[0.08, legH * 0.6, 0.08]} />
+        </mesh>
+      ))}
+      {/* tank body */}
+      <mesh material={m.tankSteel} castShadow position={[0, legH + tankH / 2, 0]}>
+        <cylinderGeometry args={[tankR, tankR, tankH, 16]} />
+      </mesh>
+      {/* domed top */}
+      <mesh material={m.tankSteel} castShadow position={[0, legH + tankH, 0]} scale={[1, 0.3, 1]}>
+        <sphereGeometry args={[tankR, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+      {/* access ladder */}
+      <mesh material={m.metalDark} position={[tankR + 0.2, h / 2, 0]}>
+        <boxGeometry args={[0.35, h, 0.15]} />
+      </mesh>
+      {/* pipe run to ground */}
+      <mesh material={m.pvcPipe} position={[-tankR - 0.3, legH / 2, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, legH, 8]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Hardened comms shelter with antenna farm on roof. */
+function CommsShelter({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  return (
+    <group>
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, h / 2, 0]}>
+        <boxGeometry args={[w, h, d]} />
+      </mesh>
+      <mesh material={m.roofDark} position={[0, h + 0.12, 0]}>
+        <boxGeometry args={[w + 0.6, 0.25, d + 0.6]} />
+      </mesh>
+      {/* door on +z face */}
+      <mesh material={m.interiorDark} position={[-w * 0.25, 1.3, d / 2 + 0.05]}>
+        <boxGeometry args={[1.2, 2.2, 0.15]} />
+      </mesh>
+      {/* HVAC unit */}
+      <mesh material={m.metalDark} castShadow position={[w * 0.25, h + 0.6, 0]}>
+        <boxGeometry args={[1.8, 0.8, 1.4]} />
+      </mesh>
+      {/* whip antennas — VHF/HF */}
+      {[-0.3, 0, 0.3].map((f) => (
+        <mesh key={`whip${f}`} material={m.metalDark} castShadow position={[w * f, h + 2.5, -d * 0.2]}>
+          <cylinderGeometry args={[0.02, 0.04, 4.5, 4]} />
+        </mesh>
+      ))}
+      {/* satellite dish on roof */}
+      <mesh material={m.whitePanel} castShadow position={[-w * 0.2, h + 1.2, d * 0.2]} rotation={[-0.6, 0, 0]}>
+        <circleGeometry args={[1.1, 16]} />
+      </mesh>
+      <mesh material={m.metalDark} position={[-w * 0.2, h + 0.6, d * 0.2]}>
+        <cylinderGeometry args={[0.06, 0.06, 1.0, 6]} />
+      </mesh>
+      {/* cable tray to tower */}
+      <mesh material={m.metalDark} position={[w / 2 + 1.5, h * 0.6, 0]}>
+        <boxGeometry args={[3, 0.15, 0.4]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Fenced high-voltage switchyard with transformers and insulators. */
+function TransformerYard({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  return (
+    <group>
+      {/* gravel pad */}
+      <mesh material={m.gravel} receiveShadow position={[0, 0.06, 0]}>
+        <boxGeometry args={[w, 0.12, d]} />
+      </mesh>
+      {/* chain-link fence perimeter */}
+      {[-1, 1].map((side) => (
+        <mesh key={`fz${side}`} material={m.chainLink} position={[0, h / 2, side * d / 2]}>
+          <boxGeometry args={[w, h, 0.1]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh key={`fx${side}`} material={m.chainLink} position={[side * w / 2, h / 2, 0]}>
+          <boxGeometry args={[0.1, h, d]} />
+        </mesh>
+      ))}
+      {/* fence posts */}
+      {[-1, 0, 1].map((f) =>
+        [-1, 1].map((side) => (
+          <mesh key={`post${f}${side}`} material={m.metalDark} position={[w * f * 0.45, h / 2, side * d / 2]}>
+            <cylinderGeometry args={[0.06, 0.06, h + 0.4, 6]} />
+          </mesh>
+        )),
+      )}
+      {/* two transformer units */}
+      {[-0.25, 0.25].map((f) => (
+        <group key={`tx${f}`} position={[w * f, 0, 0]}>
+          <mesh material={m.metalDark} castShadow position={[0, 1.4, 0]}>
+            <boxGeometry args={[3.5, 2.8, 2.8]} />
+          </mesh>
+          {/* cooling fins */}
+          <mesh material={m.corrugated} position={[1.9, 1.4, 0]}>
+            <boxGeometry args={[0.3, 2.4, 2.2]} />
+          </mesh>
+          {/* bushing insulators on top */}
+          {[-0.6, 0, 0.6].map((bz) => (
+            <mesh key={`ins${bz}`} material={m.whitePanel} castShadow position={[0, 3.2, bz]}>
+              <cylinderGeometry args={[0.12, 0.16, 1.2, 8]} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      {/* overhead bus bars */}
+      <mesh material={m.metalDark} position={[0, h - 0.5, 0]}>
+        <boxGeometry args={[w * 0.8, 0.06, 0.06]} />
+      </mesh>
+      {/* warning sign */}
+      <mesh material={m.hazard} position={[0, h * 0.6, d / 2 + 0.08]}>
+        <boxGeometry args={[0.8, 0.6, 0.05]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Elevated observation tower with a covered cab and searchlight. */
+function GuardTower({ def, m }: BuilderProps) {
+  const h = def.size[1];
+  const cabH = 2.6;
+  const legH = h - cabH;
+  return (
+    <group>
+      {/* four steel legs */}
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`leg${sx}${sz}`} material={m.metalDark} castShadow position={[sx * 1.3, legH / 2, sz * 1.3]}>
+            <boxGeometry args={[0.2, legH, 0.2]} />
+          </mesh>
+        )),
+      )}
+      {/* cross braces */}
+      {[0.3, 0.7].map((f) => (
+        <group key={`brace${f}`}>
+          <mesh material={m.metalDark} position={[0, legH * f, 1.3]} rotation={[0, 0, 0.6]}>
+            <boxGeometry args={[0.08, 3.2, 0.08]} />
+          </mesh>
+          <mesh material={m.metalDark} position={[1.3, legH * f, 0]} rotation={[0.6, 0, 0]}>
+            <boxGeometry args={[0.08, 0.08, 3.2]} />
+          </mesh>
+        </group>
+      ))}
+      {/* platform */}
+      <mesh material={m.metalDark} castShadow position={[0, legH, 0]}>
+        <boxGeometry args={[3.4, 0.15, 3.4]} />
+      </mesh>
+      {/* cab — concrete walls with window band */}
+      <mesh material={m.concreteLight} castShadow position={[0, legH + cabH / 2, 0]}>
+        <boxGeometry args={[2.8, cabH, 2.8]} />
+      </mesh>
+      <mesh material={m.glass} position={[0, legH + cabH * 0.65, 0]}>
+        <boxGeometry args={[2.9, cabH * 0.35, 2.9]} />
+      </mesh>
+      {/* roof slab */}
+      <mesh material={m.roofDark} castShadow position={[0, legH + cabH + 0.1, 0]}>
+        <boxGeometry args={[3.2, 0.2, 3.2]} />
+      </mesh>
+      {/* searchlight */}
+      <mesh material={m.glass} position={[0.8, legH + cabH + 0.5, 0.8]}>
+        <cylinderGeometry args={[0.2, 0.3, 0.4, 8]} />
+      </mesh>
+      {/* access ladder */}
+      <mesh material={m.metalDark} position={[1.5, legH / 2, 0]}>
+        <boxGeometry args={[0.4, legH, 0.15]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Roofed steel-frame corridor / covered walkway. */
+function CoveredWalkway({ def, m }: BuilderProps) {
+  const [w, h, d] = def.size;
+  const postSpacing = 4;
+  const nPosts = Math.max(2, Math.floor(d / postSpacing) + 1);
+  return (
+    <group>
+      {/* concrete path */}
+      <mesh material={m.concreteLight} receiveShadow position={[0, 0.06, 0]}>
+        <boxGeometry args={[w + 0.6, 0.12, d]} />
+      </mesh>
+      {/* roof */}
+      <mesh material={m.corrugatedWhite} castShadow position={[0, h, 0]}>
+        <boxGeometry args={[w + 1.0, 0.12, d + 0.5]} />
+      </mesh>
+      {/* support posts on both sides */}
+      {Array.from({ length: nPosts }, (_, i) => {
+        const z = -d / 2 + i * (d / (nPosts - 1));
+        return [-1, 1].map((side) => (
+          <mesh key={`post${i}${side}`} material={m.metalDark} castShadow position={[side * (w / 2 + 0.3), h / 2, z]}>
+            <cylinderGeometry args={[0.06, 0.06, h, 6]} />
+          </mesh>
+        ));
+      })}
+      {/* horizontal rail along top on both sides */}
+      {[-1, 1].map((side) => (
+        <mesh key={`rail${side}`} material={m.metalDark} position={[side * (w / 2 + 0.3), h * 0.45, 0]}>
+          <boxGeometry args={[0.04, 0.04, d]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** Compact wastewater treatment: circular clarifier, aeration basin, control building. */
+function SewageTreatment({ def, m }: BuilderProps) {
+  const [w, h] = def.size;
+  const tankR = w * 0.2;
+  return (
+    <group>
+      {/* gravel pad */}
+      <mesh material={m.gravel} receiveShadow position={[0, 0.06, 0]}>
+        <boxGeometry args={[w, 0.12, w]} />
+      </mesh>
+      {/* circular clarifier tank */}
+      <mesh material={m.concrete} castShadow receiveShadow position={[-w * 0.18, h / 2, -w * 0.15]}>
+        <cylinderGeometry args={[tankR, tankR, h, 20, 1, true]} />
+      </mesh>
+      {/* water surface inside clarifier */}
+      <mesh material={m.glass} position={[-w * 0.18, h * 0.8, -w * 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[tankR - 0.3, 20]} />
+      </mesh>
+      {/* rotating scraper arm */}
+      <mesh material={m.metalDark} position={[-w * 0.18, h + 0.2, -w * 0.15]}>
+        <boxGeometry args={[tankR * 1.8, 0.1, 0.15]} />
+      </mesh>
+      {/* center pier */}
+      <mesh material={m.concrete} position={[-w * 0.18, h * 0.6, -w * 0.15]}>
+        <cylinderGeometry args={[0.4, 0.4, h * 1.2, 8]} />
+      </mesh>
+      {/* rectangular aeration basin */}
+      <mesh material={m.concrete} castShadow receiveShadow position={[w * 0.18, h * 0.35, -w * 0.15]}>
+        <boxGeometry args={[w * 0.32, h * 0.7, w * 0.32]} />
+      </mesh>
+      <mesh material={m.glass} position={[w * 0.18, h * 0.68, -w * 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[w * 0.28, w * 0.28, 0.05]} />
+      </mesh>
+      {/* control building */}
+      <mesh material={m.concreteLight} castShadow receiveShadow position={[w * 0.15, 1.6, w * 0.22]}>
+        <boxGeometry args={[6, 3.2, 5]} />
+      </mesh>
+      <mesh material={m.roofDark} position={[w * 0.15, 3.32, w * 0.22]}>
+        <boxGeometry args={[6.4, 0.25, 5.4]} />
+      </mesh>
+      {/* pipe run between clarifier and aeration basin */}
+      <mesh material={m.pvcPipe} position={[0, h * 0.3, -w * 0.15]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.15, 0.15, w * 0.25, 8]} />
+      </mesh>
+      {/* outlet pipe */}
+      <mesh material={m.pvcPipe} position={[-w * 0.18, 0.3, -w * 0.15 + tankR + 1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, 3, 8]} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Dispatcher & selection                                              */
 /* ------------------------------------------------------------------ */
 
@@ -979,6 +1409,18 @@ function StructureBody(props: BuilderProps) {
       return <FuelTank {...props} />;
     case "solar-array":
       return <SolarArray {...props} />;
+    case "water-tower":
+      return <WaterTower {...props} />;
+    case "comms-shelter":
+      return <CommsShelter {...props} />;
+    case "transformer-yard":
+      return <TransformerYard {...props} />;
+    case "guard-tower":
+      return <GuardTower {...props} />;
+    case "covered-walkway":
+      return <CoveredWalkway {...props} />;
+    case "sewage-treatment":
+      return <SewageTreatment {...props} />;
     case "aircraft-delta":
       return <AircraftDelta {...props} />;
     case "aircraft-fighter":
