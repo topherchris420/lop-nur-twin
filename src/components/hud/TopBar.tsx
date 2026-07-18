@@ -7,7 +7,7 @@ import {
   PersonStanding,
   Sun,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTwinStore, type CameraMode } from "@/lib/store";
 import { isCoarsePointer } from "@/lib/touchInput";
@@ -89,9 +89,21 @@ function ModeHint() {
   const cameraMode = useTwinStore((s) => s.cameraMode);
   const pointerLocked = useTwinStore((s) => s.pointerLocked);
   const coarse = useMemo(isCoarsePointer, []);
+  // the orbit touch hint is onboarding-only — show it briefly, then get out of
+  // the way of the pan-stick it sits above (which self-labels "PAN").
+  const [orbitHintDone, setOrbitHintDone] = useState(false);
+  useEffect(() => {
+    setOrbitHintDone(false);
+    if (cameraMode !== "orbit" || !coarse) return;
+    const t = window.setTimeout(() => setOrbitHintDone(true), 6000);
+    return () => window.clearTimeout(t);
+  }, [cameraMode, coarse]);
 
   let hint: string | null = null;
-  if (cameraMode === "fps" && coarse) {
+  if (cameraMode === "orbit" && coarse) {
+    if (orbitHintDone) return null;
+    hint = "One finger to rotate · pinch to zoom";
+  } else if (cameraMode === "fps" && coarse) {
     hint = "Left stick to walk · drag the right side to look · full push to sprint";
   } else if (cameraMode === "fps" && !pointerLocked) {
     hint = "Click to capture the mouse · WASD to walk · Shift to sprint · Esc to release";

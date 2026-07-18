@@ -34,6 +34,10 @@ function OrbitRig() {
     toTarget: THREE.Vector3;
   } | null>(null);
   const lastSeq = useRef(0);
+  // scratch vectors for the on-screen pan-stick (allocated once)
+  const panForward = useRef(new THREE.Vector3());
+  const panRight = useRef(new THREE.Vector3());
+  const panStep = useRef(new THREE.Vector3());
 
   useEffect(() => {
     const controls = controlsRef.current;
@@ -58,6 +62,39 @@ function OrbitRig() {
       controls.object.position.lerpVectors(a.fromPos, a.toPos, k);
       controls.target.lerpVectors(a.fromTarget, a.toTarget, k);
       if (a.t >= 1) anim.current = null;
+    } else if (touchInput.moveX !== 0 || touchInput.moveY !== 0) {
+      // Mobile pan-stick: glide the whole orbit rig across the ground. We move
+      // camera and target together so the framing (distance / pitch / heading)
+      // is preserved — this is a translation, not a rotation. A fly-to always
+      // wins, hence the `else`.
+      const cam = controls.object;
+      panForward.current
+        .set(controls.target.x - cam.position.x, 0, controls.target.z - cam.position.z);
+      if (panForward.current.lengthSq() < 1e-6) panForward.current.set(0, 0, -1);
+      panForward.current.normalize();
+      panRight.current
+        .crossVectors(panForward.current, THREE.Object3D.DEFAULT_UP)
+        .normalize();
+
+      // speed scales with zoom distance so it feels the same up close or far out
+      const dist = cam.position.distanceTo(controls.target);
+      const speed = THREE.MathUtils.clamp(dist * 0.6, 40, 1400) * delta;
+      const step = panStep.current
+        .set(0, 0, 0)
+        .addScaledVector(panForward.current, touchInput.moveY)
+        .addScaledVector(panRight.current, touchInput.moveX);
+      const mag = Math.min(1, step.length());
+      if (mag > 1e-3) {
+        step.normalize().multiplyScalar(speed * mag);
+        // clamp the target to the world, then shift the camera by the same
+        // amount so the two never drift apart at the boundary
+        const nx = THREE.MathUtils.clamp(controls.target.x + step.x, -WORLD_LIMIT, WORLD_LIMIT);
+        const nz = THREE.MathUtils.clamp(controls.target.z + step.z, -WORLD_LIMIT, WORLD_LIMIT);
+        cam.position.x += nx - controls.target.x;
+        cam.position.z += nz - controls.target.z;
+        controls.target.x = nx;
+        controls.target.z = nz;
+      }
     }
     controls.update();
     // never sink below the ground
