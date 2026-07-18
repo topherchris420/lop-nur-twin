@@ -10,16 +10,160 @@
 
 ## White paper
 
-A designed, print-ready white paper for the project lives at
-[`docs/white-paper.html`](docs/white-paper.html) — masthead, site anatomy,
-methodology, ethics & sourcing, and a "build on it" call to action. It's a
-single self-contained file: open it straight from disk in any browser, read it
-responsively on any screen, and use the **Print / PDF** button for clean
-US-Letter output. It's served alongside the app too — run the dev server and
-visit [`/docs/white-paper.html`](http://localhost:5173/docs/white-paper.html).
+The full designed white paper, rendered from the "Modernist" design source. An
+interactive, print-ready version lives at [`docs/white-paper.html`](docs/white-paper.html)
+— open it and hit **Print / PDF**.
 
-- **Project:** [Lop Nur Twin Base — White Paper](https://claude.ai/design/p/4e3d3c1c-b69d-40cd-ad08-803e9ab30242?file=Lop+Nur+Twin+Base+-+White+Paper.dc.html)
-  (`Lop Nur Twin Base - White Paper.dc.html`)
+[![Lop Nur Twin Base — White Paper](docs/white-paper.png)](docs/white-paper.html)
+
+<details>
+<summary><b>Read the white paper as text</b></summary>
+
+<br>
+
+<sup>**VERS3DYNAMICS** · R.A.I.N. LAB — IMMERSIVE DIGITAL TWIN</sup>
+
+## Lop Nur Twin Base
+
+**A full-scale, explorable 3D reconstruction of one of China's most remote and
+secretive desert airfields — built entirely from publicly available satellite
+imagery.**
+
+|  |  |  |  |
+| :-- | :-- | :-- | :-- |
+| **40.77°N** | **~5 km** | **~25** | **Sentinel-2** |
+| 89.28°E · Xinjiang Gobi | Runway 05/23 · 16,400 ft | Procedural structures | Sole source imagery |
+
+![Aerial overview — the triangular airfield in empty desert, with the compound on the south side of the paved runway](docs/screenshot-overview.png)
+
+<sup>**Fig. 1 — Aerial overview.** The triangular airfield in empty desert, with the compound on the south side of the paved runway. Rendered in the digital twin; imagery reconstructed from public Sentinel-2 tiles.</sup>
+
+### 01 · A map, not an answer
+
+The Lop Nur test base — often called "China's Area 51" — sits alone in the
+Xinjiang Gobi, a giant triangular airfield linked to reusable-spaceplane
+landings and, more recently, sightings of next-generation stealth fighters. It
+is exactly the kind of place that resists understanding: too remote to visit,
+too controlled to photograph, too large to grasp from a single overhead frame.
+
+This reconstruction does not claim to reveal what happens there. Its value is
+different, and in some ways more useful: it turns scattered pixels into a space
+you can _move through_. Walk the flight line, stand under the assembly hangar
+door, follow the spur taxiway to the apron — and the questions you didn't know
+to ask begin to surface on their own.
+
+The twin is best understood as a structured instrument for discovery. Every
+building, road and runway leg is a projection of one source-of-truth layout, so
+the model is falsifiable: measure it, disagree with it, correct it. That is the
+point. It is a foundation others are meant to build upon — not a verdict, but a
+shared frame of reference for a place that has never had one.
+
+### 02 · Inside the wire — the site anatomy
+
+The whole site is scaled from the source imagery and driven by a single layout
+file. Add a structure there and it appears in the world, the minimap, and the
+site index at once. What follows is the current census of what has been rebuilt.
+
+| Zone | What's there |
+| :-- | :-- |
+| **The airfield** | A single ~5 km pale-concrete runway (05/23, azimuth ~046°) — among the longest in the world — with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex, overshooting the corners just like the real gradings. |
+| **The compound** | Reached by a spur taxiway from mid-runway: an expanded concrete apron, paved internal streets, and dirt tracks out to the support camp and along the perimeter. |
+| **Structures (~25)** | The dominant white assembly hangar (>90 m across), a three-bay fighter-shelter block, a newer NE hangar, control tower, operations block, fuel farm, high-voltage switchyard, water towers, gatehouse, a detached SW support camp, and perimeter radar and guard towers. |
+| **The flight line** | Three parked aircraft matching 2025 sightings — the J-36 sixth-generation demonstrator, the J-XDS lambda-wing demonstrator, and a flying-wing UCAV. Each is clickable, with its own dossier and site-index entry. |
+| **Terrain** | 6.8 × 6.8 km of seeded dried-lakebed gobi plain — desert-pavement gravel fields, pale playa, braided dry-wash channels, and automatic flattening under every runway, road and building pad. |
+| **A living base** | A resident demonstrator flies the runway pattern; a surveillance radar turns on its mast; a guard vehicle runs the perimeter; a windsock reads the breeze; obstruction beacons wink on tall structures at night under a full day/night cycle. |
+
+![Structure dossier — click any building or aircraft for its details and a fly-to jump](docs/screenshot-dossier.png)
+
+<sup>**Fig. 2 — Structure dossier.** Click any building or aircraft for its details and a "fly to structure" jump.</sup>
+
+### 03 · Methodology — from satellite tile to 3D world
+
+The pipeline is deliberately reproducible. Nothing here depends on classified
+data, leaked plans, or private access. Everything begins with imagery anyone can
+pull, and every downstream artifact traces back to it.
+
+| Step | | |
+| :-- | :-- | :-- |
+| **01** | **Acquire & register** | Pull public Sentinel-2 tiles over the site and geo-register them. The known coordinates (40.77°N, 89.28°E) and runway azimuth (~046°) anchor scale and orientation. |
+| **02** | **Trace the layout** | Every runway, road, structure footprint and waypoint is measured off the imagery and encoded once, in metric units, in a single source-of-truth layout file. |
+| **03** | **Generate the world** | A seeded heightfield builds the gobi plain; procedural geometry raises the structures; runtime canvas textures paint concrete, dirt, centerline dashes, 05/23 designators, piano keys and tire rubber. |
+| **04** | **Animate & verify** | Atmosphere, a day/night cycle and a living base add legibility; the 3D scene and 2D minimap are both projections of the same layout, so any error is visible and correctable in one place. |
+
+> **Determinism is the guarantee.** Noise is seeded, textures are generated at
+> runtime, and structures are placed from measured coordinates — so the same
+> inputs always produce the same world. There is nothing to hand-tune away from
+> the evidence, which is what makes the model auditable.
+
+### 04 · Who it's for
+
+- **For OSINT researchers** — A measurable, walkable frame of reference. Compare
+  the twin against fresh imagery, test spatial hypotheses about sightlines and
+  dimensions, and cite a shared model instead of describing pixels in prose.
+- **For game developers** — A production-grade, real-world level: procedural
+  terrain and structures, adaptive quality that sheds effects under load, and a
+  clean layout-driven data model to fork, restyle, or drop straight into a scene.
+- **For VR / XR enthusiasts** — An immersive place to be. First-person walk,
+  free-fly orbit, and a cinematic flythrough turn a remote coordinate into
+  somewhere you can stand — the sense of scale that no flat map delivers.
+
+**How to explore**
+
+| Key | Action |
+| :-- | :-- |
+| `1` / `2` / `3` | Free-fly orbit · first-person walk (WASD, Shift sprints) · cinematic flythrough |
+| `N` | Toggle day / night |
+| `I` / `H` | Site index (grouped outliner) · help overlay |
+| `Click` | Open a structure's dossier and fly to it · click the minimap to jump the orbit camera |
+
+On phones and tablets, orbit responds to one-finger drag, pinch-zoom and
+two-finger pan; first-person mode shows on-screen thumb-stick and look controls.
+
+### 05 · Ethics & sourcing
+
+- **Public imagery only.** The reconstruction is built exclusively from openly
+  licensed Sentinel-2 satellite tiles. It uses no classified material, no leaked
+  documents, and no private or restricted data. Anyone with an internet
+  connection can obtain the same source and check the work.
+- **Interpretation, clearly labelled.** Overhead imagery shows footprints and
+  pavement, not interiors or intent. Structure identities, aircraft types and
+  functional labels are informed inferences drawn from open reporting and 2025
+  sightings — offered as hypotheses to test, not as established fact.
+- **A model, not a target.** This is a scaled analytical reconstruction for
+  research, education and creative work. It is not operational intelligence and
+  confers no capability that public imagery does not already provide.
+- **Correctable by design.** Because every element is a projection of one
+  measured layout, errors are visible and fixable in the open. Disagreement is a
+  feature: the honest response to a wrong wall is a pull request, not a footnote.
+
+### 06 · A foundation to build on
+
+The reconstruction is open source and designed to be extended. The single-source
+layout means the world, the minimap and the site index stay in sync
+automatically — so contribution is low-friction by construction.
+
+- **Refine the layout** — Correct a footprint, add a newly-visible structure, or
+  re-measure a strip against fresh imagery — one file, and it propagates
+  everywhere.
+- **Fork for your medium** — Restyle it as a game level, export it for a VR
+  headset, or wire it to a live imagery feed for change detection.
+- **Extend the dossiers** — Attach sourced annotations, measurements and
+  citations to each structure so the twin doubles as a shared evidence base.
+- **Reproduce the method** — Apply the same imagery-to-world pipeline to another
+  site. The value compounds the moment a second reconstruction exists.
+
+> ### The most valuable map is the one other people keep redrawing.
+>
+> _Explore it · Fork it · Correct it_
+>
+> **Live demo** — [lop-nur-twin.vercel.app](https://lop-nur-twin.vercel.app/) ·
+> **Source** — [github.com/topherchris420/lop-nur-twin](https://github.com/topherchris420/lop-nur-twin) ·
+> **Studio** — [vers3dynamics.com](https://vers3dynamics.com/)
+>
+> Created by Christopher Woodyard / Vers3Dynamics. Built entirely from publicly
+> available satellite imagery. Special thanks to Kimi K3 Max.
+
+</details>
 
 ## Run it
 
