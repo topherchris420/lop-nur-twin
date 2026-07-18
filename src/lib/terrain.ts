@@ -16,13 +16,17 @@ const bigNoise = seededNoise2D(SITE_SEED);
 const midNoise = seededNoise2D(SITE_SEED + 1);
 const mottleNoise = seededNoise2D(SITE_SEED + 2);
 const fineNoise = seededNoise2D(SITE_SEED + 3);
+const gravelNoise = seededNoise2D(SITE_SEED + 4);
+const wadiNoise = seededNoise2D(SITE_SEED + 5);
 
-const BIG_FREQ = 1 / 950;
-const BIG_AMP = 4.2;
-const MID_FREQ = 1 / 190;
-const MID_AMP = 1.1;
-const FINE_FREQ = 1 / 42;
-const FINE_AMP = 0.32;
+// Lop Nur sits on a dried lakebed / gobi plain: broad, nearly flat relief with
+// shallow gravel swells, cut by braided dry-wash channels.
+const BIG_FREQ = 1 / 1150;
+const BIG_AMP = 2.4;
+const MID_FREQ = 1 / 240;
+const MID_AMP = 0.7;
+const FINE_FREQ = 1 / 46;
+const FINE_AMP = 0.28;
 
 /** Extra flat margin beyond a segment's half-width, and the blend distance. */
 const FLAT_MARGIN = 30;
@@ -95,12 +99,16 @@ export function flattenFactor(x: number, z: number): number {
   return smoothstep(FLAT_MARGIN, FLAT_MARGIN + BLEND_DIST, minEdge);
 }
 
-/** Raw dune/erosion relief before flattening. */
+/** Raw lakebed/gobi relief before flattening. */
 export function rawHeight(x: number, z: number): number {
+  // dry-wash channels: incise a little where the ridged wadi field is near zero
+  const w = Math.abs(wadiNoise(x / 620, z / 620));
+  const channel = -Math.max(0, 0.16 - w) * 6;
   return (
     bigNoise(x * BIG_FREQ, z * BIG_FREQ) * BIG_AMP +
     midNoise(x * MID_FREQ, z * MID_FREQ) * MID_AMP +
-    fineNoise(x * FINE_FREQ, z * FINE_FREQ) * FINE_AMP
+    fineNoise(x * FINE_FREQ, z * FINE_FREQ) * FINE_AMP +
+    channel
   );
 }
 
@@ -114,4 +122,16 @@ export function mottle(x: number, z: number): number {
   return (
     mottleNoise(x / 260, z / 260) * 0.4 + mottleNoise(x / 47, z / 47) * 0.6
   );
+}
+
+/** Gobi gravel-field mask in [0, 1]: broad darker desert-pavement patches. */
+export function gravelField(x: number, z: number): number {
+  const g = gravelNoise(x / 560, z / 560) * 0.65 + gravelNoise(x / 150, z / 150) * 0.35;
+  return Math.min(1, Math.max(0, (g - 0.06) * 1.5));
+}
+
+/** Dry-wash channel mask in [0, 1]: 1 in the braided wadi lines. */
+export function wadiMask(x: number, z: number): number {
+  const w = Math.abs(wadiNoise(x / 620, z / 620));
+  return Math.min(1, Math.max(0, (0.14 - w) / 0.14));
 }

@@ -54,6 +54,8 @@ export interface PavementOptions {
   widthM: number;
   markings: "runway" | "taxiway" | "none";
   seed: number;
+  /** Runway designators painted at the `from` and `to` thresholds. */
+  designators?: [string, string];
 }
 
 /**
@@ -62,7 +64,7 @@ export interface PavementOptions {
  * length, u across its width, matching a PlaneGeometry(width, length).
  */
 export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture {
-  const { lengthM, widthM, markings, seed } = opts;
+  const { lengthM, widthM, markings, seed, designators = ["08", "26"] } = opts;
   const H = Math.min(4096, Math.max(512, Math.round(lengthM * 1.6)));
   const W = 256;
   const pxPerMx = W / widthM;
@@ -143,7 +145,7 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
       ctx.font = `bold ${Math.round(24 * pxPerMy)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(end === 0 ? "08" : "26", 0, 0);
+      ctx.fillText(end === 0 ? designators[0] : designators[1], 0, 0);
       ctx.restore();
       // inward-pointing chevrons
       paint(0.6);

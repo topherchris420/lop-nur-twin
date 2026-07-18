@@ -57,8 +57,8 @@ function RunwayMesh({ seg, index }: StripMeshProps) {
       makePavementTexture({
         lengthM: length,
         widthM: seg.width,
-        // The supplied imagery shows a pale, unmarked test strip.
-        markings: "none",
+        markings: "runway",
+        designators: ["05", "23"],
         seed: SITE_SEED + 100 + index,
       }),
     [length, seg.width, index],

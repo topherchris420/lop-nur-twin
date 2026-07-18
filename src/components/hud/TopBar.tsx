@@ -29,10 +29,10 @@ export function TopBar() {
     <>
       <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 text-center">
         <div className="text-foreground/90 font-mono text-xs tracking-[0.35em] uppercase">
-          Desert Airfield
+          Lop Nur
         </div>
         <div className="text-muted-foreground text-[10px] tracking-[0.25em] uppercase">
-          Digital Twin · procedural reconstruction
+          Test Airfield · Xinjiang · Digital Twin
         </div>
       </div>
       <div className="hud-panel absolute top-4 right-4 flex items-center gap-1 p-1.5">

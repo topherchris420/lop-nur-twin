@@ -9,7 +9,7 @@ import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 
 const SUN_DISTANCE = 1800;
-const SHADOW_FOCUS = new THREE.Vector3(380, 0, -220);
+const SHADOW_FOCUS = new THREE.Vector3(1018, 0, 1410);
 
 const DAY = {
   fogColor: new THREE.Color("#d8c29b"),
@@ -60,7 +60,7 @@ export function Atmosphere() {
   useEffect(() => {
     scene.fog = fog;
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.05;
+    gl.toneMappingExposure = 0.98;
     return () => {
       scene.fog = null;
     };
@@ -168,8 +168,8 @@ function DustLayer() {
 
   const { base, speeds, span } = useMemo(() => {
     const rand = mulberry32(SITE_SEED + 900);
-    const count = 1500;
-    const span = 3200;
+    const count = 1800;
+    const span = 5200;
     const base = new Float32Array(count * 3);
     const speeds = new Float32Array(count);
     for (let i = 0; i < count; i++) {

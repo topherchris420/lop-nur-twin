@@ -18,7 +18,7 @@ export function Scene() {
     <Canvas
       shadows="soft"
       dpr={[1, 2]}
-      camera={{ fov: 55, near: 1, far: 22000, position: [820, 460, 980] }}
+      camera={{ fov: 55, near: 1, far: 26000, position: [1740, 560, 2240] }}
       gl={{ powerPreference: "high-performance", antialias: true }}
       onPointerMissed={() => select(null)}
     >
