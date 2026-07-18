@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lop Nur Twin Base — White Paper · Vers3Dynamics</title>
+<meta name="description" content="A full-scale, explorable 3D reconstruction of one of China's most remote and secretive desert airfields — built entirely from publicly available satellite imagery.">
+<meta name="author" content="Christopher Woodyard / Vers3Dynamics">
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lop Nur Twin Base — White Paper">
+<meta property="og:description" content="A full-scale, explorable 3D reconstruction of one of China's most secretive desert airfields, built from public satellite imagery.">
+<meta property="og:image" content="screenshot-overview.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   Lop Nur Twin Base — White Paper
+   Self-contained port of the "Modernist" Claude Design document.
+   No build step, no web components, no external JS. Opens straight from
+   disk, reads responsively on any screen, and prints to clean US-Letter
+   pages. Design tokens mirror the source design system.
+   ═════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
+
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-900: #4d170e;
+
+  --font-heading: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --font-body: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+  --page-w: 8.5in;
+  --page-pad: 0.85in;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(120% 60% at 50% -10%, #ffffff 0%, var(--color-bg) 55%);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+a {
+  color: var(--color-accent-700);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent-700) 35%, transparent);
+}
+a:hover { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+::selection { background: var(--color-accent-200); }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+figure { margin: 0; }
+img { display: block; max-width: 100%; }
+code { font-family: var(--font-mono); font-weight: 700; color: var(--color-accent-700); }
+em { font-style: italic; }
+
+/* — screen toolbar (hidden in print) — */
+.toolbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px clamp(16px, 5vw, 40px);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: saturate(1.2) blur(8px);
+  border-bottom: 1px solid var(--color-divider);
+}
+.toolbar .brand {
+  font-family: var(--font-heading); font-weight: 800; font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.toolbar .brand span { color: var(--color-accent); }
+.toolbar .actions { display: flex; gap: 10px; }
+.btn {
+  font-family: var(--font-heading); font-weight: 800; font-size: 12px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 8px 14px; border: 1px solid var(--color-divider);
+  background: transparent; color: var(--color-text);
+  cursor: pointer; border-radius: 0; text-decoration: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.btn-primary:hover { background: var(--color-accent-600); border-color: var(--color-accent-600); }
+
+/* — the document “page” — */
+.page {
+  width: min(100%, var(--page-w));
+  margin: 28px auto 64px;
+  padding: clamp(24px, 6vw, var(--page-pad));
+  background: #fff;
+  box-shadow: 0 12px 40px color-mix(in srgb, #2d2b2b 18%, transparent);
+}
+
+/* masthead */
+.masthead {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 2px solid var(--color-text);
+  padding-bottom: 10px;
+}
+.masthead .m-brand { font-family: var(--font-heading); font-weight: 800; font-size: 13px; letter-spacing: 0.06em; }
+.masthead .m-lab {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-accent); font-weight: 600;
+}
+.eyebrow {
+  font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--color-accent); font-weight: 700; margin-top: 22px;
+}
+
+.title {
+  font-size: clamp(34px, 8vw, 46px); line-height: 1.02; letter-spacing: -0.02em;
+  margin: 8px 0 8px;
+}
+.lede {
+  font-size: clamp(16px, 3.6vw, 19px); line-height: 1.3; font-weight: 600;
+  color: var(--color-neutral-800); max-width: 44ch; margin: 0;
+}
+
+/* stat strip */
+.stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 2px solid var(--color-text); border-bottom: 2px solid var(--color-text);
+  margin: 20px 0 4px;
+}
+.stats .stat { padding: 12px 14px; border-right: 1px solid var(--color-divider); }
+.stats .stat:first-child { padding-left: 0; }
+.stats .stat:last-child { border-right: 0; padding-right: 0; }
+.stat .num { font-family: var(--font-heading); font-weight: 800; font-size: clamp(18px, 4vw, 22px); color: var(--color-accent); }
+.stat .lbl { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-600); margin-top: 3px; }
+
+/* figures */
+figure.fig { margin: 24px 0 8px; }
+.frame { width: 100%; border: 2px solid var(--color-text); overflow: hidden; }
+.frame img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.08); display: block; }
+.frame.h-hero { aspect-ratio: 5 / 3; }
+.frame.h-wide { aspect-ratio: 5 / 2.1; }
+figcaption { font-size: 11px; color: var(--color-neutral-600); margin-top: 8px; letter-spacing: 0.02em; }
+
+/* sections */
+section { border-top: 2px solid var(--color-text); margin-top: 32px; padding-top: 14px; }
+.sec-head { display: flex; gap: 16px; align-items: baseline; }
+.sec-num { font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--color-accent); }
+.sec-head h2 { font-size: clamp(24px, 5.4vw, 30px); line-height: 1.05; letter-spacing: -0.01em; }
+
+.cols { columns: 2; column-gap: 28px; margin-top: 16px; font-size: 14px; line-height: 1.62; }
+.cols p { margin: 0 0 12px; }
+.cols p:last-child { margin-bottom: 0; }
+.intro-p { font-size: 14px; line-height: 1.62; max-width: 66ch; }
+
+/* tables */
+table.wp { width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 12.5px; }
+table.wp thead tr { border-top: 2px solid var(--color-text); border-bottom: 2px solid var(--color-text); }
+table.wp th {
+  text-align: left; padding: 9px 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 10.5px;
+}
+table.wp th:first-child, table.wp td:first-child { padding-left: 0; }
+table.wp tbody tr { border-bottom: 1px solid var(--color-divider); }
+table.wp tbody tr:last-child { border-bottom: 2px solid var(--color-text); }
+table.wp td { padding: 10px; color: var(--color-neutral-800); vertical-align: top; }
+table.wp td.zone { font-weight: 600; color: var(--color-text); }
+
+/* numbered steps grid */
+.steps { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--color-text); margin-top: 16px; }
+.step { padding: 16px 20px; border-bottom: 1px solid var(--color-divider); }
+.step:nth-child(odd) { padding-left: 0; border-right: 1px solid var(--color-divider); }
+.step:nth-child(even) { padding-right: 0; }
+.step:nth-last-child(-n+2) { border-bottom: 2px solid var(--color-text); }
+.step .n { font-family: var(--font-heading); font-weight: 800; font-size: 26px; color: var(--color-accent); }
+.step h3 { font-size: 16px; margin: 6px 0; }
+.step p { font-size: 13px; line-height: 1.55; color: var(--color-neutral-800); margin: 0; }
+
+.callout {
+  border-left: 3px solid var(--color-accent);
+  padding: 14px 18px; margin-top: 22px; background: var(--color-accent-100);
+}
+.callout p { font-size: 13.5px; line-height: 1.55; margin: 0; color: var(--color-accent-900); }
+
+/* audience trio */
+.audience { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--color-text); margin-top: 16px; }
+.aud { padding: 18px; border-right: 1px solid var(--color-divider); }
+.aud:first-child { padding-left: 0; }
+.aud:last-child { border-right: 0; padding-right: 0; }
+.aud .k { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); font-weight: 700; }
+.aud p { font-size: 13px; line-height: 1.55; color: var(--color-neutral-800); margin: 10px 0 0; }
+
+.subhead { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-neutral-700); margin: 26px 0 10px; }
+.note { font-size: 11.5px; line-height: 1.5; color: var(--color-neutral-600); margin: 10px 0 0; }
+
+/* build-on grid */
+.buildon { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; margin-top: 16px; }
+.buildon .item { border-top: 2px solid var(--color-divider); padding-top: 10px; }
+.buildon h3 { font-size: 14px; margin: 0 0 5px; }
+.buildon p { font-size: 12.5px; line-height: 1.5; color: var(--color-neutral-800); margin: 0; }
+
+/* closing poster */
+.poster { background: var(--color-accent); color: #fff; margin: 34px 0 0; padding: clamp(24px, 6vw, 36px); border-top: 0; }
+.poster .k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; opacity: 0.85; }
+.poster .big { font-family: var(--font-heading); font-weight: 800; font-size: clamp(24px, 6vw, 30px); line-height: 1.08; letter-spacing: -0.01em; margin: 12px 0 22px; max-width: 24ch; }
+.poster .links { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid rgba(255,255,255,0.4); }
+.poster .lk { padding: 14px 16px 4px; border-right: 1px solid rgba(255,255,255,0.3); }
+.poster .lk:first-child { padding-left: 0; }
+.poster .lk:last-child { border-right: 0; padding-right: 0; }
+.poster .lk .lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; }
+.poster .lk a { color: #fff; border-bottom-color: rgba(255,255,255,0.6); font-weight: 600; font-size: 13px; word-break: break-word; }
+.poster .lk a:hover { border-bottom-color: #fff; }
+.poster .credit { font-size: 11px; line-height: 1.5; margin: 22px 0 0; opacity: 0.85; }
+
+.docfoot {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  border-top: 2px solid var(--color-divider); margin-top: 40px; padding-top: 8px;
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-600);
+}
+
+/* ── responsive ── */
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stats .stat:nth-child(2) { border-right: 0; padding-right: 0; }
+  .stats .stat:nth-child(3) { padding-left: 0; }
+  .cols { columns: 1; }
+  .steps { grid-template-columns: 1fr; }
+  .step, .step:nth-child(odd) { padding: 16px 0; border-right: 0; }
+  .step:nth-last-child(-n+2) { border-bottom: 1px solid var(--color-divider); }
+  .step:last-child { border-bottom: 2px solid var(--color-text); }
+  .audience { grid-template-columns: 1fr; }
+  .aud, .aud:first-child { padding: 16px 0; border-right: 0; border-bottom: 1px solid var(--color-divider); }
+  .aud:last-child { border-bottom: 0; padding-bottom: 0; }
+  .buildon { grid-template-columns: 1fr; }
+  .poster .links { grid-template-columns: 1fr; }
+  .poster .lk, .poster .lk:first-child { padding: 12px 0; border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.3); }
+  .poster .lk:last-child { border-bottom: 0; }
+}
+
+@media (prefers-color-scheme: dark) {
+  body { background: radial-gradient(120% 60% at 50% -10%, #1b1917 0%, #14120e 60%); }
+  .toolbar { background: color-mix(in srgb, #14120e 82%, transparent); border-bottom-color: color-mix(in srgb, #fff 18%, transparent); }
+  .toolbar .brand, .btn { color: #ece8e0; }
+  .btn { border-color: color-mix(in srgb, #fff 22%, transparent); }
+  .btn:hover { background: color-mix(in srgb, #fff 10%, transparent); }
+  /* The page itself stays a light "sheet of paper" for print fidelity. */
+}
+
+/* ── print: clean US-Letter pages ── */
+@media print {
+  @page { size: letter portrait; margin: 0.85in; }
+  html, body { background: #fff; }
+  .toolbar { display: none !important; }
+  .page { width: auto; max-width: none; margin: 0; padding: 0; box-shadow: none; }
+  .frame img { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .poster, .callout, .stat .num, .sec-num, .eyebrow { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  a { color: var(--color-accent-700); border: 0; }
+  section { break-inside: avoid-page; }
+  figure.fig, table.wp, .steps, .audience, .buildon, .poster { break-inside: avoid; }
+  .break-before { break-before: page; }
+  .poster { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar" role="banner">
+  <div class="brand">VERS3DYNAMICS <span>· R.A.I.N. LAB</span></div>
+  <div class="actions">
+    <a class="btn" href="https://lop-nur-twin.vercel.app/">Live demo</a>
+    <button class="btn btn-primary" type="button" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<article class="page">
+
+  <!-- MASTHEAD -->
+  <header>
+    <div class="masthead">
+      <span class="m-brand">VERS3DYNAMICS</span>
+      <span class="m-lab">R.A.I.N. LAB</span>
+    </div>
+    <div class="eyebrow">Immersive Digital Twin</div>
+    <h1 class="title">Lop Nur Twin Base</h1>
+    <p class="lede">A full-scale, explorable 3D reconstruction of one of China's most remote and secretive desert airfields — built entirely from publicly available satellite imagery.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="num">40.77°N</div><div class="lbl">89.28°E · Xinjiang Gobi</div></div>
+      <div class="stat"><div class="num">~5 km</div><div class="lbl">Runway 05/23 · 16,400 ft</div></div>
+      <div class="stat"><div class="num">~25</div><div class="lbl">Procedural structures</div></div>
+      <div class="stat"><div class="num">Sentinel-2</div><div class="lbl">Sole source imagery</div></div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <figure class="fig">
+    <div class="frame h-hero">
+      <img src="screenshot-overview.png" alt="Aerial overview of the triangular Lop Nur airfield with the compound on the south side of the paved runway, rendered in the digital twin.">
+    </div>
+    <figcaption>Fig. 1 — Aerial overview. The triangular airfield in empty desert, with the compound on the south side of the paved runway. Rendered in the digital twin; imagery reconstructed from public Sentinel-2 tiles.</figcaption>
+  </figure>
+
+  <!-- 01 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>A map, not an answer</h2></div>
+    <div class="cols">
+      <p>The Lop Nur test base — often called "China's Area 51" — sits alone in the Xinjiang Gobi, a giant triangular airfield linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters. It is exactly the kind of place that resists understanding: too remote to visit, too controlled to photograph, too large to grasp from a single overhead frame.</p>
+      <p>This reconstruction does not claim to reveal what happens there. Its value is different, and in some ways more useful: it turns scattered pixels into a space you can <em>move through</em>. Walk the flight line, stand under the assembly hangar door, follow the spur taxiway to the apron — and the questions you didn't know to ask begin to surface on their own.</p>
+      <p>The twin is best understood as a structured instrument for discovery. Every building, road and runway leg is a projection of one source-of-truth layout, so the model is falsifiable: measure it, disagree with it, correct it. That is the point. It is a foundation others are meant to build upon — not a verdict, but a shared frame of reference for a place that has never had one.</p>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="break-before">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Inside the wire — the site anatomy</h2></div>
+    <p class="intro-p" style="margin:14px 0 18px">The whole site is scaled from the source imagery and driven by a single layout file. Add a structure there and it appears in the world, the minimap, and the site index at once. What follows is the current census of what has been rebuilt.</p>
+
+    <table class="wp">
+      <thead><tr><th style="width:26%">Zone</th><th>What's there</th></tr></thead>
+      <tbody>
+        <tr><td class="zone">The airfield</td><td>A single ~5 km pale-concrete runway (05/23, azimuth ~046°) — among the longest in the world — with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex, overshooting the corners just like the real gradings.</td></tr>
+        <tr><td class="zone">The compound</td><td>Reached by a spur taxiway from mid-runway: an expanded concrete apron, paved internal streets, and dirt tracks out to the support camp and along the perimeter.</td></tr>
+        <tr><td class="zone">Structures (~25)</td><td>The dominant white assembly hangar (&gt;90 m across), a three-bay fighter-shelter block, a newer NE hangar, control tower, operations block, fuel farm, high-voltage switchyard, water towers, gatehouse, a detached SW support camp, and perimeter radar and guard towers.</td></tr>
+        <tr><td class="zone">The flight line</td><td>Three parked aircraft matching 2025 sightings — the J-36 sixth-generation demonstrator, the J-XDS lambda-wing demonstrator, and a flying-wing UCAV. Each is clickable, with its own dossier and site-index entry.</td></tr>
+        <tr><td class="zone">Terrain</td><td>6.8 × 6.8 km of seeded dried-lakebed gobi plain — desert-pavement gravel fields, pale playa, braided dry-wash channels, and automatic flattening under every runway, road and building pad.</td></tr>
+        <tr><td class="zone">A living base</td><td>A resident demonstrator flies the runway pattern; a surveillance radar turns on its mast; a guard vehicle runs the perimeter; a windsock reads the breeze; obstruction beacons wink on tall structures at night under a full day/night cycle.</td></tr>
+      </tbody>
+    </table>
+
+    <figure class="fig">
+      <div class="frame h-wide">
+        <img src="screenshot-dossier.png" alt="A structure dossier panel open over the 3D scene, showing details and a fly-to control.">
+      </div>
+      <figcaption>Fig. 2 — Structure dossier. Click any building or aircraft for its details and a "fly to structure" jump.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 03 -->
+  <section class="break-before">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Methodology — from satellite tile to 3D world</h2></div>
+    <p class="intro-p" style="margin:14px 0 20px">The pipeline is deliberately reproducible. Nothing here depends on classified data, leaked plans, or private access. Everything begins with imagery anyone can pull, and every downstream artifact traces back to it.</p>
+
+    <div class="steps">
+      <div class="step"><div class="n">01</div><h3>Acquire &amp; register</h3><p>Pull public Sentinel-2 tiles over the site and geo-register them. The known coordinates (40.77°N, 89.28°E) and runway azimuth (~046°) anchor scale and orientation.</p></div>
+      <div class="step"><div class="n">02</div><h3>Trace the layout</h3><p>Every runway, road, structure footprint and waypoint is measured off the imagery and encoded once, in metric units, in a single source-of-truth layout file.</p></div>
+      <div class="step"><div class="n">03</div><h3>Generate the world</h3><p>A seeded heightfield builds the gobi plain; procedural geometry raises the structures; runtime canvas textures paint concrete, dirt, centerline dashes, 05/23 designators, piano keys and tire rubber.</p></div>
+      <div class="step"><div class="n">04</div><h3>Animate &amp; verify</h3><p>Atmosphere, a day/night cycle and a living base add legibility; the 3D scene and 2D minimap are both projections of the same layout, so any error is visible and correctable in one place.</p></div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Determinism is the guarantee.</strong> Noise is seeded, textures are generated at runtime, and structures are placed from measured coordinates — so the same inputs always produce the same world. There is nothing to hand-tune away from the evidence, which is what makes the model auditable.</p>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Who it's for</h2></div>
+    <div class="audience">
+      <div class="aud"><div class="k">For OSINT researchers</div><p>A measurable, walkable frame of reference. Compare the twin against fresh imagery, test spatial hypotheses about sightlines and dimensions, and cite a shared model instead of describing pixels in prose.</p></div>
+      <div class="aud"><div class="k">For game developers</div><p>A production-grade, real-world level: procedural terrain and structures, adaptive quality that sheds effects under load, and a clean layout-driven data model to fork, restyle, or drop straight into a scene.</p></div>
+      <div class="aud"><div class="k">For VR / XR enthusiasts</div><p>An immersive place to be. First-person walk, free-fly orbit, and a cinematic flythrough turn a remote coordinate into somewhere you can stand — the sense of scale that no flat map delivers.</p></div>
+    </div>
+
+    <h3 class="subhead">How to explore</h3>
+    <table class="wp">
+      <thead><tr><th style="width:16%">Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>1 / 2 / 3</code></td><td>Free-fly orbit · first-person walk (WASD, Shift sprints) · cinematic flythrough</td></tr>
+        <tr><td><code>N</code></td><td>Toggle day / night</td></tr>
+        <tr><td><code>I / H</code></td><td>Site index (grouped outliner) · help overlay</td></tr>
+        <tr><td><code>Click</code></td><td>Open a structure's dossier and fly to it · click the minimap to jump the orbit camera</td></tr>
+      </tbody>
+    </table>
+    <p class="note">On phones and tablets, orbit responds to one-finger drag, pinch-zoom and two-finger pan; first-person mode shows on-screen thumb-stick and look controls.</p>
+  </section>
+
+  <!-- 05 -->
+  <section class="break-before">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Ethics &amp; sourcing</h2></div>
+    <div class="cols">
+      <p><strong>Public imagery only.</strong> The reconstruction is built exclusively from openly licensed Sentinel-2 satellite tiles. It uses no classified material, no leaked documents, and no private or restricted data. Anyone with an internet connection can obtain the same source and check the work.</p>
+      <p><strong>Interpretation, clearly labelled.</strong> Overhead imagery shows footprints and pavement, not interiors or intent. Structure identities, aircraft types and functional labels are informed inferences drawn from open reporting and 2025 sightings — offered as hypotheses to test, not as established fact.</p>
+      <p><strong>A model, not a target.</strong> This is a scaled analytical reconstruction for research, education and creative work. It is not operational intelligence and confers no capability that public imagery does not already provide.</p>
+      <p><strong>Correctable by design.</strong> Because every element is a projection of one measured layout, errors are visible and fixable in the open. Disagreement is a feature: the honest response to a wrong wall is a pull request, not a footnote.</p>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>A foundation to build on</h2></div>
+    <p class="intro-p" style="margin:14px 0 16px">The reconstruction is open source and designed to be extended. The single-source layout means the world, the minimap and the site index stay in sync automatically — so contribution is low-friction by construction.</p>
+    <div class="buildon">
+      <div class="item"><h3>Refine the layout</h3><p>Correct a footprint, add a newly-visible structure, or re-measure a strip against fresh imagery — one file, and it propagates everywhere.</p></div>
+      <div class="item"><h3>Fork for your medium</h3><p>Restyle it as a game level, export it for a VR headset, or wire it to a live imagery feed for change detection.</p></div>
+      <div class="item"><h3>Extend the dossiers</h3><p>Attach sourced annotations, measurements and citations to each structure so the twin doubles as a shared evidence base.</p></div>
+      <div class="item"><h3>Reproduce the method</h3><p>Apply the same imagery-to-world pipeline to another site. The value compounds the moment a second reconstruction exists.</p></div>
+    </div>
+  </section>
+
+  <!-- CLOSING POSTER -->
+  <section class="poster">
+    <div class="k">Explore it · Fork it · Correct it</div>
+    <p class="big">The most valuable map is the one other people keep redrawing.</p>
+    <div class="links">
+      <div class="lk"><div class="lbl">Live demo</div><a href="https://lop-nur-twin.vercel.app/">lop-nur-twin.vercel.app</a></div>
+      <div class="lk"><div class="lbl">Source code</div><a href="https://github.com/topherchris420/lop-nur-twin">github.com/topherchris420/lop-nur-twin</a></div>
+      <div class="lk"><div class="lbl">Studio</div><a href="https://vers3dynamics.com/">vers3dynamics.com</a></div>
+    </div>
+    <p class="credit">Created by Christopher Woodyard / Vers3Dynamics. Built entirely from publicly available satellite imagery.<br>Special thanks to Kimi K3 Max.</p>
+  </section>
+
+  <div class="docfoot">
+    <span>Vers3Dynamics — Lop Nur Twin Base</span>
+    <span>Open-Source Reconstruction · Public Imagery Only</span>
+  </div>
+
+</article>
+
+</body>
+</html>

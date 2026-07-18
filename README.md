@@ -8,6 +8,31 @@
 
 ![Structure dossier — click any building for details](docs/screenshot-dossier.png)
 
+## White paper
+
+A designed, print-ready white paper for the project lives at
+[`docs/white-paper.html`](docs/white-paper.html) — masthead, site anatomy,
+methodology, ethics & sourcing, and a "build on it" call to action. It's a
+single self-contained file: open it straight from disk in any browser, read it
+responsively on any screen, and use the **Print / PDF** button for clean
+US-Letter output. It's served alongside the app too — run the dev server and
+visit [`/docs/white-paper.html`](http://localhost:5173/docs/white-paper.html).
+
+### Import the design source (Claude Design MCP)
+
+The white paper is authored in a [Claude Design](https://claude.ai/design)
+project (the "Modernist" design system). To pull the editable source and keep a
+local copy in sync, connect the **`claude_design` MCP** and import the project:
+
+- **MCP endpoint:** `https://api.anthropic.com/v1/design/mcp`
+- **Auth:** run `/design-login` (or use your claude.ai login)
+- **Project:** [Lop Nur Twin Base — White Paper](https://claude.ai/design/p/4e3d3c1c-b69d-40cd-ad08-803e9ab30242?file=Lop+Nur+Twin+Base+-+White+Paper.dc.html)
+  (`Lop Nur Twin Base - White Paper.dc.html`)
+
+Once connected, the `/design-sync` skill can round-trip the document
+component-by-component; `docs/white-paper.html` in this repo is the
+build-free, dependency-free port of that source.
+
 ## Run it
 
 ```sh
