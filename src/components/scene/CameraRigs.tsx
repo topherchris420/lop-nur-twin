@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, PointerLockControls } from "@react-three/drei";
@@ -6,11 +6,14 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { telemetry } from "@/lib/telemetry";
+import { touchInput, resetTouchInput, isCoarsePointer } from "@/lib/touchInput";
 
 const CinematicRig = lazy(() => import("./CinematicRig"));
 
 const EYE_HEIGHT = 1.7;
 const WORLD_LIMIT = 3300;
+const LOOK_SENS = 0.004;
+const MAX_PITCH = Math.PI / 2 - 0.05;
 
 function smootherstep(t: number): number {
   return t * t * t * (t * (t * 6 - 15) + 10);
@@ -87,14 +90,27 @@ function OrbitRig() {
 function FpsRig() {
   const camera = useThree((s) => s.camera);
   const setPointerLocked = useTwinStore((s) => s.setPointerLocked);
+  const touch = useMemo(isCoarsePointer, []);
   const keys = useRef(new Set<string>());
   const velocity = useRef(new THREE.Vector3());
+  // touch look is integrated here as yaw/pitch (PointerLockControls can't lock
+  // the pointer on a touchscreen, so on coarse-pointer devices we drive the
+  // camera orientation ourselves from the on-screen look-pad).
+  const look = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
 
   useEffect(() => {
     // drop onto the terrain wherever the previous camera was hovering
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -WORLD_LIMIT, WORLD_LIMIT);
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, -WORLD_LIMIT, WORLD_LIMIT);
     camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT;
+
+    if (touch) {
+      // start looking level along the current heading
+      look.current.setFromQuaternion(camera.quaternion, "YXZ");
+      look.current.x = 0;
+      look.current.z = 0;
+      camera.quaternion.setFromEuler(look.current);
+    }
 
     const down = (e: KeyboardEvent) => keys.current.add(e.code);
     const up = (e: KeyboardEvent) => keys.current.delete(e.code);
@@ -103,16 +119,32 @@ function FpsRig() {
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
+      resetTouchInput();
       setPointerLocked(false);
     };
-  }, [camera, setPointerLocked]);
+  }, [camera, setPointerLocked, touch]);
 
   const forward = useRef(new THREE.Vector3());
   const right = useRef(new THREE.Vector3());
 
   useFrame((_, delta) => {
     const k = keys.current;
-    const speed = k.has("ShiftLeft") || k.has("ShiftRight") ? 18 : 6;
+    const sprint = k.has("ShiftLeft") || k.has("ShiftRight") || touchInput.sprint;
+    const speed = sprint ? 18 : 6;
+
+    // apply accumulated touch-look before reading the facing direction
+    if (touch && (touchInput.lookDX !== 0 || touchInput.lookDY !== 0)) {
+      look.current.y -= touchInput.lookDX * LOOK_SENS;
+      look.current.x = THREE.MathUtils.clamp(
+        look.current.x - touchInput.lookDY * LOOK_SENS,
+        -MAX_PITCH,
+        MAX_PITCH,
+      );
+      camera.quaternion.setFromEuler(look.current);
+      touchInput.lookDX = 0;
+      touchInput.lookDY = 0;
+    }
+
     camera.getWorldDirection(forward.current);
     forward.current.y = 0;
     if (forward.current.lengthSq() < 1e-6) forward.current.set(0, 0, -1);
@@ -124,8 +156,13 @@ function FpsRig() {
     if (k.has("KeyS") || k.has("ArrowDown")) move.sub(forward.current);
     if (k.has("KeyD") || k.has("ArrowRight")) move.add(right.current);
     if (k.has("KeyA") || k.has("ArrowLeft")) move.sub(right.current);
-    if (move.lengthSq() > 0) {
-      move.normalize().multiplyScalar(speed * delta);
+    // virtual joystick (analog): magnitude scales the step
+    move.addScaledVector(forward.current, touchInput.moveY);
+    move.addScaledVector(right.current, touchInput.moveX);
+
+    const mag = Math.min(1, move.length());
+    if (mag > 1e-3) {
+      move.normalize().multiplyScalar(speed * delta * mag);
       camera.position.add(move);
     }
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -WORLD_LIMIT, WORLD_LIMIT);
@@ -134,6 +171,8 @@ function FpsRig() {
     camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT;
   });
 
+  // on a touchscreen we own the camera orientation; on desktop, pointer lock does
+  if (touch) return null;
   return (
     <PointerLockControls
       makeDefault

@@ -14,6 +14,7 @@ import {
 import { flyToPoint } from "@/lib/flyTo";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
+import { isCoarsePointer } from "@/lib/touchInput";
 
 const SIZE = 240; // CSS pixels
 const WORLD = 6800; // meters covered edge to edge
@@ -152,10 +153,15 @@ function buildStaticLayer(): HTMLCanvasElement {
 }
 
 export function Minimap() {
+  // On phones the minimap sits exactly where the movement thumb-stick lives, so
+  // hide it in first-person mode on touch devices to free the bottom-left.
+  const cameraMode = useTwinStore((s) => s.cameraMode);
+  const hidden = useMemo(isCoarsePointer, []) && cameraMode === "fps";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const staticLayer = useMemo(buildStaticLayer, []);
 
   useEffect(() => {
+    if (hidden) return;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
@@ -203,7 +209,7 @@ export function Minimap() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [staticLayer]);
+  }, [staticLayer, hidden]);
 
   const handleClick = (e: ReactMouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -213,6 +219,8 @@ export function Minimap() {
     const wz = my / SCALE - WORLD / 2;
     flyToPoint(wx, wz);
   };
+
+  if (hidden) return null;
 
   return (
     <div className="hud-panel absolute bottom-4 left-4 overflow-hidden p-1.5">

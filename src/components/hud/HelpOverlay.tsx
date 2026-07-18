@@ -57,6 +57,12 @@ export function HelpOverlay() {
               </li>
             ))}
           </ul>
+          <p className="text-muted-foreground mt-3 border-t border-border pt-3 text-xs">
+            On touch devices, first-person mode shows a left thumb-stick to walk
+            and a right-side drag area to look — push the stick to its edge to
+            sprint. Orbit mode responds to the usual drag, pinch and two-finger
+            pan.
+          </p>
         </CardContent>
       </Card>
     </div>

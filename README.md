@@ -80,6 +80,11 @@ bun run preview    # serve the production build
 | Click building | Open its dossier, with a "Fly to structure"     |
 | Click minimap  | Fly the orbit camera to that point              |
 
+**On phones and tablets**, orbit mode responds to the usual one-finger drag,
+pinch-zoom and two-finger pan. First-person mode shows on-screen controls: a
+left thumb-stick to walk (push it to the edge to sprint) and the right half of
+the screen to look around.
+
 The top-left HUD shows live grid easting/northing, altitude and heading. It is
 updated imperatively (a `requestAnimationFrame` loop writing into DOM refs) —
 the panel itself never re-renders on frame, which you can confirm from its

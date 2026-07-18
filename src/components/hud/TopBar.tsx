@@ -7,8 +7,10 @@ import {
   PersonStanding,
   Sun,
 } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useTwinStore, type CameraMode } from "@/lib/store";
+import { isCoarsePointer } from "@/lib/touchInput";
 import { cn } from "@/lib/utils";
 
 const MODES: Array<{ mode: CameraMode; icon: typeof Orbit; label: string }> = [
@@ -86,9 +88,12 @@ export function TopBar() {
 function ModeHint() {
   const cameraMode = useTwinStore((s) => s.cameraMode);
   const pointerLocked = useTwinStore((s) => s.pointerLocked);
+  const coarse = useMemo(isCoarsePointer, []);
 
   let hint: string | null = null;
-  if (cameraMode === "fps" && !pointerLocked) {
+  if (cameraMode === "fps" && coarse) {
+    hint = "Left stick to walk · drag the right side to look · full push to sprint";
+  } else if (cameraMode === "fps" && !pointerLocked) {
     hint = "Click to capture the mouse · WASD to walk · Shift to sprint · Esc to release";
   } else if (cameraMode === "cinematic") {
     hint = "Cinematic pass — press 1 or 2 to take over";
