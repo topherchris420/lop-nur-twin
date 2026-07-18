@@ -14,6 +14,8 @@ export interface Telemetry {
   heading: number;
   /** smoothed frames per second */
   fps: number;
+  /** index of the cinematic leg currently in frame (-1 = none) */
+  cinematicLeg: number;
 }
 
 export const telemetry: Telemetry = {
@@ -22,4 +24,5 @@ export const telemetry: Telemetry = {
   z: 0,
   heading: 0,
   fps: 60,
+  cinematicLeg: -1,
 };

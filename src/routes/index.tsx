@@ -7,6 +7,9 @@ import { Minimap } from "@/components/hud/Minimap";
 import { Dossier } from "@/components/hud/Dossier";
 import { SiteIndex } from "@/components/hud/SiteIndex";
 import { HelpOverlay } from "@/components/hud/HelpOverlay";
+import { CinematicCaption } from "@/components/hud/CinematicCaption";
+import { IntroOverlay } from "@/components/hud/IntroOverlay";
+import { TouchControls } from "@/components/hud/TouchControls";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 
 export const Route = createFileRoute("/")({
@@ -18,12 +21,15 @@ function App() {
   return (
     <div className="relative h-full w-full select-none">
       <Scene />
+      <TouchControls />
       <Hud />
       <TopBar />
       <Minimap />
       <Dossier />
       <SiteIndex />
       <HelpOverlay />
+      <CinematicCaption />
+      <IntroOverlay />
       {/* dev-only tweaks panel */}
       <Leva collapsed hidden={!import.meta.env.DEV} />
     </div>

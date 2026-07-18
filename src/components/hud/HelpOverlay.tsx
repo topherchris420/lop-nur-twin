@@ -36,7 +36,10 @@ export function HelpOverlay() {
             </Button>
           </div>
           <CardDescription>
-            Click any structure to open its dossier. Click the minimap to fly there.
+            Click any structure to open its dossier. Click the minimap to fly
+            there. Watch for the demonstrator flying the runway pattern, the
+            patrol vehicle, the turning radar and — after dark (<kbd className="kbd">N</kbd>) —
+            the winking obstruction beacons.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -54,6 +57,12 @@ export function HelpOverlay() {
               </li>
             ))}
           </ul>
+          <p className="text-muted-foreground mt-3 border-t border-border pt-3 text-xs">
+            On touch devices, first-person mode shows a left thumb-stick to walk
+            and a right-side drag area to look — push the stick to its edge to
+            sprint. Orbit mode responds to the usual drag, pinch and two-finger
+            pan.
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -50,10 +50,21 @@ bun run preview    # serve the production build
   structures too: clickable, with dossiers, minimap markers and site-index
   entries.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
-  shadows, a drifting ground-level dust layer, and an animated day/night cycle
-  (`N`) with stars, moonlight and lit windows at night.
+  shadows, a drifting ground-level dust layer, soft **cloud shadows** sweeping
+  the plain, and an animated day/night cycle (`N`) with stars, moonlight and
+  lit windows at night.
+- **A base that's alive** (`src/components/scene/LivingScene.tsx`): a resident
+  demonstrator flies the **runway pattern** — a low high-speed pass up 05→23,
+  climb-out and a downwind teardrop back onto final, with red/green navigation
+  lights and an anti-collision strobe; a **surveillance radar** turns on its
+  mast; a **guard vehicle** runs the perimeter patrol (headlights on at night);
+  a **windsock** reads the breeze by the apron; and red **obstruction beacons**
+  wink on every tall structure after dark.
 - **Postprocessing**: SMAA, N8AO ambient occlusion, subtle bloom and a
   vignette — automatically shed under load (see below).
+- **First-run polish**: a branded boot overlay covers texture generation and
+  the first frame, and the cinematic pass captions each site feature as it
+  comes into frame.
 
 ## Controls — How to Explore
 
@@ -68,6 +79,11 @@ bun run preview    # serve the production build
 | `Esc`          | Close panels / release the mouse                |
 | Click building | Open its dossier, with a "Fly to structure"     |
 | Click minimap  | Fly the orbit camera to that point              |
+
+**On phones and tablets**, orbit mode responds to the usual one-finger drag,
+pinch-zoom and two-finger pan. First-person mode shows on-screen controls: a
+left thumb-stick to walk (push it to the edge to sprint) and the right half of
+the screen to look around.
 
 The top-left HUD shows live grid easting/northing, altitude and heading. It is
 updated imperatively (a `requestAnimationFrame` loop writing into DOM refs) —
@@ -94,8 +110,8 @@ src/
     store.ts         ← zustand app state (camera mode, selection, quality…)
     telemetry.ts     ← mutable frame-rate channel scene → HUD (no React state)
   components/
-    scene/           ← R3F: Terrain, Pavements, Structures, Atmosphere, rigs, effects
-    hud/             ← DOM overlays: HUD, minimap, dossier, site index, help
+    scene/           ← R3F: Terrain, Pavements, Structures, LivingScene, Atmosphere, rigs, effects
+    hud/             ← DOM overlays: HUD, minimap, dossier, site index, help, intro, cinematic caption
     ui/              ← shadcn-style primitives (button, card, badge, separator)
   routes/            ← TanStack Router file-based routes
 ```

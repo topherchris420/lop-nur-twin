@@ -7,6 +7,7 @@ import { useControls } from "leva";
 import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
+import { makeCloudShadowTexture } from "@/lib/textures";
 
 const SUN_DISTANCE = 1800;
 const SHADOW_FOCUS = new THREE.Vector3(1018, 0, 1410);
@@ -157,8 +158,46 @@ export function Atmosphere() {
       <group ref={starsRef} visible={false}>
         <Stars radius={4000} depth={100} count={3500} factor={14} saturation={0} fade speed={0.4} />
       </group>
+      <CloudShadows />
       <DustLayer />
     </group>
+  );
+}
+
+/**
+ * Soft cloud shadows drifting across the plain. A single ground-hugging plane
+ * just above the flattened site scrolls a seamless coverage texture; it fades
+ * out at night when there is no sun to cast them.
+ */
+function CloudShadows() {
+  const night = useTwinStore((s) => s.night);
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const tex = useMemo(() => {
+    const t = makeCloudShadowTexture(SITE_SEED + 770);
+    t.repeat.set(2.2, 2.2);
+    return t;
+  }, []);
+  const opacity = useRef(0);
+
+  useFrame((_, delta) => {
+    tex.offset.x += delta * 0.0016;
+    tex.offset.y += delta * 0.0006;
+    const target = night ? 0 : 0.9;
+    opacity.current += (target - opacity.current) * Math.min(1, delta * 0.6);
+    if (matRef.current) matRef.current.opacity = opacity.current;
+  });
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 2, 0]} frustumCulled={false}>
+      <planeGeometry args={[11000, 11000]} />
+      <meshBasicMaterial
+        ref={matRef}
+        map={tex}
+        transparent
+        opacity={0}
+        depthWrite={false}
+      />
+    </mesh>
   );
 }
 
