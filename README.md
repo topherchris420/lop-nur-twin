@@ -1,6 +1,6 @@
-# Lop Nur Twin — Digital Replica
+# Lop Nur Base — Digital Twin
 
-> An immersive 3D digital twin of China's most secretive desert airfield — the Lop Nur test base (~40.77° N, 89.28° E) in the Xinjiang Gobi, rebuilt to scale from public Sentinel-2 satellite imagery. Often called "China's Area 51," this remote airstrip has been linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters.
+> An immersive 3D experience of China's most secretive desert airfield — the Lop Nur test base (~40.77° N, 89.28° E) in the Xinjiang Gobi, rebuilt to scale from public Sentinel-2 satellite imagery. Often called "China's Area 51," this remote airstrip has been linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters.
 
 **What's inside the wire:** A giant triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved concrete runway (05/23, aligned ~046°/226°) forms one leg; two ~5.5 km graded-earth strips run out to a north-west apex, completing the triangle and overshooting the corners just like the real gradings. A spur taxiway drops south-east from mid-runway to the compound: an expanded concrete apron lined with the big white assembly hangar, three joined fighter shelters, a newer north-east hangar, fuel farm, control tower, operations block, walled yards, switchyard, a detached support camp and perimeter sensors. On the apron, the J-36 and J-XDS demonstrators and a flying-wing UCAV — each clickable for a dossier.
 
