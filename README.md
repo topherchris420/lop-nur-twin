@@ -18,20 +18,8 @@ responsively on any screen, and use the **Print / PDF** button for clean
 US-Letter output. It's served alongside the app too — run the dev server and
 visit [`/docs/white-paper.html`](http://localhost:5173/docs/white-paper.html).
 
-### Import the design source (Claude Design MCP)
-
-The white paper is authored in a [Claude Design](https://claude.ai/design)
-project (the "Modernist" design system). To pull the editable source and keep a
-local copy in sync, connect the **`claude_design` MCP** and import the project:
-
-- **MCP endpoint:** `https://api.anthropic.com/v1/design/mcp`
-- **Auth:** run `/design-login` (or use your claude.ai login)
 - **Project:** [Lop Nur Twin Base — White Paper](https://claude.ai/design/p/4e3d3c1c-b69d-40cd-ad08-803e9ab30242?file=Lop+Nur+Twin+Base+-+White+Paper.dc.html)
   (`Lop Nur Twin Base - White Paper.dc.html`)
-
-Once connected, the `/design-sync` skill can round-trip the document
-component-by-component; `docs/white-paper.html` in this repo is the
-build-free, dependency-free port of that source.
 
 ## Run it
 
@@ -118,7 +106,7 @@ the panel itself never re-renders on frame, which you can confirm from its
 ## Adaptive quality
 
 `src/components/scene/AdaptiveQuality.tsx` tracks a rolling FPS estimate.
-Below 50 FPS for more than a second it steps down a ladder — postprocessing
+Below 50 FPS for more than a second, it steps down a ladder — postprocessing
 off → pixel ratio to 1 → shadow map halved — and steps back up after two
 seconds above 55 FPS. Pin a tier for testing with `?quality=0..3` (this also
 disables the automatic ladder). A Leva tweaks panel is available in dev builds.
