@@ -16,7 +16,7 @@ import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 
 const SIZE = 240; // CSS pixels
-const WORLD = 4200; // meters covered edge to edge
+const WORLD = 6800; // meters covered edge to edge
 const SCALE = SIZE / WORLD;
 const DPR = 2;
 
@@ -45,7 +45,7 @@ function buildStaticLayer(): HTMLCanvasElement {
   // faint 1 km grid
   ctx.strokeStyle = "rgba(255,255,255,0.05)";
   ctx.lineWidth = 1;
-  for (let m = -2000; m <= 2000; m += 1000) {
+  for (let m = -3000; m <= 3000; m += 1000) {
     const [gx] = toMap(m, 0);
     const [, gz] = toMap(0, m);
     ctx.beginPath();

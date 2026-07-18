@@ -58,8 +58,10 @@ Guidance for coding agents (and humans) working on this repo.
 - Coloring: the palette constants and mottling mix are at the top of
   `src/components/scene/Terrain.tsx`; the micro-grain normal map comes from
   `makeGroundNormalTexture` in `src/lib/textures.ts`.
-- Mesh resolution: `SEGMENTS` in `Terrain.tsx` (512 ⇒ ~525 k triangles;
+- Mesh resolution: `SEGMENTS` in `Terrain.tsx` (640 ⇒ ~820 k triangles;
   displacement cost is O(vertices × flatten shapes), so watch startup time).
+  A large flat distant floor plane sits under the detailed mesh to hide the
+  terrain edge — keep it below the lowest `rawHeight`.
 
 ## Performance expectations
 

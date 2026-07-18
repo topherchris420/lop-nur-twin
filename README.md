@@ -1,10 +1,10 @@
 # Lop Nur Twin — Digital Replica
 
-> An immersive 3D digital twin of China's most secretive desert airbase — Lop Nur. Explore this mysterious facility in the Gobi Desert, rebuilt from public satellite imagery. Often called "China's Area 51," this remote airstrip hosts experimental spacecraft and next-generation stealth fighters.
+> An immersive 3D digital twin of China's most secretive desert airfield — the Lop Nur test base (~40.77° N, 89.28° E) in the Xinjiang Gobi, rebuilt to scale from public Sentinel-2 satellite imagery. Often called "China's Area 51," this remote airstrip has been linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters.
 
-**What's inside the wire:** A massive desert airfield deep in the Xinjiang expanses. Three runways form a triangular pattern — a ~5 km (16,400+ ft) concrete main strip (05/23) flanked by graded earth overrun strips. The compound sits on its own rotated street grid: concrete aprons, paved taxiways, dirt perimeter roads. Scattered across the hardstanding: hangars, control tower, fuel farm, radar domes, solar arrays. Five aircraft stand sentinel on the apron — a flying-wing UCAV, three twin-tail fighters, and the new J-36 sixth-generation stealth fighter, clickable for dossier details.
+**What's inside the wire:** A giant triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved concrete runway (05/23, aligned ~046°/226°) forms one leg; two ~5.5 km graded-earth strips run out to a north-west apex, completing the triangle and overshooting the corners just like the real gradings. A spur taxiway drops south-east from mid-runway to the compound: an expanded concrete apron lined with the big white assembly hangar, three joined fighter shelters, a newer north-east hangar, fuel farm, control tower, operations block, walled yards, switchyard, a detached support camp and perimeter sensors. On the apron, the J-36 and J-XDS demonstrators and a flying-wing UCAV — each clickable for a dossier.
 
-![Aerial overview — triangular runway layout](docs/screenshot-overview.png)
+![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
 
 ![Structure dossier — click any building for details](docs/screenshot-dossier.png)
 
@@ -21,30 +21,34 @@ bun run preview    # serve the production build
 
 ## What's Inside the Wire
 
-- **4 km × 4 km desert terrain** — seeded simplex heightfield (two octaves,
-  ~4 m relief), vertex-color mottling from gray-brown to dusty yellow, a
-  generated tiling normal map for grain, and automatic flattening under every
-  runway, road and building pad.
-- **A triangular airfield**, as in the source imagery: a single ~5 km (16,400+ ft)
-  pale concrete runway (05/23) forms the south leg — one of the longest in the world —
-  and two ~2.3–2.5 km graded-earth strips complete the triangle to a northern apex,
-  overshooting the corners just like the real gradings. Centerline dashes, painted
-  designators, threshold piano keys, chevrons, expansion joints and tire
-  rubber are all painted into `CanvasTexture`s at runtime.
-- **A compound on its own rotated street grid**, reached by a wide paved stub
-  taxiway from mid-runway: concrete main apron, paved internal streets, and
-  dirt roads reaching out to the perimeter radar sites.
-- **19 procedural buildings**: a monolithic white assembly hangar with twin
-  clerestory window bands and a full-width apron door, a three-bay flight
-  shelter row, quonset shed, control tower with catwalk and glazed cab,
-  logistics depot with roller doors, two-storey operations HQ, solar-roof
-  barracks, walled vehicle and storage yards, gate post with barrier arm,
-  fuel farm, pump house, met station, ground-mounted solar array and two
-  perimeter radomes.
-- **Four parked aircraft** — a flying-wing UCAV on the apron in front of the
-  assembly hangar (matching the airframe in the overhead imagery) and three
-  twin-tail fighters staged around the site. Aircraft are structures too:
-  clickable, with dossiers, minimap markers and site-index entries.
+- **6.8 km × 6.8 km desert terrain** — seeded simplex heightfield tuned for a
+  flat dried-lakebed/gobi plain: broad low relief, vertex-color mottling
+  across tan base, darker desert-pavement gravel fields, pale playa and
+  braided dry-wash channels, a generated tiling normal map for grain, and
+  automatic flattening under every runway, road and building pad. A large
+  distant floor keeps the plain reading as endless at the horizon.
+- **The full triangular airfield**, scaled from the source imagery: a single
+  ~5 km (16,400+ ft) pale concrete runway (05/23) at azimuth ~046° — one of the
+  longest in the world — and two ~5.5 km graded-earth strips completing the
+  triangle out to a north-west apex, overshooting the corners just like the
+  real gradings. Centerline dashes, painted **05/23** designators, threshold
+  piano keys, chevrons, expansion joints and tire rubber are all painted into
+  `CanvasTexture`s at runtime.
+- **A compound on the south side of the runway**, reached by a spur taxiway
+  from mid-runway: expanded concrete apron, paved internal streets, and dirt
+  tracks out to the support camp and along the perimeter.
+- **~25 procedural buildings**: the dominant white assembly hangar (>90 m
+  across) with a full-width apron door, a three-bay joined fighter-shelter
+  block, a newer north-east hangar, control/observation tower, operations
+  building and annex, logistics depot, maintenance workshop, walled equipment
+  yard, an east-side fuel farm with pump house, high-voltage switchyard, water
+  towers, comms shelter, gatehouse, a detached south-west support camp
+  (barracks, mess, solar field) and perimeter radar and guard towers.
+- **Three parked aircraft** on the flight line in front of the assembly
+  hangar, matching 2025 sightings: the **J-36** sixth-generation demonstrator,
+  the **J-XDS** lambda-wing demonstrator, and a flying-wing UCAV. Aircraft are
+  structures too: clickable, with dossiers, minimap markers and site-index
+  entries.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
   shadows, a drifting ground-level dust layer, and an animated day/night cycle
   (`N`) with stars, moonlight and lit windows at night.

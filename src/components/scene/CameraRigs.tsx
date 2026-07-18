@@ -10,7 +10,7 @@ import { telemetry } from "@/lib/telemetry";
 const CinematicRig = lazy(() => import("./CinematicRig"));
 
 const EYE_HEIGHT = 1.7;
-const WORLD_LIMIT = 1950;
+const WORLD_LIMIT = 3300;
 
 function smootherstep(t: number): number {
   return t * t * t * (t * (t * 6 - 15) + 10);
@@ -73,9 +73,9 @@ function OrbitRig() {
       panSpeed={0.8}
       screenSpacePanning={false}
       minDistance={15}
-      maxDistance={2800}
+      maxDistance={4800}
       maxPolarAngle={Math.PI * 0.49}
-      target={[250, 0, -250]}
+      target={[1018, 0, 1410]}
     />
   );
 }
