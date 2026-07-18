@@ -49,12 +49,20 @@ export const TAXIWAYS: SegmentDef[] = [
 
 const street = (id: string, name: string, a: [number, number], b: [number, number], width = 8): SegmentDef => ({ id, kind: "street", name, from: compound(...a), to: compound(...b), width });
 export const STREETS: SegmentDef[] = [
-  street("st-back", "Hangar frontage road", [-180, 120], [180, 120], 9),
-  street("st-front", "Apron edge road", [-180, -48], [180, -48], 8),
-  street("st-ops", "Operations spur", [70, 120], [128, 158], 8),
-  street("st-fuel", "Fuel farm road", [150, 118], [242, 62], 8),
-  street("st-cross", "Compound cross road", [40, -48], [40, 178], 7),
-  street("st-west", "West service road", [-120, -48], [-120, 168], 7),
+  // Main hangar frontage road along the back of the apron
+  street("st-back", "Hangar frontage road", [-200, 130], [200, 130], 10),
+  // Apron edge road at the front
+  street("st-front", "Apron edge road", [-200, -55], [200, -55], 9),
+  // Operations spur road
+  street("st-ops", "Operations spur", [80, 130], [150, 170], 8),
+  // Fuel farm road
+  street("st-fuel", "Fuel farm road", [160, 125], [265, 70], 8),
+  // Compound cross road
+  street("st-cross", "Compound cross road", [50, -55], [50, 190], 8),
+  // West service road
+  street("st-west", "West service road", [-140, -55], [-140, 180], 7),
+  // New southeast road (2024-2025 construction area)
+  street("st-southeast", "Southeast access road", [160, 170], [220, 220], 8),
 ];
 export const ROADS: SegmentDef[] = [
   { id: "road-camp", kind: "road", name: "Support-camp track", from: compound(-180, 70), to: camp(120, 40), width: 8 },
@@ -62,8 +70,8 @@ export const ROADS: SegmentDef[] = [
   { id: "road-perim", kind: "road", name: "Perimeter patrol track", from: [1560, 3250], to: [-1100, 2820], width: 6 },
 ];
 export const APRONS: ApronDef[] = [
-  { id: "apron-main", name: "Main aircraft apron", center: compound(-2, 34), size: [372, 190], rotation: -COMPOUND_ROT },
-  { id: "apron-fuel", name: "Fuel hardstand", center: compound(232, 74), size: [96, 92], rotation: -COMPOUND_ROT },
+  { id: "apron-main", name: "Main aircraft apron", center: compound(0, 45), size: [420, 220], rotation: -COMPOUND_ROT },
+  { id: "apron-fuel", name: "Fuel hardstand", center: compound(232, 74), size: [110, 100], rotation: -COMPOUND_ROT },
 ];
 
 const building = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Reconstructed from public Sentinel-2 imagery of the Lop Nur airfield."): StructureDef => ({ id, type, name, position: compound(u, v), rotation, size, capacity: "Reference footprint", description });
@@ -71,50 +79,70 @@ const campBuilding = (id: string, type: StructureType, name: string, u: number, 
 
 export const STRUCTURES: StructureDef[] = [
   // --- Flight line: the hangars along the back edge of the apron ---
-  building("hangar-main", "hangar-monolith", "Main assembly hangar", 5, 96, [92, 24, 58], COMPOUND_ROT, "The dominant white hall on the apron — over 90 m (300 ft) across, with a full-width door facing the flight line. Enlarged during the 2020s build-out."),
-  building("shelters-fighter", "shelter-row", "Fighter shelter block", -136, 84, [78, 14, 34], COMPOUND_ROT + Math.PI, "Three joined shelters sized for fighter-class aircraft, added at the south-west end of the apron."),
-  building("hangar-ne", "hangar-monolith", "North-east hangar", 143, 80, [56, 18, 44], COMPOUND_ROT, "Newer hangar raised at the north-east end of the expanded apron."),
+  // Main large hangar at the center-back of the apron (dominant white hall)
+  building("hangar-main", "hangar-monolith", "Main assembly hangar", 0, 110, [105, 26, 65], COMPOUND_ROT, "The dominant white hall on the apron — over 100 m (330 ft) across, with a full-width door facing the flight line. Enlarged during the 2020s build-out."),
+
+  // Three joined fighter shelters at the southwest end of the apron
+  building("shelters-fighter", "shelter-row", "Fighter shelter block", -150, 95, [84, 14, 38], COMPOUND_ROT + Math.PI, "Three joined shelters sized for fighter-class aircraft, at the south-west end of the apron."),
+
+  // Newer hangar at the northeast end
+  building("hangar-ne", "hangar-monolith", "North-east hangar", 160, 90, [62, 20, 48], COMPOUND_ROT, "Newer hangar raised at the north-east end of the expanded apron."),
 
   // --- Aircraft parked on the apron in front of the main hangar ---
-  building("j36-prototype", "aircraft-j36", "J-36 sixth-gen demonstrator", -34, 22, [23, 3, 20], COMPOUND_ROT, "Tailless three-engine sixth-generation demonstrator (~20 m span), photographed on the central apron in 2025."),
-  building("jxds-prototype", "aircraft-jxds", "J-XDS demonstrator", 28, 26, [17, 3, 20], COMPOUND_ROT, "Lambda-wing tailless demonstrator (~15 m span) seen beside the main hangar in 2025."),
-  building("ucav-delta", "aircraft-delta", "Flying-wing UCAV", -94, 36, [15, 3, 18], COMPOUND_ROT + 0.18, "Tailless flying-wing UCAV staged on the western apron."),
+  // J-36 parked directly in front of main hangar
+  building("j36-prototype", "aircraft-j36", "J-36 sixth-gen demonstrator", -20, 35, [23, 3, 20], COMPOUND_ROT, "Tailless three-engine sixth-generation demonstrator (~20 m span), photographed on the central apron in 2025."),
+  // J-XDS parked next to J-36
+  building("jxds-prototype", "aircraft-jxds", "J-XDS demonstrator", 25, 38, [17, 3, 20], COMPOUND_ROT, "Lambda-wing tailless demonstrator (~15 m span) seen beside the main hangar in 2025."),
+  // UCAV at the western end of the apron
+  building("ucav-delta", "aircraft-delta", "Flying-wing UCAV", -100, 42, [15, 3, 18], COMPOUND_ROT + 0.18, "Tailless flying-wing UCAV staged on the western apron."),
 
   // --- Operations & technical buildings ---
-  building("tower-main", "tower", "Control / observation tower", 66, 140, [18, 26, 18], COMPOUND_ROT, "Slender concrete tower overlooking the apron and runway."),
-  building("ops-hq", "hq", "Operations building", 102, 152, [40, 12, 24]),
-  building("ops-annex", "support", "Operations annex", 130, 152, [22, 9, 20]),
-  building("depot-main", "warehouse", "Logistics depot", -22, 154, [46, 9, 22]),
-  building("workshop", "warehouse", "Maintenance workshop", -72, 152, [40, 8, 20]),
-  building("store-yard", "compound-walled", "Walled equipment yard", -128, 150, [52, 3.5, 40]),
+  // Control tower - prominent position near operations complex
+  building("tower-main", "tower", "Control / observation tower", 75, 155, [18, 28, 18], COMPOUND_ROT, "Slender concrete tower overlooking the apron and runway."),
+  // Operations headquarters building
+  building("ops-hq", "hq", "Operations building", 110, 160, [44, 12, 26]),
+  // Operations annex
+  building("ops-annex", "support", "Operations annex", 145, 158, [24, 9, 22]),
+  // Logistics depot on the west side
+  building("depot-main", "warehouse", "Logistics depot", -30, 165, [50, 9, 24]),
+  // Maintenance workshop
+  building("workshop", "warehouse", "Maintenance workshop", -85, 160, [44, 8, 22]),
+  // Walled equipment yard
+  building("store-yard", "compound-walled", "Walled equipment yard", -140, 155, [56, 3.5, 44]),
 
   // --- Fuel farm (expanded storage on the east hardstand) ---
-  building("fuel-a", "fuel-tank", "Fuel tank A", 218, 52, [16, 11, 16]),
-  building("fuel-b", "fuel-tank", "Fuel tank B", 244, 66, [16, 11, 16]),
-  building("fuel-c", "fuel-tank", "Fuel tank C", 232, 94, [14, 9, 14]),
-  building("pump-house", "support", "Fuel pump house", 200, 78, [14, 6, 12]),
+  building("fuel-a", "fuel-tank", "Fuel tank A", 220, 55, [18, 12, 18]),
+  building("fuel-b", "fuel-tank", "Fuel tank B", 248, 72, [18, 12, 18]),
+  building("fuel-c", "fuel-tank", "Fuel tank C", 235, 98, [16, 10, 16]),
+  building("fuel-d", "fuel-tank", "Fuel tank D", 255, 95, [16, 10, 16]),
+  building("pump-house", "support", "Fuel pump house", 205, 82, [16, 6, 14]),
 
   // --- Utilities ---
-  building("power-yard", "transformer-yard", "Switchyard", 198, 140, [26, 4, 20]),
-  building("water-tower", "water-tower", "Water tower", -50, 178, [8, 16, 8]),
-  building("comms", "comms-shelter", "Comms shelter", 40, 172, [10, 5, 8]),
-  building("gate-house", "guardhouse", "Main gate", 60, 196, [4, 4, 4], COMPOUND_ROT, "Gate and barrier on the south access track into the compound."),
+  building("power-yard", "transformer-yard", "Switchyard", 210, 145, [30, 4, 24]),
+  building("water-tower", "water-tower", "Water tower", -55, 185, [9, 18, 9]),
+  building("comms", "comms-shelter", "Comms shelter", 45, 180, [12, 5, 10]),
+  building("gate-house", "guardhouse", "Main gate", 65, 205, [4, 4, 4], COMPOUND_ROT, "Gate and barrier on the south access track into the compound."),
+
+  // --- New construction 2024-2025 (southeast of existing facilities) ---
+  building("new-building-1", "support", "New support building A", 180, 180, [30, 8, 20], COMPOUND_ROT, "New building under construction southeast of the compound (2024-2025)."),
+  building("new-building-2", "warehouse", "New warehouse B", 200, 200, [40, 10, 25], COMPOUND_ROT, "New warehouse structure (2024-2025 construction)."),
+  building("new-building-3", "support", "New facility C", 165, 195, [25, 7, 18], COMPOUND_ROT, "Additional support facility (2024-2025)."),
 
   // --- Detached support camp to the south-west ---
-  campBuilding("camp-barracks", "barracks", "Support-camp barracks", 0, 0, [50, 7, 16]),
-  campBuilding("camp-mess", "support", "Camp mess / admin", 40, 26, [24, 6, 14]),
-  campBuilding("camp-solar", "solar-array", "Camp solar field", -46, 42, [60, 3, 44]),
-  campBuilding("camp-water", "water-tower", "Camp water tank", 42, -14, [7, 13, 7]),
+  campBuilding("camp-barracks", "barracks", "Support-camp barracks", 0, 0, [55, 7, 18]),
+  campBuilding("camp-mess", "support", "Camp mess / admin", 45, 30, [28, 6, 16]),
+  campBuilding("camp-solar", "solar-array", "Camp solar field", -50, 48, [70, 3, 50]),
+  campBuilding("camp-water", "water-tower", "Camp water tank", 48, -18, [8, 14, 8]),
 
   // --- Perimeter sensors ---
-  building("radar-east", "radome", "East perimeter radar", 340, -30, [14, 10, 14], COMPOUND_ROT, "Radome on the eastern perimeter of the compound."),
-  building("guard-nw", "guard-tower", "North-west guard tower", -210, -30, [4, 9, 4]),
-  building("guard-se", "guard-tower", "South-east guard tower", 210, 196, [4, 9, 4]),
+  building("radar-east", "radome", "East perimeter radar", 360, -40, [16, 10, 16], COMPOUND_ROT, "Radome on the eastern perimeter of the compound."),
+  building("guard-nw", "guard-tower", "North-west guard tower", -230, -40, [4, 10, 4]),
+  building("guard-se", "guard-tower", "South-east guard tower", 230, 210, [4, 10, 4]),
 ];
 
 export const FPS_SPAWN = {
-  position: compound(-30, 46) as [number, number],
-  target: compound(-34, 22) as [number, number],
+  position: compound(-25, 55) as [number, number],
+  target: compound(-20, 35) as [number, number],
 };
 
 export const FLATTEN_PADS: FlattenPad[] = [
@@ -127,10 +155,11 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
   { position: [792, 195, 975], label: "Runway centre" },
   { position: [770, 150, 1130], label: "Compound taxiway" },
   { position: [1138, 175, 1660], label: "Lop Nur compound" },
-  { position: [1088, 92, 1475], label: "Main assembly hangar" },
-  { position: [1032, 66, 1420], label: "Apron flight line" },
+  { position: [1018, 100, 1520], label: "Main assembly hangar" },
+  { position: [1018, 60, 1455], label: "Apron flight line" },
   { position: [2591, 185, -762], label: "Runway 23 threshold" },
   { position: [-2591, 240, -2711], label: "North-west apex" },
+  { position: [1330, 180, 1900], label: "New construction area" },
 ];
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
