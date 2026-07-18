@@ -10,10 +10,6 @@
 
 ## White paper
 
-The full designed white paper, rendered from the "Modernist" design source. An
-interactive, print-ready version lives at [`docs/white-paper.html`](docs/white-paper.html)
-— open it and hit **Print / PDF**.
-
 [![Lop Nur Twin Base — White Paper](docs/white-paper.png)](docs/white-paper.html)
 
 <details>
