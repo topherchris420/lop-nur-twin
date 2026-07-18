@@ -36,6 +36,17 @@ Guidance for coding agents (and humans) working on this repo.
    `useSharedMaterials`; set `castShadow` on meshes with height. Selection,
    hover cursor and the highlight ring come free from `StructureNode`.
 
+## Recipe: add a dynamic (moving) element
+
+Animated scene dressing lives in `src/components/scene/LivingScene.tsx`
+(circuit aircraft, rotating radar, patrol vehicle, windsock, night beacons).
+Follow the house rules: drive motion from `useFrame` + refs — **never** React
+state on the frame loop — and read every position from `src/lib/layout.ts`
+(e.g. `WINDSOCK_POS`, `RADAR_POS`, `PATROL_ROUTE`, `CIRCUIT_WAYPOINTS`) rather
+than hard-coding coordinates. Seat ground props with `terrainHeight(x, z)` and
+keep any randomness flowing through `mulberry32`/`SITE_SEED`. Because these
+props run every frame regardless of tier, keep their geometry cheap.
+
 ## Recipe: add a new camera mode
 
 1. Extend the `CameraMode` union in `src/lib/store.ts`.

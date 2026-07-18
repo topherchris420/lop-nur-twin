@@ -36,7 +36,10 @@ export function HelpOverlay() {
             </Button>
           </div>
           <CardDescription>
-            Click any structure to open its dossier. Click the minimap to fly there.
+            Click any structure to open its dossier. Click the minimap to fly
+            there. Watch for the demonstrator flying the runway pattern, the
+            patrol vehicle, the turning radar and — after dark (<kbd className="kbd">N</kbd>) —
+            the winking obstruction beacons.
           </CardDescription>
         </CardHeader>
         <CardContent>

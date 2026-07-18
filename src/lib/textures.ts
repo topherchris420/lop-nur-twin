@@ -794,3 +794,41 @@ export function makeGroundNormalTexture(seed: number): THREE.CanvasTexture {
   ctx.putImageData(img, 0, 0);
   return toTexture(ctx, false);
 }
+
+/* ------------------------------------------------------------------ */
+/* Drifting cloud shadows                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Seamless, soft cloud-cover mask used to drift shadow patches across the
+ * plain. RGB is a dark shadow tint; alpha carries the coverage so the layer
+ * only darkens where clouds are. Wraps in both axes for endless scrolling.
+ */
+export function makeCloudShadowTexture(seed: number): THREE.CanvasTexture {
+  const S = 512;
+  const ctx = makeCanvas(S, S);
+  const rand = mulberry32(seed);
+  ctx.clearRect(0, 0, S, S);
+  ctx.globalCompositeOperation = "lighter";
+  // scatter soft blobs; draw each in a 3×3 wrap so the tile stays seamless
+  const blobs = 90;
+  for (let i = 0; i < blobs; i++) {
+    const bx = rand() * S;
+    const by = rand() * S;
+    const r = 26 + rand() * 90;
+    const a = 0.05 + rand() * 0.12;
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        const cx = bx + ox * S;
+        const cy = by + oy * S;
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, `rgba(40,34,24,${a})`);
+        g.addColorStop(1, "rgba(40,34,24,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+      }
+    }
+  }
+  ctx.globalCompositeOperation = "source-over";
+  return toTexture(ctx, false);
+}

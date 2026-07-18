@@ -59,3 +59,22 @@ body {
 .kbd {
   @apply border-border bg-secondary text-secondary-foreground inline-flex h-5 min-w-5 items-center justify-center rounded border px-1 font-mono text-[10px];
 }
+
+/* Radar-style sweep used on the boot reticle. */
+.scan-sweep {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in oklch, var(--color-primary) 45%, transparent) 40deg,
+    transparent 80deg
+  );
+  mask: radial-gradient(circle, transparent 30%, #000 31%);
+  -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%);
+  animation: scan-spin 2.6s linear infinite;
+}
+
+@keyframes scan-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

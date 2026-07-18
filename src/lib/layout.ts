@@ -161,6 +161,61 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
   { position: [-2591, 240, -2711], label: "North-west apex" },
   { position: [1330, 180, 1900], label: "New construction area" },
 ];
+/* ------------------------------------------------------------------ */
+/* Dynamic props (animated scene dressing — see LivingScene.tsx).       */
+/* Positions still live here so layout.ts stays the single source of    */
+/* truth; the components only read them.                                */
+/* ------------------------------------------------------------------ */
+
+/** Windsock beside the apron and a slow-rotating air-search radar east of it. */
+export const WINDSOCK_POS: [number, number] = compound(206, -26);
+export const RADAR_POS: [number, number] = compound(300, 74);
+
+/** Guard patrol route: gate → south access track → perimeter track. The
+ *  vehicle ping-pongs along this polyline. */
+export const PATROL_ROUTE: [number, number][] = [
+  compound(60, 178),
+  [1560, 3250],
+  [-1100, 2820],
+];
+
+/**
+ * Flight circuit for the resident demonstrator: a low high-speed pass up
+ * runway 05→23, a climb-out, and a downwind teardrop on the open (north-west)
+ * side back onto final. Derived from the runway threshold coordinates so the
+ * pattern always tracks the runway. `[x, y, z]`, closed loop.
+ */
+export const CIRCUIT_WAYPOINTS: [number, number, number][] = (() => {
+  const rwy = RUNWAYS[0]!;
+  const A: [number, number] = rwy.from; // 05 threshold (SW)
+  const B: [number, number] = rwy.to; // 23 end (NE)
+  const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+  const u: [number, number] = [(B[0] - A[0]) / len, (B[1] - A[1]) / len];
+  const nw: [number, number] = [u[1], -u[0]]; // perpendicular, toward open desert
+  const p = (
+    base: [number, number],
+    along: number,
+    side: number,
+    y: number,
+  ): [number, number, number] => [
+    base[0] + u[0] * along + nw[0] * side,
+    y,
+    base[1] + u[1] * along + nw[1] * side,
+  ];
+  const mid: [number, number] = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+  return [
+    p(A, -2200, 0, 300), // approach hold, high on extended centerline
+    p(A, -700, 0, 70), // short final, descending
+    p(A, 60, 0, 14), // over the 05 threshold, low
+    p(mid, 0, 0, 12), // low pass, mid-runway
+    p(B, -40, 0, 16), // 23 end, starting to lift
+    p(B, 1500, 0, 240), // climb-out
+    p(B, 900, 900, 330), // crosswind turn onto downwind
+    p(mid, 0, 1500, 360), // downwind, abeam midfield
+    p(A, -400, 1500, 330), // base turn back toward final
+  ];
+})();
+
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
 export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }

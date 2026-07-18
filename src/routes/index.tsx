@@ -7,6 +7,8 @@ import { Minimap } from "@/components/hud/Minimap";
 import { Dossier } from "@/components/hud/Dossier";
 import { SiteIndex } from "@/components/hud/SiteIndex";
 import { HelpOverlay } from "@/components/hud/HelpOverlay";
+import { CinematicCaption } from "@/components/hud/CinematicCaption";
+import { IntroOverlay } from "@/components/hud/IntroOverlay";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 
 export const Route = createFileRoute("/")({
@@ -24,6 +26,8 @@ function App() {
       <Dossier />
       <SiteIndex />
       <HelpOverlay />
+      <CinematicCaption />
+      <IntroOverlay />
       {/* dev-only tweaks panel */}
       <Leva collapsed hidden={!import.meta.env.DEV} />
     </div>

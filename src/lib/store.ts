@@ -42,6 +42,10 @@ interface TwinState {
   /** true while the first-person camera has captured the mouse */
   pointerLocked: boolean;
   setPointerLocked: (locked: boolean) => void;
+
+  /** flips true once the scene has rendered its first frame */
+  ready: boolean;
+  setReady: () => void;
 }
 
 /**
@@ -87,4 +91,7 @@ export const useTwinStore = create<TwinState>()((set) => ({
 
   pointerLocked: false,
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
+
+  ready: false,
+  setReady: () => set((s) => (s.ready ? s : { ready: true })),
 }));

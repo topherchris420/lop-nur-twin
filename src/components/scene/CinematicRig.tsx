@@ -1,7 +1,8 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { CINEMATIC_WAYPOINTS } from "@/lib/layout";
+import { telemetry } from "@/lib/telemetry";
 
 const LOOP_SECONDS = 95;
 
@@ -20,6 +21,13 @@ export default function CinematicRig() {
   const lookAhead = useRef(new THREE.Vector3());
   const position = useRef(new THREE.Vector3());
 
+  // publish which leg is in frame for the lower-third caption; clear on exit
+  useEffect(() => {
+    return () => {
+      telemetry.cinematicLeg = -1;
+    };
+  }, []);
+
   useFrame((state, delta) => {
     progress.current = (progress.current + delta / LOOP_SECONDS) % 1;
     const t = progress.current;
@@ -30,6 +38,8 @@ export default function CinematicRig() {
 
     state.camera.position.lerp(position.current, Math.min(1, delta * 5));
     state.camera.lookAt(lookAhead.current);
+
+    telemetry.cinematicLeg = Math.floor(t * CINEMATIC_WAYPOINTS.length) % CINEMATIC_WAYPOINTS.length;
   });
 
   return null;
