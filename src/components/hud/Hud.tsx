@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 import { GRID_EASTING_ORIGIN, GRID_NORTHING_ORIGIN } from "@/lib/layout";
+import { SITE_PROFILE } from "@/lib/siteData";
 
 const CARDINALS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
 
@@ -27,9 +28,6 @@ export function Hud() {
   const altRef = useRef<HTMLSpanElement>(null);
   const hdgRef = useRef<HTMLSpanElement>(null);
   const fpsRef = useRef<HTMLSpanElement>(null);
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-
   useEffect(() => {
     let raf = 0;
     const loop = () => {
@@ -44,7 +42,7 @@ export function Hud() {
           .padStart(6, "0");
       }
       if (altRef.current) {
-        altRef.current.textContent = `${telemetry.y.toFixed(0)} m`;
+        altRef.current.textContent = `${(SITE_PROFILE.terrainDatum.elevationM + telemetry.y).toFixed(0)} m`;
       }
       if (hdgRef.current) {
         const h = telemetry.heading;
@@ -61,21 +59,18 @@ export function Hud() {
   }, []);
 
   return (
-    <div className="hud-panel pointer-events-none absolute top-4 left-4 w-52 p-3 font-mono text-xs">
-      <div className="text-muted-foreground mb-2 text-[10px] tracking-[0.2em]">
+    <div className="telemetry-panel hud-panel pointer-events-none absolute top-4 left-4 w-52 p-3 font-mono text-xs max-sm:top-16 max-sm:left-3 max-sm:w-44 max-sm:p-2">
+      <div className="telemetry-title text-muted-foreground mb-2 text-[10px] tracking-[0.2em]">
         SITE TELEMETRY
       </div>
       <Row label="EASTING" value={<span ref={eastRef}>—</span>} />
       <Row label="NORTHING" value={<span ref={northRef}>—</span>} />
-      <Row label="ALTITUDE" value={<span ref={altRef}>—</span>} />
+      <Row label="ALT AMSL" value={<span ref={altRef}>—</span>} />
       <Row label="HEADING" value={<span ref={hdgRef}>—</span>} />
       <Row label="FPS" value={<span ref={fpsRef}>—</span>} />
-      <div className="border-border text-muted-foreground mt-2 flex justify-between border-t pt-2 text-[10px]">
+      <div className="telemetry-footer border-border text-muted-foreground mt-2 flex justify-between border-t pt-2 text-[10px]">
         <span>{MODE_LABELS[mode]}</span>
         <span>Q:{TIER_LABELS[tier]}</span>
-      </div>
-      <div className="text-muted-foreground/60 mt-1 text-right text-[9px]">
-        panel renders: {renderCount.current}
       </div>
     </div>
   );
@@ -83,7 +78,7 @@ export function Hud() {
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex justify-between leading-5">
+    <div className="telemetry-row flex justify-between leading-5">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground tabular-nums">{value}</span>
     </div>

@@ -4,18 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lop Nur Twin Base — White Paper · Vers3Dynamics</title>
-<meta name="description" content="A full-scale, explorable 3D reconstruction of one of China's most remote and secretive desert airfields — built entirely from publicly available satellite imagery.">
+<meta name="description" content="A 1:1 horizontal-scale, explorable reconstruction of a remote desert airfield near Lop Nur, built from public Earth-observation data, cited reporting and labelled procedural interpretation.">
 <meta name="author" content="Christopher Woodyard / Vers3Dynamics">
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lop Nur Twin Base — White Paper">
-<meta property="og:description" content="A full-scale, explorable 3D reconstruction of one of China's most secretive desert airfields, built from public satellite imagery.">
+<meta property="og:description" content="A 6.8 km explorable reconstruction of a remote desert airfield near Lop Nur, with public sources and interpretation clearly separated.">
 <meta property="og:image" content="screenshot-overview.png">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
@@ -44,8 +40,8 @@
   --color-accent-700: #ae1800;
   --color-accent-900: #4d170e;
 
-  --font-heading: "Archivo", system-ui, "Segoe UI", sans-serif;
-  --font-body: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --font-heading: system-ui, "Segoe UI", sans-serif;
+  --font-body: system-ui, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
 
   --page-w: 8.5in;
@@ -312,13 +308,13 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
     </div>
     <div class="eyebrow">Immersive Digital Twin</div>
     <h1 class="title">Lop Nur Twin Base</h1>
-    <p class="lede">A full-scale, explorable 3D reconstruction of one of China's most remote and secretive desert airfields — built entirely from publicly available satellite imagery.</p>
+    <p class="lede">A 1:1 horizontal-scale, explorable reconstruction of a remote desert airfield near Lop Nur — built from public Earth-observation data, cited open reporting, and clearly labelled interpretation.</p>
 
     <div class="stats">
-      <div class="stat"><div class="num">40.77°N</div><div class="lbl">89.28°E · Xinjiang Gobi</div></div>
+      <div class="stat"><div class="num">40.77°N</div><div class="lbl">89.28°E · approximate</div></div>
       <div class="stat"><div class="num">~5 km</div><div class="lbl">Runway 05/23 · 16,400 ft</div></div>
-      <div class="stat"><div class="num">~25</div><div class="lbl">Procedural structures</div></div>
-      <div class="stat"><div class="num">Sentinel-2</div><div class="lbl">Sole source imagery</div></div>
+      <div class="stat"><div class="num">6.8 km</div><div class="lbl">Local simulation frame</div></div>
+      <div class="stat"><div class="num">Public OSINT</div><div class="lbl">Cited, offline inputs</div></div>
     </div>
   </header>
 
@@ -327,14 +323,14 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
     <div class="frame h-hero">
       <img src="screenshot-overview.png" alt="Aerial overview of the triangular Lop Nur airfield with the compound on the south side of the paved runway, rendered in the digital twin.">
     </div>
-    <figcaption>Fig. 1 — Aerial overview. The triangular airfield in empty desert, with the compound on the south side of the paved runway. Rendered in the digital twin; imagery reconstructed from public Sentinel-2 tiles.</figcaption>
+    <figcaption>Fig. 1 — Aerial overview. The triangular airfield in empty desert, with the compound on the south side of the paved runway. This is a procedural render of a layout interpreted from public Earth-observation data, not satellite imagery.</figcaption>
   </figure>
 
   <!-- 01 -->
   <section>
     <div class="sec-head"><span class="sec-num">01</span><h2>A map, not an answer</h2></div>
     <div class="cols">
-      <p>The Lop Nur test base — often called "China's Area 51" — sits alone in the Xinjiang Gobi, a giant triangular airfield linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters. It is exactly the kind of place that resists understanding: too remote to visit, too controlled to photograph, too large to grasp from a single overhead frame.</p>
+      <p>The airfield near Lop Nur sits alone in the Xinjiang Gobi. Open reporting has associated it with <a href="https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet">likely reusable-spacecraft landings</a> and <a href="https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base">2025 sightings of aircraft commonly called the J-36 and J-XDS</a>. Those are reported associations, not conclusions produced by this twin.</p>
       <p>This reconstruction does not claim to reveal what happens there. Its value is different, and in some ways more useful: it turns scattered pixels into a space you can <em>move through</em>. Walk the flight line, stand under the assembly hangar door, follow the spur taxiway to the apron — and the questions you didn't know to ask begin to surface on their own.</p>
       <p>The twin is best understood as a structured instrument for discovery. Every building, road and runway leg is a projection of one source-of-truth layout, so the model is falsifiable: measure it, disagree with it, correct it. That is the point. It is a foundation others are meant to build upon — not a verdict, but a shared frame of reference for a place that has never had one.</p>
     </div>
@@ -343,17 +339,17 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
   <!-- 02 -->
   <section class="break-before">
     <div class="sec-head"><span class="sec-num">02</span><h2>Inside the wire — the site anatomy</h2></div>
-    <p class="intro-p" style="margin:14px 0 18px">The whole site is scaled from the source imagery and driven by a single layout file. Add a structure there and it appears in the world, the minimap, and the site index at once. What follows is the current census of what has been rebuilt.</p>
+    <p class="intro-p" style="margin:14px 0 18px">The 6.8 × 6.8 km airfield frame is driven by a single layout file. Add a structure there and it appears in the world, the minimap, and the site index at once. What follows is the current census of what has been represented.</p>
 
     <table class="wp">
       <thead><tr><th style="width:26%">Zone</th><th>What's there</th></tr></thead>
       <tbody>
-        <tr><td class="zone">The airfield</td><td>A single ~5 km pale-concrete runway (05/23, azimuth ~046°) — among the longest in the world — with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex, overshooting the corners just like the real gradings.</td></tr>
-        <tr><td class="zone">The compound</td><td>Reached by a spur taxiway from mid-runway: an expanded concrete apron, paved internal streets, and dirt tracks out to the support camp and along the perimeter.</td></tr>
-        <tr><td class="zone">Structures (~25)</td><td>The dominant white assembly hangar (&gt;90 m across), a three-bay fighter-shelter block, a newer NE hangar, control tower, operations block, fuel farm, high-voltage switchyard, water towers, gatehouse, a detached SW support camp, and perimeter radar and guard towers.</td></tr>
-        <tr><td class="zone">The flight line</td><td>Three parked aircraft matching 2025 sightings — the J-36 sixth-generation demonstrator, the J-XDS lambda-wing demonstrator, and a flying-wing UCAV. Each is clickable, with its own dossier and site-index entry.</td></tr>
-        <tr><td class="zone">Terrain</td><td>6.8 × 6.8 km of seeded dried-lakebed gobi plain — desert-pavement gravel fields, pale playa, braided dry-wash channels, and automatic flattening under every runway, road and building pad.</td></tr>
-        <tr><td class="zone">A living base</td><td>A resident demonstrator flies the runway pattern; a surveillance radar turns on its mast; a guard vehicle runs the perimeter; a windsock reads the breeze; obstruction beacons wink on tall structures at night under a full day/night cycle.</td></tr>
+        <tr><td class="zone">The airfield</td><td>A single ~5 km pale-concrete runway (05/23, modeled grid bearing ~046°) with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex.</td></tr>
+        <tr><td class="zone">The compound</td><td>Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter.</td></tr>
+        <tr><td class="zone">Structures (23)</td><td>Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. These labels are model hypotheses, not verified functions.</td></tr>
+        <tr><td class="zone">The flight line</td><td>Two parked models represent the J-36 and J-XDS aircraft reported in August and September 2025 imagery. Both are clickable and evidence-labelled; the separate animated flying-wing demonstrator is illustrative and not part of the structure catalog.</td></tr>
+        <tr><td class="zone">Terrain</td><td>6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface.</td></tr>
+        <tr><td class="zone">A living base</td><td>The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations.</td></tr>
       </tbody>
     </table>
 
@@ -367,19 +363,22 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
 
   <!-- 03 -->
   <section class="break-before">
-    <div class="sec-head"><span class="sec-num">03</span><h2>Methodology — from satellite tile to 3D world</h2></div>
-    <p class="intro-p" style="margin:14px 0 20px">The pipeline is deliberately reproducible. Nothing here depends on classified data, leaked plans, or private access. Everything begins with imagery anyone can pull, and every downstream artifact traces back to it.</p>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Methodology — from public evidence to 3D world</h2></div>
+    <p class="intro-p" style="margin:14px 0 20px">The pipeline is deliberately reproducible. Nothing here depends on classified data, leaked plans, or private access. Public Earth-observation products, published analysis and open reporting are cited according to the role each one plays; interpretation and simulation are kept separate from source observations.</p>
 
     <div class="steps">
-      <div class="step"><div class="n">01</div><h3>Acquire &amp; register</h3><p>Pull public Sentinel-2 tiles over the site and geo-register them. The known coordinates (40.77°N, 89.28°E) and runway azimuth (~046°) anchor scale and orientation.</p></div>
-      <div class="step"><div class="n">02</div><h3>Trace the layout</h3><p>Every runway, road, structure footprint and waypoint is measured off the imagery and encoded once, in metric units, in a single source-of-truth layout file.</p></div>
-      <div class="step"><div class="n">03</div><h3>Generate the world</h3><p>A seeded heightfield builds the gobi plain; procedural geometry raises the structures; runtime canvas textures paint concrete, dirt, centerline dashes, 05/23 designators, piano keys and tire rubber.</p></div>
-      <div class="step"><div class="n">04</div><h3>Animate &amp; verify</h3><p>Atmosphere, a day/night cycle and a living base add legibility; the 3D scene and 2D minimap are both projections of the same layout, so any error is visible and correctable in one place.</p></div>
+      <div class="step"><div class="n">01</div><h3>Register public references</h3><p>Use Sentinel-2 as repeatable optical context, Copernicus GLO-30 as a coarse elevation reference, and cited reporting as event context. The approximate coordinates, ~5 km 05/23 runway and modeled ~046° grid bearing anchor the 6.8 km local frame.</p></div>
+      <div class="step"><div class="n">02</div><h3>Trace &amp; classify</h3><p>Encode visible runway, road and structure footprints once, in metric units, then label each claim as observed, reported, interpreted or illustrative. A visible footprint does not establish a building's use.</p></div>
+      <div class="step"><div class="n">03</div><h3>Generate scenarios</h3><p>A seeded heightfield builds the plain; procedural geometry raises structures; embedded NASA POWER monthly climatology supplies broad regional weather scenarios. Neither input is presented as surveyed terrain or live site weather.</p></div>
+      <div class="step"><div class="n">04</div><h3>Ship an offline snapshot</h3><p>The browser makes no runtime imagery, DEM, reporting or climate requests. Source values and citations are reviewed ahead of release, then the scene and minimap render from the same deterministic layout.</p></div>
     </div>
 
     <div class="callout">
-      <p><strong>Determinism is the guarantee.</strong> Noise is seeded, textures are generated at runtime, and structures are placed from measured coordinates — so the same inputs always produce the same world. There is nothing to hand-tune away from the evidence, which is what makes the model auditable.</p>
+      <p><strong>Determinism is the guarantee.</strong> Noise is seeded, textures are generated locally, and structures are placed from one metric layout, so the same inputs produce the same world. Determinism makes the model auditable; it does not turn an interpretation into an observation.</p>
     </div>
+
+    <p class="note"><strong>Geographic boundary.</strong> The Northern Tunnel Test Area is not part of this airfield frame. Published coordinates place it about 127 km away; it is retained only as offsite context and no tunnel portals or support facilities are rendered.</p>
+    <p class="note"><strong>Terrain and climate boundary.</strong> A nearby Copernicus GLO-30 sample is about 981 m above the EGM2008 geoid. It is a reference datum only: the heightfield is a procedural proxy, not a redistributed GLO-30 tile. NASA POWER 2001–2020 monthly means are coarse regional scenario inputs, not a local station, forecast or event-time weather.</p>
   </section>
 
   <!-- 04 -->
@@ -408,11 +407,28 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
   <section class="break-before">
     <div class="sec-head"><span class="sec-num">05</span><h2>Ethics &amp; sourcing</h2></div>
     <div class="cols">
-      <p><strong>Public imagery only.</strong> The reconstruction is built exclusively from openly licensed Sentinel-2 satellite tiles. It uses no classified material, no leaked documents, and no private or restricted data. Anyone with an internet connection can obtain the same source and check the work.</p>
-      <p><strong>Interpretation, clearly labelled.</strong> Overhead imagery shows footprints and pavement, not interiors or intent. Structure identities, aircraft types and functional labels are informed inferences drawn from open reporting and 2025 sightings — offered as hypotheses to test, not as established fact.</p>
+      <p><strong>Public, attributable inputs.</strong> The reconstruction uses openly accessible Earth-observation products, public analysis and cited reporting. It uses no classified material, leaked plans or private access. Sentinel-2 is one input, not a sole or structure-resolving source.</p>
+      <p><strong>Evidence status, clearly labelled.</strong> <em>Observed</em> means visible in cited public imagery; <em>reported</em> means stated by a cited publisher; <em>interpreted</em> means the model assigns a dimension, identity or function; <em>illustrative</em> means procedural scenery, vehicles, aircraft detail, animation or atmosphere.</p>
+      <p><strong>Separate sites stay separate.</strong> The Northern Tunnel Test Area is roughly 127 km from the airfield and is not rendered. <a href="https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/">CSIS found no significant visible change</a> between its March 26 and June 25, 2020 comparison images and described the evidence as inconclusive; this project makes no tunnel-activity or facility-function claim.</p>
+      <p><strong>Offline by design.</strong> The deployed simulator does not fetch imagery, DEM, climate or reporting data at runtime. Updating a source is an explicit, reviewable data change rather than a hidden live dependency.</p>
       <p><strong>A model, not a target.</strong> This is a scaled analytical reconstruction for research, education and creative work. It is not operational intelligence and confers no capability that public imagery does not already provide.</p>
-      <p><strong>Correctable by design.</strong> Because every element is a projection of one measured layout, errors are visible and fixable in the open. Disagreement is a feature: the honest response to a wrong wall is a pull request, not a footnote.</p>
+      <p><strong>Correctable by design.</strong> Because every element is a projection of one documented layout, errors are visible and fixable in the open. Disagreement is a feature: the honest response to a wrong wall is a pull request, not a footnote.</p>
     </div>
+
+    <h3 class="subhead">Public-data ledger</h3>
+    <table class="wp">
+      <thead><tr><th style="width:30%">Source</th><th style="width:34%">Role in the twin</th><th>Important limit</th></tr></thead>
+      <tbody>
+        <tr><td class="zone"><a href="https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250928T050231_N0511_R119_T45TXF_20250928T074723">Sentinel-2 L2A scene T45TXF, 2025-09-28</a></td><td>The pinned public scene used to measure the runway and interpret the current footprint layout.</td><td>The 10 m imagery supports site-scale measurement, not detailed function claims; modeled endpoints retain ~40 m uncertainty.</td></tr>
+        <tr><td class="zone"><a href="https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2_User_Handbook">ESA Sentinel-2 handbook</a></td><td>Repeatable optical context and registration conventions.</td><td>Native bands are 10, 20 or 60 m; Sentinel-2 alone cannot verify detailed building functions.</td></tr>
+        <tr><td class="zone"><a href="https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM">Copernicus DEM GLO-30</a></td><td>An approximate sample near the public runway center (~981 m, EGM2008; sampled 2026-07-19) anchors local altitude.</td><td>The collection link is not a pinned tile. The rendered relief is procedural and no DEM tile is redistributed.</td></tr>
+        <tr><td class="zone"><a href="https://power.larc.nasa.gov/docs/services/api/temporal/climatology/">NASA POWER climatology</a> · <a href="https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M%2CWS10M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN%2CRH2M%2CWD10M&amp;community=RE&amp;longitude=89.281218&amp;latitude=40.772521&amp;format=JSON">point query</a></td><td>Monthly 2001–2020 temperature, humidity, precipitation, solar and wind means shape regional scenarios.</td><td>Modelled grid climatology, not local observation, forecast or event-time weather.</td></tr>
+        <tr><td class="zone"><a href="https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base">The War Zone, 2025</a></td><td>Reporting for J-36 and J-XDS sightings and runway-length context.</td><td>A secondary report; aircraft labels and dimensions remain attributed reporting.</td></tr>
+        <tr><td class="zone"><a href="https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet">Secure World Foundation, 2026</a></td><td>Context for likely reusable experimental spacecraft landings.</td><td>“Likely” is retained; the simulator does not independently verify a landing.</td></tr>
+        <tr><td class="zone"><a href="https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/">CSIS PONI, 2026</a> · <a href="https://doi.org/10.1080/10736700.2025.2497201">published coordinates</a></td><td>Offsite context and the ~127 km separation from the airfield.</td><td>The tunnel area is not rendered; CSIS's 2020 comparison was inconclusive and found no significant visible change.</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Copernicus DEM attribution: © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA. Climate data attribution: NASA Langley Research Center POWER Project.</p>
   </section>
 
   <!-- 06 -->
@@ -421,7 +437,7 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
     <p class="intro-p" style="margin:14px 0 16px">The reconstruction is open source and designed to be extended. The single-source layout means the world, the minimap and the site index stay in sync automatically — so contribution is low-friction by construction.</p>
     <div class="buildon">
       <div class="item"><h3>Refine the layout</h3><p>Correct a footprint, add a newly-visible structure, or re-measure a strip against fresh imagery — one file, and it propagates everywhere.</p></div>
-      <div class="item"><h3>Fork for your medium</h3><p>Restyle it as a game level, export it for a VR headset, or wire it to a live imagery feed for change detection.</p></div>
+      <div class="item"><h3>Fork for your medium</h3><p>Restyle it as a game level, export it for a VR headset, or substitute reviewed public datasets while keeping runtime self-contained and non-operational.</p></div>
       <div class="item"><h3>Extend the dossiers</h3><p>Attach sourced annotations, measurements and citations to each structure so the twin doubles as a shared evidence base.</p></div>
       <div class="item"><h3>Reproduce the method</h3><p>Apply the same imagery-to-world pipeline to another site. The value compounds the moment a second reconstruction exists.</p></div>
     </div>
@@ -436,12 +452,12 @@ table.wp td.zone { font-weight: 600; color: var(--color-text); }
       <div class="lk"><div class="lbl">Source code</div><a href="https://github.com/topherchris420/lop-nur-twin">github.com/topherchris420/lop-nur-twin</a></div>
       <div class="lk"><div class="lbl">Studio</div><a href="https://vers3dynamics.com/">vers3dynamics.com</a></div>
     </div>
-    <p class="credit">Created by Christopher Woodyard / Vers3Dynamics. Built entirely from publicly available satellite imagery.<br>Special thanks to Kimi K3 Max.</p>
+    <p class="credit">Created by Christopher Woodyard / Vers3Dynamics. Built from public data and cited open reporting, with procedural interpretation clearly separated from source observations.<br>Special thanks to Kimi K3 Max.</p>
   </section>
 
   <div class="docfoot">
     <span>Vers3Dynamics — Lop Nur Twin Base</span>
-    <span>Open-Source Reconstruction · Public Imagery Only</span>
+    <span>Open-Source Reconstruction · Public Data · Labelled Interpretation</span>
   </div>
 
 </article>

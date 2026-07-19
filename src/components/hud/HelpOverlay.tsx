@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ["Scroll", "Zoom in/out"],
   ["N", "Toggle day / night"],
   ["I", "Toggle site index"],
+  ["R", "Toggle research and climate"],
   ["H", "Toggle this help"],
   ["Esc", "Close panels / release mouse"],
 ];
@@ -26,14 +28,86 @@ const SHORTCUTS: Array<[string, string]> = [
 export function HelpOverlay() {
   const showHelp = useTwinStore((s) => s.showHelp);
   const toggleHelp = useTwinStore((s) => s.toggleHelp);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!showHelp || !overlay) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const background = [...(overlay.parentElement?.children ?? [])]
+      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== overlay)
+      .map((element) => ({
+        element,
+        inert: element.inert,
+        ariaHidden: element.getAttribute("aria-hidden"),
+      }));
+
+    for (const { element } of background) {
+      element.inert = true;
+      element.setAttribute("aria-hidden", "true");
+    }
+
+    const focusable = () => [
+      ...overlay.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((element) => !element.hasAttribute("disabled"));
+
+    focusable()[0]?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleHelp();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      if (elements.length === 0) {
+        event.preventDefault();
+        overlay.focus();
+        return;
+      }
+      const first = elements[0]!;
+      const last = elements[elements.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    overlay.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      overlay.removeEventListener("keydown", handleKeyDown);
+      for (const { element, inert, ariaHidden } of background) {
+        element.inert = inert;
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      }
+      previousFocus?.focus();
+    };
+  }, [showHelp, toggleHelp]);
+
   if (!showHelp) return null;
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40">
-      <Card className="w-[26rem]">
+    <div
+      ref={overlayRef}
+      id="help-dialog"
+      tabIndex={-1}
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 p-3"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="help-title"
+    >
+      <Card className="max-h-[calc(100vh-1.5rem)] w-[26rem] max-w-full overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Controls</CardTitle>
+            <CardTitle id="help-title">Controls</CardTitle>
             <Button variant="ghost" size="icon" aria-label="Close help" onClick={toggleHelp}>
               <X />
             </Button>
@@ -41,7 +115,7 @@ export function HelpOverlay() {
           <CardDescription>
             Click any structure to open its dossier. Click the minimap to fly
             there. Watch for the demonstrator flying the runway pattern, the
-            patrol vehicle, the turning radar and — after dark (<kbd className="kbd">N</kbd>) —
+            service vehicle, the turning radar-like prop and — after dark (<kbd className="kbd">N</kbd>) —
             the winking obstruction beacons.
           </CardDescription>
         </CardHeader>

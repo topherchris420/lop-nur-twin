@@ -1,12 +1,20 @@
-import { useEffect, useMemo, useRef, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import {
   APRONS,
   ROADS,
+  RUNWAY_CENTER,
   RUNWAYS,
   STREETS,
   STRIPS,
   STRUCTURES,
   TAXIWAYS,
+  SITE_SIZE,
   getStructure,
   isAircraft,
   type SegmentDef,
@@ -17,7 +25,7 @@ import { telemetry } from "@/lib/telemetry";
 import { isCoarsePointer } from "@/lib/touchInput";
 
 const SIZE = 240; // CSS pixels
-const WORLD = 6800; // meters covered edge to edge
+const WORLD = SITE_SIZE; // meters covered edge to edge
 const SCALE = SIZE / WORLD;
 const DPR = 2;
 
@@ -46,7 +54,8 @@ function buildStaticLayer(): HTMLCanvasElement {
   // faint 1 km grid
   ctx.strokeStyle = "rgba(255,255,255,0.05)";
   ctx.lineWidth = 1;
-  for (let m = -3000; m <= 3000; m += 1000) {
+  const gridLimit = Math.floor(WORLD / 2000) * 1000;
+  for (let m = -gridLimit; m <= gridLimit; m += 1000) {
     const [gx] = toMap(m, 0);
     const [, gz] = toMap(0, m);
     ctx.beginPath();
@@ -167,7 +176,13 @@ export function Minimap() {
     if (!canvas || !ctx) return;
 
     let raf = 0;
-    const loop = () => {
+    let lastPaint = 0;
+    const loop = (now: number) => {
+      if (now - lastPaint < 50) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+      lastPaint = now;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(staticLayer, 0, 0);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -220,17 +235,27 @@ export function Minimap() {
     flyToPoint(wx, wz);
   };
 
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    flyToPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1]);
+  };
+
   if (hidden) return null;
 
   return (
-    <div className="hud-panel absolute bottom-4 left-4 overflow-hidden p-1.5">
+    <div className="minimap-panel hud-panel absolute bottom-4 left-4 max-w-[calc(100vw-2rem)] overflow-hidden p-1.5">
       <canvas
         ref={canvasRef}
         width={SIZE * DPR}
         height={SIZE * DPR}
-        style={{ width: SIZE, height: SIZE }}
-        className="cursor-crosshair rounded"
+        style={{ height: "auto" }}
+        className="minimap-canvas cursor-crosshair rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label="Interactive airfield map. Click a location to move the orbit camera; press Enter for the runway center."
         title="Click to fly the orbit camera"
       />
     </div>

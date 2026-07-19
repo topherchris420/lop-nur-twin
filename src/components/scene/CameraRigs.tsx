@@ -7,11 +7,12 @@ import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { telemetry } from "@/lib/telemetry";
 import { touchInput, resetTouchInput, isCoarsePointer } from "@/lib/touchInput";
+import { SITE_SIZE } from "@/lib/layout";
 
 const CinematicRig = lazy(() => import("./CinematicRig"));
 
 const EYE_HEIGHT = 1.7;
-const WORLD_LIMIT = 3300;
+const WORLD_LIMIT = SITE_SIZE / 2 - 100;
 const LOOK_SENS = 0.004;
 const MAX_PITCH = Math.PI / 2 - 0.05;
 
@@ -26,6 +27,7 @@ function smootherstep(t: number): number {
 function OrbitRig() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const flyTo = useTwinStore((s) => s.flyTo);
+  const reducedMotion = useTwinStore((s) => s.reducedMotion);
   const anim = useRef<{
     t: number;
     fromPos: THREE.Vector3;
@@ -43,6 +45,13 @@ function OrbitRig() {
     const controls = controlsRef.current;
     if (!flyTo || !controls || flyTo.seq === lastSeq.current) return;
     lastSeq.current = flyTo.seq;
+    if (reducedMotion) {
+      controls.object.position.set(...flyTo.position);
+      controls.target.set(...flyTo.target);
+      controls.update();
+      anim.current = null;
+      return;
+    }
     anim.current = {
       t: 0,
       fromPos: controls.object.position.clone(),
@@ -50,7 +59,7 @@ function OrbitRig() {
       toPos: new THREE.Vector3(...flyTo.position),
       toTarget: new THREE.Vector3(...flyTo.target),
     };
-  }, [flyTo]);
+  }, [flyTo, reducedMotion]);
 
   useFrame((state, delta) => {
     const controls = controlsRef.current;
@@ -107,13 +116,13 @@ function OrbitRig() {
     <OrbitControls
       ref={controlsRef}
       makeDefault
-      enableDamping
+      enableDamping={!reducedMotion}
       dampingFactor={0.08}
       rotateSpeed={0.55}
       panSpeed={0.8}
       screenSpacePanning={false}
       minDistance={15}
-      maxDistance={4800}
+      maxDistance={SITE_SIZE * 0.75}
       maxPolarAngle={Math.PI * 0.49}
       target={[1018, 0, 1410]}
     />

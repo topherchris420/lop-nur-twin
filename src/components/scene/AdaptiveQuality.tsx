@@ -2,14 +2,12 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
+import { getQualityProfile } from "@/lib/quality";
 
 /**
- * Adaptive quality ladder, stepped by a rolling FPS estimate:
- *
- *   tier 3 — postprocessing on, full pixel ratio, 2048 shadows
- *   tier 2 — postprocessing off               (step a)
- *   tier 1 — pixel ratio dropped to 1         (step b)
- *   tier 0 — shadow map halved to 1024        (step c, applied in Atmosphere)
+ * Adaptive quality ladder, stepped by a rolling FPS estimate. Profiles scale
+ * terrain, dust, shadows, pixel ratio, postprocessing, and the illustrative
+ * aircraft circuit; see `lib/quality.ts` for exact values.
  *
  * Downgrade after >1 s below 50 FPS; recover after >2 s above 55 FPS.
  */
@@ -35,8 +33,8 @@ export function AdaptiveQualityManager() {
       return;
     }
 
-    const { qualityTier: tier, autoQuality, setQualityTier } = useTwinStore.getState();
-    if (!autoQuality) return;
+    const { qualityTier: tier, autoQuality, reducedMotion, setQualityTier } = useTwinStore.getState();
+    if (!autoQuality || reducedMotion) return;
 
     if (ema.current < 50) {
       lowTime.current += dt;
@@ -59,7 +57,8 @@ export function AdaptiveQualityManager() {
   });
 
   useEffect(() => {
-    setDpr(qualityTier >= 2 ? Math.min(window.devicePixelRatio, 2) : 1);
+    const profile = getQualityProfile(qualityTier);
+    setDpr(Math.min(window.devicePixelRatio, profile.dprMax));
   }, [qualityTier, setDpr]);
 
   return null;

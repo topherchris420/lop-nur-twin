@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useTwinStore } from "./store";
 import { touchInput } from "./touchInput";
 
-/** Global hotkeys: 1/2/3 cameras, N day/night, I index, H help, Esc close. */
+/** Global hotkeys: 1/2/3 cameras, N day/night, I index, R research, H help. */
 export function useKeyboardShortcuts(): void {
   const keys = useRef<Set<string>>(new Set());
 
@@ -10,7 +10,12 @@ export function useKeyboardShortcuts(): void {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const isEditing =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT" ||
+        target?.isContentEditable;
+      if (isEditing && e.key !== "Escape") return;
 
       keys.current.add(e.code);
 
@@ -31,11 +36,15 @@ export function useKeyboardShortcuts(): void {
         case "i":
           s.toggleIndex();
           break;
+        case "r":
+          s.toggleResearch();
+          break;
         case "h":
           s.toggleHelp();
           break;
         case "escape":
           if (s.showHelp) s.toggleHelp();
+          else if (s.showResearch) s.toggleResearch();
           else if (s.showIndex) s.toggleIndex();
           else if (s.selectedId) s.select(null);
           break;
