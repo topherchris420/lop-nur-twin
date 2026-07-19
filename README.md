@@ -8,7 +8,7 @@
 
 ![Structure dossier — click any building for details](docs/screenshot-dossier.png)
 
-## White paper
+## white paper
 
 [![Lop Nur Twin Base — White Paper](docs/white-paper.png)](docs/white-paper.html)
 
