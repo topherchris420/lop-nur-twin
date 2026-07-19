@@ -10,10 +10,13 @@ import {
 import { useTwinStore } from "@/lib/store";
 
 const SHORTCUTS: Array<[string, string]> = [
-  ["1", "Free-fly orbit camera"],
+  ["1", "Free-fly orbit camera (mouse drag to rotate)"],
   ["2", "First-person walk (click to capture mouse)"],
   ["3", "Cinematic flythrough"],
-  ["W A S D", "Walk (first-person) · Shift to sprint"],
+  ["W A S D", "Walk (first-person mode) · Shift to sprint"],
+  ["Arrow Keys", "Pan camera (orbit mode)"],
+  ["Mouse Drag", "Rotate view (orbit mode)"],
+  ["Scroll", "Zoom in/out"],
   ["N", "Toggle day / night"],
   ["I", "Toggle site index"],
   ["H", "Toggle this help"],

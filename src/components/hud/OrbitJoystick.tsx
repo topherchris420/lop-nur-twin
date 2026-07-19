@@ -1,29 +1,26 @@
 import {
   useEffect,
-  useMemo,
   useRef,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Move } from "lucide-react";
 import { useTwinStore } from "@/lib/store";
-import { touchInput, isCoarsePointer } from "@/lib/touchInput";
+import { touchInput } from "@/lib/touchInput";
 
 const RADIUS = 46; // px of thumb travel = full deflection
 
 /**
- * Mobile pan-stick for the free-fly orbit camera. Orbit mode already rotates
- * with one finger and zooms with a pinch, but gliding the view across the
- * airfield otherwise needs an awkward two-finger drag — so on touch devices we
- * offer a fixed thumb-stick that slides the camera over the ground.
+ * Pan-stick for the free-fly orbit camera. Orbit mode already rotates
+ * with mouse drag and zooms with scroll, but gliding the view across the
+ * airfield with keyboard or a joystick helps desktop users navigate faster.
  *
  * Like the first-person controls, deflection is written straight into the
  * `touchInput` singleton and consumed by `OrbitRig` in `useFrame`; the thumb
- * moves via a ref, so this never re-renders while you drive. Only mounted on
- * touch devices, and only in orbit mode.
+ * moves via a ref, so this never re-renders while you drive. Available on
+ * all devices in orbit mode.
  */
 export function OrbitJoystick() {
   const mode = useTwinStore((s) => s.cameraMode);
-  const coarse = useMemo(isCoarsePointer, []);
 
   const activeId = useRef<number | null>(null);
   const center = useRef({ x: 0, y: 0 });
@@ -38,7 +35,7 @@ export function OrbitJoystick() {
     };
   }, []);
 
-  if (!coarse || mode !== "orbit") return null;
+  if (mode !== "orbit") return null;
 
   const setThumb = (dx: number, dy: number) => {
     if (thumbRef.current) {
