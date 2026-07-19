@@ -202,6 +202,12 @@ bun run preview    # serve the production build
   the **J-XDS** lambda-wing demonstrator, and a flying-wing UCAV. Aircraft are
   structures too: clickable, with dossiers, minimap markers and site-index
   entries.
+- **Northern tunnel test area** — based on CSIS satellite imagery analysis of
+  China's alleged 2020 nuclear test at Lop Nur. Features Tunnel 5 portal
+  (significant activity detected between March-June 2020), Tunnel 3 & 4 portals,
+  central tunnel support complex, decontamination station, monitoring posts,
+  and dedicated power station. All clickable with detailed dossiers referencing
+  the CSIS analysis.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
   shadows, a drifting ground-level dust layer, soft **cloud shadows** sweeping
   the plain, and an animated day/night cycle (`N`) with stars, moonlight and

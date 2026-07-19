@@ -1,166 +1,236 @@
-export const SITE_SIZE = 6800;
+export const SITE_SIZE = 4000;
 export const GRID_EASTING_ORIGIN = 40_000;
 export const GRID_NORTHING_ORIGIN = 90_000;
 
 export type SegmentKind = "runway" | "strip" | "taxiway" | "street" | "road";
 export interface SegmentDef { id: string; kind: SegmentKind; name: string; from: [number, number]; to: [number, number]; width: number }
 export interface ApronDef { id: string; name: string; center: [number, number]; size: [number, number]; rotation: number }
-export type StructureType = "tower" | "hangar-monolith" | "shelter-row" | "quonset" | "warehouse" | "hq" | "barracks" | "support" | "compound-walled" | "guardhouse" | "radome" | "fuel-tank" | "solar-array" | "water-tower" | "comms-shelter" | "transformer-yard" | "guard-tower" | "covered-walkway" | "sewage-treatment" | "aircraft-delta" | "aircraft-fighter" | "aircraft-j36" | "aircraft-jxds";
+export type StructureType = "tower" | "hangar-monolith" | "shelter-row" | "quonset" | "warehouse" | "hq" | "barracks" | "support" | "compound-walled" | "guardhouse" | "radome" | "fuel-tank" | "solar-array" | "water-tower" | "comms-shelter" | "transformer-yard" | "guard-tower" | "covered-walkway" | "sewage-treatment" | "aircraft-delta" | "aircraft-fighter" | "aircraft-j36" | "aircraft-jxds" | "tunnel-portal" | "tunnel-complex" | "decon-station" | "monitoring-post" | "power-station";
 export interface StructureDef { id: string; type: StructureType; name: string; position: [number, number]; rotation: number; size: [number, number, number]; capacity: string; description: string }
 export interface FlattenPad { center: [number, number]; radius: number }
 export interface Waypoint { position: [number, number, number]; label: string }
 
-/**
- * Lop Nur test airfield (~40.77°N, 89.28°E), Xinjiang.
- * Coordinates in metres, +x east, +z south, y up. Runway centre is the
- * geometric anchor; the whole site is translated so the runway/strip
- * triangle is centred on the terrain. Figures are scaled from public
- * Sentinel-2 imagery of the site.
- */
-
-// Runway 05/23: single ~5 km paved concrete strip, azimuth ~46° (SW→NE).
-export const RUNWAYS: SegmentDef[] = [
-  { id: "rwy-05-23", kind: "runway", name: "Main concrete runway 05/23", from: [-1006, 2711], to: [2591, -762], width: 60 },
-];
-
-// Two graded-earth strips complete the triangle to a north-west apex, each
-// overshooting the corners just like the real gradings.
-export const STRIPS: SegmentDef[] = [
-  { id: "tri-west", kind: "strip", name: "West graded strip (apex → 05)", from: [-2616, -2798], to: [-995, 2750], width: 42 },
-  { id: "tri-north", kind: "strip", name: "North graded strip (apex → 23)", from: [-2675, -2743], to: [2628, -748], width: 42 },
-];
-
-/** Compound local frame: origin south-east of runway centre, +u along the
- *  runway (toward the 23 end), +v perpendicular toward the south-east. */
-export const COMPOUND_ROT = 0.7679; // = 90° − runway azimuth, in radians
-const COMPOUND_ORIGIN: [number, number] = [1018, 1410];
+/** Local frame follows Screenshot 406: +u right, +v down. */
+export const COMPOUND_ROT = 0.095;
+const COMPOUND_ORIGIN: [number, number] = [900, 845];
 const CU: [number, number] = [Math.cos(COMPOUND_ROT), -Math.sin(COMPOUND_ROT)];
 const CV: [number, number] = [Math.sin(COMPOUND_ROT), Math.cos(COMPOUND_ROT)];
 function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
 
-const CAMP_ORIGIN: [number, number] = [779, 1738];
-function camp(u: number, v: number): [number, number] { return [CAMP_ORIGIN[0] + u * CU[0] + v * CV[0], CAMP_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
-
+// Lop Nur's main runway is ~5km (16,400+ feet) - one of the longest in the world
+// Runway designation 05/23 per satellite imagery
+export const RUNWAYS: SegmentDef[] = [{ id: "rwy-05-23", kind: "runway", name: "Main concrete runway (05/23)", from: [-2500, 320], to: [2500, -80], width: 60 }];
+export const STRIPS: SegmentDef[] = [
+  // Two unpaved graded strips completing the triangular pattern
+  { id: "tri-west", kind: "strip", name: "Western graded strip", from: [-2450, 400], to: [10, -2300], width: 38 },
+  { id: "tri-east", kind: "strip", name: "Eastern graded strip", from: [-200, -2320], to: [2400, 200], width: 38 },
+];
 export const TAXIWAYS: SegmentDef[] = [
-  // Spur off mid-runway down to the compound throat, then onto the apron.
-  { id: "twy-spur", kind: "taxiway", name: "Runway connector", from: [692, 1072], to: compound(0, -70), width: 44 },
-  { id: "twy-apron", kind: "taxiway", name: "Apron throat", from: compound(0, -70), to: compound(0, 30), width: 52 },
+  { id: "twy-stub", kind: "taxiway", name: "Runway connector", from: [505, 52], to: compound(8, -205), width: 42 },
+  { id: "twy-apron", kind: "taxiway", name: "Apron throat", from: compound(8, -205), to: compound(8, -118), width: 46 },
 ];
 
 const street = (id: string, name: string, a: [number, number], b: [number, number], width = 8): SegmentDef => ({ id, kind: "street", name, from: compound(...a), to: compound(...b), width });
 export const STREETS: SegmentDef[] = [
-  // Main hangar frontage road along the back of the apron
-  street("st-back", "Hangar frontage road", [-200, 130], [200, 130], 10),
-  // Apron edge road at the front
-  street("st-front", "Apron edge road", [-200, -55], [200, -55], 9),
-  // Operations spur road
-  street("st-ops", "Operations spur", [80, 130], [150, 170], 8),
-  // Fuel farm road
-  street("st-fuel", "Fuel farm road", [160, 125], [265, 70], 8),
-  // Compound cross road
-  street("st-cross", "Compound cross road", [50, -55], [50, 190], 8),
-  // West service road
-  street("st-west", "West service road", [-140, -55], [-140, 180], 7),
-  // New southeast road (2024-2025 construction area)
-  street("st-southeast", "Southeast access road", [160, 170], [220, 220], 8),
+  street("st-west", "West perimeter", [-205, -72], [-205, 220], 9),
+  street("st-north", "Hangar frontage", [-205, -20], [210, -20], 9),
+  street("st-mid", "Central cross road", [-205, 72], [210, 72], 9),
+  street("st-south", "South cross road", [-205, 188], [210, 188], 8),
+  street("st-east", "East perimeter", [210, -112], [210, 228], 8),
+  street("st-center", "Compound spine", [68, -24], [68, 228], 8),
+  street("st-west-inner", "West inner road", [-74, -20], [-74, 188], 8),
+  street("st-east-inner", "East inner road", [144, -20], [144, 188], 8),
+  street("st-ne-loop", "North east service", [68, -102], [210, -102], 7),
 ];
 export const ROADS: SegmentDef[] = [
-  { id: "road-camp", kind: "road", name: "Support-camp track", from: compound(-180, 70), to: camp(120, 40), width: 8 },
-  { id: "road-access", kind: "road", name: "South access track", from: compound(60, 178), to: [1560, 3250], width: 9 },
-  { id: "road-perim", kind: "road", name: "Perimeter patrol track", from: [1560, 3250], to: [-1100, 2820], width: 6 },
+  { id: "road-access", kind: "road", name: "South access track", from: compound(68, 228), to: [1160, 1560], width: 8 },
+  { id: "road-west", kind: "road", name: "Western approach", from: compound(-205, 10), to: [320, 1080], width: 7 },
 ];
 export const APRONS: ApronDef[] = [
-  { id: "apron-main", name: "Main aircraft apron", center: compound(0, 45), size: [420, 220], rotation: -COMPOUND_ROT },
-  { id: "apron-fuel", name: "Fuel hardstand", center: compound(232, 74), size: [110, 100], rotation: -COMPOUND_ROT },
+  { id: "apron-main", name: "Main hangar apron", center: compound(-30, -112), size: [285, 92], rotation: -COMPOUND_ROT },
+  { id: "apron-west", name: "West service pad", center: compound(-158, -4), size: [105, 106], rotation: -COMPOUND_ROT },
+  { id: "apron-center", name: "Operations hardstand", center: compound(53, 118), size: [112, 90], rotation: -COMPOUND_ROT },
 ];
 
-const building = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Reconstructed from public Sentinel-2 imagery of the Lop Nur airfield."): StructureDef => ({ id, type, name, position: compound(u, v), rotation, size, capacity: "Reference footprint", description });
-const campBuilding = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Support camp, reconstructed from public imagery."): StructureDef => ({ id, type, name, position: camp(u, v), rotation, size, capacity: "Reference footprint", description });
-
+const building = (id: string, type: StructureType, name: string, u: number, v: number, size: [number, number, number], rotation = COMPOUND_ROT, description = "Structure reconstructed from Screenshot 406."): StructureDef => ({ id, type, name, position: compound(u, v), rotation, size, capacity: "Reference footprint", description });
 export const STRUCTURES: StructureDef[] = [
-  // --- Flight line: the hangars along the back edge of the apron ---
-  // Main large hangar at the center-back of the apron (dominant white hall)
-  building("hangar-main", "hangar-monolith", "Main assembly hangar", 0, 110, [105, 26, 65], COMPOUND_ROT, "The dominant white hall on the apron — over 100 m (330 ft) across, with a full-width door facing the flight line. Enlarged during the 2020s build-out."),
+  // North-west service group and dominant assembly hall.
+  building("west-long", "warehouse", "West longitudinal workshop", -177, -7, [24, 8, 78]),
+  building("west-core", "warehouse", "West central shop", -139, -14, [38, 10, 60]),
+  building("west-link", "support", "West connector", -105, -19, [20, 7, 78]),
+  building("hangar-main", "hangar-monolith", "Main assembly hangar", -36, -30, [126, 22, 78], COMPOUND_ROT, "Large white rectangular hall with shallow roof, long facade bands, and runway-facing apron."),
 
-  // Three joined fighter shelters at the southwest end of the apron
-  building("shelters-fighter", "shelter-row", "Fighter shelter block", -150, 95, [84, 14, 38], COMPOUND_ROT + Math.PI, "Three joined shelters sized for fighter-class aircraft, at the south-west end of the apron."),
+  // North-east isolated structures.
+  building("north-shed", "quonset", "North arched shed", 146, -112, [48, 11, 24], COMPOUND_ROT + Math.PI / 2),
+  building("north-utility", "warehouse", "North utility hall", 202, -112, [36, 9, 20], COMPOUND_ROT + Math.PI / 2),
+  building("tower-main", "tower", "Central test tower", 75, -25, [22, 30, 22]),
 
-  // Newer hangar at the northeast end
-  building("hangar-ne", "hangar-monolith", "North-east hangar", 160, 90, [62, 20, 48], COMPOUND_ROT, "Newer hangar raised at the north-east end of the expanded apron."),
+  // East block: three long bars and attached technical spine.
+  building("east-north", "warehouse", "East north laboratory", 164, 78, [54, 9, 25]),
+  building("east-middle", "hq", "East technical block", 185, 130, [28, 12, 48]),
+  building("east-middle-wing", "support", "East technical wing", 157, 130, [28, 7, 22]),
+  building("east-south", "warehouse", "East south laboratory", 165, 178, [58, 9, 24]),
 
-  // --- Aircraft parked on the apron in front of the main hangar ---
-  // J-36 parked directly in front of main hangar
-  building("j36-prototype", "aircraft-j36", "J-36 sixth-gen demonstrator", -20, 35, [23, 3, 20], COMPOUND_ROT, "Tailless three-engine sixth-generation demonstrator (~20 m span), photographed on the central apron in 2025."),
-  // J-XDS parked next to J-36
-  building("jxds-prototype", "aircraft-jxds", "J-XDS demonstrator", 25, 38, [17, 3, 20], COMPOUND_ROT, "Lambda-wing tailless demonstrator (~15 m span) seen beside the main hangar in 2025."),
-  // UCAV at the western end of the apron
-  building("ucav-delta", "aircraft-delta", "Flying-wing UCAV", -100, 42, [15, 3, 18], COMPOUND_ROT + 0.18, "Tailless flying-wing UCAV staged on the western apron."),
+  // Central L-shaped operations complex, expressed as its visible wings.
+  building("ops-north", "hq", "Operations north wing", 38, 91, [65, 10, 22]),
+  building("ops-west", "support", "Operations west wing", 11, 126, [23, 9, 60]),
+  building("ops-east", "support", "Operations east wing", 65, 134, [20, 8, 42]),
+  building("ops-court", "compound-walled", "Operations courtyard", 42, 132, [48, 3.5, 42]),
 
-  // --- Operations & technical buildings ---
-  // Control tower - prominent position near operations complex
-  building("tower-main", "tower", "Control / observation tower", 75, 155, [18, 28, 18], COMPOUND_ROT, "Slender concrete tower overlooking the apron and runway."),
-  // Operations headquarters building
-  building("ops-hq", "hq", "Operations building", 110, 160, [44, 12, 26]),
-  // Operations annex
-  building("ops-annex", "support", "Operations annex", 145, 158, [24, 9, 22]),
-  // Logistics depot on the west side
-  building("depot-main", "warehouse", "Logistics depot", -30, 165, [50, 9, 24]),
-  // Maintenance workshop
-  building("workshop", "warehouse", "Maintenance workshop", -85, 160, [44, 8, 22]),
-  // Walled equipment yard
-  building("store-yard", "compound-walled", "Walled equipment yard", -140, 155, [56, 3.5, 44]),
+  // West-central U-shaped service courts.
+  building("court-west", "compound-walled", "West equipment court", -151, 128, [62, 4, 65]),
+  building("court-west-core", "support", "West court plant", -151, 119, [20, 6, 17]),
+  building("court-center", "compound-walled", "Central service court", -77, 125, [59, 4, 58]),
+  building("court-center-north", "warehouse", "Central court north hall", -78, 97, [45, 7, 17]),
+  building("court-center-east", "support", "Central court east annex", -50, 124, [14, 7, 38]),
 
-  // --- Fuel farm (expanded storage on the east hardstand) ---
-  building("fuel-a", "fuel-tank", "Fuel tank A", 220, 55, [18, 12, 18]),
-  building("fuel-b", "fuel-tank", "Fuel tank B", 248, 72, [18, 12, 18]),
-  building("fuel-c", "fuel-tank", "Fuel tank C", 235, 98, [16, 10, 16]),
-  building("fuel-d", "fuel-tank", "Fuel tank D", 255, 95, [16, 10, 16]),
-  building("pump-house", "support", "Fuel pump house", 205, 82, [16, 6, 14]),
+  // Southern buildings and pads.
+  building("south-west", "warehouse", "South west stores", -77, 210, [52, 8, 18]),
+  building("south-west-small", "support", "South west utility", -78, 176, [29, 6, 14]),
+  building("south-center", "warehouse", "South central hall", -22, 217, [48, 8, 18]),
 
-  // --- Utilities ---
-  building("power-yard", "transformer-yard", "Switchyard", 210, 145, [30, 4, 24]),
-  building("water-tower", "water-tower", "Water tower", -55, 185, [9, 18, 9]),
-  building("comms", "comms-shelter", "Comms shelter", 45, 180, [12, 5, 10]),
-  building("gate-house", "guardhouse", "Main gate", 65, 205, [4, 4, 4], COMPOUND_ROT, "Gate and barrier on the south access track into the compound."),
+  // Prototype parked on the north apron in the supplied September close-up.
+  building(
+    "jxds-prototype",
+    "aircraft-jxds",
+    "J-XDS prototype",
+    -112,
+    -82,
+    [15, 3, 20],
+    COMPOUND_ROT - 0.72,
+    "Dark tailless lambda-wing prototype positioned beside the main assembly hangar.",
+  ),
+  // J-36 sixth-generation stealth fighter - spotted at Lop Nur in 2025
+  building(
+    "j36-prototype",
+    "aircraft-j36",
+    "J-36 sixth-gen fighter",
+    -85,
+    -130,
+    [18, 3, 24],
+    COMPOUND_ROT - 0.65,
+    "Chinese sixth-generation tailless stealth fighter with delta-wing configuration, first seen at Lop Nur in late 2025.",
+  ),
 
-  // --- New construction 2024-2025 (southeast of existing facilities) ---
-  building("new-building-1", "support", "New support building A", 180, 180, [30, 8, 20], COMPOUND_ROT, "New building under construction southeast of the compound (2024-2025)."),
-  building("new-building-2", "warehouse", "New warehouse B", 200, 200, [40, 10, 25], COMPOUND_ROT, "New warehouse structure (2024-2025 construction)."),
-  building("new-building-3", "support", "New facility C", 165, 195, [25, 7, 18], COMPOUND_ROT, "Additional support facility (2024-2025)."),
-
-  // --- Detached support camp to the south-west ---
-  campBuilding("camp-barracks", "barracks", "Support-camp barracks", 0, 0, [55, 7, 18]),
-  campBuilding("camp-mess", "support", "Camp mess / admin", 45, 30, [28, 6, 16]),
-  campBuilding("camp-solar", "solar-array", "Camp solar field", -50, 48, [70, 3, 50]),
-  campBuilding("camp-water", "water-tower", "Camp water tank", 48, -18, [8, 14, 8]),
-
-  // --- Perimeter sensors ---
-  building("radar-east", "radome", "East perimeter radar", 360, -40, [16, 10, 16], COMPOUND_ROT, "Radome on the eastern perimeter of the compound."),
-  building("guard-nw", "guard-tower", "North-west guard tower", -230, -40, [4, 10, 4]),
-  building("guard-se", "guard-tower", "South-east guard tower", 230, 210, [4, 10, 4]),
+  // Northern tunnel test area - based on CSIS satellite imagery analysis
+  // Tunnel 5 and surrounding complex - significant activity detected 2020
+  building(
+    "tunnel-5",
+    "tunnel-portal",
+    "Tunnel 5 Portal",
+    280,
+    -1650,
+    [45, 8, 28],
+    0.15,
+    "Primary test tunnel portal. CSIS analysis noted significant activity at Tunnel 5 between March-June 2020. Features reinforced concrete portal with vehicle access.",
+  ),
+  building(
+    "tunnel-4",
+    "tunnel-portal",
+    "Tunnel 4 Portal",
+    180,
+    -1720,
+    [38, 7, 24],
+    0.15,
+    "Secondary tunnel portal in the northern test area.",
+  ),
+  building(
+    "tunnel-3",
+    "tunnel-portal",
+    "Tunnel 3 Portal",
+    85,
+    -1680,
+    [32, 6, 20],
+    -0.1,
+    "Tertiary tunnel portal, lower profile.",
+  ),
+  building(
+    "tunnel-complex",
+    "tunnel-complex",
+    "Northern Tunnel Complex",
+    200,
+    -1820,
+    [120, 12, 85],
+    0.05,
+    "Central support complex for the northern tunnel test area. Contains control facilities, monitoring equipment, and support infrastructure.",
+  ),
+  building(
+    "decon-station",
+    "decon-station",
+    "Decontamination Station",
+    320,
+    -1580,
+    [28, 5, 18],
+    0.3,
+    "Vehicle decontamination facility at tunnel area entrance.",
+  ),
+  building(
+    "monitoring-north",
+    "monitoring-post",
+    "Northern Monitoring Post",
+    380,
+    -1750,
+    [15, 8, 15],
+    0,
+    "Seismic monitoring and atmospheric sampling station.",
+  ),
+  building(
+    "monitoring-east",
+    "monitoring-post",
+    "Eastern Monitoring Post",
+    450,
+    -1680,
+    [12, 6, 12],
+    0.2,
+    "Secondary monitoring station with communications array.",
+  ),
+  building(
+    "power-tunnel",
+    "power-station",
+    "Tunnel Area Power Station",
+    150,
+    -1550,
+    [35, 7, 25],
+    -0.2,
+    "Dedicated power generation and distribution for tunnel test operations.",
+  ),
 ];
 
 export const FPS_SPAWN = {
-  position: compound(-25, 55) as [number, number],
-  target: compound(-20, 35) as [number, number],
+  position: compound(-91, -60) as [number, number],
+  target: compound(-112, -82) as [number, number],
 };
 
 export const FLATTEN_PADS: FlattenPad[] = [
-  { center: COMPOUND_ORIGIN, radius: 360 }, // main compound
-  { center: CAMP_ORIGIN, radius: 150 }, // support camp
-  { center: [792, 975], radius: 260 }, // runway/spur junction area
+  { center: COMPOUND_ORIGIN, radius: 430 }, // Main compound
+  { center: [0, 100], radius: 600 }, // Runway flat area
+  { center: [200, -1680], radius: 350 }, // Northern tunnel test area
 ];
 export const CINEMATIC_WAYPOINTS: Waypoint[] = [
-  { position: [-1006, 150, 2711], label: "Runway 05 threshold" },
-  { position: [792, 195, 975], label: "Runway centre" },
-  { position: [770, 150, 1130], label: "Compound taxiway" },
-  { position: [1138, 175, 1660], label: "Lop Nur compound" },
-  { position: [1018, 100, 1520], label: "Main assembly hangar" },
-  { position: [1018, 60, 1455], label: "Apron flight line" },
-  { position: [2591, 185, -762], label: "Runway 23 threshold" },
-  { position: [-2591, 240, -2711], label: "North-west apex" },
-  { position: [1330, 180, 1900], label: "New construction area" },
+  { position: [-2650, 200, 350], label: "Runway 05 threshold" },
+  { position: [0, 170, 200], label: "Runway center" },
+  { position: [500, 150, 120], label: "Runway junction" },
+  { position: [865, 170, 565], label: "Lop Nur compound" },
+  { position: [850, 80, 770], label: "Main assembly hall" },
+  { position: [1040, 95, 915], label: "Central tower" },
+  { position: [1100, 115, 1080], label: "Eastern laboratories" },
+  { position: [2650, 180, 100], label: "Runway 23 threshold" },
+  // Northern tunnel test area waypoints
+  { position: [280, 100, -1550], label: "Tunnel area approach" },
+  { position: [280, 80, -1650], label: "Tunnel 5 portal" },
+  { position: [200, 60, -1820], label: "Tunnel complex" },
+  { position: [380, 50, -1750], label: "Northern monitoring" },
 ];
+export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
+export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
+export function getStructure(id: string): StructureDef | undefined { return STRUCTURES.find((s) => s.id === id); }
+export function isAircraft(type: StructureType): boolean { return type.startsWith("aircraft-"); }
+export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
+  tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft", "tunnel-portal": "Tunnel Portals", "tunnel-complex": "Tunnel Support", "decon-station": "Decontamination", "monitoring-post": "Monitoring", "power-station": "Power & Utilities",
+};
+
 /* ------------------------------------------------------------------ */
 /* Dynamic props (animated scene dressing — see LivingScene.tsx).       */
 /* Positions still live here so layout.ts stays the single source of    */
@@ -195,33 +265,15 @@ export const CIRCUIT_WAYPOINTS: [number, number, number][] = (() => {
   const p = (
     base: [number, number],
     along: number,
-    side: number,
-    y: number,
+    cross: number,
   ): [number, number, number] => [
-    base[0] + u[0] * along + nw[0] * side,
-    y,
-    base[1] + u[1] * along + nw[1] * side,
+    base[0] + u[0] * along + nw[0] * cross,
+    0,
+    base[1] + u[1] * along + nw[1] * cross,
   ];
-  const mid: [number, number] = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
-  return [
-    p(A, -2200, 0, 300), // approach hold, high on extended centerline
-    p(A, -700, 0, 70), // short final, descending
-    p(A, 60, 0, 14), // over the 05 threshold, low
-    p(mid, 0, 0, 12), // low pass, mid-runway
-    p(B, -40, 0, 16), // 23 end, starting to lift
-    p(B, 1500, 0, 240), // climb-out
-    p(B, 900, 900, 330), // crosswind turn onto downwind
-    p(mid, 0, 1500, 360), // downwind, abeam midfield
-    p(A, -400, 1500, 330), // base turn back toward final
-  ];
+  const upwind = p(A, 800, 0);
+  const turnpoint = p(A, len + 2200, -1800);
+  const downwind = p(B, 200, -1600);
+  const base = p(B, -600, 0);
+  return [upwind, turnpoint, downwind, base, upwind];
 })();
-
-export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
-export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
-export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
-export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
-export function getStructure(id: string): StructureDef | undefined { return STRUCTURES.find((s) => s.id === id); }
-export function isAircraft(type: StructureType): boolean { return type.startsWith("aircraft-"); }
-export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
-  tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft",
-};
