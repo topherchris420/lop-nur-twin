@@ -4,28 +4,29 @@ Guidance for coding agents (and humans) working on this repo.
 
 ## Ground rules
 
-- **`bun run build` must stay green.** It runs `vite build` and then a strict
-  `tsc --noEmit` (no `any`, unused locals are errors). Run it before you
+- **`bun run build` must stay green.** It runs the offline data validator,
+  `vite build`, and then a strict `tsc --noEmit` (no `any`, unused locals are errors). Run it before you
   finish any change.
 - **Everything is procedural and deterministic.** No binary assets, no runtime
   downloads (drei helpers that fetch CDN assets, e.g. `<Environment preset>`,
   are off-limits). All randomness must flow through `mulberry32`/`seededNoise2D`
   in `src/lib/noise.ts` so a given seed always reproduces the same site.
-- **`src/lib/layout.ts` is the single source of truth** for geometry placement.
-  The 3D scene, the minimap, the site index and the cinematic path all read
-  from it. Never hard-code coordinates in components.
+- **`src/lib/layout.ts` is the single source of truth** for geometry placement,
+  while `src/lib/siteData.ts` owns public sources, evidence types, the local
+  CRS/datum and climatology. The 3D scene, minimap, index and cinematic path
+  read from those modules. Never hard-code coordinates in components.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,
-  toggles. The HUD's `panel renders` counter will expose regressions.
+  month changes and toggles.
 - Coordinates: meters, `+x` east, `+z` south (north is `-z`), `y` up. The HUD
-  grid adds the fake origins in `layout.ts`.
+  translates the local frame into the public EPSG:32645 runway-center reference.
 
 ## Recipe: add a new structure
 
 1. In `src/lib/layout.ts`, append a `StructureDef` to `STRUCTURES` (unique
    `id`, existing or new `type`, position, rotation, size, capacity,
-   description). If it sits outside the main cluster, add a `FlattenPad` so
+   description and evidence). If it sits outside the main cluster, add a `FlattenPad` so
    the terrain is leveled beneath it.
 2. If you used an existing `type`, you're done — placement, dossier, minimap
    and site index all pick it up automatically.
@@ -39,13 +40,13 @@ Guidance for coding agents (and humans) working on this repo.
 ## Recipe: add a dynamic (moving) element
 
 Animated scene dressing lives in `src/components/scene/LivingScene.tsx`
-(circuit aircraft, rotating radar, patrol vehicle, windsock, night beacons).
+(circuit aircraft, rotating radar, service vehicle, windsock, night beacons).
 Follow the house rules: drive motion from `useFrame` + refs — **never** React
 state on the frame loop — and read every position from `src/lib/layout.ts`
-(e.g. `WINDSOCK_POS`, `RADAR_POS`, `PATROL_ROUTE`, `CIRCUIT_WAYPOINTS`) rather
+(e.g. `WINDSOCK_POS`, `RADAR_POS`, `SERVICE_ROUTE`, `CIRCUIT_WAYPOINTS`) rather
 than hard-coding coordinates. Seat ground props with `terrainHeight(x, z)` and
 keep any randomness flowing through `mulberry32`/`SITE_SEED`. Because these
-props run every frame regardless of tier, keep their geometry cheap.
+props run on active tiers, keep their geometry cheap and treat motion as illustrative.
 
 ## Recipe: add a new camera mode
 
@@ -69,15 +70,15 @@ props run every frame regardless of tier, keep their geometry cheap.
 - Coloring: the palette constants and mottling mix are at the top of
   `src/components/scene/Terrain.tsx`; the micro-grain normal map comes from
   `makeGroundNormalTexture` in `src/lib/textures.ts`.
-- Mesh resolution: `SEGMENTS` in `Terrain.tsx` (640 ⇒ ~820 k triangles;
-  displacement cost is O(vertices × flatten shapes), so watch startup time).
+- Mesh resolution: `terrainSegments` in `src/lib/quality.ts` controls every tier;
+  displacement cost is O(vertices x flatten shapes), so watch startup time.
   A large flat distant floor plane sits under the detailed mesh to hide the
   terrain edge — keep it below the lowest `rawHeight`.
 
 ## Performance expectations
 
-- The adaptive ladder (`AdaptiveQuality.tsx`) must keep working: tier 3 full,
-  tier 2 no postprocessing, tier 1 pixel ratio 1, tier 0 small shadow map.
+- The adaptive ladder (`AdaptiveQuality.tsx`) must keep working: profiles in
+  `src/lib/quality.ts` scale terrain, dust, shadows, pixel ratio, effects and animation.
   Test tiers by hand with `?quality=N` (also disables auto-stepping).
 - Instancing is only warranted when a structure type has >5 instances; none
   do today.
@@ -87,10 +88,10 @@ props run every frame regardless of tier, keep their geometry cheap.
 ## Verifying changes
 
 ```sh
-bun run build              # typecheck + bundle
+bun run build              # validate data + bundle + typecheck
 bun run preview            # serve dist/ on :4173
 ```
 
 Then in a browser: check all three cameras (`1`/`2`/`3`), click a structure
-(dossier + fly-to), click the minimap, toggle `N`/`I`/`H`, and confirm the
-HUD `panel renders` counter stays put while telemetry ticks.
+(dossier + fly-to), click the minimap, toggle `N`/`I`/`R`/`H`, change the
+climate month, and confirm telemetry updates without React frame-loop state.

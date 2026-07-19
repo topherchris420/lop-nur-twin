@@ -56,6 +56,39 @@ body {
   @apply border-border bg-card rounded-lg border shadow-lg backdrop-blur-md;
 }
 
+.hud-side-panel {
+  display: flex;
+  width: min(20rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  flex-direction: column;
+}
+
+.hud-side-panel > :last-child {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.research-panel {
+  width: min(24rem, calc(100vw - 2rem));
+}
+
+.site-index-panel {
+  width: min(16rem, calc(100vw - 2rem));
+}
+
+.hud-side-panel select {
+  color-scheme: dark;
+}
+
+.minimap-canvas {
+  width: min(240px, calc(100vw - 44px));
+}
+
+.hud-side-panel :is(a, button, input, select):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
 .kbd {
   @apply border-border bg-secondary text-secondary-foreground inline-flex h-5 min-w-5 items-center justify-center rounded border px-1 font-mono text-[10px];
 }
@@ -76,5 +109,77 @@ body {
 @keyframes scan-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 639px) {
+  .site-title {
+    display: none;
+  }
+
+  .topbar-controls {
+    top: 0.5rem;
+    right: 0.5rem;
+    max-width: calc(100vw - 1rem);
+    overflow-x: auto;
+  }
+
+  .minimap-canvas {
+    width: 9.75rem;
+  }
+
+  .hud-side-panel {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .telemetry-panel {
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 10rem;
+    padding: 0.5rem;
+    font-size: 10px;
+  }
+
+  .telemetry-title {
+    display: none;
+  }
+
+  .telemetry-row {
+    line-height: 1rem;
+  }
+
+  .telemetry-footer {
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+  }
+
+  .minimap-panel {
+    bottom: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .minimap-canvas {
+    width: 7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .scan-sweep {
+    animation: none;
   }
 }

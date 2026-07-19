@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { SITE_SIZE } from "@/lib/layout";
 import { flattenFactor, gravelField, mottle, rawHeight, wadiMask } from "@/lib/terrain";
 import { makeGroundNormalTexture } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
-
-const SEGMENTS = 640;
+import { useTwinStore, type QualityTier } from "@/lib/store";
+import { getQualityProfile } from "@/lib/quality";
 
 /** Lop Nur / Gobi palette: tan lakebed, darker desert-pavement gravel,
  *  pale dry playa, and slightly damp-looking dry-wash channels. */
@@ -17,53 +17,95 @@ const C_PLAYA = new THREE.Color("#c8c0a4");
 const C_WADI = new THREE.Color("#867753");
 const C_COMPACT = new THREE.Color("#bcb094");
 
+const geometryCache = new Map<number, THREE.PlaneGeometry>();
+
+function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
+  const geo = new THREE.PlaneGeometry(SITE_SIZE, SITE_SIZE, segments, segments);
+  geo.rotateX(-Math.PI / 2);
+
+  const pos = geo.attributes.position;
+  if (!pos) return geo;
+  const colors = new Float32Array(pos.count * 3);
+  const scratch = new THREE.Color();
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    const flat = flattenFactor(x, z);
+    pos.setY(i, rawHeight(x, z) * flat);
+
+    const m = mottle(x, z);
+    const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
+    scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
+    scratch.lerp(C_DUST, Math.pow(Math.max(0, m), 2.2) * 0.5);
+    scratch.lerp(C_GRAVEL, gravelField(x, z) * 0.6);
+    scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.5);
+    scratch.lerp(C_WADI, wadiMask(x, z) * 0.55);
+    scratch.lerp(C_COMPACT, (1 - flat) * 0.5);
+
+    colors[i * 3] = scratch.r;
+    colors[i * 3 + 1] = scratch.g;
+    colors[i * 3 + 2] = scratch.b;
+  }
+
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function getTerrainGeometry(segments: number): THREE.PlaneGeometry {
+  const cached = geometryCache.get(segments);
+  if (cached) return cached;
+  const geometry = buildTerrainGeometry(segments);
+  geometryCache.set(segments, geometry);
+  return geometry;
+}
+
 export function Terrain() {
-  const geometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(SITE_SIZE, SITE_SIZE, SEGMENTS, SEGMENTS);
-    geo.rotateX(-Math.PI / 2);
+  const qualityTier = useTwinStore((state) => state.qualityTier);
+  const reducedMotion = useTwinStore((state) => state.reducedMotion);
+  const segments = getQualityProfile(qualityTier).terrainSegments;
+  const geometry = useMemo(() => getTerrainGeometry(segments), [segments]);
 
-    const pos = geo.attributes.position;
-    if (!pos) return geo;
-    const count = pos.count;
-    const colors = new Float32Array(count * 3);
-    const scratch = new THREE.Color();
+  useEffect(() => {
+    const warmTiers: QualityTier[] = [];
+    if (qualityTier > 0) warmTiers.push((qualityTier - 1) as QualityTier);
+    if (!reducedMotion && qualityTier < 2) warmTiers.push((qualityTier + 1) as QualityTier);
+    const candidates = warmTiers.map((tier) => getQualityProfile(tier).terrainSegments);
+    let cancelled = false;
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
 
-    for (let i = 0; i < count; i++) {
-      const x = pos.getX(i);
-      const z = pos.getZ(i);
-      const flat = flattenFactor(x, z);
-      pos.setY(i, rawHeight(x, z) * flat);
+    const warmNext = () => {
+      const next = candidates.shift();
+      if (cancelled || next === undefined) return;
+      const build = () => {
+        if (cancelled) return;
+        getTerrainGeometry(next);
+        warmNext();
+      };
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(build, { timeout: 1500 });
+      } else {
+        timeoutId = globalThis.setTimeout(build, 150);
+      }
+    };
 
-      // mottled desert base, then gobi gravel, dry playa, wadi channels
-      const m = mottle(x, z);
-      const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
-      scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
-      const dustiness = Math.pow(Math.max(0, m), 2.2) * 0.5;
-      scratch.lerp(C_DUST, dustiness);
-      // broad darker desert-pavement fields
-      scratch.lerp(C_GRAVEL, gravelField(x, z) * 0.6);
-      // pale playa where the base reads brightest
-      scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.5);
-      // dry-wash channels
-      scratch.lerp(C_WADI, wadiMask(x, z) * 0.55);
-      // lighter compacted halo bleeding out from the pavement
-      scratch.lerp(C_COMPACT, (1 - flat) * 0.5);
-
-      colors[i * 3] = scratch.r;
-      colors[i * 3 + 1] = scratch.g;
-      colors[i * 3 + 2] = scratch.b;
-    }
-
-    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    geo.computeVertexNormals();
-    return geo;
-  }, []);
+    warmNext();
+    return () => {
+      cancelled = true;
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
+    };
+  }, [qualityTier, reducedMotion, segments]);
 
   const normalMap = useMemo(() => {
     const tex = makeGroundNormalTexture(SITE_SEED + 7);
     tex.repeat.set(320, 320);
     return tex;
   }, []);
+
+  useEffect(() => () => normalMap.dispose(), [normalMap]);
 
   return (
     <group name="terrain">

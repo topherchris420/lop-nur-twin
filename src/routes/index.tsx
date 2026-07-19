@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Leva } from "leva";
 import { Scene } from "@/components/scene/Scene";
 import { Hud } from "@/components/hud/Hud";
 import { TopBar } from "@/components/hud/TopBar";
 import { Minimap } from "@/components/hud/Minimap";
 import { Dossier } from "@/components/hud/Dossier";
 import { SiteIndex } from "@/components/hud/SiteIndex";
+import { ResearchPanel } from "@/components/hud/ResearchPanel";
 import { HelpOverlay } from "@/components/hud/HelpOverlay";
 import { CinematicCaption } from "@/components/hud/CinematicCaption";
 import { IntroOverlay } from "@/components/hud/IntroOverlay";
@@ -29,11 +29,10 @@ function App() {
       <Minimap />
       <Dossier />
       <SiteIndex />
+      <ResearchPanel />
       <HelpOverlay />
       <CinematicCaption />
       <IntroOverlay />
-      {/* dev-only tweaks panel */}
-      <Leva collapsed hidden={!import.meta.env.DEV} />
     </div>
   );
 }

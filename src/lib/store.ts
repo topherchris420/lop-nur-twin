@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
-/** 3 = everything on … 0 = minimum (see lib/adaptiveQuality.ts). */
+/** 3 = maximum detail; 0 = minimum (see lib/quality.ts). */
 export type QualityTier = 0 | 1 | 2 | 3;
 
 export interface FlyToRequest {
@@ -34,10 +34,19 @@ interface TwinState {
   toggleIndex: () => void;
   showHelp: boolean;
   toggleHelp: () => void;
+  showResearch: boolean;
+  toggleResearch: () => void;
+
+  /** Zero-based month index into the public NASA POWER climatology. */
+  environmentMonth: number;
+  setEnvironmentMonth: (month: number) => void;
 
   qualityTier: QualityTier;
   autoQuality: boolean;
   setQualityTier: (tier: QualityTier) => void;
+
+  reducedMotion: boolean;
+  setReducedMotion: (reduced: boolean) => void;
 
   /** true while the first-person camera has captured the mouse */
   pointerLocked: boolean;
@@ -49,18 +58,61 @@ interface TwinState {
 }
 
 /**
- * `?quality=0..3` pins the quality tier and disables the adaptive ladder —
+ * `?quality=0..3` pins the quality tier and disables the adaptive ladder;
  * handy for screenshots and for testing each tier by hand.
  */
-function initialQuality(): Pick<TwinState, "qualityTier" | "autoQuality"> {
+function initialReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
+  );
+}
+
+function pinnedQualityTier(): QualityTier | null {
   if (typeof window !== "undefined") {
     const q = new URLSearchParams(window.location.search).get("quality");
     const n = q === null ? NaN : Number(q);
-    if (Number.isInteger(n) && n >= 0 && n <= 3) {
-      return { qualityTier: n as QualityTier, autoQuality: false };
-    }
+    if (Number.isInteger(n) && n >= 0 && n <= 3) return n as QualityTier;
   }
-  return { qualityTier: 3, autoQuality: true };
+  return null;
+}
+
+function initialQuality(): Pick<TwinState, "qualityTier" | "autoQuality"> {
+  if (typeof window !== "undefined") {
+    const pinnedTier = pinnedQualityTier();
+    if (pinnedTier !== null) return { qualityTier: pinnedTier, autoQuality: false };
+
+    const navigatorWithMemory = window.navigator as Navigator & {
+      deviceMemory?: number;
+    };
+    const reducedMotion = initialReducedMotion();
+    const constrainedDevice =
+      (navigatorWithMemory.deviceMemory !== undefined &&
+        navigatorWithMemory.deviceMemory <= 4) ||
+      (window.navigator.hardwareConcurrency !== undefined &&
+        window.navigator.hardwareConcurrency <= 4);
+
+    return {
+      qualityTier: reducedMotion || constrainedDevice ? 1 : 2,
+      autoQuality: !reducedMotion,
+    };
+  }
+  return { qualityTier: 2, autoQuality: true };
+}
+
+/** `?month=1..12` selects the initial climatology month. June is the default. */
+function initialEnvironmentMonth(): number {
+  if (typeof window !== "undefined") {
+    const raw = new URLSearchParams(window.location.search).get("month");
+    const month = raw === null ? NaN : Number(raw);
+    if (Number.isInteger(month) && month >= 1 && month <= 12) return month - 1;
+  }
+  return 5;
+}
+
+function normalizeMonth(month: number): number {
+  if (!Number.isFinite(month)) return 5;
+  return ((Math.round(month) % 12) + 12) % 12;
 }
 
 export const useTwinStore = create<TwinState>()((set) => ({
@@ -82,12 +134,27 @@ export const useTwinStore = create<TwinState>()((set) => ({
     })),
 
   showIndex: false,
-  toggleIndex: () => set((s) => ({ showIndex: !s.showIndex })),
+  toggleIndex: () =>
+    set((s) => ({ showIndex: !s.showIndex, showResearch: false })),
   showHelp: false,
   toggleHelp: () => set((s) => ({ showHelp: !s.showHelp })),
+  showResearch: false,
+  toggleResearch: () =>
+    set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
+
+  environmentMonth: initialEnvironmentMonth(),
+  setEnvironmentMonth: (environmentMonth) =>
+    set({ environmentMonth: normalizeMonth(environmentMonth) }),
 
   ...initialQuality(),
   setQualityTier: (qualityTier) => set({ qualityTier }),
+
+  reducedMotion: initialReducedMotion(),
+  setReducedMotion: (reducedMotion) =>
+    set(() => ({
+      reducedMotion,
+      autoQuality: pinnedQualityTier() === null && !reducedMotion,
+    })),
 
   pointerLocked: false,
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),

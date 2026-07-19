@@ -1,5 +1,6 @@
 node_modules
 dist
+.omx/
 dist-ssr
 *.local
 .DS_Store
@@ -7,3 +8,4 @@ dist-ssr
 .vite
 .vercel
 .env*
+.gstack/

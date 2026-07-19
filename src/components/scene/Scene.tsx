@@ -1,4 +1,11 @@
-import { lazy, Suspense, useEffect } from "react";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useTwinStore } from "@/lib/store";
 import { Terrain } from "./Terrain";
@@ -8,6 +15,7 @@ import { LivingScene } from "./LivingScene";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
+import { getQualityProfile } from "@/lib/quality";
 
 const Effects = lazy(() => import("./Effects"));
 
@@ -27,33 +35,88 @@ function ReadySignal() {
   return null;
 }
 
-export function Scene() {
-  const postEnabled = useTwinStore((s) => s.qualityTier >= 3);
-  const select = useTwinStore((s) => s.select);
+function WebGLFallback() {
+  const setReady = useTwinStore((state) => state.setReady);
+  useEffect(setReady, [setReady]);
 
   return (
-    <Canvas
-      shadows="soft"
-      dpr={[1, 2]}
-      camera={{ fov: 55, near: 1, far: 26000, position: [1740, 560, 2240] }}
-      gl={{ powerPreference: "high-performance", antialias: true }}
-      onPointerMissed={() => select(null)}
+    <div
+      role="alert"
+      className="absolute inset-0 z-30 grid place-items-center bg-[#1c1b18] p-6 text-center text-sm text-[#e8e4d8]"
     >
-      <Suspense fallback={null}>
-        <Atmosphere />
-        <Terrain />
-        <Pavements />
-        <Structures />
-        <LivingScene />
-        <CameraRigs />
-        <AdaptiveQualityManager />
-        <ReadySignal />
-        {postEnabled && (
-          <Suspense fallback={null}>
-            <Effects />
-          </Suspense>
-        )}
-      </Suspense>
-    </Canvas>
+      This browser could not start WebGL. Hardware acceleration or a WebGL-capable browser is required.
+    </div>
+  );
+}
+
+function canCreateWebGLContext(): boolean {
+  if (typeof document === "undefined") return false;
+  const canvas = document.createElement("canvas");
+  const context =
+    canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+  if (!context) return false;
+  context.getExtension("WEBGL_lose_context")?.loseContext();
+  return true;
+}
+
+class SceneErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? <WebGLFallback /> : this.props.children;
+  }
+}
+
+export function Scene() {
+  const [webglSupported] = useState(canCreateWebGLContext);
+  const qualityTier = useTwinStore((s) => s.qualityTier);
+  const profile = getQualityProfile(qualityTier);
+  const postEnabled = profile.postprocessing;
+  const select = useTwinStore((s) => s.select);
+  const setReducedMotion = useTwinStore((s) => s.setReducedMotion);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setReducedMotion(preference.matches);
+    syncPreference();
+    preference.addEventListener("change", syncPreference);
+    return () => preference.removeEventListener("change", syncPreference);
+  }, [setReducedMotion]);
+
+  if (!webglSupported) return <WebGLFallback />;
+
+  return (
+    <SceneErrorBoundary>
+      <Canvas
+        shadows={qualityTier > 0 ? "percentage" : false}
+        dpr={[1, profile.dprMax]}
+        camera={{ fov: 55, near: 1, far: 26000, position: [1740, 560, 2240] }}
+        gl={{ powerPreference: "high-performance", antialias: true }}
+        onPointerMissed={() => select(null)}
+      >
+        <Suspense fallback={null}>
+          <Atmosphere />
+          <Terrain />
+          <Pavements />
+          <Structures />
+          <LivingScene />
+          <CameraRigs />
+          <AdaptiveQualityManager />
+          <ReadySignal />
+          {postEnabled && (
+            <Suspense fallback={null}>
+              <Effects />
+            </Suspense>
+          )}
+        </Suspense>
+      </Canvas>
+    </SceneErrorBoundary>
   );
 }

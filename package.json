@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc --noEmit",
+    "build": "bun run validate:data && vite build && tsc --noEmit",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate:data": "bun scripts/validate-data.ts"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.8",

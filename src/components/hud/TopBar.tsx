@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Clapperboard,
   CircleHelp,
   ListTree,
@@ -24,12 +25,16 @@ export function TopBar() {
   const setCameraMode = useTwinStore((s) => s.setCameraMode);
   const night = useTwinStore((s) => s.night);
   const toggleNight = useTwinStore((s) => s.toggleNight);
+  const showIndex = useTwinStore((s) => s.showIndex);
   const toggleIndex = useTwinStore((s) => s.toggleIndex);
+  const showResearch = useTwinStore((s) => s.showResearch);
+  const toggleResearch = useTwinStore((s) => s.toggleResearch);
+  const showHelp = useTwinStore((s) => s.showHelp);
   const toggleHelp = useTwinStore((s) => s.toggleHelp);
 
   return (
     <>
-      <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 text-center">
+      <div className="site-title pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 text-center">
         <div className="text-foreground/90 font-mono text-xs tracking-[0.35em] uppercase">
           Lop Nur
         </div>
@@ -37,7 +42,7 @@ export function TopBar() {
           Test Airfield · Xinjiang · Digital Twin
         </div>
       </div>
-      <div className="hud-panel absolute top-4 right-4 flex items-center gap-1 p-1.5">
+      <div className="topbar-controls hud-panel absolute top-4 right-4 z-10 flex items-center gap-1 p-1.5">
         {MODES.map(({ mode, icon: Icon, label }) => (
           <Button
             key={mode}
@@ -45,6 +50,7 @@ export function TopBar() {
             size="icon"
             title={label}
             aria-label={label}
+            aria-pressed={cameraMode === mode}
             onClick={() => setCameraMode(mode)}
           >
             <Icon />
@@ -56,24 +62,40 @@ export function TopBar() {
           size="icon"
           title="Toggle day / night (N)"
           aria-label="Toggle day / night"
+          aria-pressed={night}
           onClick={toggleNight}
         >
           {night ? <Sun /> : <Moon />}
         </Button>
         <Button
-          variant="ghost"
+          variant={showIndex ? "default" : "ghost"}
           size="icon"
           title="Site index (I)"
           aria-label="Site index"
+          aria-expanded={showIndex}
+          aria-controls="site-index"
           onClick={toggleIndex}
         >
           <ListTree />
         </Button>
         <Button
-          variant="ghost"
+          variant={showResearch ? "default" : "ghost"}
+          size="icon"
+          title="Research and public data (R)"
+          aria-label="Research and public data"
+          aria-expanded={showResearch}
+          aria-controls="research-panel"
+          onClick={toggleResearch}
+        >
+          <BookOpen />
+        </Button>
+        <Button
+          variant={showHelp ? "default" : "ghost"}
           size="icon"
           title="Help (H)"
           aria-label="Help"
+          aria-expanded={showHelp}
+          aria-controls="help-dialog"
           onClick={toggleHelp}
         >
           <CircleHelp />

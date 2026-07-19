@@ -2,8 +2,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import {
-  CIRCUIT_WAYPOINTS,
-  PATROL_ROUTE,
+  SERVICE_ROUTE,
   RADAR_POS,
   STRUCTURES,
   WINDSOCK_POS,
@@ -11,23 +10,29 @@ import {
 } from "@/lib/layout";
 import { terrainHeight } from "@/lib/terrain";
 import { useTwinStore } from "@/lib/store";
+import { getClimateMonth } from "@/lib/siteData";
+import { getQualityProfile } from "@/lib/quality";
+import { createCircuitCurve } from "@/lib/flightPath";
 
 /**
  * Everything on the site that *moves*: a resident demonstrator flying the
- * runway pattern, a rotating air-search radar, a guard vehicle on patrol, a
+ * runway pattern, a rotating radar-like prop, a service vehicle on an illustrative route, a
  * windsock reading the breeze, and red obstruction beacons winking on the tall
  * structures after dark. All animation runs through `useFrame`/refs — no React
  * state on the frame loop — and every position is read from `layout.ts`.
  */
 export function LivingScene() {
   const night = useTwinStore((s) => s.night);
+  const qualityTier = useTwinStore((s) => s.qualityTier);
+  const reducedMotion = useTwinStore((s) => s.reducedMotion);
+  const animate = !reducedMotion;
   return (
     <group name="living-scene">
-      <CircuitAircraft />
-      <RotatingRadar />
-      <PatrolVehicle night={night} />
-      <Windsock />
-      <ObstructionBeacons night={night} />
+      {animate && getQualityProfile(qualityTier).animateCircuit && <CircuitAircraft />}
+      <RotatingRadar animate={animate} />
+      <ServiceVehicle night={night} animate={animate} />
+      <Windsock animate={animate} />
+      <ObstructionBeacons night={night} animate={animate} />
     </group>
   );
 }
@@ -39,16 +44,7 @@ export function LivingScene() {
 const LOOP_SECONDS = 62;
 
 function CircuitAircraft() {
-  const curve = useMemo(
-    () =>
-      new THREE.CatmullRomCurve3(
-        CIRCUIT_WAYPOINTS.map((w) => new THREE.Vector3(...w)),
-        true,
-        "centripetal",
-        0.5,
-      ),
-    [],
-  );
+  const curve = useMemo(createCircuitCurve, []);
 
   const rootRef = useRef<THREE.Group>(null);
   const rollRef = useRef<THREE.Group>(null);
@@ -71,11 +67,12 @@ function CircuitAircraft() {
 
     root.position.copy(pos);
     lookTarget.copy(pos).add(tan);
-    root.lookAt(lookTarget); // model nose is -Z
+    root.lookAt(lookTarget);
+    root.rotateY(Math.PI); // Object3D.lookAt points +Z; the authored model nose is -Z.
 
     // bank into the turn, from the change in horizontal heading
     const cross = tan.x * tanAhead.z - tan.z * tanAhead.x;
-    const bankTarget = THREE.MathUtils.clamp(cross * 7, -0.7, 0.7);
+    const bankTarget = THREE.MathUtils.clamp(-cross * 7, -0.7, 0.7);
     bank.current += (bankTarget - bank.current) * Math.min(1, delta * 2);
     if (rollRef.current) rollRef.current.rotation.z = bank.current;
 
@@ -179,7 +176,7 @@ function CircuitAircraft() {
 /* Rotating air-search radar                                           */
 /* ------------------------------------------------------------------ */
 
-function RotatingRadar() {
+function RotatingRadar({ animate }: { animate: boolean }) {
   const [x, z] = RADAR_POS;
   const y = terrainHeight(x, z);
   const dishRef = useRef<THREE.Group>(null);
@@ -194,6 +191,7 @@ function RotatingRadar() {
   );
 
   useFrame((_, delta) => {
+    if (!animate) return;
     if (dishRef.current) dishRef.current.rotation.y += delta * (Math.PI * 2) / 6; // ~10 rpm
   });
 
@@ -232,14 +230,14 @@ function RotatingRadar() {
 /* Guard vehicle on patrol                                             */
 /* ------------------------------------------------------------------ */
 
-function PatrolVehicle({ night }: { night: boolean }) {
+function ServiceVehicle({ night, animate }: { night: boolean; animate: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   const s = useRef(0);
   const heading = useRef(0);
 
   // arc-length parameterization of the (open) patrol polyline
   const { pts, cum, total } = useMemo(() => {
-    const pts = PATROL_ROUTE.map(([px, pz]) => new THREE.Vector2(px, pz));
+    const pts = SERVICE_ROUTE.map(([px, pz]) => new THREE.Vector2(px, pz));
     const cum = [0];
     for (let i = 1; i < pts.length; i++) {
       cum.push(cum[i - 1]! + pts[i]!.distanceTo(pts[i - 1]!));
@@ -290,7 +288,7 @@ function PatrolVehicle({ night }: { night: boolean }) {
     const g = groupRef.current;
     if (!g) return;
     // ping-pong along the route
-    s.current += delta * SPEED;
+    if (animate) s.current += delta * SPEED;
     const period = total * 2;
     const raw = s.current % period;
     const forward = raw <= total;
@@ -346,10 +344,14 @@ function PatrolVehicle({ night }: { night: boolean }) {
 /* Windsock                                                            */
 /* ------------------------------------------------------------------ */
 
-function Windsock() {
+function Windsock({ animate }: { animate: boolean }) {
   const [x, z] = WINDSOCK_POS;
   const y = terrainHeight(x, z);
   const sockRef = useRef<THREE.Group>(null);
+  const environmentMonth = useTwinStore((state) => state.environmentMonth);
+  const climate = getClimateMonth(environmentMonth);
+  const windFrom = THREE.MathUtils.degToRad(climate.windDirectionDeg);
+  const windStrength = THREE.MathUtils.clamp(climate.windSpeedMps / 7, 0, 1);
 
   const pole = useMemo(
     () => new THREE.MeshStandardMaterial({ color: "#9a9488", roughness: 0.6, metalness: 0.3 }),
@@ -386,11 +388,10 @@ function Windsock() {
   useFrame(({ clock }) => {
     const g = sockRef.current;
     if (!g) return;
-    const t = clock.elapsedTime;
-    // slow wind-direction drift plus a gustier flutter
-    g.rotation.y = Math.sin(t * 0.12) * 0.9 + Math.sin(t * 0.5) * 0.15;
-    // lift/droop of the sleeve with the gusts
-    g.rotation.x = -0.35 + Math.sin(t * 1.3) * 0.12 + Math.sin(t * 3.1) * 0.05;
+    const t = animate ? clock.elapsedTime : 0;
+    // POWER supplies climatological wind-from direction; the sleeve points downwind.
+    g.rotation.y = -windFrom + Math.sin(t * 0.5) * 0.08;
+    g.rotation.x = -0.12 - windStrength * 0.34 + Math.sin(t * 1.3) * 0.06;
   });
 
   return (
@@ -428,7 +429,7 @@ const BEACON_TOP: Partial<Record<StructureType, number>> = {
   "guard-tower": 1.05,
 };
 
-function ObstructionBeacons({ night }: { night: boolean }) {
+function ObstructionBeacons({ night, animate }: { night: boolean; animate: boolean }) {
   const beacons = useMemo(() => {
     return STRUCTURES.flatMap((sdef) => {
       const factor = BEACON_TOP[sdef.type];
@@ -466,7 +467,7 @@ function ObstructionBeacons({ night }: { night: boolean }) {
     const base = night ? 1 : 0.25;
     for (let i = 0; i < mats.length; i++) {
       // sharp anti-collision blink, ~50/min, staggered per structure
-      const p = Math.sin(t * 3 + (beacons[i]!.phase ?? 0));
+      const p = animate ? Math.sin(t * 3 + (beacons[i]!.phase ?? 0)) : 1;
       const flash = Math.pow(Math.max(0, p), 8);
       mats[i]!.emissiveIntensity = base * (0.15 + flash * 5);
     }

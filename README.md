@@ -1,8 +1,8 @@
 # Lop Nur Base — Digital Twin
 
-> An immersive 3D experience of China's most secretive desert airfield — the Lop Nur test base (~40.77° N, 89.28° E) in the Xinjiang Gobi, rebuilt to scale from public Sentinel-2 satellite imagery. Often called "China's Area 51," this remote airstrip has been linked to reusable-spaceplane landings and, more recently, sightings of next-generation stealth fighters.
+> An immersive 3D experience of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame reconstructed from public Earth-observation data and cited open reporting. The geometry is measurable; structure functions and simulated activity remain interpretations.
 
-**What's inside the wire:** A giant triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved concrete runway (05/23, aligned ~046°/226°) forms one leg; two ~5.5 km graded-earth strips run out to a north-west apex, completing the triangle and overshooting the corners just like the real gradings. A spur taxiway drops south-east from mid-runway to the compound: an expanded concrete apron lined with the big white assembly hangar, three joined fighter shelters, a newer north-east hangar, fuel farm, control tower, operations block, walled yards, switchyard, a detached support camp and perimeter sensors. On the apron, the J-36 and J-XDS demonstrators and a flying-wing UCAV — each clickable for a dossier.
+**What's inside the wire:** A triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved runway (05/23, modeled on a ~046°/226° grid bearing) forms one leg; two long graded-earth strips meet at a north-west apex. A spur taxiway reaches a compound of imagery-derived footprints. Names such as "assembly hangar," "operations block," and "service court" are functional interpretations, not verified interior uses. The two parked J-36 and J-XDS models correspond to publicly reported 2025 sightings; the animated flying-wing demonstrator and all simulated operations are illustrative.
 
 ![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
 
@@ -21,26 +21,27 @@
 
 ## Lop Nur Twin Base
 
-**A full-scale, explorable 3D reconstruction of one of China's most remote and
-secretive desert airfields — built entirely from publicly available satellite
-imagery.**
+**A 1:1 horizontal-scale, explorable reconstruction of a remote desert airfield near
+Lop Nur — built from public Earth-observation data, cited open reporting, and
+clearly labelled interpretation.**
 
 |  |  |  |  |
 | :-- | :-- | :-- | :-- |
-| **40.77°N** | **~5 km** | **~25** | **Sentinel-2** |
-| 89.28°E · Xinjiang Gobi | Runway 05/23 · 16,400 ft | Procedural structures | Sole source imagery |
+| **40.77°N** | **~5 km** | **6.8 km** | **Public OSINT** |
+| 89.28°E · approximate | Runway 05/23 · 16,400 ft | Local simulation frame | Cited, offline inputs |
 
 ![Aerial overview — the triangular airfield in empty desert, with the compound on the south side of the paved runway](docs/screenshot-overview.png)
 
-<sup>**Fig. 1 — Aerial overview.** The triangular airfield in empty desert, with the compound on the south side of the paved runway. Rendered in the digital twin; imagery reconstructed from public Sentinel-2 tiles.</sup>
+<sup>**Fig. 1 — Aerial overview.** The triangular airfield in empty desert, with the compound on the south side of the paved runway. This is a procedural render of a layout interpreted from public Earth-observation data, not satellite imagery.</sup>
 
 ### 01 · A map, not an answer
 
-The Lop Nur test base — often called "China's Area 51" — sits alone in the
-Xinjiang Gobi, a giant triangular airfield linked to reusable-spaceplane
-landings and, more recently, sightings of next-generation stealth fighters. It
-is exactly the kind of place that resists understanding: too remote to visit,
-too controlled to photograph, too large to grasp from a single overhead frame.
+The airfield near Lop Nur sits alone in the Xinjiang Gobi. Open reporting has
+associated it with [likely reusable-spacecraft landings](https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet)
+and [2025 sightings of aircraft commonly called the J-36 and J-XDS](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base).
+Those are reported associations, not conclusions produced by this twin. The
+place is too large to grasp from a single overhead frame, which makes a
+spatially consistent model useful even when many labels remain uncertain.
 
 This reconstruction does not claim to reveal what happens there. Its value is
 different, and in some ways more useful: it turns scattered pixels into a space
@@ -56,40 +57,52 @@ shared frame of reference for a place that has never had one.
 
 ### 02 · Inside the wire — the site anatomy
 
-The whole site is scaled from the source imagery and driven by a single layout
-file. Add a structure there and it appears in the world, the minimap, and the
-site index at once. What follows is the current census of what has been rebuilt.
+The 6.8 × 6.8 km airfield frame is driven by a single layout file. Add a
+structure there and it appears in the world, the minimap, and the site index at
+once. What follows is the current census of what has been represented.
 
 | Zone | What's there |
 | :-- | :-- |
-| **The airfield** | A single ~5 km pale-concrete runway (05/23, azimuth ~046°) — among the longest in the world — with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex, overshooting the corners just like the real gradings. |
-| **The compound** | Reached by a spur taxiway from mid-runway: an expanded concrete apron, paved internal streets, and dirt tracks out to the support camp and along the perimeter. |
-| **Structures (~25)** | The dominant white assembly hangar (>90 m across), a three-bay fighter-shelter block, a newer NE hangar, control tower, operations block, fuel farm, high-voltage switchyard, water towers, gatehouse, a detached SW support camp, and perimeter radar and guard towers. |
-| **The flight line** | Three parked aircraft matching 2025 sightings — the J-36 sixth-generation demonstrator, the J-XDS lambda-wing demonstrator, and a flying-wing UCAV. Each is clickable, with its own dossier and site-index entry. |
-| **Terrain** | 6.8 × 6.8 km of seeded dried-lakebed gobi plain — desert-pavement gravel fields, pale playa, braided dry-wash channels, and automatic flattening under every runway, road and building pad. |
-| **A living base** | A resident demonstrator flies the runway pattern; a surveillance radar turns on its mast; a guard vehicle runs the perimeter; a windsock reads the breeze; obstruction beacons wink on tall structures at night under a full day/night cycle. |
+| **The airfield** | A single ~5 km pale-concrete runway (05/23, modeled grid bearing ~046°) with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex. |
+| **The compound** | Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter. |
+| **Structures (23)** | Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. These names describe model hypotheses, not verified functions. |
+| **The flight line** | Two parked models represent the J-36 and J-XDS aircraft reported in August and September 2025 imagery. Both are clickable and evidence-labelled; the separate animated flying-wing demonstrator is illustrative and not part of the structure catalog. |
+| **Terrain** | 6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface. |
+| **A living base** | The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations. |
 
 ![Structure dossier — click any building or aircraft for its details and a fly-to jump](docs/screenshot-dossier.png)
 
 <sup>**Fig. 2 — Structure dossier.** Click any building or aircraft for its details and a "fly to structure" jump.</sup>
 
-### 03 · Methodology — from satellite tile to 3D world
+### 03 · Methodology — from public evidence to 3D world
 
 The pipeline is deliberately reproducible. Nothing here depends on classified
-data, leaked plans, or private access. Everything begins with imagery anyone can
-pull, and every downstream artifact traces back to it.
+data, leaked plans, or private access. Public Earth-observation products,
+published analysis and open reporting are cited according to the role each one
+plays; interpretation and simulation are kept separate from source observations.
 
 | Step | | |
 | :-- | :-- | :-- |
-| **01** | **Acquire & register** | Pull public Sentinel-2 tiles over the site and geo-register them. The known coordinates (40.77°N, 89.28°E) and runway azimuth (~046°) anchor scale and orientation. |
-| **02** | **Trace the layout** | Every runway, road, structure footprint and waypoint is measured off the imagery and encoded once, in metric units, in a single source-of-truth layout file. |
-| **03** | **Generate the world** | A seeded heightfield builds the gobi plain; procedural geometry raises the structures; runtime canvas textures paint concrete, dirt, centerline dashes, 05/23 designators, piano keys and tire rubber. |
-| **04** | **Animate & verify** | Atmosphere, a day/night cycle and a living base add legibility; the 3D scene and 2D minimap are both projections of the same layout, so any error is visible and correctable in one place. |
+| **01** | **Register public references** | Use Sentinel-2 as repeatable optical context, Copernicus GLO-30 as a coarse elevation reference, and cited reporting as event context. Approximate coordinates (40.77°N, 89.28°E), the ~5 km 05/23 runway and its modeled ~046° grid bearing anchor the 6.8 km local frame. |
+| **02** | **Trace and classify** | Encode visible runway, road and structure footprints once, in metric units, then label each claim as **observed**, **reported**, **interpreted**, or **illustrative**. A visible footprint does not establish a building's use. |
+| **03** | **Generate scenarios** | A seeded procedural heightfield builds the plain; procedural geometry raises structures; embedded NASA POWER monthly climatology supplies broad regional weather scenarios. Neither source is presented as surveyed terrain or live site weather. |
+| **04** | **Ship an offline snapshot** | The browser makes no runtime imagery, DEM, reporting or climate requests. Source values and citations are reviewed ahead of release, then the self-contained scene and minimap render from the same deterministic layout. |
 
-> **Determinism is the guarantee.** Noise is seeded, textures are generated at
-> runtime, and structures are placed from measured coordinates — so the same
-> inputs always produce the same world. There is nothing to hand-tune away from
-> the evidence, which is what makes the model auditable.
+> **Determinism is the guarantee.** Noise is seeded, textures are generated
+> locally, and structures are placed from one metric layout, so the same inputs
+> produce the same world. Determinism makes the model auditable; it does not turn
+> an interpretation into an observation.
+
+**Geographic boundary.** The Northern Tunnel Test Area is not part of this
+airfield frame. Published coordinates place it about 127 km away; it is retained
+only as offsite context and no tunnel portals or support facilities are rendered.
+
+**Terrain and climate boundary.** A nearby Copernicus GLO-30 sample is about
+981 m above the EGM2008 geoid. It is a reference datum only: the current
+heightfield is a procedural proxy, not a redistributed GLO-30 tile, and must not
+be used for survey-grade elevation, slope or sightline analysis. NASA POWER
+2001–2020 monthly means are coarse regional scenario inputs, not a local weather
+station, forecast or record of conditions during any reported event.
 
 ### 04 · Who it's for
 
@@ -117,20 +130,46 @@ two-finger pan; first-person mode shows on-screen thumb-stick and look controls.
 
 ### 05 · Ethics & sourcing
 
-- **Public imagery only.** The reconstruction is built exclusively from openly
-  licensed Sentinel-2 satellite tiles. It uses no classified material, no leaked
-  documents, and no private or restricted data. Anyone with an internet
-  connection can obtain the same source and check the work.
-- **Interpretation, clearly labelled.** Overhead imagery shows footprints and
-  pavement, not interiors or intent. Structure identities, aircraft types and
-  functional labels are informed inferences drawn from open reporting and 2025
-  sightings — offered as hypotheses to test, not as established fact.
+- **Public, attributable inputs.** The reconstruction uses openly accessible
+  Earth-observation products, public analysis and cited reporting. It uses no
+  classified material, leaked plans or private access. Sentinel-2 is one input,
+  not a sole or structure-resolving source.
+- **Evidence status, clearly labelled.** **Observed** means visible in cited
+  public imagery; **reported** means stated by a cited publisher; **interpreted**
+  means the model assigns a dimension, identity or function; **illustrative**
+  means procedural scenery, vehicles, aircraft detail, animation or atmosphere.
+  These labels do not imply certainty beyond their stated source.
+- **Separate sites stay separate.** The Northern Tunnel Test Area is roughly
+  127 km from the airfield reference point and is not rendered in the 6.8 km
+  scene. [CSIS found no significant visible change](https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/)
+  between its March 26 and June 25, 2020 comparison images and described the
+  open-source evidence as inconclusive; this project does not infer tunnel
+  activity or facility functions from that analysis.
+- **Offline by design.** The deployed simulator does not fetch imagery, DEM,
+  climate or reporting data at runtime. Updating a source is an explicit,
+  reviewable data change rather than a hidden live dependency.
 - **A model, not a target.** This is a scaled analytical reconstruction for
   research, education and creative work. It is not operational intelligence and
   confers no capability that public imagery does not already provide.
 - **Correctable by design.** Because every element is a projection of one
-  measured layout, errors are visible and fixable in the open. Disagreement is a
+  documented layout, errors are visible and fixable in the open. Disagreement is a
   feature: the honest response to a wrong wall is a pull request, not a footnote.
+
+### Public-data ledger
+
+| Source | Role in the twin | Important limit |
+| :-- | :-- | :-- |
+| [Sentinel-2 L2A scene T45TXF, 2025-09-28](https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250928T050231_N0511_R119_T45TXF_20250928T074723) | The pinned public scene used to measure the runway and interpret the current footprint layout. | The 10 m imagery supports site-scale measurement, not detailed interior or function claims; modeled endpoints retain ~40 m uncertainty. |
+| [ESA Sentinel-2 User Handbook](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2_User_Handbook) | Repeatable multispectral optical context and registration conventions. | Native bands are 10, 20 or 60 m; Sentinel-2 alone cannot verify detailed building functions. |
+| [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM) | An approximate sample near the public runway-center coordinate (~981 m, EGM2008; sampled 2026-07-19) anchors local altitude. | The link identifies the collection rather than a pinned tile. The rendered relief is procedural and no DEM tile is redistributed. |
+| [NASA POWER climatology API](https://power.larc.nasa.gov/docs/services/api/temporal/climatology/) · [embedded point query](https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M%2CWS10M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN%2CRH2M%2CWD10M&community=RE&longitude=89.281218&latitude=40.772521&format=JSON) | Monthly 2001–2020 temperature, humidity, precipitation, solar and wind means shape regional scenarios. | Modelled grid climatology, not local observations, a forecast or event-time weather. |
+| [The War Zone, 2025](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base) | Public reporting for the J-36 and J-XDS sightings and the runway-length context. | A secondary report; aircraft labels and dimensions remain attributed reporting. |
+| [Secure World Foundation, 2026](https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet) | Context for likely reusable experimental spacecraft landings. | "Likely" is retained; the simulator does not independently verify a landing. |
+| [CSIS PONI, 2026](https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/) · [published tunnel-area coordinates](https://doi.org/10.1080/10736700.2025.2497201) | Offsite context and the ~127 km separation from the airfield. | The tunnel area is not rendered; CSIS's 2020 comparison was inconclusive and found no significant visible change. |
+
+Copernicus DEM attribution: © DLR e.V. 2010–2014 and © Airbus Defence and
+Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.
+Climate data attribution: NASA Langley Research Center POWER Project.
 
 ### 06 · A foundation to build on
 
@@ -142,7 +181,8 @@ automatically — so contribution is low-friction by construction.
   re-measure a strip against fresh imagery — one file, and it propagates
   everywhere.
 - **Fork for your medium** — Restyle it as a game level, export it for a VR
-  headset, or wire it to a live imagery feed for change detection.
+  headset, or substitute reviewed public datasets while keeping the runtime
+  self-contained and non-operational.
 - **Extend the dossiers** — Attach sourced annotations, measurements and
   citations to each structure so the twin doubles as a shared evidence base.
 - **Reproduce the method** — Apply the same imagery-to-world pipeline to another
@@ -156,8 +196,9 @@ automatically — so contribution is low-friction by construction.
 > **Source** — [github.com/topherchris420/lop-nur-twin](https://github.com/topherchris420/lop-nur-twin) ·
 > **Studio** — [vers3dynamics.com](https://vers3dynamics.com/)
 >
-> Created by Christopher Woodyard / Vers3Dynamics. Built entirely from publicly
-> available satellite imagery. Special thanks to Kimi K3 Max.
+> Created by Christopher Woodyard / Vers3Dynamics. Built from public data and
+> cited open reporting, with procedural interpretation clearly separated from
+> source observations. Special thanks to Kimi K3 Max.
 
 </details>
 
@@ -166,7 +207,8 @@ automatically — so contribution is low-friction by construction.
 ```sh
 bun install
 bun run dev        # dev server
-bun run build      # production build + strict typecheck
+bun run validate:data # source, geometry, bounds, geodesy, and flight-path checks
+bun run build      # validator + production build + strict typecheck
 bun run preview    # serve the production build
 ```
 
@@ -178,47 +220,47 @@ bun run preview    # serve the production build
   flat dried-lakebed/gobi plain: broad low relief, vertex-color mottling
   across tan base, darker desert-pavement gravel fields, pale playa and
   braided dry-wash channels, a generated tiling normal map for grain, and
-  automatic flattening under every runway, road and building pad. A large
-  distant floor keeps the plain reading as endless at the horizon.
-- **The full triangular airfield**, scaled from the source imagery: a single
-  ~5 km (16,400+ ft) pale concrete runway (05/23) at azimuth ~046° — one of the
-  longest in the world — and two ~5.5 km graded-earth strips completing the
+  automatic flattening under every runway, road and building pad. A nearby
+  GLO-30 sample provides an approximate ~981 m EGM2008 datum, but the mesh's
+  relief is illustrative rather than a DEM reconstruction. A large distant
+  floor keeps the plain reading as endless at the horizon.
+- **The full triangular airfield**, interpreted from public references: a single
+  ~5 km (16,400+ ft) pale concrete runway (05/23) at a modeled grid bearing of
+  ~046°, and two ~5.5 km graded-earth strips completing the
   triangle out to a north-west apex, overshooting the corners just like the
   real gradings. Centerline dashes, painted **05/23** designators, threshold
   piano keys, chevrons, expansion joints and tire rubber are all painted into
   `CanvasTexture`s at runtime.
 - **A compound on the south side of the runway**, reached by a spur taxiway
   from mid-runway: expanded concrete apron, paved internal streets, and dirt
-  tracks out to the support camp and along the perimeter.
-- **~25 procedural buildings**: the dominant white assembly hangar (>90 m
-  across) with a full-width apron door, a three-bay joined fighter-shelter
-  block, a newer north-east hangar, control/observation tower, operations
-  building and annex, logistics depot, maintenance workshop, walled equipment
-  yard, an east-side fuel farm with pump house, high-voltage switchyard, water
-  towers, comms shelter, gatehouse, a detached south-west support camp
-  (barracks, mess, solar field) and perimeter radar and guard towers.
-- **Three parked aircraft** on the flight line in front of the assembly
-  hangar, matching 2025 sightings: the **J-36** sixth-generation demonstrator,
-  the **J-XDS** lambda-wing demonstrator, and a flying-wing UCAV. Aircraft are
-  structures too: clickable, with dossiers, minimap markers and site-index
-  entries.
-- **Northern tunnel test area** — based on CSIS satellite imagery analysis of
-  China's alleged 2020 nuclear test at Lop Nur. Features Tunnel 5 portal
-  (significant activity detected between March-June 2020), Tunnel 3 & 4 portals,
-  central tunnel support complex, decontamination station, monitoring posts,
-  and dedicated power station. All clickable with detailed dossiers referencing
-  the CSIS analysis.
+  tracks along the perimeter.
+- **23 interpreted structures**: footprints and roof forms follow the layout.
+  The catalog includes service and storage halls, a large assembly-hall
+  interpretation, an arched shed, a tower, an operations block, and walled
+  service courts. Public overhead imagery does not establish interiors,
+  occupants or functions.
+- **Two parked aircraft** on the flight line: J-36 and J-XDS models correspond
+  to reported August and September 2025 sightings. Both are clickable, with
+  evidence-labelled dossiers, minimap markers and site-index entries. The
+  animated flying-wing demonstrator is separate, illustrative scene dressing.
+- **Northern Tunnel Test Area — offsite context only.** Published coordinates
+  place this separate site about 127 km from the airfield, well outside the
+  6.8 km frame, so no tunnel portals or associated facilities are rendered.
+  CSIS's March–June 2020 comparison found no significant visible change and no
+  conclusive open-source indicator of a test; the simulator makes no activity or
+  function claim about the tunnel area.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
   shadows, a drifting ground-level dust layer, soft **cloud shadows** sweeping
   the plain, and an animated day/night cycle (`N`) with stars, moonlight and
   lit windows at night.
-- **A base that's alive** (`src/components/scene/LivingScene.tsx`): a resident
+- **An illustrative living scene** (`src/components/scene/LivingScene.tsx`): a resident
   demonstrator flies the **runway pattern** — a low high-speed pass up 05→23,
   climb-out and a downwind teardrop back onto final, with red/green navigation
-  lights and an anti-collision strobe; a **surveillance radar** turns on its
-  mast; a **guard vehicle** runs the perimeter patrol (headlights on at night);
+  lights and an anti-collision strobe; a radar-like dish turns on its
+  mast; a **service vehicle** follows an illustrative route (headlights on at night);
   a **windsock** reads the breeze by the apron; and red **obstruction beacons**
-  wink on every tall structure after dark.
+  wink on every tall structure after dark. These animations demonstrate scale
+  and interaction; they are not observations of site operations.
 - **Postprocessing**: SMAA, N8AO ambient occlusion, subtle bloom and a
   vignette — automatically shed under load (see below).
 - **First-run polish**: a branded boot overlay covers texture generation and
@@ -234,6 +276,7 @@ bun run preview    # serve the production build
 | `3`            | Cinematic spline flythrough                     |
 | `N`            | Toggle day / night                              |
 | `I`            | Site index (grouped outliner of structures)     |
+| `R`            | Research, sources, and climate panel            |
 | `H`            | Help overlay                                    |
 | `Esc`          | Close panels / release the mouse                |
 | Click building | Open its dossier, with a "Fly to structure"     |
@@ -245,17 +288,19 @@ left thumb-stick to walk (push it to the edge to sprint) and the right half of
 the screen to look around.
 
 The top-left HUD shows live grid easting/northing, altitude and heading. It is
-updated imperatively (a `requestAnimationFrame` loop writing into DOM refs) —
-the panel itself never re-renders on frame, which you can confirm from its
-`panel renders` counter.
+updated imperatively with a `requestAnimationFrame` loop writing into DOM refs,
+so telemetry does not drive React renders every frame.
 
 ## Adaptive quality
 
 `src/components/scene/AdaptiveQuality.tsx` tracks a rolling FPS estimate.
-Below 50 FPS for more than a second, it steps down a ladder — postprocessing
-off → pixel ratio to 1 → shadow map halved — and steps back up after two
-seconds above 55 FPS. Pin a tier for testing with `?quality=0..3` (this also
-disables the automatic ladder). A Leva tweaks panel is available in dev builds.
+Below 50 FPS for more than a second it steps down, and after two seconds above
+55 FPS it steps back up. The four profiles scale terrain density, dust count,
+device pixel ratio, shadow resolution, postprocessing, and the illustrative
+flight circuit. Terrain LODs are cached and warmed during idle time so a tier
+change does not normally rebuild the heightfield in the transition frame. Pin a
+tier with `?quality=0..3`. Reduced-motion preference freezes automatic 3D scene
+motion, makes camera jumps immediate, and disables adaptive promotion.
 
 ## Under the Hood
 
