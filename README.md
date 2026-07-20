@@ -2,7 +2,7 @@
 
 > An immersive 3D experience of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame reconstructed from public Earth-observation data and cited open reporting. The geometry is measurable; structure functions and simulated activity remain interpretations.
 
-**What's inside the wire:** A triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved runway (05/23, modeled on a ~046°/226° grid bearing) forms one leg; two long graded-earth strips meet at a north-west apex. A spur taxiway reaches a compound of imagery-derived footprints. Names such as "assembly hangar," "operations block," and "service court" are functional interpretations, not verified interior uses. The two parked J-36 and J-XDS models correspond to publicly reported 2025 sightings; the animated flying-wing demonstrator and all simulated operations are illustrative.
+**What's inside the wire:** A triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved runway (05/23, modeled on a ~046°/226° grid bearing) forms one leg; two long graded-earth strips meet at a north-west apex. A spur taxiway reaches a compound of imagery-derived footprints. Names such as "assembly hangar," "operations block," and "service court" are functional interpretations, not verified interior uses. The compound reflects the 2025 build-out described in open reporting — three western fighter shelters, a north-east apron hangar, an expanded fuel-storage area and new utility construction — with plausible base-support systems (power, water, comms, sensors, security) added as clearly-labelled illustrative context. The two parked J-36 and J-XDS models correspond to publicly reported 2025 sightings; the animated flying-wing demonstrator and all simulated operations are illustrative.
 
 ![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
 
@@ -64,8 +64,9 @@ once. What follows is the current census of what has been represented.
 | Zone | What's there |
 | :-- | :-- |
 | **The airfield** | A single ~5 km pale-concrete runway (05/23, modeled grid bearing ~046°) with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex. |
-| **The compound** | Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter. |
-| **Structures (23)** | Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. These names describe model hypotheses, not verified functions. |
+| **The compound** | Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter, now extended with frontage roads to the crew, south-east and fuel-area additions. |
+| **Structures (43)** | Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. The 2025 build-out adds **reported** western fighter shelters, a north-east apron hangar, an expanded fuel farm and south-east construction, plus **interpreted** crew blocks. These names describe model hypotheses, not verified functions. |
+| **Base support (illustrative)** | Power (photovoltaic field, switchyard), water (elevated tank), sanitation (wastewater plant), sensors (air-search radome, comms shelter) and security (perimeter towers, gate guardhouse) complete a base of this class. None is resolved in the cited 10 m imagery; all are labelled **illustrative**. |
 | **The flight line** | Two parked models represent the J-36 and J-XDS aircraft reported in August and September 2025 imagery. Both are clickable and evidence-labelled; the separate animated flying-wing demonstrator is illustrative and not part of the structure catalog. |
 | **Terrain** | 6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface. |
 | **A living base** | The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations. |
@@ -163,7 +164,8 @@ two-finger pan; first-person mode shows on-screen thumb-stick and look controls.
 | [ESA Sentinel-2 User Handbook](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2_User_Handbook) | Repeatable multispectral optical context and registration conventions. | Native bands are 10, 20 or 60 m; Sentinel-2 alone cannot verify detailed building functions. |
 | [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM) | An approximate sample near the public runway-center coordinate (~981 m, EGM2008; sampled 2026-07-19) anchors local altitude. | The link identifies the collection rather than a pinned tile. The rendered relief is procedural and no DEM tile is redistributed. |
 | [NASA POWER climatology API](https://power.larc.nasa.gov/docs/services/api/temporal/climatology/) · [embedded point query](https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M%2CWS10M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN%2CRH2M%2CWD10M&community=RE&longitude=89.281218&latitude=40.772521&format=JSON) | Monthly 2001–2020 temperature, humidity, precipitation, solar and wind means shape regional scenarios. | Modelled grid climatology, not local observations, a forecast or event-time weather. |
-| [The War Zone, 2025](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base) | Public reporting for the J-36 and J-XDS sightings and the runway-length context. | A secondary report; aircraft labels and dimensions remain attributed reporting. |
+| [The War Zone, 2025](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base) | Public reporting for the J-36 and J-XDS sightings, the runway-length context, and the mid-2025 build-out (western fighter shelters, a >300 ft main hangar, expanded fuel storage, new utility buildings, south-east construction). | A secondary report; aircraft labels, facility functions and dimensions remain attributed reporting. |
+| [National Security Journal, 2025](https://nationalsecurityjournal.org/new-stealth-j-36-and-j-xds-fighters-might-be-undergoing-testing-at-chinas-area-51/) | Corroborates the >16,400 ft runway, three western fighter-sized hangars, the large main hangar, and expanded fuel/utility/taxiway construction from commercial imagery. | A secondary report; identities and dimensions remain attributed reporting, not official records. |
 | [Secure World Foundation, 2026](https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet) | Context for likely reusable experimental spacecraft landings. | "Likely" is retained; the simulator does not independently verify a landing. |
 | [CSIS PONI, 2026](https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/) · [published tunnel-area coordinates](https://doi.org/10.1080/10736700.2025.2497201) | Offsite context and the ~127 km separation from the airfield. | The tunnel area is not rendered; CSIS's 2020 comparison was inconclusive and found no significant visible change. |
 
@@ -234,11 +236,16 @@ bun run preview    # serve the production build
 - **A compound on the south side of the runway**, reached by a spur taxiway
   from mid-runway: expanded concrete apron, paved internal streets, and dirt
   tracks along the perimeter.
-- **23 interpreted structures**: footprints and roof forms follow the layout.
+- **43 interpreted structures**: footprints and roof forms follow the layout.
   The catalog includes service and storage halls, a large assembly-hall
   interpretation, an arched shed, a tower, an operations block, and walled
-  service courts. Public overhead imagery does not establish interiors,
-  occupants or functions.
+  service courts. The 2025 build-out reported from commercial imagery adds
+  three western fighter shelters, a north-east apron hangar, an expanded
+  fuel-storage farm and south-east construction; plausible base-support
+  systems — a photovoltaic field, switchyard, elevated water tank, wastewater
+  plant, air-search radome, comms shelter, perimeter guard towers and a gate
+  guardhouse — are included as clearly-labelled illustrative context. Public
+  overhead imagery does not establish interiors, occupants or functions.
 - **Two parked aircraft** on the flight line: J-36 and J-XDS models correspond
   to reported August and September 2025 sightings. Both are clickable, with
   evidence-labelled dossiers, minimap markers and site-index entries. The

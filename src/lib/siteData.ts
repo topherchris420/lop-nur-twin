@@ -77,7 +77,18 @@ export const PUBLIC_SOURCES = [
     url: "https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base",
     role: "reporting",
     attribution:
-      "Reports Planet imagery observations of aircraft commonly called J-36 and J-XDS on 2025-08-27 and 2025-09-13. Names and capabilities are not official.",
+      "Reports Planet imagery observations of aircraft commonly called J-36 and J-XDS on 2025-08-27 and 2025-09-13, plus a mid-2025 build-out: three fighter-sized hangars on the western edge, a >300 ft main hangar, expanded fuel storage, new utility buildings, resurfaced taxiways, and further construction to the south-east. Names, functions, and dimensions are not official.",
+  },
+  {
+    id: "nsj-airfield-2025",
+    title: "New Stealth J-36 and J-XDS Fighters Might Be Undergoing Testing at China's 'Area 51'",
+    publisher: "National Security Journal",
+    publishedOn: "2025-11-09",
+    accessedOn: "2026-07-20",
+    url: "https://nationalsecurityjournal.org/new-stealth-j-36-and-j-xds-fighters-might-be-undergoing-testing-at-chinas-area-51/",
+    role: "reporting",
+    attribution:
+      "Corroborates the mid-2025 expansion from commercial satellite imagery: a >16,400 ft runway, three newly built fighter-sized hangars on the western edge, a >300 ft main hangar, and expanded fuel storage, utility buildings, and resurfaced taxiways. A secondary report; identities and dimensions remain attributed reporting, not official records.",
   },
   {
     id: "swf-spacecraft-2026",
