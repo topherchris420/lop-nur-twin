@@ -12,6 +12,7 @@ import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { LivingScene } from "./LivingScene";
+import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
@@ -107,6 +108,7 @@ export function Scene() {
           <Pavements />
           <Structures />
           <LivingScene />
+          <LiveTraffic />
           <CameraRigs />
           <AdaptiveQualityManager />
           <ReadySignal />
