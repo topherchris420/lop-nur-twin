@@ -2,11 +2,11 @@ export interface PublicSource {
   id: string;
   title: string;
   publisher: string;
-  publishedOn: string;
+  publishedOn?: string;
   accessedOn: string;
   url: string;
   dataUrl?: string;
-  role: "imagery" | "terrain" | "climate" | "reporting" | "analysis";
+  role: "imagery" | "terrain" | "climate" | "reporting" | "analysis" | "telemetry";
   attribution: string;
 }
 
@@ -122,6 +122,18 @@ export const PUBLIC_SOURCES = [
     role: "analysis",
     attribution:
       "Provides regional context and approximate coordinates for the Northern Tunnel Test Area, which is about 127 km from the airfield reference point.",
+  },
+  {
+    id: "adsb-lol-live",
+    title: "ADSB.lol open aircraft feed",
+    publisher: "ADSB.lol",
+    publishedOn: undefined,
+    accessedOn: "2026-07-23",
+    url: "https://www.adsb.lol/",
+    dataUrl: "https://api.adsb.lol/v2/lat/40.77/lon/89.28/dist/150",
+    role: "telemetry",
+    attribution:
+      "Live cooperative-surveillance feed used only for ephemeral traffic context. Positions, identities, classifications, and availability are unverified and may be delayed or incomplete.",
   },
 ] as const satisfies readonly PublicSource[];
 

@@ -1,5 +1,9 @@
 import { SITE_PROFILE } from "./siteData";
-import { RUNWAY_CENTER } from "./layout";
+import {
+  MISSION_SITE_ID,
+  RUNWAY_CENTER,
+  type MissionEntityDef,
+} from "./layout";
 
 /**
  * Live ADS-B traffic over the airfield, pulled from ADSB.lol's open API.
@@ -25,6 +29,43 @@ export interface Aircraft {
   track: number;
   /** True for state/military aircraft, from `mil` or the dbFlags bit-0 flag. */
   military: boolean;
+  /** Feed-reported age of the last position in seconds; null when omitted. */
+  seenSecondsAgo: number | null;
+  /** Absolute feed snapshot time, sourced from the response body/header when available. */
+  observedAt: string | null;
+}
+
+export function getLiveTrafficMissionEntityId(hex: string): string {
+  return `live-aircraft-${hex.toLowerCase()}`;
+}
+
+/** Build the ephemeral mission record that travels with a live render entity. */
+export function createLiveTrafficMissionEntity(aircraft: Aircraft): MissionEntityDef {
+  return {
+    id: getLiveTrafficMissionEntityId(aircraft.hex),
+    kind: "aircraft",
+    label: aircraft.callsign,
+    observation: {
+      timestamp: aircraft.observedAt,
+      timestampKind: "live-feed",
+      status: "reported",
+      confidence: "low",
+      sourceIds: ["adsb-lol-live"],
+      note:
+        aircraft.seenSecondsAgo === null
+          ? "Ephemeral ADSB.lol position report; identity, position, altitude, classification, and source age are unverified live-feed fields."
+          : `Ephemeral ADSB.lol position report, feed-reported position age ${aircraft.seenSecondsAgo.toFixed(1)} s; identity, position, altitude, and classification remain unverified.`,
+    },
+    capabilities: ["telemetry-position"],
+    relationships: [{ kind: "part-of", targetId: MISSION_SITE_ID }],
+    taskableBehaviors: [
+      {
+        id: "track-live-position",
+        label: "Track reported position",
+        execution: "reactive",
+      },
+    ],
+  };
 }
 
 /** Reference point of the local grid: the modeled runway center. */
@@ -66,6 +107,9 @@ interface AdsbAircraftRaw {
   alt_baro?: number | "ground";
   alt_geom?: number;
   track?: number;
+  /** Seconds since the latest position update, supplied by the feed. */
+  seen_pos?: number;
+  seen?: number;
   /** ADSB.lol sets this to 1 for military aircraft. */
   mil?: boolean;
   /** Bitfield; bit 0 (value 1) marks military in the ADSB.lol database. */
@@ -73,7 +117,23 @@ interface AdsbAircraftRaw {
 }
 
 interface AdsbResponse {
+  /** Feed snapshot epoch, supplied in seconds or milliseconds depending on backend version. */
+  now?: number;
   ac?: AdsbAircraftRaw[];
+}
+
+function parseSnapshotObservedAt(data: AdsbResponse, response: Response): string | null {
+  const epoch = data.now;
+  if (typeof epoch === "number" && Number.isFinite(epoch) && epoch > 0) {
+    const date = new Date(epoch < 1_000_000_000_000 ? epoch * 1000 : epoch);
+    if (Number.isFinite(date.getTime())) return date.toISOString();
+  }
+  const responseDate = response.headers.get("date");
+  if (responseDate !== null) {
+    const date = new Date(responseDate);
+    if (Number.isFinite(date.getTime())) return date.toISOString();
+  }
+  return null;
 }
 
 /** Coerce `alt_baro`/`alt_geom` to feet; the string "ground" becomes 0. */
@@ -107,6 +167,7 @@ export async function fetchAircraft(signal?: AbortSignal): Promise<Aircraft[]> {
   if (!res.ok) throw new Error(`ADSB.lol responded ${res.status}`);
   const data = (await res.json()) as AdsbResponse;
   const list = Array.isArray(data.ac) ? data.ac : [];
+  const observedAt = parseSnapshotObservedAt(data, res);
 
   const out: Aircraft[] = [];
   for (const raw of list) {
@@ -129,6 +190,13 @@ export async function fetchAircraft(signal?: AbortSignal): Promise<Aircraft[]> {
       altFeet: parseAltitude(raw),
       track: typeof raw.track === "number" ? raw.track : 0,
       military: isMilitary(raw),
+      seenSecondsAgo:
+        typeof raw.seen_pos === "number"
+          ? raw.seen_pos
+          : typeof raw.seen === "number"
+            ? raw.seen
+            : null,
+      observedAt,
     });
   }
   return out;

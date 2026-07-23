@@ -26,6 +26,7 @@ const ROLE_LABELS: Record<PublicSource["role"], string> = {
   climate: "Climate",
   reporting: "Reporting",
   analysis: "Analysis",
+  telemetry: "Telemetry",
 };
 
 function coordinate(value: number, positive: string, negative: string): string {
@@ -235,7 +236,7 @@ export function ResearchPanel() {
                   </Badge>
                 </div>
                 <p className="text-muted-foreground mt-1 text-[10px]">
-                  {source.publisher} / {source.publishedOn}
+                  {source.publisher} / {source.publishedOn ?? "undated source"}
                 </p>
                 <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
                   {source.attribution}

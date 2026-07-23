@@ -16,6 +16,8 @@ import {
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
 
+import { isVisibleAtTimelineYear } from '@/lib/layout';
+
 interface SharedMaterials {
   concrete: THREE.MeshStandardMaterial;
   concreteLight: THREE.MeshStandardMaterial;
@@ -1606,7 +1608,7 @@ function StructureNode({ def, m }: BuilderProps) {
     <group
       position={[def.position[0], 0, def.position[1]]}
       rotation={[0, def.rotation, 0]}
-      userData={{ structureId: def.id }}
+      userData={{ entityId: def.id, structureId: def.id }}
       onClick={handleClick}
       onPointerOver={(e) => {
         e.stopPropagation();
@@ -1623,6 +1625,7 @@ function StructureNode({ def, m }: BuilderProps) {
 
 function SelectionRing() {
   const selectedId = useTwinStore((s) => s.selectedId);
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
   const ringRef = useRef<THREE.Mesh>(null);
   const def = selectedId ? getStructure(selectedId) : undefined;
@@ -1631,7 +1634,7 @@ function SelectionRing() {
     if (!reducedMotion && ringRef.current) ringRef.current.rotation.z += delta * 0.6;
   });
 
-  if (!def) return null;
+  if (!def || !isVisibleAtTimelineYear(def, activeTimelineYear)) return null;
   const radius = Math.max(def.size[0], def.size[2]) * 0.85 + 5;
   return (
     <mesh
@@ -1647,9 +1650,17 @@ function SelectionRing() {
 
 export function Structures() {
   const m = useSharedMaterials();
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const visibleStructures = useMemo(
+    () =>
+      STRUCTURES.filter((structure) =>
+        isVisibleAtTimelineYear(structure, activeTimelineYear),
+      ),
+    [activeTimelineYear],
+  );
   return (
     <group name="structures">
-      {STRUCTURES.map((def) => (
+      {visibleStructures.map((def) => (
         <StructureNode key={def.id} def={def} m={m} />
       ))}
       <SelectionRing />

@@ -1,11 +1,16 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import {
-  SERVICE_ROUTE,
+  CIRCUIT_AIRCRAFT_ID,
+  PATROL_ENTITY_IDS,
+  PERIMETER_PATROL_ROUTE,
+  RADAR_ENTITY_ID,
   RADAR_POS,
   STRUCTURES,
+  WINDSOCK_ENTITY_ID,
   WINDSOCK_POS,
+  isVisibleAtTimelineYear,
   type StructureType,
 } from "@/lib/layout";
 import { terrainHeight } from "@/lib/terrain";
@@ -13,10 +18,12 @@ import { useTwinStore } from "@/lib/store";
 import { getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
 import { createCircuitCurve } from "@/lib/flightPath";
+import { mulberry32, SITE_SEED } from "@/lib/noise";
+import { sceneProjection } from "@/lib/sceneProjection";
 
 /**
  * Everything on the site that *moves*: a resident demonstrator flying the
- * runway pattern, a rotating radar-like prop, a service vehicle on an illustrative route, a
+ * runway pattern, a rotating radar-like prop, a seeded patrol fleet on an illustrative route, a
  * windsock reading the breeze, and red obstruction beacons winking on the tall
  * structures after dark. All animation runs through `useFrame`/refs — no React
  * state on the frame loop — and every position is read from `layout.ts`.
@@ -26,11 +33,17 @@ export function LivingScene() {
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
   const animate = !reducedMotion;
+  const profile = getQualityProfile(qualityTier);
   return (
     <group name="living-scene">
-      {animate && getQualityProfile(qualityTier).animateCircuit && <CircuitAircraft />}
+      <CircuitAircraft animate={animate && profile.animateCircuit} />
       <RotatingRadar animate={animate} />
-      <ServiceVehicle night={night} animate={animate} />
+      <PatrolFleet
+        night={night}
+        animate={animate}
+        vehicleCount={profile.patrolVehicleCount}
+        realHeadlight={profile.patrolHeadlightLights}
+      />
       <Windsock animate={animate} />
       <ObstructionBeacons night={night} animate={animate} />
     </group>
@@ -43,27 +56,37 @@ export function LivingScene() {
 
 const LOOP_SECONDS = 62;
 
-function CircuitAircraft() {
+function CircuitAircraft({ animate }: { animate: boolean }) {
   const curve = useMemo(createCircuitCurve, []);
+  const select = useTwinStore((state) => state.select);
 
   const rootRef = useRef<THREE.Group>(null);
   const rollRef = useRef<THREE.Group>(null);
   const strobeRef = useRef<THREE.MeshStandardMaterial>(null);
-  const t = useRef(0);
   const bank = useRef(0);
   const pos = useMemo(() => new THREE.Vector3(), []);
   const tan = useMemo(() => new THREE.Vector3(), []);
   const tanAhead = useMemo(() => new THREE.Vector3(), []);
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
 
-  useFrame((_, delta) => {
+  useEffect(
+    () => () => {
+      sceneProjection.circuitAircraftActive = false;
+    },
+    [],
+  );
+
+  useFrame(({ clock }, delta) => {
     const root = rootRef.current;
     if (!root) return;
-    t.current = (t.current + delta / LOOP_SECONDS) % 1;
-    const tt = t.current;
+    const tt = animate ? (clock.elapsedTime / LOOP_SECONDS) % 1 : 0;
     curve.getPointAt(tt, pos);
     curve.getTangentAt(tt, tan);
     curve.getTangentAt((tt + 0.01) % 1, tanAhead);
+
+    sceneProjection.circuitAircraftActive = true;
+    sceneProjection.circuitAircraftPosition.copy(pos);
+    sceneProjection.circuitAircraftHeadingRad = Math.atan2(-tan.x, -tan.z);
 
     root.position.copy(pos);
     lookTarget.copy(pos).add(tan);
@@ -78,8 +101,8 @@ function CircuitAircraft() {
 
     // double-pulse anti-collision strobe
     if (strobeRef.current) {
-      const cyc = (t.current * LOOP_SECONDS) % 1.1;
-      const on = cyc < 0.06 || (cyc > 0.14 && cyc < 0.2);
+      const cyc = (tt * LOOP_SECONDS) % 1.1;
+      const on = animate && (cyc < 0.06 || (cyc > 0.14 && cyc < 0.2));
       strobeRef.current.emissiveIntensity = on ? 6 : 0;
     }
   });
@@ -117,8 +140,24 @@ function CircuitAircraft() {
     [],
   );
 
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    select(CIRCUIT_AIRCRAFT_ID);
+  };
+
   return (
-    <group ref={rootRef}>
+    <group
+      ref={rootRef}
+      userData={{ entityId: CIRCUIT_AIRCRAFT_ID, sceneEntityId: CIRCUIT_AIRCRAFT_ID }}
+      onClick={handleClick}
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = "auto";
+      }}
+    >
       <group ref={rollRef}>
         <mesh geometry={wingGeo} material={body} position={[0, 0, 0]} castShadow />
         {/* dorsal fairing + canopy */}
@@ -196,7 +235,7 @@ function RotatingRadar({ animate }: { animate: boolean }) {
   });
 
   return (
-    <group position={[x, y, z]}>
+    <group position={[x, y, z]} userData={{ entityId: RADAR_ENTITY_ID }}>
       {/* pad + equipment cabin */}
       <mesh material={metal} position={[3.2, 1.1, 2]} castShadow>
         <boxGeometry args={[3, 2.2, 2.4]} />
@@ -227,25 +266,73 @@ function RotatingRadar({ animate }: { animate: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Guard vehicle on patrol                                             */
+/* Deterministic perimeter patrol fleet                                */
 /* ------------------------------------------------------------------ */
 
-function ServiceVehicle({ night, animate }: { night: boolean; animate: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const s = useRef(0);
-  const heading = useRef(0);
+const MAX_PATROL_VEHICLES = 3;
+const PATROL_SPEED_MPS = 12;
+const PATROL_LOOK_AHEAD_M = 6;
+const PATROL_SEED_OFFSET = 0x50415452;
 
-  // arc-length parameterization of the (open) patrol polyline
-  const { pts, cum, total } = useMemo(() => {
-    const pts = SERVICE_ROUTE.map(([px, pz]) => new THREE.Vector2(px, pz));
-    const cum = [0];
-    for (let i = 1; i < pts.length; i++) {
-      cum.push(cum[i - 1]! + pts[i]!.distanceTo(pts[i - 1]!));
+interface PatrolProfile {
+  phaseM: number;
+  direction: -1 | 1;
+  speedMultiplier: number;
+  scale: number;
+}
+
+interface PatrolFleetProps {
+  night: boolean;
+  animate: boolean;
+  vehicleCount: number;
+  realHeadlight: boolean;
+}
+
+function PatrolFleet({
+  night,
+  animate,
+  vehicleCount,
+  realHeadlight,
+}: PatrolFleetProps) {
+  const groupRefs = useRef<Array<THREE.Group | null>>([]);
+  const headings = useMemo(() => new Float64Array(MAX_PATROL_VEHICLES), []);
+  const headingReady = useMemo(() => new Uint8Array(MAX_PATROL_VEHICLES), []);
+
+  const { points, segmentLengths, cumulative, total, profiles } = useMemo(() => {
+    const routePoints = PERIMETER_PATROL_ROUTE.map(
+      ([x, z]) => new THREE.Vector2(x, z),
+    );
+    const lengths = new Float64Array(routePoints.length - 1);
+    const cumulativeLengths = new Float64Array(routePoints.length);
+    let totalLength = 0;
+    for (let index = 0; index < lengths.length; index += 1) {
+      const start = routePoints[index]!;
+      const end = routePoints[index + 1]!;
+      const length = start.distanceTo(end);
+      lengths[index] = length;
+      totalLength += length;
+      cumulativeLengths[index + 1] = totalLength;
     }
-    return { pts, cum, total: cum[cum.length - 1]! };
-  }, []);
 
-  const SPEED = 18; // m/s
+    const random = mulberry32(SITE_SEED + PATROL_SEED_OFFSET);
+    const patrolProfiles: PatrolProfile[] = [];
+    for (let index = 0; index < MAX_PATROL_VEHICLES; index += 1) {
+      patrolProfiles.push({
+        phaseM: random() * totalLength,
+        direction: random() < 0.5 ? -1 : 1,
+        speedMultiplier: 0.9 + random() * 0.2,
+        scale: 0.94 + random() * 0.12,
+      });
+    }
+
+    return {
+      points: routePoints,
+      segmentLengths: lengths,
+      cumulative: cumulativeLengths,
+      total: totalLength,
+      profiles: patrolProfiles,
+    };
+  }, []);
 
   const body = useMemo(
     () => new THREE.MeshStandardMaterial({ color: "#5c5643", roughness: 0.8, metalness: 0.1 }),
@@ -268,73 +355,110 @@ function ServiceVehicle({ night, animate }: { night: boolean; animate: boolean }
       }),
     [],
   );
+  const bodyGeometry = useMemo(() => new THREE.BoxGeometry(1.9, 0.7, 4.4), []);
+  const cabGeometry = useMemo(() => new THREE.BoxGeometry(1.8, 0.9, 1.8), []);
+  const lampGeometry = useMemo(() => new THREE.BoxGeometry(0.35, 0.25, 0.1), []);
+  const tyreGeometry = useMemo(
+    () => new THREE.CylinderGeometry(0.35, 0.35, 0.25, 10),
+    [],
+  );
+
+  useEffect(() => {
+    lamp.emissiveIntensity = night ? 5 : 0;
+  }, [lamp, night]);
 
   const at = useMemo(() => new THREE.Vector2(), []);
   const ahead = useMemo(() => new THREE.Vector2(), []);
 
-  const sample = (dist: number, out: THREE.Vector2) => {
-    const d = THREE.MathUtils.clamp(dist, 0, total);
-    let i = 1;
-    while (i < cum.length && cum[i]! < d) i++;
-    const a = pts[i - 1]!;
-    const b = pts[Math.min(i, pts.length - 1)]!;
-    const seg = Math.max(1e-3, cum[Math.min(i, cum.length - 1)]! - cum[i - 1]!);
-    const f = (d - cum[i - 1]!) / seg;
-    out.lerpVectors(a, b, THREE.MathUtils.clamp(f, 0, 1));
-    return out;
+  const sample = (distanceM: number, out: THREE.Vector2) => {
+    const wrapped = ((distanceM % total) + total) % total;
+    let segmentIndex = 0;
+    while (
+      segmentIndex < segmentLengths.length - 1 &&
+      cumulative[segmentIndex + 1]! <= wrapped
+    ) {
+      segmentIndex += 1;
+    }
+    const start = points[segmentIndex]!;
+    const end = points[segmentIndex + 1]!;
+    const fraction =
+      (wrapped - cumulative[segmentIndex]!) / segmentLengths[segmentIndex]!;
+    out.lerpVectors(start, end, fraction);
   };
 
-  useFrame((_, delta) => {
-    const g = groupRef.current;
-    if (!g) return;
-    // ping-pong along the route
-    if (animate) s.current += delta * SPEED;
-    const period = total * 2;
-    const raw = s.current % period;
-    const forward = raw <= total;
-    const d = forward ? raw : period - raw;
-    sample(d, at);
-    // look a few metres in the *actual* direction of travel for the heading
-    sample(forward ? Math.min(total, d + 5) : Math.max(0, d - 5), ahead);
-    const dirx = ahead.x - at.x;
-    const dirz = ahead.y - at.y;
-    // model front is local −z (headlights), so face −dir
-    const targetHeading = Math.atan2(-dirx, -dirz);
-    // shortest-arc smoothing of the yaw
-    let dh = targetHeading - heading.current;
-    dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-    heading.current += dh * Math.min(1, delta * 4);
+  useFrame(({ clock }, delta) => {
+    const elapsedSeconds = animate ? clock.elapsedTime : 0;
+    const count = Math.min(vehicleCount, profiles.length);
+    for (let index = 0; index < count; index += 1) {
+      const group = groupRefs.current[index];
+      const profile = profiles[index];
+      if (!group || !profile) continue;
 
-    g.position.set(at.x, terrainHeight(at.x, at.y) + 0.55, at.y);
-    g.rotation.y = heading.current;
-    lamp.emissiveIntensity = night ? 5 : 0;
+      const distanceM =
+        profile.phaseM +
+        profile.direction *
+          elapsedSeconds *
+          PATROL_SPEED_MPS *
+          profile.speedMultiplier;
+      sample(distanceM, at);
+      sample(distanceM + profile.direction * PATROL_LOOK_AHEAD_M, ahead);
+
+      const targetHeading = Math.atan2(-(ahead.x - at.x), -(ahead.y - at.y));
+      if (headingReady[index] === 0) {
+        headings[index] = targetHeading;
+        headingReady[index] = 1;
+      } else {
+        let deltaHeading = targetHeading - headings[index]!;
+        deltaHeading = Math.atan2(Math.sin(deltaHeading), Math.cos(deltaHeading));
+        headings[index] = headings[index]! + deltaHeading * Math.min(1, delta * 4);
+      }
+
+      group.position.set(at.x, terrainHeight(at.x, at.y) + 0.04, at.y);
+      group.rotation.y = headings[index]!;
+    }
   });
 
   return (
-    <group ref={groupRef}>
-      <mesh material={body} position={[0, 0.35, 0.2]} castShadow>
-        <boxGeometry args={[1.9, 0.7, 4.4]} />
-      </mesh>
-      <mesh material={cab} position={[0, 0.95, -0.9]} castShadow>
-        <boxGeometry args={[1.8, 0.9, 1.8]} />
-      </mesh>
-      {/* headlights (−z is forward) */}
-      {[-0.6, 0.6].map((sx) => (
-        <mesh key={sx} material={lamp} position={[sx, 0.4, -2.05]}>
-          <boxGeometry args={[0.35, 0.25, 0.1]} />
-        </mesh>
-      ))}
-      {[-1, 1].map((sx) =>
-        [-1.2, 1.3].map((sz) => (
-          <mesh
-            key={`${sx}${sz}`}
-            material={tyre}
-            position={[sx * 0.95, 0.35, sz]}
-            rotation={[0, 0, Math.PI / 2]}
+    <group name="perimeter-patrol-fleet">
+      {profiles.map((profile, index) =>
+        index < vehicleCount ? (
+          <group
+            key={`patrol-${index}`}
+            ref={(node) => {
+              groupRefs.current[index] = node;
+              if (node === null) headingReady[index] = 0;
+            }}
+            scale={profile.scale}
+            userData={{ entityId: PATROL_ENTITY_IDS[index] }}
           >
-            <cylinderGeometry args={[0.35, 0.35, 0.25, 10]} />
-          </mesh>
-        )),
+            <mesh geometry={bodyGeometry} material={body} position={[0, 0.35, 0.2]} castShadow />
+            <mesh geometry={cabGeometry} material={cab} position={[0, 0.95, -0.9]} castShadow />
+            {[-0.6, 0.6].map((x) => (
+              <mesh key={x} geometry={lampGeometry} material={lamp} position={[x, 0.4, -2.05]} />
+            ))}
+            {[-1, 1].map((x) =>
+              [-1.2, 1.3].map((z) => (
+                <mesh
+                  key={`${x}:${z}`}
+                  geometry={tyreGeometry}
+                  material={tyre}
+                  position={[x * 0.95, 0.35, z]}
+                  rotation={[0, 0, Math.PI / 2]}
+                />
+              )),
+            )}
+            {realHeadlight && index === 0 ? (
+              <pointLight
+                color="#ffe2b0"
+                intensity={night ? 22 : 0}
+                distance={24}
+                decay={2}
+                position={[0, 0.55, -2.25]}
+                castShadow={false}
+              />
+            ) : null}
+          </group>
+        ) : null,
       )}
     </group>
   );
@@ -395,7 +519,7 @@ function Windsock({ animate }: { animate: boolean }) {
   });
 
   return (
-    <group position={[x, y, z]}>
+    <group position={[x, y, z]} userData={{ entityId: WINDSOCK_ENTITY_ID }}>
       <mesh material={pole} position={[0, 3, 0]} castShadow>
         <cylinderGeometry args={[0.12, 0.16, 6, 8]} />
       </mesh>
@@ -430,6 +554,7 @@ const BEACON_TOP: Partial<Record<StructureType, number>> = {
 };
 
 function ObstructionBeacons({ night, animate }: { night: boolean; animate: boolean }) {
+  const activeTimelineYear = useTwinStore((state) => state.activeTimelineYear);
   const beacons = useMemo(() => {
     return STRUCTURES.flatMap((sdef) => {
       const factor = BEACON_TOP[sdef.type];
@@ -443,6 +568,7 @@ function ObstructionBeacons({ night, animate }: { night: boolean; animate: boole
         {
           id: sdef.id,
           pos,
+          observedDate: sdef.observedDate,
           phase: (sdef.position[0] * 0.13 + sdef.position[1] * 0.07) % (Math.PI * 2),
         },
       ];
@@ -476,7 +602,13 @@ function ObstructionBeacons({ night, animate }: { night: boolean; animate: boole
   return (
     <group>
       {beacons.map((b, i) => (
-        <mesh key={b.id} position={b.pos} material={mats[i]}>
+        <mesh
+          key={b.id}
+          position={b.pos}
+          material={mats[i]}
+          userData={{ entityId: b.id }}
+          visible={isVisibleAtTimelineYear(b, activeTimelineYear)}
+        >
           <sphereGeometry args={[0.5, 8, 8]} />
         </mesh>
       ))}

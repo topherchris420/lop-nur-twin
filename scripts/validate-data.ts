@@ -1,19 +1,34 @@
 import {
+  AIRCRAFT_ANALYSIS_PROFILES,
   ALL_SEGMENTS,
   APRONS,
+  CIRCUIT_AIRCRAFT_ID,
   CIRCUIT_MIN_CLEARANCE_M,
+  CIRCUIT_ROUTE_ENTITY_ID,
   CIRCUIT_WAYPOINTS,
   CINEMATIC_WAYPOINTS,
   FLATTEN_PADS,
   GRID_EASTING_ORIGIN,
   GRID_NORTHING_ORIGIN,
+  ENVIRONMENT_ENTITY_ID,
+  MISSION_ENTITIES,
+  MISSION_SITE_ID,
+  PATROL_ENTITY_IDS,
+  PERIMETER_PATROL_ROUTE,
+  PERIMETER_ROUTE_ENTITY_ID,
+  RADAR_ENTITY_ID,
   RADAR_POS,
   RUNWAYS,
   RUNWAY_CENTER,
-  SERVICE_ROUTE,
   SITE_SIZE,
   STRUCTURES,
+  TERRAIN_ENTITY_ID,
+  TIMELINE_BOUNDS,
   WINDSOCK_POS,
+  WINDSOCK_ENTITY_ID,
+  getObservedYear,
+  getVisibleDatedAdditionCount,
+  isVisibleAtTimelineYear,
   segmentLength,
 } from "../src/lib/layout";
 import {
@@ -36,6 +51,55 @@ function check(condition: boolean, message: string): void {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function isValidIsoCalendarDate(value: string): boolean {
+  const match = ISO_DATE_PATTERN.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isInteger(year) || year < 1 || year > 9999) return false;
+  if (!Number.isInteger(month) || month < 1 || month > 12) return false;
+  const daysInMonth = [
+    31,
+    isLeapYear(year) ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ][month - 1];
+  return daysInMonth !== undefined && Number.isInteger(day) && day >= 1 && day <= daysInMonth;
+}
+
+function checkTemporal(
+  label: string,
+  item: { observedDate?: string },
+  datedYears: number[],
+): void {
+  if (item.observedDate === undefined) return;
+  check(
+    isValidIsoCalendarDate(item.observedDate),
+    `${label} observedDate '${item.observedDate}' must be a possible ISO calendar date (YYYY-MM-DD)`,
+  );
+  const year = getObservedYear(item);
+  check(
+    isFiniteNumber(year) && Number.isInteger(year),
+    `${label} observedDate must derive a finite integer year`,
+  );
+  if (isFiniteNumber(year) && Number.isInteger(year)) datedYears.push(year);
 }
 
 function checkPoint(
@@ -132,7 +196,9 @@ for (const source of PUBLIC_SOURCES) {
 }
 
 checkUniqueIds("Segment", ALL_SEGMENTS);
+const datedLayoutYears: number[] = [];
 for (const segment of ALL_SEGMENTS) {
+  checkTemporal(`Segment '${segment.id}'`, segment, datedLayoutYears);
   checkPositive(`Segment "${segment.id}" width`, [segment.width]);
   checkPoint(`Segment "${segment.id}" start`, segment.from, [0, 1]);
   checkPoint(`Segment "${segment.id}" end`, segment.to, [0, 1]);
@@ -154,6 +220,7 @@ for (const segment of ALL_SEGMENTS) {
 
 checkUniqueIds("Apron", APRONS);
 for (const apron of APRONS) {
+  checkTemporal(`Apron '${apron.id}'`, apron, datedLayoutYears);
   checkPoint(`Apron "${apron.id}" center`, apron.center, [0, 1]);
   checkPositive(`Apron "${apron.id}" size`, apron.size);
   check(
@@ -166,6 +233,7 @@ for (const apron of APRONS) {
 checkUniqueIds("Structure", STRUCTURES);
 const segmentIds = new Set(ALL_SEGMENTS.map((segment) => segment.id));
 for (const structure of STRUCTURES) {
+  checkTemporal(`Structure '${structure.id}'`, structure, datedLayoutYears);
   check(
     !segmentIds.has(structure.id),
     `Structure id "${structure.id}" collides with a segment id`,
@@ -212,6 +280,51 @@ for (const structure of STRUCTURES) {
   }
 }
 
+check(
+  Number.isInteger(TIMELINE_BOUNDS.minYear) && Number.isFinite(TIMELINE_BOUNDS.minYear),
+  'Timeline minimum year must be a finite integer',
+);
+check(
+  Number.isInteger(TIMELINE_BOUNDS.maxYear) && Number.isFinite(TIMELINE_BOUNDS.maxYear),
+  'Timeline maximum year must be a finite integer',
+);
+check(
+  TIMELINE_BOUNDS.minYear <= TIMELINE_BOUNDS.maxYear,
+  'Timeline bounds must be ordered',
+);
+if (datedLayoutYears.length > 0) {
+  check(
+    TIMELINE_BOUNDS.minYear === Math.min(...datedLayoutYears),
+    'Timeline minimum year must equal the earliest dated layout record',
+  );
+  check(
+    TIMELINE_BOUNDS.maxYear === Math.max(...datedLayoutYears),
+    'Timeline maximum year must equal the latest dated layout record',
+  );
+  check(
+    getVisibleDatedAdditionCount(TIMELINE_BOUNDS.maxYear) === datedLayoutYears.length,
+    'Latest timeline year must expose every dated layout addition',
+  );
+  check(
+    getVisibleDatedAdditionCount(TIMELINE_BOUNDS.minYear - 1) === 0,
+    'A year before the timeline must expose no dated additions',
+  );
+}
+check(
+  getObservedYear({ observedDate: '2025-09-13' }) === 2025,
+  'getObservedYear must parse the leading ISO year',
+);
+check(getObservedYear({}) === undefined, 'getObservedYear must preserve unknown dates');
+check(
+  isVisibleAtTimelineYear({}, TIMELINE_BOUNDS.minYear - 100),
+  'Undated layout records must remain visible at every timeline year',
+);
+check(
+  !isVisibleAtTimelineYear({ observedDate: '2025-09-13' }, 2024) &&
+    isVisibleAtTimelineYear({ observedDate: '2025-09-13' }, 2025),
+  'Dated layout records must become visible in their observed year',
+);
+
 const catalogIds = new Map<string, string>();
 for (const [catalog, items] of [
   ["segment", ALL_SEGMENTS],
@@ -224,6 +337,104 @@ for (const [catalog, items] of [
     catalogIds.set(item.id, catalog);
   }
 }
+
+const missionEntityIds = new Set<string>();
+for (const entity of MISSION_ENTITIES) {
+  check(entity.id.trim().length > 0, "Mission entities must have stable IDs");
+  check(
+    !missionEntityIds.has(entity.id),
+    `Mission entity id "${entity.id}" must be unique`,
+  );
+  missionEntityIds.add(entity.id);
+  check(entity.label.trim().length > 0, `Mission entity "${entity.id}" must have a label`);
+  check(
+    entity.capabilities.length > 0,
+    `Mission entity "${entity.id}" must declare at least one capability`,
+  );
+  check(
+    new Set(entity.capabilities).size === entity.capabilities.length,
+    `Mission entity "${entity.id}" capabilities must be unique`,
+  );
+  check(
+    entity.taskableBehaviors.length > 0,
+    `Mission entity "${entity.id}" must declare at least one taskable behavior`,
+  );
+  check(
+    new Set(entity.taskableBehaviors.map((behavior) => behavior.id)).size ===
+      entity.taskableBehaviors.length,
+    `Mission entity "${entity.id}" behavior IDs must be unique`,
+  );
+  check(
+    entity.observation.note.trim().length > 0,
+    `Mission entity "${entity.id}" must explain its observation provenance`,
+  );
+  if (entity.observedDate !== undefined) {
+    checkTemporal(`Mission entity ${entity.id}`, entity, []);
+    check(
+      entity.observation.observedDate === entity.observedDate,
+      `Mission entity "${entity.id}" must preserve its layout observedDate`,
+    );
+  }
+  if (
+    entity.observation.timestampKind === "calendar-observation" ||
+    entity.observation.timestampKind === "source-snapshot"
+  ) {
+    check(
+      entity.observation.timestamp !== null &&
+        isValidIsoCalendarDate(entity.observation.timestamp),
+      `Mission entity "${entity.id}" must use an ISO timestamp for calendar/source observations`,
+    );
+  }
+  if (entity.observation.timestampKind === "unknown") {
+    check(
+      entity.observation.timestamp === null,
+      `Mission entity "${entity.id}" must represent unknown timestamps as null`,
+    );
+  }
+  for (const sourceId of entity.observation.sourceIds) {
+    check(
+      sourceIds.has(sourceId),
+      `Mission entity "${entity.id}" cites unknown source "${sourceId}"`,
+    );
+  }
+}
+
+for (const entity of MISSION_ENTITIES) {
+  for (const relationship of entity.relationships) {
+    check(
+      missionEntityIds.has(relationship.targetId),
+      `Mission entity "${entity.id}" relationship targets missing entity "${relationship.targetId}"`,
+    );
+  }
+}
+
+for (const item of [...ALL_SEGMENTS, ...APRONS, ...STRUCTURES]) {
+  const entity = MISSION_ENTITIES.find((candidate) => candidate.id === item.id);
+  check(entity !== undefined, `Layout record "${item.id}" must have a mission entity`);
+  check(
+    entity?.observedDate === item.observedDate,
+    `Mission entity "${item.id}" must mirror the layout timeline date`,
+  );
+}
+
+for (const id of [
+  MISSION_SITE_ID,
+  TERRAIN_ENTITY_ID,
+  ENVIRONMENT_ENTITY_ID,
+  PERIMETER_ROUTE_ENTITY_ID,
+  CIRCUIT_ROUTE_ENTITY_ID,
+  CIRCUIT_AIRCRAFT_ID,
+  RADAR_ENTITY_ID,
+  WINDSOCK_ENTITY_ID,
+  ...PATROL_ENTITY_IDS,
+]) {
+  check(missionEntityIds.has(id), `Rendered mission object "${id}" must have an entity record`);
+}
+check(
+  PATROL_ENTITY_IDS.length >=
+    Math.max(...Object.values(QUALITY_PROFILES).map((profile) => profile.patrolVehicleCount)),
+  "Mission registry must define enough patrol entities for the highest quality budget",
+);
 
 check(CLIMATE_MONTHS.length === 12, "Climate catalog must contain exactly 12 months");
 for (const climate of CLIMATE_MONTHS) {
@@ -259,11 +470,36 @@ for (const tier of [0, 1, 2, 3] as const) {
   const profile = QUALITY_PROFILES[tier];
   checkPositive(`Quality tier ${tier} terrain segments`, [profile.terrainSegments]);
   checkPositive(`Quality tier ${tier} dust particles`, [profile.dustParticles]);
+  check(
+    Number.isInteger(profile.patrolVehicleCount) && profile.patrolVehicleCount >= 1,
+    `Quality tier ${tier} patrol vehicle count must be a positive integer`,
+  );
+  check(
+    typeof profile.patrolHeadlightLights === 'boolean',
+    `Quality tier ${tier} patrol headlight-light flag must be boolean`,
+  );
+  checkPositive(`Quality tier ${tier} overlay refresh`, [profile.overlayRefreshHz]);
+  check(
+    Number.isInteger(profile.overlayRangeSamples) && profile.overlayRangeSamples >= 3,
+    `Quality tier ${tier} overlay range samples must be an integer of at least 3`,
+  );
+  check(
+    Number.isInteger(profile.overlayRadarSamples) && profile.overlayRadarSamples >= 2,
+    `Quality tier ${tier} overlay radar samples must be an integer of at least 2`,
+  );
   if (tier > 0) {
     const previous = QUALITY_PROFILES[(tier - 1) as 0 | 1 | 2];
     check(profile.terrainSegments >= previous.terrainSegments, `Quality tier ${tier} terrain density must not decrease`);
     check(profile.dustParticles >= previous.dustParticles, `Quality tier ${tier} dust count must not decrease`);
     check(profile.dprMax >= previous.dprMax, `Quality tier ${tier} DPR must not decrease`);
+    check(profile.patrolVehicleCount >= previous.patrolVehicleCount, `Quality tier ${tier} patrol count must not decrease`);
+    check(profile.overlayRefreshHz >= previous.overlayRefreshHz, `Quality tier ${tier} overlay refresh must not decrease`);
+    check(profile.overlayRangeSamples >= previous.overlayRangeSamples, `Quality tier ${tier} overlay range samples must not decrease`);
+    check(profile.overlayRadarSamples >= previous.overlayRadarSamples, `Quality tier ${tier} overlay radar samples must not decrease`);
+    check(
+      !previous.patrolHeadlightLights || profile.patrolHeadlightLights,
+      `Quality tier ${tier} must not remove patrol headlight lights enabled by a lower tier`,
+    );
   }
 }
 
@@ -273,8 +509,72 @@ for (const [index, pad] of FLATTEN_PADS.entries()) {
   checkFootprint(`Flatten pad ${index}`, pad.center, [pad.radius * 2, pad.radius * 2]);
 }
 
-for (const [index, point] of SERVICE_ROUTE.entries()) {
-  checkPoint(`Service route point ${index}`, point, [0, 1]);
+check(
+  PERIMETER_PATROL_ROUTE.length >= 4,
+  'Perimeter patrol route must contain at least three vertices plus closure',
+);
+const patrolDistinctVertices = new Set<string>();
+let patrolTotalLengthM = 0;
+for (const [index, point] of PERIMETER_PATROL_ROUTE.entries()) {
+  checkPoint(`Perimeter patrol route point ${index}`, point, [0, 1]);
+  if (index < PERIMETER_PATROL_ROUTE.length - 1) {
+    patrolDistinctVertices.add(`${point[0]},${point[1]}`);
+  }
+  if (index > 0) {
+    const previous = PERIMETER_PATROL_ROUTE[index - 1];
+    if (previous) {
+      const length = Math.hypot(point[0] - previous[0], point[1] - previous[1]);
+      check(
+        isFiniteNumber(length) && length > 0,
+        `Perimeter patrol route segment ${index - 1} must have non-zero finite length`,
+      );
+      patrolTotalLengthM += length;
+    }
+  }
+}
+check(
+  patrolDistinctVertices.size >= 3,
+  'Perimeter patrol route must contain at least three distinct vertices',
+);
+const patrolFirst = PERIMETER_PATROL_ROUTE[0];
+const patrolLast = PERIMETER_PATROL_ROUTE[PERIMETER_PATROL_ROUTE.length - 1];
+check(
+  patrolFirst !== undefined &&
+    patrolLast !== undefined &&
+    patrolFirst[0] === patrolLast[0] &&
+    patrolFirst[1] === patrolLast[1],
+  'Perimeter patrol route must be explicitly closed',
+);
+check(
+  isFiniteNumber(patrolTotalLengthM) && patrolTotalLengthM > 0,
+  'Perimeter patrol route must have positive total length',
+);
+
+for (const [id, profile] of Object.entries(AIRCRAFT_ANALYSIS_PROFILES)) {
+  check(profile.label.trim().length > 0, `Aircraft analysis profile '${id}' must have a label`);
+  checkPositive(`Aircraft analysis profile '${id}' ranges`, [
+    profile.scenarioRadiusM,
+    profile.radarRangeM,
+  ]);
+  check(
+    profile.scenarioRadiusM <= SITE_SIZE && profile.radarRangeM <= SITE_SIZE,
+    `Aircraft analysis profile '${id}' ranges must remain within the modeled site scale`,
+  );
+  check(
+    isFiniteNumber(profile.radarFovDeg) && profile.radarFovDeg > 0 && profile.radarFovDeg <= 360,
+    `Aircraft analysis profile '${id}' radar FOV must be in (0, 360]`,
+  );
+  if (profile.altitudeM !== undefined) {
+    check(
+      isFiniteNumber(profile.altitudeM) && profile.altitudeM >= 0,
+      `Aircraft analysis profile '${id}' altitude must be finite and non-negative`,
+    );
+  }
+  check(
+    /(illustrative|notional|hypothetical)/i.test(profile.disclaimer) &&
+      /not operational/i.test(profile.disclaimer),
+    `Aircraft analysis profile '${id}' disclaimer must mark values as illustrative/notional and not operational`,
+  );
 }
 checkPoint("Radar position", RADAR_POS, [0, 1]);
 checkPoint("Windsock position", WINDSOCK_POS, [0, 1]);

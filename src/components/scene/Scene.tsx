@@ -16,6 +16,7 @@ import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
+import { ProjectionBridge } from "./ProjectionBridge";
 import { getQualityProfile } from "@/lib/quality";
 
 const Effects = lazy(() => import("./Effects"));
@@ -77,6 +78,11 @@ class SceneErrorBoundary extends Component<
 
 export function Scene() {
   const [webglSupported] = useState(canCreateWebGLContext);
+  const [liveTrafficRequested] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("liveTraffic") === "1",
+  );
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const profile = getQualityProfile(qualityTier);
   const postEnabled = profile.postprocessing;
@@ -108,8 +114,13 @@ export function Scene() {
           <Pavements />
           <Structures />
           <LivingScene />
-          <LiveTraffic />
+          {/* The upstream feed currently omits browser CORS headers. Keep the
+              existing layer opt-in so the deterministic twin makes no failing
+              runtime request by default; ?liveTraffic=1 preserves the hook for
+              CORS-capable deployments or a same-origin proxy. */}
+          {liveTrafficRequested ? <LiveTraffic /> : null}
           <CameraRigs />
+          <ProjectionBridge />
           <AdaptiveQualityManager />
           <ReadySignal />
           {postEnabled && (
