@@ -42,11 +42,17 @@ export function useKeyboardShortcuts(): void {
         case "h":
           s.toggleHelp();
           break;
+        case "m":
+          s.toggleMeasureMode();
+          break;
         case "escape":
           if (s.showHelp) s.toggleHelp();
           else if (s.showResearch) s.toggleResearch();
           else if (s.showIndex) s.toggleIndex();
-          else if (s.selectedId) s.select(null);
+          else if (s.measureMode || s.measurePoints.length > 0) {
+            s.clearMeasure();
+            if (s.measureMode) s.toggleMeasureMode();
+          } else if (s.selectedId) s.select(null);
           break;
       }
     };

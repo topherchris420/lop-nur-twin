@@ -109,7 +109,10 @@ station, forecast or record of conditions during any reported event.
 
 - **For OSINT researchers** — A measurable, walkable frame of reference. Compare
   the twin against fresh imagery, test spatial hypotheses about sightlines and
-  dimensions, and cite a shared model instead of describing pixels in prose.
+  dimensions, and cite a shared model instead of describing pixels in prose. The
+  minimap ruler (`M`) reads distances and grid bearings straight off the model —
+  clicks snap to modeled runway, strip and compound vertices, and the reading
+  copies out as public EPSG:32645 coordinates.
 - **For game developers** — A production-grade, real-world level: procedural
   terrain and structures, adaptive quality that sheds effects under load, and a
   clean layout-driven data model to fork, restyle, or drop straight into a scene.
@@ -124,6 +127,7 @@ station, forecast or record of conditions during any reported event.
 | `1` / `2` / `3` | Free-fly orbit · first-person walk (WASD, Shift sprints) · cinematic flythrough |
 | `N` | Toggle day / night |
 | `I` / `H` | Site index (grouped outliner) · help overlay |
+| `M` | Measure distances and grid bearings on the minimap (clicks snap to modeled vertices; copy the reading out) |
 | `Click` | Open a structure's dossier and fly to it · click the minimap to jump the orbit camera |
 
 On phones and tablets, orbit responds to one-finger drag, pinch-zoom and
@@ -273,6 +277,13 @@ bun run preview    # serve the production build
 - **First-run polish**: a branded boot overlay covers texture generation and
   the first frame, and the cinematic pass captions each site feature as it
   comes into frame.
+- **Measurement ruler** (`M`): drop points on the minimap to read leg and total
+  distances, straight-line range and grid bearings. Clicks snap to modeled
+  runway thresholds, strip ends and compound vertices, every vertex reports its
+  public EPSG:32645 easting/northing, and the whole reading copies to the
+  clipboard as a citable, offline summary. The reading is deterministic — the
+  ruler measures the same source layout the scene is drawn from, so the runway
+  reads its documented ~5 km at ~046°.
 
 ## Controls — How to Explore
 
@@ -284,8 +295,9 @@ bun run preview    # serve the production build
 | `N`            | Toggle day / night                              |
 | `I`            | Site index (grouped outliner of structures)     |
 | `R`            | Research, sources, and climate panel            |
+| `M`            | Measurement ruler on the minimap (snap, bearing, copy) |
 | `H`            | Help overlay                                    |
-| `Esc`          | Close panels / release the mouse                |
+| `Esc`          | Close panels / clear measurement / release the mouse |
 | Click building | Open its dossier, with a "Fly to structure"     |
 | Click minimap  | Fly the orbit camera to that point              |
 

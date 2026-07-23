@@ -21,8 +21,9 @@ const SHORTCUTS: Array<[string, string]> = [
   ["N", "Toggle day / night"],
   ["I", "Toggle site index"],
   ["R", "Toggle research and climate"],
+  ["M", "Measure distances / bearings on the map"],
   ["H", "Toggle this help"],
-  ["Esc", "Close panels / release mouse"],
+  ["Esc", "Close panels / clear measurement / release mouse"],
 ];
 
 export function HelpOverlay() {
@@ -114,7 +115,9 @@ export function HelpOverlay() {
           </div>
           <CardDescription>
             Click any structure to open its dossier. Click the minimap to fly
-            there. Watch for the demonstrator flying the runway pattern, the
+            there, or press <kbd className="kbd">M</kbd> to measure distances and
+            grid bearings across the site — clicks snap to the runway, strips and
+            compound. Watch for the demonstrator flying the runway pattern, the
             service vehicle, the turning radar-like prop and — after dark (<kbd className="kbd">N</kbd>) —
             the winking obstruction beacons.
           </CardDescription>

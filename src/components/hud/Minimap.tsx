@@ -2,9 +2,13 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from "react";
+import { Copy, Check, Ruler, Trash2, Undo2 } from "lucide-react";
 import {
   APRONS,
   ROADS,
@@ -20,18 +24,40 @@ import {
   isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
+import {
+  distanceM,
+  formatBearingDeg,
+  formatDistanceM,
+  gridBearingDeg,
+  gridEastingNorthing,
+  measurementSummary,
+  pathTotalM,
+  snapWorldPoint,
+  straightLineM,
+  type MeasurePoint,
+} from "@/lib/measure";
 import { flyToPoint } from "@/lib/flyTo";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 import { isCoarsePointer } from "@/lib/touchInput";
+import { cn } from "@/lib/utils";
 
 const SIZE = 240; // CSS pixels
 const WORLD = SITE_SIZE; // meters covered edge to edge
 const SCALE = SIZE / WORLD;
 const DPR = 2;
 
+/** A click within this many logical pixels of a modeled vertex snaps to it. */
+const SNAP_LOGICAL_PX = 12;
+const SNAP_DIST_M = SNAP_LOGICAL_PX / SCALE;
+const MEASURE_COLOR = "#ff5ecb";
+
 function toMap(x: number, z: number): [number, number] {
   return [(x + WORLD / 2) * SCALE, (z + WORLD / 2) * SCALE];
+}
+
+function fromMap(mx: number, my: number): [number, number] {
+  return [mx / SCALE - WORLD / 2, my / SCALE - WORLD / 2];
 }
 
 const SEGMENT_STYLE: Record<SegmentDef["kind"], { color: string; minWidth: number }> = {
@@ -165,13 +191,118 @@ function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
   return canvas;
 }
 
+/** Small pill-backed label used for measurement leg distances. */
+function drawPillLabel(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  text: string,
+): void {
+  ctx.font = "8px monospace";
+  const width = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(18,16,12,0.82)";
+  ctx.fillRect(x - width / 2 - 2, y - 5.5, width + 4, 11);
+  ctx.fillStyle = "#ffd7f0";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+}
+
+function drawMeasurement(
+  ctx: CanvasRenderingContext2D,
+  points: readonly MeasurePoint[],
+  measureMode: boolean,
+  hover: { mx: number; my: number } | null,
+  year: number,
+): void {
+  const mapped = points.map((point) => toMap(point.x, point.z));
+
+  // connecting legs
+  if (mapped.length >= 2) {
+    ctx.strokeStyle = MEASURE_COLOR;
+    ctx.lineWidth = 1.8;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    mapped.forEach(([mx, my], index) => {
+      if (index === 0) ctx.moveTo(mx, my);
+      else ctx.lineTo(mx, my);
+    });
+    ctx.stroke();
+  }
+
+  // live preview from the last point to the (snapped) cursor
+  if (measureMode && hover) {
+    const [wx, wz] = fromMap(hover.mx, hover.my);
+    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, year);
+    const [hx, hy] = toMap(snap ? snap.x : wx, snap ? snap.z : wz);
+    const last = mapped[mapped.length - 1];
+    if (last) {
+      ctx.save();
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = "rgba(255,94,203,0.6)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(last[0], last[1]);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (snap) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = snap ? "#ffffff" : "rgba(255,94,203,0.9)";
+    ctx.beginPath();
+    ctx.arc(hx, hy, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // per-leg distance labels at each leg midpoint
+  for (let index = 1; index < points.length; index += 1) {
+    const from = mapped[index - 1]!;
+    const to = mapped[index]!;
+    drawPillLabel(
+      ctx,
+      (from[0] + to[0]) / 2,
+      (from[1] + to[1]) / 2,
+      formatDistanceM(distanceM(points[index - 1]!, points[index]!)),
+    );
+  }
+
+  // vertices (snapped nodes get a white ring)
+  points.forEach((point, index) => {
+    const [mx, my] = mapped[index]!;
+    if (point.snappedTo) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = MEASURE_COLOR;
+    ctx.beginPath();
+    ctx.arc(mx, my, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 export function Minimap() {
   // On phones the minimap sits exactly where the movement thumb-stick lives, so
   // hide it in first-person mode on touch devices to free the bottom-left.
   const cameraMode = useTwinStore((s) => s.cameraMode);
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const measureMode = useTwinStore((s) => s.measureMode);
+  const toggleMeasureMode = useTwinStore((s) => s.toggleMeasureMode);
+  const hasMeasurePoints = useTwinStore((s) => s.measurePoints.length > 0);
   const hidden = useMemo(isCoarsePointer, []) && cameraMode === "fps";
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hoverRef = useRef<{ mx: number; my: number } | null>(null);
   const staticLayer = useMemo(
     () => buildStaticLayer(activeTimelineYear),
     [activeTimelineYear],
@@ -195,9 +326,10 @@ export function Minimap() {
       ctx.drawImage(staticLayer, 0, 0);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
+      const state = useTwinStore.getState();
+
       // selected structure highlight
-      const selectedId = useTwinStore.getState().selectedId;
-      const def = selectedId ? getStructure(selectedId) : undefined;
+      const def = state.selectedId ? getStructure(state.selectedId) : undefined;
       if (def && isVisibleAtTimelineYear(def, activeTimelineYear)) {
         const [sx, sy] = toMap(def.position[0], def.position[1]);
         ctx.strokeStyle = "#ffb64d";
@@ -206,6 +338,14 @@ export function Minimap() {
         ctx.arc(sx, sy, 6, 0, Math.PI * 2);
         ctx.stroke();
       }
+
+      drawMeasurement(
+        ctx,
+        state.measurePoints,
+        state.measureMode,
+        state.measureMode ? hoverRef.current : null,
+        activeTimelineYear,
+      );
 
       // camera marker with heading wedge
       const [cx, cy] = toMap(telemetry.x, telemetry.z);
@@ -234,25 +374,72 @@ export function Minimap() {
     return () => cancelAnimationFrame(raf);
   }, [staticLayer, hidden, activeTimelineYear]);
 
-  const handleClick = (e: ReactMouseEvent<HTMLCanvasElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const mx = ((e.clientX - rect.left) / rect.width) * SIZE;
-    const my = ((e.clientY - rect.top) / rect.height) * SIZE;
-    const wx = mx / SCALE - WORLD / 2;
-    const wz = my / SCALE - WORLD / 2;
-    flyToPoint(wx, wz);
+  const pointToWorld = (
+    event: ReactMouseEvent<HTMLCanvasElement> | ReactPointerEvent<HTMLCanvasElement>,
+  ): [number, number] => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const mx = ((event.clientX - rect.left) / rect.width) * SIZE;
+    const my = ((event.clientY - rect.top) / rect.height) * SIZE;
+    return [mx, my];
+  };
+
+  const addPoint = (wx: number, wz: number) => {
+    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, activeTimelineYear);
+    useTwinStore.getState().addMeasurePoint(
+      snap
+        ? { x: snap.x, z: snap.z, snappedTo: snap.label }
+        : { x: wx, z: wz, snappedTo: null },
+    );
+  };
+
+  const handleClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
+    const [mx, my] = pointToWorld(event);
+    const [wx, wz] = fromMap(mx, my);
+    if (measureMode) addPoint(wx, wz);
+    else flyToPoint(wx, wz);
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    flyToPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1]);
+    if (measureMode) addPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1]);
+    else flyToPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1]);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (!measureMode) return;
+    const [mx, my] = pointToWorld(event);
+    hoverRef.current = { mx, my };
+  };
+
+  const handlePointerLeave = () => {
+    hoverRef.current = null;
   };
 
   if (hidden) return null;
 
   return (
-    <div className="minimap-panel hud-panel absolute bottom-4 left-4 max-w-[calc(100vw-2rem)] overflow-hidden p-1.5">
+    <div className="minimap-panel hud-panel absolute bottom-4 left-4 max-w-[calc(100vw-2rem)] p-1.5">
+      <div className="mb-1 flex items-center justify-between gap-2 pl-1">
+        <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em]">
+          {measureMode ? "MEASURE" : "SITE MAP"}
+        </span>
+        <button
+          type="button"
+          onClick={toggleMeasureMode}
+          aria-pressed={measureMode}
+          title="Measure distances and bearings (M)"
+          className={cn(
+            "inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary",
+            measureMode
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          )}
+        >
+          <Ruler className="size-3" />
+          Measure
+        </button>
+      </div>
       <canvas
         ref={canvasRef}
         width={SIZE * DPR}
@@ -261,11 +448,138 @@ export function Minimap() {
         className="minimap-canvas cursor-crosshair rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         tabIndex={0}
         role="button"
-        aria-label="Interactive airfield map. Click a location to move the orbit camera; press Enter for the runway center."
-        title="Click to fly the orbit camera"
+        aria-label={
+          measureMode
+            ? "Measurement mode: click the map to drop distance points; clicks near a modeled feature snap to it."
+            : "Interactive airfield map. Click a location to move the orbit camera; press Enter for the runway center."
+        }
+        title={measureMode ? "Click to add a measurement point" : "Click to fly the orbit camera"}
       />
+      {(measureMode || hasMeasurePoints) && <MeasureReadout />}
     </div>
+  );
+}
+
+function MeasureReadout() {
+  const points = useTwinStore((s) => s.measurePoints);
+  const undo = useTwinStore((s) => s.undoMeasurePoint);
+  const clear = useTwinStore((s) => s.clearMeasure);
+  const [copied, setCopied] = useState(false);
+
+  const stats = useMemo(() => {
+    if (points.length === 0) return null;
+    const last = points[points.length - 1]!;
+    const grid = gridEastingNorthing(last.x, last.z);
+    const total = pathTotalM(points);
+    const straight = straightLineM(points);
+    const bearing =
+      points.length >= 2
+        ? gridBearingDeg(points[points.length - 2]!, last)
+        : null;
+    return { grid, total, straight, bearing, last };
+  }, [points]);
+
+  const copy = () => {
+    const clipboard = navigator.clipboard;
+    if (!clipboard) return;
+    void clipboard
+      .writeText(measurementSummary(points))
+      .then(() => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {
+        /* clipboard unavailable — silently ignore */
+      });
+  };
+
+  return (
+    <div className="border-border/70 mt-1.5 border-t pt-1.5 font-mono text-[10px]">
+      {stats ? (
+        <div className="space-y-0.5">
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">TOTAL</span>
+            <span className="text-foreground tabular-nums">
+              {formatDistanceM(stats.total)}
+            </span>
+          </div>
+          {points.length >= 2 && (
+            <>
+              <div className="flex justify-between gap-2">
+                <span className="text-muted-foreground">STRAIGHT</span>
+                <span className="text-foreground tabular-nums">
+                  {formatDistanceM(stats.straight)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-muted-foreground">LAST BRG</span>
+                <span className="text-foreground tabular-nums">
+                  {stats.bearing !== null ? formatBearingDeg(stats.bearing) : "—"}
+                </span>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">P{points.length}</span>
+            <span className="text-foreground tabular-nums">
+              {stats.grid.easting.toFixed(0)}E {stats.grid.northing.toFixed(0)}N
+            </span>
+          </div>
+          {stats.last.snappedTo && (
+            <div className="text-primary truncate" title={stats.last.snappedTo}>
+              ↳ {stats.last.snappedTo}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-muted-foreground leading-snug">
+          Click the map to drop points. Clicks near the runway, strips or
+          compound snap to the modeled vertex.
+        </p>
+      )}
+      <div className="mt-1.5 flex items-center gap-1">
+        <ReadoutButton onClick={undo} disabled={points.length === 0} label="Undo last point">
+          <Undo2 className="size-3" />
+          Undo
+        </ReadoutButton>
+        <ReadoutButton onClick={clear} disabled={points.length === 0} label="Clear measurement">
+          <Trash2 className="size-3" />
+          Clear
+        </ReadoutButton>
+        <ReadoutButton onClick={copy} disabled={points.length === 0} label="Copy measurement summary">
+          {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+          {copied ? "Copied" : "Copy"}
+        </ReadoutButton>
+      </div>
+    </div>
+  );
+}
+
+function ReadoutButton({
+  onClick,
+  disabled,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex flex-1 items-center justify-center gap-1 rounded border px-1 py-1 font-mono text-[10px] transition-colors disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+    >
+      {children}
+    </button>
   );
 }
