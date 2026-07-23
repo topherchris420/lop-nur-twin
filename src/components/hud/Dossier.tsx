@@ -11,7 +11,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   STRUCTURE_TYPE_LABELS,
+  getMissionEntity,
   getStructure,
+  isVisibleAtTimelineYear,
 } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
 import {
@@ -38,14 +40,23 @@ export function Dossier() {
   const select = useTwinStore((s) => s.select);
   const showIndex = useTwinStore((s) => s.showIndex);
   const showResearch = useTwinStore((s) => s.showResearch);
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const def = selectedId ? getStructure(selectedId) : undefined;
-  if (!def || showIndex || showResearch) return null;
+  if (
+    !def ||
+    !isVisibleAtTimelineYear(def, activeTimelineYear) ||
+    showIndex ||
+    showResearch
+  ) {
+    return null;
+  }
 
   const [w, h, d] = def.size;
   const localPosition = `${localAxis(def.position[0], "E", "W")} / ${localAxis(-def.position[1], "N", "S")}`;
   const sources = def.evidence.sourceIds
     .map((sourceId) => getSource(sourceId))
     .filter((source) => source !== undefined);
+  const missionEntity = getMissionEntity(def.id);
 
   return (
     <Card className="hud-side-panel absolute top-16 right-4 z-10 w-80 select-text">
@@ -140,6 +151,36 @@ export function Dossier() {
             </div>
           ) : null}
         </div>
+        {missionEntity ? (
+          <>
+            <Separator />
+            <div>
+              <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
+                Mission entity
+              </div>
+              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px]">
+                <dt className="text-muted-foreground">Entity ID</dt>
+                <dd className="truncate text-right" title={missionEntity.id}>
+                  {missionEntity.id}
+                </dd>
+                <dt className="text-muted-foreground">Observation</dt>
+                <dd className="text-right">{missionEntity.observation.timestamp ?? "unknown"}</dd>
+                <dt className="text-muted-foreground">Relationships</dt>
+                <dd className="text-right">{missionEntity.relationships.length}</dd>
+              </dl>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {missionEntity.capabilities.map((capability) => (
+                  <Badge key={capability} variant="outline" className="text-[9px]">
+                    {capability}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
+                Tasks: {missionEntity.taskableBehaviors.map((behavior) => behavior.label).join(" · ")}
+              </p>
+            </div>
+          </>
+        ) : null}
         <Button className="w-full" onClick={() => flyToStructure(def)}>
           <Navigation />
           Fly to structure

@@ -1,12 +1,22 @@
-import { SITE_PROFILE, type Evidence } from "./siteData";
+import {
+  SITE_PROFILE,
+  type Evidence,
+  type EvidenceConfidence,
+  type EvidenceStatus,
+  type SourceId,
+} from "./siteData";
 
 export const SITE_SIZE = SITE_PROFILE.worldExtentM;
 
+export interface TemporalDef {
+  observedDate?: string;
+}
+
 export type SegmentKind = "runway" | "strip" | "taxiway" | "street" | "road";
-export interface SegmentDef { id: string; kind: SegmentKind; name: string; from: [number, number]; to: [number, number]; width: number }
-export interface ApronDef { id: string; name: string; center: [number, number]; size: [number, number]; rotation: number }
+export interface SegmentDef extends TemporalDef { id: string; kind: SegmentKind; name: string; from: [number, number]; to: [number, number]; width: number }
+export interface ApronDef extends TemporalDef { id: string; name: string; center: [number, number]; size: [number, number]; rotation: number }
 export type StructureType = "tower" | "hangar-monolith" | "shelter-row" | "quonset" | "warehouse" | "hq" | "barracks" | "support" | "compound-walled" | "guardhouse" | "radome" | "fuel-tank" | "solar-array" | "water-tower" | "comms-shelter" | "transformer-yard" | "guard-tower" | "covered-walkway" | "sewage-treatment" | "aircraft-delta" | "aircraft-fighter" | "aircraft-j36" | "aircraft-jxds";
-export interface StructureDef { id: string; type: StructureType; name: string; position: [number, number]; rotation: number; size: [number, number, number]; modelBasis: string; description: string; evidence: Evidence }
+export interface StructureDef extends TemporalDef { id: string; type: StructureType; name: string; position: [number, number]; rotation: number; size: [number, number, number]; modelBasis: string; description: string; evidence: Evidence }
 export interface FlattenPad { center: [number, number]; radius: number }
 export interface Waypoint { position: [number, number, number]; label: string }
 
@@ -26,6 +36,7 @@ function compound(u: number, v: number): [number, number] { return [COMPOUND_ORI
 export const RUNWAYS: SegmentDef[] = [
   { id: "rwy-05-23", kind: "runway", name: "Main concrete runway 05/23", from: [-1006, 2711], to: [2591, -762], width: 60 },
 ];
+RUNWAYS[0]!.observedDate = '2021-06-30';
 export const RUNWAY_CENTER: [number, number] = [
   (RUNWAYS[0]!.from[0] + RUNWAYS[0]!.to[0]) / 2,
   (RUNWAYS[0]!.from[1] + RUNWAYS[0]!.to[1]) / 2,
@@ -60,6 +71,7 @@ export const STREETS: SegmentDef[] = [
   street("st-se-service", "South-east service", [120, 228], [185, 245], 7),
   street("st-fuel-access", "Fuel area access", [210, 130], [246, 130], 8),
 ];
+for (const taxiway of TAXIWAYS) taxiway.observedDate = '2025-09-13';
 export const ROADS: SegmentDef[] = [
   { id: "road-access", kind: "road", name: "South access track", from: compound(68, 228), to: [1560, 3250], width: 8 },
   { id: "road-perim", kind: "road", name: "Perimeter patrol track", from: [1560, 3250], to: [-1100, 2820], width: 7 },
@@ -151,7 +163,7 @@ const building = (
   description,
   evidence,
 });
-export const STRUCTURES: StructureDef[] = [
+const STRUCTURE_DEFS: StructureDef[] = [
   // North-west service group and dominant assembly hall.
   building("west-long", "warehouse", "West longitudinal workshop", -177, -7, [24, 8, 78]),
   building("west-core", "warehouse", "West central shop", -139, -14, [38, 10, 60]),
@@ -286,6 +298,26 @@ export const STRUCTURES: StructureDef[] = [
   building("ops-walkway", "covered-walkway", "Covered walkway", 0, 175, [4, 3, 40], COMPOUND_ROT, "A roofed pedestrian corridor between the operations complex and the crew blocks. Illustrative infrastructure, not a resolved feature.", OPERATIONAL_ILLUSTRATIVE_EVIDENCE),
 ];
 
+const STRUCTURE_OBSERVED_DATES: Readonly<Partial<Record<string, string>>> = {
+  'jxds-prototype': '2025-09-13',
+  'j36-prototype': '2025-08-27',
+  'west-fighter-shelters': '2025-09-13',
+  'ne-apron-hangar': '2025-09-13',
+  'fuel-tank-a': '2025-09-13',
+  'fuel-tank-b': '2025-09-13',
+  'fuel-tank-c': '2025-09-13',
+  'fuel-pumphouse': '2025-09-28',
+  'se-build-hall': '2025-09-13',
+  'se-build-annex': '2025-09-13',
+  'crew-block-a': '2025-09-28',
+  'crew-block-b': '2025-09-28',
+};
+
+export const STRUCTURES: StructureDef[] = STRUCTURE_DEFS.map((structure) => {
+  const observedDate = STRUCTURE_OBSERVED_DATES[structure.id];
+  return observedDate === undefined ? structure : { ...structure, observedDate };
+});
+
 export const FPS_SPAWN = {
   position: compound(-91, -60) as [number, number],
   target: compound(-112, -82) as [number, number],
@@ -306,6 +338,57 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
   { position: [-2591, 240, -2711], label: "North-west apex" },
 ];
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
+
+/** Parse a validated ISO date's leading year without constructing a Date. */
+export function getObservedYear(item: TemporalDef): number | undefined {
+  const date = item.observedDate;
+  if (date === undefined || date.length !== 10 || date.charCodeAt(4) !== 45 || date.charCodeAt(7) !== 45) {
+    return undefined;
+  }
+  let year = 0;
+  for (let index = 0; index < 4; index += 1) {
+    const digit = date.charCodeAt(index) - 48;
+    if (digit < 0 || digit > 9) return undefined;
+    year = year * 10 + digit;
+  }
+  return year;
+}
+
+export function isVisibleAtTimelineYear(item: TemporalDef, year: number): boolean {
+  const observedYear = getObservedYear(item);
+  return observedYear === undefined || year >= observedYear;
+}
+
+const TEMPORAL_LAYOUT_RECORDS: readonly TemporalDef[] = [
+  ...ALL_SEGMENTS,
+  ...APRONS,
+  ...STRUCTURES,
+];
+const DATED_LAYOUT_RECORDS = TEMPORAL_LAYOUT_RECORDS.filter(
+  (record) => getObservedYear(record) !== undefined,
+);
+const DATED_LAYOUT_YEARS = DATED_LAYOUT_RECORDS.map((record) => getObservedYear(record)!);
+const TIMELINE_FALLBACK_YEAR = 2025;
+
+export const TIMELINE_BOUNDS: Readonly<{ minYear: number; maxYear: number }> = Object.freeze({
+  minYear:
+    DATED_LAYOUT_YEARS.length > 0
+      ? Math.min(...DATED_LAYOUT_YEARS)
+      : TIMELINE_FALLBACK_YEAR,
+  maxYear:
+    DATED_LAYOUT_YEARS.length > 0
+      ? Math.max(...DATED_LAYOUT_YEARS)
+      : TIMELINE_FALLBACK_YEAR,
+});
+
+export function getVisibleDatedAdditionCount(year: number): number {
+  let count = 0;
+  for (const record of DATED_LAYOUT_RECORDS) {
+    if (isVisibleAtTimelineYear(record, year)) count += 1;
+  }
+  return count;
+}
+
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
 export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
 export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
@@ -315,6 +398,68 @@ export function isAircraft(type: StructureType): boolean { return type.startsWit
 export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft",
 };
+
+export interface AircraftAnalysisProfile {
+  label: string;
+  scenarioRadiusM: number;
+  radarRangeM: number;
+  radarFovDeg: number;
+  altitudeM?: number;
+  disclaimer: string;
+}
+
+export const CIRCUIT_AIRCRAFT_ID = 'circuit-aircraft-demonstrator';
+
+const NOTIONAL_ANALYSIS_DISCLAIMER =
+  'Illustrative local scenario geometry only; not operational data or a verified aircraft-performance claim.';
+
+export const AIRCRAFT_ANALYSIS_PROFILES = {
+  'aircraft-delta': {
+    label: 'Tailless demonstrator',
+    scenarioRadiusM: 900,
+    radarRangeM: 600,
+    radarFovDeg: 75,
+    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
+  },
+  'aircraft-fighter': {
+    label: 'Fighter demonstrator',
+    scenarioRadiusM: 800,
+    radarRangeM: 550,
+    radarFovDeg: 65,
+    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
+  },
+  'aircraft-j36': {
+    label: 'J-36 (reported) — notional scenario',
+    scenarioRadiusM: 1_200,
+    radarRangeM: 800,
+    radarFovDeg: 70,
+    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
+  },
+  'aircraft-jxds': {
+    label: 'J-XDS (reported) — notional scenario',
+    scenarioRadiusM: 1_000,
+    radarRangeM: 700,
+    radarFovDeg: 80,
+    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
+  },
+  [CIRCUIT_AIRCRAFT_ID]: {
+    label: 'Resident circuit demonstrator',
+    scenarioRadiusM: 1_400,
+    radarRangeM: 900,
+    radarFovDeg: 85,
+    altitudeM: 80,
+    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
+  },
+} as const satisfies Readonly<Record<string, AircraftAnalysisProfile>>;
+
+export function getAircraftAnalysisProfile(id: string): AircraftAnalysisProfile | undefined {
+  if (id === CIRCUIT_AIRCRAFT_ID) return AIRCRAFT_ANALYSIS_PROFILES[CIRCUIT_AIRCRAFT_ID];
+  const structure = getStructure(id);
+  if (!structure || !isAircraft(structure.type)) return undefined;
+  return AIRCRAFT_ANALYSIS_PROFILES[
+    structure.type as keyof typeof AIRCRAFT_ANALYSIS_PROFILES
+  ];
+}
 
 /* ------------------------------------------------------------------ */
 /* Dynamic props (animated scene dressing — see LivingScene.tsx).       */
@@ -326,13 +471,12 @@ export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
 export const WINDSOCK_POS: [number, number] = compound(206, -26);
 export const RADAR_POS: [number, number] = compound(300, 74);
 
-/** Guard patrol route: gate → south access track → perimeter track. The
- *  vehicle ping-pongs along this polyline. */
-export const SERVICE_ROUTE: [number, number][] = [
-  compound(60, 178),
-  [1560, 3250],
-  [-1100, 2820],
-];
+/** Closed patrol loop following the modeled compound perimeter streets. */
+export const PERIMETER_PATROL_ROUTE: readonly (readonly [number, number])[] = (() => {
+  const north = STREETS.find((segment) => segment.id === "st-north")!;
+  const south = STREETS.find((segment) => segment.id === "st-south")!;
+  return [north.from, north.to, south.to, south.from, north.from];
+})();
 
 /**
  * Flight circuit for the resident demonstrator: a low high-speed pass up
@@ -371,3 +515,414 @@ export const CIRCUIT_WAYPOINTS: [number, number, number][] = (() => {
   ];
 })();
 export const CIRCUIT_MIN_CLEARANCE_M = 45;
+
+/* ------------------------------------------------------------------ */
+/* Mission entities                                                    */
+/* ------------------------------------------------------------------ */
+
+export type MissionEntityKind =
+  | "site"
+  | "terrain"
+  | "environment"
+  | "pavement"
+  | "structure"
+  | "aircraft"
+  | "vehicle"
+  | "sensor"
+  | "route";
+
+export type MissionCapability =
+  | "selectable"
+  | "camera-focus"
+  | "timeline-visibility"
+  | "analysis-envelope"
+  | "surface-support"
+  | "route-sampling"
+  | "deterministic-motion"
+  | "night-signaling"
+  | "environment-sensing"
+  | "telemetry-position"
+  | "scenario-context";
+
+export type MissionTaskId =
+  | "inspect"
+  | "focus-camera"
+  | "apply-timeline"
+  | "analyze-envelope"
+  | "provide-surface"
+  | "sample-route"
+  | "fly-circuit"
+  | "patrol-perimeter"
+  | "freeze-at-seeded-phase"
+  | "signal-at-night"
+  | "indicate-wind"
+  | "rotate-illustrative-scan"
+  | "track-live-position"
+  | "apply-climatology";
+
+export type MissionRelationshipKind =
+  | "part-of"
+  | "follows-route"
+  | "supported-by"
+  | "derived-from";
+
+export type MissionTimestampKind =
+  | "calendar-observation"
+  | "source-snapshot"
+  | "climatology-window"
+  | "simulation-clock"
+  | "live-feed"
+  | "unknown";
+
+export interface MissionObservation {
+  /** Timestamp of the best available source or simulation clock; null means unknown. */
+  timestamp: string | null;
+  timestampKind: MissionTimestampKind;
+  /** Asset-visibility date. Undefined values intentionally remain timeless in the UI. */
+  observedDate?: string;
+  /** Evidence/source metadata, kept distinct from asset visibility. */
+  evidenceObservedOn?: string;
+  status: EvidenceStatus | "simulated" | "unknown";
+  confidence: EvidenceConfidence | "unknown";
+  sourceIds: readonly SourceId[];
+  note: string;
+}
+
+export interface MissionRelationship {
+  kind: MissionRelationshipKind;
+  targetId: string;
+}
+
+export interface TaskableBehaviorDef {
+  id: MissionTaskId;
+  label: string;
+  execution: "discrete" | "reactive" | "simulation-clock";
+}
+
+export interface MissionEntityDef extends TemporalDef {
+  id: string;
+  kind: MissionEntityKind;
+  label: string;
+  observation: MissionObservation;
+  capabilities: readonly MissionCapability[];
+  relationships: readonly MissionRelationship[];
+  taskableBehaviors: readonly TaskableBehaviorDef[];
+}
+
+export const MISSION_SITE_ID = "site-lop-nur-airfield";
+export const TERRAIN_ENTITY_ID = "terrain-site-surface";
+export const ENVIRONMENT_ENTITY_ID = "environment-climatology";
+export const PERIMETER_ROUTE_ENTITY_ID = "route-perimeter-patrol";
+export const CIRCUIT_ROUTE_ENTITY_ID = "route-resident-circuit";
+export const RADAR_ENTITY_ID = "sensor-illustrative-radar";
+export const WINDSOCK_ENTITY_ID = "sensor-windsock";
+export const PATROL_ENTITY_IDS = [
+  "patrol-vehicle-01",
+  "patrol-vehicle-02",
+  "patrol-vehicle-03",
+] as const;
+
+const TASK_INSPECT: TaskableBehaviorDef = {
+  id: "inspect",
+  label: "Inspect entity record",
+  execution: "discrete",
+};
+const TASK_FOCUS: TaskableBehaviorDef = {
+  id: "focus-camera",
+  label: "Focus camera",
+  execution: "discrete",
+};
+const TASK_TIMELINE: TaskableBehaviorDef = {
+  id: "apply-timeline",
+  label: "Apply temporal visibility",
+  execution: "reactive",
+};
+const TASK_ANALYZE: TaskableBehaviorDef = {
+  id: "analyze-envelope",
+  label: "Draw notional analysis envelope",
+  execution: "reactive",
+};
+const PART_OF_SITE: readonly MissionRelationship[] = [
+  { kind: "part-of", targetId: MISSION_SITE_ID },
+];
+
+function structureObservation(structure: StructureDef): MissionObservation {
+  const timestamp = structure.observedDate ?? structure.evidence.observedOn ?? null;
+  return {
+    timestamp,
+    timestampKind:
+      structure.observedDate !== undefined
+        ? "calendar-observation"
+        : structure.evidence.observedOn !== undefined
+          ? "source-snapshot"
+          : "unknown",
+    observedDate: structure.observedDate,
+    evidenceObservedOn: structure.evidence.observedOn,
+    status: structure.evidence.status,
+    confidence: structure.evidence.confidence,
+    sourceIds: structure.evidence.sourceIds,
+    note: structure.evidence.note,
+  };
+}
+
+function pavementObservation(item: SegmentDef | ApronDef): MissionObservation {
+  const dated = item.observedDate !== undefined;
+  const isRunway = "kind" in item && item.kind === "runway";
+  const isTaxiway = "kind" in item && item.kind === "taxiway";
+  const sourceIds: readonly SourceId[] = isRunway
+    ? ["npr-airfield-expansion"]
+    : isTaxiway
+      ? ["twz-aircraft-2025", "nsj-airfield-2025"]
+      : ["sentinel-2-scene-2025"];
+  const evidenceObservedOn = item.observedDate ?? "2025-09-28";
+  return {
+    timestamp: evidenceObservedOn,
+    timestampKind: dated ? "calendar-observation" : "source-snapshot",
+    observedDate: item.observedDate,
+    evidenceObservedOn,
+    status: dated ? "reported" : "illustrative",
+    confidence: dated ? "medium" : "low",
+    sourceIds,
+    note: dated
+      ? "Timeline visibility follows the cited public observation; exact geometry remains modeled."
+      : "The source snapshot timestamps this illustrative layout record, not its construction; construction date remains unknown.",
+  };
+}
+
+function simulatedObservation(note: string): MissionObservation {
+  return {
+    timestamp: "scene-clock",
+    timestampKind: "simulation-clock",
+    status: "simulated",
+    confidence: "unknown",
+    sourceIds: [],
+    note,
+  };
+}
+
+const PAVEMENT_MISSION_ENTITIES: MissionEntityDef[] = [
+  ...ALL_SEGMENTS.map((segment): MissionEntityDef => ({
+    id: segment.id,
+    kind: "pavement",
+    label: segment.name,
+    observedDate: segment.observedDate,
+    observation: pavementObservation(segment),
+    capabilities: ["timeline-visibility", "surface-support"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      TASK_TIMELINE,
+      { id: "provide-surface", label: "Provide modeled surface", execution: "reactive" },
+    ],
+  })),
+  ...APRONS.map((apron): MissionEntityDef => ({
+    id: apron.id,
+    kind: "pavement",
+    label: apron.name,
+    observedDate: apron.observedDate,
+    observation: pavementObservation(apron),
+    capabilities: ["timeline-visibility", "surface-support"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      TASK_TIMELINE,
+      { id: "provide-surface", label: "Provide modeled surface", execution: "reactive" },
+    ],
+  })),
+];
+
+const STRUCTURE_MISSION_ENTITIES: MissionEntityDef[] = STRUCTURES.map(
+  (structure): MissionEntityDef => {
+    const aircraft = isAircraft(structure.type);
+    return {
+      id: structure.id,
+      kind: aircraft ? "aircraft" : "structure",
+      label: structure.name,
+      observedDate: structure.observedDate,
+      observation: structureObservation(structure),
+      capabilities: aircraft
+        ? ["selectable", "camera-focus", "timeline-visibility", "analysis-envelope"]
+        : ["selectable", "camera-focus", "timeline-visibility"],
+      relationships: PART_OF_SITE,
+      taskableBehaviors: aircraft
+        ? [TASK_INSPECT, TASK_FOCUS, TASK_TIMELINE, TASK_ANALYZE]
+        : [TASK_INSPECT, TASK_FOCUS, TASK_TIMELINE],
+    };
+  },
+);
+
+const PATROL_MISSION_ENTITIES: MissionEntityDef[] = PATROL_ENTITY_IDS.map(
+  (id, index): MissionEntityDef => ({
+    id,
+    kind: "vehicle",
+    label: `Perimeter patrol ${index + 1}`,
+    observation: simulatedObservation(
+      "Illustrative seeded patrol asset; phase, direction, and speed are deterministic scenario values.",
+    ),
+    capabilities: ["deterministic-motion", "route-sampling", "night-signaling"],
+    relationships: [
+      { kind: "part-of", targetId: MISSION_SITE_ID },
+      { kind: "follows-route", targetId: PERIMETER_ROUTE_ENTITY_ID },
+    ],
+    taskableBehaviors: [
+      { id: "patrol-perimeter", label: "Patrol perimeter", execution: "simulation-clock" },
+      {
+        id: "freeze-at-seeded-phase",
+        label: "Freeze at seeded phase",
+        execution: "reactive",
+      },
+      { id: "signal-at-night", label: "Signal at night", execution: "reactive" },
+    ],
+  }),
+);
+
+export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
+  {
+    id: MISSION_SITE_ID,
+    kind: "site",
+    label: SITE_PROFILE.name,
+    observation: {
+      timestamp: "2025-09-28",
+      timestampKind: "source-snapshot",
+      evidenceObservedOn: "2025-09-28",
+      status: "interpreted",
+      confidence: "medium",
+      sourceIds: ["sentinel-2-scene-2025", "npr-airfield-expansion"],
+      note: "Local mission frame derived from public reporting and imagery; not an official site record.",
+    },
+    capabilities: ["scenario-context"],
+    relationships: [],
+    taskableBehaviors: [TASK_INSPECT],
+  },
+  {
+    id: TERRAIN_ENTITY_ID,
+    kind: "terrain",
+    label: "Deterministic terrain surface",
+    observation: {
+      timestamp: null,
+      timestampKind: "unknown",
+      status: "interpreted",
+      confidence: "low",
+      sourceIds: ["copernicus-dem"],
+      note: "Deterministic terrain proxy informed by the cited DEM source; no runtime terrain download or surveyed timestamp.",
+    },
+    capabilities: ["surface-support", "scenario-context"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      { id: "provide-surface", label: "Provide deterministic terrain", execution: "reactive" },
+    ],
+  },
+  {
+    id: ENVIRONMENT_ENTITY_ID,
+    kind: "environment",
+    label: "Monthly climatology environment",
+    observation: {
+      timestamp: "2001-2020",
+      timestampKind: "climatology-window",
+      status: "observed",
+      confidence: "medium",
+      sourceIds: ["nasa-power-climatology"],
+      note: "Monthly climatological means, not live weather or a historical condition for a specific day.",
+    },
+    capabilities: ["scenario-context", "environment-sensing"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      { id: "apply-climatology", label: "Apply climatology month", execution: "discrete" },
+    ],
+  },
+  {
+    id: PERIMETER_ROUTE_ENTITY_ID,
+    kind: "route",
+    label: "Perimeter patrol route",
+    observation: simulatedObservation(
+      "Illustrative closed route derived from layout coordinates; not a surveyed security route.",
+    ),
+    capabilities: ["route-sampling", "scenario-context"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      { id: "sample-route", label: "Sample closed patrol route", execution: "simulation-clock" },
+    ],
+  },
+  {
+    id: CIRCUIT_ROUTE_ENTITY_ID,
+    kind: "route",
+    label: "Resident demonstrator circuit",
+    observation: simulatedObservation(
+      "Illustrative circuit derived from the modeled runway; not a published procedure.",
+    ),
+    capabilities: ["route-sampling", "scenario-context"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      { id: "sample-route", label: "Sample flight circuit", execution: "simulation-clock" },
+    ],
+  },
+  ...PAVEMENT_MISSION_ENTITIES,
+  ...STRUCTURE_MISSION_ENTITIES,
+  ...PATROL_MISSION_ENTITIES,
+  {
+    id: CIRCUIT_AIRCRAFT_ID,
+    kind: "aircraft",
+    label: "Resident circuit demonstrator",
+    observation: simulatedObservation(
+      "Illustrative procedural aircraft following the deterministic resident circuit.",
+    ),
+    capabilities: ["selectable", "analysis-envelope", "deterministic-motion", "route-sampling"],
+    relationships: [
+      { kind: "part-of", targetId: MISSION_SITE_ID },
+      { kind: "follows-route", targetId: CIRCUIT_ROUTE_ENTITY_ID },
+    ],
+    taskableBehaviors: [
+      { id: "fly-circuit", label: "Fly resident circuit", execution: "simulation-clock" },
+      {
+        id: "freeze-at-seeded-phase",
+        label: "Freeze at deterministic origin",
+        execution: "reactive",
+      },
+      TASK_ANALYZE,
+    ],
+  },
+  {
+    id: RADAR_ENTITY_ID,
+    kind: "sensor",
+    label: "Illustrative rotating radar prop",
+    observation: simulatedObservation(
+      "Illustrative scene sensor with no asserted detection or performance data.",
+    ),
+    capabilities: ["environment-sensing", "deterministic-motion"],
+    relationships: PART_OF_SITE,
+    taskableBehaviors: [
+      {
+        id: "rotate-illustrative-scan",
+        label: "Rotate illustrative scan",
+        execution: "simulation-clock",
+      },
+    ],
+  },
+  {
+    id: WINDSOCK_ENTITY_ID,
+    kind: "sensor",
+    label: "Climatology windsock",
+    observation: simulatedObservation(
+      "Procedural indicator driven by monthly climatology, not live measured wind.",
+    ),
+    capabilities: ["environment-sensing", "deterministic-motion"],
+    relationships: [
+      { kind: "part-of", targetId: MISSION_SITE_ID },
+      { kind: "derived-from", targetId: ENVIRONMENT_ENTITY_ID },
+    ],
+    taskableBehaviors: [
+      { id: "indicate-wind", label: "Indicate climatology wind", execution: "reactive" },
+    ],
+  },
+]);
+
+const MISSION_ENTITY_INDEX = new Map<string, MissionEntityDef>(
+  MISSION_ENTITIES.map((entity) => [entity.id, entity]),
+);
+
+export function getMissionEntity(id: string): MissionEntityDef | undefined {
+  return MISSION_ENTITY_INDEX.get(id);
+}
+
+export function canTaskMissionEntity(id: string, taskId: MissionTaskId): boolean {
+  const entity = getMissionEntity(id);
+  return entity?.taskableBehaviors.some((behavior) => behavior.id === taskId) ?? false;
+}

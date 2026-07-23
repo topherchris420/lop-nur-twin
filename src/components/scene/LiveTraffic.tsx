@@ -1,8 +1,12 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { gpsTo3DCanvas, type Aircraft } from "@/lib/flightData";
+import {
+  createLiveTrafficMissionEntity,
+  gpsTo3DCanvas,
+  type Aircraft,
+} from "@/lib/flightData";
 import { useFlightData } from "@/lib/useFlightData";
 import { useTwinStore } from "@/lib/store";
 
@@ -38,6 +42,10 @@ const CIV_COLOR = "#f4e9c8";
 
 function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
+  const missionEntity = useMemo(
+    () => createLiveTrafficMissionEntity(aircraft),
+    [aircraft],
+  );
 
   const [x, y, z] = useMemo(
     () => gpsTo3DCanvas(aircraft.lat, aircraft.lon, aircraft.altFeet),
@@ -59,7 +67,7 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
   const groupRef = useRef<THREE.Group>(null);
   const beaconRef = useRef<THREE.MeshStandardMaterial>(null);
   const nearRef = useRef(false);
-  const [labelVisible, setLabelVisible] = useState(false);
+  const labelRef = useRef<HTMLDivElement>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ camera, clock }) => {
@@ -67,10 +75,10 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
     if (!g) return;
     g.getWorldPosition(worldPos);
     const near = camera.position.distanceTo(worldPos) < LABEL_RANGE_M;
-    // Flip React state only when the near/far state actually changes.
+    // Mutate the already-mounted label only on a near/far threshold crossing.
     if (near !== nearRef.current) {
       nearRef.current = near;
-      setLabelVisible(near);
+      if (labelRef.current) labelRef.current.style.display = near ? "block" : "none";
     }
     // Slow anti-collision blink on the beacon (steady if reduced motion).
     if (beaconRef.current) {
@@ -87,7 +95,12 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
       : "ground";
 
   return (
-    <group ref={groupRef} position={[x, y, z]} rotation={[0, rotationY, 0]}>
+    <group
+      ref={groupRef}
+      position={[x, y, z]}
+      rotation={[0, rotationY, 0]}
+      userData={{ entityId: missionEntity.id, missionEntity }}
+    >
       {/* Fuselage — nose toward −z. */}
       <mesh material={bodyMat} rotation={[Math.PI / 2, 0, 0]} castShadow>
         <coneGeometry args={[3.2, 26, 12]} />
@@ -111,16 +124,17 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
         />
       </mesh>
 
-      {labelVisible && (
-        <Html
-          position={[0, 14, 0]}
-          center
-          distanceFactor={900}
-          zIndexRange={[20, 0]}
-          style={{ pointerEvents: "none" }}
-        >
-          <div
-            style={{
+      <Html
+        position={[0, 14, 0]}
+        center
+        distanceFactor={900}
+        zIndexRange={[20, 0]}
+        style={{ pointerEvents: "none" }}
+      >
+        <div
+          ref={labelRef}
+          style={{
+              display: "none",
               padding: "4px 8px",
               borderRadius: 6,
               whiteSpace: "nowrap",
@@ -130,13 +144,12 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
               border: `1px solid ${aircraft.military ? "#ff5b52" : "#c9bd97"}`,
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
               textAlign: "center",
-            }}
-          >
-            <div>{aircraft.callsign}</div>
-            <div style={{ opacity: 0.75, fontWeight: 400 }}>{altLabel}</div>
-          </div>
-        </Html>
-      )}
+          }}
+        >
+          <div>{aircraft.callsign}</div>
+          <div style={{ opacity: 0.75, fontWeight: 400 }}>{altLabel}</div>
+        </div>
+      </Html>
     </group>
   );
 }

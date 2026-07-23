@@ -7,7 +7,7 @@ import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 import { makeCloudShadowTexture } from "@/lib/textures";
-import { SITE_SIZE } from "@/lib/layout";
+import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
 
@@ -138,7 +138,7 @@ export function Atmosphere() {
   });
 
   return (
-    <group name="atmosphere">
+    <group name="atmosphere" userData={{ entityId: ENVIRONMENT_ENTITY_ID }}>
       <primitive object={sky} />
       <directionalLight
         ref={sunRef}

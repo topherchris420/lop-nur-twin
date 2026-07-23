@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   STRUCTURES,
   STRUCTURE_TYPE_LABELS,
+  isVisibleAtTimelineYear,
   type StructureDef,
 } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
@@ -17,12 +18,16 @@ export function SiteIndex() {
   const toggleIndex = useTwinStore((s) => s.toggleIndex);
   const selectedId = useTwinStore((s) => s.selectedId);
   const select = useTwinStore((s) => s.select);
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const [query, setQuery] = useState("");
 
   const groups = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
+    const visibleStructures = STRUCTURES.filter((structure) =>
+      isVisibleAtTimelineYear(structure, activeTimelineYear),
+    );
     const filtered = normalized
-      ? STRUCTURES.filter((structure) => {
+      ? visibleStructures.filter((structure) => {
           const searchable = [
             structure.name,
             structure.description,
@@ -33,7 +38,7 @@ export function SiteIndex() {
             .toLocaleLowerCase();
           return searchable.includes(normalized);
         })
-      : STRUCTURES;
+      : visibleStructures;
 
     const grouped = new Map<string, StructureDef[]>();
     for (const structure of filtered) {
@@ -49,7 +54,7 @@ export function SiteIndex() {
         label,
         [...structures].sort((left, right) => left.name.localeCompare(right.name)),
       ] as const);
-  }, [query]);
+  }, [query, activeTimelineYear]);
 
   if (!showIndex) return null;
 

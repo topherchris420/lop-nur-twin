@@ -1,4 +1,9 @@
 import { create } from "zustand";
+import {
+  TIMELINE_BOUNDS,
+  getStructure,
+  isVisibleAtTimelineYear,
+} from "./layout";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -20,6 +25,9 @@ interface TwinState {
 
   night: boolean;
   toggleNight: () => void;
+
+  activeTimelineYear: number;
+  setActiveTimelineYear: (year: number) => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -115,12 +123,37 @@ function normalizeMonth(month: number): number {
   return ((Math.round(month) % 12) + 12) % 12;
 }
 
+function normalizeTimelineYear(year: number): number {
+  if (!Number.isFinite(year)) return TIMELINE_BOUNDS.maxYear;
+  return Math.min(
+    TIMELINE_BOUNDS.maxYear,
+    Math.max(TIMELINE_BOUNDS.minYear, Math.round(year)),
+  );
+}
+
 export const useTwinStore = create<TwinState>()((set) => ({
   cameraMode: "orbit",
   setCameraMode: (cameraMode) => set({ cameraMode }),
 
   night: false,
   toggleNight: () => set((s) => ({ night: !s.night })),
+
+  activeTimelineYear: TIMELINE_BOUNDS.maxYear,
+  setActiveTimelineYear: (year) =>
+    set((state) => {
+      const activeTimelineYear = normalizeTimelineYear(year);
+      const selectedStructure = state.selectedId
+        ? getStructure(state.selectedId)
+        : undefined;
+      return {
+        activeTimelineYear,
+        selectedId:
+          selectedStructure &&
+          !isVisibleAtTimelineYear(selectedStructure, activeTimelineYear)
+            ? null
+            : state.selectedId,
+      };
+    }),
 
   selectedId: null,
   select: (selectedId) => set({ selectedId }),

@@ -112,6 +112,11 @@ body {
   }
 }
 
+.timeline-panel {
+  width: min(18rem, calc(100vw - 2rem));
+  isolation: isolate;
+}
+
 @media (max-width: 639px) {
   .site-title {
     display: none;
@@ -134,6 +139,12 @@ body {
     left: 0.5rem;
     width: auto;
     max-height: calc(100dvh - 1rem);
+  }
+
+  .timeline-panel {
+    bottom: 0.5rem;
+    width: min(12rem, calc(100vw - 1rem));
+    padding: 0.45rem 0.65rem;
   }
 }
 
@@ -166,6 +177,11 @@ body {
 
   .minimap-canvas {
     width: 7rem;
+  }
+
+  .timeline-panel {
+    bottom: 0.5rem;
+    width: 11rem;
   }
 }
 

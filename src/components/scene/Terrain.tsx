@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { SITE_SIZE } from "@/lib/layout";
+import { SITE_SIZE, TERRAIN_ENTITY_ID } from "@/lib/layout";
 import { flattenFactor, gravelField, mottle, rawHeight, wadiMask } from "@/lib/terrain";
 import { makeGroundNormalTexture } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
@@ -108,7 +108,7 @@ export function Terrain() {
   useEffect(() => () => normalMap.dispose(), [normalMap]);
 
   return (
-    <group name="terrain">
+    <group name="terrain" userData={{ entityId: TERRAIN_ENTITY_ID }}>
       {/* Distant desert floor: a large flat plane sitting just below the
           detailed terrain so the plain reads as endless and no hard mesh
           edge shows at the horizon (it only appears beyond the detail ring

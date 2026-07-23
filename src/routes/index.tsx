@@ -11,6 +11,8 @@ import { CinematicCaption } from "@/components/hud/CinematicCaption";
 import { IntroOverlay } from "@/components/hud/IntroOverlay";
 import { TouchControls } from "@/components/hud/TouchControls";
 import { OrbitJoystick } from "@/components/hud/OrbitJoystick";
+import { TimelineControl } from "@/components/hud/TimelineControl";
+import { InterceptionOverlay } from "@/components/hud/InterceptionOverlay";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 
 export const Route = createFileRoute("/")({
@@ -22,8 +24,10 @@ function App() {
   return (
     <div className="relative h-full w-full select-none">
       <Scene />
+      <InterceptionOverlay />
       <TouchControls />
       <OrbitJoystick />
+      <TimelineControl />
       <Hud />
       <TopBar />
       <Minimap />

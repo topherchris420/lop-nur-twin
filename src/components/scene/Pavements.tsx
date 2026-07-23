@@ -9,6 +9,7 @@ import {
   segmentAngle,
   segmentCenter,
   segmentLength,
+  isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
 import {
@@ -17,6 +18,8 @@ import {
   makePavementTexture,
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
+
+import { useTwinStore } from '@/lib/store';
 
 /**
  * Stacking heights keep coplanar surfaces from z-fighting where they cross
@@ -33,6 +36,12 @@ const LIFT: Record<SegmentDef["kind"], number> = {
 interface StripMeshProps {
   seg: SegmentDef;
   index: number;
+  visible: boolean;
+}
+
+function isFilletVisible(id: string, year: number): boolean {
+  const source = id === 'apron-fillet' ? TAXIWAYS[1] : TAXIWAYS[0];
+  return source !== undefined && isVisibleAtTimelineYear(source, year);
 }
 
 function useSegmentTransform(seg: SegmentDef, index: number) {
@@ -50,7 +59,7 @@ function useSegmentTransform(seg: SegmentDef, index: number) {
   }, [seg, index]);
 }
 
-function RunwayMesh({ seg, index }: StripMeshProps) {
+function RunwayMesh({ seg, index, visible }: StripMeshProps) {
   const { length, position, rotation } = useSegmentTransform(seg, index);
   const texture = useMemo(
     () =>
@@ -64,14 +73,21 @@ function RunwayMesh({ seg, index }: StripMeshProps) {
     [length, seg.width, index],
   );
   return (
-    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+    <mesh
+      position={position}
+      rotation={rotation}
+      receiveShadow
+      name={seg.id}
+      visible={visible}
+      userData={{ entityId: seg.id }}
+    >
       <planeGeometry args={[seg.width, length]} />
       <meshStandardMaterial map={texture} roughness={0.85} metalness={0.02} />
     </mesh>
   );
 }
 
-function TaxiwayMesh({ seg, index }: StripMeshProps) {
+function TaxiwayMesh({ seg, index, visible }: StripMeshProps) {
   const { length, position, rotation } = useSegmentTransform(seg, index);
   const texture = useMemo(
     () =>
@@ -84,14 +100,21 @@ function TaxiwayMesh({ seg, index }: StripMeshProps) {
     [length, seg.width, index],
   );
   return (
-    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+    <mesh
+      position={position}
+      rotation={rotation}
+      receiveShadow
+      name={seg.id}
+      visible={visible}
+      userData={{ entityId: seg.id }}
+    >
       <planeGeometry args={[seg.width, length]} />
       <meshStandardMaterial map={texture} roughness={0.88} metalness={0.02} />
     </mesh>
   );
 }
 
-function StreetMesh({ seg, index }: StripMeshProps) {
+function StreetMesh({ seg, index, visible }: StripMeshProps) {
   const { length, position, rotation } = useSegmentTransform(seg, index);
   const texture = useMemo(
     () =>
@@ -104,14 +127,21 @@ function StreetMesh({ seg, index }: StripMeshProps) {
     [length, seg.width, index],
   );
   return (
-    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+    <mesh
+      position={position}
+      rotation={rotation}
+      receiveShadow
+      name={seg.id}
+      visible={visible}
+      userData={{ entityId: seg.id }}
+    >
       <planeGeometry args={[seg.width, length]} />
       <meshStandardMaterial map={texture} roughness={0.9} metalness={0.02} />
     </mesh>
   );
 }
 
-function DirtMesh({ seg, index }: StripMeshProps) {
+function DirtMesh({ seg, index, visible }: StripMeshProps) {
   const { length, position, rotation } = useSegmentTransform(seg, index);
   const texture = useMemo(() => {
     const tex = makeDirtTexture(SITE_SEED + 300 + index, seg.kind === "road");
@@ -119,7 +149,14 @@ function DirtMesh({ seg, index }: StripMeshProps) {
     return tex;
   }, [length, seg.kind, index]);
   return (
-    <mesh position={position} rotation={rotation} receiveShadow name={seg.id}>
+    <mesh
+      position={position}
+      rotation={rotation}
+      receiveShadow
+      name={seg.id}
+      visible={visible}
+      userData={{ entityId: seg.id }}
+    >
       <planeGeometry args={[seg.width, length]} />
       <meshStandardMaterial map={texture} roughness={0.98} metalness={0} />
     </mesh>
@@ -127,15 +164,16 @@ function DirtMesh({ seg, index }: StripMeshProps) {
 }
 
 export function Pavements() {
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
 
   return (
     <group name="pavements">
       {RUNWAYS.map((seg, i) => (
-        <RunwayMesh key={seg.id} seg={seg} index={i} />
+        <RunwayMesh key={seg.id} seg={seg} index={i} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
       ))}
       {TAXIWAYS.map((seg, i) => (
-        <TaxiwayMesh key={seg.id} seg={seg} index={i} />
+        <TaxiwayMesh key={seg.id} seg={seg} index={i} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
       ))}
       {/* Circular concrete fillets soften the runway T-junction and apron throat,
           matching the broad rounded transitions visible in the overhead image. */}
@@ -145,20 +183,27 @@ export function Pavements() {
         { id: "apron-fillet", point: TAXIWAYS[1]?.to, radius: 30 },
       ].map(({ id, point, radius }) =>
         point ? (
-          <mesh key={id} position={[point[0], 0.085, point[1]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <mesh
+            key={id}
+            position={[point[0], 0.085, point[1]]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            receiveShadow
+            visible={isFilletVisible(id, activeTimelineYear)}
+            userData={{ entityId: id === "apron-fillet" ? TAXIWAYS[1]!.id : TAXIWAYS[0]!.id }}
+          >
             <circleGeometry args={[radius, 48]} />
             <meshStandardMaterial map={apronTexture} roughness={0.9} metalness={0.02} />
           </mesh>
         ) : null,
       )}
       {STREETS.map((seg, i) => (
-        <StreetMesh key={seg.id} seg={seg} index={i} />
+        <StreetMesh key={seg.id} seg={seg} index={i} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
       ))}
       {STRIPS.map((seg, i) => (
-        <DirtMesh key={seg.id} seg={seg} index={i} />
+        <DirtMesh key={seg.id} seg={seg} index={i} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
       ))}
       {ROADS.map((seg, i) => (
-        <DirtMesh key={seg.id} seg={seg} index={i + 10} />
+        <DirtMesh key={seg.id} seg={seg} index={i + 10} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
       ))}
       {APRONS.map((apron) => (
         <mesh
@@ -167,6 +212,8 @@ export function Pavements() {
           rotation={[-Math.PI / 2, 0, -apron.rotation]}
           receiveShadow
           name={apron.id}
+          visible={isVisibleAtTimelineYear(apron, activeTimelineYear)}
+          userData={{ entityId: apron.id }}
         >
           <planeGeometry args={apron.size} />
           <meshStandardMaterial map={apronTexture} roughness={0.9} metalness={0.02} />

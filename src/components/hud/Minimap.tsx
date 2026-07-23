@@ -17,6 +17,7 @@ import {
   SITE_SIZE,
   getStructure,
   isAircraft,
+  isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
 import { flyToPoint } from "@/lib/flyTo";
@@ -41,7 +42,7 @@ const SEGMENT_STYLE: Record<SegmentDef["kind"], { color: string; minWidth: numbe
   road: { color: "#7c6e51", minWidth: 1 },
 };
 
-function buildStaticLayer(): HTMLCanvasElement {
+function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = SIZE * DPR;
   canvas.height = SIZE * DPR;
@@ -68,6 +69,7 @@ function buildStaticLayer(): HTMLCanvasElement {
 
   const drawSegments = (segments: SegmentDef[]) => {
     for (const seg of segments) {
+      if (!isVisibleAtTimelineYear(seg, activeTimelineYear)) continue;
       const style = SEGMENT_STYLE[seg.kind];
       ctx.strokeStyle = style.color;
       ctx.lineWidth = Math.max(style.minWidth, seg.width * SCALE);
@@ -87,6 +89,7 @@ function buildStaticLayer(): HTMLCanvasElement {
   drawSegments(RUNWAYS);
 
   for (const apron of APRONS) {
+    if (!isVisibleAtTimelineYear(apron, activeTimelineYear)) continue;
     const [ax, ay] = toMap(apron.center[0], apron.center[1]);
     ctx.save();
     ctx.translate(ax, ay);
@@ -102,6 +105,7 @@ function buildStaticLayer(): HTMLCanvasElement {
   }
 
   for (const s of STRUCTURES) {
+    if (!isVisibleAtTimelineYear(s, activeTimelineYear)) continue;
     const [sx, sy] = toMap(s.position[0], s.position[1]);
     if (isAircraft(s.type)) {
       // aircraft: cyan triangle pointing along its parked heading
@@ -165,9 +169,13 @@ export function Minimap() {
   // On phones the minimap sits exactly where the movement thumb-stick lives, so
   // hide it in first-person mode on touch devices to free the bottom-left.
   const cameraMode = useTwinStore((s) => s.cameraMode);
+  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const hidden = useMemo(isCoarsePointer, []) && cameraMode === "fps";
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const staticLayer = useMemo(buildStaticLayer, []);
+  const staticLayer = useMemo(
+    () => buildStaticLayer(activeTimelineYear),
+    [activeTimelineYear],
+  );
 
   useEffect(() => {
     if (hidden) return;
@@ -190,7 +198,7 @@ export function Minimap() {
       // selected structure highlight
       const selectedId = useTwinStore.getState().selectedId;
       const def = selectedId ? getStructure(selectedId) : undefined;
-      if (def) {
+      if (def && isVisibleAtTimelineYear(def, activeTimelineYear)) {
         const [sx, sy] = toMap(def.position[0], def.position[1]);
         ctx.strokeStyle = "#ffb64d";
         ctx.lineWidth = 1.5;
@@ -224,7 +232,7 @@ export function Minimap() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [staticLayer, hidden]);
+  }, [staticLayer, hidden, activeTimelineYear]);
 
   const handleClick = (e: ReactMouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
