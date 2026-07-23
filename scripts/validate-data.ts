@@ -38,6 +38,14 @@ import {
   SITE_PROFILE,
 } from "../src/lib/siteData";
 import { QUALITY_PROFILES } from "../src/lib/quality";
+import {
+  SNAP_TARGETS,
+  distanceM,
+  gridBearingDeg,
+  gridEastingNorthing,
+  snapWorldPoint,
+  type MeasurePoint,
+} from "../src/lib/measure";
 import { createCircuitCurve } from "../src/lib/flightPath";
 import { terrainHeight } from "../src/lib/terrain";
 import * as THREE from "three";
@@ -612,6 +620,47 @@ if (runway) {
     Math.abs(GRID_NORTHING_ORIGIN - RUNWAY_CENTER[1] - SITE_PROFILE.localCrs.runwayCenterNorthingM) <= 0.1,
     "Modeled runway center must register to the profile UTM northing",
   );
+
+  // The measuring tool must reproduce the documented runway from the same
+  // source layout it snaps to: length, grid bearing and grid registration.
+  const p05: MeasurePoint = { x: runway.from[0], z: runway.from[1], snappedTo: null };
+  const p23: MeasurePoint = { x: runway.to[0], z: runway.to[1], snappedTo: null };
+  check(
+    Math.abs(distanceM(p05, p23) - segmentLength(runway)) <= 1e-6,
+    "Measurement distance must equal the runway segment length",
+  );
+  const measuredBearing = gridBearingDeg(p05, p23);
+  check(
+    Math.abs(measuredBearing - SITE_PROFILE.runway.modeledGridBearingDeg) <= 0.5,
+    `Measured runway bearing ${measuredBearing.toFixed(2)} degrees must match the documented ${SITE_PROFILE.runway.modeledGridBearingDeg}`,
+  );
+  const snappedThreshold = snapWorldPoint(
+    runway.from[0],
+    runway.from[1],
+    5,
+    TIMELINE_BOUNDS.maxYear,
+  );
+  check(
+    snappedThreshold !== null &&
+      Math.abs(snappedThreshold.x - runway.from[0]) <= 1e-6 &&
+      Math.abs(snappedThreshold.z - runway.from[1]) <= 1e-6,
+    "A click at the runway 05 threshold must snap to the modeled vertex",
+  );
+  const centerGrid = gridEastingNorthing(RUNWAY_CENTER[0], RUNWAY_CENTER[1]);
+  check(
+    Math.abs(centerGrid.easting - SITE_PROFILE.localCrs.runwayCenterEastingM) <= 0.1 &&
+      Math.abs(centerGrid.northing - SITE_PROFILE.localCrs.runwayCenterNorthingM) <= 0.1,
+    "Measurement grid readout must register to the profile UTM coordinate",
+  );
+}
+
+check(SNAP_TARGETS.length > 0, "Measurement snap targets must not be empty");
+for (const target of SNAP_TARGETS) {
+  check(
+    target.label.trim().length > 0,
+    `Snap target at ${target.x.toFixed(1)}, ${target.z.toFixed(1)} must have a label`,
+  );
+  checkPoint(`Snap target "${target.label}"`, [target.x, target.z], [0, 1]);
 }
 
 check(
@@ -651,5 +700,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources`,
+  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources, ${SNAP_TARGETS.length} snap targets`,
 );

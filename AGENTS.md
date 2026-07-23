@@ -13,8 +13,10 @@ Guidance for coding agents (and humans) working on this repo.
   in `src/lib/noise.ts` so a given seed always reproduces the same site.
 - **`src/lib/layout.ts` is the single source of truth** for geometry placement,
   while `src/lib/siteData.ts` owns public sources, evidence types, the local
-  CRS/datum and climatology. The 3D scene, minimap, index and cinematic path
-  read from those modules. Never hard-code coordinates in components.
+  CRS/datum and climatology. The 3D scene, minimap, index, cinematic path and
+  the minimap measurement ruler (`src/lib/measure.ts`, whose snap targets are
+  derived from the layout vertices) read from those modules. Never hard-code
+  coordinates in components.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,

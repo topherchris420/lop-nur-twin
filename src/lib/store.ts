@@ -4,6 +4,7 @@ import {
   getStructure,
   isVisibleAtTimelineYear,
 } from "./layout";
+import type { MeasurePoint } from "./measure";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -44,6 +45,15 @@ interface TwinState {
   toggleHelp: () => void;
   showResearch: boolean;
   toggleResearch: () => void;
+
+  /** When true, minimap clicks drop measurement vertices instead of flying. */
+  measureMode: boolean;
+  toggleMeasureMode: () => void;
+  /** Ordered vertices of the active measurement path, in local metres. */
+  measurePoints: readonly MeasurePoint[];
+  addMeasurePoint: (point: MeasurePoint) => void;
+  undoMeasurePoint: () => void;
+  clearMeasure: () => void;
 
   /** Zero-based month index into the public NASA POWER climatology. */
   environmentMonth: number;
@@ -174,6 +184,16 @@ export const useTwinStore = create<TwinState>()((set) => ({
   showResearch: false,
   toggleResearch: () =>
     set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
+
+  measureMode: false,
+  toggleMeasureMode: () => set((s) => ({ measureMode: !s.measureMode })),
+  measurePoints: [],
+  addMeasurePoint: (point) =>
+    set((s) => ({ measurePoints: [...s.measurePoints, point].slice(-64) })),
+  undoMeasurePoint: () =>
+    set((s) => ({ measurePoints: s.measurePoints.slice(0, -1) })),
+  clearMeasure: () =>
+    set((s) => (s.measurePoints.length === 0 ? s : { measurePoints: [] })),
 
   environmentMonth: initialEnvironmentMonth(),
   setEnvironmentMonth: (environmentMonth) =>
