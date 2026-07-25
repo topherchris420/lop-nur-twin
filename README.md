@@ -348,3 +348,14 @@ See [AGENTS.md](AGENTS.md) for extension recipes.
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
 drei · @react-three/postprocessing · Tailwind CSS 4 · zustand · simplex-noise ·
 leva (dev only)
+
+## License
+
+The original source code, procedural models, and original documentation in
+this repository are licensed under the Apache License 2.0.
+
+Third-party data, reporting, trademarks, source imagery, and referenced
+materials remain subject to their respective licenses and terms.
+
+The Apache License does not grant permission to use the Vers3Dynamics name,
+logos, or branding except to identify the origin of the project.
