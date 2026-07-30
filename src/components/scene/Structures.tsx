@@ -1239,44 +1239,77 @@ function AircraftJ36({ def, m }: BuilderProps) {
     return geo;
   }, [span, len]);
 
+  /**
+   * Long, low blended centrebody. The reference photographs show a flat spine
+   * running nearly the whole length and faired into the wing, not a discrete
+   * tube fuselage, so this is an extruded plan outline rather than a sphere.
+   */
+  const bodyGeometry = useMemo(() => {
+    const halfW = span * 0.115;
+    const hz = len * 0.5;
+    const s = new THREE.Shape();
+    s.moveTo(0, hz * 0.94);
+    s.lineTo(halfW, hz * 0.12);
+    s.lineTo(halfW * 0.86, -hz * 0.86);
+    s.lineTo(-halfW * 0.86, -hz * 0.86);
+    s.lineTo(-halfW, hz * 0.12);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 1.25,
+      bevelEnabled: true,
+      bevelThickness: 0.5,
+      bevelSize: 0.4,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
   return (
     <group>
       {/* Main delta wing */}
       <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
 
-      {/* Large dorsal fuselage fairing - more prominent than UCAV */}
-      <mesh material={m.airframeDark} castShadow position={[0, cy + 0.8, -len * 0.05]} scale={[1.4, 0.7, 2.4]}>
-        <sphereGeometry args={[1.2, 20, 14]} />
+      {/* Blended centrebody */}
+      <mesh material={m.airframeDark} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Canopy, set well forward and faired flat into the spine */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 1.02, -len * 0.27]} scale={[0.8, 0.5, 2.1]}>
+        <sphereGeometry args={[0.9, 18, 12]} />
       </mesh>
 
-      {/* Canopy - larger for 2-seat */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 1.1, -len * 0.28]} scale={[0.85, 0.65, 2.2]}>
-        <sphereGeometry args={[0.85, 18, 12]} />
+      {/* Dorsal intake aft of the canopy — the feature that makes this
+          airframe a trijet rather than a conventional twin. */}
+      <mesh material={m.airframeDark} castShadow position={[0, cy + 1.3, -len * 0.04]}>
+        <boxGeometry args={[span * 0.16, 0.7, len * 0.2]} />
       </mesh>
 
-      {/* THREE engines - central + two side nozzles */}
-      {/* Central engine */}
-      <mesh material={m.metalDark} position={[0, cy - 0.15, len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* Three exhausts at the trailing edge: one on the centreline, one
+          either side of the spine. */}
+      <mesh material={m.metalDark} position={[0, cy - 0.05, len * 0.41]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.45, 0.5, 1.2, 14]} />
       </mesh>
-      {/* Left engine */}
-      <mesh material={m.metalDark} position={[span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
-      </mesh>
-      {/* Right engine */}
-      <mesh material={m.metalDark} position={[-span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
-      </mesh>
-
-      {/* Engine inlet - front */}
-      <mesh material={m.metalDark} position={[0, cy, -len * 0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.35, 0.35, 0.8, 12]} />
-      </mesh>
-
-      {/* Wing-root engine intakes (characteristic of J-36) */}
       {[-1, 1].map((side) => (
-        <mesh key={`intake${side}`} material={m.metalDark} castShadow position={[side * span * 0.32, cy - 0.2, -len * 0.15]}>
-          <boxGeometry args={[1.8, 0.6, len * 0.18]} />
+        <mesh
+          key={`nozzle${side}`}
+          material={m.metalDark}
+          position={[side * span * 0.13, cy - 0.05, len * 0.46]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <cylinderGeometry args={[0.4, 0.44, 1.0, 12]} />
+        </mesh>
+      ))}
+
+      {/* Two long ventral fairings flanking the centreline — the pair of dark
+          rectangles that dominate the underside in the reference imagery. */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`bay${side}`}
+          material={m.airframeDark}
+          castShadow
+          position={[side * span * 0.19, cy - 0.34, -len * 0.02]}
+        >
+          <boxGeometry args={[span * 0.09, 0.55, len * 0.36]} />
         </mesh>
       ))}
 
@@ -1288,15 +1321,22 @@ function AircraftJ36({ def, m }: BuilderProps) {
         <cylinderGeometry args={[0.28, 0.28, 0.2, 12]} />
       </mesh>
 
-      {/* Landing gear - main (twin wheels each side) */}
+      {/* Landing gear - main, twin wheels on each leg */}
       {[-1, 1].map((side) => (
-        <group key={`g${side}`} position={[side * span * 0.28, 0, len * 0.05]}>
+        <group key={`g${side}`} position={[side * span * 0.24, 0, len * 0.06]}>
           <mesh material={m.metalDark} position={[0, 0.65, 0]}>
             <cylinderGeometry args={[0.09, 0.09, 1.2, 6]} />
           </mesh>
-          <mesh material={m.tire} position={[0, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.34, 0.34, 0.22, 12]} />
-          </mesh>
+          {[-1, 1].map((wheel) => (
+            <mesh
+              key={`w${wheel}`}
+              material={m.tire}
+              position={[wheel * 0.24, 0.32, 0]}
+              rotation={[0, 0, Math.PI / 2]}
+            >
+              <cylinderGeometry args={[0.34, 0.34, 0.2, 12]} />
+            </mesh>
+          ))}
         </group>
       ))}
     </group>
@@ -1340,62 +1380,90 @@ function AircraftJXDS({ def, m }: BuilderProps) {
     return geo;
   }, [span, len]);
 
+  /** Slimmer, lower blended body than the J-36's, carried further aft. */
+  const bodyGeometry = useMemo(() => {
+    const halfW = span * 0.085;
+    const hz = len * 0.5;
+    const s = new THREE.Shape();
+    s.moveTo(0, hz * 0.96);
+    s.lineTo(halfW, hz * 0.2);
+    s.lineTo(halfW * 0.8, -hz * 0.88);
+    s.lineTo(-halfW * 0.8, -hz * 0.88);
+    s.lineTo(-halfW, hz * 0.2);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 1.05,
+      bevelEnabled: true,
+      bevelThickness: 0.42,
+      bevelSize: 0.38,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
   return (
     <group>
       {/* Lambda wing */}
       <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
 
-      {/* Fuselage - sleeker than J-36 */}
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.75, 0.1, len * 0.2, 16]} />
-      </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.05]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, len * 0.52, 16]} />
-      </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, len * 0.3]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.5, 0.8, len * 0.16, 16]} />
+      {/* Blended centrebody. The head-on reference shows a wide, flat,
+          faceted body chined into the wing — not the tube of cylinders this
+          used to be built from. */}
+      <mesh material={m.airframeLight} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Canopy - single seat, low and well forward */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 0.92, -len * 0.24]} scale={[0.72, 0.45, 1.7]}>
+        <sphereGeometry args={[0.8, 18, 12]} />
       </mesh>
 
-      {/* Canopy - single seat */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 0.72, -len * 0.2]} scale={[0.7, 0.55, 1.6]}>
-        <sphereGeometry args={[0.75, 18, 12]} />
-      </mesh>
-
-      {/* Twin engine nozzles */}
+      {/* Twin engine nozzles at the trailing edge */}
       {[-1, 1].map((side) => (
         <mesh
           key={`n${side}`}
           material={m.metalDark}
-          position={[side * 0.5, cy - 0.1, len * 0.4]}
+          position={[side * span * 0.055, cy - 0.05, len * 0.4]}
           rotation={[Math.PI / 2, 0, 0]}
         >
           <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
         </mesh>
       ))}
 
-      {/* Side intakes - more forward than J-36 */}
+      {/* Chined side intakes tucked under the leading-edge root extensions */}
       {[-1, 1].map((side) => (
-        <mesh key={`i${side}`} material={m.airframeLight} castShadow position={[side * 0.9, cy - 0.25, -len * 0.12]}>
-          <boxGeometry args={[0.5, 0.7, len * 0.14]} />
+        <mesh
+          key={`i${side}`}
+          material={m.airframeLight}
+          castShadow
+          position={[side * span * 0.1, cy - 0.28, -len * 0.1]}
+        >
+          <boxGeometry args={[span * 0.06, 0.65, len * 0.22]} />
         </mesh>
       ))}
 
-      {/* Landing gear - nose */}
+      {/* Landing gear - nose, twin wheels as in the head-on reference */}
       <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
         <cylinderGeometry args={[0.07, 0.07, 1.1, 6]} />
       </mesh>
-      <mesh material={m.tire} position={[0, 0.26, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.26, 0.26, 0.18, 12]} />
-      </mesh>
+      {[-1, 1].map((wheel) => (
+        <mesh
+          key={`nw${wheel}`}
+          material={m.tire}
+          position={[wheel * 0.17, 0.26, -len * 0.28]}
+          rotation={[0, 0, Math.PI / 2]}
+        >
+          <cylinderGeometry args={[0.26, 0.26, 0.16, 12]} />
+        </mesh>
+      ))}
 
       {/* Landing gear - main */}
       {[-1, 1].map((side) => (
-        <group key={`g${side}`} position={[side * 1.25, 0, len * 0.04]}>
+        <group key={`g${side}`} position={[side * span * 0.12, 0, len * 0.05]}>
           <mesh material={m.metalDark} position={[0, 0.6, 0]}>
             <cylinderGeometry args={[0.08, 0.08, 1.1, 6]} />
           </mesh>
           <mesh material={m.tire} position={[0, 0.28, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.28, 0.28, 0.18, 12]} />
+            <cylinderGeometry args={[0.3, 0.3, 0.2, 12]} />
           </mesh>
         </group>
       ))}

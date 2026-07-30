@@ -464,19 +464,26 @@ export const HARD_SURFACE_PRESETS = {
     rimIntensity: 0.16,
     rimPower: 2.6,
   },
-  /** Airframe skin: small plates, crisp seams, no rust, cool rim. */
+  /**
+   * Low-observable airframe skin. Deliberately the subtlest preset here: the
+   * whole point of the coating is that panel lines and fasteners do *not*
+   * read, so plates are large, seams are barely darker than the skin and
+   * there are no rivets. The rim term does the work instead — it is what
+   * makes a faceted airframe legible against dark ground.
+   */
   airframe: {
-    plateScale: 0.85,
-    plateAspect: 0.7,
-    seamWidth: 0.012,
-    seamDarken: 0.68,
-    seamRelief: 0.65,
-    plateRoughness: 0.1,
-    plateAlbedo: 0.05,
-    rivets: true,
-    streaks: 0.14,
-    dust: 0.1,
-    rimIntensity: 0.15,
+    plateScale: 2.4,
+    plateAspect: 0.75,
+    stagger: 0,
+    seamWidth: 0.014,
+    seamDarken: 0.89,
+    seamRelief: 0.3,
+    plateRoughness: 0.05,
+    plateAlbedo: 0.025,
+    rivets: false,
+    streaks: 0.1,
+    dust: 0.08,
+    rimIntensity: 0.17,
     rimPower: 3.2,
   },
   /** Large storage tanks / radomes: broad plates, welded seams, sun-bleached. */

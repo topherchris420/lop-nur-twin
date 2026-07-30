@@ -217,9 +217,9 @@ const STRUCTURE_DEFS: StructureDef[] = [
       sourceIds: ["twz-aircraft-2025"],
       observedOn: "2025-09-13",
       method:
-        "Identity and position reported from commercial satellite imagery; wingspan (~50 ft) taken from the measurement stated in that reporting, length inferred from its description as slightly shorter than the J-36",
+        "Identity and position reported from commercial satellite imagery; wingspan (~50 ft) taken from the measurement stated in that reporting, length inferred from its description as slightly shorter than the J-36; external shape massed from widely circulated photographs of the airframe",
       uncertainty:
-        "Aircraft name and role are not official. The stated wingspan is a single third-party measurement off a satellite image; length is inferred, not measured. The parking spot is placed on the apron in front of the main hangar as described, not surveyed.",
+        "Aircraft name and role are not official. The stated wingspan is a single third-party measurement off a satellite image; length is inferred, not measured. The parking spot is placed on the apron in front of the main hangar as described, not surveyed. The shape follows photographs whose provenance and authenticity cannot be verified, and captures only the gross lambda planform, twin exhausts and blended centrebody.",
       note: "The model is illustrative and should not be read as an authoritative aircraft identification.",
     },
   ),
@@ -241,9 +241,9 @@ const STRUCTURE_DEFS: StructureDef[] = [
       sourceIds: ["twz-aircraft-2025"],
       observedOn: "2025-08-27",
       method:
-        "Identity and position reported from commercial satellite imagery; wingspan (~65 ft) and length (~62 ft) taken from the measurements stated in that reporting",
+        "Identity and position reported from commercial satellite imagery; wingspan (~65 ft) and length (~62 ft) taken from the measurements stated in that reporting; external shape massed from widely circulated photographs of the airframe",
       uncertainty:
-        "Aircraft name and role are not official. The dimensions are third-party measurements off a single satellite image and carry at least a few feet of error; the parking spot is placed on the apron in front of the main hangar as described, not surveyed.",
+        "Aircraft name and role are not official. The dimensions are third-party measurements off a single satellite image and carry at least a few feet of error; the parking spot is placed on the apron in front of the main hangar as described, not surveyed. The shape follows photographs whose provenance and authenticity cannot be verified, and captures only the gross planform, trijet exhaust arrangement and blended centrebody.",
       note: "The model is illustrative and should not be read as an authoritative aircraft identification.",
     },
   ),
