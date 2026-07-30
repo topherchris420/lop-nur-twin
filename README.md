@@ -220,6 +220,39 @@ bun run preview    # serve the production build
 
 `npm install && npm run dev` works too if Bun isn't available.
 
+### Visual verification
+
+Shader and layout work is checked against captured frames rather than by eye,
+using a headless-browser probe:
+
+```sh
+bun run dev &
+node tools/probe.mjs                    # → render_output.png
+```
+
+It prints mean luma, clipped and crushed percentages, saturation and a
+luminance histogram, so exposure and bloom can be tuned against numbers. Day
+and night frames currently clip 0% of pixels, and the night frame crushes
+2.6% — down from 17.2% before the AgX pass was added.
+
+```sh
+# close-ups worth judging panel lines and seams against
+node tools/probe.mjs --focus "Main assembly hangar" --no-hud
+node tools/probe.mjs --keys n --focus "Fuel tank A" --no-hud
+
+# a scale-accurate plan view, for comparing the layout against imagery
+node tools/probe.mjs --plan 700 --center "-20,-40" \
+  --width 1000 --height 1000 --no-hud
+```
+
+`--plan` puts the camera straight overhead at the altitude that makes the
+frame cover exactly the requested ground width and reports the resulting
+metres-per-pixel, so a render and a satellite crop can be scaled to the same
+m/px and overlaid. Comparing an oblique render against a nadir image proves
+nothing about whether a building is in the right place. `--help` lists every
+flag. Authoring rules for this loop live in
+[`.claude/skills/blender-hardsurface`](.claude/skills/blender-hardsurface/SKILL.md).
+
 ## What's Inside the Wire
 
 - **6.8 km × 6.8 km desert terrain** — seeded simplex heightfield tuned for a
@@ -251,9 +284,17 @@ bun run preview    # serve the production build
   guardhouse — are included as clearly-labelled illustrative context. Public
   overhead imagery does not establish interiors, occupants or functions.
 - **Two parked aircraft** on the flight line: J-36 and J-XDS models correspond
-  to reported August and September 2025 sightings. Both are clickable, with
-  evidence-labelled dossiers, minimap markers and site-index entries. The
-  animated flying-wing demonstrator is separate, illustrative scene dressing.
+  to reported August and September 2025 sightings, both parked outside the
+  main hangar as described. Their dimensions are the figures stated in that
+  reporting — ~65 ft span by ~62 ft length for the J-36, ~50 ft span for the
+  J-XDS — and the planforms are normalised so the geometry actually measures
+  what the dossier reports. External shape follows widely circulated
+  photographs of the airframes, which fixes the gross planform, the J-36's
+  trijet exhaust arrangement and both blended centrebodies; provenance of
+  those photographs is not verifiable and the dossiers say so. Both are
+  clickable, with evidence-labelled dossiers, minimap markers and site-index
+  entries. The animated flying-wing demonstrator is separate, illustrative
+  scene dressing.
 - **Northern Tunnel Test Area — offsite context only.** Published coordinates
   place this separate site about 127 km from the airfield, well outside the
   6.8 km frame, so no tunnel portals or associated facilities are rendered.
@@ -272,8 +313,30 @@ bun run preview    # serve the production build
   a **windsock** reads the breeze by the apron; and red **obstruction beacons**
   wink on every tall structure after dark. These animations demonstrate scale
   and interaction; they are not observations of site operations.
-- **Postprocessing**: SMAA, N8AO ambient occlusion, subtle bloom and a
-  vignette — automatically shed under load (see below).
+- **A custom GLSL post-processing stack** (`src/gfx/postfx.ts`): the scene
+  renders un-tonemapped into a half-float buffer, then N8AO ambient occlusion
+  and a mipmap (dual-filter) bloom run while the image is still HDR, followed
+  by hand-written **AgX** tone mapping with an exposed ASC-CDL look, a
+  multi-pass **anamorphic streak** pass (bright pass at quarter res, then four
+  horizontal blur ping-pongs at exponentially growing stride), SMAA on the
+  display-referred image, and a final lens pass adding chromatic aberration,
+  radial blur and 24 fps film grain that all scale toward the frame edge.
+  Tone mapping happens in exactly one place — the renderer stays linear while
+  the stack is mounted and applies AgX itself on the lower tiers, so every
+  quality tier shares one look. Shed automatically under load (see below).
+- **Procedural hard-surface detailing** (`src/gfx/greeble.ts`): shared
+  materials are patched through `onBeforeCompile` with panel lines and plate
+  seams derived from object-space cells, per-plate roughness and albedo
+  variation, dust weighted by world-up, downward grime streaks, oxidisation
+  and a grazing rim term that keeps geometric edges legible against a dark
+  sky. Roof clutter — ducts, vents, cable trays, exhaust stacks — is generated
+  seeded and merged into a single draw call per deck. Panel lines are injected
+  in the shader rather than baked into textures so they follow arbitrary
+  geometry and fade out before they can shimmer at distance.
+- **Logarithmic depth buffer**: the site spans ~26 km of camera range while
+  pavement decals sit 5 cm apart, so the canvas runs with
+  `logarithmicDepthBuffer` and custom shader materials are built through a
+  helper that cannot omit the log-depth chunks.
 - **First-run polish**: a branded boot overlay covers texture generation and
   the first frame, and the cinematic pass captions each site feature as it
   comes into frame.
@@ -332,11 +395,16 @@ src/
     noise.ts         ← seeded, deterministic noise
     store.ts         ← zustand app state (camera mode, selection, quality…)
     telemetry.ts     ← mutable frame-rate channel scene → HUD (no React state)
+  gfx/
+    postfx.ts        ← custom GLSL post stack: AgX, anamorphic streaks, lens artifacts
+    greeble.ts       ← hard-surface material patching + procedural greeble geometry
   components/
     scene/           ← R3F: Terrain, Pavements, Structures, LivingScene, Atmosphere, rigs, effects
     hud/             ← DOM overlays: HUD, minimap, dossier, site index, help, intro, cinematic caption
     ui/              ← shadcn-style primitives (button, card, badge, separator)
   routes/            ← TanStack Router file-based routes
+tools/
+  probe.mjs          ← headless-browser capture + exposure report + plan view
 ```
 
 The 3D scene and the 2D minimap are both projections of `lib/layout.ts`; add a
@@ -346,8 +414,8 @@ See [AGENTS.md](AGENTS.md) for extension recipes.
 ## Built With
 
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
-drei · @react-three/postprocessing · Tailwind CSS 4 · zustand · simplex-noise ·
-leva (dev only)
+drei · @react-three/postprocessing (with hand-written GLSL effects and passes) ·
+Tailwind CSS 4 · zustand · simplex-noise · leva and puppeteer (dev only)
 
 ## License
 
