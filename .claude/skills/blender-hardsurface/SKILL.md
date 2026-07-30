@@ -176,7 +176,24 @@ node tools/probe.mjs          # → render_output.png, plus exposure numbers
 # a close-up worth judging seams against, with the HUD out of the way
 node tools/probe.mjs --focus "Main assembly hangar" --no-hud
 node tools/probe.mjs --keys n --focus "Fuel tank" --no-hud   # night
+
+# a scale-accurate plan view, for comparing the layout against imagery
+node tools/probe.mjs --plan 700 --center "-20,-40" \
+  --width 1000 --height 1000 --no-hud
 ```
+
+`--plan` puts the camera straight overhead at the altitude that makes the
+frame cover exactly the requested ground width, and prints the resulting
+metres-per-pixel. That is the only honest way to check the layout against a
+satellite crop: scale both to the same m/px and overlay them. It drives the
+camera through `window.__twinStore`, which `src/lib/store.ts` exposes in dev
+builds only.
+
+**Positions are evidence, not art.** `layout.ts` is the single source of
+truth and every structure carries an `Evidence` record with an explicit
+`uncertainty` string. Do not nudge a building because a render looks better —
+if imagery says a position is wrong, change the position *and* the evidence
+text together, and say what the new position is based on.
 
 Then **open `render_output.png` and look at it.** Check, in order:
 

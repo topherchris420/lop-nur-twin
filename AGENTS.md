@@ -129,6 +129,22 @@ node tools/probe.mjs --focus "Main assembly hangar" --no-hud
 mean luma, clipped/crushed percentages and a histogram, so exposure and
 bloom values can be tuned against numbers. `--help` lists every flag.
 
+To check the **layout** rather than the look, capture a plan view:
+
+```sh
+node tools/probe.mjs --plan 700 --center "-20,-40" \
+  --width 1000 --height 1000 --no-hud
+```
+
+The camera goes straight overhead at the altitude that makes the frame cover
+exactly 700 m, and the probe prints the metres-per-pixel. Scale a satellite
+crop to the same m/px and the two overlay directly — that is the only way to
+judge whether a building is in the right place. Comparing an oblique render
+to a nadir satellite image proves nothing.
+
+Note that `--plan` needs `window.__twinStore`, exposed by `src/lib/store.ts`
+in dev builds only; it is stripped from production.
+
 Then in a browser: check all three cameras (`1`/`2`/`3`), click a structure
 (dossier + fly-to), click the minimap, toggle `N`/`I`/`R`/`H`, change the
 climate month, and confirm telemetry updates without React frame-loop state.

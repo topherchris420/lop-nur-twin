@@ -30,6 +30,12 @@
  *                     matches, via the site index. This is how you get a
  *                     close-up worth judging panel lines and seams against.
  *   --no-hud          Hide the HUD overlays so only the render is captured.
+ *   --plan <m>        Capture a scale-accurate plan view covering this many
+ *                     metres across, centred on --center. Prints the exact
+ *                     metres-per-pixel so the frame can be laid over a
+ *                     satellite crop at matched scale.
+ *   --center <u,v>    Compound-frame centre for --plan. Default 0,0 (the
+ *                     compound origin). Accepts `x,z,world` for world metres.
  *   --keep-open       Leave the browser running (debugging).
  *
  * Environment
@@ -60,6 +66,8 @@ function parseArgs(argv) {
     keys: [],
     focus: null,
     hud: true,
+    plan: null,
+    center: null,
     keepOpen: false,
   };
 
@@ -111,6 +119,12 @@ function parseArgs(argv) {
         break;
       case "--no-hud":
         options.hud = false;
+        break;
+      case "--plan":
+        options.plan = Number(next());
+        break;
+      case "--center":
+        options.center = next();
         break;
       case "--keep-open":
         options.keepOpen = true;
@@ -405,6 +419,60 @@ async function capture(page, options, url, outPath) {
     await new Promise((done) => setTimeout(done, Math.max(4000, options.wait)));
   }
 
+  // A plan view is the only way to compare the model against a satellite
+  // crop: put the camera straight overhead at the altitude that makes the
+  // frame cover a known ground width, then both images share a scale.
+  let planInfo = null;
+  if (options.plan) {
+    planInfo = await page.evaluate(
+      ({ span, center, fovDeg, viewWidth, viewHeight }) => {
+        const store = globalThis.__twinStore;
+        if (!store) return { error: "window.__twinStore missing (dev build only)" };
+
+        // compound frame -> world metres, mirroring src/lib/layout.ts
+        const ROT = 0.7679;
+        const ORIGIN = [1018, 1410];
+        const parts = center.split(",").map((p) => p.trim());
+        const isWorld = parts[2] === "world";
+        const a = Number(parts[0] ?? 0);
+        const b = Number(parts[1] ?? 0);
+        const cx = isWorld ? a : ORIGIN[0] + a * Math.cos(ROT) + b * Math.sin(ROT);
+        const cz = isWorld ? b : ORIGIN[1] - a * Math.sin(ROT) + b * Math.cos(ROT);
+
+        // vertical fov governs the shorter axis of the frame
+        const aspect = viewWidth / viewHeight;
+        const halfFov = (fovDeg * Math.PI) / 360;
+        const groundHeight = aspect >= 1 ? span / aspect : span;
+        const altitude = groundHeight / (2 * Math.tan(halfFov));
+
+        // a hair off vertical: an exactly-zero polar angle makes the orbit
+        // controls' up vector degenerate
+        const nudge = altitude * 0.004;
+        store.getState().requestFlyTo([cx, altitude, cz + nudge], [cx, 0, cz]);
+
+        return {
+          centerWorld: [cx, cz],
+          altitude,
+          groundWidth: aspect >= 1 ? span : span * aspect,
+          groundHeight,
+          metresPerPixel: (aspect >= 1 ? span : span * aspect) / viewWidth,
+        };
+      },
+      {
+        span: options.plan,
+        center: options.center ?? "0,0",
+        fovDeg: 55,
+        viewWidth: options.width,
+        viewHeight: options.height,
+      },
+    );
+    if (planInfo.error) {
+      messages.push(`[probe] ${planInfo.error}`);
+    }
+    // the fly-to is eased; let it arrive and the frame settle
+    await new Promise((done) => setTimeout(done, Math.max(5000, options.wait)));
+  }
+
   if (!options.hud) {
     // hide everything in the page that is not the render surface's own
     // container, so the capture is the frame and nothing else
@@ -460,7 +528,7 @@ async function capture(page, options, url, outPath) {
     messages.push(`[probe] could not analyse PNG: ${error.message}`);
   }
 
-  return { outPath, bytes: buffer.length, gl, stats, messages };
+  return { outPath, bytes: buffer.length, gl, stats, plan: planInfo, messages };
 }
 
 /* ------------------------------------------------------------------ */
@@ -504,6 +572,15 @@ async function main() {
     } else {
       console.log(
         `  drawing:   ${result.gl.width}x${result.gl.height}  renderer: ${result.gl.renderer ?? "unknown"}`,
+      );
+    }
+    if (result.plan && !result.plan.error) {
+      const p = result.plan;
+      console.log(
+        `  plan:      centre world [${p.centerWorld[0].toFixed(0)}, ${p.centerWorld[1].toFixed(0)}] m, altitude ${p.altitude.toFixed(0)} m`,
+      );
+      console.log(
+        `  scale:     ${p.groundWidth.toFixed(0)} x ${p.groundHeight.toFixed(0)} m across the frame — ${p.metresPerPixel.toFixed(3)} m/px`,
       );
     }
     if (result.stats) {

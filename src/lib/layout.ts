@@ -327,9 +327,14 @@ export const STRUCTURES: StructureDef[] = STRUCTURE_DEFS.map((structure) => {
   return observedDate === undefined ? structure : { ...structure, observedDate };
 });
 
+/**
+ * Apron viewpoint looking at the parked J-XDS. Currently unread — the FPS rig
+ * drops the camera at its current position rather than spawning here — but
+ * kept in step with the aircraft it points at.
+ */
 export const FPS_SPAWN = {
-  position: compound(-91, -60) as [number, number],
-  target: compound(-112, -82) as [number, number],
+  position: compound(-39, -78) as [number, number],
+  target: compound(-60, -100) as [number, number],
 };
 
 export const FLATTEN_PADS: FlattenPad[] = [
