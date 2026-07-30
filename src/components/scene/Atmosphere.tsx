@@ -60,12 +60,20 @@ export function Atmosphere() {
   const fog = useMemo(() => new THREE.FogExp2("#d8c29b", 0.0003), []);
   useEffect(() => {
     scene.fog = fog;
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 0.98;
     return () => {
       scene.fog = null;
     };
-  }, [scene, gl, fog]);
+  }, [scene, fog]);
+
+  // Tone mapping lives in exactly one place. On the top tier the composer's
+  // AgX pass owns it and the renderer must stay linear (`Effects.tsx`);
+  // below that the renderer applies AgX itself so every tier shares a look.
+  useEffect(() => {
+    gl.toneMapping = quality.postprocessing
+      ? THREE.NoToneMapping
+      : THREE.AgXToneMapping;
+    gl.toneMappingExposure = 1.05;
+  }, [gl, quality.postprocessing]);
 
   // aim the sun's shadow frustum at the built-up area
   useEffect(() => {

@@ -105,7 +105,15 @@ export function Scene() {
         shadows={qualityTier > 0 ? "percentage" : false}
         dpr={[1, profile.dprMax]}
         camera={{ fov: 55, near: 1, far: 26000, position: [1740, 560, 2240] }}
-        gl={{ powerPreference: "high-performance", antialias: true }}
+        gl={{
+          powerPreference: "high-performance",
+          antialias: true,
+          // the site spans ~26 km of camera range while pavement decals sit
+          // 5 cm apart, so a linear depth buffer z-fights; log depth keeps
+          // both ends resolvable. Custom ShaderMaterials must include the
+          // logdepth chunks — see `createHardSurfaceShaderMaterial`.
+          logarithmicDepthBuffer: true,
+        }}
         onPointerMissed={() => select(null)}
       >
         <Suspense fallback={null}>

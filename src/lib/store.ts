@@ -215,3 +215,12 @@ export const useTwinStore = create<TwinState>()((set) => ({
   ready: false,
   setReady: () => set((s) => (s.ready ? s : { ready: true })),
 }));
+
+/**
+ * Dev-only handle for `tools/probe.mjs`, which needs to drive the camera to an
+ * exact position to capture a scale-accurate plan view for comparison against
+ * reference satellite imagery. Stripped from production builds.
+ */
+if (import.meta.env.DEV && typeof globalThis !== "undefined") {
+  (globalThis as { __twinStore?: typeof useTwinStore }).__twinStore = useTwinStore;
+}

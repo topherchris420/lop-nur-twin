@@ -15,6 +15,7 @@ import {
   makeChainLinkTexture,
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
+import { applyPreset, makeGreebleGeometry } from "@/gfx/greeble";
 
 import { isVisibleAtTimelineYear } from '@/lib/layout';
 
@@ -66,6 +67,123 @@ function facadeMaterial(
   });
 }
 
+/**
+ * Injects the procedural hard-surface pipeline (panel lines, plate seams,
+ * per-plate PBR variation, weathering, grazing rim light) into the shared
+ * materials — see `@/gfx/greeble` and
+ * `.claude/skills/blender-hardsurface/SKILL.md`.
+ *
+ * Deliberately skipped: gravel, tyres, glass, canopies, beacons, the solar
+ * texture and the chain-link alpha cutout. Panel lines on those read as a
+ * mistake rather than as engineering.
+ */
+function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
+  // poured concrete: wide expansion joints, no rivets
+  applyPreset(m.concrete, "concrete", { seed: 11 });
+  applyPreset(m.concreteLight, "concrete", { seed: 23, dust: 0.4 });
+  applyPreset(m.dirtyConcreteWall, "concrete", { seed: 37, streaks: 0.55 });
+  applyPreset(m.stucco, "concrete", { seed: 41, plateScale: 9, seamRelief: 0.22 });
+
+  // sheet cladding: tight plates, rivets, oxidisation running down the seams
+  applyPreset(m.corrugated, "cladding", { seed: 53 });
+  applyPreset(m.corrugatedTan, "cladding", { seed: 59, rust: 0.28 });
+  applyPreset(m.corrugatedWhite, "cladding", { seed: 67, rust: 0.18, dust: 0.34 });
+  applyPreset(m.rustyMetal, "cladding", { seed: 71, rust: 0.7, streaks: 0.65 });
+
+  // building envelopes: larger architectural panels on a straight grid, no
+  // rust. A running bond at this scale reads as roof tiles, not cladding.
+  const facade = {
+    rust: 0,
+    plateScale: 3.2,
+    plateAspect: 0.72,
+    stagger: 0,
+    seamDarken: 0.74,
+    rivets: false,
+  } as const;
+  applyPreset(m.whitePanel, "cladding", { seed: 79, ...facade });
+  applyPreset(m.monolithRoof, "cladding", {
+    seed: 83,
+    ...facade,
+    plateScale: 6,
+    plateAspect: 0.9,
+    seamDarken: 0.82,
+    plateAlbedo: 0.05,
+    dust: 0.42,
+  });
+  applyPreset(m.monolithWallLong, "cladding", { seed: 89, ...facade });
+  applyPreset(m.monolithWallEnd, "cladding", { seed: 97, ...facade });
+  applyPreset(m.hqWall, "cladding", { seed: 101, ...facade, streaks: 0.42 });
+  applyPreset(m.barracksWall, "cladding", { seed: 103, ...facade, streaks: 0.45 });
+  applyPreset(m.roofDark, "concrete", {
+    seed: 107,
+    plateScale: 4,
+    plateAspect: 0.9,
+    seamRelief: 0.25,
+    seamDarken: 0.82,
+    dust: 0.5,
+    rimIntensity: 0.06,
+  });
+
+  // machined metal: fine plates, strong rim, almost no grime
+  applyPreset(m.metalDark, "machined", { seed: 109 });
+  applyPreset(m.pvcPipe, "machined", { seed: 113, plateScale: 1.6, rivets: false });
+
+  // welded plate: tanks and radomes
+  applyPreset(m.tankSteel, "plated", { seed: 127 });
+  applyPreset(m.radomeWhite, "plated", {
+    seed: 131,
+    plateScale: 2.2,
+    rust: 0,
+    streaks: 0.12,
+    dust: 0.18,
+  });
+
+  // airframe skin: small plates, crisp seams, cool rim
+  applyPreset(m.airframeDark, "airframe", { seed: 137 });
+  applyPreset(m.airframeLight, "airframe", { seed: 139 });
+
+  return m;
+}
+
+/**
+ * Procedural roof clutter. One merged geometry, one draw call; the seed is
+ * derived from the structure id so a given roof is always identical.
+ */
+function GreebleDeck({
+  seed,
+  width,
+  depth,
+  position,
+  material,
+  count = 20,
+  maxHeight = 1.5,
+  rows = 3,
+}: {
+  seed: number;
+  width: number;
+  depth: number;
+  position: [number, number, number];
+  material: THREE.Material;
+  count?: number;
+  maxHeight?: number;
+  rows?: number;
+}) {
+  const geometry = useMemo(
+    () => makeGreebleGeometry({ seed, width, depth, count, maxHeight, rows }),
+    [seed, width, depth, count, maxHeight, rows],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh
+      geometry={geometry}
+      material={material}
+      position={position}
+      castShadow
+      receiveShadow
+    />
+  );
+}
+
 function useSharedMaterials(): SharedMaterials {
   const night = useTwinStore((s) => s.night);
   const materials = useMemo<SharedMaterials>(() => {
@@ -77,7 +195,7 @@ function useSharedMaterials(): SharedMaterials {
     const whitePanelTex = makeWhitePanelTexture(SITE_SEED + 505);
     const monolithRoofTex = makeWhitePanelTexture(SITE_SEED + 506);
     monolithRoofTex.repeat.set(0.06, 0.06);
-    return {
+    return decorateHardSurfaces({
       concrete: new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.92 }),
       concreteLight: new THREE.MeshStandardMaterial({
         map: concreteLightTex,
@@ -194,7 +312,7 @@ function useSharedMaterials(): SharedMaterials {
         map: makeDirtyConcreteTexture(SITE_SEED + 533),
         roughness: 0.95,
       }),
-    };
+    });
   }, []);
 
   useEffect(() => {
@@ -393,6 +511,17 @@ function MonolithHangar({ def, m }: BuilderProps) {
       {/* Compact service volumes clustered at the apron-facing end. */}
       <mesh material={m.concreteLight} castShadow position={[-w * 0.25, 3, -d / 2 - 4]}><boxGeometry args={[18, 6, 8]} /></mesh>
       <mesh material={m.roofDark} position={[-w * 0.25, 6.1, -d / 2 - 4]}><boxGeometry args={[18.5, 0.25, 8.5]} /></mesh>
+      {/* plant deck on the service annex roof */}
+      <GreebleDeck
+        seed={SITE_SEED + 610}
+        width={16}
+        depth={6.5}
+        rows={2}
+        count={14}
+        maxHeight={1.3}
+        position={[-w * 0.25, 6.22, -d / 2 - 4]}
+        material={m.metalDark}
+      />
       <mesh material={m.concreteLight} castShadow position={[w * 0.28, 2.4, -d / 2 - 3]}><boxGeometry args={[10, 4.8, 6]} /></mesh>
       <mesh material={m.corrugated} castShadow position={[0, wallH * 0.42, d / 2 + 0.2]}><boxGeometry args={[w * 0.78, wallH * 0.76, 0.45]} /></mesh>
     </group>
@@ -502,6 +631,17 @@ function Warehouse({ def, m }: BuilderProps) {
           <boxGeometry args={[2, 1.2, 2]} />
         </mesh>
       ))}
+      {/* procedural plant deck filling the rest of the roof, inset from the
+          parapet so it never breaks the building's silhouette */}
+      <GreebleDeck
+        seed={SITE_SEED + 620}
+        width={w * 0.5}
+        depth={d - 4}
+        rows={3}
+        count={24}
+        position={[-w * 0.18, h + 0.24, 0]}
+        material={m.metalDark}
+      />
       {/* roller doors on the +z face */}
       {[-0.28, 0, 0.28].map((f) => (
         <mesh key={`d${f}`} material={m.corrugated} position={[w * f, h * 0.38, d / 2 + 0.18]}>
@@ -1070,18 +1210,23 @@ function AircraftJ36({ def, m }: BuilderProps) {
   const [span, , len] = def.size;
   const cy = 1.4;
 
-  // Large modified delta wing geometry
+  // Large modified delta wing geometry. The planform is written against the
+  // half-span/half-length so wingtips and nose land exactly on `def.size` —
+  // that value is the reported wingspan and length and is shown in the
+  // dossier, so the model has to actually measure it.
   const wingGeometry = useMemo(() => {
+    const hx = span * 0.5;
+    const hz = len * 0.5;
     const s = new THREE.Shape();
     // Delta wing with slightly swept leading edges
-    s.moveTo(0, len * 0.48);
-    s.lineTo(span * 0.52, -len * 0.35);
-    s.lineTo(span * 0.52 - 1.2, -len * 0.42);
-    s.lineTo(span * 0.18, -len * 0.48);
-    s.lineTo(0, -len * 0.38);
-    s.lineTo(-span * 0.18, -len * 0.48);
-    s.lineTo(-(span * 0.52 - 1.2), -len * 0.42);
-    s.lineTo(-span * 0.52, -len * 0.35);
+    s.moveTo(0, hz);
+    s.lineTo(hx, -hz * 0.729);
+    s.lineTo(hx - 1.15, -hz * 0.875);
+    s.lineTo(hx * 0.346, -hz);
+    s.lineTo(0, -hz * 0.792);
+    s.lineTo(-hx * 0.346, -hz);
+    s.lineTo(-(hx - 1.15), -hz * 0.875);
+    s.lineTo(-hx, -hz * 0.729);
     s.closePath();
     const geo = new THREE.ExtrudeGeometry(s, {
       depth: 0.5,
@@ -1094,44 +1239,77 @@ function AircraftJ36({ def, m }: BuilderProps) {
     return geo;
   }, [span, len]);
 
+  /**
+   * Long, low blended centrebody. The reference photographs show a flat spine
+   * running nearly the whole length and faired into the wing, not a discrete
+   * tube fuselage, so this is an extruded plan outline rather than a sphere.
+   */
+  const bodyGeometry = useMemo(() => {
+    const halfW = span * 0.115;
+    const hz = len * 0.5;
+    const s = new THREE.Shape();
+    s.moveTo(0, hz * 0.94);
+    s.lineTo(halfW, hz * 0.12);
+    s.lineTo(halfW * 0.86, -hz * 0.86);
+    s.lineTo(-halfW * 0.86, -hz * 0.86);
+    s.lineTo(-halfW, hz * 0.12);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 1.25,
+      bevelEnabled: true,
+      bevelThickness: 0.5,
+      bevelSize: 0.4,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
   return (
     <group>
       {/* Main delta wing */}
       <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
 
-      {/* Large dorsal fuselage fairing - more prominent than UCAV */}
-      <mesh material={m.airframeDark} castShadow position={[0, cy + 0.8, -len * 0.05]} scale={[1.4, 0.7, 2.4]}>
-        <sphereGeometry args={[1.2, 20, 14]} />
+      {/* Blended centrebody */}
+      <mesh material={m.airframeDark} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Canopy, set well forward and faired flat into the spine */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 1.02, -len * 0.27]} scale={[0.8, 0.5, 2.1]}>
+        <sphereGeometry args={[0.9, 18, 12]} />
       </mesh>
 
-      {/* Canopy - larger for 2-seat */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 1.1, -len * 0.28]} scale={[0.85, 0.65, 2.2]}>
-        <sphereGeometry args={[0.85, 18, 12]} />
+      {/* Dorsal intake aft of the canopy — the feature that makes this
+          airframe a trijet rather than a conventional twin. */}
+      <mesh material={m.airframeDark} castShadow position={[0, cy + 1.3, -len * 0.04]}>
+        <boxGeometry args={[span * 0.16, 0.7, len * 0.2]} />
       </mesh>
 
-      {/* THREE engines - central + two side nozzles */}
-      {/* Central engine */}
-      <mesh material={m.metalDark} position={[0, cy - 0.15, len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* Three exhausts at the trailing edge: one on the centreline, one
+          either side of the spine. */}
+      <mesh material={m.metalDark} position={[0, cy - 0.05, len * 0.41]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.45, 0.5, 1.2, 14]} />
       </mesh>
-      {/* Left engine */}
-      <mesh material={m.metalDark} position={[span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
-      </mesh>
-      {/* Right engine */}
-      <mesh material={m.metalDark} position={[-span * 0.22, cy - 0.15, len * 0.38]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
-      </mesh>
-
-      {/* Engine inlet - front */}
-      <mesh material={m.metalDark} position={[0, cy, -len * 0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.35, 0.35, 0.8, 12]} />
-      </mesh>
-
-      {/* Wing-root engine intakes (characteristic of J-36) */}
       {[-1, 1].map((side) => (
-        <mesh key={`intake${side}`} material={m.metalDark} castShadow position={[side * span * 0.32, cy - 0.2, -len * 0.15]}>
-          <boxGeometry args={[1.8, 0.6, len * 0.18]} />
+        <mesh
+          key={`nozzle${side}`}
+          material={m.metalDark}
+          position={[side * span * 0.13, cy - 0.05, len * 0.46]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <cylinderGeometry args={[0.4, 0.44, 1.0, 12]} />
+        </mesh>
+      ))}
+
+      {/* Two long ventral fairings flanking the centreline — the pair of dark
+          rectangles that dominate the underside in the reference imagery. */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`bay${side}`}
+          material={m.airframeDark}
+          castShadow
+          position={[side * span * 0.19, cy - 0.34, -len * 0.02]}
+        >
+          <boxGeometry args={[span * 0.09, 0.55, len * 0.36]} />
         </mesh>
       ))}
 
@@ -1143,15 +1321,22 @@ function AircraftJ36({ def, m }: BuilderProps) {
         <cylinderGeometry args={[0.28, 0.28, 0.2, 12]} />
       </mesh>
 
-      {/* Landing gear - main (twin wheels each side) */}
+      {/* Landing gear - main, twin wheels on each leg */}
       {[-1, 1].map((side) => (
-        <group key={`g${side}`} position={[side * span * 0.28, 0, len * 0.05]}>
+        <group key={`g${side}`} position={[side * span * 0.24, 0, len * 0.06]}>
           <mesh material={m.metalDark} position={[0, 0.65, 0]}>
             <cylinderGeometry args={[0.09, 0.09, 1.2, 6]} />
           </mesh>
-          <mesh material={m.tire} position={[0, 0.32, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.34, 0.34, 0.22, 12]} />
-          </mesh>
+          {[-1, 1].map((wheel) => (
+            <mesh
+              key={`w${wheel}`}
+              material={m.tire}
+              position={[wheel * 0.24, 0.32, 0]}
+              rotation={[0, 0, Math.PI / 2]}
+            >
+              <cylinderGeometry args={[0.34, 0.34, 0.2, 12]} />
+            </mesh>
+          ))}
         </group>
       ))}
     </group>
@@ -1163,22 +1348,26 @@ function AircraftJXDS({ def, m }: BuilderProps) {
   const [span, , len] = def.size;
   const cy = 1.25;
 
-  // Lambda wing geometry - angular notch in leading edge
+  // Lambda wing geometry - angular notch in leading edge. As with the J-36,
+  // the planform is normalised to the half-span/half-length so the model
+  // measures the reported wingspan and length rather than 84% of the span.
   const wingGeometry = useMemo(() => {
+    const hx = span * 0.5;
+    const hz = len * 0.5;
     const s = new THREE.Shape();
     // Nose point
-    s.moveTo(0, len * 0.45);
+    s.moveTo(0, hz);
     // Outer wing - Lambda notch pattern
-    s.lineTo(span * 0.18, len * 0.15);
-    s.lineTo(span * 0.42, -len * 0.25);
-    s.lineTo(span * 0.42, -len * 0.38);
-    s.lineTo(span * 0.12, -len * 0.45);
-    s.lineTo(0, -len * 0.35);
+    s.lineTo(hx * 0.429, hz * 0.333);
+    s.lineTo(hx, -hz * 0.556);
+    s.lineTo(hx, -hz * 0.844);
+    s.lineTo(hx * 0.286, -hz);
+    s.lineTo(0, -hz * 0.778);
     // Mirror for left side
-    s.lineTo(-span * 0.12, -len * 0.45);
-    s.lineTo(-span * 0.42, -len * 0.38);
-    s.lineTo(-span * 0.42, -len * 0.25);
-    s.lineTo(-span * 0.18, len * 0.15);
+    s.lineTo(-hx * 0.286, -hz);
+    s.lineTo(-hx, -hz * 0.844);
+    s.lineTo(-hx, -hz * 0.556);
+    s.lineTo(-hx * 0.429, hz * 0.333);
     s.closePath();
     const geo = new THREE.ExtrudeGeometry(s, {
       depth: 0.45,
@@ -1191,62 +1380,90 @@ function AircraftJXDS({ def, m }: BuilderProps) {
     return geo;
   }, [span, len]);
 
+  /** Slimmer, lower blended body than the J-36's, carried further aft. */
+  const bodyGeometry = useMemo(() => {
+    const halfW = span * 0.085;
+    const hz = len * 0.5;
+    const s = new THREE.Shape();
+    s.moveTo(0, hz * 0.96);
+    s.lineTo(halfW, hz * 0.2);
+    s.lineTo(halfW * 0.8, -hz * 0.88);
+    s.lineTo(-halfW * 0.8, -hz * 0.88);
+    s.lineTo(-halfW, hz * 0.2);
+    s.closePath();
+    const geo = new THREE.ExtrudeGeometry(s, {
+      depth: 1.05,
+      bevelEnabled: true,
+      bevelThickness: 0.42,
+      bevelSize: 0.38,
+      bevelSegments: 2,
+    });
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }, [span, len]);
+
   return (
     <group>
       {/* Lambda wing */}
       <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
 
-      {/* Fuselage - sleeker than J-36 */}
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.42]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.75, 0.1, len * 0.2, 16]} />
-      </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.05]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, len * 0.52, 16]} />
-      </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, len * 0.3]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.5, 0.8, len * 0.16, 16]} />
+      {/* Blended centrebody. The head-on reference shows a wide, flat,
+          faceted body chined into the wing — not the tube of cylinders this
+          used to be built from. */}
+      <mesh material={m.airframeLight} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+
+      {/* Canopy - single seat, low and well forward */}
+      <mesh material={m.canopy} castShadow position={[0, cy + 0.92, -len * 0.24]} scale={[0.72, 0.45, 1.7]}>
+        <sphereGeometry args={[0.8, 18, 12]} />
       </mesh>
 
-      {/* Canopy - single seat */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 0.72, -len * 0.2]} scale={[0.7, 0.55, 1.6]}>
-        <sphereGeometry args={[0.75, 18, 12]} />
-      </mesh>
-
-      {/* Twin engine nozzles */}
+      {/* Twin engine nozzles at the trailing edge */}
       {[-1, 1].map((side) => (
         <mesh
           key={`n${side}`}
           material={m.metalDark}
-          position={[side * 0.5, cy - 0.1, len * 0.4]}
+          position={[side * span * 0.055, cy - 0.05, len * 0.4]}
           rotation={[Math.PI / 2, 0, 0]}
         >
           <cylinderGeometry args={[0.38, 0.42, 1.0, 12]} />
         </mesh>
       ))}
 
-      {/* Side intakes - more forward than J-36 */}
+      {/* Chined side intakes tucked under the leading-edge root extensions */}
       {[-1, 1].map((side) => (
-        <mesh key={`i${side}`} material={m.airframeLight} castShadow position={[side * 0.9, cy - 0.25, -len * 0.12]}>
-          <boxGeometry args={[0.5, 0.7, len * 0.14]} />
+        <mesh
+          key={`i${side}`}
+          material={m.airframeLight}
+          castShadow
+          position={[side * span * 0.1, cy - 0.28, -len * 0.1]}
+        >
+          <boxGeometry args={[span * 0.06, 0.65, len * 0.22]} />
         </mesh>
       ))}
 
-      {/* Landing gear - nose */}
+      {/* Landing gear - nose, twin wheels as in the head-on reference */}
       <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
         <cylinderGeometry args={[0.07, 0.07, 1.1, 6]} />
       </mesh>
-      <mesh material={m.tire} position={[0, 0.26, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.26, 0.26, 0.18, 12]} />
-      </mesh>
+      {[-1, 1].map((wheel) => (
+        <mesh
+          key={`nw${wheel}`}
+          material={m.tire}
+          position={[wheel * 0.17, 0.26, -len * 0.28]}
+          rotation={[0, 0, Math.PI / 2]}
+        >
+          <cylinderGeometry args={[0.26, 0.26, 0.16, 12]} />
+        </mesh>
+      ))}
 
       {/* Landing gear - main */}
       {[-1, 1].map((side) => (
-        <group key={`g${side}`} position={[side * 1.25, 0, len * 0.04]}>
+        <group key={`g${side}`} position={[side * span * 0.12, 0, len * 0.05]}>
           <mesh material={m.metalDark} position={[0, 0.6, 0]}>
             <cylinderGeometry args={[0.08, 0.08, 1.1, 6]} />
           </mesh>
           <mesh material={m.tire} position={[0, 0.28, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.28, 0.28, 0.18, 12]} />
+            <cylinderGeometry args={[0.3, 0.3, 0.2, 12]} />
           </mesh>
         </group>
       ))}
