@@ -15,6 +15,7 @@ import {
   makeChainLinkTexture,
 } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
+import { applyPreset, makeGreebleGeometry } from "@/gfx/greeble";
 
 import { isVisibleAtTimelineYear } from '@/lib/layout';
 
@@ -66,6 +67,123 @@ function facadeMaterial(
   });
 }
 
+/**
+ * Injects the procedural hard-surface pipeline (panel lines, plate seams,
+ * per-plate PBR variation, weathering, grazing rim light) into the shared
+ * materials — see `@/gfx/greeble` and
+ * `.claude/skills/blender-hardsurface/SKILL.md`.
+ *
+ * Deliberately skipped: gravel, tyres, glass, canopies, beacons, the solar
+ * texture and the chain-link alpha cutout. Panel lines on those read as a
+ * mistake rather than as engineering.
+ */
+function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
+  // poured concrete: wide expansion joints, no rivets
+  applyPreset(m.concrete, "concrete", { seed: 11 });
+  applyPreset(m.concreteLight, "concrete", { seed: 23, dust: 0.4 });
+  applyPreset(m.dirtyConcreteWall, "concrete", { seed: 37, streaks: 0.55 });
+  applyPreset(m.stucco, "concrete", { seed: 41, plateScale: 9, seamRelief: 0.22 });
+
+  // sheet cladding: tight plates, rivets, oxidisation running down the seams
+  applyPreset(m.corrugated, "cladding", { seed: 53 });
+  applyPreset(m.corrugatedTan, "cladding", { seed: 59, rust: 0.28 });
+  applyPreset(m.corrugatedWhite, "cladding", { seed: 67, rust: 0.18, dust: 0.34 });
+  applyPreset(m.rustyMetal, "cladding", { seed: 71, rust: 0.7, streaks: 0.65 });
+
+  // building envelopes: larger architectural panels on a straight grid, no
+  // rust. A running bond at this scale reads as roof tiles, not cladding.
+  const facade = {
+    rust: 0,
+    plateScale: 3.2,
+    plateAspect: 0.72,
+    stagger: 0,
+    seamDarken: 0.74,
+    rivets: false,
+  } as const;
+  applyPreset(m.whitePanel, "cladding", { seed: 79, ...facade });
+  applyPreset(m.monolithRoof, "cladding", {
+    seed: 83,
+    ...facade,
+    plateScale: 6,
+    plateAspect: 0.9,
+    seamDarken: 0.82,
+    plateAlbedo: 0.05,
+    dust: 0.42,
+  });
+  applyPreset(m.monolithWallLong, "cladding", { seed: 89, ...facade });
+  applyPreset(m.monolithWallEnd, "cladding", { seed: 97, ...facade });
+  applyPreset(m.hqWall, "cladding", { seed: 101, ...facade, streaks: 0.42 });
+  applyPreset(m.barracksWall, "cladding", { seed: 103, ...facade, streaks: 0.45 });
+  applyPreset(m.roofDark, "concrete", {
+    seed: 107,
+    plateScale: 4,
+    plateAspect: 0.9,
+    seamRelief: 0.25,
+    seamDarken: 0.82,
+    dust: 0.5,
+    rimIntensity: 0.06,
+  });
+
+  // machined metal: fine plates, strong rim, almost no grime
+  applyPreset(m.metalDark, "machined", { seed: 109 });
+  applyPreset(m.pvcPipe, "machined", { seed: 113, plateScale: 1.6, rivets: false });
+
+  // welded plate: tanks and radomes
+  applyPreset(m.tankSteel, "plated", { seed: 127 });
+  applyPreset(m.radomeWhite, "plated", {
+    seed: 131,
+    plateScale: 2.2,
+    rust: 0,
+    streaks: 0.12,
+    dust: 0.18,
+  });
+
+  // airframe skin: small plates, crisp seams, cool rim
+  applyPreset(m.airframeDark, "airframe", { seed: 137 });
+  applyPreset(m.airframeLight, "airframe", { seed: 139 });
+
+  return m;
+}
+
+/**
+ * Procedural roof clutter. One merged geometry, one draw call; the seed is
+ * derived from the structure id so a given roof is always identical.
+ */
+function GreebleDeck({
+  seed,
+  width,
+  depth,
+  position,
+  material,
+  count = 20,
+  maxHeight = 1.5,
+  rows = 3,
+}: {
+  seed: number;
+  width: number;
+  depth: number;
+  position: [number, number, number];
+  material: THREE.Material;
+  count?: number;
+  maxHeight?: number;
+  rows?: number;
+}) {
+  const geometry = useMemo(
+    () => makeGreebleGeometry({ seed, width, depth, count, maxHeight, rows }),
+    [seed, width, depth, count, maxHeight, rows],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh
+      geometry={geometry}
+      material={material}
+      position={position}
+      castShadow
+      receiveShadow
+    />
+  );
+}
+
 function useSharedMaterials(): SharedMaterials {
   const night = useTwinStore((s) => s.night);
   const materials = useMemo<SharedMaterials>(() => {
@@ -77,7 +195,7 @@ function useSharedMaterials(): SharedMaterials {
     const whitePanelTex = makeWhitePanelTexture(SITE_SEED + 505);
     const monolithRoofTex = makeWhitePanelTexture(SITE_SEED + 506);
     monolithRoofTex.repeat.set(0.06, 0.06);
-    return {
+    return decorateHardSurfaces({
       concrete: new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.92 }),
       concreteLight: new THREE.MeshStandardMaterial({
         map: concreteLightTex,
@@ -194,7 +312,7 @@ function useSharedMaterials(): SharedMaterials {
         map: makeDirtyConcreteTexture(SITE_SEED + 533),
         roughness: 0.95,
       }),
-    };
+    });
   }, []);
 
   useEffect(() => {
@@ -393,6 +511,17 @@ function MonolithHangar({ def, m }: BuilderProps) {
       {/* Compact service volumes clustered at the apron-facing end. */}
       <mesh material={m.concreteLight} castShadow position={[-w * 0.25, 3, -d / 2 - 4]}><boxGeometry args={[18, 6, 8]} /></mesh>
       <mesh material={m.roofDark} position={[-w * 0.25, 6.1, -d / 2 - 4]}><boxGeometry args={[18.5, 0.25, 8.5]} /></mesh>
+      {/* plant deck on the service annex roof */}
+      <GreebleDeck
+        seed={SITE_SEED + 610}
+        width={16}
+        depth={6.5}
+        rows={2}
+        count={14}
+        maxHeight={1.3}
+        position={[-w * 0.25, 6.22, -d / 2 - 4]}
+        material={m.metalDark}
+      />
       <mesh material={m.concreteLight} castShadow position={[w * 0.28, 2.4, -d / 2 - 3]}><boxGeometry args={[10, 4.8, 6]} /></mesh>
       <mesh material={m.corrugated} castShadow position={[0, wallH * 0.42, d / 2 + 0.2]}><boxGeometry args={[w * 0.78, wallH * 0.76, 0.45]} /></mesh>
     </group>
@@ -502,6 +631,17 @@ function Warehouse({ def, m }: BuilderProps) {
           <boxGeometry args={[2, 1.2, 2]} />
         </mesh>
       ))}
+      {/* procedural plant deck filling the rest of the roof, inset from the
+          parapet so it never breaks the building's silhouette */}
+      <GreebleDeck
+        seed={SITE_SEED + 620}
+        width={w * 0.5}
+        depth={d - 4}
+        rows={3}
+        count={24}
+        position={[-w * 0.18, h + 0.24, 0]}
+        material={m.metalDark}
+      />
       {/* roller doors on the +z face */}
       {[-0.28, 0, 0.28].map((f) => (
         <mesh key={`d${f}`} material={m.corrugated} position={[w * f, h * 0.38, d / 2 + 0.18]}>

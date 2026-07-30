@@ -9,3 +9,7 @@ dist-ssr
 .vercel
 .env*
 .gstack/
+
+# tools/probe.mjs output
+render_output.png
+render_output-*.png

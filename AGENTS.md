@@ -87,12 +87,47 @@ props run on active tiers, keep their geometry cheap and treat motion as illustr
 - Textures are generated once and cached by `useMemo` — keep new generators
   seeded and sized ≤ 4096 px.
 
+## Recipe: change how the scene looks
+
+Look development lives in `src/gfx/`, and the rules are in
+`.claude/skills/blender-hardsurface/SKILL.md` — read it before touching
+either file.
+
+- `src/gfx/postfx.ts` — the custom GLSL post stack: AgX tone mapping, a
+  multi-pass anamorphic streak `Pass`, and the lens artifact effect
+  (chromatic aberration, radial blur, film grain). Wired up, ordered and
+  tuned in `src/components/scene/Effects.tsx`, which only mounts on tier 3.
+- `src/gfx/greeble.ts` — `applyHardSurface()` patches a
+  `MeshStandardMaterial` with procedural panel lines, plate seams, per-plate
+  PBR variation, weathering and a grazing rim term;
+  `makeGreebleGeometry()` builds merged, seeded roof clutter.
+  `Structures.tsx` applies the presets in `decorateHardSurfaces`.
+- **Tone mapping happens exactly once.** `Atmosphere.tsx` picks
+  `NoToneMapping` when the post stack is mounted (AgX runs in the composer)
+  and `AgXToneMapping` otherwise, so every tier shares one look. Do not set
+  `gl.toneMapping` anywhere else.
+- The `<Canvas>` runs with `logarithmicDepthBuffer: true`. Any custom
+  `ShaderMaterial` must include the logdepth chunks — use
+  `createHardSurfaceShaderMaterial()` rather than rolling your own.
+
 ## Verifying changes
 
 ```sh
 bun run build              # validate data + bundle + typecheck
 bun run preview            # serve dist/ on :4173
 ```
+
+Shader and lighting work also needs a look, not just a green build:
+
+```sh
+bun run dev &
+node tools/probe.mjs                                    # → render_output.png
+node tools/probe.mjs --focus "Main assembly hangar" --no-hud
+```
+
+`tools/probe.mjs` drives a headless browser, captures a frame and prints
+mean luma, clipped/crushed percentages and a histogram, so exposure and
+bloom values can be tuned against numbers. `--help` lists every flag.
 
 Then in a browser: check all three cameras (`1`/`2`/`3`), click a structure
 (dossier + fly-to), click the minimap, toggle `N`/`I`/`R`/`H`, change the
