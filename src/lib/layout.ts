@@ -199,14 +199,16 @@ const STRUCTURE_DEFS: StructureDef[] = [
   building("south-west-small", "support", "South west utility", -78, 176, [29, 6, 14]),
   building("south-center", "warehouse", "South central hall", -22, 217, [48, 8, 18]),
 
-  // Prototype parked on the north apron in the supplied September close-up.
+  // Parked outside the main hangar on the central apron in the reported
+  // September image. Wingspan is the ~50 ft the cited report measures off
+  // that image; length follows its "slightly shorter than the J-36".
   building(
     "jxds-prototype",
     "aircraft-jxds",
     "J-XDS prototype (reported)",
-    -112,
-    -82,
-    [15, 3, 20],
+    -60,
+    -100,
+    [15.2, 3, 17.5],
     COMPOUND_ROT - 0.72,
     "A dark tailless aircraft commonly called J-XDS in public reporting; the name and capabilities are not official.",
     {
@@ -214,18 +216,23 @@ const STRUCTURE_DEFS: StructureDef[] = [
       confidence: "medium",
       sourceIds: ["twz-aircraft-2025"],
       observedOn: "2025-09-13",
-      method: "Position and identity reported from commercial satellite imagery",
-      uncertainty: "Aircraft name, role, dimensions, and exact parking position are not independently verified.",
+      method:
+        "Identity and position reported from commercial satellite imagery; wingspan (~50 ft) taken from the measurement stated in that reporting, length inferred from its description as slightly shorter than the J-36",
+      uncertainty:
+        "Aircraft name and role are not official. The stated wingspan is a single third-party measurement off a satellite image; length is inferred, not measured. The parking spot is placed on the apron in front of the main hangar as described, not surveyed.",
       note: "The model is illustrative and should not be read as an authoritative aircraft identification.",
     },
   ),
+  // Also parked outside the main hangar, in the reported August image.
+  // ~65 ft span and ~62 ft length are the figures stated in that reporting,
+  // which makes this airframe slightly wider than it is long.
   building(
     "j36-prototype",
     "aircraft-j36",
     "J-36 prototype (reported)",
     -85,
     -130,
-    [18, 3, 24],
+    [19.8, 3, 18.9],
     COMPOUND_ROT - 0.65,
     "A large tailless aircraft commonly called J-36 in public reporting; the name and claimed capabilities are not official.",
     {
@@ -233,8 +240,10 @@ const STRUCTURE_DEFS: StructureDef[] = [
       confidence: "medium",
       sourceIds: ["twz-aircraft-2025"],
       observedOn: "2025-08-27",
-      method: "Position and identity reported from commercial satellite imagery",
-      uncertainty: "Aircraft name, role, dimensions, and exact parking position are not independently verified.",
+      method:
+        "Identity and position reported from commercial satellite imagery; wingspan (~65 ft) and length (~62 ft) taken from the measurements stated in that reporting",
+      uncertainty:
+        "Aircraft name and role are not official. The dimensions are third-party measurements off a single satellite image and carry at least a few feet of error; the parking spot is placed on the apron in front of the main hangar as described, not surveyed.",
       note: "The model is illustrative and should not be read as an authoritative aircraft identification.",
     },
   ),

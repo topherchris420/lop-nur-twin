@@ -1210,18 +1210,23 @@ function AircraftJ36({ def, m }: BuilderProps) {
   const [span, , len] = def.size;
   const cy = 1.4;
 
-  // Large modified delta wing geometry
+  // Large modified delta wing geometry. The planform is written against the
+  // half-span/half-length so wingtips and nose land exactly on `def.size` —
+  // that value is the reported wingspan and length and is shown in the
+  // dossier, so the model has to actually measure it.
   const wingGeometry = useMemo(() => {
+    const hx = span * 0.5;
+    const hz = len * 0.5;
     const s = new THREE.Shape();
     // Delta wing with slightly swept leading edges
-    s.moveTo(0, len * 0.48);
-    s.lineTo(span * 0.52, -len * 0.35);
-    s.lineTo(span * 0.52 - 1.2, -len * 0.42);
-    s.lineTo(span * 0.18, -len * 0.48);
-    s.lineTo(0, -len * 0.38);
-    s.lineTo(-span * 0.18, -len * 0.48);
-    s.lineTo(-(span * 0.52 - 1.2), -len * 0.42);
-    s.lineTo(-span * 0.52, -len * 0.35);
+    s.moveTo(0, hz);
+    s.lineTo(hx, -hz * 0.729);
+    s.lineTo(hx - 1.15, -hz * 0.875);
+    s.lineTo(hx * 0.346, -hz);
+    s.lineTo(0, -hz * 0.792);
+    s.lineTo(-hx * 0.346, -hz);
+    s.lineTo(-(hx - 1.15), -hz * 0.875);
+    s.lineTo(-hx, -hz * 0.729);
     s.closePath();
     const geo = new THREE.ExtrudeGeometry(s, {
       depth: 0.5,
@@ -1303,22 +1308,26 @@ function AircraftJXDS({ def, m }: BuilderProps) {
   const [span, , len] = def.size;
   const cy = 1.25;
 
-  // Lambda wing geometry - angular notch in leading edge
+  // Lambda wing geometry - angular notch in leading edge. As with the J-36,
+  // the planform is normalised to the half-span/half-length so the model
+  // measures the reported wingspan and length rather than 84% of the span.
   const wingGeometry = useMemo(() => {
+    const hx = span * 0.5;
+    const hz = len * 0.5;
     const s = new THREE.Shape();
     // Nose point
-    s.moveTo(0, len * 0.45);
+    s.moveTo(0, hz);
     // Outer wing - Lambda notch pattern
-    s.lineTo(span * 0.18, len * 0.15);
-    s.lineTo(span * 0.42, -len * 0.25);
-    s.lineTo(span * 0.42, -len * 0.38);
-    s.lineTo(span * 0.12, -len * 0.45);
-    s.lineTo(0, -len * 0.35);
+    s.lineTo(hx * 0.429, hz * 0.333);
+    s.lineTo(hx, -hz * 0.556);
+    s.lineTo(hx, -hz * 0.844);
+    s.lineTo(hx * 0.286, -hz);
+    s.lineTo(0, -hz * 0.778);
     // Mirror for left side
-    s.lineTo(-span * 0.12, -len * 0.45);
-    s.lineTo(-span * 0.42, -len * 0.38);
-    s.lineTo(-span * 0.42, -len * 0.25);
-    s.lineTo(-span * 0.18, len * 0.15);
+    s.lineTo(-hx * 0.286, -hz);
+    s.lineTo(-hx, -hz * 0.844);
+    s.lineTo(-hx, -hz * 0.556);
+    s.lineTo(-hx * 0.429, hz * 0.333);
     s.closePath();
     const geo = new THREE.ExtrudeGeometry(s, {
       depth: 0.45,
