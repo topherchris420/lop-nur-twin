@@ -128,6 +128,24 @@ and the twin can never drift apart.
 - `_wip/` is excluded from `tsconfig`: sound but unfinished subsystems, kept
   rather than deleted. Finish one and move it back.
 
+Two subsystems have contracts worth knowing before you touch them:
+
+- **`characters/` legs are placed, not rotated.** `animation.ts` computes an
+  explicit foot trajectory and `ik.ts` solves the hip and knee to reach it.
+  Three properties fall out and must stay true: cadence is tied to speed by
+  `stride = speed x duty x period` so a planted foot never slides; the solver
+  clamps reach below full extension so a joint cannot hyperextend; and hip
+  height is *solved*, not iterated — lowering the hips shortens the reach to
+  the foot by less than the drop, so subtracting the excess under-corrects and
+  the planted foot creeps. `rig.ts` guarantees identity rest rotations, which
+  is what makes the solve closed-form; do not add a rest rotation. The model
+  faces `-z`, so a positive X rotation swings a bone *forward* — getting that
+  backwards is what made every knee bend the wrong way for weeks.
+- **`world/clutter.ts` cannot use `mergeAndDispose`.** Normalising for merge
+  deletes every attribute except position, normal and uv, which is right for
+  the weapons it was written for and silently drops the vertex colours all
+  clutter weathering lives in. It has its own `mergeParts`.
+
 Three things that will bite anyone extending this:
 
 1. **Tone mapping and exposure are decided in two places.** `Atmosphere` sets
@@ -168,9 +186,28 @@ the audio too:
 
 ```sh
 bun run smoke                 # 22 checks; exits non-zero on failure
+bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
+node tools/closeup.mjs        # stage a soldier 3 m from the camera
+node tools/frames.mjs --out shots/before   # the canonical frame set
 ```
+
+Two of these exist because a screenshot could not answer the question:
+
+- `tools/gait.mjs` drives one actor's animator with a fixed delta across
+  several stride cycles and asserts the knee bends forward, the leg never
+  locks out, the feet reach the ground and a planted foot does not slide. The
+  render loop is no use for this — a headless capture advances a handful of
+  frames and a stride takes sixty. A knee that bends backwards looks like a
+  bent knee in a still frame, which is how it survived several visual reviews.
+- `tools/frames.mjs` captures the *same* six views every run and prints the
+  same statistics for each, including local contrast over the lower half of
+  the frame — the number that moves when ground stops being a flat wash.
+  Pass `--compare shots/before` to diff against a previous run. Visual work
+  went in circles for a while because every review looked at a different
+  frame, and a shot into the sun disagrees with a shot away from it about
+  almost everything.
 
 `tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
 region, pushes lethal damage through the real queue and checks the kill is
