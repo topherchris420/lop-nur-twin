@@ -187,9 +187,16 @@ interface SimulationProps {
  */
 function exposeDevHandle(state: unknown): void {
   if (!import.meta.env.DEV) return;
-  (globalThis as { __combat?: { r3f: unknown; game: typeof game } }).__combat = {
+  (globalThis as {
+    __combat?: { r3f: unknown; game: typeof game; store: typeof useGameStore };
+  }).__combat = {
     r3f: state,
     game,
+    // The store, so tooling can change a setting the rig owns rather than
+    // fighting it. The camera's field of view is eased toward the setting
+    // every frame, so a tool that writes `camera.fov` directly is overwritten
+    // before the next capture — which is why the portrait lens never took.
+    store: useGameStore,
   };
 }
 

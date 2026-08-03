@@ -75,7 +75,7 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
     webbing: 0x5a5140,
     boot: 0x37312a,
     helmet: 0x5f5745,
-    skin: 0xb08968,
+    skin: 0x9d8368,
     glove: 0x2f2a24,
     lens: 0x1b2a33,
   },
@@ -86,7 +86,7 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
     webbing: 0x45483d,
     boot: 0x2b2b28,
     helmet: 0x4a4d43,
-    skin: 0xa87d5c,
+    skin: 0x8f7761,
     glove: 0x26261f,
     lens: 0x1b2a33,
   },
@@ -229,29 +229,49 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
 
   /* ---------------------------------------------------------- head */
   add(ball(0.093, 0, 1.615, 0.004, 1.15, 1.06), palette.skin);
-  // Face covering up to the cheekbones. Without it the head is a smooth tan
-  // sphere, which at conversational range reads unmistakably as a mannequin —
-  // and a covered face is what this kit would actually be worn with anyway.
-  add(ball(0.0955, 0, 1.6, 0.004, 0.92, 1.02), palette.camo[2]!, 0.95);
+
+  // Face covering, from the bridge of the nose down.
+  //
+  // This was a *complete* sphere half a millimetre larger than the head, in
+  // the darkest tone in the palette — so it did not cover the face, it
+  // replaced the head with a black ball, which is exactly what a portrait
+  // showed. A partial sphere starting just above the equator leaves the brow
+  // and eyes in skin, and that is the whole difference between a soldier and
+  // a void under a helmet.
+  const mask = new THREE.SphereGeometry(
+    0.0945, 16, 12, 0, Math.PI * 2, Math.PI * 0.53, Math.PI * 0.47,
+  );
+  mask.scale(1, 1.19, 1.09);
+  mask.translate(0, 1.615, 0.004);
+  add(mask, palette.webbing, 0.94);
+
+  // Brow shadow, a nose, and eye sockets. Three small solids, and between them
+  // they are what stop a head reading as a bald sphere at three metres.
+  add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin);
+  add(ball(0.0132, -0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.6);
+  add(ball(0.0132, 0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.6);
+
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.94);
   // Neck gaiter bunched at the collar.
   add(slab(0.135, 0.06, 0.135, 0, 1.512, 0.008, 0.05), palette.webbing, 0.95);
 
   /* -------------------------------------------------------- helmet */
-  const helmetY = 1.665;
-  const helm = new THREE.SphereGeometry(0.115, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.62);
-  helm.scale(1, 1.02, 1.1);
+  const helmetY = 1.674;
+  // Rim just above the brow. A combat helmet clears the eyes; this one used
+  // to reach the bridge of the nose, which is most of why the face was a void.
+  const helm = new THREE.SphereGeometry(0.107, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55);
+  helm.scale(1, 1.06, 1.12);
   helm.translate(0, helmetY, 0.004);
   add(helm, palette.helmet, 0.52);
   // Brim, side rails, NVG mount and counterweight pouch.
-  add(slab(0.2, 0.028, 0.02, 0, helmetY - 0.055, -0.108, 0.008), palette.helmet, 0.52);
-  add(slab(0.014, 0.03, 0.15, -0.113, helmetY - 0.028, 0.006, 0.005), 0x22231f, 0.42, 0.6);
-  add(slab(0.014, 0.03, 0.15, 0.113, helmetY - 0.028, 0.006, 0.005), 0x22231f, 0.42, 0.6);
+  add(slab(0.192, 0.026, 0.022, 0, helmetY - 0.02, -0.104, 0.008), palette.helmet, 0.52);
+  add(slab(0.013, 0.028, 0.14, -0.106, helmetY - 0.004, 0.006, 0.005), 0x22231f, 0.42, 0.6);
+  add(slab(0.013, 0.028, 0.14, 0.106, helmetY - 0.004, 0.006, 0.005), 0x22231f, 0.42, 0.6);
   add(slab(0.05, 0.045, 0.03, 0, helmetY + 0.012, -0.108, 0.008), 0x2a2b26, 0.4, 0.7);
   add(slab(0.11, 0.06, 0.055, 0, helmetY - 0.01, 0.105, 0.02), palette.webbing, 0.9);
   // Goggles pushed up onto the shell.
-  add(slab(0.185, 0.048, 0.05, 0, helmetY - 0.032, -0.086, 0.018), 0x1d1e1a, 0.35);
-  add(slab(0.14, 0.03, 0.012, 0, helmetY - 0.032, -0.112, 0.006), palette.lens, 0.12, 0.2);
+  add(slab(0.178, 0.044, 0.048, 0, helmetY + 0.038, -0.066, 0.018), 0x1d1e1a, 0.35);
+  add(slab(0.134, 0.028, 0.012, 0, helmetY + 0.038, -0.09, 0.006), palette.lens, 0.12, 0.2);
   // Headset cup and boom mic.
   add(ball(0.043, -0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
   add(ball(0.043, 0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
@@ -289,10 +309,16 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   /* ---------------------------------------------------------- boots */
   for (const side of [-1, 1]) {
     const x = side * 0.1;
-    add(slab(0.105, 0.135, 0.13, x, 0.135, 0.012, 0.03), palette.boot, 0.68);
-    add(slab(0.1, 0.09, 0.235, x, 0.048, -0.055, 0.028), palette.boot, 0.68);
-    // Sole with a visible tread lip.
-    add(slab(0.108, 0.028, 0.245, x, 0.016, -0.058, 0.012), 0x1a1a18, 0.95);
+    // Ankle cuff, then a boot that tapers toward the toe. It used to be a
+    // near-cuboid 0.235 m deep with a bevelled nose, which portraits showed
+    // reading as a wedge rather than a boot.
+    add(slab(0.102, 0.09, 0.118, x, 0.168, 0.014, 0.026), palette.boot, 0.7);
+    add(slab(0.096, 0.088, 0.125, x, 0.098, 0.006, 0.024), palette.boot, 0.68);
+    add(slab(0.092, 0.072, 0.2, x, 0.056, -0.05, 0.022), palette.boot, 0.68);
+    add(slab(0.072, 0.05, 0.06, x, 0.042, -0.132, 0.018), palette.boot, 0.7);
+    // Sole, proud of the upper, with a heel block.
+    add(slab(0.1, 0.026, 0.215, x, 0.017, -0.046, 0.008), 0x1a1a18, 0.95);
+    add(slab(0.098, 0.03, 0.07, x, 0.03, 0.026, 0.008), 0x1a1a18, 0.95);
   }
 
   /* ---------------------------------------------------------- hands */
