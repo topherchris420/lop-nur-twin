@@ -12,9 +12,11 @@ import { GROUND_OVERLOOK } from "@/lib/layout";
 import { CollisionWorld } from "./physics/collisionWorld";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
 import { FxManager } from "./fx/combatFx";
-import { game } from "./core/gameState";
+import { game, removeActor } from "./core/gameState";
 import { useGameStore } from "./core/gameStore";
 import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
+import { BotManager } from "./ai/bots";
+import { CharacterManager } from "./characters/manager";
 import type { SurfaceType } from "./core/types";
 import {
   EnvironmentLighting as EnvironmentLightingRig,
@@ -88,6 +90,58 @@ function CollisionBaker({ onBaked }: BakeProps) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Combatants                                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Spawns the opposing force and keeps their models in step with the
+ * simulation. Bots own their own movement and weapons; the character manager
+ * only ever reads actor state, so the two can be reasoned about separately.
+ */
+function Combatants({ world }: { world: CollisionWorld }) {
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+  const botCount = useGameStore((s) => s.botCount);
+  const botSkill = useGameStore((s) => s.botSkill);
+  const matchSeed = useGameStore((s) => s.matchSeed);
+  const managers = useRef<{ bots: BotManager; characters: CharacterManager } | null>(null);
+
+  useEffect(() => {
+    const characters = new CharacterManager(world);
+    const bots = new BotManager(world, {
+      count: botCount,
+      skill: botSkill,
+      seed: matchSeed,
+    });
+    bots.onFire = (actor) => characters.reportFire(actor.id);
+    characters.syncWithActors();
+    scene.add(characters.group);
+    managers.current = { bots, characters };
+    return () => {
+      scene.remove(characters.group);
+      characters.dispose();
+      bots.dispose();
+      for (const actor of [...game.actors]) {
+        if (!actor.isPlayer) removeActor(actor.id);
+      }
+      managers.current = null;
+    };
+  }, [world, scene, botCount, botSkill, matchSeed]);
+
+  useFrame((_state, rawDelta) => {
+    const held = managers.current;
+    if (!held) return;
+    const dt = Math.min(0.05, rawDelta);
+    if (useGameStore.getState().screen === "playing") {
+      held.bots.update(dt, game.time);
+    }
+    held.characters.update(dt, camera);
+  });
+
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
 /* Simulation driver                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -153,7 +207,10 @@ function Simulation({ world, fx }: SimulationProps) {
     const times = frameTimes.current;
     times.push(rawDelta);
     if (times.length > 40) times.shift();
-    if (game.frame % 10 === 0) {
+    // Written every frame, not every tenth: a headless capture may only
+    // advance two or three frames before it screenshots, and statistics that
+    // never get written look identical to a simulation that never ran.
+    {
       let sum = 0;
       for (const t of times) sum += t;
       const mean = sum / Math.max(1, times.length);
@@ -282,6 +339,7 @@ function CombatWorld() {
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
+      {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />
       {post && (
         <Suspense fallback={null}>
