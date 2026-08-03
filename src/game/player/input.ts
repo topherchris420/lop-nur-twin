@@ -118,7 +118,11 @@ export class InputManager {
   }
 
   requestLock(): void {
-    this.element?.requestPointerLock?.();
+    // Modern browsers return a promise here and reject it when the call did
+    // not follow a user gesture. Left unhandled that surfaces as an uncaught
+    // rejection in the console on every automated capture.
+    const result = this.element?.requestPointerLock?.() as unknown;
+    if (result instanceof Promise) result.catch(() => undefined);
   }
 
   releaseLock(): void {

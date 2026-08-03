@@ -228,6 +228,29 @@ function Simulation({ world, fx }: SimulationProps) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Exposure                                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Re-exposes the ground-level view on the tiers that have no composer.
+ *
+ * `Atmosphere` sets the renderer's tone mapping once, at an exposure tuned for
+ * the twin's aerial camera looking down at dark lakebed. Standing on a sunlit
+ * concrete apron is a completely different subject: at that exposure a tenth
+ * of the frame clips, against roughly a thirtieth on the tier where the
+ * composer's own AgX pass is in charge. This runs after `Atmosphere`'s effect
+ * and pulls the non-composer tiers back in line with the top one.
+ */
+function CombatExposure({ postEnabled }: { postEnabled: boolean }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    if (postEnabled) return;
+    gl.toneMappingExposure = 0.62;
+  }, [gl, postEnabled]);
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
 /* Image-based lighting                                                */
 /* ------------------------------------------------------------------ */
 
@@ -332,6 +355,7 @@ function CombatWorld() {
   return (
     <>
       <Atmosphere />
+      <CombatExposure postEnabled={post} />
       <Terrain />
       <Pavements />
       <Structures />

@@ -110,6 +110,40 @@ either file.
   `ShaderMaterial` must include the logdepth chunks — use
   `createHardSurfaceShaderMaterial()` rather than rolling your own.
 
+## The first-person mode (`src/game/`)
+
+`/play` is a combat layer over the same reconstruction the twin renders at `/`.
+It mounts the twin's `Terrain`, `Pavements`, `Structures` and `Atmosphere`
+unchanged and bakes its collision out of the rendered scene graph, so the map
+and the twin can never drift apart.
+
+- `core/` — `types.ts` is the shared vocabulary every subsystem codes against.
+  `gameState.ts` is the mutable per-frame singleton (the same "no React state
+  on the frame loop" rule applies); `gameStore.ts` is zustand, for discrete
+  state only.
+- `physics/collisionWorld.ts` — oriented boxes in a uniform grid, capsule
+  collide-and-slide, and an analytic heightfield raycast that calls the same
+  `terrainHeight` the terrain mesh is displaced by.
+- `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
+- `_wip/` is excluded from `tsconfig`: sound but unfinished subsystems, kept
+  rather than deleted. Finish one and move it back.
+
+Three things that will bite anyone extending this:
+
+1. **Tone mapping and exposure are decided in two places.** `Atmosphere` sets
+   the renderer's transform; on the top tier `render/CombatEffects.tsx` owns it
+   instead and the renderer stays linear. The viewmodel draws in its own pass
+   and reads `getPostExposure()` so both agree. Change one, check the others.
+2. **The composer's buffer is scene-linear HDR**, not display-referred. Sunlit
+   concrete sits near 2.0 there, so bloom and streak thresholds must be set
+   *above* the diffuse level or the whole ground blooms.
+3. **Anything feeding a convolution must be finite.** `HdrGuardEffect` runs
+   first for this reason; without it the sun overflows half-float to `Inf`,
+   the bloom downsample turns that into `NaN`, and the frame goes black while
+   the sky stays perfect. The same overflow ruins a `PMREMGenerator` input,
+   which is why `render/environment.ts` generates a bounded sky instead of
+   pre-filtering three's `Sky`.
+
 ## Verifying changes
 
 ```sh
@@ -128,6 +162,20 @@ node tools/probe.mjs --focus "Main assembly hangar" --no-hud
 `tools/probe.mjs` drives a headless browser, captures a frame and prints
 mean luma, clipped/crushed percentages and a histogram, so exposure and
 bloom values can be tuned against numbers. `--help` lists every flag.
+
+For the combat mode, the look is only half of it — assert the simulation too:
+
+```sh
+bun run smoke                 # 17 checks; exits non-zero on failure
+node tools/inspect.mjs        # dump live camera, lights, colliders, actors
+```
+
+`tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
+region, then pushes lethal damage through the real queue and checks the kill is
+credited. Every check in it corresponds to something that has actually broken:
+a camera that never left its spawn, an environment map full of `NaN`, bots
+spawned inside a hangar. A screenshot reported all three as "the screen is
+dark" and nothing more, which is why the assertions exist.
 
 To check the **layout** rather than the look, capture a plan view:
 

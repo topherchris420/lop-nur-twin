@@ -120,6 +120,52 @@ export class BotManager {
     return this.bots.map((b) => b.actor);
   }
 
+  /**
+   * Pick a spawn inside one of the team's zones that a standing capsule
+   * actually fits in.
+   *
+   * Scattering inside a zone radius is not enough on its own: the zones are
+   * centred on the structures they are named after, so a naive scatter drops
+   * a bot inside the assembly hangar about half the time. An embedded bot is
+   * then pushed out by the capsule solver over the next few seconds, which
+   * looks like it is climbing the wall, and until it escapes nothing can see
+   * or shoot it.
+   */
+  private findSpawnPoint(
+    team: Team,
+    rand: () => number,
+    out: THREE.Vector3,
+    avoid: THREE.Vector3 | null = null,
+  ): boolean {
+    const zones = zonesForTeam(team);
+    let fallback: THREE.Vector3 | null = null;
+    for (let attempt = 0; attempt < 24; attempt += 1) {
+      const zone = zones[Math.floor(rand() * zones.length)]!;
+      const spread = zone.radius * 0.9;
+      const x = zone.position[0] + (rand() - 0.5) * spread * 2;
+      const z = zone.position[1] + (rand() - 0.5) * spread * 2;
+      out.set(x, this.world.groundAt(x, z), z);
+      if (
+        !this.world.isPositionFree(
+          out,
+          HUMAN_METRICS.radius,
+          HUMAN_METRICS.colliderHeight.stand,
+        )
+      ) {
+        continue;
+      }
+      if (!fallback) fallback = out.clone();
+      // Do not materialise on top of whoever we are avoiding.
+      if (avoid && out.distanceTo(avoid) < 25) continue;
+      return true;
+    }
+    if (fallback) {
+      out.copy(fallback);
+      return true;
+    }
+    return false;
+  }
+
   private spawnAll(options: BotManagerOptions): void {
     const primaries = ["kv-141", "mp-9k", "ar-9-tundra", "px-45-striker", "vx-4", "dm-7-quill"];
     for (let i = 0; i < options.count; i += 1) {
@@ -137,20 +183,21 @@ export class BotManager {
       actor.weaponId = weaponId;
       addActor(actor);
 
-      const zones = zonesForTeam(team);
-      const zone = zones[Math.floor(this.rand() * zones.length)]!;
-      const spread = zone.radius * 0.7;
-      const x = zone.position[0] + (this.rand() - 0.5) * spread * 2;
-      const z = zone.position[1] + (this.rand() - 0.5) * spread * 2;
-      respawnActor(actor, _probe.set(x, this.world.groundAt(x, z), z), this.rand() * Math.PI * 2);
+      if (!this.findSpawnPoint(team, this.rand, _probe)) {
+        // No clear ground anywhere in this team's zones; skip rather than
+        // place a bot inside a building.
+        continue;
+      }
+      respawnActor(actor, _probe, this.rand() * Math.PI * 2);
+      const spawnZone = _probe.clone();
 
       this.bots.push({
         actor,
         weapon: new WeaponRuntime(getWeapon(weaponId)),
         state: "patrol",
         rand: mulberry32((options.seed ^ (id * 2654435761)) >>> 0),
-        goal: new THREE.Vector3(x, 0, z),
-        goalZone: zone,
+        goal: spawnZone,
+        goalZone: null,
         targetId: null,
         timeOnTarget: 0,
         timeSinceSeen: 99,
@@ -194,29 +241,10 @@ export class BotManager {
   }
 
   private respawn(bot: Bot): void {
-    const zones = zonesForTeam(bot.actor.team);
-    const player = game.player;
-    let best: THREE.Vector3 | null = null;
-    let bestScore = -Infinity;
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      const zone = zones[Math.floor(bot.rand() * zones.length)]!;
-      const x = zone.position[0] + (bot.rand() - 0.5) * zone.radius * 1.6;
-      const z = zone.position[1] + (bot.rand() - 0.5) * zone.radius * 1.6;
-      _probe.set(x, this.world.groundAt(x, z), z);
-      if (!this.world.isPositionFree(_probe, HUMAN_METRICS.radius, HUMAN_METRICS.colliderHeight.stand)) {
-        continue;
-      }
-      // Prefer somewhere the player is not looking at from close range.
-      const distance = _probe.distanceTo(player.position);
-      let score = Math.min(distance, 120);
-      if (distance < 25) score -= 200;
-      if (best === null || score > bestScore) {
-        bestScore = score;
-        best = _probe.clone();
-      }
+    if (!this.findSpawnPoint(bot.actor.team, bot.rand, _probe, game.player.position)) {
+      return;
     }
-    if (!best) return;
-    respawnActor(bot.actor, best, bot.rand() * Math.PI * 2);
+    respawnActor(bot.actor, _probe, bot.rand() * Math.PI * 2);
     bot.weapon.refill();
     bot.state = "patrol";
     bot.targetId = null;
@@ -400,13 +428,11 @@ export class BotManager {
   }
 
   private pickPatrolGoal(bot: Bot): void {
-    const zones = zonesForTeam(bot.actor.team);
-    const zone = zones[Math.floor(bot.rand() * zones.length)]!;
-    bot.goalZone = zone;
-    const spread = zone.radius * 0.8;
-    const x = zone.position[0] + (bot.rand() - 0.5) * spread * 2;
-    const z = zone.position[1] + (bot.rand() - 0.5) * spread * 2;
-    bot.goal.set(x, this.world.groundAt(x, z), z);
+    // Route through the same validated picker as spawning, so bots never walk
+    // toward the inside of a building and grind against its wall.
+    if (this.findSpawnPoint(bot.actor.team, bot.rand, _probe)) {
+      bot.goal.copy(_probe);
+    }
   }
 
   private pickCoverGoal(bot: Bot, threat: THREE.Vector3): void {
