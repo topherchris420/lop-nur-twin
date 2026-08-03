@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
 import type { WeaponClass, WeaponDef } from "../core/types";
 import { getWeaponMaterials, type WeaponMaterials } from "./materials";
+import { buildArms } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
@@ -753,6 +754,13 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   leftHand.position.set(0, barrelY - spec.handguardRadius - 0.01, spec.handguardFront + 0.08);
   root.add(leftHand);
 
+  // Hands, parented to the anchors rather than solved against them. In a first
+  // person view the hands never move relative to the gun, so making them
+  // children of it gets recoil, sway, aim-down-sights and the reload for free.
+  const arms = buildArms();
+  rightHand.add(arms.right);
+  leftHand.add(arms.left);
+
   // The optic group is parented at `-0.03` along Z and its axis empty sits at
   // the optical height, so the sight line is the sum of the two local offsets.
   // Reading it this way avoids depending on a world matrix that has not been
@@ -791,8 +799,9 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles,
+    triangleCount: triangles + arms.triangleCount,
     dispose() {
+      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });

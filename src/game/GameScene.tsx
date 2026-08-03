@@ -11,6 +11,7 @@ import { terrainHeight, flattenFactor } from "@/lib/terrain";
 import { GROUND_OVERLOOK } from "@/lib/layout";
 import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
+import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
 import { FxManager } from "./fx/combatFx";
 import { game, removeActor } from "./core/gameState";
@@ -487,6 +488,7 @@ function CombatWorld() {
       <Pavements />
       <Structures />
       <GroundClutter />
+      <DistantRelief />
       <EnvironmentLighting onReady={handleEnvironment} />
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />
