@@ -14,6 +14,7 @@ import {
 } from "../physics/collisionWorld";
 import { CharacterAnimator } from "./animation";
 import { buildSoldier, type SoldierModel } from "./soldier";
+import { buildHeldWeapon, type HeldWeaponModel } from "./heldWeapon";
 import { B } from "./rig";
 
 /**
@@ -30,6 +31,9 @@ import { B } from "./rig";
 interface Bound {
   actor: Actor;
   model: SoldierModel;
+  weapon: HeldWeaponModel;
+  /** The weapon id the held model was built for, so swaps rebuild it. */
+  weaponId: string;
   animator: CharacterAnimator;
   colliders: Collider[];
   regions: HitRegion[];
@@ -96,9 +100,23 @@ export class CharacterManager {
       regions.push(spec.region);
     }
 
+    // Parent the weapon to the rig's dedicated weapon bone, which the
+    // animation layer already keeps in the right hand.
+    const weapon = buildHeldWeapon(actor.weaponId);
+    model.bones[B.weapon]!.add(weapon.mesh);
+
     const animator = new CharacterAnimator();
     animator.reset(actor);
-    this.bound.set(actor.id, { actor, model, animator, colliders, regions, skip: 0 });
+    this.bound.set(actor.id, {
+      actor,
+      model,
+      weapon,
+      weaponId: actor.weaponId,
+      animator,
+      colliders,
+      regions,
+      skip: 0,
+    });
   }
 
   remove(actorId: number): void {
@@ -106,6 +124,8 @@ export class CharacterManager {
     if (!entry) return;
     for (const collider of entry.colliders) this.world.removeDynamic(collider);
     this.group.remove(entry.model.group);
+    entry.weapon.mesh.removeFromParent();
+    entry.weapon.dispose();
     entry.model.dispose();
     this.bound.delete(actorId);
   }
@@ -138,6 +158,18 @@ export class CharacterManager {
 
       if (!shouldAnimate) continue;
       const step = dt * stride;
+
+      // Rebuild the held weapon if the actor swapped to a different class.
+      if (entry.weaponId !== actor.weaponId) {
+        entry.weapon.mesh.removeFromParent();
+        entry.weapon.dispose();
+        entry.weapon = buildHeldWeapon(actor.weaponId);
+        entry.weaponId = actor.weaponId;
+        entry.model.bones[B.weapon]!.add(entry.weapon.mesh);
+      }
+      // A dead actor drops the weapon from view rather than clipping it
+      // through the ground as the body folds.
+      entry.weapon.mesh.visible = actor.alive;
 
       entry.model.group.position.copy(actor.position);
       entry.animator.update(entry.model.bones, entry.model.group, actor, step);

@@ -5,6 +5,9 @@ import {
   HUMAN_METRICS,
   MASK_SIGHT,
   OPPOSING_TEAM,
+  forwardToYaw,
+  yawDelta,
+  yawToForward,
   type Team,
 } from "../core/types";
 import {
@@ -273,7 +276,7 @@ export class BotManager {
 
       // Field of view, narrowed while suppressed.
       const fov = Math.cos((actor.suppression > 0.4 ? 0.75 : 1) * 0.96);
-      _aim.set(Math.sin(actor.yaw), 0, -Math.cos(actor.yaw));
+      yawToForward(actor.yaw, _aim);
       _toTarget.y = 0;
       const facing = _toTarget.normalize().dot(_aim);
       // Anything very close is noticed regardless of where they are looking.
@@ -587,19 +590,13 @@ export class BotManager {
         .normalize();
 
       // Turn toward the aim rather than snapping to it.
-      const wantYaw = Math.atan2(_aim.x, -_aim.z);
+      const wantYaw = forwardToYaw(_aim.x, _aim.z);
       const wantPitch = Math.asin(THREE.MathUtils.clamp(_aim.y, -1, 1));
       const turn = THREE.MathUtils.lerp(5, 13, actor.skill) * dt;
-      let deltaYaw = (wantYaw - actor.yaw) % (Math.PI * 2);
-      if (deltaYaw > Math.PI) deltaYaw -= Math.PI * 2;
-      if (deltaYaw < -Math.PI) deltaYaw += Math.PI * 2;
+      const deltaYaw = yawDelta(actor.yaw, wantYaw);
       actor.yaw += THREE.MathUtils.clamp(deltaYaw, -turn, turn);
       actor.pitch += THREE.MathUtils.clamp(wantPitch - actor.pitch, -turn, turn);
-      actor.aimDir.set(
-        Math.sin(actor.yaw) * Math.cos(actor.pitch),
-        Math.sin(actor.pitch),
-        -Math.cos(actor.yaw) * Math.cos(actor.pitch),
-      );
+      yawToForward(actor.yaw, actor.aimDir, actor.pitch);
 
       // Burst discipline: fire a class-appropriate burst, then pause.
       bot.burstPause = Math.max(0, bot.burstPause - dt);
@@ -613,14 +610,11 @@ export class BotManager {
     } else {
       // No target: face the direction of travel.
       if (actor.speed > 0.4) {
-        const wantYaw = Math.atan2(actor.velocity.x, -actor.velocity.z);
-        let deltaYaw = (wantYaw - actor.yaw) % (Math.PI * 2);
-        if (deltaYaw > Math.PI) deltaYaw -= Math.PI * 2;
-        if (deltaYaw < -Math.PI) deltaYaw += Math.PI * 2;
-        actor.yaw += THREE.MathUtils.clamp(deltaYaw, -4 * dt, 4 * dt);
+        const wantYaw = forwardToYaw(actor.velocity.x, actor.velocity.z);
+        actor.yaw += THREE.MathUtils.clamp(yawDelta(actor.yaw, wantYaw), -4 * dt, 4 * dt);
       }
       actor.pitch = damp(actor.pitch, 0, 4, dt);
-      actor.aimDir.set(Math.sin(actor.yaw), 0, -Math.cos(actor.yaw));
+      yawToForward(actor.yaw, actor.aimDir);
       bot.burst = 0;
     }
 

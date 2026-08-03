@@ -295,10 +295,15 @@ function useSharedMaterials(): SharedMaterials {
         roughness: 0.7,
         metalness: 0.35,
       }),
+      // Alpha-tested, not alpha-blended: a cutout sorts correctly against
+      // itself and still writes depth, which `transparent: true` does not.
+      // The panel geometry carries the tiling in its UVs (see `FencePanel`),
+      // so one material serves fences of any size.
       chainLink: new THREE.MeshStandardMaterial({
         map: makeChainLinkTexture(SITE_SEED + 532),
-        transparent: true,
-        alphaTest: 0.3,
+        // Low enough that a mip-blurred wire still registers rather than
+        // flickering in and out as the camera moves.
+        alphaTest: 0.26,
         roughness: 0.6,
         metalness: 0.5,
         side: THREE.DoubleSide,
@@ -1574,14 +1579,23 @@ function TransformerYard({ def, m }: BuilderProps) {
       </mesh>
       {/* chain-link fence perimeter */}
       {[-1, 1].map((side) => (
-        <mesh key={`fz${side}`} material={m.chainLink} position={[0, h / 2, side * d / 2]}>
-          <boxGeometry args={[w, h, 0.1]} />
-        </mesh>
+        <FencePanel
+          key={`fz${side}`}
+          material={m.chainLink}
+          width={w}
+          height={h}
+          position={[0, h / 2, (side * d) / 2]}
+        />
       ))}
       {[-1, 1].map((side) => (
-        <mesh key={`fx${side}`} material={m.chainLink} position={[side * w / 2, h / 2, 0]}>
-          <boxGeometry args={[0.1, h, d]} />
-        </mesh>
+        <FencePanel
+          key={`fx${side}`}
+          material={m.chainLink}
+          width={d}
+          height={h}
+          rotation={Math.PI / 2}
+          position={[(side * w) / 2, h / 2, 0]}
+        />
       ))}
       {/* fence posts */}
       {[-1, 0, 1].map((f) =>
@@ -1813,6 +1827,58 @@ function StructureBody(props: BuilderProps) {
     case "aircraft-jxds":
       return <AircraftJXDS {...props} />;
   }
+}
+
+/**
+ * A single run of chain-link.
+ *
+ * The mesh is a plane, not a box: a box shows the wire twice, once through
+ * each face, which is what makes a procedural fence read as a moiré rather
+ * than as a fence. The tiling lives in the geometry's UVs rather than in the
+ * material's `repeat`, so every panel can be a different length while they all
+ * share one material — and, more importantly, so the diamonds come out the
+ * size of real chain-link (about 50 mm) instead of being stretched to whatever
+ * the panel happens to be wide.
+ */
+function FencePanel({
+  material,
+  width,
+  height,
+  position,
+  rotation = 0,
+}: {
+  material: THREE.Material;
+  width: number;
+  height: number;
+  position: [number, number, number];
+  rotation?: number;
+}) {
+  const geometry = useMemo(() => {
+    // The texture holds 16 diamonds across and about 11 down; at a 50 mm mesh
+    // that is 0.8 m by 0.53 m of real fence per tile.
+    const tileW = 0.8;
+    const tileH = 0.53;
+    const plane = new THREE.PlaneGeometry(width, height);
+    const uv = plane.getAttribute("uv");
+    for (let i = 0; i < uv.count; i += 1) {
+      uv.setXY(i, uv.getX(i) * (width / tileW), uv.getY(i) * (height / tileH));
+    }
+    uv.needsUpdate = true;
+    return plane;
+  }, [width, height]);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <mesh
+      geometry={geometry}
+      material={material}
+      position={position}
+      rotation={[0, rotation, 0]}
+      castShadow={false}
+      receiveShadow={false}
+    />
+  );
 }
 
 function StructureNode({ def, m }: BuilderProps) {

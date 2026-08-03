@@ -66,8 +66,11 @@ interface Palette {
 
 const PALETTES: Readonly<Record<Team, Palette>> = {
   // Arid multi-tone, to sit against the lakebed without vanishing into it.
+  // The four tones are deliberately far apart in value: a disruptive pattern
+  // whose bands differ only in hue averages out to one flat colour by the time
+  // a soldier is ten metres away, which is exactly when it needs to read.
   blue: {
-    camo: [0x8d7f62, 0xa8996d, 0x6b6047, 0xc0b391],
+    camo: [0x9a8a63, 0xc4b389, 0x4a4433, 0xd8cba4],
     gear: 0x4e4a3c,
     webbing: 0x5a5140,
     boot: 0x37312a,
@@ -78,7 +81,7 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
   },
   // Cooler grey-green, so the two sides read apart at 60 m.
   red: {
-    camo: [0x5c6152, 0x767c67, 0x424637, 0x8d9179],
+    camo: [0x5b6150, 0x8b9179, 0x2e3227, 0xa8ad92],
     gear: 0x3a3d36,
     webbing: 0x45483d,
     boot: 0x2b2b28,
@@ -226,8 +229,13 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
 
   /* ---------------------------------------------------------- head */
   add(ball(0.093, 0, 1.615, 0.004, 1.15, 1.06), palette.skin);
-  // Jaw / neck gaiter.
-  add(slab(0.13, 0.09, 0.13, 0, 1.552, 0.006, 0.04), palette.webbing, 0.92);
+  // Face covering up to the cheekbones. Without it the head is a smooth tan
+  // sphere, which at conversational range reads unmistakably as a mannequin —
+  // and a covered face is what this kit would actually be worn with anyway.
+  add(ball(0.0955, 0, 1.6, 0.004, 0.92, 1.02), palette.camo[2]!, 0.95);
+  add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.94);
+  // Neck gaiter bunched at the collar.
+  add(slab(0.135, 0.06, 0.135, 0, 1.512, 0.008, 0.05), palette.webbing, 0.95);
 
   /* -------------------------------------------------------- helmet */
   const helmetY = 1.665;
@@ -406,11 +414,13 @@ function camoColorAt(
   palette: Palette,
   out: THREE.Color,
 ): THREE.Color {
-  const s = 7.5;
+  // Blotches sized to the body, not to the texture: the largest band is about
+  // a third of a torso across, which is what a real disruptive pattern does.
+  const s = 3.6;
   const n =
-    blotchLarge(x * s * 0.55, (y + z * 0.6) * s * 0.55) * 0.55 +
-    blotchMid(x * s * 1.7, (y + z * 0.4) * s * 1.7) * 0.3 +
-    blotchFine(x * s * 4.2, y * s * 4.2) * 0.15;
+    blotchLarge(x * s * 0.55, (y + z * 0.6) * s * 0.55) * 0.58 +
+    blotchMid(x * s * 1.7, (y + z * 0.4) * s * 1.7) * 0.29 +
+    blotchFine(x * s * 4.2, y * s * 4.2) * 0.13;
   const t = n * 0.5 + 0.5;
   // Four hard-edged bands, the way a printed disruptive pattern reads.
   const index = t < 0.3 ? 2 : t < 0.55 ? 0 : t < 0.8 ? 1 : 3;

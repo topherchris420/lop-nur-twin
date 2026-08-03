@@ -1,4 +1,4 @@
-import type * as THREE from "three";
+import * as THREE from "three";
 
 /**
  * Shared vocabulary for the combat simulation.
@@ -444,4 +444,46 @@ export function damageAtRange(
 /** Seconds between shots for a given rate of fire. */
 export function shotInterval(rpm: number): number {
   return 60 / Math.max(1, rpm);
+}
+
+/* ------------------------------------------------------------------ */
+/* Heading                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Yaw, and the one direction it means.
+ *
+ * `actor.yaw` is fed straight into `Object3D.rotation.y` — for the camera, for
+ * character models, for hitbox orientation. three.js rotates an object's local
+ * −Z by that angle, which gives a forward vector of `(−sin y, 0, −cos y)`.
+ * Deriving the same vector by hand at each call site is how a sign error gets
+ * in: writing the more intuitive-looking `(sin y, 0, −cos y)` produces a
+ * heading mirrored about the Z axis, which agrees with the renderer at yaw 0
+ * and is 90° wrong at yaw 90 — so it looks correct in the first screenshot
+ * anyone takes, facing north, and is silently broken everywhere else.
+ *
+ * Everything that converts between a yaw and a direction goes through these.
+ */
+
+/** Unit forward vector for a yaw (and optional pitch), in world space. */
+export function yawToForward(
+  yaw: number,
+  out: THREE.Vector3,
+  pitch = 0,
+): THREE.Vector3 {
+  const cp = Math.cos(pitch);
+  return out.set(-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
+}
+
+/** The yaw that makes `yawToForward` point along the given horizontal delta. */
+export function forwardToYaw(dx: number, dz: number): number {
+  return Math.atan2(-dx, -dz);
+}
+
+/** Shortest signed difference between two yaws, in radians. */
+export function yawDelta(from: number, to: number): number {
+  let d = (to - from) % (Math.PI * 2);
+  if (d > Math.PI) d -= Math.PI * 2;
+  if (d < -Math.PI) d += Math.PI * 2;
+  return d;
 }

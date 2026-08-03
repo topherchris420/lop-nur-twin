@@ -17,7 +17,7 @@ import { useGameStore } from "./core/gameStore";
 import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
-import type { SurfaceType } from "./core/types";
+import { forwardToYaw, type SurfaceType } from "./core/types";
 import {
   EnvironmentLighting as EnvironmentLightingRig,
   SUN,
@@ -341,9 +341,9 @@ function CombatWorld() {
 
   useEffect(() => {
     if (!world) return;
-    const defaultYaw = Math.atan2(
+    const defaultYaw = forwardToYaw(
       GROUND_OVERLOOK.target[0] - GROUND_OVERLOOK.position[0],
-      -(GROUND_OVERLOOK.target[1] - GROUND_OVERLOOK.position[1]),
+      GROUND_OVERLOOK.target[1] - GROUND_OVERLOOK.position[1],
     );
     // `?look=<deg>` aims the spawn heading, so a captured frame can be taken
     // from a chosen direction without driving the camera by hand.

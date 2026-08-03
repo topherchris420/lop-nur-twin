@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Actor } from "../core/gameState";
+import { yawDelta } from "../core/types";
 import { B, resetToRest } from "./rig";
 
 /**
@@ -33,14 +34,6 @@ function addEuler(bone: THREE.Bone, x: number, y: number, z: number): void {
 
 function damp(current: number, target: number, lambda: number, dt: number): number {
   return target + (current - target) * Math.exp(-lambda * dt);
-}
-
-/** Shortest signed angular difference, radians. */
-function angleDelta(from: number, to: number): number {
-  let d = (to - from) % (Math.PI * 2);
-  if (d > Math.PI) d -= Math.PI * 2;
-  if (d < -Math.PI) d += Math.PI * 2;
-  return d;
 }
 
 export class CharacterAnimator {
@@ -134,13 +127,13 @@ export class CharacterAnimator {
     /* --------------------------------------------------------- aim */
     // The body turns to follow the aim, but lazily: the spine takes up the
     // difference first, and the feet only catch up once it exceeds a limit.
-    const yawError = angleDelta(this.bodyYaw, actor.yaw);
+    const yawError = yawDelta(this.bodyYaw, actor.yaw);
     const twistLimit = 0.62;
     const overrun = Math.max(0, Math.abs(yawError) - twistLimit) * Math.sign(yawError);
     this.bodyYaw += overrun + yawError * Math.min(1, dt * (moving > 0.1 ? 9 : 3.2));
     group.rotation.y = this.bodyYaw;
 
-    const twist = THREE.MathUtils.clamp(angleDelta(this.bodyYaw, actor.yaw), -twistLimit, twistLimit);
+    const twist = THREE.MathUtils.clamp(yawDelta(this.bodyYaw, actor.yaw), -twistLimit, twistLimit);
     const pitch = THREE.MathUtils.clamp(actor.pitch, -0.9, 0.9);
     const lift = 0.06 + run * 0.1;
     addEuler(bones[B.spine1]!, lift * 0.3, twist * 0.3, -hipRoll * 0.5);

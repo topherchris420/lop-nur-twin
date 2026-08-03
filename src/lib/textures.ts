@@ -691,8 +691,12 @@ export function makeChainLinkTexture(seed: number): THREE.CanvasTexture {
   const cellH = 24; // vertical spacing of the diamond pattern
 
   ctx.strokeStyle = wireColor;
-  ctx.lineWidth = 1.2;
-  ctx.globalAlpha = 0.85;
+  // A 1 px wire on a 16 px cell is 7% coverage, which mipmaps down to almost
+  // nothing and then aliases into coarse moiré diamonds at any distance. Real
+  // 2 mm wire on a 50 mm mesh is nearer 8% too, but a texture has to survive
+  // minification, so the wire is drawn heavier than scale to hold together.
+  ctx.lineWidth = 2.6;
+  ctx.globalAlpha = 0.92;
 
   // draw diamond pattern — diagonal lines in both directions
   for (let y = -cellH; y < S + cellH; y += cellH) {

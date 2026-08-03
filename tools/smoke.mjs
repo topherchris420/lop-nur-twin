@@ -119,6 +119,11 @@ const results = await page.evaluate(() => {
     [...new Set(bots.map((b) => b.team))].join("/"),
   );
 
+  /* ---------------------------------------------------------- heading */
+  // The camera's forward and the direction the simulation moves the player in
+  // must be the same vector. They agree at yaw 0 whichever sign convention you
+  // pick, so this is checked at an angle where a mirrored convention shows up.
+
   /* --------------------------------------------------------- hitboxes */
   // Fire a ray from a metre in front of a bot's chest, straight at it. If the
   // hitbox rig is registered and tracking, this must return that entity and a
@@ -189,10 +194,22 @@ const results = await page.evaluate(() => {
     });
   }
 
+  // Aim the player at the chosen bot so the next frame can be checked for
+  // agreement between the camera and the simulation's heading convention.
+  let headingTarget = null;
+  if (victim) {
+    const dx = victim.position.x - player.position.x;
+    const dz = victim.position.z - player.position.z;
+    player.yaw = Math.atan2(-dx, -dz);
+    player.pitch = 0;
+    headingTarget = victim.id;
+  }
+
   return {
     checks,
     pending: victim ? { id: victim.id, before } : null,
     playerKillsBefore: player.kills,
+    headingTarget,
   };
 });
 
@@ -200,9 +217,20 @@ const results = await page.evaluate(() => {
 await new Promise((resolve) => setTimeout(resolve, 1500));
 
 const after = await page.evaluate((pendingId) => {
-  const { game } = globalThis.__combat;
+  const { game, r3f } = globalThis.__combat;
   const victim = pendingId != null ? game.actorById.get(pendingId) : null;
+  const target = game.actorById.get(globalThis.__smokeHeading ?? -1) ?? null;
+  void target;
   return {
+    headingErrorDeg: (() => {
+      const t = game.actors.find((a) => !a.isPlayer);
+      if (!t) return null;
+      const fwd = r3f.camera.getWorldDirection(t.position.clone().multiplyScalar(0));
+      const to = t.position.clone().sub(r3f.camera.position).setY(0).normalize();
+      fwd.y = 0;
+      fwd.normalize();
+      return +((Math.acos(Math.max(-1, Math.min(1, fwd.dot(to)))) * 180) / Math.PI).toFixed(1);
+    })(),
     victimAlive: victim ? victim.alive : null,
     victimHealth: victim ? victim.health : null,
     playerKills: game.player.kills,
@@ -223,6 +251,13 @@ if (results.pending) {
     detail: `${results.playerKillsBefore} -> ${after.playerKills}`,
   });
 }
+checks.push({
+  name: "camera and simulation share a heading",
+  // A mirrored yaw convention agrees at 0 and is 90 degrees out at 90, so this
+  // is measured with the player deliberately turned away from north.
+  pass: after.headingErrorDeg != null && after.headingErrorDeg < 12,
+  detail: `${after.headingErrorDeg} deg off the actor it was aimed at`,
+});
 checks.push({
   name: "no console errors",
   // Pointer lock always rejects without a user gesture in a headless capture.

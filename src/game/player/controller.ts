@@ -2,6 +2,7 @@ import * as THREE from "three";
 import {
   HUMAN_METRICS,
   MASK_MOVEMENT,
+  yawToForward,
   type Stance,
   type SurfaceType,
 } from "../core/types";
@@ -324,7 +325,7 @@ export class PlayerController {
     }
 
     /* --------------------------------------------------- input ---- */
-    _fwd.set(Math.sin(actor.yaw), 0, -Math.cos(actor.yaw));
+    yawToForward(actor.yaw, _fwd);
     _right.set(-_fwd.z, 0, _fwd.x);
     _wish
       .set(0, 0, 0)
@@ -466,7 +467,7 @@ export class PlayerController {
   /* ---------------------------------------------------------------- */
 
   private tryMantle(actor: Actor, world: CollisionWorld): boolean {
-    _fwd.set(Math.sin(actor.yaw), 0, -Math.cos(actor.yaw));
+    yawToForward(actor.yaw, _fwd);
     // Probe forward at chest height for a wall.
     _probeOrigin.set(
       actor.position.x,
