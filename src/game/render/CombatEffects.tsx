@@ -7,7 +7,7 @@ import {
   LensArtifactsEffect,
 } from "@/gfx/postfx";
 import { useTwinStore } from "@/lib/store";
-import { CombatScreenEffect, HdrGuardEffect } from "./screenEffects";
+import { CombatScreenEffect, HdrGuardEffect, setPostExposure } from "./screenEffects";
 import { useGameStore } from "../core/gameStore";
 
 /**
@@ -101,22 +101,9 @@ function minimalPost(): boolean {
 
 /** Shared handle so the game layer can drive the combat feedback pass. */
 let activeCombatEffect: CombatScreenEffect | null = null;
-let activeExposure = 1.05;
 
 export function getCombatScreenEffect(): CombatScreenEffect | null {
   return activeCombatEffect;
-}
-
-/**
- * The exposure the composer is currently tone mapping with.
- *
- * The viewmodel is drawn in its own pass and has to tone map itself. If it
- * uses a different exposure the weapon reads as a brighter, flatter object
- * pasted over the scene — which is exactly what happens if you leave it at the
- * renderer default while the composer runs at half that.
- */
-export function getPostExposure(): number {
-  return activeExposure;
 }
 
 export function CombatEffects() {
@@ -155,7 +142,7 @@ export function CombatEffects() {
   }, [combat]);
 
   useEffect(() => {
-    activeExposure = look.exposure;
+    setPostExposure(look.exposure);
     agx.exposure = look.exposure;
     agx.slope = look.slope;
     agx.offset = look.offset;

@@ -67,6 +67,31 @@ export class HdrGuardEffect extends Effect {
 }
 
 /* ------------------------------------------------------------------ */
+/* Shared exposure handle                                              */
+/* ------------------------------------------------------------------ */
+
+let activeExposure = 1.05;
+
+/** Called by the composer whenever it retunes. */
+export function setPostExposure(value: number): void {
+  activeExposure = value;
+}
+
+/**
+ * The exposure the composer is currently tone mapping with.
+ *
+ * The viewmodel is drawn in its own pass and has to tone map itself. If it
+ * uses a different exposure the weapon reads as a brighter, flatter object
+ * pasted over the scene — which is exactly what happens if it is left at the
+ * renderer default while the composer runs at half that. This lives here, not
+ * in the composer module, so the player rig can read it without statically
+ * importing the lazily-loaded post-processing chunk.
+ */
+export function getPostExposure(): number {
+  return activeExposure;
+}
+
+/* ------------------------------------------------------------------ */
 /* Combat screen feedback                                              */
 /* ------------------------------------------------------------------ */
 

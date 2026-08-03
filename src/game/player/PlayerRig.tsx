@@ -16,7 +16,7 @@ import type { FxManager } from "../fx/combatFx";
 import { applyNearMissSuppression } from "../core/combat";
 import { ViewmodelStage } from "./viewmodelStage";
 import { sunElevationRad, SUN } from "../render/environment";
-import { getPostExposure } from "../render/CombatEffects";
+import { getPostExposure } from "../render/screenEffects";
 
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
