@@ -9,11 +9,16 @@
  * every review of the character so far has been guesswork, in both
  * directions.
  *
- * This borrows the world camera, narrows it to a portrait lens and steps it
- * around the subject. A 28 degree lens at 3.6 m frames a 1.8 m subject head
- * to toe; the head study drops to 9 degrees. The field of view is re-applied
- * on an interval rather than set once, because the player rig modulates it
- * for sprint and aim and would otherwise stamp on it between frames.
+ * This borrows the world camera and narrows it to a portrait lens. A 28
+ * degree lens at 3.6 m frames a 1.8 m subject head to toe; the head study
+ * drops to 9 degrees.
+ *
+ * Two things it has to do that are not obvious. The lens is set through the
+ * *store*, because the player rig eases the camera toward that setting every
+ * frame and would undo a direct write before the shutter. And the camera
+ * stands still while the subject turns, because orbiting the camera moves the
+ * sun from behind the lens to behind the subject and half the set comes back
+ * as unjudgeable silhouette.
  *
  *   node tools/portrait.mjs                 -> shots/portrait/*.png
  *   node tools/portrait.mjs --out shots/x --stance crouch
@@ -115,22 +120,17 @@ for (const shot of SHOTS) {
     const bot = game.actorById.get(globalThis.__portraitSubject);
     if (!bot) return;
 
-    // Hold the subject still and facing the camera. The bot manager keeps
-    // running, so this is re-applied for every shot rather than once.
     bot.speed = 0;
     bot.velocity.set(0, 0, 0);
     bot.state = "idle";
 
     const theta = (s.angle * Math.PI) / 180;
     const p = game.player;
-    // The subject faces shot zero; the camera orbits around it.
-    // Spin the *subject*, not the camera. Orbiting the camera moved the sun
-    // from behind the lens to behind the subject, so half the set came back
-    // in silhouette and could not be judged at all.
+    // The camera stands where the light is and the subject turns in front of
+    // it. `1.25 pi` is the yaw that faces the subject at the camera, since the
+    // camera sits off its +x/+z quarter — which is the side the sun is on at
+    // this azimuth, so every shot has the light over the lens's shoulder.
     bot.yaw = Math.PI * 1.25 + theta;
-    // The subject faces -z at yaw 0, so angle 0 has to put the camera in
-    // front of it — at -z. Adding the offset put every "front" shot behind
-    // the soldier and mislabelled the whole set.
     const x = bot.position.x + 0.707 * s.distance;
     const z = bot.position.z + 0.707 * s.distance;
     p.position.set(x, game.world.groundAt(x, z), z);
@@ -161,14 +161,8 @@ for (const shot of SHOTS) {
     bot.speed = 0;
     bot.velocity.set(0, 0, 0);
     bot.state = "idle";
-    // Spin the *subject*, not the camera. Orbiting the camera moved the sun
-    // from behind the lens to behind the subject, so half the set came back
-    // in silhouette and could not be judged at all.
     bot.yaw = Math.PI * 1.25 + theta;
     bot.position.set(globalThis.__portraitAt.x, globalThis.__portraitAt.y, globalThis.__portraitAt.z);
-    // The subject faces -z at yaw 0, so angle 0 has to put the camera in
-    // front of it — at -z. Adding the offset put every "front" shot behind
-    // the soldier and mislabelled the whole set.
     const x = bot.position.x + 0.707 * s.distance;
     const z = bot.position.z + 0.707 * s.distance;
     p.position.set(x, game.world.groundAt(x, z), z);
