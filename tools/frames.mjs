@@ -166,8 +166,15 @@ for (const view of VIEWS) {
     // four-times speed-up that changes none of the averages, while keeping
     // horizontal neighbours adjacent so local contrast stays exact.
     const ROW_STRIDE = 4;
+    // The viewmodel occupies the lower right of every frame, and the HUD the
+    // lower corners. Both are opaque foreground, so counting them as "ground"
+    // made this metric move whenever the weapon changed — it dropped 4% the
+    // day hands were added, which is the metric measuring an improvement as a
+    // regression. The ground sample is the lower *left* only.
+    const groundRight = Math.floor(width * 0.55);
+    const groundBottom = Math.floor(height * 0.88);
     for (let y = 0; y < height; y += ROW_STRIDE) {
-      const lower = y > height * 0.55;
+      const lower = y > height * 0.55 && y < groundBottom;
       let previous = -1;
       for (let x = 0; x < width; x += 1) {
         const i = y * width + x;
@@ -182,15 +189,17 @@ for (const view of VIEWS) {
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         satSum += max > 0 ? (max - min) / max : 0;
-        if (lower) {
+        if (lower && x < groundRight) {
           lowerSum += luma;
           lowerCount += 1;
           if (previous >= 0) {
             detail += Math.abs(luma - previous);
             detailCount += 1;
           }
+          previous = luma;
+        } else {
+          previous = -1;
         }
-        previous = luma;
       }
     }
     void n;

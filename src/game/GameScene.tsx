@@ -194,7 +194,18 @@ function exposeDevHandle(state: unknown): void {
 }
 
 function Simulation({ world, fx }: SimulationProps) {
+  const gl = useThree((s) => s.gl);
   const kills = useMemo<KillReport[]>(() => [], []);
+
+  // Own the reset, so the statistics cover the whole frame rather than
+  // whichever pass happened to run last.
+  useEffect(() => {
+    gl.info.autoReset = false;
+    return () => {
+      gl.info.autoReset = true;
+    };
+  }, [gl]);
+
   const pushKillfeed = useGameStore((s) => s.pushKillfeed);
   const pruneKillfeed = useGameStore((s) => s.pruneKillfeed);
   const frameTimes = useRef<number[]>([]);
@@ -247,8 +258,17 @@ function Simulation({ world, fx }: SimulationProps) {
       const mean = sum / Math.max(1, times.length);
       game.stats.fps = mean > 0 ? 1 / mean : 0;
       game.stats.frameMs = mean * 1000;
+      // `renderer.info` resets itself at the start of every `render()` call,
+      // and the composer issues one per pass — so reading it here, after the
+      // last fullscreen pass, reported that pass alone. It claimed 26 draws
+      // and 19k triangles for a frame that actually submits 863 draws and
+      // 2.06M triangles, which is not a rounding error, it is a different
+      // renderer. Turning off the automatic reset and clearing it once per
+      // frame accumulates every pass, at the cost of the numbers describing
+      // the previous frame — which is what a frame-time average is anyway.
       game.stats.drawCalls = state.gl.info.render.calls;
       game.stats.triangles = state.gl.info.render.triangles;
+      state.gl.info.reset();
       let alive = 0;
       for (const actor of game.actors) if (actor.alive) alive += 1;
       game.stats.actorsAlive = alive;
