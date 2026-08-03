@@ -125,6 +125,8 @@ function Combatants({ world }: { world: CollisionWorld }) {
     characters.syncWithActors();
     scene.add(characters.group);
 
+    game.characters = characters;
+
     const director = new MatchDirector(mode);
     // Everyone respawns through the bot manager's geometry-checked picker.
     director.requestSpawn = (actor) =>
@@ -135,6 +137,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
     managers.current = { bots, characters, director };
     return () => {
       game.matchDirector = null;
+      game.characters = null;
       scene.remove(characters.group);
       characters.dispose();
       bots.dispose();

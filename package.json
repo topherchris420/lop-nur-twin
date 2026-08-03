@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "validate:data": "bun scripts/validate-data.ts",
     "smoke": "node tools/smoke.mjs",
-    "audio": "node tools/audio.mjs"
+    "audio": "node tools/audio.mjs",
+    "gait": "node tools/gait.mjs",
+    "closeup": "node tools/closeup.mjs"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.8",

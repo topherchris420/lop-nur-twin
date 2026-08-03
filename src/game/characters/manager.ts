@@ -76,6 +76,10 @@ export class CharacterManager {
     this.group.userData["noCollide"] = true;
   }
 
+  /** Bound once so every animator shares one closure rather than allocating. */
+  private readonly sampleGround = (x: number, z: number): number =>
+    this.world.groundAt(x, z);
+
   /** Attach a model and hitboxes to an actor. Idempotent. */
   add(actor: Actor, team: Team = actor.team): void {
     if (this.bound.has(actor.id)) return;
@@ -106,6 +110,9 @@ export class CharacterManager {
     model.bones[B.weapon]!.add(weapon.mesh);
 
     const animator = new CharacterAnimator();
+    // Feet are planted on the sampled ground rather than on the actor's own
+    // plane, so a soldier on a slope stands on it instead of through it.
+    animator.groundAt = this.sampleGround;
     animator.reset(actor);
     this.bound.set(actor.id, {
       actor,
@@ -172,7 +179,15 @@ export class CharacterManager {
       entry.weapon.mesh.visible = actor.alive;
 
       entry.model.group.position.copy(actor.position);
-      entry.animator.update(entry.model.bones, entry.model.group, actor, step);
+      // Per-foot ground sampling and the off-hand IK only read at close range,
+      // and the ground sampler is the most expensive thing in the pose.
+      entry.animator.update(
+        entry.model.bones,
+        entry.model.group,
+        actor,
+        step,
+        distance < 45,
+      );
       entry.model.bones[B.root]!.updateMatrixWorld(true);
 
       // Shadows are the most expensive thing a character does; only the ones
@@ -206,6 +221,28 @@ export class CharacterManager {
       );
       updateCollider(collider, _centre, _quat);
     }
+  }
+
+  /** Posed bone hierarchy of a bound actor, for tooling and debug overlays. */
+  bonesOf(actorId: number): readonly THREE.Bone[] | null {
+    return this.bound.get(actorId)?.model.bones ?? null;
+  }
+
+  /**
+   * Advance one actor's pose by a fixed delta, without touching hitboxes,
+   * shadows or anything else the frame loop does.
+   *
+   * This exists so a gait can be measured rather than eyeballed. A headless
+   * capture only ever advances a handful of frames with clamped deltas, which
+   * is nowhere near a full stride — stepping the animator directly is the only
+   * way to see a whole cycle.
+   */
+  poseOnly(actorId: number, dt: number, detail = true): void {
+    const entry = this.bound.get(actorId);
+    if (!entry) return;
+    entry.model.group.position.copy(entry.actor.position);
+    entry.animator.update(entry.model.bones, entry.model.group, entry.actor, dt, detail);
+    entry.model.group.updateMatrixWorld(true);
   }
 
   /** Total triangles across live characters, for the statistics readout. */

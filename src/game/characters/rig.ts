@@ -217,6 +217,20 @@ export const FINGER_BONES: readonly number[] = [
   B.thumbL, B.indexL, B.gripL, B.thumbR, B.indexR, B.gripR,
 ];
 
+/**
+ * Root-to-bone paths, for code that needs a bone's model-space pose *during*
+ * a pose pass — before the scene graph's world matrices have been refreshed.
+ * The animation layer uses these to find where the weapon ended up so the
+ * off hand can be placed on it.
+ */
+export const CHAIN_TO_WEAPON: readonly number[] = [
+  B.root, B.pelvis, B.spine1, B.spine2, B.spine3,
+  B.clavicleR, B.upperArmR, B.foreArmR, B.foreTwistR, B.handR, B.weapon,
+];
+export const CHAIN_TO_CLAVICLE_L: readonly number[] = [
+  B.root, B.pelvis, B.spine1, B.spine2, B.spine3, B.clavicleL,
+];
+
 /** Which bone a damage region should push on when a ragdoll takes its impulse. */
 export const REGION_BONE: Readonly<Record<HitRegion, number>> = {
   head: B.head,
@@ -289,6 +303,35 @@ export function resetToRest(bones: readonly THREE.Bone[]): void {
     );
     bone.quaternion.set(0, 0, 0, 1);
     bone.scale.set(1, 1, 1);
+  }
+}
+
+const _chainOffset = new THREE.Vector3();
+
+/**
+ * Walk a root-to-bone path composing local transforms, and write the final
+ * bone's pose in model space.
+ *
+ * This is forward kinematics done by hand rather than by
+ * `updateMatrixWorld`, because it answers the question mid-pose: the caller
+ * needs the weapon's position after posing the right arm and before the frame
+ * has been flushed, and it wants the answer in model space rather than world
+ * space so it can hand it straight back to the IK solver.
+ */
+export function chainPose(
+  bones: readonly THREE.Bone[],
+  chain: readonly number[],
+  outPos: THREE.Vector3,
+  outQuat: THREE.Quaternion,
+): void {
+  outPos.set(0, 0, 0);
+  outQuat.identity();
+  for (let i = 0; i < chain.length; i += 1) {
+    const bone = bones[chain[i]!];
+    if (!bone) continue;
+    _chainOffset.copy(bone.position).applyQuaternion(outQuat);
+    outPos.add(_chainOffset);
+    outQuat.multiply(bone.quaternion);
   }
 }
 

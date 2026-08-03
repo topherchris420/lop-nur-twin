@@ -288,6 +288,17 @@ export interface GameState {
     onKill(report: { attacker: Actor | null; victim: Actor }): void;
   } | null;
 
+  /**
+   * The live character rig, or `null` before one is bound. Structurally typed
+   * for the same reason as `matchDirector`. Read by the pose-measurement
+   * harness, which steps a single actor's animation with a fixed delta rather
+   * than trying to infer a gait from a handful of rendered frames.
+   */
+  characters: {
+    bonesOf(actorId: EntityId): readonly THREE.Bone[] | null;
+    poseOnly(actorId: EntityId, dt: number, detail?: boolean): void;
+  } | null;
+
   /* Queues drained by their owning system each frame. */
   damageQueue: DamageEvent[];
   killQueue: KillEvent[];
@@ -371,6 +382,7 @@ export const game: GameState = {
   player,
   world: null,
   matchDirector: null,
+  characters: null,
   damageQueue: [],
   killQueue: [],
   soundQueue: [],
