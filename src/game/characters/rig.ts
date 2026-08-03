@@ -230,6 +230,9 @@ export const CHAIN_TO_WEAPON: readonly number[] = [
 export const CHAIN_TO_CLAVICLE_L: readonly number[] = [
   B.root, B.pelvis, B.spine1, B.spine2, B.spine3, B.clavicleL,
 ];
+export const CHAIN_TO_CLAVICLE_R: readonly number[] = [
+  B.root, B.pelvis, B.spine1, B.spine2, B.spine3, B.clavicleR,
+];
 
 /** Which bone a damage region should push on when a ragdoll takes its impulse. */
 export const REGION_BONE: Readonly<Record<HitRegion, number>> = {

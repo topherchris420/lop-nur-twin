@@ -5,6 +5,7 @@ import {
   B,
   BONE_LENGTH,
   CHAIN_TO_CLAVICLE_L,
+  CHAIN_TO_CLAVICLE_R,
   CHAIN_TO_WEAPON,
   REST_POS,
   chainPose,
@@ -112,6 +113,9 @@ const _savedUpper = new THREE.Quaternion();
 const _savedFore = new THREE.Quaternion();
 const _solvedUpper = new THREE.Quaternion();
 const _solvedFore = new THREE.Quaternion();
+const _foreQuat = new THREE.Quaternion();
+const _foreModel = new THREE.Quaternion();
+const _handQuat = new THREE.Quaternion();
 
 /** Per-foot working state, so the two legs can be solved from one code path. */
 interface FootPlan {
@@ -463,6 +467,14 @@ export class CharacterAnimator {
     );
     setEuler(bones[B.foreArmR]!, -1.28 * carry - 0.5 * sprinting, 0, 0.2 * carry);
 
+    // The firing hand is *placed*, not posed. Hand-tuned Euler angles put the
+    // weapon — which hangs off this hand — out to the side of the body and
+    // pointing at the ground, because three chained rotations of about a
+    // radian each compound in a way nobody can hold in their head. Solving for
+    // where the grip should be instead makes the carry correct by
+    // construction, and it is the same inversion that fixed the legs.
+    this.placeWeaponHand(bones, carry, pitch, twist);
+
     setEuler(bones[B.clavicleL]!, 0, 0.16 * carry, 0.08 * carry);
     setEuler(
       bones[B.upperArmL]!,
@@ -501,6 +513,65 @@ export class CharacterAnimator {
     addEuler(bones[B.spine2]!, breathe, 0, 0);
 
     this.lean = damp(this.lean, 0, 8, dt);
+  }
+
+  /**
+   * Put the firing hand where a rifle grip belongs, and aim the weapon.
+   *
+   * The weapon bone hangs off `handR`, so wherever this hand ends up is where
+   * the rifle ends up. Two-bone IK reaches the grip position, and then the
+   * hand is given an explicit model-space orientation — at rest the weapon
+   * bone already points down `-z`, so an identity hand carries the rifle
+   * level and forward, and pitch and torso twist are layered on top of that.
+   */
+  private placeWeaponHand(
+    bones: readonly THREE.Bone[],
+    carry: number,
+    pitch: number,
+    twist: number,
+  ): void {
+    if (carry < 0.3) return;
+
+    // A patrol carry: grip at the lower chest, inboard of the shoulder, muzzle
+    // forward. It rises and falls with the aim rather than staying pinned.
+    _armTarget.set(
+      0.128,
+      1.062 - pitch * 0.12 - this.crouch * 0.05 - this.prone * 0.22,
+      -0.152 - Math.max(0, pitch) * 0.05,
+    );
+
+    chainPose(bones, CHAIN_TO_CLAVICLE_R, _clavPos, _clavQuat);
+    _clavInv.copy(_clavQuat).invert();
+    _armOrigin.copy(bones[B.upperArmR]!.position);
+    _armTarget.sub(_clavPos).applyQuaternion(_clavInv);
+    // The firing elbow drops and stays outboard of the ribs.
+    _armPole.set(0.55, -0.78, 0.3).normalize().applyQuaternion(_clavInv);
+
+    _savedUpper.copy(bones[B.upperArmR]!.quaternion);
+    _savedFore.copy(bones[B.foreArmR]!.quaternion);
+    solveTwoBone(
+      bones[B.upperArmR]!,
+      bones[B.foreArmR]!,
+      B.upperArmR,
+      B.foreArmR,
+      _armOrigin,
+      _armTarget,
+      _armPole,
+      UPPER_ARM_LEN,
+      FOREARM_LEN,
+      _foreQuat,
+    );
+    _solvedUpper.copy(bones[B.upperArmR]!.quaternion);
+    _solvedFore.copy(bones[B.foreArmR]!.quaternion);
+    bones[B.upperArmR]!.quaternion.copy(_savedUpper).slerp(_solvedUpper, carry);
+    bones[B.foreArmR]!.quaternion.copy(_savedFore).slerp(_solvedFore, carry);
+
+    // Aim the weapon. `foreTwistR` keeps its rest transform, so the forearm's
+    // model rotation carries straight through to the hand's parent.
+    _e.set(pitch, twist * 0.3, -0.14, "YXZ");
+    _handQuat.setFromEuler(_e);
+    _foreModel.copy(_clavQuat).multiply(_foreQuat).invert().multiply(_handQuat);
+    bones[B.handR]!.quaternion.slerp(_foreModel, carry);
   }
 
   /**

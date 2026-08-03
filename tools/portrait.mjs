@@ -99,6 +99,7 @@ const staged = await page.evaluate((wantStance) => {
   bot.velocity.set(0, 0, 0);
   bot.suppression = 0;
   globalThis.__portraitSubject = bot.id;
+  globalThis.__portraitAt = { x: spot.x, y: spot.y, z: spot.z };
   return { name: bot.name, at: [+spot.x.toFixed(1), +spot.z.toFixed(1)] };
 }, stance);
 
@@ -142,7 +143,28 @@ for (const shot of SHOTS) {
     r3f.camera.updateProjectionMatrix();
   }, shot);
 
-  await sleep(700);
+  // Settle the pose, then re-pin the subject right before the shutter: the
+  // bot manager keeps running between calls and walks it into a stride.
+  await sleep(650);
+  await page.evaluate((s) => {
+    const { game } = globalThis.__combat;
+    const bot = game.actorById.get(globalThis.__portraitSubject);
+    if (!bot) return;
+    const theta = (s.angle * Math.PI) / 180;
+    const p = game.player;
+    bot.speed = 0;
+    bot.velocity.set(0, 0, 0);
+    bot.state = "idle";
+    bot.yaw = 0;
+    bot.position.set(globalThis.__portraitAt.x, globalThis.__portraitAt.y, globalThis.__portraitAt.z);
+    const x = bot.position.x + Math.sin(theta) * s.distance;
+    const z = bot.position.z + Math.cos(theta) * s.distance;
+    p.position.set(x, game.world.groundAt(x, z), z);
+    p.velocity.set(0, 0, 0);
+    p.yaw = Math.atan2(-(bot.position.x - x), -(bot.position.z - z));
+    p.pitch = Math.atan2(bot.position.y + s.aim - (p.position.y + 1.62), s.distance);
+  }, shot);
+  await sleep(70);
   await page.screenshot({ path: `${outDir}/${shot.id}.png` });
   console.log(`${shot.id.padEnd(14)} ${shot.fov}deg at ${shot.distance}m  ${shot.note}`);
 }
