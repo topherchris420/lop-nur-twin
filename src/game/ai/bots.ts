@@ -124,6 +124,21 @@ export class BotManager {
   }
 
   /**
+   * A validated spawn for any actor, including the player.
+   *
+   * Exposed so the match director respawns everyone through the same
+   * geometry-checked path the bots use — two spawn implementations is exactly
+   * how the player ends up inside a hangar while the bots never do.
+   */
+  spawnPointFor(team: Team, avoid: THREE.Vector3 | null = null): { position: [number, number, number]; yaw: number } | null {
+    if (!this.findSpawnPoint(team, this.rand, _probe, avoid)) return null;
+    return {
+      position: [_probe.x, _probe.y, _probe.z],
+      yaw: this.rand() * Math.PI * 2,
+    };
+  }
+
+  /**
    * Pick a spawn inside one of the team's zones that a standing capsule
    * actually fits in.
    *

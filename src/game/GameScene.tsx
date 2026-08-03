@@ -17,6 +17,7 @@ import { useGameStore } from "./core/gameStore";
 import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
+import { MatchDirector } from "./modes/match";
 import { forwardToYaw, type SurfaceType } from "./core/types";
 import {
   EnvironmentLighting as EnvironmentLightingRig,
@@ -104,7 +105,13 @@ function Combatants({ world }: { world: CollisionWorld }) {
   const botCount = useGameStore((s) => s.botCount);
   const botSkill = useGameStore((s) => s.botSkill);
   const matchSeed = useGameStore((s) => s.matchSeed);
-  const managers = useRef<{ bots: BotManager; characters: CharacterManager } | null>(null);
+  const mode = useGameStore((s) => s.mode);
+  const setScreen = useGameStore((s) => s.setScreen);
+  const managers = useRef<{
+    bots: BotManager;
+    characters: CharacterManager;
+    director: MatchDirector;
+  } | null>(null);
 
   useEffect(() => {
     const characters = new CharacterManager(world);
@@ -116,8 +123,17 @@ function Combatants({ world }: { world: CollisionWorld }) {
     bots.onFire = (actor) => characters.reportFire(actor.id);
     characters.syncWithActors();
     scene.add(characters.group);
-    managers.current = { bots, characters };
+
+    const director = new MatchDirector(mode);
+    // Everyone respawns through the bot manager's geometry-checked picker.
+    director.requestSpawn = (actor) =>
+      bots.spawnPointFor(actor.team, actor.isPlayer ? null : game.player.position);
+    director.onEnd = () => setScreen("results");
+    game.matchDirector = director;
+
+    managers.current = { bots, characters, director };
     return () => {
+      game.matchDirector = null;
       scene.remove(characters.group);
       characters.dispose();
       bots.dispose();
@@ -126,7 +142,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
       }
       managers.current = null;
     };
-  }, [world, scene, botCount, botSkill, matchSeed]);
+  }, [world, scene, botCount, botSkill, matchSeed, mode, setScreen]);
 
   useFrame((_state, rawDelta) => {
     const held = managers.current;
@@ -134,6 +150,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
     const dt = Math.min(0.05, rawDelta);
     if (useGameStore.getState().screen === "playing") {
       held.bots.update(dt, game.time);
+      held.director.update(dt);
     }
     held.characters.update(dt, camera);
   });
@@ -180,6 +197,7 @@ function Simulation({ world, fx }: SimulationProps) {
     if (playing) {
       resolveDamage(game.time, kills);
       for (const kill of kills) {
+        game.matchDirector?.onKill(kill);
         pushKillfeed({
           attacker: kill.attacker?.name ?? "—",
           attackerTeam: kill.attacker?.team ?? "red",

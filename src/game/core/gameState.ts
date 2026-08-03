@@ -273,6 +273,21 @@ export interface GameState {
   /** Set once the scene has baked its colliders. */
   world: CollisionWorld | null;
 
+  /**
+   * The running match, or `null` outside one.
+   *
+   * Typed structurally, against `Actor` which is declared here, so this file
+   * keeps its place at the bottom of the module graph — importing the modes
+   * layer for its concrete type would make the dependency circular.
+   */
+  matchDirector: {
+    phase: string;
+    scoreBlue: number;
+    scoreRed: number;
+    timeRemaining: number;
+    onKill(report: { attacker: Actor | null; victim: Actor }): void;
+  } | null;
+
   /* Queues drained by their owning system each frame. */
   damageQueue: DamageEvent[];
   killQueue: KillEvent[];
@@ -355,6 +370,7 @@ export const game: GameState = {
   actorById: new Map([[PLAYER_ENTITY_ID, player]]),
   player,
   world: null,
+  matchDirector: null,
   damageQueue: [],
   killQueue: [],
   soundQueue: [],

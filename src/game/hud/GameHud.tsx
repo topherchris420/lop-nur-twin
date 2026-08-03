@@ -410,6 +410,77 @@ function PauseMenu() {
   );
 }
 
+function ResultsScreen() {
+  const setScreen = useGameStore((s) => s.setScreen);
+  const rerollMatchSeed = useGameStore((s) => s.rerollMatchSeed);
+  const hud = game.hud;
+  const player = game.player;
+  const won = hud.scoreBlue > hud.scoreRed;
+  const drew = hud.scoreBlue === hud.scoreRed;
+
+  return (
+    <Scrim>
+      <div className="w-full max-w-2xl px-8 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.5em] text-slate-500">
+          Match complete
+        </p>
+        <h2
+          className={cn(
+            "mt-3 text-7xl font-black uppercase tracking-[-0.03em]",
+            drew ? "text-slate-300" : won ? "text-[#4da3ff]" : "text-[#ff5a4d]",
+          )}
+        >
+          {drew ? "Draw" : won ? "Victory" : "Defeat"}
+        </h2>
+
+        <div className="mt-8 flex items-center justify-center gap-10 font-mono">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[#4da3ff]">Blue</div>
+            <div className="text-5xl font-bold text-white">{hud.scoreBlue}</div>
+          </div>
+          <div className="text-2xl text-slate-600">—</div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[#ff5a4d]">Red</div>
+            <div className="text-5xl font-bold text-white">{hud.scoreRed}</div>
+          </div>
+        </div>
+
+        <dl className="mx-auto mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-white/10 pt-6 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+          <div>
+            <dt>Kills</dt>
+            <dd className="mt-1 font-mono text-2xl text-slate-100">{player.kills}</dd>
+          </div>
+          <div>
+            <dt>Deaths</dt>
+            <dd className="mt-1 font-mono text-2xl text-slate-100">{player.deaths}</dd>
+          </div>
+          <div>
+            <dt>Ratio</dt>
+            <dd className="mt-1 font-mono text-2xl text-slate-100">
+              {(player.kills / Math.max(1, player.deaths)).toFixed(2)}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="mx-auto mt-10 flex max-w-sm gap-3">
+          <TacticalButton
+            primary
+            onClick={() => {
+              // A new seed gives a different match rather than a replay of the
+              // one just finished; the scene rebuilds on the seed changing.
+              rerollMatchSeed();
+              setScreen("playing");
+            }}
+          >
+            Rematch
+          </TacticalButton>
+          <TacticalButton onClick={() => setScreen("boot")}>Menu</TacticalButton>
+        </div>
+      </div>
+    </Scrim>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Killfeed                                                            */
 /* ------------------------------------------------------------------ */
@@ -459,6 +530,7 @@ export function GameHud() {
       {screen === "boot" && <MainMenu />}
       {screen === "loadout" && <LoadoutScreen />}
       {screen === "paused" && <PauseMenu />}
+      {screen === "results" && <ResultsScreen />}
     </>
   );
 }

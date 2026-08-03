@@ -124,6 +124,29 @@ const results = await page.evaluate(() => {
   // must be the same vector. They agree at yaw 0 whichever sign convention you
   // pick, so this is checked at an angle where a mirrored convention shows up.
 
+  /* ----------------------------------------------------------- match */
+  // The director is stepped directly with a fixed delta. A headless render
+  // loop only advances a handful of frames, and `dt` is clamped per frame, so
+  // wall-clock time cannot drive a ten-minute match here.
+  const director = game.matchDirector;
+  check("match director running", !!director, director ? director.phase : "missing");
+  if (director) {
+    for (let i = 0; i < 40; i += 1) director.update(0.1);
+    check("warmup ends", director.phase === "live", director.phase);
+    const t0 = director.timeRemaining;
+    for (let i = 0; i < 100; i += 1) director.update(0.1);
+    check(
+      "match clock counts down",
+      t0 - director.timeRemaining > 9,
+      `${t0.toFixed(0)} -> ${director.timeRemaining.toFixed(0)} s`,
+    );
+    check(
+      "hud mirrors the clock",
+      Math.abs(game.hud.timeRemaining - director.timeRemaining) < 0.01,
+      `${game.hud.timeRemaining.toFixed(0)} s`,
+    );
+  }
+
   /* --------------------------------------------------------- hitboxes */
   // Fire a ray from a metre in front of a bot's chest, straight at it. If the
   // hitbox rig is registered and tracking, this must return that entity and a
