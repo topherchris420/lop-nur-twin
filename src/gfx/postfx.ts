@@ -246,10 +246,19 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   // radius so the lens reads as one piece of glass
   color *= 1.0 - vignette * pow(radius, 2.4);
 
-  // 24 fps film grain, heavier in the shadows where real film noise lives
+  // 24 fps film grain, peaking in the midtones.
+  //
+  // This used to be strongest in the shadows, which is both backwards and
+  // destructive: grain is a property of the emulsion, so it is a *modulation*
+  // of density and vanishes where there is no density to modulate. At full
+  // amplitude against a subject sitting at 2% luminance it was plus or minus
+  // a third of that subject's own brightness — the soldier and every window
+  // reglazed in television static. A parabola peaks at mid grey and falls to
+  // nothing at both ends, which is the shape film actually has.
   float noise = hash13(vec3(uv * resolution, floor(time * 24.0)));
-  float mask = mix(1.0, 0.28, smoothstep(0.02, 0.7, dot(color, LUMA)));
-  color += (noise - 0.5) * grainIntensity * mask;
+  float lum = dot(color, LUMA);
+  float mask = 4.0 * lum * (1.0 - lum);
+  color += (noise - 0.5) * grainIntensity * clamp(mask, 0.0, 1.0);
 
   outputColor = vec4(max(color, 0.0), inputColor.a);
 }

@@ -480,7 +480,7 @@ function CombatWorld() {
 
   return (
     <>
-      <Atmosphere />
+      <Atmosphere groundLevel />
       <ShadowCascade />
       <CombatExposure postEnabled={post} />
       <Terrain />
