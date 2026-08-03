@@ -71,8 +71,8 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
   // a soldier is ten metres away, which is exactly when it needs to read.
   blue: {
     camo: [0x9a8a63, 0xc4b389, 0x4a4433, 0xd8cba4],
-    gear: 0x4e4a3c,
-    webbing: 0x5a5140,
+    gear: 0x7d7358,
+    webbing: 0x8a7f62,
     boot: 0x37312a,
     helmet: 0x5f5745,
     skin: 0x9d8368,
@@ -82,8 +82,8 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
   // Cooler grey-green, so the two sides read apart at 60 m.
   red: {
     camo: [0x5b6150, 0x8b9179, 0x2e3227, 0xa8ad92],
-    gear: 0x3a3d36,
-    webbing: 0x45483d,
+    gear: 0x646353,
+    webbing: 0x6f6d59,
     boot: 0x2b2b28,
     helmet: 0x4a4d43,
     skin: 0x8f7761,
@@ -278,13 +278,43 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   add(limb(B.head, 0.006, 0.006, 6), 0x24251f, 0.5);
 
   /* ---------------------------------------------------- plate carrier */
-  add(slab(0.33, 0.34, 0.1, 0, 1.16, -0.11, 0.035), palette.gear, 0.86);
-  add(slab(0.33, 0.32, 0.09, 0, 1.16, 0.105, 0.035), palette.gear, 0.86);
-  // Cummerbund wrapping the ribs.
-  add(slab(0.36, 0.11, 0.23, 0, 1.045, -0.004, 0.045), palette.webbing, 0.92);
+  // A plate bag, not a slab.
+  //
+  // The front used to be one 0.33 x 0.34 panel — most of a torso in a single
+  // flat facet, which read as a riot shield rather than as kit. What makes a
+  // real carrier legible is the *rows*: bands of webbing across it that break
+  // a large vertical surface into strips, each catching light at a slightly
+  // different angle. Narrower and shorter than before as well, so the
+  // camouflage underneath shows at the edges and the torso keeps a waist.
+  const plateY = 1.192;
+  add(slab(0.298, 0.28, 0.085, 0, plateY, -0.118, 0.028), palette.gear, 0.86);
+  add(slab(0.298, 0.265, 0.08, 0, plateY - 0.012, 0.108, 0.028), palette.gear, 0.86);
+  // PALS rows across the plate. The lower ones end up behind the magazine
+  // pouches, which is exactly where they are on the real thing.
+  for (let i = 0; i < 4; i += 1) {
+    add(
+      slab(0.268, 0.015, 0.013, 0, plateY - 0.098 + i * 0.063, -0.167, 0.004),
+      palette.webbing,
+      0.93,
+    );
+  }
+  // Yoke: the front panel carries over each shoulder to the back panel.
+  for (const side of [-1, 1]) {
+    add(slab(0.058, 0.05, 0.255, side * 0.107, 1.372, -0.004, 0.018), palette.gear, 0.88);
+    // Buckle where the yoke meets the plate.
+    add(slab(0.05, 0.036, 0.022, side * 0.107, 1.318, -0.15, 0.006), 0x2a2b26, 0.5, 0.4);
+  }
+  // Cummerbund wrapping the ribs, with a side plate pocket on each flank.
+  add(slab(0.355, 0.108, 0.226, 0, 1.048, -0.004, 0.045), palette.webbing, 0.92);
+  for (const side of [-1, 1]) {
+    add(slab(0.03, 0.15, 0.16, side * 0.178, 1.14, 0.002, 0.02), palette.gear, 0.87);
+  }
   // Shoulder pads.
   add(slab(0.1, 0.12, 0.13, -0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
   add(slab(0.1, 0.12, 0.13, 0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
+  // Radio antenna off the left shoulder: a thin vertical against the sky is
+  // worth more to a silhouette at distance than any amount of surface detail.
+  add(slab(0.012, 0.30, 0.012, -0.128, 1.52, 0.13, 0.004), 0x24251f, 0.5);
 
   // Four magazine pouches across the chest, each with a flap.
   //
