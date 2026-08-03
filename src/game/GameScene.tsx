@@ -10,6 +10,7 @@ import { getQualityProfile } from "@/lib/quality";
 import { terrainHeight, flattenFactor } from "@/lib/terrain";
 import { GROUND_OVERLOOK } from "@/lib/layout";
 import { CollisionWorld } from "./physics/collisionWorld";
+import { GroundClutter } from "./world/GroundClutter";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
 import { FxManager } from "./fx/combatFx";
 import { game, removeActor } from "./core/gameState";
@@ -72,6 +73,11 @@ function CollisionBaker({ onBaked }: BakeProps) {
     scene.traverse((object) => {
       if (object.name === "structures") {
         baked += world.bakeFromObject(object, { minVolume: 0.05 });
+      }
+      // Cover-sized clutter is collidable; the dressing instances opt out with
+      // `noCollide`, so nobody snags on a stone or a tuft of scrub.
+      if (object.name === "ground-clutter") {
+        baked += world.bakeFromObject(object, { minVolume: 0.12 });
       }
     });
     // Fall back to walking the whole scene if the structures group was not
@@ -410,11 +416,17 @@ function CombatWorld() {
       GROUND_OVERLOOK.target[0] - GROUND_OVERLOOK.position[0],
       GROUND_OVERLOOK.target[1] - GROUND_OVERLOOK.position[1],
     );
-    // `?look=<deg>` aims the spawn heading, so a captured frame can be taken
-    // from a chosen direction without driving the camera by hand.
-    const raw = Number(new URLSearchParams(window.location.search).get("look"));
+    // `?look=<deg>` aims the spawn heading and `?at=<x>,<z>` moves the spawn,
+    // so a frame can be captured from anywhere on the map without driving the
+    // camera by hand.
+    const params = new URLSearchParams(window.location.search);
+    const raw = Number(params.get("look"));
     const yaw = Number.isFinite(raw) && raw !== 0 ? (raw * Math.PI) / 180 : defaultYaw;
-    placePlayer(world, GROUND_OVERLOOK.position[0], GROUND_OVERLOOK.position[1], yaw);
+    const at = (params.get("at") ?? "").split(",").map(Number);
+    const [ax, az] = at.length === 2 && at.every(Number.isFinite)
+      ? (at as [number, number])
+      : GROUND_OVERLOOK.position;
+    placePlayer(world, ax, az, yaw);
   }, [world]);
 
   return (
@@ -424,6 +436,7 @@ function CombatWorld() {
       <Terrain />
       <Pavements />
       <Structures />
+      <GroundClutter />
       <EnvironmentLighting onReady={handleEnvironment} />
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />

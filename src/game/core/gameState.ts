@@ -249,6 +249,8 @@ export interface FrameStats {
   triangles: number;
   actorsAlive: number;
   colliders: number;
+  /** Ground-clutter instances currently placed. */
+  clutter: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -402,6 +404,7 @@ export const game: GameState = {
     triangles: 0,
     actorsAlive: 0,
     colliders: 0,
+    clutter: 0,
   },
 };
 
