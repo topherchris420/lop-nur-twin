@@ -287,14 +287,21 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   add(slab(0.1, 0.12, 0.13, 0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
 
   // Four magazine pouches across the chest, each with a flap.
+  //
+  // These have to stand *proud* of the carrier to exist at all. The carrier's
+  // front face is at z = -0.16, and the pouches used to sit at -0.152, which
+  // left about two centimetres showing on a 0.34 m panel — so the chest read
+  // as one flat dark slab with no kit on it.
   for (let i = 0; i < 4; i += 1) {
     const x = -0.115 + i * 0.077;
-    add(slab(0.068, 0.115, 0.062, x, 1.135, -0.152, 0.014), palette.webbing, 0.9);
-    add(slab(0.072, 0.038, 0.03, x, 1.192, -0.166, 0.01), palette.gear, 0.88);
+    add(slab(0.07, 0.12, 0.075, x, 1.132, -0.196, 0.014), palette.webbing, 0.9);
+    add(slab(0.074, 0.042, 0.034, x, 1.194, -0.213, 0.01), palette.gear, 0.88);
+    // Pull tab, so the flap has a direction and catches an edge of light.
+    add(slab(0.016, 0.03, 0.012, x, 1.166, -0.232, 0.005), palette.gear, 0.86);
   }
   // Radio pouch and admin pouch.
-  add(slab(0.075, 0.13, 0.06, -0.135, 1.235, 0.13, 0.014), palette.webbing, 0.9);
-  add(slab(0.1, 0.075, 0.05, 0.12, 1.2, 0.135, 0.014), palette.webbing, 0.9);
+  add(slab(0.075, 0.13, 0.07, -0.138, 1.235, 0.152, 0.014), palette.webbing, 0.9);
+  add(slab(0.1, 0.075, 0.058, 0.122, 1.2, 0.156, 0.014), palette.webbing, 0.9);
   add(limb(B.gearRoot, 0.006, 0.005, 6), 0x1c1d19, 0.6);
 
   /* ----------------------------------------------------------- belt */
@@ -440,13 +447,22 @@ function camoColorAt(
   palette: Palette,
   out: THREE.Color,
 ): THREE.Color {
-  // Blotches sized to the body, not to the texture: the largest band is about
-  // a third of a torso across, which is what a real disruptive pattern does.
-  const s = 3.6;
+  // Blotches sized to the body, not to the texture. The largest band is about
+  // 0.25 m across — a torso wide enough for three of them, a limb wide enough
+  // for one, which is what a real disruptive pattern does at this scale. It
+  // used to be twice that, and a leg is only 0.1 m across, so every limb came
+  // out one flat colour.
+  //
+  // `z` is folded into *both* axes rather than only the second. With `x` alone
+  // leading, the front and back of a limb sample the same point and a tapered
+  // tube gets a single band all the way round it.
+  const s = 7.2;
+  const u = x + z * 0.42;
+  const v = y + z * 0.55;
   const n =
-    blotchLarge(x * s * 0.55, (y + z * 0.6) * s * 0.55) * 0.58 +
-    blotchMid(x * s * 1.7, (y + z * 0.4) * s * 1.7) * 0.29 +
-    blotchFine(x * s * 4.2, y * s * 4.2) * 0.13;
+    blotchLarge(u * s * 0.55, v * s * 0.55) * 0.58 +
+    blotchMid(u * s * 1.7, v * s * 1.7) * 0.29 +
+    blotchFine(u * s * 4.2, v * s * 4.2) * 0.13;
   const t = n * 0.5 + 0.5;
   // Four hard-edged bands, the way a printed disruptive pattern reads.
   const index = t < 0.3 ? 2 : t < 0.55 ? 0 : t < 0.8 ? 1 : 3;

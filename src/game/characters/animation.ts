@@ -534,10 +534,15 @@ export class CharacterAnimator {
 
     // A patrol carry: grip at the lower chest, inboard of the shoulder, muzzle
     // forward. It rises and falls with the aim rather than staying pinned.
+    // Forward of the chest rather than inboard of it. Pulling the grip toward
+    // the centreline to help the support hand reach dragged the whole rifle
+    // through the plate carrier; carrying it *ahead* of the torso clears the
+    // body and brings the handguard within the off hand's reach at the same
+    // time, which is how a rifle is actually held.
     _armTarget.set(
-      0.128,
-      1.062 - pitch * 0.12 - this.crouch * 0.05 - this.prone * 0.22,
-      -0.152 - Math.max(0, pitch) * 0.05,
+      0.122,
+      1.068 - pitch * 0.12 - this.crouch * 0.05 - this.prone * 0.22,
+      -0.215 - Math.max(0, pitch) * 0.05,
     );
 
     chainPose(bones, CHAIN_TO_CLAVICLE_R, _clavPos, _clavQuat);

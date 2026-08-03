@@ -124,9 +124,15 @@ for (const shot of SHOTS) {
     const theta = (s.angle * Math.PI) / 180;
     const p = game.player;
     // The subject faces shot zero; the camera orbits around it.
-    bot.yaw = 0;
-    const x = bot.position.x + Math.sin(theta) * s.distance;
-    const z = bot.position.z + Math.cos(theta) * s.distance;
+    // Spin the *subject*, not the camera. Orbiting the camera moved the sun
+    // from behind the lens to behind the subject, so half the set came back
+    // in silhouette and could not be judged at all.
+    bot.yaw = Math.PI * 1.25 + theta;
+    // The subject faces -z at yaw 0, so angle 0 has to put the camera in
+    // front of it — at -z. Adding the offset put every "front" shot behind
+    // the soldier and mislabelled the whole set.
+    const x = bot.position.x + 0.707 * s.distance;
+    const z = bot.position.z + 0.707 * s.distance;
     p.position.set(x, game.world.groundAt(x, z), z);
     p.velocity.set(0, 0, 0);
     p.yaw = Math.atan2(-(bot.position.x - x), -(bot.position.z - z));
@@ -155,10 +161,16 @@ for (const shot of SHOTS) {
     bot.speed = 0;
     bot.velocity.set(0, 0, 0);
     bot.state = "idle";
-    bot.yaw = 0;
+    // Spin the *subject*, not the camera. Orbiting the camera moved the sun
+    // from behind the lens to behind the subject, so half the set came back
+    // in silhouette and could not be judged at all.
+    bot.yaw = Math.PI * 1.25 + theta;
     bot.position.set(globalThis.__portraitAt.x, globalThis.__portraitAt.y, globalThis.__portraitAt.z);
-    const x = bot.position.x + Math.sin(theta) * s.distance;
-    const z = bot.position.z + Math.cos(theta) * s.distance;
+    // The subject faces -z at yaw 0, so angle 0 has to put the camera in
+    // front of it — at -z. Adding the offset put every "front" shot behind
+    // the soldier and mislabelled the whole set.
+    const x = bot.position.x + 0.707 * s.distance;
+    const z = bot.position.z + 0.707 * s.distance;
     p.position.set(x, game.world.groundAt(x, z), z);
     p.velocity.set(0, 0, 0);
     p.yaw = Math.atan2(-(bot.position.x - x), -(bot.position.z - z));
