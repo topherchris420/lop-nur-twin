@@ -353,6 +353,58 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
 ];
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
 
+/* ------------------------------------------------------------------ */
+/* Ground-level engagement zones (used by the first-person mode)       */
+/* ------------------------------------------------------------------ */
+
+export interface GroundZone {
+  id: string;
+  name: string;
+  /** Centre in world metres. */
+  position: [number, number];
+  /** Usable radius for spawn scatter and objective capture, in metres. */
+  radius: number;
+  /** Which side of the compound this zone favours. */
+  side: "north" | "south" | "neutral";
+}
+
+/**
+ * Named places inside the compound, expressed in the same compound frame as
+ * every structure. Ground modes derive spawns and objectives from these rather
+ * than hard-coding world coordinates, so moving a building in `STRUCTURES`
+ * moves the fight with it.
+ */
+export const GROUND_ZONES: readonly GroundZone[] = [
+  { id: "main-apron", name: "Main Apron", position: compound(-30, -128), radius: 46, side: "neutral" },
+  { id: "flight-line", name: "Flight Line", position: compound(-88, -118), radius: 30, side: "north" },
+  { id: "ne-apron", name: "North-East Apron", position: compound(96, -112), radius: 34, side: "north" },
+  { id: "fighter-shelters", name: "Fighter Shelters", position: compound(-155, -50), radius: 30, side: "north" },
+  { id: "hangar-front", name: "Assembly Hangar", position: compound(-36, 18), radius: 30, side: "neutral" },
+  { id: "tower-yard", name: "Tower Yard", position: compound(75, 8), radius: 26, side: "neutral" },
+  { id: "ops-complex", name: "Operations Complex", position: compound(38, 128), radius: 34, side: "south" },
+  { id: "west-courts", name: "West Service Courts", position: compound(-114, 128), radius: 40, side: "south" },
+  { id: "east-labs", name: "East Laboratories", position: compound(178, 128), radius: 34, side: "neutral" },
+  { id: "fuel-farm", name: "Fuel Farm", position: compound(262, 148), radius: 40, side: "neutral" },
+  { id: "crew-blocks", name: "Crew Blocks", position: compound(-2, 262), radius: 40, side: "south" },
+  { id: "se-construction", name: "South-East Construction", position: compound(160, 248), radius: 32, side: "south" },
+  { id: "switchyard", name: "Switchyard", position: compound(-150, 285), radius: 24, side: "south" },
+  { id: "solar-field", name: "Photovoltaic Field", position: compound(-70, 322), radius: 40, side: "south" },
+];
+
+export function getGroundZone(id: string): GroundZone | undefined {
+  return GROUND_ZONES.find((zone) => zone.id === id);
+}
+
+/**
+ * A good establishing viewpoint for the ground mode: standing on the main
+ * apron, looking north-west along the flight line at the parked airframes and
+ * the assembly hangar behind them.
+ */
+export const GROUND_OVERLOOK: { position: [number, number]; target: [number, number] } = {
+  position: compound(52, -152),
+  target: compound(-78, -108),
+};
+
 /** Parse a validated ISO date's leading year without constructing a Date. */
 export function getObservedYear(item: TemporalDef): number | undefined {
   const date = item.observedDate;
