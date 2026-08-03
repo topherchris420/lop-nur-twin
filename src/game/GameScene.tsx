@@ -18,6 +18,7 @@ import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
+import { createAudio, disposeAudio } from "./audio";
 import { forwardToYaw, type SurfaceType } from "./core/types";
 import {
   EnvironmentLighting as EnvironmentLightingRig,
@@ -246,6 +247,49 @@ function Simulation({ world, fx }: SimulationProps) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Audio                                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Owns the audio engine and drains `game.soundQueue`.
+ *
+ * The context cannot start before a user gesture, so `unlock()` is wired to
+ * the first click or key rather than to mount — a context created and left
+ * suspended silently swallows everything scheduled against it.
+ */
+function AudioHost({ world }: { world: CollisionWorld | null }) {
+  const masterVolume = useGameStore((s) => s.masterVolume);
+
+  useEffect(() => {
+    const engine = createAudio({
+      // Injected, so the audio layer never imports the physics module.
+      hasLineOfSight: (from, to) => game.world?.hasLineOfSight(from, to) ?? true,
+    });
+    const unlock = (): void => void engine.unlock();
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      disposeAudio();
+    };
+  }, []);
+
+  useEffect(() => {
+    createAudio().setMasterVolume(masterVolume);
+  }, [masterVolume]);
+
+  useFrame((_state, rawDelta) => {
+    const engine = createAudio();
+    engine.syncListener();
+    engine.update(Math.min(0.05, rawDelta));
+  });
+
+  void world;
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
 /* Exposure                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -380,6 +424,7 @@ function CombatWorld() {
       <EnvironmentLighting onReady={handleEnvironment} />
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />
+      <AudioHost world={world} />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
       {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />

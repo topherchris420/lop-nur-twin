@@ -163,19 +163,32 @@ node tools/probe.mjs --focus "Main assembly hangar" --no-hud
 mean luma, clipped/crushed percentages and a histogram, so exposure and
 bloom values can be tuned against numbers. `--help` lists every flag.
 
-For the combat mode, the look is only half of it — assert the simulation too:
+For the combat mode, the look is only half of it — assert the simulation and
+the audio too:
 
 ```sh
-bun run smoke                 # 17 checks; exits non-zero on failure
+bun run smoke                 # 22 checks; exits non-zero on failure
+bun run audio                 # renders each sound offline and measures it
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 ```
 
 `tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
-region, then pushes lethal damage through the real queue and checks the kill is
-credited. Every check in it corresponds to something that has actually broken:
-a camera that never left its spawn, an environment map full of `NaN`, bots
-spawned inside a hangar. A screenshot reported all three as "the screen is
-dark" and nothing more, which is why the assertions exist.
+region, pushes lethal damage through the real queue and checks the kill is
+credited, and steps the match director to confirm the clock runs. Every check
+in it corresponds to something that has actually broken: a camera that never
+left its spawn, an environment map full of `NaN`, bots spawned inside a
+hangar, a heading convention mirrored between the camera and the simulation. A
+screenshot reported the first three as "the screen is dark" and nothing more.
+
+Two notes on testing this headlessly. The render loop advances only a handful
+of frames under a headless browser and `dt` is clamped per frame, so anything
+time-based has to be stepped directly rather than waited on. And a check that
+only holds at yaw 0 — like comparing a heading — passes trivially, because the
+default spawn faces north; deliberately turn away from the axis first.
+
+`bun run audio` renders each sound through an `OfflineAudioContext` and checks
+peak and crest factor. Peak above unity means it is clipping the bus before the
+limiter sees it; crest below 8 means it will not read as percussive.
 
 To check the **layout** rather than the look, capture a plan view:
 

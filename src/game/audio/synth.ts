@@ -906,7 +906,12 @@ export class ConvolverPool {
     if (existing) return existing.input;
     const spec = IR_PRESETS[env];
     const conv = this.ctx.createConvolver();
-    conv.normalize = false;
+    // Normalised. An impulse response built from decaying noise has no
+    // particular level, and with normalisation off a long tail multiplies its
+    // input by a factor in the hundreds — which is how a send of 0.7 turned an
+    // explosion into a peak of 2762 rather than of 1. Normalising makes a send
+    // amount mean the same thing in every space.
+    conv.normalize = true;
     conv.buffer = impulseResponse(this.ctx, spec);
     const input = gainNode(this.ctx, 1);
     const ret = gainNode(this.ctx, this.returnGain);
