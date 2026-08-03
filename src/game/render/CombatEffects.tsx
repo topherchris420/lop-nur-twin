@@ -49,8 +49,15 @@ const LOOK = {
     aberration: 0.0009,
     radialBlur: 0.0022,
     // Contact-scale occlusion: a bolt head, a magwell, a doorway reveal.
-    aoRadius: 0.85,
-    aoIntensity: 2.1,
+    // These were 0.85 / 2.1 back when the sun's only shadow map was a metre
+    // per texel and nothing human-sized cast anything, so the occlusion pass
+    // was standing in for the missing contact shadows — and doing it badly,
+    // because a 0.85 m radius swallows a whole torso and darkens the lit side
+    // as readily as the shadow side. The near-field cascade
+    // (`render/shadowCascade.ts`) now casts those shadows properly, so this is
+    // back to occluding creases instead of people.
+    aoRadius: 0.55,
+    aoIntensity: 1.2,
     aoFalloff: 14,
     vignette: 0.42,
   },
@@ -67,8 +74,8 @@ const LOOK = {
     grain: 0.017,
     aberration: 0.0014,
     radialBlur: 0.0034,
-    aoRadius: 0.7,
-    aoIntensity: 1.6,
+    aoRadius: 0.5,
+    aoIntensity: 1.0,
     aoFalloff: 12,
     vignette: 0.5,
   },

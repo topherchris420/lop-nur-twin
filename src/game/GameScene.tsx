@@ -21,11 +21,13 @@ import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
 import { createAudio, disposeAudio } from "./audio";
 import { forwardToYaw, type SurfaceType } from "./core/types";
+import { sunState } from "@/lib/sunState";
 import {
   EnvironmentLighting as EnvironmentLightingRig,
   SUN,
   sunElevationRad,
 } from "./render/environment";
+import { NearShadowCascade, installCascadeShadows } from "./render/shadowCascade";
 
 const CombatEffects = lazy(() => import("./render/CombatEffects"));
 
@@ -350,17 +352,64 @@ function EnvironmentLighting({
       dayFactor: night ? 0 : 1,
     });
     scene.environment = texture;
-    // The twin's exposure was tuned with only a sun and a hemisphere light.
-    // The radiance map is here for reflections and for the shape it puts on
-    // metal, so it is weighted well below 1 — at parity it doubles the ambient
-    // and blows the whole frame out.
-    scene.environmentIntensity = night ? 0.22 : 0.38;
+    // The daytime map is authored as radiance (see `render/environment.ts`),
+    // so it is bound at unity. It used to be weighted to 0.38 to stop the map
+    // doubling the ambient, but that dial hit the lakebed bounce as hard as the
+    // sky, and the bounce is the only thing filling the shadow side of anything
+    // at eye level — a soldier three metres away read as a silhouette. The sky
+    // half of the map was re-authored 0.38x to compensate, so the exposure of
+    // an upward-facing surface is unchanged and only walls, undersides and
+    // people get the light back. Night is a separate, dimmer authoring.
+    scene.environmentIntensity = night ? 0.22 : 1;
     onReady(texture);
     return () => {
       scene.environment = null;
       lighting.dispose();
     };
   }, [gl, scene, night, onReady]);
+
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Near-field shadows                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Mounts the near-field shadow cascade and keeps it under the player.
+ *
+ * The twin's sun covers the whole 2 km site with one map because that is what
+ * an aerial camera frames; at eye level the same map is a metre per texel and
+ * nothing smaller than a building casts anything. See `render/shadowCascade.ts`
+ * for why this is a second *map* rather than a second light.
+ */
+function ShadowCascade() {
+  const scene = useThree((s) => s.scene);
+  const qualityTier = useTwinStore((s) => s.qualityTier);
+  const mapSize = getQualityProfile(qualityTier).shadowMapSize;
+
+  // The shader patch has to be in place before the first program is linked, so
+  // it happens during render rather than in an effect. It is idempotent.
+  const cascade = useMemo(() => {
+    // Tier 0 turns the sun's own shadow off; a lone cascade would be a shadow
+    // map with nothing to refine.
+    if (qualityTier === 0) return null;
+    if (!installCascadeShadows()) return null;
+    return new NearShadowCascade({ mapSize });
+  }, [qualityTier, mapSize]);
+
+  useEffect(() => {
+    if (!cascade) return;
+    scene.add(cascade.light, cascade.light.target);
+    return () => {
+      scene.remove(cascade.light, cascade.light.target);
+      cascade.dispose();
+    };
+  }, [scene, cascade]);
+
+  useFrame((state) => {
+    cascade?.update(state.camera, sunState.direction);
+  });
 
   return null;
 }
@@ -432,6 +481,7 @@ function CombatWorld() {
   return (
     <>
       <Atmosphere />
+      <ShadowCascade />
       <CombatExposure postEnabled={post} />
       <Terrain />
       <Pavements />

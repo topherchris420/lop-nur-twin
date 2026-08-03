@@ -6,6 +6,7 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
+import { sunState } from "@/lib/sunState";
 import { makeCloudShadowTexture } from "@/lib/textures";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
@@ -128,7 +129,13 @@ export function Atmosphere() {
       const seasonalSolar = THREE.MathUtils.clamp((climate.solarKwhM2Day - 2) / 5.5, 0, 1);
       sun.intensity = 3.4 * Math.pow(strength, 0.65) * THREE.MathUtils.lerp(0.82, 1.08, seasonalSolar);
       sun.color.lerpColors(DAY.sunLow, DAY.sunWarm, THREE.MathUtils.clamp(strength * 2.2, 0, 1));
+      sunState.intensity = sun.intensity;
     }
+    // Published for anything that has to aim at the same sun mid-transition —
+    // the near-field shadow cascade in `src/game/render/shadowCascade.ts`
+    // cannot re-derive this from the `night` toggle without lagging the ease.
+    sunState.direction.copy(sunDir);
+    sunState.dayFactor = next;
     const moon = moonRef.current;
     if (moon) moon.intensity = (1 - next) * 0.5;
 

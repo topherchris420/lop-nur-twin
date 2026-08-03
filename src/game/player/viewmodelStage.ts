@@ -67,10 +67,12 @@ export class ViewmodelStage {
 
   setEnvironment(texture: THREE.Texture | null): void {
     this.scene.environment = texture;
-    // Matched to the world's weighting. At full strength the sky reflection
+    // Slightly under the world's weighting. At full strength the sky reflection
     // overwhelms the dark anodised finishes and the weapon reads as bare
-    // polished aluminium instead of parkerised steel.
-    this.scene.environmentIntensity = 0.42;
+    // polished aluminium instead of parkerised steel. (This was 0.42 back when
+    // the world bound the same map at 0.38; it tracks that dial, which is now
+    // unity — see `render/environment.ts`.)
+    this.scene.environmentIntensity = 1.1;
   }
 
   /** Blend the camera's field of view toward the aimed value. */

@@ -84,9 +84,26 @@ export interface EnvironmentOptions {
   dayFactor: number;
 }
 
-const DAY_ZENITH = new THREE.Color(0.16, 0.29, 0.58);
-const DAY_HORIZON = new THREE.Color(0.72, 0.72, 0.66);
-const DAY_GROUND = new THREE.Color(0.3, 0.26, 0.19);
+/*
+ * These are *radiances*, in the same scene-linear units the renderer works in,
+ * and the scene binds the map at `environmentIntensity = 1` (see `GameScene`).
+ * They used to be authored roughly 2.6x hot and weighted back down by 0.38,
+ * which was fine for the sky but wrong for the ground: the lakebed bounce is
+ * what fills the shadow side of everything at eye level, and at 0.38 there was
+ * effectively none. The sky values below are the old ones times that 0.38, so
+ * the sky reads exactly as it did; the ground is now its own measured value.
+ *
+ * The ground figure is where it is because the lakebed is a diffuse surface of
+ * albedo ~0.35 under a total irradiance of ~2 (sun at 29 deg plus sky), so it
+ * radiates albedo * E / PI ~ 0.22 — comparable to the hazy horizon above it,
+ * which is what a desert actually looks like. Because a cosine-weighted
+ * hemisphere around an *upward* normal contains none of it, raising this
+ * brightens walls, undersides and people without touching the terrain or the
+ * roofs, and therefore without moving the frame's exposure.
+ */
+const DAY_ZENITH = new THREE.Color(0.061, 0.11, 0.22);
+const DAY_HORIZON = new THREE.Color(0.274, 0.274, 0.251);
+const DAY_GROUND = new THREE.Color(0.28, 0.24, 0.175);
 const NIGHT_ZENITH = new THREE.Color(0.012, 0.02, 0.042);
 const NIGHT_HORIZON = new THREE.Color(0.035, 0.045, 0.062);
 const NIGHT_GROUND = new THREE.Color(0.012, 0.011, 0.009);
@@ -154,7 +171,8 @@ export class EnvironmentLighting {
     (u["uHorizon"]!.value as THREE.Color).lerpColors(NIGHT_HORIZON, DAY_HORIZON, day * above);
     (u["uGround"]!.value as THREE.Color).lerpColors(NIGHT_GROUND, DAY_GROUND, day * above);
     (u["uSunColor"]!.value as THREE.Color).lerpColors(SUN_LOW, SUN_WARM, above);
-    u["uSunIntensity"]!.value = 110 * Math.pow(above, 0.6) * day;
+    // Matched to the sky above: the old 110 was read back at 0.38.
+    u["uSunIntensity"]!.value = 42 * Math.pow(above, 0.6) * day;
     u["uTurbidity"]!.value = 1.4 + (1 - above) * 1.8;
 
     const target = this.pmrem.fromScene(this.scene, 0, 1, 200);

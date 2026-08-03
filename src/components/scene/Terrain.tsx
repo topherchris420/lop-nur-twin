@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { SITE_SIZE, TERRAIN_ENTITY_ID } from "@/lib/layout";
 import { flattenFactor, gravelField, mottle, rawHeight, wadiMask } from "@/lib/terrain";
 import { makeGroundNormalTexture } from "@/lib/textures";
+import { applyGroundDetailPreset, groundDetailFor } from "@/gfx/groundDetail";
 import { SITE_SEED } from "@/lib/noise";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 import { getQualityProfile } from "@/lib/quality";
@@ -26,6 +27,11 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
   const pos = geo.attributes.position;
   if (!pos) return geo;
   const colors = new Float32Array(pos.count * 3);
+  // `flattenFactor` is 0 exactly where pavement has levelled the ground, so
+  // its complement doubles as a "this has been bladed flat" mask. The detail
+  // shader reads it to calm the pebble grain on graded hardstanding, which is
+  // a different surface from untouched lakebed even where the colour matches.
+  const compact = new Float32Array(pos.count);
   const scratch = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
@@ -33,6 +39,7 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
     const z = pos.getZ(i);
     const flat = flattenFactor(x, z);
     pos.setY(i, rawHeight(x, z) * flat);
+    compact[i] = 1 - flat;
 
     const m = mottle(x, z);
     const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
@@ -49,6 +56,7 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
   }
 
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geo.setAttribute("gdCompact", new THREE.BufferAttribute(compact, 1));
   geo.computeVertexNormals();
   return geo;
 }
@@ -71,17 +79,32 @@ export function Terrain() {
     const warmTiers: QualityTier[] = [];
     if (qualityTier > 0) warmTiers.push((qualityTier - 1) as QualityTier);
     if (!reducedMotion && qualityTier < 2) warmTiers.push((qualityTier + 1) as QualityTier);
-    const candidates = warmTiers.map((tier) => getQualityProfile(tier).terrainSegments);
+    // The adaptive ladder steps up as well as down, and both the terrain
+    // geometry and the ground detail maps are a couple of hundred milliseconds
+    // of main-thread work at the top tier. Warm the neighbouring tier's
+    // versions of both on idle so a step never lands as a stall.
+    const jobs: Array<() => void> = [];
+    for (const tier of warmTiers) {
+      const profile = getQualityProfile(tier);
+      jobs.push(() => getTerrainGeometry(profile.terrainSegments));
+      if (profile.groundDetailSize > 0) {
+        jobs.push(() => {
+          // Building the maps is what costs;  caches them.
+          groundDetailFor(tier, "desert");
+          groundDetailFor(tier, "pavement");
+        });
+      }
+    }
     let cancelled = false;
     let idleId: number | undefined;
     let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
 
     const warmNext = () => {
-      const next = candidates.shift();
+      const next = jobs.shift();
       if (cancelled || next === undefined) return;
       const build = () => {
         if (cancelled) return;
-        getTerrainGeometry(next);
+        next();
         warmNext();
       };
       if ("requestIdleCallback" in window) {
@@ -107,6 +130,24 @@ export function Terrain() {
 
   useEffect(() => () => normalMap.dispose(), [normalMap]);
 
+  // The vertex colours and the 21 m normal map are the aerial half of this
+  // surface; `applyGroundDetailPreset` adds the metre-and-below half, faded
+  // out well before any altitude the twin route flies at.
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.96,
+      metalness: 0,
+      normalMap,
+      normalScale: new THREE.Vector2(0.4, 0.4),
+    });
+    return applyGroundDetailPreset(mat, qualityTier, "desert", {
+      compactAttribute: true,
+    });
+  }, [normalMap, qualityTier]);
+
+  useEffect(() => () => material.dispose(), [material]);
+
   return (
     <group name="terrain" userData={{ entityId: TERRAIN_ENTITY_ID }}>
       {/* Distant desert floor: a large flat plane sitting just below the
@@ -117,15 +158,7 @@ export function Terrain() {
         <planeGeometry args={[40000, 40000]} />
         <meshStandardMaterial color="#9a8f77" roughness={1} metalness={0} />
       </mesh>
-      <mesh geometry={geometry} receiveShadow name="terrain-detail">
-        <meshStandardMaterial
-          vertexColors
-          roughness={0.96}
-          metalness={0}
-          normalMap={normalMap}
-          normalScale={new THREE.Vector2(0.4, 0.4)}
-        />
-      </mesh>
+      <mesh geometry={geometry} material={material} receiveShadow name="terrain-detail" />
     </group>
   );
 }
