@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {
   OPPOSING_TEAM,
+  yawToForward,
   type DamageEvent,
   type EntityId,
 } from "./types";
@@ -46,6 +47,20 @@ export interface KillReport {
 }
 
 const _dir = new THREE.Vector3();
+const _facing = new THREE.Vector3();
+
+/**
+ * Which side of a victim a round came in on: `+1` from their left, `-1` from
+ * their right. The flinch layer rocks the torso the other way, so a body
+ * visibly absorbs the hit rather than twitching in place.
+ */
+function lateralSign(victim: Actor, incoming: THREE.Vector3): number {
+  yawToForward(victim.yaw, _facing);
+  // `forward x up` is the actor's own right, so the dot picks the side.
+  const rightX = -_facing.z;
+  const rightZ = _facing.x;
+  return Math.sign(incoming.x * rightX + incoming.z * rightZ) || 1;
+}
 
 /**
  * Apply everything in `game.damageQueue`. Returns the kills that happened so
@@ -76,6 +91,14 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     victim.suppression = Math.min(1, victim.suppression + 0.45);
 
     recordDamage(victim.id, event.attackerId, event.amount, time);
+
+    // Every hit shows on the body it landed on. Without this a bot absorbs a
+    // magazine with no visible acknowledgement, which reads as "my shots are
+    // going through them" even when every round is registering.
+    if (!victim.isPlayer) {
+      _dir.copy(event.direction).normalize();
+      game.characters?.reportHit(victim.id, lateralSign(victim, _dir));
+    }
 
     if (victim.isPlayer) {
       _dir.copy(event.direction).normalize();
@@ -134,7 +157,15 @@ function killActor(
   victim.deaths += 1;
   victim.streak = 0;
   victim.respawnTimer = COMBAT.respawnDelay;
-  victim.velocity.set(0, 0, 0);
+  // The body keeps its own momentum and takes a shove from the round, so it
+  // carries into the fall instead of stopping dead and folding on the spot.
+  // Horizontal only: the vertical channel belongs to gravity.
+  victim.deathDir.copy(event.direction).setY(0);
+  if (victim.deathDir.lengthSq() < 1e-6) victim.deathDir.set(0, 0, -1);
+  victim.deathDir.normalize();
+  victim.deathHeadshot = event.region === "head";
+  victim.velocity.multiplyScalar(0.45).addScaledVector(victim.deathDir, 1.6);
+  victim.velocity.y = 0;
 
   const assists: Actor[] = [];
   const log = damageLog.get(victim.id);
@@ -159,6 +190,12 @@ function killActor(
   }
 
   queueSound({ id: "death", position: victim.position.clone(), gain: 0.8 });
+
+  if (victim.isPlayer) {
+    game.hud.killedBy = attacker?.name ?? "—";
+    game.hud.killedByWeapon = event.weaponId;
+    game.hud.killedByHeadshot = event.region === "head";
+  }
 
   return {
     attacker,

@@ -156,6 +156,13 @@ export interface Actor {
   lastFireTime: number;
   /** Suppression 0..1 — raised by near misses, decays over time. */
   suppression: number;
+  /**
+   * Travel direction of the round that killed this actor, and whether it took
+   * the head. Written once by `killActor`, read by the death animation so a
+   * body falls away from whoever shot it instead of always folding forward.
+   */
+  deathDir: THREE.Vector3;
+  deathHeadshot: boolean;
 }
 
 export function createActor(
@@ -196,6 +203,8 @@ export function createActor(
     aimDir: new THREE.Vector3(0, 0, -1),
     lastFireTime: -99,
     suppression: 0,
+    deathDir: new THREE.Vector3(0, 0, -1),
+    deathHeadshot: false,
   };
 }
 
@@ -299,6 +308,8 @@ export interface GameState {
   characters: {
     bonesOf(actorId: EntityId): readonly THREE.Bone[] | null;
     poseOnly(actorId: EntityId, dt: number, detail?: boolean): void;
+    /** Play a directional flinch on an actor that has just been hit. */
+    reportHit(actorId: EntityId, lateralSign: number): void;
   } | null;
 
   /* Queues drained by their owning system each frame. */
@@ -322,6 +333,14 @@ export interface GameState {
   hud: {
     health: number;
     maxHealth: number;
+    /** False between the player's death and their respawn. */
+    alive: boolean;
+    /** Seconds until the player is put back in, while dead. */
+    respawnIn: number;
+    /** Who did it, and with what. Empty before the first death. */
+    killedBy: string;
+    killedByWeapon: string;
+    killedByHeadshot: boolean;
     ammo: number;
     reserve: number;
     magSize: number;
@@ -351,6 +370,11 @@ function createHud(): GameState["hud"] {
   return {
     health: 100,
     maxHealth: 100,
+    alive: true,
+    respawnIn: 0,
+    killedBy: "",
+    killedByWeapon: "",
+    killedByHeadshot: false,
     ammo: 30,
     reserve: 120,
     magSize: 30,

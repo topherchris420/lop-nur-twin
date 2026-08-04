@@ -204,7 +204,8 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setSensitivity: (sensitivity) => set({ sensitivity }),
   adsSensitivity: 0.8,
   setAdsSensitivity: (adsSensitivity) => set({ adsSensitivity }),
-  fov: 90,
+  /** Horizontal degrees, the genre's convention. See `core/types.ts`. */
+  fov: 80,
   setFov: (fov) => set({ fov }),
   invertY: false,
   toggleInvertY: () => set((s) => ({ invertY: !s.invertY })),

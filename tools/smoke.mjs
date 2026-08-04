@@ -87,19 +87,27 @@ const results = await page.evaluate(() => {
   const bots = game.actors.filter((a) => !a.isPlayer);
   check("bots spawned", bots.length >= 4, `${bots.length} bots`);
   check("bots alive", bots.filter((b) => b.alive).length >= 4, `${bots.filter((b) => b.alive).length} alive`);
+  // "On the ground" means feet on something, not feet on the *terrain*. Bots
+  // step onto plinths, aprons and low roofs now that they converge on the
+  // compound, so a bot standing 1.4 m above the heightfield is only wrong if
+  // there is nothing under it — which is what the downward probe decides.
   let worstGround = 0;
   let worstBot = "";
   for (const b of bots) {
     const delta = Math.abs(b.position.y - world.groundAt(b.position.x, b.position.z));
-    if (delta > worstGround) {
-      worstGround = delta;
-      worstBot = `${b.name} at ${b.position.x.toFixed(0)},${b.position.z.toFixed(0)}`;
+    if (delta <= worstGround) continue;
+    if (delta > 0.5) {
+      const from = { x: b.position.x, y: b.position.y + 0.25, z: b.position.z };
+      // MASK_MOVEMENT = world | prop | clip = 1|2|8
+      if (world.raycast(from, { x: 0, y: -1, z: 0 }, 0.6, 1 | 2 | 8, b.id)) continue;
     }
+    worstGround = delta;
+    worstBot = `${b.name} at ${b.position.x.toFixed(0)},${b.position.z.toFixed(0)}`;
   }
   check(
-    "bots on the ground",
+    "bots standing on something",
     worstGround < 1.2,
-    `worst ${worstGround.toFixed(2)} m (${worstBot})`,
+    worstBot ? `worst ${worstGround.toFixed(2)} m off the terrain (${worstBot})` : "all planted",
   );
   check(
     "bots not inside geometry",
