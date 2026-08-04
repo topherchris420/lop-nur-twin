@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useGameStore, type GameScreen } from "../core/gameStore";
 import { game } from "../core/gameState";
@@ -21,9 +22,23 @@ const TEAM_COLOR = { blue: "text-[#4da3ff]", red: "text-[#ff5a4d]" } as const;
 
 function Scrim({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(6,7,9,0.72),rgba(4,5,7,0.94))] backdrop-blur-[6px]">
+    // `/play` hides the OS cursor for the crosshair; the menus need it back,
+    // and a Scrim is only ever mounted on a screen where nothing is being aimed.
+    <div className="absolute inset-0 z-30 flex cursor-auto items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(6,7,9,0.72),rgba(4,5,7,0.94))] backdrop-blur-[6px]">
       {children}
     </div>
+  );
+}
+
+/** The cut-corner menu button, shared by the in-app buttons and the route link. */
+function tacticalClass(primary: boolean, className?: string) {
+  return cn(
+    "group relative w-full px-6 py-3 text-left text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150",
+    "[clip-path:polygon(14px_0,100%_0,100%_calc(100%-14px),calc(100%-14px)_100%,0_100%,0_14px)]",
+    primary
+      ? "bg-[#4da3ff] text-[#05070a] hover:bg-[#6fb6ff]"
+      : "bg-white/[0.06] text-slate-200 hover:bg-white/[0.13] hover:text-white",
+    className,
   );
 }
 
@@ -39,20 +54,26 @@ function TacticalButton({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group relative w-full px-6 py-3 text-left text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150",
-        "[clip-path:polygon(14px_0,100%_0,100%_calc(100%-14px),calc(100%-14px)_100%,0_100%,0_14px)]",
-        primary
-          ? "bg-[#4da3ff] text-[#05070a] hover:bg-[#6fb6ff]"
-          : "bg-white/[0.06] text-slate-200 hover:bg-white/[0.13] hover:text-white",
-        className,
-      )}
-    >
+    <button type="button" onClick={onClick} className={tacticalClass(primary, className)}>
       <span className="relative z-10">{children}</span>
     </button>
+  );
+}
+
+/** Same chrome as `TacticalButton`, but it leaves the shooter for a route. */
+function TacticalLink({
+  to,
+  children,
+  className,
+}: {
+  to: "/";
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link to={to} className={tacticalClass(false, cn("block", className))}>
+      <span className="relative z-10">{children}</span>
+    </Link>
   );
 }
 
@@ -203,13 +224,16 @@ function MainMenu() {
           />
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap gap-3">
           <TacticalButton primary onClick={() => setScreen("playing")} className="max-w-[220px]">
             Deploy
           </TacticalButton>
           <TacticalButton onClick={() => setScreen("loadout")} className="max-w-[220px]">
             Loadout
           </TacticalButton>
+          <TacticalLink to="/" className="max-w-[340px]">
+            Return to Digital Twin
+          </TacticalLink>
         </div>
         <p className="mt-6 text-[10px] uppercase tracking-[0.24em] text-slate-600">
           WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · Q swap · Esc menu

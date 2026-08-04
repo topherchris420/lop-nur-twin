@@ -2,6 +2,7 @@ import {
   BookOpen,
   Clapperboard,
   CircleHelp,
+  Crosshair,
   ListTree,
   Moon,
   Orbit,
@@ -9,6 +10,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useTwinStore, type CameraMode } from "@/lib/store";
 import { isCoarsePointer } from "@/lib/touchInput";
@@ -43,6 +45,25 @@ export function TopBar() {
         </div>
       </div>
       <div className="topbar-controls hud-panel absolute top-4 right-4 z-10 flex items-center gap-1 p-1.5">
+        {/*
+          The shooter is a separate mode, not a camera — it lives behind its own
+          route, so it gets a link rather than a store toggle. It keeps a word of
+          label at every width so it never reads as one more icon toggle.
+        */}
+        <Button
+          asChild
+          size="sm"
+          className="h-8 px-2.5 font-mono text-[10px] tracking-[0.18em] uppercase"
+          title="Play Blacksite — first-person engagement simulator"
+        >
+          <Link to="/play" aria-label="Play Blacksite">
+            <Crosshair />
+            <span>
+              Play<span className="hidden sm:inline"> Blacksite</span>
+            </span>
+          </Link>
+        </Button>
+        <div className="bg-border mx-1 h-5 w-px" />
         {MODES.map(({ mode, icon: Icon, label }) => (
           <Button
             key={mode}
