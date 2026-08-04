@@ -25,5 +25,9 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts"],
+  // Partially-written subsystems parked here after their build agents were cut
+  // short. The code is sound but references files that were never reached, so
+  // it is excluded until each one is finished and moved back into `src/game`.
+  "exclude": ["src/game/_wip"]
 }

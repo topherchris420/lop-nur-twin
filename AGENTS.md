@@ -110,6 +110,58 @@ either file.
   `ShaderMaterial` must include the logdepth chunks — use
   `createHardSurfaceShaderMaterial()` rather than rolling your own.
 
+## The first-person mode (`src/game/`)
+
+`/play` is a combat layer over the same reconstruction the twin renders at `/`.
+It mounts the twin's `Terrain`, `Pavements`, `Structures` and `Atmosphere`
+unchanged and bakes its collision out of the rendered scene graph, so the map
+and the twin can never drift apart.
+
+- `core/` — `types.ts` is the shared vocabulary every subsystem codes against.
+  `gameState.ts` is the mutable per-frame singleton (the same "no React state
+  on the frame loop" rule applies); `gameStore.ts` is zustand, for discrete
+  state only.
+- `physics/collisionWorld.ts` — oriented boxes in a uniform grid, capsule
+  collide-and-slide, and an analytic heightfield raycast that calls the same
+  `terrainHeight` the terrain mesh is displaced by.
+- `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
+- `_wip/` is excluded from `tsconfig`: sound but unfinished subsystems, kept
+  rather than deleted. Finish one and move it back.
+
+Two subsystems have contracts worth knowing before you touch them:
+
+- **`characters/` legs are placed, not rotated.** `animation.ts` computes an
+  explicit foot trajectory and `ik.ts` solves the hip and knee to reach it.
+  Three properties fall out and must stay true: cadence is tied to speed by
+  `stride = speed x duty x period` so a planted foot never slides; the solver
+  clamps reach below full extension so a joint cannot hyperextend; and hip
+  height is *solved*, not iterated — lowering the hips shortens the reach to
+  the foot by less than the drop, so subtracting the excess under-corrects and
+  the planted foot creeps. `rig.ts` guarantees identity rest rotations, which
+  is what makes the solve closed-form; do not add a rest rotation. The model
+  faces `-z`, so a positive X rotation swings a bone *forward* — getting that
+  backwards is what made every knee bend the wrong way for weeks.
+- **`world/clutter.ts` cannot use `mergeAndDispose`.** Normalising for merge
+  deletes every attribute except position, normal and uv, which is right for
+  the weapons it was written for and silently drops the vertex colours all
+  clutter weathering lives in. It has its own `mergeParts`.
+
+Three things that will bite anyone extending this:
+
+1. **Tone mapping and exposure are decided in two places.** `Atmosphere` sets
+   the renderer's transform; on the top tier `render/CombatEffects.tsx` owns it
+   instead and the renderer stays linear. The viewmodel draws in its own pass
+   and reads `getPostExposure()` so both agree. Change one, check the others.
+2. **The composer's buffer is scene-linear HDR**, not display-referred. Sunlit
+   concrete sits near 2.0 there, so bloom and streak thresholds must be set
+   *above* the diffuse level or the whole ground blooms.
+3. **Anything feeding a convolution must be finite.** `HdrGuardEffect` runs
+   first for this reason; without it the sun overflows half-float to `Inf`,
+   the bloom downsample turns that into `NaN`, and the frame goes black while
+   the sky stays perfect. The same overflow ruins a `PMREMGenerator` input,
+   which is why `render/environment.ts` generates a bounded sky instead of
+   pre-filtering three's `Sky`.
+
 ## Verifying changes
 
 ```sh
@@ -128,6 +180,52 @@ node tools/probe.mjs --focus "Main assembly hangar" --no-hud
 `tools/probe.mjs` drives a headless browser, captures a frame and prints
 mean luma, clipped/crushed percentages and a histogram, so exposure and
 bloom values can be tuned against numbers. `--help` lists every flag.
+
+For the combat mode, the look is only half of it — assert the simulation and
+the audio too:
+
+```sh
+bun run smoke                 # 22 checks; exits non-zero on failure
+bun run gait                  # 15 checks on the walk cycle
+bun run audio                 # renders each sound offline and measures it
+node tools/inspect.mjs        # dump live camera, lights, colliders, actors
+node tools/closeup.mjs        # stage a soldier 3 m from the camera
+node tools/frames.mjs --out shots/before   # the canonical frame set
+```
+
+Two of these exist because a screenshot could not answer the question:
+
+- `tools/gait.mjs` drives one actor's animator with a fixed delta across
+  several stride cycles and asserts the knee bends forward, the leg never
+  locks out, the feet reach the ground and a planted foot does not slide. The
+  render loop is no use for this — a headless capture advances a handful of
+  frames and a stride takes sixty. A knee that bends backwards looks like a
+  bent knee in a still frame, which is how it survived several visual reviews.
+- `tools/frames.mjs` captures the *same* six views every run and prints the
+  same statistics for each, including local contrast over the lower half of
+  the frame — the number that moves when ground stops being a flat wash.
+  Pass `--compare shots/before` to diff against a previous run. Visual work
+  went in circles for a while because every review looked at a different
+  frame, and a shot into the sun disagrees with a shot away from it about
+  almost everything.
+
+`tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
+region, pushes lethal damage through the real queue and checks the kill is
+credited, and steps the match director to confirm the clock runs. Every check
+in it corresponds to something that has actually broken: a camera that never
+left its spawn, an environment map full of `NaN`, bots spawned inside a
+hangar, a heading convention mirrored between the camera and the simulation. A
+screenshot reported the first three as "the screen is dark" and nothing more.
+
+Two notes on testing this headlessly. The render loop advances only a handful
+of frames under a headless browser and `dt` is clamped per frame, so anything
+time-based has to be stepped directly rather than waited on. And a check that
+only holds at yaw 0 — like comparing a heading — passes trivially, because the
+default spawn faces north; deliberately turn away from the axis first.
+
+`bun run audio` renders each sound through an `OfflineAudioContext` and checks
+peak and crest factor. Peak above unity means it is clipping the bus before the
+limiter sees it; crest below 8 means it will not read as percussive.
 
 To check the **layout** rather than the look, capture a plan view:
 

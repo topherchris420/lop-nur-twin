@@ -6,6 +6,7 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
+import { sunState } from "@/lib/sunState";
 import { makeCloudShadowTexture } from "@/lib/textures";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
@@ -29,7 +30,27 @@ const NIGHT = {
   hemiGround: new THREE.Color("#14110d"),
 };
 
-export function Atmosphere() {
+export interface AtmosphereProps {
+  /**
+   * Tune for a camera standing on the ground rather than flying over it.
+   *
+   * The two cameras want genuinely different light, and the difference is not
+   * a matter of taste. From five kilometres up you are looking almost entirely
+   * at horizontal surfaces, so the ratio between sun and sky barely shows and
+   * a shadow map spanning the whole site is the right call. At eye level the
+   * frame is mostly *vertical* surfaces, and the sun-to-sky ratio is the only
+   * thing that gives them form — at the aerial balance a barrier's top face
+   * and its front face came out one luma value apart, which is why everything
+   * read as flat plastic. A site-wide shadow map is also 0.98 m per texel,
+   * which cannot resolve anything smaller than a building.
+   *
+   * So this switches both, and only for the ground camera: the twin keeps the
+   * balance and the frustum it was tuned with.
+   */
+  groundLevel?: boolean;
+}
+
+export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   const night = useTwinStore((s) => s.night);
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const environmentMonth = useTwinStore((s) => s.environmentMonth);
@@ -38,6 +59,16 @@ export function Atmosphere() {
   const dustFactor = climateDustFactor(climate);
   const quality = getQualityProfile(qualityTier);
   const { scene, gl } = useThree();
+
+  // A box around the built-up area rather than the whole site: 300 m at 2048
+  // is a 0.29 m texel against 0.98 m, and the near cascade covers what is
+  // still too small for that.
+  const shadowExtent = groundLevel ? 300 : 1000;
+  // Clear-sky desert is a hard key and a comparatively weak sky. Shadowed sand
+  // measured 0.54 of lit sand, where it should sit nearer 0.2 — the key was
+  // being swamped, so nothing had a lit side and a shade side.
+  const SUN_KEY = groundLevel ? 5.6 : 3.4;
+  const HEMI_SCALE = groundLevel ? 0.36 : 1;
 
   const sky = useMemo(() => {
     const s = new Sky();
@@ -126,15 +157,21 @@ export function Atmosphere() {
       sun.position.copy(SHADOW_FOCUS).addScaledVector(sunDir, SUN_DISTANCE);
       const strength = THREE.MathUtils.clamp(Math.sin(elev), 0, 1);
       const seasonalSolar = THREE.MathUtils.clamp((climate.solarKwhM2Day - 2) / 5.5, 0, 1);
-      sun.intensity = 3.4 * Math.pow(strength, 0.65) * THREE.MathUtils.lerp(0.82, 1.08, seasonalSolar);
+      sun.intensity = SUN_KEY * Math.pow(strength, 0.65) * THREE.MathUtils.lerp(0.82, 1.08, seasonalSolar);
       sun.color.lerpColors(DAY.sunLow, DAY.sunWarm, THREE.MathUtils.clamp(strength * 2.2, 0, 1));
+      sunState.intensity = sun.intensity;
     }
+    // Published for anything that has to aim at the same sun mid-transition —
+    // the near-field shadow cascade in `src/game/render/shadowCascade.ts`
+    // cannot re-derive this from the `night` toggle without lagging the ease.
+    sunState.direction.copy(sunDir);
+    sunState.dayFactor = next;
     const moon = moonRef.current;
     if (moon) moon.intensity = (1 - next) * 0.5;
 
     const hemi = hemiRef.current;
     if (hemi) {
-      hemi.intensity = 0.16 + 0.46 * next;
+      hemi.intensity = (0.16 + 0.46 * next) * HEMI_SCALE;
       hemi.color.lerpColors(NIGHT.hemiSky, DAY.hemiSky, next);
       hemi.groundColor.lerpColors(NIGHT.hemiGround, DAY.hemiGround, next);
     }
@@ -153,14 +190,17 @@ export function Atmosphere() {
         castShadow={qualityTier > 0}
         position={[600, 1100, -600]}
         shadow-mapSize={[quality.shadowMapSize, quality.shadowMapSize]}
-        shadow-camera-left={-1000}
-        shadow-camera-right={1000}
-        shadow-camera-top={1000}
-        shadow-camera-bottom={-1000}
+        shadow-camera-left={-shadowExtent}
+        shadow-camera-right={shadowExtent}
+        shadow-camera-top={shadowExtent}
+        shadow-camera-bottom={-shadowExtent}
         shadow-camera-near={200}
         shadow-camera-far={4200}
         shadow-bias={-0.0004}
-        shadow-normalBias={0.6}
+        // Normal bias exists to hide self-shadowing across one texel, so it
+        // has to shrink with the texel or it detaches a shadow from its
+        // caster. At the site-wide extent a texel is nearly a metre.
+        shadow-normalBias={(shadowExtent / quality.shadowMapSize) * 1.2}
       />
       <directionalLight ref={moonRef} position={[-900, 950, 500]} color="#9db4d8" intensity={0} />
       <hemisphereLight ref={hemiRef} intensity={0.6} color="#cfe2f8" groundColor="#b39d78" />

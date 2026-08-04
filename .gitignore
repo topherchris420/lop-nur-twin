@@ -13,3 +13,11 @@ dist-ssr
 # tools/probe.mjs output
 render_output.png
 render_output-*.png
+
+# tools/frames.mjs and tools/closeup.mjs output. Captures are evidence for a
+# review, not project assets — and the no-binary-assets rule means they must
+# never be committed. The manifest next to them is regenerated per run.
+shots/
+
+# Scratch worktrees for parallel agents; each is its own checkout.
+.claude/worktrees/
