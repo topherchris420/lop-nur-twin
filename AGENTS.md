@@ -145,6 +145,18 @@ Two subsystems have contracts worth knowing before you touch them:
   deletes every attribute except position, normal and uv, which is right for
   the weapons it was written for and silently drops the vertex colours all
   clutter weathering lives in. It has its own `mergeParts`.
+- **The player is an actor like any other, and needs the same rig.**
+  `CharacterManager` binds entity 0 with hitboxes and no model. Nothing else in
+  the simulation registers a collider for the player, so an "optimisation" that
+  skips them makes the player unhittable — and the failure is silent and
+  one-sided: bots acquire, aim and fire correctly, and every round resolves
+  against the wall behind you. `tools/engagement.mjs` asserts it.
+- **Every field-of-view number in `src/game/` is horizontal degrees.**
+  `THREE.PerspectiveCamera.fov` is vertical, so `horizontalToVerticalFov` in
+  `core/types.ts` sits between them. Feeding a horizontal figure straight into
+  the camera is a mistake that looks plausible until it is measured: 90 taken
+  as vertical is 121° horizontal at 16:9, which is a fisheye, and under it
+  aiming down the sights barely narrows anything.
 
 Three things that will bite anyone extending this:
 
@@ -186,8 +198,10 @@ the audio too:
 
 ```sh
 bun run smoke                 # 22 checks; exits non-zero on failure
+bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
+bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
 node tools/frames.mjs --out shots/before   # the canonical frame set

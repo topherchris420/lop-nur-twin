@@ -26,19 +26,29 @@ import { B } from "./rig";
  * bots that move at 5 m/s the difference in where a shot registers is smaller
  * than the aim error the AI applies to itself, and the stance-scaled boxes
  * still give a real head, chest, stomach and legs to hit.
+ *
+ * **The local player is bound too, with hitboxes and no model.** Nothing else
+ * in the simulation registers a collider for entity 0, so without this entry
+ * the player is the one actor in the match that rounds pass straight through:
+ * bots acquire, aim and fire perfectly correctly, and every shot resolves
+ * against the concrete behind you. A first-person body is a separate question
+ * — this is the target, not the avatar.
  */
 
-interface Bound {
-  actor: Actor;
+interface Visual {
   model: SoldierModel;
   weapon: HeldWeaponModel;
   /** The weapon id the held model was built for, so swaps rebuild it. */
   weaponId: string;
   animator: CharacterAnimator;
+}
+
+interface Bound {
+  actor: Actor;
+  /** Null for the local player, who is drawn as a viewmodel, not a body. */
+  visual: Visual | null;
   colliders: Collider[];
   regions: HitRegion[];
-  /** Frames since this character was last fully updated. */
-  skip: number;
 }
 
 interface RegionSpec {
@@ -49,14 +59,24 @@ interface RegionSpec {
   half: [number, number, number];
 }
 
+/**
+ * The hit regions, stacked so that **consecutive boxes overlap**.
+ *
+ * Sized from the fractions of standing height a body actually occupies, then
+ * deliberately grown until each box's top reaches past the next one's bottom.
+ * Boxes that merely touch leave a seam at every joint — hips, ankles, the base
+ * of the neck — and a round through a seam registers as world geometry, so a
+ * centre-mass shot silently does nothing. Overlaps cost nothing: the raycast
+ * returns the nearest hit, so the more specific box in front always wins.
+ */
 const REGION_SPECS: readonly RegionSpec[] = [
-  { region: "head", centre: 0.935, half: [0.105, 0.115, 0.115] },
-  { region: "neck", centre: 0.855, half: [0.07, 0.04, 0.07] },
-  { region: "chest", centre: 0.735, half: [0.19, 0.135, 0.13] },
-  { region: "stomach", centre: 0.575, half: [0.165, 0.13, 0.115] },
-  { region: "arm", centre: 0.72, half: [0.265, 0.12, 0.1] },
-  { region: "leg", centre: 0.29, half: [0.15, 0.27, 0.12] },
-  { region: "foot", centre: 0.045, half: [0.15, 0.06, 0.16] },
+  { region: "head", centre: 0.94, half: [0.108, 0.125, 0.12] },
+  { region: "neck", centre: 0.862, half: [0.075, 0.05, 0.075] },
+  { region: "chest", centre: 0.755, half: [0.2, 0.155, 0.135] },
+  { region: "stomach", centre: 0.6, half: [0.175, 0.145, 0.12] },
+  { region: "arm", centre: 0.73, half: [0.285, 0.16, 0.105] },
+  { region: "leg", centre: 0.34, half: [0.175, 0.33, 0.125] },
+  { region: "foot", centre: 0.085, half: [0.175, 0.145, 0.16] },
 ];
 
 const _centre = new THREE.Vector3();
@@ -80,12 +100,12 @@ export class CharacterManager {
   private readonly sampleGround = (x: number, z: number): number =>
     this.world.groundAt(x, z);
 
-  /** Attach a model and hitboxes to an actor. Idempotent. */
+  /**
+   * Attach hitboxes to an actor, and a soldier model unless it is the local
+   * player. Idempotent.
+   */
   add(actor: Actor, team: Team = actor.team): void {
     if (this.bound.has(actor.id)) return;
-    const model = buildSoldier({ team, seed: actor.seed });
-    model.group.position.copy(actor.position);
-    this.group.add(model.group);
 
     const colliders: Collider[] = [];
     const regions: HitRegion[] = [];
@@ -104,6 +124,19 @@ export class CharacterManager {
       regions.push(spec.region);
     }
 
+    this.bound.set(actor.id, {
+      actor,
+      visual: actor.isPlayer ? null : this.buildVisual(actor, team),
+      colliders,
+      regions,
+    });
+  }
+
+  private buildVisual(actor: Actor, team: Team): Visual {
+    const model = buildSoldier({ team, seed: actor.seed });
+    model.group.position.copy(actor.position);
+    this.group.add(model.group);
+
     // Parent the weapon to the rig's dedicated weapon bone, which the
     // animation layer already keeps in the right hand.
     const weapon = buildHeldWeapon(actor.weaponId);
@@ -114,37 +147,31 @@ export class CharacterManager {
     // plane, so a soldier on a slope stands on it instead of through it.
     animator.groundAt = this.sampleGround;
     animator.reset(actor);
-    this.bound.set(actor.id, {
-      actor,
-      model,
-      weapon,
-      weaponId: actor.weaponId,
-      animator,
-      colliders,
-      regions,
-      skip: 0,
-    });
+    return { model, weapon, weaponId: actor.weaponId, animator };
   }
 
   remove(actorId: number): void {
     const entry = this.bound.get(actorId);
     if (!entry) return;
     for (const collider of entry.colliders) this.world.removeDynamic(collider);
-    this.group.remove(entry.model.group);
-    entry.weapon.mesh.removeFromParent();
-    entry.weapon.dispose();
-    entry.model.dispose();
+    const visual = entry.visual;
+    if (visual) {
+      this.group.remove(visual.model.group);
+      visual.weapon.mesh.removeFromParent();
+      visual.weapon.dispose();
+      visual.model.dispose();
+    }
     this.bound.delete(actorId);
   }
 
   /** Notify the animator that an actor was hit, for the flinch layer. */
   reportHit(actorId: number, lateralSign: number): void {
-    this.bound.get(actorId)?.animator.hit(lateralSign);
+    this.bound.get(actorId)?.visual?.animator.hit(lateralSign);
   }
 
   /** Notify the animator that an actor fired. */
   reportFire(actorId: number): void {
-    this.bound.get(actorId)?.animator.recoil();
+    this.bound.get(actorId)?.visual?.animator.recoil();
   }
 
   update(dt: number, camera: THREE.Camera): void {
@@ -153,48 +180,51 @@ export class CharacterManager {
 
     for (const entry of this.bound.values()) {
       const actor = entry.actor;
+
+      // Hitboxes always follow the simulation, for every bound actor including
+      // the player, because shooting a character must never lag its position.
+      this.updateHitboxes(entry);
+
+      const visual = entry.visual;
+      if (!visual) continue;
+
       const distance = _cameraFlat.distanceTo(actor.position);
 
       // Distance-scaled update rate: full rate up close, every other frame at
-      // medium range, every fourth beyond that. Hitboxes always follow the
-      // simulation, because shooting a character must never lag its position.
+      // medium range, every fourth beyond that.
       const stride = distance < 30 ? 1 : distance < 80 ? 2 : 4;
-      const shouldAnimate = this.frame % stride === 0;
-
-      this.updateHitboxes(entry);
-
-      if (!shouldAnimate) continue;
+      if (this.frame % stride !== 0) continue;
       const step = dt * stride;
 
       // Rebuild the held weapon if the actor swapped to a different class.
-      if (entry.weaponId !== actor.weaponId) {
-        entry.weapon.mesh.removeFromParent();
-        entry.weapon.dispose();
-        entry.weapon = buildHeldWeapon(actor.weaponId);
-        entry.weaponId = actor.weaponId;
-        entry.model.bones[B.weapon]!.add(entry.weapon.mesh);
+      if (visual.weaponId !== actor.weaponId) {
+        visual.weapon.mesh.removeFromParent();
+        visual.weapon.dispose();
+        visual.weapon = buildHeldWeapon(actor.weaponId);
+        visual.weaponId = actor.weaponId;
+        visual.model.bones[B.weapon]!.add(visual.weapon.mesh);
       }
       // A dead actor drops the weapon from view rather than clipping it
       // through the ground as the body folds.
-      entry.weapon.mesh.visible = actor.alive;
+      visual.weapon.mesh.visible = actor.alive;
 
-      entry.model.group.position.copy(actor.position);
+      visual.model.group.position.copy(actor.position);
       // Per-foot ground sampling and the off-hand IK only read at close range,
       // and the ground sampler is the most expensive thing in the pose.
-      entry.animator.update(
-        entry.model.bones,
-        entry.model.group,
+      visual.animator.update(
+        visual.model.bones,
+        visual.model.group,
         actor,
         step,
         distance < 45,
       );
-      entry.model.bones[B.root]!.updateMatrixWorld(true);
+      visual.model.bones[B.root]!.updateMatrixWorld(true);
 
       // Shadows are the most expensive thing a character does; only the ones
       // close enough for their shadow to be legible cast at all.
       const cast = distance < 60 && actor.alive;
-      if (entry.model.mesh.castShadow !== cast) entry.model.mesh.castShadow = cast;
-      entry.model.group.visible = distance < 420;
+      if (visual.model.mesh.castShadow !== cast) visual.model.mesh.castShadow = cast;
+      visual.model.group.visible = distance < 420;
     }
   }
 
@@ -225,7 +255,7 @@ export class CharacterManager {
 
   /** Posed bone hierarchy of a bound actor, for tooling and debug overlays. */
   bonesOf(actorId: number): readonly THREE.Bone[] | null {
-    return this.bound.get(actorId)?.model.bones ?? null;
+    return this.bound.get(actorId)?.visual?.model.bones ?? null;
   }
 
   /**
@@ -238,28 +268,30 @@ export class CharacterManager {
    * way to see a whole cycle.
    */
   poseOnly(actorId: number, dt: number, detail = true): void {
-    const entry = this.bound.get(actorId);
-    if (!entry) return;
-    entry.model.group.position.copy(entry.actor.position);
-    entry.animator.update(entry.model.bones, entry.model.group, entry.actor, dt, detail);
-    entry.model.group.updateMatrixWorld(true);
+    const visual = this.bound.get(actorId)?.visual;
+    if (!visual) return;
+    const actor = this.bound.get(actorId)!.actor;
+    visual.model.group.position.copy(actor.position);
+    visual.animator.update(visual.model.bones, visual.model.group, actor, dt, detail);
+    visual.model.group.updateMatrixWorld(true);
   }
 
   /** Total triangles across live characters, for the statistics readout. */
   get triangleCount(): number {
     let total = 0;
     for (const entry of this.bound.values()) {
-      if (entry.model.group.visible) total += entry.model.triangleCount;
+      const visual = entry.visual;
+      if (visual && visual.model.group.visible) total += visual.model.triangleCount;
     }
     return total;
   }
 
-  /** Bind every actor in the simulation that does not have a model yet. */
+  /**
+   * Bind every actor in the simulation that is not bound yet — the player
+   * included, so their hitboxes exist from the first frame of the match.
+   */
   syncWithActors(): void {
-    for (const actor of game.actors) {
-      if (actor.isPlayer) continue;
-      this.add(actor);
-    }
+    for (const actor of game.actors) this.add(actor);
     for (const id of [...this.bound.keys()]) {
       if (!game.actorById.has(id)) this.remove(id);
     }

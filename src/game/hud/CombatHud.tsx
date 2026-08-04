@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
+import { COMBAT } from "../core/combat";
 
 /**
  * The in-game overlay.
@@ -16,6 +17,7 @@ const BLUE = "#4da3ff";
 const RED = "#ff5a4d";
 const AMBER = "#ffb648";
 const INK = "rgba(9,10,12,0.72)";
+const COMBAT_RESPAWN_SECONDS = COMBAT.respawnDelay;
 
 interface Painted {
   width: number;
@@ -270,6 +272,67 @@ function paintDamageDirs(ctx: CanvasRenderingContext2D, w: number, h: number): v
   ctx.restore();
 }
 
+/**
+ * The eliminated card: who killed you, with what, and how long until you are
+ * back in. Until the player could be hurt at all this had nothing to show, so
+ * a death was just the controls quietly ceasing to work for five seconds.
+ */
+function paintEliminated(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  const hud = game.hud;
+  if (hud.alive) return;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(24,4,3,0.45)";
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const top = h * 0.3;
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = RED;
+  ctx.font = "700 13px ui-monospace, monospace";
+  ctx.letterSpacing = "6px";
+  ctx.fillText("KILLED IN ACTION", cx, top);
+  ctx.letterSpacing = "0px";
+
+  if (hud.killedBy) {
+    ctx.fillStyle = "rgba(226,232,240,0.94)";
+    ctx.font = "600 30px ui-sans-serif, system-ui, sans-serif";
+    ctx.fillText(hud.killedBy, cx, top + 40);
+
+    ctx.fillStyle = "rgba(148,163,184,0.85)";
+    ctx.font = "500 12px ui-monospace, monospace";
+    const weapon = hud.killedByWeapon.toUpperCase().replace(/-/g, " ");
+    ctx.fillText(
+      hud.killedByHeadshot ? `${weapon}  ·  HEADSHOT` : weapon,
+      cx,
+      top + 68,
+    );
+  }
+
+  // A countdown bar, so the wait is legible rather than indefinite.
+  const total = Math.max(0.001, COMBAT_RESPAWN_SECONDS);
+  const remaining = Math.max(0, hud.respawnIn);
+  const barW = Math.min(280, w * 0.4);
+  const barY = top + 104;
+  ctx.fillStyle = "rgba(226,232,240,0.14)";
+  ctx.fillRect(cx - barW / 2, barY, barW, 3);
+  ctx.fillStyle = AMBER;
+  ctx.fillRect(cx - barW / 2, barY, barW * (1 - remaining / total), 3);
+
+  ctx.fillStyle = "rgba(226,232,240,0.7)";
+  ctx.font = "500 11px ui-monospace, monospace";
+  ctx.letterSpacing = "3px";
+  ctx.fillText(
+    remaining > 0.05 ? `RESPAWN IN ${remaining.toFixed(1)}` : "REDEPLOYING",
+    cx,
+    barY + 22,
+  );
+  ctx.letterSpacing = "0px";
+  ctx.restore();
+}
+
 const COMPASS_POINTS: [number, string][] = [
   [0, "N"], [45, "NE"], [90, "E"], [135, "SE"],
   [180, "S"], [225, "SW"], [270, "W"], [315, "NW"],
@@ -419,6 +482,7 @@ export function CombatHud() {
       paintScore(ctx, w);
       paintAmmo(ctx, w, h);
       paintEquipment(ctx, h);
+      paintEliminated(ctx, w, h);
       if (fpsRef.current) paintStats(ctx, w);
     };
     raf = requestAnimationFrame(draw);

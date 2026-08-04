@@ -447,6 +447,28 @@ export function shotInterval(rpm: number): number {
 }
 
 /* ------------------------------------------------------------------ */
+/* Field of view                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Every field-of-view number in this game is **horizontal**, in degrees.
+ *
+ * That is the convention the genre uses and the one the settings slider is
+ * scaled for (70–120, like a shooter's). `THREE.PerspectiveCamera.fov` is
+ * *vertical*, so the two must be converted between, and feeding a horizontal
+ * figure straight into the camera is a mistake that looks plausible until you
+ * measure it: 90 taken as vertical on a 16:9 frame is 121° horizontal — a
+ * fisheye. Under it a soldier at 25 m is thirty pixels tall, aiming down the
+ * sights narrows the view by barely a third, and the whole game reads as
+ * happening a long way away from you.
+ */
+export function horizontalToVerticalFov(horizontalDeg: number, aspect: number): number {
+  const safeAspect = Math.max(0.2, aspect);
+  const half = (horizontalDeg * Math.PI) / 360;
+  return (2 * Math.atan(Math.tan(half) / safeAspect) * 180) / Math.PI;
+}
+
+/* ------------------------------------------------------------------ */
 /* Heading                                                             */
 /* ------------------------------------------------------------------ */
 

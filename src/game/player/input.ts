@@ -42,7 +42,9 @@ export const DEFAULT_BINDINGS: InputBindings = {
   prone: ["KeyZ"],
   sprint: ["ShiftLeft"],
   reload: ["KeyR"],
-  swap: ["KeyQ", "Digit2"],
+  // `Q` is the lean key, so it cannot also swap weapons — bound to both, every
+  // lean left also put a different gun in your hands.
+  swap: ["Digit1", "Digit2"],
   melee: ["KeyV"],
   use: ["KeyF"],
   grenade: ["KeyG"],

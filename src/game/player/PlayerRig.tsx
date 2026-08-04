@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useGameStore } from "../core/gameStore";
 import { useTwinStore } from "@/lib/store";
 import { game, eyePosition } from "../core/gameState";
-import { HUMAN_METRICS, MASK_SOLID } from "../core/types";
+import { HUMAN_METRICS, MASK_SOLID, horizontalToVerticalFov } from "../core/types";
 import type { CollisionWorld } from "../physics/collisionWorld";
 import { PlayerController } from "./controller";
 import { InputManager } from "./input";
@@ -69,6 +69,10 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
   const animator = useMemo(() => new ViewmodelAnimator(), []);
   const stage = useMemo(() => new ViewmodelStage(), []);
   const viewmodelRoot = stage.root;
+  /** 0..1 death-camera blend; eased so respawning stands you back up. */
+  const death = useRef(0);
+  /** Eased horizontal field of view, in degrees. See `core/types.ts`. */
+  const horizontalFov = useRef(fovSetting);
 
   useEffect(() => {
     // `?novm=1` hides the weapon, for isolating render problems in the probe.
@@ -278,9 +282,22 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     }
 
     /* -------------------------------------------------------- camera */
-    const eyeHeight = controller.eyeHeight();
+    // Death drops the camera to the ground and rolls it over. It is the only
+    // signal in the frame that the round that just landed was the last one,
+    // and it is what makes a death read as an event rather than as the world
+    // quietly declining to respond to the controls.
+    death.current = player.alive
+      ? Math.max(0, death.current - dt * 2.4)
+      : Math.min(1, death.current + dt * 1.6);
+    const fell = death.current * death.current * (3 - 2 * death.current);
+
+    const eyeHeight = THREE.MathUtils.lerp(controller.eyeHeight(), 0.34, fell);
     const view = controller.view;
-    _euler.set(player.pitch + view.pitch, player.yaw, view.roll);
+    _euler.set(
+      player.pitch + view.pitch + fell * 0.5,
+      player.yaw,
+      view.roll + fell * 1.05,
+    );
     camera.quaternion.setFromEuler(_euler);
     camera.getWorldDirection(_forward);
     _right.crossVectors(_forward, THREE.Object3D.DEFAULT_UP).normalize();
@@ -293,12 +310,15 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     );
 
     // Field of view: blend to the weapon's ADS value, and add a small
-    // speed-driven widening that makes sprinting feel faster than it is.
+    // speed-driven widening that makes sprinting feel faster than it is. The
+    // blend runs in horizontal degrees — the units every number involved is
+    // authored in — and only the result is converted for the camera.
     const speedFov = Math.min(1, controller.speed / 7.6) * (controller.tacSprinting ? 6 : 3);
     const targetFov =
       fovSetting + speedFov + (active.def.handling.adsFov - fovSetting - speedFov) * active.ads;
     const perspective = camera as THREE.PerspectiveCamera;
-    perspective.fov += (targetFov - perspective.fov) * Math.min(1, dt * 16);
+    horizontalFov.current += (targetFov - horizontalFov.current) * Math.min(1, dt * 16);
+    perspective.fov = horizontalToVerticalFov(horizontalFov.current, perspective.aspect);
     perspective.updateProjectionMatrix();
 
     /* ----------------------------------------------------- viewmodel */
@@ -329,6 +349,8 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     const hud = game.hud;
     hud.health = player.health;
     hud.maxHealth = player.maxHealth;
+    hud.alive = player.alive;
+    hud.respawnIn = Math.max(0, player.respawnTimer);
     hud.ammo = active.ammo;
     hud.reserve = active.reserve;
     hud.magSize = active.def.magSize;

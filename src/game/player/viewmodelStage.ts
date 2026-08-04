@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { horizontalToVerticalFov } from "../core/types";
 
 /**
  * The viewmodel stage: a private scene, camera and lighting rig for the
@@ -18,7 +19,7 @@ import * as THREE from "three";
  */
 
 export interface ViewmodelStageOptions {
-  /** Field of view for the weapon, in degrees. */
+  /** Horizontal field of view for the weapon, in degrees. */
   fov: number;
   /** Narrower FOV used at full aim, so the weapon grows toward the eye. */
   adsFov: number;
@@ -33,8 +34,14 @@ export class ViewmodelStage {
   private readonly fill: THREE.HemisphereLight;
   private readonly rim: THREE.DirectionalLight;
   private readonly options: ViewmodelStageOptions;
+  private adsBlend = 0;
 
-  constructor(options: ViewmodelStageOptions = { fov: 70, adsFov: 56 }) {
+  // 96 horizontal is a wider lens than the world's 80, which is deliberate and
+  // is what shipping shooters do: at the world's own lens a rifle held where a
+  // rifle is held eats a third of the screen. These were 70/56 when they were
+  // being fed to a *vertical* FOV property — the same 102/86 horizontal at
+  // 16:9 — so the weapon is drawn at very close to the size it always was.
+  constructor(options: ViewmodelStageOptions = { fov: 96, adsFov: 80 }) {
     this.options = options;
     // A very short depth range: the weapon lives between 5 cm and 4 m, so the
     // pass gets the whole precision budget to itself.
@@ -75,21 +82,30 @@ export class ViewmodelStage {
     this.scene.environmentIntensity = 1.1;
   }
 
-  /** Blend the camera's field of view toward the aimed value. */
+  /**
+   * Blend the camera's field of view toward the aimed value.
+   *
+   * Horizontal degrees, like the world camera's — the weapon pass is a
+   * *narrower lens on the same shot*, and if the two use different conventions
+   * that relationship inverts the moment the aspect ratio is not 1:1.
+   */
   setAds(blend: number): void {
-    const target =
-      this.options.fov + (this.options.adsFov - this.options.fov) * blend;
-    if (Math.abs(this.camera.fov - target) > 1e-3) {
-      this.camera.fov = target;
-      this.camera.updateProjectionMatrix();
-    }
+    this.adsBlend = blend;
+    this.applyFov();
   }
 
   setAspect(aspect: number): void {
-    if (Math.abs(this.camera.aspect - aspect) > 1e-4) {
-      this.camera.aspect = aspect;
-      this.camera.updateProjectionMatrix();
-    }
+    if (Math.abs(this.camera.aspect - aspect) < 1e-4) return;
+    this.camera.aspect = aspect;
+    this.applyFov();
+  }
+
+  private applyFov(): void {
+    const horizontal =
+      this.options.fov + (this.options.adsFov - this.options.fov) * this.adsBlend;
+    const target = horizontalToVerticalFov(horizontal, this.camera.aspect);
+    if (Math.abs(this.camera.fov - target) > 1e-3) this.camera.fov = target;
+    this.camera.updateProjectionMatrix();
   }
 
   /**

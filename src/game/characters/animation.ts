@@ -116,6 +116,9 @@ const _solvedFore = new THREE.Quaternion();
 const _foreQuat = new THREE.Quaternion();
 const _foreModel = new THREE.Quaternion();
 const _handQuat = new THREE.Quaternion();
+const _deathAxis = new THREE.Vector3();
+const _deathQuat = new THREE.Quaternion();
+const UP_AXIS = new THREE.Vector3(0, 1, 0);
 
 /** Per-foot working state, so the two legs can be solved from one code path. */
 interface FootPlan {
@@ -200,6 +203,11 @@ export class CharacterAnimator {
   private flinchSide = 0;
   private fire = 0;
   private deathTime = -1;
+  /** World-space horizontal direction the killing round was travelling. */
+  private fallX = 0;
+  private fallZ = -1;
+  /** A head hit drops the body limp instead of letting it brace. */
+  private limp = false;
   private lastSpeed = 0;
 
   /**
@@ -218,6 +226,7 @@ export class CharacterAnimator {
     this.flinch = 0;
     this.fire = 0;
     this.deathTime = -1;
+    this.limp = false;
   }
 
   /** Called when the actor takes a hit, to add a directional flinch. */
@@ -246,7 +255,16 @@ export class CharacterAnimator {
     this.lastSpeed = damp(this.lastSpeed, actor.speed, 12, dt);
 
     if (!actor.alive) {
-      if (this.deathTime < 0) this.deathTime = 0;
+      if (this.deathTime < 0) {
+        this.deathTime = 0;
+        // Freeze the direction the round was travelling in model terms once,
+        // at the moment of death: the actor's yaw keeps its last live value,
+        // so resolving this every frame would be stable anyway, but capturing
+        // it makes the fall independent of anything that touches yaw later.
+        this.fallX = actor.deathDir.x;
+        this.fallZ = actor.deathDir.z;
+        this.limp = actor.deathHeadshot;
+      }
       this.deathTime += dt;
       this.applyDeath(bones, group);
       return;
@@ -269,7 +287,11 @@ export class CharacterAnimator {
     const twistLimit = 0.62;
     const overrun = Math.max(0, Math.abs(yawError) - twistLimit) * Math.sign(yawError);
     this.bodyYaw += overrun + yawError * Math.min(1, dt * (moving > 0.1 ? 9 : 3.2));
-    group.rotation.y = this.bodyYaw;
+    // The whole orientation, not just the yaw channel: the death pose tips the
+    // model root about an arbitrary world axis, and writing `rotation.y` alone
+    // would leave that tilt in place, so a respawned soldier would get up and
+    // walk around still lying on its side.
+    group.quaternion.setFromAxisAngle(UP_AXIS, this.bodyYaw);
 
     /* --------------------------------------------------------- gait */
     // Where the actor is actually travelling, in model space, so that
@@ -621,27 +643,63 @@ export class CharacterAnimator {
     bones[B.foreArmL]!.quaternion.copy(_savedFore).slerp(_solvedFore, weight);
   }
 
-  /** A simple collapse; the ragdoll system replaces this when it lands. */
+  /**
+   * The collapse; the ragdoll system replaces this when it lands.
+   *
+   * Two motions, because that is what a body actually does: the legs give out
+   * first and the hips drop straight down, and only then does the whole frame
+   * topple over the feet. The topple is a rigid rotation of the model root
+   * about a *world* horizontal axis chosen from the killing round's direction,
+   * so a soldier shot in the back falls away from the shooter and one shot in
+   * the chest goes over backwards — and it pivots at the feet, which is where
+   * a falling body's contact with the ground actually is.
+   *
+   * The knee fold is relaxed as the topple completes. Both lower the torso, so
+   * running them at full strength together buries the body in the ground.
+   */
   private applyDeath(bones: readonly THREE.Bone[], group: THREE.Object3D): void {
-    const t = Math.min(1, this.deathTime / 0.85);
-    const ease = 1 - (1 - t) * (1 - t);
+    const t = this.deathTime;
+    // A head hit takes the legs immediately; anything else buckles.
+    const buckle = THREE.MathUtils.smoothstep(t, 0, this.limp ? 0.14 : 0.3);
+    // Falling accelerates, so the topple is quadratic rather than eased-out.
+    const fall = Math.min(1, Math.max(0, (t - (this.limp ? 0.02 : 0.12)) / 0.82));
+    const drop = fall * fall;
+    const fold = buckle * (1 - drop * 0.55);
+    const brace = this.limp ? 0 : 1 - drop;
+
     resetToRest(bones);
-    group.rotation.y = this.bodyYaw;
-    // Fold at the knees and hips, then pitch forward onto the ground. The hips
-    // flex (positive, forward) and the knees fold (negative, heel to buttock),
-    // which is the only way a knee is allowed to move.
-    setEuler(bones[B.pelvis]!, ease * 1.35, 0, 0);
-    bones[B.pelvis]!.position.y -= ease * 0.78;
-    setEuler(bones[B.thighL]!, ease * 0.95, 0, ease * 0.24);
-    setEuler(bones[B.thighR]!, ease * 1.15, 0, -ease * 0.3);
-    setEuler(bones[B.shinL]!, -ease * 1.5, 0, 0);
-    setEuler(bones[B.shinR]!, -ease * 1.25, 0, 0);
-    setEuler(bones[B.footL]!, ease * 0.35, 0, 0);
-    setEuler(bones[B.footR]!, ease * 0.3, 0, 0);
-    setEuler(bones[B.spine1]!, ease * 0.3, 0, ease * 0.15);
-    setEuler(bones[B.spine2]!, ease * 0.24, 0, ease * 0.12);
-    setEuler(bones[B.neck]!, ease * 0.4, 0, 0);
-    setEuler(bones[B.upperArmL]!, -ease * 0.6, ease * 0.5, -ease * 0.9);
-    setEuler(bones[B.upperArmR]!, -ease * 0.5, -ease * 0.5, ease * 0.9);
+
+    /* ------------------------------------------------------- topple */
+    // `up x fall` is the horizontal axis that tips the body toward the round's
+    // travel; the model is yawed first, then rotated about that world axis.
+    _deathAxis.set(this.fallZ, 0, -this.fallX);
+    if (_deathAxis.lengthSq() < 1e-6) _deathAxis.set(1, 0, 0);
+    _deathAxis.normalize();
+    group.quaternion.setFromAxisAngle(UP_AXIS, this.bodyYaw);
+    _deathQuat.setFromAxisAngle(_deathAxis, drop * 1.36);
+    group.quaternion.premultiply(_deathQuat);
+
+    /* --------------------------------------------------------- pose */
+    // Hips flex (positive, forward) and knees fold (negative, heel to
+    // buttock), which is the only way a knee is allowed to move.
+    setEuler(bones[B.pelvis]!, fold * 1.05, 0, 0);
+    bones[B.pelvis]!.position.y -= fold * 0.72;
+    setEuler(bones[B.thighL]!, fold * 0.95, 0, fold * 0.24);
+    setEuler(bones[B.thighR]!, fold * 1.15, 0, -fold * 0.3);
+    setEuler(bones[B.shinL]!, -fold * 1.5, 0, 0);
+    setEuler(bones[B.shinR]!, -fold * 1.25, 0, 0);
+    setEuler(bones[B.footL]!, fold * 0.35, 0, 0);
+    setEuler(bones[B.footR]!, fold * 0.3, 0, 0);
+    // The spine braces on the way down and goes slack once the body lands.
+    setEuler(bones[B.spine1]!, buckle * 0.3 * brace + drop * 0.1, 0, buckle * 0.15);
+    setEuler(bones[B.spine2]!, buckle * 0.24 * brace, 0, buckle * 0.12);
+    setEuler(bones[B.neck]!, buckle * 0.4 - drop * 0.5 * (this.limp ? 1 : 0.4), 0, 0);
+    setEuler(bones[B.head]!, drop * 0.35, 0, drop * 0.3);
+    // Arms swing out and trail behind the fall.
+    const flail = Math.min(1, buckle + drop);
+    setEuler(bones[B.upperArmL]!, -flail * 0.6 - drop * 0.35, flail * 0.5, -flail * 0.9);
+    setEuler(bones[B.upperArmR]!, -flail * 0.5 - drop * 0.35, -flail * 0.5, flail * 0.9);
+    setEuler(bones[B.foreArmL]!, -flail * 0.5, 0, 0);
+    setEuler(bones[B.foreArmR]!, -flail * 0.45, 0, 0);
   }
 }

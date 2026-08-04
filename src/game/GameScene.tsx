@@ -20,6 +20,7 @@ import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
+import { WEAPONS } from "./weapons/arsenal";
 import { createAudio, disposeAudio } from "./audio";
 import { forwardToYaw, type SurfaceType } from "./core/types";
 import { sunState } from "@/lib/sunState";
@@ -129,6 +130,9 @@ function Combatants({ world }: { world: CollisionWorld }) {
       count: botCount,
       skill: botSkill,
       seed: matchSeed,
+      // The player has already been placed by the time this mounts, so the
+      // opening spawn is banded around them like every later one.
+      focus: game.player.position,
     });
     bots.onFire = (actor) => characters.reportFire(actor.id);
     characters.syncWithActors();
@@ -137,13 +141,21 @@ function Combatants({ world }: { world: CollisionWorld }) {
     game.characters = characters;
 
     const director = new MatchDirector(mode);
-    // Everyone respawns through the bot manager's geometry-checked picker.
-    director.requestSpawn = (actor) =>
-      bots.spawnPointFor(actor.team, actor.isPlayer ? null : game.player.position);
+    // Everyone respawns through the bot manager's geometry-checked, scored
+    // picker — including the player, so a death puts you back in the fight
+    // instead of on the far side of the compound from it.
+    director.requestSpawn = (actor) => bots.spawnPointFor(actor.team);
     director.onEnd = () => setScreen("results");
     game.matchDirector = director;
 
     managers.current = { bots, characters, director };
+    // Dev-only: `tools/engagement.mjs` steps these with a fixed delta. A
+    // headless browser renders a handful of frames a second and `dt` is
+    // clamped, so a minute of match time cannot be waited for — it has to be
+    // driven, the same way `tools/gait.mjs` drives one actor's animator.
+    if (import.meta.env.DEV) {
+      (globalThis as { __combatSim?: unknown }).__combatSim = { bots, characters, director };
+    }
     return () => {
       game.matchDirector = null;
       game.characters = null;
@@ -154,6 +166,9 @@ function Combatants({ world }: { world: CollisionWorld }) {
         if (!actor.isPlayer) removeActor(actor.id);
       }
       managers.current = null;
+      if (import.meta.env.DEV) {
+        (globalThis as { __combatSim?: unknown }).__combatSim = undefined;
+      }
     };
   }, [world, scene, botCount, botSkill, matchSeed, mode, setScreen]);
 
@@ -162,6 +177,10 @@ function Combatants({ world }: { world: CollisionWorld }) {
     if (!held) return;
     const dt = Math.min(0.05, rawDelta);
     if (useGameStore.getState().screen === "playing") {
+      // The player is where the match is. Zone selection and spawn scoring are
+      // relative to this, which is what keeps the two forces fighting each
+      // other in front of you rather than somewhere over the horizon.
+      held.bots.setFocus(game.player.position);
       held.bots.update(dt, game.time);
       held.director.update(dt);
     }
@@ -187,9 +206,16 @@ interface SimulationProps {
  */
 function exposeDevHandle(state: unknown): void {
   if (!import.meta.env.DEV) return;
-  (globalThis as {
+  const dev = globalThis as {
     __combat?: { r3f: unknown; game: typeof game; store: typeof useGameStore };
-  }).__combat = {
+    __combatModules?: unknown;
+    __combatWeapons?: unknown;
+  };
+  // The damage pipeline and the arsenal registry, so a harness can step a
+  // whole frame in the order this component does instead of approximating it.
+  dev.__combatModules = { resolveDamage, tickActorState };
+  dev.__combatWeapons = WEAPONS;
+  dev.__combat = {
     r3f: state,
     game,
     // The store, so tooling can change a setting the rig owns rather than
@@ -477,34 +503,44 @@ function FxHost({ onReady }: { onReady: (fx: FxManager) => void }) {
 /* Scene                                                               */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Drop the player at the opening spawn.
+ *
+ * Called the instant collision finishes baking, before `Combatants` mounts,
+ * because the bot manager bands its first spawn around wherever the player is
+ * — and a force positioned relative to an unplaced player is a force spread
+ * over the whole 6.8 km frame.
+ */
+function placeOpeningSpawn(world: CollisionWorld): void {
+  const defaultYaw = forwardToYaw(
+    GROUND_OVERLOOK.target[0] - GROUND_OVERLOOK.position[0],
+    GROUND_OVERLOOK.target[1] - GROUND_OVERLOOK.position[1],
+  );
+  // `?look=<deg>` aims the spawn heading and `?at=<x>,<z>` moves the spawn,
+  // so a frame can be captured from anywhere on the map without driving the
+  // camera by hand.
+  const params = new URLSearchParams(window.location.search);
+  const raw = Number(params.get("look"));
+  const yaw = Number.isFinite(raw) && raw !== 0 ? (raw * Math.PI) / 180 : defaultYaw;
+  const at = (params.get("at") ?? "").split(",").map(Number);
+  const [ax, az] = at.length === 2 && at.every(Number.isFinite)
+    ? (at as [number, number])
+    : GROUND_OVERLOOK.position;
+  placePlayer(world, ax, az, yaw);
+}
+
 function CombatWorld() {
   const [world, setWorld] = useState<CollisionWorld | null>(null);
   const [fx, setFx] = useState<FxManager | null>(null);
   const [environment, setEnvironment] = useState<THREE.Texture | null>(null);
-  const handleBaked = useCallback((baked: CollisionWorld) => setWorld(baked), []);
+  const handleBaked = useCallback((baked: CollisionWorld) => {
+    placeOpeningSpawn(baked);
+    setWorld(baked);
+  }, []);
   const handleFx = useCallback((manager: FxManager) => setFx(manager), []);
   const handleEnvironment = useCallback((texture: THREE.Texture) => setEnvironment(texture), []);
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const post = getQualityProfile(qualityTier).postprocessing;
-
-  useEffect(() => {
-    if (!world) return;
-    const defaultYaw = forwardToYaw(
-      GROUND_OVERLOOK.target[0] - GROUND_OVERLOOK.position[0],
-      GROUND_OVERLOOK.target[1] - GROUND_OVERLOOK.position[1],
-    );
-    // `?look=<deg>` aims the spawn heading and `?at=<x>,<z>` moves the spawn,
-    // so a frame can be captured from anywhere on the map without driving the
-    // camera by hand.
-    const params = new URLSearchParams(window.location.search);
-    const raw = Number(params.get("look"));
-    const yaw = Number.isFinite(raw) && raw !== 0 ? (raw * Math.PI) / 180 : defaultYaw;
-    const at = (params.get("at") ?? "").split(",").map(Number);
-    const [ax, az] = at.length === 2 && at.every(Number.isFinite)
-      ? (at as [number, number])
-      : GROUND_OVERLOOK.position;
-    placePlayer(world, ax, az, yaw);
-  }, [world]);
 
   return (
     <>

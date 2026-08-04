@@ -1,12 +1,51 @@
 # Lop Nur Base — Digital Twin
 
-> An immersive 3D experience of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame reconstructed from public Earth-observation data and cited open reporting. The geometry is measurable; structure functions and simulated activity remain interpretations.
+> An immersive 3D experience of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame reconstructed from public Earth-observation data and cited open reporting, plus **Blacksite**, a first-person engagement simulator that plays on the same measured ground. The geometry is measurable; structure functions and simulated activity remain interpretations.
 
 **What's inside the wire:** A triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved runway (05/23, modeled on a ~046°/226° grid bearing) forms one leg; two long graded-earth strips meet at a north-west apex. A spur taxiway reaches a compound of imagery-derived footprints. Names such as "assembly hangar," "operations block," and "service court" are functional interpretations, not verified interior uses. The compound reflects the 2025 build-out described in open reporting — three western fighter shelters, a north-east apron hangar, an expanded fuel-storage area and new utility construction — with plausible base-support systems (power, water, comms, sensors, security) added as clearly-labelled illustrative context. The two parked J-36 and J-XDS models correspond to publicly reported 2025 sightings; the animated flying-wing demonstrator and all simulated operations are illustrative.
 
 ![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
 
 ![Structure dossier — click any building for details](docs/screenshot-dossier.png)
+
+**Two ways in.** `/` is the analytical twin above: orbit it, walk it, click any
+structure for its sourced dossier. `/play` is **Blacksite**, a first-person
+engagement simulator running on the same reconstruction — the same terrain,
+the same buildings, the same measured layout, with collision baked out of the
+rendered scene graph so the map and the twin can never drift apart.
+
+## Blacksite
+
+![Blacksite — an engagement on the main apron, the assembly hangar behind](docs/screenshot-blacksite.png)
+
+A team deathmatch on the airfield. It exists because the most direct way to
+understand a place's scale is to have to cross it under fire: the assembly
+hangar is 126 m of wall you have to run the length of, and the apron is
+genuinely as exposed as it looks from 400 m up.
+
+| | |
+| :-- | :-- |
+| **Ballistics** | Rounds walk through up to four surfaces, spending a penetration budget per material and losing damage as they go — sheet-metal cladding is defeatable, a concrete revetment is not. Shallow hits on hard materials ricochet. Heavy calibres fly a simulated projectile with drag and drop instead of hitscanning. |
+| **Recoil is a pattern** | Each weapon derives a fixed spray sequence from its seed, so it can be learned and pulled down, exactly as in the games this is modelled on. Random jitter is layered on top but stays small. |
+| **Sixteen weapons** | Assault, SMG, LMG, marksman, sniper, shotgun, pistol, launcher, melee — balanced to the genre's numbers: a 3–4 shot kill inside 30 m for a rifle, 200–500 ms time-to-kill for every automatic at 10/25/50 m. `ttkTable()` in `weapons/arsenal.ts` prints the whole matrix. |
+| **Bots that fight you** | A small explicit state machine, not a behaviour tree. What makes them fair rather than robotic is three numbers that scale with skill: a reaction delay before a spotted target may be shot at, an aim-error cone that *converges* the longer they hold you rather than snapping to zero, and burst discipline that leaves gaps to move in. They share contacts across the squad, investigate gunfire through walls, and turn toward rounds that come from somewhere they cannot see. |
+| **Procedural soldiers** | No clip data. Legs are *placed*, not rotated: each foot follows an explicit trajectory and two-bone IK solves the hip and knee to reach it, so stride length is tied to measured speed and a planted foot never slides. Aim twists the spine, the off hand is solved onto the weapon's handguard, and hits, recoil and suppression are additive layers on top. |
+| **Synthesised audio** | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot. |
+
+**Controls**
+
+| Input | Action |
+| :-- | :-- |
+| `W` `A` `S` `D` | Move; `Shift` sprints, `Ctrl`/`C` crouches, `Z` goes prone |
+| `Space` | Jump, and mantle onto anything shoulder-height |
+| Mouse | Look; left fires, right aims down sights |
+| `R` · `1`/`2` · `V` · `B` | Reload · swap weapon · melee · cycle fire mode |
+| `Q` / `E` · `G` · `T` · `F` | Lean left / right · lethal · tactical · interact |
+| `Tab` · `Esc` | Scoreboard · pause and release the mouse |
+
+`/play?autoplay=1` skips the menus. `?quality=0..3` pins a quality tier,
+`?at=<x>,<z>` and `?look=<deg>` place and aim the opening spawn, and
+`?mode=tdm|ffa|domination|hardpoint|gunfight` picks the ruleset.
 
 ## white paper
 
@@ -253,6 +292,31 @@ nothing about whether a building is in the right place. `--help` lists every
 flag. Authoring rules for this loop live in
 [`.claude/skills/blender-hardsurface`](.claude/skills/blender-hardsurface/SKILL.md).
 
+### Simulation verification
+
+For Blacksite the look is only half of it, and the half a screenshot cannot
+answer. These drive the real subsystems and assert numbers:
+
+```sh
+bun run smoke        # 22 checks: colliders baked, spawns clear, hits resolve
+bun run engagement   # 13 checks: the opposing force actually fights you
+bun run gait         # 15 checks on the walk cycle
+bun run audio        # renders each sound offline and measures peak + crest
+bun run shots        # regenerate the screenshots this README embeds
+```
+
+Each exists because a still frame reported something false.
+`tools/gait.mjs` steps one actor's animator across several stride cycles,
+because a headless capture advances a handful of frames and a stride takes
+sixty — a knee that bends backwards looks like a bent knee in a photograph,
+which is how it survived several visual reviews. `tools/engagement.mjs` runs a
+minute of match time at a fixed delta and measures how close the enemy got,
+how long contact lasted, how many rounds landed on the player and where a
+killed body's head ends up. It was written after a build in which every check
+in `smoke.mjs` passed and the game was still unplayable: the player was the one
+actor in the match with no hitboxes, so bots acquired, aimed and fired
+perfectly correctly and every round resolved against the concrete behind you.
+
 ## What's Inside the Wire
 
 - **6.8 km × 6.8 km desert terrain** — seeded simplex heightfield tuned for a
@@ -402,20 +466,38 @@ src/
     scene/           ← R3F: Terrain, Pavements, Structures, LivingScene, Atmosphere, rigs, effects
     hud/             ← DOM overlays: HUD, minimap, dossier, site index, help, intro, cinematic caption
     ui/              ← shadcn-style primitives (button, card, badge, separator)
+  game/              ← Blacksite: the combat layer over the same reconstruction
+    core/            ← shared vocabulary, the per-frame mutable singleton, damage
+    physics/         ← oriented boxes in a uniform grid, capsule collide-and-slide
+    weapons/         ← arsenal data, fire control, terminal ballistics, viewmodel
+    characters/      ← procedural rig, IK, gait, hitboxes
+    ai/              ← bot state machine, perception, shared contacts, spawn scoring
+    player/ fx/ render/ hud/ modes/ audio/
   routes/            ← TanStack Router file-based routes
 tools/
   probe.mjs          ← headless-browser capture + exposure report + plan view
+  frames.mjs         ← the canonical six-view frame set, with A/B statistics
+  smoke.mjs          ← Blacksite plumbing: colliders, spawns, hit resolution
+  engagement.mjs     ← a minute of match time, stepped; measures whether it plays
+  gait.mjs           ← one animator, several stride cycles, five assertions
+  shots.mjs          ← regenerates the screenshots in this README
 ```
 
 The 3D scene and the 2D minimap are both projections of `lib/layout.ts`; add a
-structure there and it appears in the world, the minimap, and the site index.
-See [AGENTS.md](AGENTS.md) for extension recipes.
+structure there and it appears in the world, the minimap, and the site index —
+and, because Blacksite bakes its collision out of the rendered scene graph,
+in the combat map too. See [AGENTS.md](AGENTS.md) for extension recipes.
 
 ## Built With
 
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
 drei · @react-three/postprocessing (with hand-written GLSL effects and passes) ·
 Tailwind CSS 4 · zustand · simplex-noise · leva and puppeteer (dev only)
+
+No binary assets. Every texture, every mesh, every sound and every animation in
+both experiences is generated at runtime from seeded noise, so the repository
+holds no imagery, no models, no audio files and no motion capture — and the
+same seed always produces the same world.
 
 ## License
 
