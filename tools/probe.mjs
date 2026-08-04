@@ -17,7 +17,7 @@
  *                     output files. Default: /?quality=3
  *   --origin <url>    Dev server origin. Default: http://localhost:5173
  *   --out <path>      Output PNG. Default: render_output.png
- *   --wait <ms>       Settle time after load before capturing. Default: 2000
+ *   --wait <ms>       Settle time after load before capturing. Default: 6000
  *   --width <px>      Viewport width. Default: 1600
  *   --height <px>     Viewport height. Default: 900
  *   --scale <n>       Device pixel ratio. Default: 1
@@ -58,7 +58,7 @@ function parseArgs(argv) {
     urls: [],
     origin: process.env.PROBE_ORIGIN ?? "http://localhost:5173",
     out: "render_output.png",
-    wait: 2000,
+    wait: 6000,
     width: 1600,
     height: 900,
     scale: 1,
@@ -382,8 +382,38 @@ async function capture(page, options, url, outPath) {
   console.log(`→ ${url}`);
   await page.goto(url, { waitUntil: "networkidle2", timeout: 60_000 });
 
-  // give the scene its settle time: terrain build, texture generation, the
-  // lazy post-processing chunk and the intro overlay fade
+  // Wait for the scene to be rendering, then settle.
+  //
+  // `--wait` alone is a guess, and on a slow machine it captures a frame
+  // before the environment map is filtered — which reads as a real exposure
+  // regression rather than as a timing failure. It cost an hour chasing a
+  // twin "regression" of 0.486 to 0.195 that a longer wait made vanish. When
+  // the page exposes a dev handle, poll it; the settle time then only has to
+  // cover the fade, not the whole build.
+  const ready = await page
+    .evaluate(async (limitMs) => {
+      const start = Date.now();
+      const live = () => {
+        const handle = globalThis.__combat;
+        if (!handle) return null;
+        return handle.game.world && handle.r3f.scene.environment ? true : false;
+      };
+      // A production bundle strips the handle; fall back to the fixed wait.
+      if (live() === null) return "no-handle";
+      while (Date.now() - start < limitMs) {
+        if (live()) return "ready";
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return "timeout";
+    }, 45_000)
+    .catch(() => "no-handle");
+  if (ready === "timeout") {
+    console.warn("  warn: scene never reported ready; capturing anyway");
+  }
+  // The twin route exposes no dev handle, so it can only fall back to the
+  // fixed wait — which is why the default is six seconds rather than two.
+  // At two the aerial view captured mid-build and reported luma 0.263 against
+  // a true 0.486, indistinguishable from a real exposure regression.
   await new Promise((done) => setTimeout(done, options.wait));
 
   // hotkeys drive the camera rigs and overlays, which is how the probe gets a
