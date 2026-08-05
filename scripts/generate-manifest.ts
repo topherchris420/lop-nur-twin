@@ -47,41 +47,17 @@ import {
   temporalCoverageGaps,
 } from "../src/lib/temporal";
 import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
+import { canonicalJson } from "../src/lib/canonicalJson";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
-
 /**
- * Canonical JSON: recursively sorted keys, no whitespace, `undefined` dropped.
- * Arrays keep their order because order is meaningful in the layout (a runway
- * runs from `from` to `to`) and the ledger is already sorted by record id.
+ * SHA-256 over canonical JSON. The canonicalisation is the part that decides
+ * whether a digest is reproducible, and it lives in `src/lib/canonicalJson.ts`
+ * with its own tests.
  */
-function canonicalize(value: unknown): Json {
-  if (value === null) return null;
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([, entryValue]) => entryValue !== undefined)
-      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
-    const out: { [key: string]: Json } = {};
-    for (const [key, entryValue] of entries) out[key] = canonicalize(entryValue);
-    return out;
-  }
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) {
-      throw new Error("Refusing to hash a non-finite number; the model data is invalid");
-    }
-    return value;
-  }
-  if (typeof value === "string" || typeof value === "boolean") return value;
-  throw new Error(`Refusing to hash unsupported value of type ${typeof value}`);
-}
-
 function sha256(value: unknown): string {
-  return `sha256:${createHash("sha256")
-    .update(JSON.stringify(canonicalize(value)), "utf8")
-    .digest("hex")}`;
+  return `sha256:${createHash("sha256").update(canonicalJson(value), "utf8").digest("hex")}`;
 }
 
 /** Reproducible build timestamp: `SOURCE_DATE_EPOCH` wins when it is set. */
