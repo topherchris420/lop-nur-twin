@@ -22,7 +22,11 @@
     "a11y": "node tools/a11y.mjs",
     "routes": "node tools/routes.mjs",
     "closeup": "node tools/closeup.mjs",
-    "shots": "node tools/shots.mjs"
+    "shots": "node tools/shots.mjs",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test:run": "vitest run",
+    "check": "bun run format:check && bun run lint && bun run test:run && bun run test:evidence && bun run build"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.15",
