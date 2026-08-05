@@ -8,7 +8,7 @@ import {
 } from "./evidenceMode";
 import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
 import type { MeasurePoint } from "./measure";
-import { readEnumParam, readIntParam, readIsoDateParam } from "./params";
+import { readEnumParam, readFlag, readIntParam, readIsoDateParam } from "./params";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -152,6 +152,15 @@ function normalizeMonth(month: number): number {
   return ((Math.round(month) % 12) + 12) % 12;
 }
 
+/**
+ * `?year=` pins the construction-timeline year. Out-of-range values clamp to the
+ * modeled bounds rather than being trusted, same as every other parameter.
+ */
+function initialTimelineYear(): number {
+  const year = readIntParam("year", TIMELINE_BOUNDS.minYear, TIMELINE_BOUNDS.maxYear);
+  return year ?? TIMELINE_BOUNDS.maxYear;
+}
+
 /** `?evidence=observed|reported|interpretation|full-simulation`. */
 function initialEvidenceMode(): EvidenceMode {
   return readEnumParam("evidence", EVIDENCE_MODES) ?? DEFAULT_EVIDENCE_MODE;
@@ -182,10 +191,10 @@ export const useTwinStore = create<TwinState>()((set) => ({
   cameraMode: "orbit",
   setCameraMode: (cameraMode) => set({ cameraMode }),
 
-  night: false,
+  night: readFlag("night"),
   toggleNight: () => set((s) => ({ night: !s.night })),
 
-  activeTimelineYear: TIMELINE_BOUNDS.maxYear,
+  activeTimelineYear: initialTimelineYear(),
   setActiveTimelineYear: (year) =>
     set((state) => {
       const activeTimelineYear = normalizeTimelineYear(year);
@@ -218,11 +227,11 @@ export const useTwinStore = create<TwinState>()((set) => ({
   snapshotDate: initialSnapshotDate(),
   setSnapshotDate: (snapshotDate) =>
     set({ snapshotDate: normalizeSnapshotDate(snapshotDate) }),
-  comparisonDate: null,
+  comparisonDate: normalizeSnapshotDate(readIsoDateParam("compare")),
   setComparisonDate: (comparisonDate) =>
     set({ comparisonDate: normalizeSnapshotDate(comparisonDate) }),
 
-  showUncertainty: false,
+  showUncertainty: readFlag("uncertainty"),
   toggleUncertainty: () => set((s) => ({ showUncertainty: !s.showUncertainty })),
 
   selectedId: null,

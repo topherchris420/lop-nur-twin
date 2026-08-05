@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { BookOpen, Download, ExternalLink, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,9 @@ import {
   PRIMARY_CRS,
 } from "@/lib/evidence";
 import { MODEL_MANIFEST_PATH, shortHash, useModelManifest } from "@/lib/modelManifest";
+import { BookmarkPanel } from "@/components/evidence/BookmarkPanel";
+import { flyToPoint } from "@/lib/flyTo";
+import type { Bookmark } from "@/lib/bookmarks";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { useTwinStore } from "@/lib/store";
@@ -64,6 +68,52 @@ export function ResearchPanel() {
   // Only fetched once the panel is actually opened; the twin still makes no
   // network request in its default state.
   const manifest = useModelManifest(showResearch);
+
+  /**
+   * The current analytical position, read straight from the store rather than
+   * subscribed to: this runs on a click, and subscribing would re-render the
+   * panel on every camera-adjacent state change for no benefit.
+   */
+  const captureView = useCallback(() => {
+    const state = useTwinStore.getState();
+    return {
+      cameraMode: state.cameraMode,
+      timelineYear: state.activeTimelineYear,
+      snapshotDate: state.snapshotDate,
+      comparisonDate: state.comparisonDate,
+      evidenceMode: state.evidenceMode,
+      selectedId: state.selectedId,
+      measurePoints: state.measurePoints,
+      showUncertainty: state.showUncertainty,
+      environmentMonth: state.environmentMonth,
+      night: state.night,
+      qualityTier: state.qualityTier,
+    };
+  }, []);
+
+  /**
+   * Restores a saved view. The camera is moved through the existing `flyToPoint`
+   * request rather than by writing to the camera directly, so a bookmark uses
+   * the same path a minimap click does and the active rig stays in charge.
+   */
+  const applyBookmark = useCallback((bookmark: Bookmark) => {
+    const state = useTwinStore.getState();
+    const { view } = bookmark;
+    state.setEvidenceMode(view.evidenceMode);
+    state.setActiveTimelineYear(view.timelineYear);
+    state.setSnapshotDate(view.snapshotDate);
+    state.setComparisonDate(view.comparisonDate);
+    state.setEnvironmentMonth(view.environmentMonth);
+    if (state.showUncertainty !== view.showUncertainty) state.toggleUncertainty();
+    if (state.night !== view.night) state.toggleNight();
+    state.clearMeasure();
+    for (const point of view.measurePoints) state.addMeasurePoint(point);
+    // Selection last: setting the evidence mode clears a selection the new mode
+    // withholds, so restoring it before the mode would drop it again.
+    state.select(view.selectedId);
+    const target = view.cameraTarget;
+    if (target !== undefined) flyToPoint(target[0], target[2]);
+  }, []);
 
   if (!showResearch) return null;
 
@@ -368,6 +418,46 @@ export function ResearchPanel() {
               Download model-manifest.json
             </a>
           </Button>
+        </section>
+
+        <Separator className="my-4" />
+
+        <section aria-labelledby="bookmarks-heading">
+          <h2
+            id="bookmarks-heading"
+            className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Bookmarks
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            Saves the whole analytical position — camera, date, evidence mode, selection
+            and measurement path — with the hashes of the model it was taken against, so
+            reopening it on a changed build says so. Stored in this browser only. Full
+            management, including import and export, is on the analysis page.
+          </p>
+          <BookmarkPanel
+            captureView={captureView}
+            provenance={
+              manifest.status === "ready"
+                ? {
+                    geometryHash: manifest.manifest.geometryHash,
+                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+                    modelVersion: manifest.manifest.modelVersion,
+                  }
+                : {}
+            }
+            currentModel={
+              manifest.status === "ready"
+                ? {
+                    geometryHash: manifest.manifest.geometryHash,
+                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+                  }
+                : null
+            }
+            onOpen={applyBookmark}
+            density="compact"
+            className="mt-2"
+          />
         </section>
 
         <Separator className="my-4" />

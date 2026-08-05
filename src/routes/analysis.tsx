@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Crosshair, Download, ExternalLink, Globe2 } from "lucide-react";
+import { Crosshair, Download, ExternalLink, GitCompare, Globe2 } from "lucide-react";
 import {
   STRUCTURES,
   STRUCTURE_TYPE_LABELS,
@@ -18,6 +18,7 @@ import {
   PRIMARY_CRS,
   evidenceClassificationCounts,
   getEvidenceForSubject,
+  getUncertaintyForSubject,
   strongestClassification,
   type EvidenceClassification,
 } from "@/lib/evidence";
@@ -28,6 +29,22 @@ import {
   EvidenceBadge,
   EvidenceLegendList,
 } from "@/components/evidence/EvidenceUi";
+import { EvidenceModeControl } from "@/components/evidence/EvidenceModeControl";
+import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
+import { BookmarkPanel } from "@/components/evidence/BookmarkPanel";
+import { isSubjectVisible } from "@/lib/evidenceMode";
+import {
+  TEMPORAL_LEDGER,
+  TEMPORAL_SCOPE_META,
+  TEMPORAL_SNAPSHOT_DATES,
+  compareSnapshots,
+  deriveSnapshot,
+  temporalEventsForSubject,
+  snapshotEstablishedCount,
+  temporalCoverageGaps,
+} from "@/lib/temporal";
+import { formatUncertainty } from "@/lib/uncertainty";
+import { useTwinStore } from "@/lib/store";
 
 /**
  * `/analysis` — the model without the 3D scene.
@@ -41,6 +58,12 @@ import {
  *
  * It deliberately renders no canvas, no animation and no timers, so it works
  * under `prefers-reduced-motion`, in a text browser, and in print.
+ *
+ * Every analytical capability the 3D route has must appear here in a semantic
+ * form, or it is a capability that is unavailable to part of the audience. That
+ * is why the evidence-mode picker, the uncertainty envelopes, the temporal
+ * snapshot and comparison, and the bookmark manager are all on this page rather
+ * than only in the HUD — this is the route that works when WebGL does not.
  */
 
 interface AnalysisSearch {
@@ -83,6 +106,15 @@ function AnalysisView() {
     useState<readonly EvidenceClassification[]>(ALL_CLASSIFICATIONS);
   const manifest = useModelManifest(true);
 
+  // The same store the 3D route uses, so a mode chosen here and a mode chosen
+  // there are one setting rather than two that drift.
+  const evidenceMode = useTwinStore((state) => state.evidenceMode);
+  const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);
+  const snapshotDate = useTwinStore((state) => state.snapshotDate);
+  const setSnapshotDate = useTwinStore((state) => state.setSnapshotDate);
+  const comparisonDate = useTwinStore((state) => state.comparisonDate);
+  const setComparisonDate = useTwinStore((state) => state.setComparisonDate);
+
   useEffect(() => {
     document.title =
       "Structure analysis table — Lop Nur Geospatial Simulation Testbed (public-source model)";
@@ -102,6 +134,9 @@ function AnalysisView() {
     const needle = query.trim().toLocaleLowerCase();
     const active = new Set(enabled);
     return STRUCTURES.filter((structure) => {
+      // Evidence mode first: the table lists what the mode admits, exactly as
+      // the scene draws what the mode admits.
+      if (!isSubjectVisible(structure.id, evidenceMode)) return false;
       if (!active.has(structureClassification(structure))) return false;
       if (needle.length === 0) return true;
       const haystack = [
@@ -118,9 +153,47 @@ function AnalysisView() {
         .toLocaleLowerCase();
       return haystack.includes(needle);
     }).sort((left, right) => left.name.localeCompare(right.name));
-  }, [query, enabled]);
+  }, [query, enabled, evidenceMode]);
 
   const counts = useMemo(evidenceClassificationCounts, []);
+
+  const snapshot = useMemo(
+    () => (snapshotDate === null ? null : deriveSnapshot(snapshotDate)),
+    [snapshotDate],
+  );
+  const comparison = useMemo(
+    () =>
+      snapshotDate === null || comparisonDate === null
+        ? null
+        : compareSnapshots(snapshotDate, comparisonDate),
+    [snapshotDate, comparisonDate],
+  );
+  const coverageGaps = useMemo(temporalCoverageGaps, []);
+
+  const captureView = useCallback(() => {
+    const state = useTwinStore.getState();
+    return {
+      cameraMode: state.cameraMode,
+      timelineYear: state.activeTimelineYear,
+      snapshotDate: state.snapshotDate,
+      comparisonDate: state.comparisonDate,
+      evidenceMode: state.evidenceMode,
+      selectedId: highlighted ?? state.selectedId,
+      measurePoints: state.measurePoints,
+      showUncertainty: state.showUncertainty,
+      environmentMonth: state.environmentMonth,
+      night: state.night,
+      qualityTier: state.qualityTier,
+    };
+  }, [highlighted]);
+
+  const currentModel =
+    manifest.status === "ready"
+      ? {
+          geometryHash: manifest.manifest.geometryHash,
+          evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+        }
+      : null;
 
   const toggleClassification = (classification: EvidenceClassification) => {
     setEnabled((current) =>
@@ -174,6 +247,13 @@ function AnalysisView() {
               <Crosshair className="size-4" aria-hidden="true" />
               Open Blacksite — illustrative simulation, not operational data
             </Link>
+            <Link
+              to="/compare"
+              className="border-border hover:bg-accent focus-visible:ring-ring inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            >
+              <GitCompare className="size-4" aria-hidden="true" />
+              Compare two model manifests
+            </Link>
             <a
               href={MODEL_MANIFEST_PATH}
               download
@@ -184,6 +264,25 @@ function AnalysisView() {
             </a>
           </nav>
         </header>
+
+        <section aria-labelledby="mode-heading" className="mt-8">
+          <h2 id="mode-heading" className="text-lg font-semibold">
+            Evidence mode
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            The same filter the 3D twin draws with, and the same store behind it &mdash; a
+            mode chosen here is the mode the scene uses. It decides how much of the
+            reconstruction is admitted: only what a cited scene shows, plus what a
+            publication reports, plus what this project inferred, plus what it added so
+            the site reads as a place.
+          </p>
+          <EvidenceModeControl
+            mode={evidenceMode}
+            onChange={setEvidenceMode}
+            idPrefix="analysis-evidence-mode"
+            className="mt-3"
+          />
+        </section>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <section aria-labelledby="legend-heading">
@@ -292,6 +391,308 @@ function AnalysisView() {
             )}
           </section>
         </div>
+
+        <section aria-labelledby="temporal-heading" className="mt-10">
+          <h2 id="temporal-heading" className="text-lg font-semibold">
+            Temporal evidence, snapshots and change
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            Three dates are kept apart throughout, because collapsing them is how a
+            publication date turns into a construction date. A first appearance in a cited
+            scene bounds when something existed <em>by</em>, not when it was built; a
+            publication date is exactly known and says nothing about when the thing it
+            describes happened; and the date a change entered this model is a fact about
+            this repository, which it does not currently record.
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div>
+              <label htmlFor="analysis-snapshot" className="text-sm font-medium">
+                Snapshot date
+              </label>
+              <select
+                id="analysis-snapshot"
+                value={snapshotDate ?? ""}
+                onChange={(event) => setSnapshotDate(event.target.value || null)}
+                className="border-input bg-secondary/60 focus-visible:ring-ring mt-1 block h-9 rounded-md border px-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <option value="">current state</option>
+                {TEMPORAL_SNAPSHOT_DATES.map((date) => (
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="analysis-comparison" className="text-sm font-medium">
+                Compare with
+              </label>
+              <select
+                id="analysis-comparison"
+                value={comparisonDate ?? ""}
+                onChange={(event) => setComparisonDate(event.target.value || null)}
+                disabled={snapshotDate === null}
+                className="border-input bg-secondary/60 focus-visible:ring-ring mt-1 block h-9 rounded-md border px-2 text-sm focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+              >
+                <option value="">none</option>
+                {TEMPORAL_SNAPSHOT_DATES.map((date) => (
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <p role="status" className="mt-3 text-sm">
+            {snapshot === null
+              ? "Reading the model's current state. Choose a date to see what was established and what evidence had been published by then."
+              : `${snapshotEstablishedCount(snapshot)} of ${snapshot.subjects.length} modeled subjects were established by ${snapshot.date}; ${snapshot.publishedSourceIds.length} of ${PUBLIC_SOURCES.length} sources were public.`}
+          </p>
+
+          {snapshot === null ? null : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
+                <caption className="text-muted-foreground pb-2 text-left text-xs">
+                  Modeled state at {snapshot.date}. &ldquo;Established&rdquo; means a
+                  cited source shows the subject existed by this date; it is never a
+                  construction date. &ldquo;Undated&rdquo; means the model holds no date
+                  at all for it, which is different from it not being there.
+                </caption>
+                <thead>
+                  <tr className="border-border border-b">
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Subject
+                    </th>
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Presence at this date
+                    </th>
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Established by
+                    </th>
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Evidence published by then
+                    </th>
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Sources public by then
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {snapshot.subjects.map((subject) => (
+                    <tr
+                      key={subject.subjectId}
+                      className="border-border border-b align-top"
+                    >
+                      <th scope="row" className="px-2 py-2 text-left font-medium">
+                        {subject.label}
+                        <span className="text-muted-foreground block font-mono text-[10px] font-normal">
+                          {subject.subjectId}
+                          {subject.modelOnly ? " · model-only content" : ""}
+                        </span>
+                      </th>
+                      <td className="px-2 py-2 font-mono">{subject.presence}</td>
+                      <td className="px-2 py-2 font-mono">
+                        {subject.establishedBy ?? "no date recorded"}
+                      </td>
+                      <td className="px-2 py-2">
+                        {subject.evidenceClass === undefined ? (
+                          "none published yet"
+                        ) : (
+                          <EvidenceBadge classification={subject.evidenceClass} />
+                        )}
+                      </td>
+                      <td className="px-2 py-2 font-mono">
+                        {subject.sourceIds.length === 0
+                          ? "none"
+                          : subject.sourceIds.join(", ")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {comparison === null ? null : (
+            <div className="mt-6">
+              <h3 className="text-base font-semibold">
+                Change between {comparison.from} and {comparison.to}
+              </h3>
+              <p role="status" className="mt-1 text-sm">
+                {comparison.empty
+                  ? "Nothing differs between these two dates."
+                  : `${comparison.changes.length} change${comparison.changes.length === 1 ? "" : "s"}, ${comparison.addedSourceIds.length} newly published source${comparison.addedSourceIds.length === 1 ? "" : "s"}, ${comparison.eventsInWindow.length} temporal event${comparison.eventsInWindow.length === 1 ? "" : "s"} in the window.`}
+              </p>
+              {comparison.empty ? null : (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
+                    <caption className="text-muted-foreground pb-2 text-left text-xs">
+                      Differences between the two snapshots, ordered by subject identifier
+                      then by change kind. Rows marked model-only concern this
+                      reconstruction rather than the site.
+                    </caption>
+                    <thead>
+                      <tr className="border-border border-b">
+                        <th scope="col" className="px-2 py-2 font-semibold">
+                          Subject
+                        </th>
+                        <th scope="col" className="px-2 py-2 font-semibold">
+                          Change
+                        </th>
+                        <th scope="col" className="px-2 py-2 font-semibold">
+                          At {comparison.from}
+                        </th>
+                        <th scope="col" className="px-2 py-2 font-semibold">
+                          At {comparison.to}
+                        </th>
+                        <th scope="col" className="px-2 py-2 font-semibold">
+                          Scope
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comparison.changes.map((change) => (
+                        <tr
+                          key={`${change.subjectId}-${change.kind}`}
+                          className="border-border border-b align-top"
+                        >
+                          <th scope="row" className="px-2 py-2 text-left font-medium">
+                            {change.label}
+                          </th>
+                          <td className="px-2 py-2 font-mono">{change.kind}</td>
+                          <td className="max-w-[16rem] px-2 py-2 break-words">
+                            {change.before}
+                          </td>
+                          <td className="max-w-[16rem] px-2 py-2 break-words">
+                            {change.after}
+                          </td>
+                          <td className="px-2 py-2">
+                            {change.modelOnly ? "model only" : "site claim"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          <h3 className="mt-6 text-base font-semibold">Temporal event ledger</h3>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            {TEMPORAL_LEDGER.length} events. Each is scoped so a site claim, a publication
+            and a model-only note can never be read as the same kind of statement.
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[62rem] border-collapse text-left text-xs">
+              <caption className="text-muted-foreground pb-2 text-left text-xs">
+                Every temporal event this model holds, ordered by date with undated events
+                last. Estimated site date, evidence publication date and model-entry date
+                are separate columns on purpose.
+              </caption>
+              <thead>
+                <tr className="border-border border-b">
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Subject
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Category
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Scope
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Estimated site date
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Evidence published
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Entered this model
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Note
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {TEMPORAL_LEDGER.map((event) => {
+                  const scope = TEMPORAL_SCOPE_META[event.scope];
+                  return (
+                    <tr key={event.id} className="border-border border-b align-top">
+                      <th
+                        scope="row"
+                        className="px-2 py-2 text-left font-mono font-medium"
+                      >
+                        {event.subjectId}
+                      </th>
+                      <td className="px-2 py-2 font-mono">{event.category}</td>
+                      <td className="px-2 py-2">
+                        <span aria-hidden="true" className="mr-1 font-mono">
+                          {scope.glyph}
+                        </span>
+                        {scope.label}
+                      </td>
+                      <td className="px-2 py-2 font-mono">
+                        {event.latestDate === undefined
+                          ? "none recorded"
+                          : event.bestSupportedDate === undefined
+                            ? `existed by ${event.latestDate}`
+                            : event.bestSupportedDate}
+                      </td>
+                      <td className="px-2 py-2 font-mono">
+                        {event.publicationDate ?? "not stated"}
+                      </td>
+                      <td className="px-2 py-2 font-mono">
+                        {event.modelVersionIntroduced ?? "not recorded"}
+                      </td>
+                      <td className="text-muted-foreground max-w-[22rem] px-2 py-2 leading-relaxed">
+                        {event.analystNote ?? "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 className="mt-6 text-base font-semibold">Temporal coverage gaps</h3>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            {coverageGaps.length === 0
+              ? "Every event category the schema defines has at least one record."
+              : `The schema defines these categories and this repository holds no evidence for any of them: ${coverageGaps.join(", ")}. They are shown as gaps rather than filled with plausible history.`}
+          </p>
+        </section>
+
+        <section aria-labelledby="bookmarks-heading" className="mt-10">
+          <h2 id="bookmarks-heading" className="text-lg font-semibold">
+            Bookmarks
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            A saved analytical position: camera, date, evidence mode, selection,
+            measurement path &mdash; and the two hashes identifying the model it was taken
+            against, so reopening it against a changed build says so instead of quietly
+            showing you something else. Stored in this browser only. A shareable link
+            carries the view settings; the note, the tags and the measurement path never
+            leave this machine.
+          </p>
+          <BookmarkPanel
+            captureView={captureView}
+            provenance={
+              manifest.status === "ready"
+                ? {
+                    geometryHash: manifest.manifest.geometryHash,
+                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+                    modelVersion: manifest.manifest.modelVersion,
+                  }
+                : {}
+            }
+            currentModel={currentModel}
+            className="mt-4"
+          />
+        </section>
 
         <section aria-labelledby="limitations-heading" className="mt-10">
           <h2 id="limitations-heading" className="text-lg font-semibold">
@@ -422,15 +823,8 @@ function AnalysisView() {
                     structure.position[0],
                     structure.position[1],
                   );
-                  const uncertainty = records
-                    .map((record) =>
-                      record.measurementUncertaintyM !== undefined
-                        ? `±${record.measurementUncertaintyM} m`
-                        : record.sourceResolutionM !== undefined
-                          ? `${record.sourceResolutionM} m source resolution`
-                          : undefined,
-                    )
-                    .filter((value): value is string => value !== undefined);
+                  const envelope = getUncertaintyForSubject(structure.id);
+                  const events = temporalEventsForSubject(structure.id);
                   const notes = records
                     .map((record) => record.analystNotes)
                     .filter((note): note is string => note !== undefined);
@@ -488,7 +882,21 @@ function AnalysisView() {
                         </span>
                       </td>
                       <td className="px-2 py-3">
-                        {uncertainty.length > 0 ? uncertainty.join("; ") : "not stated"}
+                        {envelope === undefined
+                          ? "no envelope recorded"
+                          : formatUncertainty(envelope)}
+                        {envelope === undefined ? null : (
+                          <details className="mt-1">
+                            <summary className="focus-visible:ring-ring cursor-pointer text-[10px] focus-visible:ring-2 focus-visible:outline-none">
+                              Full uncertainty and temporal record
+                            </summary>
+                            <UncertaintyPanel
+                              envelope={envelope}
+                              events={events}
+                              className="mt-1.5"
+                            />
+                          </details>
+                        )}
                       </td>
                       <td className="px-2 py-3">
                         <ul className="space-y-1">

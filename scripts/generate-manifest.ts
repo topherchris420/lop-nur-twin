@@ -39,7 +39,13 @@ import {
   PRIMARY_CRS,
   CONFIDENCE_SCALE_NOTE,
   evidenceClassificationCounts,
+  strongestClassification,
 } from "../src/lib/evidence";
+import {
+  TEMPORAL_LEDGER,
+  TEMPORAL_SNAPSHOT_DATES,
+  temporalCoverageGaps,
+} from "../src/lib/temporal";
 import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -140,6 +146,168 @@ const geometryInput = {
 const ledgerInput = EVIDENCE_LEDGER.map((record) => ({ ...record }));
 
 /* ------------------------------------------------------------------ */
+/* Per-subject digest                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A compact, deterministic row per modeled subject, so two manifests can be
+ * diffed at subject granularity instead of "the evidence hash moved, good luck".
+ *
+ * The four hashes are separate on purpose, because the four questions a
+ * reviewer asks about a change are different questions:
+ *
+ * - `geometryHash` — did this thing move, turn, or resize?
+ * - `evidenceHash` — did its classification, confidence or sources change?
+ * - `wordingHash` — did only the prose describing it change?
+ * - `uncertaintyHash` — did what we admit not knowing about it change?
+ *
+ * A build that only rewords a description moves `wordingHash` and nothing else,
+ * which is exactly what lets `/compare` report "documentation only" without
+ * guessing. Anything not covered by these — shader work, post-processing,
+ * camera behaviour — is not in the manifest at all, and `/compare` says so
+ * rather than implying the model is unchanged.
+ */
+const subjectDigests = (() => {
+  const evidenceBySubject = new Map<string, typeof ledgerInput>();
+  for (const record of ledgerInput) {
+    const list = evidenceBySubject.get(record.subjectId);
+    if (list === undefined) evidenceBySubject.set(record.subjectId, [record]);
+    else list.push(record);
+  }
+
+  type Row = {
+    id: string;
+    kind: string;
+    evidenceClass: string;
+    confidence: number | undefined;
+    observedDate: string | undefined;
+    sourceIds: readonly string[];
+    geometryHash: string;
+    evidenceHash: string;
+    wordingHash: string;
+    uncertaintyHash: string;
+  };
+
+  const rows: Row[] = [];
+  const digest = (
+    subjectId: string,
+    kind: string,
+    geometry: unknown,
+    wording: unknown,
+  ) => {
+    const records = evidenceBySubject.get(subjectId) ?? [];
+    const classification = strongestClassification(records) ?? "illustrative";
+    const confidence =
+      records.length === 0
+        ? undefined
+        : records.reduce((best, record) => Math.max(best, record.confidence), 0);
+    const sourceIds = [
+      ...new Set(
+        records
+          .map((record) => record.sourceId)
+          .filter((id): id is NonNullable<typeof id> => id !== undefined),
+      ),
+    ]
+      .map(String)
+      .sort();
+
+    rows.push({
+      id: subjectId,
+      kind,
+      evidenceClass: classification,
+      confidence,
+      observedDate: (geometry as { observedDate?: string }).observedDate,
+      sourceIds,
+      geometryHash: sha256(geometry),
+      evidenceHash: sha256(
+        records.map((record) => ({
+          id: record.id,
+          classification: record.classification,
+          confidence: record.confidence,
+          sourceId: record.sourceId,
+          sourceDate: record.sourceDate,
+          accessedAt: record.accessedAt,
+        })),
+      ),
+      wordingHash: sha256({
+        wording,
+        claims: records.map((record) => ({
+          id: record.id,
+          claim: record.claim,
+          analystNotes: record.analystNotes,
+        })),
+      }),
+      uncertaintyHash: sha256(
+        records.map((record) => ({ id: record.id, uncertainty: record.uncertainty })),
+      ),
+    });
+  };
+
+  for (const structure of STRUCTURES) {
+    digest(
+      structure.id,
+      structure.type.startsWith("aircraft-") ? "aircraft" : "structure",
+      {
+        position: structure.position,
+        rotation: structure.rotation,
+        size: structure.size,
+        type: structure.type,
+        observedDate: structure.observedDate,
+      },
+      { name: structure.name, description: structure.description },
+    );
+  }
+  for (const segment of ALL_SEGMENTS) {
+    digest(
+      segment.id,
+      "pavement-segment",
+      {
+        from: segment.from,
+        to: segment.to,
+        width: segment.width,
+        kind: segment.kind,
+        observedDate: segment.observedDate,
+      },
+      { name: segment.name },
+    );
+  }
+  for (const apron of APRONS) {
+    digest(
+      apron.id,
+      "pavement-apron",
+      {
+        center: apron.center,
+        size: apron.size,
+        rotation: apron.rotation,
+        observedDate: apron.observedDate,
+      },
+      { name: apron.name },
+    );
+  }
+
+  return rows.sort((left, right) =>
+    left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+  );
+})();
+
+/** Counts by temporal scope, so a diff can separate site claims from model notes. */
+const temporalSummary = (() => {
+  const byScope: Record<string, number> = {};
+  const byCategory: Record<string, number> = {};
+  for (const event of TEMPORAL_LEDGER) {
+    byScope[event.scope] = (byScope[event.scope] ?? 0) + 1;
+    byCategory[event.category] = (byCategory[event.category] ?? 0) + 1;
+  }
+  return {
+    eventCount: TEMPORAL_LEDGER.length,
+    byScope,
+    byCategory,
+    snapshotDates: TEMPORAL_SNAPSHOT_DATES,
+    emptyCategories: temporalCoverageGaps(),
+  };
+})();
+
+/* ------------------------------------------------------------------ */
 /* Manifest                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -149,7 +317,10 @@ const classificationCounts = evidenceClassificationCounts();
 const manifest = {
   modelName: "Lop Nur Geospatial Simulation Testbed",
   modelVersion: modelVersion(),
-  manifestSchemaVersion: "1.0.0",
+  // 1.1.0 adds `subjects`, `subjectDigestHash` and `temporal`. `/compare` reads
+  // this to decide which comparisons it can make, and refuses a major-version
+  // mismatch rather than diffing fields that mean different things.
+  manifestSchemaVersion: "1.1.0",
   generatedAt: generatedAt(),
   coordinateReferenceSystem: PRIMARY_CRS,
   geographicReferenceSystem: GEOGRAPHIC_CRS,
@@ -164,6 +335,11 @@ const manifest = {
   timelineYears: { min: TIMELINE_BOUNDS.minYear, max: TIMELINE_BOUNDS.maxYear },
   geometryHash: sha256(geometryInput),
   evidenceLedgerHash: sha256(ledgerInput),
+  // The per-subject rows are what make `/compare` able to name what changed.
+  // `subjectDigestHash` is a cheap equality check over the whole table.
+  subjectDigestHash: sha256(subjectDigests),
+  subjects: subjectDigests,
+  temporal: temporalSummary,
   validationStatus: validation.errors.length === 0 ? "passed" : "failed",
   validationErrorCount: validation.errors.length,
   confidenceScale: CONFIDENCE_SCALE_NOTE,

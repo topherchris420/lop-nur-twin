@@ -40,6 +40,10 @@ const origin = process.argv[2] ?? "http://localhost:4173";
 /** `gate: true` means axe violations fail the run, not just get printed. */
 const ROUTES = [
   { path: "/analysis", label: "Accessible analysis table", gate: true, settle: 1500 },
+  // `/compare` is gated for the same reason `/analysis` is: it renders no
+  // canvas, so every axe finding on it is a real finding about real markup
+  // rather than a complaint about a WebGL surface.
+  { path: "/compare", label: "Model manifest comparison", gate: true, settle: 1500 },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];

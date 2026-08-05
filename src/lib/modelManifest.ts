@@ -105,6 +105,30 @@ export function useModelManifest(enabled: boolean): ManifestState {
   return state;
 }
 
+/**
+ * The manifest this build serves, as raw text.
+ *
+ * `/compare` needs the bytes rather than the parsed object: it runs them
+ * through `parseManifest` in `manifestDiff.ts`, which is the same validator a
+ * user-supplied file goes through. One validator for both sides is what stops
+ * the bundled manifest from being trusted in ways an imported one is not.
+ *
+ * Same-origin, credentials omitted, no third party involved — the offline
+ * guarantee holds.
+ */
+export async function fetchManifestText(signal?: AbortSignal): Promise<string> {
+  const response = await fetch(MODEL_MANIFEST_PATH, {
+    credentials: "omit",
+    cache: "no-cache",
+    headers: { Accept: "application/json" },
+    ...(signal === undefined ? {} : { signal }),
+  });
+  if (!response.ok) {
+    throw new Error(`manifest request returned ${response.status}`);
+  }
+  return response.text();
+}
+
 /** `sha256:abcd…` shortened for a panel, with the full value kept for `title`. */
 export function shortHash(hash: string): string {
   const [algorithm, digest] = hash.split(":");

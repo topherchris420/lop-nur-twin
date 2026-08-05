@@ -74,6 +74,7 @@ console.log("\n=== direct load and refresh ===");
 for (const [path, expectedTitleFragment, settle] of [
   ["/", "Geospatial Simulation Testbed", 6000],
   ["/analysis", "Structure analysis table", 2500],
+  ["/compare", "Model manifest comparison", 2500],
   ["/play", "Blacksite", 6000],
 ]) {
   const { page, errors, status } = await open(`${previewOrigin}${path}`, { settle });
@@ -111,15 +112,23 @@ const HOSTILE = [
   "/?structure=does-not-exist",
   `/analysis?structure=${encodeURIComponent("'; DROP TABLE structures;--")}`,
   "/analysis?structure=" + "a".repeat(500),
+  "/?evidence=not-a-mode&snapshot=2025-02-30",
+  "/?evidence=observed&snapshot=9999-99-99",
+  `/?snapshot=${encodeURIComponent("<script>alert(1)</script>")}`,
+  "/compare?anything=" + "b".repeat(300),
 ];
 for (const path of HOSTILE) {
   const { page, errors } = await open(`${previewOrigin}${path}`, {
-    settle: path.startsWith("/analysis") ? 2000 : 5000,
+    settle: path.startsWith("/analysis") || path.startsWith("/compare") ? 2000 : 5000,
   });
+  // "The app rendered something real": the twin draws a canvas, `/analysis`
+  // draws its table, and `/compare` draws its heading before either manifest is
+  // loaded — which is its correct empty state, not a failure.
   const rendered = await page.evaluate(
     () =>
       document.querySelector("canvas") !== null ||
-      document.querySelector("table") !== null,
+      document.querySelector("table") !== null ||
+      document.querySelector("h1") !== null,
   );
   check(
     `renders normally: ${path.slice(0, 58)}`,
@@ -186,7 +195,12 @@ console.log("\n=== keyboard navigation on /analysis ===");
   // the skip link's target would never reach the controls above the table.
   const { page } = await open(`${previewOrigin}/analysis`, { settle: 2000 });
   const stops = [];
-  for (let index = 0; index < 12; index += 1) {
+  // The budget has to cover every focus stop above the table, and `/analysis`
+  // now carries the evidence-mode radio group, two snapshot date pickers and
+  // the bookmark controls before the search field. Walking further is the point
+  // of the check — that the order is header, then controls, then rows — not a
+  // relaxation of it.
+  for (let index = 0; index < 44; index += 1) {
     await page.keyboard.press("Tab");
     stops.push(
       await page.evaluate(() => {
@@ -208,11 +222,15 @@ console.log("\n=== keyboard navigation on /analysis ===");
     stops.filter((stop) => stop.startsWith("INPUT")).length >= 5,
     `${stops.filter((stop) => stop.startsWith("INPUT")).length} inputs (search + filters)`,
   );
+  const searchStop = stops.findIndex((stop) => stop.includes("structure-search"));
+  const firstRowLink = stops.findIndex((stop) => stop.includes("Open in 3D"));
   check(
     "tab order is header, then controls, then table",
     stops[0].includes("Skip to the structure") &&
-      stops.some((stop) => stop.includes("Open in 3D")),
-    `${new Set(stops).size} distinct stops in ${stops.length} tabs`,
+      searchStop !== -1 &&
+      firstRowLink !== -1 &&
+      searchStop < firstRowLink,
+    `skip link first, search at ${searchStop + 1}, first row link at ${firstRowLink + 1} of ${stops.length}`,
   );
   await page.close();
 }
@@ -224,8 +242,11 @@ console.log("\n=== keyboard navigation on /analysis ===");
 console.log("\n=== evidence filtering and search ===");
 {
   const { page, errors } = await open(`${previewOrigin}/analysis`, { settle: 2000 });
+  // Scoped to the structure table. The page carries several tables now — the
+  // temporal event ledger, and the snapshot and change tables when a date is
+  // selected — so a bare `tbody tr` counts rows this check is not about.
   const rowCount = () =>
-    page.evaluate(() => document.querySelectorAll("tbody tr").length);
+    page.evaluate(() => document.querySelectorAll("#structure-table tbody tr").length);
   // The row count lives in its own status element; select it by content so a
   // second status region (the manifest reader) cannot be mistaken for it.
   const statusText = () =>
