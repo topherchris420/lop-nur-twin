@@ -1,19 +1,32 @@
 name: CI
 
-# Pull requests and pushes to the default branch. No user-defined repository
-# secret is referenced anywhere here, so a fork's pull request runs exactly the
-# same checks as a branch — which is the point: a supply-chain check that only
-# runs for trusted contributors is not a supply-chain check.
+# Trigger strategy, because the interesting part is what GitHub *cannot* do.
+#
+# `on.push.branches` takes a literal list; the `github` context is not available
+# in an `on:` block, so there is no way to write "the default branch" as an
+# event filter. Hard-coding one is how a workflow silently stops running after a
+# rename. So this workflow subscribes to every branch push and every pull
+# request, and the `default-branch-or-pr` job resolves
+# `github.event.repository.default_branch` at run time and gates the rest on it.
+#
+# The gate is written to *fail open* on anything that is not a branch push:
+# `workflow_dispatch` and any future scheduled run pass it unconditionally, so a
+# manual run against a topic branch is never skipped. Only a push to a
+# non-default branch is filtered out, and that is exactly the duplicate this
+# avoids — a topic branch with an open pull request would otherwise run every
+# job twice.
+#
+# No user-defined repository secret is referenced anywhere here, so a fork's
+# pull request runs exactly the same checks as a branch. That is the point: a
+# supply-chain check that only runs for trusted contributors is not one.
 #
 # One token is referenced: `secrets.GITHUB_TOKEN`, which GitHub mints per run
 # and scopes by each job's `permissions` block. Gitleaks requires it to read a
-# pull request. It is read-only there, and GitHub issues a read-only token to
-# fork pull requests regardless, so it grants untrusted code nothing. No step
-# runs pull-request code with elevated permissions, and `pull_request_target`
-# is deliberately not used.
+# pull request. GitHub issues a read-only token to fork pull requests regardless,
+# so it grants untrusted code nothing. No step runs pull-request code with
+# elevated permissions, and `pull_request_target` is deliberately not used.
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -27,44 +40,101 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22.18.0"
+  # Bun is the project's package manager and `bun.lock` is the committed
+  # lockfile. `package-lock.json` is kept for the Node/npm path the build
+  # scripts also support; it is not what CI installs from.
+  BUN_VERSION: "1.3.11"
 
 jobs:
-  build:
-    name: Validate, build and typecheck
+  # Resolves the repository's real default branch at run time. Every other job
+  # depends on this one and reads its `run` output, so renaming the default
+  # branch needs no change here.
+  default-branch-or-pr:
+    name: Resolve default branch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      default_branch: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Decide whether the rest of the workflow runs
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$EVENT_NAME" != "push" ]; then
+            # Pull requests, manual dispatch and anything added later always run.
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            # A push to a topic branch. Its pull request runs these checks, so
+            # running them here as well would only duplicate them.
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "event=$EVENT_NAME ref=$REF default=$DEFAULT_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+
+  # Everything that needs neither a browser nor a network fetch, in one job so
+  # the install and the build happen once.
+  verify:
+    name: Format, lint, test, validate, build
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          bun-version: ${{ env.BUN_VERSION }}
 
-      # `npm ci` installs strictly from the committed lockfile and fails if
+      # `--frozen-lockfile` installs strictly from `bun.lock` and fails if
       # package.json and the lockfile disagree.
       - name: Install dependencies from the lockfile
-        run: npm ci
+        run: bun install --frozen-lockfile
         env:
           PUPPETEER_SKIP_DOWNLOAD: "1"
 
-      - name: Validate model data and the evidence ledger
-        run: npm run validate:data
+      - name: Formatting
+        run: bun run format:check
+
+      - name: ESLint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test:run
 
       - name: Prove the evidence validator still rejects bad records
-        run: npm run test:evidence
+        run: bun run test:evidence
 
-      - name: Generate the release manifest
-        run: npm run manifest
+      # `bun run build` runs the offline data validator, regenerates the release
+      # manifest, bundles, and finishes with a strict `tsc --noEmit`. It is the
+      # single integration gate — the steps above are the ones it does not cover,
+      # and nothing here re-runs a build operation the build already performs.
+      - name: Validate data, generate the manifest, build and typecheck
+        run: bun run build
 
-      - name: Production build and strict typecheck
-        run: npm run build
+      # A manifest generated twice from the same source must be byte-identical
+      # once `SOURCE_DATE_EPOCH` pins `generatedAt`. If this step fails,
+      # something non-deterministic reached a hash input and the audit trail the
+      # manifest exists to provide is worthless.
+      - name: Prove the manifest is reproducible
+        run: |
+          export SOURCE_DATE_EPOCH=1700000000
+          bun run manifest
+          cp public/model-manifest.json /tmp/manifest-first.json
+          bun run manifest
+          diff -u /tmp/manifest-first.json public/model-manifest.json
+          echo "manifest is byte-identical across runs with SOURCE_DATE_EPOCH pinned"
 
       # The manifest is the machine-readable statement of what this commit
-      # contains; publishing it as an artifact makes a CI run citable.
+      # contains; publishing it as an artifact makes a CI run citable, and
+      # `/compare` can diff a downloaded one against any other build.
       - name: Upload the release manifest
         uses: actions/upload-artifact@v4
         with:
@@ -72,58 +142,59 @@ jobs:
           path: public/model-manifest.json
           if-no-files-found: error
 
-  simulation:
-    name: Simulation, gait, audio and accessibility checks
+  browser:
+    name: Simulation, gait, audio, accessibility and route checks
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          bun-version: ${{ env.BUN_VERSION }}
 
-      # The headless browser these tools drive is the one Puppeteer installs,
-      # so this job does *not* skip the download. WebGL runs on SwiftShader,
-      # which the tools already request.
+      # The headless browser these tools drive is the one Puppeteer installs, so
+      # this job does *not* skip the download. WebGL runs on SwiftShader, which
+      # the tools already request.
       - name: Install dependencies from the lockfile
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Production build
-        run: npm run build
+        run: bun run build
 
       - name: Start the dev server
         run: |
-          npm run dev -- --port 5173 > /tmp/dev-server.log 2>&1 &
+          bun run dev --port 5173 > /tmp/dev-server.log 2>&1 &
           timeout 180 bash -c 'until curl -sf http://localhost:5173/ > /dev/null; do sleep 2; done'
 
       - name: Blacksite smoke checks
-        run: npm run smoke
+        run: bun run smoke
 
       - name: Gait checks
-        run: npm run gait
+        run: bun run gait
 
       # Audio renders through an OfflineAudioContext, which needs no output
       # device and therefore works headless. If a future runner image drops the
       # audio backend, this is the step that will say so.
       - name: Synthesised audio checks
-        run: npm run audio
+        run: bun run audio
 
       - name: Start the preview server with production security headers
         run: |
-          npm run preview -- --port 4173 > /tmp/preview-server.log 2>&1 &
+          bun run preview --port 4173 > /tmp/preview-server.log 2>&1 &
           timeout 180 bash -c 'until curl -sf http://localhost:4173/ > /dev/null; do sleep 2; done'
 
       - name: Accessibility and content-security-policy checks
-        run: npm run a11y
+        run: bun run a11y
 
       # Direct loads, refreshes, hostile query parameters, keyboard order,
       # evidence filtering, deep links and a 390 px viewport.
       - name: Route, parameter and interaction checks
-        run: npm run routes
+        run: bun run routes
 
       - name: Upload server logs on failure
         if: failure()
@@ -137,10 +208,17 @@ jobs:
 
   secrets:
     name: Secret scanning
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    # This is workflow-based scanning of the repository's history, which is a
+    # different thing from GitHub-native secret scanning and push protection.
+    # Those two are repository settings and cannot be turned on from a workflow
+    # file; docs/VALIDATION.md lists what still has to be enabled by hand.
+    #
     # The action reads the pull request's commit list through the API, so it
-    # needs to see the PR itself. Both grants are read-only.
+    # needs to see the pull request itself. Both grants are read-only.
     permissions:
       contents: read
       pull-requests: read
@@ -166,28 +244,29 @@ jobs:
 
   vulnerabilities:
     name: Dependency and filesystem vulnerability scan
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install dependencies from the lockfile
-        run: npm ci
+        run: bun install --frozen-lockfile
         env:
           PUPPETEER_SKIP_DOWNLOAD: "1"
 
-      # npm's own advisory check first: fast, needs nothing, and reports the
-      # same registry data an evaluator would see locally. Shipped code only —
-      # a development-only advisory should not block a documentation change.
-      - name: npm audit (runtime dependencies)
-        run: npm audit --omit=dev --audit-level=high
+      # Shipped code only: a development-only advisory should not block a
+      # documentation change. Advisories in the toolchain still surface through
+      # Trivy below and through Dependabot.
+      - name: Dependency audit (runtime dependencies)
+        run: bun audit --prod --audit-level=high
 
       - name: Trivy vulnerability and secret scan
         uses: aquasecurity/trivy-action@v0.36.0
@@ -201,8 +280,8 @@ jobs:
           format: table
 
       # Configuration findings are reported but do not gate: they cover the
-      # Dockerfile and workflow files, where the right fix is often a
-      # deployment decision rather than a code change.
+      # Dockerfile and workflow files, where the right fix is often a deployment
+      # decision rather than a code change.
       - name: Trivy configuration scan (report only)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -214,26 +293,31 @@ jobs:
 
   sbom:
     name: Software bill of materials
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install dependencies from the lockfile
-        run: npm ci
+        run: bun install --frozen-lockfile
         env:
           PUPPETEER_SKIP_DOWNLOAD: "1"
 
-      # CycloneDX JSON, generated from the resolved dependency tree.
+      # The SBOM is published as a run artifact rather than committed: it
+      # describes a *resolved* dependency tree, so a committed copy would be
+      # stale the moment a transitive dependency moved, and it would need a
+      # regeneration step in the release process to stay honest. `.gitignore`
+      # keeps `sbom*.json` out of the tree for that reason.
       - name: Generate a CycloneDX SBOM
-        run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cyclonedx.json
+        run: bunx --bun @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cyclonedx.json
 
       # Syft's SPDX JSON view of the same tree, for consumers that expect SPDX.
       - name: Generate an SPDX SBOM with Syft
@@ -256,7 +340,8 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    # Only pull requests have a base and a head to diff.
+    # Only pull requests have a base and a head to diff, so this one keeps its
+    # own event condition rather than the shared gate.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -267,10 +352,10 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Requires the repository's dependency graph (Settings → Code security
-      # and analysis), which is enabled. If this step ever starts reporting
-      # "not supported on this repository", that setting has been turned off
-      # again — fix the setting rather than muting the check.
+      # Requires the repository's dependency graph (Settings → Code security and
+      # analysis). If this step starts reporting "not supported on this
+      # repository", that setting has been turned off — fix the setting rather
+      # than muting the check.
       - name: Review dependency changes in this pull request
         uses: actions/dependency-review-action@v4
         with:

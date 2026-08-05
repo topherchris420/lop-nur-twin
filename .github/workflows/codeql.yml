@@ -4,11 +4,21 @@ name: CodeQL
 # application, the build scripts and the test tools. It runs on pull requests,
 # on the default branch, and weekly so a newly published query still finds an
 # old bug.
+#
+# Same trigger strategy as ci.yml, and for the same reason: an `on:` block
+# cannot read the `github` context, so "the default branch" is not expressible
+# as an event filter and a hard-coded branch name silently stops matching after
+# a rename. The workflow subscribes broadly and `resolve-default-branch` gates
+# the analysis on `github.event.repository.default_branch` at run time.
+#
+# The gate fails open for everything that is not a branch push, which is what
+# keeps the two runs that matter most from being skipped: the weekly `schedule`
+# (whose whole purpose is to re-analyse unchanged code with newer queries) and
+# `workflow_dispatch`. A scheduled event carries no branch of its own, so a
+# ref-based filter would drop it.
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
   schedule:
     # Sunday 04:17 UTC — off the hour, so it does not queue behind everyone
     # else's midnight cron.
@@ -19,8 +29,36 @@ permissions:
   contents: read
 
 jobs:
+  resolve-default-branch:
+    name: Resolve default branch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Decide whether the analysis runs
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          # A `schedule` event carries no repository object, so this is empty
+          # there. The branch comparison below is only reached for a push, where
+          # the value is always populated.
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$EVENT_NAME" != "push" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            # The pull request for this branch analyses the same code.
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   analyze:
     name: Analyze JavaScript and TypeScript
+    needs: resolve-default-branch
+    if: needs.resolve-default-branch.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
