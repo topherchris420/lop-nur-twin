@@ -267,18 +267,12 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # This check needs the repository's dependency graph, which is a
-      # repository setting rather than anything a commit can turn on:
-      #   Settings → Code security and analysis → Dependency graph
-      # Until it is enabled the action reports "not supported on this
-      # repository", so the step is allowed to fail rather than paint every
-      # pull request red for a reason no contributor can fix. Enable the
-      # setting and it becomes a real gate at `fail-on-severity: high` with no
-      # further change here. `npm audit`, Trivy, CodeQL and Dependabot cover
-      # the same ground in the meantime.
+      # Requires the repository's dependency graph (Settings → Code security
+      # and analysis), which is enabled. If this step ever starts reporting
+      # "not supported on this repository", that setting has been turned off
+      # again — fix the setting rather than muting the check.
       - name: Review dependency changes in this pull request
         uses: actions/dependency-review-action@v4
-        continue-on-error: true
         with:
           fail-on-severity: high
           comment-summary-in-pr: never

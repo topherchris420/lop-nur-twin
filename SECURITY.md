@@ -86,12 +86,12 @@ any kind.
 - Dependabot proposes grouped updates weekly and security updates as soon as an
   advisory is published (`.github/dependabot.yml`).
 - Every pull request runs `npm audit --omit=dev --audit-level=high`, a Trivy
-  vulnerability and secret scan, and CodeQL static analysis. A high or critical
-  advisory with a fix available blocks the merge. GitHub dependency review runs
-  too, but only gates once the repository's dependency graph is enabled
-  (*Settings → Code security and analysis*); until then it reports and does not
-  block, because a check no contributor can fix is a check everyone learns to
-  ignore.
+  vulnerability and secret scan, GitHub dependency review, and CodeQL static
+  analysis. A high or critical advisory with a fix available blocks the merge.
+  Dependency review depends on the repository's dependency graph remaining
+  enabled (*Settings → Code security and analysis*); if it is ever turned off
+  the check reports "not supported on this repository", and the fix is the
+  setting, not muting the check.
 - An SBOM is generated per run in both CycloneDX JSON and SPDX JSON and
   attached to the workflow run.
 - Runtime dependencies are kept deliberately small, and nothing is fetched from
