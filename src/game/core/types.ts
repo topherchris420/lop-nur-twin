@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import type * as THREE from "three";
 
 /**
  * Shared vocabulary for the combat simulation.
@@ -57,17 +57,105 @@ export interface SurfaceProfile {
 }
 
 export const SURFACE_PROFILES: Readonly<Record<SurfaceType, SurfaceProfile>> = {
-  concrete: { penetrationDepthM: 0.09, damageRetention: 0.42, ricochetChance: 0.16, debrisColor: 0xb9b1a2, sparkiness: 0.15, restitution: 0.34, friction: 0.72 },
-  metal: { penetrationDepthM: 0.014, damageRetention: 0.3, ricochetChance: 0.34, debrisColor: 0xffcf8a, sparkiness: 1, restitution: 0.42, friction: 0.5 },
-  "thin-metal": { penetrationDepthM: 0.05, damageRetention: 0.72, ricochetChance: 0.18, debrisColor: 0xffd79b, sparkiness: 0.85, restitution: 0.38, friction: 0.55 },
-  sand: { penetrationDepthM: 0.35, damageRetention: 0.24, ricochetChance: 0.05, debrisColor: 0xcbb489, sparkiness: 0, restitution: 0.12, friction: 0.94 },
-  gravel: { penetrationDepthM: 0.24, damageRetention: 0.3, ricochetChance: 0.12, debrisColor: 0xa89a83, sparkiness: 0.08, restitution: 0.2, friction: 0.88 },
-  glass: { penetrationDepthM: 0.4, damageRetention: 0.92, ricochetChance: 0.02, debrisColor: 0xd6e6ee, sparkiness: 0.3, restitution: 0.25, friction: 0.4 },
-  wood: { penetrationDepthM: 0.16, damageRetention: 0.66, ricochetChance: 0.06, debrisColor: 0x9a7a52, sparkiness: 0.04, restitution: 0.28, friction: 0.66 },
-  rubber: { penetrationDepthM: 0.07, damageRetention: 0.5, ricochetChance: 0.03, debrisColor: 0x38383a, sparkiness: 0, restitution: 0.5, friction: 0.9 },
-  fabric: { penetrationDepthM: 0.5, damageRetention: 0.95, ricochetChance: 0.01, debrisColor: 0x8d8570, sparkiness: 0, restitution: 0.1, friction: 0.95 },
-  flesh: { penetrationDepthM: 0.3, damageRetention: 0.55, ricochetChance: 0, debrisColor: 0x6d0d0d, sparkiness: 0, restitution: 0.05, friction: 0.98 },
-  foliage: { penetrationDepthM: 1.2, damageRetention: 0.98, ricochetChance: 0, debrisColor: 0x6f7346, sparkiness: 0, restitution: 0.2, friction: 0.85 },
+  concrete: {
+    penetrationDepthM: 0.09,
+    damageRetention: 0.42,
+    ricochetChance: 0.16,
+    debrisColor: 0xb9b1a2,
+    sparkiness: 0.15,
+    restitution: 0.34,
+    friction: 0.72,
+  },
+  metal: {
+    penetrationDepthM: 0.014,
+    damageRetention: 0.3,
+    ricochetChance: 0.34,
+    debrisColor: 0xffcf8a,
+    sparkiness: 1,
+    restitution: 0.42,
+    friction: 0.5,
+  },
+  "thin-metal": {
+    penetrationDepthM: 0.05,
+    damageRetention: 0.72,
+    ricochetChance: 0.18,
+    debrisColor: 0xffd79b,
+    sparkiness: 0.85,
+    restitution: 0.38,
+    friction: 0.55,
+  },
+  sand: {
+    penetrationDepthM: 0.35,
+    damageRetention: 0.24,
+    ricochetChance: 0.05,
+    debrisColor: 0xcbb489,
+    sparkiness: 0,
+    restitution: 0.12,
+    friction: 0.94,
+  },
+  gravel: {
+    penetrationDepthM: 0.24,
+    damageRetention: 0.3,
+    ricochetChance: 0.12,
+    debrisColor: 0xa89a83,
+    sparkiness: 0.08,
+    restitution: 0.2,
+    friction: 0.88,
+  },
+  glass: {
+    penetrationDepthM: 0.4,
+    damageRetention: 0.92,
+    ricochetChance: 0.02,
+    debrisColor: 0xd6e6ee,
+    sparkiness: 0.3,
+    restitution: 0.25,
+    friction: 0.4,
+  },
+  wood: {
+    penetrationDepthM: 0.16,
+    damageRetention: 0.66,
+    ricochetChance: 0.06,
+    debrisColor: 0x9a7a52,
+    sparkiness: 0.04,
+    restitution: 0.28,
+    friction: 0.66,
+  },
+  rubber: {
+    penetrationDepthM: 0.07,
+    damageRetention: 0.5,
+    ricochetChance: 0.03,
+    debrisColor: 0x38383a,
+    sparkiness: 0,
+    restitution: 0.5,
+    friction: 0.9,
+  },
+  fabric: {
+    penetrationDepthM: 0.5,
+    damageRetention: 0.95,
+    ricochetChance: 0.01,
+    debrisColor: 0x8d8570,
+    sparkiness: 0,
+    restitution: 0.1,
+    friction: 0.95,
+  },
+  flesh: {
+    penetrationDepthM: 0.3,
+    damageRetention: 0.55,
+    ricochetChance: 0,
+    debrisColor: 0x6d0d0d,
+    sparkiness: 0,
+    restitution: 0.05,
+    friction: 0.98,
+  },
+  foliage: {
+    penetrationDepthM: 1.2,
+    damageRetention: 0.98,
+    ricochetChance: 0,
+    debrisColor: 0x6f7346,
+    sparkiness: 0,
+    restitution: 0.2,
+    friction: 0.85,
+  },
 };
 
 /* ------------------------------------------------------------------ */
@@ -136,15 +224,7 @@ export const PLAYER_ENTITY_ID: EntityId = 0;
 export type Stance = "stand" | "crouch" | "prone";
 
 export type CharacterState =
-  | "idle"
-  | "walk"
-  | "run"
-  | "sprint"
-  | "slide"
-  | "mantle"
-  | "jump"
-  | "fall"
-  | "dead";
+  "idle" | "walk" | "run" | "sprint" | "slide" | "mantle" | "jump" | "fall" | "dead";
 
 export interface CharacterMetrics {
   /** Capsule radius in metres. */
@@ -171,13 +251,7 @@ export const HUMAN_METRICS: CharacterMetrics = {
 /* Damage                                                              */
 /* ------------------------------------------------------------------ */
 
-export type DamageKind =
-  | "bullet"
-  | "explosion"
-  | "melee"
-  | "fall"
-  | "fire"
-  | "shrapnel";
+export type DamageKind = "bullet" | "explosion" | "melee" | "fall" | "fire" | "shrapnel";
 
 export interface DamageEvent {
   targetId: EntityId;
@@ -369,12 +443,7 @@ export interface SoundRequest {
 /* ------------------------------------------------------------------ */
 
 export type ImpactKind =
-  | "bullet"
-  | "ricochet"
-  | "penetration-exit"
-  | "explosion"
-  | "blood"
-  | "blood-headshot";
+  "bullet" | "ricochet" | "penetration-exit" | "explosion" | "blood" | "blood-headshot";
 
 export interface ImpactRequest {
   kind: ImpactKind;
@@ -488,11 +557,7 @@ export function horizontalToVerticalFov(horizontalDeg: number, aspect: number): 
  */
 
 /** Unit forward vector for a yaw (and optional pitch), in world space. */
-export function yawToForward(
-  yaw: number,
-  out: THREE.Vector3,
-  pitch = 0,
-): THREE.Vector3 {
+export function yawToForward(yaw: number, out: THREE.Vector3, pitch = 0): THREE.Vector3 {
   const cp = Math.cos(pitch);
   return out.set(-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
 }

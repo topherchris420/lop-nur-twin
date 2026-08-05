@@ -534,7 +534,10 @@ export class AnamorphicStreaksPass extends Pass {
 
     const sourceTexel = this.brightMaterial.uniforms.texelSize;
     if (sourceTexel) {
-      (sourceTexel.value as THREE.Vector2).set(1 / Math.max(1, width), 1 / Math.max(1, height));
+      (sourceTexel.value as THREE.Vector2).set(
+        1 / Math.max(1, width),
+        1 / Math.max(1, height),
+      );
     }
     const blurTexel = this.blurMaterial.uniforms.texelSize;
     if (blurTexel) (blurTexel.value as THREE.Vector2).set(1 / w, 1 / h);

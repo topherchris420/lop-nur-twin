@@ -37,7 +37,10 @@ export function HelpOverlay() {
 
     const previousFocus = document.activeElement as HTMLElement | null;
     const background = [...(overlay.parentElement?.children ?? [])]
-      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== overlay)
+      .filter(
+        (element): element is HTMLElement =>
+          element instanceof HTMLElement && element !== overlay,
+      )
       .map((element) => ({
         element,
         inert: element.inert,
@@ -49,11 +52,12 @@ export function HelpOverlay() {
       element.setAttribute("aria-hidden", "true");
     }
 
-    const focusable = () => [
-      ...overlay.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      ),
-    ].filter((element) => !element.hasAttribute("disabled"));
+    const focusable = () =>
+      [
+        ...overlay.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ].filter((element) => !element.hasAttribute("disabled"));
 
     focusable()[0]?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -109,17 +113,22 @@ export function HelpOverlay() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle id="help-title">Controls</CardTitle>
-            <Button variant="ghost" size="icon" aria-label="Close help" onClick={toggleHelp}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Close help"
+              onClick={toggleHelp}
+            >
               <X />
             </Button>
           </div>
           <CardDescription>
-            Click any structure to open its dossier. Click the minimap to fly
-            there, or press <kbd className="kbd">M</kbd> to measure distances and
-            grid bearings across the site — clicks snap to the runway, strips and
-            compound. Watch for the demonstrator flying the runway pattern, the
-            service vehicle, the turning radar-like prop and — after dark (<kbd className="kbd">N</kbd>) —
-            the winking obstruction beacons.
+            Click any structure to open its dossier. Click the minimap to fly there, or
+            press <kbd className="kbd">M</kbd> to measure distances and grid bearings
+            across the site — clicks snap to the runway, strips and compound. Watch for
+            the demonstrator flying the runway pattern, the service vehicle, the turning
+            radar-like prop and — after dark (<kbd className="kbd">N</kbd>) — the winking
+            obstruction beacons.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,10 +147,10 @@ export function HelpOverlay() {
             ))}
           </ul>
           <p className="text-muted-foreground mt-3 border-t border-border pt-3 text-xs">
-            On touch devices, orbit mode adds a bottom-right pan joystick to
-            glide across the site — one finger still rotates and a pinch zooms.
-            First-person mode shows a left thumb-stick to walk and a right-side
-            drag area to look — push the stick to its edge to sprint.
+            On touch devices, orbit mode adds a bottom-right pan joystick to glide across
+            the site — one finger still rotates and a pinch zooms. First-person mode shows
+            a left thumb-stick to walk and a right-side drag area to look — push the stick
+            to its edge to sprint.
           </p>
         </CardContent>
       </Card>

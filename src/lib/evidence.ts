@@ -59,10 +59,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 export type EvidenceClassification =
-  | "observed"
-  | "reported"
-  | "interpreted"
-  | "illustrative";
+  "observed" | "reported" | "interpreted" | "illustrative";
 
 export interface EvidenceRecord {
   /** Stable, deterministic identifier: `ev-<subject>-<source>`. */
@@ -238,7 +235,7 @@ const MODEL_INTERNAL_SOURCE = {
 export const KNOWN_LIMITATIONS: readonly string[] = [
   "This is a public-source analytical reconstruction, not operational data, an official facility record, or an aeronautical chart.",
   "Terrain relief is a seeded procedural proxy around an approximate ~981 m EGM2008 datum sampled from Copernicus GLO-30. No DEM tile is redistributed and the surface must not be used for survey-grade elevation, slope or sightline analysis.",
-  "Facility functions are interpretations. Names such as \"assembly hangar\", \"operations block\" and \"crew accommodation\" are model hypotheses; public overhead imagery does not establish interiors, occupants or use.",
+  'Facility functions are interpretations. Names such as "assembly hangar", "operations block" and "crew accommodation" are model hypotheses; public overhead imagery does not establish interiors, occupants or use.',
   "Aircraft identifications, dimensions and parking positions follow cited public reporting. External shapes are massed from widely circulated photographs whose provenance cannot be verified.",
   "Base-support systems — power, water, sanitation, communications, sensors and security — are illustrative. None is resolved in the cited 10 m imagery.",
   "Modeled runway endpoints carry roughly 40 m of uncertainty; the 10 m source imagery supports site-scale measurement, not detailed interior or function claims.",
@@ -296,7 +293,12 @@ function sourceFields(
   source: PublicSource,
 ): Pick<
   EvidenceRecord,
-  "sourceTitle" | "sourceUrl" | "sourceDate" | "accessedAt" | "sourcePublisher" | "sourceId"
+  | "sourceTitle"
+  | "sourceUrl"
+  | "sourceDate"
+  | "accessedAt"
+  | "sourcePublisher"
+  | "sourceId"
 > {
   return {
     sourceTitle: source.title,
@@ -381,7 +383,8 @@ function pavementRecords(): EvidenceRecord[] {
         : [MODEL_INTERNAL_SOURCE_ID];
 
     for (const sourceId of sourceIds) {
-      const source = sourceId === MODEL_INTERNAL_SOURCE_ID ? undefined : getSource(sourceId);
+      const source =
+        sourceId === MODEL_INTERNAL_SOURCE_ID ? undefined : getSource(sourceId);
       records.push({
         id: `ev-${entity.id}-${sourceId}`,
         subjectId: entity.id,
@@ -529,11 +532,13 @@ function siteAndContextRecords(): EvidenceRecord[] {
     records.push({
       id: `ev-${MISSION_SITE_ID}-npr-airfield-expansion`,
       subjectId: MISSION_SITE_ID,
-      claim: "Public reporting describes a roughly three-mile runway and visible facility expansion at this airfield.",
+      claim:
+        "Public reporting describes a roughly three-mile runway and visible facility expansion at this airfield.",
       classification: "reported",
       confidence: CONFIDENCE_SCALE.medium,
       ...sourceFields(expansion),
-      analystNotes: "Reported association only. This model does not confirm any facility function.",
+      analystNotes:
+        "Reported association only. This model does not confirm any facility function.",
       subjectKind: "context",
     });
   }
@@ -541,12 +546,13 @@ function siteAndContextRecords(): EvidenceRecord[] {
     records.push({
       id: `ev-${MISSION_SITE_ID}-swf-spacecraft-2026`,
       subjectId: MISSION_SITE_ID,
-      claim: "Cited analysis associates the runway with likely reusable experimental spacecraft landings.",
+      claim:
+        "Cited analysis associates the runway with likely reusable experimental spacecraft landings.",
       classification: "reported",
       confidence: CONFIDENCE_SCALE.low,
       ...sourceFields(spacecraft),
       analystNotes:
-        "\"Likely\" is retained from the source. This project neither verifies nor renders any landing.",
+        '"Likely" is retained from the source. This project neither verifies nor renders any landing.',
       subjectKind: "context",
     });
   }
@@ -680,7 +686,10 @@ export function strongestClassification(
 ): EvidenceClassification | undefined {
   let best: EvidenceClassification | undefined;
   for (const record of records) {
-    if (best === undefined || CLASSIFICATION_RANK[record.classification] > CLASSIFICATION_RANK[best]) {
+    if (
+      best === undefined ||
+      CLASSIFICATION_RANK[record.classification] > CLASSIFICATION_RANK[best]
+    ) {
       best = record.classification;
     }
   }

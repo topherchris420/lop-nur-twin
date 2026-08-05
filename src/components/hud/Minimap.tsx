@@ -385,11 +385,13 @@ export function Minimap() {
 
   const addPoint = (wx: number, wz: number) => {
     const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, activeTimelineYear);
-    useTwinStore.getState().addMeasurePoint(
-      snap
-        ? { x: snap.x, z: snap.z, snappedTo: snap.label }
-        : { x: wx, z: wz, snappedTo: null },
-    );
+    useTwinStore
+      .getState()
+      .addMeasurePoint(
+        snap
+          ? { x: snap.x, z: snap.z, snappedTo: snap.label }
+          : { x: wx, z: wz, snappedTo: null },
+      );
   };
 
   const handleClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
@@ -457,7 +459,11 @@ export function Minimap() {
             ? "Measurement mode: click the map to drop distance points; clicks near a modeled feature snap to it."
             : "Interactive airfield map. Click a location to move the orbit camera; press Enter for the runway center."
         }
-        title={measureMode ? "Click to add a measurement point" : "Click to fly the orbit camera"}
+        title={
+          measureMode
+            ? "Click to add a measurement point"
+            : "Click to fly the orbit camera"
+        }
       />
       {(measureMode || hasMeasurePoints) && <MeasureReadout />}
     </div>
@@ -477,9 +483,7 @@ function MeasureReadout() {
     const total = pathTotalM(points);
     const straight = straightLineM(points);
     const bearing =
-      points.length >= 2
-        ? gridBearingDeg(points[points.length - 2]!, last)
-        : null;
+      points.length >= 2 ? gridBearingDeg(points[points.length - 2]!, last) : null;
     return { grid, total, straight, bearing, last };
   }, [points]);
 
@@ -537,20 +541,32 @@ function MeasureReadout() {
         </div>
       ) : (
         <p className="text-muted-foreground leading-snug">
-          Click the map to drop points. Clicks near the runway, strips or
-          compound snap to the modeled vertex.
+          Click the map to drop points. Clicks near the runway, strips or compound snap to
+          the modeled vertex.
         </p>
       )}
       <div className="mt-1.5 flex items-center gap-1">
-        <ReadoutButton onClick={undo} disabled={points.length === 0} label="Undo last point">
+        <ReadoutButton
+          onClick={undo}
+          disabled={points.length === 0}
+          label="Undo last point"
+        >
           <Undo2 className="size-3" />
           Undo
         </ReadoutButton>
-        <ReadoutButton onClick={clear} disabled={points.length === 0} label="Clear measurement">
+        <ReadoutButton
+          onClick={clear}
+          disabled={points.length === 0}
+          label="Clear measurement"
+        >
           <Trash2 className="size-3" />
           Clear
         </ReadoutButton>
-        <ReadoutButton onClick={copy} disabled={points.length === 0} label="Copy measurement summary">
+        <ReadoutButton
+          onClick={copy}
+          disabled={points.length === 0}
+          label="Copy measurement summary"
+        >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
           {copied ? "Copied" : "Copy"}
         </ReadoutButton>

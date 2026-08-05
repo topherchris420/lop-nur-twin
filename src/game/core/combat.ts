@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  OPPOSING_TEAM,
-  yawToForward,
-  type DamageEvent,
-  type EntityId,
-} from "./types";
+import { OPPOSING_TEAM, yawToForward, type DamageEvent, type EntityId } from "./types";
 import { game, queueSound, type Actor } from "./gameState";
 
 /**
@@ -112,7 +107,12 @@ export function resolveDamage(time: number, out: KillReport[]): void {
       game.hud.hitmarker = victim.health <= 0 ? 420 : 240;
       game.hud.hitmarkerKill = victim.health <= 0;
       queueSound({
-        id: victim.health <= 0 ? "kill" : event.region === "head" ? "headshot" : "hitmarker",
+        id:
+          victim.health <= 0
+            ? "kill"
+            : event.region === "head"
+              ? "headshot"
+              : "hitmarker",
         gain: 0.55,
       });
     }

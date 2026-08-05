@@ -25,7 +25,8 @@ export function EvidenceLegend() {
   const [open, setOpen] = useState(() => !isCoarsePointer());
   const toggleResearch = useTwinStore((state) => state.toggleResearch);
   const counts = useMemo(evidenceClassificationCounts, []);
-  const total = counts.observed + counts.reported + counts.interpreted + counts.illustrative;
+  const total =
+    counts.observed + counts.reported + counts.interpreted + counts.illustrative;
 
   return (
     <section

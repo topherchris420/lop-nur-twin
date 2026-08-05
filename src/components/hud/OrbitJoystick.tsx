@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { Move } from "lucide-react";
 import { useTwinStore } from "@/lib/store";
 import { touchInput } from "@/lib/touchInput";

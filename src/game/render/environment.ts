@@ -156,20 +156,28 @@ export class EnvironmentLighting {
     const az = options.azimuthRad;
     const u = this.material.uniforms;
     (u["uSunDirection"]!.value as THREE.Vector3)
-      .set(
-        Math.sin(az) * Math.cos(elev),
-        Math.sin(elev),
-        -Math.cos(az) * Math.cos(elev),
-      )
+      .set(Math.sin(az) * Math.cos(elev), Math.sin(elev), -Math.cos(az) * Math.cos(elev))
       .normalize();
 
     const day = THREE.MathUtils.clamp(options.dayFactor, 0, 1);
     // How high the sun is drives both the colour temperature and how much of
     // the sky is lit; below the horizon the whole thing collapses to night.
     const above = THREE.MathUtils.clamp(Math.sin(elev) * 3, 0, 1);
-    (u["uZenith"]!.value as THREE.Color).lerpColors(NIGHT_ZENITH, DAY_ZENITH, day * above);
-    (u["uHorizon"]!.value as THREE.Color).lerpColors(NIGHT_HORIZON, DAY_HORIZON, day * above);
-    (u["uGround"]!.value as THREE.Color).lerpColors(NIGHT_GROUND, DAY_GROUND, day * above);
+    (u["uZenith"]!.value as THREE.Color).lerpColors(
+      NIGHT_ZENITH,
+      DAY_ZENITH,
+      day * above,
+    );
+    (u["uHorizon"]!.value as THREE.Color).lerpColors(
+      NIGHT_HORIZON,
+      DAY_HORIZON,
+      day * above,
+    );
+    (u["uGround"]!.value as THREE.Color).lerpColors(
+      NIGHT_GROUND,
+      DAY_GROUND,
+      day * above,
+    );
     (u["uSunColor"]!.value as THREE.Color).lerpColors(SUN_LOW, SUN_WARM, above);
     // Matched to the sky above: the old 110 was read back at 0.38.
     u["uSunIntensity"]!.value = 42 * Math.pow(above, 0.6) * day;

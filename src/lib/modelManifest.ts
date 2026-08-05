@@ -84,7 +84,8 @@ export function useModelManifest(enabled: boolean): ManifestState {
       })
       .then((value) => {
         if (cancelled) return;
-        if (!isModelManifest(value)) throw new Error("manifest did not match the expected shape");
+        if (!isModelManifest(value))
+          throw new Error("manifest did not match the expected shape");
         setState({ status: "ready", manifest: value });
       })
       .catch((error: unknown) => {

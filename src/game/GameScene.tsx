@@ -155,7 +155,11 @@ function Combatants({ world }: { world: CollisionWorld }) {
     // clamped, so a minute of match time cannot be waited for — it has to be
     // driven, the same way `tools/gait.mjs` drives one actor's animator.
     if (import.meta.env.DEV) {
-      (globalThis as { __combatSim?: unknown }).__combatSim = { bots, characters, director };
+      (globalThis as { __combatSim?: unknown }).__combatSim = {
+        bots,
+        characters,
+        director,
+      };
     }
     return () => {
       game.matchDirector = null;
@@ -390,11 +394,7 @@ function CombatExposure({ postEnabled }: { postEnabled: boolean }) {
  * fuel tank, the absence of environment reflections is the single most
  * "untextured" thing about the frame.
  */
-function EnvironmentLighting({
-  onReady,
-}: {
-  onReady: (texture: THREE.Texture) => void;
-}) {
+function EnvironmentLighting({ onReady }: { onReady: (texture: THREE.Texture) => void }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const night = useTwinStore((s) => s.night);
@@ -535,7 +535,10 @@ function CombatWorld() {
     setWorld(baked);
   }, []);
   const handleFx = useCallback((manager: FxManager) => setFx(manager), []);
-  const handleEnvironment = useCallback((texture: THREE.Texture) => setEnvironment(texture), []);
+  const handleEnvironment = useCallback(
+    (texture: THREE.Texture) => setEnvironment(texture),
+    [],
+  );
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const post = getQualityProfile(qualityTier).postprocessing;
 

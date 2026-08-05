@@ -17,7 +17,7 @@ import {
 import { SITE_SEED } from "@/lib/noise";
 import { applyPreset, makeGreebleGeometry } from "@/gfx/greeble";
 
-import { isVisibleAtTimelineYear } from '@/lib/layout';
+import { isVisibleAtTimelineYear } from "@/lib/layout";
 
 interface SharedMaterials {
   concrete: THREE.MeshStandardMaterial;
@@ -217,7 +217,10 @@ function useSharedMaterials(): SharedMaterials {
         metalness: 0.25,
       }),
       whitePanel: new THREE.MeshStandardMaterial({ map: whitePanelTex, roughness: 0.7 }),
-      monolithRoof: new THREE.MeshStandardMaterial({ map: monolithRoofTex, roughness: 0.65 }),
+      monolithRoof: new THREE.MeshStandardMaterial({
+        map: monolithRoofTex,
+        roughness: 0.65,
+      }),
       monolithWallLong: facadeMaterial(SITE_SEED + 510, "#dcd8cd", [
         { top: 0.14, height: 0.1, cols: 16 },
         { top: 0.32, height: 0.1, cols: 16 },
@@ -334,7 +337,11 @@ function useSharedMaterials(): SharedMaterials {
 }
 
 /** Extruded gable-roof prism: `width` across, `rise` tall, `depth` long. */
-function useGableGeometry(width: number, rise: number, depth: number): THREE.ExtrudeGeometry {
+function useGableGeometry(
+  width: number,
+  rise: number,
+  depth: number,
+): THREE.ExtrudeGeometry {
   return useMemo(() => {
     const shape = new THREE.Shape();
     shape.moveTo(-width / 2, 0);
@@ -391,18 +398,17 @@ function ControlTower({ def, m }: BuilderProps) {
       {/* external zigzag staircase on +x face */}
       {Array.from({ length: Math.floor(shaftH / 2.5) }, (_, i) => (
         <group key={`stair${i}`}>
-          <mesh material={m.metalDark} castShadow position={[
-            3.8 + (i % 2 === 0 ? 0.5 : -0.5),
-            1.5 + i * 2.5,
-            0,
-          ]}>
+          <mesh
+            material={m.metalDark}
+            castShadow
+            position={[3.8 + (i % 2 === 0 ? 0.5 : -0.5), 1.5 + i * 2.5, 0]}
+          >
             <boxGeometry args={[2.4, 0.12, 1.2]} />
           </mesh>
-          <mesh material={m.metalDark} position={[
-            3.8 + (i % 2 === 0 ? 1.6 : -1.6),
-            1.5 + i * 2.5 + 1.25,
-            0,
-          ]}>
+          <mesh
+            material={m.metalDark}
+            position={[3.8 + (i % 2 === 0 ? 1.6 : -1.6), 1.5 + i * 2.5 + 1.25, 0]}
+          >
             <boxGeometry args={[0.1, 2.5, 0.1]} />
           </mesh>
         </group>
@@ -428,7 +434,11 @@ function ControlTower({ def, m }: BuilderProps) {
           <cylinderGeometry args={[0.05, 0.05, 1.1, 4]} />
         </mesh>
       ))}
-      <mesh material={m.metalDark} position={[0, shaftH + 2.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.metalDark}
+        position={[0, shaftH + 2.6, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <torusGeometry args={[4.9, 0.05, 6, 24]} />
       </mesh>
       <mesh material={m.glass} castShadow position={[0, shaftH + 3.1, 0]}>
@@ -457,18 +467,32 @@ function ControlTower({ def, m }: BuilderProps) {
       </mesh>
       {/* cross-arm antenna dipoles */}
       {[0, Math.PI / 2].map((rot, i) => (
-        <mesh key={`ant${i}`} material={m.metalDark} position={[0, shaftH + 6.8, 0]} rotation={[0, rot, 0]}>
+        <mesh
+          key={`ant${i}`}
+          material={m.metalDark}
+          position={[0, shaftH + 6.8, 0]}
+          rotation={[0, rot, 0]}
+        >
           <boxGeometry args={[2.4, 0.06, 0.06]} />
         </mesh>
       ))}
       {/* whip antennas */}
       {[-1, 1].map((side) => (
-        <mesh key={`whip${side}`} material={m.metalDark} position={[side * 2.2, shaftH + 5.8, 0]}>
+        <mesh
+          key={`whip${side}`}
+          material={m.metalDark}
+          position={[side * 2.2, shaftH + 5.8, 0]}
+        >
           <cylinderGeometry args={[0.02, 0.03, 2.0, 4]} />
         </mesh>
       ))}
       {/* small radar dish */}
-      <mesh material={m.whitePanel} castShadow position={[1.5, shaftH + 6, -1.5]} rotation={[0.3, -0.8, 0]}>
+      <mesh
+        material={m.whitePanel}
+        castShadow
+        position={[1.5, shaftH + 6, -1.5]}
+        rotation={[0.3, -0.8, 0]}
+      >
         <circleGeometry args={[0.8, 12]} />
       </mesh>
       <mesh material={m.beacon} position={[0, shaftH + 9.8, 0]}>
@@ -484,38 +508,75 @@ function MonolithHangar({ def, m }: BuilderProps) {
   const rise = 1.4;
   const wallH = h - rise;
   const roofGeometry = useGableGeometry(w + 1.2, rise, d + 1.2);
-  const wallMaterials = [m.monolithWallLong, m.monolithWallLong, m.monolithRoof, m.monolithRoof, m.monolithWallEnd, m.monolithWallEnd];
+  const wallMaterials = [
+    m.monolithWallLong,
+    m.monolithWallLong,
+    m.monolithRoof,
+    m.monolithRoof,
+    m.monolithWallEnd,
+    m.monolithWallEnd,
+  ];
   return (
     <group>
       <mesh material={m.concrete} receiveShadow position={[0, 0.3, 0]}>
         <boxGeometry args={[w + 2, 0.6, d + 2]} />
       </mesh>
-      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.6 + wallH / 2, 0]}>
+      <mesh
+        material={wallMaterials}
+        castShadow
+        receiveShadow
+        position={[0, 0.6 + wallH / 2, 0]}
+      >
         <boxGeometry args={[w, wallH, d]} />
       </mesh>
-      <mesh material={m.monolithRoof} geometry={roofGeometry} castShadow position={[0, 0.6 + wallH, 0]} />
+      <mesh
+        material={m.monolithRoof}
+        geometry={roofGeometry}
+        castShadow
+        position={[0, 0.6 + wallH, 0]}
+      />
       {/* Bright raised perimeter cap clearly visible in the reference. */}
       {[-1, 1].map((side) => (
-        <mesh key={`eave-${side}`} material={m.whitePanel} castShadow position={[side * (w / 2 + 0.45), wallH + 0.75, 0]}>
+        <mesh
+          key={`eave-${side}`}
+          material={m.whitePanel}
+          castShadow
+          position={[side * (w / 2 + 0.45), wallH + 0.75, 0]}
+        >
           <boxGeometry args={[0.9, 1.1, d + 1.8]} />
         </mesh>
       ))}
       {[-1, 1].map((side) => (
-        <mesh key={`end-cap-${side}`} material={m.whitePanel} castShadow position={[0, wallH + 0.75, side * (d / 2 + 0.45)]}>
+        <mesh
+          key={`end-cap-${side}`}
+          material={m.whitePanel}
+          castShadow
+          position={[0, wallH + 0.75, side * (d / 2 + 0.45)]}
+        >
           <boxGeometry args={[w + 1.8, 1.1, 0.9]} />
         </mesh>
       ))}
       {/* Dark lower service strip and the two continuous long-side bands. */}
       {[-1, 1].map((side) => (
         <group key={`facade-${side}`} position={[side * (w / 2 + 0.12), 0, 0]}>
-          <mesh material={m.metalDark} position={[0, 2.1, 0]}><boxGeometry args={[0.3, 1.1, d * 0.92]} /></mesh>
-          <mesh material={m.glass} position={[0, wallH * 0.48, 0]}><boxGeometry args={[0.35, 1.15, d * 0.9]} /></mesh>
-          <mesh material={m.glass} position={[0, wallH * 0.68, 0]}><boxGeometry args={[0.35, 1.15, d * 0.9]} /></mesh>
+          <mesh material={m.metalDark} position={[0, 2.1, 0]}>
+            <boxGeometry args={[0.3, 1.1, d * 0.92]} />
+          </mesh>
+          <mesh material={m.glass} position={[0, wallH * 0.48, 0]}>
+            <boxGeometry args={[0.35, 1.15, d * 0.9]} />
+          </mesh>
+          <mesh material={m.glass} position={[0, wallH * 0.68, 0]}>
+            <boxGeometry args={[0.35, 1.15, d * 0.9]} />
+          </mesh>
         </group>
       ))}
       {/* Compact service volumes clustered at the apron-facing end. */}
-      <mesh material={m.concreteLight} castShadow position={[-w * 0.25, 3, -d / 2 - 4]}><boxGeometry args={[18, 6, 8]} /></mesh>
-      <mesh material={m.roofDark} position={[-w * 0.25, 6.1, -d / 2 - 4]}><boxGeometry args={[18.5, 0.25, 8.5]} /></mesh>
+      <mesh material={m.concreteLight} castShadow position={[-w * 0.25, 3, -d / 2 - 4]}>
+        <boxGeometry args={[18, 6, 8]} />
+      </mesh>
+      <mesh material={m.roofDark} position={[-w * 0.25, 6.1, -d / 2 - 4]}>
+        <boxGeometry args={[18.5, 0.25, 8.5]} />
+      </mesh>
       {/* plant deck on the service annex roof */}
       <GreebleDeck
         seed={SITE_SEED + 610}
@@ -527,8 +588,12 @@ function MonolithHangar({ def, m }: BuilderProps) {
         position={[-w * 0.25, 6.22, -d / 2 - 4]}
         material={m.metalDark}
       />
-      <mesh material={m.concreteLight} castShadow position={[w * 0.28, 2.4, -d / 2 - 3]}><boxGeometry args={[10, 4.8, 6]} /></mesh>
-      <mesh material={m.corrugated} castShadow position={[0, wallH * 0.42, d / 2 + 0.2]}><boxGeometry args={[w * 0.78, wallH * 0.76, 0.45]} /></mesh>
+      <mesh material={m.concreteLight} castShadow position={[w * 0.28, 2.4, -d / 2 - 3]}>
+        <boxGeometry args={[10, 4.8, 6]} />
+      </mesh>
+      <mesh material={m.corrugated} castShadow position={[0, wallH * 0.42, d / 2 + 0.2]}>
+        <boxGeometry args={[w * 0.78, wallH * 0.76, 0.45]} />
+      </mesh>
     </group>
   );
 }
@@ -545,7 +610,12 @@ function ShelterRow({ def, m }: BuilderProps) {
         <boxGeometry args={[w + 1.6, 0.5, d + 1.6]} />
       </mesh>
       {/* back wall */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 0.5 + wallH * 0.5, -d / 2 + 0.3]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[0, 0.5 + wallH * 0.5, -d / 2 + 0.3]}
+      >
         <boxGeometry args={[w, wallH, 0.6]} />
       </mesh>
       {/* dividing + outer side walls */}
@@ -563,11 +633,20 @@ function ShelterRow({ def, m }: BuilderProps) {
       {/* per-bay gable roofs and dark interiors */}
       {[-1, 0, 1].map((bay) => (
         <group key={bay} position={[bay * bayW, 0, 0]}>
-          <mesh material={m.corrugatedWhite} geometry={roofGeometry} castShadow position={[0, 0.5 + wallH, 0]} />
+          <mesh
+            material={m.corrugatedWhite}
+            geometry={roofGeometry}
+            castShadow
+            position={[0, 0.5 + wallH, 0]}
+          />
           <mesh material={m.interiorDark} position={[0, 0.5 + wallH * 0.42, d / 2 - 0.9]}>
             <boxGeometry args={[bayW - 2.2, wallH * 0.84, 0.7]} />
           </mesh>
-          <mesh material={m.whitePanel} castShadow position={[0, 0.5 + wallH * 0.92, d / 2 - 0.3]}>
+          <mesh
+            material={m.whitePanel}
+            castShadow
+            position={[0, 0.5 + wallH * 0.92, d / 2 - 0.3]}
+          >
             <boxGeometry args={[bayW + 0.7, wallH * 0.16, 0.6]} />
           </mesh>
         </group>
@@ -582,7 +661,12 @@ function Quonset({ def, m }: BuilderProps) {
   const r = d / 2;
   return (
     <group scale={[1, h / r, 1]}>
-      <mesh material={m.corrugatedWhite} castShadow receiveShadow rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.corrugatedWhite}
+        castShadow
+        receiveShadow
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[r, r, w, 24, 1, true, 0, Math.PI]} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -615,12 +699,20 @@ function Warehouse({ def, m }: BuilderProps) {
       </mesh>
       {/* parapet */}
       {[-1, 1].map((side) => (
-        <mesh key={`p${side}`} material={m.concrete} position={[0, h + 0.4, (side * (d - 0.4)) / 2]}>
+        <mesh
+          key={`p${side}`}
+          material={m.concrete}
+          position={[0, h + 0.4, (side * (d - 0.4)) / 2]}
+        >
           <boxGeometry args={[w, 0.8, 0.4]} />
         </mesh>
       ))}
       {[-1, 1].map((side) => (
-        <mesh key={`q${side}`} material={m.concrete} position={[(side * (w - 0.4)) / 2, h + 0.4, 0]}>
+        <mesh
+          key={`q${side}`}
+          material={m.concrete}
+          position={[(side * (w - 0.4)) / 2, h + 0.4, 0]}
+        >
           <boxGeometry args={[0.4, 0.8, d]} />
         </mesh>
       ))}
@@ -632,7 +724,12 @@ function Warehouse({ def, m }: BuilderProps) {
       ))}
       {/* roof plant — HVAC units */}
       {[-0.15, 0.15].map((f) => (
-        <mesh key={`ac${f}`} material={m.metalDark} castShadow position={[w * 0.3, h + 0.8, d * f]}>
+        <mesh
+          key={`ac${f}`}
+          material={m.metalDark}
+          castShadow
+          position={[w * 0.3, h + 0.8, d * f]}
+        >
           <boxGeometry args={[2, 1.2, 2]} />
         </mesh>
       ))}
@@ -649,26 +746,44 @@ function Warehouse({ def, m }: BuilderProps) {
       />
       {/* roller doors on the +z face */}
       {[-0.28, 0, 0.28].map((f) => (
-        <mesh key={`d${f}`} material={m.corrugated} position={[w * f, h * 0.38, d / 2 + 0.18]}>
+        <mesh
+          key={`d${f}`}
+          material={m.corrugated}
+          position={[w * f, h * 0.38, d / 2 + 0.18]}
+        >
           <boxGeometry args={[6, h * 0.72, 0.35]} />
         </mesh>
       ))}
       {/* rust streaks below the door tracks */}
       {[-0.28, 0, 0.28].map((f) => (
-        <mesh key={`rust${f}`} material={m.rustyMetal} position={[w * f, h * 0.04, d / 2 + 0.2]}>
+        <mesh
+          key={`rust${f}`}
+          material={m.rustyMetal}
+          position={[w * f, h * 0.04, d / 2 + 0.2]}
+        >
           <boxGeometry args={[6.2, h * 0.08, 0.36]} />
         </mesh>
       ))}
       {/* concrete bollards flanking each roller door */}
       {[-0.28, 0, 0.28].map((f) =>
         [-1, 1].map((side) => (
-          <mesh key={`bol${f}${side}`} material={m.concreteLight} castShadow position={[w * f + side * 3.5, 0.4, d / 2 + 0.6]}>
+          <mesh
+            key={`bol${f}${side}`}
+            material={m.concreteLight}
+            castShadow
+            position={[w * f + side * 3.5, 0.4, d / 2 + 0.6]}
+          >
             <cylinderGeometry args={[0.25, 0.3, 0.8, 8]} />
           </mesh>
         )),
       )}
       {/* loading dock */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0, 0.6, d / 2 + 2]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[0, 0.6, d / 2 + 2]}
+      >
         <boxGeometry args={[w * 0.55, 1.2, 4]} />
       </mesh>
       {/* rain canopy over loading dock */}
@@ -677,13 +792,21 @@ function Warehouse({ def, m }: BuilderProps) {
       </mesh>
       {/* canopy support brackets */}
       {[-0.2, 0, 0.2].map((f) => (
-        <mesh key={`brk${f}`} material={m.metalDark} position={[w * f, h * 0.55, d / 2 + 4.5]}>
+        <mesh
+          key={`brk${f}`}
+          material={m.metalDark}
+          position={[w * f, h * 0.55, d / 2 + 4.5]}
+        >
           <cylinderGeometry args={[0.08, 0.08, h * 0.5, 6]} />
         </mesh>
       ))}
       {/* exterior wall lights */}
       {[-0.35, 0.35].map((f) => (
-        <mesh key={`lt${f}`} material={m.glass} position={[w * f, h * 0.75, d / 2 + 0.22]}>
+        <mesh
+          key={`lt${f}`}
+          material={m.glass}
+          position={[w * f, h * 0.75, d / 2 + 0.22]}
+        >
           <boxGeometry args={[0.4, 0.3, 0.25]} />
         </mesh>
       ))}
@@ -704,17 +827,30 @@ function HqBuilding({ def, m }: BuilderProps) {
       <mesh material={m.concrete} receiveShadow position={[0, 0.25, 0]}>
         <boxGeometry args={[w + 1.6, 0.5, d + 1.6]} />
       </mesh>
-      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.5 + h / 2, 0]}>
+      <mesh
+        material={wallMaterials}
+        castShadow
+        receiveShadow
+        position={[0, 0.5 + h / 2, 0]}
+      >
         <boxGeometry args={[w, h, d]} />
       </mesh>
       {/* parapet */}
       {[-1, 1].map((side) => (
-        <mesh key={`p${side}`} material={m.concreteLight} position={[0, h + 0.75, (side * (d - 0.4)) / 2]}>
+        <mesh
+          key={`p${side}`}
+          material={m.concreteLight}
+          position={[0, h + 0.75, (side * (d - 0.4)) / 2]}
+        >
           <boxGeometry args={[w, 0.7, 0.4]} />
         </mesh>
       ))}
       {[-1, 1].map((side) => (
-        <mesh key={`q${side}`} material={m.concreteLight} position={[(side * (w - 0.4)) / 2, h + 0.75, 0]}>
+        <mesh
+          key={`q${side}`}
+          material={m.concreteLight}
+          position={[(side * (w - 0.4)) / 2, h + 0.75, 0]}
+        >
           <boxGeometry args={[0.4, 0.7, d]} />
         </mesh>
       ))}
@@ -723,7 +859,11 @@ function HqBuilding({ def, m }: BuilderProps) {
         <boxGeometry args={[4, 0.3, 8]} />
       </mesh>
       {[-1, 1].map((side) => (
-        <mesh key={`c${side}`} material={m.metalDark} position={[-w / 2 - 3.6, 1.7, side * 3.4]}>
+        <mesh
+          key={`c${side}`}
+          material={m.metalDark}
+          position={[-w / 2 - 3.6, 1.7, side * 3.4]}
+        >
           <cylinderGeometry args={[0.14, 0.14, 3.4, 8]} />
         </mesh>
       ))}
@@ -732,7 +872,12 @@ function HqBuilding({ def, m }: BuilderProps) {
       </mesh>
       {/* roof plant + comms mast */}
       {[-0.28, 0.1].map((f) => (
-        <mesh key={`ac${f}`} material={m.metalDark} castShadow position={[w * f, h + 1, d * 0.15]}>
+        <mesh
+          key={`ac${f}`}
+          material={m.metalDark}
+          castShadow
+          position={[w * f, h + 1, d * 0.15]}
+        >
           <boxGeometry args={[1.8, 1, 1.8]} />
         </mesh>
       ))}
@@ -767,7 +912,12 @@ function Barracks({ def, m }: BuilderProps) {
       <mesh material={m.concrete} receiveShadow position={[0, 0.2, 0]}>
         <boxGeometry args={[w + 1.2, 0.4, d + 1.2]} />
       </mesh>
-      <mesh material={wallMaterials} castShadow receiveShadow position={[0, 0.4 + h / 2, 0]}>
+      <mesh
+        material={wallMaterials}
+        castShadow
+        receiveShadow
+        position={[0, 0.4 + h / 2, 0]}
+      >
         <boxGeometry args={[w, h, d]} />
       </mesh>
       {/* entrance doors with canopies on the +z face */}
@@ -817,7 +967,10 @@ function SupportBuilding({ def, m }: BuilderProps) {
       <mesh material={m.metalDark} position={[w * 0.08, 0.3 + h * 0.58, d / 2 + 0.09]}>
         <boxGeometry args={[w * 0.5 + 0.12, 0.06, 0.04]} />
       </mesh>
-      <mesh material={m.interiorDark} position={[-w * 0.32, 0.3 + h * 0.36, d / 2 + 0.04]}>
+      <mesh
+        material={m.interiorDark}
+        position={[-w * 0.32, 0.3 + h * 0.36, d / 2 + 0.04]}
+      >
         <boxGeometry args={[1.3, h * 0.68, 0.12]} />
       </mesh>
       <mesh material={m.metalDark} position={[-w * 0.32, 0.3 + h * 0.72, d / 2 + 0.05]}>
@@ -847,7 +1000,12 @@ function WalledCompound({ def, m }: BuilderProps) {
   return (
     <group>
       {/* perimeter walls; gate gap on the +z side */}
-      <mesh material={m.dirtyConcreteWall} castShadow receiveShadow position={[0, wallH / 2, -d / 2 + 0.25]}>
+      <mesh
+        material={m.dirtyConcreteWall}
+        castShadow
+        receiveShadow
+        position={[0, wallH / 2, -d / 2 + 0.25]}
+      >
         <boxGeometry args={[w, wallH, 0.5]} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -873,19 +1031,33 @@ function WalledCompound({ def, m }: BuilderProps) {
         </mesh>
       ))}
       {[-1, 1].map((side) => (
-        <mesh key={`g${side}`} material={m.concrete} castShadow position={[(side * gate) / 2, 1.7, d / 2 - 0.25]}>
+        <mesh
+          key={`g${side}`}
+          material={m.concrete}
+          castShadow
+          position={[(side * gate) / 2, 1.7, d / 2 - 0.25]}
+        >
           <boxGeometry args={[0.8, 3.4, 0.8]} />
         </mesh>
       ))}
       {/* workshop block */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[-w * 0.2, h / 2, -d * 0.18]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[-w * 0.2, h / 2, -d * 0.18]}
+      >
         <boxGeometry args={[w * 0.4, h, d * 0.36]} />
       </mesh>
       <mesh material={m.roofDark} position={[-w * 0.2, h + 0.12, -d * 0.18]}>
         <boxGeometry args={[w * 0.4 + 0.6, 0.25, d * 0.36 + 0.6]} />
       </mesh>
       {/* open-sided shed */}
-      <mesh material={m.corrugatedTan} castShadow position={[w * 0.27, h * 0.62, -d * 0.22]}>
+      <mesh
+        material={m.corrugatedTan}
+        castShadow
+        position={[w * 0.27, h * 0.62, -d * 0.22]}
+      >
         <boxGeometry args={[w * 0.24, 0.3, d * 0.24]} />
       </mesh>
       {[-1, 1].map((sx) =>
@@ -905,7 +1077,12 @@ function WalledCompound({ def, m }: BuilderProps) {
         { x: w * 0.3, z: d * 0.18, s: 1.2 },
         { x: -w * 0.05, z: d * 0.25, s: 1.4 },
       ].map((c, i) => (
-        <mesh key={`crate${i}`} material={m.concrete} castShadow position={[c.x, c.s / 2, c.z]}>
+        <mesh
+          key={`crate${i}`}
+          material={m.concrete}
+          castShadow
+          position={[c.x, c.s / 2, c.z]}
+        >
           <boxGeometry args={[c.s, c.s, c.s]} />
         </mesh>
       ))}
@@ -941,7 +1118,12 @@ function Guardhouse({ def, m }: BuilderProps) {
       <mesh material={m.metalDark} castShadow position={[1.6, 0.6, 2.2]}>
         <boxGeometry args={[0.3, 1.2, 0.3]} />
       </mesh>
-      <mesh material={m.hazard} castShadow position={[-1, 1.15, 2.2]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.hazard}
+        castShadow
+        position={[-1, 1.15, 2.2]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[0.07, 0.07, 5.4, 8]} />
       </mesh>
       {/* counterweight box on the pivot */}
@@ -966,7 +1148,12 @@ function Radome({ def, m }: BuilderProps) {
         <icosahedronGeometry args={[r, 2]} />
       </mesh>
       {/* equipment shelter + generator */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[0.4, 1.25, 4.6]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[0.4, 1.25, 4.6]}
+      >
         <boxGeometry args={[3.4, 2.5, 2.2]} />
       </mesh>
       <mesh material={m.metalDark} position={[-3.2, 0.8, 3.4]}>
@@ -996,7 +1183,12 @@ function FuelTank({ def, m }: BuilderProps) {
         <sphereGeometry args={[r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {[0.25, 0.55, 0.85].map((f) => (
-        <mesh key={f} material={m.metalDark} position={[0, h * f, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh
+          key={f}
+          material={m.metalDark}
+          position={[0, h * f, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
           <torusGeometry args={[r + 0.06, 0.08, 6, 32]} />
         </mesh>
       ))}
@@ -1004,7 +1196,11 @@ function FuelTank({ def, m }: BuilderProps) {
       <mesh material={m.metalDark} castShadow position={[r + 0.3, h / 2, 0]}>
         <boxGeometry args={[0.5, h, 0.2]} />
       </mesh>
-      <mesh material={m.metalDark} position={[0, 0.5, -r - 2.5]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.metalDark}
+        position={[0, 0.5, -r - 2.5]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.16, 0.16, 5, 8]} />
       </mesh>
     </group>
@@ -1032,7 +1228,12 @@ function SolarArray({ def, m }: BuilderProps) {
           <boxGeometry args={[w - 8, 0.14, 3.4]} />
         </mesh>
       ))}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[w / 2 - 4, 1.1, d / 2 - 3]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[w / 2 - 4, 1.1, d / 2 - 3]}
+      >
         <boxGeometry args={[3, 2.2, 2]} />
       </mesh>
     </group>
@@ -1069,19 +1270,37 @@ function AircraftDelta({ def, m }: BuilderProps) {
   }, [span, len]);
   return (
     <group>
-      <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, 1.0, 0]} />
+      <mesh
+        material={m.airframeDark}
+        geometry={wingGeometry}
+        castShadow
+        position={[0, 1.0, 0]}
+      />
       {/* dorsal hump: inlet, engine and bay fairing */}
-      <mesh material={m.airframeDark} castShadow position={[0, 1.35, -len * 0.08]} scale={[1.25, 0.55, 2.1]}>
+      <mesh
+        material={m.airframeDark}
+        castShadow
+        position={[0, 1.35, -len * 0.08]}
+        scale={[1.25, 0.55, 2.1]}
+      >
         <sphereGeometry args={[1.15, 20, 14]} />
       </mesh>
-      <mesh material={m.metalDark} position={[0, 1.25, len * 0.37]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.metalDark}
+        position={[0, 1.25, len * 0.37]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.3, 0.36, 0.9, 12]} />
       </mesh>
       {/* landing gear */}
       <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
         <cylinderGeometry args={[0.07, 0.07, 0.9, 6]} />
       </mesh>
-      <mesh material={m.tire} position={[0, 0.24, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.tire}
+        position={[0, 0.24, -len * 0.28]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[0.24, 0.24, 0.16, 12]} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -1141,31 +1360,70 @@ function AircraftFighter({ def, m }: BuilderProps) {
   return (
     <group>
       {/* fuselage: nose cone, barrel, tail taper */}
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.435]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.airframeLight}
+        castShadow
+        position={[0, cy, -len * 0.435]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.85, 0.12, len * 0.22, 16]} />
       </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, -len * 0.05]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.airframeLight}
+        castShadow
+        position={[0, cy, -len * 0.05]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.85, 0.85, len * 0.55, 16]} />
       </mesh>
-      <mesh material={m.airframeLight} castShadow position={[0, cy, len * 0.315]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.airframeLight}
+        castShadow
+        position={[0, cy, len * 0.315]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.55, 0.85, len * 0.18, 16]} />
       </mesh>
-      <mesh material={m.metalDark} position={[0, cy, -len * 0.5 - 0.55]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.metalDark}
+        position={[0, cy, -len * 0.5 - 0.55]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.03, 0.03, 1.1, 6]} />
       </mesh>
       {/* canopy */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 0.68, -len * 0.22]} scale={[0.75, 0.6, 1.8]}>
+      <mesh
+        material={m.canopy}
+        castShadow
+        position={[0, cy + 0.68, -len * 0.22]}
+        scale={[0.75, 0.6, 1.8]}
+      >
         <sphereGeometry args={[0.8, 18, 12]} />
       </mesh>
       {/* intakes */}
       {[-1, 1].map((side) => (
-        <mesh key={`i${side}`} material={m.airframeLight} castShadow position={[side * 0.95, cy - 0.3, -len * 0.1]}>
+        <mesh
+          key={`i${side}`}
+          material={m.airframeLight}
+          castShadow
+          position={[side * 0.95, cy - 0.3, -len * 0.1]}
+        >
           <boxGeometry args={[0.55, 0.75, len * 0.16]} />
         </mesh>
       ))}
       {/* wings and stabilators */}
-      <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy - 0.28, 0]} />
-      <mesh material={m.airframeLight} geometry={stabGeometry} castShadow position={[0, cy - 0.05, len * 0.36]} />
+      <mesh
+        material={m.airframeLight}
+        geometry={wingGeometry}
+        castShadow
+        position={[0, cy - 0.28, 0]}
+      />
+      <mesh
+        material={m.airframeLight}
+        geometry={stabGeometry}
+        castShadow
+        position={[0, cy - 0.05, len * 0.36]}
+      />
       {/* twin canted fins */}
       {[-1, 1].map((side) => (
         <mesh
@@ -1193,7 +1451,11 @@ function AircraftFighter({ def, m }: BuilderProps) {
       <mesh material={m.metalDark} position={[0, 0.6, -len * 0.28]}>
         <cylinderGeometry args={[0.06, 0.06, 1.1, 6]} />
       </mesh>
-      <mesh material={m.tire} position={[0, 0.26, -len * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.tire}
+        position={[0, 0.26, -len * 0.28]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[0.26, 0.26, 0.18, 12]} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -1273,13 +1535,28 @@ function AircraftJ36({ def, m }: BuilderProps) {
   return (
     <group>
       {/* Main delta wing */}
-      <mesh material={m.airframeDark} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
+      <mesh
+        material={m.airframeDark}
+        geometry={wingGeometry}
+        castShadow
+        position={[0, cy, 0]}
+      />
 
       {/* Blended centrebody */}
-      <mesh material={m.airframeDark} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+      <mesh
+        material={m.airframeDark}
+        geometry={bodyGeometry}
+        castShadow
+        position={[0, cy, 0]}
+      />
 
       {/* Canopy, set well forward and faired flat into the spine */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 1.02, -len * 0.27]} scale={[0.8, 0.5, 2.1]}>
+      <mesh
+        material={m.canopy}
+        castShadow
+        position={[0, cy + 1.02, -len * 0.27]}
+        scale={[0.8, 0.5, 2.1]}
+      >
         <sphereGeometry args={[0.9, 18, 12]} />
       </mesh>
 
@@ -1291,7 +1568,11 @@ function AircraftJ36({ def, m }: BuilderProps) {
 
       {/* Three exhausts at the trailing edge: one on the centreline, one
           either side of the spine. */}
-      <mesh material={m.metalDark} position={[0, cy - 0.05, len * 0.41]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.metalDark}
+        position={[0, cy - 0.05, len * 0.41]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.45, 0.5, 1.2, 14]} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -1322,7 +1603,11 @@ function AircraftJ36({ def, m }: BuilderProps) {
       <mesh material={m.metalDark} position={[0, 0.6, -len * 0.3]}>
         <cylinderGeometry args={[0.08, 0.08, 1.1, 6]} />
       </mesh>
-      <mesh material={m.tire} position={[0, 0.24, -len * 0.3]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.tire}
+        position={[0, 0.24, -len * 0.3]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[0.28, 0.28, 0.2, 12]} />
       </mesh>
 
@@ -1410,15 +1695,30 @@ function AircraftJXDS({ def, m }: BuilderProps) {
   return (
     <group>
       {/* Lambda wing */}
-      <mesh material={m.airframeLight} geometry={wingGeometry} castShadow position={[0, cy, 0]} />
+      <mesh
+        material={m.airframeLight}
+        geometry={wingGeometry}
+        castShadow
+        position={[0, cy, 0]}
+      />
 
       {/* Blended centrebody. The head-on reference shows a wide, flat,
           faceted body chined into the wing — not the tube of cylinders this
           used to be built from. */}
-      <mesh material={m.airframeLight} geometry={bodyGeometry} castShadow position={[0, cy, 0]} />
+      <mesh
+        material={m.airframeLight}
+        geometry={bodyGeometry}
+        castShadow
+        position={[0, cy, 0]}
+      />
 
       {/* Canopy - single seat, low and well forward */}
-      <mesh material={m.canopy} castShadow position={[0, cy + 0.92, -len * 0.24]} scale={[0.72, 0.45, 1.7]}>
+      <mesh
+        material={m.canopy}
+        castShadow
+        position={[0, cy + 0.92, -len * 0.24]}
+        scale={[0.72, 0.45, 1.7]}
+      >
         <sphereGeometry args={[0.8, 18, 12]} />
       </mesh>
 
@@ -1491,20 +1791,35 @@ function WaterTower({ def, m }: BuilderProps) {
       {/* four lattice legs */}
       {[-1, 1].map((sx) =>
         [-1, 1].map((sz) => (
-          <mesh key={`leg${sx}${sz}`} material={m.metalDark} castShadow position={[sx * (tankR - 0.3), legH / 2, sz * (tankR - 0.3)]}>
+          <mesh
+            key={`leg${sx}${sz}`}
+            material={m.metalDark}
+            castShadow
+            position={[sx * (tankR - 0.3), legH / 2, sz * (tankR - 0.3)]}
+          >
             <boxGeometry args={[0.25, legH, 0.25]} />
           </mesh>
         )),
       )}
       {/* cross bracing rings */}
       {[0.25, 0.55, 0.85].map((f) => (
-        <mesh key={`brace${f}`} material={m.metalDark} position={[0, legH * f, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh
+          key={`brace${f}`}
+          material={m.metalDark}
+          position={[0, legH * f, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
           <torusGeometry args={[tankR - 0.3, 0.06, 4, 16]} />
         </mesh>
       ))}
       {/* diagonal bracing */}
       {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((rot, i) => (
-        <mesh key={`diag${i}`} material={m.metalDark} position={[0, legH * 0.4, 0]} rotation={[0.5, rot, 0]}>
+        <mesh
+          key={`diag${i}`}
+          material={m.metalDark}
+          position={[0, legH * 0.4, 0]}
+          rotation={[0.5, rot, 0]}
+        >
           <boxGeometry args={[0.08, legH * 0.6, 0.08]} />
         </mesh>
       ))}
@@ -1513,7 +1828,12 @@ function WaterTower({ def, m }: BuilderProps) {
         <cylinderGeometry args={[tankR, tankR, tankH, 16]} />
       </mesh>
       {/* domed top */}
-      <mesh material={m.tankSteel} castShadow position={[0, legH + tankH, 0]} scale={[1, 0.3, 1]}>
+      <mesh
+        material={m.tankSteel}
+        castShadow
+        position={[0, legH + tankH, 0]}
+        scale={[1, 0.3, 1]}
+      >
         <sphereGeometry args={[tankR, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {/* access ladder */}
@@ -1549,12 +1869,22 @@ function CommsShelter({ def, m }: BuilderProps) {
       </mesh>
       {/* whip antennas — VHF/HF */}
       {[-0.3, 0, 0.3].map((f) => (
-        <mesh key={`whip${f}`} material={m.metalDark} castShadow position={[w * f, h + 2.5, -d * 0.2]}>
+        <mesh
+          key={`whip${f}`}
+          material={m.metalDark}
+          castShadow
+          position={[w * f, h + 2.5, -d * 0.2]}
+        >
           <cylinderGeometry args={[0.02, 0.04, 4.5, 4]} />
         </mesh>
       ))}
       {/* satellite dish on roof */}
-      <mesh material={m.whitePanel} castShadow position={[-w * 0.2, h + 1.2, d * 0.2]} rotation={[-0.6, 0, 0]}>
+      <mesh
+        material={m.whitePanel}
+        castShadow
+        position={[-w * 0.2, h + 1.2, d * 0.2]}
+        rotation={[-0.6, 0, 0]}
+      >
         <circleGeometry args={[1.1, 16]} />
       </mesh>
       <mesh material={m.metalDark} position={[-w * 0.2, h + 0.6, d * 0.2]}>
@@ -1600,7 +1930,11 @@ function TransformerYard({ def, m }: BuilderProps) {
       {/* fence posts */}
       {[-1, 0, 1].map((f) =>
         [-1, 1].map((side) => (
-          <mesh key={`post${f}${side}`} material={m.metalDark} position={[w * f * 0.45, h / 2, side * d / 2]}>
+          <mesh
+            key={`post${f}${side}`}
+            material={m.metalDark}
+            position={[w * f * 0.45, h / 2, (side * d) / 2]}
+          >
             <cylinderGeometry args={[0.06, 0.06, h + 0.4, 6]} />
           </mesh>
         )),
@@ -1617,7 +1951,12 @@ function TransformerYard({ def, m }: BuilderProps) {
           </mesh>
           {/* bushing insulators on top */}
           {[-0.6, 0, 0.6].map((bz) => (
-            <mesh key={`ins${bz}`} material={m.whitePanel} castShadow position={[0, 3.2, bz]}>
+            <mesh
+              key={`ins${bz}`}
+              material={m.whitePanel}
+              castShadow
+              position={[0, 3.2, bz]}
+            >
               <cylinderGeometry args={[0.12, 0.16, 1.2, 8]} />
             </mesh>
           ))}
@@ -1645,7 +1984,12 @@ function GuardTower({ def, m }: BuilderProps) {
       {/* four steel legs */}
       {[-1, 1].map((sx) =>
         [-1, 1].map((sz) => (
-          <mesh key={`leg${sx}${sz}`} material={m.metalDark} castShadow position={[sx * 1.3, legH / 2, sz * 1.3]}>
+          <mesh
+            key={`leg${sx}${sz}`}
+            material={m.metalDark}
+            castShadow
+            position={[sx * 1.3, legH / 2, sz * 1.3]}
+          >
             <boxGeometry args={[0.2, legH, 0.2]} />
           </mesh>
         )),
@@ -1653,10 +1997,18 @@ function GuardTower({ def, m }: BuilderProps) {
       {/* cross braces */}
       {[0.3, 0.7].map((f) => (
         <group key={`brace${f}`}>
-          <mesh material={m.metalDark} position={[0, legH * f, 1.3]} rotation={[0, 0, 0.6]}>
+          <mesh
+            material={m.metalDark}
+            position={[0, legH * f, 1.3]}
+            rotation={[0, 0, 0.6]}
+          >
             <boxGeometry args={[0.08, 3.2, 0.08]} />
           </mesh>
-          <mesh material={m.metalDark} position={[1.3, legH * f, 0]} rotation={[0.6, 0, 0]}>
+          <mesh
+            material={m.metalDark}
+            position={[1.3, legH * f, 0]}
+            rotation={[0.6, 0, 0]}
+          >
             <boxGeometry args={[0.08, 0.08, 3.2]} />
           </mesh>
         </group>
@@ -1707,14 +2059,23 @@ function CoveredWalkway({ def, m }: BuilderProps) {
       {Array.from({ length: nPosts }, (_, i) => {
         const z = -d / 2 + i * (d / (nPosts - 1));
         return [-1, 1].map((side) => (
-          <mesh key={`post${i}${side}`} material={m.metalDark} castShadow position={[side * (w / 2 + 0.3), h / 2, z]}>
+          <mesh
+            key={`post${i}${side}`}
+            material={m.metalDark}
+            castShadow
+            position={[side * (w / 2 + 0.3), h / 2, z]}
+          >
             <cylinderGeometry args={[0.06, 0.06, h, 6]} />
           </mesh>
         ));
       })}
       {/* horizontal rail along top on both sides */}
       {[-1, 1].map((side) => (
-        <mesh key={`rail${side}`} material={m.metalDark} position={[side * (w / 2 + 0.3), h * 0.45, 0]}>
+        <mesh
+          key={`rail${side}`}
+          material={m.metalDark}
+          position={[side * (w / 2 + 0.3), h * 0.45, 0]}
+        >
           <boxGeometry args={[0.04, 0.04, d]} />
         </mesh>
       ))}
@@ -1733,11 +2094,20 @@ function SewageTreatment({ def, m }: BuilderProps) {
         <boxGeometry args={[w, 0.12, w]} />
       </mesh>
       {/* circular clarifier tank */}
-      <mesh material={m.concrete} castShadow receiveShadow position={[-w * 0.18, h / 2, -w * 0.15]}>
+      <mesh
+        material={m.concrete}
+        castShadow
+        receiveShadow
+        position={[-w * 0.18, h / 2, -w * 0.15]}
+      >
         <cylinderGeometry args={[tankR, tankR, h, 20, 1, true]} />
       </mesh>
       {/* water surface inside clarifier */}
-      <mesh material={m.glass} position={[-w * 0.18, h * 0.8, -w * 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.glass}
+        position={[-w * 0.18, h * 0.8, -w * 0.15]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
         <circleGeometry args={[tankR - 0.3, 20]} />
       </mesh>
       {/* rotating scraper arm */}
@@ -1749,25 +2119,47 @@ function SewageTreatment({ def, m }: BuilderProps) {
         <cylinderGeometry args={[0.4, 0.4, h * 1.2, 8]} />
       </mesh>
       {/* rectangular aeration basin */}
-      <mesh material={m.concrete} castShadow receiveShadow position={[w * 0.18, h * 0.35, -w * 0.15]}>
+      <mesh
+        material={m.concrete}
+        castShadow
+        receiveShadow
+        position={[w * 0.18, h * 0.35, -w * 0.15]}
+      >
         <boxGeometry args={[w * 0.32, h * 0.7, w * 0.32]} />
       </mesh>
-      <mesh material={m.glass} position={[w * 0.18, h * 0.68, -w * 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.glass}
+        position={[w * 0.18, h * 0.68, -w * 0.15]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
         <boxGeometry args={[w * 0.28, w * 0.28, 0.05]} />
       </mesh>
       {/* control building */}
-      <mesh material={m.concreteLight} castShadow receiveShadow position={[w * 0.15, 1.6, w * 0.22]}>
+      <mesh
+        material={m.concreteLight}
+        castShadow
+        receiveShadow
+        position={[w * 0.15, 1.6, w * 0.22]}
+      >
         <boxGeometry args={[6, 3.2, 5]} />
       </mesh>
       <mesh material={m.roofDark} position={[w * 0.15, 3.32, w * 0.22]}>
         <boxGeometry args={[6.4, 0.25, 5.4]} />
       </mesh>
       {/* pipe run between clarifier and aeration basin */}
-      <mesh material={m.pvcPipe} position={[0, h * 0.3, -w * 0.15]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        material={m.pvcPipe}
+        position={[0, h * 0.3, -w * 0.15]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <cylinderGeometry args={[0.15, 0.15, w * 0.25, 8]} />
       </mesh>
       {/* outlet pipe */}
-      <mesh material={m.pvcPipe} position={[-w * 0.18, 0.3, -w * 0.15 + tankR + 1.5]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        material={m.pvcPipe}
+        position={[-w * 0.18, 0.3, -w * 0.15 + tankR + 1.5]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.12, 0.12, 3, 8]} />
       </mesh>
     </group>
@@ -1926,7 +2318,12 @@ function SelectionRing() {
       rotation={[-Math.PI / 2, 0, 0]}
     >
       <ringGeometry args={[radius, radius + 1.6, 48, 1]} />
-      <meshBasicMaterial color="#ffb64d" transparent opacity={0.85} side={THREE.DoubleSide} />
+      <meshBasicMaterial
+        color="#ffb64d"
+        transparent
+        opacity={0.85}
+        side={THREE.DoubleSide}
+      />
     </mesh>
   );
 }

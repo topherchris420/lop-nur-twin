@@ -36,13 +36,7 @@ import type { CollisionWorld } from "../physics/collisionWorld";
  */
 
 export type WeaponState =
-  | "idle"
-  | "firing"
-  | "reloading"
-  | "raising"
-  | "lowering"
-  | "melee"
-  | "inspecting";
+  "idle" | "firing" | "reloading" | "raising" | "lowering" | "melee" | "inspecting";
 
 export interface ShotContext {
   shooter: Actor;
@@ -155,7 +149,9 @@ export class WeaponRuntime {
   }
 
   get reloadProgress(): number {
-    return this.reloadDuration > 0 ? Math.min(1, this.stateTimer / this.reloadDuration) : 0;
+    return this.reloadDuration > 0
+      ? Math.min(1, this.stateTimer / this.reloadDuration)
+      : 0;
   }
 
   get needsReload(): boolean {
@@ -199,18 +195,17 @@ export class WeaponRuntime {
     this.triggerHeld = context.wantsFire;
 
     const h = this.def.handling;
-    const adsTarget = context.wantsAds && context.canFire && this.state !== "reloading" ? 1 : 0;
+    const adsTarget =
+      context.wantsAds && context.canFire && this.state !== "reloading" ? 1 : 0;
     const adsRate = dt / Math.max(0.02, h.adsTime * (context.adsTimeScale ?? 1));
-    this.ads = adsTarget > this.ads
-      ? Math.min(1, this.ads + adsRate)
-      : Math.max(0, this.ads - adsRate * 1.25);
+    this.ads =
+      adsTarget > this.ads
+        ? Math.min(1, this.ads + adsRate)
+        : Math.max(0, this.ads - adsRate * 1.25);
 
     this.shotClock = Math.max(0, this.shotClock - dt);
     this.burstCooldown = Math.max(0, this.burstCooldown - dt);
-    this.bloom = Math.max(
-      0,
-      this.bloom - this.def.spread.bloomDecayDegPerSec * dt,
-    );
+    this.bloom = Math.max(0, this.bloom - this.def.spread.bloomDecayDegPerSec * dt);
 
     // View kick recovery: the recentring portion springs back, the rest is
     // permanent and has to be pulled down by the player.
@@ -225,7 +220,11 @@ export class WeaponRuntime {
     this.viewKick *= Math.exp(-14 * dt);
     this.viewRoll *= Math.exp(-12 * dt);
 
-    if (this.state === "reloading" || this.state === "raising" || this.state === "lowering") {
+    if (
+      this.state === "reloading" ||
+      this.state === "raising" ||
+      this.state === "lowering"
+    ) {
       this.stateTimer += dt;
       this.tickReloadStages();
       if (this.stateTimer >= this.reloadDuration) {
@@ -281,7 +280,8 @@ export class WeaponRuntime {
     this.shotIndex += 1;
 
     if (this.fireMode === "burst") {
-      this.shotsInBurst = this.shotsInBurst === 0 ? def.burstCount - 1 : this.shotsInBurst - 1;
+      this.shotsInBurst =
+        this.shotsInBurst === 0 ? def.burstCount - 1 : this.shotsInBurst - 1;
       if (this.shotsInBurst === 0) this.burstCooldown = def.burstDelay;
     }
 
@@ -316,7 +316,11 @@ export class WeaponRuntime {
 
     /* ---------------------------------------------------- rounds */
     const spread = THREE.MathUtils.degToRad(
-      this.spreadDeg(context.shooter.stance, context.shooter.speed, !context.shooter.grounded) *
+      this.spreadDeg(
+        context.shooter.stance,
+        context.shooter.speed,
+        !context.shooter.grounded,
+      ) *
         (2 - context.accuracy),
     );
     const pellets = def.ballistics.pellets;
@@ -390,7 +394,11 @@ export class WeaponRuntime {
       );
       if (!hit) {
         if (!tracerEmitted) {
-          this.emitTracer(context, _origin, _next.copy(_origin).addScaledVector(direction, 120));
+          this.emitTracer(
+            context,
+            _origin,
+            _next.copy(_origin).addScaledVector(direction, 120),
+          );
         }
         return;
       }
@@ -440,11 +448,7 @@ export class WeaponRuntime {
       /* ---------------------------------------------------- world */
       // Ricochet: shallow hits on hard materials skip rather than embed.
       const grazing = Math.abs(direction.dot(hit.normal));
-      if (
-        grazing < 0.28 &&
-        this.rand() < profile.ricochetChance &&
-        penetrations === 0
-      ) {
+      if (grazing < 0.28 && this.rand() < profile.ricochetChance && penetrations === 0) {
         queueImpact({
           kind: "ricochet",
           point: hit.point.clone(),
@@ -453,7 +457,12 @@ export class WeaponRuntime {
           incoming: direction.clone(),
           energy: remaining,
         });
-        queueSound({ id: "ricochet", position: hit.point.clone(), surface: hit.surface, gain: 0.7 });
+        queueSound({
+          id: "ricochet",
+          position: hit.point.clone(),
+          surface: hit.surface,
+          gain: 0.7,
+        });
         direction.reflect(hit.normal).normalize();
         _origin.copy(hit.point).addScaledVector(direction, 0.02);
         remaining *= 0.45;
@@ -482,7 +491,8 @@ export class WeaponRuntime {
       if (thickness > budget) return;
 
       // Damage retention falls off with how much of the budget was spent.
-      remaining *= profile.damageRetention * (1 - thickness / Math.max(1e-4, budget) * 0.5);
+      remaining *=
+        profile.damageRetention * (1 - (thickness / Math.max(1e-4, budget)) * 0.5);
       penetrations += 1;
       if (remaining < 0.1) return;
       _origin.copy(hit.point).addScaledVector(direction, thickness + 0.02);

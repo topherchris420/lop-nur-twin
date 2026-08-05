@@ -19,14 +19,14 @@ on. It is listed first.
 
 ## 1. Assets
 
-| Asset | Why it matters | Where it lives |
-| :-- | :-- | :-- |
+| Asset                                                                                                | Why it matters                                                                                                                                   | Where it lives                                                    |
+| :--------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
 | **Evidence integrity** — classification, confidence, citation and uncertainty attached to each claim | The project's only real product. If interpretation can be presented as observation, the model becomes misinformation with a professional finish. | `src/lib/evidence.ts`, `src/lib/layout.ts`, `src/lib/siteData.ts` |
-| **Model geometry** | The measurable substrate everything else is projected from. | `src/lib/layout.ts` |
-| **Release identity** — geometry and ledger hashes, counts, known limitations | Lets a reviewer prove which build they reviewed. | `public/model-manifest.json`, `scripts/generate-manifest.ts` |
-| **Build pipeline integrity** | Everything reaches users through it; compromise here defeats every other control. | `package.json` scripts, `.github/workflows/`, lockfiles |
-| **Viewer's browser session** | The application executes in it. Its origin must not be usable to attack the viewer. | Deployed origin |
-| **Project reputation** | An OSINT artifact that is caught overstating its evidence is worthless afterwards. | The whole repository |
+| **Model geometry**                                                                                   | The measurable substrate everything else is projected from.                                                                                      | `src/lib/layout.ts`                                               |
+| **Release identity** — geometry and ledger hashes, counts, known limitations                         | Lets a reviewer prove which build they reviewed.                                                                                                 | `public/model-manifest.json`, `scripts/generate-manifest.ts`      |
+| **Build pipeline integrity**                                                                         | Everything reaches users through it; compromise here defeats every other control.                                                                | `package.json` scripts, `.github/workflows/`, lockfiles           |
+| **Viewer's browser session**                                                                         | The application executes in it. Its origin must not be usable to attack the viewer.                                                              | Deployed origin                                                   |
+| **Project reputation**                                                                               | An OSINT artifact that is caught overstating its evidence is worthless afterwards.                                                               | The whole repository                                              |
 
 Explicitly **not** assets, because they do not exist: user accounts, personal
 data, credentials, API keys, session tokens, non-public information of any
@@ -81,26 +81,26 @@ The boundaries that matter:
    repository. Pull-request code therefore cannot obtain anything to steal.
 3. **Host → browser.** Everything past this line is public and attacker-visible.
    No control on the browser side protects data; controls there protect the
-   *viewer*.
+   _viewer_.
 4. **Browser → third parties.** Only two paths cross it: a link the viewer
    clicks, and one opt-in feed that is off by default.
 
 ## 3. Threat actors
 
-| Actor | Capability | Motivation |
-| :-- | :-- | :-- |
-| **Anonymous public user** | Any URL, any query parameter, browser dev tools, unlimited requests | Curiosity, research, or probing for a bug |
-| **Malicious link author** | Crafts a URL to a legitimate deployment and sends it to a target | Make the application render or do something misleading |
-| **Compromised or malicious dependency** | Arbitrary code inside the build and inside the shipped bundle | Steal from viewers, or tamper with the model |
-| **Malicious contributor** | Opens a pull request containing code and workflow changes | Get code into the build, or exfiltrate CI credentials |
-| **Hostile network position** | Sees and can alter traffic on a non-HTTPS deployment | Tamper with the model or inject script |
-| **Well-intentioned misreader** | Reads the model correctly and cites it incorrectly | None — this is the highest-likelihood harm in the system |
+| Actor                                   | Capability                                                          | Motivation                                               |
+| :-------------------------------------- | :------------------------------------------------------------------ | :------------------------------------------------------- |
+| **Anonymous public user**               | Any URL, any query parameter, browser dev tools, unlimited requests | Curiosity, research, or probing for a bug                |
+| **Malicious link author**               | Crafts a URL to a legitimate deployment and sends it to a target    | Make the application render or do something misleading   |
+| **Compromised or malicious dependency** | Arbitrary code inside the build and inside the shipped bundle       | Steal from viewers, or tamper with the model             |
+| **Malicious contributor**               | Opens a pull request containing code and workflow changes           | Get code into the build, or exfiltrate CI credentials    |
+| **Hostile network position**            | Sees and can alter traffic on a non-HTTPS deployment                | Tamper with the model or inject script                   |
+| **Well-intentioned misreader**          | Reads the model correctly and cites it incorrectly                  | None — this is the highest-likelihood harm in the system |
 
 ## 4. Threats and mitigations
 
 ### T1 — Simulated or interpreted content is mistaken for verified intelligence
 
-*Most likely harm in this system.*
+_Most likely harm in this system._
 
 **Mitigations**
 
@@ -247,8 +247,8 @@ one visitor's state to the next.
 
 ### T10 — Accidental publication of sensitive information
 
-*Structural risk for an OSINT project: the harm is committing something that
-should not be public, not leaking something that already is.*
+_Structural risk for an OSINT project: the harm is committing something that
+should not be public, not leaking something that already is._
 
 **Mitigations.** Every input is a cited public source, reviewed before merge.
 No binary assets, no imagery and no DEM tiles are redistributed. Gitleaks scans

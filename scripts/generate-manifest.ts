@@ -73,7 +73,9 @@ function canonicalize(value: unknown): Json {
 }
 
 function sha256(value: unknown): string {
-  return `sha256:${createHash("sha256").update(JSON.stringify(canonicalize(value)), "utf8").digest("hex")}`;
+  return `sha256:${createHash("sha256")
+    .update(JSON.stringify(canonicalize(value)), "utf8")
+    .digest("hex")}`;
 }
 
 /** Reproducible build timestamp: `SOURCE_DATE_EPOCH` wins when it is set. */

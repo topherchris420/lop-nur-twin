@@ -50,10 +50,13 @@ export function SiteIndex() {
 
     return [...grouped.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([label, structures]) => [
-        label,
-        [...structures].sort((left, right) => left.name.localeCompare(right.name)),
-      ] as const);
+      .map(
+        ([label, structures]) =>
+          [
+            label,
+            [...structures].sort((left, right) => left.name.localeCompare(right.name)),
+          ] as const,
+      );
   }, [query, activeTimelineYear]);
 
   if (!showIndex) return null;
@@ -65,7 +68,10 @@ export function SiteIndex() {
   };
 
   return (
-    <Card id="site-index" className="site-index-panel hud-side-panel absolute top-16 left-4 z-10 flex max-h-[70dvh] w-64 flex-col">
+    <Card
+      id="site-index"
+      className="site-index-panel hud-side-panel absolute top-16 left-4 z-10 flex max-h-[70dvh] w-64 flex-col"
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Site Index</CardTitle>

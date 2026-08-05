@@ -288,14 +288,25 @@ export function makeApronTexture(seed: number): THREE.CanvasTexture {
     ctx.globalAlpha = 0.05 + rand() * 0.12;
     const r = 8 + rand() * 46;
     ctx.beginPath();
-    ctx.ellipse(rand() * S, rand() * S, r, r * (0.5 + rand() * 0.5), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.ellipse(
+      rand() * S,
+      rand() * S,
+      r,
+      r * (0.5 + rand() * 0.5),
+      rand() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
   ctx.globalAlpha = 1;
   return toTexture(ctx, true, GROUND_ANISOTROPY);
 }
 
-export function makeConcreteWallTexture(seed: number, tint = "#a49d90"): THREE.CanvasTexture {
+export function makeConcreteWallTexture(
+  seed: number,
+  tint = "#a49d90",
+): THREE.CanvasTexture {
   const S = 512;
   const ctx = makeCanvas(S, S);
   const rand = mulberry32(seed);
@@ -317,7 +328,10 @@ export function makeConcreteWallTexture(seed: number, tint = "#a49d90"): THREE.C
   return toTexture(ctx);
 }
 
-export function makeCorrugatedTexture(seed: number, base = "#8d9297"): THREE.CanvasTexture {
+export function makeCorrugatedTexture(
+  seed: number,
+  base = "#8d9297",
+): THREE.CanvasTexture {
   const S = 256;
   const ctx = makeCanvas(S, S);
   const rand = mulberry32(seed);
@@ -548,7 +562,15 @@ export function makeRustStainTexture(seed: number): THREE.CanvasTexture {
     ctx.globalAlpha = 0.04 + rand() * 0.08;
     const r = 16 + rand() * 50;
     ctx.beginPath();
-    ctx.ellipse(rand() * S, rand() * S, r, r * (0.4 + rand() * 0.6), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.ellipse(
+      rand() * S,
+      rand() * S,
+      r,
+      r * (0.4 + rand() * 0.6),
+      rand() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
@@ -632,7 +654,15 @@ export function makeDirtyConcreteTexture(seed: number): THREE.CanvasTexture {
     ctx.globalAlpha = 0.05 + rand() * 0.1;
     const r = 20 + rand() * 60;
     ctx.beginPath();
-    ctx.ellipse(rand() * S, rand() * S, r, r * (0.5 + rand() * 0.5), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.ellipse(
+      rand() * S,
+      rand() * S,
+      r,
+      r * (0.5 + rand() * 0.5),
+      rand() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
@@ -642,7 +672,15 @@ export function makeDirtyConcreteTexture(seed: number): THREE.CanvasTexture {
     ctx.globalAlpha = 0.04 + rand() * 0.08;
     const r = 12 + rand() * 45;
     ctx.beginPath();
-    ctx.ellipse(rand() * S, rand() * S, r, r * (0.6 + rand() * 0.4), rand() * Math.PI, 0, Math.PI * 2);
+    ctx.ellipse(
+      rand() * S,
+      rand() * S,
+      r,
+      r * (0.6 + rand() * 0.4),
+      rand() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
@@ -753,7 +791,10 @@ export function makeChainLinkTexture(seed: number): THREE.CanvasTexture {
  * `grid[...] ?? 0` — is several times slower because every lookup allocates a
  * check V8 cannot hoist. Bounds are guaranteed by the wrap above it.
  */
-function seamlessLattice(rand: () => number, lattice: number): (fx: number, fy: number) => number {
+function seamlessLattice(
+  rand: () => number,
+  lattice: number,
+): (fx: number, fy: number) => number {
   const grid = new Float32Array(lattice * lattice);
   for (let i = 0; i < grid.length; i++) grid[i] = rand();
   return (fx: number, fy: number): number => {
@@ -1027,7 +1068,8 @@ export function makeGroundDetailMaps(
       if (ripple > 0) {
         // wind ripple: a wrapped sine whose phase wanders with the noise, so
         // it reads as drift rather than corduroy
-        h += Math.sin((x / S) * Math.PI * 12 + hNoise(u * 0.5, v * 0.5) * 5) * ripple * 0.5;
+        h +=
+          Math.sin((x / S) * Math.PI * 12 + hNoise(u * 0.5, v * 0.5) * 5) * ripple * 0.5;
       }
       height[row + x] = h;
     }
@@ -1036,12 +1078,14 @@ export function makeGroundDetailMaps(
   const grainScale = S / 512;
   const grainCount = Math.round(recipe.grains.count * grainScale * grainScale);
   for (let i = 0; i < grainCount; i++) {
-    const r = (recipe.grains.min + rand() * (recipe.grains.max - recipe.grains.min)) * grainScale;
+    const r =
+      (recipe.grains.min + rand() * (recipe.grains.max - recipe.grains.min)) * grainScale;
     stampGrain(height, S, rand() * S, rand() * S, Math.max(0.8, r), recipe.grains.depth);
   }
   const pitCount = Math.round(recipe.pits.count * grainScale * grainScale);
   for (let i = 0; i < pitCount; i++) {
-    const r = (recipe.pits.min + rand() * (recipe.pits.max - recipe.pits.min)) * grainScale;
+    const r =
+      (recipe.pits.min + rand() * (recipe.pits.max - recipe.pits.min)) * grainScale;
     stampGrain(height, S, rand() * S, rand() * S, Math.max(0.8, r), recipe.pits.depth);
   }
 
@@ -1060,7 +1104,7 @@ export function makeGroundDetailMaps(
     points.push([cx, cy]);
     for (let s = 0; s < recipe.cracks.segments; s++) {
       dir += (rand() - 0.5) * 1.5;
-      const step = (recipe.cracks.reach * grainScale) * (0.5 + rand() * 0.8);
+      const step = recipe.cracks.reach * grainScale * (0.5 + rand() * 0.8);
       cx += Math.cos(dir) * step;
       cy += Math.sin(dir) * step;
       points.push([cx, cy]);

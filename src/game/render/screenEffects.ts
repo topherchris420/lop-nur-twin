@@ -54,9 +54,7 @@ export class HdrGuardEffect extends Effect {
   constructor({ ceiling = 900 }: HdrGuardOptions = {}) {
     super("HdrGuardEffect", HDR_GUARD_FRAGMENT, {
       blendFunction: BlendFunction.SRC,
-      uniforms: new Map<string, THREE.Uniform>([
-        ["ceiling", new THREE.Uniform(ceiling)],
-      ]),
+      uniforms: new Map<string, THREE.Uniform>([["ceiling", new THREE.Uniform(ceiling)]]),
     });
   }
 
@@ -208,7 +206,11 @@ export class CombatScreenEffect extends Effect {
     if (uniform) uniform.value = THREE.MathUtils.clamp(value, 0, 1);
   }
 
-  update(_renderer: THREE.WebGLRenderer, _input: THREE.WebGLRenderTarget, deltaTime: number): void {
+  update(
+    _renderer: THREE.WebGLRenderer,
+    _input: THREE.WebGLRenderTarget,
+    deltaTime: number,
+  ): void {
     const dt = Math.min(0.1, deltaTime);
     // A hit reads as a fast punch and a slower settle; a flashbang holds then
     // bleaches out over a couple of seconds.

@@ -37,7 +37,8 @@ page.on("pageerror", (e) => consoleErrors.push(String(e)));
 page.on("console", (m) => {
   if (m.type() === "error") {
     const text = m.text();
-    if (!text.includes("GL Driver") && !text.includes("DevTools")) consoleErrors.push(text);
+    if (!text.includes("GL Driver") && !text.includes("DevTools"))
+      consoleErrors.push(text);
   }
 });
 
@@ -57,7 +58,11 @@ const results = await page.evaluate(() => {
   const world = game.world;
 
   /* ------------------------------------------------------------ world */
-  check("collision baked", (world?.staticCount ?? 0) > 200, `${world?.staticCount ?? 0} colliders`);
+  check(
+    "collision baked",
+    (world?.staticCount ?? 0) > 200,
+    `${world?.staticCount ?? 0} colliders`,
+  );
   check(
     "environment map bound",
     !!r3f.scene.environment,
@@ -86,7 +91,11 @@ const results = await page.evaluate(() => {
   /* ------------------------------------------------------------- bots */
   const bots = game.actors.filter((a) => !a.isPlayer);
   check("bots spawned", bots.length >= 4, `${bots.length} bots`);
-  check("bots alive", bots.filter((b) => b.alive).length >= 4, `${bots.filter((b) => b.alive).length} alive`);
+  check(
+    "bots alive",
+    bots.filter((b) => b.alive).length >= 4,
+    `${bots.filter((b) => b.alive).length} alive`,
+  );
   // "On the ground" means feet on something, not feet on the *terrain*. Bots
   // step onto plinths, aprons and low roofs now that they converge on the
   // compound, so a bot standing 1.4 m above the heightfield is only wrong if
@@ -107,7 +116,9 @@ const results = await page.evaluate(() => {
   check(
     "bots standing on something",
     worstGround < 1.2,
-    worstBot ? `worst ${worstGround.toFixed(2)} m off the terrain (${worstBot})` : "all planted",
+    worstBot
+      ? `worst ${worstGround.toFixed(2)} m off the terrain (${worstBot})`
+      : "all planted",
   );
   check(
     "bots not inside geometry",
@@ -117,10 +128,17 @@ const results = await page.evaluate(() => {
   let minSeparation = Infinity;
   for (let i = 0; i < bots.length; i += 1) {
     for (let j = i + 1; j < bots.length; j += 1) {
-      minSeparation = Math.min(minSeparation, bots[i].position.distanceTo(bots[j].position));
+      minSeparation = Math.min(
+        minSeparation,
+        bots[i].position.distanceTo(bots[j].position),
+      );
     }
   }
-  check("bots not stacked", minSeparation > 0.5, `min separation ${minSeparation.toFixed(2)} m`);
+  check(
+    "bots not stacked",
+    minSeparation > 0.5,
+    `min separation ${minSeparation.toFixed(2)} m`,
+  );
   check(
     "both teams present",
     new Set(bots.map((b) => b.team)).size === 2,
@@ -185,7 +203,7 @@ const results = await page.evaluate(() => {
       const dir = chest.clone().sub(from).normalize();
       // MASK_BULLET = world | prop | character | penetrable = 1|2|4|16
       hit = world.raycast(from, dir, 6, 1 | 2 | 4 | 16, null);
-      firedFrom = `${(angle * 180 / Math.PI).toFixed(0)}deg`;
+      firedFrom = `${((angle * 180) / Math.PI).toFixed(0)}deg`;
       if (hit && hit.entityId === victim.id) break;
     }
   }
@@ -197,7 +215,9 @@ const results = await page.evaluate(() => {
   check(
     "bot hitbox is hittable",
     hit !== null && hit.entityId === victim?.id,
-    hit ? `entity ${hit.entityId} region ${hit.region} from ${firedFrom}` : `no hit (${firedFrom || "no clear angle"})`,
+    hit
+      ? `entity ${hit.entityId} region ${hit.region} from ${firedFrom}`
+      : `no hit (${firedFrom || "no clear angle"})`,
   );
   check(
     "hit resolves to a body region",
@@ -216,7 +236,17 @@ const results = await page.evaluate(() => {
       amount: 250,
       kind: "bullet",
       region: "head",
-      direction: { x: 1, y: 0, z: 0, clone() { return this; }, normalize() { return this; } },
+      direction: {
+        x: 1,
+        y: 0,
+        z: 0,
+        clone() {
+          return this;
+        },
+        normalize() {
+          return this;
+        },
+      },
       point: victim.position.clone(),
       distanceM: 3,
       penetrated: false,
@@ -260,7 +290,10 @@ const after = await page.evaluate((pendingId) => {
       const to = t.position.clone().sub(r3f.camera.position).setY(0).normalize();
       fwd.y = 0;
       fwd.normalize();
-      return +((Math.acos(Math.max(-1, Math.min(1, fwd.dot(to)))) * 180) / Math.PI).toFixed(1);
+      return +(
+        (Math.acos(Math.max(-1, Math.min(1, fwd.dot(to)))) * 180) /
+        Math.PI
+      ).toFixed(1);
     })(),
     victimAlive: victim ? victim.alive : null,
     victimHealth: victim ? victim.health : null,

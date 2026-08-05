@@ -33,7 +33,12 @@ export function AdaptiveQualityManager() {
       return;
     }
 
-    const { qualityTier: tier, autoQuality, reducedMotion, setQualityTier } = useTwinStore.getState();
+    const {
+      qualityTier: tier,
+      autoQuality,
+      reducedMotion,
+      setQualityTier,
+    } = useTwinStore.getState();
     if (!autoQuality || reducedMotion) return;
 
     if (ema.current < 50) {

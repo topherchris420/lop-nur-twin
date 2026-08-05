@@ -42,11 +42,41 @@ const compare = arg("compare", null);
  */
 const VIEWS = [
   { id: "spawn", at: null, look: null, pitch: -0.02, note: "default spawn, flight line" },
-  { id: "apron-close", at: [1290, 1350], look: 45, pitch: -0.12, note: "clutter and fuel tank, sun behind" },
-  { id: "apron-sun", at: [1290, 1350], look: 225, pitch: -0.05, note: "same spot, into the sun" },
-  { id: "desert", at: [1440, 1830], look: 20, pitch: -0.06, note: "open lakebed to the horizon" },
-  { id: "hangar", at: [960, 1300], look: 80, pitch: 0.02, note: "hangar wall at close range" },
-  { id: "ground", at: [1290, 1350], look: 45, pitch: -0.55, note: "ground underfoot, the bottom half of every frame" },
+  {
+    id: "apron-close",
+    at: [1290, 1350],
+    look: 45,
+    pitch: -0.12,
+    note: "clutter and fuel tank, sun behind",
+  },
+  {
+    id: "apron-sun",
+    at: [1290, 1350],
+    look: 225,
+    pitch: -0.05,
+    note: "same spot, into the sun",
+  },
+  {
+    id: "desert",
+    at: [1440, 1830],
+    look: 20,
+    pitch: -0.06,
+    note: "open lakebed to the horizon",
+  },
+  {
+    id: "hangar",
+    at: [960, 1300],
+    look: 80,
+    pitch: 0.02,
+    note: "hangar wall at close range",
+  },
+  {
+    id: "ground",
+    at: [1290, 1350],
+    look: 45,
+    pitch: -0.55,
+    note: "ground underfoot, the bottom half of every frame",
+  },
 ];
 
 const browser = await puppeteer.launch({
@@ -135,83 +165,86 @@ for (const view of VIEWS) {
 
   // Statistics from the encoded frame, so they describe what a viewer sees
   // rather than what the renderer intended.
-  const stats = await page.evaluate(async (dataUrl) => {
-    const image = new Image();
-    await new Promise((resolve, reject) => {
-      image.onload = resolve;
-      image.onerror = reject;
-      image.src = dataUrl;
-    });
-    const canvas = document.createElement("canvas");
-    canvas.width = image.width;
-    canvas.height = image.height;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(image, 0, 0);
-    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let sum = 0;
-    let clipped = 0;
-    let crushed = 0;
-    let satSum = 0;
-    let lowerSum = 0;
-    let lowerCount = 0;
-    const n = data.length / 4;
-    // Local contrast: mean absolute luma difference between neighbouring
-    // pixels. This is the number that moves when a surface stops being a
-    // flat wash, and it is why it is measured separately for the lower half
-    // of the frame, which is always ground.
-    let detail = 0;
-    let detailCount = 0;
-    let counted = 0;
-    // Every fourth row, but every pixel within it: the row stride is a
-    // four-times speed-up that changes none of the averages, while keeping
-    // horizontal neighbours adjacent so local contrast stays exact.
-    const ROW_STRIDE = 4;
-    // The viewmodel occupies the lower right of every frame, and the HUD the
-    // lower corners. Both are opaque foreground, so counting them as "ground"
-    // made this metric move whenever the weapon changed — it dropped 4% the
-    // day hands were added, which is the metric measuring an improvement as a
-    // regression. The ground sample is the lower *left* only.
-    const groundRight = Math.floor(width * 0.55);
-    const groundBottom = Math.floor(height * 0.88);
-    for (let y = 0; y < height; y += ROW_STRIDE) {
-      const lower = y > height * 0.55 && y < groundBottom;
-      let previous = -1;
-      for (let x = 0; x < width; x += 1) {
-        const i = y * width + x;
-        const r = data[i * 4] / 255;
-        const g = data[i * 4 + 1] / 255;
-        const b = data[i * 4 + 2] / 255;
-        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        sum += luma;
-        counted += 1;
-        if (luma > 0.995) clipped += 1;
-        if (luma < 0.005) crushed += 1;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        satSum += max > 0 ? (max - min) / max : 0;
-        if (lower && x < groundRight) {
-          lowerSum += luma;
-          lowerCount += 1;
-          if (previous >= 0) {
-            detail += Math.abs(luma - previous);
-            detailCount += 1;
+  const stats = await page.evaluate(
+    async (dataUrl) => {
+      const image = new Image();
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+        image.src = dataUrl;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0);
+      const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let sum = 0;
+      let clipped = 0;
+      let crushed = 0;
+      let satSum = 0;
+      let lowerSum = 0;
+      let lowerCount = 0;
+      const n = data.length / 4;
+      // Local contrast: mean absolute luma difference between neighbouring
+      // pixels. This is the number that moves when a surface stops being a
+      // flat wash, and it is why it is measured separately for the lower half
+      // of the frame, which is always ground.
+      let detail = 0;
+      let detailCount = 0;
+      let counted = 0;
+      // Every fourth row, but every pixel within it: the row stride is a
+      // four-times speed-up that changes none of the averages, while keeping
+      // horizontal neighbours adjacent so local contrast stays exact.
+      const ROW_STRIDE = 4;
+      // The viewmodel occupies the lower right of every frame, and the HUD the
+      // lower corners. Both are opaque foreground, so counting them as "ground"
+      // made this metric move whenever the weapon changed — it dropped 4% the
+      // day hands were added, which is the metric measuring an improvement as a
+      // regression. The ground sample is the lower *left* only.
+      const groundRight = Math.floor(width * 0.55);
+      const groundBottom = Math.floor(height * 0.88);
+      for (let y = 0; y < height; y += ROW_STRIDE) {
+        const lower = y > height * 0.55 && y < groundBottom;
+        let previous = -1;
+        for (let x = 0; x < width; x += 1) {
+          const i = y * width + x;
+          const r = data[i * 4] / 255;
+          const g = data[i * 4 + 1] / 255;
+          const b = data[i * 4 + 2] / 255;
+          const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          sum += luma;
+          counted += 1;
+          if (luma > 0.995) clipped += 1;
+          if (luma < 0.005) crushed += 1;
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          satSum += max > 0 ? (max - min) / max : 0;
+          if (lower && x < groundRight) {
+            lowerSum += luma;
+            lowerCount += 1;
+            if (previous >= 0) {
+              detail += Math.abs(luma - previous);
+              detailCount += 1;
+            }
+            previous = luma;
+          } else {
+            previous = -1;
           }
-          previous = luma;
-        } else {
-          previous = -1;
         }
       }
-    }
-    void n;
-    return {
-      luma: +(sum / counted).toFixed(4),
-      clippedPct: +((clipped / counted) * 100).toFixed(2),
-      crushedPct: +((crushed / counted) * 100).toFixed(2),
-      saturation: +(satSum / counted).toFixed(4),
-      groundLuma: +(lowerSum / Math.max(1, lowerCount)).toFixed(4),
-      groundDetail: +((detail / Math.max(1, detailCount)) * 1000).toFixed(2),
-    };
-  }, `data:image/png;base64,${buffer.toString("base64")}`);
+      void n;
+      return {
+        luma: +(sum / counted).toFixed(4),
+        clippedPct: +((clipped / counted) * 100).toFixed(2),
+        crushedPct: +((crushed / counted) * 100).toFixed(2),
+        saturation: +(satSum / counted).toFixed(4),
+        groundLuma: +(lowerSum / Math.max(1, lowerCount)).toFixed(4),
+        groundDetail: +((detail / Math.max(1, detailCount)) * 1000).toFixed(2),
+      };
+    },
+    `data:image/png;base64,${buffer.toString("base64")}`,
+  );
 
   const perf = await page.evaluate(() => {
     const { game } = globalThis.__combat;
@@ -234,14 +267,26 @@ console.log(`\n${VIEWS.length} frames -> ${outDir}`);
 if (compare) {
   const previous = JSON.parse(await readFile(`${compare}/manifest.json`, "utf8"));
   console.log(`\nagainst ${compare}:`);
-  const keys = ["luma", "clippedPct", "crushedPct", "saturation", "groundLuma", "groundDetail", "draws"];
+  const keys = [
+    "luma",
+    "clippedPct",
+    "crushedPct",
+    "saturation",
+    "groundLuma",
+    "groundDetail",
+    "draws",
+  ];
   for (const now of manifest) {
     const then = previous.find((p) => p.id === now.id);
     if (!then) continue;
     const moved = keys
-      .filter((k) => Math.abs(now[k] - then[k]) > Math.max(0.0005, Math.abs(then[k]) * 0.02))
+      .filter(
+        (k) => Math.abs(now[k] - then[k]) > Math.max(0.0005, Math.abs(then[k]) * 0.02),
+      )
       .map((k) => `${k} ${then[k]} -> ${now[k]}`);
-    console.log(`  ${now.id.padEnd(12)} ${moved.length ? moved.join(", ") : "unchanged"}`);
+    console.log(
+      `  ${now.id.padEnd(12)} ${moved.length ? moved.join(", ") : "unchanged"}`,
+    );
   }
 }
 

@@ -61,7 +61,11 @@ export function chamferedBox(
 ): THREE.BufferGeometry {
   const chamfer = Math.min(options.chamfer ?? CHAMFER, w / 4, h / 4, d / 4);
   const radius = options.radius ?? chamfer * 1.5;
-  const shape = roundedRectShape(w - chamfer * 2, h - chamfer * 2, Math.max(0, radius - chamfer));
+  const shape = roundedRectShape(
+    w - chamfer * 2,
+    h - chamfer * 2,
+    Math.max(0, radius - chamfer),
+  );
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: d - chamfer * 2,
     bevelEnabled: true,
@@ -86,17 +90,38 @@ export function tube(
 ): THREE.BufferGeometry {
   const c = Math.min(chamfer, length / 4, radiusTop / 3, radiusBottom / 3);
   const parts: THREE.BufferGeometry[] = [];
-  const body = new THREE.CylinderGeometry(radiusTop, radiusBottom, length - c * 2, segments, 1, true);
+  const body = new THREE.CylinderGeometry(
+    radiusTop,
+    radiusBottom,
+    length - c * 2,
+    segments,
+    1,
+    true,
+  );
   parts.push(body);
   // Chamfered end caps: a short cone ring plus a small flat disc.
-  const capTop = new THREE.CylinderGeometry(radiusTop - c, radiusTop, c, segments, 1, true);
+  const capTop = new THREE.CylinderGeometry(
+    radiusTop - c,
+    radiusTop,
+    c,
+    segments,
+    1,
+    true,
+  );
   capTop.translate(0, (length - c) / 2, 0);
   parts.push(capTop);
   const discTop = new THREE.CircleGeometry(radiusTop - c, segments);
   discTop.rotateX(-Math.PI / 2);
   discTop.translate(0, length / 2, 0);
   parts.push(discTop);
-  const capBottom = new THREE.CylinderGeometry(radiusBottom, radiusBottom - c, c, segments, 1, true);
+  const capBottom = new THREE.CylinderGeometry(
+    radiusBottom,
+    radiusBottom - c,
+    c,
+    segments,
+    1,
+    true,
+  );
   capBottom.translate(0, -(length - c) / 2, 0);
   parts.push(capBottom);
   const discBottom = new THREE.CircleGeometry(radiusBottom - c, segments);
@@ -179,16 +204,68 @@ export function picatinnyRail(
     const y1 = height;
     const hz = ribDepth / 2;
     const verts = new Float32Array([
-      -bottom, y0, -hz, bottom, y0, -hz, top, y1, -hz, -top, y1, -hz,
-      -bottom, y0, hz, bottom, y0, hz, top, y1, hz, -top, y1, hz,
+      -bottom,
+      y0,
+      -hz,
+      bottom,
+      y0,
+      -hz,
+      top,
+      y1,
+      -hz,
+      -top,
+      y1,
+      -hz,
+      -bottom,
+      y0,
+      hz,
+      bottom,
+      y0,
+      hz,
+      top,
+      y1,
+      hz,
+      -top,
+      y1,
+      hz,
     ]);
     const idx = [
-      0, 1, 2, 0, 2, 3, // back
-      5, 4, 7, 5, 7, 6, // front
-      4, 5, 1, 4, 1, 0, // bottom
-      3, 2, 6, 3, 6, 7, // top
-      4, 0, 3, 4, 3, 7, // left
-      1, 5, 6, 1, 6, 2, // right
+      0,
+      1,
+      2,
+      0,
+      2,
+      3, // back
+      5,
+      4,
+      7,
+      5,
+      7,
+      6, // front
+      4,
+      5,
+      1,
+      4,
+      1,
+      0, // bottom
+      3,
+      2,
+      6,
+      3,
+      6,
+      7, // top
+      4,
+      0,
+      3,
+      4,
+      3,
+      7, // left
+      1,
+      5,
+      6,
+      1,
+      6,
+      2, // right
     ];
     rib.setAttribute("position", new THREE.BufferAttribute(verts, 3));
     rib.setIndex(idx);
@@ -241,7 +318,11 @@ export function flutes(
       curveSegments: 3,
     });
     flute.rotateZ(-angle);
-    flute.translate(Math.sin(angle) * (radius - depth), Math.cos(angle) * (radius - depth), 0);
+    flute.translate(
+      Math.sin(angle) * (radius - depth),
+      Math.cos(angle) * (radius - depth),
+      0,
+    );
     parts.push(flute);
   }
   return mergeAndDispose(parts);

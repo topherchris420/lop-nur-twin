@@ -373,7 +373,9 @@ async function capture(page, options, url, outPath) {
   };
   const onPageError = (error) => messages.push(`[pageerror] ${error.message}`);
   const onFailed = (request) =>
-    messages.push(`[requestfailed] ${request.url()} ${request.failure()?.errorText ?? ""}`);
+    messages.push(
+      `[requestfailed] ${request.url()} ${request.failure()?.errorText ?? ""}`,
+    );
 
   page.on("console", onConsole);
   page.on("pageerror", onPageError);
@@ -525,8 +527,7 @@ async function capture(page, options, url, outPath) {
   const gl = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
     if (!canvas) return { canvas: false };
-    const context =
-      canvas.getContext("webgl2", { preserveDrawingBuffer: false }) ?? null;
+    const context = canvas.getContext("webgl2", { preserveDrawingBuffer: false }) ?? null;
     const debugInfo = context?.getExtension("WEBGL_debug_renderer_info") ?? null;
     return {
       canvas: true,

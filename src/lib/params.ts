@@ -66,22 +66,14 @@ export function readFlag(name: string): boolean {
 }
 
 /** An integer parameter, clamped into `[min, max]`. Non-integers are rejected. */
-export function readIntParam(
-  name: string,
-  min: number,
-  max: number,
-): number | null {
+export function readIntParam(name: string, min: number, max: number): number | null {
   const value = finiteNumber(rawParam(name));
   if (value === null || !Number.isInteger(value)) return null;
   return clamp(value, min, max);
 }
 
 /** A floating-point parameter, clamped into `[min, max]`. */
-export function readFloatParam(
-  name: string,
-  min: number,
-  max: number,
-): number | null {
+export function readFloatParam(name: string, min: number, max: number): number | null {
   const value = finiteNumber(rawParam(name));
   if (value === null) return null;
   return clamp(value, min, max);

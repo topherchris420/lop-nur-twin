@@ -228,7 +228,10 @@ class Queue<T> {
   private readonly items: T[] = [];
   private count = 0;
 
-  constructor(private readonly factory: () => T, initial = 32) {
+  constructor(
+    private readonly factory: () => T,
+    initial = 32,
+  ) {
     for (let i = 0; i < initial; i += 1) this.items.push(factory());
   }
 

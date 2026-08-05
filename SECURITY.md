@@ -9,10 +9,10 @@ project — a viewer mistaking modeled interpretation for verified intelligence.
 
 ## Supported versions
 
-| Version | Supported |
-| :-- | :-- |
-| `main` (latest commit) and the current deployment built from it | Yes |
-| Any earlier commit, tag, fork or vendored copy | No |
+| Version                                                         | Supported |
+| :-------------------------------------------------------------- | :-------- |
+| `main` (latest commit) and the current deployment built from it | Yes       |
+| Any earlier commit, tag, fork or vendored copy                  | No        |
 
 This is a single-branch research prototype. There is no long-term support
 branch and no backport process: fixes land on `main`, and a deployment is
@@ -28,7 +28,7 @@ is a disclosure, and this repository has no embargo mechanism.
 Report privately, in this order of preference:
 
 1. **GitHub private vulnerability reporting.** If it is enabled on this
-   repository, use the *Report a vulnerability* button under the **Security**
+   repository, use the _Report a vulnerability_ button under the **Security**
    tab. This is the preferred channel and requires no email address.
 2. **A private security advisory draft**, if you have permission to create one.
 3. **The maintainer's configured security contact.** If neither of the above is
@@ -36,7 +36,7 @@ Report privately, in this order of preference:
 
 > **Maintainer action required.** This file deliberately does not invent an
 > email address. Enable GitHub private vulnerability reporting
-> (*Settings → Code security and analysis → Private vulnerability reporting*),
+> (_Settings → Code security and analysis → Private vulnerability reporting_),
 > and if you want an email channel as well, add it here yourself. An
 > unmonitored address in a security policy is worse than no address.
 
@@ -69,7 +69,7 @@ any kind.
 - Denial of service by loading the 3D scene on constrained hardware, or by
   requesting a large number of pages. This is a static site; capacity is the
   host's concern.
-- Disagreements about the *content* of the model — a wrong footprint, a
+- Disagreements about the _content_ of the model — a wrong footprint, a
   questionable interpretation, a stale source. Those are correctness issues:
   open a normal issue or a pull request. They are the point of the project.
 - Findings that require a compromised browser, a malicious extension, or
@@ -89,7 +89,7 @@ any kind.
   vulnerability and secret scan, GitHub dependency review, and CodeQL static
   analysis. A high or critical advisory with a fix available blocks the merge.
   Dependency review depends on the repository's dependency graph remaining
-  enabled (*Settings → Code security and analysis*); if it is ever turned off
+  enabled (_Settings → Code security and analysis_); if it is ever turned off
   the check reports "not supported on this repository", and the fix is the
   setting, not muting the check.
 - An SBOM is generated per run in both CycloneDX JSON and SPDX JSON and

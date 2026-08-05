@@ -121,16 +121,22 @@ function limb(
   segments = 10,
   extend = 0,
 ): THREE.BufferGeometry {
-  _a.set(REST_POS[bone * 3]!, REST_POS[bone * 3 + 1]!, REST_POS[bone * 3 + 2]!);
-  _b.set(REST_TIP[bone * 3]!, REST_TIP[bone * 3 + 1]!, REST_TIP[bone * 3 + 2]!);
+  _a.set(REST_POS[bone * 3]!, REST_POS[bone * 3 + 1]!, REST_POS[bone * 3 + 2]);
+  _b.set(REST_TIP[bone * 3]!, REST_TIP[bone * 3 + 1]!, REST_TIP[bone * 3 + 2]);
   const length = Math.max(0.02, BONE_LENGTH[bone]! + extend);
-  const geometry = new THREE.CylinderGeometry(radiusEnd, radiusStart, length, segments, 2);
+  const geometry = new THREE.CylinderGeometry(
+    radiusEnd,
+    radiusStart,
+    length,
+    segments,
+    2,
+  );
   // Cap the ends with hemispheres so elbows and knees do not show a rim.
   const capA = new THREE.SphereGeometry(radiusStart, segments, 6);
   capA.translate(0, -length / 2, 0);
   const capB = new THREE.SphereGeometry(radiusEnd, segments, 6);
   capB.translate(0, length / 2, 0);
-  const merged = mergeGeometries([geometry, capA, capB], false)!;
+  const merged = mergeGeometries([geometry, capA, capB], false);
   geometry.dispose();
   capA.dispose();
   capB.dispose();
@@ -139,11 +145,7 @@ function limb(
   _axis.copy(_b).sub(_a).normalize();
   _quat.setFromUnitVectors(UP, _axis);
   merged.applyQuaternion(_quat);
-  merged.translate(
-    (_a.x + _b.x) / 2,
-    (_a.y + _b.y) / 2,
-    (_a.z + _b.z) / 2,
-  );
+  merged.translate((_a.x + _b.x) / 2, (_a.y + _b.y) / 2, (_a.z + _b.z) / 2);
   return merged;
 }
 
@@ -185,7 +187,14 @@ function slab(
   return geometry;
 }
 
-function ball(r: number, x: number, y: number, z: number, sy = 1, sz = 1): THREE.BufferGeometry {
+function ball(
+  r: number,
+  x: number,
+  y: number,
+  z: number,
+  sy = 1,
+  sz = 1,
+): THREE.BufferGeometry {
   const geometry = new THREE.SphereGeometry(r, 14, 10);
   geometry.scale(1, sy, sz);
   geometry.translate(x, y, z);
@@ -196,10 +205,19 @@ function ball(r: number, x: number, y: number, z: number, sy = 1, sz = 1): THREE
 /* Assembly                                                            */
 /* ------------------------------------------------------------------ */
 
-function buildParts(palette: Palette, rand: () => number, variant: SoldierVariant): Part[] {
+function buildParts(
+  palette: Palette,
+  rand: () => number,
+  variant: SoldierVariant,
+): Part[] {
   const parts: Part[] = [];
   const camoBase = palette.camo[0];
-  const add = (geometry: THREE.BufferGeometry, color: number, rough?: number, metal?: number): void => {
+  const add = (
+    geometry: THREE.BufferGeometry,
+    color: number,
+    rough?: number,
+    metal?: number,
+  ): void => {
     const part: Part = { geometry, color };
     if (rough !== undefined) part.rough = rough;
     if (metal !== undefined) part.metal = metal;
@@ -239,7 +257,13 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   // and eyes in skin, and that is the whole difference between a soldier and
   // a void under a helmet.
   const mask = new THREE.SphereGeometry(
-    0.0945, 16, 12, 0, Math.PI * 2, Math.PI * 0.53, Math.PI * 0.47,
+    0.0945,
+    16,
+    12,
+    0,
+    Math.PI * 2,
+    Math.PI * 0.53,
+    Math.PI * 0.47,
   );
   mask.scale(1, 1.19, 1.09);
   mask.translate(0, 1.615, 0.004);
@@ -265,13 +289,28 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   add(helm, palette.helmet, 0.52);
   // Brim, side rails, NVG mount and counterweight pouch.
   add(slab(0.192, 0.026, 0.022, 0, helmetY - 0.02, -0.104, 0.008), palette.helmet, 0.52);
-  add(slab(0.013, 0.028, 0.14, -0.106, helmetY - 0.004, 0.006, 0.005), 0x22231f, 0.42, 0.6);
-  add(slab(0.013, 0.028, 0.14, 0.106, helmetY - 0.004, 0.006, 0.005), 0x22231f, 0.42, 0.6);
+  add(
+    slab(0.013, 0.028, 0.14, -0.106, helmetY - 0.004, 0.006, 0.005),
+    0x22231f,
+    0.42,
+    0.6,
+  );
+  add(
+    slab(0.013, 0.028, 0.14, 0.106, helmetY - 0.004, 0.006, 0.005),
+    0x22231f,
+    0.42,
+    0.6,
+  );
   add(slab(0.05, 0.045, 0.03, 0, helmetY + 0.012, -0.108, 0.008), 0x2a2b26, 0.4, 0.7);
   add(slab(0.11, 0.06, 0.055, 0, helmetY - 0.01, 0.105, 0.02), palette.webbing, 0.9);
   // Goggles pushed up onto the shell.
   add(slab(0.178, 0.044, 0.048, 0, helmetY + 0.038, -0.066, 0.018), 0x1d1e1a, 0.35);
-  add(slab(0.134, 0.028, 0.012, 0, helmetY + 0.038, -0.09, 0.006), palette.lens, 0.12, 0.2);
+  add(
+    slab(0.134, 0.028, 0.012, 0, helmetY + 0.038, -0.09, 0.006),
+    palette.lens,
+    0.12,
+    0.2,
+  );
   // Headset cup and boom mic.
   add(ball(0.043, -0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
   add(ball(0.043, 0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
@@ -314,7 +353,7 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   add(slab(0.1, 0.12, 0.13, 0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
   // Radio antenna off the left shoulder: a thin vertical against the sky is
   // worth more to a silhouette at distance than any amount of surface detail.
-  add(slab(0.012, 0.30, 0.012, -0.128, 1.52, 0.13, 0.004), 0x24251f, 0.5);
+  add(slab(0.012, 0.3, 0.012, -0.128, 1.52, 0.13, 0.004), 0x24251f, 0.5);
 
   // Four magazine pouches across the chest, each with a flap.
   //
@@ -368,11 +407,11 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
   /* -------------------------------------------------------- variant */
   if (variant >= 1) {
     // Shoulder patch and a rolled sleeve seam.
-    add(slab(0.05, 0.05, 0.012, -0.186, 1.31, -0.05, 0.008), palette.camo[3]!, 0.9);
+    add(slab(0.05, 0.05, 0.012, -0.186, 1.31, -0.05, 0.008), palette.camo[3], 0.9);
   }
   if (variant === 2) {
     // Shemagh bunched at the throat.
-    add(ball(0.088, 0, 1.5, 0.02, 0.62, 0.86), palette.camo[2]!, 0.95);
+    add(ball(0.088, 0, 1.5, 0.02, 0.62, 0.86), palette.camo[2], 0.95);
   }
   // A little per-soldier jitter so a squad is not identical.
   void rand;
@@ -386,11 +425,30 @@ function buildParts(palette: Palette, rand: () => number, variant: SoldierVarian
 
 /** Bones that may receive skin weights; fingers and helpers are excluded. */
 const SKIN_BONES: readonly number[] = [
-  B.pelvis, B.spine1, B.spine2, B.spine3, B.neck, B.head,
-  B.clavicleL, B.upperArmL, B.foreArmL, B.foreTwistL, B.handL,
-  B.clavicleR, B.upperArmR, B.foreArmR, B.foreTwistR, B.handR,
-  B.thighL, B.shinL, B.footL, B.toeL,
-  B.thighR, B.shinR, B.footR, B.toeR,
+  B.pelvis,
+  B.spine1,
+  B.spine2,
+  B.spine3,
+  B.neck,
+  B.head,
+  B.clavicleL,
+  B.upperArmL,
+  B.foreArmL,
+  B.foreTwistL,
+  B.handL,
+  B.clavicleR,
+  B.upperArmR,
+  B.foreArmR,
+  B.foreTwistR,
+  B.handR,
+  B.thighL,
+  B.shinL,
+  B.footL,
+  B.toeL,
+  B.thighR,
+  B.shinR,
+  B.footR,
+  B.toeR,
 ];
 
 /**
@@ -419,20 +477,30 @@ function computeSkinning(geometry: THREE.BufferGeometry): void {
 
     for (const bone of SKIN_BONES) {
       const d = restSegmentDistanceSq(bone, x, y, z);
-      if (d < bestDist[0]!) {
-        bestDist[3] = bestDist[2]!; bestBone[3] = bestBone[2]!;
-        bestDist[2] = bestDist[1]!; bestBone[2] = bestBone[1]!;
-        bestDist[1] = bestDist[0]!; bestBone[1] = bestBone[0]!;
-        bestDist[0] = d; bestBone[0] = bone;
-      } else if (d < bestDist[1]!) {
-        bestDist[3] = bestDist[2]!; bestBone[3] = bestBone[2]!;
-        bestDist[2] = bestDist[1]!; bestBone[2] = bestBone[1]!;
-        bestDist[1] = d; bestBone[1] = bone;
-      } else if (d < bestDist[2]!) {
-        bestDist[3] = bestDist[2]!; bestBone[3] = bestBone[2]!;
-        bestDist[2] = d; bestBone[2] = bone;
-      } else if (d < bestDist[3]!) {
-        bestDist[3] = d; bestBone[3] = bone;
+      if (d < bestDist[0]) {
+        bestDist[3] = bestDist[2]!;
+        bestBone[3] = bestBone[2]!;
+        bestDist[2] = bestDist[1]!;
+        bestBone[2] = bestBone[1]!;
+        bestDist[1] = bestDist[0]!;
+        bestBone[1] = bestBone[0]!;
+        bestDist[0] = d;
+        bestBone[0] = bone;
+      } else if (d < bestDist[1]) {
+        bestDist[3] = bestDist[2]!;
+        bestBone[3] = bestBone[2]!;
+        bestDist[2] = bestDist[1]!;
+        bestBone[2] = bestBone[1]!;
+        bestDist[1] = d;
+        bestBone[1] = bone;
+      } else if (d < bestDist[2]) {
+        bestDist[3] = bestDist[2]!;
+        bestBone[3] = bestBone[2]!;
+        bestDist[2] = d;
+        bestBone[2] = bone;
+      } else if (d < bestDist[3]) {
+        bestDist[3] = d;
+        bestBone[3] = bone;
       }
     }
 
@@ -496,7 +564,7 @@ function camoColorAt(
   const t = n * 0.5 + 0.5;
   // Four hard-edged bands, the way a printed disruptive pattern reads.
   const index = t < 0.3 ? 2 : t < 0.55 ? 0 : t < 0.8 ? 1 : 3;
-  return out.setHex(palette.camo[index]!).convertSRGBToLinear();
+  return out.setHex(palette.camo[index]).convertSRGBToLinear();
 }
 
 /* ------------------------------------------------------------------ */
@@ -541,7 +609,13 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
     const isCamo = part.color === palette.camo[0];
     for (let v = 0; v < count; v += 1) {
       if (isCamo) {
-        camoColorAt(position.getX(v), position.getY(v), position.getZ(v), palette, _color);
+        camoColorAt(
+          position.getX(v),
+          position.getY(v),
+          position.getZ(v),
+          palette,
+          _color,
+        );
       } else {
         _color.setHex(part.color).convertSRGBToLinear();
       }
@@ -562,7 +636,7 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
     prepared.push(geometry);
   }
 
-  const merged = mergeGeometries(prepared, false)!;
+  const merged = mergeGeometries(prepared, false);
   for (const geometry of prepared) geometry.dispose();
   computeSkinning(merged);
   merged.computeBoundingSphere();
@@ -583,7 +657,10 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
   // differently under the sun.
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nattribute vec2 pbr;\nvarying vec2 vPbr;")
+      .replace(
+        "#include <common>",
+        "#include <common>\nattribute vec2 pbr;\nvarying vec2 vPbr;",
+      )
       .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vPbr = pbr;");
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", "#include <common>\nvarying vec2 vPbr;")

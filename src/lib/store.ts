@@ -1,9 +1,5 @@
 import { create } from "zustand";
-import {
-  TIMELINE_BOUNDS,
-  getStructure,
-  isVisibleAtTimelineYear,
-} from "./layout";
+import { TIMELINE_BOUNDS, getStructure, isVisibleAtTimelineYear } from "./layout";
 import type { MeasurePoint } from "./measure";
 import { readIntParam } from "./params";
 
@@ -170,21 +166,18 @@ export const useTwinStore = create<TwinState>()((set) => ({
     })),
 
   showIndex: false,
-  toggleIndex: () =>
-    set((s) => ({ showIndex: !s.showIndex, showResearch: false })),
+  toggleIndex: () => set((s) => ({ showIndex: !s.showIndex, showResearch: false })),
   showHelp: false,
   toggleHelp: () => set((s) => ({ showHelp: !s.showHelp })),
   showResearch: false,
-  toggleResearch: () =>
-    set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
+  toggleResearch: () => set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
 
   measureMode: false,
   toggleMeasureMode: () => set((s) => ({ measureMode: !s.measureMode })),
   measurePoints: [],
   addMeasurePoint: (point) =>
     set((s) => ({ measurePoints: [...s.measurePoints, point].slice(-64) })),
-  undoMeasurePoint: () =>
-    set((s) => ({ measurePoints: s.measurePoints.slice(0, -1) })),
+  undoMeasurePoint: () => set((s) => ({ measurePoints: s.measurePoints.slice(0, -1) })),
   clearMeasure: () =>
     set((s) => (s.measurePoints.length === 0 ? s : { measurePoints: [] })),
 

@@ -13,15 +13,11 @@ import {
   isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
-import {
-  makeApronTexture,
-  makeDirtTexture,
-  makePavementTexture,
-} from "@/lib/textures";
+import { makeApronTexture, makeDirtTexture, makePavementTexture } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
 import { applyGroundDetailPreset, type GroundDetailFamily } from "@/gfx/groundDetail";
 
-import { useTwinStore, type QualityTier } from '@/lib/store';
+import { useTwinStore, type QualityTier } from "@/lib/store";
 
 /**
  * Stacking heights keep coplanar surfaces from z-fighting where they cross
@@ -88,7 +84,7 @@ function useGroundMaterial(
 }
 
 function isFilletVisible(id: string, year: number): boolean {
-  const source = id === 'apron-fillet' ? TAXIWAYS[1] : TAXIWAYS[0];
+  const source = id === "apron-fillet" ? TAXIWAYS[1] : TAXIWAYS[0];
   return source !== undefined && isVisibleAtTimelineYear(source, year);
 }
 
@@ -354,10 +350,20 @@ export function Pavements() {
         />
       ))}
       {STRIPS.map((seg, i) => (
-        <DirtMesh key={seg.id} seg={seg} index={i} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
+        <DirtMesh
+          key={seg.id}
+          seg={seg}
+          index={i}
+          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
+        />
       ))}
       {ROADS.map((seg, i) => (
-        <DirtMesh key={seg.id} seg={seg} index={i + 10} visible={isVisibleAtTimelineYear(seg, activeTimelineYear)} />
+        <DirtMesh
+          key={seg.id}
+          seg={seg}
+          index={i + 10}
+          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
+        />
       ))}
       {APRONS.map((apron) => (
         <ApronMesh

@@ -21,11 +21,7 @@ import {
   strongestClassification,
   type EvidenceClassification,
 } from "@/lib/evidence";
-import {
-  MODEL_MANIFEST_PATH,
-  shortHash,
-  useModelManifest,
-} from "@/lib/modelManifest";
+import { MODEL_MANIFEST_PATH, shortHash, useModelManifest } from "@/lib/modelManifest";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import {
   ConfidenceValue,
@@ -68,7 +64,10 @@ export const Route = createFileRoute("/analysis")({
 const ALL_CLASSIFICATIONS: readonly EvidenceClassification[] = EVIDENCE_CLASSIFICATIONS;
 
 function structureClassification(structure: StructureDef): EvidenceClassification {
-  return strongestClassification(getEvidenceForSubject(structure.id)) ?? structure.evidence.status;
+  return (
+    strongestClassification(getEvidenceForSubject(structure.id)) ??
+    structure.evidence.status
+  );
 }
 
 /** Highest confidence recorded for a structure, or the layout ordinal if none. */
@@ -80,9 +79,8 @@ function structureConfidence(structure: StructureDef): number {
 function AnalysisView() {
   const { structure: highlighted } = Route.useSearch();
   const [query, setQuery] = useState("");
-  const [enabled, setEnabled] = useState<readonly EvidenceClassification[]>(
-    ALL_CLASSIFICATIONS,
-  );
+  const [enabled, setEnabled] =
+    useState<readonly EvidenceClassification[]>(ALL_CLASSIFICATIONS);
   const manifest = useModelManifest(true);
 
   useEffect(() => {
@@ -112,7 +110,8 @@ function AnalysisView() {
         structure.description,
         STRUCTURE_TYPE_LABELS[structure.type],
         ...getEvidenceForSubject(structure.id).map(
-          (record) => `${record.claim} ${record.analystNotes ?? ""} ${record.sourceTitle}`,
+          (record) =>
+            `${record.claim} ${record.analystNotes ?? ""} ${record.sourceTitle}`,
         ),
       ]
         .join(" ")
@@ -149,14 +148,16 @@ function AnalysisView() {
             Lop Nur Geospatial Simulation Testbed — structure analysis
           </h1>
           <p className="text-muted-foreground mt-3 max-w-4xl text-sm leading-relaxed">
-            This table describes a <strong className="text-foreground">public-source
-            analytical reconstruction</strong>: a modeled airfield built from cited
-            open Earth-observation products and published reporting. It is not
-            operational data, not an official facility record, and not a verified
-            statement of any building&rsquo;s interior use. Every row carries the
-            evidence classification, confidence and source that supports it, and
-            values the project does not know are marked unknown rather than
-            estimated.
+            This table describes a{" "}
+            <strong className="text-foreground">
+              public-source analytical reconstruction
+            </strong>
+            : a modeled airfield built from cited open Earth-observation products and
+            published reporting. It is not operational data, not an official facility
+            record, and not a verified statement of any building&rsquo;s interior use.
+            Every row carries the evidence classification, confidence and source that
+            supports it, and values the project does not know are marked unknown rather
+            than estimated.
           </p>
           <nav aria-label="Views of this model" className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -190,8 +191,8 @@ function AnalysisView() {
               Evidence status legend
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              Status is shown with a symbol and a word as well as a colour, so it
-              survives greyscale printing and colour-blind review.
+              Status is shown with a symbol and a word as well as a colour, so it survives
+              greyscale printing and colour-blind review.
             </p>
             <div className="border-border mt-3 rounded-lg border p-4">
               <EvidenceLegendList />
@@ -205,7 +206,9 @@ function AnalysisView() {
                   <dt className="text-muted-foreground">
                     {EVIDENCE_CLASSIFICATION_META[classification].label} records
                   </dt>
-                  <dd className="font-mono text-base tabular-nums">{counts[classification]}</dd>
+                  <dd className="font-mono text-base tabular-nums">
+                    {counts[classification]}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -295,8 +298,8 @@ function AnalysisView() {
             Known limitations
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Published in the release manifest as well, so a downstream consumer of
-            the data receives them with it.
+            Published in the release manifest as well, so a downstream consumer of the
+            data receives them with it.
           </p>
           <ul className="mt-3 grid gap-2 md:grid-cols-2">
             {KNOWN_LIMITATIONS.map((limitation) => (
@@ -330,7 +333,10 @@ function AnalysisView() {
                 aria-describedby="structure-search-hint"
                 className="border-input bg-secondary/60 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring mt-1 h-10 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
               />
-              <p id="structure-search-hint" className="text-muted-foreground mt-1 text-xs">
+              <p
+                id="structure-search-hint"
+                className="text-muted-foreground mt-1 text-xs"
+              >
                 Matches structure names, ids, descriptions, analyst notes and source
                 titles.
               </p>
@@ -412,7 +418,10 @@ function AnalysisView() {
                 {rows.map((structure) => {
                   const records = getEvidenceForSubject(structure.id);
                   const classification = structureClassification(structure);
-                  const grid = gridEastingNorthing(structure.position[0], structure.position[1]);
+                  const grid = gridEastingNorthing(
+                    structure.position[0],
+                    structure.position[1],
+                  );
                   const uncertainty = records
                     .map((record) =>
                       record.measurementUncertaintyM !== undefined
@@ -453,7 +462,9 @@ function AnalysisView() {
                         ) : null}
                       </th>
                       <td className="px-2 py-3 font-mono">{structure.id}</td>
-                      <td className="px-2 py-3">{STRUCTURE_TYPE_LABELS[structure.type]}</td>
+                      <td className="px-2 py-3">
+                        {STRUCTURE_TYPE_LABELS[structure.type]}
+                      </td>
                       <td className="px-2 py-3">
                         <EvidenceBadge classification={classification} />
                         <span className="text-muted-foreground mt-1 block text-[10px]">
@@ -502,8 +513,8 @@ function AnalysisView() {
                                   </a>
                                 )}
                                 <span className="text-muted-foreground block text-[10px]">
-                                  {record.sourcePublisher ?? "publisher unknown"} · published{" "}
-                                  {record.sourceDate ?? "unknown"} · accessed{" "}
+                                  {record.sourcePublisher ?? "publisher unknown"} ·
+                                  published {record.sourceDate ?? "unknown"} · accessed{" "}
                                   {record.accessedAt ?? "unknown"}
                                 </span>
                               </li>
@@ -512,7 +523,9 @@ function AnalysisView() {
                         </ul>
                       </td>
                       <td className="text-muted-foreground max-w-[26rem] px-2 py-3 leading-relaxed">
-                        {notes.length > 0 ? notes.join(" ") : "No additional analyst note."}
+                        {notes.length > 0
+                          ? notes.join(" ")
+                          : "No additional analyst note."}
                       </td>
                       <td className="px-2 py-3">
                         <Link
@@ -556,14 +569,17 @@ function AnalysisView() {
                         className="text-primary focus-visible:ring-ring inline-flex items-start gap-1 underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
                       >
                         {source.title}
-                        <ExternalLink className="mt-1 size-3 shrink-0" aria-hidden="true" />
+                        <ExternalLink
+                          className="mt-1 size-3 shrink-0"
+                          aria-hidden="true"
+                        />
                         <span className="sr-only">(opens in a new tab)</span>
                       </a>
                     )}
                   </p>
                   <p className="text-muted-foreground mt-0.5 font-mono text-xs">
-                    {source.publisher} · published {source.publishedOn ?? "unknown"} · accessed{" "}
-                    {source.accessedOn} · role: {source.role}
+                    {source.publisher} · published {source.publishedOn ?? "unknown"} ·
+                    accessed {source.accessedOn} · role: {source.role}
                   </p>
                   <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
                     {source.attribution}
@@ -580,8 +596,8 @@ function AnalysisView() {
             prototype · not government-certified, not FedRAMP authorized, not CMMC
             certified, and not approved for classified or controlled unclassified
             information. Observation and simulation are labelled separately throughout:
-            source observations come from the cited register above; everything the
-            model adds is marked interpreted or illustrative.
+            source observations come from the cited register above; everything the model
+            adds is marked interpreted or illustrative.
           </p>
         </footer>
       </div>

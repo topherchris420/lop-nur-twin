@@ -16,7 +16,8 @@ export function GroundClutter() {
   const qualityTier = useTwinStore((s) => s.qualityTier);
 
   useEffect(() => {
-    const density = qualityTier >= 3 ? 1 : qualityTier >= 2 ? 0.82 : qualityTier >= 1 ? 0.58 : 0.34;
+    const density =
+      qualityTier >= 3 ? 1 : qualityTier >= 2 ? 0.82 : qualityTier >= 1 ? 0.58 : 0.34;
     const clutter = buildGroundClutter({ density });
     scene.add(clutter.group);
     game.stats.clutter = clutter.instances;

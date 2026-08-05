@@ -167,12 +167,19 @@ export class AudioEngine {
   }
 
   setBusVolume(id: BusId, value: number): void {
-    this.buses.get(id)?.gain.setTargetAtTime(Math.max(0, value), this.ctx.currentTime, 0.02);
+    this.buses
+      .get(id)
+      ?.gain.setTargetAtTime(Math.max(0, value), this.ctx.currentTime, 0.02);
   }
 
   private busFor(id: SoundId): GainNode {
     if (id.startsWith("ui-")) return this.buses.get("ui")!;
-    if (id === "fire" || id === "fire-suppressed" || id.startsWith("reload") || id === "dry-fire") {
+    if (
+      id === "fire" ||
+      id === "fire-suppressed" ||
+      id.startsWith("reload") ||
+      id === "dry-fire"
+    ) {
       return this.buses.get("weapons")!;
     }
     return this.buses.get("world")!;

@@ -76,32 +76,60 @@ function paint(geometry: THREE.BufferGeometry, color: number): THREE.BufferGeome
 }
 
 function box(
-  w: number, h: number, d: number,
-  x: number, y: number, z: number,
+  w: number,
+  h: number,
+  d: number,
+  x: number,
+  y: number,
+  z: number,
   color: number,
-  rx = 0, ry = 0, rz = 0,
+  rx = 0,
+  ry = 0,
+  rz = 0,
 ): THREE.BufferGeometry {
   const geometry = new THREE.BoxGeometry(w, h, d);
-  if (rx || ry || rz) geometry.rotateX(rx), geometry.rotateY(ry), geometry.rotateZ(rz);
+  if (rx || ry || rz) {
+    geometry.rotateX(rx);
+    geometry.rotateY(ry);
+    geometry.rotateZ(rz);
+  }
   geometry.translate(x, y, z);
   return paint(geometry, color);
 }
 
 function cyl(
-  rTop: number, rBottom: number, h: number, seg: number,
-  x: number, y: number, z: number,
+  rTop: number,
+  rBottom: number,
+  h: number,
+  seg: number,
+  x: number,
+  y: number,
+  z: number,
   color: number,
-  rx = 0, ry = 0, rz = 0,
+  rx = 0,
+  ry = 0,
+  rz = 0,
 ): THREE.BufferGeometry {
   const geometry = new THREE.CylinderGeometry(rTop, rBottom, h, seg);
-  if (rx || ry || rz) geometry.rotateX(rx), geometry.rotateY(ry), geometry.rotateZ(rz);
+  if (rx || ry || rz) {
+    geometry.rotateX(rx);
+    geometry.rotateY(ry);
+    geometry.rotateZ(rz);
+  }
   geometry.translate(x, y, z);
   return paint(geometry, color);
 }
 
 function blob(
-  r: number, x: number, y: number, z: number,
-  color: number, sx = 1, sy = 1, sz = 1, ry = 0,
+  r: number,
+  x: number,
+  y: number,
+  z: number,
+  color: number,
+  sx = 1,
+  sy = 1,
+  sz = 1,
+  ry = 0,
 ): THREE.BufferGeometry {
   const geometry = new THREE.SphereGeometry(r, 6, 4);
   geometry.scale(sx, sy, sz);
@@ -120,7 +148,11 @@ const patch = seededNoise2D(0x9a03);
  * gradient is what actually grounds a prop: an object whose bottom is the same
  * clean colour as its top always looks like it was dropped in.
  */
-function weather(geometry: THREE.BufferGeometry, dust: THREE.Color, height: number): void {
+function weather(
+  geometry: THREE.BufferGeometry,
+  dust: THREE.Color,
+  height: number,
+): void {
   const position = geometry.attributes["position"]!;
   const color = geometry.attributes["color"]!;
   for (let i = 0; i < position.count; i += 1) {
@@ -199,11 +231,20 @@ function hescoBastion(rand: Rand): THREE.BufferGeometry {
   // Loose fill breaking the top edge.
   for (let i = 0; i < 7; i += 1) {
     const r = 0.06 + rand() * 0.09;
-    parts.push(box(
-      r * 2, r * 1.3, r * 1.7,
-      (rand() - 0.5) * s * 0.8, h + r * 0.4, (rand() - 0.5) * s * 0.8,
-      0x796b4e, rand(), rand() * 3, rand() * 0.4,
-    ));
+    parts.push(
+      box(
+        r * 2,
+        r * 1.3,
+        r * 1.7,
+        (rand() - 0.5) * s * 0.8,
+        h + r * 0.4,
+        (rand() - 0.5) * s * 0.8,
+        0x796b4e,
+        rand(),
+        rand() * 3,
+        rand() * 0.4,
+      ),
+    );
   }
   return mergeParts(parts);
 }
@@ -219,13 +260,19 @@ function sandbagStack(rand: Rand): THREE.BufferGeometry {
     const offset = row % 2 === 0 ? 0 : 0.15;
     for (let i = 0; i < n; i += 1) {
       const x = (i - (n - 1) / 2) * 0.3 + offset;
-      parts.push(blob(
-        0.2,
-        x, y, (rand() - 0.5) * 0.07,
-        SAND_BAG,
-        1.42 + rand() * 0.16, 0.4, 0.92,
-        (rand() - 0.5) * 0.26,
-      ));
+      parts.push(
+        blob(
+          0.2,
+          x,
+          y,
+          (rand() - 0.5) * 0.07,
+          SAND_BAG,
+          1.42 + rand() * 0.16,
+          0.4,
+          0.92,
+          (rand() - 0.5) * 0.26,
+        ),
+      );
     }
   }
   return mergeParts(parts);
@@ -293,7 +340,21 @@ function cableReel(): THREE.BufferGeometry {
   parts.push(cyl(0.3, 0.3, 0.56, 12, 0, R, 0, 0x4a4238, 0, 0, Math.PI / 2));
   // A few turns of cable still on the drum.
   for (let i = 0; i < 4; i += 1) {
-    parts.push(cyl(0.36 + i * 0.012, 0.36 + i * 0.012, 0.5 - i * 0.08, 12, 0, R, 0, 0x24262a, 0, 0, Math.PI / 2));
+    parts.push(
+      cyl(
+        0.36 + i * 0.012,
+        0.36 + i * 0.012,
+        0.5 - i * 0.08,
+        12,
+        0,
+        R,
+        0,
+        0x24262a,
+        0,
+        0,
+        Math.PI / 2,
+      ),
+    );
   }
   return mergeParts(parts);
 }
@@ -309,7 +370,9 @@ function genset(): THREE.BufferGeometry {
   // Louvred end and an exhaust stack.
   parts.push(box(0.05, h * 0.5, d * 0.7, w / 2 - 0.01, h * 0.5, 0, 0x3d443a));
   for (let i = 0; i < 5; i += 1) {
-    parts.push(box(0.07, 0.035, d * 0.66, w / 2 - 0.02, h * 0.32 + i * 0.09, 0, 0x2c322a));
+    parts.push(
+      box(0.07, 0.035, d * 0.66, w / 2 - 0.02, h * 0.32 + i * 0.09, 0, 0x2c322a),
+    );
   }
   parts.push(cyl(0.075, 0.075, 0.42, 8, -w * 0.3, h + 0.12, d * 0.28, STEEL_DARK));
   parts.push(box(w * 0.4, 0.06, 0.06, w * 0.18, h - 0.04, 0, STEEL_DARK));
@@ -346,12 +409,20 @@ function rubble(rand: Rand): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 6; i += 1) {
     const r = 0.07 + rand() * 0.17;
-    parts.push(box(
-      r * 2.4, r * 0.72, r * 1.9,
-      (rand() - 0.5) * 0.7, r * 0.34, (rand() - 0.5) * 0.7,
-      rand() > 0.4 ? 0x6b6357 : 0x7a705c,
-      (rand() - 0.5) * 0.5, rand() * 3.1, (rand() - 0.5) * 0.4,
-    ));
+    parts.push(
+      box(
+        r * 2.4,
+        r * 0.72,
+        r * 1.9,
+        (rand() - 0.5) * 0.7,
+        r * 0.34,
+        (rand() - 0.5) * 0.7,
+        rand() > 0.4 ? 0x6b6357 : 0x7a705c,
+        (rand() - 0.5) * 0.5,
+        rand() * 3.1,
+        (rand() - 0.5) * 0.4,
+      ),
+    );
   }
   return mergeParts(parts);
 }
@@ -422,20 +493,146 @@ interface PropDef {
 }
 
 const PROPS: readonly PropDef[] = [
-  { id: "jersey", build: jerseyBarrier, material: "hard", surface: "concrete", height: 0.82, cover: true, weight: 1.5, scale: [0.94, 1.06] },
-  { id: "hesco", build: hescoBastion, material: "soft", surface: "sand", height: 1.06, cover: true, weight: 1.1, scale: [0.92, 1.14] },
-  { id: "sandbags", build: sandbagStack, material: "soft", surface: "sand", height: 0.66, cover: true, weight: 1.0, scale: [0.9, 1.15] },
-  { id: "crate", build: crate, material: "hard", surface: "wood", height: 0.94, cover: true, weight: 1.4, scale: [0.85, 1.2] },
-  { id: "drum", build: drum, material: "hard", surface: "thin-metal", height: 0.88, cover: true, weight: 1.6, scale: [0.95, 1.05] },
-  { id: "pipes", build: pipeStack, material: "hard", surface: "metal", height: 0.75, cover: true, weight: 0.7, scale: [0.9, 1.1] },
-  { id: "reel", build: cableReel, material: "hard", surface: "wood", height: 1.36, cover: true, weight: 0.55, scale: [0.85, 1.1] },
-  { id: "genset", build: genset, material: "hard", surface: "metal", height: 1.12, cover: true, weight: 0.5, scale: [0.92, 1.06] },
-  { id: "pallets", build: palletStack, material: "hard", surface: "wood", height: 0.44, cover: true, weight: 0.9, scale: [0.9, 1.12] },
-  { id: "tyres", build: tyreStack, material: "hard", surface: "rubber", height: 0.53, cover: true, weight: 0.6, scale: [0.9, 1.15] },
-  { id: "cone", build: cone, material: "hard", surface: "rubber", height: 0.6, cover: false, weight: 0.9, scale: [0.9, 1.1] },
-  { id: "rubble", build: rubble, material: "hard", surface: "concrete", height: 0.3, cover: false, weight: 1.5, scale: [0.7, 1.5] },
-  { id: "scrub", build: scrub, material: "organic", surface: "foliage", height: 0.5, cover: false, weight: 1.0, scale: [0.7, 1.6] },
-  { id: "rock", build: rock, material: "hard", surface: "gravel", height: 0.3, cover: false, weight: 1.0, scale: [0.5, 1.7] },
+  {
+    id: "jersey",
+    build: jerseyBarrier,
+    material: "hard",
+    surface: "concrete",
+    height: 0.82,
+    cover: true,
+    weight: 1.5,
+    scale: [0.94, 1.06],
+  },
+  {
+    id: "hesco",
+    build: hescoBastion,
+    material: "soft",
+    surface: "sand",
+    height: 1.06,
+    cover: true,
+    weight: 1.1,
+    scale: [0.92, 1.14],
+  },
+  {
+    id: "sandbags",
+    build: sandbagStack,
+    material: "soft",
+    surface: "sand",
+    height: 0.66,
+    cover: true,
+    weight: 1.0,
+    scale: [0.9, 1.15],
+  },
+  {
+    id: "crate",
+    build: crate,
+    material: "hard",
+    surface: "wood",
+    height: 0.94,
+    cover: true,
+    weight: 1.4,
+    scale: [0.85, 1.2],
+  },
+  {
+    id: "drum",
+    build: drum,
+    material: "hard",
+    surface: "thin-metal",
+    height: 0.88,
+    cover: true,
+    weight: 1.6,
+    scale: [0.95, 1.05],
+  },
+  {
+    id: "pipes",
+    build: pipeStack,
+    material: "hard",
+    surface: "metal",
+    height: 0.75,
+    cover: true,
+    weight: 0.7,
+    scale: [0.9, 1.1],
+  },
+  {
+    id: "reel",
+    build: cableReel,
+    material: "hard",
+    surface: "wood",
+    height: 1.36,
+    cover: true,
+    weight: 0.55,
+    scale: [0.85, 1.1],
+  },
+  {
+    id: "genset",
+    build: genset,
+    material: "hard",
+    surface: "metal",
+    height: 1.12,
+    cover: true,
+    weight: 0.5,
+    scale: [0.92, 1.06],
+  },
+  {
+    id: "pallets",
+    build: palletStack,
+    material: "hard",
+    surface: "wood",
+    height: 0.44,
+    cover: true,
+    weight: 0.9,
+    scale: [0.9, 1.12],
+  },
+  {
+    id: "tyres",
+    build: tyreStack,
+    material: "hard",
+    surface: "rubber",
+    height: 0.53,
+    cover: true,
+    weight: 0.6,
+    scale: [0.9, 1.15],
+  },
+  {
+    id: "cone",
+    build: cone,
+    material: "hard",
+    surface: "rubber",
+    height: 0.6,
+    cover: false,
+    weight: 0.9,
+    scale: [0.9, 1.1],
+  },
+  {
+    id: "rubble",
+    build: rubble,
+    material: "hard",
+    surface: "concrete",
+    height: 0.3,
+    cover: false,
+    weight: 1.5,
+    scale: [0.7, 1.5],
+  },
+  {
+    id: "scrub",
+    build: scrub,
+    material: "organic",
+    surface: "foliage",
+    height: 0.5,
+    cover: false,
+    weight: 1.0,
+    scale: [0.7, 1.6],
+  },
+  {
+    id: "rock",
+    build: rock,
+    material: "hard",
+    surface: "gravel",
+    height: 0.3,
+    cover: false,
+    weight: 1.0,
+    scale: [0.5, 1.7],
+  },
 ];
 
 const COVER_IDS = PROPS.filter((p) => p.cover).map((p) => p.id);
@@ -642,7 +839,8 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
       for (let i = 0; i < n; i += 1) {
         drop(idOf("drum"), (rand() - 0.5) * 2.1, (rand() - 0.5) * 2.1, rand() * 3);
       }
-      if (rand() < 0.5) drop(idOf("pallets"), (rand() - 0.5) * 2.4, (rand() - 0.5) * 2.4, rand() * 3);
+      if (rand() < 0.5)
+        drop(idOf("pallets"), (rand() - 0.5) * 2.4, (rand() - 0.5) * 2.4, rand() * 3);
     } else if (kind < 0.64) {
       // A fighting position: bastions across the front, sandbags at the corner.
       const n = 2 + Math.floor(rand() * 3);
@@ -650,16 +848,25 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
         drop(idOf("hesco"), 0, (i - (n - 1) / 2) * 1.16, 0);
       }
       drop(idOf("sandbags"), 1.15, ((n - 1) / 2) * 1.16 + 0.5, Math.PI / 2);
-      if (rand() < 0.6) drop(idOf("sandbags"), 1.2, -((n - 1) / 2) * 1.16 - 0.5, Math.PI / 2);
+      if (rand() < 0.6)
+        drop(idOf("sandbags"), 1.2, -((n - 1) / 2) * 1.16 - 0.5, Math.PI / 2);
     } else if (kind < 0.82) {
       // A supply dump.
       const n = 2 + Math.floor(rand() * 4);
       for (let i = 0; i < n; i += 1) {
-        drop(idOf("crate"), (rand() - 0.5) * 2.8, (rand() - 0.5) * 2.8, (rand() - 0.5) * 0.4);
+        drop(
+          idOf("crate"),
+          (rand() - 0.5) * 2.8,
+          (rand() - 0.5) * 2.8,
+          (rand() - 0.5) * 0.4,
+        );
       }
-      if (rand() < 0.7) drop(idOf("pallets"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
-      if (rand() < 0.45) drop(idOf("tyres"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
-      if (rand() < 0.35) drop(idOf("reel"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
+      if (rand() < 0.7)
+        drop(idOf("pallets"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
+      if (rand() < 0.45)
+        drop(idOf("tyres"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
+      if (rand() < 0.35)
+        drop(idOf("reel"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
     } else {
       // Works: a genset or pipe with cones marking it off.
       drop(rand() < 0.5 ? idOf("genset") : idOf("pipes"), 0, 0, 0);
@@ -668,7 +875,8 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
         const a = (i / n) * Math.PI * 2;
         drop(idOf("cone"), Math.cos(a) * 2.1, Math.sin(a) * 2.1, 0);
       }
-      if (rand() < 0.5) drop(idOf("rubble"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
+      if (rand() < 0.5)
+        drop(idOf("rubble"), (rand() - 0.5) * 3, (rand() - 0.5) * 3, rand() * 3);
     }
   };
 
@@ -729,8 +937,15 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
       const z = apron.center[1] - lx * sin + lz * cos;
       if (!clearOfBuildings(x, z, 2.5)) continue;
       if (runwayDistance(x, z) < 16) continue;
-      if (rand() < 0.3) spawnCluster(x, z, apron.rotation + (rand() < 0.5 ? 0 : Math.PI / 2));
-      else push(pickWeighted(rand, rand() < 0.6 ? COVER_IDS : DRESSING_IDS), x, z, rand() * Math.PI * 2);
+      if (rand() < 0.3)
+        spawnCluster(x, z, apron.rotation + (rand() < 0.5 ? 0 : Math.PI / 2));
+      else
+        push(
+          pickWeighted(rand, rand() < 0.6 ? COVER_IDS : DRESSING_IDS),
+          x,
+          z,
+          rand() * Math.PI * 2,
+        );
     }
   }
 
@@ -757,7 +972,13 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
       if (runwayDistance(x, z) < 14) continue;
       const heading = Math.atan2(ux, uz);
       if (rand() < 0.22) spawnCluster(x, z, heading);
-      else push(pickWeighted(rand, rand() < 0.55 ? COVER_IDS : DRESSING_IDS), x, z, heading + (rand() - 0.5) * 0.6);
+      else
+        push(
+          pickWeighted(rand, rand() < 0.55 ? COVER_IDS : DRESSING_IDS),
+          x,
+          z,
+          heading + (rand() - 0.5) * 0.6,
+        );
     }
   }
 
@@ -775,7 +996,10 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
     maxZ = Math.max(maxZ, zone.position[1] + zone.radius);
   }
   const pad = 130;
-  minX -= pad; maxX += pad; minZ -= pad; maxZ += pad;
+  minX -= pad;
+  maxX += pad;
+  minZ -= pad;
+  maxZ += pad;
 
   // Desert scatter is the cheapest detail in the scene — twenty triangles a
   // stone, one draw call for all of them — and it is the only thing standing

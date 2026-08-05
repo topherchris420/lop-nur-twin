@@ -25,9 +25,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite.config.ts"],
-  // Partially-written subsystems parked here after their build agents were cut
-  // short. The code is sound but references files that were never reached, so
-  // it is excluded until each one is finished and moved back into `src/game`.
-  "exclude": ["src/game/_wip"]
+  // Every file under `src/` is strict-checked, with no exclusions: production
+  // source has no parked corners. Unfinished subsystems live in `experiments/`,
+  // outside `src/` and outside this project entirely (see `experiments/README.md`).
+  //
+  // `scripts/` is in the project too. Those files decide what the validator
+  // rejects and what the release manifest hashes, so they are production code
+  // that happens to run at build time rather than in a browser.
+  "include": ["src", "scripts", "vite.config.ts", "vitest.config.ts"]
 }

@@ -432,7 +432,9 @@ export function modeRing(
   dest: AudioNode,
   when: number,
   modes: readonly Mode[],
-  options: { decay: number; attack?: number; detune?: number; rand?: Rand } = { decay: 0.3 },
+  options: { decay: number; attack?: number; detune?: number; rand?: Rand } = {
+    decay: 0.3,
+  },
 ): number {
   let end = when;
   const attack = options.attack ?? 0.0015;
@@ -444,7 +446,8 @@ export function modeRing(
     osc.frequency.value = clamp(mode.hz * (1 + r * detune), 20, ctx.sampleRate * 0.45);
     const g = gainNode(ctx, 0);
     // High modes die first, exactly like a real struck body.
-    const decay = options.decay * Math.pow(600 / Math.max(120, mode.hz), 0.35) * (0.7 + mode.q / 30);
+    const decay =
+      options.decay * Math.pow(600 / Math.max(120, mode.hz), 0.35) * (0.7 + mode.q / 30);
     const stop = scheduleEnv(g.gain, when, { peak: mode.gain, attack, decay });
     osc.connect(g);
     g.connect(dest);
@@ -504,7 +507,8 @@ export function noiseBurst(
   if (options.rate !== undefined || options.rateEnd !== undefined) {
     const from = options.rate ?? 1;
     const to = options.rateEnd ?? from;
-    if (to !== from) glide(src.playbackRate, when, from, to, attack + (options.hold ?? 0) + decay);
+    if (to !== from)
+      glide(src.playbackRate, when, from, to, attack + (options.hold ?? 0) + decay);
     else src.playbackRate.value = from;
   }
 
@@ -524,7 +528,13 @@ export function noiseBurst(
       options.filterGainDb ?? 0,
     );
     if (options.freqEnd !== undefined && options.freqEnd !== options.freq) {
-      glide(filter.frequency, when, options.freq, options.freqEnd, attack + (options.hold ?? 0) + decay);
+      glide(
+        filter.frequency,
+        when,
+        options.freq,
+        options.freqEnd,
+        attack + (options.hold ?? 0) + decay,
+      );
     }
     tail.connect(filter);
     tail = filter;
@@ -621,7 +631,13 @@ export function sineSweep(
   if (options.harmonic !== undefined && options.harmonic > 0) {
     const h = ctx.createOscillator();
     h.type = "triangle";
-    glide(h.frequency, when, options.from * 2.01, options.to * 1.98, options.seconds * 0.8);
+    glide(
+      h.frequency,
+      when,
+      options.from * 2.01,
+      options.to * 1.98,
+      options.seconds * 0.8,
+    );
     const hg = gainNode(ctx, 0);
     scheduleEnv(hg.gain, when, {
       peak: options.gain * options.harmonic,
@@ -849,7 +865,9 @@ export function impulseResponse(ctx: BaseAudioContext, spec: IrSpec): AudioBuffe
 
     // Discrete early reflections: the geometry you actually localise.
     for (const [ms, gain] of spec.early) {
-      const base = chDelay + Math.round((ms / 1000) * sr * (1 + (ch === 1 ? spec.stereo * 0.05 : 0)));
+      const base =
+        chDelay +
+        Math.round((ms / 1000) * sr * (1 + (ch === 1 ? spec.stereo * 0.05 : 0)));
       const sign = rand() < 0.5 ? -1 : 1;
       for (let k = 0; k < 5; k += 1) {
         const idx = base + k;
@@ -867,7 +885,10 @@ export function impulseResponse(ctx: BaseAudioContext, spec: IrSpec): AudioBuffe
         for (let i = chDelay; i < frames; i += 1) {
           const t = (i - chDelay) / sr;
           data[i] =
-            data[i]! + gain * Math.sin(2 * Math.PI * hz * detune * t + phase) * Math.exp(-t / modeDecay);
+            data[i]! +
+            gain *
+              Math.sin(2 * Math.PI * hz * detune * t + phase) *
+              Math.exp(-t / modeDecay);
         }
       }
     }
@@ -1005,7 +1026,13 @@ export function slapBack(
 export function lfo(
   ctx: BaseAudioContext,
   target: AudioParam,
-  options: { hz: number; depth: number; type?: OscillatorType; when: number; phase?: number },
+  options: {
+    hz: number;
+    depth: number;
+    type?: OscillatorType;
+    when: number;
+    phase?: number;
+  },
 ): OscillatorNode {
   const osc = ctx.createOscillator();
   osc.type = options.type ?? "sine";

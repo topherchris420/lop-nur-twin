@@ -25,7 +25,10 @@ interface Painted {
   dpr: number;
 }
 
-function setupCanvas(canvas: HTMLCanvasElement, painted: Painted): CanvasRenderingContext2D {
+function setupCanvas(
+  canvas: HTMLCanvasElement,
+  painted: Painted,
+): CanvasRenderingContext2D {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
@@ -88,7 +91,12 @@ function paintCrosshair(
     ctx.strokeStyle = hud.hitmarkerKill ? RED : "#ffffff";
     ctx.lineWidth = 2.2;
     ctx.lineCap = "round";
-    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    for (const [sx, sy] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
       ctx.beginPath();
       ctx.moveTo(cx + sx * gap, cy + sy * gap);
       ctx.lineTo(cx + sx * (gap + len), cy + sy * (gap + len));
@@ -126,7 +134,12 @@ function paintCrosshair(
     ctx.stroke();
   } else {
     const len = 6;
-    for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]] as const) {
+    for (const [dx, dy] of [
+      [0, -1],
+      [0, 1],
+      [-1, 0],
+      [1, 0],
+    ] as const) {
       ctx.beginPath();
       ctx.moveTo(cx + dx * gap, cy + dy * gap);
       ctx.lineTo(cx + dx * (gap + len), cy + dy * (gap + len));
@@ -227,7 +240,14 @@ function paintHealth(ctx: CanvasRenderingContext2D, w: number, h: number): void 
   // No bar: the screen itself tells you. Below 40% it becomes urgent.
   const severity = 1 - ratio;
   const inner = Math.min(w, h) * (0.28 + ratio * 0.24);
-  const gradient = ctx.createRadialGradient(w / 2, h / 2, inner, w / 2, h / 2, Math.max(w, h) * 0.72);
+  const gradient = ctx.createRadialGradient(
+    w / 2,
+    h / 2,
+    inner,
+    w / 2,
+    h / 2,
+    Math.max(w, h) * 0.72,
+  );
   const alpha = Math.pow(severity, 1.6) * 0.85;
   gradient.addColorStop(0, "rgba(120,10,6,0)");
   gradient.addColorStop(0.55, `rgba(120,10,6,${alpha * 0.4})`);
@@ -304,11 +324,7 @@ function paintEliminated(ctx: CanvasRenderingContext2D, w: number, h: number): v
     ctx.fillStyle = "rgba(148,163,184,0.85)";
     ctx.font = "500 12px ui-monospace, monospace";
     const weapon = hud.killedByWeapon.toUpperCase().replace(/-/g, " ");
-    ctx.fillText(
-      hud.killedByHeadshot ? `${weapon}  ·  HEADSHOT` : weapon,
-      cx,
-      top + 68,
-    );
+    ctx.fillText(hud.killedByHeadshot ? `${weapon}  ·  HEADSHOT` : weapon, cx, top + 68);
   }
 
   // A countdown bar, so the wait is legible rather than indefinite.
@@ -334,14 +350,21 @@ function paintEliminated(ctx: CanvasRenderingContext2D, w: number, h: number): v
 }
 
 const COMPASS_POINTS: [number, string][] = [
-  [0, "N"], [45, "NE"], [90, "E"], [135, "SE"],
-  [180, "S"], [225, "SW"], [270, "W"], [315, "NW"],
+  [0, "N"],
+  [45, "NE"],
+  [90, "E"],
+  [135, "SE"],
+  [180, "S"],
+  [225, "SW"],
+  [270, "W"],
+  [315, "NW"],
 ];
 
 function paintCompass(ctx: CanvasRenderingContext2D, w: number): void {
   // North is -z in the world frame, so the heading is measured off that.
   const heading =
-    ((Math.atan2(game.cameraForward.x, -game.cameraForward.z) * 180) / Math.PI + 360) % 360;
+    ((Math.atan2(game.cameraForward.x, -game.cameraForward.z) * 180) / Math.PI + 360) %
+    360;
   const width = Math.min(520, w * 0.42);
   const cx = w / 2;
   const top = 22;
@@ -374,7 +397,10 @@ function paintCompass(ctx: CanvasRenderingContext2D, w: number): void {
     const x = cx + delta * pxPerDeg;
     const fade = 1 - Math.abs(delta) / 62;
     ctx.fillStyle = `rgba(240,245,250,${0.25 + fade * 0.72})`;
-    ctx.font = label.length === 1 ? "600 13px ui-sans-serif, system-ui" : "600 10px ui-sans-serif, system-ui";
+    ctx.font =
+      label.length === 1
+        ? "600 13px ui-sans-serif, system-ui"
+        : "600 10px ui-sans-serif, system-ui";
     ctx.fillText(label, x, top - 2);
   }
   ctx.restore();

@@ -116,7 +116,11 @@ export class ViewmodelStage {
    * so the two passes agree on exposure — without that the weapon reads as a
    * sticker pasted onto the scene.
    */
-  render(renderer: THREE.WebGLRenderer, toneMapping: THREE.ToneMapping, exposure: number): void {
+  render(
+    renderer: THREE.WebGLRenderer,
+    toneMapping: THREE.ToneMapping,
+    exposure: number,
+  ): void {
     const previousAutoClear = renderer.autoClear;
     const previousToneMapping = renderer.toneMapping;
     const previousExposure = renderer.toneMappingExposure;

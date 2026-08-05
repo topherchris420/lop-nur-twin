@@ -20,11 +20,11 @@
 
 **Three ways in.**
 
-| Route | What it is |
-| :-- | :-- |
-| **`/`** | The analytical twin: orbit it, walk it, click any structure for its sourced dossier, measure distances and grid bearings, read the evidence legend and the release manifest. |
-| **`/analysis`** | The same model without the 3D scene — a searchable, screen-reader-friendly table of every structure with its evidence classification, confidence, modeled coordinates, dimensions, sources, uncertainty and analyst notes. Every row links back into the 3D dossier. |
-| **`/play`** | **Blacksite**, a first-person engagement simulator running on the same reconstruction — the same terrain, the same buildings, the same measured layout, with collision baked out of the rendered scene graph so the map and the twin can never drift apart. Labelled *illustrative simulation — not operational data* throughout. |
+| Route           | What it is                                                                                                                                                                                                                                                                                                                        |
+| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`/`**         | The analytical twin: orbit it, walk it, click any structure for its sourced dossier, measure distances and grid bearings, read the evidence legend and the release manifest.                                                                                                                                                      |
+| **`/analysis`** | The same model without the 3D scene — a searchable, screen-reader-friendly table of every structure with its evidence classification, confidence, modeled coordinates, dimensions, sources, uncertainty and analyst notes. Every row links back into the 3D dossier.                                                              |
+| **`/play`**     | **Blacksite**, a first-person engagement simulator running on the same reconstruction — the same terrain, the same buildings, the same measured layout, with collision baked out of the rendered scene graph so the map and the twin can never drift apart. Labelled _illustrative simulation — not operational data_ throughout. |
 
 ### Evidence, not atmosphere
 
@@ -35,14 +35,14 @@ aircraft identification, an environmental input, a piece of scenery — is an
 a stated measurement uncertainty where the project documents one. **129 records
 across 11 public sources.**
 
-The four classifications are visible everywhere, always as a symbol *and* a word:
+The four classifications are visible everywhere, always as a symbol _and_ a word:
 
-| | Status | Means |
-| :-- | :-- | :-- |
-| ◆ | **Observed** | Visible in the cited public imagery. Presence and extent — never function or interior use. |
-| ■ | **Reported** | A cited publication states it exists. Placement and dimensions here are still modeled. |
-| ▲ | **Interpreted** | This project assigned an identity, dimension or function no source states. |
-| ○ | **Illustrative** | Modeled scenery or motion, not resolved in any source. |
+|     | Status           | Means                                                                                      |
+| :-- | :--------------- | :----------------------------------------------------------------------------------------- |
+| ◆   | **Observed**     | Visible in the cited public imagery. Presence and extent — never function or interior use. |
+| ■   | **Reported**     | A cited publication states it exists. Placement and dimensions here are still modeled.     |
+| ▲   | **Interpreted**  | This project assigned an identity, dimension or function no source states.                 |
+| ○   | **Illustrative** | Modeled scenery or motion, not resolved in any source.                                     |
 
 `bun run validate:data` **fails the build** if an illustrative feature is
 labelled observed, if an interpreted feature is described as verified, if a
@@ -59,7 +59,7 @@ Full method: [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md).
 `bun run manifest` writes `public/model-manifest.json` before every build:
 model version, CRS, record and source counts, SHA-256 hashes of the
 canonicalised geometry and evidence ledger, validation status, an explicit
-`assurance` block of what this system is *not* certified for, and the
+`assurance` block of what this system is _not_ certified for, and the
 known-limitations list. Hash inputs are key-sorted, so repeated builds agree;
 set `SOURCE_DATE_EPOCH` and the file is byte-reproducible — verified identical
 under both Bun 1.3 and Node 22. The manifest is downloadable from the research
@@ -74,25 +74,25 @@ understand a place's scale is to have to cross it under fire: the assembly
 hangar is 126 m of wall you have to run the length of, and the apron is
 genuinely as exposed as it looks from 400 m up.
 
-| | |
-| :-- | :-- |
-| **Ballistics** | Rounds walk through up to four surfaces, spending a penetration budget per material and losing damage as they go — sheet-metal cladding is defeatable, a concrete revetment is not. Shallow hits on hard materials ricochet. Heavy calibres fly a simulated projectile with drag and drop instead of hitscanning. |
-| **Recoil is a pattern** | Each weapon derives a fixed spray sequence from its seed, so it can be learned and pulled down, exactly as in the games this is modelled on. Random jitter is layered on top but stays small. |
-| **Sixteen weapons** | Assault, SMG, LMG, marksman, sniper, shotgun, pistol, launcher, melee — balanced to the genre's numbers: a 3–4 shot kill inside 30 m for a rifle, 200–500 ms time-to-kill for every automatic at 10/25/50 m. `ttkTable()` in `weapons/arsenal.ts` prints the whole matrix. |
-| **Bots that fight you** | A small explicit state machine, not a behaviour tree. What makes them fair rather than robotic is three numbers that scale with skill: a reaction delay before a spotted target may be shot at, an aim-error cone that *converges* the longer they hold you rather than snapping to zero, and burst discipline that leaves gaps to move in. They share contacts across the squad, investigate gunfire through walls, and turn toward rounds that come from somewhere they cannot see. |
-| **Procedural soldiers** | No clip data. Legs are *placed*, not rotated: each foot follows an explicit trajectory and two-bone IK solves the hip and knee to reach it, so stride length is tied to measured speed and a planted foot never slides. Aim twists the spine, the off hand is solved onto the weapon's handguard, and hits, recoil and suppression are additive layers on top. |
-| **Synthesised audio** | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot. |
+|                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Ballistics**          | Rounds walk through up to four surfaces, spending a penetration budget per material and losing damage as they go — sheet-metal cladding is defeatable, a concrete revetment is not. Shallow hits on hard materials ricochet. Heavy calibres fly a simulated projectile with drag and drop instead of hitscanning.                                                                                                                                                                     |
+| **Recoil is a pattern** | Each weapon derives a fixed spray sequence from its seed, so it can be learned and pulled down, exactly as in the games this is modelled on. Random jitter is layered on top but stays small.                                                                                                                                                                                                                                                                                         |
+| **Sixteen weapons**     | Assault, SMG, LMG, marksman, sniper, shotgun, pistol, launcher, melee — balanced to the genre's numbers: a 3–4 shot kill inside 30 m for a rifle, 200–500 ms time-to-kill for every automatic at 10/25/50 m. `ttkTable()` in `weapons/arsenal.ts` prints the whole matrix.                                                                                                                                                                                                            |
+| **Bots that fight you** | A small explicit state machine, not a behaviour tree. What makes them fair rather than robotic is three numbers that scale with skill: a reaction delay before a spotted target may be shot at, an aim-error cone that _converges_ the longer they hold you rather than snapping to zero, and burst discipline that leaves gaps to move in. They share contacts across the squad, investigate gunfire through walls, and turn toward rounds that come from somewhere they cannot see. |
+| **Procedural soldiers** | No clip data. Legs are _placed_, not rotated: each foot follows an explicit trajectory and two-bone IK solves the hip and knee to reach it, so stride length is tied to measured speed and a planted foot never slides. Aim twists the spine, the off hand is solved onto the weapon's handguard, and hits, recoil and suppression are additive layers on top.                                                                                                                        |
+| **Synthesised audio**   | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot.                                                                                                                                                                                                                                                                                                           |
 
 **Controls**
 
-| Input | Action |
-| :-- | :-- |
-| `W` `A` `S` `D` | Move; `Shift` sprints, `Ctrl`/`C` crouches, `Z` goes prone |
-| `Space` | Jump, and mantle onto anything shoulder-height |
-| Mouse | Look; left fires, right aims down sights |
-| `R` · `1`/`2` · `V` · `B` | Reload · swap weapon · melee · cycle fire mode |
-| `Q` / `E` · `G` · `T` · `F` | Lean left / right · lethal · tactical · interact |
-| `Tab` · `Esc` | Scoreboard · pause and release the mouse |
+| Input                       | Action                                                     |
+| :-------------------------- | :--------------------------------------------------------- |
+| `W` `A` `S` `D`             | Move; `Shift` sprints, `Ctrl`/`C` crouches, `Z` goes prone |
+| `Space`                     | Jump, and mantle onto anything shoulder-height             |
+| Mouse                       | Look; left fires, right aims down sights                   |
+| `R` · `1`/`2` · `V` · `B`   | Reload · swap weapon · melee · cycle fire mode             |
+| `Q` / `E` · `G` · `T` · `F` | Lean left / right · lethal · tactical · interact           |
+| `Tab` · `Esc`               | Scoreboard · pause and release the mouse                   |
 
 `/play?autoplay=1` skips the menus. `?quality=0..3` pins a quality tier,
 `?at=<x>,<z>` and `?look=<deg>` place and aim the opening spawn, and
@@ -115,9 +115,9 @@ genuinely as exposed as it looks from 400 m up.
 Lop Nur — built from public Earth-observation data, cited open reporting, and
 clearly labelled interpretation.**
 
-|  |  |  |  |
-| :-- | :-- | :-- | :-- |
-| **40.77°N** | **~5 km** | **6.8 km** | **Public OSINT** |
+|                       |                          |                        |                       |
+| :-------------------- | :----------------------- | :--------------------- | :-------------------- |
+| **40.77°N**           | **~5 km**                | **6.8 km**             | **Public OSINT**      |
 | 89.28°E · approximate | Runway 05/23 · 16,400 ft | Local simulation frame | Cited, offline inputs |
 
 ![Aerial overview — the triangular airfield in empty desert, with the compound on the south side of the paved runway](docs/screenshot-overview.png)
@@ -151,15 +151,15 @@ The 6.8 × 6.8 km airfield frame is driven by a single layout file. Add a
 structure there and it appears in the world, the minimap, and the site index at
 once. What follows is the current census of what has been represented.
 
-| Zone | What's there |
-| :-- | :-- |
-| **The airfield** | A single ~5 km pale-concrete runway (05/23, modeled grid bearing ~046°) with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex. |
-| **The compound** | Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter, now extended with frontage roads to the crew, south-east and fuel-area additions. |
-| **Structures (43)** | Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. The 2025 build-out adds **reported** western fighter shelters, a north-east apron hangar, an expanded fuel farm and south-east construction, plus **interpreted** crew blocks. These names describe model hypotheses, not verified functions. |
-| **Base support (illustrative)** | Power (photovoltaic field, switchyard), water (elevated tank), sanitation (wastewater plant), sensors (air-search radome, comms shelter) and security (perimeter towers, gate guardhouse) complete a base of this class. None is resolved in the cited 10 m imagery; all are labelled **illustrative**. |
-| **The flight line** | Two parked models represent the J-36 and J-XDS aircraft reported in August and September 2025 imagery. Both are clickable and evidence-labelled; the separate animated flying-wing demonstrator is illustrative and not part of the structure catalog. |
-| **Terrain** | 6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface. |
-| **A living base** | The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations. |
+| Zone                            | What's there                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The airfield**                | A single ~5 km pale-concrete runway (05/23, modeled grid bearing ~046°) with two ~5.5 km graded-earth strips completing the triangle out to a north-west apex.                                                                                                                                                                                                                                                                               |
+| **The compound**                | Reached by a spur taxiway from mid-runway: three concrete aprons, paved internal streets, and dirt access tracks along the perimeter, now extended with frontage roads to the crew, south-east and fuel-area additions.                                                                                                                                                                                                                      |
+| **Structures (43)**             | Public imagery informs footprints and roof forms for service and storage halls, a large assembly-hall interpretation, an arched shed, a tower, an operations block, and walled service courts. The 2025 build-out adds **reported** western fighter shelters, a north-east apron hangar, an expanded fuel farm and south-east construction, plus **interpreted** crew blocks. These names describe model hypotheses, not verified functions. |
+| **Base support (illustrative)** | Power (photovoltaic field, switchyard), water (elevated tank), sanitation (wastewater plant), sensors (air-search radome, comms shelter) and security (perimeter towers, gate guardhouse) complete a base of this class. None is resolved in the cited 10 m imagery; all are labelled **illustrative**.                                                                                                                                      |
+| **The flight line**             | Two parked models represent the J-36 and J-XDS aircraft reported in August and September 2025 imagery. Both are clickable and evidence-labelled; the separate animated flying-wing demonstrator is illustrative and not part of the structure catalog.                                                                                                                                                                                       |
+| **Terrain**                     | 6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface.                                                                                                                                                                                                                               |
+| **A living base**               | The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations.                                                                                                                                                                                                                            |
 
 ![Structure dossier — click any building or aircraft for its details and a fly-to jump](docs/screenshot-dossier.png)
 
@@ -172,12 +172,12 @@ data, leaked plans, or private access. Public Earth-observation products,
 published analysis and open reporting are cited according to the role each one
 plays; interpretation and simulation are kept separate from source observations.
 
-| Step | | |
-| :-- | :-- | :-- |
+| Step   |                                |                                                                                                                                                                                                                                                                             |
+| :----- | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **01** | **Register public references** | Use Sentinel-2 as repeatable optical context, Copernicus GLO-30 as a coarse elevation reference, and cited reporting as event context. Approximate coordinates (40.77°N, 89.28°E), the ~5 km 05/23 runway and its modeled ~046° grid bearing anchor the 6.8 km local frame. |
-| **02** | **Trace and classify** | Encode visible runway, road and structure footprints once, in metric units, then label each claim as **observed**, **reported**, **interpreted**, or **illustrative**. A visible footprint does not establish a building's use. |
-| **03** | **Generate scenarios** | A seeded procedural heightfield builds the plain; procedural geometry raises structures; embedded NASA POWER monthly climatology supplies broad regional weather scenarios. Neither source is presented as surveyed terrain or live site weather. |
-| **04** | **Ship an offline snapshot** | The browser makes no runtime imagery, DEM, reporting or climate requests. Source values and citations are reviewed ahead of release, then the self-contained scene and minimap render from the same deterministic layout. |
+| **02** | **Trace and classify**         | Encode visible runway, road and structure footprints once, in metric units, then label each claim as **observed**, **reported**, **interpreted**, or **illustrative**. A visible footprint does not establish a building's use.                                             |
+| **03** | **Generate scenarios**         | A seeded procedural heightfield builds the plain; procedural geometry raises structures; embedded NASA POWER monthly climatology supplies broad regional weather scenarios. Neither source is presented as surveyed terrain or live site weather.                           |
+| **04** | **Ship an offline snapshot**   | The browser makes no runtime imagery, DEM, reporting or climate requests. Source values and citations are reviewed ahead of release, then the self-contained scene and minimap render from the same deterministic layout.                                                   |
 
 > **Determinism is the guarantee.** Noise is seeded, textures are generated
 > locally, and structures are placed from one metric layout, so the same inputs
@@ -212,13 +212,13 @@ station, forecast or record of conditions during any reported event.
 
 **How to explore**
 
-| Key | Action |
-| :-- | :-- |
-| `1` / `2` / `3` | Free-fly orbit · first-person walk (WASD, Shift sprints) · cinematic flythrough |
-| `N` | Toggle day / night |
-| `I` / `H` | Site index (grouped outliner) · help overlay |
-| `M` | Measure distances and grid bearings on the minimap (clicks snap to modeled vertices; copy the reading out) |
-| `Click` | Open a structure's dossier and fly to it · click the minimap to jump the orbit camera |
+| Key             | Action                                                                                                     |
+| :-------------- | :--------------------------------------------------------------------------------------------------------- |
+| `1` / `2` / `3` | Free-fly orbit · first-person walk (WASD, Shift sprints) · cinematic flythrough                            |
+| `N`             | Toggle day / night                                                                                         |
+| `I` / `H`       | Site index (grouped outliner) · help overlay                                                               |
+| `M`             | Measure distances and grid bearings on the minimap (clicks snap to modeled vertices; copy the reading out) |
+| `Click`         | Open a structure's dossier and fly to it · click the minimap to jump the orbit camera                      |
 
 On phones and tablets, orbit responds to one-finger drag, pinch-zoom and
 two-finger pan; first-person mode shows on-screen thumb-stick and look controls.
@@ -252,16 +252,16 @@ two-finger pan; first-person mode shows on-screen thumb-stick and look controls.
 
 ### Public-data ledger
 
-| Source | Role in the twin | Important limit |
-| :-- | :-- | :-- |
-| [Sentinel-2 L2A scene T45TXF, 2025-09-28](https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250928T050231_N0511_R119_T45TXF_20250928T074723) | The pinned public scene used to measure the runway and interpret the current footprint layout. | The 10 m imagery supports site-scale measurement, not detailed interior or function claims; modeled endpoints retain ~40 m uncertainty. |
-| [ESA Sentinel-2 User Handbook](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2_User_Handbook) | Repeatable multispectral optical context and registration conventions. | Native bands are 10, 20 or 60 m; Sentinel-2 alone cannot verify detailed building functions. |
-| [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM) | An approximate sample near the public runway-center coordinate (~981 m, EGM2008; sampled 2026-07-19) anchors local altitude. | The link identifies the collection rather than a pinned tile. The rendered relief is procedural and no DEM tile is redistributed. |
-| [NASA POWER climatology API](https://power.larc.nasa.gov/docs/services/api/temporal/climatology/) · [embedded point query](https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M%2CWS10M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN%2CRH2M%2CWD10M&community=RE&longitude=89.281218&latitude=40.772521&format=JSON) | Monthly 2001–2020 temperature, humidity, precipitation, solar and wind means shape regional scenarios. | Modelled grid climatology, not local observations, a forecast or event-time weather. |
-| [The War Zone, 2025](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base) | Public reporting for the J-36 and J-XDS sightings, the runway-length context, and the mid-2025 build-out (western fighter shelters, a >300 ft main hangar, expanded fuel storage, new utility buildings, south-east construction). | A secondary report; aircraft labels, facility functions and dimensions remain attributed reporting. |
-| [National Security Journal, 2025](https://nationalsecurityjournal.org/new-stealth-j-36-and-j-xds-fighters-might-be-undergoing-testing-at-chinas-area-51/) | Corroborates the >16,400 ft runway, three western fighter-sized hangars, the large main hangar, and expanded fuel/utility/taxiway construction from commercial imagery. | A secondary report; identities and dimensions remain attributed reporting, not official records. |
-| [Secure World Foundation, 2026](https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet) | Context for likely reusable experimental spacecraft landings. | "Likely" is retained; the simulator does not independently verify a landing. |
-| [CSIS PONI, 2026](https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/) · [published tunnel-area coordinates](https://doi.org/10.1080/10736700.2025.2497201) | Offsite context and the ~127 km separation from the airfield. | The tunnel area is not rendered; CSIS's 2020 comparison was inconclusive and found no significant visible change. |
+| Source                                                                                                                                                                                                                                                                                                                         | Role in the twin                                                                                                                                                                                                                   | Important limit                                                                                                                         |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| [Sentinel-2 L2A scene T45TXF, 2025-09-28](https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a/items/S2A_MSIL2A_20250928T050231_N0511_R119_T45TXF_20250928T074723)                                                                                                                                               | The pinned public scene used to measure the runway and interpret the current footprint layout.                                                                                                                                     | The 10 m imagery supports site-scale measurement, not detailed interior or function claims; modeled endpoints retain ~40 m uncertainty. |
+| [ESA Sentinel-2 User Handbook](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2_User_Handbook)                                                                                                                                                                                                               | Repeatable multispectral optical context and registration conventions.                                                                                                                                                             | Native bands are 10, 20 or 60 m; Sentinel-2 alone cannot verify detailed building functions.                                            |
+| [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM)                                                                                                                                                                        | An approximate sample near the public runway-center coordinate (~981 m, EGM2008; sampled 2026-07-19) anchors local altitude.                                                                                                       | The link identifies the collection rather than a pinned tile. The rendered relief is procedural and no DEM tile is redistributed.       |
+| [NASA POWER climatology API](https://power.larc.nasa.gov/docs/services/api/temporal/climatology/) · [embedded point query](https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M%2CWS10M%2CPRECTOTCORR%2CALLSKY_SFC_SW_DWN%2CRH2M%2CWD10M&community=RE&longitude=89.281218&latitude=40.772521&format=JSON) | Monthly 2001–2020 temperature, humidity, precipitation, solar and wind means shape regional scenarios.                                                                                                                             | Modelled grid climatology, not local observations, a forecast or event-time weather.                                                    |
+| [The War Zone, 2025](https://www.twz.com/air/chinas-6th-generation-stealth-fighters-both-appear-at-secretive-test-base)                                                                                                                                                                                                        | Public reporting for the J-36 and J-XDS sightings, the runway-length context, and the mid-2025 build-out (western fighter shelters, a >300 ft main hangar, expanded fuel storage, new utility buildings, south-east construction). | A secondary report; aircraft labels, facility functions and dimensions remain attributed reporting.                                     |
+| [National Security Journal, 2025](https://nationalsecurityjournal.org/new-stealth-j-36-and-j-xds-fighters-might-be-undergoing-testing-at-chinas-area-51/)                                                                                                                                                                      | Corroborates the >16,400 ft runway, three western fighter-sized hangars, the large main hangar, and expanded fuel/utility/taxiway construction from commercial imagery.                                                            | A secondary report; identities and dimensions remain attributed reporting, not official records.                                        |
+| [Secure World Foundation, 2026](https://www.swfound.org/publications-and-reports/chinese-reusable-experimental-spacecraft-fact-sheet)                                                                                                                                                                                          | Context for likely reusable experimental spacecraft landings.                                                                                                                                                                      | "Likely" is retained; the simulator does not independently verify a landing.                                                            |
+| [CSIS PONI, 2026](https://nuclearnetwork.csis.org/satellite-imagery-analysis-of-chinas-alleged-2020-nuclear-test-at-lop-nur/) · [published tunnel-area coordinates](https://doi.org/10.1080/10736700.2025.2497201)                                                                                                             | Offsite context and the ~127 km separation from the airfield.                                                                                                                                                                      | The tunnel area is not rendered; CSIS's 2020 comparison was inconclusive and found no significant visible change.                       |
 
 Copernicus DEM attribution: © DLR e.V. 2010–2014 and © Airbus Defence and
 Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.
@@ -320,16 +320,16 @@ directly: `bun scripts/validate-data.ts`, `bun scripts/generate-manifest.ts`.
 
 ## Security, accessibility and evaluation
 
-| Document | What it covers |
-| :-- | :-- |
-| [`SECURITY.md`](SECURITY.md) | Supported versions, private vulnerability reporting, dependency and secret policy, and the security limits of a browser-hosted public demo |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, trust boundaries, actors, eleven threats with mitigations and residual risk — starting with the biggest one: simulated content being mistaken for verified intelligence |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md) | Frontend, scene, routes, stores, shared layout, simulation layer, validation pipeline, ledger, manifest, build, deployment and browser trust boundaries |
-| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md) | How sources are registered, claims classified, confidence recorded, uncertainty represented, hashes generated, and a release reproduced |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | What `/analysis` implements, what the automated axe run covers and found, and the manual checks that remain untested |
-| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it explicitly is not, evaluation areas, and a 30-minute evaluation path |
-| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md) | PostGIS, STAC, object storage, OpenAPI, OIDC/CAC-PIV, RBAC and audit logging — clearly split into implemented, scaffolded and recommended-only |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Vercel build settings and redeploy steps, the container image, and how to verify a deployment matches a commit |
+| Document                                                         | What it covers                                                                                                                                                                  |
+| :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`SECURITY.md`](SECURITY.md)                                     | Supported versions, private vulnerability reporting, dependency and secret policy, and the security limits of a browser-hosted public demo                                      |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)                   | Assets, trust boundaries, actors, eleven threats with mitigations and residual risk — starting with the biggest one: simulated content being mistaken for verified intelligence |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)     | Frontend, scene, routes, stores, shared layout, simulation layer, validation pipeline, ledger, manifest, build, deployment and browser trust boundaries                         |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)             | How sources are registered, claims classified, confidence recorded, uncertainty represented, hashes generated, and a release reproduced                                         |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                 | What `/analysis` implements, what the automated axe run covers and found, and the manual checks that remain untested                                                            |
+| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it explicitly is not, evaluation areas, and a 30-minute evaluation path                                                                                      |
+| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md)               | PostGIS, STAC, object storage, OpenAPI, OIDC/CAC-PIV, RBAC and audit logging — clearly split into implemented, scaffolded and recommended-only                                  |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                       | Vercel build settings and redeploy steps, the container image, and how to verify a deployment matches a commit                                                                  |
 
 Every pull request runs data validation, the evidence negative tests, a
 production build, a strict typecheck, the simulation and gait and audio
@@ -509,19 +509,19 @@ perfectly correctly and every round resolved against the concrete behind you.
 
 ## Controls — How to Explore
 
-| Key            | Action                                          |
-| -------------- | ----------------------------------------------- |
-| `1`            | Free-fly orbit camera (damped, terrain-clamped) |
-| `2`            | First-person walk — WASD + mouse, Shift sprints |
-| `3`            | Cinematic spline flythrough                     |
-| `N`            | Toggle day / night                              |
-| `I`            | Site index (grouped outliner of structures)     |
-| `R`            | Research, sources, and climate panel            |
+| Key            | Action                                                 |
+| -------------- | ------------------------------------------------------ |
+| `1`            | Free-fly orbit camera (damped, terrain-clamped)        |
+| `2`            | First-person walk — WASD + mouse, Shift sprints        |
+| `3`            | Cinematic spline flythrough                            |
+| `N`            | Toggle day / night                                     |
+| `I`            | Site index (grouped outliner of structures)            |
+| `R`            | Research, sources, and climate panel                   |
 | `M`            | Measurement ruler on the minimap (snap, bearing, copy) |
-| `H`            | Help overlay                                    |
-| `Esc`          | Close panels / clear measurement / release the mouse |
-| Click building | Open its dossier, with a "Fly to structure"     |
-| Click minimap  | Fly the orbit camera to that point              |
+| `H`            | Help overlay                                           |
+| `Esc`          | Close panels / clear measurement / release the mouse   |
+| Click building | Open its dossier, with a "Fly to structure"            |
+| Click minimap  | Fly the orbit camera to that point                     |
 
 **On phones and tablets**, orbit mode responds to the usual one-finger drag,
 pinch-zoom and two-finger pan. First-person mode shows on-screen controls: a

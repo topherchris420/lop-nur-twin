@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { sceneProjection } from '@/lib/sceneProjection';
+import { useEffect } from "react";
+import { useFrame } from "@react-three/fiber";
+import { sceneProjection } from "@/lib/sceneProjection";
 
 export function ProjectionBridge() {
   useFrame((state) => {

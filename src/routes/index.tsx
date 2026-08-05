@@ -45,8 +45,7 @@ function App() {
   const select = useTwinStore((state) => state.select);
 
   useEffect(() => {
-    document.title =
-      "Lop Nur Geospatial Simulation Testbed — public-source digital twin";
+    document.title = "Lop Nur Geospatial Simulation Testbed — public-source digital twin";
   }, []);
 
   // Handles both a cold load of `/?structure=…` and a client-side hand-off

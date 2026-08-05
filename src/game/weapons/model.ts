@@ -238,9 +238,7 @@ class Assembler {
       mesh.updateMatrix();
       target.add(mesh);
       const index = merged.getIndex();
-      triangles += index
-        ? index.count / 3
-        : merged.getAttribute("position").count / 3;
+      triangles += index ? index.count / 3 : merged.getAttribute("position").count / 3;
     }
     this.buckets.clear();
     return triangles;
@@ -253,7 +251,12 @@ function buildOptic(
   kind: "reddot" | "holo" | "acog" | "scope",
   railTop: number,
   z: number,
-): { group: THREE.Group; reticle: THREE.Object3D; axis: THREE.Object3D; triangles: number } {
+): {
+  group: THREE.Group;
+  reticle: THREE.Object3D;
+  axis: THREE.Object3D;
+  triangles: number;
+} {
   const group = new THREE.Group();
   const asm = new Assembler();
   let axisY = railTop;
@@ -263,15 +266,56 @@ function buildOptic(
     const tubeR = 0.0155;
     axisY = railTop + 0.0285;
     // Mount base + throw lever.
-    asm.add(m.optic, place(chamferedBox(0.026, 0.014, 0.052, { radius: 0.002 }), 0, railTop + 0.007, 0));
-    asm.add(m.optic, place(chamferedBox(0.0075, 0.011, 0.03, { radius: 0.002 }), 0.016, railTop + 0.008, 0.004));
+    asm.add(
+      m.optic,
+      place(chamferedBox(0.026, 0.014, 0.052, { radius: 0.002 }), 0, railTop + 0.007, 0),
+    );
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.0075, 0.011, 0.03, { radius: 0.002 }),
+        0.016,
+        railTop + 0.008,
+        0.004,
+      ),
+    );
     // Body: an open-emitter housing — two uprights and a hood.
-    asm.add(m.optic, place(chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }), -0.0155, railTop + bodyH / 2 + 0.012, 0));
-    asm.add(m.optic, place(chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }), 0.0155, railTop + bodyH / 2 + 0.012, 0));
-    asm.add(m.optic, place(chamferedBox(0.036, 0.006, 0.05, { radius: 0.0015 }), 0, railTop + bodyH + 0.014, 0));
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }),
+        -0.0155,
+        railTop + bodyH / 2 + 0.012,
+        0,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }),
+        0.0155,
+        railTop + bodyH / 2 + 0.012,
+        0,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.036, 0.006, 0.05, { radius: 0.0015 }),
+        0,
+        railTop + bodyH + 0.014,
+        0,
+      ),
+    );
     // Windage / elevation turrets.
-    asm.add(m.optic, place(tube(0.0055, 0.006, 0.009, 14), 0.017, axisY, 0.019, 0, Math.PI / 2, 0));
-    asm.add(m.optic, place(tube(0.0055, 0.006, 0.009, 14), 0, axisY + 0.014, 0.019, Math.PI / 2, 0, 0));
+    asm.add(
+      m.optic,
+      place(tube(0.0055, 0.006, 0.009, 14), 0.017, axisY, 0.019, 0, Math.PI / 2, 0),
+    );
+    asm.add(
+      m.optic,
+      place(tube(0.0055, 0.006, 0.009, 14), 0, axisY + 0.014, 0.019, Math.PI / 2, 0, 0),
+    );
     // Lens: a large flat window, slightly reclined like a real reflex sight.
     const glass = new THREE.Mesh(
       new THREE.PlaneGeometry(tubeR * 1.85, bodyH * 0.82),
@@ -282,10 +326,45 @@ function buildOptic(
     group.add(glass);
   } else if (kind === "holo") {
     axisY = railTop + 0.031;
-    asm.add(m.optic, place(chamferedBox(0.03, 0.016, 0.095, { radius: 0.002 }), 0, railTop + 0.008, 0.012));
-    asm.add(m.optic, place(chamferedBox(0.042, 0.042, 0.052, { radius: 0.003 }), 0, railTop + 0.033, -0.014));
-    asm.add(m.optic, place(chamferedBox(0.036, 0.026, 0.042, { radius: 0.002 }), 0, railTop + 0.028, 0.042));
-    asm.add(m.optic, place(tube(0.004, 0.004, 0.006, 10), 0.019, railTop + 0.026, 0.05, 0, Math.PI / 2, 0));
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.03, 0.016, 0.095, { radius: 0.002 }),
+        0,
+        railTop + 0.008,
+        0.012,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.042, 0.042, 0.052, { radius: 0.003 }),
+        0,
+        railTop + 0.033,
+        -0.014,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.036, 0.026, 0.042, { radius: 0.002 }),
+        0,
+        railTop + 0.028,
+        0.042,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        tube(0.004, 0.004, 0.006, 10),
+        0.019,
+        railTop + 0.026,
+        0.05,
+        0,
+        Math.PI / 2,
+        0,
+      ),
+    );
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.031, 0.026), m.lens);
     glass.position.set(0, axisY, -0.038);
     group.add(glass);
@@ -313,17 +392,70 @@ function buildOptic(
     asm.add(m.optic, place(lathe(profile, 28), 0, axisY, 0));
     // Rings.
     for (const ringZ of [-length / 2 + 0.085, length / 2 - 0.05]) {
-      asm.add(m.optic, place(shell(tubeR + 0.0055, tubeR - 0.0002, 0.017, 22), 0, axisY, ringZ));
-      asm.add(m.optic, place(chamferedBox(0.03, 0.03, 0.016, { radius: 0.002 }), 0, axisY - tubeR - 0.012, ringZ));
-      asm.add(m.steel, place(tube(0.0018, 0.0018, 0.012, 8), 0.011, axisY - tubeR - 0.006, ringZ, Math.PI / 2, 0, 0));
-      asm.add(m.steel, place(tube(0.0018, 0.0018, 0.012, 8), -0.011, axisY - tubeR - 0.006, ringZ, Math.PI / 2, 0, 0));
+      asm.add(
+        m.optic,
+        place(shell(tubeR + 0.0055, tubeR - 0.0002, 0.017, 22), 0, axisY, ringZ),
+      );
+      asm.add(
+        m.optic,
+        place(
+          chamferedBox(0.03, 0.03, 0.016, { radius: 0.002 }),
+          0,
+          axisY - tubeR - 0.012,
+          ringZ,
+        ),
+      );
+      asm.add(
+        m.steel,
+        place(
+          tube(0.0018, 0.0018, 0.012, 8),
+          0.011,
+          axisY - tubeR - 0.006,
+          ringZ,
+          Math.PI / 2,
+          0,
+          0,
+        ),
+      );
+      asm.add(
+        m.steel,
+        place(
+          tube(0.0018, 0.0018, 0.012, 8),
+          -0.011,
+          axisY - tubeR - 0.006,
+          ringZ,
+          Math.PI / 2,
+          0,
+          0,
+        ),
+      );
     }
     // Turrets with knurled caps.
-    asm.add(m.optic, place(tube(0.011, 0.012, 0.019, 18), 0, axisY + tubeR + 0.008, 0.012, Math.PI / 2, 0, 0));
-    asm.add(m.optic, place(tube(0.0105, 0.0115, 0.017, 18), 0.019, axisY, 0.012, 0, Math.PI / 2, 0));
-    asm.add(m.optic, place(tube(0.0105, 0.0115, 0.014, 18), -0.017, axisY, 0.012, 0, Math.PI / 2, 0));
+    asm.add(
+      m.optic,
+      place(
+        tube(0.011, 0.012, 0.019, 18),
+        0,
+        axisY + tubeR + 0.008,
+        0.012,
+        Math.PI / 2,
+        0,
+        0,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(tube(0.0105, 0.0115, 0.017, 18), 0.019, axisY, 0.012, 0, Math.PI / 2, 0),
+    );
+    asm.add(
+      m.optic,
+      place(tube(0.0105, 0.0115, 0.014, 18), -0.017, axisY, 0.012, 0, Math.PI / 2, 0),
+    );
     // Magnification ring.
-    asm.add(m.optic, place(shell(tubeR + 0.0032, tubeR, 0.022, 24), 0, axisY, length / 2 - 0.055));
+    asm.add(
+      m.optic,
+      place(shell(tubeR + 0.0032, tubeR, 0.022, 24), 0, axisY, length / 2 - 0.055),
+    );
     // Ocular and objective glass.
     const ocular = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.86, 24), m.lens);
     ocular.position.set(0, axisY, length / 2 - 0.004);
@@ -455,7 +587,11 @@ function makeReticleTexture(kind: string): THREE.CanvasTexture {
 /* Long guns                                                           */
 /* ------------------------------------------------------------------ */
 
-function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): WeaponModel {
+function buildLongGun(
+  def: WeaponDef,
+  spec: LongGunSpec,
+  m: WeaponMaterials,
+): WeaponModel {
   const root = new THREE.Group();
   const asm = new Assembler();
   const rand = mulberry32(def.seed >>> 0);
@@ -464,10 +600,29 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   /* ------------------------------------------------- lower receiver */
   const lowerLen = 0.17;
   const lowerZ = -0.03;
-  asm.add(m.receiver, place(chamferedBox(0.038, 0.05, lowerLen, { radius: 0.004, curveSegments: 4 }), 0, 0.008, lowerZ));
+  asm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.038, 0.05, lowerLen, { radius: 0.004, curveSegments: 4 }),
+      0,
+      0.008,
+      lowerZ,
+    ),
+  );
   // Magwell flare.
-  asm.add(m.receiver, place(chamferedBox(0.046, 0.028, 0.052, { radius: 0.004, curveSegments: 4 }), 0, -0.006, -0.078));
-  asm.add(m.receiver, place(chamferedBox(0.05, 0.008, 0.058, { radius: 0.003 }), 0, -0.02, -0.078));
+  asm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.046, 0.028, 0.052, { radius: 0.004, curveSegments: 4 }),
+      0,
+      -0.006,
+      -0.078,
+    ),
+  );
+  asm.add(
+    m.receiver,
+    place(chamferedBox(0.05, 0.008, 0.058, { radius: 0.003 }), 0, -0.02, -0.078),
+  );
   // Trigger guard: an arc of small segments.
   for (let i = 0; i <= 9; i += 1) {
     const t = i / 9;
@@ -484,25 +639,97 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
     );
   }
   // Selector, magazine release, bolt catch, takedown pins.
-  asm.add(m.steel, place(tube(0.0072, 0.0072, 0.044, 14), 0, 0.012, -0.012, 0, Math.PI / 2, 0));
-  asm.add(m.steel, place(chamferedBox(0.019, 0.0075, 0.011, { radius: 0.002 }), -0.026, 0.012, -0.006, 0, 0, 0.35));
-  asm.add(m.steel, place(tube(0.0058, 0.0058, 0.012, 12), 0.024, 0.004, -0.062, 0, Math.PI / 2, 0));
-  asm.add(m.steel, place(chamferedBox(0.008, 0.017, 0.02, { radius: 0.002 }), -0.023, 0.006, -0.058));
-  asm.add(m.steel, place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, -0.098, 0, Math.PI / 2, 0));
-  asm.add(m.steel, place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, 0.036, 0, Math.PI / 2, 0));
+  asm.add(
+    m.steel,
+    place(tube(0.0072, 0.0072, 0.044, 14), 0, 0.012, -0.012, 0, Math.PI / 2, 0),
+  );
+  asm.add(
+    m.steel,
+    place(
+      chamferedBox(0.019, 0.0075, 0.011, { radius: 0.002 }),
+      -0.026,
+      0.012,
+      -0.006,
+      0,
+      0,
+      0.35,
+    ),
+  );
+  asm.add(
+    m.steel,
+    place(tube(0.0058, 0.0058, 0.012, 12), 0.024, 0.004, -0.062, 0, Math.PI / 2, 0),
+  );
+  asm.add(
+    m.steel,
+    place(chamferedBox(0.008, 0.017, 0.02, { radius: 0.002 }), -0.023, 0.006, -0.058),
+  );
+  asm.add(
+    m.steel,
+    place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, -0.098, 0, Math.PI / 2, 0),
+  );
+  asm.add(
+    m.steel,
+    place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, 0.036, 0, Math.PI / 2, 0),
+  );
 
   /* ------------------------------------------------- upper receiver */
   const upperLen = 0.2 + spec.receiverBack;
   const upperZ = -0.05;
-  asm.add(m.receiver, place(chamferedBox(0.041, 0.042, upperLen, { radius: 0.006, curveSegments: 5 }), 0, spec.receiverTop - 0.021, upperZ));
+  asm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.041, 0.042, upperLen, { radius: 0.006, curveSegments: 5 }),
+      0,
+      spec.receiverTop - 0.021,
+      upperZ,
+    ),
+  );
   // Brass deflector and forward assist on the ejection side.
-  asm.add(m.receiver, place(chamferedBox(0.012, 0.024, 0.03, { radius: 0.005 }), 0.023, spec.receiverTop - 0.018, -0.026, 0, 0, -0.3));
-  asm.add(m.steel, place(tube(0.0062, 0.0062, 0.02, 12), 0.021, spec.receiverTop - 0.03, -0.006, 0, Math.PI / 2, 0));
+  asm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.012, 0.024, 0.03, { radius: 0.005 }),
+      0.023,
+      spec.receiverTop - 0.018,
+      -0.026,
+      0,
+      0,
+      -0.3,
+    ),
+  );
+  asm.add(
+    m.steel,
+    place(
+      tube(0.0062, 0.0062, 0.02, 12),
+      0.021,
+      spec.receiverTop - 0.03,
+      -0.006,
+      0,
+      Math.PI / 2,
+      0,
+    ),
+  );
   // Ejection port with a dust cover hinged below it.
   const ejectionPort = new THREE.Group();
   const portAsm = new Assembler();
-  portAsm.add(m.nitride, place(chamferedBox(0.004, 0.021, 0.038, { radius: 0.003 }), 0.0205, spec.receiverTop - 0.022, -0.036));
-  portAsm.add(m.receiver, place(chamferedBox(0.005, 0.024, 0.042, { radius: 0.003 }), 0.0225, spec.receiverTop - 0.022, -0.036));
+  portAsm.add(
+    m.nitride,
+    place(
+      chamferedBox(0.004, 0.021, 0.038, { radius: 0.003 }),
+      0.0205,
+      spec.receiverTop - 0.022,
+      -0.036,
+    ),
+  );
+  portAsm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.005, 0.024, 0.042, { radius: 0.003 }),
+      0.0225,
+      spec.receiverTop - 0.022,
+      -0.036,
+    ),
+  );
   portAsm.flushInto(ejectionPort);
   ejectionPort.position.set(0.024, spec.receiverTop - 0.022, -0.036);
   root.add(ejectionPort);
@@ -510,7 +737,12 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   /* ------------------------------------------------------- rail */
   asm.add(
     m.receiver,
-    place(picatinnyRail(spec.railLength), 0, spec.receiverTop, -0.05 - spec.railLength / 2 + 0.1),
+    place(
+      picatinnyRail(spec.railLength),
+      0,
+      spec.receiverTop,
+      -0.05 - spec.railLength / 2 + 0.1,
+    ),
   );
 
   /* -------------------------------------------------- handguard */
@@ -519,13 +751,37 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   const hgLen = Math.abs(hgLength);
   if (spec.heatShield) {
     // Perforated shroud: a shell plus rings of vent holes.
-    asm.add(m.receiver, place(shell(spec.handguardRadius, spec.handguardRadius - 0.0035, hgLen, 22), 0, spec.receiverTop - 0.028, hgCenter));
+    asm.add(
+      m.receiver,
+      place(
+        shell(spec.handguardRadius, spec.handguardRadius - 0.0035, hgLen, 22),
+        0,
+        spec.receiverTop - 0.028,
+        hgCenter,
+      ),
+    );
     for (let ring = 0; ring < 6; ring += 1) {
-      const z = hgCenter - hgLen / 2 + 0.03 + ring * (hgLen - 0.06) / 5;
-      asm.add(m.nitride, place(portRing(10, spec.handguardRadius - 0.001, 0.0035, 0.004), 0, spec.receiverTop - 0.028, z));
+      const z = hgCenter - hgLen / 2 + 0.03 + (ring * (hgLen - 0.06)) / 5;
+      asm.add(
+        m.nitride,
+        place(
+          portRing(10, spec.handguardRadius - 0.001, 0.0035, 0.004),
+          0,
+          spec.receiverTop - 0.028,
+          z,
+        ),
+      );
     }
   } else {
-    asm.add(m.receiver, place(shell(spec.handguardRadius, spec.handguardRadius - 0.004, hgLen, 20), 0, spec.receiverTop - 0.028, hgCenter));
+    asm.add(
+      m.receiver,
+      place(
+        shell(spec.handguardRadius, spec.handguardRadius - 0.004, hgLen, 20),
+        0,
+        spec.receiverTop - 0.028,
+        hgCenter,
+      ),
+    );
     // M-LOK slot rows at 3, 6 and 9 o'clock.
     const slots = Math.max(3, Math.floor(hgLen / 0.048));
     for (const angle of [0, Math.PI / 2, -Math.PI / 2, Math.PI]) {
@@ -539,63 +795,204 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
       asm.add(m.nitride, g);
     }
     // Anti-rotation flats top and bottom keep the section from reading round.
-    asm.add(m.receiver, place(chamferedBox(0.028, 0.005, hgLen, { radius: 0.002 }), 0, spec.receiverTop - 0.028 + spec.handguardRadius - 0.001, hgCenter));
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.028, 0.005, hgLen, { radius: 0.002 }),
+        0,
+        spec.receiverTop - 0.028 + spec.handguardRadius - 0.001,
+        hgCenter,
+      ),
+    );
   }
   // Barrel nut.
-  asm.add(m.steel, place(tube(spec.handguardRadius * 0.86, spec.handguardRadius * 0.86, 0.02, 20), 0, spec.receiverTop - 0.028, -0.128));
+  asm.add(
+    m.steel,
+    place(
+      tube(spec.handguardRadius * 0.86, spec.handguardRadius * 0.86, 0.02, 20),
+      0,
+      spec.receiverTop - 0.028,
+      -0.128,
+    ),
+  );
 
   /* ------------------------------------------------------ barrel */
   const barrelY = spec.receiverTop - 0.028;
   const exposed = spec.handguardFront - spec.muzzleZ;
-  asm.add(m.steel, place(tube(spec.barrelRadius, spec.barrelRadius * 1.14, Math.abs(spec.muzzleZ - -0.13) - 0.03, 18), 0, barrelY, (spec.muzzleZ + -0.13) / 2));
+  asm.add(
+    m.steel,
+    place(
+      tube(
+        spec.barrelRadius,
+        spec.barrelRadius * 1.14,
+        Math.abs(spec.muzzleZ - -0.13) - 0.03,
+        18,
+      ),
+      0,
+      barrelY,
+      (spec.muzzleZ + -0.13) / 2,
+    ),
+  );
   if (exposed > 0.02) {
-    asm.add(m.steel, place(flutes(6, spec.barrelRadius, exposed * 0.7), 0, barrelY, spec.handguardFront - exposed * 0.45));
+    asm.add(
+      m.steel,
+      place(
+        flutes(6, spec.barrelRadius, exposed * 0.7),
+        0,
+        barrelY,
+        spec.handguardFront - exposed * 0.45,
+      ),
+    );
   }
   // Gas block with a low-profile journal, and the gas tube running back.
   const gasZ = spec.handguardFront + 0.03;
-  asm.add(m.steel, place(chamferedBox(0.019, 0.019, 0.026, { radius: 0.002 }), 0, barrelY, gasZ));
-  asm.add(m.steel, place(tube(0.0022, 0.0022, Math.abs(gasZ - -0.12), 8), 0, barrelY + 0.0105, (gasZ + -0.12) / 2));
+  asm.add(
+    m.steel,
+    place(chamferedBox(0.019, 0.019, 0.026, { radius: 0.002 }), 0, barrelY, gasZ),
+  );
+  asm.add(
+    m.steel,
+    place(
+      tube(0.0022, 0.0022, Math.abs(gasZ - -0.12), 8),
+      0,
+      barrelY + 0.0105,
+      (gasZ + -0.12) / 2,
+    ),
+  );
 
   /* ----------------------------------------------- muzzle device */
-  const muzzleLen = spec.muzzle === "brake" ? 0.075 : spec.muzzle === "choke" ? 0.05 : 0.06;
+  const muzzleLen =
+    spec.muzzle === "brake" ? 0.075 : spec.muzzle === "choke" ? 0.05 : 0.06;
   const muzzleR = spec.barrelRadius * (spec.muzzle === "choke" ? 1.24 : 1.9);
   const muzzleCenter = spec.muzzleZ + muzzleLen / 2;
   if (spec.muzzle === "flash-hider") {
-    asm.add(m.nitride, place(lathe([
-      [spec.barrelRadius * 1.2, muzzleLen / 2],
-      [muzzleR * 0.86, muzzleLen / 2 - 0.008],
-      [muzzleR * 0.86, muzzleLen / 2 - 0.016],
-      [muzzleR, muzzleLen / 2 - 0.02],
-      [muzzleR, -muzzleLen / 2 + 0.006],
-      [muzzleR * 0.92, -muzzleLen / 2],
-      [spec.barrelRadius * 0.75, -muzzleLen / 2],
-    ], 22), 0, barrelY, muzzleCenter));
+    asm.add(
+      m.nitride,
+      place(
+        lathe(
+          [
+            [spec.barrelRadius * 1.2, muzzleLen / 2],
+            [muzzleR * 0.86, muzzleLen / 2 - 0.008],
+            [muzzleR * 0.86, muzzleLen / 2 - 0.016],
+            [muzzleR, muzzleLen / 2 - 0.02],
+            [muzzleR, -muzzleLen / 2 + 0.006],
+            [muzzleR * 0.92, -muzzleLen / 2],
+            [spec.barrelRadius * 0.75, -muzzleLen / 2],
+          ],
+          22,
+        ),
+        0,
+        barrelY,
+        muzzleCenter,
+      ),
+    );
     // Prong slots.
     for (let i = 0; i < 4; i += 1) {
       const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      asm.add(m.nitride, place(chamferedBox(0.0028, muzzleR * 1.1, 0.03, { radius: 0.001 }), Math.sin(angle) * muzzleR * 0.5, barrelY + Math.cos(angle) * muzzleR * 0.5, muzzleCenter - 0.012, 0, 0, -angle));
+      asm.add(
+        m.nitride,
+        place(
+          chamferedBox(0.0028, muzzleR * 1.1, 0.03, { radius: 0.001 }),
+          Math.sin(angle) * muzzleR * 0.5,
+          barrelY + Math.cos(angle) * muzzleR * 0.5,
+          muzzleCenter - 0.012,
+          0,
+          0,
+          -angle,
+        ),
+      );
     }
   } else if (spec.muzzle === "brake") {
-    asm.add(m.nitride, place(chamferedBox(muzzleR * 2, muzzleR * 1.8, muzzleLen, { radius: 0.0025 }), 0, barrelY, muzzleCenter));
+    asm.add(
+      m.nitride,
+      place(
+        chamferedBox(muzzleR * 2, muzzleR * 1.8, muzzleLen, { radius: 0.0025 }),
+        0,
+        barrelY,
+        muzzleCenter,
+      ),
+    );
     for (let i = 0; i < 3; i += 1) {
       const z = muzzleCenter - muzzleLen / 2 + 0.014 + i * 0.018;
-      asm.add(m.steel, place(chamferedBox(muzzleR * 2.2, 0.0035, 0.006, { radius: 0.001 }), 0, barrelY + muzzleR * 0.55, z));
-      asm.add(m.steel, place(chamferedBox(muzzleR * 2.2, 0.0035, 0.006, { radius: 0.001 }), 0, barrelY - muzzleR * 0.55, z));
+      asm.add(
+        m.steel,
+        place(
+          chamferedBox(muzzleR * 2.2, 0.0035, 0.006, { radius: 0.001 }),
+          0,
+          barrelY + muzzleR * 0.55,
+          z,
+        ),
+      );
+      asm.add(
+        m.steel,
+        place(
+          chamferedBox(muzzleR * 2.2, 0.0035, 0.006, { radius: 0.001 }),
+          0,
+          barrelY - muzzleR * 0.55,
+          z,
+        ),
+      );
     }
   } else if (spec.muzzle === "comp") {
-    asm.add(m.nitride, place(tube(muzzleR, muzzleR * 1.05, muzzleLen, 20), 0, barrelY, muzzleCenter));
-    asm.add(m.nitride, place(portRing(6, muzzleR * 0.62, 0.0022, muzzleR * 2.2), 0, barrelY, muzzleCenter - 0.012));
-    asm.add(m.nitride, place(portRing(6, muzzleR * 0.62, 0.0022, muzzleR * 2.2), 0, barrelY, muzzleCenter + 0.008));
+    asm.add(
+      m.nitride,
+      place(tube(muzzleR, muzzleR * 1.05, muzzleLen, 20), 0, barrelY, muzzleCenter),
+    );
+    asm.add(
+      m.nitride,
+      place(
+        portRing(6, muzzleR * 0.62, 0.0022, muzzleR * 2.2),
+        0,
+        barrelY,
+        muzzleCenter - 0.012,
+      ),
+    );
+    asm.add(
+      m.nitride,
+      place(
+        portRing(6, muzzleR * 0.62, 0.0022, muzzleR * 2.2),
+        0,
+        barrelY,
+        muzzleCenter + 0.008,
+      ),
+    );
   } else {
-    asm.add(m.nitride, place(tube(muzzleR, muzzleR * 1.04, muzzleLen, 20), 0, barrelY, muzzleCenter));
+    asm.add(
+      m.nitride,
+      place(tube(muzzleR, muzzleR * 1.04, muzzleLen, 20), 0, barrelY, muzzleCenter),
+    );
   }
 
   /* --------------------------------------------- front sight post */
   const foldedSight = spec.railLength > 0.3;
   if (foldedSight) {
-    asm.add(m.steel, place(chamferedBox(0.014, 0.026, 0.009, { radius: 0.0015 }), 0, railTop + 0.012, spec.handguardFront + 0.012));
-    asm.add(m.steel, place(tube(0.0012, 0.0012, 0.018, 8), 0, railTop + 0.02, spec.handguardFront + 0.012));
-    asm.add(m.steel, place(chamferedBox(0.019, 0.02, 0.008, { radius: 0.004 }), 0, railTop + 0.014, -0.02));
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.014, 0.026, 0.009, { radius: 0.0015 }),
+        0,
+        railTop + 0.012,
+        spec.handguardFront + 0.012,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        tube(0.0012, 0.0012, 0.018, 8),
+        0,
+        railTop + 0.02,
+        spec.handguardFront + 0.012,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.019, 0.02, 0.008, { radius: 0.004 }),
+        0,
+        railTop + 0.014,
+        -0.02,
+      ),
+    );
     asm.add(m.steel, place(shell(0.008, 0.0062, 0.007, 14), 0, railTop + 0.015, -0.02));
   }
 
@@ -604,25 +1001,101 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   if (spec.magKind !== "none" && spec.magKind !== "tube") {
     const magAsm = new Assembler();
     if (spec.magKind === "curved") {
-      magAsm.add(m.polymer, place(curvedMagazine(spec.magWidth, 0.035, spec.magLength, 0.34, 9), 0, -spec.magLength / 2 - 0.014, 0));
+      magAsm.add(
+        m.polymer,
+        place(
+          curvedMagazine(spec.magWidth, 0.035, spec.magLength, 0.34, 9),
+          0,
+          -spec.magLength / 2 - 0.014,
+          0,
+        ),
+      );
       // Witness holes down the spine.
       for (let i = 0; i < 5; i += 1) {
-        magAsm.add(m.nitride, place(tube(0.0022, 0.0022, 0.004, 8), spec.magWidth / 2 - 0.001, -0.05 - i * 0.028, 0.006 + i * 0.0035, 0, Math.PI / 2, 0));
+        magAsm.add(
+          m.nitride,
+          place(
+            tube(0.0022, 0.0022, 0.004, 8),
+            spec.magWidth / 2 - 0.001,
+            -0.05 - i * 0.028,
+            0.006 + i * 0.0035,
+            0,
+            Math.PI / 2,
+            0,
+          ),
+        );
       }
-      magAsm.add(m.polymer, place(chamferedBox(spec.magWidth * 1.12, 0.011, 0.042, { radius: 0.002 }), 0, -spec.magLength - 0.014, 0.03));
+      magAsm.add(
+        m.polymer,
+        place(
+          chamferedBox(spec.magWidth * 1.12, 0.011, 0.042, { radius: 0.002 }),
+          0,
+          -spec.magLength - 0.014,
+          0.03,
+        ),
+      );
     } else if (spec.magKind === "box") {
-      magAsm.add(m.receiver, place(chamferedBox(spec.magWidth, spec.magLength, 0.13, { radius: 0.005, curveSegments: 4 }), 0, -spec.magLength / 2 - 0.016, -0.02));
-      magAsm.add(m.receiver, place(chamferedBox(spec.magWidth * 0.5, 0.012, 0.05, { radius: 0.004 }), 0, -0.02, -0.02));
+      magAsm.add(
+        m.receiver,
+        place(
+          chamferedBox(spec.magWidth, spec.magLength, 0.13, {
+            radius: 0.005,
+            curveSegments: 4,
+          }),
+          0,
+          -spec.magLength / 2 - 0.016,
+          -0.02,
+        ),
+      );
+      magAsm.add(
+        m.receiver,
+        place(
+          chamferedBox(spec.magWidth * 0.5, 0.012, 0.05, { radius: 0.004 }),
+          0,
+          -0.02,
+          -0.02,
+        ),
+      );
       // Belt feed lip and a few visible linked rounds.
       for (let i = 0; i < 4; i += 1) {
-        magAsm.add(m.brass, place(tube(0.0042, 0.0042, 0.03, 10), -0.02 + i * 0.011, -0.026, 0.03, Math.PI / 2, 0, 0));
+        magAsm.add(
+          m.brass,
+          place(
+            tube(0.0042, 0.0042, 0.03, 10),
+            -0.02 + i * 0.011,
+            -0.026,
+            0.03,
+            Math.PI / 2,
+            0,
+            0,
+          ),
+        );
       }
     } else {
-      magAsm.add(m.polymer, place(chamferedBox(spec.magWidth, spec.magLength, 0.05, { radius: 0.003 }), 0, -spec.magLength / 2 - 0.014, 0));
-      magAsm.add(m.polymer, place(chamferedBox(spec.magWidth * 1.1, 0.01, 0.056, { radius: 0.002 }), 0, -spec.magLength - 0.014, 0));
+      magAsm.add(
+        m.polymer,
+        place(
+          chamferedBox(spec.magWidth, spec.magLength, 0.05, { radius: 0.003 }),
+          0,
+          -spec.magLength / 2 - 0.014,
+          0,
+        ),
+      );
+      magAsm.add(
+        m.polymer,
+        place(
+          chamferedBox(spec.magWidth * 1.1, 0.01, 0.056, { radius: 0.002 }),
+          0,
+          -spec.magLength - 0.014,
+          0,
+        ),
+      );
     }
     // Follower + top round, visible in the magwell gap.
-    magAsm.add(m.brass, place(tube(0.0038, 0.0038, 0.024, 10), 0, -0.014, -0.004, Math.PI / 2, 0, 0));
+    magAsm.add(
+      m.brass,
+      place(tube(0.0038, 0.0038, 0.024, 10), 0, -0.014, -0.004, Math.PI / 2, 0, 0),
+    );
     magAsm.flushInto(magazine);
   }
   magazine.position.set(0, -0.012, -0.078);
@@ -630,21 +1103,56 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
 
   if (spec.magKind === "tube") {
     // Shotgun: a magazine tube under the barrel with a support ring.
-    asm.add(m.steel, place(tube(0.0105, 0.0105, spec.magLength, 18), 0, barrelY - 0.023, spec.handguardFront + 0.05));
-    asm.add(m.steel, place(shell(0.017, 0.0104, 0.012, 18), 0, barrelY - 0.023, spec.muzzleZ + 0.05));
+    asm.add(
+      m.steel,
+      place(
+        tube(0.0105, 0.0105, spec.magLength, 18),
+        0,
+        barrelY - 0.023,
+        spec.handguardFront + 0.05,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(shell(0.017, 0.0104, 0.012, 18), 0, barrelY - 0.023, spec.muzzleZ + 0.05),
+    );
   }
 
   /* --------------------------------------------------- pistol grip */
   const gripAngle = 0.34;
-  asm.add(m.grip, place(chamferedBox(0.032, 0.098, 0.042, { radius: 0.011, curveSegments: 5 }), 0, -0.062, 0.03, gripAngle));
-  asm.add(m.grip, place(chamferedBox(0.036, 0.016, 0.046, { radius: 0.006 }), 0, -0.108, 0.046, gripAngle));
+  asm.add(
+    m.grip,
+    place(
+      chamferedBox(0.032, 0.098, 0.042, { radius: 0.011, curveSegments: 5 }),
+      0,
+      -0.062,
+      0.03,
+      gripAngle,
+    ),
+  );
+  asm.add(
+    m.grip,
+    place(
+      chamferedBox(0.036, 0.016, 0.046, { radius: 0.006 }),
+      0,
+      -0.108,
+      0.046,
+      gripAngle,
+    ),
+  );
   // Beavertail where the web of the hand sits.
-  asm.add(m.grip, place(chamferedBox(0.03, 0.02, 0.02, { radius: 0.008 }), 0, -0.018, 0.05, gripAngle));
+  asm.add(
+    m.grip,
+    place(chamferedBox(0.03, 0.02, 0.02, { radius: 0.008 }), 0, -0.018, 0.05, gripAngle),
+  );
 
   /* ------------------------------------------------------- trigger */
   const trigger = new THREE.Group();
   const trigAsm = new Assembler();
-  trigAsm.add(m.steel, place(chamferedBox(0.0065, 0.024, 0.008, { radius: 0.0025 }), 0, -0.012, 0, 0.22));
+  trigAsm.add(
+    m.steel,
+    place(chamferedBox(0.0065, 0.024, 0.008, { radius: 0.0025 }), 0, -0.012, 0, 0.22),
+  );
   trigAsm.flushInto(trigger, false);
   trigger.position.set(0, -0.012, -0.028);
   root.add(trigger);
@@ -661,8 +1169,14 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   /* --------------------------------------------- charging handle */
   const chargingHandle = new THREE.Group();
   const chAsm = new Assembler();
-  chAsm.add(m.receiver, place(chamferedBox(0.052, 0.0085, 0.024, { radius: 0.002 }), 0, 0, 0));
-  chAsm.add(m.receiver, place(chamferedBox(0.014, 0.014, 0.03, { radius: 0.003 }), -0.024, -0.002, 0.004));
+  chAsm.add(
+    m.receiver,
+    place(chamferedBox(0.052, 0.0085, 0.024, { radius: 0.002 }), 0, 0, 0),
+  );
+  chAsm.add(
+    m.receiver,
+    place(chamferedBox(0.014, 0.014, 0.03, { radius: 0.003 }), -0.024, -0.002, 0.004),
+  );
   chAsm.add(m.steel, place(tube(0.0055, 0.0055, 0.06, 12), 0, -0.006, -0.03));
   chAsm.flushInto(chargingHandle, false);
   chargingHandle.position.set(0, spec.receiverTop - 0.012, upperZ + upperLen / 2 - 0.006);
@@ -672,46 +1186,221 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   const stockZ0 = upperZ + upperLen / 2;
   if (spec.stockKind !== "none") {
     const bufferLen = spec.stockBack - stockZ0 - 0.02;
-    asm.add(m.receiver, place(chamferedBox(0.036, 0.036, 0.03, { radius: 0.006 }), 0, spec.receiverTop - 0.03, stockZ0 + 0.012));
-    asm.add(m.steel, place(tube(0.0158, 0.0158, bufferLen, 20), 0, spec.receiverTop - 0.032, stockZ0 + 0.02 + bufferLen / 2));
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.036, 0.036, 0.03, { radius: 0.006 }),
+        0,
+        spec.receiverTop - 0.03,
+        stockZ0 + 0.012,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        tube(0.0158, 0.0158, bufferLen, 20),
+        0,
+        spec.receiverTop - 0.032,
+        stockZ0 + 0.02 + bufferLen / 2,
+      ),
+    );
     // Castellations on the buffer tube.
     for (let i = 0; i < 5; i += 1) {
-      asm.add(m.steel, place(shell(0.0172, 0.0157, 0.006, 18), 0, spec.receiverTop - 0.032, stockZ0 + 0.05 + i * 0.026));
+      asm.add(
+        m.steel,
+        place(
+          shell(0.0172, 0.0157, 0.006, 18),
+          0,
+          spec.receiverTop - 0.032,
+          stockZ0 + 0.05 + i * 0.026,
+        ),
+      );
     }
     const buttZ = spec.stockBack - 0.02;
     if (spec.stockKind === "skeleton") {
-      asm.add(m.polymer, place(chamferedBox(0.03, 0.055, 0.09, { radius: 0.006 }), 0, spec.receiverTop - 0.028, buttZ - 0.045));
-      asm.add(m.polymer, place(chamferedBox(0.026, 0.07, 0.016, { radius: 0.005 }), 0, spec.receiverTop - 0.05, buttZ + 0.006));
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.03, 0.055, 0.09, { radius: 0.006 }),
+          0,
+          spec.receiverTop - 0.028,
+          buttZ - 0.045,
+        ),
+      );
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.026, 0.07, 0.016, { radius: 0.005 }),
+          0,
+          spec.receiverTop - 0.05,
+          buttZ + 0.006,
+        ),
+      );
       // Cheek riser on posts.
-      asm.add(m.polymer, place(chamferedBox(0.028, 0.014, 0.07, { radius: 0.005 }), 0, spec.receiverTop + 0.006, buttZ - 0.05));
-      asm.add(m.steel, place(tube(0.003, 0.003, 0.03, 8), 0.008, spec.receiverTop - 0.008, buttZ - 0.03, Math.PI / 2, 0, 0));
-      asm.add(m.steel, place(tube(0.003, 0.003, 0.03, 8), -0.008, spec.receiverTop - 0.008, buttZ - 0.03, Math.PI / 2, 0, 0));
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.028, 0.014, 0.07, { radius: 0.005 }),
+          0,
+          spec.receiverTop + 0.006,
+          buttZ - 0.05,
+        ),
+      );
+      asm.add(
+        m.steel,
+        place(
+          tube(0.003, 0.003, 0.03, 8),
+          0.008,
+          spec.receiverTop - 0.008,
+          buttZ - 0.03,
+          Math.PI / 2,
+          0,
+          0,
+        ),
+      );
+      asm.add(
+        m.steel,
+        place(
+          tube(0.003, 0.003, 0.03, 8),
+          -0.008,
+          spec.receiverTop - 0.008,
+          buttZ - 0.03,
+          Math.PI / 2,
+          0,
+          0,
+        ),
+      );
     } else if (spec.stockKind === "folding") {
-      asm.add(m.receiver, place(chamferedBox(0.02, 0.05, 0.11, { radius: 0.005 }), 0.02, spec.receiverTop - 0.03, buttZ - 0.05));
-      asm.add(m.polymer, place(chamferedBox(0.024, 0.062, 0.014, { radius: 0.005 }), 0.02, spec.receiverTop - 0.03, buttZ + 0.006));
+      asm.add(
+        m.receiver,
+        place(
+          chamferedBox(0.02, 0.05, 0.11, { radius: 0.005 }),
+          0.02,
+          spec.receiverTop - 0.03,
+          buttZ - 0.05,
+        ),
+      );
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.024, 0.062, 0.014, { radius: 0.005 }),
+          0.02,
+          spec.receiverTop - 0.03,
+          buttZ + 0.006,
+        ),
+      );
     } else {
-      asm.add(m.polymer, place(chamferedBox(0.038, 0.06, 0.11, { radius: 0.008, curveSegments: 5 }), 0, spec.receiverTop - 0.03, buttZ - 0.055));
-      asm.add(m.polymer, place(chamferedBox(0.03, 0.02, 0.075, { radius: 0.006 }), 0, spec.receiverTop + 0.004, buttZ - 0.05));
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.038, 0.06, 0.11, { radius: 0.008, curveSegments: 5 }),
+          0,
+          spec.receiverTop - 0.03,
+          buttZ - 0.055,
+        ),
+      );
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.03, 0.02, 0.075, { radius: 0.006 }),
+          0,
+          spec.receiverTop + 0.004,
+          buttZ - 0.05,
+        ),
+      );
     }
     // Butt pad + QD sling socket.
-    asm.add(m.rubber, place(chamferedBox(0.034, 0.062, 0.012, { radius: 0.005 }), 0, spec.receiverTop - 0.03, buttZ + 0.012));
-    asm.add(m.steel, place(tube(0.005, 0.005, 0.008, 10), 0.016, spec.receiverTop - 0.03, buttZ - 0.07, 0, Math.PI / 2, 0));
+    asm.add(
+      m.rubber,
+      place(
+        chamferedBox(0.034, 0.062, 0.012, { radius: 0.005 }),
+        0,
+        spec.receiverTop - 0.03,
+        buttZ + 0.012,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        tube(0.005, 0.005, 0.008, 10),
+        0.016,
+        spec.receiverTop - 0.03,
+        buttZ - 0.07,
+        0,
+        Math.PI / 2,
+        0,
+      ),
+    );
   }
 
   /* ------------------------------------------------------- bipod */
   if (spec.bipod) {
     for (const side of [-1, 1]) {
-      asm.add(m.steel, place(tube(0.0032, 0.0042, 0.11, 10), side * 0.02, barrelY - 0.075, spec.handguardFront + 0.06, 0.32, 0, side * 0.28));
-      asm.add(m.rubber, place(tube(0.006, 0.006, 0.012, 10), side * 0.036, barrelY - 0.13, spec.handguardFront + 0.078, Math.PI / 2, 0, 0));
+      asm.add(
+        m.steel,
+        place(
+          tube(0.0032, 0.0042, 0.11, 10),
+          side * 0.02,
+          barrelY - 0.075,
+          spec.handguardFront + 0.06,
+          0.32,
+          0,
+          side * 0.28,
+        ),
+      );
+      asm.add(
+        m.rubber,
+        place(
+          tube(0.006, 0.006, 0.012, 10),
+          side * 0.036,
+          barrelY - 0.13,
+          spec.handguardFront + 0.078,
+          Math.PI / 2,
+          0,
+          0,
+        ),
+      );
     }
-    asm.add(m.receiver, place(chamferedBox(0.026, 0.02, 0.04, { radius: 0.003 }), 0, barrelY - 0.026, spec.handguardFront + 0.06));
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.026, 0.02, 0.04, { radius: 0.003 }),
+        0,
+        barrelY - 0.026,
+        spec.handguardFront + 0.06,
+      ),
+    );
   }
 
   /* ------------------------------------------------ carry handle */
   if (spec.carryHandle) {
-    asm.add(m.receiver, place(chamferedBox(0.016, 0.008, 0.1, { radius: 0.003 }), 0.03, railTop + 0.03, -0.14));
-    asm.add(m.receiver, place(chamferedBox(0.014, 0.03, 0.012, { radius: 0.003 }), 0.03, railTop + 0.016, -0.185));
-    asm.add(m.receiver, place(chamferedBox(0.014, 0.03, 0.012, { radius: 0.003 }), 0.03, railTop + 0.016, -0.095));
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.016, 0.008, 0.1, { radius: 0.003 }),
+        0.03,
+        railTop + 0.03,
+        -0.14,
+      ),
+    );
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.014, 0.03, 0.012, { radius: 0.003 }),
+        0.03,
+        railTop + 0.016,
+        -0.185,
+      ),
+    );
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.014, 0.03, 0.012, { radius: 0.003 }),
+        0.03,
+        railTop + 0.016,
+        -0.095,
+      ),
+    );
   }
 
   /* ----------------------------------------------------- foregrip */
@@ -719,8 +1408,20 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   if (!spec.bipod && !spec.heatShield) {
     const fg = new THREE.Group();
     const fgAsm = new Assembler();
-    fgAsm.add(m.grip, place(chamferedBox(0.026, 0.055, 0.03, { radius: 0.01, curveSegments: 5 }), 0, -0.03, 0, -0.12));
-    fgAsm.add(m.grip, place(chamferedBox(0.03, 0.012, 0.034, { radius: 0.005 }), 0, -0.058, 0.006));
+    fgAsm.add(
+      m.grip,
+      place(
+        chamferedBox(0.026, 0.055, 0.03, { radius: 0.01, curveSegments: 5 }),
+        0,
+        -0.03,
+        0,
+        -0.12,
+      ),
+    );
+    fgAsm.add(
+      m.grip,
+      place(chamferedBox(0.03, 0.012, 0.034, { radius: 0.005 }), 0, -0.058, 0.006),
+    );
     fgAsm.flushInto(fg);
     fg.position.set(0, barrelY - spec.handguardRadius, spec.handguardFront + 0.075);
     root.add(fg);
@@ -751,7 +1452,11 @@ function buildLongGun(def: WeaponDef, spec: LongGunSpec, m: WeaponMaterials): We
   rightHand.position.set(0, -0.05, 0.026);
   root.add(rightHand);
   const leftHand = new THREE.Object3D();
-  leftHand.position.set(0, barrelY - spec.handguardRadius - 0.01, spec.handguardFront + 0.08);
+  leftHand.position.set(
+    0,
+    barrelY - spec.handguardRadius - 0.01,
+    spec.handguardFront + 0.08,
+  );
   root.add(leftHand);
 
   // Hands, parented to the anchors rather than solved against them. In a first
@@ -824,42 +1529,151 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     asm.add(m.steel, place(shell(0.0165, 0.0136, 0.14, 20), 0, slideY, -0.08));
     // Fluted cylinder.
     asm.add(m.steel, place(tube(0.021, 0.021, 0.042, 22), 0, slideY - 0.004, 0.008));
-    asm.add(m.nitride, place(flutes(6, 0.021, 0.034, 0.006, 0.0022), 0, slideY - 0.004, 0.008));
-    asm.add(m.receiver, place(chamferedBox(0.016, 0.05, 0.075, { radius: 0.005 }), 0, slideY - 0.03, 0.032));
-    asm.add(m.steel, place(chamferedBox(0.01, 0.02, 0.024, { radius: 0.004 }), 0, slideY + 0.008, 0.05));
-    asm.add(m.wood, place(chamferedBox(0.03, 0.085, 0.042, { radius: 0.012, curveSegments: 5 }), 0, -0.028, 0.062, 0.28));
-    asm.add(m.steel, place(chamferedBox(0.008, 0.012, 0.03, { radius: 0.002 }), 0, slideY - 0.02, -0.078));
+    asm.add(
+      m.nitride,
+      place(flutes(6, 0.021, 0.034, 0.006, 0.0022), 0, slideY - 0.004, 0.008),
+    );
+    asm.add(
+      m.receiver,
+      place(chamferedBox(0.016, 0.05, 0.075, { radius: 0.005 }), 0, slideY - 0.03, 0.032),
+    );
+    asm.add(
+      m.steel,
+      place(chamferedBox(0.01, 0.02, 0.024, { radius: 0.004 }), 0, slideY + 0.008, 0.05),
+    );
+    asm.add(
+      m.wood,
+      place(
+        chamferedBox(0.03, 0.085, 0.042, { radius: 0.012, curveSegments: 5 }),
+        0,
+        -0.028,
+        0.062,
+        0.28,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.008, 0.012, 0.03, { radius: 0.002 }),
+        0,
+        slideY - 0.02,
+        -0.078,
+      ),
+    );
   } else {
     // Slide with front and rear cocking serrations.
-    asm.add(m.nitride, place(chamferedBox(0.026, 0.03, 0.185, { radius: 0.004, curveSegments: 4 }), 0, slideY, -0.05));
+    asm.add(
+      m.nitride,
+      place(
+        chamferedBox(0.026, 0.03, 0.185, { radius: 0.004, curveSegments: 4 }),
+        0,
+        slideY,
+        -0.05,
+      ),
+    );
     for (let i = 0; i < 7; i += 1) {
-      asm.add(m.steel, place(chamferedBox(0.027, 0.022, 0.0032, { radius: 0.001 }), 0, slideY, 0.014 - i * 0.008));
+      asm.add(
+        m.steel,
+        place(
+          chamferedBox(0.027, 0.022, 0.0032, { radius: 0.001 }),
+          0,
+          slideY,
+          0.014 - i * 0.008,
+        ),
+      );
     }
     for (let i = 0; i < 4; i += 1) {
-      asm.add(m.steel, place(chamferedBox(0.027, 0.02, 0.003, { radius: 0.001 }), 0, slideY, -0.098 - i * 0.008));
+      asm.add(
+        m.steel,
+        place(
+          chamferedBox(0.027, 0.02, 0.003, { radius: 0.001 }),
+          0,
+          slideY,
+          -0.098 - i * 0.008,
+        ),
+      );
     }
     asm.add(m.nitride, place(tube(0.0072, 0.0072, 0.03, 14), 0, slideY - 0.016, -0.118));
     asm.add(m.steel, place(tube(0.0055, 0.0055, 0.026, 14), 0, slideY, -0.132));
     // Frame + accessory rail + trigger guard.
-    asm.add(m.polymer, place(chamferedBox(0.024, 0.03, 0.13, { radius: 0.004 }), 0, slideY - 0.03, -0.032));
-    asm.add(m.polymer, place(chamferedBox(0.022, 0.008, 0.048, { radius: 0.002 }), 0, slideY - 0.046, -0.09));
+    asm.add(
+      m.polymer,
+      place(chamferedBox(0.024, 0.03, 0.13, { radius: 0.004 }), 0, slideY - 0.03, -0.032),
+    );
+    asm.add(
+      m.polymer,
+      place(
+        chamferedBox(0.022, 0.008, 0.048, { radius: 0.002 }),
+        0,
+        slideY - 0.046,
+        -0.09,
+      ),
+    );
     for (let i = 0; i <= 8; i += 1) {
       const t = i / 8;
       const angle = Math.PI * (0.1 + t * 0.8);
-      asm.add(m.polymer, place(chamferedBox(0.007, 0.006, 0.01, { radius: 0.0018 }), 0, slideY - 0.048 - Math.sin(angle) * 0.018, -0.03 + Math.cos(angle) * 0.021, Math.PI / 2 - angle));
+      asm.add(
+        m.polymer,
+        place(
+          chamferedBox(0.007, 0.006, 0.01, { radius: 0.0018 }),
+          0,
+          slideY - 0.048 - Math.sin(angle) * 0.018,
+          -0.03 + Math.cos(angle) * 0.021,
+          Math.PI / 2 - angle,
+        ),
+      );
     }
-    asm.add(m.grip, place(chamferedBox(0.028, 0.096, 0.038, { radius: 0.01, curveSegments: 5 }), 0, -0.028, 0.014, 0.19));
-    asm.add(m.steel, place(chamferedBox(0.008, 0.008, 0.02, { radius: 0.002 }), -0.015, slideY - 0.024, -0.006));
+    asm.add(
+      m.grip,
+      place(
+        chamferedBox(0.028, 0.096, 0.038, { radius: 0.01, curveSegments: 5 }),
+        0,
+        -0.028,
+        0.014,
+        0.19,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.008, 0.008, 0.02, { radius: 0.002 }),
+        -0.015,
+        slideY - 0.024,
+        -0.006,
+      ),
+    );
     // Sights.
-    asm.add(m.steel, place(chamferedBox(0.012, 0.008, 0.005, { radius: 0.001 }), 0, slideY + 0.019, -0.128));
-    asm.add(m.steel, place(chamferedBox(0.016, 0.009, 0.006, { radius: 0.001 }), 0, slideY + 0.0195, 0.03));
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.012, 0.008, 0.005, { radius: 0.001 }),
+        0,
+        slideY + 0.019,
+        -0.128,
+      ),
+    );
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.016, 0.009, 0.006, { radius: 0.001 }),
+        0,
+        slideY + 0.0195,
+        0.03,
+      ),
+    );
   }
 
   const magazine = new THREE.Group();
   if (!revolver) {
     const magAsm = new Assembler();
-    magAsm.add(m.nitride, place(chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }), 0, -0.028, 0.014, 0.19));
-    magAsm.add(m.polymer, place(chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }), 0, -0.078, 0.024, 0.19));
+    magAsm.add(
+      m.nitride,
+      place(chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }), 0, -0.028, 0.014, 0.19),
+    );
+    magAsm.add(
+      m.polymer,
+      place(chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }), 0, -0.078, 0.024, 0.19),
+    );
     magAsm.flushInto(magazine);
   }
   root.add(magazine);
@@ -867,7 +1681,10 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
   const bolt = new THREE.Group();
   const trigger = new THREE.Group();
   const trigAsm = new Assembler();
-  trigAsm.add(m.steel, place(chamferedBox(0.005, 0.02, 0.007, { radius: 0.002 }), 0, 0, 0, 0.2));
+  trigAsm.add(
+    m.steel,
+    place(chamferedBox(0.005, 0.02, 0.007, { radius: 0.002 }), 0, 0, 0, 0.2),
+  );
   trigAsm.flushInto(trigger, false);
   trigger.position.set(0, slideY - 0.056, -0.026);
   root.add(trigger);
@@ -930,14 +1747,45 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
   const root = new THREE.Group();
   const asm = new Assembler();
   // Clip-point blade: a tapered plate with a ground bevel along the edge.
-  asm.add(m.nitride, place(chamferedBox(0.004, 0.026, 0.14, { radius: 0.001 }), 0, 0, -0.09));
-  asm.add(m.bareMetal, place(chamferedBox(0.0022, 0.008, 0.13, { radius: 0.0008 }), 0, -0.012, -0.088));
-  asm.add(m.nitride, place(chamferedBox(0.0035, 0.02, 0.03, { radius: 0.008 }), 0, 0.004, -0.168, 0, 0, 0.2));
-  asm.add(m.steel, place(chamferedBox(0.012, 0.03, 0.008, { radius: 0.002 }), 0, 0, -0.016));
+  asm.add(
+    m.nitride,
+    place(chamferedBox(0.004, 0.026, 0.14, { radius: 0.001 }), 0, 0, -0.09),
+  );
+  asm.add(
+    m.bareMetal,
+    place(chamferedBox(0.0022, 0.008, 0.13, { radius: 0.0008 }), 0, -0.012, -0.088),
+  );
+  asm.add(
+    m.nitride,
+    place(
+      chamferedBox(0.0035, 0.02, 0.03, { radius: 0.008 }),
+      0,
+      0.004,
+      -0.168,
+      0,
+      0,
+      0.2,
+    ),
+  );
+  asm.add(
+    m.steel,
+    place(chamferedBox(0.012, 0.03, 0.008, { radius: 0.002 }), 0, 0, -0.016),
+  );
   for (let i = 0; i < 5; i += 1) {
-    asm.add(m.rubber, place(chamferedBox(0.017, 0.026, 0.017, { radius: 0.006 }), 0, 0, 0.002 + i * 0.019));
+    asm.add(
+      m.rubber,
+      place(
+        chamferedBox(0.017, 0.026, 0.017, { radius: 0.006 }),
+        0,
+        0,
+        0.002 + i * 0.019,
+      ),
+    );
   }
-  asm.add(m.steel, place(chamferedBox(0.014, 0.02, 0.012, { radius: 0.003 }), 0, 0, 0.104));
+  asm.add(
+    m.steel,
+    place(chamferedBox(0.014, 0.02, 0.012, { radius: 0.003 }), 0, 0, 0.104),
+  );
 
   const triangles = asm.flushInto(root);
   const anchor = (x: number, y: number, z: number): THREE.Object3D => {
@@ -988,18 +1836,53 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
   const asm = new Assembler();
   const axisY = 0.055;
   asm.add(m.polymerTan, place(tube(0.042, 0.044, 0.86, 24), 0, axisY, -0.28));
-  asm.add(m.polymerTan, place(lathe([
-    [0.044, 0.16],
-    [0.056, 0.13],
-    [0.056, 0.09],
-    [0.044, 0.06],
-  ], 24), 0, axisY, 0.19));
+  asm.add(
+    m.polymerTan,
+    place(
+      lathe(
+        [
+          [0.044, 0.16],
+          [0.056, 0.13],
+          [0.056, 0.09],
+          [0.044, 0.06],
+        ],
+        24,
+      ),
+      0,
+      axisY,
+      0.19,
+    ),
+  );
   asm.add(m.nitride, place(shell(0.05, 0.043, 0.03, 24), 0, axisY, -0.68));
   asm.add(m.receiver, place(picatinnyRail(0.2), 0, axisY + 0.043, -0.24));
-  asm.add(m.grip, place(chamferedBox(0.032, 0.1, 0.042, { radius: 0.011, curveSegments: 5 }), 0, -0.012, 0.03, 0.3));
-  asm.add(m.grip, place(chamferedBox(0.028, 0.075, 0.036, { radius: 0.01, curveSegments: 5 }), 0, 0.002, -0.24, -0.15));
-  asm.add(m.receiver, place(chamferedBox(0.03, 0.03, 0.09, { radius: 0.006 }), 0, axisY - 0.05, 0.02));
-  asm.add(m.polymer, place(chamferedBox(0.09, 0.05, 0.06, { radius: 0.006 }), 0.05, axisY + 0.02, -0.1));
+  asm.add(
+    m.grip,
+    place(
+      chamferedBox(0.032, 0.1, 0.042, { radius: 0.011, curveSegments: 5 }),
+      0,
+      -0.012,
+      0.03,
+      0.3,
+    ),
+  );
+  asm.add(
+    m.grip,
+    place(
+      chamferedBox(0.028, 0.075, 0.036, { radius: 0.01, curveSegments: 5 }),
+      0,
+      0.002,
+      -0.24,
+      -0.15,
+    ),
+  );
+  asm.add(
+    m.receiver,
+    place(chamferedBox(0.03, 0.03, 0.09, { radius: 0.006 }), 0, axisY - 0.05, 0.02),
+  );
+  asm.add(
+    m.polymer,
+    place(chamferedBox(0.09, 0.05, 0.06, { radius: 0.006 }), 0.05, axisY + 0.02, -0.1),
+  );
   const optic = buildOptic(m, "acog", axisY + 0.052, -0.24);
   root.add(optic.group);
 
@@ -1075,7 +1958,7 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   model.hipPosition.set(
     0.185 * bulk,
     -0.255 * bulk,
-    -0.40 - (weaponClass === "sniper" ? 0.06 : 0),
+    -0.4 - (weaponClass === "sniper" ? 0.06 : 0),
   );
   model.hipRotation.set(0.055, -0.088, 0.052);
 }

@@ -137,14 +137,18 @@ export function Dossier() {
                         className="text-primary inline-flex items-start gap-1 hover:underline"
                       >
                         {record.sourceTitle}
-                        <ExternalLink className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                        <ExternalLink
+                          className="mt-0.5 size-3 shrink-0"
+                          aria-hidden="true"
+                        />
                         <span className="sr-only">(opens in a new tab)</span>
                       </a>
                     )}
                   </p>
                   <p className="text-muted-foreground mt-0.5 font-mono text-[10px]">
                     {record.sourcePublisher ?? "publisher unknown"} · published{" "}
-                    {record.sourceDate ?? "unknown"} · accessed {record.accessedAt ?? "unknown"}
+                    {record.sourceDate ?? "unknown"} · accessed{" "}
+                    {record.accessedAt ?? "unknown"}
                   </p>
                   {record.measurementUncertaintyM !== undefined ||
                   record.sourceResolutionM !== undefined ? (
@@ -184,7 +188,9 @@ export function Dossier() {
                   {missionEntity.id}
                 </dd>
                 <dt className="text-muted-foreground">Observation</dt>
-                <dd className="text-right">{missionEntity.observation.timestamp ?? "unknown"}</dd>
+                <dd className="text-right">
+                  {missionEntity.observation.timestamp ?? "unknown"}
+                </dd>
                 <dt className="text-muted-foreground">Relationships</dt>
                 <dd className="text-right">{missionEntity.relationships.length}</dd>
               </dl>
@@ -196,7 +202,10 @@ export function Dossier() {
                 ))}
               </div>
               <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
-                Tasks: {missionEntity.taskableBehaviors.map((behavior) => behavior.label).join(" · ")}
+                Tasks:{" "}
+                {missionEntity.taskableBehaviors
+                  .map((behavior) => behavior.label)
+                  .join(" · ")}
               </p>
             </div>
           </>

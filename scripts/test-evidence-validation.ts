@@ -12,11 +12,7 @@
  * Exits non-zero if any rule fails to fire.
  */
 
-import {
-  EVIDENCE_LEDGER,
-  PRIMARY_CRS,
-  type EvidenceRecord,
-} from "../src/lib/evidence";
+import { EVIDENCE_LEDGER, PRIMARY_CRS, type EvidenceRecord } from "../src/lib/evidence";
 import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
 
 const BASE: EvidenceRecord = {
@@ -66,7 +62,8 @@ const CASES: Case[] = [
       subjectId: "measurement-runway-length",
       subjectKind: "structure",
     },
-    expect: /claims geometry "measurement-runway-length" that does not exist in the layout/,
+    expect:
+      /claims geometry "measurement-runway-length" that does not exist in the layout/,
   },
   {
     name: "invalid classification is rejected",

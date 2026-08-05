@@ -132,11 +132,21 @@ function CircuitAircraft({ animate }: { animate: boolean }) {
   }, []);
 
   const body = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#3a3d42", roughness: 0.5, metalness: 0.35 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#3a3d42",
+        roughness: 0.5,
+        metalness: 0.35,
+      }),
     [],
   );
   const canopy = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#16242f", roughness: 0.12, metalness: 0.85 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#16242f",
+        roughness: 0.12,
+        metalness: 0.85,
+      }),
     [],
   );
 
@@ -161,7 +171,12 @@ function CircuitAircraft({ animate }: { animate: boolean }) {
       <group ref={rollRef}>
         <mesh geometry={wingGeo} material={body} position={[0, 0, 0]} castShadow />
         {/* dorsal fairing + canopy */}
-        <mesh material={body} position={[0, 0.5, -1.5]} scale={[1.3, 0.6, 2.4]} castShadow>
+        <mesh
+          material={body}
+          position={[0, 0.5, -1.5]}
+          scale={[1.3, 0.6, 2.4]}
+          castShadow
+        >
           <sphereGeometry args={[1.15, 18, 12]} />
         </mesh>
         <mesh material={canopy} position={[0, 0.85, -4]} scale={[0.8, 0.6, 1.9]}>
@@ -221,17 +236,28 @@ function RotatingRadar({ animate }: { animate: boolean }) {
   const dishRef = useRef<THREE.Group>(null);
 
   const metal = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#8b8d88", roughness: 0.5, metalness: 0.5 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#8b8d88",
+        roughness: 0.5,
+        metalness: 0.5,
+      }),
     [],
   );
   const dish = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#d7d4c8", roughness: 0.6, metalness: 0.2, side: THREE.DoubleSide }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#d7d4c8",
+        roughness: 0.6,
+        metalness: 0.2,
+        side: THREE.DoubleSide,
+      }),
     [],
   );
 
   useFrame((_, delta) => {
     if (!animate) return;
-    if (dishRef.current) dishRef.current.rotation.y += delta * (Math.PI * 2) / 6; // ~10 rpm
+    if (dishRef.current) dishRef.current.rotation.y += (delta * (Math.PI * 2)) / 6; // ~10 rpm
   });
 
   return (
@@ -288,20 +314,13 @@ interface PatrolFleetProps {
   realHeadlight: boolean;
 }
 
-function PatrolFleet({
-  night,
-  animate,
-  vehicleCount,
-  realHeadlight,
-}: PatrolFleetProps) {
+function PatrolFleet({ night, animate, vehicleCount, realHeadlight }: PatrolFleetProps) {
   const groupRefs = useRef<Array<THREE.Group | null>>([]);
   const headings = useMemo(() => new Float64Array(MAX_PATROL_VEHICLES), []);
   const headingReady = useMemo(() => new Uint8Array(MAX_PATROL_VEHICLES), []);
 
   const { points, segmentLengths, cumulative, total, profiles } = useMemo(() => {
-    const routePoints = PERIMETER_PATROL_ROUTE.map(
-      ([x, z]) => new THREE.Vector2(x, z),
-    );
+    const routePoints = PERIMETER_PATROL_ROUTE.map(([x, z]) => new THREE.Vector2(x, z));
     const lengths = new Float64Array(routePoints.length - 1);
     const cumulativeLengths = new Float64Array(routePoints.length);
     let totalLength = 0;
@@ -335,7 +354,12 @@ function PatrolFleet({
   }, []);
 
   const body = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#5c5643", roughness: 0.8, metalness: 0.1 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#5c5643",
+        roughness: 0.8,
+        metalness: 0.1,
+      }),
     [],
   );
   const cab = useMemo(
@@ -396,10 +420,7 @@ function PatrolFleet({
 
       const distanceM =
         profile.phaseM +
-        profile.direction *
-          elapsedSeconds *
-          PATROL_SPEED_MPS *
-          profile.speedMultiplier;
+        profile.direction * elapsedSeconds * PATROL_SPEED_MPS * profile.speedMultiplier;
       sample(distanceM, at);
       sample(distanceM + profile.direction * PATROL_LOOK_AHEAD_M, ahead);
 
@@ -431,10 +452,25 @@ function PatrolFleet({
             scale={profile.scale}
             userData={{ entityId: PATROL_ENTITY_IDS[index] }}
           >
-            <mesh geometry={bodyGeometry} material={body} position={[0, 0.35, 0.2]} castShadow />
-            <mesh geometry={cabGeometry} material={cab} position={[0, 0.95, -0.9]} castShadow />
+            <mesh
+              geometry={bodyGeometry}
+              material={body}
+              position={[0, 0.35, 0.2]}
+              castShadow
+            />
+            <mesh
+              geometry={cabGeometry}
+              material={cab}
+              position={[0, 0.95, -0.9]}
+              castShadow
+            />
             {[-0.6, 0.6].map((x) => (
-              <mesh key={x} geometry={lampGeometry} material={lamp} position={[x, 0.4, -2.05]} />
+              <mesh
+                key={x}
+                geometry={lampGeometry}
+                material={lamp}
+                position={[x, 0.4, -2.05]}
+              />
             ))}
             {[-1, 1].map((x) =>
               [-1.2, 1.3].map((z) => (
@@ -478,21 +514,37 @@ function Windsock({ animate }: { animate: boolean }) {
   const windStrength = THREE.MathUtils.clamp(climate.windSpeedMps / 7, 0, 1);
 
   const pole = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#9a9488", roughness: 0.6, metalness: 0.3 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#9a9488",
+        roughness: 0.6,
+        metalness: 0.3,
+      }),
     [],
   );
   const red = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#d64a2e", roughness: 0.85, side: THREE.DoubleSide }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#d64a2e",
+        roughness: 0.85,
+        side: THREE.DoubleSide,
+      }),
     [],
   );
   const white = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#e7e2d5", roughness: 0.85, side: THREE.DoubleSide }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#e7e2d5",
+        roughness: 0.85,
+        side: THREE.DoubleSide,
+      }),
     [],
   );
 
   // five tapering open bands forming the cone, alternating red/white
   const bands = useMemo(() => {
-    const out: { z: number; r0: number; r1: number; h: number; mat: THREE.Material }[] = [];
+    const out: { z: number; r0: number; r1: number; h: number; mat: THREE.Material }[] =
+      [];
     const len = 3.6;
     const seg = 5;
     for (let i = 0; i < seg; i++) {
@@ -533,7 +585,12 @@ function Windsock({ animate }: { animate: boolean }) {
           <torusGeometry args={[0.55, 0.05, 6, 16]} />
         </mesh>
         {bands.map((b, i) => (
-          <mesh key={i} material={b.mat} position={[0, 0, b.z]} rotation={[Math.PI / 2, 0, 0]}>
+          <mesh
+            key={i}
+            material={b.mat}
+            position={[0, 0, b.z]}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
             <cylinderGeometry args={[b.r1, b.r0, b.h, 14, 1, true]} />
           </mesh>
         ))}

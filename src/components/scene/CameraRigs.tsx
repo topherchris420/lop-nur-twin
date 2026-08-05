@@ -77,8 +77,11 @@ function OrbitRig() {
       // is preserved — this is a translation, not a rotation. A fly-to always
       // wins, hence the `else`.
       const cam = controls.object;
-      panForward.current
-        .set(controls.target.x - cam.position.x, 0, controls.target.z - cam.position.z);
+      panForward.current.set(
+        controls.target.x - cam.position.x,
+        0,
+        controls.target.z - cam.position.z,
+      );
       if (panForward.current.lengthSq() < 1e-6) panForward.current.set(0, 0, -1);
       panForward.current.normalize();
       panRight.current
@@ -97,8 +100,16 @@ function OrbitRig() {
         step.normalize().multiplyScalar(speed * mag);
         // clamp the target to the world, then shift the camera by the same
         // amount so the two never drift apart at the boundary
-        const nx = THREE.MathUtils.clamp(controls.target.x + step.x, -WORLD_LIMIT, WORLD_LIMIT);
-        const nz = THREE.MathUtils.clamp(controls.target.z + step.z, -WORLD_LIMIT, WORLD_LIMIT);
+        const nx = THREE.MathUtils.clamp(
+          controls.target.x + step.x,
+          -WORLD_LIMIT,
+          WORLD_LIMIT,
+        );
+        const nz = THREE.MathUtils.clamp(
+          controls.target.z + step.z,
+          -WORLD_LIMIT,
+          WORLD_LIMIT,
+        );
         cam.position.x += nx - controls.target.x;
         cam.position.z += nz - controls.target.z;
         controls.target.x = nx;
@@ -146,8 +157,16 @@ function FpsRig() {
 
   useEffect(() => {
     // drop onto the terrain wherever the previous camera was hovering
-    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -WORLD_LIMIT, WORLD_LIMIT);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -WORLD_LIMIT, WORLD_LIMIT);
+    camera.position.x = THREE.MathUtils.clamp(
+      camera.position.x,
+      -WORLD_LIMIT,
+      WORLD_LIMIT,
+    );
+    camera.position.z = THREE.MathUtils.clamp(
+      camera.position.z,
+      -WORLD_LIMIT,
+      WORLD_LIMIT,
+    );
     camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT;
 
     if (touch) {
@@ -211,8 +230,16 @@ function FpsRig() {
       move.normalize().multiplyScalar(speed * delta * mag);
       camera.position.add(move);
     }
-    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -WORLD_LIMIT, WORLD_LIMIT);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -WORLD_LIMIT, WORLD_LIMIT);
+    camera.position.x = THREE.MathUtils.clamp(
+      camera.position.x,
+      -WORLD_LIMIT,
+      WORLD_LIMIT,
+    );
+    camera.position.z = THREE.MathUtils.clamp(
+      camera.position.z,
+      -WORLD_LIMIT,
+      WORLD_LIMIT,
+    );
     // simple ground collision: stand on the analytic heightfield
     camera.position.y = terrainHeight(camera.position.x, camera.position.z) + EYE_HEIGHT;
   });

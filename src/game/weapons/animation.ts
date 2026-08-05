@@ -151,7 +151,8 @@ export class ViewmodelAnimator {
     const swayScale = (1 - ads * 0.78) * 0.075;
     _target.set(
       THREE.MathUtils.clamp(-input.lookDeltaYaw * 3.4, -0.09, 0.09) * (swayScale / 0.075),
-      THREE.MathUtils.clamp(input.lookDeltaPitch * 3.0, -0.08, 0.08) * (swayScale / 0.075),
+      THREE.MathUtils.clamp(input.lookDeltaPitch * 3.0, -0.08, 0.08) *
+        (swayScale / 0.075),
       0,
     );
     springTo(this.sway, _target, 130, 17, dt);
@@ -176,7 +177,8 @@ export class ViewmodelAnimator {
     const breathY = Math.sin(this.breathPhase) * breathAmp * 0.72;
 
     /* -------------------------------------------------------- bob */
-    const bobScale = Math.min(1, input.speed / 4.5) * (1 - ads * 0.85) * (input.grounded ? 1 : 0.2);
+    const bobScale =
+      Math.min(1, input.speed / 4.5) * (1 - ads * 0.85) * (input.grounded ? 1 : 0.2);
     const phase = view.bobPhase;
     const bobX = Math.sin(phase) * 0.014 * bobScale;
     const bobY = -Math.abs(Math.cos(phase)) * 0.011 * bobScale;
@@ -188,8 +190,18 @@ export class ViewmodelAnimator {
     /* ------------------------------------------------------- apply */
     const root = model.root;
     root.position.set(
-      this.pose.value.x + this.sway.value.x + bobX + sprintBobX + breathX + this.recoil.value.x,
-      this.pose.value.y + this.sway.value.y + bobY + sprintBobY + breathY + this.recoil.value.y,
+      this.pose.value.x +
+        this.sway.value.x +
+        bobX +
+        sprintBobX +
+        breathX +
+        this.recoil.value.x,
+      this.pose.value.y +
+        this.sway.value.y +
+        bobY +
+        sprintBobY +
+        breathY +
+        this.recoil.value.y,
       this.pose.value.z + this.recoil.value.z,
     );
     _euler.set(
@@ -215,7 +227,8 @@ export class ViewmodelAnimator {
     const wantsCharge =
       runtime.isReloading && runtime.chambering && runtime.reloadProgress > 0.78 ? 1 : 0;
     this.chargeOffset += (wantsCharge - this.chargeOffset) * Math.min(1, dt * 22);
-    model.parts.chargingHandle.position.z = this.chargeOffset * model.parts.chargingTravel;
+    model.parts.chargingHandle.position.z =
+      this.chargeOffset * model.parts.chargingTravel;
 
     // Trigger.
     this.triggerPull *= Math.exp(-26 * dt);

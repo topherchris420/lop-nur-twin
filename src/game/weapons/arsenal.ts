@@ -38,7 +38,9 @@ import {
 /* ------------------------------------------------------------------ */
 
 /** `[range, damage]` pairs, written compactly and frozen into the def. */
-function curve(...points: readonly (readonly [number, number])[]): readonly DamageProfilePoint[] {
+function curve(
+  ...points: readonly (readonly [number, number])[]
+): readonly DamageProfilePoint[] {
   return points.map(([rangeM, damage]) => ({ rangeM, damage }));
 }
 
@@ -1014,24 +1016,25 @@ export function getWeapon(id: string): WeaponDef {
 }
 
 export function tryGetWeapon(id: string): WeaponDef | undefined {
-  return WEAPONS[id] ?? (WEAPON_ALIASES[id] ? WEAPONS[WEAPON_ALIASES[id]!] : undefined);
+  return WEAPONS[id] ?? (WEAPON_ALIASES[id] ? WEAPONS[WEAPON_ALIASES[id]] : undefined);
 }
 
-export const WEAPONS_BY_CLASS: Readonly<Record<WeaponClass, readonly WeaponDef[]>> = (() => {
-  const out: Record<WeaponClass, WeaponDef[]> = {
-    assault: [],
-    smg: [],
-    lmg: [],
-    marksman: [],
-    sniper: [],
-    shotgun: [],
-    pistol: [],
-    launcher: [],
-    melee: [],
-  };
-  for (const def of DEFS) out[def.weaponClass].push(def);
-  return out;
-})();
+export const WEAPONS_BY_CLASS: Readonly<Record<WeaponClass, readonly WeaponDef[]>> =
+  (() => {
+    const out: Record<WeaponClass, WeaponDef[]> = {
+      assault: [],
+      smg: [],
+      lmg: [],
+      marksman: [],
+      sniper: [],
+      shotgun: [],
+      pistol: [],
+      launcher: [],
+      melee: [],
+    };
+    for (const def of DEFS) out[def.weaponClass].push(def);
+    return out;
+  })();
 
 /** Weapons that fly a simulated projectile rather than a hitscan ray. */
 export function usesProjectile(def: WeaponDef): boolean {

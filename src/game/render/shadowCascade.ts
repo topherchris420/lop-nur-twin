@@ -234,9 +234,7 @@ export class NearShadowCascade {
     if (_forward.lengthSq() < 1e-6) _forward.set(0, 0, -1);
     _forward.normalize();
 
-    _focus
-      .copy(camera.position)
-      .addScaledVector(_forward, this.radius * LEAD_FRACTION);
+    _focus.copy(camera.position).addScaledVector(_forward, this.radius * LEAD_FRACTION);
     // Sit the frustum on the ground rather than at eye height, so its depth
     // range is spent on the world and not on the air above the player.
     _focus.y -= 1.0;

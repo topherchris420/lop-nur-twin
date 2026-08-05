@@ -26,11 +26,7 @@ import {
   KNOWN_LIMITATIONS,
   PRIMARY_CRS,
 } from "@/lib/evidence";
-import {
-  MODEL_MANIFEST_PATH,
-  shortHash,
-  useModelManifest,
-} from "@/lib/modelManifest";
+import { MODEL_MANIFEST_PATH, shortHash, useModelManifest } from "@/lib/modelManifest";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { useTwinStore } from "@/lib/store";
@@ -74,7 +70,10 @@ export function ResearchPanel() {
   const reference = SITE_PROFILE.referenceCoordinate;
 
   return (
-    <Card id="research-panel" className="research-panel hud-side-panel absolute top-16 right-4 z-10 flex max-h-[calc(100dvh-5rem)] flex-col select-text">
+    <Card
+      id="research-panel"
+      className="research-panel hud-side-panel absolute top-16 right-4 z-10 flex max-h-[calc(100dvh-5rem)] flex-col select-text"
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -115,7 +114,10 @@ export function ResearchPanel() {
               value={`${SITE_PROFILE.terrainDatum.elevationM.toFixed(0)} m AMSL`}
             />
             <Metric label="Local CRS" value={SITE_PROFILE.localCrs.code} />
-            <Metric label="Vertical ref" value={SITE_PROFILE.terrainDatum.verticalReference} />
+            <Metric
+              label="Vertical ref"
+              value={SITE_PROFILE.terrainDatum.verticalReference}
+            />
             <Metric
               label="Scene extent"
               value={`${(SITE_PROFILE.worldExtentM / 1000).toFixed(1)} km square`}
@@ -126,9 +128,10 @@ export function ResearchPanel() {
             />
           </dl>
           <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
-            {reference.precision}. Runway {SITE_PROFILE.runway.designation} is aligned to a
-            modeled {SITE_PROFILE.runway.modeledGridBearingDeg} deg grid bearing; modeled
-            endpoint uncertainty is about {SITE_PROFILE.runway.endpointUncertaintyM} m.
+            {reference.precision}. Runway {SITE_PROFILE.runway.designation} is aligned to
+            a modeled {SITE_PROFILE.runway.modeledGridBearingDeg} deg grid bearing;
+            modeled endpoint uncertainty is about{" "}
+            {SITE_PROFILE.runway.endpointUncertaintyM} m.
           </p>
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
             {SITE_PROFILE.terrainDatum.product}: {SITE_PROFILE.terrainDatum.note}
@@ -149,8 +152,8 @@ export function ResearchPanel() {
           </h2>
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
             Status is carried by a symbol and a word as well as a colour. Source
-            observation and simulation are never merged: anything the model adds is
-            marked interpreted or illustrative.
+            observation and simulation are never merged: anything the model adds is marked
+            interpreted or illustrative.
           </p>
           <div className="mt-2">
             <EvidenceLegendList />
@@ -200,14 +203,23 @@ export function ResearchPanel() {
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
             <Metric label="Temperature" value={`${climate.temperatureC.toFixed(1)} C`} />
-            <Metric label="Humidity" value={`${climate.relativeHumidityPct.toFixed(1)}%`} />
+            <Metric
+              label="Humidity"
+              value={`${climate.relativeHumidityPct.toFixed(1)}%`}
+            />
             <Metric label="Wind" value={`${climate.windSpeedMps.toFixed(1)} m/s`} />
-            <Metric label="Wind from" value={`${climate.windDirectionDeg.toFixed(0)} deg`} />
+            <Metric
+              label="Wind from"
+              value={`${climate.windDirectionDeg.toFixed(0)} deg`}
+            />
             <Metric
               label="Precipitation"
               value={`${climate.precipitationMmDay.toFixed(2)} mm/day`}
             />
-            <Metric label="Solar" value={`${climate.solarKwhM2Day.toFixed(2)} kWh/m2/day`} />
+            <Metric
+              label="Solar"
+              value={`${climate.solarKwhM2Day.toFixed(2)} kWh/m2/day`}
+            />
           </dl>
           <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
             These are climatological means used to drive the simulator environment, not
@@ -233,7 +245,8 @@ export function ResearchPanel() {
                 </span>
               </div>
               <p className="text-muted-foreground mt-1 font-mono text-[10px]">
-                {coordinate(place.latitude, "N", "S")}, {coordinate(place.longitude, "E", "W")}
+                {coordinate(place.latitude, "N", "S")},{" "}
+                {coordinate(place.longitude, "E", "W")}
               </p>
               <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
                 {place.note}
@@ -335,7 +348,10 @@ export function ResearchPanel() {
                 {shortHash(manifest.manifest.geometryHash)}
               </dd>
               <dt className="text-muted-foreground">Evidence</dt>
-              <dd className="truncate text-right" title={manifest.manifest.evidenceLedgerHash}>
+              <dd
+                className="truncate text-right"
+                title={manifest.manifest.evidenceLedgerHash}
+              >
                 {shortHash(manifest.manifest.evidenceLedgerHash)}
               </dd>
             </dl>

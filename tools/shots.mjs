@@ -184,10 +184,7 @@ async function captureBlacksite() {
         // everything in frame to silhouette, and hides the thing the picture
         // is of. `SUN.azimuthDeg` is 112, in `render/environment.ts`.
         const sunAz = (112 * Math.PI) / 180;
-        const toSubject = Math.atan2(
-          chest.x - candidate.x,
-          -(chest.z - candidate.z),
-        );
+        const toSubject = Math.atan2(chest.x - candidate.x, -(chest.z - candidate.z));
         // Positive when looking away from the sun.
         score += -Math.cos(toSubject - sunAz) * 16;
         // And something behind them is much better than empty lakebed: keep
@@ -269,7 +266,9 @@ async function captureBlacksite() {
     return { standoff: +aimDistance.toFixed(1), contacts: inFrame };
   });
   if (framed) {
-    console.log(`  framed a ${framed.standoff} m engagement, ${framed.contacts} within 80 m`);
+    console.log(
+      `  framed a ${framed.standoff} m engagement, ${framed.contacts} within 80 m`,
+    );
   }
   await sleep(900);
   await shoot(page, "docs/screenshot-blacksite.png");

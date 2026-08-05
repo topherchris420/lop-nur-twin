@@ -56,7 +56,9 @@ const report = await page.evaluate(() => {
 
   // Bone indices, mirroring `B` in rig.ts.
   const idx = {};
-  bones.forEach((b, i) => { idx[b.name] = i; });
+  bones.forEach((b, i) => {
+    idx[b.name] = i;
+  });
 
   // Read world positions straight out of the bone matrices, so the harness
   // needs nothing from three beyond what the page already built.
@@ -82,7 +84,11 @@ const report = await page.evaluate(() => {
     // Park the actor somewhere flat and open, and drive it forward at a fixed
     // speed. Position advances by hand: the point is to test the animation
     // against motion, not to run the physics.
-    actor.position.set(game.player.position.x + 6, game.player.position.y, game.player.position.z);
+    actor.position.set(
+      game.player.position.x + 6,
+      game.player.position.y,
+      game.player.position.z,
+    );
     actor.yaw = 0;
     actor.pitch = 0;
     actor.stance = "stand";
@@ -98,10 +104,10 @@ const report = await page.evaluate(() => {
       game.characters.poseOnly(actor.id, dt, true);
     }
 
-    let worstKneeBack = -Infinity;   // >0 means the knee bent backward
-    let worstExtension = 0;          // fraction of full reach
-    let closestContact = Infinity;   // how near a foot ever gets to the ground
-    let worstSlip = 0;               // planted-foot horizontal travel per body step
+    let worstKneeBack = -Infinity; // >0 means the knee bent backward
+    let worstExtension = 0; // fraction of full reach
+    let closestContact = Infinity; // how near a foot ever gets to the ground
+    let worstSlip = 0; // planted-foot horizontal travel per body step
     let plantedSamples = 0;
 
     const last = [world(idx.footL), world(idx.footR)];

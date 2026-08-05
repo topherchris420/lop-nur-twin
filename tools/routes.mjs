@@ -117,7 +117,9 @@ for (const path of HOSTILE) {
     settle: path.startsWith("/analysis") ? 2000 : 5000,
   });
   const rendered = await page.evaluate(
-    () => document.querySelector("canvas") !== null || document.querySelector("table") !== null,
+    () =>
+      document.querySelector("canvas") !== null ||
+      document.querySelector("table") !== null,
   );
   check(
     `renders normally: ${path.slice(0, 58)}`,
@@ -208,7 +210,8 @@ console.log("\n=== keyboard navigation on /analysis ===");
   );
   check(
     "tab order is header, then controls, then table",
-    stops[0].includes("Skip to the structure") && stops.some((stop) => stop.includes("Open in 3D")),
+    stops[0].includes("Skip to the structure") &&
+      stops.some((stop) => stop.includes("Open in 3D")),
     `${new Set(stops).size} distinct stops in ${stops.length} tabs`,
   );
   await page.close();
@@ -221,13 +224,16 @@ console.log("\n=== keyboard navigation on /analysis ===");
 console.log("\n=== evidence filtering and search ===");
 {
   const { page, errors } = await open(`${previewOrigin}/analysis`, { settle: 2000 });
-  const rowCount = () => page.evaluate(() => document.querySelectorAll("tbody tr").length);
+  const rowCount = () =>
+    page.evaluate(() => document.querySelectorAll("tbody tr").length);
   // The row count lives in its own status element; select it by content so a
   // second status region (the manifest reader) cannot be mistaken for it.
   const statusText = () =>
     page.evaluate(() => {
       const regions = [...document.querySelectorAll("[role='status']")];
-      const counter = regions.find((node) => /Showing \d+ of \d+/.test(node.textContent ?? ""));
+      const counter = regions.find((node) =>
+        /Showing \d+ of \d+/.test(node.textContent ?? ""),
+      );
       return (counter?.textContent ?? "").trim();
     });
 
@@ -262,7 +268,11 @@ console.log("\n=== evidence filtering and search ===");
   await page.type("#structure-search", "fuel");
   await new Promise((resolve) => setTimeout(resolve, 250));
   const searched = await rowCount();
-  check("search narrows the table", searched > 0 && searched < allRows, `${searched} rows`);
+  check(
+    "search narrows the table",
+    searched > 0 && searched < allRows,
+    `${searched} rows`,
+  );
   check("filtering produced no page errors", errors.length === 0, errors[0] ?? "clean");
   await page.close();
 }

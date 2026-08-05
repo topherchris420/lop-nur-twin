@@ -58,19 +58,19 @@ The release manifest publishes this as machine-readable fact:
 
 ## 3. Evaluation areas
 
-| Area | What to look at | Where |
-| :-- | :-- | :-- |
-| **Public-source geospatial reconstruction** | A 6.8 km frame registered to EPSG:32645, built from a pinned Sentinel-2 scene and cited reporting, with runway length and grid bearing validated against documented figures on every build | `src/lib/layout.ts`, `scripts/validate-data.ts` |
-| **Evidence provenance** | A four-way classification, 0–1 ordinal confidence, per-claim citation with publication and access dates, and a build that fails when interpretation is dressed as observation | `src/lib/evidence.ts`, `src/lib/evidenceValidation.ts` |
-| **Spatial visualisation** | Procedural terrain and structures, a custom GLSL post stack, a four-tier adaptive quality ladder, log-depth handling across a 26 km camera range | `src/components/scene/`, `src/gfx/` |
-| **Digital twins** | One layout file projected into scene, minimap, index, measurement ruler, analysis table and a physics collision world baked from the rendered scene graph | `src/lib/layout.ts` → everything |
-| **Scenario simulation** | Collision, ballistics with per-material penetration, bot AI with shared contacts, procedural animation with two-bone IK, fully synthesised audio | `src/game/` |
-| **Human-computer interaction** | Three camera modes, touch controls, a measurement ruler with vertex snapping and clipboard export, dossier-to-table deep links in both directions | `src/components/hud/`, `/analysis` |
-| **Game-engine techniques in analytical environments** | The same geometry serving analysis and simulation, and what that costs and buys | `docs/SYSTEM_ARCHITECTURE.md` §7 |
-| **Reproducibility** | Deterministic seeded generation, canonical-JSON SHA-256 hashes, `SOURCE_DATE_EPOCH` support, byte-identical output under two runtimes | `scripts/generate-manifest.ts` |
-| **Data lineage** | Derived ledger, single source register, reviewable source updates, no runtime data dependency | `docs/DATA_PROVENANCE.md` |
-| **Accessibility** | A genuine non-3D route, automated axe testing on the production build, and an honest list of untested manual checks | `/analysis`, `docs/ACCESSIBILITY.md` |
-| **Security posture for a public demo** | CSP verified against the real build, validated URL parameters, no storage, no secrets, supply-chain scanning in CI | `docs/THREAT_MODEL.md`, `SECURITY.md` |
+| Area                                                  | What to look at                                                                                                                                                                            | Where                                                  |
+| :---------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| **Public-source geospatial reconstruction**           | A 6.8 km frame registered to EPSG:32645, built from a pinned Sentinel-2 scene and cited reporting, with runway length and grid bearing validated against documented figures on every build | `src/lib/layout.ts`, `scripts/validate-data.ts`        |
+| **Evidence provenance**                               | A four-way classification, 0–1 ordinal confidence, per-claim citation with publication and access dates, and a build that fails when interpretation is dressed as observation              | `src/lib/evidence.ts`, `src/lib/evidenceValidation.ts` |
+| **Spatial visualisation**                             | Procedural terrain and structures, a custom GLSL post stack, a four-tier adaptive quality ladder, log-depth handling across a 26 km camera range                                           | `src/components/scene/`, `src/gfx/`                    |
+| **Digital twins**                                     | One layout file projected into scene, minimap, index, measurement ruler, analysis table and a physics collision world baked from the rendered scene graph                                  | `src/lib/layout.ts` → everything                       |
+| **Scenario simulation**                               | Collision, ballistics with per-material penetration, bot AI with shared contacts, procedural animation with two-bone IK, fully synthesised audio                                           | `src/game/`                                            |
+| **Human-computer interaction**                        | Three camera modes, touch controls, a measurement ruler with vertex snapping and clipboard export, dossier-to-table deep links in both directions                                          | `src/components/hud/`, `/analysis`                     |
+| **Game-engine techniques in analytical environments** | The same geometry serving analysis and simulation, and what that costs and buys                                                                                                            | `docs/SYSTEM_ARCHITECTURE.md` §7                       |
+| **Reproducibility**                                   | Deterministic seeded generation, canonical-JSON SHA-256 hashes, `SOURCE_DATE_EPOCH` support, byte-identical output under two runtimes                                                      | `scripts/generate-manifest.ts`                         |
+| **Data lineage**                                      | Derived ledger, single source register, reviewable source updates, no runtime data dependency                                                                                              | `docs/DATA_PROVENANCE.md`                              |
+| **Accessibility**                                     | A genuine non-3D route, automated axe testing on the production build, and an honest list of untested manual checks                                                                        | `/analysis`, `docs/ACCESSIBILITY.md`                   |
+| **Security posture for a public demo**                | CSP verified against the real build, validated URL parameters, no storage, no secrets, supply-chain scanning in CI                                                                         | `docs/THREAT_MODEL.md`, `SECURITY.md`                  |
 
 ## 4. A 30-minute evaluation path
 

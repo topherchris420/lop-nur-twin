@@ -1,9 +1,4 @@
-import {
-  ALL_SEGMENTS,
-  FLATTEN_PADS,
-  APRONS,
-  type SegmentDef,
-} from "./layout";
+import { ALL_SEGMENTS, FLATTEN_PADS, APRONS, type SegmentDef } from "./layout";
 import { SITE_SEED, seededNoise2D } from "./noise";
 
 /**
@@ -46,7 +41,14 @@ const prepared: PreparedSegment[] = ALL_SEGMENTS.map((seg: SegmentDef) => {
   const dx = seg.to[0] - ax;
   const dz = seg.to[1] - az;
   const lenSq = dx * dx + dz * dz;
-  return { ax, az, dx, dz, invLenSq: lenSq > 0 ? 1 / lenSq : 0, halfWidth: seg.width / 2 };
+  return {
+    ax,
+    az,
+    dx,
+    dz,
+    invLenSq: lenSq > 0 ? 1 / lenSq : 0,
+    halfWidth: seg.width / 2,
+  };
 });
 
 const apronRects = APRONS.map((a) => ({
@@ -119,9 +121,7 @@ export function terrainHeight(x: number, z: number): number {
 
 /** Slow color-mottling channel used for vertex colors, in [-1, 1]. */
 export function mottle(x: number, z: number): number {
-  return (
-    mottleNoise(x / 260, z / 260) * 0.4 + mottleNoise(x / 47, z / 47) * 0.6
-  );
+  return mottleNoise(x / 260, z / 260) * 0.4 + mottleNoise(x / 47, z / 47) * 0.6;
 }
 
 /** Gobi gravel-field mask in [0, 1]: broad darker desert-pavement patches. */

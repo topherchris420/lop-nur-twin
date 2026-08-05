@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * Mutable frame bridge between the R3F scene and DOM analysis overlays.

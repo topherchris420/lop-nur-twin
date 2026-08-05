@@ -550,7 +550,9 @@ export class ParticleSystem {
     const lo = this.dirtyLow;
     const count = this.dirtyHigh - lo + 1;
     const flush = (name: string, size: number): void => {
-      const attribute = this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute;
+      const attribute = this.geometry.getAttribute(
+        name,
+      ) as THREE.InstancedBufferAttribute;
       attribute.clearUpdateRanges();
       attribute.addUpdateRange(lo * size, count * size);
       attribute.needsUpdate = true;

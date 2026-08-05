@@ -33,12 +33,12 @@ forbids an `observed` or `reported` record from citing it.
 Four classifications, defined once in `src/lib/evidence.ts` and used verbatim
 everywhere:
 
-| Classification | Means | Published statement |
-| :-- | :-- | :-- |
-| `observed` | Visible in the cited public imagery | "Observed in cited public imagery" |
-| `reported` | A cited publication states it exists | "Reported by cited publication" |
-| `interpreted` | This project assigned an identity, dimension or function no source states | "Interpreted from available evidence" |
-| `illustrative` | Modeled scenery or motion, not resolved in any source | "Illustrative simulation element" |
+| Classification | Means                                                                     | Published statement                   |
+| :------------- | :------------------------------------------------------------------------ | :------------------------------------ |
+| `observed`     | Visible in the cited public imagery                                       | "Observed in cited public imagery"    |
+| `reported`     | A cited publication states it exists                                      | "Reported by cited publication"       |
+| `interpreted`  | This project assigned an identity, dimension or function no source states | "Interpreted from available evidence" |
+| `illustrative` | Modeled scenery or motion, not resolved in any source                     | "Illustrative simulation element"     |
 
 Visibility establishes presence and rough extent — never function, interior use
 or occupancy. Reporting establishes that something exists; its placement,
@@ -62,7 +62,7 @@ The upstream data records ordinal judgements — low, medium, high. The schema
 publishes a number in `[0, 1]`. One documented mapping bridges them:
 
 ```ts
-CONFIDENCE_SCALE = { low: 0.30, medium: 0.55, high: 0.80 }
+CONFIDENCE_SCALE = { low: 0.3, medium: 0.55, high: 0.8 };
 ```
 
 Those three values are the only numeric confidences the ledger emits. The
@@ -72,7 +72,7 @@ manifest and both UIs restate what that means:
 > ranks how well a claim is supported by its cited source; it is **not** a
 > measured probability or a statistical estimate.
 
-Confidence is always shown as a number *and* a rank ("0.55 (medium)"), never as
+Confidence is always shown as a number _and_ a rank ("0.55 (medium)"), never as
 a colour or a bar on its own.
 
 ## 4. Representing uncertainty
@@ -80,11 +80,11 @@ a colour or a bar on its own.
 Three distinct things are kept distinct, because conflating them is how a
 model starts overstating itself:
 
-| Field | Meaning | Populated when |
-| :-- | :-- | :-- |
-| `measurementUncertaintyM` | Stated positional uncertainty of a measurement | Only where this project documents a figure — currently ±40 m on the modeled runway endpoints and the coordinates derived from them |
-| `sourceResolutionM` | Ground sample distance of the cited imagery | Where the source states one — 10 m for Sentinel-2 |
-| `analystNotes` | Prose caveats: method, what the number does and does not support | Wherever the upstream evidence carries them |
+| Field                     | Meaning                                                          | Populated when                                                                                                                     |
+| :------------------------ | :--------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| `measurementUncertaintyM` | Stated positional uncertainty of a measurement                   | Only where this project documents a figure — currently ±40 m on the modeled runway endpoints and the coordinates derived from them |
+| `sourceResolutionM`       | Ground sample distance of the cited imagery                      | Where the source states one — 10 m for Sentinel-2                                                                                  |
+| `analystNotes`            | Prose caveats: method, what the number does and does not support | Wherever the upstream evidence carries them                                                                                        |
 
 A structure interpreted from 10 m imagery records the 10 m resolution and does
 **not** invent a positional uncertainty from it. Where a value is unknown, the

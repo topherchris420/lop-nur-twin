@@ -735,9 +735,12 @@ export class NavGridBuilder {
           if (hi <= floor + 0.05 || lo >= floor + 2.4) continue;
           let bits = BAND_BIT.occupied;
           if (box.moves) {
-            if (hi > floor + BAND.moveLow && lo < floor + BAND.moveMid) bits |= BAND_BIT.moveLow;
-            if (hi > floor + BAND.moveMid && lo < floor + BAND.moveHigh) bits |= BAND_BIT.moveMid;
-            if (hi > floor + BAND.moveHigh && lo < floor + BAND.moveTop) bits |= BAND_BIT.moveHigh;
+            if (hi > floor + BAND.moveLow && lo < floor + BAND.moveMid)
+              bits |= BAND_BIT.moveLow;
+            if (hi > floor + BAND.moveMid && lo < floor + BAND.moveHigh)
+              bits |= BAND_BIT.moveMid;
+            if (hi > floor + BAND.moveHigh && lo < floor + BAND.moveTop)
+              bits |= BAND_BIT.moveHigh;
           }
           if (box.blocksSight) {
             if (hi > floor + BAND.coverLow && lo < floor + BAND.coverChest) {
@@ -807,7 +810,8 @@ export class NavGridBuilder {
         const xm = cx > 0 ? this.heights[index - 1]! : this.heights[index]!;
         const xp = cx < this.cols - 1 ? this.heights[index + 1]! : this.heights[index]!;
         const zm = cz > 0 ? this.heights[index - this.cols]! : this.heights[index]!;
-        const zp = cz < this.rows - 1 ? this.heights[index + this.cols]! : this.heights[index]!;
+        const zp =
+          cz < this.rows - 1 ? this.heights[index + this.cols]! : this.heights[index]!;
         const dx = xm - xp;
         const dz = zm - zp;
         const denom = Math.hypot(dx, 2 * cell, dz);
@@ -890,7 +894,10 @@ export class NavGridBuilder {
    * geometry both stops a chest-height shot and reaches at least crouch height.
    */
   private doCover(deadline: number): void {
-    const reach = Math.max(1, Math.floor(this.options.coverRadius / this.cellSize + 1e-6));
+    const reach = Math.max(
+      1,
+      Math.floor(this.options.coverRadius / this.cellSize + 1e-6),
+    );
     const need = BAND_BIT.sightLow | BAND_BIT.sightChest;
     while (this.cursor < this.rows) {
       const cz = this.cursor;
@@ -905,9 +912,15 @@ export class NavGridBuilder {
           const stepZ = NAV_DIR_Z[d]!;
           // Diagonal cells are `cellSize * sqrt(2)` apart, so they reach the
           // probe radius one step sooner.
-          const limit = (d & 1) === 1
-            ? Math.max(1, Math.floor(this.options.coverRadius / (this.cellSize * Math.SQRT2) + 1e-6))
-            : reach;
+          const limit =
+            (d & 1) === 1
+              ? Math.max(
+                  1,
+                  Math.floor(
+                    this.options.coverRadius / (this.cellSize * Math.SQRT2) + 1e-6,
+                  ),
+                )
+              : reach;
           for (let s = 1; s <= limit; s += 1) {
             const nx = cx + stepX * s;
             const nz = cz + stepZ * s;

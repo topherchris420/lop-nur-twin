@@ -40,12 +40,17 @@ const NON_OBSERVABLE_STATUSES: ReadonlySet<EvidenceClassification> = new Set([
  * project is written in them, so a match only fails when no negation appears
  * shortly before it.
  */
-const VERIFICATION_WORD = /\b(verified|confirmed|authenticated|certified|authoritative|official)\b/gi;
+const VERIFICATION_WORD =
+  /\b(verified|confirmed|authenticated|certified|authoritative|official)\b/gi;
 const NEGATION_BEFORE = /\b(not|no|never|nor|neither|without|cannot|remains?|remain)\b/i;
 
 function assertsVerification(text: string): boolean {
   VERIFICATION_WORD.lastIndex = 0;
-  for (let match = VERIFICATION_WORD.exec(text); match !== null; match = VERIFICATION_WORD.exec(text)) {
+  for (
+    let match = VERIFICATION_WORD.exec(text);
+    match !== null;
+    match = VERIFICATION_WORD.exec(text)
+  ) {
     const preceding = text.slice(Math.max(0, match.index - 60), match.index);
     if (!NEGATION_BEFORE.test(preceding)) return true;
   }
@@ -105,7 +110,9 @@ export function validateEvidenceLedger(
       record.confidence < 0 ||
       record.confidence > 1
     ) {
-      fail(`${at} confidence ${String(record.confidence)} must be a finite number in [0, 1]`);
+      fail(
+        `${at} confidence ${String(record.confidence)} must be a finite number in [0, 1]`,
+      );
     }
 
     // 2. A record must describe something the model actually contains.
@@ -120,7 +127,9 @@ export function validateEvidenceLedger(
         record.subjectKind === "pavement") &&
       !isKnownGeometryId(record.subjectId)
     ) {
-      fail(`${at} claims geometry "${record.subjectId}" that does not exist in the layout`);
+      fail(
+        `${at} claims geometry "${record.subjectId}" that does not exist in the layout`,
+      );
     }
 
     // 4. The classification must be one of the four published values.
@@ -164,7 +173,10 @@ export function validateEvidenceLedger(
         `${at} uses unsupported coordinate reference system "${record.coordinateReferenceSystem}" (supported: ${SUPPORTED_COORDINATE_REFERENCE_SYSTEMS.join(", ")})`,
       );
     }
-    if (record.subjectKind === "measurement" && record.coordinateReferenceSystem === undefined) {
+    if (
+      record.subjectKind === "measurement" &&
+      record.coordinateReferenceSystem === undefined
+    ) {
       fail(`${at} is a measurement and must declare a coordinate reference system`);
     }
 
@@ -188,7 +200,9 @@ export function validateEvidenceLedger(
         !Number.isFinite(record.measurementUncertaintyM) ||
         record.measurementUncertaintyM < 0
       ) {
-        fail(`${at} measurement uncertainty must be a finite, non-negative number of metres`);
+        fail(
+          `${at} measurement uncertainty must be a finite, non-negative number of metres`,
+        );
       }
     }
     if (record.sourceResolutionM !== undefined) {
@@ -222,7 +236,10 @@ export function validateEvidenceLedger(
       fail(`${at} supersedes unknown record "${record.supersedes}"`);
     }
 
-    if (record.sourceHash !== undefined && !/^sha256:[0-9a-f]{64}$/.test(record.sourceHash)) {
+    if (
+      record.sourceHash !== undefined &&
+      !/^sha256:[0-9a-f]{64}$/.test(record.sourceHash)
+    ) {
       fail(`${at} source hash must be a lowercase "sha256:<64 hex>" digest`);
     }
   }
@@ -238,7 +255,9 @@ export function validateEvidenceLedger(
   /* -------------------------------------------------- cross-checks */
   // A structure declared illustrative in the layout must not acquire an
   // observed or reported record from anywhere else in the pipeline.
-  const declared = new Map(STRUCTURES.map((structure) => [structure.id, structure.evidence.status]));
+  const declared = new Map(
+    STRUCTURES.map((structure) => [structure.id, structure.evidence.status]),
+  );
   for (const record of ledger) {
     const status = declared.get(record.subjectId);
     if (status === undefined) continue;

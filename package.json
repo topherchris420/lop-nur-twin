@@ -2,6 +2,7 @@
   "name": "desert-airfield-twin",
   "private": true,
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -11,6 +12,14 @@
     "build": "node scripts/run-ts.mjs scripts/validate-data.ts && node scripts/run-ts.mjs scripts/generate-manifest.ts && vite build && tsc --noEmit",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "check": "npm run format:check && npm run lint && npm run test:run && npm run test:evidence && npm run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
     "manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
     "generate:manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
@@ -46,6 +55,7 @@
     "@rolldown/binding-win32-x64-msvc": "^1.1.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.20",
     "@types/node": "^26.1.1",
@@ -53,10 +63,18 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.0",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
     "axe-core": "^4.12.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
     "puppeteer": "^25.4.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^8.1.5"
+    "typescript-eslint": "^8.47.2",
+    "vite": "^8.1.5",
+    "vitest": "^3.2.4"
   }
 }

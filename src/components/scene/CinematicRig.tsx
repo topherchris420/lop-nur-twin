@@ -47,7 +47,8 @@ export default function CinematicRig() {
     }
     state.camera.lookAt(lookAhead.current);
 
-    telemetry.cinematicLeg = Math.floor(t * CINEMATIC_WAYPOINTS.length) % CINEMATIC_WAYPOINTS.length;
+    telemetry.cinematicLeg =
+      Math.floor(t * CINEMATIC_WAYPOINTS.length) % CINEMATIC_WAYPOINTS.length;
   });
 
   return null;

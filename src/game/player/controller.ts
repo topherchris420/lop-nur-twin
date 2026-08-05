@@ -26,15 +26,38 @@ import type { CollisionWorld } from "../physics/collisionWorld";
 /* ------------------------------------------------------------------ */
 
 export const MOVE: Readonly<Record<string, number>> & {
-  walkSpeed: number; sprintSpeed: number; tacSprintSpeed: number; crouchSpeed: number;
-  proneSpeed: number; adsSpeedScale: number; groundAccel: number; airAccel: number;
-  friction: number; airFriction: number; gravity: number; jumpVelocity: number;
-  coyoteTime: number; jumpBuffer: number; slideBoost: number; slideMinSpeed: number;
-  slideDuration: number; slideFriction: number; slideCooldown: number;
-  mantleMaxHeight: number; mantleMinHeight: number; mantleReach: number;
-  mantleDuration: number; crouchTime: number; proneTime: number;
-  tacSprintDelay: number; tacSprintDuration: number; leanAngle: number;
-  leanOffset: number; leanSpeed: number; fallSafeSpeed: number; fallLethalSpeed: number;
+  walkSpeed: number;
+  sprintSpeed: number;
+  tacSprintSpeed: number;
+  crouchSpeed: number;
+  proneSpeed: number;
+  adsSpeedScale: number;
+  groundAccel: number;
+  airAccel: number;
+  friction: number;
+  airFriction: number;
+  gravity: number;
+  jumpVelocity: number;
+  coyoteTime: number;
+  jumpBuffer: number;
+  slideBoost: number;
+  slideMinSpeed: number;
+  slideDuration: number;
+  slideFriction: number;
+  slideCooldown: number;
+  mantleMaxHeight: number;
+  mantleMinHeight: number;
+  mantleReach: number;
+  mantleDuration: number;
+  crouchTime: number;
+  proneTime: number;
+  tacSprintDelay: number;
+  tacSprintDuration: number;
+  leanAngle: number;
+  leanOffset: number;
+  leanSpeed: number;
+  fallSafeSpeed: number;
+  fallLethalSpeed: number;
 } = {
   walkSpeed: 4.35,
   sprintSpeed: 5.95,
@@ -229,7 +252,13 @@ export class PlayerController {
     const wantsStand = this.targetStance === "stand";
     if (wantsStand && (this.stanceBlend > 0.01 || this.proneBlend > 0.01)) {
       _tmp.copy(actor.position);
-      if (!world.isPositionFree(_tmp, HUMAN_METRICS.radius, HUMAN_METRICS.colliderHeight.stand)) {
+      if (
+        !world.isPositionFree(
+          _tmp,
+          HUMAN_METRICS.radius,
+          HUMAN_METRICS.colliderHeight.stand,
+        )
+      ) {
         this.targetStance = this.proneBlend > 0.5 ? "prone" : "crouch";
       }
     }
@@ -249,7 +278,11 @@ export class PlayerController {
       !this.mantling;
     if (wantsSprint) {
       this.sprintHeld += dt;
-      if (this.sprintHeld > MOVE.tacSprintDelay && this.tacSprintTimer <= 0 && !this.tacSprinting) {
+      if (
+        this.sprintHeld > MOVE.tacSprintDelay &&
+        this.tacSprintTimer <= 0 &&
+        !this.tacSprinting
+      ) {
         this.tacSprinting = true;
         this.tacSprintTimer = MOVE.tacSprintDuration;
       }
@@ -469,11 +502,7 @@ export class PlayerController {
   private tryMantle(actor: Actor, world: CollisionWorld): boolean {
     yawToForward(actor.yaw, _fwd);
     // Probe forward at chest height for a wall.
-    _probeOrigin.set(
-      actor.position.x,
-      actor.position.y + 0.95,
-      actor.position.z,
-    );
+    _probeOrigin.set(actor.position.x, actor.position.y + 0.95, actor.position.z);
     const wall = world.raycast(_probeOrigin, _fwd, MOVE.mantleReach, MASK_MOVEMENT);
     if (!wall) return false;
 
@@ -485,7 +514,12 @@ export class PlayerController {
       actor.position.z + _fwd.z * forwardDist,
     );
     _probeDir.set(0, -1, 0);
-    const ledge = world.raycast(_probeOrigin, _probeDir, MOVE.mantleMaxHeight + 0.5, MASK_MOVEMENT);
+    const ledge = world.raycast(
+      _probeOrigin,
+      _probeDir,
+      MOVE.mantleMaxHeight + 0.5,
+      MASK_MOVEMENT,
+    );
     if (!ledge) return false;
     if (ledge.normal.y < 0.6) return false;
 
@@ -494,7 +528,13 @@ export class PlayerController {
 
     // The destination must actually fit a crouching player.
     _tmp.set(ledge.point.x, ledge.point.y + 0.02, ledge.point.z);
-    if (!world.isPositionFree(_tmp, HUMAN_METRICS.radius * 0.95, HUMAN_METRICS.colliderHeight.crouch)) {
+    if (
+      !world.isPositionFree(
+        _tmp,
+        HUMAN_METRICS.radius * 0.95,
+        HUMAN_METRICS.colliderHeight.crouch,
+      )
+    ) {
       return false;
     }
 
@@ -528,12 +568,19 @@ export class PlayerController {
 
     // Lean.
     const leanTarget = (input.leanRight ? 1 : 0) - (input.leanLeft ? 1 : 0);
-    this.leanAmount = damp(this.leanAmount, leanTarget * (1 - adsBlend * 0.4), MOVE.leanSpeed, dt);
+    this.leanAmount = damp(
+      this.leanAmount,
+      leanTarget * (1 - adsBlend * 0.4),
+      MOVE.leanSpeed,
+      dt,
+    );
 
     // Head bob: a figure-eight whose amplitude scales with speed and drops
     // away almost completely while aiming.
     const bobScale =
-      Math.min(1, speed / MOVE.walkSpeed) * (1 - adsBlend * 0.82) * (1 - this.proneBlend * 0.7);
+      Math.min(1, speed / MOVE.walkSpeed) *
+      (1 - adsBlend * 0.82) *
+      (1 - this.proneBlend * 0.7);
     const phase = this.bobDistance * 2.0;
     v.bobPhase = phase;
     const bobX = Math.sin(phase) * 0.035 * bobScale;

@@ -61,7 +61,7 @@ const CARDINALS = [
 
 /** Compass point for a grid bearing (0 = north, clockwise). */
 export function bearingCardinal(deg: number): string {
-  const index = Math.round(((deg % 360) + 360) % 360 / 22.5) % 16;
+  const index = Math.round((((deg % 360) + 360) % 360) / 22.5) % 16;
   return CARDINALS[index] ?? "N";
 }
 
@@ -90,7 +90,12 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
   }
   for (const segment of ALL_SEGMENTS) {
     const [fromLabel, toLabel] = segmentEndpointLabels(segment);
-    targets.push({ x: segment.from[0], z: segment.from[1], label: fromLabel, source: segment });
+    targets.push({
+      x: segment.from[0],
+      z: segment.from[1],
+      label: fromLabel,
+      source: segment,
+    });
     targets.push({ x: segment.to[0], z: segment.to[1], label: toLabel, source: segment });
   }
   for (const apron of APRONS) {
@@ -227,7 +232,9 @@ export function measurementSummary(points: readonly MeasurePoint[]): string {
     }
     lines.push("");
     lines.push(`Path total: ${formatDistanceM(pathTotalM(points))}`);
-    lines.push(`Straight line P1→P${points.length}: ${formatDistanceM(straightLineM(points))}`);
+    lines.push(
+      `Straight line P1→P${points.length}: ${formatDistanceM(straightLineM(points))}`,
+    );
   }
 
   lines.push("");
