@@ -200,10 +200,14 @@ would be picked up. Digest pinning is recommended before any agency pilot
 ### T6 — Malicious pull request targeting CI
 
 **Mitigations.** The workflow's default is `permissions: contents: read`; only
-the CodeQL job (`security-events: write`) and dependency review
-(`pull-requests: read`) raise it, and neither runs pull-request code with
-those permissions in a way that can write to the repository. No repository
-secret is referenced anywhere in either workflow, so there is nothing for
+the CodeQL job (`security-events: write`), secret scanning and dependency
+review (`pull-requests: read`) raise it, and none runs pull-request code with
+those permissions in a way that can write to the repository. **No user-defined
+repository secret is referenced anywhere in either workflow.** One token is:
+`secrets.GITHUB_TOKEN`, which GitHub mints per run and scopes by the job's
+`permissions` block — the secret-scanning job needs it because Gitleaks reads
+the pull request through the API. It is read-only there, and GitHub issues a
+read-only token to fork pull requests regardless, so there is nothing for
 untrusted code to exfiltrate. `pull_request_target` is not used.
 
 **Residual risk.** A pull request can consume CI minutes.
