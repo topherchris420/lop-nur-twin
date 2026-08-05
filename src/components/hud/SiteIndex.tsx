@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STRUCTURES, STRUCTURE_TYPE_LABELS, type StructureDef } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
+import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
 import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ export function SiteIndex() {
   const selectedId = useTwinStore((s) => s.selectedId);
   const select = useTwinStore((s) => s.select);
   const [query, setQuery] = useState("");
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
   // Same predicate the scene draws with: the index lists what is on screen.
   const isDrawn = useSubjectFilter();
 
@@ -121,8 +123,19 @@ export function SiteIndex() {
             </div>
           ))
         ) : (
-          <p className="text-muted-foreground py-6 text-center text-xs" role="status">
-            No matching structures
+          <p
+            className="text-muted-foreground px-3 py-6 text-center text-xs leading-relaxed"
+            role="status"
+          >
+            {/*
+              An empty index in a strict evidence mode is a finding, not a
+              fault, and it has to say which it is. "No matching structures"
+              on its own reads as a broken panel when the real answer is that
+              nothing in the model is classified strongly enough to be listed.
+            */}
+            {query.trim().length > 0
+              ? "No structures match this search in the current evidence mode."
+              : `No structures are drawn in ${EVIDENCE_MODE_META[evidenceMode].label.toLowerCase()} mode. Nothing in this model's structure catalogue is supported strongly enough to appear here — the runway is the only geometry the project measured off a cited scene. Widen the evidence mode to see more.`}
           </p>
         )}
       </CardContent>

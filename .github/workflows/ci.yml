@@ -301,13 +301,21 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      # This is the one job that installs with npm rather than Bun, and it is
+      # not an oversight. `@cyclonedx/cyclonedx-npm` builds its bill of
+      # materials by running `npm ls` against an npm-installed tree; pointed at
+      # a Bun install it fails outright. `package-lock.json` is kept in step with
+      # `package.json` precisely so this — and the Node ≥ 22.18 path the build
+      # scripts also support — keeps working. Every other job installs from
+      # `bun.lock`.
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          node-version: "22.18.0"
+          cache: npm
 
-      - name: Install dependencies from the lockfile
-        run: bun install --frozen-lockfile
+      - name: Install dependencies from the npm lockfile
+        run: npm ci --ignore-scripts
         env:
           PUPPETEER_SKIP_DOWNLOAD: "1"
 
@@ -317,7 +325,7 @@ jobs:
       # regeneration step in the release process to stay honest. `.gitignore`
       # keeps `sbom*.json` out of the tree for that reason.
       - name: Generate a CycloneDX SBOM
-        run: bunx --bun @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cyclonedx.json
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cyclonedx.json
 
       # Syft's SPDX JSON view of the same tree, for consumers that expect SPDX.
       - name: Generate an SPDX SBOM with Syft
