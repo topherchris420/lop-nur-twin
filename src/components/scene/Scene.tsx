@@ -18,6 +18,7 @@ import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
 import { ProjectionBridge } from "./ProjectionBridge";
 import { getQualityProfile } from "@/lib/quality";
+import { readFlag } from "@/lib/params";
 
 const Effects = lazy(() => import("./Effects"));
 
@@ -78,11 +79,9 @@ class SceneErrorBoundary extends Component<
 
 export function Scene() {
   const [webglSupported] = useState(canCreateWebGLContext);
-  const [liveTrafficRequested] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("liveTraffic") === "1",
-  );
+  // Opt-in only: this is the one runtime request the app can make to a third
+  // party, so it stays behind an explicit flag rather than a truthy value.
+  const [liveTrafficRequested] = useState(() => readFlag("liveTraffic"));
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const profile = getQualityProfile(qualityTier);
   const postEnabled = profile.postprocessing;

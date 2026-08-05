@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGameStore } from "../core/gameStore";
 import { useTwinStore } from "@/lib/store";
+import { readFlag } from "@/lib/params";
 import { game, eyePosition } from "../core/gameState";
 import { HUMAN_METRICS, MASK_SOLID, horizontalToVerticalFov } from "../core/types";
 import type { CollisionWorld } from "../physics/collisionWorld";
@@ -76,9 +77,7 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
 
   useEffect(() => {
     // `?novm=1` hides the weapon, for isolating render problems in the probe.
-    if (typeof window === "undefined") return;
-    viewmodelRoot.visible =
-      new URLSearchParams(window.location.search).get("novm") !== "1";
+    viewmodelRoot.visible = !readFlag("novm");
   }, [viewmodelRoot]);
 
   useEffect(() => {

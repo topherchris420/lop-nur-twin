@@ -46,7 +46,12 @@ export function IntroOverlay() {
         </div>
       </div>
 
-      <div className="text-muted-foreground/70 mt-6 font-mono text-[10px] tracking-[0.2em] uppercase">
+      {/* Full-strength muted foreground: the dimmed variant fell below the
+          4.5:1 contrast threshold against the boot background. */}
+      <div
+        role="status"
+        className="text-muted-foreground mt-6 font-mono text-[10px] tracking-[0.2em] uppercase"
+      >
         {ready ? "Site online" : "Reconstructing site…"}
       </div>
     </div>

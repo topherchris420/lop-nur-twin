@@ -1,0 +1,65 @@
+version: 2
+
+# The dependency-update policy SECURITY.md describes, expressed so it actually
+# happens. Grouped updates keep the review burden proportional to a repository
+# this size: one pull request a week for routine bumps, and security updates
+# arrive on their own as soon as an advisory lands.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+    open-pull-requests-limit: 5
+    groups:
+      three-and-react-three:
+        patterns:
+          - "three"
+          - "@types/three"
+          - "@react-three/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      build-tooling:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "typescript"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      everything-else:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "three"
+          - "@types/three"
+          - "@react-three/*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "vite"
+          - "@vitejs/*"
+          - "typescript"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+    open-pull-requests-limit: 3

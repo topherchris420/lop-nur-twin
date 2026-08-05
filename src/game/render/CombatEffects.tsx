@@ -7,6 +7,7 @@ import {
   LensArtifactsEffect,
 } from "@/gfx/postfx";
 import { useTwinStore } from "@/lib/store";
+import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import { CombatScreenEffect, HdrGuardEffect, setPostExposure } from "./screenEffects";
 import { useGameStore } from "../core/gameStore";
 
@@ -83,11 +84,8 @@ const LOOK = {
 
 /** `?ao=0` / `?ao=1` overrides the occlusion pass, for A/B capture. */
 function aoOverride(): boolean | null {
-  if (typeof window === "undefined") return null;
-  const raw = new URLSearchParams(window.location.search).get("ao");
-  if (raw === "0") return false;
-  if (raw === "1") return true;
-  return null;
+  const raw = readEnumParam("ao", ["0", "1"] as const);
+  return raw === null ? null : raw === "1";
 }
 
 /**
@@ -95,15 +93,14 @@ function aoOverride(): boolean | null {
  * misbehaving pass against a captured frame. 0 (the default) means all of them.
  */
 function stageLimit(): number {
-  if (typeof window === "undefined") return 0;
-  const raw = Number(new URLSearchParams(window.location.search).get("stage"));
-  return Number.isFinite(raw) && raw > 0 ? raw : 0;
+  // Bounded by the number of passes that exist; a larger figure would simply
+  // mean "all of them" anyway.
+  return readIntParam("stage", 0, 16) ?? 0;
 }
 
 /** `?minpost=1` mounts only the tone mapper, for bisecting the chain. */
 function minimalPost(): boolean {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("minpost") === "1";
+  return readFlag("minpost");
 }
 
 /** Shared handle so the game layer can drive the combat feedback pass. */

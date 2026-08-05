@@ -5,6 +5,7 @@ import {
   isVisibleAtTimelineYear,
 } from "./layout";
 import type { MeasurePoint } from "./measure";
+import { readIntParam } from "./params";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -87,12 +88,8 @@ function initialReducedMotion(): boolean {
 }
 
 function pinnedQualityTier(): QualityTier | null {
-  if (typeof window !== "undefined") {
-    const q = new URLSearchParams(window.location.search).get("quality");
-    const n = q === null ? NaN : Number(q);
-    if (Number.isInteger(n) && n >= 0 && n <= 3) return n as QualityTier;
-  }
-  return null;
+  const tier = readIntParam("quality", 0, 3);
+  return tier === null ? null : (tier as QualityTier);
 }
 
 function initialQuality(): Pick<TwinState, "qualityTier" | "autoQuality"> {
@@ -120,12 +117,8 @@ function initialQuality(): Pick<TwinState, "qualityTier" | "autoQuality"> {
 
 /** `?month=1..12` selects the initial climatology month. June is the default. */
 function initialEnvironmentMonth(): number {
-  if (typeof window !== "undefined") {
-    const raw = new URLSearchParams(window.location.search).get("month");
-    const month = raw === null ? NaN : Number(raw);
-    if (Number.isInteger(month) && month >= 1 && month <= 12) return month - 1;
-  }
-  return 5;
+  const month = readIntParam("month", 1, 12);
+  return month === null ? 5 : month - 1;
 }
 
 function normalizeMonth(month: number): number {

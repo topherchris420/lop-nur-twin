@@ -4,9 +4,11 @@ Guidance for coding agents (and humans) working on this repo.
 
 ## Ground rules
 
-- **`bun run build` must stay green.** It runs the offline data validator,
-  `vite build`, and then a strict `tsc --noEmit` (no `any`, unused locals are errors). Run it before you
-  finish any change.
+- **`bun run build` must stay green.** It runs the offline data validator, the
+  release-manifest generator, `vite build`, and then a strict `tsc --noEmit`
+  (no `any`, unused locals are errors). Run it before you finish any change.
+  The build scripts run under Bun *and* under Node ≥ 22.18 through
+  `scripts/run-ts.mjs`, and both must keep producing byte-identical manifests.
 - **Everything is procedural and deterministic.** No binary assets, no runtime
   downloads (drei helpers that fetch CDN assets, e.g. `<Environment preset>`,
   are off-limits). All randomness must flow through `mulberry32`/`seededNoise2D`
@@ -17,6 +19,30 @@ Guidance for coding agents (and humans) working on this repo.
   the minimap measurement ruler (`src/lib/measure.ts`, whose snap targets are
   derived from the layout vertices) read from those modules. Never hard-code
   coordinates in components.
+- **`src/lib/evidence.ts` derives the evidence ledger; never hand-write a
+  record.** Records come from the layout and the source register, so a claim
+  cannot outlive the thing it describes. UI reads it through
+  `getEvidenceForSubject()` — do not re-resolve source metadata in a component,
+  and do not add a second place that decides what "observed" means.
+- **A claim's classification is load-bearing, and the build enforces it.**
+  `src/lib/evidenceValidation.ts` fails `validate:data` if an illustrative
+  subject gets a non-illustrative record, an interpreted subject is labelled
+  observed, an observed/reported record has no citable source, a confidence
+  falls outside `[0, 1]`, a measurement uses an unsupported CRS, or the wording
+  of an interpreted/illustrative claim asserts verification.
+  `scripts/test-evidence-validation.ts` asserts each rule still fires — if you
+  relax a rule, that file is where you have to say so out loud.
+- **Never fabricate a source, a date, a hash, a measurement or a confidence
+  value.** Unknown means omitted or printed as "unknown", not estimated. There
+  is deliberately no `sourceHash` anywhere: the build fetches nothing, so there
+  is nothing to hash.
+- **Read every URL parameter through `src/lib/params.ts`.** It bounds, clamps
+  and rejects; a raw `new URLSearchParams(...).get()` in a component is a
+  regression. External links go through `safeExternalHref()` and carry
+  `EXTERNAL_LINK_PROPS`.
+- **`/analysis` is not optional.** It is the model's accessible front door. A
+  new analytical field belongs in the table as well as the dossier, and
+  `bun run a11y` gates that route on serious/critical axe violations.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,
@@ -30,8 +56,15 @@ Guidance for coding agents (and humans) working on this repo.
    `id`, existing or new `type`, position, rotation, size, capacity,
    description and evidence). If it sits outside the main cluster, add a `FlattenPad` so
    the terrain is leveled beneath it.
-2. If you used an existing `type`, you're done — placement, dossier, minimap
-   and site index all pick it up automatically.
+   **Choose the evidence status honestly**: `observed` only if it is visible in
+   a cited scene, `reported` only if a cited publication says it is there,
+   `interpreted` if you assigned the identity, `illustrative` if you invented
+   it to complete the site. The evidence record, the dossier entry and the
+   `/analysis` row are generated from that choice.
+2. If you used an existing `type`, you're done — placement, dossier, minimap,
+   site index, analysis table and evidence ledger all pick it up automatically.
+   Re-run `bun run manifest`: the `geometryHash` and `evidenceLedgerHash`
+   change, and that is the audit trail.
 3. For a **new type**: extend the `StructureType` union and
    `STRUCTURE_TYPE_LABELS` in `layout.ts`, then add a builder component in
    `src/components/scene/Structures.tsx` and a case in `StructureBody`.
@@ -206,6 +239,22 @@ node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
 node tools/frames.mjs --out shots/before   # the canonical frame set
 ```
+
+The analytical side has its own two, and both need the **preview** server
+(`bun run build && bun run preview`) rather than the dev server, because they
+test the artifact that actually ships — including its security headers:
+
+```sh
+bun run a11y                  # axe-core on all three routes + CSP violations
+bun run routes                # 44 checks: deep links, refreshes, hostile
+                              # parameters, keyboard order, filtering, mobile
+```
+
+`tools/routes.mjs` is where a URL-parameter regression shows up: it throws
+`?quality=1e309`, `?at=1e308,-1e308`, `?structure=<script>…` and a 500-character
+id at the app and asserts it renders normally with no page errors. It also
+proved a real bug into existence once — a manifest fetch whose effect aborted
+its own request and left the panel reading "Reading the manifest…" forever.
 
 Two of these exist because a screenshot could not answer the question:
 

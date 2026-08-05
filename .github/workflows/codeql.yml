@@ -1,0 +1,50 @@
+name: CodeQL
+
+# Static analysis for the JavaScript/TypeScript in this repository: the
+# application, the build scripts and the test tools. It runs on pull requests,
+# on the default branch, and weekly so a newly published query still finds an
+# old bug.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Sunday 04:17 UTC — off the hour, so it does not queue behind everyone
+    # else's midnight cron.
+    - cron: "17 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze JavaScript and TypeScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # Required to publish results to the repository's security tab.
+      security-events: write
+      # Required by the CodeQL action on pull requests from forks.
+      actions: read
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # security-extended adds the queries that are precise enough to act
+          # on without drowning a small codebase in advisories.
+          queries: security-extended
+
+      # No build step: CodeQL analyses JavaScript and TypeScript sources
+      # directly, and a bundled build would only hide the source it needs.
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"

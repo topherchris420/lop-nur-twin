@@ -1,0 +1,38 @@
+# Keep the build context small and keep local state out of the image.
+# Everything the build needs is source, package.json and the lockfile.
+
+.git
+.github
+.claude
+node_modules
+dist
+dist-ssr
+.vite
+.vercel
+.omx
+.gstack
+
+# Local environment and secrets must never reach a build context.
+.env
+.env.*
+*.pem
+*.key
+
+# Test and capture output.
+shots/
+render_output.png
+render_output-*.png
+sbom*.json
+trivy-results.*
+
+# Generated inside the image by `npm run build`; a stale local copy would be
+# copied in and then overwritten, which only invites confusion.
+public/model-manifest.json
+
+# Documentation and screenshots are not needed to serve the app.
+docs/
+*.md
+!README.md
+
+.DS_Store
+*.log
