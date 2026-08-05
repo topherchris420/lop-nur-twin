@@ -152,7 +152,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           # Required since v2 for pull-request scans. This is the token GitHub
           # mints automatically for the run, scoped by the `permissions` block
