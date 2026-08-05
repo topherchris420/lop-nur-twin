@@ -24,6 +24,7 @@ import {
 } from "./evidence";
 import { STRUCTURES } from "./layout";
 import { PUBLIC_SOURCES } from "./siteData";
+import { UNCERTAINTY_BASES, UNCERTAINTY_LEVELS } from "./uncertainty";
 
 /** Classifications whose subject can only ever be modeled or scenario content. */
 const NON_OBSERVABLE_STATUSES: ReadonlySet<EvidenceClassification> = new Set([
@@ -60,6 +61,145 @@ function assertsVerification(text: string): boolean {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 const RECORD_ID = /^[a-z0-9][a-z0-9._-]{2,127}$/;
+
+/**
+ * Uncertainty rules.
+ *
+ * Structured uncertainty is only worth having if a number in it cannot be
+ * invented, so each of these rules blocks a specific way of inventing one. The
+ * expensive rule is the last: an `observed` record with no resolution and no
+ * positional envelope is a claim that the model's coordinate *is* the feature's
+ * coordinate, and no imagery this project cites supports that for anything.
+ */
+function validateUncertainty(
+  record: EvidenceRecord,
+  fail: (message: string) => void,
+): void {
+  const at = `Evidence record "${record.id}"`;
+  const envelope = record.uncertainty;
+
+  if (envelope === undefined) {
+    // Only illustrative content may omit an envelope entirely: it models
+    // nothing real, so there is nothing to bound. Every claim about the site
+    // has to say how well it is known, even if the answer is "unknown".
+    if (record.classification !== "illustrative") {
+      fail(
+        `${at} is ${record.classification} and must carry an uncertainty envelope; say "unknown" rather than omitting it`,
+      );
+    }
+    return;
+  }
+
+  const numericFields = [
+    ["horizontalMeters", envelope.horizontalMeters],
+    ["footprintMeters", envelope.footprintMeters],
+    ["heightMeters", envelope.heightMeters],
+    ["orientationDegrees", envelope.orientationDegrees],
+  ] as const;
+
+  let hasNumber = false;
+  for (const [label, value] of numericFields) {
+    if (value === undefined) continue;
+    hasNumber = true;
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      fail(`${at} uncertainty ${label} must be a finite number, not ${String(value)}`);
+    } else if (value < 0) {
+      fail(
+        `${at} uncertainty ${label} is negative (${value}); an uncertainty cannot be less than nothing`,
+      );
+    }
+  }
+  if (envelope.orientationDegrees !== undefined && envelope.orientationDegrees > 360) {
+    fail(
+      `${at} uncertainty orientationDegrees ${envelope.orientationDegrees} exceeds a full turn, so the unit is wrong`,
+    );
+  }
+
+  // A number without a stated method is a number nobody can check.
+  if (hasNumber) {
+    if (envelope.method === undefined || envelope.method.trim().length === 0) {
+      fail(
+        `${at} states a numeric uncertainty and must document the method that produced it`,
+      );
+    }
+    if (envelope.basis === undefined) {
+      fail(
+        `${at} states a numeric uncertainty and must declare its basis (one of: ${UNCERTAINTY_BASES.join(", ")})`,
+      );
+    } else if (!UNCERTAINTY_BASES.includes(envelope.basis)) {
+      fail(`${at} uncertainty declares unknown basis "${String(envelope.basis)}"`);
+    }
+    if (envelope.sourceIds.length === 0 && envelope.basis === "stated-in-source") {
+      fail(`${at} claims its uncertainty is stated in a source but cites no source`);
+    }
+  }
+
+  for (const [label, value] of [
+    ["earliestDate", envelope.earliestDate],
+    ["latestDate", envelope.latestDate],
+  ] as const) {
+    if (value !== undefined && !ISO_DATE.test(value)) {
+      fail(`${at} uncertainty ${label} "${value}" must be an ISO YYYY-MM-DD date`);
+    }
+  }
+  if (
+    envelope.earliestDate !== undefined &&
+    envelope.latestDate !== undefined &&
+    envelope.earliestDate > envelope.latestDate
+  ) {
+    fail(
+      `${at} uncertainty range runs backwards: earliest ${envelope.earliestDate} is after latest ${envelope.latestDate}`,
+    );
+  }
+
+  for (const [label, value] of [
+    ["identification", envelope.identification],
+    ["function", envelope.function],
+  ] as const) {
+    if (!UNCERTAINTY_LEVELS.includes(value)) {
+      fail(
+        `${at} uncertainty ${label} "${String(value)}" is not one of: ${UNCERTAINTY_LEVELS.join(", ")}`,
+      );
+    }
+  }
+
+  // An interpreted or illustrative subject cannot be "known". The identity was
+  // assigned by this project; saying it is established inverts the whole point
+  // of the classification.
+  if (NON_OBSERVABLE_STATUSES.has(record.classification)) {
+    if (envelope.identification === "known") {
+      fail(
+        `${at} is ${record.classification} but claims a known identification; an assigned identity is at best "possible"`,
+      );
+    }
+    if (envelope.function === "known") {
+      fail(
+        `${at} is ${record.classification} but claims a known function; nothing cited establishes it`,
+      );
+    }
+  }
+
+  // Direct observation without a resolution or a positional envelope asserts
+  // that the modeled coordinate is the real one. The cited imagery is 10 m; it
+  // supports site-scale extent, never an exact position.
+  if (record.classification === "observed") {
+    const boundsPosition =
+      envelope.horizontalMeters !== undefined ||
+      envelope.footprintMeters !== undefined ||
+      record.measurementUncertaintyM !== undefined ||
+      record.sourceResolutionM !== undefined;
+    if (!boundsPosition) {
+      fail(
+        `${at} claims direct observation but states no positional uncertainty and no source resolution, which asserts the modeled position is exact`,
+      );
+    }
+    if (envelope.identification === "unknown") {
+      fail(
+        `${at} claims direct observation while recording an unknown identification; one of the two is wrong`,
+      );
+    }
+  }
+}
 
 export interface EvidenceValidationResult {
   errors: readonly string[];
@@ -210,6 +350,9 @@ export function validateEvidenceLedger(
         fail(`${at} source resolution must be a finite, positive number of metres`);
       }
     }
+
+    /* ------------------------------------------------ 8. uncertainty */
+    validateUncertainty(record, fail);
 
     for (const [label, value] of [
       ["sourceDate", record.sourceDate],

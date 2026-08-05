@@ -22,14 +22,18 @@ import {
   EVIDENCE_CLASSIFICATION_META,
   PRIMARY_CRS,
   getEvidenceForSubject,
+  getUncertaintyForSubject,
   strongestClassification,
 } from "@/lib/evidence";
+import { temporalEventsForSubject } from "@/lib/temporal";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import {
   ConfidenceValue,
   EvidenceBadge,
   ProvenanceFooter,
 } from "@/components/evidence/EvidenceUi";
+import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
+import { isSubjectVisible } from "@/lib/evidenceMode";
 import { useTwinStore } from "@/lib/store";
 
 function localAxis(value: number, positive: string, negative: string): string {
@@ -42,10 +46,12 @@ export function Dossier() {
   const showIndex = useTwinStore((s) => s.showIndex);
   const showResearch = useTwinStore((s) => s.showResearch);
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const def = selectedId ? getStructure(selectedId) : undefined;
   if (
     !def ||
     !isVisibleAtTimelineYear(def, activeTimelineYear) ||
+    !isSubjectVisible(def.id, evidenceMode) ||
     showIndex ||
     showResearch
   ) {
@@ -56,6 +62,8 @@ export function Dossier() {
   const localPosition = `${localAxis(def.position[0], "E", "W")} / ${localAxis(-def.position[1], "N", "S")}`;
   const records = getEvidenceForSubject(def.id);
   const classification = strongestClassification(records) ?? def.evidence.status;
+  const uncertainty = getUncertaintyForSubject(def.id);
+  const temporalEvents = temporalEventsForSubject(def.id);
   const missionEntity = getMissionEntity(def.id);
 
   return (
@@ -101,6 +109,17 @@ export function Dossier() {
           <dt className="text-muted-foreground">Coordinate system</dt>
           <dd className="text-right">{PRIMARY_CRS}</dd>
         </dl>
+        <Separator />
+        <div>
+          <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
+            Uncertainty
+          </div>
+          <UncertaintyPanel
+            envelope={uncertainty}
+            events={temporalEvents}
+            className="mt-2"
+          />
+        </div>
         <Separator />
         <div>
           <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">

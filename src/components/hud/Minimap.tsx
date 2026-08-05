@@ -21,7 +21,6 @@ import {
   SITE_SIZE,
   getStructure,
   isAircraft,
-  isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
 import {
@@ -37,6 +36,10 @@ import {
   type MeasurePoint,
 } from "@/lib/measure";
 import { flyToPoint } from "@/lib/flyTo";
+import { getUncertaintyForSubject } from "@/lib/evidence";
+import { type EvidenceMode } from "@/lib/evidenceMode";
+import { isSubjectDrawn } from "@/lib/sceneVisibility";
+import { type UncertaintyLevel } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 import { isCoarsePointer } from "@/lib/touchInput";
@@ -68,7 +71,31 @@ const SEGMENT_STYLE: Record<SegmentDef["kind"], { color: string; minWidth: numbe
   road: { color: "#7c6e51", minWidth: 1 },
 };
 
-function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
+/**
+ * Dash pattern per identification level, in CSS pixels.
+ *
+ * At 240 px across 6.8 km the minimap is about 0.035 px per metre, so a ±40 m
+ * envelope drawn to scale would be a pixel and a half — invisible, and worse,
+ * misleadingly precise. Uncertainty is encoded here as *line texture* instead:
+ * solid where identification is established, progressively broken where it is
+ * not. The pattern is redundant with the shape and with the text in the dossier,
+ * so nothing depends on a viewer resolving it.
+ */
+const IDENTIFICATION_DASH: Record<UncertaintyLevel, readonly number[]> = {
+  known: [],
+  probable: [4, 2],
+  possible: [2, 2],
+  unknown: [1, 3],
+};
+
+function buildStaticLayer(
+  activeTimelineYear: number,
+  evidenceMode: EvidenceMode,
+  showUncertainty: boolean,
+): HTMLCanvasElement {
+  const isDrawn = (subject: { id: string; observedDate?: string }) =>
+    isSubjectDrawn(subject, activeTimelineYear, evidenceMode);
+
   const canvas = document.createElement("canvas");
   canvas.width = SIZE * DPR;
   canvas.height = SIZE * DPR;
@@ -95,7 +122,7 @@ function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
 
   const drawSegments = (segments: SegmentDef[]) => {
     for (const seg of segments) {
-      if (!isVisibleAtTimelineYear(seg, activeTimelineYear)) continue;
+      if (!isDrawn(seg)) continue;
       const style = SEGMENT_STYLE[seg.kind];
       ctx.strokeStyle = style.color;
       ctx.lineWidth = Math.max(style.minWidth, seg.width * SCALE);
@@ -115,7 +142,7 @@ function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
   drawSegments(RUNWAYS);
 
   for (const apron of APRONS) {
-    if (!isVisibleAtTimelineYear(apron, activeTimelineYear)) continue;
+    if (!isDrawn(apron)) continue;
     const [ax, ay] = toMap(apron.center[0], apron.center[1]);
     ctx.save();
     ctx.translate(ax, ay);
@@ -131,8 +158,9 @@ function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
   }
 
   for (const s of STRUCTURES) {
-    if (!isVisibleAtTimelineYear(s, activeTimelineYear)) continue;
+    if (!isDrawn(s)) continue;
     const [sx, sy] = toMap(s.position[0], s.position[1]);
+    const identification = getUncertaintyForSubject(s.id)?.identification ?? "unknown";
     if (isAircraft(s.type)) {
       // aircraft: cyan triangle pointing along its parked heading
       ctx.save();
@@ -146,6 +174,14 @@ function buildStaticLayer(activeTimelineYear: number): HTMLCanvasElement {
       ctx.closePath();
       ctx.fill();
       ctx.restore();
+    } else if (showUncertainty && identification !== "known") {
+      // Outline rather than fill: a hollow, broken square reads as "modeled,
+      // not established" at a glance and still reads in greyscale.
+      ctx.strokeStyle = "#e8a33d";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([...IDENTIFICATION_DASH[identification]]);
+      ctx.strokeRect(sx - 2.5, sy - 2.5, 5, 5);
+      ctx.setLineDash([]);
     } else {
       ctx.fillStyle = "#e8a33d";
       ctx.fillRect(sx - 2, sy - 2, 4, 4);
@@ -297,6 +333,8 @@ export function Minimap() {
   // hide it in first-person mode on touch devices to free the bottom-left.
   const cameraMode = useTwinStore((s) => s.cameraMode);
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
+  const showUncertainty = useTwinStore((s) => s.showUncertainty);
   const measureMode = useTwinStore((s) => s.measureMode);
   const toggleMeasureMode = useTwinStore((s) => s.toggleMeasureMode);
   const hasMeasurePoints = useTwinStore((s) => s.measurePoints.length > 0);
@@ -304,8 +342,8 @@ export function Minimap() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hoverRef = useRef<{ mx: number; my: number } | null>(null);
   const staticLayer = useMemo(
-    () => buildStaticLayer(activeTimelineYear),
-    [activeTimelineYear],
+    () => buildStaticLayer(activeTimelineYear, evidenceMode, showUncertainty),
+    [activeTimelineYear, evidenceMode, showUncertainty],
   );
 
   useEffect(() => {
@@ -330,7 +368,7 @@ export function Minimap() {
 
       // selected structure highlight
       const def = state.selectedId ? getStructure(state.selectedId) : undefined;
-      if (def && isVisibleAtTimelineYear(def, activeTimelineYear)) {
+      if (def && isSubjectDrawn(def, activeTimelineYear, evidenceMode)) {
         const [sx, sy] = toMap(def.position[0], def.position[1]);
         ctx.strokeStyle = "#ffb64d";
         ctx.lineWidth = 1.5;
@@ -372,7 +410,7 @@ export function Minimap() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [staticLayer, hidden, activeTimelineYear]);
+  }, [staticLayer, hidden, activeTimelineYear, evidenceMode]);
 
   const pointToWorld = (
     event: ReactMouseEvent<HTMLCanvasElement> | ReactPointerEvent<HTMLCanvasElement>,
@@ -384,7 +422,9 @@ export function Minimap() {
   };
 
   const addPoint = (wx: number, wz: number) => {
-    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, activeTimelineYear);
+    // Snapping follows the same filter as the drawing: a measurement must not
+    // lock onto a vertex the active mode is withholding from the map.
+    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, activeTimelineYear, evidenceMode);
     useTwinStore
       .getState()
       .addMeasurePoint(

@@ -45,6 +45,14 @@ import {
   type StructureDef,
 } from "./layout";
 import {
+  UNCERTAINTY_LEVELS,
+  deriveUncertainty,
+  illustrativeUncertainty,
+  measurementUncertainty,
+  type UncertaintyEnvelope,
+  type UncertaintyLevel,
+} from "./uncertainty";
+import {
   OFFSITE_CONTEXT,
   PUBLIC_SOURCES,
   SITE_PROFILE,
@@ -87,6 +95,12 @@ export interface EvidenceRecord {
   coordinateReferenceSystem?: string;
   /** Stated positional uncertainty in metres, only where the project documents one. */
   measurementUncertaintyM?: number;
+  /**
+   * Structured uncertainty for this claim. Derived in `src/lib/uncertainty.ts`
+   * from what the subject already declares, never hand-written, and absent
+   * numbers mean unknown rather than zero.
+   */
+  uncertainty?: UncertaintyEnvelope;
   analystNotes?: string;
   /** Record ID this one replaces, once a claim is revised. */
   supersedes?: string;
@@ -339,6 +353,14 @@ function structureRecords(structure: StructureDef): EvidenceRecord[] {
     evidence.method ? `Method: ${evidence.method}` : undefined,
     evidence.uncertainty ? `Uncertainty: ${evidence.uncertainty}` : undefined,
   ]);
+  const uncertainty = deriveUncertainty(evidence, {
+    // The asset-visibility date, when the layout records one. It bounds when
+    // the structure existed *by*, which is the only end of the range imagery
+    // establishes.
+    ...(structure.observedDate === undefined
+      ? {}
+      : { observedDate: structure.observedDate }),
+  });
 
   return evidence.sourceIds.map((sourceId): EvidenceRecord => {
     const source = getSource(sourceId);
@@ -356,6 +378,7 @@ function structureRecords(structure: StructureDef): EvidenceRecord[] {
         ? {}
         : { sourceResolutionM: evidence.resolutionM }),
       ...(analystNotes === undefined ? {} : { analystNotes }),
+      uncertainty,
       subjectKind: kind,
     };
   });
@@ -394,6 +417,22 @@ function pavementRecords(): EvidenceRecord[] {
         ...(source === undefined ? internalSourceFields() : sourceFields(source)),
         coordinateReferenceSystem: PRIMARY_CRS,
         analystNotes: observation.note,
+        uncertainty: {
+          // `observedDate` is set only where a cited scene dates the pavement;
+          // `evidenceObservedOn` timestamps the source snapshot the illustrative
+          // records were drawn against and is *not* a claim about the surface,
+          // so it never becomes a bound.
+          ...(entity.observedDate === undefined
+            ? {}
+            : { latestDate: entity.observedDate }),
+          identification: classification === "reported" ? "probable" : "unknown",
+          function: classification === "reported" ? "possible" : "unknown",
+          narrative:
+            classification === "reported"
+              ? "Timeline visibility follows a cited public observation; the modeled centreline, width and endpoints are interpreted from imagery and are not surveyed."
+              : "Illustrative pavement geometry. Its construction date is unknown and no cited source resolves it.",
+          sourceIds: observation.sourceIds,
+        },
         subjectKind: "pavement",
       });
     }
@@ -426,6 +465,13 @@ function measurementRecords(): EvidenceRecord[] {
     sourceResolutionM: 10,
     analystNotes:
       "Measured off 10 m imagery, so endpoints carry about 40 m of uncertainty. This is a model measurement, not an aeronautical survey.",
+    uncertainty: measurementUncertainty({
+      sourceIds: ["sentinel-2-scene-2025"],
+      sourceResolutionM: 10,
+      latestDate: imagery.publishedOn,
+      narrative:
+        "Both endpoints are read off a 10 m scene, so the length inherits their uncertainty at each end.",
+    }),
     subjectKind: "measurement",
   });
   if (reporting !== undefined) {
@@ -439,6 +485,18 @@ function measurementRecords(): EvidenceRecord[] {
       coordinateReferenceSystem: PRIMARY_CRS,
       analystNotes:
         "A secondary report of commercial imagery. It corroborates scale; it is not an official record.",
+      uncertainty: {
+        // The report states a bound ("longer than 16,400 ft"), not a
+        // measurement with an error, so there is no number to record here.
+        ...(reporting.publishedOn === undefined
+          ? {}
+          : { latestDate: reporting.publishedOn }),
+        identification: "probable",
+        function: "unknown",
+        narrative:
+          "The cited report gives a lower bound on runway length rather than a measurement with a stated tolerance, so no numeric uncertainty is recorded.",
+        sourceIds: ["nsj-airfield-2025"],
+      },
       subjectKind: "measurement",
     });
   }
@@ -454,6 +512,13 @@ function measurementRecords(): EvidenceRecord[] {
     sourceResolutionM: 10,
     analystNotes:
       "Grid bearing, not magnetic or true bearing. It follows from the same modeled endpoints and inherits their uncertainty.",
+    uncertainty: measurementUncertainty({
+      sourceIds: ["sentinel-2-scene-2025"],
+      sourceResolutionM: 10,
+      latestDate: imagery.publishedOn,
+      narrative:
+        "The bearing is derived from the same two endpoints as the length. The angular error that follows from ±40 m over a 5 km baseline is not published as a number here, because it would be a derived figure this project has not documented.",
+    }),
     subjectKind: "measurement",
   });
   records.push({
@@ -468,6 +533,13 @@ function measurementRecords(): EvidenceRecord[] {
     sourceResolutionM: 10,
     analystNotes:
       "An approximate coordinate read off public imagery. Every modeled metre is offset from this point, so an error here shifts the whole frame.",
+    uncertainty: measurementUncertainty({
+      sourceIds: ["sentinel-2-scene-2025"],
+      sourceResolutionM: 10,
+      latestDate: imagery.publishedOn,
+      narrative:
+        "Every modeled metre is offset from this point, so this envelope is the floor under every other position in the model.",
+    }),
     subjectKind: "measurement",
   });
   return records;
@@ -488,6 +560,13 @@ function environmentAndTerrainRecords(): EvidenceRecord[] {
       ...sourceFields(dem),
       coordinateReferenceSystem: PRIMARY_CRS,
       analystNotes: SITE_PROFILE.terrainDatum.note,
+      uncertainty: {
+        identification: "possible",
+        function: "unknown",
+        narrative:
+          "The datum is an approximate sample from a 30 m global surface model and the rendered relief is a seeded proxy around it. Neither carries a vertical tolerance this project can state, so none is recorded — the surface must not be used for slope or sightline analysis.",
+        sourceIds: ["copernicus-dem"],
+      },
       subjectKind: "terrain",
     });
   }
@@ -501,6 +580,16 @@ function environmentAndTerrainRecords(): EvidenceRecord[] {
       ...sourceFields(climate),
       analystNotes:
         "Modelled grid climatology, not a local weather station, a forecast, or conditions during any reported event.",
+      uncertainty: {
+        // A climatological mean has a spread, and POWER publishes one. This
+        // project does not carry those figures, so it records none rather than
+        // deriving a plausible band.
+        identification: "known",
+        function: "known",
+        narrative:
+          "Monthly means over a 2001-2020 window for a model grid cell. The spread around each mean is published by the source but is not carried in this repository, so no numeric band is recorded here.",
+        sourceIds: ["nasa-power-climatology"],
+      },
       subjectKind: "environment",
     });
   }
@@ -525,6 +614,13 @@ function siteAndContextRecords(): EvidenceRecord[] {
       sourceResolutionM: 10,
       analystNotes:
         "The layout is traced from public imagery. Individual building functions inside that layout are not established by it.",
+      uncertainty: measurementUncertainty({
+        sourceIds: ["sentinel-2-scene-2025"],
+        sourceResolutionM: 10,
+        latestDate: imagery.publishedOn,
+        narrative:
+          "The frame's registration to the ground carries the same ±40 m the reference coordinate does. Building functions inside the frame are not established by imagery at all.",
+      }),
       subjectKind: "context",
     });
   }
@@ -539,6 +635,16 @@ function siteAndContextRecords(): EvidenceRecord[] {
       ...sourceFields(expansion),
       analystNotes:
         "Reported association only. This model does not confirm any facility function.",
+      uncertainty: {
+        ...(expansion.publishedOn === undefined
+          ? {}
+          : { latestDate: expansion.publishedOn }),
+        identification: "probable",
+        function: "unknown",
+        narrative:
+          "A reported association. The report gives no dimensions with tolerances, and this model does not establish what any facility is for.",
+        sourceIds: ["npr-airfield-expansion"],
+      },
       subjectKind: "context",
     });
   }
@@ -553,6 +659,18 @@ function siteAndContextRecords(): EvidenceRecord[] {
       ...sourceFields(spacecraft),
       analystNotes:
         '"Likely" is retained from the source. This project neither verifies nor renders any landing.',
+      uncertainty: {
+        ...(spacecraft.publishedOn === undefined
+          ? {}
+          : { latestDate: spacecraft.publishedOn }),
+        // The source itself hedges. Recording that hedge as "possible" rather
+        // than promoting it to "probable" is the whole job of this field.
+        identification: "possible",
+        function: "possible",
+        narrative:
+          '"Likely" is the source\'s own word and is retained. No landing is rendered, dated or corroborated here.',
+        sourceIds: ["swf-spacecraft-2026"],
+      },
       subjectKind: "context",
     });
   }
@@ -570,6 +688,13 @@ function siteAndContextRecords(): EvidenceRecord[] {
         ...sourceFields(source),
         coordinateReferenceSystem: GEOGRAPHIC_CRS,
         analystNotes: place.note,
+        uncertainty: {
+          ...(source.publishedOn === undefined ? {} : { latestDate: source.publishedOn }),
+          identification: "probable",
+          function: "unknown",
+          narrative: `Regional context at about ${place.distanceFromAirfieldKm} km. The coordinate is approximate, the place is outside the modeled frame and nothing about it is rendered, so no positional envelope applies inside this scene.`,
+          sourceIds: place.sourceIds,
+        },
         subjectKind: "context",
       });
     }
@@ -620,6 +745,7 @@ function simulationRecords(): EvidenceRecord[] {
     ...internalSourceFields(),
     analystNotes:
       "Illustrative simulation element. Motion is deterministic scenario content and carries no claim about site activity.",
+    uncertainty: illustrativeUncertainty(),
     subjectKind: "simulation",
   }));
 }
@@ -655,6 +781,84 @@ export function getEvidenceForSubject(subjectId: string): readonly EvidenceRecor
 
 export function getEvidenceRecord(id: string): EvidenceRecord | undefined {
   return EVIDENCE_LEDGER.find((record) => record.id === id);
+}
+
+/**
+ * The uncertainty a subject carries, merged across its records.
+ *
+ * A subject usually has one record per citing source and they agree, because
+ * they are derived from the same declared evidence. Where they differ, this
+ * takes the *widest* envelope: the largest number, the weakest ordinal, the
+ * widest date range. Reporting the narrowest would let a second citation make
+ * the model look more certain than any single source supports, which is the
+ * exact failure this whole module exists to prevent.
+ */
+export function getUncertaintyForSubject(
+  subjectId: string,
+): UncertaintyEnvelope | undefined {
+  const envelopes = getEvidenceForSubject(subjectId)
+    .map((record) => record.uncertainty)
+    .filter((envelope): envelope is UncertaintyEnvelope => envelope !== undefined);
+  const first = envelopes[0];
+  if (first === undefined) return undefined;
+  if (envelopes.length === 1) return first;
+
+  const widest = <K extends "horizontalMeters" | "footprintMeters">(
+    key: K,
+  ): number | undefined => {
+    const values = envelopes
+      .map((envelope) => envelope[key])
+      .filter((value): value is number => value !== undefined);
+    return values.length === 0 ? undefined : Math.max(...values);
+  };
+  const weakest = (key: "identification" | "function"): UncertaintyLevel => {
+    let worst = 0;
+    for (const envelope of envelopes) {
+      worst = Math.max(worst, UNCERTAINTY_LEVELS.indexOf(envelope[key]));
+    }
+    return UNCERTAINTY_LEVELS[worst] ?? "unknown";
+  };
+  const dates = (key: "earliestDate" | "latestDate", pick: "min" | "max") => {
+    const values = envelopes
+      .map((envelope) => envelope[key])
+      .filter((value): value is string => value !== undefined)
+      .sort();
+    return pick === "min" ? values[0] : values[values.length - 1];
+  };
+
+  const horizontalMeters = widest("horizontalMeters");
+  const footprintMeters = widest("footprintMeters");
+  // The method and basis belong to whichever envelope actually supplied a
+  // number, so they cannot be taken from `first` unconditionally.
+  const numericSource = envelopes.find(
+    (envelope) =>
+      envelope.horizontalMeters !== undefined || envelope.footprintMeters !== undefined,
+  );
+  const earliestDate = dates("earliestDate", "min");
+  const latestDate = dates("latestDate", "max");
+  const narratives = [
+    ...new Set(
+      envelopes
+        .map((envelope) => envelope.narrative)
+        .filter((note): note is string => note !== undefined),
+    ),
+  ];
+
+  return {
+    ...(horizontalMeters === undefined ? {} : { horizontalMeters }),
+    ...(footprintMeters === undefined ? {} : { footprintMeters }),
+    ...(numericSource?.method === undefined ? {} : { method: numericSource.method }),
+    ...(numericSource?.basis === undefined ? {} : { basis: numericSource.basis }),
+    ...(earliestDate === undefined ? {} : { earliestDate }),
+    ...(latestDate === undefined ? {} : { latestDate }),
+    identification: weakest("identification"),
+    function: weakest("function"),
+    ...(envelopes.some((envelope) => envelope.sourceDisagreement === true)
+      ? { sourceDisagreement: true }
+      : {}),
+    ...(narratives.length === 0 ? {} : { narrative: narratives.join(" ") }),
+    sourceIds: [...new Set(envelopes.flatMap((envelope) => envelope.sourceIds))],
+  };
 }
 
 /** Count of records per classification, for the legend and the manifest. */

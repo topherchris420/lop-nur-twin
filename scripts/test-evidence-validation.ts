@@ -14,6 +14,15 @@
 
 import { EVIDENCE_LEDGER, PRIMARY_CRS, type EvidenceRecord } from "../src/lib/evidence";
 import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
+import type { UncertaintyEnvelope } from "../src/lib/uncertainty";
+
+/** A valid envelope for the baseline record: interpreted, so nothing is known. */
+const BASE_UNCERTAINTY: UncertaintyEnvelope = {
+  identification: "possible",
+  function: "possible",
+  narrative: "A test envelope. It states no numbers, which is the honest default.",
+  sourceIds: ["sentinel-2-scene-2025"],
+};
 
 const BASE: EvidenceRecord = {
   id: "ev-test-baseline",
@@ -25,6 +34,7 @@ const BASE: EvidenceRecord = {
   sourceUrl: "https://example.invalid/scene",
   sourceId: "sentinel-2-scene-2025",
   coordinateReferenceSystem: PRIMARY_CRS,
+  uncertainty: BASE_UNCERTAINTY,
   subjectKind: "structure",
 };
 
@@ -176,6 +186,177 @@ const CASES: Case[] = [
     name: "supersedes pointing at nothing is rejected",
     record: { ...BASE, supersedes: "ev-does-not-exist" },
     expect: /supersedes unknown record "ev-does-not-exist"/,
+  },
+
+  /* ------------------------------------------------ uncertainty rules */
+  {
+    name: "a claim about the site with no uncertainty envelope is rejected",
+    record: { ...BASE, uncertainty: undefined },
+    expect: /must carry an uncertainty envelope/,
+  },
+  {
+    name: "negative uncertainty is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        horizontalMeters: -5,
+        method: "test",
+        basis: "project-documented",
+      },
+    },
+    expect: /uncertainty horizontalMeters is negative/,
+  },
+  {
+    name: "non-finite uncertainty is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        footprintMeters: Number.POSITIVE_INFINITY,
+        method: "test",
+        basis: "project-documented",
+      },
+    },
+    expect: /uncertainty footprintMeters must be a finite number/,
+  },
+  {
+    name: "an orientation tolerance larger than a full turn is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        orientationDegrees: 400,
+        method: "test",
+        basis: "project-documented",
+      },
+    },
+    expect: /exceeds a full turn, so the unit is wrong/,
+  },
+  {
+    name: "a precise uncertainty with no documented method is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        horizontalMeters: 12,
+        basis: "project-documented",
+      },
+    },
+    expect: /must document the method that produced it/,
+  },
+  {
+    name: "a precise uncertainty with no declared basis is rejected",
+    record: {
+      ...BASE,
+      uncertainty: { ...BASE_UNCERTAINTY, horizontalMeters: 12, method: "measured" },
+    },
+    expect: /must declare its basis/,
+  },
+  {
+    name: "an unknown uncertainty basis is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        horizontalMeters: 12,
+        method: "measured",
+        basis: "vibes" as UncertaintyEnvelope["basis"],
+      },
+    },
+    expect: /declares unknown basis "vibes"/,
+  },
+  {
+    name: "a source-stated uncertainty citing no source is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        horizontalMeters: 12,
+        method: "stated in the report",
+        basis: "stated-in-source",
+        sourceIds: [],
+      },
+    },
+    expect: /claims its uncertainty is stated in a source but cites no source/,
+  },
+  {
+    name: "a reversed temporal range is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        earliestDate: "2025-09-28",
+        latestDate: "2021-06-30",
+      },
+    },
+    expect: /uncertainty range runs backwards/,
+  },
+  {
+    name: "a malformed uncertainty date is rejected",
+    record: {
+      ...BASE,
+      uncertainty: { ...BASE_UNCERTAINTY, latestDate: "late 2025" },
+    },
+    expect: /uncertainty latestDate "late 2025" must be an ISO YYYY-MM-DD date/,
+  },
+  {
+    name: "an invalid uncertainty level is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        identification: "certain" as UncertaintyEnvelope["identification"],
+      },
+    },
+    expect: /uncertainty identification "certain" is not one of/,
+  },
+  {
+    name: "an interpreted feature claiming a known identification is rejected",
+    record: {
+      ...BASE,
+      uncertainty: { ...BASE_UNCERTAINTY, identification: "known" },
+    },
+    expect: /claims a known identification/,
+  },
+  {
+    name: "an interpreted feature claiming a known function is rejected",
+    record: {
+      ...BASE,
+      uncertainty: { ...BASE_UNCERTAINTY, function: "known" },
+    },
+    expect: /claims a known function/,
+  },
+  {
+    name: "an observed claim that bounds no position is rejected",
+    record: {
+      ...BASE,
+      subjectId: "rwy-05-23",
+      subjectKind: "pavement",
+      classification: "observed",
+      uncertainty: {
+        identification: "known",
+        function: "unknown",
+        sourceIds: ["sentinel-2-scene-2025"],
+      },
+    },
+    expect: /states no positional uncertainty and no source resolution/,
+  },
+  {
+    name: "an observed claim with an unknown identification is rejected",
+    record: {
+      ...BASE,
+      subjectId: "rwy-05-23",
+      subjectKind: "pavement",
+      classification: "observed",
+      sourceResolutionM: 10,
+      uncertainty: {
+        identification: "unknown",
+        function: "unknown",
+        sourceIds: ["sentinel-2-scene-2025"],
+      },
+    },
+    expect: /claims direct observation while recording an unknown identification/,
   },
 ];
 

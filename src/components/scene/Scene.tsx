@@ -5,6 +5,7 @@ import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { LivingScene } from "./LivingScene";
+import { UncertaintyLayer } from "./UncertaintyLayer";
 import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
@@ -110,6 +111,7 @@ export function Scene() {
           <Terrain />
           <Pavements />
           <Structures />
+          <UncertaintyLayer />
           <LivingScene />
           {/* The upstream feed currently omits browser CORS headers. Keep the
               existing layer opt-in so the deterministic twin makes no failing

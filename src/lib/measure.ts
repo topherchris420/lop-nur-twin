@@ -11,6 +11,11 @@ import {
   type TemporalDef,
 } from "./layout";
 import { SITE_PROFILE } from "./siteData";
+import {
+  DEFAULT_EVIDENCE_MODE,
+  isSubjectVisible,
+  type EvidenceMode,
+} from "./evidenceMode";
 
 /**
  * The site-scale measuring tool. Everything here is deterministic and offline:
@@ -36,8 +41,13 @@ export interface SnapTarget {
   x: number;
   z: number;
   label: string;
-  /** the backing layout record, so snapping respects timeline visibility */
-  source: TemporalDef;
+  /**
+   * The backing layout record, so snapping respects the same timeline and
+   * evidence-mode filters the scene draws with. A ruler that locks onto a
+   * building the current mode is withholding would produce a measurement the
+   * viewer cannot see the endpoints of.
+   */
+  source: TemporalDef & { id: string };
 }
 
 const CARDINALS = [
@@ -119,18 +129,24 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
 
 /**
  * Nearest snap target to a local point, within `maxDistM`, respecting the
- * active timeline year. Returns null when nothing modeled is close enough.
+ * active timeline year and the active evidence mode. Returns null when nothing
+ * currently drawn is close enough.
+ *
+ * `evidenceMode` defaults to the full simulation so a caller that has no mode
+ * in hand — a test, a script — gets every modeled vertex.
  */
 export function snapWorldPoint(
   x: number,
   z: number,
   maxDistM: number,
   year: number,
+  evidenceMode: EvidenceMode = DEFAULT_EVIDENCE_MODE,
 ): SnapTarget | null {
   let best: SnapTarget | null = null;
   let bestDistSq = maxDistM * maxDistM;
   for (const target of SNAP_TARGETS) {
     if (!isVisibleAtTimelineYear(target.source, year)) continue;
+    if (!isSubjectVisible(target.source.id, evidenceMode)) continue;
     const distSq = (target.x - x) ** 2 + (target.z - z) ** 2;
     if (distSq <= bestDistSq) {
       bestDistSq = distSq;

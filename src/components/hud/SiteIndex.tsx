@@ -2,13 +2,9 @@ import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  STRUCTURES,
-  STRUCTURE_TYPE_LABELS,
-  isVisibleAtTimelineYear,
-  type StructureDef,
-} from "@/lib/layout";
+import { STRUCTURES, STRUCTURE_TYPE_LABELS, type StructureDef } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
+import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +14,13 @@ export function SiteIndex() {
   const toggleIndex = useTwinStore((s) => s.toggleIndex);
   const selectedId = useTwinStore((s) => s.selectedId);
   const select = useTwinStore((s) => s.select);
-  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const [query, setQuery] = useState("");
+  // Same predicate the scene draws with: the index lists what is on screen.
+  const isDrawn = useSubjectFilter();
 
   const groups = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
-    const visibleStructures = STRUCTURES.filter((structure) =>
-      isVisibleAtTimelineYear(structure, activeTimelineYear),
-    );
+    const visibleStructures = STRUCTURES.filter(isDrawn);
     const filtered = normalized
       ? visibleStructures.filter((structure) => {
           const searchable = [
@@ -57,7 +52,7 @@ export function SiteIndex() {
             [...structures].sort((left, right) => left.name.localeCompare(right.name)),
           ] as const,
       );
-  }, [query, activeTimelineYear]);
+  }, [query, isDrawn]);
 
   if (!showIndex) return null;
 

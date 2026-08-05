@@ -17,6 +17,7 @@ import { makeApronTexture, makeDirtTexture, makePavementTexture } from "@/lib/te
 import { SITE_SEED } from "@/lib/noise";
 import { applyGroundDetailPreset, type GroundDetailFamily } from "@/gfx/groundDetail";
 
+import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 
 /**
@@ -282,6 +283,7 @@ function FilletMesh({
 
 export function Pavements() {
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const isDrawn = useSubjectFilter();
   const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
   useEffect(() => () => apronTexture.dispose(), [apronTexture]);
 
@@ -308,7 +310,7 @@ export function Pavements() {
           designators={["05", "23"]}
           seedBase={SITE_SEED + 100}
           roughness={0.85}
-          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
+          visible={isDrawn(seg)}
         />
       ))}
       {TAXIWAYS.map((seg, i) => (
@@ -319,7 +321,7 @@ export function Pavements() {
           markings="none"
           seedBase={SITE_SEED + 200}
           roughness={0.88}
-          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
+          visible={isDrawn(seg)}
         />
       ))}
       {/* Circular concrete fillets soften the runway T-junction and apron throat,
@@ -333,7 +335,7 @@ export function Pavements() {
             radius={radius}
             axis={segmentAxis(seg)}
             texture={apronTexture}
-            visible={isFilletVisible(id, activeTimelineYear)}
+            visible={isFilletVisible(id, activeTimelineYear) && isDrawn(seg)}
             entityId={seg.id}
           />
         ) : null,
@@ -346,31 +348,21 @@ export function Pavements() {
           markings="none"
           seedBase={SITE_SEED + 250}
           roughness={0.9}
-          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
+          visible={isDrawn(seg)}
         />
       ))}
       {STRIPS.map((seg, i) => (
-        <DirtMesh
-          key={seg.id}
-          seg={seg}
-          index={i}
-          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
-        />
+        <DirtMesh key={seg.id} seg={seg} index={i} visible={isDrawn(seg)} />
       ))}
       {ROADS.map((seg, i) => (
-        <DirtMesh
-          key={seg.id}
-          seg={seg}
-          index={i + 10}
-          visible={isVisibleAtTimelineYear(seg, activeTimelineYear)}
-        />
+        <DirtMesh key={seg.id} seg={seg} index={i + 10} visible={isDrawn(seg)} />
       ))}
       {APRONS.map((apron) => (
         <ApronMesh
           key={apron.id}
           apron={apron}
           texture={apronTexture}
-          visible={isVisibleAtTimelineYear(apron, activeTimelineYear)}
+          visible={isDrawn(apron)}
         />
       ))}
     </group>

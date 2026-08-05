@@ -32,8 +32,17 @@ export function LivingScene() {
   const night = useTwinStore((s) => s.night);
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const animate = !reducedMotion;
   const profile = getQualityProfile(qualityTier);
+
+  // Every prop in here is classified illustrative in the ledger: a procedural
+  // aircraft that represents no sortie, a radar that asserts no coverage,
+  // patrol vehicles that were never observed. They belong to the full
+  // simulation and to nothing weaker, so the whole subtree unmounts below it
+  // rather than each prop testing the mode for itself.
+  if (evidenceMode !== "full-simulation") return null;
+
   return (
     <group name="living-scene">
       <CircuitAircraft animate={animate && profile.animateCircuit} />

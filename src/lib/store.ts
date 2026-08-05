@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import { TIMELINE_BOUNDS, getStructure, isVisibleAtTimelineYear } from "./layout";
+import {
+  DEFAULT_EVIDENCE_MODE,
+  EVIDENCE_MODES,
+  isSubjectVisible,
+  type EvidenceMode,
+} from "./evidenceMode";
+import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
 import type { MeasurePoint } from "./measure";
-import { readIntParam } from "./params";
+import { readEnumParam, readIntParam, readIsoDateParam } from "./params";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -26,6 +33,29 @@ interface TwinState {
 
   activeTimelineYear: number;
   setActiveTimelineYear: (year: number) => void;
+
+  /**
+   * Which evidence classifications the scene, the minimap, the index and the
+   * dossier are allowed to draw. Every consumer asks
+   * `isSubjectVisible(id, evidenceMode)` rather than deciding for itself.
+   */
+  evidenceMode: EvidenceMode;
+  setEvidenceMode: (mode: EvidenceMode) => void;
+
+  /**
+   * Snapshot date for the temporal view, or null for "the model's current
+   * state". Kept separate from `activeTimelineYear`, which is the existing
+   * year-granularity scene filter and keeps working unchanged.
+   */
+  snapshotDate: string | null;
+  setSnapshotDate: (date: string | null) => void;
+  /** The second date in a change comparison, or null when not comparing. */
+  comparisonDate: string | null;
+  setComparisonDate: (date: string | null) => void;
+
+  /** Whether spatial uncertainty envelopes are drawn in the scene and minimap. */
+  showUncertainty: boolean;
+  toggleUncertainty: () => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -122,6 +152,24 @@ function normalizeMonth(month: number): number {
   return ((Math.round(month) % 12) + 12) % 12;
 }
 
+/** `?evidence=observed|reported|interpretation|full-simulation`. */
+function initialEvidenceMode(): EvidenceMode {
+  return readEnumParam("evidence", EVIDENCE_MODES) ?? DEFAULT_EVIDENCE_MODE;
+}
+
+/**
+ * `?snapshot=YYYY-MM-DD`. Only a date the ledger can actually be snapshotted at
+ * is accepted; anything else falls back to null, meaning "current state".
+ */
+function initialSnapshotDate(): string | null {
+  return normalizeSnapshotDate(readIsoDateParam("snapshot"));
+}
+
+function normalizeSnapshotDate(date: string | null): string | null {
+  if (date === null || !isIsoDate(date)) return null;
+  return TEMPORAL_SNAPSHOT_DATES.includes(date) ? date : null;
+}
+
 function normalizeTimelineYear(year: number): number {
   if (!Number.isFinite(year)) return TIMELINE_BOUNDS.maxYear;
   return Math.min(
@@ -153,6 +201,29 @@ export const useTwinStore = create<TwinState>()((set) => ({
             : state.selectedId,
       };
     }),
+
+  evidenceMode: initialEvidenceMode(),
+  setEvidenceMode: (evidenceMode) =>
+    set((state) => ({
+      evidenceMode,
+      // A selection the new mode withholds must not stay open behind it: a
+      // dossier for a building the scene is no longer drawing is the exact
+      // confusion the modes exist to prevent.
+      selectedId:
+        state.selectedId !== null && !isSubjectVisible(state.selectedId, evidenceMode)
+          ? null
+          : state.selectedId,
+    })),
+
+  snapshotDate: initialSnapshotDate(),
+  setSnapshotDate: (snapshotDate) =>
+    set({ snapshotDate: normalizeSnapshotDate(snapshotDate) }),
+  comparisonDate: null,
+  setComparisonDate: (comparisonDate) =>
+    set({ comparisonDate: normalizeSnapshotDate(comparisonDate) }),
+
+  showUncertainty: false,
+  toggleUncertainty: () => set((s) => ({ showUncertainty: !s.showUncertainty })),
 
   selectedId: null,
   select: (selectedId) => set({ selectedId }),
