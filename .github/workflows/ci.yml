@@ -1,0 +1,278 @@
+name: CI
+
+# Pull requests and pushes to the default branch. No user-defined repository
+# secret is referenced anywhere here, so a fork's pull request runs exactly the
+# same checks as a branch — which is the point: a supply-chain check that only
+# runs for trusted contributors is not a supply-chain check.
+#
+# One token is referenced: `secrets.GITHUB_TOKEN`, which GitHub mints per run
+# and scopes by each job's `permissions` block. Gitleaks requires it to read a
+# pull request. It is read-only there, and GitHub issues a read-only token to
+# fork pull requests regardless, so it grants untrusted code nothing. No step
+# runs pull-request code with elevated permissions, and `pull_request_target`
+# is deliberately not used.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege by default. Jobs raise this only where the platform requires
+# it, and no job is granted write access to repository contents.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22.18.0"
+
+jobs:
+  build:
+    name: Validate, build and typecheck
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # `npm ci` installs strictly from the committed lockfile and fails if
+      # package.json and the lockfile disagree.
+      - name: Install dependencies from the lockfile
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+
+      - name: Validate model data and the evidence ledger
+        run: npm run validate:data
+
+      - name: Prove the evidence validator still rejects bad records
+        run: npm run test:evidence
+
+      - name: Generate the release manifest
+        run: npm run manifest
+
+      - name: Production build and strict typecheck
+        run: npm run build
+
+      # The manifest is the machine-readable statement of what this commit
+      # contains; publishing it as an artifact makes a CI run citable.
+      - name: Upload the release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-manifest
+          path: public/model-manifest.json
+          if-no-files-found: error
+
+  simulation:
+    name: Simulation, gait, audio and accessibility checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # The headless browser these tools drive is the one Puppeteer installs,
+      # so this job does *not* skip the download. WebGL runs on SwiftShader,
+      # which the tools already request.
+      - name: Install dependencies from the lockfile
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Start the dev server
+        run: |
+          npm run dev -- --port 5173 > /tmp/dev-server.log 2>&1 &
+          timeout 180 bash -c 'until curl -sf http://localhost:5173/ > /dev/null; do sleep 2; done'
+
+      - name: Blacksite smoke checks
+        run: npm run smoke
+
+      - name: Gait checks
+        run: npm run gait
+
+      # Audio renders through an OfflineAudioContext, which needs no output
+      # device and therefore works headless. If a future runner image drops the
+      # audio backend, this is the step that will say so.
+      - name: Synthesised audio checks
+        run: npm run audio
+
+      - name: Start the preview server with production security headers
+        run: |
+          npm run preview -- --port 4173 > /tmp/preview-server.log 2>&1 &
+          timeout 180 bash -c 'until curl -sf http://localhost:4173/ > /dev/null; do sleep 2; done'
+
+      - name: Accessibility and content-security-policy checks
+        run: npm run a11y
+
+      # Direct loads, refreshes, hostile query parameters, keyboard order,
+      # evidence filtering, deep links and a 390 px viewport.
+      - name: Route, parameter and interaction checks
+        run: npm run routes
+
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: |
+            /tmp/dev-server.log
+            /tmp/preview-server.log
+          if-no-files-found: ignore
+
+  secrets:
+    name: Secret scanning
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # The action reads the pull request's commit list through the API, so it
+    # needs to see the PR itself. Both grants are read-only.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Gitleaks scans history, not just the working tree.
+      - name: Check out the full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          # Required since v2 for pull-request scans. This is the token GitHub
+          # mints automatically for the run, scoped by the `permissions` block
+          # above — not a repository secret, and read-only for a fork's pull
+          # request by GitHub's own policy, so it grants untrusted code nothing.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No licence key and no upload: this repository is public and the
+          # basic scan needs neither.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"
+
+  vulnerabilities:
+    name: Dependency and filesystem vulnerability scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies from the lockfile
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+
+      # npm's own advisory check first: fast, needs nothing, and reports the
+      # same registry data an evaluator would see locally. Shipped code only —
+      # a development-only advisory should not block a documentation change.
+      - name: npm audit (runtime dependencies)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Trivy vulnerability and secret scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      # Configuration findings are reported but do not gate: they cover the
+      # Dockerfile and workflow files, where the right fix is often a
+      # deployment decision rather than a code change.
+      - name: Trivy configuration scan (report only)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          format: table
+
+  sbom:
+    name: Software bill of materials
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies from the lockfile
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+
+      # CycloneDX JSON, generated from the resolved dependency tree.
+      - name: Generate a CycloneDX SBOM
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cyclonedx.json
+
+      # Syft's SPDX JSON view of the same tree, for consumers that expect SPDX.
+      - name: Generate an SPDX SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: sbom.spdx.json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: |
+            sbom.cyclonedx.json
+            sbom.spdx.json
+          if-no-files-found: error
+
+  dependency-review:
+    name: Dependency review
+    # Only pull requests have a base and a head to diff.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # Requires the repository's dependency graph (Settings → Code security
+      # and analysis), which is enabled. If this step ever starts reporting
+      # "not supported on this repository", that setting has been turned off
+      # again — fix the setting rather than muting the check.
+      - name: Review dependency changes in this pull request
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never

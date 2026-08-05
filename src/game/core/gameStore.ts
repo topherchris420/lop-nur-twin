@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { readEnumParam, readFlag } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
 
 /**
@@ -137,19 +138,15 @@ let toastId = 1;
 const KILLFEED_TTL = 7;
 const TOAST_TTL = 3.4;
 
-/** `?fps=1` boots straight into a match; handy for the visual probe. */
+/** `?autoplay=1` boots straight into a match; handy for the visual probe. */
 function initialScreen(): GameScreen {
-  if (typeof window === "undefined") return "boot";
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("autoplay") === "1") return "playing";
-  return "boot";
+  return readFlag("autoplay") ? "playing" : "boot";
 }
 
+const GAME_MODE_IDS = ["tdm", "domination", "ffa", "hardpoint", "gunfight"] as const;
+
 function initialMode(): GameModeId {
-  if (typeof window === "undefined") return "tdm";
-  const raw = new URLSearchParams(window.location.search).get("mode");
-  const modes: GameModeId[] = ["tdm", "domination", "ffa", "hardpoint", "gunfight"];
-  return modes.includes(raw as GameModeId) ? (raw as GameModeId) : "tdm";
+  return readEnumParam<GameModeId>("mode", GAME_MODE_IDS) ?? "tdm";
 }
 
 export const useGameStore = create<GameStoreState>()((set) => ({

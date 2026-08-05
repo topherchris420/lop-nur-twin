@@ -9,6 +9,7 @@ import { useTwinStore } from "@/lib/store";
 import { getQualityProfile } from "@/lib/quality";
 import { terrainHeight, flattenFactor } from "@/lib/terrain";
 import { GROUND_OVERLOOK } from "@/lib/layout";
+import { readFloatParam, readHeadingParam, readSitePointParam } from "@/lib/params";
 import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
 import { DistantRelief } from "./world/DistantRelief";
@@ -519,13 +520,9 @@ function placeOpeningSpawn(world: CollisionWorld): void {
   // `?look=<deg>` aims the spawn heading and `?at=<x>,<z>` moves the spawn,
   // so a frame can be captured from anywhere on the map without driving the
   // camera by hand.
-  const params = new URLSearchParams(window.location.search);
-  const raw = Number(params.get("look"));
-  const yaw = Number.isFinite(raw) && raw !== 0 ? (raw * Math.PI) / 180 : defaultYaw;
-  const at = (params.get("at") ?? "").split(",").map(Number);
-  const [ax, az] = at.length === 2 && at.every(Number.isFinite)
-    ? (at as [number, number])
-    : GROUND_OVERLOOK.position;
+  const heading = readHeadingParam("look");
+  const yaw = heading !== null && heading !== 0 ? (heading * Math.PI) / 180 : defaultYaw;
+  const [ax, az] = readSitePointParam("at") ?? GROUND_OVERLOOK.position;
   placePlayer(world, ax, az, yaw);
 }
 
@@ -570,9 +567,9 @@ function CombatWorld() {
 
 /** `?near=<m>` overrides the world camera's near plane, for A/B capture. */
 function nearOverride(): number {
-  if (typeof window === "undefined") return 0.12;
-  const raw = Number(new URLSearchParams(window.location.search).get("near"));
-  return Number.isFinite(raw) && raw > 0 ? raw : 0.12;
+  // A near plane at 0 or beyond the far plane collapses the depth range, so
+  // the capture override is bounded rather than trusted.
+  return readFloatParam("near", 0.001, 100) ?? 0.12;
 }
 
 export function GameScene() {

@@ -37,6 +37,13 @@ import {
   PUBLIC_SOURCES,
   SITE_PROFILE,
 } from "../src/lib/siteData";
+import {
+  EVIDENCE_LEDGER,
+  KNOWN_LIMITATIONS,
+  PRIMARY_CRS,
+  SUPPORTED_COORDINATE_REFERENCE_SYSTEMS,
+} from "../src/lib/evidence";
+import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
 import { QUALITY_PROFILES } from "../src/lib/quality";
 import {
   SNAP_TARGETS,
@@ -693,6 +700,35 @@ check(
   `Runtime flight spline clearance ${minimumCircuitClearanceM.toFixed(2)} m must remain at least ${CIRCUIT_MIN_CLEARANCE_M} m above terrain`,
 );
 
+/* ------------------------------------------------------------------ */
+/* Evidence ledger                                                     */
+/* ------------------------------------------------------------------ */
+
+const ledgerResult = validateEvidenceLedger(EVIDENCE_LEDGER);
+for (const error of ledgerResult.errors) errors.push(error);
+
+check(EVIDENCE_LEDGER.length > 0, "Evidence ledger must not be empty");
+check(
+  SUPPORTED_COORDINATE_REFERENCE_SYSTEMS.includes(SITE_PROFILE.localCrs.code),
+  `Site profile CRS ${SITE_PROFILE.localCrs.code} must be one of the supported systems`,
+);
+check(
+  PRIMARY_CRS === SITE_PROFILE.localCrs.code,
+  "Primary evidence CRS must match the site profile's local CRS",
+);
+check(
+  KNOWN_LIMITATIONS.length > 0 &&
+    KNOWN_LIMITATIONS.every((limitation) => limitation.trim().length > 0),
+  "Known limitations must be a non-empty list of non-empty statements",
+);
+// The ledger is derived, so an ordering regression here would silently change
+// the manifest hash between builds on different machines.
+const ledgerIds = EVIDENCE_LEDGER.map((record) => record.id);
+check(
+  ledgerIds.every((id, index) => index === 0 || ledgerIds[index - 1]! <= id),
+  "Evidence ledger must be sorted by record id so release hashes stay stable",
+);
+
 if (errors.length > 0) {
   console.error(`[validate:data] ${errors.length} validation error(s):`);
   for (const error of errors) console.error(`- ${error}`);
@@ -700,5 +736,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources, ${SNAP_TARGETS.length} snap targets`,
+  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources, ${SNAP_TARGETS.length} snap targets, ${ledgerResult.recordCount} evidence records`,
 );

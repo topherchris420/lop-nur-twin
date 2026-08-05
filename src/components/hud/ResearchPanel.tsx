@@ -1,4 +1,5 @@
-import { BookOpen, ExternalLink, X } from "lucide-react";
+import { BookOpen, Download, ExternalLink, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,20 @@ import {
   getSource,
   type PublicSource,
 } from "@/lib/siteData";
+import {
+  CONFIDENCE_SCALE_NOTE,
+  EVIDENCE_LEDGER,
+  GEOGRAPHIC_CRS,
+  KNOWN_LIMITATIONS,
+  PRIMARY_CRS,
+} from "@/lib/evidence";
+import {
+  MODEL_MANIFEST_PATH,
+  shortHash,
+  useModelManifest,
+} from "@/lib/modelManifest";
+import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
+import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { useTwinStore } from "@/lib/store";
 
 const ROLE_LABELS: Record<PublicSource["role"], string> = {
@@ -50,6 +65,9 @@ export function ResearchPanel() {
   const environmentMonth = useTwinStore((s) => s.environmentMonth);
   const setEnvironmentMonth = useTwinStore((s) => s.setEnvironmentMonth);
   const climate = getClimateMonth(environmentMonth);
+  // Only fetched once the panel is actually opened; the twin still makes no
+  // network request in its default state.
+  const manifest = useModelManifest(showResearch);
 
   if (!showResearch) return null;
 
@@ -115,6 +133,38 @@ export function ResearchPanel() {
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
             {SITE_PROFILE.terrainDatum.product}: {SITE_PROFILE.terrainDatum.note}
           </p>
+          <p className="text-muted-foreground mt-1 font-mono text-[10px]">
+            Projected frame {PRIMARY_CRS} · geographic reference {GEOGRAPHIC_CRS}
+          </p>
+        </section>
+
+        <Separator className="my-4" />
+
+        <section aria-labelledby="evidence-legend-heading">
+          <h2
+            id="evidence-legend-heading"
+            className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Evidence Status Legend
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            Status is carried by a symbol and a word as well as a colour. Source
+            observation and simulation are never merged: anything the model adds is
+            marked interpreted or illustrative.
+          </p>
+          <div className="mt-2">
+            <EvidenceLegendList />
+          </div>
+          <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
+            {CONFIDENCE_SCALE_NOTE}
+          </p>
+          <p className="text-muted-foreground mt-1 font-mono text-[10px]">
+            {EVIDENCE_LEDGER.length} evidence records across {PUBLIC_SOURCES.length}{" "}
+            public sources
+          </p>
+          <Button asChild variant="outline" size="sm" className="mt-2 w-full">
+            <Link to="/analysis">Open the accessible analysis table</Link>
+          </Button>
         </section>
 
         <Separator className="my-4" />
@@ -191,16 +241,17 @@ export function ResearchPanel() {
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
                 {place.sourceIds.map((sourceId) => {
                   const source = getSource(sourceId);
-                  return source ? (
+                  const href = safeExternalHref(source?.url);
+                  return source && href ? (
                     <a
                       key={source.id}
-                      href={source.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                      href={href}
+                      {...EXTERNAL_LINK_PROPS}
+                      className="text-primary inline-flex items-center gap-1 text-[10px] hover:underline"
                     >
                       {source.publisher}
-                      <ExternalLink className="size-3" />
+                      <ExternalLink className="size-3" aria-hidden="true" />
+                      <span className="sr-only">(opens in a new tab)</span>
                     </a>
                   ) : null;
                 })}
@@ -223,33 +274,34 @@ export function ResearchPanel() {
               <li key={source.id} className="border-border border-l-2 pl-3">
                 <div className="flex items-start justify-between gap-2">
                   <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-start gap-1 text-xs font-medium leading-snug hover:text-primary hover:underline"
+                    href={safeExternalHref(source.url) ?? "#"}
+                    {...EXTERNAL_LINK_PROPS}
+                    className="hover:text-primary inline-flex items-start gap-1 text-xs leading-snug font-medium hover:underline"
                   >
                     {source.title}
-                    <ExternalLink className="mt-0.5 size-3 shrink-0" />
+                    <ExternalLink className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                    <span className="sr-only">(opens in a new tab)</span>
                   </a>
                   <Badge variant="outline" className="shrink-0">
                     {ROLE_LABELS[source.role]}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground mt-1 text-[10px]">
-                  {source.publisher} / {source.publishedOn ?? "undated source"}
+                <p className="text-muted-foreground mt-1 font-mono text-[10px]">
+                  {source.publisher} · published {source.publishedOn ?? "unknown"} ·
+                  accessed {source.accessedOn}
                 </p>
                 <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
                   {source.attribution}
                 </p>
                 {"dataUrl" in source && source.dataUrl ? (
                   <a
-                    href={source.dataUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                    href={safeExternalHref(source.dataUrl) ?? "#"}
+                    {...EXTERNAL_LINK_PROPS}
+                    className="text-primary mt-1 inline-flex items-center gap-1 text-[10px] hover:underline"
                   >
                     Open data query
-                    <ExternalLink className="size-3" />
+                    <ExternalLink className="size-3" aria-hidden="true" />
+                    <span className="sr-only">(opens in a new tab)</span>
                   </a>
                 ) : null}
               </li>
@@ -259,20 +311,72 @@ export function ResearchPanel() {
 
         <Separator className="my-4" />
 
+        <section aria-labelledby="manifest-heading">
+          <h2
+            id="manifest-heading"
+            className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Model Manifest
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            Written before each build from the committed model data. The hashes identify
+            the exact geometry and evidence ledger this session is rendering.
+          </p>
+          {manifest.status === "ready" ? (
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 font-mono text-[10px]">
+              <dt className="text-muted-foreground">Version</dt>
+              <dd className="text-right">{manifest.manifest.modelVersion}</dd>
+              <dt className="text-muted-foreground">Generated</dt>
+              <dd className="text-right">{manifest.manifest.generatedAt}</dd>
+              <dt className="text-muted-foreground">Validation</dt>
+              <dd className="text-right">{manifest.manifest.validationStatus}</dd>
+              <dt className="text-muted-foreground">Geometry</dt>
+              <dd className="truncate text-right" title={manifest.manifest.geometryHash}>
+                {shortHash(manifest.manifest.geometryHash)}
+              </dd>
+              <dt className="text-muted-foreground">Evidence</dt>
+              <dd className="truncate text-right" title={manifest.manifest.evidenceLedgerHash}>
+                {shortHash(manifest.manifest.evidenceLedgerHash)}
+              </dd>
+            </dl>
+          ) : (
+            <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
+              {manifest.status === "loading"
+                ? "Reading the manifest…"
+                : "Manifest not generated for this build. Run `bun run manifest` (or `npm run manifest`)."}
+            </p>
+          )}
+          <Button asChild variant="outline" size="sm" className="mt-2 w-full">
+            <a href={MODEL_MANIFEST_PATH} download>
+              <Download />
+              Download model-manifest.json
+            </a>
+          </Button>
+        </section>
+
+        <Separator className="my-4" />
+
         <section aria-labelledby="limits-heading" className="pb-2">
           <h2
             id="limits-heading"
             className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
           >
-            Interpretation Limits
+            Known Limitations
           </h2>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
-            This deterministic scene is an interpretive model built from public sources.
-            Footprints, heights, functions, parked-aircraft geometry, and terrain detail may
-            be generalized. Animated aircraft, vehicle, radar, and windsock movement are
-            illustrative scenarios, not observed operating patterns. The app does not
-            reproduce restricted imagery or establish claims beyond the linked evidence.
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            The same list the release manifest publishes, so a downstream consumer of the
+            data receives it with the data.
           </p>
+          <ul className="mt-2 space-y-1.5">
+            {KNOWN_LIMITATIONS.map((limitation) => (
+              <li
+                key={limitation}
+                className="border-border text-muted-foreground border-l-2 pl-2 text-[11px] leading-relaxed"
+              >
+                {limitation}
+              </li>
+            ))}
+          </ul>
         </section>
       </CardContent>
     </Card>

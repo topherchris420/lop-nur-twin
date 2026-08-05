@@ -1,6 +1,16 @@
-# Lop Nur Base — Digital Twin
+# Lop Nur Geospatial Simulation Testbed
 
-> An immersive 3D experience of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame reconstructed from public Earth-observation data and cited open reporting, plus **Blacksite**, a first-person engagement simulator that plays on the same measured ground. The geometry is measurable; structure functions and simulated activity remain interpretations.
+> An unclassified, public-source analytical reconstruction of a remote desert
+> airfield near Lop Nur (~40.77° N, 89.28° E): a 6.8 km local frame in
+> EPSG:32645 built from public Earth-observation data and cited open reporting,
+> with every claim carrying an evidence classification, a confidence rank and a
+> citation — plus **Blacksite**, a first-person simulator that plays on the same
+> measured ground. The geometry is measurable; structure functions and simulated
+> activity remain interpretations.
+>
+> **Not operational data. Not government-certified. Not FedRAMP authorized, not
+> CMMC certified, and not approved for classified or Controlled Unclassified
+> Information.** See [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
 
 **What's inside the wire:** A triangular airfield in empty desert. A single ~5 km (16,400+ ft) paved runway (05/23, modeled on a ~046°/226° grid bearing) forms one leg; two long graded-earth strips meet at a north-west apex. A spur taxiway reaches a compound of imagery-derived footprints. Names such as "assembly hangar," "operations block," and "service court" are functional interpretations, not verified interior uses. The compound reflects the 2025 build-out described in open reporting — three western fighter shelters, a north-east apron hangar, an expanded fuel-storage area and new utility construction — with plausible base-support systems (power, water, comms, sensors, security) added as clearly-labelled illustrative context. The two parked J-36 and J-XDS models correspond to publicly reported 2025 sightings; the animated flying-wing demonstrator and all simulated operations are illustrative.
 
@@ -8,11 +18,52 @@
 
 ![Structure dossier — click any building for details](docs/screenshot-dossier.png)
 
-**Two ways in.** `/` is the analytical twin above: orbit it, walk it, click any
-structure for its sourced dossier. `/play` is **Blacksite**, a first-person
-engagement simulator running on the same reconstruction — the same terrain,
-the same buildings, the same measured layout, with collision baked out of the
-rendered scene graph so the map and the twin can never drift apart.
+**Three ways in.**
+
+| Route | What it is |
+| :-- | :-- |
+| **`/`** | The analytical twin: orbit it, walk it, click any structure for its sourced dossier, measure distances and grid bearings, read the evidence legend and the release manifest. |
+| **`/analysis`** | The same model without the 3D scene — a searchable, screen-reader-friendly table of every structure with its evidence classification, confidence, modeled coordinates, dimensions, sources, uncertainty and analyst notes. Every row links back into the 3D dossier. |
+| **`/play`** | **Blacksite**, a first-person engagement simulator running on the same reconstruction — the same terrain, the same buildings, the same measured layout, with collision baked out of the rendered scene graph so the map and the twin can never drift apart. Labelled *illustrative simulation — not operational data* throughout. |
+
+### Evidence, not atmosphere
+
+Every analytical claim — a structure footprint, a runway measurement, an
+aircraft identification, an environmental input, a piece of scenery — is an
+`EvidenceRecord` in one derived ledger (`src/lib/evidence.ts`): classification,
+0–1 confidence, source title, publisher, publication and access dates, CRS, and
+a stated measurement uncertainty where the project documents one. **129 records
+across 11 public sources.**
+
+The four classifications are visible everywhere, always as a symbol *and* a word:
+
+| | Status | Means |
+| :-- | :-- | :-- |
+| ◆ | **Observed** | Visible in the cited public imagery. Presence and extent — never function or interior use. |
+| ■ | **Reported** | A cited publication states it exists. Placement and dimensions here are still modeled. |
+| ▲ | **Interpreted** | This project assigned an identity, dimension or function no source states. |
+| ○ | **Illustrative** | Modeled scenery or motion, not resolved in any source. |
+
+`bun run validate:data` **fails the build** if an illustrative feature is
+labelled observed, if an interpreted feature is described as verified, if a
+confidence falls outside `[0, 1]`, if a record cites an unknown source or
+subject, or if a measurement uses an unsupported coordinate reference system.
+`bun run test:evidence` then feeds twenty deliberately broken records through
+the validator and asserts every rule still fires — because a validator that
+never fires is indistinguishable from one that has been quietly disabled.
+
+Full method: [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md).
+
+### A release you can identify
+
+`bun run manifest` writes `public/model-manifest.json` before every build:
+model version, CRS, record and source counts, SHA-256 hashes of the
+canonicalised geometry and evidence ledger, validation status, an explicit
+`assurance` block of what this system is *not* certified for, and the
+known-limitations list. Hash inputs are key-sorted, so repeated builds agree;
+set `SOURCE_DATE_EPOCH` and the file is byte-reproducible — verified identical
+under both Bun 1.3 and Node 22. The manifest is downloadable from the research
+panel (`R`) and from `/analysis`.
 
 ## Blacksite
 
@@ -251,13 +302,57 @@ automatically — so contribution is low-friction by construction.
 
 ```sh
 bun install
-bun run dev        # dev server
-bun run validate:data # source, geometry, bounds, geodesy, and flight-path checks
-bun run build      # validator + production build + strict typecheck
-bun run preview    # serve the production build
+bun run dev            # dev server (regenerates the manifest first)
+bun run validate:data  # sources, geometry, bounds, geodesy, flight path, evidence ledger
+bun run test:evidence  # proves the evidence validator still rejects bad records
+bun run manifest       # writes public/model-manifest.json
+bun run build          # validate → manifest → production build → strict typecheck
+bun run preview        # serve the production build with the deployed security headers
+bun run a11y           # axe-core + CSP checks against the preview build
+bun run routes         # direct loads, refreshes, hostile parameters, keyboard order, mobile
 ```
 
-`npm install && npm run dev` works too if Bun isn't available.
+`npm install && npm run dev` works too. The TypeScript build scripts run under
+either runtime — Bun natively, or **Node ≥ 22.18** via `scripts/run-ts.mjs`,
+which uses Node's built-in type stripping plus a small resolver — and both
+produce byte-identical manifests. On a Bun-only machine, call the scripts
+directly: `bun scripts/validate-data.ts`, `bun scripts/generate-manifest.ts`.
+
+## Security, accessibility and evaluation
+
+| Document | What it covers |
+| :-- | :-- |
+| [`SECURITY.md`](SECURITY.md) | Supported versions, private vulnerability reporting, dependency and secret policy, and the security limits of a browser-hosted public demo |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, trust boundaries, actors, eleven threats with mitigations and residual risk — starting with the biggest one: simulated content being mistaken for verified intelligence |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md) | Frontend, scene, routes, stores, shared layout, simulation layer, validation pipeline, ledger, manifest, build, deployment and browser trust boundaries |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md) | How sources are registered, claims classified, confidence recorded, uncertainty represented, hashes generated, and a release reproduced |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | What `/analysis` implements, what the automated axe run covers and found, and the manual checks that remain untested |
+| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it explicitly is not, evaluation areas, and a 30-minute evaluation path |
+| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md) | PostGIS, STAC, object storage, OpenAPI, OIDC/CAC-PIV, RBAC and audit logging — clearly split into implemented, scaffolded and recommended-only |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Vercel build settings and redeploy steps, the container image, and how to verify a deployment matches a commit |
+
+Every pull request runs data validation, the evidence negative tests, a
+production build, a strict typecheck, the simulation and gait and audio
+harnesses, the accessibility and CSP checks, CodeQL, Gitleaks, Trivy,
+`npm audit`, GitHub dependency review, and CycloneDX + SPDX SBOM generation —
+with `permissions: contents: read` and no repository secrets, so a fork's pull
+request gets the same treatment and has nothing to steal.
+
+## Deploy
+
+The public demo runs on Vercel (`vercel.json`: SPA rewrites, security headers,
+cache policy). For an evaluation deployment on your own infrastructure:
+
+```sh
+docker build -t lop-nur-twin .
+docker run --rm -p 8080:8080 lop-nur-twin
+curl -f http://localhost:8080/healthz
+```
+
+Multi-stage build, `nginx-unprivileged` runtime as uid 101, no Node or source
+in the final image, SPA fallback so `/analysis` and `/play` survive a refresh,
+a documented health path, and the same security headers as the hosted demo.
+Details and the reproducible-build flag in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ### Visual verification
 
@@ -454,6 +549,12 @@ motion, makes camera jumps immediate, and disables adaptive promotion.
 src/
   lib/
     layout.ts        ← single source of truth: runways, roads, structures, waypoints
+    siteData.ts      ← public source register, CRS, datum, climatology
+    evidence.ts      ← evidence schema + the derived ledger (129 records)
+    evidenceValidation.ts ← the rules that fail a build on a false claim
+    params.ts        ← validated, clamped URL query parameters
+    safeUrl.ts       ← HTTPS-only external hrefs + noopener/noreferrer
+    modelManifest.ts ← reads public/model-manifest.json for the UI panels
     terrain.ts       ← analytic heightfield (mesh, walking collision, placement)
     textures.ts      ← all CanvasTexture generators (asphalt, dirt, concrete…)
     noise.ts         ← seeded, deterministic noise
@@ -464,7 +565,8 @@ src/
     greeble.ts       ← hard-surface material patching + procedural greeble geometry
   components/
     scene/           ← R3F: Terrain, Pavements, Structures, LivingScene, Atmosphere, rigs, effects
-    hud/             ← DOM overlays: HUD, minimap, dossier, site index, help, intro, cinematic caption
+    hud/             ← DOM overlays: HUD, minimap, dossier, site index, evidence legend, research, help
+    evidence/        ← shared badge, confidence, legend and provenance footer
     ui/              ← shadcn-style primitives (button, card, badge, separator)
   game/              ← Blacksite: the combat layer over the same reconstruction
     core/            ← shared vocabulary, the per-frame mutable singleton, damage
@@ -473,14 +575,22 @@ src/
     characters/      ← procedural rig, IK, gait, hitboxes
     ai/              ← bot state machine, perception, shared contacts, spawn scoring
     player/ fx/ render/ hud/ modes/ audio/
-  routes/            ← TanStack Router file-based routes
+  routes/            ← TanStack Router: / (twin), /play (Blacksite), /analysis (table)
+scripts/
+  run-ts.mjs         ← runs the TS build scripts under Bun or Node ≥ 22.18
+  validate-data.ts   ← geometry, geodesy, sources, timeline, quality, evidence
+  generate-manifest.ts ← public/model-manifest.json, canonical SHA-256 hashes
+  test-evidence-validation.ts ← twenty malformed records; asserts each rule fires
 tools/
   probe.mjs          ← headless-browser capture + exposure report + plan view
   frames.mjs         ← the canonical six-view frame set, with A/B statistics
   smoke.mjs          ← Blacksite plumbing: colliders, spawns, hit resolution
   engagement.mjs     ← a minute of match time, stepped; measures whether it plays
   gait.mjs           ← one animator, several stride cycles, five assertions
+  a11y.mjs           ← axe-core + CSP violations across all three routes
+  routes.mjs         ← deep links, refreshes, hostile parameters, keyboard, mobile
   shots.mjs          ← regenerates the screenshots in this README
+deploy/nginx.conf    ← container runtime: SPA fallback, /healthz, security headers
 ```
 
 The 3D scene and the 2D minimap are both projections of `lib/layout.ts`; add a

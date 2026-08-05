@@ -10,6 +10,16 @@ dist-ssr
 .env*
 .gstack/
 
+# Generated per build by scripts/generate-manifest.ts. It is a release artifact
+# describing the build that produced it, not source — `bun run dev`, `bun run
+# build` and CI all regenerate it, and committing it would only churn its
+# generatedAt timestamp.
+public/model-manifest.json
+
+# SBOMs and scanner reports produced by CI or a local security run.
+sbom*.json
+trivy-results.*
+
 # tools/probe.mjs output
 render_output.png
 render_output-*.png
