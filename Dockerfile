@@ -40,7 +40,7 @@ RUN npm run build
 
 # -------------------------------------------------------------- runtime stage
 # nginx-unprivileged runs as uid 101 and listens on 8080 without root.
-FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 
 # Its own config lives here; replace the default site with ours.
 COPY --chown=101:101 deploy/nginx.conf /etc/nginx/conf.d/default.conf
