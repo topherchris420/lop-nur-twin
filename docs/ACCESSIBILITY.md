@@ -56,7 +56,7 @@ be operable:
 ## Automated testing
 
 `tools/a11y.mjs` runs axe-core 4.12 against the **production build** served by
-`vite preview` with the deployed security headers, across all three routes. It
+`vite preview` with the deployed security headers, across all four routes. It
 also records Content-Security-Policy violations and page errors in the same
 pass.
 
@@ -101,7 +101,7 @@ person who uses the technology daily:
    Safari on `/analysis`: does the table read row by row in a way that makes
    sense? Are the evidence badges announced once, not twice?
 2. **Keyboard-only task completion** — find a structure, filter by evidence
-   status, open its 3D dossier, return. Without a mouse. On all three routes.
+   status, open its 3D dossier, return. Without a mouse. On all four routes.
 3. **Zoom to 200% and 400%**, and 320 px viewport width, without loss of
    content or horizontal page scroll.
 4. **Colour-contrast review of the rendered canvas.** The 3D scene's own

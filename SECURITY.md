@@ -85,7 +85,7 @@ any kind.
   tree.
 - Dependabot proposes grouped updates weekly and security updates as soon as an
   advisory is published (`.github/dependabot.yml`).
-- Every pull request runs `npm audit --omit=dev --audit-level=high`, a Trivy
+- Every pull request runs `bun audit --prod --audit-level=high`, a Trivy
   vulnerability and secret scan, GitHub dependency review, and CodeQL static
   analysis. A high or critical advisory with a fix available blocks the merge.
   Dependency review depends on the repository's dependency graph remaining

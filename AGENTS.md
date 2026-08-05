@@ -40,9 +40,22 @@ Guidance for coding agents (and humans) working on this repo.
   and rejects; a raw `new URLSearchParams(...).get()` in a component is a
   regression. External links go through `safeExternalHref()` and carry
   `EXTERNAL_LINK_PROPS`.
-- **`/analysis` is not optional.** It is the model's accessible front door. A
-  new analytical field belongs in the table as well as the dossier, and
-  `bun run a11y` gates that route on serious/critical axe violations.
+- **`/analysis` and `/compare` are not optional.** They are the model's
+  accessible front doors — the routes that work when WebGL does not. A new
+  analytical field belongs in the table as well as the dossier, and every new
+  analytical _capability_ needs a semantic representation there, not only a
+  control in the HUD. `bun run a11y` gates both routes on serious/critical axe
+  violations.
+- **Evidence mode and timeline compose in one predicate.** `src/lib/
+sceneVisibility.ts` owns it; a component asking "should I draw this?" calls
+  `useSubjectFilter()` rather than comparing classifications itself. The
+  timeline filter was copy-pasted into four components once already, and a
+  second filter beside it would have been four chances to disagree about what
+  exists.
+- **Unknown stays unknown.** An uncertainty figure the project does not
+  document is absent, and prints as "not stated" — never as zero, a dash or an
+  omitted row. The three dates (site event, evidence publication, model entry)
+  are separate fields and separate columns, always.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,
@@ -158,8 +171,10 @@ and the twin can never drift apart.
   collide-and-slide, and an analytic heightfield raycast that calls the same
   `terrainHeight` the terrain mesh is displaced by.
 - `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
-- `_wip/` is excluded from `tsconfig`: sound but unfinished subsystems, kept
-  rather than deleted. Finish one and move it back.
+- Unfinished match-mode subsystems live in `experiments/game-modes/`, outside
+  `src/` and outside the TypeScript project entirely. `tsconfig.json` has no
+  exclusions: every file under `src/` is strict-checked. See
+  `experiments/README.md` for what is parked there and how to finish one.
 
 Two subsystems have contracts worth knowing before you touch them:
 
@@ -245,8 +260,8 @@ The analytical side has its own two, and both need the **preview** server
 test the artifact that actually ships — including its security headers:
 
 ```sh
-bun run a11y                  # axe-core on all three routes + CSP violations
-bun run routes                # 44 checks: deep links, refreshes, hostile
+bun run a11y                  # axe-core on all four routes + CSP violations
+bun run routes                # 52 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```
 

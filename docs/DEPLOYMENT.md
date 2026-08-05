@@ -77,7 +77,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-deployment>/play
 curl -s https://<your-deployment>/model-manifest.json | head -20
 ```
 
-All three routes should return 200 on a direct request and on a refresh.
+All four routes should return 200 on a direct request and on a refresh.
 
 ## Container image
 

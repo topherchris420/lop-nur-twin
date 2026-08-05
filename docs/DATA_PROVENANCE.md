@@ -53,8 +53,11 @@ The build fails when a classification is misapplied:
 - wording on an interpreted or illustrative record that asserts verification
   ("is verified", "confirmed", "authoritative") without a negation.
 
-`scripts/test-evidence-validation.ts` feeds twenty deliberately broken records
-through the validator and asserts each rule fires.
+`scripts/test-evidence-validation.ts` feeds a deliberately broken record through
+the validator for each of **35 rules** and asserts the specific error fires. The
+uncertainty rules — a number with no method, a reversed date range, an
+`observed` claim that bounds no position — are documented in
+[`UNCERTAINTY_MODEL.md`](UNCERTAINTY_MODEL.md).
 
 ## 3. Recording confidence
 

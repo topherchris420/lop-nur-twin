@@ -44,7 +44,7 @@ flowchart TB
 
   subgraph ci["CI — semi-trusted, no secrets"]
     build["npm ci · build · typecheck"]
-    scan["CodeQL · Gitleaks · Trivy<br/>npm audit · SBOM"]
+    scan["CodeQL · Gitleaks · Trivy<br/>bun audit · SBOM"]
   end
 
   subgraph host["Static host — Vercel or a container"]
@@ -187,7 +187,7 @@ app being framed by another site.
 
 **Mitigations.** Frozen-lockfile installs in CI and in the container build;
 `--ignore-scripts` in the Docker builder so no dependency's postinstall runs
-during an image build; Dependabot; `npm audit`; Trivy; CodeQL; dependency
+during an image build; Dependabot; `bun audit --prod`; Trivy; CodeQL; dependency
 review on pull requests; SBOM in CycloneDX and SPDX per run; no CDN or runtime
 third-party script; a deliberately small runtime dependency set.
 
@@ -236,14 +236,27 @@ unusable — which is one of the reasons `/analysis` exists.
 
 ### T9 — Browser storage
 
-**Mitigations.** The shipped application writes nothing to `localStorage`,
-`sessionStorage`, IndexedDB or cookies. The only code that touches
-`localStorage` is in `src/game/_wip/`, which is excluded from `tsconfig.json`
-and never bundled. No tracking, no analytics, no fingerprinting.
+**Mitigations.** The application writes to `localStorage` in exactly one place:
+the bookmark store (`src/lib/bookmarks.ts`), under a single versioned key. It
+holds saved view settings and whatever short note the user typed. Nothing else
+touches `localStorage`, `sessionStorage`, IndexedDB or cookies, and there is no
+tracking, no analytics and no fingerprinting.
 
-**Residual risk.** None while that holds. Any future persistence should be
-reviewed against this line, because a public kiosk deployment would then leak
-one visitor's state to the next.
+Two boundaries keep that contained. A bookmark never leaves the browser except
+as a file the user explicitly exports; there is no account and no sync. And a
+_shareable link_ carries view settings only — the analyst note, the tags and the
+measurement path are excluded by construction, because a link gets pasted into
+chats, logged by proxies and kept in histories.
+
+Reads are defensive: an imported or stored bookmark is untrusted input, bounded
+and rejected field by field, and storage that throws (Safari in private mode)
+falls back to memory rather than taking the page down.
+
+**Residual risk.** A public kiosk deployment would leak one visitor's saved
+bookmarks, including their notes, to the next visitor. Nothing in the
+application clears them between sessions. A kiosk deployment should clear
+site data between users, or serve the site with storage disabled — the
+application degrades to an in-memory bookmark store and keeps working.
 
 ### T10 — Accidental publication of sensitive information
 
