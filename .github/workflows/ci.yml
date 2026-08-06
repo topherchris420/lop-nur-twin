@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -150,7 +150,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -225,7 +225,7 @@ jobs:
     steps:
       # Gitleaks scans history, not just the working tree.
       - name: Check out the full history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -250,7 +250,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -299,7 +299,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # This is the one job that installs with npm rather than Bun, and it is
       # not an oversight. `@cyclonedx/cyclonedx-npm` builds its bill of
@@ -358,7 +358,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Requires the repository's dependency graph (Settings → Code security and
       # analysis). If this step starts reporting "not supported on this
