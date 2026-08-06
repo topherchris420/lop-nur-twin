@@ -365,7 +365,7 @@ jobs:
       # repository", that setting has been turned off — fix the setting rather
       # than muting the check.
       - name: Review dependency changes in this pull request
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           comment-summary-in-pr: never
