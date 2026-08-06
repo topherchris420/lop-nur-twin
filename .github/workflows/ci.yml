@@ -136,7 +136,7 @@ jobs:
       # contains; publishing it as an artifact makes a CI run citable, and
       # `/compare` can diff a downloaded one against any other build.
       - name: Upload the release manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: model-manifest
           path: public/model-manifest.json
@@ -198,7 +198,7 @@ jobs:
 
       - name: Upload server logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: server-logs
           path: |
@@ -338,7 +338,7 @@ jobs:
           upload-artifact: false
 
       - name: Upload SBOMs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: |
