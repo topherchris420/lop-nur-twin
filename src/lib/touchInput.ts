@@ -36,6 +36,8 @@ export function isCoarsePointer(): boolean {
   if (typeof window === "undefined") return false;
   return (
     window.matchMedia?.("(pointer: coarse)").matches ||
-    (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0 && !window.matchMedia?.("(pointer: fine)").matches)
+    (typeof navigator !== "undefined" &&
+      navigator.maxTouchPoints > 0 &&
+      !window.matchMedia?.("(pointer: fine)").matches)
   );
 }

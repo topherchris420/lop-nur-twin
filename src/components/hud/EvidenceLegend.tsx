@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Table2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
+import { EvidenceModeControl } from "@/components/evidence/EvidenceModeControl";
 import { PRIMARY_CRS, evidenceClassificationCounts } from "@/lib/evidence";
 import { SITE_PROFILE } from "@/lib/siteData";
 import { isCoarsePointer } from "@/lib/touchInput";
@@ -24,8 +25,13 @@ import { cn } from "@/lib/utils";
 export function EvidenceLegend() {
   const [open, setOpen] = useState(() => !isCoarsePointer());
   const toggleResearch = useTwinStore((state) => state.toggleResearch);
+  const evidenceMode = useTwinStore((state) => state.evidenceMode);
+  const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);
+  const showUncertainty = useTwinStore((state) => state.showUncertainty);
+  const toggleUncertainty = useTwinStore((state) => state.toggleUncertainty);
   const counts = useMemo(evidenceClassificationCounts, []);
-  const total = counts.observed + counts.reported + counts.interpreted + counts.illustrative;
+  const total =
+    counts.observed + counts.reported + counts.interpreted + counts.illustrative;
 
   return (
     <section
@@ -64,6 +70,29 @@ export function EvidenceLegend() {
       </div>
 
       <div id="evidence-legend-body" hidden={!open} className="mt-3">
+        <EvidenceModeControl
+          mode={evidenceMode}
+          onChange={setEvidenceMode}
+          density="compact"
+          idPrefix="hud-evidence-mode"
+          className="border-border mb-3 border-b pb-3"
+        />
+        <label className="mb-3 flex cursor-pointer items-start gap-2 text-[10px] leading-relaxed">
+          <input
+            type="checkbox"
+            checked={showUncertainty}
+            onChange={toggleUncertainty}
+            className="accent-primary focus-visible:ring-ring mt-0.5 size-3.5 focus-visible:ring-2 focus-visible:outline-none"
+          />
+          <span>
+            Show spatial uncertainty
+            <span className="text-muted-foreground block">
+              Rings where the model documents a distance, broken by how well the subject
+              is identified. Nothing is drawn where no figure is stated — most of the
+              model is in that position. Needs quality tier 2 or above.
+            </span>
+          </span>
+        </label>
         <EvidenceLegendList compact />
         <p className="text-muted-foreground mt-3 text-[10px] leading-relaxed">
           Public-source analytical reconstruction. Modeled geometry in {PRIMARY_CRS}

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { BookOpen, Download, ExternalLink, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
@@ -26,11 +27,10 @@ import {
   KNOWN_LIMITATIONS,
   PRIMARY_CRS,
 } from "@/lib/evidence";
-import {
-  MODEL_MANIFEST_PATH,
-  shortHash,
-  useModelManifest,
-} from "@/lib/modelManifest";
+import { MODEL_MANIFEST_PATH, shortHash, useModelManifest } from "@/lib/modelManifest";
+import { BookmarkPanel } from "@/components/evidence/BookmarkPanel";
+import { flyToPoint } from "@/lib/flyTo";
+import type { Bookmark } from "@/lib/bookmarks";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { useTwinStore } from "@/lib/store";
@@ -69,12 +69,61 @@ export function ResearchPanel() {
   // network request in its default state.
   const manifest = useModelManifest(showResearch);
 
+  /**
+   * The current analytical position, read straight from the store rather than
+   * subscribed to: this runs on a click, and subscribing would re-render the
+   * panel on every camera-adjacent state change for no benefit.
+   */
+  const captureView = useCallback(() => {
+    const state = useTwinStore.getState();
+    return {
+      cameraMode: state.cameraMode,
+      timelineYear: state.activeTimelineYear,
+      snapshotDate: state.snapshotDate,
+      comparisonDate: state.comparisonDate,
+      evidenceMode: state.evidenceMode,
+      selectedId: state.selectedId,
+      measurePoints: state.measurePoints,
+      showUncertainty: state.showUncertainty,
+      environmentMonth: state.environmentMonth,
+      night: state.night,
+      qualityTier: state.qualityTier,
+    };
+  }, []);
+
+  /**
+   * Restores a saved view. The camera is moved through the existing `flyToPoint`
+   * request rather than by writing to the camera directly, so a bookmark uses
+   * the same path a minimap click does and the active rig stays in charge.
+   */
+  const applyBookmark = useCallback((bookmark: Bookmark) => {
+    const state = useTwinStore.getState();
+    const { view } = bookmark;
+    state.setEvidenceMode(view.evidenceMode);
+    state.setActiveTimelineYear(view.timelineYear);
+    state.setSnapshotDate(view.snapshotDate);
+    state.setComparisonDate(view.comparisonDate);
+    state.setEnvironmentMonth(view.environmentMonth);
+    if (state.showUncertainty !== view.showUncertainty) state.toggleUncertainty();
+    if (state.night !== view.night) state.toggleNight();
+    state.clearMeasure();
+    for (const point of view.measurePoints) state.addMeasurePoint(point);
+    // Selection last: setting the evidence mode clears a selection the new mode
+    // withholds, so restoring it before the mode would drop it again.
+    state.select(view.selectedId);
+    const target = view.cameraTarget;
+    if (target !== undefined) flyToPoint(target[0], target[2]);
+  }, []);
+
   if (!showResearch) return null;
 
   const reference = SITE_PROFILE.referenceCoordinate;
 
   return (
-    <Card id="research-panel" className="research-panel hud-side-panel absolute top-16 right-4 z-10 flex max-h-[calc(100dvh-5rem)] flex-col select-text">
+    <Card
+      id="research-panel"
+      className="research-panel hud-side-panel absolute top-16 right-4 z-10 flex max-h-[calc(100dvh-5rem)] flex-col select-text"
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -115,7 +164,10 @@ export function ResearchPanel() {
               value={`${SITE_PROFILE.terrainDatum.elevationM.toFixed(0)} m AMSL`}
             />
             <Metric label="Local CRS" value={SITE_PROFILE.localCrs.code} />
-            <Metric label="Vertical ref" value={SITE_PROFILE.terrainDatum.verticalReference} />
+            <Metric
+              label="Vertical ref"
+              value={SITE_PROFILE.terrainDatum.verticalReference}
+            />
             <Metric
               label="Scene extent"
               value={`${(SITE_PROFILE.worldExtentM / 1000).toFixed(1)} km square`}
@@ -126,9 +178,10 @@ export function ResearchPanel() {
             />
           </dl>
           <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
-            {reference.precision}. Runway {SITE_PROFILE.runway.designation} is aligned to a
-            modeled {SITE_PROFILE.runway.modeledGridBearingDeg} deg grid bearing; modeled
-            endpoint uncertainty is about {SITE_PROFILE.runway.endpointUncertaintyM} m.
+            {reference.precision}. Runway {SITE_PROFILE.runway.designation} is aligned to
+            a modeled {SITE_PROFILE.runway.modeledGridBearingDeg} deg grid bearing;
+            modeled endpoint uncertainty is about{" "}
+            {SITE_PROFILE.runway.endpointUncertaintyM} m.
           </p>
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
             {SITE_PROFILE.terrainDatum.product}: {SITE_PROFILE.terrainDatum.note}
@@ -149,8 +202,8 @@ export function ResearchPanel() {
           </h2>
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
             Status is carried by a symbol and a word as well as a colour. Source
-            observation and simulation are never merged: anything the model adds is
-            marked interpreted or illustrative.
+            observation and simulation are never merged: anything the model adds is marked
+            interpreted or illustrative.
           </p>
           <div className="mt-2">
             <EvidenceLegendList />
@@ -200,14 +253,23 @@ export function ResearchPanel() {
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
             <Metric label="Temperature" value={`${climate.temperatureC.toFixed(1)} C`} />
-            <Metric label="Humidity" value={`${climate.relativeHumidityPct.toFixed(1)}%`} />
+            <Metric
+              label="Humidity"
+              value={`${climate.relativeHumidityPct.toFixed(1)}%`}
+            />
             <Metric label="Wind" value={`${climate.windSpeedMps.toFixed(1)} m/s`} />
-            <Metric label="Wind from" value={`${climate.windDirectionDeg.toFixed(0)} deg`} />
+            <Metric
+              label="Wind from"
+              value={`${climate.windDirectionDeg.toFixed(0)} deg`}
+            />
             <Metric
               label="Precipitation"
               value={`${climate.precipitationMmDay.toFixed(2)} mm/day`}
             />
-            <Metric label="Solar" value={`${climate.solarKwhM2Day.toFixed(2)} kWh/m2/day`} />
+            <Metric
+              label="Solar"
+              value={`${climate.solarKwhM2Day.toFixed(2)} kWh/m2/day`}
+            />
           </dl>
           <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
             These are climatological means used to drive the simulator environment, not
@@ -233,7 +295,8 @@ export function ResearchPanel() {
                 </span>
               </div>
               <p className="text-muted-foreground mt-1 font-mono text-[10px]">
-                {coordinate(place.latitude, "N", "S")}, {coordinate(place.longitude, "E", "W")}
+                {coordinate(place.latitude, "N", "S")},{" "}
+                {coordinate(place.longitude, "E", "W")}
               </p>
               <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
                 {place.note}
@@ -335,7 +398,10 @@ export function ResearchPanel() {
                 {shortHash(manifest.manifest.geometryHash)}
               </dd>
               <dt className="text-muted-foreground">Evidence</dt>
-              <dd className="truncate text-right" title={manifest.manifest.evidenceLedgerHash}>
+              <dd
+                className="truncate text-right"
+                title={manifest.manifest.evidenceLedgerHash}
+              >
                 {shortHash(manifest.manifest.evidenceLedgerHash)}
               </dd>
             </dl>
@@ -352,6 +418,46 @@ export function ResearchPanel() {
               Download model-manifest.json
             </a>
           </Button>
+        </section>
+
+        <Separator className="my-4" />
+
+        <section aria-labelledby="bookmarks-heading">
+          <h2
+            id="bookmarks-heading"
+            className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Bookmarks
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            Saves the whole analytical position — camera, date, evidence mode, selection
+            and measurement path — with the hashes of the model it was taken against, so
+            reopening it on a changed build says so. Stored in this browser only. Full
+            management, including import and export, is on the analysis page.
+          </p>
+          <BookmarkPanel
+            captureView={captureView}
+            provenance={
+              manifest.status === "ready"
+                ? {
+                    geometryHash: manifest.manifest.geometryHash,
+                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+                    modelVersion: manifest.manifest.modelVersion,
+                  }
+                : {}
+            }
+            currentModel={
+              manifest.status === "ready"
+                ? {
+                    geometryHash: manifest.manifest.geometryHash,
+                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+                  }
+                : null
+            }
+            onOpen={applyBookmark}
+            density="compact"
+            className="mt-2"
+          />
         </section>
 
         <Separator className="my-4" />

@@ -100,9 +100,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   // AgX pass owns it and the renderer must stay linear (`Effects.tsx`);
   // below that the renderer applies AgX itself so every tier shares a look.
   useEffect(() => {
-    gl.toneMapping = quality.postprocessing
-      ? THREE.NoToneMapping
-      : THREE.AgXToneMapping;
+    gl.toneMapping = quality.postprocessing ? THREE.NoToneMapping : THREE.AgXToneMapping;
     gl.toneMappingExposure = 1.05;
   }, [gl, quality.postprocessing]);
 
@@ -156,9 +154,20 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     if (sun) {
       sun.position.copy(SHADOW_FOCUS).addScaledVector(sunDir, SUN_DISTANCE);
       const strength = THREE.MathUtils.clamp(Math.sin(elev), 0, 1);
-      const seasonalSolar = THREE.MathUtils.clamp((climate.solarKwhM2Day - 2) / 5.5, 0, 1);
-      sun.intensity = SUN_KEY * Math.pow(strength, 0.65) * THREE.MathUtils.lerp(0.82, 1.08, seasonalSolar);
-      sun.color.lerpColors(DAY.sunLow, DAY.sunWarm, THREE.MathUtils.clamp(strength * 2.2, 0, 1));
+      const seasonalSolar = THREE.MathUtils.clamp(
+        (climate.solarKwhM2Day - 2) / 5.5,
+        0,
+        1,
+      );
+      sun.intensity =
+        SUN_KEY *
+        Math.pow(strength, 0.65) *
+        THREE.MathUtils.lerp(0.82, 1.08, seasonalSolar);
+      sun.color.lerpColors(
+        DAY.sunLow,
+        DAY.sunWarm,
+        THREE.MathUtils.clamp(strength * 2.2, 0, 1),
+      );
       sunState.intensity = sun.intensity;
     }
     // Published for anything that has to aim at the same sun mid-transition —
@@ -177,7 +186,11 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     }
 
     fog.color.copy(scratchColor.lerpColors(NIGHT.fogColor, DAY.fogColor, next));
-    fog.density = THREE.MathUtils.lerp(0.00022, FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5), next);
+    fog.density = THREE.MathUtils.lerp(
+      0.00022,
+      FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
+      next,
+    );
 
     if (starsRef.current) starsRef.current.visible = next < 0.4;
   });
@@ -202,10 +215,28 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
         // caster. At the site-wide extent a texel is nearly a metre.
         shadow-normalBias={(shadowExtent / quality.shadowMapSize) * 1.2}
       />
-      <directionalLight ref={moonRef} position={[-900, 950, 500]} color="#9db4d8" intensity={0} />
-      <hemisphereLight ref={hemiRef} intensity={0.6} color="#cfe2f8" groundColor="#b39d78" />
+      <directionalLight
+        ref={moonRef}
+        position={[-900, 950, 500]}
+        color="#9db4d8"
+        intensity={0}
+      />
+      <hemisphereLight
+        ref={hemiRef}
+        intensity={0.6}
+        color="#cfe2f8"
+        groundColor="#b39d78"
+      />
       <group ref={starsRef} visible={false}>
-        <Stars radius={4000} depth={100} count={3500} factor={14} saturation={0} fade speed={reducedMotion ? 0 : 0.4} />
+        <Stars
+          radius={4000}
+          depth={100}
+          count={3500}
+          factor={14}
+          saturation={0}
+          fade
+          speed={reducedMotion ? 0 : 0.4}
+        />
       </group>
       <CloudShadows />
       <DustLayer />

@@ -93,7 +93,11 @@ const report = await page.evaluate(() => {
       grounded: game.player.grounded,
       weapon: game.player.weaponId,
     },
-    hud: { ammo: game.hud.ammo, reserve: game.hud.reserve, spreadDeg: round(game.hud.spreadDeg) },
+    hud: {
+      ammo: game.hud.ammo,
+      reserve: game.hud.reserve,
+      spreadDeg: round(game.hud.spreadDeg),
+    },
     stats: game.stats,
     scene: {
       children: state.scene.children.map((c) => `${c.type}:${c.name || "-"}`),

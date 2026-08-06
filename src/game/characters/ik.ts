@@ -34,7 +34,7 @@ function restAxis(index: number, out: THREE.Vector3): THREE.Vector3 {
   return out.set(
     REST_AXIS[index * 3]!,
     REST_AXIS[index * 3 + 1]!,
-    REST_AXIS[index * 3 + 2]!,
+    REST_AXIS[index * 3 + 2],
   );
 }
 

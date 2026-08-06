@@ -13,12 +13,30 @@ export interface TemporalDef {
 }
 
 export type SegmentKind = "runway" | "strip" | "taxiway" | "street" | "road";
+/*
+ * The declarations in this file that hold *data* rather than logic are written
+ * as tables — one record per line, columns lining up — and are marked
+ * `prettier-ignore` so the formatter leaves them that way. Exploding a
+ * 60-structure array to ten lines per entry makes a geometry change unreadable
+ * in review, which is the one thing the single-source-of-truth rule depends on.
+ * Everything else in the file is formatted normally.
+ */
+// prettier-ignore
 export interface SegmentDef extends TemporalDef { id: string; kind: SegmentKind; name: string; from: [number, number]; to: [number, number]; width: number }
+// prettier-ignore
 export interface ApronDef extends TemporalDef { id: string; name: string; center: [number, number]; size: [number, number]; rotation: number }
+// prettier-ignore
 export type StructureType = "tower" | "hangar-monolith" | "shelter-row" | "quonset" | "warehouse" | "hq" | "barracks" | "support" | "compound-walled" | "guardhouse" | "radome" | "fuel-tank" | "solar-array" | "water-tower" | "comms-shelter" | "transformer-yard" | "guard-tower" | "covered-walkway" | "sewage-treatment" | "aircraft-delta" | "aircraft-fighter" | "aircraft-j36" | "aircraft-jxds";
+// prettier-ignore
 export interface StructureDef extends TemporalDef { id: string; type: StructureType; name: string; position: [number, number]; rotation: number; size: [number, number, number]; modelBasis: string; description: string; evidence: Evidence }
-export interface FlattenPad { center: [number, number]; radius: number }
-export interface Waypoint { position: [number, number, number]; label: string }
+export interface FlattenPad {
+  center: [number, number];
+  radius: number;
+}
+export interface Waypoint {
+  position: [number, number, number];
+  label: string;
+}
 
 /**
  * Coordinates use metres in a local east/south frame registered to WGS 84 / UTM
@@ -28,15 +46,19 @@ export interface Waypoint { position: [number, number, number]; label: string }
  */
 export const COMPOUND_ROT = 0.7679;
 const COMPOUND_ORIGIN: [number, number] = [1018, 1410];
+// prettier-ignore
 const CU: [number, number] = [Math.cos(COMPOUND_ROT), -Math.sin(COMPOUND_ROT)];
+// prettier-ignore
 const CV: [number, number] = [Math.sin(COMPOUND_ROT), Math.cos(COMPOUND_ROT)];
+// prettier-ignore
 function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
 
 // Measured from a public Sentinel-2 L2A scene; endpoint uncertainty is about 40 m.
+// prettier-ignore
 export const RUNWAYS: SegmentDef[] = [
   { id: "rwy-05-23", kind: "runway", name: "Main concrete runway 05/23", from: [-1006, 2711], to: [2591, -762], width: 60 },
 ];
-RUNWAYS[0]!.observedDate = '2021-06-30';
+RUNWAYS[0]!.observedDate = "2021-06-30";
 export const RUNWAY_CENTER: [number, number] = [
   (RUNWAYS[0]!.from[0] + RUNWAYS[0]!.to[0]) / 2,
   (RUNWAYS[0]!.from[1] + RUNWAYS[0]!.to[1]) / 2,
@@ -45,16 +67,20 @@ export const GRID_EASTING_ORIGIN =
   SITE_PROFILE.localCrs.runwayCenterEastingM - RUNWAY_CENTER[0];
 export const GRID_NORTHING_ORIGIN =
   SITE_PROFILE.localCrs.runwayCenterNorthingM + RUNWAY_CENTER[1];
+// prettier-ignore
 export const STRIPS: SegmentDef[] = [
   { id: "tri-west", kind: "strip", name: "West graded strip", from: [-2616, -2798], to: [-995, 2750], width: 42 },
   { id: "tri-north", kind: "strip", name: "North graded strip", from: [-2675, -2743], to: [2628, -748], width: 42 },
 ];
+// prettier-ignore
 export const TAXIWAYS: SegmentDef[] = [
   { id: "twy-stub", kind: "taxiway", name: "Runway connector", from: [692, 1072], to: compound(8, -205), width: 42 },
   { id: "twy-apron", kind: "taxiway", name: "Apron throat", from: compound(8, -205), to: compound(8, -118), width: 46 },
 ];
 
+// prettier-ignore
 const street = (id: string, name: string, a: [number, number], b: [number, number], width = 8): SegmentDef => ({ id, kind: "street", name, from: compound(...a), to: compound(...b), width });
+// prettier-ignore
 export const STREETS: SegmentDef[] = [
   street("st-west", "West perimeter", [-205, -72], [-205, 220], 9),
   street("st-north", "Hangar frontage", [-205, -20], [210, -20], 9),
@@ -71,11 +97,13 @@ export const STREETS: SegmentDef[] = [
   street("st-se-service", "South-east service", [120, 228], [185, 245], 7),
   street("st-fuel-access", "Fuel area access", [210, 130], [246, 130], 8),
 ];
-for (const taxiway of TAXIWAYS) taxiway.observedDate = '2025-09-13';
+for (const taxiway of TAXIWAYS) taxiway.observedDate = "2025-09-13";
+// prettier-ignore
 export const ROADS: SegmentDef[] = [
   { id: "road-access", kind: "road", name: "South access track", from: compound(68, 228), to: [1560, 3250], width: 8 },
   { id: "road-perim", kind: "road", name: "Perimeter patrol track", from: [1560, 3250], to: [-1100, 2820], width: 7 },
 ];
+// prettier-ignore
 export const APRONS: ApronDef[] = [
   { id: "apron-main", name: "Main hangar apron", center: compound(-30, -112), size: [285, 92], rotation: -COMPOUND_ROT },
   { id: "apron-west", name: "West service pad", center: compound(-158, -4), size: [105, 106], rotation: -COMPOUND_ROT },
@@ -89,7 +117,8 @@ const DEFAULT_STRUCTURE_EVIDENCE: Evidence = {
   observedOn: "2025-09-28",
   resolutionM: 10,
   method: "Footprint interpreted from public overhead imagery",
-  uncertainty: "Names, functions, heights, and fine geometry are illustrative unless separately sourced.",
+  uncertainty:
+    "Names, functions, heights, and fine geometry are illustrative unless separately sourced.",
   note: "The modeled footprint is an interpretation, not a surveyed or official facility record.",
 };
 
@@ -107,7 +136,8 @@ const REPORTED_2025_EVIDENCE: Evidence = {
   sourceIds: ["twz-aircraft-2025", "nsj-airfield-2025", "npr-airfield-expansion"],
   observedOn: "2025-09-13",
   method: "Facility construction reported from analysis of commercial satellite imagery",
-  uncertainty: "Reporting confirms the build-out; exact footprint, dimensions and internal function are modeled and not officially confirmed.",
+  uncertainty:
+    "Reporting confirms the build-out; exact footprint, dimensions and internal function are modeled and not officially confirmed.",
   note: "Position and identity follow public reporting; the modeled geometry is illustrative, not a surveyed facility record.",
 };
 
@@ -123,7 +153,8 @@ const UTILITY_INTERPRETED_EVIDENCE: Evidence = {
   observedOn: "2025-09-28",
   resolutionM: 10,
   method: "Placed against reported new utility construction; specific use interpreted",
-  uncertainty: "The reported utility build-out is real; this block's identity, size and exact position are interpreted.",
+  uncertainty:
+    "The reported utility build-out is real; this block's identity, size and exact position are interpreted.",
   note: "An interpreted support building, not a verified or officially designated facility.",
 };
 
@@ -137,8 +168,10 @@ const OPERATIONAL_ILLUSTRATIVE_EVIDENCE: Evidence = {
   status: "illustrative",
   confidence: "low",
   sourceIds: ["sentinel-2-scene-2025"],
-  method: "Plausible operational infrastructure for a base of this class; not resolved as a specific feature in the cited imagery",
-  uncertainty: "Type, count and placement are illustrative and should not be read as observed facilities.",
+  method:
+    "Plausible operational infrastructure for a base of this class; not resolved as a specific feature in the cited imagery",
+  uncertainty:
+    "Type, count and placement are illustrative and should not be read as observed facilities.",
   note: "Illustrative operational infrastructure added for completeness, not an observation of a specific structure on site.",
 };
 
@@ -163,6 +196,7 @@ const building = (
   description,
   evidence,
 });
+// prettier-ignore
 const STRUCTURE_DEFS: StructureDef[] = [
   // North-west service group and dominant assembly hall.
   building("west-long", "warehouse", "West longitudinal workshop", -177, -7, [24, 8, 78]),
@@ -307,6 +341,7 @@ const STRUCTURE_DEFS: StructureDef[] = [
   building("ops-walkway", "covered-walkway", "Covered walkway", 0, 175, [4, 3, 40], COMPOUND_ROT, "A roofed pedestrian corridor between the operations complex and the crew blocks. Illustrative infrastructure, not a resolved feature.", OPERATIONAL_ILLUSTRATIVE_EVIDENCE),
 ];
 
+// prettier-ignore
 const STRUCTURE_OBSERVED_DATES: Readonly<Partial<Record<string, string>>> = {
   'jxds-prototype': '2025-09-13',
   'j36-prototype': '2025-08-27',
@@ -333,14 +368,16 @@ export const STRUCTURES: StructureDef[] = STRUCTURE_DEFS.map((structure) => {
  * kept in step with the aircraft it points at.
  */
 export const FPS_SPAWN = {
-  position: compound(-39, -78) as [number, number],
-  target: compound(-60, -100) as [number, number],
+  position: compound(-39, -78),
+  target: compound(-60, -100),
 };
 
+// prettier-ignore
 export const FLATTEN_PADS: FlattenPad[] = [
   { center: COMPOUND_ORIGIN, radius: 430 },
   { center: [792, 975], radius: 300 },
 ];
+// prettier-ignore
 export const CINEMATIC_WAYPOINTS: Waypoint[] = [
   { position: [-1006, 150, 2711], label: "Runway 05 threshold" },
   { position: [792, 195, 975], label: "Runway center" },
@@ -351,6 +388,7 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
   { position: [2591, 185, -762], label: "Runway 23 threshold" },
   { position: [-2591, 240, -2711], label: "North-west apex" },
 ];
+// prettier-ignore
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
 
 /* ------------------------------------------------------------------ */
@@ -374,6 +412,7 @@ export interface GroundZone {
  * than hard-coding world coordinates, so moving a building in `STRUCTURES`
  * moves the fight with it.
  */
+// prettier-ignore
 export const GROUND_ZONES: readonly GroundZone[] = [
   { id: "main-apron", name: "Main Apron", position: compound(-30, -128), radius: 46, side: "neutral" },
   { id: "flight-line", name: "Flight Line", position: compound(-88, -118), radius: 30, side: "north" },
@@ -408,7 +447,12 @@ export const GROUND_OVERLOOK: { position: [number, number]; target: [number, num
 /** Parse a validated ISO date's leading year without constructing a Date. */
 export function getObservedYear(item: TemporalDef): number | undefined {
   const date = item.observedDate;
-  if (date === undefined || date.length !== 10 || date.charCodeAt(4) !== 45 || date.charCodeAt(7) !== 45) {
+  if (
+    date === undefined ||
+    date.length !== 10 ||
+    date.charCodeAt(4) !== 45 ||
+    date.charCodeAt(7) !== 45
+  ) {
     return undefined;
   }
   let year = 0;
@@ -436,16 +480,17 @@ const DATED_LAYOUT_RECORDS = TEMPORAL_LAYOUT_RECORDS.filter(
 const DATED_LAYOUT_YEARS = DATED_LAYOUT_RECORDS.map((record) => getObservedYear(record)!);
 const TIMELINE_FALLBACK_YEAR = 2025;
 
-export const TIMELINE_BOUNDS: Readonly<{ minYear: number; maxYear: number }> = Object.freeze({
-  minYear:
-    DATED_LAYOUT_YEARS.length > 0
-      ? Math.min(...DATED_LAYOUT_YEARS)
-      : TIMELINE_FALLBACK_YEAR,
-  maxYear:
-    DATED_LAYOUT_YEARS.length > 0
-      ? Math.max(...DATED_LAYOUT_YEARS)
-      : TIMELINE_FALLBACK_YEAR,
-});
+export const TIMELINE_BOUNDS: Readonly<{ minYear: number; maxYear: number }> =
+  Object.freeze({
+    minYear:
+      DATED_LAYOUT_YEARS.length > 0
+        ? Math.min(...DATED_LAYOUT_YEARS)
+        : TIMELINE_FALLBACK_YEAR,
+    maxYear:
+      DATED_LAYOUT_YEARS.length > 0
+        ? Math.max(...DATED_LAYOUT_YEARS)
+        : TIMELINE_FALLBACK_YEAR,
+  });
 
 export function getVisibleDatedAdditionCount(year: number): number {
   let count = 0;
@@ -455,12 +500,18 @@ export function getVisibleDatedAdditionCount(year: number): number {
   return count;
 }
 
+// prettier-ignore
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+// prettier-ignore
 export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
+// prettier-ignore
 export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
 const STRUCTURE_INDEX = new Map(STRUCTURES.map((structure) => [structure.id, structure]));
+// prettier-ignore
 export function getStructure(id: string): StructureDef | undefined { return STRUCTURE_INDEX.get(id); }
+// prettier-ignore
 export function isAircraft(type: StructureType): boolean { return type.startsWith("aircraft-"); }
+// prettier-ignore
 export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft",
 };
@@ -474,42 +525,42 @@ export interface AircraftAnalysisProfile {
   disclaimer: string;
 }
 
-export const CIRCUIT_AIRCRAFT_ID = 'circuit-aircraft-demonstrator';
+export const CIRCUIT_AIRCRAFT_ID = "circuit-aircraft-demonstrator";
 
 const NOTIONAL_ANALYSIS_DISCLAIMER =
-  'Illustrative local scenario geometry only; not operational data or a verified aircraft-performance claim.';
+  "Illustrative local scenario geometry only; not operational data or a verified aircraft-performance claim.";
 
 export const AIRCRAFT_ANALYSIS_PROFILES = {
-  'aircraft-delta': {
-    label: 'Tailless demonstrator',
+  "aircraft-delta": {
+    label: "Tailless demonstrator",
     scenarioRadiusM: 900,
     radarRangeM: 600,
     radarFovDeg: 75,
     disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
   },
-  'aircraft-fighter': {
-    label: 'Fighter demonstrator',
+  "aircraft-fighter": {
+    label: "Fighter demonstrator",
     scenarioRadiusM: 800,
     radarRangeM: 550,
     radarFovDeg: 65,
     disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
   },
-  'aircraft-j36': {
-    label: 'J-36 (reported) — notional scenario',
+  "aircraft-j36": {
+    label: "J-36 (reported) — notional scenario",
     scenarioRadiusM: 1_200,
     radarRangeM: 800,
     radarFovDeg: 70,
     disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
   },
-  'aircraft-jxds': {
-    label: 'J-XDS (reported) — notional scenario',
+  "aircraft-jxds": {
+    label: "J-XDS (reported) — notional scenario",
     scenarioRadiusM: 1_000,
     radarRangeM: 700,
     radarFovDeg: 80,
     disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
   },
   [CIRCUIT_AIRCRAFT_ID]: {
-    label: 'Resident circuit demonstrator',
+    label: "Resident circuit demonstrator",
     scenarioRadiusM: 1_400,
     radarRangeM: 900,
     radarFovDeg: 85,
@@ -518,7 +569,9 @@ export const AIRCRAFT_ANALYSIS_PROFILES = {
   },
 } as const satisfies Readonly<Record<string, AircraftAnalysisProfile>>;
 
-export function getAircraftAnalysisProfile(id: string): AircraftAnalysisProfile | undefined {
+export function getAircraftAnalysisProfile(
+  id: string,
+): AircraftAnalysisProfile | undefined {
   if (id === CIRCUIT_AIRCRAFT_ID) return AIRCRAFT_ANALYSIS_PROFILES[CIRCUIT_AIRCRAFT_ID];
   const structure = getStructure(id);
   if (!structure || !isAircraft(structure.type)) return undefined;
@@ -627,10 +680,7 @@ export type MissionTaskId =
   | "apply-climatology";
 
 export type MissionRelationshipKind =
-  | "part-of"
-  | "follows-route"
-  | "supported-by"
-  | "derived-from";
+  "part-of" | "follows-route" | "supported-by" | "derived-from";
 
 export type MissionTimestampKind =
   | "calendar-observation"
@@ -829,7 +879,11 @@ const PATROL_MISSION_ENTITIES: MissionEntityDef[] = PATROL_ENTITY_IDS.map(
       { kind: "follows-route", targetId: PERIMETER_ROUTE_ENTITY_ID },
     ],
     taskableBehaviors: [
-      { id: "patrol-perimeter", label: "Patrol perimeter", execution: "simulation-clock" },
+      {
+        id: "patrol-perimeter",
+        label: "Patrol perimeter",
+        execution: "simulation-clock",
+      },
       {
         id: "freeze-at-seeded-phase",
         label: "Freeze at seeded phase",
@@ -873,7 +927,11 @@ export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
     capabilities: ["surface-support", "scenario-context"],
     relationships: PART_OF_SITE,
     taskableBehaviors: [
-      { id: "provide-surface", label: "Provide deterministic terrain", execution: "reactive" },
+      {
+        id: "provide-surface",
+        label: "Provide deterministic terrain",
+        execution: "reactive",
+      },
     ],
   },
   {
@@ -891,7 +949,11 @@ export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
     capabilities: ["scenario-context", "environment-sensing"],
     relationships: PART_OF_SITE,
     taskableBehaviors: [
-      { id: "apply-climatology", label: "Apply climatology month", execution: "discrete" },
+      {
+        id: "apply-climatology",
+        label: "Apply climatology month",
+        execution: "discrete",
+      },
     ],
   },
   {
@@ -904,7 +966,11 @@ export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
     capabilities: ["route-sampling", "scenario-context"],
     relationships: PART_OF_SITE,
     taskableBehaviors: [
-      { id: "sample-route", label: "Sample closed patrol route", execution: "simulation-clock" },
+      {
+        id: "sample-route",
+        label: "Sample closed patrol route",
+        execution: "simulation-clock",
+      },
     ],
   },
   {
@@ -917,7 +983,11 @@ export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
     capabilities: ["route-sampling", "scenario-context"],
     relationships: PART_OF_SITE,
     taskableBehaviors: [
-      { id: "sample-route", label: "Sample flight circuit", execution: "simulation-clock" },
+      {
+        id: "sample-route",
+        label: "Sample flight circuit",
+        execution: "simulation-clock",
+      },
     ],
   },
   ...PAVEMENT_MISSION_ENTITIES,
@@ -930,7 +1000,12 @@ export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
     observation: simulatedObservation(
       "Illustrative procedural aircraft following the deterministic resident circuit.",
     ),
-    capabilities: ["selectable", "analysis-envelope", "deterministic-motion", "route-sampling"],
+    capabilities: [
+      "selectable",
+      "analysis-envelope",
+      "deterministic-motion",
+      "route-sampling",
+    ],
     relationships: [
       { kind: "part-of", targetId: MISSION_SITE_ID },
       { kind: "follows-route", targetId: CIRCUIT_ROUTE_ENTITY_ID },

@@ -1,5 +1,10 @@
 import type { SoundId } from "../core/types";
-import { AudioEngine, type AudioEngineOptions, type VoiceRender, type VoiceRenderer } from "./engine";
+import {
+  AudioEngine,
+  type AudioEngineOptions,
+  type VoiceRender,
+  type VoiceRenderer,
+} from "./engine";
 import {
   renderDryFire,
   renderFire,
@@ -45,18 +50,33 @@ function renderHitmarker(v: VoiceRender): number {
 
 function renderHeadshot(v: VoiceRender): number {
   const end = renderHitmarker(v);
-  return Math.max(end, modeRing(v.ctx, v.dest, v.when + 0.01, [
-    { hz: 3400, q: 24, gain: 0.24 },
-    { hz: 5100, q: 20, gain: 0.14 },
-  ], { decay: 0.16, rand: v.rand }));
+  return Math.max(
+    end,
+    modeRing(
+      v.ctx,
+      v.dest,
+      v.when + 0.01,
+      [
+        { hz: 3400, q: 24, gain: 0.24 },
+        { hz: 5100, q: 20, gain: 0.14 },
+      ],
+      { decay: 0.16, rand: v.rand },
+    ),
+  );
 }
 
 function renderKill(v: VoiceRender): number {
   // Two rising partials: the genre's "confirmed" cue without a melody.
-  const end = modeRing(v.ctx, v.dest, v.when, [
-    { hz: 880, q: 20, gain: 0.2 },
-    { hz: 1320, q: 18, gain: 0.14 },
-  ], { decay: 0.2, rand: v.rand });
+  const end = modeRing(
+    v.ctx,
+    v.dest,
+    v.when,
+    [
+      { hz: 880, q: 20, gain: 0.2 },
+      { hz: 1320, q: 18, gain: 0.14 },
+    ],
+    { decay: 0.2, rand: v.rand },
+  );
   return Math.max(end, renderHitmarker(v));
 }
 
@@ -71,15 +91,18 @@ function renderDamage(v: VoiceRender): number {
     decay: 0.22,
     rand: v.rand,
   });
-  end = Math.max(end, noiseBurst(v.ctx, v.dest, v.when, {
-    kind: "brown",
-    filter: "lowpass",
-    freq: 900,
-    gain: 0.3,
-    attack: 0.001,
-    decay: 0.12,
-    rand: v.rand,
-  }));
+  end = Math.max(
+    end,
+    noiseBurst(v.ctx, v.dest, v.when, {
+      kind: "brown",
+      filter: "lowpass",
+      freq: 900,
+      gain: 0.3,
+      attack: 0.001,
+      decay: 0.12,
+      rand: v.rand,
+    }),
+  );
   return end;
 }
 

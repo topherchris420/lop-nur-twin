@@ -7,7 +7,7 @@ Guidance for coding agents (and humans) working on this repo.
 - **`bun run build` must stay green.** It runs the offline data validator, the
   release-manifest generator, `vite build`, and then a strict `tsc --noEmit`
   (no `any`, unused locals are errors). Run it before you finish any change.
-  The build scripts run under Bun *and* under Node ≥ 22.18 through
+  The build scripts run under Bun _and_ under Node ≥ 22.18 through
   `scripts/run-ts.mjs`, and both must keep producing byte-identical manifests.
 - **Everything is procedural and deterministic.** No binary assets, no runtime
   downloads (drei helpers that fetch CDN assets, e.g. `<Environment preset>`,
@@ -40,9 +40,22 @@ Guidance for coding agents (and humans) working on this repo.
   and rejects; a raw `new URLSearchParams(...).get()` in a component is a
   regression. External links go through `safeExternalHref()` and carry
   `EXTERNAL_LINK_PROPS`.
-- **`/analysis` is not optional.** It is the model's accessible front door. A
-  new analytical field belongs in the table as well as the dossier, and
-  `bun run a11y` gates that route on serious/critical axe violations.
+- **`/analysis` and `/compare` are not optional.** They are the model's
+  accessible front doors — the routes that work when WebGL does not. A new
+  analytical field belongs in the table as well as the dossier, and every new
+  analytical _capability_ needs a semantic representation there, not only a
+  control in the HUD. `bun run a11y` gates both routes on serious/critical axe
+  violations.
+- **Evidence mode and timeline compose in one predicate.** `src/lib/
+sceneVisibility.ts` owns it; a component asking "should I draw this?" calls
+  `useSubjectFilter()` rather than comparing classifications itself. The
+  timeline filter was copy-pasted into four components once already, and a
+  second filter beside it would have been four chances to disagree about what
+  exists.
+- **Unknown stays unknown.** An uncertainty figure the project does not
+  document is absent, and prints as "not stated" — never as zero, a dash or an
+  omitted row. The three dates (site event, evidence publication, model entry)
+  are separate fields and separate columns, always.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,
@@ -158,8 +171,10 @@ and the twin can never drift apart.
   collide-and-slide, and an analytic heightfield raycast that calls the same
   `terrainHeight` the terrain mesh is displaced by.
 - `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
-- `_wip/` is excluded from `tsconfig`: sound but unfinished subsystems, kept
-  rather than deleted. Finish one and move it back.
+- Unfinished match-mode subsystems live in `experiments/game-modes/`, outside
+  `src/` and outside the TypeScript project entirely. `tsconfig.json` has no
+  exclusions: every file under `src/` is strict-checked. See
+  `experiments/README.md` for what is parked there and how to finish one.
 
 Two subsystems have contracts worth knowing before you touch them:
 
@@ -168,11 +183,11 @@ Two subsystems have contracts worth knowing before you touch them:
   Three properties fall out and must stay true: cadence is tied to speed by
   `stride = speed x duty x period` so a planted foot never slides; the solver
   clamps reach below full extension so a joint cannot hyperextend; and hip
-  height is *solved*, not iterated — lowering the hips shortens the reach to
+  height is _solved_, not iterated — lowering the hips shortens the reach to
   the foot by less than the drop, so subtracting the excess under-corrects and
   the planted foot creeps. `rig.ts` guarantees identity rest rotations, which
   is what makes the solve closed-form; do not add a rest rotation. The model
-  faces `-z`, so a positive X rotation swings a bone *forward* — getting that
+  faces `-z`, so a positive X rotation swings a bone _forward_ — getting that
   backwards is what made every knee bend the wrong way for weeks.
 - **`world/clutter.ts` cannot use `mergeAndDispose`.** Normalising for merge
   deletes every attribute except position, normal and uv, which is right for
@@ -199,7 +214,7 @@ Three things that will bite anyone extending this:
    and reads `getPostExposure()` so both agree. Change one, check the others.
 2. **The composer's buffer is scene-linear HDR**, not display-referred. Sunlit
    concrete sits near 2.0 there, so bloom and streak thresholds must be set
-   *above* the diffuse level or the whole ground blooms.
+   _above_ the diffuse level or the whole ground blooms.
 3. **Anything feeding a convolution must be finite.** `HdrGuardEffect` runs
    first for this reason; without it the sun overflows half-float to `Inf`,
    the bloom downsample turns that into `NaN`, and the frame goes black while
@@ -245,8 +260,8 @@ The analytical side has its own two, and both need the **preview** server
 test the artifact that actually ships — including its security headers:
 
 ```sh
-bun run a11y                  # axe-core on all three routes + CSP violations
-bun run routes                # 44 checks: deep links, refreshes, hostile
+bun run a11y                  # axe-core on all four routes + CSP violations
+bun run routes                # 52 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```
 
@@ -264,7 +279,7 @@ Two of these exist because a screenshot could not answer the question:
   render loop is no use for this — a headless capture advances a handful of
   frames and a stride takes sixty. A knee that bends backwards looks like a
   bent knee in a still frame, which is how it survived several visual reviews.
-- `tools/frames.mjs` captures the *same* six views every run and prints the
+- `tools/frames.mjs` captures the _same_ six views every run and prints the
   same statistics for each, including local contrast over the lower half of
   the frame — the number that moves when ground stops being a flat wash.
   Pass `--compare shots/before` to diff against a previous run. Visual work

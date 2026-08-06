@@ -1,4 +1,9 @@
-import { OPPOSING_TEAM, type GameModeId, type MatchPhase, type Team } from "../core/types";
+import {
+  OPPOSING_TEAM,
+  type GameModeId,
+  type MatchPhase,
+  type Team,
+} from "../core/types";
 import { game, type Actor } from "../core/gameState";
 import type { KillReport } from "../core/combat";
 import { COMBAT, respawnActor } from "../core/combat";
@@ -25,11 +30,46 @@ export interface ModeRules {
 }
 
 export const MODE_RULES: Readonly<Record<GameModeId, ModeRules>> = {
-  tdm: { id: "tdm", name: "Team Deathmatch", scoreLimit: 75, timeLimitSec: 600, freeForAll: false, respawnDelay: 5 },
-  ffa: { id: "ffa", name: "Free-for-All", scoreLimit: 30, timeLimitSec: 600, freeForAll: true, respawnDelay: 5 },
-  domination: { id: "domination", name: "Domination", scoreLimit: 200, timeLimitSec: 900, freeForAll: false, respawnDelay: 6 },
-  hardpoint: { id: "hardpoint", name: "Hardpoint", scoreLimit: 250, timeLimitSec: 900, freeForAll: false, respawnDelay: 6 },
-  gunfight: { id: "gunfight", name: "Gunfight", scoreLimit: 6, timeLimitSec: 40, freeForAll: false, respawnDelay: 0 },
+  tdm: {
+    id: "tdm",
+    name: "Team Deathmatch",
+    scoreLimit: 75,
+    timeLimitSec: 600,
+    freeForAll: false,
+    respawnDelay: 5,
+  },
+  ffa: {
+    id: "ffa",
+    name: "Free-for-All",
+    scoreLimit: 30,
+    timeLimitSec: 600,
+    freeForAll: true,
+    respawnDelay: 5,
+  },
+  domination: {
+    id: "domination",
+    name: "Domination",
+    scoreLimit: 200,
+    timeLimitSec: 900,
+    freeForAll: false,
+    respawnDelay: 6,
+  },
+  hardpoint: {
+    id: "hardpoint",
+    name: "Hardpoint",
+    scoreLimit: 250,
+    timeLimitSec: 900,
+    freeForAll: false,
+    respawnDelay: 6,
+  },
+  gunfight: {
+    id: "gunfight",
+    name: "Gunfight",
+    scoreLimit: 6,
+    timeLimitSec: 40,
+    freeForAll: false,
+    respawnDelay: 0,
+  },
 };
 
 export interface MatchResult {
@@ -41,7 +81,9 @@ export interface MatchResult {
   reason: "score" | "time";
 }
 
-export type SpawnRequest = (actor: Actor) => { position: [number, number, number]; yaw: number } | null;
+export type SpawnRequest = (
+  actor: Actor,
+) => { position: [number, number, number]; yaw: number } | null;
 
 export class MatchDirector {
   readonly rules: ModeRules;
@@ -146,7 +188,8 @@ export class MatchDirector {
     const hud = game.hud;
     hud.scoreBlue = this.scoreBlue;
     hud.scoreRed = this.scoreRed;
-    hud.timeRemaining = this.phase === "warmup" ? this.rules.timeLimitSec : this.timeRemaining;
+    hud.timeRemaining =
+      this.phase === "warmup" ? this.rules.timeLimitSec : this.timeRemaining;
   }
 
   getResult(): MatchResult | null {

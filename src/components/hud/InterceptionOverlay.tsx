@@ -1,15 +1,15 @@
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
 import {
   CIRCUIT_AIRCRAFT_ID,
   getAircraftAnalysisProfile,
   getStructure,
   isVisibleAtTimelineYear,
-} from '@/lib/layout';
-import { getQualityProfile } from '@/lib/quality';
-import { sceneProjection } from '@/lib/sceneProjection';
-import { useTwinStore } from '@/lib/store';
-import { terrainHeight } from '@/lib/terrain';
+} from "@/lib/layout";
+import { getQualityProfile } from "@/lib/quality";
+import { sceneProjection } from "@/lib/sceneProjection";
+import { useTwinStore } from "@/lib/store";
+import { terrainHeight } from "@/lib/terrain";
 
 const TAU = Math.PI * 2;
 
@@ -20,14 +20,12 @@ export function InterceptionOverlay() {
   const qualityTier = useTwinStore((state) => state.qualityTier);
   const reducedMotion = useTwinStore((state) => state.reducedMotion);
   const qualityProfile = getQualityProfile(qualityTier);
-  const analysisProfile = selectedId
-    ? getAircraftAnalysisProfile(selectedId)
-    : undefined;
+  const analysisProfile = selectedId ? getAircraftAnalysisProfile(selectedId) : undefined;
   const selectedStructure = selectedId ? getStructure(selectedId) : undefined;
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
+    const context = canvas?.getContext("2d");
     if (!canvas || !context) return;
 
     context.setTransform(1, 0, 0, 1, 0, 0);
@@ -54,12 +52,9 @@ export function InterceptionOverlay() {
 
     const radarOffsetCos = new Float32Array(radarPointCount + 1);
     const radarOffsetSin = new Float32Array(radarPointCount + 1);
-    const radarHalfFovRad = THREE.MathUtils.degToRad(
-      analysisProfile.radarFovDeg * 0.5,
-    );
+    const radarHalfFovRad = THREE.MathUtils.degToRad(analysisProfile.radarFovDeg * 0.5);
     for (let index = 0; index <= radarPointCount; index += 1) {
-      const offset =
-        -radarHalfFovRad + (index / radarPointCount) * radarHalfFovRad * 2;
+      const offset = -radarHalfFovRad + (index / radarPointCount) * radarHalfFovRad * 2;
       radarOffsetCos[index] = Math.cos(offset);
       radarOffsetSin[index] = Math.sin(offset);
     }
@@ -74,7 +69,7 @@ export function InterceptionOverlay() {
     const solidLine: number[] = [];
     const scenarioLine = `${analysisProfile.label.toUpperCase()} · SCENARIO ${(analysisProfile.scenarioRadiusM / 1000).toFixed(1)} KM`;
     const radarLine = `RADAR ARC ${(analysisProfile.radarRangeM / 1000).toFixed(1)} KM · ${analysisProfile.radarFovDeg.toFixed(0)}° FOV`;
-    const disclaimerLine = 'ILLUSTRATIVE — NOT OPERATIONAL DATA';
+    const disclaimerLine = "ILLUSTRATIVE — NOT OPERATIONAL DATA";
     const refreshHz = reducedMotion
       ? Math.min(8, qualityProfile.overlayRefreshHz)
       : qualityProfile.overlayRefreshHz;
@@ -91,10 +86,7 @@ export function InterceptionOverlay() {
       const rect = canvas.getBoundingClientRect();
       const nextWidth = Math.max(1, rect.width);
       const nextHeight = Math.max(1, rect.height);
-      const nextDpr = Math.min(
-        window.devicePixelRatio || 1,
-        qualityProfile.dprMax,
-      );
+      const nextDpr = Math.min(window.devicePixelRatio || 1, qualityProfile.dprMax);
       const backingWidth = Math.max(1, Math.round(nextWidth * nextDpr));
       const backingHeight = Math.max(1, Math.round(nextHeight * nextDpr));
       const changed =
@@ -166,12 +158,9 @@ export function InterceptionOverlay() {
     const strokeRadarSector = (headingRad: number) => {
       const sinHeading = Math.sin(headingRad);
       const cosHeading = Math.cos(headingRad);
-      const centerVisible = projectWorld(
-        groundCenterWorld,
-        projectedGroundCenter,
-      );
-      context.strokeStyle = 'rgba(116, 224, 214, 0.92)';
-      context.fillStyle = 'rgba(116, 224, 214, 0.055)';
+      const centerVisible = projectWorld(groundCenterWorld, projectedGroundCenter);
+      context.strokeStyle = "rgba(116, 224, 214, 0.92)";
+      context.fillStyle = "rgba(116, 224, 214, 0.055)";
       context.lineWidth = 1.2;
       context.setLineDash(solidLine);
       context.beginPath();
@@ -210,30 +199,26 @@ export function InterceptionOverlay() {
       const legendWidth = Math.min(310, Math.max(220, cssWidth - 24));
       const legendX = Math.max(12, (cssWidth - legendWidth) * 0.5);
       const legendY = cssHeight < 460 ? 58 : 66;
-      context.fillStyle = 'rgba(20, 19, 16, 0.78)';
-      context.strokeStyle = 'rgba(232, 228, 216, 0.22)';
+      context.fillStyle = "rgba(20, 19, 16, 0.78)";
+      context.strokeStyle = "rgba(232, 228, 216, 0.22)";
       context.lineWidth = 1;
       context.fillRect(legendX, legendY, legendWidth, 62);
       context.strokeRect(legendX + 0.5, legendY + 0.5, legendWidth - 1, 61);
-      context.fillStyle = '#f0bc68';
-      context.font = '600 10px ui-monospace, SFMono-Regular, Menlo, monospace';
-      context.fillText('NOTIONAL ANALYSIS ENVELOPE', legendX + 10, legendY + 15);
-      context.fillStyle = 'rgba(232, 228, 216, 0.9)';
-      context.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
+      context.fillStyle = "#f0bc68";
+      context.font = "600 10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      context.fillText("NOTIONAL ANALYSIS ENVELOPE", legendX + 10, legendY + 15);
+      context.fillStyle = "rgba(232, 228, 216, 0.9)";
+      context.font = "9px ui-monospace, SFMono-Regular, Menlo, monospace";
       context.fillText(scenarioLine, legendX + 10, legendY + 30);
-      context.fillStyle = 'rgba(116, 224, 214, 0.9)';
+      context.fillStyle = "rgba(116, 224, 214, 0.9)";
       context.fillText(radarLine, legendX + 10, legendY + 43);
-      context.fillStyle = 'rgba(232, 228, 216, 0.58)';
+      context.fillStyle = "rgba(232, 228, 216, 0.58)";
       context.fillText(disclaimerLine, legendX + 10, legendY + 56);
     };
 
     const draw = () => {
       activeCamera = sceneProjection.camera;
-      if (
-        !activeCamera ||
-        sceneProjection.width <= 0 ||
-        sceneProjection.height <= 0
-      ) {
+      if (!activeCamera || sceneProjection.width <= 0 || sceneProjection.height <= 0) {
         clearCanvas();
         return;
       }
@@ -266,21 +251,16 @@ export function InterceptionOverlay() {
       clearCanvas();
       strokeRange(
         analysisProfile.scenarioRadiusM,
-        'rgba(240, 188, 104, 0.92)',
+        "rgba(240, 188, 104, 0.92)",
         1.4,
         true,
       );
-      strokeRange(
-        analysisProfile.radarRangeM,
-        'rgba(116, 224, 214, 0.52)',
-        1,
-        false,
-      );
+      strokeRange(analysisProfile.radarRangeM, "rgba(116, 224, 214, 0.52)", 1, false);
       strokeRadarSector(headingRad);
 
       if (projectWorld(centerWorld, projectedCenter)) {
-        context.strokeStyle = '#f7c573';
-        context.fillStyle = 'rgba(247, 197, 115, 0.18)';
+        context.strokeStyle = "#f7c573";
+        context.fillStyle = "rgba(247, 197, 115, 0.18)";
         context.lineWidth = 1.5;
         context.setLineDash(solidLine);
         context.beginPath();
@@ -329,8 +309,8 @@ export function InterceptionOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className='interception-overlay pointer-events-none absolute inset-0 z-[5] h-full w-full'
-      aria-hidden='true'
+      className="interception-overlay pointer-events-none absolute inset-0 z-[5] h-full w-full"
+      aria-hidden="true"
     />
   );
 }

@@ -30,6 +30,9 @@ const MAX_VALUE_LENGTH = 64;
 /** Ids are model slugs: lowercase, digits, hyphens. */
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
+/** Dates are ISO calendar dates and nothing else. */
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 function rawParam(name: string): string | null {
   if (typeof window === "undefined") return null;
   let value: string | null = null;
@@ -66,22 +69,14 @@ export function readFlag(name: string): boolean {
 }
 
 /** An integer parameter, clamped into `[min, max]`. Non-integers are rejected. */
-export function readIntParam(
-  name: string,
-  min: number,
-  max: number,
-): number | null {
+export function readIntParam(name: string, min: number, max: number): number | null {
   const value = finiteNumber(rawParam(name));
   if (value === null || !Number.isInteger(value)) return null;
   return clamp(value, min, max);
 }
 
 /** A floating-point parameter, clamped into `[min, max]`. */
-export function readFloatParam(
-  name: string,
-  min: number,
-  max: number,
-): number | null {
+export function readFloatParam(name: string, min: number, max: number): number | null {
   const value = finiteNumber(rawParam(name));
   if (value === null) return null;
   return clamp(value, min, max);
@@ -102,6 +97,21 @@ export function readIdParam(name: string): string | null {
   const raw = rawParam(name);
   if (raw === null) return null;
   return ID_PATTERN.test(raw) ? raw : null;
+}
+
+/**
+ * An ISO `YYYY-MM-DD` calendar date. Shape and calendar validity are checked
+ * here — `2025-02-30` is rejected rather than rolled forward to March, which is
+ * what `new Date()` would do and what would turn a typo into a plausible-looking
+ * snapshot date. Whether the date is one the model can actually be snapshotted
+ * at is the caller's job.
+ */
+export function readIsoDateParam(name: string): string | null {
+  const raw = rawParam(name);
+  if (raw === null || !ISO_DATE_PATTERN.test(raw)) return null;
+  const timestamp = Date.parse(`${raw}T00:00:00Z`);
+  if (Number.isNaN(timestamp)) return null;
+  return new Date(timestamp).toISOString().slice(0, 10) === raw ? raw : null;
 }
 
 /**

@@ -20,6 +20,9 @@ public/model-manifest.json
 sbom*.json
 trivy-results.*
 
+# `bun run test:coverage` output.
+coverage/
+
 # tools/probe.mjs output
 render_output.png
 render_output-*.png

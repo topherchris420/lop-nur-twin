@@ -58,7 +58,9 @@ const report = await page.evaluate(() => {
     contactSeconds: 0,
     maxSuppression: 0,
     playerHealthMin: player.health,
-    weaponIds: [...new Set(game.actors.filter((a) => !a.isPlayer).map((a) => a.weaponId))],
+    weaponIds: [
+      ...new Set(game.actors.filter((a) => !a.isPlayer).map((a) => a.weaponId)),
+    ],
     unknownWeapons: [],
     deathPoseSamples: [],
   };
@@ -117,7 +119,6 @@ const report = await page.evaluate(() => {
         if (stats.deathPoseSamples.length < 3) {
           stats.deathPoseSamples.push({ id: a.id, at: +game.time.toFixed(2) });
         }
-
       }
       wasAlive.set(a.id, a.alive);
     }
@@ -238,14 +239,46 @@ const report = await page.evaluate(() => {
 const checks = [];
 const check = (name, pass, detail) => checks.push({ name, pass, detail });
 
-check("player has hitboxes", report.playerHitboxes >= 5, `${report.playerHitboxes} colliders on entity 0`);
-check("bots carry real weapons", report.unknownWeapons.length === 0, report.weaponIds.join(", "));
-check("bot loadouts vary", report.weaponIds.length >= 2, `${report.weaponIds.length} distinct`);
-check("enemies close to fighting range", report.closestApproach < 60, `closest ${report.closestApproach} m`);
-check("contact is sustained", report.contactSeconds > 8, `${report.contactSeconds}s inside 60 m`);
-check("bots shoot the player", report.shotsAtPlayer > 0, `${report.shotsAtPlayer} rounds on target`);
-check("the player can be hurt", report.playerHealthMin < 100, `min health ${Math.round(report.playerHealthMin)}`);
-check("incoming fire suppresses", report.maxSuppression > 0, `peak ${report.maxSuppression}`);
+check(
+  "player has hitboxes",
+  report.playerHitboxes >= 5,
+  `${report.playerHitboxes} colliders on entity 0`,
+);
+check(
+  "bots carry real weapons",
+  report.unknownWeapons.length === 0,
+  report.weaponIds.join(", "),
+);
+check(
+  "bot loadouts vary",
+  report.weaponIds.length >= 2,
+  `${report.weaponIds.length} distinct`,
+);
+check(
+  "enemies close to fighting range",
+  report.closestApproach < 60,
+  `closest ${report.closestApproach} m`,
+);
+check(
+  "contact is sustained",
+  report.contactSeconds > 8,
+  `${report.contactSeconds}s inside 60 m`,
+);
+check(
+  "bots shoot the player",
+  report.shotsAtPlayer > 0,
+  `${report.shotsAtPlayer} rounds on target`,
+);
+check(
+  "the player can be hurt",
+  report.playerHealthMin < 100,
+  `min health ${Math.round(report.playerHealthMin)}`,
+);
+check(
+  "incoming fire suppresses",
+  report.maxSuppression > 0,
+  `peak ${report.maxSuppression}`,
+);
 check("bodies drop", report.botsKilled > 0, `${report.botsKilled} deaths in 60 s`);
 check(
   "a killed body collapses",

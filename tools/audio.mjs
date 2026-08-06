@@ -21,12 +21,22 @@
  */
 
 import puppeteer from "puppeteer";
-const browser = await puppeteer.launch({ headless: "shell", args: ["--no-sandbox","--enable-unsafe-swiftshader","--use-gl=angle","--autoplay-policy=no-user-gesture-required"] });
+const browser = await puppeteer.launch({
+  headless: "shell",
+  args: [
+    "--no-sandbox",
+    "--enable-unsafe-swiftshader",
+    "--use-gl=angle",
+    "--autoplay-policy=no-user-gesture-required",
+  ],
+});
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 720 });
-page.on("pageerror", e => console.log("[pageerror]", String(e).slice(0,200)));
-await page.goto("http://localhost:5173/play?autoplay=1&quality=1", { waitUntil: "domcontentloaded" });
-await new Promise(r => setTimeout(r, 9000));
+page.on("pageerror", (e) => console.log("[pageerror]", String(e).slice(0, 200)));
+await page.goto("http://localhost:5173/play?autoplay=1&quality=1", {
+  waitUntil: "domcontentloaded",
+});
+await new Promise((r) => setTimeout(r, 9000));
 
 // Render each sound offline and measure it. OfflineAudioContext runs faster
 // than real time and needs no output device, so this works headless.
@@ -34,32 +44,63 @@ const out = await page.evaluate(async () => {
   const mod = await import("/src/game/audio/index.ts");
   const synth = await import("/src/game/audio/synth.ts");
   const results = [];
-  const ids = ["fire", "impact", "whizz", "explosion", "footstep", "ricochet", "hitmarker"];
+  const ids = [
+    "fire",
+    "impact",
+    "whizz",
+    "explosion",
+    "footstep",
+    "ricochet",
+    "hitmarker",
+  ];
   for (const id of ids) {
     const ctx = new OfflineAudioContext(1, 44100 * 2, 44100);
-    const engine = { register(){}, };
+    const engine = { register() {} };
     void engine;
     // Build a voice by hand against the same renderer table the engine uses.
     const dest = ctx.createGain();
     dest.connect(ctx.destination);
     const renderers = mod.__RENDERERS ?? null;
-    if (!renderers) { results.push({ id, error: "no renderer table" }); continue; }
+    if (!renderers) {
+      results.push({ id, error: "no renderer table" });
+      continue;
+    }
     const r = renderers[id];
-    if (!r) { results.push({ id, error: "unregistered" }); continue; }
+    if (!r) {
+      results.push({ id, error: "unregistered" });
+      continue;
+    }
     const pool = new synth.ConvolverPool(ctx, dest, 0.9);
     r({
-      ctx, dest, when: 0.01,
+      ctx,
+      dest,
+      when: 0.01,
       request: { id, weaponId: "kv-141", surface: "concrete", gain: 1 },
-      distance: 0, env: "open-desert", indoor: false, structureDistanceM: 70,
-      rand: synth.seededRand(id, 1), reverb: pool,
-      own(){}, isLocal: true,
+      distance: 0,
+      env: "open-desert",
+      indoor: false,
+      structureDistanceM: 70,
+      rand: synth.seededRand(id, 1),
+      reverb: pool,
+      own() {},
+      isLocal: true,
     });
     const buf = await ctx.startRendering();
     const d = buf.getChannelData(0);
-    let peak = 0, sum = 0;
-    for (let i = 0; i < d.length; i += 1) { const a = Math.abs(d[i]); if (a > peak) peak = a; sum += d[i]*d[i]; }
+    let peak = 0,
+      sum = 0;
+    for (let i = 0; i < d.length; i += 1) {
+      const a = Math.abs(d[i]);
+      if (a > peak) peak = a;
+      sum += d[i] * d[i];
+    }
     const rms = Math.sqrt(sum / d.length);
-    results.push({ id, peak: +peak.toFixed(3), rms: +rms.toFixed(4), crest: rms > 0 ? +(peak/rms).toFixed(1) : 0 });
+    results.push({
+      id,
+      peak: +peak.toFixed(3),
+      rms: +rms.toFixed(4),
+      crest: rms > 0 ? +(peak / rms).toFixed(1) : 0,
+    });
   }
   return results;
 });

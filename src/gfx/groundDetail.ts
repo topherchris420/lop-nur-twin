@@ -345,7 +345,9 @@ export function applyGroundDetail<M extends THREE.MeshStandardMaterial>(
     gdRoughness: { value: o.roughness },
     gdGrain: { value: o.grain },
     gdBasis: { value: new THREE.Vector4(ax, az, o.origin[0], o.origin[1]) },
-    gdJoint: { value: new THREE.Vector3(o.jointSpacing || 1, o.jointWidth, o.jointDarken) },
+    gdJoint: {
+      value: new THREE.Vector3(o.jointSpacing || 1, o.jointWidth, o.jointDarken),
+    },
     gdCracks: { value: o.cracks },
     gdTracks: { value: o.tracks },
     gdDust: { value: o.dust },

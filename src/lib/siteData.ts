@@ -81,7 +81,8 @@ export const PUBLIC_SOURCES = [
   },
   {
     id: "nsj-airfield-2025",
-    title: "New Stealth J-36 and J-XDS Fighters Might Be Undergoing Testing at China's 'Area 51'",
+    title:
+      "New Stealth J-36 and J-XDS Fighters Might Be Undergoing Testing at China's 'Area 51'",
     publisher: "National Security Journal",
     publishedOn: "2025-11-09",
     accessedOn: "2026-07-20",
@@ -138,11 +139,7 @@ export const PUBLIC_SOURCES = [
 ] as const satisfies readonly PublicSource[];
 
 export type SourceId = (typeof PUBLIC_SOURCES)[number]["id"];
-export type EvidenceStatus =
-  | "observed"
-  | "reported"
-  | "interpreted"
-  | "illustrative";
+export type EvidenceStatus = "observed" | "reported" | "interpreted" | "illustrative";
 export type EvidenceConfidence = "low" | "medium" | "high";
 
 export interface Evidence {
@@ -181,6 +178,10 @@ export interface ClimateMonth {
   windDirectionDeg: number;
 }
 
+// A twelve-row table with aligned columns, kept out of the formatter's hands so
+// the monthly values stay readable side by side and a corrected figure shows up
+// as a one-line diff.
+// prettier-ignore
 export const CLIMATE_MONTHS: readonly ClimateMonth[] = [
   { month: "January", temperatureC: -7.48, relativeHumidityPct: 55.87, precipitationMmDay: 0.03, solarKwhM2Day: 2.5846, windSpeedMps: 3.32, windDirectionDeg: 11.4 },
   { month: "February", temperatureC: -2.16, relativeHumidityPct: 42.33, precipitationMmDay: 0.02, solarKwhM2Day: 3.6336, windSpeedMps: 4.03, windDirectionDeg: 18.9 },
@@ -205,7 +206,10 @@ export function climateDustFactor(profile: ClimateMonth): number {
   const aridity = 1 - Math.min(1, profile.relativeHumidityPct / 70);
   const wind = Math.min(1, Math.max(0, (profile.windSpeedMps - 3) / 3));
   const rainSuppression = Math.min(1, profile.precipitationMmDay / 0.35);
-  return Math.min(1, Math.max(0.25, aridity * 0.65 + wind * 0.3 - rainSuppression * 0.15));
+  return Math.min(
+    1,
+    Math.max(0.25, aridity * 0.65 + wind * 0.3 - rainSuppression * 0.15),
+  );
 }
 
 export const SITE_PROFILE = {
@@ -225,8 +229,7 @@ export const SITE_PROFILE = {
     elevationM: 981,
     verticalReference: "EGM2008 orthometric height",
     product: "Copernicus DEM GLO-30",
-    note:
-      "Approximate public DEM sample near the runway center; the rendered heightfield is a deterministic proxy around this datum, not a redistributed DEM tile.",
+    note: "Approximate public DEM sample near the runway center; the rendered heightfield is a deterministic proxy around this datum, not a redistributed DEM tile.",
   },
   worldExtentM: 6800,
   runway: {
@@ -246,8 +249,10 @@ export const OFFSITE_CONTEXT = [
     latitude: 41.7051,
     longitude: 88.3751,
     distanceFromAirfieldKm: 127,
-    sourceIds: ["lop-nur-test-site-study", "csis-lop-nur-2020"] as const satisfies readonly SourceId[],
-    note:
-      "Regional context only. It is not rendered inside the 6.8 km airfield scene, and this project does not claim an exact reconstruction of the remote tunnel complex.",
+    sourceIds: [
+      "lop-nur-test-site-study",
+      "csis-lop-nur-2020",
+    ] as const satisfies readonly SourceId[],
+    note: "Regional context only. It is not rendered inside the 6.8 km airfield scene, and this project does not claim an exact reconstruction of the remote tunnel complex.",
   },
 ] as const;

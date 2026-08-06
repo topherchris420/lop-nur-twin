@@ -30,12 +30,14 @@ import {
   getVisibleDatedAdditionCount,
   isVisibleAtTimelineYear,
   segmentLength,
+  type AircraftAnalysisProfile,
 } from "../src/lib/layout";
 import {
   CLIMATE_MONTHS,
   OFFSITE_CONTEXT,
   PUBLIC_SOURCES,
   SITE_PROFILE,
+  type PublicSource,
 } from "../src/lib/siteData";
 import {
   EVIDENCE_LEDGER,
@@ -96,7 +98,9 @@ function isValidIsoCalendarDate(value: string): boolean {
     30,
     31,
   ][month - 1];
-  return daysInMonth !== undefined && Number.isInteger(day) && day >= 1 && day <= daysInMonth;
+  return (
+    daysInMonth !== undefined && Number.isInteger(day) && day >= 1 && day <= daysInMonth
+  );
 }
 
 function checkTemporal(
@@ -122,10 +126,7 @@ function checkPoint(
   point: readonly number[],
   spatialIndexes: readonly number[],
 ): void {
-  check(
-    point.every(isFiniteNumber),
-    `${label} must contain only finite coordinates`,
-  );
+  check(point.every(isFiniteNumber), `${label} must contain only finite coordinates`);
 
   for (const index of spatialIndexes) {
     const coordinate = point[index];
@@ -166,10 +167,7 @@ function checkFootprint(
   );
 }
 
-function checkUniqueIds(
-  label: string,
-  items: readonly { id: string }[],
-): void {
+function checkUniqueIds(label: string, items: readonly { id: string }[]): void {
   const seen = new Set<string>();
   for (const item of items) {
     check(item.id.trim().length > 0, `${label} contains an empty id`);
@@ -189,21 +187,42 @@ check(
 
 checkUniqueIds("Public source", PUBLIC_SOURCES);
 const sourceIds = new Set<string>(PUBLIC_SOURCES.map((source) => source.id));
-for (const source of PUBLIC_SOURCES) {
+// `PUBLIC_SOURCES` is declared `as const satisfies readonly PublicSource[]`, so
+// its literal type is a union in which the optional `dataUrl` only exists on the
+// members that set it. Widening to the interface once is what makes the optional
+// fields visible to the checks below; it is an assignment, not an assertion, so
+// the compiler still proves the register matches the schema.
+const publicSources: readonly PublicSource[] = PUBLIC_SOURCES;
+for (const source of publicSources) {
   check(source.title.trim().length > 0, `Public source "${source.id}" must have a title`);
-  check(source.publisher.trim().length > 0, `Public source "${source.id}" must have a publisher`);
-  check(source.accessedOn.trim().length > 0, `Public source "${source.id}" must have an access date`);
-  check(source.attribution.trim().length > 0, `Public source "${source.id}" must have attribution`);
+  check(
+    source.publisher.trim().length > 0,
+    `Public source "${source.id}" must have a publisher`,
+  );
+  check(
+    source.accessedOn.trim().length > 0,
+    `Public source "${source.id}" must have an access date`,
+  );
+  check(
+    source.attribution.trim().length > 0,
+    `Public source "${source.id}" must have attribution`,
+  );
   try {
     const url = new URL(source.url);
-    check(url.protocol === "https:", `Public source "${source.id}" must use an HTTPS URL`);
+    check(
+      url.protocol === "https:",
+      `Public source "${source.id}" must use an HTTPS URL`,
+    );
   } catch {
     check(false, `Public source "${source.id}" has an invalid URL`);
   }
   if (source.dataUrl !== undefined) {
     try {
       const dataUrl = new URL(source.dataUrl);
-      check(dataUrl.protocol === "https:", `Public source "${source.id}" data URL must use HTTPS`);
+      check(
+        dataUrl.protocol === "https:",
+        `Public source "${source.id}" data URL must use HTTPS`,
+      );
     } catch {
       check(false, `Public source "${source.id}" has an invalid data URL`);
     }
@@ -226,7 +245,12 @@ for (const segment of ALL_SEGMENTS) {
     segment.to[1] - segment.from[1],
     segment.to[0] - segment.from[0],
   );
-  checkFootprint(`Segment "${segment.id}" footprint`, center, [length, segment.width], rotation);
+  checkFootprint(
+    `Segment "${segment.id}" footprint`,
+    center,
+    [length, segment.width],
+    rotation,
+  );
   check(
     isFiniteNumber(length) && length > 0,
     `Segment "${segment.id}" must have a finite, positive length`,
@@ -238,11 +262,13 @@ for (const apron of APRONS) {
   checkTemporal(`Apron '${apron.id}'`, apron, datedLayoutYears);
   checkPoint(`Apron "${apron.id}" center`, apron.center, [0, 1]);
   checkPositive(`Apron "${apron.id}" size`, apron.size);
-  check(
-    isFiniteNumber(apron.rotation),
-    `Apron "${apron.id}" rotation must be finite`,
+  check(isFiniteNumber(apron.rotation), `Apron "${apron.id}" rotation must be finite`);
+  checkFootprint(
+    `Apron "${apron.id}" footprint`,
+    apron.center,
+    apron.size,
+    apron.rotation,
   );
-  checkFootprint(`Apron "${apron.id}" footprint`, apron.center, apron.size, apron.rotation);
 }
 
 checkUniqueIds("Structure", STRUCTURES);
@@ -253,11 +279,7 @@ for (const structure of STRUCTURES) {
     !segmentIds.has(structure.id),
     `Structure id "${structure.id}" collides with a segment id`,
   );
-  checkPoint(
-    `Structure "${structure.id}" position`,
-    structure.position,
-    [0, 1],
-  );
+  checkPoint(`Structure "${structure.id}" position`, structure.position, [0, 1]);
   checkPositive(`Structure "${structure.id}" size`, structure.size);
   check(
     isFiniteNumber(structure.rotation),
@@ -271,7 +293,10 @@ for (const structure of STRUCTURES) {
   );
 
   const evidence = structure.evidence;
-  check(evidence.note.trim().length > 0, `Structure "${structure.id}" must include an evidence note`);
+  check(
+    evidence.note.trim().length > 0,
+    `Structure "${structure.id}" must include an evidence note`,
+  );
   check(
     ["observed", "reported", "interpreted", "illustrative"].includes(evidence.status),
     `Structure "${structure.id}" has an invalid evidence status`,
@@ -281,7 +306,9 @@ for (const structure of STRUCTURES) {
     `Structure "${structure.id}" has an invalid evidence confidence`,
   );
   if (evidence.resolutionM !== undefined) {
-    checkPositive(`Structure "${structure.id}" source resolution`, [evidence.resolutionM]);
+    checkPositive(`Structure "${structure.id}" source resolution`, [
+      evidence.resolutionM,
+    ]);
   }
   check(
     evidence.sourceIds.length > 0,
@@ -297,47 +324,47 @@ for (const structure of STRUCTURES) {
 
 check(
   Number.isInteger(TIMELINE_BOUNDS.minYear) && Number.isFinite(TIMELINE_BOUNDS.minYear),
-  'Timeline minimum year must be a finite integer',
+  "Timeline minimum year must be a finite integer",
 );
 check(
   Number.isInteger(TIMELINE_BOUNDS.maxYear) && Number.isFinite(TIMELINE_BOUNDS.maxYear),
-  'Timeline maximum year must be a finite integer',
+  "Timeline maximum year must be a finite integer",
 );
 check(
   TIMELINE_BOUNDS.minYear <= TIMELINE_BOUNDS.maxYear,
-  'Timeline bounds must be ordered',
+  "Timeline bounds must be ordered",
 );
 if (datedLayoutYears.length > 0) {
   check(
     TIMELINE_BOUNDS.minYear === Math.min(...datedLayoutYears),
-    'Timeline minimum year must equal the earliest dated layout record',
+    "Timeline minimum year must equal the earliest dated layout record",
   );
   check(
     TIMELINE_BOUNDS.maxYear === Math.max(...datedLayoutYears),
-    'Timeline maximum year must equal the latest dated layout record',
+    "Timeline maximum year must equal the latest dated layout record",
   );
   check(
     getVisibleDatedAdditionCount(TIMELINE_BOUNDS.maxYear) === datedLayoutYears.length,
-    'Latest timeline year must expose every dated layout addition',
+    "Latest timeline year must expose every dated layout addition",
   );
   check(
     getVisibleDatedAdditionCount(TIMELINE_BOUNDS.minYear - 1) === 0,
-    'A year before the timeline must expose no dated additions',
+    "A year before the timeline must expose no dated additions",
   );
 }
 check(
-  getObservedYear({ observedDate: '2025-09-13' }) === 2025,
-  'getObservedYear must parse the leading ISO year',
+  getObservedYear({ observedDate: "2025-09-13" }) === 2025,
+  "getObservedYear must parse the leading ISO year",
 );
-check(getObservedYear({}) === undefined, 'getObservedYear must preserve unknown dates');
+check(getObservedYear({}) === undefined, "getObservedYear must preserve unknown dates");
 check(
   isVisibleAtTimelineYear({}, TIMELINE_BOUNDS.minYear - 100),
-  'Undated layout records must remain visible at every timeline year',
+  "Undated layout records must remain visible at every timeline year",
 );
 check(
-  !isVisibleAtTimelineYear({ observedDate: '2025-09-13' }, 2024) &&
-    isVisibleAtTimelineYear({ observedDate: '2025-09-13' }, 2025),
-  'Dated layout records must become visible in their observed year',
+  !isVisibleAtTimelineYear({ observedDate: "2025-09-13" }, 2024) &&
+    isVisibleAtTimelineYear({ observedDate: "2025-09-13" }, 2025),
+  "Dated layout records must become visible in their observed year",
 );
 
 const catalogIds = new Map<string, string>();
@@ -348,7 +375,10 @@ for (const [catalog, items] of [
 ] as const) {
   for (const item of items) {
     const owner = catalogIds.get(item.id);
-    check(owner === undefined, `${catalog} id "${item.id}" collides with ${owner ?? "another catalog"}`);
+    check(
+      owner === undefined,
+      `${catalog} id "${item.id}" collides with ${owner ?? "another catalog"}`,
+    );
     catalogIds.set(item.id, catalog);
   }
 }
@@ -361,7 +391,10 @@ for (const entity of MISSION_ENTITIES) {
     `Mission entity id "${entity.id}" must be unique`,
   );
   missionEntityIds.add(entity.id);
-  check(entity.label.trim().length > 0, `Mission entity "${entity.id}" must have a label`);
+  check(
+    entity.label.trim().length > 0,
+    `Mission entity "${entity.id}" must have a label`,
+  );
   check(
     entity.capabilities.length > 0,
     `Mission entity "${entity.id}" must declare at least one capability`,
@@ -443,11 +476,16 @@ for (const id of [
   WINDSOCK_ENTITY_ID,
   ...PATROL_ENTITY_IDS,
 ]) {
-  check(missionEntityIds.has(id), `Rendered mission object "${id}" must have an entity record`);
+  check(
+    missionEntityIds.has(id),
+    `Rendered mission object "${id}" must have an entity record`,
+  );
 }
 check(
   PATROL_ENTITY_IDS.length >=
-    Math.max(...Object.values(QUALITY_PROFILES).map((profile) => profile.patrolVehicleCount)),
+    Math.max(
+      ...Object.values(QUALITY_PROFILES).map((profile) => profile.patrolVehicleCount),
+    ),
   "Mission registry must define enough patrol entities for the highest quality budget",
 );
 
@@ -477,7 +515,10 @@ for (const place of OFFSITE_CONTEXT) {
     `Offsite context "${place.id}" must remain outside the rendered scene`,
   );
   for (const sourceId of place.sourceIds) {
-    check(sourceIds.has(sourceId), `Offsite context "${place.id}" cites unknown source "${sourceId}"`);
+    check(
+      sourceIds.has(sourceId),
+      `Offsite context "${place.id}" cites unknown source "${sourceId}"`,
+    );
   }
 }
 
@@ -490,7 +531,7 @@ for (const tier of [0, 1, 2, 3] as const) {
     `Quality tier ${tier} patrol vehicle count must be a positive integer`,
   );
   check(
-    typeof profile.patrolHeadlightLights === 'boolean',
+    typeof profile.patrolHeadlightLights === "boolean",
     `Quality tier ${tier} patrol headlight-light flag must be boolean`,
   );
   checkPositive(`Quality tier ${tier} overlay refresh`, [profile.overlayRefreshHz]);
@@ -504,13 +545,34 @@ for (const tier of [0, 1, 2, 3] as const) {
   );
   if (tier > 0) {
     const previous = QUALITY_PROFILES[(tier - 1) as 0 | 1 | 2];
-    check(profile.terrainSegments >= previous.terrainSegments, `Quality tier ${tier} terrain density must not decrease`);
-    check(profile.dustParticles >= previous.dustParticles, `Quality tier ${tier} dust count must not decrease`);
-    check(profile.dprMax >= previous.dprMax, `Quality tier ${tier} DPR must not decrease`);
-    check(profile.patrolVehicleCount >= previous.patrolVehicleCount, `Quality tier ${tier} patrol count must not decrease`);
-    check(profile.overlayRefreshHz >= previous.overlayRefreshHz, `Quality tier ${tier} overlay refresh must not decrease`);
-    check(profile.overlayRangeSamples >= previous.overlayRangeSamples, `Quality tier ${tier} overlay range samples must not decrease`);
-    check(profile.overlayRadarSamples >= previous.overlayRadarSamples, `Quality tier ${tier} overlay radar samples must not decrease`);
+    check(
+      profile.terrainSegments >= previous.terrainSegments,
+      `Quality tier ${tier} terrain density must not decrease`,
+    );
+    check(
+      profile.dustParticles >= previous.dustParticles,
+      `Quality tier ${tier} dust count must not decrease`,
+    );
+    check(
+      profile.dprMax >= previous.dprMax,
+      `Quality tier ${tier} DPR must not decrease`,
+    );
+    check(
+      profile.patrolVehicleCount >= previous.patrolVehicleCount,
+      `Quality tier ${tier} patrol count must not decrease`,
+    );
+    check(
+      profile.overlayRefreshHz >= previous.overlayRefreshHz,
+      `Quality tier ${tier} overlay refresh must not decrease`,
+    );
+    check(
+      profile.overlayRangeSamples >= previous.overlayRangeSamples,
+      `Quality tier ${tier} overlay range samples must not decrease`,
+    );
+    check(
+      profile.overlayRadarSamples >= previous.overlayRadarSamples,
+      `Quality tier ${tier} overlay radar samples must not decrease`,
+    );
     check(
       !previous.patrolHeadlightLights || profile.patrolHeadlightLights,
       `Quality tier ${tier} must not remove patrol headlight lights enabled by a lower tier`,
@@ -526,7 +588,7 @@ for (const [index, pad] of FLATTEN_PADS.entries()) {
 
 check(
   PERIMETER_PATROL_ROUTE.length >= 4,
-  'Perimeter patrol route must contain at least three vertices plus closure',
+  "Perimeter patrol route must contain at least three vertices plus closure",
 );
 const patrolDistinctVertices = new Set<string>();
 let patrolTotalLengthM = 0;
@@ -549,7 +611,7 @@ for (const [index, point] of PERIMETER_PATROL_ROUTE.entries()) {
 }
 check(
   patrolDistinctVertices.size >= 3,
-  'Perimeter patrol route must contain at least three distinct vertices',
+  "Perimeter patrol route must contain at least three distinct vertices",
 );
 const patrolFirst = PERIMETER_PATROL_ROUTE[0];
 const patrolLast = PERIMETER_PATROL_ROUTE[PERIMETER_PATROL_ROUTE.length - 1];
@@ -558,15 +620,22 @@ check(
     patrolLast !== undefined &&
     patrolFirst[0] === patrolLast[0] &&
     patrolFirst[1] === patrolLast[1],
-  'Perimeter patrol route must be explicitly closed',
+  "Perimeter patrol route must be explicitly closed",
 );
 check(
   isFiniteNumber(patrolTotalLengthM) && patrolTotalLengthM > 0,
-  'Perimeter patrol route must have positive total length',
+  "Perimeter patrol route must have positive total length",
 );
 
-for (const [id, profile] of Object.entries(AIRCRAFT_ANALYSIS_PROFILES)) {
-  check(profile.label.trim().length > 0, `Aircraft analysis profile '${id}' must have a label`);
+// Widened for the same reason as the source register: `altitudeM` is set on
+// one profile only, and the literal union hides it from the others.
+const aircraftAnalysisProfiles: Readonly<Record<string, AircraftAnalysisProfile>> =
+  AIRCRAFT_ANALYSIS_PROFILES;
+for (const [id, profile] of Object.entries(aircraftAnalysisProfiles)) {
+  check(
+    profile.label.trim().length > 0,
+    `Aircraft analysis profile '${id}' must have a label`,
+  );
   checkPositive(`Aircraft analysis profile '${id}' ranges`, [
     profile.scenarioRadiusM,
     profile.radarRangeM,
@@ -576,7 +645,9 @@ for (const [id, profile] of Object.entries(AIRCRAFT_ANALYSIS_PROFILES)) {
     `Aircraft analysis profile '${id}' ranges must remain within the modeled site scale`,
   );
   check(
-    isFiniteNumber(profile.radarFovDeg) && profile.radarFovDeg > 0 && profile.radarFovDeg <= 360,
+    isFiniteNumber(profile.radarFovDeg) &&
+      profile.radarFovDeg > 0 &&
+      profile.radarFovDeg <= 360,
     `Aircraft analysis profile '${id}' radar FOV must be in (0, 360]`,
   );
   if (profile.altitudeM !== undefined) {
@@ -608,8 +679,7 @@ if (runway) {
   const lengthM = segmentLength(runway);
   const deltaEast = runway.to[0] - runway.from[0];
   const deltaNorth = -(runway.to[1] - runway.from[1]);
-  const bearingDeg =
-    ((Math.atan2(deltaEast, deltaNorth) * 180) / Math.PI + 360) % 360;
+  const bearingDeg = ((Math.atan2(deltaEast, deltaNorth) * 180) / Math.PI + 360) % 360;
 
   check(
     Math.abs(lengthM - SITE_PROFILE.runway.modeledLengthM) <= 50,
@@ -620,11 +690,17 @@ if (runway) {
     `Runway grid bearing ${bearingDeg.toFixed(2)} degrees must remain within 0.5 degrees of ${SITE_PROFILE.runway.modeledGridBearingDeg}`,
   );
   check(
-    Math.abs(GRID_EASTING_ORIGIN + RUNWAY_CENTER[0] - SITE_PROFILE.localCrs.runwayCenterEastingM) <= 0.1,
+    Math.abs(
+      GRID_EASTING_ORIGIN + RUNWAY_CENTER[0] - SITE_PROFILE.localCrs.runwayCenterEastingM,
+    ) <= 0.1,
     "Modeled runway center must register to the profile UTM easting",
   );
   check(
-    Math.abs(GRID_NORTHING_ORIGIN - RUNWAY_CENTER[1] - SITE_PROFILE.localCrs.runwayCenterNorthingM) <= 0.1,
+    Math.abs(
+      GRID_NORTHING_ORIGIN -
+        RUNWAY_CENTER[1] -
+        SITE_PROFILE.localCrs.runwayCenterNorthingM,
+    ) <= 0.1,
     "Modeled runway center must register to the profile UTM northing",
   );
 

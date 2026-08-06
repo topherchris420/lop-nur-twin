@@ -42,10 +42,16 @@ interface Part {
 }
 
 function box(
-  w: number, h: number, d: number,
-  x: number, y: number, z: number,
+  w: number,
+  h: number,
+  d: number,
+  x: number,
+  y: number,
+  z: number,
   color: number,
-  rx = 0, ry = 0, rz = 0,
+  rx = 0,
+  ry = 0,
+  rz = 0,
 ): Part {
   const geometry = new THREE.BoxGeometry(w, h, d, 1, 1, 1);
   if (rx) geometry.rotateX(rx);
@@ -56,10 +62,16 @@ function box(
 }
 
 function tube(
-  rTop: number, rBottom: number, length: number,
-  x: number, y: number, z: number,
+  rTop: number,
+  rBottom: number,
+  length: number,
+  x: number,
+  y: number,
+  z: number,
   color: number,
-  rx = 0, ry = 0, rz = 0,
+  rx = 0,
+  ry = 0,
+  rz = 0,
   segments = 10,
 ): Part {
   const geometry = new THREE.CylinderGeometry(rTop, rBottom, length, segments, 1, false);
@@ -70,7 +82,14 @@ function tube(
   return { geometry, color };
 }
 
-function knuckle(r: number, x: number, y: number, z: number, color: number, sy = 1): Part {
+function knuckle(
+  r: number,
+  x: number,
+  y: number,
+  z: number,
+  color: number,
+  sy = 1,
+): Part {
   const geometry = new THREE.SphereGeometry(r, 8, 6);
   geometry.scale(1, sy, 1);
   geometry.translate(x, y, z);
@@ -83,17 +102,47 @@ function knuckle(r: number, x: number, y: number, z: number, color: number, sy =
  */
 function finger(
   parts: Part[],
-  x: number, y: number, z: number,
+  x: number,
+  y: number,
+  z: number,
   radius: number,
   spread: number,
   color: number,
 ): void {
   // Proximal runs forward, middle turns down, distal turns back under.
-  parts.push(tube(radius, radius * 0.96, 0.036, x, y, z - 0.016, color, Math.PI / 2, 0, spread));
+  parts.push(
+    tube(radius, radius * 0.96, 0.036, x, y, z - 0.016, color, Math.PI / 2, 0, spread),
+  );
   parts.push(knuckle(radius * 1.05, x, y, z - 0.034, color, 0.9));
-  parts.push(tube(radius * 0.92, radius * 0.86, 0.03, x, y - 0.014, z - 0.046, color, Math.PI / 2.6, 0, spread));
+  parts.push(
+    tube(
+      radius * 0.92,
+      radius * 0.86,
+      0.03,
+      x,
+      y - 0.014,
+      z - 0.046,
+      color,
+      Math.PI / 2.6,
+      0,
+      spread,
+    ),
+  );
   parts.push(knuckle(radius * 0.9, x, y - 0.026, z - 0.054, color, 0.9));
-  parts.push(tube(radius * 0.84, radius * 0.74, 0.024, x, y - 0.04, z - 0.05, color, Math.PI / 1.9, 0, spread));
+  parts.push(
+    tube(
+      radius * 0.84,
+      radius * 0.74,
+      0.024,
+      x,
+      y - 0.04,
+      z - 0.05,
+      color,
+      Math.PI / 1.9,
+      0,
+      spread,
+    ),
+  );
 }
 
 /**
@@ -104,7 +153,7 @@ function finger(
  */
 function buildRightArm(parts: Part[]): void {
   // Palm and the back of the hand, tilted to follow the grip angle.
-  parts.push(box(0.052, 0.10, 0.078, 0.006, -0.012, 0.006, GLOVE, 0.18, 0, 0.06));
+  parts.push(box(0.052, 0.1, 0.078, 0.006, -0.012, 0.006, GLOVE, 0.18, 0, 0.06));
   parts.push(box(0.05, 0.052, 0.07, 0.004, 0.03, -0.004, GLOVE, 0.1, 0, 0.05));
 
   // Four fingers wrapping the front of the grip, tucked progressively further
@@ -122,9 +171,13 @@ function buildRightArm(parts: Part[]): void {
   }
 
   // Thumb over the top, across the receiver side.
-  parts.push(tube(0.0135, 0.0125, 0.042, -0.02, 0.03, -0.012, GLOVE, Math.PI / 2.2, 0.5, 0));
+  parts.push(
+    tube(0.0135, 0.0125, 0.042, -0.02, 0.03, -0.012, GLOVE, Math.PI / 2.2, 0.5, 0),
+  );
   parts.push(knuckle(0.0125, -0.03, 0.022, -0.03, GLOVE, 0.95));
-  parts.push(tube(0.0115, 0.0102, 0.03, -0.036, 0.012, -0.036, GLOVE, Math.PI / 2.4, 0.9, 0));
+  parts.push(
+    tube(0.0115, 0.0102, 0.03, -0.036, 0.012, -0.036, GLOVE, Math.PI / 2.4, 0.9, 0),
+  );
 
   // Wrist, cuff, sleeve. The forearm runs back and down past the near plane.
   parts.push(tube(0.031, 0.034, 0.05, 0.006, -0.062, 0.03, GLOVE_DARK, 1.25, 0, 0.05));
@@ -140,20 +193,28 @@ function buildRightArm(parts: Part[]): void {
  * side and the thumb lies along the near one.
  */
 function buildLeftArm(parts: Part[]): void {
-  parts.push(box(0.05, 0.072, 0.10, -0.004, -0.018, 0.004, GLOVE, 0.06, 0, -0.1));
+  parts.push(box(0.05, 0.072, 0.1, -0.004, -0.018, 0.004, GLOVE, 0.06, 0, -0.1));
   parts.push(box(0.048, 0.04, 0.092, -0.004, 0.018, 0.002, GLOVE, 0.04, 0, -0.08));
 
   // Fingers reach up and over the handguard, splayed along its length.
   for (let i = 0; i < 4; i += 1) {
     const z = 0.036 - i * 0.026;
-    parts.push(tube(0.0135, 0.0126, 0.046, 0.014, 0.02, z, GLOVE_DARK, 0, 0, Math.PI / 2 - 0.5));
+    parts.push(
+      tube(0.0135, 0.0126, 0.046, 0.014, 0.02, z, GLOVE_DARK, 0, 0, Math.PI / 2 - 0.5),
+    );
     parts.push(knuckle(0.0132, 0.034, 0.036, z, GLOVE_DARK, 0.92));
-    parts.push(tube(0.0124, 0.0112, 0.034, 0.038, 0.052, z, GLOVE_DARK, 0, 0, Math.PI / 3.4));
+    parts.push(
+      tube(0.0124, 0.0112, 0.034, 0.038, 0.052, z, GLOVE_DARK, 0, 0, Math.PI / 3.4),
+    );
   }
 
   // Thumb along the near side, pointing forward.
-  parts.push(tube(0.0135, 0.0125, 0.05, -0.026, 0.006, -0.014, GLOVE, Math.PI / 2.1, -0.32, 0));
-  parts.push(tube(0.0115, 0.0104, 0.032, -0.034, 0.014, -0.05, GLOVE, Math.PI / 2.2, -0.5, 0));
+  parts.push(
+    tube(0.0135, 0.0125, 0.05, -0.026, 0.006, -0.014, GLOVE, Math.PI / 2.1, -0.32, 0),
+  );
+  parts.push(
+    tube(0.0115, 0.0104, 0.032, -0.034, 0.014, -0.05, GLOVE, Math.PI / 2.2, -0.5, 0),
+  );
 
   // Wrist and sleeve, running back, down and outboard to the left.
   parts.push(tube(0.03, 0.033, 0.05, -0.014, -0.052, 0.038, GLOVE_DARK, 1.0, 0, -0.42));
@@ -170,7 +231,10 @@ function buildLeftArm(parts: Part[]): void {
  * call per material across both arms is four in total, which is not worth
  * working around it for.
  */
-function assemble(parts: Part[], materials: Map<number, THREE.MeshStandardMaterial>): {
+function assemble(
+  parts: Part[],
+  materials: Map<number, THREE.MeshStandardMaterial>,
+): {
   group: THREE.Group;
   triangles: number;
 } {

@@ -150,7 +150,11 @@ function dirToLocal(c: Collider, d: THREE.Vector3, out: THREE.Vector3): THREE.Ve
   );
 }
 
-function localToWorldDir(c: Collider, l: THREE.Vector3, out: THREE.Vector3): THREE.Vector3 {
+function localToWorldDir(
+  c: Collider,
+  l: THREE.Vector3,
+  out: THREE.Vector3,
+): THREE.Vector3 {
   return out.set(
     c.axisX.x * l.x + c.axisY.x * l.y + c.axisZ.x * l.z,
     c.axisX.y * l.x + c.axisY.y * l.y + c.axisZ.y * l.z,
@@ -483,11 +487,13 @@ export class CollisionWorld {
       if (sizeX * sizeY * sizeZ < minVolume) return;
 
       // Geometry-local centre through the full world matrix.
-      _v2.set(
-        (bounds.min.x + bounds.max.x) / 2,
-        (bounds.min.y + bounds.max.y) / 2,
-        (bounds.min.z + bounds.max.z) / 2,
-      ).applyMatrix4(object.matrixWorld);
+      _v2
+        .set(
+          (bounds.min.x + bounds.max.x) / 2,
+          (bounds.min.y + bounds.max.y) / 2,
+          (bounds.min.z + bounds.max.z) / 2,
+        )
+        .applyMatrix4(object.matrixWorld);
 
       const isInstanced = object instanceof THREE.InstancedMesh;
       if (isInstanced) {
@@ -511,9 +517,7 @@ export class CollisionWorld {
             ((bounds.max.z - bounds.min.z) / 2) * Math.abs(_scale.z),
           );
           if (half.x * half.y * half.z * 8 < minVolume) continue;
-          this.addStatic(
-            makeCollider(_v4, half, _q, layer, classifySurface(instanced)),
-          );
+          this.addStatic(makeCollider(_v4, half, _q, layer, classifySurface(instanced)));
           added += 1;
         }
         return;
@@ -638,7 +642,9 @@ export class CollisionWorld {
         for (let i = 0; i < 12; i += 1) {
           const mid = (lo + hi) / 2;
           const g =
-            origin.y + dir.y * mid - this.groundHeight(origin.x + dir.x * mid, origin.z + dir.z * mid);
+            origin.y +
+            dir.y * mid -
+            this.groundHeight(origin.x + dir.x * mid, origin.z + dir.z * mid);
           if (g <= 0) hi = mid;
           else lo = mid;
         }
@@ -673,9 +679,12 @@ export class CollisionWorld {
     for (const index of this.scratchIndices) out.push(this.staticGrid.at(index));
     for (const c of this.dynamic) {
       if (
-        c.max.x >= min.x && c.min.x <= max.x &&
-        c.max.y >= min.y && c.min.y <= max.y &&
-        c.max.z >= min.z && c.min.z <= max.z
+        c.max.x >= min.x &&
+        c.min.x <= max.x &&
+        c.max.y >= min.y &&
+        c.min.y <= max.y &&
+        c.max.z >= min.z &&
+        c.min.z <= max.z
       ) {
         out.push(c);
       }
@@ -768,8 +777,16 @@ export class CollisionWorld {
 
       // Broadphase around the capsule for this substep.
       const pad = radius + 0.6;
-      queryMin.set(result.position.x - pad, result.position.y - 0.4, result.position.z - pad);
-      queryMax.set(result.position.x + pad, result.position.y + height + 0.4, result.position.z + pad);
+      queryMin.set(
+        result.position.x - pad,
+        result.position.y - 0.4,
+        result.position.z - pad,
+      );
+      queryMax.set(
+        result.position.x + pad,
+        result.position.y + height + 0.4,
+        result.position.z + pad,
+      );
       this.queryAABB(queryMin, queryMax, candidates);
       if (candidates.length === 0) continue;
 
@@ -780,19 +797,22 @@ export class CollisionWorld {
         for (const c of candidates) {
           if ((c.layer & MASK_MOVEMENT) === 0) continue;
           bottom.set(result.position.x, result.position.y + radius, result.position.z);
-          top.set(result.position.x, result.position.y + height - radius, result.position.z);
+          top.set(
+            result.position.x,
+            result.position.y + height - radius,
+            result.position.z,
+          );
           const depth = capsuleColliderDepth(c, bottom, top, radius, contactPoint);
           if (depth <= 0) continue;
           anyContact = true;
 
           // Push direction: from the contact point toward the capsule axis.
           const segT = closestPointOnSegmentT(bottom, top, contactPoint);
-          pushDir
-            .set(
-              bottom.x + (top.x - bottom.x) * segT - contactPoint.x,
-              bottom.y + (top.y - bottom.y) * segT - contactPoint.y,
-              bottom.z + (top.z - bottom.z) * segT - contactPoint.z,
-            );
+          pushDir.set(
+            bottom.x + (top.x - bottom.x) * segT - contactPoint.x,
+            bottom.y + (top.y - bottom.y) * segT - contactPoint.y,
+            bottom.z + (top.z - bottom.z) * segT - contactPoint.z,
+          );
           const len = pushDir.length();
           if (len < 1e-6) {
             pushDir.set(0, 1, 0);
@@ -844,7 +864,11 @@ export class CollisionWorld {
     if (!result.grounded && wasGrounded && result.velocity.y <= 0.5) {
       const snap = stepHeight + 0.12;
       const down = _v3.set(0, -1, 0);
-      const origin = _v4.set(result.position.x, result.position.y + 0.08, result.position.z);
+      const origin = _v4.set(
+        result.position.x,
+        result.position.y + 0.08,
+        result.position.z,
+      );
       const hit = this.raycast(origin, down, snap, MASK_MOVEMENT);
       if (hit && hit.normal.y >= Math.cos(maxSlope)) {
         result.position.y = hit.point.y;
@@ -903,9 +927,12 @@ export function capsuleColliderDepth(
   const minZ = Math.min(bottom.z, top.z) - radius;
   const maxZ = Math.max(bottom.z, top.z) + radius;
   if (
-    c.max.x < minX || c.min.x > maxX ||
-    c.max.y < minY || c.min.y > maxY ||
-    c.max.z < minZ || c.min.z > maxZ
+    c.max.x < minX ||
+    c.min.x > maxX ||
+    c.max.y < minY ||
+    c.min.y > maxY ||
+    c.max.z < minZ ||
+    c.min.z > maxZ
   ) {
     return 0;
   }

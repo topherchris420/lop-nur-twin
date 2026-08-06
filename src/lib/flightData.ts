@@ -1,9 +1,5 @@
 import { SITE_PROFILE } from "./siteData";
-import {
-  MISSION_SITE_ID,
-  RUNWAY_CENTER,
-  type MissionEntityDef,
-} from "./layout";
+import { MISSION_SITE_ID, RUNWAY_CENTER, type MissionEntityDef } from "./layout";
 
 /**
  * Live ADS-B traffic over the airfield, pulled from ADSB.lol's open API.
@@ -92,8 +88,7 @@ export function gpsTo3DCanvas(
 ): [number, number, number] {
   const x = (planeLon - REF_LON) * METERS_PER_DEGREE * cosLat + RUNWAY_CENTER[0];
   const z = (REF_LAT - planeLat) * METERS_PER_DEGREE + RUNWAY_CENTER[1];
-  const y =
-    (typeof planeAltFeet === "number" ? planeAltFeet : 0) * FEET_TO_METERS;
+  const y = (typeof planeAltFeet === "number" ? planeAltFeet : 0) * FEET_TO_METERS;
   return [x, y, z];
 }
 
@@ -151,8 +146,7 @@ function isMilitary(raw: AdsbAircraftRaw): boolean {
 }
 
 /** ADSB.lol open API, centered on the airfield reference point (150 nm). */
-export const ADSB_ENDPOINT =
-  "https://api.adsb.lol/v2/lat/40.77/lon/89.28/dist/150";
+export const ADSB_ENDPOINT = "https://api.adsb.lol/v2/lat/40.77/lon/89.28/dist/150";
 
 /**
  * Fetch and parse the current traffic snapshot. Aircraft without a usable

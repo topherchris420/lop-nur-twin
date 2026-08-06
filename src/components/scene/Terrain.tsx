@@ -78,7 +78,8 @@ export function Terrain() {
   useEffect(() => {
     const warmTiers: QualityTier[] = [];
     if (qualityTier > 0) warmTiers.push((qualityTier - 1) as QualityTier);
-    if (!reducedMotion && qualityTier < 2) warmTiers.push((qualityTier + 1) as QualityTier);
+    if (!reducedMotion && qualityTier < 2)
+      warmTiers.push((qualityTier + 1) as QualityTier);
     // The adaptive ladder steps up as well as down, and both the terrain
     // geometry and the ground detail maps are a couple of hundred milliseconds
     // of main-thread work at the top tier. Warm the neighbouring tier's

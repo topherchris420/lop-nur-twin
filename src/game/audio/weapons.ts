@@ -103,58 +103,148 @@ interface ClassTone {
  */
 const CLASS_TONE: Readonly<Record<WeaponClass, ClassTone>> = {
   assault: {
-    bodyHz: 118, bodyDecay: 0.15, bodyLevel: 0.62,
-    crackHz: 3500, crackQ: 0.85, crackDecay: 0.03, crackLevel: 1,
-    mechHz: [2400, 3600, 1500], mechLevel: 0.3,
-    drive: 2.6, level: 1, tailLevel: 0.5, slapLevel: 0.42, brightness: 0.72,
+    bodyHz: 118,
+    bodyDecay: 0.15,
+    bodyLevel: 0.62,
+    crackHz: 3500,
+    crackQ: 0.85,
+    crackDecay: 0.03,
+    crackLevel: 1,
+    mechHz: [2400, 3600, 1500],
+    mechLevel: 0.3,
+    drive: 2.6,
+    level: 1,
+    tailLevel: 0.5,
+    slapLevel: 0.42,
+    brightness: 0.72,
   },
   smg: {
-    bodyHz: 152, bodyDecay: 0.095, bodyLevel: 0.46,
-    crackHz: 3050, crackQ: 0.95, crackDecay: 0.021, crackLevel: 0.92,
-    mechHz: [2800, 4100, 1900], mechLevel: 0.44,
-    drive: 2.2, level: 0.86, tailLevel: 0.38, slapLevel: 0.3, brightness: 0.78,
+    bodyHz: 152,
+    bodyDecay: 0.095,
+    bodyLevel: 0.46,
+    crackHz: 3050,
+    crackQ: 0.95,
+    crackDecay: 0.021,
+    crackLevel: 0.92,
+    mechHz: [2800, 4100, 1900],
+    mechLevel: 0.44,
+    drive: 2.2,
+    level: 0.86,
+    tailLevel: 0.38,
+    slapLevel: 0.3,
+    brightness: 0.78,
   },
   lmg: {
-    bodyHz: 84, bodyDecay: 0.29, bodyLevel: 0.86,
-    crackHz: 3150, crackQ: 0.8, crackDecay: 0.038, crackLevel: 1.02,
-    mechHz: [1750, 2900, 4400, 1150], mechLevel: 0.5,
-    drive: 3.1, level: 1.1, tailLevel: 0.66, slapLevel: 0.55, brightness: 0.66,
+    bodyHz: 84,
+    bodyDecay: 0.29,
+    bodyLevel: 0.86,
+    crackHz: 3150,
+    crackQ: 0.8,
+    crackDecay: 0.038,
+    crackLevel: 1.02,
+    mechHz: [1750, 2900, 4400, 1150],
+    mechLevel: 0.5,
+    drive: 3.1,
+    level: 1.1,
+    tailLevel: 0.66,
+    slapLevel: 0.55,
+    brightness: 0.66,
   },
   marksman: {
-    bodyHz: 99, bodyDecay: 0.25, bodyLevel: 0.74,
-    crackHz: 4200, crackQ: 0.75, crackDecay: 0.034, crackLevel: 1.12,
-    mechHz: [2200, 3400], mechLevel: 0.26,
-    drive: 3, level: 1.12, tailLevel: 0.7, slapLevel: 0.6, brightness: 0.8,
+    bodyHz: 99,
+    bodyDecay: 0.25,
+    bodyLevel: 0.74,
+    crackHz: 4200,
+    crackQ: 0.75,
+    crackDecay: 0.034,
+    crackLevel: 1.12,
+    mechHz: [2200, 3400],
+    mechLevel: 0.26,
+    drive: 3,
+    level: 1.12,
+    tailLevel: 0.7,
+    slapLevel: 0.6,
+    brightness: 0.8,
   },
   sniper: {
-    bodyHz: 70, bodyDecay: 0.42, bodyLevel: 0.95,
-    crackHz: 4700, crackQ: 0.7, crackDecay: 0.046, crackLevel: 1.2,
-    mechHz: [1900, 3100], mechLevel: 0.2,
-    drive: 3.4, level: 1.22, tailLevel: 0.95, slapLevel: 0.78, brightness: 0.84,
+    bodyHz: 70,
+    bodyDecay: 0.42,
+    bodyLevel: 0.95,
+    crackHz: 4700,
+    crackQ: 0.7,
+    crackDecay: 0.046,
+    crackLevel: 1.2,
+    mechHz: [1900, 3100],
+    mechLevel: 0.2,
+    drive: 3.4,
+    level: 1.22,
+    tailLevel: 0.95,
+    slapLevel: 0.78,
+    brightness: 0.84,
   },
   shotgun: {
-    bodyHz: 96, bodyDecay: 0.3, bodyLevel: 1.0,
-    crackHz: 2150, crackQ: 0.5, crackDecay: 0.058, crackLevel: 0.98,
-    mechHz: [1400, 2300], mechLevel: 0.34,
-    drive: 3.6, level: 1.14, tailLevel: 0.62, slapLevel: 0.5, brightness: 0.5,
+    bodyHz: 96,
+    bodyDecay: 0.3,
+    bodyLevel: 1.0,
+    crackHz: 2150,
+    crackQ: 0.5,
+    crackDecay: 0.058,
+    crackLevel: 0.98,
+    mechHz: [1400, 2300],
+    mechLevel: 0.34,
+    drive: 3.6,
+    level: 1.14,
+    tailLevel: 0.62,
+    slapLevel: 0.5,
+    brightness: 0.5,
   },
   pistol: {
-    bodyHz: 163, bodyDecay: 0.085, bodyLevel: 0.44,
-    crackHz: 3400, crackQ: 1, crackDecay: 0.019, crackLevel: 0.86,
-    mechHz: [2600, 3900], mechLevel: 0.42,
-    drive: 2.1, level: 0.8, tailLevel: 0.36, slapLevel: 0.3, brightness: 0.76,
+    bodyHz: 163,
+    bodyDecay: 0.085,
+    bodyLevel: 0.44,
+    crackHz: 3400,
+    crackQ: 1,
+    crackDecay: 0.019,
+    crackLevel: 0.86,
+    mechHz: [2600, 3900],
+    mechLevel: 0.42,
+    drive: 2.1,
+    level: 0.8,
+    tailLevel: 0.36,
+    slapLevel: 0.3,
+    brightness: 0.76,
   },
   launcher: {
-    bodyHz: 56, bodyDecay: 0.6, bodyLevel: 1.1,
-    crackHz: 1250, crackQ: 0.45, crackDecay: 0.09, crackLevel: 0.7,
-    mechHz: [900, 1600], mechLevel: 0.18,
-    drive: 2.4, level: 1.15, tailLevel: 1, slapLevel: 0.8, brightness: 0.34,
+    bodyHz: 56,
+    bodyDecay: 0.6,
+    bodyLevel: 1.1,
+    crackHz: 1250,
+    crackQ: 0.45,
+    crackDecay: 0.09,
+    crackLevel: 0.7,
+    mechHz: [900, 1600],
+    mechLevel: 0.18,
+    drive: 2.4,
+    level: 1.15,
+    tailLevel: 1,
+    slapLevel: 0.8,
+    brightness: 0.34,
   },
   melee: {
-    bodyHz: 220, bodyDecay: 0.05, bodyLevel: 0.1,
-    crackHz: 5200, crackQ: 1.4, crackDecay: 0.05, crackLevel: 0.16,
-    mechHz: [3800], mechLevel: 0.12,
-    drive: 1.2, level: 0.35, tailLevel: 0.05, slapLevel: 0, brightness: 0.9,
+    bodyHz: 220,
+    bodyDecay: 0.05,
+    bodyLevel: 0.1,
+    crackHz: 5200,
+    crackQ: 1.4,
+    crackDecay: 0.05,
+    crackLevel: 0.16,
+    mechHz: [3800],
+    mechLevel: 0.12,
+    drive: 1.2,
+    level: 0.35,
+    tailLevel: 0.05,
+    slapLevel: 0,
+    brightness: 0.9,
   },
 };
 
@@ -185,14 +275,17 @@ export function weaponTone(weaponId: string | undefined): WeaponTone {
 
   const bodyHz = jitter(
     rand,
-    base.bodyHz * clamp(Math.pow(calibre, -0.26), 0.58, 1.5) * clamp(Math.pow(rpmK, -0.16), 0.8, 1.2),
+    base.bodyHz *
+      clamp(Math.pow(calibre, -0.26), 0.58, 1.5) *
+      clamp(Math.pow(rpmK, -0.16), 0.8, 1.2),
     0.06,
   );
   const crackHz = jitter(rand, base.crackHz * (0.72 + 0.38 * velocityK), 0.07);
   const mech = base.mechHz.map((hz, i) => {
     const f = jitter(rand, hz, 0.11);
     // Heavier actions cycle later and louder.
-    const delay = i === 0 ? 0.004 * rpmK : (0.012 + i * 0.017) * rpmK * range(rand, 0.85, 1.2);
+    const delay =
+      i === 0 ? 0.004 * rpmK : (0.012 + i * 0.017) * rpmK * range(rand, 0.85, 1.2);
     const level = i === 0 ? 1 : Math.pow(0.72, i) * range(rand, 0.75, 1.15);
     return [f, delay, level] as const;
   });
@@ -202,11 +295,13 @@ export function weaponTone(weaponId: string | undefined): WeaponTone {
     weaponClass: def.weaponClass,
     bodyHz,
     subHz: bodyHz * 0.5 * range(rand, 0.94, 1.06),
-    bodyDecay: base.bodyDecay * clamp(Math.pow(calibre, 0.38), 0.6, 2.1) * range(rand, 0.92, 1.1),
+    bodyDecay:
+      base.bodyDecay * clamp(Math.pow(calibre, 0.38), 0.6, 2.1) * range(rand, 0.92, 1.1),
     bodyLevel: base.bodyLevel,
     crackHz,
     crackQ: base.crackQ * range(rand, 0.9, 1.12),
-    crackDecay: base.crackDecay * clamp(Math.pow(calibre, 0.2), 0.72, 1.5) * range(rand, 0.9, 1.12),
+    crackDecay:
+      base.crackDecay * clamp(Math.pow(calibre, 0.2), 0.72, 1.5) * range(rand, 0.9, 1.12),
     crackLevel: base.crackLevel,
     mech,
     mechLevel: base.mechLevel * clamp(Math.pow(rpmK, 0.18), 0.75, 1.35),
@@ -248,26 +343,56 @@ interface ShotTuning {
 
 /** Inside ~25 m: all shock front. This is the sound of being shot at. */
 const NEAR: ShotTuning = {
-  crack: 1, crackHzScale: 1, crackDecayScale: 1, crackAttack: 0.0022,
-  body: 1, bodyLp: 900, bodyDecayScale: 1, bodyAttack: 0.003,
-  mech: 1, tail: 0.6, slap: 0.5, boom: 0,
-  airLp: 19000, airHp: 28,
+  crack: 1,
+  crackHzScale: 1,
+  crackDecayScale: 1,
+  crackAttack: 0.0022,
+  body: 1,
+  bodyLp: 900,
+  bodyDecayScale: 1,
+  bodyAttack: 0.003,
+  mech: 1,
+  tail: 0.6,
+  slap: 0.5,
+  boom: 0,
+  airLp: 19000,
+  airHp: 28,
 };
 
 /** 40-110 m: the crack has rolled off, the body has taken over. */
 const MID: ShotTuning = {
-  crack: 0.46, crackHzScale: 0.72, crackDecayScale: 1.5, crackAttack: 0.004,
-  body: 1.25, bodyLp: 620, bodyDecayScale: 1.55, bodyAttack: 0.006,
-  mech: 0.16, tail: 1.15, slap: 1.15, boom: 0.35,
-  airLp: 5200, airHp: 46,
+  crack: 0.46,
+  crackHzScale: 0.72,
+  crackDecayScale: 1.5,
+  crackAttack: 0.004,
+  body: 1.25,
+  bodyLp: 620,
+  bodyDecayScale: 1.55,
+  bodyAttack: 0.006,
+  mech: 0.16,
+  tail: 1.15,
+  slap: 1.15,
+  boom: 0.35,
+  airLp: 5200,
+  airHp: 46,
 };
 
 /** Past ~180 m: no crack at all, just a rolling boom and its reflections. */
 const FAR: ShotTuning = {
-  crack: 0.05, crackHzScale: 0.4, crackDecayScale: 2.6, crackAttack: 0.012,
-  body: 1.05, bodyLp: 330, bodyDecayScale: 2.8, bodyAttack: 0.016,
-  mech: 0, tail: 1.5, slap: 1.35, boom: 1,
-  airLp: 1500, airHp: 62,
+  crack: 0.05,
+  crackHzScale: 0.4,
+  crackDecayScale: 2.6,
+  crackAttack: 0.012,
+  body: 1.05,
+  bodyLp: 330,
+  bodyDecayScale: 2.8,
+  bodyAttack: 0.016,
+  mech: 0,
+  tail: 1.5,
+  slap: 1.35,
+  boom: 1,
+  airLp: 1500,
+  airHp: 62,
 };
 
 function blendTuning(distance: number): ShotTuning {
@@ -316,7 +441,8 @@ function slapTaps(
   const c = 343;
   const taps: (readonly [number, number])[] = [];
   if (level <= 0.001) return taps;
-  const spread = env === "open-desert" ? [0.5, 1, 1.75, 2.7, 3.9] : [0.35, 0.7, 1.15, 1.9];
+  const spread =
+    env === "open-desert" ? [0.5, 1, 1.75, 2.7, 3.9] : [0.35, 0.7, 1.15, 1.9];
   const count = env === "hangar" ? 2 : env === "small-room" ? 1 : spread.length;
   for (let i = 0; i < count; i += 1) {
     const d = structureDistanceM * (spread[i] ?? 1) * range(rand, 0.9, 1.12);
@@ -364,7 +490,8 @@ export function renderShot(
   const suppressed = options.suppressed ?? false;
   const pitch = options.pitch ?? 1;
   const gain = (options.gain ?? 1) * tone.level;
-  const indoor = options.indoor ?? (options.env === "hangar" || options.env === "small-room");
+  const indoor =
+    options.indoor ?? (options.env === "hangar" || options.env === "small-room");
 
   // Per-shot variation. Small, but enough that full-auto never loops.
   const vHz = range(rand, 0.965, 1.035);
@@ -435,10 +562,16 @@ export function renderShot(
       );
     }
     mark(
-      modeRing(ctx, sum, when + 0.002, [
-        { hz: tone.crackHz * 0.55, q: 12, gain: 0.05 },
-        { hz: tone.crackHz * 0.82, q: 14, gain: 0.035 },
-      ], { decay: 0.09, rand }),
+      modeRing(
+        ctx,
+        sum,
+        when + 0.002,
+        [
+          { hz: tone.crackHz * 0.55, q: 12, gain: 0.05 },
+          { hz: tone.crackHz * 0.82, q: 14, gain: 0.035 },
+        ],
+        { decay: 0.09, rand },
+      ),
     );
   } else {
     /* ------------------------------------------------------- crack -- */
@@ -627,7 +760,8 @@ export function renderShot(
 
   /* ---------------------------------------------------------- tail -- */
   const structureD = options.structureDistanceM ?? (indoor ? 14 : 48);
-  const slapLevel = tone.slapLevel * t.slap * (suppressed ? 0.25 : 1) * (indoor ? 0.5 : 1);
+  const slapLevel =
+    tone.slapLevel * t.slap * (suppressed ? 0.25 : 1) * (indoor ? 0.5 : 1);
   const taps = slapTaps(options.env, structureD, slapLevel, rand);
   if (taps.length > 0) {
     const slapNodes = slapBack(ctx, airHp, dest, taps, {
@@ -709,13 +843,35 @@ export function renderDryFire(v: VoiceRender): number {
   const mark = (t: number): void => {
     if (t > end) end = t;
   };
-  mark(transientClick(ctx, dest, when, { freq: tone.crackHz * 0.62, q: 7, gain: 0.5, decay: 0.007, rand }));
-  mark(transientClick(ctx, dest, when + 0.014, { freq: 1650, q: 5, gain: 0.24, decay: 0.012, rand }));
   mark(
-    modeRing(ctx, dest, when + 0.002, [
-      { hz: 4300 * range(rand, 0.95, 1.05), q: 16, gain: 0.06 },
-      { hz: 6100, q: 20, gain: 0.03 },
-    ], { decay: 0.09, rand }),
+    transientClick(ctx, dest, when, {
+      freq: tone.crackHz * 0.62,
+      q: 7,
+      gain: 0.5,
+      decay: 0.007,
+      rand,
+    }),
+  );
+  mark(
+    transientClick(ctx, dest, when + 0.014, {
+      freq: 1650,
+      q: 5,
+      gain: 0.24,
+      decay: 0.012,
+      rand,
+    }),
+  );
+  mark(
+    modeRing(
+      ctx,
+      dest,
+      when + 0.002,
+      [
+        { hz: 4300 * range(rand, 0.95, 1.05), q: 16, gain: 0.06 },
+        { hz: 6100, q: 20, gain: 0.03 },
+      ],
+      { decay: 0.09, rand },
+    ),
   );
   return end;
 }
@@ -724,7 +880,13 @@ export function renderDryFire(v: VoiceRender): number {
 export function renderReloadStart(v: VoiceRender): number {
   const { ctx, dest, when, rand } = v;
   let end = clothRustle(ctx, dest, when, 0.19, 0.13, rand);
-  const tap = transientClick(ctx, dest, when + 0.06, { freq: 1200, q: 3.4, gain: 0.14, decay: 0.02, rand });
+  const tap = transientClick(ctx, dest, when + 0.06, {
+    freq: 1200,
+    q: 3.4,
+    gain: 0.14,
+    decay: 0.02,
+    rand,
+  });
   if (tap > end) end = tap;
   return end;
 }
@@ -737,7 +899,9 @@ export function renderReloadMagOut(v: VoiceRender): number {
   const mark = (t: number): void => {
     if (t > end) end = t;
   };
-  mark(transientClick(ctx, dest, when, { freq: 2950, q: 8, gain: 0.34, decay: 0.006, rand }));
+  mark(
+    transientClick(ctx, dest, when, { freq: 2950, q: 8, gain: 0.34, decay: 0.006, rand }),
+  );
   mark(
     noiseBurst(ctx, dest, when + 0.012, {
       kind: "white",
@@ -752,10 +916,16 @@ export function renderReloadMagOut(v: VoiceRender): number {
     }),
   );
   mark(
-    modeRing(ctx, dest, when + 0.01, [
-      { hz: 1750 * (tone.calibre > 1.4 ? 0.8 : 1), q: 10, gain: 0.06 },
-      { hz: 2830, q: 12, gain: 0.04 },
-    ], { decay: 0.13, rand }),
+    modeRing(
+      ctx,
+      dest,
+      when + 0.01,
+      [
+        { hz: 1750 * (tone.calibre > 1.4 ? 0.8 : 1), q: 10, gain: 0.06 },
+        { hz: 2830, q: 12, gain: 0.04 },
+      ],
+      { decay: 0.13, rand },
+    ),
   );
   mark(clothRustle(ctx, dest, when + 0.03, 0.12, 0.07, rand));
   return end;
@@ -784,14 +954,36 @@ export function renderReloadMagIn(v: VoiceRender): number {
       rand,
     }),
   );
-  mark(transientClick(ctx, dest, when + 0.052, { freq: 2250, q: 4.5, gain: 0.42, decay: 0.011, rand }));
-  // Latch.
-  mark(transientClick(ctx, dest, when + 0.072, { freq: 3600, q: 9, gain: 0.2, decay: 0.005, rand }));
   mark(
-    modeRing(ctx, dest, when + 0.052, [
-      { hz: 620 * (tone.calibre > 1.4 ? 0.85 : 1), q: 8, gain: 0.07 },
-      { hz: 1490, q: 11, gain: 0.045 },
-    ], { decay: 0.11, rand }),
+    transientClick(ctx, dest, when + 0.052, {
+      freq: 2250,
+      q: 4.5,
+      gain: 0.42,
+      decay: 0.011,
+      rand,
+    }),
+  );
+  // Latch.
+  mark(
+    transientClick(ctx, dest, when + 0.072, {
+      freq: 3600,
+      q: 9,
+      gain: 0.2,
+      decay: 0.005,
+      rand,
+    }),
+  );
+  mark(
+    modeRing(
+      ctx,
+      dest,
+      when + 0.052,
+      [
+        { hz: 620 * (tone.calibre > 1.4 ? 0.85 : 1), q: 8, gain: 0.07 },
+        { hz: 1490, q: 11, gain: 0.045 },
+      ],
+      { decay: 0.11, rand },
+    ),
   );
   return end;
 }
@@ -843,11 +1035,17 @@ export function renderReloadBolt(v: VoiceRender): number {
   );
   // Recoil-spring ring.
   mark(
-    modeRing(ctx, dest, when + 0.03, [
-      { hz: 3150 * range(rand, 0.97, 1.03), q: 18, gain: 0.075 },
-      { hz: 4720, q: 22, gain: 0.05 },
-      { hz: 6900, q: 26, gain: 0.026 },
-    ], { decay: 0.17, rand }),
+    modeRing(
+      ctx,
+      dest,
+      when + 0.03,
+      [
+        { hz: 3150 * range(rand, 0.97, 1.03), q: 18, gain: 0.075 },
+        { hz: 4720, q: 22, gain: 0.05 },
+        { hz: 6900, q: 26, gain: 0.026 },
+      ],
+      { decay: 0.17, rand },
+    ),
   );
   return end;
 }
@@ -870,7 +1068,15 @@ export function renderWeaponRaise(v: VoiceRender): number {
       rand,
     }),
   );
-  mark(transientClick(ctx, dest, when + 0.16, { freq: 1450, q: 4, gain: 0.13, decay: 0.017, rand }));
+  mark(
+    transientClick(ctx, dest, when + 0.16, {
+      freq: 1450,
+      q: 4,
+      gain: 0.13,
+      decay: 0.017,
+      rand,
+    }),
+  );
   return end;
 }
 
@@ -881,7 +1087,15 @@ export function renderWeaponLower(v: VoiceRender): number {
   const mark = (t: number): void => {
     if (t > end) end = t;
   };
-  mark(transientClick(ctx, dest, when, { freq: 1150, q: 3.4, gain: 0.11, decay: 0.02, rand }));
+  mark(
+    transientClick(ctx, dest, when, {
+      freq: 1150,
+      q: 3.4,
+      gain: 0.11,
+      decay: 0.02,
+      rand,
+    }),
+  );
   mark(clothRustle(ctx, dest, when + 0.02, 0.22, 0.16, rand));
   mark(
     patter(ctx, dest, when + 0.1, {

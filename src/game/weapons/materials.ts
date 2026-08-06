@@ -144,7 +144,12 @@ function makeStippleNormal(seed: number, size = 256): THREE.CanvasTexture {
 }
 
 /** Roughness variation so a finish is never perfectly uniform. */
-function makeRoughnessVariation(seed: number, base: number, spread: number, size = 256): THREE.CanvasTexture {
+function makeRoughnessVariation(
+  seed: number,
+  base: number,
+  spread: number,
+  size = 256,
+): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d")!;
@@ -391,8 +396,21 @@ export function getWeaponMaterials(): WeaponMaterials {
     dispose() {
       for (const t of textures) t.dispose();
       for (const m of [
-        steel, receiver, nitride, bareMetal, polymer, polymerTan, grip,
-        rubber, brass, copper, lens, reticle, optic, markings, wood,
+        steel,
+        receiver,
+        nitride,
+        bareMetal,
+        polymer,
+        polymerTan,
+        grip,
+        rubber,
+        brass,
+        copper,
+        lens,
+        reticle,
+        optic,
+        markings,
+        wood,
       ]) {
         m.dispose();
       }

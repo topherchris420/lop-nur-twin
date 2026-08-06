@@ -55,7 +55,13 @@ const _sunDir = new THREE.Vector3();
 const _sunColor = new THREE.Color();
 const _invQuat = new THREE.Quaternion();
 
-export function PlayerRig({ world, fx, postEnabled, environment, onReady }: PlayerRigProps) {
+export function PlayerRig({
+  world,
+  fx,
+  postEnabled,
+  environment,
+  onReady,
+}: PlayerRigProps) {
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
 
@@ -186,15 +192,29 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
 
       /* ---------------------------------------------------- look */
       player.yaw += s.lookYaw;
-      player.pitch = THREE.MathUtils.clamp(player.pitch + s.lookPitch, -MAX_PITCH, MAX_PITCH);
+      player.pitch = THREE.MathUtils.clamp(
+        player.pitch + s.lookPitch,
+        -MAX_PITCH,
+        MAX_PITCH,
+      );
 
       /* ------------------------------------------------ movement */
       controller.update(player, s, world, dt, active.ads);
       for (const event of controller.events) {
         if (event.kind === "footstep" && fx) {
-          fx.groundDust(player.position, event.surface, Math.min(1, event.speed / 5), 0.4);
+          fx.groundDust(
+            player.position,
+            event.surface,
+            Math.min(1, event.speed / 5),
+            0.4,
+          );
         } else if (event.kind === "land" && fx && event.speed > 4) {
-          fx.groundDust(player.position, event.surface, Math.min(1.4, event.speed / 7), 0.7);
+          fx.groundDust(
+            player.position,
+            event.surface,
+            Math.min(1.4, event.speed / 7),
+            0.7,
+          );
         } else if (event.kind === "slide-start" && fx) {
           fx.groundDust(player.position, player.groundSurface, 1.4, 0.9);
         } else if (event.kind === "fall-damage") {
@@ -312,9 +332,12 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     // speed-driven widening that makes sprinting feel faster than it is. The
     // blend runs in horizontal degrees — the units every number involved is
     // authored in — and only the result is converted for the camera.
-    const speedFov = Math.min(1, controller.speed / 7.6) * (controller.tacSprinting ? 6 : 3);
+    const speedFov =
+      Math.min(1, controller.speed / 7.6) * (controller.tacSprinting ? 6 : 3);
     const targetFov =
-      fovSetting + speedFov + (active.def.handling.adsFov - fovSetting - speedFov) * active.ads;
+      fovSetting +
+      speedFov +
+      (active.def.handling.adsFov - fovSetting - speedFov) * active.ads;
     const perspective = camera as THREE.PerspectiveCamera;
     horizontalFov.current += (targetFov - horizontalFov.current) * Math.min(1, dt * 16);
     perspective.fov = horizontalToVerticalFov(horizontalFov.current, perspective.aspect);
@@ -323,16 +346,21 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     /* ----------------------------------------------------- viewmodel */
     // The weapon has its own camera, so it needs no FOV compensation — it is
     // simply posed at true scale in front of a 62° lens.
-    animator.update(model, active, {
-      lookDeltaYaw: input.rawYaw,
-      lookDeltaPitch: input.rawPitch,
-      speed: controller.speed,
-      grounded: player.grounded,
-      view,
-      time: game.time,
-      lowered: playing ? 0 : 1,
-      fovScale: 1,
-    }, dt);
+    animator.update(
+      model,
+      active,
+      {
+        lookDeltaYaw: input.rawYaw,
+        lookDeltaPitch: input.rawPitch,
+        speed: controller.speed,
+        grounded: player.grounded,
+        view,
+        time: game.time,
+        lowered: playing ? 0 : 1,
+        fovScale: 1,
+      },
+      dt,
+    );
     stage.setAds(active.ads);
 
     /* --------------------------------------------------------- state */
@@ -396,11 +424,7 @@ export function PlayerRig({ world, fx, postEnabled, environment, onReady }: Play
     // The composer leaves the renderer on NoToneMapping and applies AgX
     // itself; matching both the transform and the exposure here keeps the two
     // passes on one response curve.
-    stage.render(
-      gl2,
-      THREE.AgXToneMapping,
-      postEnabled ? getPostExposure() : 1.05,
-    );
+    stage.render(gl2, THREE.AgXToneMapping, postEnabled ? getPostExposure() : 1.05);
   }, 2);
 
   // Nothing renders from this component directly; the stage owns the model.
@@ -423,7 +447,13 @@ export function placePlayer(
   player.grounded = true;
   // Nudge upward if the spawn is inside a prop.
   for (let i = 0; i < 8; i += 1) {
-    if (world.isPositionFree(player.position, HUMAN_METRICS.radius, HUMAN_METRICS.colliderHeight.stand)) {
+    if (
+      world.isPositionFree(
+        player.position,
+        HUMAN_METRICS.radius,
+        HUMAN_METRICS.colliderHeight.stand,
+      )
+    ) {
       break;
     }
     player.position.y += 0.35;

@@ -161,9 +161,17 @@ function MainMenu() {
 
   const modes: { id: typeof mode; name: string; blurb: string }[] = [
     { id: "tdm", name: "Team Deathmatch", blurb: "Two squads. 75 eliminations." },
-    { id: "domination", name: "Domination", blurb: "Hold the apron, the shelters, the fuel farm." },
+    {
+      id: "domination",
+      name: "Domination",
+      blurb: "Hold the apron, the shelters, the fuel farm.",
+    },
     { id: "ffa", name: "Free-for-All", blurb: "Everyone on the flight line is hostile." },
-    { id: "hardpoint", name: "Hardpoint", blurb: "A rotating objective across the compound." },
+    {
+      id: "hardpoint",
+      name: "Hardpoint",
+      blurb: "A rotating objective across the compound.",
+    },
   ];
 
   return (
@@ -177,9 +185,9 @@ function MainMenu() {
           <span className="block text-[#4da3ff]">Blacksite</span>
         </h1>
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-400">
-          A first-person engagement simulator built on the measured 6.8 km
-          reconstruction of the airfield. The map is the twin: same runway
-          bearing, same compound layout, same structures.
+          A first-person engagement simulator built on the measured 6.8 km reconstruction
+          of the airfield. The map is the twin: same runway bearing, same compound layout,
+          same structures.
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-2">
@@ -220,12 +228,18 @@ function MainMenu() {
             max={1}
             step={0.02}
             onChange={setBotSkill}
-            format={(v) => (v < 0.4 ? "Recruit" : v < 0.6 ? "Regular" : v < 0.8 ? "Hardened" : "Veteran")}
+            format={(v) =>
+              v < 0.4 ? "Recruit" : v < 0.6 ? "Regular" : v < 0.8 ? "Hardened" : "Veteran"
+            }
           />
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <TacticalButton primary onClick={() => setScreen("playing")} className="max-w-[220px]">
+          <TacticalButton
+            primary
+            onClick={() => setScreen("playing")}
+            className="max-w-[220px]"
+          >
             Deploy
           </TacticalButton>
           <TacticalButton onClick={() => setScreen("loadout")} className="max-w-[220px]">
@@ -236,7 +250,8 @@ function MainMenu() {
           </TacticalLink>
         </div>
         <p className="mt-6 text-[10px] uppercase tracking-[0.24em] text-slate-600">
-          WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · Q swap · Esc menu
+          WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · Q swap ·
+          Esc menu
         </p>
       </div>
     </Scrim>
@@ -246,7 +261,9 @@ function MainMenu() {
 function StatBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-20 text-[9px] uppercase tracking-[0.16em] text-slate-500">{label}</span>
+      <span className="w-20 text-[9px] uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </span>
       <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
         <span
           className="block h-full rounded-full bg-[#4da3ff] transition-[width] duration-300"
@@ -277,7 +294,10 @@ function LoadoutScreen() {
     accuracy: Math.max(0.05, 1 - primary.spread.adsDeg / 0.6),
     fireRate: Math.min(1, primary.rpm / 1050),
     mobility: Math.max(0.05, (primary.handling.moveScale - 0.75) / 0.5),
-    control: Math.max(0.05, 1 - (primary.recoil.verticalDeg * primary.recoil.sustainScale) / 4),
+    control: Math.max(
+      0.05,
+      1 - (primary.recoil.verticalDeg * primary.recoil.sustainScale) / 4,
+    ),
   };
 
   return (
@@ -348,7 +368,9 @@ function LoadoutScreen() {
             <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-4 text-[10px] uppercase tracking-[0.16em] text-slate-500">
               <div>
                 <dt>Rounds</dt>
-                <dd className="mt-1 font-mono text-base text-slate-100">{primary.magSize}</dd>
+                <dd className="mt-1 font-mono text-base text-slate-100">
+                  {primary.magSize}
+                </dd>
               </div>
               <div>
                 <dt>RPM</dt>
@@ -425,9 +447,21 @@ function PauseMenu() {
             step={0.05}
             onChange={store.setMasterVolume}
           />
-          <Toggle label="Invert look" value={store.invertY} onChange={store.toggleInvertY} />
-          <Toggle label="Film grain" value={store.filmGrain} onChange={store.toggleFilmGrain} />
-          <Toggle label="Show statistics" value={store.showFps} onChange={store.toggleShowFps} />
+          <Toggle
+            label="Invert look"
+            value={store.invertY}
+            onChange={store.toggleInvertY}
+          />
+          <Toggle
+            label="Film grain"
+            value={store.filmGrain}
+            onChange={store.toggleFilmGrain}
+          />
+          <Toggle
+            label="Show statistics"
+            value={store.showFps}
+            onChange={store.toggleShowFps}
+          />
         </div>
       </div>
     </Scrim>
@@ -459,12 +493,16 @@ function ResultsScreen() {
 
         <div className="mt-8 flex items-center justify-center gap-10 font-mono">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[#4da3ff]">Blue</div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[#4da3ff]">
+              Blue
+            </div>
             <div className="text-5xl font-bold text-white">{hud.scoreBlue}</div>
           </div>
           <div className="text-2xl text-slate-600">—</div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[#ff5a4d]">Red</div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[#ff5a4d]">
+              Red
+            </div>
             <div className="text-5xl font-bold text-white">{hud.scoreRed}</div>
           </div>
         </div>

@@ -41,12 +41,54 @@ const quality = arg("quality", "3");
 
 /** Angle around the subject, lens, and what the shot is for. */
 const SHOTS = [
-  { id: "front", angle: 0, fov: 28, distance: 3.6, aim: 0.95, note: "silhouette, kit layout, proportions" },
-  { id: "three-quarter", angle: 40, fov: 28, distance: 3.6, aim: 0.95, note: "the angle a player actually sees" },
-  { id: "side", angle: 90, fov: 28, distance: 3.6, aim: 0.95, note: "pack depth, boot length, spine" },
-  { id: "back", angle: 180, fov: 28, distance: 3.6, aim: 0.95, note: "pack, helmet rear, belt line" },
-  { id: "head", angle: 25, fov: 9, distance: 2.4, aim: 1.62, note: "helmet, face, NVG mount" },
-  { id: "boots", angle: 30, fov: 12, distance: 2.2, aim: 0.22, note: "boot proportion and tread" },
+  {
+    id: "front",
+    angle: 0,
+    fov: 28,
+    distance: 3.6,
+    aim: 0.95,
+    note: "silhouette, kit layout, proportions",
+  },
+  {
+    id: "three-quarter",
+    angle: 40,
+    fov: 28,
+    distance: 3.6,
+    aim: 0.95,
+    note: "the angle a player actually sees",
+  },
+  {
+    id: "side",
+    angle: 90,
+    fov: 28,
+    distance: 3.6,
+    aim: 0.95,
+    note: "pack depth, boot length, spine",
+  },
+  {
+    id: "back",
+    angle: 180,
+    fov: 28,
+    distance: 3.6,
+    aim: 0.95,
+    note: "pack, helmet rear, belt line",
+  },
+  {
+    id: "head",
+    angle: 25,
+    fov: 9,
+    distance: 2.4,
+    aim: 1.62,
+    note: "helmet, face, NVG mount",
+  },
+  {
+    id: "boots",
+    angle: 30,
+    fov: 12,
+    distance: 2.2,
+    aim: 0.22,
+    note: "boot proportion and tread",
+  },
 ];
 
 const browser = await puppeteer.launch({
@@ -68,7 +110,12 @@ for (let i = 0; i < 120; i += 1) {
   const ready = await page
     .evaluate(() => {
       const h = globalThis.__combat;
-      return !!(h && h.game.world && h.r3f.scene.environment && h.game.stats.drawCalls > 5);
+      return !!(
+        h &&
+        h.game.world &&
+        h.r3f.scene.environment &&
+        h.game.stats.drawCalls > 5
+      );
     })
     .catch(() => false);
   if (ready) break;
@@ -92,7 +139,8 @@ const staged = await page.evaluate((wantStance) => {
     const x = p.position.x - Math.sin(yaw) * 6;
     const z = p.position.z - Math.cos(yaw) * 6;
     const y = game.world.groundAt(x, z);
-    if (game.world.isPositionFree({ x, y, z, isVector3: true }, 0.5, 1.9)) spot = { x, y, z };
+    if (game.world.isPositionFree({ x, y, z, isVector3: true }, 0.5, 1.9))
+      spot = { x, y, z };
   }
   if (!spot) return { error: "nowhere clear to stand the subject" };
 
@@ -162,7 +210,11 @@ for (const shot of SHOTS) {
     bot.velocity.set(0, 0, 0);
     bot.state = "idle";
     bot.yaw = Math.PI * 1.25 + theta;
-    bot.position.set(globalThis.__portraitAt.x, globalThis.__portraitAt.y, globalThis.__portraitAt.z);
+    bot.position.set(
+      globalThis.__portraitAt.x,
+      globalThis.__portraitAt.y,
+      globalThis.__portraitAt.z,
+    );
     const x = bot.position.x + 0.707 * s.distance;
     const z = bot.position.z + 0.707 * s.distance;
     p.position.set(x, game.world.groundAt(x, z), z);

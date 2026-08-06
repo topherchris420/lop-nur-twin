@@ -71,7 +71,9 @@ export interface HardSurfaceOptions {
   seed?: number;
 }
 
-interface ResolvedHardSurface extends Required<Omit<HardSurfaceOptions, "dustColor" | "rustColor" | "rimColor">> {
+interface ResolvedHardSurface extends Required<
+  Omit<HardSurfaceOptions, "dustColor" | "rustColor" | "rimColor">
+> {
   dustColor: THREE.Color;
   rustColor: THREE.Color;
   rimColor: THREE.Color;
@@ -649,9 +651,7 @@ export function makeGreebleGeometry({
     // rails run along z, evenly spread across the deck, each with its own
     // shared rotation so a cluster reads as one installation
     const railZ =
-      railCount === 1
-        ? 0
-        : -usableDepth / 2 + (usableDepth * (rail + 0.5)) / railCount;
+      railCount === 1 ? 0 : -usableDepth / 2 + (usableDepth * (rail + 0.5)) / railCount;
     const railX = (random() - 0.5) * usableWidth * 0.5;
     const railRotation = (random() - 0.5) * 0.12;
     const perRail = Math.max(1, Math.floor(budget / railCount));
@@ -683,11 +683,7 @@ export function makeGreebleGeometry({
       sy = Math.min(sy, maxHeight);
 
       const gap = 0.35 + random() * 0.8;
-      const z = THREE.MathUtils.clamp(
-        cursor + sz / 2,
-        -usableDepth / 2,
-        usableDepth / 2,
-      );
+      const z = THREE.MathUtils.clamp(cursor + sz / 2, -usableDepth / 2, usableDepth / 2);
       cursor += sz + gap;
       if (cursor > usableDepth / (2 * railCount) + usableDepth) break;
 

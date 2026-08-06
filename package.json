@@ -2,6 +2,7 @@
   "name": "desert-airfield-twin",
   "private": true,
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -11,22 +12,26 @@
     "build": "node scripts/run-ts.mjs scripts/validate-data.ts && node scripts/run-ts.mjs scripts/generate-manifest.ts && vite build && tsc --noEmit",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
-    "manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
-    "generate:manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
-    "test:evidence": "node scripts/run-ts.mjs scripts/test-evidence-validation.ts",
-    "smoke": "node tools/smoke.mjs",
-    "engagement": "node tools/engagement.mjs",
-    "audio": "node tools/audio.mjs",
-    "gait": "node tools/gait.mjs",
+    "check": "bun run format:check && bun run lint && bun run test:run && bun run test:evidence && bun run build",
     "a11y": "node tools/a11y.mjs",
-    "routes": "node tools/routes.mjs",
+    "audio": "node tools/audio.mjs",
     "closeup": "node tools/closeup.mjs",
-    "shots": "node tools/shots.mjs",
+    "engagement": "node tools/engagement.mjs",
+    "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "gait": "node tools/gait.mjs",
+    "generate:manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "manifest": "node scripts/run-ts.mjs scripts/generate-manifest.ts",
+    "routes": "node tools/routes.mjs",
+    "shots": "node tools/shots.mjs",
+    "smoke": "node tools/smoke.mjs",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:evidence": "node scripts/run-ts.mjs scripts/test-evidence-validation.ts",
     "test:run": "vitest run",
-    "check": "bun run format:check && bun run lint && bun run test:run && bun run test:evidence && bun run build"
+    "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.15",
@@ -50,6 +55,7 @@
     "@rolldown/binding-win32-x64-msvc": "^1.2.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.23",
     "@types/node": "^26.1.2",
@@ -57,10 +63,18 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.0",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "axe-core": "^4.12.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
     "puppeteer": "^25.4.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^8.1.5"
+    "typescript-eslint": "^8.47.2",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
   }
 }

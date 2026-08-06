@@ -134,16 +134,16 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
         <div
           ref={labelRef}
           style={{
-              display: "none",
-              padding: "4px 8px",
-              borderRadius: 6,
-              whiteSpace: "nowrap",
-              font: "600 13px/1.25 ui-monospace, monospace",
-              color: "#f5f1e6",
-              background: "rgba(20, 22, 26, 0.78)",
-              border: `1px solid ${aircraft.military ? "#ff5b52" : "#c9bd97"}`,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-              textAlign: "center",
+            display: "none",
+            padding: "4px 8px",
+            borderRadius: 6,
+            whiteSpace: "nowrap",
+            font: "600 13px/1.25 ui-monospace, monospace",
+            color: "#f5f1e6",
+            background: "rgba(20, 22, 26, 0.78)",
+            border: `1px solid ${aircraft.military ? "#ff5b52" : "#c9bd97"}`,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            textAlign: "center",
           }}
         >
           <div>{aircraft.callsign}</div>

@@ -17,20 +17,20 @@ in the "recommended" section exists in this repository. In particular:
 
 ## Status of each component
 
-| Component | Status | Where |
-| :-- | :-- | :-- |
-| Deterministic geometry and layout | **Implemented** | `src/lib/layout.ts` |
-| Public source register | **Implemented** | `src/lib/siteData.ts` |
-| Evidence ledger with 0–1 confidence, CRS, uncertainty | **Implemented** | `src/lib/evidence.ts` |
-| Build-gating evidence validation + negative tests | **Implemented** | `src/lib/evidenceValidation.ts`, `scripts/test-evidence-validation.ts` |
-| Reproducible release manifest with SHA-256 hashes | **Implemented** | `scripts/generate-manifest.ts` |
-| Accessible non-3D analytical view | **Implemented** | `src/routes/analysis.tsx` |
-| Security headers and CSP, verified against the real build | **Implemented** | `vite.config.ts`, `vercel.json`, `deploy/nginx.conf` |
-| CI: build, tests, CodeQL, Gitleaks, Trivy, SBOM, dependency review | **Implemented** | `.github/workflows/` |
-| Container deployment (non-root nginx, SPA fallback, health path) | **Implemented** | `Dockerfile`, `deploy/nginx.conf` |
-| Evidence record schema shaped for a future API (`sourceHash`, `supersedes`) | **Scaffolded** — fields exist, deliberately unpopulated | `src/lib/evidence.ts` |
-| Machine-readable release identity for a future registry | **Scaffolded** — manifest is the artifact an API would serve | `public/model-manifest.json` |
-| PostGIS, object storage, evidence API, OIDC, RBAC, audit log, IaC | **Recommended only — not built** | this document |
+| Component                                                                   | Status                                                       | Where                                                                  |
+| :-------------------------------------------------------------------------- | :----------------------------------------------------------- | :--------------------------------------------------------------------- |
+| Deterministic geometry and layout                                           | **Implemented**                                              | `src/lib/layout.ts`                                                    |
+| Public source register                                                      | **Implemented**                                              | `src/lib/siteData.ts`                                                  |
+| Evidence ledger with 0–1 confidence, CRS, uncertainty                       | **Implemented**                                              | `src/lib/evidence.ts`                                                  |
+| Build-gating evidence validation + negative tests                           | **Implemented**                                              | `src/lib/evidenceValidation.ts`, `scripts/test-evidence-validation.ts` |
+| Reproducible release manifest with SHA-256 hashes                           | **Implemented**                                              | `scripts/generate-manifest.ts`                                         |
+| Accessible non-3D analytical view                                           | **Implemented**                                              | `src/routes/analysis.tsx`                                              |
+| Security headers and CSP, verified against the real build                   | **Implemented**                                              | `vite.config.ts`, `vercel.json`, `deploy/nginx.conf`                   |
+| CI: build, tests, CodeQL, Gitleaks, Trivy, SBOM, dependency review          | **Implemented**                                              | `.github/workflows/`                                                   |
+| Container deployment (non-root nginx, SPA fallback, health path)            | **Implemented**                                              | `Dockerfile`, `deploy/nginx.conf`                                      |
+| Evidence record schema shaped for a future API (`sourceHash`, `supersedes`) | **Scaffolded** — fields exist, deliberately unpopulated      | `src/lib/evidence.ts`                                                  |
+| Machine-readable release identity for a future registry                     | **Scaffolded** — manifest is the artifact an API would serve | `public/model-manifest.json`                                           |
+| PostGIS, object storage, evidence API, OIDC, RBAC, audit log, IaC           | **Recommended only — not built**                             | this document                                                          |
 
 ## Target architecture, if it is ever needed
 
@@ -130,7 +130,7 @@ prototype validates a certificate itself should be rejected.
 Enforced at the gateway and in the service, never in the UI. Plausible roles:
 `viewer` (read published evidence), `analyst` (propose claims and revisions),
 `reviewer` (approve a classification change), `admin`. Given this project's
-subject matter, the interesting authorisation question is not who may *read* —
+subject matter, the interesting authorisation question is not who may _read_ —
 it is who may promote a claim from `interpreted` to `observed`.
 
 ### Immutable audit logs

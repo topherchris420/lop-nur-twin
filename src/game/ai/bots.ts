@@ -11,13 +11,7 @@ import {
   type EntityId,
   type Team,
 } from "../core/types";
-import {
-  addActor,
-  createActor,
-  eyePosition,
-  game,
-  type Actor,
-} from "../core/gameState";
+import { addActor, createActor, eyePosition, game, type Actor } from "../core/gameState";
 import type { CollisionWorld } from "../physics/collisionWorld";
 import { WeaponRuntime } from "../weapons/runtime";
 import { getWeapon } from "../weapons/arsenal";
@@ -58,9 +52,30 @@ import { applyNearMissSuppression, respawnActor } from "../core/combat";
  */
 
 const BOT_NAMES = [
-  "VOSS", "KESTREL", "AMARO", "DRAKE", "SOLIS", "RENNER", "HOLT", "BAIER",
-  "NAKATA", "ORLOV", "PIKE", "SANDOVAL", "TEAGUE", "VANCE", "WREN", "ZAHRA",
-  "BRANDT", "CORVI", "DELACROIX", "EASTON", "FARROW", "GALINDO", "HARKER", "IVES",
+  "VOSS",
+  "KESTREL",
+  "AMARO",
+  "DRAKE",
+  "SOLIS",
+  "RENNER",
+  "HOLT",
+  "BAIER",
+  "NAKATA",
+  "ORLOV",
+  "PIKE",
+  "SANDOVAL",
+  "TEAGUE",
+  "VANCE",
+  "WREN",
+  "ZAHRA",
+  "BRANDT",
+  "CORVI",
+  "DELACROIX",
+  "EASTON",
+  "FARROW",
+  "GALINDO",
+  "HARKER",
+  "IVES",
 ];
 
 /**
@@ -71,9 +86,18 @@ const BOT_NAMES = [
  * disables every class-dependent branch in this file.
  */
 const BOT_PRIMARIES = [
-  "oslo-14", "oslo-14", "halberd-762", "cinder-33", "ronin-68",
-  "wasp-9", "wasp-9", "kestrel-45", "hornet-pdw",
-  "bulwark-7", "longbow-dmr", "breaker-12",
+  "oslo-14",
+  "oslo-14",
+  "halberd-762",
+  "cinder-33",
+  "ronin-68",
+  "wasp-9",
+  "wasp-9",
+  "kestrel-45",
+  "hornet-pdw",
+  "bulwark-7",
+  "longbow-dmr",
+  "breaker-12",
 ];
 
 /** How far a bot can see a target it is facing. */
@@ -94,13 +118,7 @@ const SPAWN_SIGHT_CLEARANCE = 90;
 const CONTACT_TTL = 9;
 
 type BotState =
-  | "idle"
-  | "patrol"
-  | "investigate"
-  | "engage"
-  | "reposition"
-  | "reload"
-  | "dead";
+  "idle" | "patrol" | "investigate" | "engage" | "reposition" | "reload" | "dead";
 
 interface Bot {
   actor: Actor;
@@ -308,11 +326,7 @@ export class BotManager {
       score -= Math.max(0, d - SPAWN_BAND_MAX) * 2.5;
     }
 
-    _eye.set(
-      position.x,
-      position.y + HUMAN_METRICS.eyeHeight.stand,
-      position.z,
-    );
+    _eye.set(position.x, position.y + HUMAN_METRICS.eyeHeight.stand, position.z);
     for (const other of game.actors) {
       if (!other.alive || other.team !== enemyTeam) continue;
       const d = other.position.distanceTo(position);
@@ -567,7 +581,11 @@ export class BotManager {
 
     // Being shot at from somewhere you cannot see is information. Turn toward
     // it and go looking, rather than continuing to walk away from the rounds.
-    if (!hasTarget && time - actor.lastDamageTime < 0.35 && actor.lastAttackerId !== null) {
+    if (
+      !hasTarget &&
+      time - actor.lastDamageTime < 0.35 &&
+      actor.lastAttackerId !== null
+    ) {
       const attacker = game.actorById.get(actor.lastAttackerId);
       if (attacker && attacker.team !== actor.team) {
         bot.lastKnown.copy(attacker.position);
@@ -659,7 +677,9 @@ export class BotManager {
     // Stance: crouch when holding a position under fire.
     const wantsCrouch =
       (bot.state === "engage" && actor.suppression > 0.35) ||
-      (bot.state === "engage" && actor.position.distanceTo(bot.goal) < 1.5 && bot.rand() < 0.4);
+      (bot.state === "engage" &&
+        actor.position.distanceTo(bot.goal) < 1.5 &&
+        bot.rand() < 0.4);
     actor.stance = wantsCrouch ? "crouch" : "stand";
   }
 
@@ -747,13 +767,7 @@ export class BotManager {
       _desired.multiplyScalar(1 / distance);
       const engaging = bot.state === "engage";
       speed =
-        actor.stance === "crouch"
-          ? 1.9
-          : engaging
-            ? 3.4
-            : distance > 25
-              ? 5.6
-              : 3.9;
+        actor.stance === "crouch" ? 1.9 : engaging ? 3.4 : distance > 25 ? 5.6 : 3.9;
 
       // Whisker avoidance: probe ahead and to both sides at chest height and
       // steer away from whatever is closest. Cheaper than a path search and
@@ -846,7 +860,9 @@ export class BotManager {
       // Lead the target by its own velocity over the round's flight time.
       const distance = _eye.distanceTo(_targetEye);
       const flight = distance / Math.max(80, bot.weapon.def.ballistics.muzzleVelocity);
-      _lead.copy(target.velocity).multiplyScalar(flight * THREE.MathUtils.lerp(0.2, 1, actor.skill));
+      _lead
+        .copy(target.velocity)
+        .multiplyScalar(flight * THREE.MathUtils.lerp(0.2, 1, actor.skill));
       _aim.copy(_targetEye).add(_lead).sub(_eye).normalize();
 
       // Aim error: wide on acquisition, converging the longer the target is
@@ -855,7 +871,7 @@ export class BotManager {
       const baseError = THREE.MathUtils.lerp(6, 0.6, actor.skill);
       const converge = Math.exp(-bot.timeOnTarget * (0.9 + actor.skill * 1.6));
       const suppressed = 1 + actor.suppression * 1.8;
-      const errorDeg = (baseError * (0.35 + 0.65 * converge)) * suppressed;
+      const errorDeg = baseError * (0.35 + 0.65 * converge) * suppressed;
       bot.aimNoisePhase += dt * 3.1;
       const errorRad = (errorDeg * Math.PI) / 180;
       _right.crossVectors(_aim, UP).normalize();
@@ -919,7 +935,8 @@ export class BotManager {
       applyNearMissSuppression(_eye, _shotEnd, actor.team);
       bot.burst -= 1;
       if (bot.burst <= 0) {
-        bot.burstPause = THREE.MathUtils.lerp(0.75, 0.22, actor.skill) * (0.7 + bot.rand() * 0.6);
+        bot.burstPause =
+          THREE.MathUtils.lerp(0.75, 0.22, actor.skill) * (0.7 + bot.rand() * 0.6);
       }
       this.onFire?.(actor);
     }

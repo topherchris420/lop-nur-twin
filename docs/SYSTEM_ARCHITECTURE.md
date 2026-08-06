@@ -69,12 +69,12 @@ flowchart TB
 
 ## 3. Routes (TanStack Router)
 
-| Route | Purpose | Notes |
-| :-- | :-- | :-- |
-| `/` | The analytical digital twin: 3D scene, dossiers, evidence legend, measurement ruler, research panel | `validateSearch` accepts only `?structure=<known id>` |
-| `/play` | **Blacksite** — the first-person simulation on the same geometry | Permanent "Illustrative simulation — not operational data" banner and a return link, both outside the game HUD |
-| `/analysis` | Non-3D accessible analysis: searchable structure table, evidence legend, limitations, manifest | No canvas, no animation, no timers |
-| *unknown* | Styled not-found view offering the real routes | `src/routes/__root.tsx` |
+| Route       | Purpose                                                                                             | Notes                                                                                                          |
+| :---------- | :-------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| `/`         | The analytical digital twin: 3D scene, dossiers, evidence legend, measurement ruler, research panel | `validateSearch` accepts only `?structure=<known id>`                                                          |
+| `/play`     | **Blacksite** — the first-person simulation on the same geometry                                    | Permanent "Illustrative simulation — not operational data" banner and a return link, both outside the game HUD |
+| `/analysis` | Non-3D accessible analysis: searchable structure table, evidence legend, limitations, manifest      | No canvas, no animation, no timers                                                                             |
+| _unknown_   | Styled not-found view offering the real routes                                                      | `src/routes/__root.tsx`                                                                                        |
 
 All three load directly and survive a refresh; the host rewrites unknown paths
 to `index.html` while still serving real files as themselves.
@@ -103,7 +103,7 @@ Two stores, both for **discrete** state only:
 - `src/game/core/gameStore.ts` — game screen, mode, loadout, killfeed,
   settings, match seed.
 
-Anything that changes every frame is deliberately *not* here.
+Anything that changes every frame is deliberately _not_ here.
 
 ## 6. Shared digital-twin layout
 

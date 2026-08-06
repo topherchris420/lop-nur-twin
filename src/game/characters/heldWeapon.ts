@@ -35,22 +35,71 @@ interface ClassProfile {
 function profileFor(weaponClass: WeaponClass): ClassProfile {
   switch (weaponClass) {
     case "smg":
-      return { length: 0.62, receiverDepth: 0.072, magLength: 0.17, hasOptic: true, hasStock: true, barrelRadius: 0.009 };
+      return {
+        length: 0.62,
+        receiverDepth: 0.072,
+        magLength: 0.17,
+        hasOptic: true,
+        hasStock: true,
+        barrelRadius: 0.009,
+      };
     case "lmg":
-      return { length: 1.02, receiverDepth: 0.095, magLength: 0.15, hasOptic: false, hasStock: true, barrelRadius: 0.013 };
+      return {
+        length: 1.02,
+        receiverDepth: 0.095,
+        magLength: 0.15,
+        hasOptic: false,
+        hasStock: true,
+        barrelRadius: 0.013,
+      };
     case "sniper":
     case "marksman":
-      return { length: 1.08, receiverDepth: 0.082, magLength: 0.11, hasOptic: true, hasStock: true, barrelRadius: 0.012 };
+      return {
+        length: 1.08,
+        receiverDepth: 0.082,
+        magLength: 0.11,
+        hasOptic: true,
+        hasStock: true,
+        barrelRadius: 0.012,
+      };
     case "shotgun":
-      return { length: 0.92, receiverDepth: 0.078, magLength: 0, hasOptic: false, hasStock: true, barrelRadius: 0.016 };
+      return {
+        length: 0.92,
+        receiverDepth: 0.078,
+        magLength: 0,
+        hasOptic: false,
+        hasStock: true,
+        barrelRadius: 0.016,
+      };
     case "pistol":
-      return { length: 0.21, receiverDepth: 0.055, magLength: 0.1, hasOptic: false, hasStock: false, barrelRadius: 0.008 };
+      return {
+        length: 0.21,
+        receiverDepth: 0.055,
+        magLength: 0.1,
+        hasOptic: false,
+        hasStock: false,
+        barrelRadius: 0.008,
+      };
     default:
-      return { length: 0.84, receiverDepth: 0.078, magLength: 0.19, hasOptic: true, hasStock: true, barrelRadius: 0.01 };
+      return {
+        length: 0.84,
+        receiverDepth: 0.078,
+        magLength: 0.19,
+        hasOptic: true,
+        hasStock: true,
+        barrelRadius: 0.01,
+      };
   }
 }
 
-function box(w: number, h: number, d: number, x: number, y: number, z: number): THREE.BufferGeometry {
+function box(
+  w: number,
+  h: number,
+  d: number,
+  x: number,
+  y: number,
+  z: number,
+): THREE.BufferGeometry {
   const geometry = new THREE.BoxGeometry(w, h, d);
   geometry.translate(x, y, z);
   return geometry;
@@ -65,10 +114,17 @@ function buildGeometry(weaponClass: WeaponClass): THREE.BufferGeometry {
 
   // Receiver and handguard as one tapered spine.
   parts.push(box(0.05, p.receiverDepth, p.length * 0.42, 0, 0.03, -p.length * 0.1));
-  parts.push(box(0.044, p.receiverDepth * 0.78, p.length * 0.3, 0, 0.028, -p.length * 0.34));
+  parts.push(
+    box(0.044, p.receiverDepth * 0.78, p.length * 0.3, 0, 0.028, -p.length * 0.34),
+  );
 
   // Barrel past the handguard.
-  const barrel = new THREE.CylinderGeometry(p.barrelRadius, p.barrelRadius, p.length * 0.24, 8);
+  const barrel = new THREE.CylinderGeometry(
+    p.barrelRadius,
+    p.barrelRadius,
+    p.length * 0.24,
+    8,
+  );
   barrel.rotateX(Math.PI / 2);
   barrel.translate(0, 0.03, front + p.length * 0.1);
   parts.push(barrel);
@@ -86,16 +142,21 @@ function buildGeometry(weaponClass: WeaponClass): THREE.BufferGeometry {
     parts.push(box(0.036, 0.075, 0.03, 0, 0.012, back));
   }
   if (p.hasOptic) {
-    parts.push(box(0.03, 0.036, 0.075, 0, p.receiverDepth * 0.5 + 0.028, -p.length * 0.08));
+    parts.push(
+      box(0.03, 0.036, 0.075, 0, p.receiverDepth * 0.5 + 0.028, -p.length * 0.08),
+    );
   }
 
-  const merged = mergeGeometries(parts, false)!;
+  const merged = mergeGeometries(parts, false);
   for (const part of parts) part.dispose();
   merged.computeVertexNormals();
   return merged;
 }
 
-const geometryCache = new Map<WeaponClass, { geometry: THREE.BufferGeometry; refs: number }>();
+const geometryCache = new Map<
+  WeaponClass,
+  { geometry: THREE.BufferGeometry; refs: number }
+>();
 let sharedMaterial: THREE.MeshStandardMaterial | null = null;
 
 function getMaterial(): THREE.MeshStandardMaterial {

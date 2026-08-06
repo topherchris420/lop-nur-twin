@@ -15,21 +15,21 @@ React state on the frame loop) override anything convenient below.
 
 ## Where things live
 
-| Concern | File |
-| --- | --- |
-| Material patching, panel lines, seams, weathering, rim light | `src/gfx/greeble.ts` |
-| Procedural greeble geometry (roof clutter, pipe runs) | `src/gfx/greeble.ts` |
-| Custom GLSL post stack (AgX, streaks, CA, grain, radial blur) | `src/gfx/postfx.ts` |
-| Post stack wiring / pass order | `src/components/scene/Effects.tsx` |
-| Shared structure materials | `src/components/scene/Structures.tsx` (`useSharedMaterials`) |
-| Canvas / renderer flags | `src/components/scene/Scene.tsx` |
-| Tone mapping + exposure + fog + sun | `src/components/scene/Atmosphere.tsx` |
-| Seeded RNG and noise | `src/lib/noise.ts` |
-| Visual verification | `tools/probe.mjs` → `render_output.png` |
+| Concern                                                       | File                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------ |
+| Material patching, panel lines, seams, weathering, rim light  | `src/gfx/greeble.ts`                                         |
+| Procedural greeble geometry (roof clutter, pipe runs)         | `src/gfx/greeble.ts`                                         |
+| Custom GLSL post stack (AgX, streaks, CA, grain, radial blur) | `src/gfx/postfx.ts`                                          |
+| Post stack wiring / pass order                                | `src/components/scene/Effects.tsx`                           |
+| Shared structure materials                                    | `src/components/scene/Structures.tsx` (`useSharedMaterials`) |
+| Canvas / renderer flags                                       | `src/components/scene/Scene.tsx`                             |
+| Tone mapping + exposure + fog + sun                           | `src/components/scene/Atmosphere.tsx`                        |
+| Seeded RNG and noise                                          | `src/lib/noise.ts`                                           |
+| Visual verification                                           | `tools/probe.mjs` → `render_output.png`                      |
 
 ## 1. Hard-surface PBR rules
 
-The failure mode for procedural hard surfaces is *uniformity*: one roughness
+The failure mode for procedural hard surfaces is _uniformity_: one roughness
 value over a whole wall reads as plastic. Break it up, but keep the breakup
 physically plausible.
 
@@ -39,7 +39,7 @@ physically plausible.
   steel panel, never as a generic "shiny" dial.
 - **Roughness carries the story, not colour.** Painted mil-spec steel sits at
   `0.45–0.65`; sun-chalked paint `0.7–0.85`; concrete `0.9–1.0`; bare scuffed
-  aluminium `0.3–0.45`; glass/canopy `0.05–0.15`. Vary it *per plate* (see §2)
+  aluminium `0.3–0.45`; glass/canopy `0.05–0.15`. Vary it _per plate_ (see §2)
   by ±0.12 and let seams push it toward rough.
 - **Albedo stays in a narrow, desaturated band.** Desert-weathered paint loses
   chroma; keep saturation below ~0.15 and lightness inside 0.18–0.75 sRGB. Deep
@@ -48,7 +48,7 @@ physically plausible.
   `max(0, worldNormal.y)` — upward faces get the pale lakebed tint, vertical
   faces stay clean, undersides get darker occlusion. This single term does more
   for realism than any texture.
-- **Grime runs downward.** Streaks are vertical in *world* space and originate
+- **Grime runs downward.** Streaks are vertical in _world_ space and originate
   at horizontal breaks (roof edges, seams, vents). They lower albedo and raise
   roughness together; never one alone.
 - **Every hard edge needs a highlight.** See rim lighting in §4 — geometric
@@ -66,7 +66,7 @@ tone mapping and log depth all keep working) and injects, in this order:
 1. **Plate cells.** Quantise world position by `plateScale` to get a cell id,
    hash it, and use the hash to offset that plate's roughness, albedo
    brightness and metalness slightly. This is what makes a wall read as
-   *assembled* rather than extruded.
+   _assembled_ rather than extruded.
 2. **Seams.** Distance to the nearest cell boundary, run through `smoothstep`,
    gives a thin dark recess. Seams must:
    - darken albedo (`* seamDarken`) **and** raise roughness — a clean recess is
@@ -83,7 +83,7 @@ tone mapping and log depth all keep working) and injects, in this order:
 
 Rules of thumb: `plateScale` between 1.4 m and 4 m for buildings, 0.6–1.2 m for
 aircraft and vehicles, 6–12 m for large concrete pours. Panel lines on a
-concrete wall are *expansion joints* — wider spacing, softer, no rivets.
+concrete wall are _expansion joints_ — wider spacing, softer, no rivets.
 
 Axis handling: derive cells from world XZ for roofs and world XY/ZY for walls,
 selected by the dominant world-normal axis (a cheap triplanar). Never use UVs —
@@ -120,13 +120,13 @@ the geometry here is procedurally built and UVs are inconsistent.
 ## 4. Rim / grazing light
 
 Add a fresnel term `pow(1.0 - saturate(dot(N, V)), rimPower)` scaled by
-`rimIntensity`, tinted toward the sky/haze colour, added *after* lighting but
-*before* tone mapping. Guidance:
+`rimIntensity`, tinted toward the sky/haze colour, added _after_ lighting but
+_before_ tone mapping. Guidance:
 
 - `rimPower` 2.5–4.0, `rimIntensity` 0.05–0.18. Above that it becomes an
   X-ray glow and flattens the form.
 - Multiply the term by `smoothstep` on the surface's own luminance so lit faces
-  do not double up; the rim exists for the *dark* side of the silhouette.
+  do not double up; the rim exists for the _dark_ side of the silhouette.
 - On metals bias the rim toward the specular colour; on concrete keep it
   neutral and weaker (`* 0.5`).
 
@@ -152,7 +152,7 @@ equipment decks. Rules:
   seed must always produce the same roof.
 - **Merged, not instanced-per-mesh:** one geometry, one draw call, one material.
   A roof with 40 separate `<mesh>` nodes is a performance bug.
-- **Scale discipline:** greebles read as *equipment*, so 0.3–2.5 m boxes with
+- **Scale discipline:** greebles read as _equipment_, so 0.3–2.5 m boxes with
   plausible aspect ratios (ducts long and low, vents cubic, stacks tall and
   thin). Uniformly random boxes look like static.
 - **Cluster, then align.** Place along rails/rows with a shared rotation per
@@ -192,7 +192,7 @@ builds only.
 **Positions are evidence, not art.** `layout.ts` is the single source of
 truth and every structure carries an `Evidence` record with an explicit
 `uncertainty` string. Do not nudge a building because a render looks better —
-if imagery says a position is wrong, change the position *and* the evidence
+if imagery says a position is wrong, change the position _and_ the evidence
 text together, and say what the new position is based on.
 
 Then **open `render_output.png` and look at it.** Check, in order:
@@ -203,7 +203,7 @@ Then **open `render_output.png` and look at it.** Check, in order:
 2. **Bloom** — highlights should bleed, mid-tones should not. If concrete
    glows, the luminance threshold is too low.
 3. **Seams and plates** — visible at intended distance, not shimmering, and
-   *square to the structure*. Diagonal panel lines mean something reverted to
+   _square to the structure_. Diagonal panel lines mean something reverted to
    a world-space projection.
 4. **Silhouettes** — does each structure separate from the terrain and sky?
 5. **Cohesion** — one colour story (warm dust, cool sky), no stray saturated

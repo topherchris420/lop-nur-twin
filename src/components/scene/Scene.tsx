@@ -1,17 +1,11 @@
-import {
-  Component,
-  lazy,
-  Suspense,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useTwinStore } from "@/lib/store";
 import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { LivingScene } from "./LivingScene";
+import { UncertaintyLayer } from "./UncertaintyLayer";
 import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
@@ -47,7 +41,8 @@ function WebGLFallback() {
       role="alert"
       className="absolute inset-0 z-30 grid place-items-center bg-[#1c1b18] p-6 text-center text-sm text-[#e8e4d8]"
     >
-      This browser could not start WebGL. Hardware acceleration or a WebGL-capable browser is required.
+      This browser could not start WebGL. Hardware acceleration or a WebGL-capable browser
+      is required.
     </div>
   );
 }
@@ -55,17 +50,13 @@ function WebGLFallback() {
 function canCreateWebGLContext(): boolean {
   if (typeof document === "undefined") return false;
   const canvas = document.createElement("canvas");
-  const context =
-    canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+  const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
   if (!context) return false;
   context.getExtension("WEBGL_lose_context")?.loseContext();
   return true;
 }
 
-class SceneErrorBoundary extends Component<
-  { children: ReactNode },
-  { failed: boolean }
-> {
+class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -120,6 +111,7 @@ export function Scene() {
           <Terrain />
           <Pavements />
           <Structures />
+          <UncertaintyLayer />
           <LivingScene />
           {/* The upstream feed currently omits browser CORS headers. Keep the
               existing layer opt-in so the deterministic twin makes no failing

@@ -22,14 +22,18 @@ import {
   EVIDENCE_CLASSIFICATION_META,
   PRIMARY_CRS,
   getEvidenceForSubject,
+  getUncertaintyForSubject,
   strongestClassification,
 } from "@/lib/evidence";
+import { temporalEventsForSubject } from "@/lib/temporal";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import {
   ConfidenceValue,
   EvidenceBadge,
   ProvenanceFooter,
 } from "@/components/evidence/EvidenceUi";
+import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
+import { isSubjectVisible } from "@/lib/evidenceMode";
 import { useTwinStore } from "@/lib/store";
 
 function localAxis(value: number, positive: string, negative: string): string {
@@ -42,10 +46,12 @@ export function Dossier() {
   const showIndex = useTwinStore((s) => s.showIndex);
   const showResearch = useTwinStore((s) => s.showResearch);
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const def = selectedId ? getStructure(selectedId) : undefined;
   if (
     !def ||
     !isVisibleAtTimelineYear(def, activeTimelineYear) ||
+    !isSubjectVisible(def.id, evidenceMode) ||
     showIndex ||
     showResearch
   ) {
@@ -56,6 +62,8 @@ export function Dossier() {
   const localPosition = `${localAxis(def.position[0], "E", "W")} / ${localAxis(-def.position[1], "N", "S")}`;
   const records = getEvidenceForSubject(def.id);
   const classification = strongestClassification(records) ?? def.evidence.status;
+  const uncertainty = getUncertaintyForSubject(def.id);
+  const temporalEvents = temporalEventsForSubject(def.id);
   const missionEntity = getMissionEntity(def.id);
 
   return (
@@ -104,6 +112,17 @@ export function Dossier() {
         <Separator />
         <div>
           <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
+            Uncertainty
+          </div>
+          <UncertaintyPanel
+            envelope={uncertainty}
+            events={temporalEvents}
+            className="mt-2"
+          />
+        </div>
+        <Separator />
+        <div>
+          <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
             Evidence record{records.length === 1 ? "" : "s"} ({records.length})
           </div>
           {/*
@@ -137,14 +156,18 @@ export function Dossier() {
                         className="text-primary inline-flex items-start gap-1 hover:underline"
                       >
                         {record.sourceTitle}
-                        <ExternalLink className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                        <ExternalLink
+                          className="mt-0.5 size-3 shrink-0"
+                          aria-hidden="true"
+                        />
                         <span className="sr-only">(opens in a new tab)</span>
                       </a>
                     )}
                   </p>
                   <p className="text-muted-foreground mt-0.5 font-mono text-[10px]">
                     {record.sourcePublisher ?? "publisher unknown"} · published{" "}
-                    {record.sourceDate ?? "unknown"} · accessed {record.accessedAt ?? "unknown"}
+                    {record.sourceDate ?? "unknown"} · accessed{" "}
+                    {record.accessedAt ?? "unknown"}
                   </p>
                   {record.measurementUncertaintyM !== undefined ||
                   record.sourceResolutionM !== undefined ? (
@@ -184,7 +207,9 @@ export function Dossier() {
                   {missionEntity.id}
                 </dd>
                 <dt className="text-muted-foreground">Observation</dt>
-                <dd className="text-right">{missionEntity.observation.timestamp ?? "unknown"}</dd>
+                <dd className="text-right">
+                  {missionEntity.observation.timestamp ?? "unknown"}
+                </dd>
                 <dt className="text-muted-foreground">Relationships</dt>
                 <dd className="text-right">{missionEntity.relationships.length}</dd>
               </dl>
@@ -196,7 +221,10 @@ export function Dossier() {
                 ))}
               </div>
               <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
-                Tasks: {missionEntity.taskableBehaviors.map((behavior) => behavior.label).join(" · ")}
+                Tasks:{" "}
+                {missionEntity.taskableBehaviors
+                  .map((behavior) => behavior.label)
+                  .join(" · ")}
               </p>
             </div>
           </>

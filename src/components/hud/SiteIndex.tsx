@@ -2,13 +2,10 @@ import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  STRUCTURES,
-  STRUCTURE_TYPE_LABELS,
-  isVisibleAtTimelineYear,
-  type StructureDef,
-} from "@/lib/layout";
+import { STRUCTURES, STRUCTURE_TYPE_LABELS, type StructureDef } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
+import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
+import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +15,14 @@ export function SiteIndex() {
   const toggleIndex = useTwinStore((s) => s.toggleIndex);
   const selectedId = useTwinStore((s) => s.selectedId);
   const select = useTwinStore((s) => s.select);
-  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const [query, setQuery] = useState("");
+  const evidenceMode = useTwinStore((s) => s.evidenceMode);
+  // Same predicate the scene draws with: the index lists what is on screen.
+  const isDrawn = useSubjectFilter();
 
   const groups = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
-    const visibleStructures = STRUCTURES.filter((structure) =>
-      isVisibleAtTimelineYear(structure, activeTimelineYear),
-    );
+    const visibleStructures = STRUCTURES.filter(isDrawn);
     const filtered = normalized
       ? visibleStructures.filter((structure) => {
           const searchable = [
@@ -50,11 +47,14 @@ export function SiteIndex() {
 
     return [...grouped.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([label, structures]) => [
-        label,
-        [...structures].sort((left, right) => left.name.localeCompare(right.name)),
-      ] as const);
-  }, [query, activeTimelineYear]);
+      .map(
+        ([label, structures]) =>
+          [
+            label,
+            [...structures].sort((left, right) => left.name.localeCompare(right.name)),
+          ] as const,
+      );
+  }, [query, isDrawn]);
 
   if (!showIndex) return null;
 
@@ -65,7 +65,10 @@ export function SiteIndex() {
   };
 
   return (
-    <Card id="site-index" className="site-index-panel hud-side-panel absolute top-16 left-4 z-10 flex max-h-[70dvh] w-64 flex-col">
+    <Card
+      id="site-index"
+      className="site-index-panel hud-side-panel absolute top-16 left-4 z-10 flex max-h-[70dvh] w-64 flex-col"
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Site Index</CardTitle>
@@ -120,8 +123,19 @@ export function SiteIndex() {
             </div>
           ))
         ) : (
-          <p className="text-muted-foreground py-6 text-center text-xs" role="status">
-            No matching structures
+          <p
+            className="text-muted-foreground px-3 py-6 text-center text-xs leading-relaxed"
+            role="status"
+          >
+            {/*
+              An empty index in a strict evidence mode is a finding, not a
+              fault, and it has to say which it is. "No matching structures"
+              on its own reads as a broken panel when the real answer is that
+              nothing in the model is classified strongly enough to be listed.
+            */}
+            {query.trim().length > 0
+              ? "No structures match this search in the current evidence mode."
+              : `No structures are drawn in ${EVIDENCE_MODE_META[evidenceMode].label.toLowerCase()} mode. Nothing in this model's structure catalogue is supported strongly enough to appear here — the runway is the only geometry the project measured off a cited scene. Widen the evidence mode to see more.`}
           </p>
         )}
       </CardContent>

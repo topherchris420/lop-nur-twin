@@ -1,0 +1,56 @@
+Lop Nur Geospatial Simulation Testbed
+Copyright 2026 Lop Nur Geospatial Simulation Testbed contributors
+
+This product includes software developed by the Lop Nur Geospatial Simulation
+Testbed contributors, licensed under the Apache License, Version 2.0 (see
+LICENSE).
+
+--------------------------------------------------------------------------------
+Third-party material referenced by this project
+--------------------------------------------------------------------------------
+
+The Apache-2.0 grant in LICENSE covers this repository's own source code,
+configuration and documentation. It does NOT relicense, and confers no rights
+in, any third-party work this project cites, describes or depends on. In
+particular:
+
+* Satellite imagery, digital elevation models and climate products remain under
+  the terms of their respective providers. No imagery tile, DEM tile or provider
+  data file is redistributed here: the repository contains cited references,
+  access dates and a handful of numeric values read from public products, not
+  copies of the products themselves.
+
+* Journalism, analytical publications and academic papers cited in the evidence
+  ledger remain the copyright of their publishers. This project quotes and
+  characterises them under the citation conventions of research writing; it does
+  not relicense them, and reproducing this repository conveys no right to
+  redistribute the cited works.
+
+* Product names, aircraft designations, organisation names and publisher names
+  are used descriptively. No trademark licence is granted by this License
+  (Apache-2.0 section 6).
+
+* Third-party npm dependencies are not vendored into this repository. Each
+  retains its own licence; `bun.lock` and `package.json` record the resolved
+  set, and CI publishes a CycloneDX and an SPDX software bill of materials for
+  every run.
+
+Attribution required by cited providers
+---------------------------------------
+
+Copernicus DEM GLO-30, used as the approximate reference elevation for the site
+datum: "Produced using Copernicus WorldDEM-30 (c) DLR e.V. 2010-2014 and
+(c) Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the
+European Union and ESA; all rights reserved."
+
+Sentinel-2 L2A imagery, used as the scene the modeled layout was measured
+against: "Contains modified Copernicus Sentinel data (2025)."
+
+NASA POWER monthly climatology, used for the environmental values: 2001-2020
+climatological means from the POWER project, NASA Langley Research Center.
+
+The authoritative, machine-readable register of every source, its publisher,
+its attribution string, its publication date and the date this project last
+consulted it is `src/lib/siteData.ts`; `docs/DATA_PROVENANCE.md` explains how it
+is used. That register is the copy to update — this file summarises it and will
+otherwise drift.

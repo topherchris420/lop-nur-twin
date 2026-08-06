@@ -1,18 +1,9 @@
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
-import {
-  SURFACE_PROFILES,
-  type ImpactRequest,
-  type SurfaceType,
-} from "../core/types";
+import { SURFACE_PROFILES, type ImpactRequest, type SurfaceType } from "../core/types";
 import { game, queueSound } from "../core/gameState";
 import type { CollisionWorld } from "../physics/collisionWorld";
-import {
-  ParticleSystem,
-  SPRITE,
-  makeSpawnParams,
-  type SpriteId,
-} from "./particles";
+import { ParticleSystem, SPRITE, makeSpawnParams, type SpriteId } from "./particles";
 
 /**
  * Combat visual effects: tracers, impact decals, ejected brass, muzzle flash.
@@ -128,7 +119,10 @@ function buildDecalAtlas(): THREE.CanvasTexture {
       ctx.lineWidth = 0.8 + rand() * 1.4;
       ctx.beginPath();
       ctx.moveTo(c + Math.cos(angle) * c * 0.3, c + Math.sin(angle) * c * 0.3);
-      ctx.lineTo(c + Math.cos(angle) * c * (0.45 + rand() * 0.35), c + Math.sin(angle) * c * (0.45 + rand() * 0.35));
+      ctx.lineTo(
+        c + Math.cos(angle) * c * (0.45 + rand() * 0.35),
+        c + Math.sin(angle) * c * (0.45 + rand() * 0.35),
+      );
       ctx.stroke();
     }
   });
@@ -147,7 +141,10 @@ function buildDecalAtlas(): THREE.CanvasTexture {
       ctx.lineWidth = 1 + rand() * 2;
       ctx.beginPath();
       ctx.moveTo(c + Math.cos(angle) * c * 0.18, c + Math.sin(angle) * c * 0.18);
-      ctx.lineTo(c + Math.cos(angle) * c * (0.4 + rand() * 0.45), c + Math.sin(angle) * c * (0.4 + rand() * 0.45));
+      ctx.lineTo(
+        c + Math.cos(angle) * c * (0.4 + rand() * 0.45),
+        c + Math.sin(angle) * c * (0.4 + rand() * 0.45),
+      );
       ctx.stroke();
     }
   });
@@ -205,7 +202,12 @@ function buildDecalAtlas(): THREE.CanvasTexture {
       const angle = rand() * Math.PI * 2;
       const r = c * (0.3 + Math.pow(rand(), 0.5) * 0.65);
       ctx.fillStyle = `rgba(210,196,164,${0.06 + rand() * 0.16})`;
-      ctx.fillRect(c + Math.cos(angle) * r, c + Math.sin(angle) * r, 2 + rand() * 3, 2 + rand() * 3);
+      ctx.fillRect(
+        c + Math.cos(angle) * r,
+        c + Math.sin(angle) * r,
+        2 + rand() * 3,
+        2 + rand() * 3,
+      );
     }
   });
 
@@ -223,7 +225,15 @@ function buildDecalAtlas(): THREE.CanvasTexture {
       const r = 2 + rand() * 8;
       ctx.fillStyle = `rgba(86,9,8,${0.25 + rand() * 0.45})`;
       ctx.beginPath();
-      ctx.ellipse(c + Math.cos(angle) * dist, c + Math.sin(angle) * dist, r, r * (0.5 + rand() * 0.6), angle, 0, Math.PI * 2);
+      ctx.ellipse(
+        c + Math.cos(angle) * dist,
+        c + Math.sin(angle) * dist,
+        r,
+        r * (0.5 + rand() * 0.6),
+        angle,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     }
   });
@@ -243,7 +253,10 @@ function buildDecalAtlas(): THREE.CanvasTexture {
       ctx.lineWidth = 2 + rand() * 6;
       ctx.beginPath();
       ctx.moveTo(c + Math.cos(angle) * c * 0.3, c + Math.sin(angle) * c * 0.3);
-      ctx.lineTo(c + Math.cos(angle) * c * (0.6 + rand() * 0.4), c + Math.sin(angle) * c * (0.6 + rand() * 0.4));
+      ctx.lineTo(
+        c + Math.cos(angle) * c * (0.6 + rand() * 0.4),
+        c + Math.sin(angle) * c * (0.6 + rand() * 0.4),
+      );
       ctx.stroke();
     }
   });
@@ -684,11 +697,7 @@ class CasingRenderer {
       .copy(direction)
       .multiplyScalar(2.6 + rand() * 1.4)
       .add(_tmpA.set((rand() - 0.5) * 0.8, 1.5 + rand() * 0.9, (rand() - 0.5) * 0.8));
-    casing.spin.set(
-      (rand() - 0.5) * 34,
-      (rand() - 0.5) * 26,
-      (rand() - 0.5) * 40,
-    );
+    casing.spin.set((rand() - 0.5) * 34, (rand() - 0.5) * 26, (rand() - 0.5) * 40);
     casing.rotation.identity();
     casing.life = 0;
     casing.bounces = 0;
@@ -797,7 +806,12 @@ export class FxManager {
     this.casings = new CasingRenderer(64);
     this.group.name = "combat-fx";
     this.group.userData["noCollide"] = true;
-    this.group.add(this.particles.mesh, this.decals.mesh, this.tracers.mesh, this.casings.mesh);
+    this.group.add(
+      this.particles.mesh,
+      this.decals.mesh,
+      this.tracers.mesh,
+      this.casings.mesh,
+    );
     for (let i = 0; i < 4; i += 1) {
       const light = new THREE.PointLight(0xffcf94, 0, 14, 2);
       light.castShadow = false;
@@ -969,7 +983,9 @@ export class FxManager {
         p.velocity
           .copy(request.incoming)
           .multiplyScalar(2 + rand() * 5)
-          .add(_tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5));
+          .add(
+            _tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5),
+          );
         p.lifetime = 0.35 + rand() * 0.5;
         p.size0 = 0.03 + rand() * 0.05;
         p.size1 = 0.015;
@@ -1043,7 +1059,9 @@ export class FxManager {
 
     /* --------------------------------------------------------- dust */
     const dustCount = Math.round(
-      (request.surface === "sand" || request.surface === "gravel" ? 9 : 5) * energy * scale,
+      (request.surface === "sand" || request.surface === "gravel" ? 9 : 5) *
+        energy *
+        scale,
     );
     for (let i = 0; i < dustCount; i += 1) {
       const p = _spawn;
@@ -1099,10 +1117,12 @@ export class FxManager {
 
     /* -------------------------------------------------------- decal */
     if (this.quality.decals && request.kind !== "ricochet") {
-      const tile = request.kind === "penetration-exit"
-        ? DECAL.spall
-        : decalIndexFor(request.surface);
-      const size = (request.kind === "penetration-exit" ? 0.22 : 0.13) * (0.75 + energy * 0.5);
+      const tile =
+        request.kind === "penetration-exit"
+          ? DECAL.spall
+          : decalIndexFor(request.surface);
+      const size =
+        (request.kind === "penetration-exit" ? 0.22 : 0.13) * (0.75 + energy * 0.5);
       this.decals.add(request.point, request.normal, size, tile, 26, 0.95);
     }
   }
@@ -1113,7 +1133,9 @@ export class FxManager {
     // Fireball.
     for (let i = 0; i < Math.round(10 * scale); i += 1) {
       const p = _spawn;
-      p.position.copy(point).add(_tmpA.set((rand() - 0.5) * 0.6, rand() * 0.5, (rand() - 0.5) * 0.6));
+      p.position
+        .copy(point)
+        .add(_tmpA.set((rand() - 0.5) * 0.6, rand() * 0.5, (rand() - 0.5) * 0.6));
       p.velocity.set((rand() - 0.5) * 7, 1.5 + rand() * 5, (rand() - 0.5) * 7);
       p.lifetime = 0.32 + rand() * 0.28;
       p.size0 = 0.7 * energy;
@@ -1221,7 +1243,9 @@ export class FxManager {
     _tmpColor.setHex(SURFACE_PROFILES[surface].debrisColor);
     for (let i = 0; i < count; i += 1) {
       const p = _spawn;
-      p.position.copy(point).add(_tmpA.set((rand() - 0.5) * spread, 0.02, (rand() - 0.5) * spread));
+      p.position
+        .copy(point)
+        .add(_tmpA.set((rand() - 0.5) * spread, 0.02, (rand() - 0.5) * spread));
       p.velocity.set((rand() - 0.5) * 0.8, 0.25 + rand() * 0.5, (rand() - 0.5) * 0.8);
       p.lifetime = 0.7 + rand() * 0.9;
       p.size0 = 0.09;

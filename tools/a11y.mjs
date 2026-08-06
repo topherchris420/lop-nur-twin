@@ -40,6 +40,10 @@ const origin = process.argv[2] ?? "http://localhost:4173";
 /** `gate: true` means axe violations fail the run, not just get printed. */
 const ROUTES = [
   { path: "/analysis", label: "Accessible analysis table", gate: true, settle: 1500 },
+  // `/compare` is gated for the same reason `/analysis` is: it renders no
+  // canvas, so every axe finding on it is a real finding about real markup
+  // rather than a complaint about a WebGL surface.
+  { path: "/compare", label: "Model manifest comparison", gate: true, settle: 1500 },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];
@@ -104,7 +108,9 @@ for (const route of ROUTES) {
 
   console.log(`\n=== ${route.path} — ${route.label} ===`);
   console.log(`  title: ${title}`);
-  console.log(`  axe:   ${violations.length} violation type(s), ${gating.length} serious/critical`);
+  console.log(
+    `  axe:   ${violations.length} violation type(s), ${gating.length} serious/critical`,
+  );
   for (const violation of violations) {
     console.log(`   - [${violation.impact}] ${violation.id}: ${violation.help}`);
     for (const node of violation.nodes.slice(0, 3)) {
@@ -131,7 +137,9 @@ for (const route of ROUTES) {
   }
   if (route.gate && gating.length > 0) {
     failures += 1;
-    console.log(`  FAIL: ${gating.length} serious/critical axe violation(s) on ${route.path}`);
+    console.log(
+      `  FAIL: ${gating.length} serious/critical axe violation(s) on ${route.path}`,
+    );
   }
 
   summaries.push({

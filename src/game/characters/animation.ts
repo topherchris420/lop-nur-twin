@@ -301,7 +301,10 @@ export class CharacterAnimator {
     const vx = actor.velocity.x;
     const vz = actor.velocity.z;
     if (vx * vx + vz * vz > 0.12) {
-      const targetYaw = forwardToYaw(vx * cosBody - vz * sinBody, vx * sinBody + vz * cosBody);
+      const targetYaw = forwardToYaw(
+        vx * cosBody - vz * sinBody,
+        vx * sinBody + vz * cosBody,
+      );
       this.strideYaw += yawDelta(this.strideYaw, targetYaw) * (1 - Math.exp(-9 * dt));
     } else {
       this.strideYaw = damp(this.strideYaw, 0, 6, dt);
@@ -382,7 +385,8 @@ export class CharacterAnimator {
     /* ------------------------------------------------------- pelvis */
     // Highest at mid-stance on either leg, so the bob runs at twice the step
     // rate and lines up with single support rather than against it.
-    const bob = Math.cos(2 * (this.phase - Math.PI * duty)) * (0.012 + run * 0.018) * moving;
+    const bob =
+      Math.cos(2 * (this.phase - Math.PI * duty)) * (0.012 + run * 0.018) * moving;
     let pelvisY = PELVIS_REST_Y - this.crouch * 0.33 - this.prone * 0.62 + bob;
 
     const sin = Math.sin(this.phase);
@@ -437,9 +441,7 @@ export class CharacterAnimator {
       _footLocal.copy(plan.target).sub(_pelvisPos).applyQuaternion(_pelvisInv);
       // The knee tracks the foot's heading, splayed a little outward. This is
       // the only thing deciding which way the joint folds.
-      _pole
-        .set(-Math.sin(plan.yaw) + side * 0.22, 0, -Math.cos(plan.yaw))
-        .normalize();
+      _pole.set(-Math.sin(plan.yaw) + side * 0.22, 0, -Math.cos(plan.yaw)).normalize();
       _poleLocal.copy(_pole).applyQuaternion(_pelvisInv);
 
       solveTwoBone(
@@ -463,7 +465,11 @@ export class CharacterAnimator {
     }
 
     /* --------------------------------------------------------- aim */
-    const twist = THREE.MathUtils.clamp(yawDelta(this.bodyYaw, actor.yaw), -twistLimit, twistLimit);
+    const twist = THREE.MathUtils.clamp(
+      yawDelta(this.bodyYaw, actor.yaw),
+      -twistLimit,
+      twistLimit,
+    );
     const pitch = THREE.MathUtils.clamp(actor.pitch, -0.9, 0.9);
     const liftSpine = 0.06 + run * 0.1;
     addEuler(bones[B.spine1]!, liftSpine * 0.3, twist * 0.3, -hipRoll * 0.5);
@@ -518,8 +524,18 @@ export class CharacterAnimator {
 
     this.flinch = damp(this.flinch, 0, 7, dt);
     if (this.flinch > 0.001) {
-      addEuler(bones[B.spine2]!, -this.flinch * 0.16, 0, this.flinch * 0.2 * this.flinchSide);
-      addEuler(bones[B.head]!, -this.flinch * 0.2, this.flinch * 0.18 * this.flinchSide, 0);
+      addEuler(
+        bones[B.spine2]!,
+        -this.flinch * 0.16,
+        0,
+        this.flinch * 0.2 * this.flinchSide,
+      );
+      addEuler(
+        bones[B.head]!,
+        -this.flinch * 0.2,
+        this.flinch * 0.18 * this.flinchSide,
+        0,
+      );
     }
 
     // Suppression makes the whole body hunch.

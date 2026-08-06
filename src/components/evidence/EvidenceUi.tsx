@@ -71,7 +71,9 @@ export function ConfidenceValue({
   const rank = confidenceRank(confidence);
   return (
     <span className={cn("font-mono tabular-nums", className)}>
-      <span aria-hidden="true">{rank === "high" ? "●●●" : rank === "medium" ? "●●○" : "●○○"} </span>
+      <span aria-hidden="true">
+        {rank === "high" ? "●●●" : rank === "medium" ? "●●○" : "●○○"}{" "}
+      </span>
       {confidence.toFixed(2)} ({rank})
     </span>
   );

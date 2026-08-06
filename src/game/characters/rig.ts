@@ -96,18 +96,48 @@ const SPECS: readonly BoneSpec[] = [
   { name: "foreArmL", parent: B.upperArmL, p: [-0.182, 1.11, -0.008] },
   { name: "foreTwistL", parent: B.foreArmL, p: [-0.183, 0.985, -0.004] },
   { name: "handL", parent: B.foreTwistL, p: [-0.184, 0.862, 0] },
-  { name: "thumbL", parent: B.handL, p: [-0.152, 0.832, -0.03], tip: [-0.128, 0.798, -0.056] },
-  { name: "indexL", parent: B.handL, p: [-0.196, 0.796, -0.014], tip: [-0.198, 0.733, -0.03] },
-  { name: "gripL", parent: B.handL, p: [-0.186, 0.792, 0.018], tip: [-0.186, 0.729, 0.012] },
+  {
+    name: "thumbL",
+    parent: B.handL,
+    p: [-0.152, 0.832, -0.03],
+    tip: [-0.128, 0.798, -0.056],
+  },
+  {
+    name: "indexL",
+    parent: B.handL,
+    p: [-0.196, 0.796, -0.014],
+    tip: [-0.198, 0.733, -0.03],
+  },
+  {
+    name: "gripL",
+    parent: B.handL,
+    p: [-0.186, 0.792, 0.018],
+    tip: [-0.186, 0.729, 0.012],
+  },
 
   { name: "clavicleR", parent: B.spine3, p: [0.042, 1.408, -0.02] },
   { name: "upperArmR", parent: B.clavicleR, p: [0.18, 1.4, -0.014] },
   { name: "foreArmR", parent: B.upperArmR, p: [0.182, 1.11, -0.008] },
   { name: "foreTwistR", parent: B.foreArmR, p: [0.183, 0.985, -0.004] },
   { name: "handR", parent: B.foreTwistR, p: [0.184, 0.862, 0] },
-  { name: "thumbR", parent: B.handR, p: [0.152, 0.832, -0.03], tip: [0.128, 0.798, -0.056] },
-  { name: "indexR", parent: B.handR, p: [0.196, 0.796, -0.014], tip: [0.198, 0.733, -0.03] },
-  { name: "gripR", parent: B.handR, p: [0.186, 0.792, 0.018], tip: [0.186, 0.729, 0.012] },
+  {
+    name: "thumbR",
+    parent: B.handR,
+    p: [0.152, 0.832, -0.03],
+    tip: [0.128, 0.798, -0.056],
+  },
+  {
+    name: "indexR",
+    parent: B.handR,
+    p: [0.196, 0.796, -0.014],
+    tip: [0.198, 0.733, -0.03],
+  },
+  {
+    name: "gripR",
+    parent: B.handR,
+    p: [0.186, 0.792, 0.018],
+    tip: [0.186, 0.729, 0.012],
+  },
 
   { name: "thighL", parent: B.pelvis, p: [-0.095, 0.918, 0.004] },
   { name: "shinL", parent: B.thighL, p: [-0.098, 0.487, 0.012] },
@@ -119,7 +149,12 @@ const SPECS: readonly BoneSpec[] = [
   { name: "footR", parent: B.shinR, p: [0.1, 0.086, 0.026] },
   { name: "toeR", parent: B.footR, p: [0.1, 0.03, -0.122], tip: [0.1, 0.018, -0.205] },
 
-  { name: "weapon", parent: B.handR, p: [0.15, 0.845, -0.075], tip: [0.15, 0.845, -0.44] },
+  {
+    name: "weapon",
+    parent: B.handR,
+    p: [0.15, 0.845, -0.075],
+    tip: [0.15, 0.845, -0.44],
+  },
   { name: "gearRoot", parent: B.spine3, p: [0, 1.285, 0.085], tip: [0, 1.19, 0.092] },
 ];
 
@@ -211,10 +246,27 @@ for (let i = 0; i < BONE_COUNT; i += 1) {
 export const SPINE_CHAIN: readonly number[] = [B.spine1, B.spine2, B.spine3];
 export const LEG_CHAIN_L: readonly number[] = [B.thighL, B.shinL, B.footL, B.toeL];
 export const LEG_CHAIN_R: readonly number[] = [B.thighR, B.shinR, B.footR, B.toeR];
-export const ARM_CHAIN_L: readonly number[] = [B.clavicleL, B.upperArmL, B.foreArmL, B.foreTwistL, B.handL];
-export const ARM_CHAIN_R: readonly number[] = [B.clavicleR, B.upperArmR, B.foreArmR, B.foreTwistR, B.handR];
+export const ARM_CHAIN_L: readonly number[] = [
+  B.clavicleL,
+  B.upperArmL,
+  B.foreArmL,
+  B.foreTwistL,
+  B.handL,
+];
+export const ARM_CHAIN_R: readonly number[] = [
+  B.clavicleR,
+  B.upperArmR,
+  B.foreArmR,
+  B.foreTwistR,
+  B.handR,
+];
 export const FINGER_BONES: readonly number[] = [
-  B.thumbL, B.indexL, B.gripL, B.thumbR, B.indexR, B.gripR,
+  B.thumbL,
+  B.indexL,
+  B.gripL,
+  B.thumbR,
+  B.indexR,
+  B.gripR,
 ];
 
 /**
@@ -224,14 +276,33 @@ export const FINGER_BONES: readonly number[] = [
  * off hand can be placed on it.
  */
 export const CHAIN_TO_WEAPON: readonly number[] = [
-  B.root, B.pelvis, B.spine1, B.spine2, B.spine3,
-  B.clavicleR, B.upperArmR, B.foreArmR, B.foreTwistR, B.handR, B.weapon,
+  B.root,
+  B.pelvis,
+  B.spine1,
+  B.spine2,
+  B.spine3,
+  B.clavicleR,
+  B.upperArmR,
+  B.foreArmR,
+  B.foreTwistR,
+  B.handR,
+  B.weapon,
 ];
 export const CHAIN_TO_CLAVICLE_L: readonly number[] = [
-  B.root, B.pelvis, B.spine1, B.spine2, B.spine3, B.clavicleL,
+  B.root,
+  B.pelvis,
+  B.spine1,
+  B.spine2,
+  B.spine3,
+  B.clavicleL,
 ];
 export const CHAIN_TO_CLAVICLE_R: readonly number[] = [
-  B.root, B.pelvis, B.spine1, B.spine2, B.spine3, B.clavicleR,
+  B.root,
+  B.pelvis,
+  B.spine1,
+  B.spine2,
+  B.spine3,
+  B.clavicleR,
 ];
 
 /** Which bone a damage region should push on when a ragdoll takes its impulse. */

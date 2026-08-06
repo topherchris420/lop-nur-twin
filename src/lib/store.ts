@@ -1,11 +1,14 @@
 import { create } from "zustand";
+import { TIMELINE_BOUNDS, getStructure, isVisibleAtTimelineYear } from "./layout";
 import {
-  TIMELINE_BOUNDS,
-  getStructure,
-  isVisibleAtTimelineYear,
-} from "./layout";
+  DEFAULT_EVIDENCE_MODE,
+  EVIDENCE_MODES,
+  isSubjectVisible,
+  type EvidenceMode,
+} from "./evidenceMode";
+import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
 import type { MeasurePoint } from "./measure";
-import { readIntParam } from "./params";
+import { readEnumParam, readFlag, readIntParam, readIsoDateParam } from "./params";
 
 export type CameraMode = "orbit" | "fps" | "cinematic";
 
@@ -30,6 +33,29 @@ interface TwinState {
 
   activeTimelineYear: number;
   setActiveTimelineYear: (year: number) => void;
+
+  /**
+   * Which evidence classifications the scene, the minimap, the index and the
+   * dossier are allowed to draw. Every consumer asks
+   * `isSubjectVisible(id, evidenceMode)` rather than deciding for itself.
+   */
+  evidenceMode: EvidenceMode;
+  setEvidenceMode: (mode: EvidenceMode) => void;
+
+  /**
+   * Snapshot date for the temporal view, or null for "the model's current
+   * state". Kept separate from `activeTimelineYear`, which is the existing
+   * year-granularity scene filter and keeps working unchanged.
+   */
+  snapshotDate: string | null;
+  setSnapshotDate: (date: string | null) => void;
+  /** The second date in a change comparison, or null when not comparing. */
+  comparisonDate: string | null;
+  setComparisonDate: (date: string | null) => void;
+
+  /** Whether spatial uncertainty envelopes are drawn in the scene and minimap. */
+  showUncertainty: boolean;
+  toggleUncertainty: () => void;
 
   selectedId: string | null;
   select: (id: string | null) => void;
@@ -126,6 +152,33 @@ function normalizeMonth(month: number): number {
   return ((Math.round(month) % 12) + 12) % 12;
 }
 
+/**
+ * `?year=` pins the construction-timeline year. Out-of-range values clamp to the
+ * modeled bounds rather than being trusted, same as every other parameter.
+ */
+function initialTimelineYear(): number {
+  const year = readIntParam("year", TIMELINE_BOUNDS.minYear, TIMELINE_BOUNDS.maxYear);
+  return year ?? TIMELINE_BOUNDS.maxYear;
+}
+
+/** `?evidence=observed|reported|interpretation|full-simulation`. */
+function initialEvidenceMode(): EvidenceMode {
+  return readEnumParam("evidence", EVIDENCE_MODES) ?? DEFAULT_EVIDENCE_MODE;
+}
+
+/**
+ * `?snapshot=YYYY-MM-DD`. Only a date the ledger can actually be snapshotted at
+ * is accepted; anything else falls back to null, meaning "current state".
+ */
+function initialSnapshotDate(): string | null {
+  return normalizeSnapshotDate(readIsoDateParam("snapshot"));
+}
+
+function normalizeSnapshotDate(date: string | null): string | null {
+  if (date === null || !isIsoDate(date)) return null;
+  return TEMPORAL_SNAPSHOT_DATES.includes(date) ? date : null;
+}
+
 function normalizeTimelineYear(year: number): number {
   if (!Number.isFinite(year)) return TIMELINE_BOUNDS.maxYear;
   return Math.min(
@@ -138,10 +191,10 @@ export const useTwinStore = create<TwinState>()((set) => ({
   cameraMode: "orbit",
   setCameraMode: (cameraMode) => set({ cameraMode }),
 
-  night: false,
+  night: readFlag("night"),
   toggleNight: () => set((s) => ({ night: !s.night })),
 
-  activeTimelineYear: TIMELINE_BOUNDS.maxYear,
+  activeTimelineYear: initialTimelineYear(),
   setActiveTimelineYear: (year) =>
     set((state) => {
       const activeTimelineYear = normalizeTimelineYear(year);
@@ -158,6 +211,29 @@ export const useTwinStore = create<TwinState>()((set) => ({
       };
     }),
 
+  evidenceMode: initialEvidenceMode(),
+  setEvidenceMode: (evidenceMode) =>
+    set((state) => ({
+      evidenceMode,
+      // A selection the new mode withholds must not stay open behind it: a
+      // dossier for a building the scene is no longer drawing is the exact
+      // confusion the modes exist to prevent.
+      selectedId:
+        state.selectedId !== null && !isSubjectVisible(state.selectedId, evidenceMode)
+          ? null
+          : state.selectedId,
+    })),
+
+  snapshotDate: initialSnapshotDate(),
+  setSnapshotDate: (snapshotDate) =>
+    set({ snapshotDate: normalizeSnapshotDate(snapshotDate) }),
+  comparisonDate: normalizeSnapshotDate(readIsoDateParam("compare")),
+  setComparisonDate: (comparisonDate) =>
+    set({ comparisonDate: normalizeSnapshotDate(comparisonDate) }),
+
+  showUncertainty: readFlag("uncertainty"),
+  toggleUncertainty: () => set((s) => ({ showUncertainty: !s.showUncertainty })),
+
   selectedId: null,
   select: (selectedId) => set({ selectedId }),
 
@@ -170,21 +246,18 @@ export const useTwinStore = create<TwinState>()((set) => ({
     })),
 
   showIndex: false,
-  toggleIndex: () =>
-    set((s) => ({ showIndex: !s.showIndex, showResearch: false })),
+  toggleIndex: () => set((s) => ({ showIndex: !s.showIndex, showResearch: false })),
   showHelp: false,
   toggleHelp: () => set((s) => ({ showHelp: !s.showHelp })),
   showResearch: false,
-  toggleResearch: () =>
-    set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
+  toggleResearch: () => set((s) => ({ showResearch: !s.showResearch, showIndex: false })),
 
   measureMode: false,
   toggleMeasureMode: () => set((s) => ({ measureMode: !s.measureMode })),
   measurePoints: [],
   addMeasurePoint: (point) =>
     set((s) => ({ measurePoints: [...s.measurePoints, point].slice(-64) })),
-  undoMeasurePoint: () =>
-    set((s) => ({ measurePoints: s.measurePoints.slice(0, -1) })),
+  undoMeasurePoint: () => set((s) => ({ measurePoints: s.measurePoints.slice(0, -1) })),
   clearMeasure: () =>
     set((s) => (s.measurePoints.length === 0 ? s : { measurePoints: [] })),
 

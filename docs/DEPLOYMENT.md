@@ -6,15 +6,15 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 
 ## Build settings
 
-| Setting | Value |
-| :-- | :-- |
-| Install command | `npm ci` (or `bun install --frozen-lockfile`) |
-| Build command | `npm run build` |
-| Output directory | `dist` |
-| Node version | **22.18 or newer** (declared in `package.json` `engines`) |
-| Framework preset | Vite |
-| Environment variables required | none |
-| Secrets required | none |
+| Setting                        | Value                                                     |
+| :----------------------------- | :-------------------------------------------------------- |
+| Install command                | `npm ci` (or `bun install --frozen-lockfile`)             |
+| Build command                  | `npm run build`                                           |
+| Output directory               | `dist`                                                    |
+| Node version                   | **22.18 or newer** (declared in `package.json` `engines`) |
+| Framework preset               | Vite                                                      |
+| Environment variables required | none                                                      |
+| Secrets required               | none                                                      |
 
 `npm run build` is four steps, in this order:
 
@@ -45,7 +45,7 @@ If your platform pins an older Node, either raise it or install Bun and run
 `vercel.json` in the repository root configures three things:
 
 1. **SPA rewrites** — `/(.*)` → `/index.html`. Vercel checks the filesystem
-   *before* applying rewrites, so real files (`/assets/*`,
+   _before_ applying rewrites, so real files (`/assets/*`,
    `/model-manifest.json`) are served as themselves and only unmatched paths
    fall through to the app shell. This is what makes `/play` and `/analysis`
    work when opened directly and survive a refresh.
@@ -77,7 +77,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-deployment>/play
 curl -s https://<your-deployment>/model-manifest.json | head -20
 ```
 
-All three routes should return 200 on a direct request and on a refresh.
+All four routes should return 200 on a direct request and on a refresh.
 
 ## Container image
 

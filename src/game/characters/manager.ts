@@ -1,9 +1,5 @@
 import * as THREE from "three";
-import {
-  HUMAN_METRICS,
-  type HitRegion,
-  type Team,
-} from "../core/types";
+import { HUMAN_METRICS, type HitRegion, type Team } from "../core/types";
 import { LAYER } from "../core/types";
 import { game, type Actor } from "../core/gameState";
 import {

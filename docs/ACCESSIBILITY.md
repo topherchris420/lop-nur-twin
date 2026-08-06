@@ -19,21 +19,21 @@ canvas, no animation and no timers.
 
 ## What `/analysis` implements
 
-| Requirement | How |
-| :-- | :-- |
-| Skip navigation | First focusable element is a "Skip to the structure table" link, visually hidden until focused |
-| Descriptive page title | Set on mount: "Structure analysis table — Lop Nur Geospatial Simulation Testbed (public-source model)" |
-| Semantic headings | One `<h1>`, `<h2>` per section, no level skipped |
-| Landmarks | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>` |
-| Proper table markup | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">` |
-| Full keyboard navigation | Native controls only — no custom widgets, no keyboard traps, no positive `tabindex` |
-| Logical tab order | DOM order matches visual order |
-| Visible focus indicators | `focus-visible:ring-2` on every link, button, input and checkbox |
-| Screen-reader labels | `<label for>` on the search field and every filter checkbox; `aria-describedby` hint; external links append a visually-hidden "(opens in a new tab)" |
-| Status messages | Result count and manifest state use `role="status"` |
-| No information by colour alone | Evidence status pairs a glyph and a word with its tint; confidence is a number and a rank in text |
-| Reduced motion | The deep-link scroll uses `behavior: "auto"` when `prefers-reduced-motion: reduce` is set; the page has no other motion |
-| Responsive / zoom | Single-column stacking, wide table scrolls inside its own container, page body never scrolls horizontally |
+| Requirement                    | How                                                                                                                                                  |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skip navigation                | First focusable element is a "Skip to the structure table" link, visually hidden until focused                                                       |
+| Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Geospatial Simulation Testbed (public-source model)"                                               |
+| Semantic headings              | One `<h1>`, `<h2>` per section, no level skipped                                                                                                     |
+| Landmarks                      | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>`                                                                              |
+| Proper table markup            | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">`                                                                        |
+| Full keyboard navigation       | Native controls only — no custom widgets, no keyboard traps, no positive `tabindex`                                                                  |
+| Logical tab order              | DOM order matches visual order                                                                                                                       |
+| Visible focus indicators       | `focus-visible:ring-2` on every link, button, input and checkbox                                                                                     |
+| Screen-reader labels           | `<label for>` on the search field and every filter checkbox; `aria-describedby` hint; external links append a visually-hidden "(opens in a new tab)" |
+| Status messages                | Result count and manifest state use `role="status"`                                                                                                  |
+| No information by colour alone | Evidence status pairs a glyph and a word with its tint; confidence is a number and a rank in text                                                    |
+| Reduced motion                 | The deep-link scroll uses `behavior: "auto"` when `prefers-reduced-motion: reduce` is set; the page has no other motion                              |
+| Responsive / zoom              | Single-column stacking, wide table scrolls inside its own container, page body never scrolls horizontally                                            |
 
 ## What the 3D routes implement
 
@@ -56,7 +56,7 @@ be operable:
 ## Automated testing
 
 `tools/a11y.mjs` runs axe-core 4.12 against the **production build** served by
-`vite preview` with the deployed security headers, across all three routes. It
+`vite preview` with the deployed security headers, across all four routes. It
 also records Content-Security-Policy violations and page errors in the same
 pass.
 
@@ -78,11 +78,11 @@ Gating policy — deliberate and asymmetric:
 
 ### Result of the last run in this environment
 
-| Route | axe violations | serious/critical | CSP violations | page errors |
-| :-- | --: | --: | --: | --: |
-| `/analysis` | 0 | 0 | 0 | 0 |
-| `/` | 0 | 0 | 0 | 0 |
-| `/play` | 0 | 0 | 0 | 0 |
+| Route       | axe violations | serious/critical | CSP violations | page errors |
+| :---------- | -------------: | ---------------: | -------------: | ----------: |
+| `/analysis` |              0 |                0 |              0 |           0 |
+| `/`         |              0 |                0 |              0 |           0 |
+| `/play`     |              0 |                0 |              0 |           0 |
 
 Two real defects were found and fixed while building this: a `<dl>` containing
 a status `<div>` that was neither a term nor a definition, and a dimmed
@@ -101,7 +101,7 @@ person who uses the technology daily:
    Safari on `/analysis`: does the table read row by row in a way that makes
    sense? Are the evidence badges announced once, not twice?
 2. **Keyboard-only task completion** — find a structure, filter by evidence
-   status, open its 3D dossier, return. Without a mouse. On all three routes.
+   status, open its 3D dossier, return. Without a mouse. On all four routes.
 3. **Zoom to 200% and 400%**, and 320 px viewport width, without loss of
    content or horizontal page scroll.
 4. **Colour-contrast review of the rendered canvas.** The 3D scene's own

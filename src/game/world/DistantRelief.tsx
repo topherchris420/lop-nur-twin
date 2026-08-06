@@ -73,7 +73,11 @@ function buildRelief(): THREE.BufferGeometry {
       positions[i * 3 + 1] = height - 6;
       positions[i * 3 + 2] = Math.sin(angle) * radius;
       // Sunlit crests pale off toward the haze; the feet stay in shadow.
-      scratch.lerpColors(near, far, THREE.MathUtils.clamp(height / 150, 0, 1) * 0.7 + rt * 0.3);
+      scratch.lerpColors(
+        near,
+        far,
+        THREE.MathUtils.clamp(height / 150, 0, 1) * 0.7 + rt * 0.3,
+      );
       colors[i * 3] = scratch.r;
       colors[i * 3 + 1] = scratch.g;
       colors[i * 3 + 2] = scratch.b;

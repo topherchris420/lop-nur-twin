@@ -19,14 +19,14 @@ on. It is listed first.
 
 ## 1. Assets
 
-| Asset | Why it matters | Where it lives |
-| :-- | :-- | :-- |
+| Asset                                                                                                | Why it matters                                                                                                                                   | Where it lives                                                    |
+| :--------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
 | **Evidence integrity** — classification, confidence, citation and uncertainty attached to each claim | The project's only real product. If interpretation can be presented as observation, the model becomes misinformation with a professional finish. | `src/lib/evidence.ts`, `src/lib/layout.ts`, `src/lib/siteData.ts` |
-| **Model geometry** | The measurable substrate everything else is projected from. | `src/lib/layout.ts` |
-| **Release identity** — geometry and ledger hashes, counts, known limitations | Lets a reviewer prove which build they reviewed. | `public/model-manifest.json`, `scripts/generate-manifest.ts` |
-| **Build pipeline integrity** | Everything reaches users through it; compromise here defeats every other control. | `package.json` scripts, `.github/workflows/`, lockfiles |
-| **Viewer's browser session** | The application executes in it. Its origin must not be usable to attack the viewer. | Deployed origin |
-| **Project reputation** | An OSINT artifact that is caught overstating its evidence is worthless afterwards. | The whole repository |
+| **Model geometry**                                                                                   | The measurable substrate everything else is projected from.                                                                                      | `src/lib/layout.ts`                                               |
+| **Release identity** — geometry and ledger hashes, counts, known limitations                         | Lets a reviewer prove which build they reviewed.                                                                                                 | `public/model-manifest.json`, `scripts/generate-manifest.ts`      |
+| **Build pipeline integrity**                                                                         | Everything reaches users through it; compromise here defeats every other control.                                                                | `package.json` scripts, `.github/workflows/`, lockfiles           |
+| **Viewer's browser session**                                                                         | The application executes in it. Its origin must not be usable to attack the viewer.                                                              | Deployed origin                                                   |
+| **Project reputation**                                                                               | An OSINT artifact that is caught overstating its evidence is worthless afterwards.                                                               | The whole repository                                              |
 
 Explicitly **not** assets, because they do not exist: user accounts, personal
 data, credentials, API keys, session tokens, non-public information of any
@@ -44,7 +44,7 @@ flowchart TB
 
   subgraph ci["CI — semi-trusted, no secrets"]
     build["npm ci · build · typecheck"]
-    scan["CodeQL · Gitleaks · Trivy<br/>npm audit · SBOM"]
+    scan["CodeQL · Gitleaks · Trivy<br/>bun audit · SBOM"]
   end
 
   subgraph host["Static host — Vercel or a container"]
@@ -81,26 +81,26 @@ The boundaries that matter:
    repository. Pull-request code therefore cannot obtain anything to steal.
 3. **Host → browser.** Everything past this line is public and attacker-visible.
    No control on the browser side protects data; controls there protect the
-   *viewer*.
+   _viewer_.
 4. **Browser → third parties.** Only two paths cross it: a link the viewer
    clicks, and one opt-in feed that is off by default.
 
 ## 3. Threat actors
 
-| Actor | Capability | Motivation |
-| :-- | :-- | :-- |
-| **Anonymous public user** | Any URL, any query parameter, browser dev tools, unlimited requests | Curiosity, research, or probing for a bug |
-| **Malicious link author** | Crafts a URL to a legitimate deployment and sends it to a target | Make the application render or do something misleading |
-| **Compromised or malicious dependency** | Arbitrary code inside the build and inside the shipped bundle | Steal from viewers, or tamper with the model |
-| **Malicious contributor** | Opens a pull request containing code and workflow changes | Get code into the build, or exfiltrate CI credentials |
-| **Hostile network position** | Sees and can alter traffic on a non-HTTPS deployment | Tamper with the model or inject script |
-| **Well-intentioned misreader** | Reads the model correctly and cites it incorrectly | None — this is the highest-likelihood harm in the system |
+| Actor                                   | Capability                                                          | Motivation                                               |
+| :-------------------------------------- | :------------------------------------------------------------------ | :------------------------------------------------------- |
+| **Anonymous public user**               | Any URL, any query parameter, browser dev tools, unlimited requests | Curiosity, research, or probing for a bug                |
+| **Malicious link author**               | Crafts a URL to a legitimate deployment and sends it to a target    | Make the application render or do something misleading   |
+| **Compromised or malicious dependency** | Arbitrary code inside the build and inside the shipped bundle       | Steal from viewers, or tamper with the model             |
+| **Malicious contributor**               | Opens a pull request containing code and workflow changes           | Get code into the build, or exfiltrate CI credentials    |
+| **Hostile network position**            | Sees and can alter traffic on a non-HTTPS deployment                | Tamper with the model or inject script                   |
+| **Well-intentioned misreader**          | Reads the model correctly and cites it incorrectly                  | None — this is the highest-likelihood harm in the system |
 
 ## 4. Threats and mitigations
 
 ### T1 — Simulated or interpreted content is mistaken for verified intelligence
 
-*Most likely harm in this system.*
+_Most likely harm in this system._
 
 **Mitigations**
 
@@ -187,7 +187,7 @@ app being framed by another site.
 
 **Mitigations.** Frozen-lockfile installs in CI and in the container build;
 `--ignore-scripts` in the Docker builder so no dependency's postinstall runs
-during an image build; Dependabot; `npm audit`; Trivy; CodeQL; dependency
+during an image build; Dependabot; `bun audit --prod`; Trivy; CodeQL; dependency
 review on pull requests; SBOM in CycloneDX and SPDX per run; no CDN or runtime
 third-party script; a deliberately small runtime dependency set.
 
@@ -236,19 +236,32 @@ unusable — which is one of the reasons `/analysis` exists.
 
 ### T9 — Browser storage
 
-**Mitigations.** The shipped application writes nothing to `localStorage`,
-`sessionStorage`, IndexedDB or cookies. The only code that touches
-`localStorage` is in `src/game/_wip/`, which is excluded from `tsconfig.json`
-and never bundled. No tracking, no analytics, no fingerprinting.
+**Mitigations.** The application writes to `localStorage` in exactly one place:
+the bookmark store (`src/lib/bookmarks.ts`), under a single versioned key. It
+holds saved view settings and whatever short note the user typed. Nothing else
+touches `localStorage`, `sessionStorage`, IndexedDB or cookies, and there is no
+tracking, no analytics and no fingerprinting.
 
-**Residual risk.** None while that holds. Any future persistence should be
-reviewed against this line, because a public kiosk deployment would then leak
-one visitor's state to the next.
+Two boundaries keep that contained. A bookmark never leaves the browser except
+as a file the user explicitly exports; there is no account and no sync. And a
+_shareable link_ carries view settings only — the analyst note, the tags and the
+measurement path are excluded by construction, because a link gets pasted into
+chats, logged by proxies and kept in histories.
+
+Reads are defensive: an imported or stored bookmark is untrusted input, bounded
+and rejected field by field, and storage that throws (Safari in private mode)
+falls back to memory rather than taking the page down.
+
+**Residual risk.** A public kiosk deployment would leak one visitor's saved
+bookmarks, including their notes, to the next visitor. Nothing in the
+application clears them between sessions. A kiosk deployment should clear
+site data between users, or serve the site with storage disabled — the
+application degrades to an in-memory bookmark store and keeps working.
 
 ### T10 — Accidental publication of sensitive information
 
-*Structural risk for an OSINT project: the harm is committing something that
-should not be public, not leaking something that already is.*
+_Structural risk for an OSINT project: the harm is committing something that
+should not be public, not leaking something that already is._
 
 **Mitigations.** Every input is a cited public source, reviewed before merge.
 No binary assets, no imagery and no DEM tiles are redistributed. Gitleaks scans
