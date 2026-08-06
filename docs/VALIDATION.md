@@ -61,7 +61,7 @@ bun run test:run      # once
 bun run test:coverage # with a coverage report over src/lib/
 ```
 
-197 tests over the deterministic, non-rendering half: parameter validation and
+198 tests over the deterministic, non-rendering half: parameter validation and
 hostile input, coordinate and bearing conventions, measurement summaries, the
 evidence ledger and its classifications, evidence-mode nesting, uncertainty
 derivation, the temporal ledger and snapshot comparison, manifest

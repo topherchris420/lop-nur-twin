@@ -126,7 +126,7 @@ and both produce byte-identical manifests.
 
 ```sh
 bun run check        # format:check → lint → test:run → test:evidence → build
-bun run test:run     # 197 unit tests over the deterministic modules
+bun run test:run     # 198 unit tests over the deterministic modules
 bun run test:evidence # proves all 35 evidence-validator rules still fire
 bun run validate:data # sources, geometry, bounds, geodesy, evidence ledger
 bun run a11y         # axe-core + CSP checks, against the preview build
