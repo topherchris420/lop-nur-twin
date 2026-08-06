@@ -679,8 +679,7 @@ export function diffToMarkdown(
   before: ComparableManifest,
   after: ComparableManifest,
 ): string {
-  const escape = (value: string) =>
-    value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+  const escape = (value: string) => value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
   const lines = [
     `# Model manifest comparison`,
     "",

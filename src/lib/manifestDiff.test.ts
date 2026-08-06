@@ -276,6 +276,20 @@ describe("exports", () => {
     expect(csv).toContain('""quoted""');
   });
 
+  it("escapes backslashes before pipes, so a trailing backslash cannot break the table", () => {
+    // Caught by CodeQL as "incomplete string escaping". Escaping `|` without
+    // first escaping `\` turns a value ending in a backslash into `\\|`, which
+    // Markdown reads as an escaped backslash followed by a *live* pipe — and the
+    // row gains a column.
+    const diff = diffManifests(
+      manifest({ knownLimitations: ["ends with a backslash \\"] }),
+      manifest({ knownLimitations: ["plain"] }),
+    );
+    const markdown = diffToMarkdown(diff, manifest(), manifest());
+    expect(markdown).toContain("ends with a backslash \\\\");
+    expect(markdown).not.toContain("backslash \\ |");
+  });
+
   it("escapes pipes so a Markdown table survives a value containing one", () => {
     const diff = diffManifests(
       manifest({ knownLimitations: ["before | after"] }),
