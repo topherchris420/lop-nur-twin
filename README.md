@@ -1,15 +1,12 @@
-# Lop Nur Geospatial Simulation Testbed
+# Lop Nur Geospatial Testbed
 
-An unclassified, public-source analytical reconstruction of a remote desert
+A public-source analytical reconstruction of a remote desert
 airfield near Lop Nur (~40.77° N, 89.28° E), where every claim carries an
-evidence classification, an uncertainty envelope and a citation.
+evidence classification, an uncertainty envelope, and a citation.
 
-> **Public sources only. Not operational data.** This is a modeled
+> **Public sources only.** This is a modeled
 > reconstruction built from cited open Earth-observation products and published
-> reporting. It is not an official facility record, not an aeronautical chart,
-> and not a verified statement of any building's interior use. It is **not
-> government-certified, not FedRAMP authorized, not CMMC certified, and not
-> approved for classified or Controlled Unclassified Information.** See
+> reporting.
 > [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
 
 ![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
@@ -51,7 +48,7 @@ analytical conclusion.
 - **Local bookmarks.** A saved analytical position carrying the hashes of the
   model it was taken against.
 
-Everything is procedural, deterministic and offline. No binary assets, no
+Everything is procedural, deterministic, and offline. No binary assets, no
 runtime downloads, no telemetry. The one network request the analytical view
 makes is for its own manifest, from the origin that served the page.
 
@@ -98,7 +95,7 @@ reversed date range, or an `observed` claim that bounds no position at all.
 Three dates are kept apart throughout, because collapsing them is how a
 publication date becomes a construction date:
 
-1. **When something happened at the site.** Almost never known — a first
+1. **When something happened at the site.** Rarely known — a first
    appearance bounds when a building existed _by_, so the interface says
    "existed by 2025-09-13; earliest date unknown".
 2. **When the evidence became public.** Precisely known, and the date that
@@ -198,7 +195,7 @@ the data receives it with the data. In summary:
 
 ## License
 
-The original source code, procedural models and original documentation in this
+The original source code, procedural models, and original documentation in this
 repository are licensed under the **Apache License 2.0** — see
 [`LICENSE`](LICENSE).
 
