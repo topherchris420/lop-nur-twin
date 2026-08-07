@@ -79,6 +79,7 @@ export class InputManager {
   /** Raw deltas this frame, exposed for weapon sway. */
   rawYaw = 0;
   rawPitch = 0;
+  private lastScrollSwap = 0;
 
   constructor(options: InputOptions, bindings: InputBindings = DEFAULT_BINDINGS) {
     this.options = options;
@@ -180,7 +181,7 @@ export class InputManager {
     s.jump = down(b.jump);
     s.crouch = down(b.crouch);
     s.sprint = down(b.sprint);
-    s.leanLeft = down(b.leanLeft) && !down(b.swap);
+    s.leanLeft = down(b.leanLeft);
     s.leanRight = down(b.leanRight);
     s.scoreboard = down(b.scoreboard);
   }
@@ -251,6 +252,12 @@ export class InputManager {
 
   private onWheel = (event: WheelEvent): void => {
     if (!this.locked) return;
-    if (Math.abs(event.deltaY) > 4) this.state.swapPressed = true;
+    if (Math.abs(event.deltaY) > 4) {
+      const now = Date.now();
+      if (now - this.lastScrollSwap > 300) {
+        this.state.swapPressed = true;
+        this.lastScrollSwap = now;
+      }
+    }
   };
 }

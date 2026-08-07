@@ -395,6 +395,10 @@ export function getWeaponMaterials(): WeaponMaterials {
     wood,
     dispose() {
       for (const t of textures) t.dispose();
+      nitride.normalMap?.dispose();
+      rubber.normalMap?.dispose();
+      optic.normalMap?.dispose();
+      wood.normalMap?.dispose();
       for (const m of [
         steel,
         receiver,

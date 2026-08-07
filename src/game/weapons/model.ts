@@ -1531,7 +1531,7 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     asm.add(m.steel, place(tube(0.021, 0.021, 0.042, 22), 0, slideY - 0.004, 0.008));
     asm.add(
       m.nitride,
-      place(flutes(6, 0.021, 0.034, 0.006, 0.0022), 0, slideY - 0.004, 0.008),
+      place(flutes(8, 0.021, 0.034, 0.006, 0.0022), 0, slideY - 0.004, 0.008),
     );
     asm.add(
       m.receiver,
@@ -1708,6 +1708,10 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
   leftHand.position.set(-0.02, -0.03, 0.005);
   root.add(leftHand);
 
+  const arms = buildArms();
+  rightHand.add(arms.right);
+  leftHand.add(arms.left);
+
   return {
     root,
     parts: {
@@ -1734,8 +1738,9 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles,
+    triangleCount: triangles + arms.triangleCount,
     dispose() {
+      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
@@ -1796,6 +1801,13 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
   };
   const empty = new THREE.Group();
   root.add(empty);
+
+  const leftHand = anchor(-0.04, -0.02, 0.04);
+  const rightHand = anchor(0, 0, 0.05);
+  const arms = buildArms();
+  rightHand.add(arms.right);
+  leftHand.add(arms.left);
+
   return {
     root,
     parts: {
@@ -1812,8 +1824,8 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
       sightAxis: anchor(0, 0.01, -0.05),
       stock: root,
       foregrip: null,
-      leftHand: anchor(-0.04, -0.02, 0.04),
-      rightHand: anchor(0, 0, 0.05),
+      leftHand,
+      rightHand,
       boltTravel: 0,
       chargingTravel: 0,
     },
@@ -1822,8 +1834,9 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles,
+    triangleCount: triangles + arms.triangleCount,
     dispose() {
+      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
@@ -1895,6 +1908,13 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
   };
   const empty = new THREE.Group();
   root.add(empty);
+
+  const leftHand = anchor(0, axisY - 0.05, -0.24);
+  const rightHand = anchor(0, -0.02, 0.03);
+  const arms = buildArms();
+  rightHand.add(arms.right);
+  leftHand.add(arms.left);
+
   return {
     root,
     parts: {
@@ -1911,8 +1931,8 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
       sightAxis: anchor(0, axisY + 0.084, -0.24),
       stock: root,
       foregrip: null,
-      leftHand: anchor(0, axisY - 0.05, -0.24),
-      rightHand: anchor(0, -0.02, 0.03),
+      leftHand,
+      rightHand,
       boltTravel: 0,
       chargingTravel: 0,
     },
@@ -1921,8 +1941,9 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles,
+    triangleCount: triangles + arms.triangleCount,
     dispose() {
+      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });

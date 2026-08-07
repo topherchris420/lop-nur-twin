@@ -233,8 +233,8 @@ function buildParts(
   add(limb(B.upperArmR, 0.055, 0.045), camoBase);
   add(limb(B.foreArmL, 0.045, 0.036), camoBase);
   add(limb(B.foreArmR, 0.045, 0.036), camoBase);
-  add(limb(B.foreTwistL, 0.036, 0.033), palette.skin);
-  add(limb(B.foreTwistR, 0.036, 0.033), palette.skin);
+  add(limb(B.foreTwistL, 0.036, 0.033), palette.glove);
+  add(limb(B.foreTwistR, 0.036, 0.033), palette.glove);
   add(limb(B.neck, 0.048, 0.05), palette.skin);
 
   // Torso: three stacked slabs following the spine, narrowing at the waist.
@@ -398,10 +398,10 @@ function buildParts(
   }
 
   /* ---------------------------------------------------------- hands */
-  add(ball(0.045, -0.184, 0.845, 0, 1.1, 1.25), palette.glove, 0.85);
-  add(ball(0.045, 0.184, 0.845, 0, 1.1, 1.25), palette.glove, 0.85);
+  add(ball(0.034, -0.184, 0.845, 0, 1.2, 1.35), palette.glove, 0.85);
+  add(ball(0.034, 0.184, 0.845, 0, 1.2, 1.35), palette.glove, 0.85);
   for (const bone of [B.thumbL, B.indexL, B.gripL, B.thumbR, B.indexR, B.gripR]) {
-    add(limb(bone, 0.014, 0.011, 6), palette.glove, 0.85);
+    add(limb(bone, 0.012, 0.009, 6), palette.glove, 0.85);
   }
 
   /* -------------------------------------------------------- variant */
