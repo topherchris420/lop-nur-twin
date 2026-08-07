@@ -354,7 +354,7 @@ export class PlayerController {
       return;
     }
     if (input.jumpPressed && !this.mantling) {
-      this.tryMantle(actor, world);
+      if (this.tryMantle(actor, world)) return;
     }
 
     /* --------------------------------------------------- input ---- */

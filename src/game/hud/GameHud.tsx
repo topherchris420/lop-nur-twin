@@ -290,7 +290,11 @@ function LoadoutScreen() {
 
   const bars = {
     damage: Math.min(1, (primary.ballistics.damage[0]?.damage ?? 0) / 60),
-    range: Math.min(1, (primary.ballistics.damage[2]?.rangeM ?? 20) / 90),
+    range: Math.min(
+      1,
+      (primary.ballistics.damage[primary.ballistics.damage.length - 1]?.rangeM ?? 20) /
+        90,
+    ),
     accuracy: Math.max(0.05, 1 - primary.spread.adsDeg / 0.6),
     fireRate: Math.min(1, primary.rpm / 1050),
     mobility: Math.max(0.05, (primary.handling.moveScale - 0.75) / 0.5),

@@ -11,8 +11,16 @@ import {
   type EntityId,
   type Team,
 } from "../core/types";
-import { addActor, createActor, eyePosition, game, type Actor } from "../core/gameState";
+import {
+  addActor,
+  removeActor,
+  createActor,
+  eyePosition,
+  game,
+  type Actor,
+} from "../core/gameState";
 import type { CollisionWorld } from "../physics/collisionWorld";
+import type { MatchDirector } from "../modes/match";
 import { WeaponRuntime } from "../weapons/runtime";
 import { getWeapon } from "../weapons/arsenal";
 import { applyNearMissSuppression, respawnActor } from "../core/combat";
@@ -356,13 +364,13 @@ export class BotManager {
       );
       const weaponId = BOT_PRIMARIES[Math.floor(this.rand() * BOT_PRIMARIES.length)]!;
       actor.weaponId = weaponId;
-      addActor(actor);
 
       if (!this.findSpawnPoint(team, this.rand, _probe)) {
         // No clear ground anywhere in this team's zones; skip rather than
         // place a bot inside a building.
         continue;
       }
+      addActor(actor);
       respawnActor(actor, _probe, this.rand() * Math.PI * 2);
       const spawnZone = _probe.clone();
 
@@ -400,7 +408,11 @@ export class BotManager {
         // Corpses still fall. Skipping the sweep entirely leaves a body shot
         // on a stair or a container hanging in the air until it respawns.
         this.settleCorpse(actor, dt);
-        if (actor.respawnTimer <= 0) this.respawn(bot);
+        if (actor.respawnTimer <= 0) {
+          const director = game.matchDirector as MatchDirector | null;
+          if (director && director.rules.respawnDelay <= 0) continue;
+          this.respawn(bot);
+        }
         continue;
       }
       if (bot.state === "dead") bot.state = "patrol";
@@ -963,6 +975,9 @@ export class BotManager {
   }
 
   dispose(): void {
+    for (const bot of this.bots) {
+      removeActor(bot.actor.id);
+    }
     this.bots.length = 0;
     this.contacts.blue = null;
     this.contacts.red = null;

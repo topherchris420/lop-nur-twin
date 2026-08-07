@@ -631,7 +631,7 @@ export class CollisionWorld {
     let prevT = 0;
     let prevGap = origin.y - this.groundHeight(origin.x, origin.z);
     if (prevGap < 0) return 0;
-    for (let t = step; t <= maxDist; t += Math.min(step * 1.35, 24)) {
+    for (let t = step; t <= maxDist; t += Math.min(step * 1.35, 2.5)) {
       const x = origin.x + dir.x * t;
       const y = origin.y + dir.y * t;
       const z = origin.z + dir.z * t;
