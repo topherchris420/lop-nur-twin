@@ -3,6 +3,7 @@ import {
   SCRUB_AVAILABLE,
   SCRUB_FIRST_DATE,
   SCRUB_LAST_DATE,
+  SCRUB_MIN_DAY,
   SCRUB_SPAN_DAYS,
   SCRUB_STOPS,
   clampDay,
@@ -11,6 +12,7 @@ import {
   describeScrubState,
   nextStopAfter,
   presenceAt,
+  previousDayBefore,
   previousStopBefore,
   scrubStateAt,
   scrubStateAtDay,
@@ -87,9 +89,34 @@ describe("dateAtDay", () => {
     expect(dateAtDay(Number.NaN)).toBe(SCRUB_LAST_DATE);
     expect(dateAtDay(Number.POSITIVE_INFINITY)).toBe(SCRUB_LAST_DATE);
     expect(clampDay(Number.NaN)).toBe(SCRUB_SPAN_DAYS);
-    expect(clampDay(-5)).toBe(0);
+    expect(clampDay(-5)).toBe(SCRUB_MIN_DAY);
     expect(clampDay(1e308)).toBe(SCRUB_SPAN_DAYS);
     expect(clampDay(3.6)).toBe(4);
+  });
+});
+
+describe("the pre-evidence slot", () => {
+  it('is reachable, so "nothing was public yet" is a position a user can hold', () => {
+    // Without a reserved slot to the left of the first stop, every position on
+    // the axis resolves to a real ledger date and the state is dead.
+    expect(SCRUB_MIN_DAY).toBeLessThan(0);
+    expect(clampDay(SCRUB_MIN_DAY)).toBe(SCRUB_MIN_DAY);
+    expect(dateAtDay(SCRUB_MIN_DAY)).toBeNull();
+    expect(scrubStateAtDay(SCRUB_MIN_DAY)).toBeNull();
+    expect(presenceAt(scrubStateAtDay(SCRUB_MIN_DAY), "hangar-main")).toBe(
+      "pre-evidence",
+    );
+  });
+
+  it("is where stepping back off the earliest stop lands", () => {
+    expect(previousDayBefore(SCRUB_STOPS[0]!.day)).toBe(SCRUB_MIN_DAY);
+    // And it is the floor: there is nothing before "before".
+    expect(previousDayBefore(SCRUB_MIN_DAY)).toBeUndefined();
+  });
+
+  it("is distinct from the first stop", () => {
+    expect(dateAtDay(0)).toBe(SCRUB_FIRST_DATE);
+    expect(dateAtDay(SCRUB_MIN_DAY)).toBeNull();
   });
 });
 

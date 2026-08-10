@@ -158,12 +158,38 @@ export function ReferenceImagery() {
     [material, frameMaterial],
   );
 
+  /**
+   * The overlay is draped over the heightfield, not laid on a single flat plane.
+   *
+   * The site window is 6.8 km across and the procedural relief moves several
+   * metres inside it, so a flat plane at the centre's height is buried wherever
+   * the ground rises and visibly floating wherever it falls — a
+   * "ground-registered" overlay that is neither. Displacing the vertices by the
+   * same `terrainHeight` the terrain mesh uses keeps the image on the ground
+   * everywhere, which is the only way the swipe comparison means anything.
+   */
   const geometry = useMemo(() => {
     if (scene === undefined) return null;
     const extent = scene.window.halfExtentM * 2;
-    const plane = new THREE.PlaneGeometry(extent, extent);
+    // ~53 m between samples across the site window: finer than the 46 m
+    // wavelength of the terrain's smallest term, so the drape has no visible
+    // facets against the surface it is following.
+    const segments = Math.min(160, Math.max(24, Math.round(extent / 53)));
+    const plane = new THREE.PlaneGeometry(extent, extent, segments, segments);
     // Laid flat so the image's top row is north, matching a north-up crop.
     plane.rotateX(-Math.PI / 2);
+
+    const [cx, cz] = scene.window.centerLocal;
+    const position = plane.getAttribute("position");
+    for (let index = 0; index < position.count; index += 1) {
+      const x = cx + position.getX(index);
+      const z = cz + position.getZ(index);
+      // A hand's breadth above the surface: enough to clear the pavement decals
+      // the model lays at 0.05-0.14 m without floating off the ground.
+      position.setY(index, terrainHeight(x, z) + 0.6);
+    }
+    position.needsUpdate = true;
+    plane.computeVertexNormals();
     return plane;
   }, [scene]);
 
@@ -209,7 +235,10 @@ export function ReferenceImagery() {
         <mesh
           geometry={geometry}
           material={material}
-          position={[cx, terrainHeight(cx, cz) + 0.9, cz]}
+          // The drape already carries absolute ground heights per vertex, so
+          // the mesh only shifts in the horizontal plane — adding a y here
+          // would count the terrain twice.
+          position={[cx, 0, cz]}
           renderOrder={1}
           frustumCulled={false}
         />

@@ -17,7 +17,7 @@ import { makeApronTexture, makeDirtTexture, makePavementTexture } from "@/lib/te
 import { SITE_SEED } from "@/lib/noise";
 import { applyGroundDetailPreset, type GroundDetailFamily } from "@/gfx/groundDetail";
 
-import { useSubjectFilter } from "@/lib/sceneVisibility";
+import { useSubjectPresentation } from "@/lib/sceneVisibility";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 
 /**
@@ -283,7 +283,16 @@ function FilletMesh({
 
 export function Pavements() {
   const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
-  const isDrawn = useSubjectFilter();
+  // Only what the composer resolves to a *solid* body. A ghosted road is drawn
+  // by `ForensicGhosts` as a schematic plate instead, so that X-ray and the
+  // scrubber reach pavement exactly as they reach buildings — pavement drawn
+  // solid while the composer says ghost would make an illustrative street look
+  // as certain as the measured runway.
+  const present = useSubjectPresentation();
+  const isDrawn = (subject: { id: string; observedDate?: string }) => {
+    const presentation = present(subject);
+    return presentation.visible && presentation.body === "solid";
+  };
   const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
   useEffect(() => () => apronTexture.dispose(), [apronTexture]);
 

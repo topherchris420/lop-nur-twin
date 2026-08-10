@@ -5,9 +5,9 @@ import {
   type ForensicViewState,
 } from "./sceneVisibility";
 import { scrubStateAtDay, SCRUB_SPAN_DAYS } from "./timeScrubber";
-import { STRUCTURES, TIMELINE_BOUNDS } from "./layout";
+import { ALL_SEGMENTS, APRONS, STRUCTURES, TIMELINE_BOUNDS } from "./layout";
 import { EVIDENCE_MODES } from "./evidenceMode";
-import { XRAY_MODES } from "./xray";
+import { XRAY_LAYERS, XRAY_MODES } from "./xray";
 import { survivesProveIt } from "./forensics";
 
 /**
@@ -153,6 +153,47 @@ describe("the time scrubber", () => {
   it("reports everything as established when the scrubber is parked", () => {
     for (const structure of STRUCTURES) {
       expect(subjectPresentation(structure, BASE, null).presence).toBe("established");
+    }
+  });
+});
+
+describe("pavement is not exempt", () => {
+  // Roads, strips, taxiways and aprons are classified by the same ledger as the
+  // buildings. A treatment that only reached structures would leave an
+  // illustrative street looking exactly as certain as the measured runway,
+  // which is the failure X-ray exists to prevent — and it would be invisible,
+  // because the pavement would simply keep rendering as it always had.
+  const pavement = [...ALL_SEGMENTS, ...APRONS];
+
+  it("resolves to a ghost body under X-ray, exactly as structures do", () => {
+    const ghosted = pavement.filter(
+      (subject) =>
+        subjectPresentation(subject, { ...BASE, xrayMode: "ghost" }, null).body ===
+        "ghost",
+    );
+    expect(ghosted.length).toBeGreaterThan(0);
+  });
+
+  it("lifts with its own stratum, not with the buildings' one", () => {
+    for (const subject of pavement) {
+      const presentation = subjectPresentation(
+        subject,
+        { ...BASE, xrayMode: "stratified" },
+        null,
+      );
+      if (!presentation.visible) continue;
+      expect(presentation.liftM, subject.id).toBe(
+        XRAY_LAYERS[presentation.classification].liftM,
+      );
+    }
+  });
+
+  it("is removed by PROVE IT unless a cited source defends it", () => {
+    for (const subject of pavement) {
+      expect(
+        subjectPresentation(subject, { ...BASE, proveIt: true }, null).visible,
+        subject.id,
+      ).toBe(survivesProveIt(subject.id));
     }
   });
 });

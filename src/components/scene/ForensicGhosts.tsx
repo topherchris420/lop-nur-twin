@@ -2,7 +2,17 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { useFrame } from "@react-three/fiber";
-import { STRUCTURES, type StructureDef } from "@/lib/layout";
+import {
+  ALL_SEGMENTS,
+  APRONS,
+  STRUCTURES,
+  segmentAngle,
+  segmentCenter,
+  segmentLength,
+  type ApronDef,
+  type SegmentDef,
+  type StructureDef,
+} from "@/lib/layout";
 import { terrainHeight } from "@/lib/terrain";
 import { createHardSurfaceShaderMaterial } from "@/gfx/greeble";
 import {
@@ -186,24 +196,95 @@ const LAYER_COLOR: Record<EvidenceClassification, string> = {
 const STRIPPED_COLOR = "#f87171";
 const BURN_COLOR = "#fff3d6";
 
+/**
+ * A subject reduced to the box the ghost layer draws for it.
+ *
+ * Structures, pavement segments and aprons all end up here, because the
+ * composer classifies all three and a treatment that only reached buildings
+ * would leave illustrative roads looking exactly as certain as a measured
+ * runway — the precise failure X-ray exists to prevent. Pavement gets a token
+ * height so it still reads as a plate rather than vanishing edge-on.
+ */
+interface GhostSolid {
+  id: string;
+  /** World centre of the footprint. */
+  x: number;
+  z: number;
+  width: number;
+  depth: number;
+  height: number;
+  /** Heading in the box frame, which is not always the mesh's own euler. */
+  rotationY: number;
+}
+
+/** Pavement is flat; this is thick enough to read as a plate from a low angle. */
+const PAVEMENT_SHELL_HEIGHT = 1.2;
+
+function structureSolid(structure: StructureDef): GhostSolid {
+  const [width, height, depth] = structure.size;
+  return {
+    id: structure.id,
+    x: structure.position[0],
+    z: structure.position[1],
+    width,
+    depth,
+    height,
+    rotationY: structure.rotation,
+  };
+}
+
+/**
+ * `Pavements` lays a plane flat with euler `[-π/2, 0, θ]`, which is not the same
+ * frame a box uses. For a segment the box heading is `segmentAngle`; for an
+ * apron it is the *negated* rotation. Both were derived by matching corner
+ * positions rather than guessed — a sign error here mirrors a footprint across
+ * its own centre, which looks plausible and is wrong.
+ */
+function segmentSolid(segment: SegmentDef): GhostSolid {
+  const [cx, cz] = segmentCenter(segment);
+  return {
+    id: segment.id,
+    x: cx,
+    z: cz,
+    width: segment.width,
+    depth: segmentLength(segment),
+    height: PAVEMENT_SHELL_HEIGHT,
+    rotationY: segmentAngle(segment),
+  };
+}
+
+function apronSolid(apron: ApronDef): GhostSolid {
+  return {
+    id: apron.id,
+    x: apron.center[0],
+    z: apron.center[1],
+    width: apron.size[0],
+    depth: apron.size[1],
+    height: PAVEMENT_SHELL_HEIGHT,
+    rotationY: -apron.rotation,
+  };
+}
+
 interface Bucket {
   key: string;
   color: string;
   liftM: number;
   opacity: number;
   dissolve: number;
-  structures: StructureDef[];
+  solids: GhostSolid[];
 }
 
-/** One box in world space, at the structure's own position, size and heading. */
-function shellBox(structure: StructureDef): THREE.BoxGeometry {
-  const [width, height, depth] = structure.size;
-  const box = new THREE.BoxGeometry(width, height, depth);
-  const [x, z] = structure.position;
+/** One box in world space, at the subject's own position, size and heading. */
+function shellBox(solid: GhostSolid): THREE.BoxGeometry {
+  const box = new THREE.BoxGeometry(solid.width, solid.height, solid.depth);
   box.applyMatrix4(
     new THREE.Matrix4().compose(
-      new THREE.Vector3(x, terrainHeight(x, z) + height / 2, z),
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, structure.rotation, 0)),
+      new THREE.Vector3(
+        solid.x,
+        terrainHeight(solid.x, solid.z) + solid.height / 2,
+        solid.z,
+      ),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, solid.rotationY, 0)),
       new THREE.Vector3(1, 1, 1),
     ),
   );
@@ -211,8 +292,8 @@ function shellBox(structure: StructureDef): THREE.BoxGeometry {
 }
 
 /** Boxes merged into one geometry, positioned and rotated in world space. */
-function mergeShells(structures: readonly StructureDef[]): THREE.BufferGeometry | null {
-  const parts = structures.map(shellBox);
+function mergeShells(solids: readonly GhostSolid[]): THREE.BufferGeometry | null {
+  const parts = solids.map(shellBox);
   if (parts.length === 0) return null;
   const merged = mergeGeometries(parts);
   for (const part of parts) part.dispose();
@@ -228,12 +309,10 @@ function mergeShells(structures: readonly StructureDef[]): THREE.BufferGeometry 
  * does not support it. Edges survive the dissolve untouched, deliberately: the
  * outline is the model's claim, and the missing surface is the commentary on it.
  */
-function mergeShellEdges(
-  structures: readonly StructureDef[],
-): THREE.BufferGeometry | null {
+function mergeShellEdges(solids: readonly GhostSolid[]): THREE.BufferGeometry | null {
   const parts: THREE.BufferGeometry[] = [];
-  for (const structure of structures) {
-    const box = shellBox(structure);
+  for (const solid of solids) {
+    const box = shellBox(solid);
     parts.push(new THREE.EdgesGeometry(box));
     box.dispose();
   }
@@ -245,13 +324,13 @@ function mergeShellEdges(
 
 /** One vertical segment per structure, from its base down through the ground. */
 function mergeDropLines(
-  structures: readonly StructureDef[],
+  solids: readonly GhostSolid[],
   liftM: number,
 ): THREE.BufferGeometry | null {
-  if (structures.length === 0 || liftM <= 0) return null;
-  const positions = new Float32Array(structures.length * 6);
-  structures.forEach((structure, index) => {
-    const [x, z] = structure.position;
+  if (solids.length === 0 || liftM <= 0) return null;
+  const positions = new Float32Array(solids.length * 6);
+  solids.forEach((solid, index) => {
+    const { x, z } = solid;
     const base = terrainHeight(x, z);
     const offset = index * 6;
     positions[offset] = x;
@@ -272,7 +351,16 @@ function mergeDropLines(
  * One drawable stratum: merged shells, merged drop lines, and the two materials
  * whose uniforms are animated toward the bucket's target treatment.
  */
-function Stratum({ bucket, reduced }: { bucket: Bucket; reduced: boolean }) {
+function Stratum({
+  bucket,
+  reduced,
+  wireframeOnly,
+}: {
+  bucket: Bucket;
+  reduced: boolean;
+  /** Tier-0 fallback: silhouettes only, no eroded fill and no drop lines. */
+  wireframeOnly: boolean;
+}) {
   const groupRef = useRef<THREE.Group>(null);
   const material = useMemo(
     () => makeGhostMaterial(bucket.color, BURN_COLOR),
@@ -280,14 +368,14 @@ function Stratum({ bucket, reduced }: { bucket: Bucket; reduced: boolean }) {
   );
   const dropMaterial = useMemo(() => makeDropMaterial(bucket.color), [bucket.color]);
   const edgeMaterial = useMemo(() => makeEdgeMaterial(bucket.color), [bucket.color]);
-  const geometry = useMemo(() => mergeShells(bucket.structures), [bucket.structures]);
-  const edgeGeometry = useMemo(
-    () => mergeShellEdges(bucket.structures),
-    [bucket.structures],
+  const geometry = useMemo(
+    () => (wireframeOnly ? null : mergeShells(bucket.solids)),
+    [bucket.solids, wireframeOnly],
   );
+  const edgeGeometry = useMemo(() => mergeShellEdges(bucket.solids), [bucket.solids]);
   const dropGeometry = useMemo(
-    () => mergeDropLines(bucket.structures, bucket.liftM),
-    [bucket.structures, bucket.liftM],
+    () => (wireframeOnly ? null : mergeDropLines(bucket.solids, bucket.liftM)),
+    [bucket.solids, bucket.liftM, wireframeOnly],
   );
 
   // Start every stratum at the ground and let it rise, so switching into a
@@ -358,10 +446,10 @@ function Stratum({ bucket, reduced }: { bucket: Bucket; reduced: boolean }) {
  * just admiring is undefended, and a cut would read as a rendering glitch —
  * watching it erode is what makes the point land.
  */
-function StripDown({ structures }: { structures: readonly StructureDef[] }) {
+function StripDown({ solids }: { solids: readonly GhostSolid[] }) {
   const reduced = useTwinStore((state) => state.reducedMotion);
   const material = useMemo(() => makeGhostMaterial(STRIPPED_COLOR, BURN_COLOR), []);
-  const geometry = useMemo(() => mergeShells(structures), [structures]);
+  const geometry = useMemo(() => mergeShells(solids), [solids]);
   const progress = useRef(reduced ? 1 : 0);
 
   useEffect(
@@ -414,12 +502,30 @@ export function ForensicGhosts() {
 
   const { buckets, stripped } = useMemo(() => {
     const byKey = new Map<string, Bucket>();
-    const removed: StructureDef[] = [];
+    const removed: GhostSolid[] = [];
 
-    for (const structure of STRUCTURES) {
-      const presentation = present(structure);
+    // Structures *and* pavement. `Pavements.tsx` draws only what the composer
+    // resolves to `solid`, so anything it stops drawing has to reappear here or
+    // an illustrative road would silently become invisible instead of ghosted.
+    const candidates: readonly {
+      subject: { id: string; observedDate?: string };
+      solid: GhostSolid;
+    }[] = [
+      ...STRUCTURES.map((structure) => ({
+        subject: structure,
+        solid: structureSolid(structure),
+      })),
+      ...ALL_SEGMENTS.map((segment) => ({
+        subject: segment,
+        solid: segmentSolid(segment),
+      })),
+      ...APRONS.map((apron) => ({ subject: apron, solid: apronSolid(apron) })),
+    ];
+
+    for (const { subject, solid } of candidates) {
+      const presentation = present(subject);
       if (proveIt && !presentation.visible) {
-        removed.push(structure);
+        removed.push(solid);
         continue;
       }
       if (presentation.body !== "ghost") continue;
@@ -432,10 +538,10 @@ export function ForensicGhosts() {
           liftM: presentation.liftM,
           opacity: presentation.opacity,
           dissolve: presentation.dissolve,
-          structures: [structure],
+          solids: [solid],
         });
       } else {
-        bucket.structures.push(structure);
+        bucket.solids.push(solid);
       }
     }
 
@@ -448,17 +554,27 @@ export function ForensicGhosts() {
     };
   }, [present, proveIt]);
 
-  // Tier 0 is the constrained-device tier. The information is not withheld —
-  // every verdict stays in the dossier, the HUD readout and `/analysis` — only
-  // its volumetric rendering, which is the expensive part.
-  if (qualityTier < 1) return null;
+  // Tier 0 is the constrained-device tier, and it gets silhouettes rather than
+  // nothing. Dropping the layer entirely there would turn X-ray into an
+  // undocumented evidence filter on constrained devices: `Structures` already
+  // stops drawing a ghosted subject, so this is its only representation, and
+  // edges are twelve merged line segments per subject — cheap enough for the
+  // tier that has to stay cheap.
+  const wireframeOnly = qualityTier < 1;
 
   return (
     <group name="forensic-ghosts">
       {buckets.map((bucket) => (
-        <Stratum key={bucket.key} bucket={bucket} reduced={reducedMotion} />
+        <Stratum
+          key={bucket.key}
+          bucket={bucket}
+          reduced={reducedMotion}
+          wireframeOnly={wireframeOnly}
+        />
       ))}
-      {proveIt && stripped.length > 0 ? <StripDown structures={stripped} /> : null}
+      {proveIt && stripped.length > 0 && !wireframeOnly ? (
+        <StripDown solids={stripped} />
+      ) : null}
     </group>
   );
 }

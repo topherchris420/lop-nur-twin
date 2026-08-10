@@ -13,6 +13,7 @@ import {
   SCRUB_AVAILABLE,
   SCRUB_FIRST_DATE,
   SCRUB_LAST_DATE,
+  SCRUB_MIN_DAY,
   SCRUB_SPAN_DAYS,
   SCRUB_STOPS,
   describeScrubState,
@@ -67,6 +68,9 @@ function ScrubTrack() {
   // parked means no temporal filter at all, while the left end of the axis
   // means a real date at which nothing had been published yet.
   const parked = scrubDay === null;
+  // Three positions, not two: parked (no temporal filter at all), the reserved
+  // slot before the first source, and a real ledger date.
+  const preEvidence = !parked && state === null;
   const readout = parked
     ? "Reading the model's current state. Scrub to a date to see what had been publicly evidenced by then."
     : describeScrubState(state);
@@ -93,7 +97,11 @@ function ScrubTrack() {
           htmlFor="evidence-scrub"
           className="text-foreground font-mono text-[11px] tabular-nums"
         >
-          {parked ? "current state" : (state?.date ?? "—")}
+          {parked
+            ? "current state"
+            : preEvidence
+              ? `before ${SCRUB_FIRST_DATE ?? "the first source"}`
+              : (state?.date ?? "—")}
         </output>
       </div>
 
@@ -101,7 +109,7 @@ function ScrubTrack() {
         <input
           id="evidence-scrub"
           type="range"
-          min={0}
+          min={SCRUB_MIN_DAY}
           max={SCRUB_SPAN_DAYS}
           step={1}
           value={scrubDay ?? SCRUB_SPAN_DAYS}
@@ -117,7 +125,12 @@ function ScrubTrack() {
               key={stop.date}
               className="bg-muted-foreground/70 absolute top-0 h-1.5 w-px"
               style={{
-                left: `${SCRUB_SPAN_DAYS === 0 ? 0 : (stop.day / SCRUB_SPAN_DAYS) * 100}%`,
+                left: `${
+                  SCRUB_SPAN_DAYS === 0
+                    ? 0
+                    : ((stop.day - SCRUB_MIN_DAY) / (SCRUB_SPAN_DAYS - SCRUB_MIN_DAY)) *
+                      100
+                }%`,
               }}
             />
           ))}
@@ -125,7 +138,7 @@ function ScrubTrack() {
       </div>
 
       <div className="text-muted-foreground flex justify-between text-[8px] tabular-nums">
-        <span>{SCRUB_FIRST_DATE ?? "—"}</span>
+        <span>pre-evidence · {SCRUB_FIRST_DATE ?? "—"}</span>
         <span>{SCRUB_LAST_DATE ?? "—"}</span>
       </div>
       <p role="status" className="text-muted-foreground mt-1 text-[9px] leading-relaxed">
@@ -166,7 +179,7 @@ function TransportControls() {
     const increment = Math.max(1, (SCRUB_SPAN_DAYS * PLAY_TICK_MS) / PLAY_DURATION_MS);
     const timer = window.setInterval(() => {
       const { scrubDay } = useTwinStore.getState();
-      const next = (scrubDay ?? 0) + increment;
+      const next = (scrubDay ?? SCRUB_MIN_DAY) + increment;
       if (next >= SCRUB_SPAN_DAYS) {
         setScrubDay(SCRUB_SPAN_DAYS);
         setScrubPlaying(false);

@@ -9,12 +9,13 @@ import {
 import { EVIDENCE_CLASSIFICATIONS, type EvidenceClassification } from "./evidence";
 import { XRAY_MODES, type XrayMode } from "./xray";
 import {
+  SCRUB_MIN_DAY,
   SCRUB_SPAN_DAYS,
   clampDay,
   dateAtDay,
   dayOfDate,
   nextStopAfter,
-  previousStopBefore,
+  previousDayBefore,
 } from "./timeScrubber";
 import { OVERLAY_MODES, getReferenceScene, type OverlayMode } from "./referenceImagery";
 import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
@@ -362,9 +363,12 @@ export const useTwinStore = create<TwinState>()((set) => ({
   stepScrub: (direction) =>
     set((state) => {
       const current = state.scrubDay ?? SCRUB_SPAN_DAYS;
-      const stop = direction === 1 ? nextStopAfter(current) : previousStopBefore(current);
-      if (stop === undefined) return state;
-      return { scrubDay: stop.day, snapshotDate: stop.date };
+      // Stepping back off the earliest stop lands on the pre-evidence slot,
+      // whose snapshot date is legitimately null — nothing was public yet.
+      const day =
+        direction === 1 ? nextStopAfter(current)?.day : previousDayBefore(current);
+      if (day === undefined) return state;
+      return { scrubDay: day, snapshotDate: dateAtDay(day) };
     }),
   scrubPlaying: false,
   setScrubPlaying: (scrubPlaying) => set({ scrubPlaying }),
@@ -372,10 +376,12 @@ export const useTwinStore = create<TwinState>()((set) => ({
     set((state) => ({
       scrubPlaying: !state.scrubPlaying,
       // Pressing play with the scrubber parked starts it from the beginning
-      // rather than doing nothing, which is what every viewer expects.
+      // rather than doing nothing, which is what every viewer expects. The
+      // beginning is the pre-evidence slot, not the first stop: the honest
+      // opening frame is the site before anything about it was public.
       ...(state.scrubPlaying || state.scrubDay !== null
         ? {}
-        : { scrubDay: 0, snapshotDate: dateAtDay(0) }),
+        : { scrubDay: SCRUB_MIN_DAY, snapshotDate: dateAtDay(SCRUB_MIN_DAY) }),
     })),
   comparisonDate: normalizeSnapshotDate(readIsoDateParam("compare")),
   setComparisonDate: (comparisonDate) =>
@@ -400,11 +406,25 @@ export const useTwinStore = create<TwinState>()((set) => ({
     set((state) => ({ showReference: !state.showReference, showIndex: false })),
   reference: INITIAL_REFERENCE,
   setReferenceScene: (sceneId) =>
-    set((state) =>
-      getReferenceScene(sceneId) === undefined
-        ? state
-        : { reference: { ...state.reference, sceneId } },
-    ),
+    set((state) => {
+      if (getReferenceScene(sceneId) === undefined) return state;
+      if (sceneId === state.reference.sceneId) return state;
+      // A crop belongs to the window it was cut for. Keeping it across a scene
+      // change would stretch a whole-site image over the runway window (or the
+      // reverse) and recompute the registration report as though it fitted —
+      // a comparison that looks convincing and is spatially false, which is the
+      // one thing this feature must never produce.
+      revoke(state.reference.objectUrl);
+      return {
+        reference: {
+          ...state.reference,
+          sceneId,
+          objectUrl: null,
+          widthPx: 0,
+          heightPx: 0,
+        },
+      };
+    }),
   setReferenceImage: (objectUrl, widthPx, heightPx) =>
     set((state) => {
       revoke(state.reference.objectUrl);

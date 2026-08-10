@@ -83,6 +83,21 @@ export const SCRUB_LAST_DATE: string | undefined =
 /** Total span of the axis in days. Zero when the ledger holds one date or none. */
 export const SCRUB_SPAN_DAYS: number = SCRUB_STOPS[SCRUB_STOPS.length - 1]?.day ?? 0;
 
+/**
+ * One position to the left of the first stop, reserved for "before any evidence".
+ *
+ * Without it that state is unreachable: the first stop sits at day 0, so every
+ * position on a `[0, span]` axis resolves to a real ledger date and a viewer can
+ * never see the difference between "nothing was public yet" and "the earliest
+ * evidence showed this". Those are different statements and the interface has to
+ * be able to make the first one — it is also the honest place for playback to
+ * start from.
+ */
+export const SCRUB_PRE_EVIDENCE_DAY = -1;
+
+/** The lowest position the scrubber accepts, including the pre-evidence slot. */
+export const SCRUB_MIN_DAY = SCRUB_PRE_EVIDENCE_DAY;
+
 /** True when there is enough dated evidence for a scrub to mean anything. */
 export const SCRUB_AVAILABLE: boolean = SCRUB_STOPS.length > 1;
 
@@ -107,10 +122,10 @@ export function dateAtDay(day: number): string | null {
   return current;
 }
 
-/** Clamp an arbitrary number onto the axis. */
+/** Clamp an arbitrary number onto the axis, pre-evidence slot included. */
 export function clampDay(day: number): number {
   if (!Number.isFinite(day)) return SCRUB_SPAN_DAYS;
-  return Math.min(SCRUB_SPAN_DAYS, Math.max(0, Math.round(day)));
+  return Math.min(SCRUB_SPAN_DAYS, Math.max(SCRUB_MIN_DAY, Math.round(day)));
 }
 
 /** The stop immediately after a day offset, for the "step forward" control. */
@@ -126,6 +141,16 @@ export function previousStopBefore(day: number): ScrubStop | undefined {
     candidate = stop;
   }
   return candidate;
+}
+
+/**
+ * Stepping back from the earliest stop lands on the pre-evidence slot rather
+ * than refusing to move. Reaching it is the whole reason it exists.
+ */
+export function previousDayBefore(day: number): number | undefined {
+  const stop = previousStopBefore(day);
+  if (stop !== undefined) return stop.day;
+  return day > SCRUB_MIN_DAY ? SCRUB_MIN_DAY : undefined;
 }
 
 /* ------------------------------------------------------------------ */
