@@ -37,8 +37,7 @@ import {
 } from "@/lib/measure";
 import { flyToPoint } from "@/lib/flyTo";
 import { getUncertaintyForSubject } from "@/lib/evidence";
-import { type EvidenceMode } from "@/lib/evidenceMode";
-import { isSubjectDrawn } from "@/lib/sceneVisibility";
+import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { type UncertaintyLevel } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
@@ -89,13 +88,9 @@ const IDENTIFICATION_DASH: Record<UncertaintyLevel, readonly number[]> = {
 };
 
 function buildStaticLayer(
-  activeTimelineYear: number,
-  evidenceMode: EvidenceMode,
+  isDrawn: (subject: { id: string; observedDate?: string }) => boolean,
   showUncertainty: boolean,
 ): HTMLCanvasElement {
-  const isDrawn = (subject: { id: string; observedDate?: string }) =>
-    isSubjectDrawn(subject, activeTimelineYear, evidenceMode);
-
   const canvas = document.createElement("canvas");
   canvas.width = SIZE * DPR;
   canvas.height = SIZE * DPR;
@@ -341,9 +336,13 @@ export function Minimap() {
   const hidden = useMemo(isCoarsePointer, []) && cameraMode === "fps";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hoverRef = useRef<{ mx: number; my: number } | null>(null);
+  // The minimap draws exactly what the scene draws, through the same composer.
+  // Answering "is this visible?" here would be a second place deciding it, and
+  // a minimap that disagrees with the view above it is worse than no minimap.
+  const isDrawn = useSubjectFilter();
   const staticLayer = useMemo(
-    () => buildStaticLayer(activeTimelineYear, evidenceMode, showUncertainty),
-    [activeTimelineYear, evidenceMode, showUncertainty],
+    () => buildStaticLayer(isDrawn, showUncertainty),
+    [isDrawn, showUncertainty],
   );
 
   useEffect(() => {
@@ -368,7 +367,7 @@ export function Minimap() {
 
       // selected structure highlight
       const def = state.selectedId ? getStructure(state.selectedId) : undefined;
-      if (def && isSubjectDrawn(def, activeTimelineYear, evidenceMode)) {
+      if (def && isDrawn(def)) {
         const [sx, sy] = toMap(def.position[0], def.position[1]);
         ctx.strokeStyle = "#ffb64d";
         ctx.lineWidth = 1.5;
@@ -410,7 +409,7 @@ export function Minimap() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [staticLayer, hidden, activeTimelineYear, evidenceMode]);
+  }, [staticLayer, hidden, activeTimelineYear, isDrawn]);
 
   const pointToWorld = (
     event: ReactMouseEvent<HTMLCanvasElement> | ReactPointerEvent<HTMLCanvasElement>,

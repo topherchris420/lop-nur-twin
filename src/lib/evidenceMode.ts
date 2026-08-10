@@ -151,6 +151,19 @@ const MEASUREMENTS_BY_GEOMETRY: ReadonlyMap<string, readonly string[]> = (() => 
 })();
 
 /**
+ * The measurement subjects that measure a piece of geometry, or an empty list.
+ *
+ * Exported so `forensics.ts` can ask the same question when it decides whether a
+ * subject's geometry is defensible. The runway is the one piece of geometry this
+ * project actually measured off a cited scene, and it reaches that verdict
+ * through this link; re-deriving it there would be a second place that decides
+ * what counts as measured.
+ */
+export function measurementSubjectsForGeometry(geometryId: string): readonly string[] {
+  return MEASUREMENTS_BY_GEOMETRY.get(geometryId) ?? [];
+}
+
+/**
  * Subjects that are always drawn, whatever the mode.
  *
  * The ground and the sky are the medium the analysis is presented in, not

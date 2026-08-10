@@ -14,8 +14,12 @@ coerced — see the "hostile parameters" section of
 | `I`            | Site index (grouped outliner of structures)            |
 | `R`            | Research, sources, and climate panel                   |
 | `M`            | Measurement ruler on the minimap (snap, bearing, copy) |
+| `P`            | PROVE IT — draw only what cited evidence defends       |
+| `X`            | Cycle evidence X-ray: solid, ghosted, stratified       |
+| `V`            | Register public reference imagery beside the model     |
+| `[` `]`        | Step back / forward through the evidence timeline      |
 | `H`            | Help overlay                                           |
-| `Esc`          | Close panels / clear measurement / release the mouse   |
+| `Esc`          | Undo the strictest active view, then close panels      |
 | Click building | Open its dossier, with a "Fly to structure"            |
 | Click minimap  | Fly the orbit camera to that point                     |
 
@@ -56,6 +60,9 @@ run.
 | `?snapshot=YYYY-MM-DD` | Reads the model at a date the temporal ledger can be snapshotted at.  |
 | `?compare=YYYY-MM-DD`  | Second date for a change comparison.                                  |
 | `?uncertainty=1`       | Draws spatial uncertainty envelopes (quality tier 2 and above).       |
+| `?prove=1`             | Applies the strict reading: only geometry a cited source defends.     |
+| `?xray=<mode>`         | `off`, `ghost` or `stratified`. Stratified frames the exploded view.  |
+| `?layer=<class>`       | Isolates one evidence stratum; the other three stay drawn but faint.  |
 | `?night=1`             | Starts at night.                                                      |
 | `?structure=<id>`      | Opens that dossier on `/`, or highlights that row on `/analysis`.     |
 | `?at=<x>,<z>`          | Places the camera target, in local metres, clamped to the site.       |

@@ -45,8 +45,27 @@ export function useKeyboardShortcuts(): void {
         case "m":
           s.toggleMeasureMode();
           break;
+        case "x":
+          s.cycleXrayMode();
+          break;
+        case "p":
+          s.toggleProveIt();
+          break;
+        case "v":
+          s.toggleReference();
+          break;
+        case "[":
+          s.stepScrub(-1);
+          break;
+        case "]":
+          s.stepScrub(1);
+          break;
         case "escape":
+          // Innermost first: the strict readings unwind before the panels, so
+          // Escape always undoes the most recently imposed view.
           if (s.showHelp) s.toggleHelp();
+          else if (s.proveIt) s.setProveIt(false);
+          else if (s.showReference) s.toggleReference();
           else if (s.showResearch) s.toggleResearch();
           else if (s.showIndex) s.toggleIndex();
           else if (s.measureMode || s.measurePoints.length > 0) {

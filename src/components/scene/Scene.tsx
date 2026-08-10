@@ -6,6 +6,9 @@ import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { LivingScene } from "./LivingScene";
 import { UncertaintyLayer } from "./UncertaintyLayer";
+import { ForensicGhosts } from "./ForensicGhosts";
+import { ForensicDiffLayer } from "./ForensicDiffLayer";
+import { ReferenceImagery } from "./ReferenceImagery";
 import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
@@ -111,7 +114,12 @@ export function Scene() {
           <Terrain />
           <Pavements />
           <Structures />
+          {/* The schematic layer draws everything the model cannot fully stand
+              behind, and the strip-down animation when PROVE IT is pressed. */}
+          <ForensicGhosts />
           <UncertaintyLayer />
+          <ForensicDiffLayer />
+          <ReferenceImagery />
           <LivingScene />
           {/* The upstream feed currently omits browser CORS headers. Keep the
               existing layer opt-in so the deterministic twin makes no failing

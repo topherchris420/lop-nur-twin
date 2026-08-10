@@ -13,6 +13,7 @@ import {
   type ComparableManifest,
   type ManifestDiff,
 } from "@/lib/manifestDiff";
+import { DIFF_CHANNEL_META, manifestChannels } from "@/lib/forensicDiff";
 import { MODEL_MANIFEST_PATH, fetchManifestText, shortHash } from "@/lib/modelManifest";
 
 /**
@@ -223,6 +224,64 @@ function ManifestSlot({
       <div className="mt-4">
         <ManifestSummary loaded={loaded} side={side} />
       </div>
+    </section>
+  );
+}
+
+/**
+ * The three forensic channels, over a manifest diff.
+ *
+ * The manifest's five categories are the right granularity for "which field
+ * moved"; they are the wrong granularity for "do I need to re-review the
+ * geometry?". Routing them into geometry, evidence and interpretation answers
+ * that in one glance, and it is the same routing the temporal comparison uses
+ * so both diffs read alike.
+ *
+ * Release metadata is reported separately rather than folded into a channel: a
+ * version bump is not a change to the model, and putting it in one of the three
+ * would be noise in a channel a reviewer is meant to trust.
+ */
+function ChannelSummary({ diff }: { diff: ManifestDiff }) {
+  const { channels, releaseMetadata } = manifestChannels(diff);
+  return (
+    <section aria-labelledby="channels-heading" className="mt-8">
+      <h3 id="channels-heading" className="text-base font-semibold">
+        What kind of change was it?
+      </h3>
+      <dl className="mt-3 grid gap-3 md:grid-cols-3">
+        {channels.map((summary) => {
+          const meta = DIFF_CHANNEL_META[summary.channel];
+          return (
+            <div
+              key={summary.channel}
+              className="border-border bg-card/40 rounded-lg border p-3"
+            >
+              <dt className="text-sm font-medium">
+                <span aria-hidden="true">{meta.glyph} </span>
+                {meta.label}
+                <span className="text-muted-foreground font-mono">
+                  {" "}
+                  · {summary.differences.length}
+                </span>
+              </dt>
+              <dd className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                {meta.description}
+                {summary.subjectIds.length === 0 ? null : (
+                  <span className="mt-1 block font-mono break-words">
+                    {summary.subjectIds.join(", ")}
+                  </span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+        {releaseMetadata.length} release-metadata difference
+        {releaseMetadata.length === 1 ? "" : "s"} (version, generation time, validation
+        status) are excluded from all three channels, because they say nothing about the
+        model&rsquo;s content.
+      </p>
     </section>
   );
 }
@@ -545,6 +604,14 @@ function CompareView() {
                     Export Markdown
                   </button>
                 </div>
+
+                {/*
+                  The same three channels the temporal diff uses, so a build
+                  comparison and a date comparison are read the same way. The
+                  five manifest categories still get their own tables below —
+                  this is the routing on top of them, not a replacement.
+                */}
+                <ChannelSummary diff={diff} />
 
                 {CHANGE_CATEGORIES.map((category) => (
                   <DifferenceTable key={category} diff={diff} category={category} />
