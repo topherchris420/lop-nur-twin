@@ -328,6 +328,23 @@ const CASES: Case[] = [
     expect: /claims a known function/,
   },
   {
+    // The PROVE IT headline states that zero cubic metres of modeled built
+    // volume are defended, which is true precisely because no source states a
+    // height. A height tolerance invented by the project would falsify that
+    // while looking like an improvement.
+    name: "a height tolerance without a stating source is rejected",
+    record: {
+      ...BASE,
+      uncertainty: {
+        ...BASE_UNCERTAINTY,
+        heightMeters: 2,
+        basis: "project-documented",
+        method: "A figure this project would have had to invent.",
+      },
+    },
+    expect: /states a height tolerance without basis "stated-in-source"/,
+  },
+  {
     name: "an observed claim that bounds no position is rejected",
     record: {
       ...BASE,

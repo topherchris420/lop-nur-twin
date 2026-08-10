@@ -29,9 +29,15 @@ export function EvidenceLegend() {
   const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);
   const showUncertainty = useTwinStore((state) => state.showUncertainty);
   const toggleUncertainty = useTwinStore((state) => state.toggleUncertainty);
+  const proveIt = useTwinStore((state) => state.proveIt);
   const counts = useMemo(evidenceClassificationCounts, []);
   const total =
     counts.observed + counts.reported + counts.interpreted + counts.illustrative;
+
+  // Under the strict reading this panel's own mode picker is superseded — the
+  // strip-down report is a stronger statement of the same thing, and it needs
+  // the column. Every control here is still in the forensic console.
+  if (proveIt) return null;
 
   return (
     <section

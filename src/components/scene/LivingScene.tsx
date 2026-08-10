@@ -20,6 +20,7 @@ import { getQualityProfile } from "@/lib/quality";
 import { createCircuitCurve } from "@/lib/flightPath";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 import { sceneProjection } from "@/lib/sceneProjection";
+import { useForensicViewState } from "@/lib/sceneVisibility";
 
 /**
  * Everything on the site that *moves*: a resident demonstrator flying the
@@ -33,6 +34,7 @@ export function LivingScene() {
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
   const evidenceMode = useTwinStore((s) => s.evidenceMode);
+  const { proveIt, referenceOnly } = useForensicViewState();
   const animate = !reducedMotion;
   const profile = getQualityProfile(qualityTier);
 
@@ -42,6 +44,11 @@ export function LivingScene() {
   // simulation and to nothing weaker, so the whole subtree unmounts below it
   // rather than each prop testing the mode for itself.
   if (evidenceMode !== "full-simulation") return null;
+  // Nothing here is defended by anything cited, and none of it is modeled
+  // geometry either, so the strict readings remove the whole subtree. Leaving a
+  // demonstrator flying circuits over a site stripped to one runway would be
+  // the loudest unsupported claim on screen.
+  if (proveIt || referenceOnly) return null;
 
   return (
     <group name="living-scene">

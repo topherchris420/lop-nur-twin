@@ -22,8 +22,12 @@ const SHORTCUTS: Array<[string, string]> = [
   ["I", "Toggle site index"],
   ["R", "Toggle research and climate"],
   ["M", "Measure distances / bearings on the map"],
+  ["P", "PROVE IT — draw only what cited evidence defends"],
+  ["X", "Cycle evidence X-ray: solid, ghosted, stratified"],
+  ["V", "Register public reference imagery beside the model"],
+  ["[ ]", "Step back / forward through the evidence timeline"],
   ["H", "Toggle this help"],
-  ["Esc", "Close panels / clear measurement / release mouse"],
+  ["Esc", "Undo the strictest active view / close panels / release mouse"],
 ];
 
 export function HelpOverlay() {

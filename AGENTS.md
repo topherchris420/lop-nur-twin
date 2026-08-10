@@ -46,12 +46,29 @@ Guidance for coding agents (and humans) working on this repo.
   analytical _capability_ needs a semantic representation there, not only a
   control in the HUD. `bun run a11y` gates both routes on serious/critical axe
   violations.
-- **Evidence mode and timeline compose in one predicate.** `src/lib/
-sceneVisibility.ts` owns it; a component asking "should I draw this?" calls
-  `useSubjectFilter()` rather than comparing classifications itself. The
-  timeline filter was copy-pasted into four components once already, and a
-  second filter beside it would have been four chances to disagree about what
-  exists.
+- **Every filter composes in one place.** `src/lib/sceneVisibility.ts` owns it.
+  Six filters meet there — construction year, evidence mode, reference-only,
+  PROVE IT, the time scrubber and X-ray — and a component asking "how do I draw
+  this?" calls `useSubjectPresentation()` (or `useSubjectFilter()` for a plain
+  boolean) rather than comparing classifications itself. The timeline filter was
+  copy-pasted into four components once already; six filters in four places
+  would be twenty-four chances to disagree about what exists.
+  **Stages may only weaken.** They run in a fixed order and each one can hide,
+  ghost or erode a subject — never the reverse. No combination of controls may
+  make something look better supported than the ledger says it is, and
+  `sceneVisibility.test.ts` asserts it. Every presentation carries the `reason`
+  it looks the way it does; the accessible surfaces print it.
+- **Defensibility is derived, never asserted.** `src/lib/forensics.ts` decides
+  what a cited source actually carries, and it reads the classification the
+  ledger already records — an `interpreted` footprint traced off a cited scene
+  does not become `observed` because it would be convenient.
+  `ATTRIBUTE_SUPPORT` is the single documented mapping from level to attributes,
+  in the same sense as `CONFIDENCE_SCALE`; adding an exception means editing that
+  table in the open. **`height` is false at every level** because no source in
+  the register states a height, which is why PROVE IT can report that zero cubic
+  metres of built volume survive. `evidenceValidation.ts` rejects a height
+  tolerance without a stating source so that figure cannot quietly stop being
+  true. See `docs/FORENSIC_ENGINE.md`.
 - **Unknown stays unknown.** An uncertainty figure the project does not
   document is absent, and prints as "not stated" — never as zero, a dash or an
   omitted row. The three dates (site event, evidence publication, model entry)
@@ -95,6 +112,35 @@ state on the frame loop — and read every position from `src/lib/layout.ts`
 than hard-coding coordinates. Seat ground props with `terrainHeight(x, z)` and
 keep any randomness flowing through `mulberry32`/`SITE_SEED`. Because these
 props run on active tiers, keep their geometry cheap and treat motion as illustrative.
+
+## Recipe: add a forensic view
+
+A "forensic view" is anything that changes what the scene is claiming — a new
+filter, a new certainty treatment, a new comparison.
+
+1. Put the **vocabulary and the decision table** in a pure module under
+   `src/lib/` with its own vitest file (`forensics.ts`, `xray.ts`,
+   `timeScrubber.ts`, `forensicDiff.ts` are the four that exist). Nothing in a
+   component may decide what an evidence class means.
+2. Add the control to `ForensicViewState` in `sceneVisibility.ts` and a stage to
+   `subjectPresentation()`. Put it where it belongs in the order — the stricter
+   answer wins — and make sure it can only weaken.
+3. Add the state and its setter to `src/lib/store.ts`, reading any URL parameter
+   through `src/lib/params.ts`. Add the malformed form to the `HOSTILE` list in
+   `tools/routes.mjs`.
+4. **Give it a semantic representation on `/analysis`.** A capability that only
+   exists in the HUD is a capability part of the audience does not have; that is
+   what `src/components/evidence/ForensicAnalysis.tsx` is for, and
+   `tools/routes.mjs` asserts each section is present.
+5. If it renders, bucket subjects by treatment and merge one geometry per bucket
+   rather than one mesh per building, and animate through uniforms and group
+   transforms in `useFrame` — never React state on the frame loop.
+
+Two properties are worth asserting in tests rather than eyeballing, because both
+fail invisibly in a screenshot: that a treatment table stays **ordinal** (a
+weaker class can never look more certain), and that a mode which subtracts
+actually **subtracts** — `tools/routes.mjs` checks PROVE IT still reports a
+minority of subjects surviving.
 
 ## Recipe: add a new camera mode
 

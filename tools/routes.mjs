@@ -116,6 +116,13 @@ const HOSTILE = [
   "/?evidence=observed&snapshot=9999-99-99",
   `/?snapshot=${encodeURIComponent("<script>alert(1)</script>")}`,
   "/compare?anything=" + "b".repeat(300),
+  // The forensic engine's parameters. Each one changes what the scene claims,
+  // so each one is thrown at the app malformed as well as valid.
+  "/?xray=not-a-mode&layer=not-a-layer",
+  `/?xray=${encodeURIComponent("<script>alert(1)</script>")}&prove=maybe`,
+  "/?xray=stratified&layer=observed&prove=1",
+  "/?prove=1&evidence=observed&snapshot=2025-09-13",
+  "/?xray=ghost&layer=illustrative&quality=1e309",
 ];
 for (const path of HOSTILE) {
   const { page, errors } = await open(`${previewOrigin}${path}`, {
@@ -295,6 +302,66 @@ console.log("\n=== evidence filtering and search ===");
     `${searched} rows`,
   );
   check("filtering produced no page errors", errors.length === 0, errors[0] ?? "clean");
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
+/* 4b. The strict reading actually subtracts                           */
+/* ------------------------------------------------------------------ */
+
+// PROVE IT is the one control whose whole point is that most of the scene
+// disappears. A regression that quietly left the reconstruction standing would
+// look completely normal in a screenshot, so it is asserted as a *count*: the
+// report has to name fewer surviving subjects than the model has structures,
+// and the strip-down has to say so in words.
+console.log("\n=== the strict reading removes what it says it removes ===");
+{
+  const { page, errors } = await open(`${previewOrigin}/?prove=1`, { settle: 7000 });
+  const text = await page.evaluate(() => document.body.innerText);
+  check("PROVE IT names its own verdict", /prove it/i.test(text), "heading present");
+  check(
+    "PROVE IT reports retaining no built volume",
+    /0 m³ of [\d,]+ m³/.test(text),
+    text.match(/0 m³ of [\d,]+ m³/)?.[0] ?? "no volume figure",
+  );
+  check(
+    "PROVE IT reports a minority of subjects surviving",
+    (() => {
+      const match = text.match(/(\d+)\s*of (\d+)\s*\n?\s*modeled subjects keep/);
+      if (!match) return false;
+      return Number(match[1]) < Number(match[2]) / 2;
+    })(),
+    text.match(/(\d+) of (\d+)/)?.[0] ?? "no subject count",
+  );
+  check("PROVE IT produced no page errors", errors.length === 0, errors[0] ?? "clean");
+  await page.close();
+}
+{
+  const { page, errors } = await open(`${previewOrigin}/analysis?structure=hangar-main`, {
+    settle: 2500,
+  });
+  const text = await page.evaluate(() => document.body.innerText);
+  // Every analytical capability must have a semantic representation here, or it
+  // is a capability part of the audience does not have.
+  for (const [label, pattern] of [
+    ["defensibility", /Defensibility — what survives a strict reading/i],
+    ["evidence X-ray", /Evidence X-ray — the four layers, separated/i],
+    ["evidence timeline", /Evidence timeline — the dates the ledger can be read at/i],
+    ["forensic diff", /Forensic diff — geometry, evidence and interpretation/i],
+    ["reference registration", /Reference imagery registration/i],
+  ]) {
+    check(`/analysis carries the ${label} section`, pattern.test(text), "present");
+  }
+  check(
+    "/analysis states that no source gives a height",
+    /no source in the register states the height/i.test(text),
+    "present",
+  );
+  check(
+    "/analysis sections produced no page errors",
+    errors.length === 0,
+    errors[0] ?? "clean",
+  );
   await page.close();
 }
 

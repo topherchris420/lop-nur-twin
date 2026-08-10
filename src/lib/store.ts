@@ -6,6 +6,18 @@ import {
   isSubjectVisible,
   type EvidenceMode,
 } from "./evidenceMode";
+import { EVIDENCE_CLASSIFICATIONS, type EvidenceClassification } from "./evidence";
+import { XRAY_MODES, type XrayMode } from "./xray";
+import {
+  SCRUB_MIN_DAY,
+  SCRUB_SPAN_DAYS,
+  clampDay,
+  dateAtDay,
+  dayOfDate,
+  nextStopAfter,
+  previousDayBefore,
+} from "./timeScrubber";
+import { OVERLAY_MODES, getReferenceScene, type OverlayMode } from "./referenceImagery";
 import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
 import type { MeasurePoint } from "./measure";
 import { readEnumParam, readFlag, readIntParam, readIsoDateParam } from "./params";
@@ -22,6 +34,27 @@ export interface FlyToRequest {
   target: [number, number, number];
   /** monotonically increasing so identical destinations still re-trigger */
   seq: number;
+}
+
+/**
+ * A registered reference scene the user supplied.
+ *
+ * `objectUrl` is a blob URL for a file read in this browser. It is never
+ * uploaded and never fetched, and it is revoked whenever it is replaced or
+ * cleared — a blob URL outlives the component that made it and would otherwise
+ * pin the decoded image for the life of the tab.
+ */
+export interface ReferenceOverlayState {
+  sceneId: string;
+  objectUrl: string | null;
+  /** Pixel dimensions of the supplied crop, for the registration readout. */
+  widthPx: number;
+  heightPx: number;
+  mode: OverlayMode;
+  /** 0-1, how strongly the scene is drawn over the model's own ground. */
+  opacity: number;
+  /** 0-1 position of the swipe divider across the site, west to east. */
+  swipe: number;
 }
 
 interface TwinState {
@@ -46,12 +79,59 @@ interface TwinState {
    * Snapshot date for the temporal view, or null for "the model's current
    * state". Kept separate from `activeTimelineYear`, which is the existing
    * year-granularity scene filter and keeps working unchanged.
+   *
+   * This and `scrubDay` are two views of one position and are only ever written
+   * together, by the two setters below. Nothing else may assign either of them.
    */
   snapshotDate: string | null;
   setSnapshotDate: (date: string | null) => void;
+  /**
+   * The time scrubber's playhead, in days after the earliest evidence date, or
+   * null when the scrubber is parked at the model's current state. The axis is
+   * days rather than ledger index so four quiet years and three busy weeks do
+   * not take the same time to cross.
+   */
+  scrubDay: number | null;
+  setScrubDay: (day: number | null) => void;
+  /** Move to the next or previous date the ledger can actually be read at. */
+  stepScrub: (direction: 1 | -1) => void;
+  scrubPlaying: boolean;
+  setScrubPlaying: (playing: boolean) => void;
+  toggleScrubPlaying: () => void;
   /** The second date in a change comparison, or null when not comparing. */
   comparisonDate: string | null;
   setComparisonDate: (date: string | null) => void;
+
+  /**
+   * How certain the scene is allowed to look. `off` is the reconstruction as
+   * built; the other two make support visible as solidity and altitude.
+   */
+  xrayMode: XrayMode;
+  setXrayMode: (mode: XrayMode) => void;
+  cycleXrayMode: () => void;
+  /** Which evidence layer is isolated, or null for all four at once. */
+  xrayFocus: EvidenceClassification | null;
+  setXrayFocus: (classification: EvidenceClassification | null) => void;
+
+  /**
+   * The strict reading: draw only geometry a cited public source defends, and
+   * remove everything else. Overrides the appearance controls while it is on.
+   */
+  proveIt: boolean;
+  toggleProveIt: () => void;
+  setProveIt: (on: boolean) => void;
+
+  /** Whether the reference-imagery panel and its ground frame are shown. */
+  showReference: boolean;
+  toggleReference: () => void;
+  /** Registered public reference imagery the user supplied, or null. */
+  reference: ReferenceOverlayState;
+  setReferenceScene: (sceneId: string) => void;
+  setReferenceImage: (objectUrl: string | null, width: number, height: number) => void;
+  setReferenceMode: (mode: OverlayMode) => void;
+  setReferenceOpacity: (opacity: number) => void;
+  setReferenceSwipe: (swipe: number) => void;
+  clearReference: () => void;
 
   /** Whether spatial uncertainty envelopes are drawn in the scene and minimap. */
   showUncertainty: boolean;
@@ -179,6 +259,46 @@ function normalizeSnapshotDate(date: string | null): string | null {
   return TEMPORAL_SNAPSHOT_DATES.includes(date) ? date : null;
 }
 
+/** `?xray=off|ghost|stratified`. */
+function initialXrayMode(): XrayMode {
+  return readEnumParam("xray", XRAY_MODES) ?? "off";
+}
+
+/** `?layer=observed|reported|interpreted|illustrative` isolates one stratum. */
+function initialXrayFocus(): EvidenceClassification | null {
+  return readEnumParam("layer", EVIDENCE_CLASSIFICATIONS);
+}
+
+/**
+ * The scrubber's initial playhead, derived from `?snapshot=` so one parameter
+ * keeps driving the temporal position and the two never disagree on load.
+ */
+function initialScrubDay(snapshotDate: string | null): number | null {
+  return snapshotDate === null ? null : (dayOfDate(snapshotDate) ?? null);
+}
+
+const INITIAL_REFERENCE: ReferenceOverlayState = {
+  sceneId: "sentinel-2-site",
+  objectUrl: null,
+  widthPx: 0,
+  heightPx: 0,
+  mode: "swipe",
+  opacity: 0.85,
+  swipe: 0.5,
+};
+
+/** Blob URLs outlive their component, so every replacement revokes the old one. */
+function revoke(objectUrl: string | null): void {
+  if (objectUrl !== null && typeof URL !== "undefined") {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function clampUnit(value: number, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(1, Math.max(0, value));
+}
+
 function normalizeTimelineYear(year: number): number {
   if (!Number.isFinite(year)) return TIMELINE_BOUNDS.maxYear;
   return Math.min(
@@ -224,12 +344,118 @@ export const useTwinStore = create<TwinState>()((set) => ({
           : state.selectedId,
     })),
 
+  // `snapshotDate` and `scrubDay` are one position in two units. Both setters
+  // write both fields, and nothing else writes either, so they cannot drift.
   snapshotDate: initialSnapshotDate(),
-  setSnapshotDate: (snapshotDate) =>
-    set({ snapshotDate: normalizeSnapshotDate(snapshotDate) }),
+  setSnapshotDate: (date) => {
+    const snapshotDate = normalizeSnapshotDate(date);
+    set({ snapshotDate, scrubDay: initialScrubDay(snapshotDate) });
+  },
+  scrubDay: initialScrubDay(initialSnapshotDate()),
+  setScrubDay: (day) => {
+    if (day === null) {
+      set({ scrubDay: null, snapshotDate: null, scrubPlaying: false });
+      return;
+    }
+    const scrubDay = clampDay(day);
+    set({ scrubDay, snapshotDate: dateAtDay(scrubDay) });
+  },
+  stepScrub: (direction) =>
+    set((state) => {
+      const current = state.scrubDay ?? SCRUB_SPAN_DAYS;
+      // Stepping back off the earliest stop lands on the pre-evidence slot,
+      // whose snapshot date is legitimately null — nothing was public yet.
+      const day =
+        direction === 1 ? nextStopAfter(current)?.day : previousDayBefore(current);
+      if (day === undefined) return state;
+      return { scrubDay: day, snapshotDate: dateAtDay(day) };
+    }),
+  scrubPlaying: false,
+  setScrubPlaying: (scrubPlaying) => set({ scrubPlaying }),
+  toggleScrubPlaying: () =>
+    set((state) => ({
+      scrubPlaying: !state.scrubPlaying,
+      // Pressing play with the scrubber parked starts it from the beginning
+      // rather than doing nothing, which is what every viewer expects. The
+      // beginning is the pre-evidence slot, not the first stop: the honest
+      // opening frame is the site before anything about it was public.
+      ...(state.scrubPlaying || state.scrubDay !== null
+        ? {}
+        : { scrubDay: SCRUB_MIN_DAY, snapshotDate: dateAtDay(SCRUB_MIN_DAY) }),
+    })),
   comparisonDate: normalizeSnapshotDate(readIsoDateParam("compare")),
   setComparisonDate: (comparisonDate) =>
     set({ comparisonDate: normalizeSnapshotDate(comparisonDate) }),
+
+  xrayMode: initialXrayMode(),
+  setXrayMode: (xrayMode) => set({ xrayMode }),
+  cycleXrayMode: () =>
+    set((state) => ({
+      xrayMode:
+        XRAY_MODES[(XRAY_MODES.indexOf(state.xrayMode) + 1) % XRAY_MODES.length] ?? "off",
+    })),
+  xrayFocus: initialXrayFocus(),
+  setXrayFocus: (xrayFocus) => set({ xrayFocus }),
+
+  proveIt: readFlag("prove"),
+  toggleProveIt: () => set((state) => ({ proveIt: !state.proveIt })),
+  setProveIt: (proveIt) => set({ proveIt }),
+
+  showReference: false,
+  toggleReference: () =>
+    set((state) => ({ showReference: !state.showReference, showIndex: false })),
+  reference: INITIAL_REFERENCE,
+  setReferenceScene: (sceneId) =>
+    set((state) => {
+      if (getReferenceScene(sceneId) === undefined) return state;
+      if (sceneId === state.reference.sceneId) return state;
+      // A crop belongs to the window it was cut for. Keeping it across a scene
+      // change would stretch a whole-site image over the runway window (or the
+      // reverse) and recompute the registration report as though it fitted —
+      // a comparison that looks convincing and is spatially false, which is the
+      // one thing this feature must never produce.
+      revoke(state.reference.objectUrl);
+      return {
+        reference: {
+          ...state.reference,
+          sceneId,
+          objectUrl: null,
+          widthPx: 0,
+          heightPx: 0,
+        },
+      };
+    }),
+  setReferenceImage: (objectUrl, widthPx, heightPx) =>
+    set((state) => {
+      revoke(state.reference.objectUrl);
+      return {
+        reference: {
+          ...state.reference,
+          objectUrl,
+          widthPx: Math.max(0, Math.round(widthPx)),
+          heightPx: Math.max(0, Math.round(heightPx)),
+        },
+      };
+    }),
+  setReferenceMode: (mode) =>
+    set((state) =>
+      OVERLAY_MODES.includes(mode) ? { reference: { ...state.reference, mode } } : state,
+    ),
+  setReferenceOpacity: (opacity) =>
+    set((state) => ({
+      reference: { ...state.reference, opacity: clampUnit(opacity, 0.85) },
+    })),
+  setReferenceSwipe: (swipe) =>
+    set((state) => ({
+      reference: { ...state.reference, swipe: clampUnit(swipe, 0.5) },
+    })),
+  clearReference: () =>
+    set((state) => {
+      revoke(state.reference.objectUrl);
+      return {
+        reference: { ...state.reference, objectUrl: null, widthPx: 0, heightPx: 0 },
+      };
+    }),
 
   showUncertainty: readFlag("uncertainty"),
   toggleUncertainty: () => set((s) => ({ showUncertainty: !s.showUncertainty })),

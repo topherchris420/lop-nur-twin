@@ -416,5 +416,21 @@ export function validateEvidenceLedger(
     }
   }
 
+  // A height tolerance may only exist if a cited source states one. This
+  // project documents none, which is why `PROVE IT` can report that zero cubic
+  // metres of modeled built volume are defended — every roofline is a modeling
+  // decision. A `project-documented` or resolution-derived height would make
+  // that headline false while looking like an improvement, so it is rejected
+  // here rather than left to be noticed later.
+  for (const record of ledger) {
+    const height = record.uncertainty?.heightMeters;
+    if (height === undefined) continue;
+    if (record.uncertainty?.basis !== "stated-in-source") {
+      fail(
+        `Evidence record "${record.id}" states a height tolerance without basis "stated-in-source"; this project documents no height figure of its own`,
+      );
+    }
+  }
+
   return { errors, recordCount: ledger.length };
 }

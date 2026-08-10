@@ -28,6 +28,28 @@ analytical conclusion.
 
 ![Structure dossier — every claim with its source, uncertainty and temporal evidence](docs/screenshot-dossier.png)
 
+## PROVE IT
+
+A convincing 3D model of a place nobody can visit is persuasive in proportion to
+how much of it was invented. Press **PROVE IT** (or `P`) and the reconstruction
+is stripped to the geometry a cited public source actually defends:
+
+| Figure                                        | Value                  |
+| --------------------------------------------- | ---------------------- |
+| Subjects keeping any defensible geometry      | **1 of 68**            |
+| Modeled built volume retained                 | **0 m³ of 569,812 m³** |
+| Rendered assertions carried by a cited source | **14 of 612**          |
+
+Forty-five buildings erode away and one runway centreline is left, with a ±40 m
+envelope at each end. The built-volume figure is zero because no source in the
+register states the height of anything at this site — every roofline in the model
+is a modeling decision — and the build refuses a height tolerance that no source
+states, so that figure cannot quietly stop being true.
+
+None of those numbers is written down. They are counted over the evidence ledger
+and move on their own when the data does. Full method:
+[`docs/FORENSIC_ENGINE.md`](docs/FORENSIC_ENGINE.md).
+
 ## Analytical capabilities
 
 - **One derived evidence ledger.** Every claim — a structure footprint, a runway
@@ -37,6 +59,25 @@ analytical conclusion.
 - **Evidence viewing modes.** Four nested thresholds on how much of the
   reconstruction is admitted, applied identically by the scene, the minimap, the
   structure index, the dossier, the measurement ruler and `/analysis`.
+- **Evidence X-ray.** Support rendered as appearance: weaker claims ghost and
+  dissolve rather than standing as finished buildings, and the four evidence
+  layers separate vertically into an exploded diagram with drop lines to the
+  ground.
+- **A provenance chain on every claim.** Claim, evidence, source, date,
+  uncertainty, model decision — six links in order, with the ones this project
+  holds nothing for drawn as gaps rather than omitted.
+- **A cinematic evidence timeline.** A continuous day axis over the dated ledger:
+  structures appear, stay ghosted as not-yet-evidenced, or remain permanently
+  uncertain where no date exists at all.
+- **Uncertainty drawn in space.** Halos at the documented positional radius,
+  bands at the extent tolerance, and open-ended dashed columns above every roof
+  where a height was never stated.
+- **A three-channel forensic diff.** Geometry, evidence and interpretation
+  changes reported separately, in the scene and across two builds, because a
+  rewording and a moved hangar are not the same event.
+- **Registered reference imagery.** The exact `EPSG:32645` window and the cited
+  scene to crop, so a reviewer can bring their own copy and swipe between source
+  and model. Nothing is bundled, fetched or uploaded.
 - **Structured uncertainty.** A machine-readable envelope per claim, drawn only
   where the project documents a figure.
 - **Temporal snapshots and change comparison.** Read the model at a date, and
@@ -139,27 +180,28 @@ what each check does and does not prove:
 
 ## Documentation
 
-| Document                                                         | What it covers                                                                      |
-| :--------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md)                             | Setup, the rules a change has to hold to, and what a pull request needs             |
-| [`docs/VALIDATION.md`](docs/VALIDATION.md)                       | Every check, what it proves, and the repository settings code cannot configure      |
-| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)             | Source registration, classification, confidence, hashing, reproducing a release     |
-| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)         | The envelope schema, where a number may come from, and what the build refuses       |
-| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)               | The three dates, the event ledger, snapshots and change comparison                  |
-| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)           | Manifest schema 1.1, the four per-subject hashes, and what a diff cannot see        |
-| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                       | What the reconstruction contains and how it is put together                         |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)     | Frontend, scene, routes, stores, validation pipeline, build and trust boundaries    |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                 | What is implemented, what the axe run covers, and the manual checks that remain     |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md)                           | Keyboard, pointer and URL parameters for every route                                |
-| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                         | The optional simulation, and the wall between it and the analysis                   |
-| [`SECURITY.md`](SECURITY.md)                                     | Supported versions, vulnerability reporting, and the limits of a browser demo       |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)                   | Assets, trust boundaries, threats and residual risk                                 |
-| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it is not, and a 30-minute evaluation path                       |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                       | Vercel settings, the container image, and verifying a deployment matches a commit   |
-| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md)               | PostGIS, STAC, OIDC and audit logging — split into implemented, scaffolded, and not |
-| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                     | The long-form argument, also as [HTML](docs/white-paper.html)                       |
-| [`AGENTS.md`](AGENTS.md)                                         | Extending the twin: house rules and recipes                                         |
-| [`experiments/README.md`](experiments/README.md)                 | Unfinished subsystems kept outside `src/`, and why                                  |
+| Document                                                         | What it covers                                                                            |
+| :--------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                             | Setup, the rules a change has to hold to, and what a pull request needs                   |
+| [`docs/VALIDATION.md`](docs/VALIDATION.md)                       | Every check, what it proves, and the repository settings code cannot configure            |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)             | Source registration, classification, confidence, hashing, reproducing a release           |
+| [`docs/FORENSIC_ENGINE.md`](docs/FORENSIC_ENGINE.md)             | PROVE IT, evidence X-ray, provenance chains, the time scrubber and the three-channel diff |
+| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)         | The envelope schema, where a number may come from, and what the build refuses             |
+| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)               | The three dates, the event ledger, snapshots and change comparison                        |
+| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)           | Manifest schema 1.1, the four per-subject hashes, and what a diff cannot see              |
+| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                       | What the reconstruction contains and how it is put together                               |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)     | Frontend, scene, routes, stores, validation pipeline, build and trust boundaries          |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                 | What is implemented, what the axe run covers, and the manual checks that remain           |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md)                           | Keyboard, pointer and URL parameters for every route                                      |
+| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                         | The optional simulation, and the wall between it and the analysis                         |
+| [`SECURITY.md`](SECURITY.md)                                     | Supported versions, vulnerability reporting, and the limits of a browser demo             |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)                   | Assets, trust boundaries, threats and residual risk                                       |
+| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it is not, and a 30-minute evaluation path                             |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                       | Vercel settings, the container image, and verifying a deployment matches a commit         |
+| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md)               | PostGIS, STAC, OIDC and audit logging — split into implemented, scaffolded, and not       |
+| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                     | The long-form argument, also as [HTML](docs/white-paper.html)                             |
+| [`AGENTS.md`](AGENTS.md)                                         | Extending the twin: house rules and recipes                                               |
+| [`experiments/README.md`](experiments/README.md)                 | Unfinished subsystems kept outside `src/`, and why                                        |
 
 ## Known limitations
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import type React from "react";
 import { STRUCTURES, getStructure, type StructureDef } from "@/lib/layout";
 import { useTwinStore } from "@/lib/store";
 import {
@@ -17,7 +18,7 @@ import {
 import { SITE_SEED } from "@/lib/noise";
 import { applyPreset, makeGreebleGeometry } from "@/gfx/greeble";
 
-import { useSubjectFilter } from "@/lib/sceneVisibility";
+import { useSubjectFilter, useSubjectPresentation } from "@/lib/sceneVisibility";
 
 interface SharedMaterials {
   concrete: THREE.MeshStandardMaterial;
@@ -2330,16 +2331,56 @@ function SelectionRing() {
   );
 }
 
+/**
+ * A stratum of solid buildings, gliding to the altitude X-ray assigns its
+ * evidence layer.
+ *
+ * Grouping by altitude rather than animating each building keeps this to one
+ * `useFrame` per layer instead of one per structure, and the group transform is
+ * mutated directly — no React state on the frame loop.
+ */
+function LiftedGroup({ liftM, children }: { liftM: number; children: React.ReactNode }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const reducedMotion = useTwinStore((s) => s.reducedMotion);
+  const current = useRef(reducedMotion ? liftM : 0);
+
+  useFrame((_, delta) => {
+    const step = Math.min(1, delta * (reducedMotion ? 60 : 3.4));
+    current.current += (liftM - current.current) * step;
+    if (groupRef.current) groupRef.current.position.y = current.current;
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
+
 export function Structures() {
   const m = useSharedMaterials();
-  // Timeline year *and* evidence mode, composed once in `sceneVisibility.ts` so
-  // the minimap and the index cannot answer this differently.
-  const isDrawn = useSubjectFilter();
-  const visibleStructures = useMemo(() => STRUCTURES.filter(isDrawn), [isDrawn]);
+  // Timeline year, evidence mode, X-ray, PROVE IT, the scrubber and the diff,
+  // composed once in `sceneVisibility.ts` so the minimap, the index and the
+  // ghost layer cannot answer this differently. Only bodies that resolve to
+  // `solid` are drawn here; `ForensicGhosts` draws the schematic shells.
+  const present = useSubjectPresentation();
+  const strata = useMemo(() => {
+    const byLift = new Map<number, StructureDef[]>();
+    for (const def of STRUCTURES) {
+      const presentation = present(def);
+      if (!presentation.visible || presentation.body !== "solid") continue;
+      const lift = Math.round(presentation.liftM);
+      const list = byLift.get(lift);
+      if (list === undefined) byLift.set(lift, [def]);
+      else list.push(def);
+    }
+    return [...byLift.entries()].sort(([left], [right]) => left - right);
+  }, [present]);
+
   return (
     <group name="structures">
-      {visibleStructures.map((def) => (
-        <StructureNode key={def.id} def={def} m={m} />
+      {strata.map(([liftM, defs]) => (
+        <LiftedGroup key={liftM} liftM={liftM}>
+          {defs.map((def) => (
+            <StructureNode key={def.id} def={def} m={m} />
+          ))}
+        </LiftedGroup>
       ))}
       <SelectionRing />
     </group>

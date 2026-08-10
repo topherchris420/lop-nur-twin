@@ -32,6 +32,13 @@ import {
 import { EvidenceModeControl } from "@/components/evidence/EvidenceModeControl";
 import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
 import { BookmarkPanel } from "@/components/evidence/BookmarkPanel";
+import {
+  DefensibilitySection,
+  ForensicDiffSection,
+  ReferenceRegistrationSection,
+  ScrubberSection,
+  XraySection,
+} from "@/components/evidence/ForensicAnalysis";
 import { isSubjectVisible } from "@/lib/evidenceMode";
 import {
   TEMPORAL_LEDGER,
@@ -693,6 +700,17 @@ function AnalysisView() {
             className="mt-4"
           />
         </section>
+
+        {/*
+          The four capabilities the forensic engine added, in semantic form.
+          They are not summaries of the 3D view — both read the same derived
+          ledgers, so a figure here is the figure the scene draws.
+        */}
+        <DefensibilitySection />
+        <XraySection />
+        <ScrubberSection />
+        <ForensicDiffSection />
+        <ReferenceRegistrationSection />
 
         <section aria-labelledby="limitations-heading" className="mt-10">
           <h2 id="limitations-heading" className="text-lg font-semibold">

@@ -13,7 +13,9 @@ import { CinematicCaption } from "@/components/hud/CinematicCaption";
 import { IntroOverlay } from "@/components/hud/IntroOverlay";
 import { TouchControls } from "@/components/hud/TouchControls";
 import { OrbitJoystick } from "@/components/hud/OrbitJoystick";
-import { TimelineControl } from "@/components/hud/TimelineControl";
+import { ForensicConsole } from "@/components/hud/ForensicConsole";
+import { ProveItReport } from "@/components/evidence/ProveItReport";
+import { ReferencePanel } from "@/components/evidence/ReferencePanel";
 import { InterceptionOverlay } from "@/components/hud/InterceptionOverlay";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import { STRUCTURES, getStructure } from "@/lib/layout";
@@ -64,11 +66,13 @@ function App() {
       <InterceptionOverlay />
       <TouchControls />
       <OrbitJoystick />
-      <TimelineControl />
+      <ForensicConsole />
       <Hud />
       <TopBar />
       <Minimap />
       <Dossier />
+      <ProveItReport />
+      <ReferencePanel />
       <SiteIndex />
       <ResearchPanel />
       <EvidenceLegend />
