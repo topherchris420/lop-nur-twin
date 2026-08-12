@@ -20,7 +20,7 @@ evidence classification, an uncertainty envelope, and a citation.
 | **`/`**         | The analytical twin. Orbit it, walk it, click any structure for its sourced dossier, measure distances and grid bearings, filter by evidence mode.           |
 | **`/analysis`** | The same model without the 3D scene, and an equal front door rather than a fallback: every analytical capability in a semantic, screen-reader-friendly form. |
 | **`/compare`**  | Model-manifest comparison. Diff two builds and see what changed, grouped so a reworded description is visibly not the same event as a moved footprint.       |
-| **`/play`**     | **Blacksite** — an optional, illustrative first-person simulation on the same geometry. Not analysis, and labelled as such throughout.                       |
+| **`/play`**     | **Blacksite** — an optional, illustrative first-person game on the same geometry. Not analysis, and labelled as such throughout. Nothing is real, it's all BS.                       |
 
 `/` and `/analysis` are the research product. `/compare` is a verification tool.
 `/play` is a scale-and-environment demonstration and contributes nothing to any
