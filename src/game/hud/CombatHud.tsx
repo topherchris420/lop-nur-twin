@@ -479,6 +479,116 @@ function paintStats(ctx: CanvasRenderingContext2D, w: number): void {
   ctx.restore();
 }
 
+/** Objective zone indicators below the score for Domination / Hardpoint. */
+function paintObjectives(ctx: CanvasRenderingContext2D, w: number): void {
+  const hud = game.hud;
+  const zones = hud.objectiveZones;
+  if (zones.length === 0) return;
+
+  const cx = w / 2;
+  const baseY = 92;
+  const chipW = 56;
+  const chipH = 26;
+  const gap = 8;
+  const totalW = zones.length * chipW + (zones.length - 1) * gap;
+  const startX = cx - totalW / 2;
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < zones.length; i++) {
+    const zone = zones[i]!;
+    const x = startX + i * (chipW + gap);
+    const y = baseY;
+
+    // Background chip.
+    chamferPath(ctx, x, y, chipW, chipH, 5);
+    ctx.fillStyle = zone.contested
+      ? "rgba(255,182,72,0.2)"
+      : zone.owner === "blue"
+        ? "rgba(77,163,255,0.2)"
+        : zone.owner === "red"
+          ? "rgba(255,90,77,0.2)"
+          : INK;
+    ctx.fill();
+
+    // Progress bar at the bottom.
+    const barH = 3;
+    ctx.fillStyle = zone.contested
+      ? AMBER
+      : zone.owner === "blue"
+        ? BLUE
+        : zone.owner === "red"
+          ? RED
+          : "rgba(226,232,240,0.25)";
+    ctx.fillRect(x + 2, y + chipH - barH - 1, (chipW - 4) * zone.progress, barH);
+
+    // Label.
+    ctx.font = "700 12px ui-sans-serif, system-ui, sans-serif";
+    ctx.fillStyle = zone.contested
+      ? AMBER
+      : zone.owner === "blue"
+        ? BLUE
+        : zone.owner === "red"
+          ? RED
+          : "rgba(226,232,240,0.8)";
+    ctx.fillText(zone.label, x + chipW / 2, y + chipH / 2 - 2);
+  }
+
+  // Active hardpoint timer.
+  if (hud.activeHardpoint !== null && zones.length === 1) {
+    const zone = zones[0]!;
+    ctx.font = "500 10px ui-monospace, monospace";
+    ctx.fillStyle = "rgba(226,232,240,0.6)";
+    ctx.fillText(zone.label.toUpperCase(), cx, baseY + chipH + 14);
+  }
+
+  ctx.restore();
+}
+
+/** Score event toasts: a fading stack on the right side. */
+function paintScoreEvents(ctx: CanvasRenderingContext2D, w: number): void {
+  const hud = game.hud;
+  const events = hud.scoreEvents;
+  if (events.length === 0) return;
+
+  const now = game.time;
+  const x = w - 220;
+  let baseY = 180;
+
+  ctx.save();
+  ctx.textBaseline = "middle";
+
+  // Drain expired events from the front.
+  while (events.length > 0 && now - events[0]!.time > 2.5) {
+    events.shift();
+  }
+
+  for (const event of events) {
+    const age = now - event.time;
+    const alpha = Math.max(0, 1 - age / 2.5);
+
+    ctx.globalAlpha = alpha;
+
+    // Points.
+    ctx.textAlign = "right";
+    ctx.font = "700 16px ui-monospace, monospace";
+    ctx.fillStyle = "rgba(240,245,250,0.95)";
+    ctx.fillText(`+${event.points}`, x + 170, baseY);
+
+    // Label.
+    ctx.textAlign = "left";
+    ctx.font = "600 11px ui-sans-serif, system-ui, sans-serif";
+    ctx.fillStyle = "rgba(226,232,240,0.8)";
+    ctx.fillText(event.label.toUpperCase(), x, baseY);
+
+    baseY += 22;
+  }
+
+  ctx.restore();
+}
+
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
@@ -506,8 +616,10 @@ export function CombatHud() {
       paintDamageDirs(ctx, w, h);
       paintCompass(ctx, w);
       paintScore(ctx, w);
+      paintObjectives(ctx, w);
       paintAmmo(ctx, w, h);
       paintEquipment(ctx, h);
+      paintScoreEvents(ctx, w);
       paintEliminated(ctx, w, h);
       if (fpsRef.current) paintStats(ctx, w);
     };

@@ -21,6 +21,7 @@ import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
+import { SpawnSelector } from "./modes/spawns";
 import { WEAPONS } from "./weapons/arsenal";
 import { createAudio, disposeAudio } from "./audio";
 import { forwardToYaw, type SurfaceType } from "./core/types";
@@ -142,10 +143,10 @@ function Combatants({ world }: { world: CollisionWorld }) {
     game.characters = characters;
 
     const director = new MatchDirector(mode);
-    // Everyone respawns through the bot manager's geometry-checked, scored
-    // picker — including the player, so a death puts you back in the fight
-    // instead of on the far side of the compound from it.
-    director.requestSpawn = (actor) => bots.spawnPointFor(actor.team);
+    const spawns = new SpawnSelector(world);
+    // Everyone respawns through the scored, LOS-checked spawn selector —
+    // including the player, so a death puts you back into action safely.
+    director.requestSpawn = (actor) => spawns.pickSpawn(actor.team, game.actors, actor.position);
     director.onEnd = () => setScreen("results");
     game.matchDirector = director;
 

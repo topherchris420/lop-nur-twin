@@ -7,6 +7,8 @@ import {
 import { game, type Actor } from "../core/gameState";
 import type { KillReport } from "../core/combat";
 import { COMBAT, respawnActor } from "../core/combat";
+import { ObjectiveManager, type ObjectiveHudState } from "./objectives";
+import { ScoringEngine, getMatchMedals, type ScoreEvent, type Medal } from "./scoring";
 
 /**
  * Match flow: the clock, the score, respawns and the win condition.
@@ -97,10 +99,17 @@ export class MatchDirector {
   requestSpawn: SpawnRequest | null = null;
   /** Fired once when the match ends. */
   onEnd: ((result: MatchResult) => void) | null = null;
+  /** Fired when the player earns score events (for HUD toasts). */
+  onPlayerScore: ((events: readonly ScoreEvent[]) => void) | null = null;
+
+  readonly objectives: ObjectiveManager;
+  readonly scoring: ScoringEngine;
 
   constructor(mode: GameModeId) {
     this.rules = MODE_RULES[mode];
     this.timeRemaining = this.rules.timeLimitSec;
+    this.objectives = new ObjectiveManager(mode);
+    this.scoring = new ScoringEngine();
   }
 
   /** Award the score for a kill and check for a win. */
@@ -118,6 +127,28 @@ export class MatchDirector {
     } else {
       this.scoreRed += 1;
     }
+
+    // Score events for the killing player.
+    const events = this.scoring.onKill(report, game.time);
+    let bonus = 0;
+    for (const e of events) bonus += e.points;
+    if (attacker.isPlayer && events.length > 0) {
+      attacker.score += bonus - 100; // base 100 already counted in combat.ts
+      for (const e of events) {
+        game.hud.scoreEvents.push({
+          label: e.label,
+          points: e.points,
+          time: game.time,
+        });
+      }
+      this.onPlayerScore?.(events);
+    }
+
+    // Assists.
+    for (const helper of report.assists) {
+      const assistEvents = this.scoring.onAssist(helper);
+      for (const e of assistEvents) helper.score += e.points;
+    }
   }
 
   update(dt: number): void {
@@ -131,6 +162,14 @@ export class MatchDirector {
     }
 
     this.timeRemaining = Math.max(0, this.timeRemaining - dt);
+
+    // Tick objectives (Domination/Hardpoint score accumulation).
+    this.objectives.update(dt, game.actors);
+    const objScore = this.objectives.getScore();
+    if (this.rules.id === "domination" || this.rules.id === "hardpoint") {
+      this.scoreBlue = objScore.blue;
+      this.scoreRed = objScore.red;
+    }
 
     // Respawns. The player and the bots go through the same path so the rules
     // cannot drift apart between them.
@@ -190,6 +229,9 @@ export class MatchDirector {
     hud.scoreRed = this.scoreRed;
     hud.timeRemaining =
       this.phase === "warmup" ? this.rules.timeLimitSec : this.timeRemaining;
+    const objHud = this.objectives.getHudState();
+    hud.objectiveZones = objHud.zones;
+    hud.activeHardpoint = objHud.activeHardpoint;
   }
 
   getResult(): MatchResult | null {
@@ -219,7 +261,19 @@ export class MatchDirector {
     this.scoreBlue = 0;
     this.scoreRed = 0;
     this.result = null;
+    this.objectives.reset();
+    this.scoring.reset();
     this.publish();
+  }
+
+  /** Medals the player earned this match. */
+  getPlayerMedals(): Medal[] {
+    return getMatchMedals(this.scoring, game.player.id);
+  }
+
+  /** Objective HUD state for the canvas overlay. */
+  getObjectiveHud(): ObjectiveHudState {
+    return this.objectives.getHudState();
   }
 }
 

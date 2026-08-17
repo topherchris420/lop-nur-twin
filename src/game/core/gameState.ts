@@ -364,6 +364,11 @@ export interface GameState {
     grenades: number;
     tacticals: number;
     streakProgress: number;
+    /** Objective zone data for canvas overlay. */
+    objectiveZones: { id: string; label: string; x: number; z: number; owner: Team | null; progress: number; contested: boolean }[];
+    activeHardpoint: number | null;
+    /** Score event toasts for the player (label + points). Consumed by the canvas painter. */
+    scoreEvents: { label: string; points: number; time: number }[];
   };
 
   stats: FrameStats;
@@ -395,6 +400,9 @@ function createHud(): GameState["hud"] {
     grenades: 2,
     tacticals: 2,
     streakProgress: 0,
+    objectiveZones: [],
+    activeHardpoint: null,
+    scoreEvents: [],
   };
 }
 

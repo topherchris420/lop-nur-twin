@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useGameStore, type GameScreen } from "../core/gameStore";
@@ -149,6 +149,162 @@ function Toggle({
 /* ------------------------------------------------------------------ */
 /* Screens                                                             */
 /* ------------------------------------------------------------------ */
+
+function BootScreen({ onComplete }: { onComplete: () => void }) {
+  const screen = useGameStore((s) => s.screen);
+  const setScreen = useGameStore((s) => s.setScreen);
+
+  useEffect(() => {
+    if (screen === "playing") {
+      const t = setTimeout(onComplete, 800);
+      return () => clearTimeout(t);
+    }
+  }, [screen, onComplete]);
+
+  useEffect(() => {
+    const handle = () => {
+      if (screen !== "playing") {
+        setScreen("menu");
+      }
+      onComplete();
+    };
+    window.addEventListener("keydown", handle);
+    window.addEventListener("click", handle);
+    return () => {
+      window.removeEventListener("keydown", handle);
+      window.removeEventListener("click", handle);
+    };
+  }, [screen, onComplete, setScreen]);
+
+  return (
+    <div className="absolute inset-0 z-50 flex cursor-auto flex-col items-center justify-center bg-[#05070a] text-white">
+      <div className="flex flex-col items-center opacity-0 [animation:fadeIn_1s_ease-out_forwards]">
+        <style>{`@keyframes fadeIn { to { opacity: 1; } }`}</style>
+        <h1 className="text-8xl font-black uppercase tracking-[0.05em] text-white">
+          Blacksite
+        </h1>
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-500">
+          Lop Nur · First-Person Engagement Simulator
+        </p>
+      </div>
+      <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-400 animate-pulse">
+        Press any key to continue
+      </p>
+    </div>
+  );
+}
+
+function Scoreboard() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tbodyBlueRef = useRef<HTMLTableSectionElement>(null);
+  const tbodyRedRef = useRef<HTMLTableSectionElement>(null);
+  const timeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let handle: number;
+    function tick() {
+      handle = requestAnimationFrame(tick);
+      if (
+        !containerRef.current ||
+        !tbodyBlueRef.current ||
+        !tbodyRedRef.current ||
+        !timeRef.current
+      )
+        return;
+
+      if (!game.input.scoreboard) {
+        containerRef.current.style.display = "none";
+        return;
+      }
+      containerRef.current.style.display = "flex";
+
+      const t = Math.max(0, game.hud.timeRemaining);
+      const mins = Math.floor(t / 60);
+      const secs = Math.floor(t % 60);
+      timeRef.current.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
+
+      const blueActors = game.actors
+        .filter((a) => a.team === "blue")
+        .sort((a, b) => b.score - a.score);
+      const redActors = game.actors
+        .filter((a) => a.team === "red")
+        .sort((a, b) => b.score - a.score);
+
+      const renderRows = (actors: typeof game.actors, tbody: HTMLTableSectionElement) => {
+        let html = "";
+        for (const a of actors) {
+          const bg = a.isPlayer ? "bg-white/15" : "bg-transparent";
+          const highlight = a.isPlayer ? "text-white font-bold" : "text-slate-200";
+          html += `<tr class="border-b border-white/5 text-[11px] uppercase tracking-[0.1em] transition-colors ${bg} ${highlight}">
+            <td class="py-1.5 px-3 text-left max-w-[120px] truncate">${a.name}</td>
+            <td class="py-1.5 px-3 text-right opacity-80">${a.kills}</td>
+            <td class="py-1.5 px-3 text-right opacity-80">${a.deaths}</td>
+            <td class="py-1.5 px-3 text-right font-mono text-white">${a.score}</td>
+          </tr>`;
+        }
+        tbody.innerHTML = html;
+      };
+
+      renderRows(blueActors, tbodyBlueRef.current);
+      renderRows(redActors, tbodyRedRef.current);
+    }
+    handle = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(handle);
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="pointer-events-none absolute inset-0 z-40 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+    >
+      <div className="flex w-[800px] max-w-[90vw] flex-col border border-white/10 bg-[#05070a]/90 p-8 shadow-2xl">
+        <div className="mb-6 flex items-end justify-between border-b border-white/20 pb-3 uppercase tracking-[0.1em]">
+          <div className="text-sm font-semibold tracking-[0.2em] text-slate-400">
+            Match Scoreboard
+          </div>
+          <div ref={timeRef} className="font-mono text-2xl font-semibold text-white">
+            0:00
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-10">
+          <div>
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.3em] text-[#4da3ff]">
+              Blue Team
+            </div>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  <th className="px-3 py-2 text-left font-normal">Operator</th>
+                  <th className="px-3 py-2 text-right font-normal">K</th>
+                  <th className="px-3 py-2 text-right font-normal">D</th>
+                  <th className="px-3 py-2 text-right font-normal">Score</th>
+                </tr>
+              </thead>
+              <tbody ref={tbodyBlueRef}></tbody>
+            </table>
+          </div>
+          <div>
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff5a4d]">
+              Red Team
+            </div>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  <th className="px-3 py-2 text-left font-normal">Operator</th>
+                  <th className="px-3 py-2 text-right font-normal">K</th>
+                  <th className="px-3 py-2 text-right font-normal">D</th>
+                  <th className="px-3 py-2 text-right font-normal">Score</th>
+                </tr>
+              </thead>
+              <tbody ref={tbodyRedRef}></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function MainMenu() {
   const setScreen = useGameStore((s) => s.setScreen);
@@ -392,7 +548,7 @@ function LoadoutScreen() {
             <TacticalButton primary onClick={() => setScreen("playing")}>
               Deploy
             </TacticalButton>
-            <TacticalButton onClick={() => setScreen("boot")}>Back</TacticalButton>
+            <TacticalButton onClick={() => setScreen("menu")}>Back</TacticalButton>
           </div>
         </div>
       </div>
@@ -415,7 +571,7 @@ function PauseMenu() {
             Resume
           </TacticalButton>
           <TacticalButton onClick={() => setScreen("loadout")}>Loadout</TacticalButton>
-          <TacticalButton onClick={() => setScreen("boot")}>Leave match</TacticalButton>
+          <TacticalButton onClick={() => setScreen("menu")}>Leave match</TacticalButton>
         </div>
         <div className="mt-8 space-y-3 border-t border-white/10 pt-6">
           <Slider
@@ -540,7 +696,7 @@ function ResultsScreen() {
           >
             Rematch
           </TacticalButton>
-          <TacticalButton onClick={() => setScreen("boot")}>Menu</TacticalButton>
+          <TacticalButton onClick={() => setScreen("menu")}>Menu</TacticalButton>
         </div>
       </div>
     </Scrim>
@@ -580,10 +736,11 @@ const IN_MATCH: GameScreen[] = ["playing", "paused", "killcam"];
 
 export function GameHud() {
   const screen = useGameStore((s) => s.screen);
+  const [booting, setBooting] = useState(true);
 
   // Reset the transient HUD state whenever we leave a match.
   useEffect(() => {
-    if (screen === "boot") {
+    if (screen === "menu") {
       game.hud.damageDirs.length = 0;
       game.hud.hitmarker = 0;
     }
@@ -593,10 +750,14 @@ export function GameHud() {
     <>
       {IN_MATCH.includes(screen) && <CombatHud />}
       {IN_MATCH.includes(screen) && <Killfeed />}
-      {screen === "boot" && <MainMenu />}
-      {screen === "loadout" && <LoadoutScreen />}
-      {screen === "paused" && <PauseMenu />}
-      {screen === "results" && <ResultsScreen />}
+      {IN_MATCH.includes(screen) && <Scoreboard />}
+      
+      {booting && <BootScreen onComplete={() => setBooting(false)} />}
+      
+      {!booting && screen === "menu" && <MainMenu />}
+      {!booting && screen === "loadout" && <LoadoutScreen />}
+      {!booting && screen === "paused" && <PauseMenu />}
+      {!booting && screen === "results" && <ResultsScreen />}
     </>
   );
 }
