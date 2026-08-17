@@ -146,7 +146,8 @@ function Combatants({ world }: { world: CollisionWorld }) {
     const spawns = new SpawnSelector(world);
     // Everyone respawns through the scored, LOS-checked spawn selector —
     // including the player, so a death puts you back into action safely.
-    director.requestSpawn = (actor) => spawns.pickSpawn(actor.team, game.actors, actor.position);
+    director.requestSpawn = (actor) =>
+      spawns.pickSpawn(actor.team, game.actors, actor.position);
     director.onEnd = () => setScreen("results");
     game.matchDirector = director;
 

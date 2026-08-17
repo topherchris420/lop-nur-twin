@@ -82,13 +82,13 @@ export class ObjectiveManager {
 
   constructor(mode: GameModeId) {
     this.mode = mode;
-    
+
     this.dominationZones = [
       createDominationZone("A", "A", "fighter-shelters"), // West apron area
-      createDominationZone("B", "B", "ops-complex"),      // Central operations
-      createDominationZone("C", "C", "fuel-farm"),        // East fuel area
+      createDominationZone("B", "B", "ops-complex"), // Central operations
+      createDominationZone("C", "C", "fuel-farm"), // East fuel area
     ];
-    
+
     this.hardpoints = [
       createHardpointZone("hp1", "ops-complex"),
       createHardpointZone("hp2", "main-apron"),
@@ -130,8 +130,9 @@ export class ObjectiveManager {
         if (cappingTeam) {
           if (zone.owner !== cappingTeam) {
             // Faster capture with more teammates: 1x for 1 player, 1.5x for 2, 2.0x for 3, etc.
-            const captureRate = (1 / DOMINATION_CAPTURE_TIME_SEC) * (1 + 0.5 * (count - 1));
-            
+            const captureRate =
+              (1 / DOMINATION_CAPTURE_TIME_SEC) * (1 + 0.5 * (count - 1));
+
             if (zone.owner === null) {
               zone.progress += captureRate * dt;
               if (zone.progress >= 1) {

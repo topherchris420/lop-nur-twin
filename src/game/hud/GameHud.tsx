@@ -751,9 +751,9 @@ export function GameHud() {
       {IN_MATCH.includes(screen) && <CombatHud />}
       {IN_MATCH.includes(screen) && <Killfeed />}
       {IN_MATCH.includes(screen) && <Scoreboard />}
-      
+
       {booting && <BootScreen onComplete={() => setBooting(false)} />}
-      
+
       {!booting && screen === "menu" && <MainMenu />}
       {!booting && screen === "loadout" && <LoadoutScreen />}
       {!booting && screen === "paused" && <PauseMenu />}

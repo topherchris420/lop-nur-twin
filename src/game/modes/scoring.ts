@@ -74,32 +74,49 @@ export class ScoringEngine {
     events.push({ kind: "kill", label: "Kill", points: SCORE_VALUES.kill });
 
     if (report.headshot) {
-      events.push({ kind: "headshot", label: "Headshot Bonus", points: SCORE_VALUES.headshotBonus });
+      events.push({
+        kind: "headshot",
+        label: "Headshot Bonus",
+        points: SCORE_VALUES.headshotBonus,
+      });
       attackerState.headshotsThisMatch += 1;
     }
 
     if (report.penetrated) {
-      events.push({ kind: "penetration", label: "Penetration Bonus", points: SCORE_VALUES.penetrationBonus });
+      events.push({
+        kind: "penetration",
+        label: "Penetration Bonus",
+        points: SCORE_VALUES.penetrationBonus,
+      });
     }
 
     if (report.distanceM > 40) {
-      events.push({ 
-        kind: "longshot", 
-        label: "Longshot Bonus", 
-        points: SCORE_VALUES.longshotBonus, 
-        detail: `${report.distanceM.toFixed(0)}m` 
+      events.push({
+        kind: "longshot",
+        label: "Longshot Bonus",
+        points: SCORE_VALUES.longshotBonus,
+        detail: `${report.distanceM.toFixed(0)}m`,
       });
       attackerState.longshotsThisMatch += 1;
     }
 
     if (!this.firstBloodTaken) {
       this.firstBloodTaken = true;
-      events.push({ kind: "first-blood", label: "First Blood", points: SCORE_VALUES.firstBlood });
+      events.push({
+        kind: "first-blood",
+        label: "First Blood",
+        points: SCORE_VALUES.firstBlood,
+      });
     }
 
     if (attackerState.lastKillerId === victim.id) {
       attackerState.lastKillerId = null;
-      events.push({ kind: "revenge", label: "Revenge", points: SCORE_VALUES.revenge, detail: victim.name });
+      events.push({
+        kind: "revenge",
+        label: "Revenge",
+        points: SCORE_VALUES.revenge,
+        detail: victim.name,
+      });
     }
 
     if (time - attackerState.lastKillTime <= 4) {
@@ -111,11 +128,11 @@ export class ScoringEngine {
 
     if (attackerState.multiKill >= 2) {
       const extra = attackerState.multiKill - 1;
-      events.push({ 
-        kind: "multi-kill", 
-        label: "Multi-kill Bonus", 
-        points: SCORE_VALUES.multiKillExtra * extra, 
-        detail: `${attackerState.multiKill}x` 
+      events.push({
+        kind: "multi-kill",
+        label: "Multi-kill Bonus",
+        points: SCORE_VALUES.multiKillExtra * extra,
+        detail: `${attackerState.multiKill}x`,
       });
     }
 
@@ -128,7 +145,9 @@ export class ScoringEngine {
 
   onObjective(kind: "capture" | "defend"): ScoreEvent[] {
     if (kind === "capture") {
-      return [{ kind: "capture", label: "Objective Capture", points: SCORE_VALUES.capture }];
+      return [
+        { kind: "capture", label: "Objective Capture", points: SCORE_VALUES.capture },
+      ];
     } else {
       return [{ kind: "defend", label: "Objective Defend", points: SCORE_VALUES.defend }];
     }
@@ -142,7 +161,7 @@ export class ScoringEngine {
 export function getMatchMedals(engine: ScoringEngine, actorId: EntityId = 0): Medal[] {
   const medals: Medal[] = [];
   const state = engine.getActorState(actorId);
-  
+
   if (state.headshotsThisMatch >= 5) {
     medals.push("marksman");
   }

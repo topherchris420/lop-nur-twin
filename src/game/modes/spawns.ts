@@ -42,7 +42,7 @@ export class SpawnSelector {
         const z = zone.position[1] + Math.sin(angle) * radial;
         const y = terrainHeight(x, z);
         const position = new THREE.Vector3(x, y, z);
-        
+
         if (!this.world.isPositionFree(position, CAPSULE_RADIUS, CAPSULE_HEIGHT)) {
           continue;
         }
@@ -60,7 +60,7 @@ export class SpawnSelector {
   pickSpawn(
     team: Team,
     actors: readonly Actor[],
-    avoidPos?: THREE.Vector3
+    avoidPos?: THREE.Vector3,
   ): { position: [number, number, number]; yaw: number } {
     let bestScore = -Infinity;
     let bestCandidate: SpawnCandidate | null = null;
@@ -68,7 +68,9 @@ export class SpawnSelector {
     const _eye = new THREE.Vector3();
 
     for (const candidate of this.candidates) {
-      if (!this.world.isPositionFree(candidate.position, CAPSULE_RADIUS, CAPSULE_HEIGHT)) {
+      if (
+        !this.world.isPositionFree(candidate.position, CAPSULE_RADIUS, CAPSULE_HEIGHT)
+      ) {
         continue;
       }
 
@@ -95,7 +97,7 @@ export class SpawnSelector {
             _eye.set(
               actor.position.x,
               actor.position.y + HUMAN_METRICS.eyeHeight[actor.stance],
-              actor.position.z
+              actor.position.z,
             );
             if (this.world.hasLineOfSight(_eye, candidate.eye, MASK_SIGHT, actor.id)) {
               if (distance <= HARD_ENEMY_RADIUS_M) {
@@ -132,12 +134,17 @@ export class SpawnSelector {
 
     if (bestCandidate) {
       return {
-        position: [bestCandidate.position.x, bestCandidate.position.y, bestCandidate.position.z],
+        position: [
+          bestCandidate.position.x,
+          bestCandidate.position.y,
+          bestCandidate.position.z,
+        ],
         yaw: this.rng() * Math.PI * 2,
       };
     }
 
-    const zone = GROUND_ZONES[Math.floor(this.rng() * GROUND_ZONES.length)] ?? GROUND_ZONES[0]!;
+    const zone =
+      GROUND_ZONES[Math.floor(this.rng() * GROUND_ZONES.length)] ?? GROUND_ZONES[0]!;
     const fbX = zone.position[0];
     const fbZ = zone.position[1];
     const fbY = terrainHeight(fbX, fbZ);
