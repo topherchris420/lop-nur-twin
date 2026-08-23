@@ -291,7 +291,7 @@ const validation = validateEvidenceLedger(EVIDENCE_LEDGER);
 const classificationCounts = evidenceClassificationCounts();
 
 const manifest = {
-  modelName: "Lop Nur Geospatial Simulation Testbed",
+  modelName: "Lop Nur Twin",
   modelVersion: modelVersion(),
   // 1.1.0 adds `subjects`, `subjectDigestHash` and `temporal`. `/compare` reads
   // this to decide which comparisons it can make, and refuses a major-version

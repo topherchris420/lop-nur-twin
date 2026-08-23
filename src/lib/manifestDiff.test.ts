@@ -30,7 +30,7 @@ function subject(overrides: Partial<ManifestSubjectDigest> = {}): ManifestSubjec
 
 function manifest(overrides: Partial<ComparableManifest> = {}): ComparableManifest {
   return {
-    modelName: "Lop Nur Geospatial Simulation Testbed",
+    modelName: "Lop Nur Twin",
     modelVersion: "0.1.0",
     manifestSchemaVersion: "1.1.0",
     generatedAt: "2026-01-01T00:00:00.000Z",

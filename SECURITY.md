@@ -1,6 +1,6 @@
 # Security policy
 
-The Lop Nur Geospatial Simulation Testbed is an unclassified, public-source
+Lop Nur Twin is an unclassified, public-source
 research prototype that runs entirely in a browser. It holds no user accounts,
 no personal data, no credentials and no non-public information. That shapes
 everything below: the realistic risks here are supply-chain compromise of the

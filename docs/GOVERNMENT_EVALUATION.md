@@ -1,6 +1,6 @@
 # Government evaluation guide
 
-**Lop Nur Geospatial Simulation Testbed**
+**Lop Nur Twin**
 
 This document is for a government innovation, GEOINT, OSINT, digital-engineering
 or modelling-and-simulation team deciding whether this repository is worth an

@@ -72,7 +72,7 @@ async function open(url, { settle = 2500, viewport, reducedMotion = false } = {}
 
 console.log("\n=== direct load and refresh ===");
 for (const [path, expectedTitleFragment, settle] of [
-  ["/", "Geospatial Simulation Testbed", 6000],
+  ["/", "Lop Nur Twin", 6000],
   ["/analysis", "Structure analysis table", 2500],
   ["/compare", "Model manifest comparison", 2500],
   ["/play", "Blacksite", 6000],

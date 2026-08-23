@@ -1,4 +1,4 @@
-# Lop Nur Geospatial Simulation Testbed
+# Lop Nur Twin
 
 An unclassified, public-source analytical reconstruction of a remote desert
 airfield near Lop Nur (~40.77° N, 89.28° E), where every claim carries an

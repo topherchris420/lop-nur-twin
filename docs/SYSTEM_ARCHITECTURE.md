@@ -1,6 +1,6 @@
 # System architecture
 
-The Lop Nur Geospatial Simulation Testbed is a single-page web application with
+The Lop Nur Twin is a single-page web application with
 no backend. Everything a viewer sees is computed in their browser from data
 committed to this repository: there is no database, no API, no user account and
 no runtime dependency on a third-party service.

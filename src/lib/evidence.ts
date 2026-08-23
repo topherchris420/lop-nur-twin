@@ -234,7 +234,7 @@ export const MODEL_INTERNAL_SOURCE_ID = "model-internal-definition";
 const MODEL_INTERNAL_SOURCE = {
   id: MODEL_INTERNAL_SOURCE_ID,
   title: "Deterministic model definition in this repository",
-  publisher: "Lop Nur Geospatial Simulation Testbed",
+  publisher: "Lop Nur Twin",
 } as const;
 
 /* ------------------------------------------------------------------ */

@@ -1,6 +1,6 @@
 # Threat model
 
-**System:** Lop Nur Geospatial Simulation Testbed — a static, client-side web
+**System:** Lop Nur Twin — a static, client-side web
 application serving a public-source geospatial reconstruction, an evidence
 ledger, an accessible analysis view, and an illustrative first-person
 simulation.

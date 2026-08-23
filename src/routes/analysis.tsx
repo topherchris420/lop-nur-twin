@@ -117,7 +117,7 @@ function AnalysisView() {
 
   useEffect(() => {
     document.title =
-      "Structure analysis table — Lop Nur Geospatial Simulation Testbed (public-source model)";
+      "Structure analysis table — Lop Nur Twin (public-source model)";
   }, []);
 
   // A deep link from a dossier should land on its row, not at the top of a
@@ -218,7 +218,7 @@ function AnalysisView() {
             Unclassified · public sources only
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Lop Nur Geospatial Simulation Testbed — structure analysis
+            Lop Nur Twin — structure analysis
           </h1>
           <p className="text-muted-foreground mt-3 max-w-4xl text-sm leading-relaxed">
             This table describes a{" "}
@@ -1000,7 +1000,7 @@ function AnalysisView() {
 
         <footer className="border-border text-muted-foreground mt-12 border-t pt-6 text-xs leading-relaxed">
           <p>
-            Lop Nur Geospatial Simulation Testbed · unclassified public-source research
+            Lop Nur Twin · unclassified public-source research
             prototype · not government-certified, not FedRAMP authorized, not CMMC
             certified, and not approved for classified or controlled unclassified
             information. Observation and simulation are labelled separately throughout:
