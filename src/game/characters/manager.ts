@@ -66,13 +66,13 @@ interface RegionSpec {
  * returns the nearest hit, so the more specific box in front always wins.
  */
 const REGION_SPECS: readonly RegionSpec[] = [
-  { region: "head", centre: 0.94, half: [0.108, 0.125, 0.12] },
-  { region: "neck", centre: 0.862, half: [0.075, 0.05, 0.075] },
-  { region: "chest", centre: 0.755, half: [0.2, 0.155, 0.135] },
-  { region: "stomach", centre: 0.6, half: [0.175, 0.145, 0.12] },
-  { region: "arm", centre: 0.73, half: [0.285, 0.16, 0.105] },
-  { region: "leg", centre: 0.34, half: [0.175, 0.33, 0.125] },
-  { region: "foot", centre: 0.085, half: [0.175, 0.145, 0.16] },
+  { region: "head", centre: 0.94, half: [0.145, 0.16, 0.15] },
+  { region: "neck", centre: 0.862, half: [0.11, 0.08, 0.11] },
+  { region: "chest", centre: 0.755, half: [0.26, 0.19, 0.18] },
+  { region: "stomach", centre: 0.6, half: [0.24, 0.175, 0.165] },
+  { region: "arm", centre: 0.73, half: [0.34, 0.2, 0.14] },
+  { region: "leg", centre: 0.34, half: [0.22, 0.36, 0.16] },
+  { region: "foot", centre: 0.085, half: [0.22, 0.16, 0.2] },
 ];
 
 const _centre = new THREE.Vector3();

@@ -711,11 +711,10 @@ export class BotManager {
       if (bot.targetId !== bestId) {
         bot.targetId = bestId;
         bot.timeOnTarget = 0;
-        // Reaction time: half a second at the bottom of the skill range,
-        // an eighth at the top, delayed while sprinting or suppressed.
-        const baseReaction = THREE.MathUtils.lerp(0.48, 0.12, actor.skill);
-        const sprintPenalty = bot.isTacSprinting ? 0.22 : 0;
-        const suppressionPenalty = actor.suppression * 0.35;
+        // Reaction time: human-like reaction window giving the player tactical initiative
+        const baseReaction = THREE.MathUtils.lerp(0.55, 0.22, actor.skill);
+        const sprintPenalty = bot.isTacSprinting ? 0.25 : 0;
+        const suppressionPenalty = actor.suppression * 0.45;
         bot.reaction = baseReaction + sprintPenalty + suppressionPenalty;
         emitSquadCallout(bot, "contact", time);
       }

@@ -166,13 +166,13 @@ export type HitRegion = "head" | "neck" | "chest" | "stomach" | "arm" | "leg" | 
 
 /** Damage multiplier per hit region, in the CoD tradition. */
 export const HIT_REGION_MULTIPLIER: Readonly<Record<HitRegion, number>> = {
-  head: 3.2,
-  neck: 2.1,
-  chest: 1.15,
-  stomach: 1,
-  arm: 0.85,
-  leg: 0.8,
-  foot: 0.72,
+  head: 3.5,
+  neck: 2.4,
+  chest: 1.35,
+  stomach: 1.15,
+  arm: 1.0,
+  leg: 0.95,
+  foot: 0.9,
 };
 
 /** Bitmask layers used to filter raycasts and sweeps. */

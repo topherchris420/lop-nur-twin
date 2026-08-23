@@ -82,8 +82,8 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     victim.lastAttackerId = event.attackerId;
 
     // Near-miss suppression is handled elsewhere; a direct hit always
-    // suppresses hard.
-    victim.suppression = Math.min(1, victim.suppression + 0.45);
+    // suppresses hard and induces defensive flinch.
+    victim.suppression = Math.min(1, victim.suppression + 0.65);
 
     recordDamage(victim.id, event.attackerId, event.amount, time);
 

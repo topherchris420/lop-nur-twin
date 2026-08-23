@@ -220,14 +220,15 @@ export class WeaponRuntime {
   spreadDeg(stance: Stance, speed: number, airborne: boolean): number {
     const s = this.def.spread;
     // In Tac-Stance, aimed spread is tightly collimated for tactical laser point-shooting
-    const targetAimed = this.tacStance ? s.hipDeg * 0.35 + s.adsDeg * 0.65 : s.adsDeg;
+    const targetAimed = this.tacStance ? s.hipDeg * 0.25 + s.adsDeg * 0.75 : s.adsDeg;
     const aimed = s.hipDeg + (targetAimed - s.hipDeg) * this.ads;
     let spread = aimed;
-    spread += s.moveDeg * Math.min(1, speed / 5) * (1 - this.ads * 0.55);
-    if (airborne) spread += s.airDeg * (1 - this.ads * 0.3);
+    const adsDamping = 1 - this.ads * 0.88;
+    spread += s.moveDeg * Math.min(1, speed / 5) * adsDamping;
+    if (airborne) spread += s.airDeg * (1 - this.ads * 0.5);
     if (stance === "crouch") spread *= s.crouchScale;
     else if (stance === "prone") spread *= s.crouchScale * 0.72;
-    return spread + this.bloom;
+    return spread + this.bloom * adsDamping;
   }
 
   /* ---------------------------------------------------------------- */
