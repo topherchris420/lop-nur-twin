@@ -17,6 +17,7 @@ import {
   createActor,
   eyePosition,
   game,
+  queueSound,
   type Actor,
 } from "../core/gameState";
 import type { CollisionWorld } from "../physics/collisionWorld";
@@ -126,7 +127,17 @@ const SPAWN_SIGHT_CLEARANCE = 90;
 const CONTACT_TTL = 9;
 
 type BotState =
-  "idle" | "patrol" | "investigate" | "engage" | "reposition" | "reload" | "dead";
+  | "idle"
+  | "patrol"
+  | "investigate"
+  | "engage"
+  | "reposition"
+  | "slide"
+  | "cover_peek"
+  | "suppress"
+  | "flank"
+  | "reload"
+  | "dead";
 
 interface Bot {
   actor: Actor;
@@ -155,6 +166,143 @@ interface Bot {
   actedOnContact: number;
   /** Fixed lateral offset so a squad converging on one contact spreads out. */
   flank: number;
+
+  /* Modern Warfare Tactical Squad Behaviors */
+  coverPosition: THREE.Vector3;
+  hasCover: boolean;
+  coverNormal: THREE.Vector3;
+  peeking: boolean;
+  peekTimer: number;
+  peekDuration: number;
+  peekSide: number; // -1 or 1
+  slideTimer: number;
+  isTacSprinting: boolean;
+  suppressTarget: THREE.Vector3;
+  suppressTimer: number;
+  lastCalloutTime: number;
+  flankedDetected: boolean;
+}
+
+const CALLOUT_COOLDOWNS: Record<Team, number> = { blue: -99, red: -99 };
+let calloutId = 1;
+
+export type SquadCalloutType =
+  | "contact"
+  | "suppressing"
+  | "moving_cover"
+  | "flanked"
+  | "flanking"
+  | "pinned"
+  | "reloading"
+  | "kill";
+
+export function emitSquadCallout(
+  bot: Bot,
+  type: SquadCalloutType,
+  time: number,
+): void {
+  if (time - CALLOUT_COOLDOWNS[bot.actor.team] < 2.0 || time - bot.lastCalloutTime < 4.2) {
+    return;
+  }
+  CALLOUT_COOLDOWNS[bot.actor.team] = time;
+  bot.lastCalloutTime = time;
+
+  const name = bot.actor.name;
+  let text = "";
+  switch (type) {
+    case "contact": {
+      const phrases = [
+        "Contact, front!",
+        "Hostile spotted!",
+        "Enemy in sector!",
+        "Target sighted!",
+        "Eyes on hostile!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "suppressing": {
+      const phrases = [
+        "Laying down suppressive fire!",
+        "Suppressing target!",
+        "Keep them pinned!",
+        "Laying down heavy cover!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "moving_cover": {
+      const phrases = [
+        "Sliding into cover!",
+        "Moving to hard cover!",
+        "Shifting positions!",
+        "Repositioning under fire!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "flanked": {
+      const phrases = [
+        "Taking fire from the flank!",
+        "We're flanked! Fall back!",
+        "Hostile on our flank!",
+        "Breaking contact, repositioning!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "flanking": {
+      const phrases = [
+        "Moving on their flank!",
+        "Taking the side angle!",
+        "Flanking left!",
+        "Pushing around their cover!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "pinned": {
+      const phrases = [
+        "I'm pinned down!",
+        "Taking heavy fire!",
+        "Need covering fire!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "reloading": {
+      const phrases = [
+        "Reloading, cover me!",
+        "Mag dry! Watch my sector!",
+        "Swapping mags!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+    case "kill": {
+      const phrases = [
+        "Target neutralized!",
+        "Hostile down!",
+        "Good kill!",
+        "Threat eliminated!",
+      ];
+      text = phrases[Math.floor(bot.rand() * phrases.length)]!;
+      break;
+    }
+  }
+
+  if (game.hud.radioCallouts) {
+    game.hud.radioCallouts.push({
+      id: calloutId++,
+      speaker: `${bot.actor.team.toUpperCase()}-${name}`,
+      text,
+      team: bot.actor.team,
+      time,
+    });
+    if (game.hud.radioCallouts.length > 5) game.hud.radioCallouts.shift();
+  }
+
+  queueSound({ id: "radio-chirp", gain: 0.45 });
 }
 
 /** What one side currently believes about where the other side is. */
@@ -393,6 +541,20 @@ export class BotManager {
         aimNoisePhase: this.rand() * 100,
         actedOnContact: -1,
         flank: (this.rand() - 0.5) * 16,
+
+        coverPosition: spawnZone.clone(),
+        hasCover: false,
+        coverNormal: new THREE.Vector3(0, 0, 1),
+        peeking: false,
+        peekTimer: 0,
+        peekDuration: 0.8 + this.rand() * 0.6,
+        peekSide: this.rand() > 0.5 ? 1 : -1,
+        slideTimer: 0,
+        isTacSprinting: false,
+        suppressTarget: new THREE.Vector3(),
+        suppressTimer: 0,
+        lastCalloutTime: -99,
+        flankedDetected: false,
       });
     }
   }
@@ -464,6 +626,12 @@ export class BotManager {
     bot.timeSinceSeen = 99;
     bot.stateTimer = 0;
     bot.actedOnContact = -1;
+    bot.hasCover = false;
+    bot.peeking = false;
+    bot.peekTimer = 0;
+    bot.slideTimer = 0;
+    bot.isTacSprinting = false;
+    bot.flankedDetected = false;
     this.pickPatrolGoal(bot);
   }
 
@@ -516,7 +684,7 @@ export class BotManager {
       }
 
       // Field of view, narrowed while suppressed.
-      const fov = Math.cos((actor.suppression > 0.4 ? 0.75 : 1) * 0.96);
+      const fov = Math.cos((actor.suppression > 0.4 ? 0.72 : 1) * 0.96);
       yawToForward(actor.yaw, _aim);
       _toTarget.y = 0;
       const facing = _toTarget.normalize().dot(_aim);
@@ -544,8 +712,12 @@ export class BotManager {
         bot.targetId = bestId;
         bot.timeOnTarget = 0;
         // Reaction time: half a second at the bottom of the skill range,
-        // an eighth at the top.
-        bot.reaction = THREE.MathUtils.lerp(0.5, 0.12, actor.skill);
+        // an eighth at the top, delayed while sprinting or suppressed.
+        const baseReaction = THREE.MathUtils.lerp(0.48, 0.12, actor.skill);
+        const sprintPenalty = bot.isTacSprinting ? 0.22 : 0;
+        const suppressionPenalty = actor.suppression * 0.35;
+        bot.reaction = baseReaction + sprintPenalty + suppressionPenalty;
+        emitSquadCallout(bot, "contact", time);
       }
       bot.timeOnTarget += dt;
       bot.timeSinceSeen = 0;
@@ -577,12 +749,16 @@ export class BotManager {
 
   private think(bot: Bot, dt: number, time: number): void {
     const actor = bot.actor;
-    bot.reaction = Math.max(0, bot.reaction - dt);
+    // Reaction timer recovers slower under heavy suppression
+    bot.reaction = Math.max(0, bot.reaction - dt / (1 + actor.suppression * 1.5));
 
     if (bot.weapon.needsReload && bot.state !== "reload") {
       bot.weapon.beginReload();
       bot.state = "reload";
       bot.stateTimer = 0;
+      if (bot.timeSinceSeen < 2.0) {
+        emitSquadCallout(bot, "reloading", time);
+      }
     }
     if (bot.state === "reload" && !bot.weapon.isReloading) {
       bot.state = bot.targetId !== null ? "engage" : "patrol";
@@ -592,7 +768,7 @@ export class BotManager {
     const hasTarget = bot.targetId !== null && bot.timeSinceSeen < 0.5;
 
     // Being shot at from somewhere you cannot see is information. Turn toward
-    // it and go looking, rather than continuing to walk away from the rounds.
+    // it and go looking, or slide into cover.
     if (
       !hasTarget &&
       time - actor.lastDamageTime < 0.35 &&
@@ -602,22 +778,55 @@ export class BotManager {
       if (attacker && attacker.team !== actor.team) {
         bot.lastKnown.copy(attacker.position);
         this.report(actor.team, attacker.id, attacker.position, time);
-        if (bot.state !== "engage") {
-          bot.state = "investigate";
-          bot.goal.copy(attacker.position);
-          bot.stateTimer = 0;
+        if (bot.state !== "engage" && bot.state !== "slide" && bot.state !== "cover_peek") {
+          // Slide or break into cover
+          if (this.findTacticalCover(bot, attacker.position, bot.coverPosition, bot.coverNormal)) {
+            this.initiateSlide(bot, bot.coverPosition, time);
+          } else {
+            bot.state = "investigate";
+            bot.goal.copy(attacker.position);
+            bot.stateTimer = 0;
+          }
         }
+      }
+    }
+
+    // Heavy suppression check: under heavy suppression and low HP, dive for cover!
+    if (actor.suppression > 0.65 && actor.health < 65 && bot.state !== "slide" && bot.state !== "cover_peek") {
+      emitSquadCallout(bot, "pinned", time);
+      const threat = hasTarget ? bot.lastKnown : (actor.lastAttackerId ? game.actorById.get(actor.lastAttackerId)?.position ?? bot.lastKnown : bot.lastKnown);
+      if (this.findTacticalCover(bot, threat, bot.coverPosition, bot.coverNormal)) {
+        this.initiateSlide(bot, bot.coverPosition, time);
+      }
+    }
+
+    // Flank detection: check if currently holding cover but enemy has flanked our position
+    if (bot.state === "cover_peek" && hasTarget) {
+      const threatDir = _probe.copy(bot.lastKnown).sub(actor.position).setY(0).normalize();
+      const coverage = threatDir.dot(bot.coverNormal);
+      const takingFlankDamage = time - actor.lastDamageTime < 0.3;
+
+      if (coverage < 0.15 || (takingFlankDamage && actor.suppression > 0.4)) {
+        // FLANKED! Break cover and evasively reposition
+        emitSquadCallout(bot, "flanked", time);
+        bot.flankedDetected = true;
+        this.pickCoverGoal(bot, bot.lastKnown);
+        this.initiateSlide(bot, bot.goal, time);
       }
     }
 
     switch (bot.state) {
       case "idle":
       case "patrol":
+        bot.isTacSprinting = false;
         if (hasTarget) {
           bot.state = "engage";
           bot.stateTimer = 0;
         } else if (this.followTeamContact(bot, time)) {
           bot.stateTimer = 0;
+          if (actor.position.distanceTo(bot.goal) > 22) {
+            bot.isTacSprinting = true;
+          }
         } else if (bot.actor.position.distanceTo(bot.goal) < 4 || bot.stateTimer > 22) {
           this.pickPatrolGoal(bot);
           bot.stateTimer = 0;
@@ -626,7 +835,16 @@ export class BotManager {
 
       case "engage": {
         if (!hasTarget) {
-          if (bot.timeSinceSeen < 5) {
+          // If target broke LOS recently (< 2.8s), lay down suppressive fire!
+          if (bot.timeSinceSeen < 2.8 && bot.rand() < 0.6) {
+            bot.state = "suppress";
+            bot.suppressTarget.copy(bot.lastKnown);
+            bot.suppressTimer = 1.6 + bot.rand() * 1.2;
+            bot.stateTimer = 0;
+            emitSquadCallout(bot, "suppressing", time);
+            break;
+          }
+          if (bot.timeSinceSeen < 6) {
             bot.state = "investigate";
             bot.goal.copy(bot.lastKnown);
           } else {
@@ -636,28 +854,119 @@ export class BotManager {
           bot.stateTimer = 0;
           break;
         }
+
         const target = game.actorById.get(bot.targetId!);
         if (!target) break;
         const distance = actor.position.distanceTo(target.position);
         const optimal = this.optimalRange(bot);
-        // Close if too far to be effective, break off if suppressed and hurt.
-        if (actor.suppression > 0.7 && actor.health < 45 && bot.rand() < 0.02) {
-          bot.state = "reposition";
-          this.pickCoverGoal(bot, target.position);
+
+        // Tactical cover assessment: seek cover node if under fire or available nearby
+        if (actor.suppression > 0.35 && distance > 12 && bot.stateTimer > 0.8) {
+          if (this.findTacticalCover(bot, target.position, bot.coverPosition, bot.coverNormal)) {
+            this.initiateSlide(bot, bot.coverPosition, time);
+            break;
+          }
+        }
+
+        // Flanking decision: if another teammate is engaging, coordinate a flank
+        if (distance > optimal * 0.9 && bot.stateTimer > 2.5 && bot.rand() < 0.03) {
+          bot.state = "flank";
+          _desired.copy(target.position).sub(actor.position).setY(0).normalize();
+          _right.crossVectors(_desired, UP).normalize();
+          const flankDir = bot.rand() > 0.5 ? 1 : -1;
+          bot.goal.copy(target.position).addScaledVector(_right, flankDir * (14 + bot.rand() * 12)).addScaledVector(_desired, -8);
+          bot.goal.y = this.world.groundAt(bot.goal.x, bot.goal.z);
+          bot.isTacSprinting = true;
           bot.stateTimer = 0;
-        } else if (distance > optimal * 1.6) {
+          emitSquadCallout(bot, "flanking", time);
+          break;
+        }
+
+        if (distance > optimal * 1.6) {
           bot.goal.copy(target.position);
+          bot.isTacSprinting = distance > 30;
         } else if (distance < optimal * 0.45) {
           // Back off along the line to the target.
           _desired.copy(actor.position).sub(target.position).setY(0).normalize();
           bot.goal.copy(actor.position).addScaledVector(_desired, 8);
-        } else if (bot.stateTimer > 3.5 && bot.rand() < 0.02) {
-          // Periodic strafe so a firefight is not two statues.
+        } else if (bot.stateTimer > 3.0 && bot.rand() < 0.03) {
+          // Periodic strafe / combat slide
           _desired.copy(target.position).sub(actor.position).setY(0).normalize();
           _right.crossVectors(_desired, UP).normalize();
-          bot.goal
-            .copy(actor.position)
-            .addScaledVector(_right, (bot.rand() < 0.5 ? -1 : 1) * (4 + bot.rand() * 5));
+          const strafeDir = bot.rand() < 0.5 ? -1 : 1;
+          bot.goal.copy(actor.position).addScaledVector(_right, strafeDir * (5 + bot.rand() * 4));
+          bot.stateTimer = 0;
+        }
+        break;
+      }
+
+      case "cover_peek": {
+        // Peeking state machine
+        if (!hasTarget && bot.timeSinceSeen > 4.0) {
+          bot.state = "investigate";
+          bot.goal.copy(bot.lastKnown);
+          bot.stateTimer = 0;
+          break;
+        }
+
+        bot.peekTimer += dt;
+        if (!bot.peeking) {
+          // Tucked in crouched cover: recover suppression and plan peek
+          actor.stance = "crouch";
+          bot.goal.copy(bot.coverPosition);
+          if (bot.peekTimer > bot.peekDuration) {
+            // Initiate peek: step or lean out
+            bot.peeking = true;
+            bot.peekTimer = 0;
+            bot.peekDuration = 0.5 + bot.rand() * 0.9;
+            _right.crossVectors(bot.coverNormal, UP).normalize();
+            bot.goal.copy(bot.coverPosition).addScaledVector(_right, bot.peekSide * 0.85);
+          }
+        } else {
+          // In peek mode: aim & fire burst
+          if (bot.peekTimer > bot.peekDuration || actor.suppression > 0.55 || time - actor.lastDamageTime < 0.2) {
+            // Duck back into cover!
+            bot.peeking = false;
+            bot.peekTimer = 0;
+            bot.peekDuration = 0.6 + bot.rand() * 1.0;
+            bot.goal.copy(bot.coverPosition);
+            bot.peekSide = -bot.peekSide; // alternate peek sides
+          }
+        }
+        break;
+      }
+
+      case "slide": {
+        bot.slideTimer -= dt;
+        actor.stance = "crouch";
+        if (bot.slideTimer <= 0 || actor.position.distanceTo(bot.goal) < 1.4) {
+          bot.state = bot.hasCover ? "cover_peek" : (hasTarget ? "engage" : "investigate");
+          bot.stateTimer = 0;
+          bot.peeking = false;
+          bot.peekTimer = 0;
+        }
+        break;
+      }
+
+      case "suppress": {
+        bot.suppressTimer -= dt;
+        actor.stance = "crouch";
+        if (bot.suppressTimer <= 0 || hasTarget) {
+          bot.state = hasTarget ? "engage" : "investigate";
+          bot.goal.copy(bot.suppressTarget);
+          bot.stateTimer = 0;
+        }
+        break;
+      }
+
+      case "flank": {
+        if (hasTarget && actor.position.distanceTo(bot.goal) < 8) {
+          bot.state = "engage";
+          bot.stateTimer = 0;
+          bot.isTacSprinting = false;
+        } else if (bot.stateTimer > 8.0) {
+          bot.state = "investigate";
+          bot.goal.copy(bot.lastKnown);
           bot.stateTimer = 0;
         }
         break;
@@ -686,27 +995,85 @@ export class BotManager {
         break;
     }
 
-    // Stance: crouch when holding a position under fire.
+    // Stance update: crouch when suppressed, peeking-tucked, or holding cover
     const wantsCrouch =
+      bot.state === "slide" ||
+      (bot.state === "cover_peek" && !bot.peeking) ||
       (bot.state === "engage" && actor.suppression > 0.35) ||
+      (bot.state === "suppress") ||
       (bot.state === "engage" &&
         actor.position.distanceTo(bot.goal) < 1.5 &&
         bot.rand() < 0.4);
     actor.stance = wantsCrouch ? "crouch" : "stand";
   }
 
+  /** Trigger a tactical combat slide into cover */
+  private initiateSlide(bot: Bot, destination: THREE.Vector3, time: number): void {
+    bot.state = "slide";
+    bot.slideTimer = 0.75;
+    bot.hasCover = true;
+    bot.goal.copy(destination);
+    bot.actor.stance = "crouch";
+    bot.actor.state = "slide";
+    // Forward impulse
+    _desired.copy(destination).sub(bot.actor.position).setY(0).normalize();
+    bot.actor.velocity.x += _desired.x * 3.5;
+    bot.actor.velocity.z += _desired.z * 3.5;
+    queueSound({ id: "slide", position: bot.actor.position.clone(), gain: 0.65 });
+    emitSquadCallout(bot, "moving_cover", time);
+  }
+
+  /** Find a viable cover position with LOS blocked against the threat */
+  private findTacticalCover(
+    bot: Bot,
+    threatPos: THREE.Vector3,
+    outCover: THREE.Vector3,
+    outNormal: THREE.Vector3,
+  ): boolean {
+    const actor = bot.actor;
+    let bestScore = -Infinity;
+    let found = false;
+
+    _targetEye.copy(threatPos).setY(threatPos.y + 1.4);
+
+    for (let i = 0; i < 14; i += 1) {
+      const angle = (i / 14) * Math.PI * 2 + (bot.rand() - 0.5) * 0.4;
+      const dist = 3.5 + bot.rand() * 11;
+      const x = actor.position.x + Math.cos(angle) * dist;
+      const z = actor.position.z + Math.sin(angle) * dist;
+      const y = this.world.groundAt(x, z);
+
+      _probe.set(x, y + HUMAN_METRICS.eyeHeight.crouch, z);
+      if (!this.world.isPositionFree(_probe, HUMAN_METRICS.radius, HUMAN_METRICS.colliderHeight.crouch)) {
+        continue;
+      }
+
+      // Check crouched cover
+      const blocksSight = !this.world.hasLineOfSight(_probe, _targetEye, MASK_SIGHT);
+      if (!blocksSight) continue;
+
+      // Score cover position: proximity, safety, line to threat
+      const dThreat = Math.hypot(x - threatPos.x, z - threatPos.z);
+      const score = 30 - dist + (dThreat > 10 ? 10 : 0);
+
+      if (score > bestScore) {
+        bestScore = score;
+        outCover.set(x, y, z);
+        outNormal.copy(threatPos).sub(outCover).setY(0).normalize();
+        found = true;
+      }
+    }
+    return found;
+  }
+
   /**
    * Move on the team's most recent contact, offset laterally so a squad
-   * arrives spread out rather than in single file. Returns true when the bot
-   * took the contact — each one is acted on once, or a bot re-routes to the
-   * same call every frame and never gets anywhere.
+   * arrives spread out rather than in single file.
    */
   private followTeamContact(bot: Bot, time: number): boolean {
     const contact = this.currentContact(bot.actor.team, time);
     if (!contact || contact.time <= bot.actedOnContact) return false;
     const distance = bot.actor.position.distanceTo(contact.position);
-    // Somewhere else entirely: worth crossing the compound for. Right on top
-    // of it: nothing to walk toward.
     if (distance < 12) return false;
 
     bot.actedOnContact = contact.time;
@@ -737,20 +1104,16 @@ export class BotManager {
   }
 
   private pickPatrolGoal(bot: Bot): void {
-    // Route through the same validated picker as spawning, so bots never walk
-    // toward the inside of a building and grind against its wall — and so a
-    // patrol stays inside the live zones rather than wandering off site.
     if (this.findSpawnPoint(bot.actor.team, bot.rand, _probe)) {
       bot.goal.copy(_probe);
     }
   }
 
   private pickCoverGoal(bot: Bot, threat: THREE.Vector3): void {
-    // Look for somewhere within 14 m that breaks line of sight to the threat.
     eyePosition(bot.actor, _eye);
-    for (let attempt = 0; attempt < 8; attempt += 1) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
       const angle = bot.rand() * Math.PI * 2;
-      const radius = 5 + bot.rand() * 9;
+      const radius = 5 + bot.rand() * 11;
       const x = bot.actor.position.x + Math.cos(angle) * radius;
       const z = bot.actor.position.z + Math.sin(angle) * radius;
       _probe.set(x, this.world.groundAt(x, z) + HUMAN_METRICS.eyeHeight.crouch, z);
@@ -759,7 +1122,6 @@ export class BotManager {
         return;
       }
     }
-    // Nothing breaks sight; fall back to putting distance between them.
     _desired.copy(bot.actor.position).sub(threat).setY(0).normalize();
     bot.goal.copy(bot.actor.position).addScaledVector(_desired, 10);
   }
@@ -775,15 +1137,26 @@ export class BotManager {
     const distance = _desired.length();
 
     let speed = 0;
-    if (distance > 1.2) {
+    if (distance > 0.8) {
       _desired.multiplyScalar(1 / distance);
-      const engaging = bot.state === "engage";
-      speed =
-        actor.stance === "crouch" ? 1.9 : engaging ? 3.4 : distance > 25 ? 5.6 : 3.9;
+      const engaging = bot.state === "engage" || bot.state === "suppress";
+
+      if (bot.state === "slide") {
+        // Rapid sliding speed, decaying
+        speed = 6.4 * Math.max(0.3, bot.slideTimer / 0.75);
+      } else if (bot.isTacSprinting || distance > 28) {
+        // Tactical sprint speed
+        speed = 6.8 + actor.skill * 0.6;
+      } else if (actor.stance === "crouch") {
+        speed = 1.95;
+      } else if (engaging) {
+        speed = 3.5;
+      } else {
+        speed = 4.2;
+      }
 
       // Whisker avoidance: probe ahead and to both sides at chest height and
-      // steer away from whatever is closest. Cheaper than a path search and
-      // enough for a compound of large convex buildings.
+      // steer away from whatever is closest.
       _probe.set(actor.position.x, actor.position.y + 0.9, actor.position.z);
       _steer.copy(_desired);
       _right.crossVectors(_desired, UP).normalize();
@@ -795,7 +1168,6 @@ export class BotManager {
       for (const [direction, reach] of feelers) {
         const hit = this.world.raycast(_probe, direction, reach, MASK_SIGHT, actor.id);
         if (hit) {
-          // Push along the wall rather than straight back off it.
           _steer.addScaledVector(hit.normal, (1 - hit.distance / reach) * 2.2);
         }
       }
@@ -838,20 +1210,21 @@ export class BotManager {
     actor.groundSurface = result.groundSurface;
     actor.speed = Math.hypot(actor.velocity.x, actor.velocity.z);
 
-    // A bot that walks into a wall for long enough picks somewhere else.
-    if (result.hitWall && actor.speed < 0.6 && bot.state !== "engage") {
+    if (result.hitWall && actor.speed < 0.6 && bot.state !== "engage" && bot.state !== "cover_peek") {
       if (bot.rand() < 0.05) this.pickPatrolGoal(bot);
     }
 
     actor.state = !result.grounded
       ? "fall"
-      : actor.speed < 0.3
-        ? "idle"
-        : actor.speed > 4.6
-          ? "sprint"
-          : actor.speed > 2.6
-            ? "run"
-            : "walk";
+      : bot.state === "slide"
+        ? "slide"
+        : actor.speed < 0.3
+          ? "idle"
+          : actor.speed > 5.5
+            ? "sprint"
+            : actor.speed > 2.6
+              ? "run"
+              : "walk";
   }
 
   /* ---------------------------------------------------------------- */
@@ -864,8 +1237,10 @@ export class BotManager {
       bot.targetId !== null ? (game.actorById.get(bot.targetId) ?? null) : null;
 
     let wantsFire = false;
+    const isEngaging = (bot.state === "engage" || (bot.state === "cover_peek" && bot.peeking)) && target && target.alive && bot.timeSinceSeen < 0.5;
+    const isSuppressing = bot.state === "suppress";
 
-    if (target && target.alive && bot.timeSinceSeen < 0.5 && bot.state === "engage") {
+    if (isEngaging && target) {
       eyePosition(actor, _eye);
       eyePosition(target, _targetEye);
 
@@ -877,14 +1252,12 @@ export class BotManager {
         .multiplyScalar(flight * THREE.MathUtils.lerp(0.2, 1, actor.skill));
       _aim.copy(_targetEye).add(_lead).sub(_eye).normalize();
 
-      // Aim error: wide on acquisition, converging the longer the target is
-      // held. This is what stops a bot from being an instant-death laser while
-      // still making it dangerous if you stand still in the open.
-      const baseError = THREE.MathUtils.lerp(6, 0.6, actor.skill);
+      // Suppression mechanics: aim error cone widens significantly when taking heavy fire / near misses
+      const baseError = THREE.MathUtils.lerp(5.5, 0.55, actor.skill);
       const converge = Math.exp(-bot.timeOnTarget * (0.9 + actor.skill * 1.6));
-      const suppressed = 1 + actor.suppression * 1.8;
-      const errorDeg = baseError * (0.35 + 0.65 * converge) * suppressed;
-      bot.aimNoisePhase += dt * 3.1;
+      const suppressionMultiplier = 1 + actor.suppression * 2.8;
+      const errorDeg = baseError * (0.35 + 0.65 * converge) * suppressionMultiplier;
+      bot.aimNoisePhase += dt * (3.1 + actor.suppression * 4.2);
       const errorRad = (errorDeg * Math.PI) / 180;
       _right.crossVectors(_aim, UP).normalize();
       _aim
@@ -892,10 +1265,11 @@ export class BotManager {
         .addScaledVector(UP, Math.sin(bot.aimNoisePhase * 1.1 + 2) * errorRad * 0.7)
         .normalize();
 
-      // Turn toward the aim rather than snapping to it.
+      // Turn toward aim with suppression dampening
       const wantYaw = forwardToYaw(_aim.x, _aim.z);
       const wantPitch = Math.asin(THREE.MathUtils.clamp(_aim.y, -1, 1));
-      const turn = THREE.MathUtils.lerp(5, 13, actor.skill) * dt;
+      const turnSpeed = THREE.MathUtils.lerp(5, 13, actor.skill) / (1 + actor.suppression * 0.6);
+      const turn = turnSpeed * dt;
       const deltaYaw = yawDelta(actor.yaw, wantYaw);
       actor.yaw += THREE.MathUtils.clamp(deltaYaw, -turn, turn);
       actor.pitch += THREE.MathUtils.clamp(wantPitch - actor.pitch, -turn, turn);
@@ -903,10 +1277,37 @@ export class BotManager {
 
       // Burst discipline: fire a class-appropriate burst, then pause.
       bot.burstPause = Math.max(0, bot.burstPause - dt);
-      const aimedEnough = Math.abs(deltaYaw) < 0.22;
+      const aimedEnough = Math.abs(deltaYaw) < 0.24;
       if (bot.reaction <= 0 && aimedEnough && bot.burstPause <= 0) {
         if (bot.burst <= 0) {
           bot.burst = this.burstSize(bot, distance);
+        }
+        wantsFire = true;
+      }
+    } else if (isSuppressing) {
+      // Lay down suppressive fire on target's last known position / corner
+      eyePosition(actor, _eye);
+      _targetEye.copy(bot.suppressTarget).setY(bot.suppressTarget.y + 1.2);
+      _aim.copy(_targetEye).sub(_eye).normalize();
+      bot.aimNoisePhase += dt * 4.5;
+      const errorRad = 0.08 + actor.suppression * 0.06;
+      _right.crossVectors(_aim, UP).normalize();
+      _aim
+        .addScaledVector(_right, Math.sin(bot.aimNoisePhase * 2.0) * errorRad)
+        .addScaledVector(UP, Math.sin(bot.aimNoisePhase * 1.5) * errorRad * 0.5)
+        .normalize();
+
+      const wantYaw = forwardToYaw(_aim.x, _aim.z);
+      const wantPitch = Math.asin(THREE.MathUtils.clamp(_aim.y, -1, 1));
+      const deltaYaw = yawDelta(actor.yaw, wantYaw);
+      actor.yaw += THREE.MathUtils.clamp(deltaYaw, -8 * dt, 8 * dt);
+      actor.pitch += THREE.MathUtils.clamp(wantPitch - actor.pitch, -8 * dt, 8 * dt);
+      yawToForward(actor.yaw, actor.aimDir, actor.pitch);
+
+      bot.burstPause = Math.max(0, bot.burstPause - dt);
+      if (bot.burstPause <= 0) {
+        if (bot.burst <= 0) {
+          bot.burst = bot.weapon.def.weaponClass === "lmg" ? 12 : 7;
         }
         wantsFire = true;
       }
@@ -923,7 +1324,7 @@ export class BotManager {
 
     bot.weapon.update(dt, {
       wantsFire,
-      wantsAds: bot.state === "engage",
+      wantsAds: isEngaging || isSuppressing,
       canFire: actor.alive,
     });
 
@@ -935,20 +1336,15 @@ export class BotManager {
         time,
         direction: actor.aimDir,
         origin: _eye,
-        // Bots apply their own error above, so the runtime's spread stays tight.
         accuracy: 1,
       });
       actor.lastFireTime = time;
-      // Rounds that miss still land near somebody. Without this the player is
-      // the only actor in the match whose fire suppresses anyone, and incoming
-      // fire arrives with no warning at all — no crack past the ear, no
-      // narrowing view, just a health bar that moved.
       _shotEnd.copy(_eye).addScaledVector(actor.aimDir, 200);
       applyNearMissSuppression(_eye, _shotEnd, actor.team);
       bot.burst -= 1;
       if (bot.burst <= 0) {
         bot.burstPause =
-          THREE.MathUtils.lerp(0.75, 0.22, actor.skill) * (0.7 + bot.rand() * 0.6);
+          THREE.MathUtils.lerp(0.72, 0.2, actor.skill) * (0.7 + bot.rand() * 0.6);
       }
       this.onFire?.(actor);
     }
@@ -966,11 +1362,11 @@ export class BotManager {
       case "shotgun":
         return 1;
       case "lmg":
-        return long ? 6 : 10;
+        return long ? 8 : 14;
       case "smg":
         return long ? 4 : 9;
       default:
-        return long ? 3 : 6;
+        return long ? 4 : 7;
     }
   }
 

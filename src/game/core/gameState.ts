@@ -56,6 +56,11 @@ export interface InputState {
   killstreakPressed: number;
   fireModePressed: boolean;
   scoreboard: boolean;
+  inspectPressed: boolean;
+  tacStancePressed: boolean;
+  tacSprintPressed: boolean;
+  slideCancelPressed: boolean;
+  tacStance: boolean;
 }
 
 export function createInputState(): InputState {
@@ -84,6 +89,11 @@ export function createInputState(): InputState {
     killstreakPressed: -1,
     fireModePressed: false,
     scoreboard: false,
+    inspectPressed: false,
+    tacStancePressed: false,
+    tacSprintPressed: false,
+    slideCancelPressed: false,
+    tacStance: false,
   };
 }
 
@@ -101,6 +111,10 @@ export function clearInputEdges(input: InputState): void {
   input.tacticalPressed = false;
   input.killstreakPressed = -1;
   input.fireModePressed = false;
+  input.inspectPressed = false;
+  input.tacStancePressed = false;
+  input.tacSprintPressed = false;
+  input.slideCancelPressed = false;
   input.lookYaw = 0;
   input.lookPitch = 0;
 }
@@ -357,7 +371,7 @@ export interface GameState {
     hitmarker: number;
     hitmarkerKill: boolean;
     /** Radians: yaw of the most recent damage source relative to the camera. */
-    damageDirs: { angle: number; time: number }[];
+    damageDirs: { angle: number; time: number; amount?: number }[];
     scoreBlue: number;
     scoreRed: number;
     timeRemaining: number;
@@ -376,7 +390,14 @@ export interface GameState {
     }[];
     activeHardpoint: number | null;
     /** Score event toasts for the player (label + points). Consumed by the canvas painter. */
-    scoreEvents: { label: string; points: number; time: number }[];
+    scoreEvents: { id?: number; label: string; points: number; time: number; subtext?: string; medal?: boolean }[];
+    /** Enemy gunfire pings for radar & compass: world pos, yaw bearing, time, shooterTeam */
+    gunfirePings: { x: number; y: number; z: number; bearing: number; time: number; shooterTeam: Team }[];
+    /** Tactical radio voice callouts */
+    radioCallouts: { id: number; speaker: string; text: string; team: Team; time: number }[];
+    tacStance: boolean;
+    tacSprint: boolean;
+    inspecting: boolean;
   };
 
   stats: FrameStats;
@@ -411,6 +432,11 @@ function createHud(): GameState["hud"] {
     objectiveZones: [],
     activeHardpoint: null,
     scoreEvents: [],
+    gunfirePings: [],
+    radioCallouts: [],
+    tacStance: false,
+    tacSprint: false,
+    inspecting: false,
   };
 }
 

@@ -743,6 +743,9 @@ export function GameHud() {
     if (screen === "menu") {
       game.hud.damageDirs.length = 0;
       game.hud.hitmarker = 0;
+      if (game.hud.gunfirePings) game.hud.gunfirePings.length = 0;
+      if (game.hud.radioCallouts) game.hud.radioCallouts.length = 0;
+      if (game.hud.scoreEvents) game.hud.scoreEvents.length = 0;
     }
   }, [screen]);
 

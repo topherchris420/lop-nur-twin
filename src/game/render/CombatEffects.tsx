@@ -1,84 +1,81 @@
-import { useEffect, useMemo, useState, type ReactElement } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import * as THREE from "three";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, N8AO, SMAA, Vignette } from "@react-three/postprocessing";
 import {
   AgXToneMappingEffect,
   AnamorphicStreaksPass,
+  CameraMotionBlurEffect,
   LensArtifactsEffect,
+  OpticalLensDirtAndFlareEffect,
 } from "@/gfx/postfx";
 import { useTwinStore } from "@/lib/store";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
+import { sunState } from "@/lib/sunState";
 import { CombatScreenEffect, HdrGuardEffect, setPostExposure } from "./screenEffects";
+import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
 
 /**
- * Post-processing tuned for a first-person camera.
+ * Post-processing tuned for Call of Duty Modern Warfare-level AAA visuals.
  *
- * The twin's stack in `src/components/scene/Effects.tsx` is built for an
- * aerial view of a 6.8 km site: a 14 m ambient-occlusion radius with a 120 m
- * falloff is right when the camera is 500 m up, and catastrophic at 1.6 m eye
- * height — every surface occludes every other one and the frame goes black.
- * This stack keeps the same look (AgX, anamorphic streaks, lens artefacts) but
- * re-scales everything spatial to human distances.
- *
- * Order is the same as the twin's and for the same reason: occlusion and bloom
- * happen while the buffer is still scene-linear HDR, AgX is the single tone
- * map, and grain goes last so nothing smears it.
+ * Full optical rendering pipeline:
+ *   Scene (HDR linear)
+ *     -> HdrGuard               finite radiance clamp (NaN/Inf protection)
+ *     -> N8AO                   contact ambient occlusion
+ *     -> Bloom                  dual-filter mipmap highlight bloom
+ *     -> AnamorphicStreaks      anamorphic horizontal lens flares
+ *     -> OpticalLensDirtFlare   optical ghost flares + illuminated glass micro-scratches & dust
+ *     -> AgXToneMapping         Modern Warfare ASC-CDL + AgX sigmoid
+ *     -> CombatScreenFeedback   directional hit flash, suppression, low-health vignette
+ *     -> CameraMotionBlur       dynamic velocity-driven rotation/slide/sprint motion blur
+ *     -> Vignette               natural optical corner falloff
+ *     -> SMAA                   subpixel morphological antialiasing
+ *     -> LensArtifacts          spectral dispersion chromatic aberration + 35mm film grain
  */
 
-/*
- * A note on the thresholds below. The composer's buffer is scene-linear HDR,
- * and a sunlit concrete apron sits around 1.5–2.0 in that space — well above
- * the sub-1.0 thresholds a display-referred pipeline would use. Left at those
- * values the bloom treats the entire ground as a highlight and the frame turns
- * to milk. The thresholds are therefore set above the diffuse level, so only
- * genuine highlights — the sun, specular glints, muzzle flash, tracers —
- * actually bloom.
- */
 const LOOK = {
   day: {
-    exposure: 0.5,
-    slope: 1.22,
-    offset: -0.02,
-    power: 1.16,
-    saturation: 1.18,
-    bloomIntensity: 0.26,
-    bloomThreshold: 4.2,
-    streakIntensity: 0.13,
-    streakThreshold: 6.0,
+    exposure: 0.52,
+    slope: 1.24,
+    offset: -0.018,
+    power: 1.15,
+    saturation: 1.22,
+    bloomIntensity: 0.32,
+    bloomThreshold: 3.8,
+    streakIntensity: 0.18,
+    streakThreshold: 5.2,
+    sunFlareIntensity: 0.55,
+    dirtIntensity: 0.38,
     grain: 0.012,
-    aberration: 0.0009,
-    radialBlur: 0.0022,
-    // Contact-scale occlusion: a bolt head, a magwell, a doorway reveal.
-    // These were 0.85 / 2.1 back when the sun's only shadow map was a metre
-    // per texel and nothing human-sized cast anything, so the occlusion pass
-    // was standing in for the missing contact shadows — and doing it badly,
-    // because a 0.85 m radius swallows a whole torso and darkens the lit side
-    // as readily as the shadow side. The near-field cascade
-    // (`render/shadowCascade.ts`) now casts those shadows properly, so this is
-    // back to occluding creases instead of people.
+    aberration: 0.0011,
+    radialBlur: 0.0024,
     aoRadius: 0.55,
-    aoIntensity: 1.2,
+    aoIntensity: 1.25,
     aoFalloff: 14,
-    vignette: 0.42,
+    vignette: 0.38,
+    motionBlurIntensity: 0.85,
   },
   night: {
-    exposure: 1.35,
-    slope: 1.06,
-    offset: 0.014,
-    power: 1.0,
-    saturation: 1.12,
-    bloomIntensity: 1.05,
-    bloomThreshold: 0.34,
-    streakIntensity: 0.9,
-    streakThreshold: 0.42,
-    grain: 0.017,
-    aberration: 0.0014,
-    radialBlur: 0.0034,
+    exposure: 1.38,
+    slope: 1.08,
+    offset: 0.012,
+    power: 1.02,
+    saturation: 1.14,
+    bloomIntensity: 1.15,
+    bloomThreshold: 0.32,
+    streakIntensity: 0.95,
+    streakThreshold: 0.38,
+    sunFlareIntensity: 0.08,
+    dirtIntensity: 0.45,
+    grain: 0.016,
+    aberration: 0.0016,
+    radialBlur: 0.0036,
     aoRadius: 0.5,
-    aoIntensity: 1.0,
+    aoIntensity: 1.05,
     aoFalloff: 12,
-    vignette: 0.5,
+    vignette: 0.48,
+    motionBlurIntensity: 0.9,
   },
 } as const;
 
@@ -93,8 +90,6 @@ function aoOverride(): boolean | null {
  * misbehaving pass against a captured frame. 0 (the default) means all of them.
  */
 function stageLimit(): number {
-  // Bounded by the number of passes that exist; a larger figure would simply
-  // mean "all of them" anyway.
   return readIntParam("stage", 0, 16) ?? 0;
 }
 
@@ -110,6 +105,9 @@ export function getCombatScreenEffect(): CombatScreenEffect | null {
   return activeCombatEffect;
 }
 
+const _scratchVec3 = new THREE.Vector3();
+const _prevEuler = new THREE.Euler(0, 0, 0, "YXZ");
+
 export function CombatEffects() {
   const night = useTwinStore((s) => s.night);
   const [aoEnabled] = useState(() => aoOverride() ?? true);
@@ -118,9 +116,13 @@ export function CombatEffects() {
   const filmGrain = useGameStore((s) => s.filmGrain);
   const look = night ? LOOK.night : LOOK.day;
 
+  const camera = useThree((s) => s.camera);
+
   const guard = useMemo(() => new HdrGuardEffect({ ceiling: 40 }), []);
   const combat = useMemo(() => new CombatScreenEffect(), []);
   const agx = useMemo(() => new AgXToneMappingEffect(), []);
+  const opticalFlare = useMemo(() => new OpticalLensDirtAndFlareEffect(), []);
+  const motionBlur = useMemo(() => new CameraMotionBlurEffect(), []);
   const lens = useMemo(() => new LensArtifactsEffect(), []);
   const streaks = useMemo(
     () =>
@@ -135,6 +137,8 @@ export function CombatEffects() {
   useEffect(() => () => guard.dispose(), [guard]);
   useEffect(() => () => combat.dispose(), [combat]);
   useEffect(() => () => agx.dispose(), [agx]);
+  useEffect(() => () => opticalFlare.dispose(), [opticalFlare]);
+  useEffect(() => () => motionBlur.dispose(), [motionBlur]);
   useEffect(() => () => lens.dispose(), [lens]);
   useEffect(() => () => streaks.dispose(), [streaks]);
 
@@ -156,10 +160,76 @@ export function CombatEffects() {
     streaks.intensity = look.streakIntensity;
     streaks.threshold = look.streakThreshold;
 
+    opticalFlare.sunFlareIntensity = look.sunFlareIntensity;
+    opticalFlare.dirtIntensity = look.dirtIntensity;
+
+    motionBlur.intensity = look.motionBlurIntensity;
+
     lens.grainIntensity = filmGrain ? look.grain : 0;
     lens.aberration = look.aberration;
     lens.blurStrength = look.radialBlur;
-  }, [agx, lens, streaks, look, filmGrain]);
+  }, [agx, lens, streaks, opticalFlare, motionBlur, look, filmGrain]);
+
+  // Track previous camera angles for velocity motion blur
+  const lastState = useRef({
+    yaw: 0,
+    pitch: 0,
+    roll: 0,
+    initialized: false,
+  });
+
+  useFrame((_state, delta) => {
+    const dt = Math.max(0.001, Math.min(0.1, delta));
+
+    // 1. Calculate screen-space sun position for optical flare & lens dirt
+    _scratchVec3.copy(camera.position).addScaledVector(sunState.direction, 1000);
+    _scratchVec3.project(camera);
+
+    const inFront = _scratchVec3.z < 1.0;
+    const sunUvX = _scratchVec3.x * 0.5 + 0.5;
+    const sunUvY = _scratchVec3.y * 0.5 + 0.5;
+    opticalFlare.setSunScreenPos(sunUvX, sunUvY, inFront);
+
+    // 2. Muzzle flash flare burst
+    const timeSinceFire = game.time - game.player.lastFireTime;
+    const flashEnergy = timeSinceFire >= 0 && timeSinceFire < 0.09 ? (1.0 - timeSinceFire / 0.09) : 0;
+    opticalFlare.muzzleFlashIntensity = flashEnergy;
+
+    // 3. Dynamic camera velocity motion blur
+    _prevEuler.setFromQuaternion(camera.quaternion, "YXZ");
+    const curYaw = _prevEuler.y;
+    const curPitch = _prevEuler.x;
+    const curRoll = _prevEuler.z;
+
+    if (!lastState.current.initialized) {
+      lastState.current = { yaw: curYaw, pitch: curPitch, roll: curRoll, initialized: true };
+    }
+
+    let dYaw = curYaw - lastState.current.yaw;
+    // Normalize angular wrapping across +/- PI
+    while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+    while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+
+    const dPitch = curPitch - lastState.current.pitch;
+    const dRoll = curRoll - lastState.current.roll;
+
+    lastState.current.yaw = curYaw;
+    lastState.current.pitch = curPitch;
+    lastState.current.roll = curRoll;
+
+    // Screen velocity: yaw turns create horizontal sweep, pitch tilts create vertical sweep
+    const rotVelX = (-dYaw / dt) * 0.016;
+    const rotVelY = (-dPitch / dt) * 0.016;
+    const rollVel = (dRoll / dt) * 0.02;
+
+    // Linear motion (sprint / sliding expansion blur)
+    const playerSpeed = game.player.speed ?? 0;
+    const forwardVel = Math.min(0.045, (playerSpeed / 8.0) * (game.player.state === "slide" ? 0.035 : 0.018));
+
+    motionBlur.setVelocity(rotVelX, rotVelY);
+    motionBlur.setRollVelocity(rollVel);
+    motionBlur.setForwardVelocity(forwardVel);
+  });
 
   if (minimal) {
     return (
@@ -169,11 +239,10 @@ export function CombatEffects() {
     );
   }
 
-  // The composer's children are typed as elements, not nullable, so the chain
-  // is assembled as an array. This also makes the bisect flag trivial.
   const upTo = stage === 0 ? 99 : stage;
   const passes: ReactElement[] = [];
-  // Always first: everything downstream assumes finite radiance.
+
+  // Always first: finite radiance guard
   passes.push(<primitive key="guard" object={guard} />);
   if (upTo >= 7) {
     passes.push(
@@ -198,10 +267,14 @@ export function CombatEffects() {
       />,
     );
   }
-  if (upTo >= 3) passes.push(<primitive key="streaks" object={streaks} />);
+  if (upTo >= 3) {
+    passes.push(<primitive key="streaks" object={streaks} />);
+    passes.push(<primitive key="opticalFlare" object={opticalFlare} />);
+  }
   passes.push(<primitive key="agx" object={agx} />);
   if (upTo >= 4) {
     passes.push(<primitive key="combat" object={combat} />);
+    passes.push(<primitive key="motionBlur" object={motionBlur} />);
     passes.push(
       <Vignette key="vignette" eskil={false} offset={0.3} darkness={look.vignette} />,
     );
@@ -217,3 +290,4 @@ export function CombatEffects() {
 }
 
 export default CombatEffects;
+

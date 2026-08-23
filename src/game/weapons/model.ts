@@ -1,7 +1,11 @@
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
 import type { WeaponClass, WeaponDef } from "../core/types";
-import { getWeaponMaterials, type WeaponMaterials } from "./materials";
+import {
+  createCollimatedReticleMaterial,
+  getWeaponMaterials,
+  type WeaponMaterials,
+} from "./materials";
 import { buildArms } from "./arms";
 import {
   chamferedBox,
@@ -46,6 +50,8 @@ export interface WeaponModelParts {
   opticReticle: THREE.Object3D | null;
   /** Empty on the optical axis, used to derive the aim-down-sight transform. */
   sightAxis: THREE.Object3D;
+  /** Tactical laser beam emitter anchor on the barrel/rail. */
+  laserEmitter: THREE.Object3D;
   stock: THREE.Object3D;
   foregrip: THREE.Object3D | null;
   /** IK targets for the hands. */
@@ -466,15 +472,17 @@ function buildOptic(
     group.add(objective);
   }
 
-  // Reticle: an emissive plane pushed forward along the optical axis so it
-  // parallaxes roughly the way a collimated dot does when the head moves.
-  const reticleSize = kind === "scope" ? 0.03 : 0.024;
+  // Reticle: an emissive collimated reticle shader locked to the optical axis with aperture clipping & parallax
+  const reticleSize = kind === "scope" ? 0.032 : 0.026;
+  const reticleTexture = makeReticleTexture(kind);
+  const collimatedMaterial = createCollimatedReticleMaterial(
+    reticleTexture,
+    kind === "scope" ? 0x22ff55 : 0xff2a18,
+  );
   const reticle = new THREE.Mesh(
     new THREE.PlaneGeometry(reticleSize, reticleSize),
-    m.reticle.clone(),
+    collimatedMaterial,
   );
-  reticle.material.map = makeReticleTexture(kind);
-  reticle.material.needsUpdate = true;
   reticle.position.set(0, axisY, kind === "holo" ? -0.04 : -0.02);
   reticle.renderOrder = 8;
   reticle.visible = false;
@@ -491,9 +499,14 @@ function buildOptic(
 
 const reticleCache = new Map<string, THREE.CanvasTexture>();
 
-function makeReticleTexture(kind: string): THREE.CanvasTexture {
+function makeReticleTexture(kind: string): THREE.Texture {
   const existing = reticleCache.get(kind);
   if (existing) return existing;
+  if (typeof document === "undefined") {
+    const dummy = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    dummy.needsUpdate = true;
+    return dummy;
+  }
   const size = 256;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
@@ -1478,6 +1491,10 @@ function buildLongGun(
   );
   root.add(sightAxis);
 
+  const laserEmitter = new THREE.Object3D();
+  laserEmitter.position.set(0.024, barrelY + 0.012, spec.handguardFront + 0.02);
+  root.add(laserEmitter);
+
   const model: WeaponModel = {
     root,
     parts: {
@@ -1492,6 +1509,7 @@ function buildLongGun(
       optic: optic.group,
       opticReticle: optic.reticle,
       sightAxis,
+      laserEmitter,
       stock: root,
       foregrip,
       leftHand,
@@ -1701,6 +1719,9 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
   const sightAxis = new THREE.Object3D();
   sightAxis.position.set(0, slideY + 0.022, -0.02);
   root.add(sightAxis);
+  const laserEmitter = new THREE.Object3D();
+  laserEmitter.position.set(0, slideY - 0.042, -0.08);
+  root.add(laserEmitter);
   const rightHand = new THREE.Object3D();
   rightHand.position.set(0, -0.02, 0.02);
   root.add(rightHand);
@@ -1726,6 +1747,7 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
       optic: null,
       opticReticle: null,
       sightAxis,
+      laserEmitter,
       stock: root,
       foregrip: null,
       leftHand,
@@ -1804,6 +1826,7 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
 
   const leftHand = anchor(-0.04, -0.02, 0.04);
   const rightHand = anchor(0, 0, 0.05);
+  const laserEmitter = anchor(0, 0, -0.16);
   const arms = buildArms();
   rightHand.add(arms.right);
   leftHand.add(arms.left);
@@ -1822,6 +1845,7 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
       optic: null,
       opticReticle: null,
       sightAxis: anchor(0, 0.01, -0.05),
+      laserEmitter,
       stock: root,
       foregrip: null,
       leftHand,
@@ -1911,6 +1935,7 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
 
   const leftHand = anchor(0, axisY - 0.05, -0.24);
   const rightHand = anchor(0, -0.02, 0.03);
+  const laserEmitter = anchor(0.04, axisY + 0.03, -0.24);
   const arms = buildArms();
   rightHand.add(arms.right);
   leftHand.add(arms.left);
@@ -1929,6 +1954,7 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
       optic: optic.group,
       opticReticle: optic.reticle,
       sightAxis: anchor(0, axisY + 0.084, -0.24),
+      laserEmitter,
       stock: root,
       foregrip: null,
       leftHand,

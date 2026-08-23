@@ -25,12 +25,16 @@ export const SPRITE = {
   fire: 5,
   flash: 6,
   ring: 7,
+  crossFlash: 8,
+  heatHaze: 9,
+  bloodMist: 10,
+  tracerHead: 11,
 } as const;
 
 export type SpriteId = (typeof SPRITE)[keyof typeof SPRITE];
 
 const ATLAS_COLS = 4;
-const ATLAS_ROWS = 2;
+const ATLAS_ROWS = 3;
 const ATLAS_TILE = 256;
 
 /* ------------------------------------------------------------------ */
@@ -206,6 +210,143 @@ function drawRing(ctx: CanvasRenderingContext2D): void {
   ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
 }
 
+/** Multi-plane starburst cross muzzle flash with compensator gas jets. */
+function drawCrossFlash(ctx: CanvasRenderingContext2D, seed: number): void {
+  const rand = mulberry32(seed);
+  const c = ATLAS_TILE / 2;
+  ctx.translate(c, c);
+
+  // 4 primary compensator jets along cardinal cross axes
+  for (let i = 0; i < 4; i += 1) {
+    ctx.save();
+    ctx.rotate((i * Math.PI) / 2 + (rand() - 0.5) * 0.1);
+    const len = c * (0.75 + rand() * 0.22);
+    const width = c * 0.18;
+    const g = ctx.createLinearGradient(0, 0, len, 0);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.2, "rgba(255,255,255,0.85)");
+    g.addColorStop(0.6, "rgba(255,255,255,0.35)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, -width);
+    ctx.lineTo(len, 0);
+    ctx.lineTo(0, width);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 4 secondary diagonal spikes
+  for (let i = 0; i < 4; i += 1) {
+    ctx.save();
+    ctx.rotate((i * Math.PI) / 2 + Math.PI / 4 + (rand() - 0.5) * 0.15);
+    const len = c * (0.45 + rand() * 0.2);
+    const width = c * 0.1;
+    const g = ctx.createLinearGradient(0, 0, len, 0);
+    g.addColorStop(0, "rgba(255,255,255,0.9)");
+    g.addColorStop(0.5, "rgba(255,255,255,0.25)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, -width);
+    ctx.lineTo(len, 0);
+    ctx.lineTo(0, width);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Intense blinding central spherical core
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.55);
+  core.addColorStop(0, "rgba(255,255,255,1)");
+  core.addColorStop(0.3, "rgba(255,255,255,0.9)");
+  core.addColorStop(0.65, "rgba(255,255,255,0.4)");
+  core.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(0, 0, c * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.translate(-c, -c);
+}
+
+/** Shimmering heat haze / refraction distortion wisp. */
+function drawHeatHaze(ctx: CanvasRenderingContext2D, seed: number): void {
+  const rand = mulberry32(seed);
+  const c = ATLAS_TILE / 2;
+  // Multi-band soft undulating ripples
+  for (let r = 0.15; r <= 0.85; r += 0.12) {
+    ctx.beginPath();
+    for (let a = 0; a <= 20; a += 1) {
+      const angle = (a / 20) * Math.PI * 2;
+      const distortion = 1 + Math.sin(angle * 4 + rand() * 3) * 0.18;
+      const x = c + Math.cos(angle) * c * r * distortion;
+      const y = c + Math.sin(angle) * c * r * distortion * 1.35; // elongated vertically
+      if (a === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(255,255,255,${0.18 - r * 0.14})`;
+    ctx.lineWidth = 6 + rand() * 8;
+    ctx.stroke();
+  }
+  const center = ctx.createRadialGradient(c, c, 0, c, c, c * 0.65);
+  center.addColorStop(0, "rgba(255,255,255,0.35)");
+  center.addColorStop(0.7, "rgba(255,255,255,0.08)");
+  center.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = center;
+  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+}
+
+/** Fine aerosolized blood mist cloud with micro-dispersion. */
+function drawBloodMist(ctx: CanvasRenderingContext2D, seed: number): void {
+  const rand = mulberry32(seed);
+  const c = ATLAS_TILE / 2;
+  // Soft diffuse underlying cloud
+  const base = ctx.createRadialGradient(c, c, 0, c, c, c * 0.7);
+  base.addColorStop(0, "rgba(255,255,255,0.45)");
+  base.addColorStop(0.5, "rgba(255,255,255,0.18)");
+  base.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+
+  // Micro droplet scatter
+  for (let i = 0; i < 48; i += 1) {
+    const angle = rand() * Math.PI * 2;
+    const dist = Math.pow(rand(), 0.7) * c * 0.8;
+    const x = c + Math.cos(angle) * dist;
+    const y = c + Math.sin(angle) * dist;
+    const r = 1.5 + rand() * 4.5;
+    ctx.fillStyle = `rgba(255,255,255,${0.35 + rand() * 0.45})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/** Phosphor bullet tracer head with bright core and sheath. */
+function drawTracerHead(ctx: CanvasRenderingContext2D): void {
+  const c = ATLAS_TILE / 2;
+  // Intense elongated bullet head
+  const g = ctx.createLinearGradient(0, c, ATLAS_TILE, c);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.4, "rgba(255,255,255,0.85)");
+  g.addColorStop(0.7, "rgba(255,255,255,1)");
+  g.addColorStop(1, "rgba(255,255,255,1)");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(c, c, c * 0.8, c * 0.35, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const halo = ctx.createRadialGradient(c * 1.2, c, 0, c, c, c * 0.75);
+  halo.addColorStop(0, "rgba(255,255,255,1)");
+  halo.addColorStop(0.4, "rgba(255,255,255,0.6)");
+  halo.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+}
+
 let atlasTexture: THREE.CanvasTexture | null = null;
 
 export function getParticleAtlas(): THREE.CanvasTexture {
@@ -223,6 +364,10 @@ export function getParticleAtlas(): THREE.CanvasTexture {
     drawFire,
     drawFlash,
     (c) => drawRing(c),
+    drawCrossFlash,
+    drawHeatHaze,
+    drawBloodMist,
+    (c) => drawTracerHead(c),
   ];
   for (let i = 0; i < painters.length; i += 1) {
     const col = i % ATLAS_COLS;

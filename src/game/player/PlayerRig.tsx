@@ -5,7 +5,7 @@ import { useGameStore } from "../core/gameStore";
 import { useTwinStore } from "@/lib/store";
 import { readFlag } from "@/lib/params";
 import { game, eyePosition } from "../core/gameState";
-import { HUMAN_METRICS, MASK_SOLID, horizontalToVerticalFov } from "../core/types";
+import { HUMAN_METRICS, MASK_BULLET, MASK_SOLID, horizontalToVerticalFov } from "../core/types";
 import type { CollisionWorld } from "../physics/collisionWorld";
 import { PlayerController } from "./controller";
 import { InputManager } from "./input";
@@ -22,10 +22,13 @@ import { getPostExposure } from "../render/screenEffects";
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
  *
- * The weapon is drawn by `ViewmodelStage` in a second pass with its own
- * camera, field of view and depth range — see that file for why parenting it
- * to the world camera cannot be made to work. This component owns the pass and
- * schedules it after the post-processing composer.
+ * Implements Modern Warfare-tier kinetic gunplay:
+ * - 45-degree Tac-Stance (canting) with an active visible tactical collimated laser beam and glowing endpoint dot.
+ * - Tactical Sprint (Tac-Sprint) vertical one-handed weapon carry with high-speed cadence bobbing.
+ * - Slide Canceling with instantaneous standing/sprint recovery and dynamic camera roll banking.
+ * - Multi-phase procedural weapon chamber & magazine inspection animation ('I' key).
+ * - Physical brass casing ejection with 3-axis angular tumbling and metallic ground/wall bouncing.
+ * - Barrel heat mirage distortion waves under rapid automatic fire.
  */
 
 const MAX_PITCH = Math.PI / 2 - 0.02;
@@ -46,6 +49,9 @@ const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
 const _eye = new THREE.Vector3();
 const _muzzle = new THREE.Vector3();
+const _laserStart = new THREE.Vector3();
+const _laserEnd = new THREE.Vector3();
+const _laserNormal = new THREE.Vector3();
 const _aim = new THREE.Vector3();
 const _euler = new THREE.Euler(0, 0, 0, "YXZ");
 const _ejectDir = new THREE.Vector3();
@@ -55,6 +61,129 @@ const _sunDir = new THREE.Vector3();
 const _sunColor = new THREE.Color();
 const _invQuat = new THREE.Quaternion();
 
+/** Procedural collimated tactical laser beam and glowing endpoint dot. */
+function createTacticalLaser(): {
+  group: THREE.Group;
+  beam: THREE.Mesh;
+  dot: THREE.Mesh;
+  flare: THREE.Mesh;
+  update(
+    from: THREE.Vector3,
+    to: THREE.Vector3,
+    normal: THREE.Vector3,
+    visible: boolean,
+    intensity: number,
+  ): void;
+  dispose(): void;
+} {
+  const group = new THREE.Group();
+  group.name = "tactical-laser-rig";
+  group.userData["noCollide"] = true;
+
+  // Collimated cylindrical laser beam
+  const beamGeo = new THREE.CylinderGeometry(0.0032, 0.0055, 1, 8, 1, true);
+  beamGeo.translate(0, 0.5, 0);
+  beamGeo.rotateX(Math.PI / 2);
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0x33ff88,
+    transparent: true,
+    opacity: 0.7,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.frustumCulled = false;
+  group.add(beam);
+
+  // Soft glowing laser endpoint dot texture
+  const dotCanvas = document.createElement("canvas");
+  dotCanvas.width = dotCanvas.height = 64;
+  const ctx = dotCanvas.getContext("2d")!;
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+  grad.addColorStop(0.22, "rgba(60, 255, 140, 0.95)");
+  grad.addColorStop(0.55, "rgba(30, 255, 120, 0.35)");
+  grad.addColorStop(1, "rgba(0, 255, 100, 0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 64, 64);
+  const dotTex = new THREE.CanvasTexture(dotCanvas);
+
+  const dotGeo = new THREE.PlaneGeometry(0.048, 0.048);
+  const dotMat = new THREE.MeshBasicMaterial({
+    map: dotTex,
+    color: 0x55ffaa,
+    transparent: true,
+    opacity: 0.95,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  const dot = new THREE.Mesh(dotGeo, dotMat);
+  dot.renderOrder = 12;
+  dot.frustumCulled = false;
+  group.add(dot);
+
+  // Emitter lens flare
+  const flareGeo = new THREE.SphereGeometry(0.007, 8, 8);
+  const flareMat = new THREE.MeshBasicMaterial({
+    color: 0x88ffcc,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const flare = new THREE.Mesh(flareGeo, flareMat);
+  flare.frustumCulled = false;
+  group.add(flare);
+
+  const _laserDir = new THREE.Vector3();
+
+  return {
+    group,
+    beam,
+    dot,
+    flare,
+    update(from, to, normal, visible, intensity) {
+      group.visible = visible;
+      if (!visible) return;
+      beamMat.opacity = 0.65 * intensity;
+      dotMat.opacity = 0.92 * intensity;
+      flareMat.opacity = 0.85 * intensity;
+
+      _laserDir.subVectors(to, from);
+      const dist = _laserDir.length();
+      if (dist < 0.05) return;
+      _laserDir.multiplyScalar(1 / dist);
+
+      beam.position.copy(from);
+      beam.scale.set(1, 1, dist);
+      beam.lookAt(to);
+
+      dot.position.copy(to).addScaledVector(normal, 0.008);
+      if (Math.abs(normal.y) > 0.98) {
+        dot.quaternion.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          normal.y > 0 ? -Math.PI / 2 : Math.PI / 2,
+        );
+      } else {
+        dot.lookAt(dot.position.clone().add(normal));
+      }
+
+      flare.position.copy(from);
+    },
+    dispose() {
+      beamGeo.dispose();
+      beamMat.dispose();
+      dotGeo.dispose();
+      dotMat.dispose();
+      dotTex.dispose();
+      flareGeo.dispose();
+      flareMat.dispose();
+    },
+  };
+}
+
 export function PlayerRig({
   world,
   fx,
@@ -63,6 +192,7 @@ export function PlayerRig({
   onReady,
 }: PlayerRigProps) {
   const camera = useThree((s) => s.camera);
+  const scene = useThree((s) => s.scene);
   const gl = useThree((s) => s.gl);
 
   const screen = useGameStore((s) => s.screen);
@@ -75,11 +205,20 @@ export function PlayerRig({
   const controller = useMemo(() => new PlayerController(), []);
   const animator = useMemo(() => new ViewmodelAnimator(), []);
   const stage = useMemo(() => new ViewmodelStage(), []);
+  const laser = useMemo(() => createTacticalLaser(), []);
   const viewmodelRoot = stage.root;
   /** 0..1 death-camera blend; eased so respawning stands you back up. */
   const death = useRef(0);
   /** Eased horizontal field of view, in degrees. See `core/types.ts`. */
   const horizontalFov = useRef(fovSetting);
+
+  useEffect(() => {
+    scene.add(laser.group);
+    return () => {
+      scene.remove(laser.group);
+      laser.dispose();
+    };
+  }, [scene, laser]);
 
   useEffect(() => {
     // `?novm=1` hides the weapon, for isolating render problems in the probe.
@@ -200,6 +339,8 @@ export function PlayerRig({
 
       /* ------------------------------------------------ movement */
       controller.update(player, s, world, dt, active.ads);
+      active.setTacStance(controller.isTacStance);
+
       for (const event of controller.events) {
         if (event.kind === "footstep" && fx) {
           fx.groundDust(
@@ -229,11 +370,13 @@ export function PlayerRig({
         held.models.primary.root.visible = held.active === "primary";
         held.models.secondary.root.visible = held.active === "secondary";
         held[held.active].raise();
+        held[held.active].setTacStance(controller.isTacStance);
         animator.reset();
         game.player.weaponId = held[held.active].def.id;
       }
       if (s.reloadPressed) active.beginReload();
       if (s.fireModePressed) active.cycleFireMode();
+      if (s.inspectPressed) active.beginInspect();
 
       const canFire = !controller.firingBlocked && player.alive;
       active.update(dt, {
@@ -255,8 +398,6 @@ export function PlayerRig({
         // camera, so its world matrix is the truth for where rounds start.
         model.parts.muzzleTip.getWorldPosition(_muzzle);
         eyePosition(player, _eye);
-        // Rounds leave from the eye, not the muzzle, so what the crosshair
-        // covers is what gets hit; the muzzle only drives the visual effects.
         _aim.copy(_forward);
         active.fire({
           shooter: player,
@@ -280,11 +421,21 @@ export function PlayerRig({
         player.lastFireTime = game.time;
       }
 
+      // Physical brass casing ejection with player momentum
       if (active.ejectThisFrame && fx) {
         model.parts.ejectionPort.getWorldPosition(_muzzle);
         model.parts.ejectionPort.getWorldQuaternion(_quat);
         _ejectDir.set(1, 0.35, 0).applyQuaternion(_quat).normalize();
-        fx.ejectCasing(_muzzle, _ejectDir);
+        fx.ejectCasing(_muzzle, _ejectDir, player.velocity);
+      }
+
+      // Barrel heat mirage distortion waves and rising barrel smoke
+      if (active.barrelHeat > 0.15 && fx) {
+        model.parts.muzzleTip.getWorldPosition(_muzzle);
+        fx.barrelHeatMirage(_muzzle, _forward, active.barrelHeat);
+        if (active.barrelHeat > 0.25) {
+          fx.barrelSmoke(_muzzle, _forward, active.barrelHeat);
+        }
       }
 
       active.updateProjectiles(dt, world, game.time);
@@ -301,10 +452,6 @@ export function PlayerRig({
     }
 
     /* -------------------------------------------------------- camera */
-    // Death drops the camera to the ground and rolls it over. It is the only
-    // signal in the frame that the round that just landed was the last one,
-    // and it is what makes a death read as an event rather than as the world
-    // quietly declining to respond to the controls.
     death.current = player.alive
       ? Math.max(0, death.current - dt * 2.4)
       : Math.min(1, death.current + dt * 1.6);
@@ -328,24 +475,43 @@ export function PlayerRig({
       player.position.z + _right.z * view.position.x,
     );
 
-    // Field of view: blend to the weapon's ADS value, and add a small
-    // speed-driven widening that makes sprinting feel faster than it is. The
-    // blend runs in horizontal degrees — the units every number involved is
-    // authored in — and only the result is converted for the camera.
+    // Field of view: speed widening + Tac-Sprint rush + ADS zoom
     const speedFov =
-      Math.min(1, controller.speed / 7.6) * (controller.tacSprinting ? 6 : 3);
+      Math.min(1, controller.speed / 7.6) * (controller.tacSprinting ? 6.5 : 3);
     const targetFov =
       fovSetting +
       speedFov +
-      (active.def.handling.adsFov - fovSetting - speedFov) * active.ads;
+      (active.def.handling.adsFov - fovSetting - speedFov) *
+        (controller.isTacStance ? active.ads * 0.45 : active.ads);
     const perspective = camera as THREE.PerspectiveCamera;
     horizontalFov.current += (targetFov - horizontalFov.current) * Math.min(1, dt * 16);
     perspective.fov = horizontalToVerticalFov(horizontalFov.current, perspective.aspect);
     perspective.updateProjectionMatrix();
 
+    /* ------------------------------------------------- tactical laser */
+    // In Tac-Stance, render the tactical laser beam and glowing endpoint dot on target
+    const isTacStanceActive = controller.isTacStance && player.alive && playing;
+    if (isTacStanceActive) {
+      if (model.parts.laserEmitter) {
+        model.parts.laserEmitter.getWorldPosition(_laserStart);
+      } else {
+        model.parts.muzzleTip.getWorldPosition(_laserStart);
+      }
+      eyePosition(player, _eye);
+      const hit = world.raycast(_eye, _forward, 150, MASK_BULLET, player.id);
+      if (hit) {
+        _laserEnd.copy(hit.point);
+        _laserNormal.copy(hit.normal);
+      } else {
+        _laserEnd.copy(_eye).addScaledVector(_forward, 120);
+        _laserNormal.copy(_forward).negate();
+      }
+      laser.update(_laserStart, _laserEnd, _laserNormal, true, 1.0);
+    } else {
+      laser.update(_eye, _eye, _forward, false, 0);
+    }
+
     /* ----------------------------------------------------- viewmodel */
-    // The weapon has its own camera, so it needs no FOV compensation — it is
-    // simply posed at true scale in front of a 62° lens.
     animator.update(
       model,
       active,
@@ -386,6 +552,9 @@ export function PlayerRig({
     hud.reloading = active.isReloading;
     hud.reloadProgress = active.reloadProgress;
     hud.spreadDeg = active.spreadDeg(player.stance, controller.speed, !player.grounded);
+    hud.tacStance = controller.isTacStance;
+    hud.tacSprint = controller.tacSprinting;
+    hud.inspecting = active.isInspecting;
     if (hud.hitmarker > 0) hud.hitmarker = Math.max(0, hud.hitmarker - dt * 1000);
 
     input.endFrame();
@@ -393,10 +562,6 @@ export function PlayerRig({
 
   /* -------------------------------------------------- viewmodel pass */
 
-  // Priority 2 puts this after the post-processing composer (priority 1), so
-  // the weapon is drawn over the finished frame. Registering any subscriber
-  // above priority 0 disables R3F's automatic render, so when the composer is
-  // not mounted this callback has to draw the world itself.
   useFrame((state) => {
     const gl2 = state.gl;
     if (!postEnabled) {
@@ -416,18 +581,13 @@ export function PlayerRig({
       Math.sin(elevation),
       -Math.cos(azimuth) * Math.cos(elevation),
     );
-    // Express it in view space so the key light stays put as the player turns.
     _sunDir.applyQuaternion(_invQuat.copy(state.camera.quaternion).invert());
     _sunColor.setHex(dayFactor > 0.5 ? 0xfff1da : 0x9fb4d8);
     stage.setSun(_sunDir, _sunColor, Math.max(0.08, Math.sin(elevation)));
 
-    // The composer leaves the renderer on NoToneMapping and applies AgX
-    // itself; matching both the transform and the exposure here keeps the two
-    // passes on one response curve.
     stage.render(gl2, THREE.AgXToneMapping, postEnabled ? getPostExposure() : 1.05);
   }, 2);
 
-  // Nothing renders from this component directly; the stage owns the model.
   return null;
 }
 
@@ -445,7 +605,6 @@ export function placePlayer(
   player.yaw = yaw;
   player.pitch = 0;
   player.grounded = true;
-  // Nudge upward if the spawn is inside a prop.
   for (let i = 0; i < 8; i += 1) {
     if (
       world.isPositionFree(

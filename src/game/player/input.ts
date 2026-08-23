@@ -30,6 +30,8 @@ export interface InputBindings {
   leanRight: string[];
   fireMode: string[];
   scoreboard: string[];
+  tacStance: string[];
+  inspect: string[];
 }
 
 export const DEFAULT_BINDINGS: InputBindings = {
@@ -53,6 +55,8 @@ export const DEFAULT_BINDINGS: InputBindings = {
   leanRight: ["KeyE"],
   fireMode: ["KeyB"],
   scoreboard: ["Tab"],
+  tacStance: ["KeyT", "KeyJ"],
+  inspect: ["KeyI"],
 };
 
 export interface InputOptions {
@@ -80,6 +84,7 @@ export class InputManager {
   rawYaw = 0;
   rawPitch = 0;
   private lastScrollSwap = 0;
+  private lastSprintTime = 0;
 
   constructor(options: InputOptions, bindings: InputBindings = DEFAULT_BINDINGS) {
     this.options = options;
@@ -202,6 +207,13 @@ export class InputManager {
     if (this.matches(b.jump, event.code)) s.jumpPressed = true;
     if (this.matches(b.crouch, event.code)) s.crouchPressed = true;
     if (this.matches(b.prone, event.code)) s.pronePressed = true;
+    if (this.matches(b.sprint, event.code)) {
+      const now = performance.now();
+      if (now - this.lastSprintTime < 320) {
+        s.tacSprintPressed = true;
+      }
+      this.lastSprintTime = now;
+    }
     if (this.matches(b.reload, event.code)) s.reloadPressed = true;
     if (this.matches(b.swap, event.code)) s.swapPressed = true;
     if (this.matches(b.melee, event.code)) s.meleePressed = true;
@@ -209,6 +221,9 @@ export class InputManager {
     if (this.matches(b.grenade, event.code)) s.grenadePressed = true;
     if (this.matches(b.tactical, event.code)) s.tacticalPressed = true;
     if (this.matches(b.fireMode, event.code)) s.fireModePressed = true;
+    if (this.matches(b.inspect, event.code)) s.inspectPressed = true;
+    if (this.matches(b.tacStance, event.code)) s.tacStancePressed = true;
+    if (s.ads && this.matches(b.melee, event.code)) s.tacStancePressed = true;
     if (event.code.startsWith("Digit")) {
       const n = Number(event.code.slice(5));
       if (n >= 3 && n <= 9) s.killstreakPressed = n - 3;

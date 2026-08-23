@@ -121,7 +121,14 @@ export interface ViewOffsets {
   roll: number;
   /** 0..1, how much of the sprint pose the viewmodel should adopt. */
   sprintPose: number;
+  /** 0..1, how much of the tactical sprint vertical pose to adopt. */
+  tacSprintPose: number;
+  /** 0..1, how much of the 45-degree canted Tac-Stance pose to adopt. */
+  tacStancePose: number;
+  /** 0..1, how much of the weapon chamber inspect pose to adopt. */
+  inspectPose: number;
   slidePose: number;
+  slideRoll: number;
   mantlePose: number;
   /** Bob phase, so footstep audio and the viewmodel stay in sync. */
   bobPhase: number;
@@ -150,7 +157,11 @@ export class PlayerController {
     yaw: 0,
     roll: 0,
     sprintPose: 0,
+    tacSprintPose: 0,
+    tacStancePose: 0,
+    inspectPose: 0,
     slidePose: 0,
+    slideRoll: 0,
     mantlePose: 0,
     bobPhase: 0,
   };
@@ -181,6 +192,8 @@ export class PlayerController {
   private wasGrounded = true;
   private stepUpSmooth = 0;
   private prevY = 0;
+  private tacStanceActive = false;
+  private tacStanceBlend = 0;
   /** Cached so the caller can drive weapon spread and animation. */
   speed = 0;
   sprinting = false;
@@ -192,6 +205,19 @@ export class PlayerController {
 
   get isMantling(): boolean {
     return this.mantling;
+  }
+
+  get isTacStance(): boolean {
+    return this.tacStanceActive;
+  }
+
+  setTacStance(active: boolean): void {
+    this.tacStanceActive = active;
+  }
+
+  toggleTacStance(): boolean {
+    this.tacStanceActive = !this.tacStanceActive;
+    return this.tacStanceActive;
   }
 
   /** True while the player may not fire (sprint or mantle). */
@@ -220,7 +246,9 @@ export class PlayerController {
     else if (this.tacSprinting) base = MOVE.tacSprintSpeed;
     else if (this.sprinting) base = MOVE.sprintSpeed;
     if (adsBlend > 0 && !this.sprinting) {
-      base *= 1 + (MOVE.adsSpeedScale - 1) * adsBlend;
+      // Tac-Stance aim allows significantly higher mobility than traditional tight ADS
+      const scale = this.tacStanceActive ? 0.76 : MOVE.adsSpeedScale;
+      base *= 1 + (scale - 1) * adsBlend;
     }
     if (input.moveY < 0) base *= 0.86; // backpedal penalty
     return base;
@@ -240,13 +268,21 @@ export class PlayerController {
     this.events.length = 0;
     const grounded = actor.grounded;
 
+    /* ----------------------------------------------- tac-stance ---- */
+    if (input.tacStancePressed) {
+      this.tacStanceActive = !this.tacStanceActive;
+      queueSound({ id: "ui-select", gain: 0.45, pitch: this.tacStanceActive ? 1.25 : 0.9 });
+    }
+    input.tacStance = this.tacStanceActive;
+    this.tacStanceBlend = damp(this.tacStanceBlend, this.tacStanceActive ? 1 : 0, 16, dt);
+
     /* -------------------------------------------------- stance ---- */
     if (input.pronePressed) {
       this.targetStance = this.targetStance === "prone" ? "stand" : "prone";
-    } else if (input.crouchPressed) {
+    } else if (input.crouchPressed && !this.sliding) {
       this.targetStance = this.targetStance === "crouch" ? "stand" : "crouch";
     }
-    if (input.sprint && input.moveY > 0.1) this.targetStance = "stand";
+    if (input.sprint && input.moveY > 0.1 && !this.sliding) this.targetStance = "stand";
 
     // Refuse to stand up under a low ceiling.
     const wantsStand = this.targetStance === "stand";
@@ -278,8 +314,9 @@ export class PlayerController {
       !this.mantling;
     if (wantsSprint) {
       this.sprintHeld += dt;
+      // Double tap sprint or sustained hold enters tactical sprint
       if (
-        this.sprintHeld > MOVE.tacSprintDelay &&
+        (input.tacSprintPressed || this.sprintHeld > MOVE.tacSprintDelay) &&
         this.tacSprintTimer <= 0 &&
         !this.tacSprinting
       ) {
@@ -301,6 +338,8 @@ export class PlayerController {
     this.slideCooldown = Math.max(0, this.slideCooldown - dt);
     _flat.set(actor.velocity.x, 0, actor.velocity.z);
     const horizontalSpeed = _flat.length();
+
+    // Trigger slide on crouch while moving fast enough
     if (
       !this.sliding &&
       input.crouchPressed &&
@@ -317,12 +356,29 @@ export class PlayerController {
       actor.velocity.z = this.slideDir.z * boost;
       this.targetStance = "crouch";
       this.events.push({ kind: "slide-start" });
-      queueSound({ id: "slide", position: actor.position.clone(), gain: 0.9 });
+      queueSound({ id: "slide", position: actor.position.clone(), gain: 0.95 });
     }
+
     if (this.sliding) {
       this.slideTimer -= dt;
       const speedNow = Math.hypot(actor.velocity.x, actor.velocity.z);
-      if (this.slideTimer <= 0 || speedNow < 2.4 || !grounded || input.jumpPressed) {
+
+      // Slide Cancel: Modern Warfare-style slide canceling via crouch tap, jump, or sprint
+      const wantsSlideCancel =
+        input.crouchPressed ||
+        input.jumpPressed ||
+        (input.sprint && input.moveY > 0.1) ||
+        input.slideCancelPressed;
+
+      if (wantsSlideCancel && this.slideTimer < MOVE.slideDuration - 0.12) {
+        this.sliding = false;
+        this.slideCooldown = 0.12; // Fast reset so movement can be chained immediately
+        this.targetStance = "stand";
+        if (input.jumpPressed && grounded) {
+          actor.velocity.y = MOVE.jumpVelocity;
+          this.events.push({ kind: "jump" });
+        }
+      } else if (this.slideTimer <= 0 || speedNow < 2.4 || !grounded) {
         this.sliding = false;
         this.slideCooldown = MOVE.slideCooldown;
         if (!input.crouch) this.targetStance = "stand";
@@ -592,19 +648,34 @@ export class PlayerController {
       12,
       dt,
     );
+    v.tacSprintPose = damp(v.tacSprintPose, this.tacSprinting ? 1 : 0, 16, dt);
+    v.tacStancePose = this.tacStanceBlend;
     v.slidePose = damp(v.slidePose, this.sliding ? 1 : 0, 14, dt);
 
+    // Slide Camera Roll: Bank camera into the slide direction and strafe momentum
+    const targetSlideRoll = THREE.MathUtils.clamp(
+      -this.slideDir.x * 0.09 - input.moveX * 0.06,
+      -0.12,
+      0.12,
+    );
+    v.slideRoll = damp(v.slideRoll, this.sliding ? targetSlideRoll : 0, 14, dt);
+
+    // Tac-sprint higher-cadence bob
+    const tacBobX = Math.sin(phase * 1.4) * 0.042 * v.tacSprintPose;
+    const tacBobY = -Math.abs(Math.cos(phase * 1.4)) * 0.036 * v.tacSprintPose;
+
     v.position.set(
-      bobX + this.leanAmount * MOVE.leanOffset,
-      bobY + this.landDip + this.stepUpSmooth - v.slidePose * 0.22,
+      bobX + tacBobX + this.leanAmount * MOVE.leanOffset,
+      bobY + tacBobY + this.landDip + this.stepUpSmooth - v.slidePose * 0.22,
       0,
     );
     v.roll =
       -this.leanAmount * MOVE.leanAngle -
       Math.sin(phase) * 0.012 * bobScale -
       // A touch of roll when strafing sells the weight of the body.
-      input.moveX * 0.018 * (1 - adsBlend);
-    v.pitch = this.landDip * 0.55 + v.slidePose * 0.05;
+      input.moveX * 0.018 * (1 - adsBlend) +
+      v.slideRoll;
+    v.pitch = this.landDip * 0.55 + v.slidePose * 0.05 + v.tacSprintPose * 0.02;
     v.yaw = 0;
   }
 
@@ -623,11 +694,18 @@ export class PlayerController {
     this.bobDistance = 0;
     this.lastFootstep = 0;
     this.stepUpSmooth = 0;
+    this.tacStanceActive = false;
+    this.tacStanceBlend = 0;
     this.view.position.set(0, 0, 0);
     this.view.pitch = 0;
+    this.view.yaw = 0;
     this.view.roll = 0;
     this.view.sprintPose = 0;
+    this.view.tacSprintPose = 0;
+    this.view.tacStancePose = 0;
+    this.view.inspectPose = 0;
     this.view.slidePose = 0;
+    this.view.slideRoll = 0;
     this.view.mantlePose = 0;
   }
 }

@@ -1,56 +1,416 @@
 import * as THREE from "three";
 import { BlendFunction, Effect, EffectAttribute, Pass } from "postprocessing";
+import { mulberry32 } from "@/lib/noise";
 
 /**
- * Custom GLSL post-processing stack for the desert airfield twin.
+ * Custom GLSL post-processing stack for Blacksite / desert airfield twin.
  *
  * Everything here is hand-written GLSL running inside the `postprocessing`
- * composer, in this order (see `components/scene/Effects.tsx`):
+ * composer, supporting AAA Call of Duty Modern Warfare-level optical rendering:
  *
  *   scene (HDR, linear, no tone mapping)
- *     -> N8AO                     ambient occlusion
+ *     -> N8AO                         ambient occlusion
  *     -> Bloom (mipmap/dual-filter)
- *     -> AnamorphicStreaksPass    multi-pass horizontal lens streaks
- *     -> AgXToneMappingEffect     HDR -> display, keeps highlights intact
+ *     -> AnamorphicStreaksPass        multi-pass horizontal lens streaks
+ *     -> OpticalLensDirtAndFlareEffect optical flares + illuminated glass dirt / micro-scratches
+ *     -> AgXToneMappingEffect         Modern Warfare CDL + AgX display transform
+ *     -> CombatScreenEffect           damage / suppression / flash feedback
+ *     -> CameraMotionBlurEffect       velocity-driven rotation / sprint / slide blur
  *     -> Vignette
- *     -> SMAA                     antialiasing on display-referred values
- *     -> LensArtifactsEffect      chromatic aberration + radial blur + grain
+ *     -> SMAA                         subpixel morphological antialiasing
+ *     -> LensArtifactsEffect          spectral dispersion CA + radial falloff + film grain
  *
  * The renderer itself must be `THREE.NoToneMapping` while this stack is
- * mounted — `Atmosphere.tsx` owns that decision and `EffectComposer` also
- * forces it. Tone mapping twice is the classic washed-out-render bug.
+ * mounted.
  */
 
 /* ------------------------------------------------------------------ */
-/* Shared GLSL                                                         */
+/* Procedural Lens Dirt Texture                                       */
 /* ------------------------------------------------------------------ */
 
-const LUMA = "const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);";
+let cachedLensDirtTexture: THREE.CanvasTexture | null = null;
 
-/** Cheap, stable integer-ish hash. Deterministic across drivers in practice. */
-const HASH_GLSL = /* glsl */ `
-float hash13(vec3 p) {
+/**
+ * Generates a high-resolution procedural optical lens dirt & scratch texture.
+ * Contains out-of-focus bokeh dust circles, hairline wiping micro-scratches,
+ * pinpoint glass dust specks with diffraction rings, and edge smudge deposits.
+ */
+export function getLensDirtTexture(): THREE.CanvasTexture {
+  if (cachedLensDirtTexture) return cachedLensDirtTexture;
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, size, size);
+
+  const rand = mulberry32(0x8f3c1a);
+
+  // 1. Soft out-of-focus bokeh dust circles (rear element dust deposits)
+  for (let i = 0; i < 55; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 4 + rand() * 22;
+    const alpha = 0.06 + rand() * 0.16;
+    const grad = ctx.createRadialGradient(x, y, r * 0.35, x, y, r);
+    grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.4})`);
+    grad.addColorStop(0.75, `rgba(255, 255, 255, ${alpha})`);
+    grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. Micro-scratches and cleaning swirls
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 90; i++) {
+    const startX = rand() * size;
+    const startY = rand() * size;
+    const len = 14 + rand() * 55;
+    const angle = rand() * Math.PI * 2;
+    const cpAngle = angle + (rand() - 0.5) * 1.3;
+    const cpDist = len * 0.5;
+    const alpha = 0.1 + rand() * 0.28;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.quadraticCurveTo(
+      startX + Math.cos(cpAngle) * cpDist,
+      startY + Math.sin(cpAngle) * cpDist,
+      startX + Math.cos(angle) * len,
+      startY + Math.sin(angle) * len,
+    );
+    ctx.stroke();
+  }
+
+  // 3. Sharp pinpoint glass dust specks with diffraction rings
+  for (let i = 0; i < 320; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 0.5 + rand() * 1.9;
+    const brightness = 180 + Math.floor(rand() * 75);
+    ctx.fillStyle = `rgba(${brightness}, ${brightness}, ${brightness}, ${0.45 + rand() * 0.55})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    if (r > 1.3) {
+      ctx.strokeStyle = `rgba(210, 230, 255, ${0.15 + rand() * 0.25})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 2.6, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // 4. Peripheral edge smudge & oil deposits
+  const edgeGrad = ctx.createRadialGradient(
+    size / 2,
+    size / 2,
+    size * 0.32,
+    size / 2,
+    size / 2,
+    size * 0.52,
+  );
+  edgeGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+  edgeGrad.addColorStop(0.7, "rgba(255, 255, 255, 0.08)");
+  edgeGrad.addColorStop(1, "rgba(255, 255, 255, 0.32)");
+  ctx.fillStyle = edgeGrad;
+  ctx.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.name = "ProceduralLensDirt";
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  cachedLensDirtTexture = texture;
+  return texture;
+}
+
+/* ------------------------------------------------------------------ */
+/* Optical Lens Dirt & Flare Effect                                   */
+/* ------------------------------------------------------------------ */
+
+const LENS_DIRT_FLARE_FRAGMENT = /* glsl */ `
+uniform sampler2D tDirt;
+uniform vec3 sunScreenPos; // (uv.x, uv.y, inFront: 1.0 or 0.0)
+uniform float sunFlareIntensity;
+uniform float muzzleFlashIntensity;
+uniform float dirtIntensity;
+uniform float haloRadius;
+uniform float ghostDispersal;
+uniform vec3 flareTint;
+
+vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
+  vec2 delta = lightPos - uv;
+  vec2 ghostVec = (vec2(0.5) - lightPos) * ghostDispersal;
+
+  // 1. Central ray / starburst diffraction around intense source
+  float d = length(delta);
+  float angle = atan(delta.y, delta.x);
+  float rays = sin(angle * 14.0) * 0.5 + sin(angle * 32.0) * 0.25 + 0.25;
+  float starburst = exp(-d * 5.5) * 1.8 + exp(-d * 1.6) * 0.35 * (0.8 + 0.5 * rays);
+
+  // 2. Optical ghost reflections through the lens axis
+  vec3 ghosts = vec3(0.0);
+  for (int i = 1; i <= 5; i++) {
+    float fi = float(i);
+    vec2 offset = fract(lightPos + ghostVec * fi);
+    float dist = length(offset - uv);
+    float falloff = exp(-dist * (3.8 + fi * 2.8)) * (1.0 / (fi * 0.75 + 0.5));
+
+    // Chromatic dispersion along ghost ray
+    ghosts.r += exp(-length(offset - uv - delta * 0.016) * (3.8 + fi * 2.8)) * falloff;
+    ghosts.g += exp(-length(offset - uv) * (3.8 + fi * 2.8)) * falloff;
+    ghosts.b += exp(-length(offset - uv + delta * 0.016) * (3.8 + fi * 2.8)) * falloff;
+  }
+
+  // 3. Chromatic Halo Ring
+  vec2 haloVec = normalize(delta + 1e-5) * haloRadius;
+  float haloDist = length(uv - (lightPos - haloVec));
+  float haloWeight = exp(-haloDist * 16.0) * 0.55;
+  vec3 halo = vec3(
+    exp(-length(uv - (lightPos - haloVec * 1.025)) * 16.0),
+    exp(-length(uv - (lightPos - haloVec * 1.000)) * 16.0),
+    exp(-length(uv - (lightPos - haloVec * 0.975)) * 16.0)
+  ) * haloWeight;
+
+  return (vec3(starburst) + ghosts * 1.1 + halo * 1.4) * intensity * flareTint;
+}
+
+void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+  vec3 color = inputColor.rgb;
+  vec4 dirt = texture2D(tDirt, uv);
+
+  vec3 flare = vec3(0.0);
+  float totalGlare = 0.0;
+
+  // Sun flare (only if in front of camera and within view window)
+  if (sunScreenPos.z > 0.5 && sunFlareIntensity > 0.001) {
+    vec2 sunUv = sunScreenPos.xy;
+    // Check if sun is near the screen viewport
+    if (sunUv.x >= -0.25 && sunUv.x <= 1.25 && sunUv.y >= -0.25 && sunUv.y <= 1.25) {
+      flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity);
+      totalGlare += sunFlareIntensity;
+    }
+  }
+
+  // Muzzle flash optical burst (originating from weapon muzzle screen quadrant)
+  if (muzzleFlashIntensity > 0.001) {
+    vec2 flashUv = vec2(0.58, 0.72);
+    vec3 flashFlare = computeOpticalGhosts(uv, flashUv, muzzleFlashIntensity * 2.4);
+    flare += flashFlare * vec3(1.25, 0.95, 0.72);
+    totalGlare += muzzleFlashIntensity * 2.2;
+  }
+
+  // Extract high-luminance glints from input HDR buffer to catch lens scratches
+  float lum = dot(color, vec3(0.2126, 0.7152, 0.0722));
+  float highlightGlint = max(0.0, lum - 3.2) * 0.18;
+  totalGlare += highlightGlint;
+
+  // Glass dust and micro-scratches illuminate under flare and highlight energy
+  vec3 illuminatedDirt = dirt.rgb * dirtIntensity * (flare * 1.6 + totalGlare * vec3(0.95, 0.92, 0.86));
+
+  color += flare + illuminatedDirt;
+  outputColor = vec4(max(color, 0.0), inputColor.a);
+}
+`;
+
+export interface OpticalLensDirtAndFlareOptions {
+  sunFlareIntensity?: number;
+  muzzleFlashIntensity?: number;
+  dirtIntensity?: number;
+  haloRadius?: number;
+  ghostDispersal?: number;
+  flareTint?: THREE.ColorRepresentation;
+}
+
+export class OpticalLensDirtAndFlareEffect extends Effect {
+  constructor({
+    sunFlareIntensity = 0.45,
+    muzzleFlashIntensity = 0.0,
+    dirtIntensity = 0.35,
+    haloRadius = 0.48,
+    ghostDispersal = 0.28,
+    flareTint = "#fff4db",
+  }: OpticalLensDirtAndFlareOptions = {}) {
+    const dirtTex = getLensDirtTexture();
+    super("OpticalLensDirtAndFlareEffect", LENS_DIRT_FLARE_FRAGMENT, {
+      blendFunction: BlendFunction.SRC,
+      uniforms: new Map<string, THREE.Uniform>([
+        ["tDirt", new THREE.Uniform(dirtTex)],
+        ["sunScreenPos", new THREE.Uniform(new THREE.Vector3(0.5, 0.5, 0))],
+        ["sunFlareIntensity", new THREE.Uniform(sunFlareIntensity)],
+        ["muzzleFlashIntensity", new THREE.Uniform(muzzleFlashIntensity)],
+        ["dirtIntensity", new THREE.Uniform(dirtIntensity)],
+        ["haloRadius", new THREE.Uniform(haloRadius)],
+        ["ghostDispersal", new THREE.Uniform(ghostDispersal)],
+        ["flareTint", new THREE.Uniform(new THREE.Color(flareTint))],
+      ]),
+    });
+  }
+
+  private setUniform(name: string, value: unknown): void {
+    const uniform = this.uniforms.get(name);
+    if (uniform) uniform.value = value;
+  }
+
+  setSunScreenPos(x: number, y: number, inFront: boolean): void {
+    const uniform = this.uniforms.get("sunScreenPos");
+    if (uniform) {
+      (uniform.value as THREE.Vector3).set(x, y, inFront ? 1 : 0);
+    }
+  }
+
+  set sunFlareIntensity(value: number) {
+    this.setUniform("sunFlareIntensity", value);
+  }
+
+  set muzzleFlashIntensity(value: number) {
+    this.setUniform("muzzleFlashIntensity", value);
+  }
+
+  set dirtIntensity(value: number) {
+    this.setUniform("dirtIntensity", value);
+  }
+
+  set haloRadius(value: number) {
+    this.setUniform("haloRadius", value);
+  }
+
+  set ghostDispersal(value: number) {
+    this.setUniform("ghostDispersal", value);
+  }
+
+  set flareTint(value: THREE.ColorRepresentation) {
+    const uniform = this.uniforms.get("flareTint");
+    if (uniform) (uniform.value as THREE.Color).set(value);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Camera Velocity Motion Blur                                         */
+/* ------------------------------------------------------------------ */
+
+const CAMERA_MOTION_BLUR_FRAGMENT = /* glsl */ `
+uniform vec2 uVelocity;
+uniform float uForwardVelocity;
+uniform float uRollVelocity;
+uniform float uIntensity;
+uniform float uMaxBlur;
+uniform float time;
+
+float motionBlurHash13(vec3 p) {
   p = fract(p * 0.1031);
   p += dot(p, p.yzx + 33.33);
   return fract((p.x + p.y) * p.z);
 }
+
+#define MOTION_TAPS 8
+
+void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+  vec2 centered = uv - 0.5;
+
+  // Screen-space velocity components:
+  // 1. Look yaw / pitch and lateral strafe (uVelocity)
+  // 2. Sprint / slide expansion from screen center (uForwardVelocity)
+  // 3. Camera roll rotation around screen center (uRollVelocity)
+  vec2 rollVec = vec2(-centered.y, centered.x) * uRollVelocity;
+  vec2 forwardVec = centered * uForwardVelocity;
+
+  vec2 velocity = (uVelocity + forwardVec + rollVec) * uIntensity;
+  float speed = length(velocity);
+
+  // Skip blur if camera is stationary
+  if (speed < 0.00035) {
+    outputColor = inputColor;
+    return;
+  }
+
+  // Smoothly clamp maximum blur vector to prevent disorienting streaks
+  vec2 clampedVelocity = velocity * min(1.0, uMaxBlur / max(speed, 1e-6));
+  float dither = motionBlurHash13(vec3(uv * 1024.0, fract(time * 60.0)));
+
+  vec4 accum = vec4(0.0);
+  float weightSum = 0.0;
+
+  for (int i = 0; i < MOTION_TAPS; i++) {
+    float t = (float(i) + dither) / float(MOTION_TAPS) - 0.5;
+    vec2 tapUv = uv + clampedVelocity * t;
+    float w = 1.0 - abs(t) * 0.45;
+    accum += texture2D(inputBuffer, tapUv) * w;
+    weightSum += w;
+  }
+
+  outputColor = accum / weightSum;
+}
 `;
 
+export interface CameraMotionBlurOptions {
+  intensity?: number;
+  maxBlur?: number;
+}
+
+export class CameraMotionBlurEffect extends Effect {
+  constructor({ intensity = 1.0, maxBlur = 0.038 }: CameraMotionBlurOptions = {}) {
+    super("CameraMotionBlurEffect", CAMERA_MOTION_BLUR_FRAGMENT, {
+      blendFunction: BlendFunction.SRC,
+      attributes: EffectAttribute.CONVOLUTION,
+      uniforms: new Map<string, THREE.Uniform>([
+        ["uVelocity", new THREE.Uniform(new THREE.Vector2(0, 0))],
+        ["uForwardVelocity", new THREE.Uniform(0)],
+        ["uRollVelocity", new THREE.Uniform(0)],
+        ["uIntensity", new THREE.Uniform(intensity)],
+        ["uMaxBlur", new THREE.Uniform(maxBlur)],
+        ["time", new THREE.Uniform(0)],
+      ]),
+    });
+  }
+
+  setVelocity(x: number, y: number): void {
+    const uniform = this.uniforms.get("uVelocity");
+    if (uniform) (uniform.value as THREE.Vector2).set(x, y);
+  }
+
+  setForwardVelocity(v: number): void {
+    const uniform = this.uniforms.get("uForwardVelocity");
+    if (uniform) uniform.value = v;
+  }
+
+  setRollVelocity(r: number): void {
+    const uniform = this.uniforms.get("uRollVelocity");
+    if (uniform) uniform.value = r;
+  }
+
+  set intensity(value: number) {
+    const uniform = this.uniforms.get("uIntensity");
+    if (uniform) uniform.value = value;
+  }
+
+  set maxBlur(value: number) {
+    const uniform = this.uniforms.get("uMaxBlur");
+    if (uniform) uniform.value = value;
+  }
+
+  update(
+    _renderer: THREE.WebGLRenderer,
+    _input: THREE.WebGLRenderTarget,
+    deltaTime: number,
+  ): void {
+    const uniform = this.uniforms.get("time");
+    if (uniform) uniform.value = (uniform.value as number) + deltaTime;
+  }
+}
+
 /* ------------------------------------------------------------------ */
-/* AgX tone mapping                                                    */
+/* AgX Tone Mapping & Modern Warfare Color Grade                       */
 /* ------------------------------------------------------------------ */
 
 /**
- * AgX display transform.
- *
- * Matrices, the 6th-order sigmoid fit and the Rec.2020 round-trip follow
- * three.js' `AgXToneMapping` (which in turn follows Troy Sobotka's AgX and
- * Missing Deadlines' minimal implementation). The extra `agxLook` stage is
- * the Blender "punchy" look, exposed as uniforms so the scene can be tuned
- * from the probe screenshots.
- *
- * Output is **linear** (the `pow(x, 2.2)` un-does the display encode) because
- * the composer's final pass applies the sRGB transfer function itself.
+ * AgX display transform with Modern Warfare cinematic color grading.
+ * Preserves dark shadow details, avoids muddy crushed blacks, maintains
+ * filmic highlight rolloff, and injects subtle military split-toning.
  */
 const AGX_FRAGMENT = /* glsl */ `
 uniform float exposure;
@@ -58,8 +418,6 @@ uniform float slope;
 uniform float offset;
 uniform float power;
 uniform float saturation;
-
-${LUMA}
 
 const mat3 LINEAR_SRGB_TO_LINEAR_REC2020 = mat3(
   vec3(0.6274, 0.0691, 0.0164),
@@ -100,11 +458,18 @@ vec3 agxContrast(vec3 x) {
          - 0.00232;
 }
 
-/** ASC-CDL style grade applied in AgX base space, then saturation. */
+/** ASC-CDL style grade with shadow toe lift and Modern Warfare palette. */
 vec3 agxLook(vec3 c) {
-  float luma = dot(c, LUMA);
-  c = pow(max(vec3(0.0), c * slope + offset), vec3(power));
-  return luma + saturation * (c - luma);
+  float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  // Gentle toe lift so deep shadows never harshly clip
+  c = pow(max(vec3(0.0005), c * slope + offset), vec3(power));
+
+  // Subtle military split-toning: cool slate shadows, warm sunlit highlights
+  vec3 shadowTint = vec3(0.96, 0.98, 1.03);
+  vec3 highlightTint = vec3(1.03, 1.01, 0.97);
+  vec3 graded = mix(c * shadowTint, c * highlightTint, smoothstep(0.15, 0.75, luma));
+
+  return luma + saturation * (graded - luma);
 }
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -123,7 +488,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
   color = AGX_OUTSET * color;
 
-  // back to linear so the composer's output pass can encode to sRGB once
+  // back to linear so composer output pass encodes to sRGB cleanly
   color = pow(max(color, 0.0), vec3(2.2));
   color = LINEAR_REC2020_TO_LINEAR_SRGB * color;
 
@@ -191,16 +556,9 @@ export class AgXToneMappingEffect extends Effect {
 }
 
 /* ------------------------------------------------------------------ */
-/* Lens artifacts: chromatic aberration, radial blur, film grain        */
+/* Lens Artifacts: Spectral Chromatic Aberration & Grain               */
 /* ------------------------------------------------------------------ */
 
-/**
- * Screen-space sensor/lens artifacts, gathered in a single loop so the
- * radial blur taps double as the chromatic aberration taps.
- *
- * All three terms scale with `pow(radius, falloff)` so the centre of frame
- * stays clean and only the edges pick up the lens character.
- */
 const LENS_ARTIFACTS_FRAGMENT = /* glsl */ `
 uniform float aberration;
 uniform float blurStrength;
@@ -208,16 +566,18 @@ uniform float grainIntensity;
 uniform float falloff;
 uniform float vignette;
 
-${LUMA}
-${HASH_GLSL}
+float lensArtifactsHash13(vec3 p) {
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
 
 #define TAPS 6
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
   vec2 centered = uv - 0.5;
 
-  // circular radius regardless of viewport aspect, 0 at centre, 1 at the
-  // shorter edge, slightly above 1 in the corners
+  // Aspect-corrected radial distance, pristine at center, expanding at periphery
   vec2 shaped = vec2(centered.x * aspect, centered.y) * 2.0;
   float radius = min(length(shaped), 1.45);
   float edge = pow(radius, falloff);
@@ -228,12 +588,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   for (int i = 0; i < TAPS; i++) {
     float t = float(i) / float(TAPS - 1);
 
-    // radial blur: march back toward the frame centre
+    // radial smear marching inward
     vec2 tap = -centered * (t * blurStrength * edge);
-    // aberration grows along the tap so the fringe smears rather than ghosts
+    // spectral dispersion chromatic fringing
     vec2 fringe = centered * (aberration * edge * (0.35 + 0.65 * t));
 
-    float w = 1.0 - 0.5 * t;
+    float w = 1.0 - 0.45 * t;
     accum.r += texture2D(inputBuffer, uv + tap + fringe).r * w;
     accum.g += texture2D(inputBuffer, uv + tap).g * w;
     accum.b += texture2D(inputBuffer, uv + tap - fringe).b * w;
@@ -242,21 +602,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
   vec3 color = accum / weightSum;
 
-  // extra edge falloff on top of the composer's vignette, keyed to the same
-  // radius so the lens reads as one piece of glass
+  // Edge darkening / natural optical vignetting
   color *= 1.0 - vignette * pow(radius, 2.4);
 
-  // 24 fps film grain, peaking in the midtones.
-  //
-  // This used to be strongest in the shadows, which is both backwards and
-  // destructive: grain is a property of the emulsion, so it is a *modulation*
-  // of density and vanishes where there is no density to modulate. At full
-  // amplitude against a subject sitting at 2% luminance it was plus or minus
-  // a third of that subject's own brightness — the soldier and every window
-  // reglazed in television static. A parabola peaks at mid grey and falls to
-  // nothing at both ends, which is the shape film actually has.
-  float noise = hash13(vec3(uv * resolution, floor(time * 24.0)));
-  float lum = dot(color, LUMA);
+  // Cinematic 35mm film grain, peaking naturally in midtones
+  float noise = lensArtifactsHash13(vec3(uv * resolution, floor(time * 24.0)));
+  float lum = dot(color, vec3(0.2126, 0.7152, 0.0722));
   float mask = 4.0 * lum * (1.0 - lum);
   color += (noise - 0.5) * grainIntensity * clamp(mask, 0.0, 1.0);
 
@@ -265,15 +616,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 `;
 
 export interface LensArtifactsOptions {
-  /** UV-space colour split at the frame edge. Keep below ~0.004. */
   aberration?: number;
-  /** UV-space radial smear length at the frame edge. */
   blurStrength?: number;
-  /** Peak grain amplitude in display-referred units. */
   grainIntensity?: number;
-  /** Radial exponent; higher keeps more of the frame centre pristine. */
   falloff?: number;
-  /** Additional radial darkening. */
   vignette?: number;
 }
 
@@ -282,12 +628,11 @@ export class LensArtifactsEffect extends Effect {
     aberration = 0.0016,
     blurStrength = 0.004,
     grainIntensity = 0.022,
-    falloff = 2.2,
+    falloff = 2.4,
     vignette = 0.06,
   }: LensArtifactsOptions = {}) {
     super("LensArtifactsEffect", LENS_ARTIFACTS_FRAGMENT, {
       blendFunction: BlendFunction.SRC,
-      // samples inputBuffer at offsets, so it needs its own pass
       attributes: EffectAttribute.CONVOLUTION,
       uniforms: new Map<string, THREE.Uniform>([
         ["aberration", new THREE.Uniform(aberration)],
@@ -326,10 +671,9 @@ export class LensArtifactsEffect extends Effect {
 }
 
 /* ------------------------------------------------------------------ */
-/* Anamorphic streaks (multi-pass)                                     */
+/* Anamorphic Streaks (Multi-pass)                                    */
 /* ------------------------------------------------------------------ */
 
-/** Fullscreen-triangle vertex shader matching `Pass.fullscreenGeometry`. */
 const FULLSCREEN_VERTEX = /* glsl */ `
 varying vec2 vUv;
 void main() {
@@ -338,11 +682,6 @@ void main() {
 }
 `;
 
-/**
- * Bright pass + downsample. Prefilters with a soft knee so mid-tones do not
- * leak into the streaks, and takes extra vertical taps so the streak has some
- * thickness instead of being one texel tall.
- */
 const STREAK_BRIGHT_FRAGMENT = /* glsl */ `
 uniform sampler2D inputBuffer;
 uniform vec2 texelSize;
@@ -370,11 +709,6 @@ void main() {
 }
 `;
 
-/**
- * Separable Gaussian tap run repeatedly with a growing stride — the
- * dual-filter trick that reaches hundreds of pixels for the cost of nine
- * samples per pass.
- */
 const STREAK_BLUR_FRAGMENT = /* glsl */ `
 uniform sampler2D inputBuffer;
 uniform vec2 texelSize;
@@ -426,28 +760,14 @@ function fullscreenMaterial(
 }
 
 export interface AnamorphicStreaksOptions {
-  /** Luminance above which pixels streak. */
   threshold?: number;
-  /** Soft-knee width below the threshold. */
   knee?: number;
-  /** Additive strength of the streak. */
   intensity?: number;
-  /** Streak colour; classic anamorphic glass is cyan-blue. */
   tint?: THREE.ColorRepresentation;
-  /** Number of blur iterations. Each one quadruples the reach. */
   iterations?: number;
-  /** Working resolution divisor. 4 = quarter res. */
   resolutionScale?: number;
 }
 
-/**
- * Horizontal anamorphic streaks as a real multi-pass: bright pass into a
- * quarter-res target, then N horizontal blur ping-pongs with exponentially
- * growing stride, then an additive composite back over the scene.
- *
- * Mounted as a raw `Pass` (via `<primitive>`), the same way
- * `@react-three/postprocessing` mounts N8AO.
- */
 export class AnamorphicStreaksPass extends Pass {
   private readonly targetA: THREE.WebGLRenderTarget;
   private readonly targetB: THREE.WebGLRenderTarget;
@@ -467,7 +787,6 @@ export class AnamorphicStreaksPass extends Pass {
   }: AnamorphicStreaksOptions = {}) {
     super("AnamorphicStreaksPass");
 
-    // this pass writes the composited image into the output buffer
     this.needsSwap = true;
     this.iterations = Math.max(1, Math.round(iterations));
     this.resolutionScale = Math.max(1, resolutionScale);
@@ -557,7 +876,7 @@ export class AnamorphicStreaksPass extends Pass {
     renderer.setRenderTarget(this.targetA);
     renderer.render(this.scene, this.camera);
 
-    // 2. widening horizontal blur, ping-ponging between the two targets
+    // 2. widening horizontal blur ping-pong
     let source = this.targetA;
     let destination = this.targetB;
     const blurInput = this.blurMaterial.uniforms.inputBuffer;
@@ -573,7 +892,7 @@ export class AnamorphicStreaksPass extends Pass {
       destination = swap;
     }
 
-    // 3. additive composite over the untouched scene colour
+    // 3. additive composite over scene
     const compositeInput = this.compositeMaterial.uniforms.inputBuffer;
     if (compositeInput) compositeInput.value = inputBuffer.texture;
     const compositeStreak = this.compositeMaterial.uniforms.streakBuffer;

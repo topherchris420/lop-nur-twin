@@ -10,15 +10,9 @@ import * as THREE from "three";
  * drawn into a small scene and pre-filtered through `PMREMGenerator` into a
  * roughness-mipped cube.
  *
- * The sky is *bounded* deliberately. Feeding three's `Sky` object to the
- * pre-filter looks like the obvious move and quietly destroys the frame: its
- * sun disc reaches radiances in the tens of thousands, which overflow the
- * half-float blur to `Inf`, and `Inf - Inf` in the convolution yields `NaN`.
- * A `NaN` in the environment map propagates through every `MeshStandardMaterial`
- * that samples it and renders the entire scene pure black — with the sky, which
- * does not sample it, left perfectly intact. So the sun here is clamped to a
- * bright but finite radiance, and the gradient is written directly rather than
- * integrated.
+ * Enhanced with volumetric forward-scattering atmospheric shafts, desert
+ * lakebed ground bounce for weapon bevels and soldier silhouettes, and
+ * safe radiance ceiling to prevent half-float convolution overflow.
  */
 
 const VERTEX = /* glsl */ `
@@ -40,36 +34,44 @@ uniform float uTurbidity;
 
 varying vec3 vDirection;
 
+// Henyey-Greenstein atmospheric scattering phase function
+float henyeyGreenstein(float cosTheta, float g) {
+  float g2 = g * g;
+  return (1.0 - g2) / (4.0 * 3.14159265 * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
+}
+
 void main() {
   vec3 dir = normalize(vDirection);
   float up = dir.y;
 
-  // Sky gradient: zenith to horizon with a Rayleigh-like falloff, then a
-  // warmer band right at the horizon where the optical path is longest.
+  // Sky gradient: zenith to horizon with Rayleigh-like falloff, then a
+  // warmer dusty band right at the horizon where the optical path is longest.
   float t = clamp(up, 0.0, 1.0);
-  vec3 sky = mix(uHorizon, uZenith, pow(t, 0.42));
-  float haze = pow(1.0 - t, 6.0);
-  sky = mix(sky, uHorizon * 1.18, haze * 0.55);
+  vec3 sky = mix(uHorizon, uZenith, pow(t, 0.45));
+  float haze = pow(1.0 - t, 5.5);
+  sky = mix(sky, uHorizon * 1.22, haze * 0.62);
 
-  // Ground hemisphere: the lakebed bounce. Without it every downward-facing
-  // metal surface goes dead.
+  // Ground hemisphere: lakebed bounce light.
+  // Highlights weapon undersides, rifle bevels, and soldier silhouettes.
   float down = clamp(-up, 0.0, 1.0);
-  vec3 ground = uGround * mix(1.0, 0.42, pow(down, 0.6));
+  vec3 ground = uGround * mix(1.15, 0.38, pow(down, 0.55));
+  ground += uGround * pow(1.0 - down, 3.0) * 0.28;
 
-  vec3 color = up >= 0.0 ? sky : ground;
+  // Soft horizon blend so pre-filter sees a seamless transition
+  float blend = smoothstep(-0.04, 0.04, up);
+  vec3 color = mix(ground, sky, blend);
 
-  // Soft horizon blend so the pre-filter does not see a hard seam.
-  float blend = smoothstep(-0.045, 0.045, up);
-  color = mix(ground, sky, blend);
-
-  // Sun: a small disc with a wide Mie-ish glow. Clamped — see the note above.
+  // Sun: solar disc with volumetric Mie atmospheric forward-scattering glow
   float cosAngle = dot(dir, uSunDirection);
-  float disc = smoothstep(0.99965, 0.99992, cosAngle);
-  float glow = pow(max(cosAngle, 0.0), 380.0) * 0.55
-             + pow(max(cosAngle, 0.0), 22.0) * 0.12 * uTurbidity;
-  color += uSunColor * (disc * uSunIntensity + glow * uSunIntensity * 0.22);
+  float disc = smoothstep(0.9996, 0.99995, cosAngle);
 
-  // Hard ceiling on radiance keeps the half-float convolution finite.
+  float forwardScatter = henyeyGreenstein(max(cosAngle, 0.0), 0.78) * 12.5;
+  float wideGlow = pow(max(cosAngle, 0.0), 18.0) * 0.18 * uTurbidity;
+  float tightGlow = pow(max(cosAngle, 0.0), 320.0) * 0.65;
+
+  color += uSunColor * (disc * uSunIntensity + (forwardScatter + wideGlow + tightGlow) * uSunIntensity * 0.26);
+
+  // Hard ceiling on radiance keeps the half-float convolution finite
   color = min(color, vec3(140.0));
   gl_FragColor = vec4(color, 1.0);
 }
@@ -84,31 +86,14 @@ export interface EnvironmentOptions {
   dayFactor: number;
 }
 
-/*
- * These are *radiances*, in the same scene-linear units the renderer works in,
- * and the scene binds the map at `environmentIntensity = 1` (see `GameScene`).
- * They used to be authored roughly 2.6x hot and weighted back down by 0.38,
- * which was fine for the sky but wrong for the ground: the lakebed bounce is
- * what fills the shadow side of everything at eye level, and at 0.38 there was
- * effectively none. The sky values below are the old ones times that 0.38, so
- * the sky reads exactly as it did; the ground is now its own measured value.
- *
- * The ground figure is where it is because the lakebed is a diffuse surface of
- * albedo ~0.35 under a total irradiance of ~2 (sun at 29 deg plus sky), so it
- * radiates albedo * E / PI ~ 0.22 — comparable to the hazy horizon above it,
- * which is what a desert actually looks like. Because a cosine-weighted
- * hemisphere around an *upward* normal contains none of it, raising this
- * brightens walls, undersides and people without touching the terrain or the
- * roofs, and therefore without moving the frame's exposure.
- */
-const DAY_ZENITH = new THREE.Color(0.061, 0.11, 0.22);
-const DAY_HORIZON = new THREE.Color(0.274, 0.274, 0.251);
-const DAY_GROUND = new THREE.Color(0.28, 0.24, 0.175);
+const DAY_ZENITH = new THREE.Color(0.065, 0.12, 0.24);
+const DAY_HORIZON = new THREE.Color(0.285, 0.282, 0.258);
+const DAY_GROUND = new THREE.Color(0.32, 0.265, 0.195);
 const NIGHT_ZENITH = new THREE.Color(0.012, 0.02, 0.042);
 const NIGHT_HORIZON = new THREE.Color(0.035, 0.045, 0.062);
-const NIGHT_GROUND = new THREE.Color(0.012, 0.011, 0.009);
-const SUN_WARM = new THREE.Color(1.0, 0.94, 0.84);
-const SUN_LOW = new THREE.Color(1.0, 0.6, 0.3);
+const NIGHT_GROUND = new THREE.Color(0.014, 0.012, 0.010);
+const SUN_WARM = new THREE.Color(1.0, 0.95, 0.86);
+const SUN_LOW = new THREE.Color(1.0, 0.62, 0.32);
 
 export class EnvironmentLighting {
   private readonly pmrem: THREE.PMREMGenerator;
@@ -132,7 +117,7 @@ export class EnvironmentLighting {
         uHorizon: { value: DAY_HORIZON.clone() },
         uGround: { value: DAY_GROUND.clone() },
         uSunColor: { value: SUN_WARM.clone() },
-        uSunIntensity: { value: 90 },
+        uSunIntensity: { value: 92 },
         uTurbidity: { value: 1.6 },
       },
     });
@@ -146,8 +131,6 @@ export class EnvironmentLighting {
    * light has moved enough to matter.
    */
   get(options: EnvironmentOptions): THREE.Texture {
-    // Bucket the elevation so a slow day/night sweep does not rebuild the cube
-    // every frame; 3° steps are imperceptible in a reflection.
     const bucket = Math.round((options.elevationRad * 180) / Math.PI / 3);
     const key = `${bucket}|${options.dayFactor.toFixed(2)}`;
     if (this.cachedTexture && this.cachedKey === key) return this.cachedTexture;
@@ -160,8 +143,6 @@ export class EnvironmentLighting {
       .normalize();
 
     const day = THREE.MathUtils.clamp(options.dayFactor, 0, 1);
-    // How high the sun is drives both the colour temperature and how much of
-    // the sky is lit; below the horizon the whole thing collapses to night.
     const above = THREE.MathUtils.clamp(Math.sin(elev) * 3, 0, 1);
     (u["uZenith"]!.value as THREE.Color).lerpColors(
       NIGHT_ZENITH,
@@ -179,8 +160,7 @@ export class EnvironmentLighting {
       day * above,
     );
     (u["uSunColor"]!.value as THREE.Color).lerpColors(SUN_LOW, SUN_WARM, above);
-    // Matched to the sky above: the old 110 was read back at 0.38.
-    u["uSunIntensity"]!.value = 42 * Math.pow(above, 0.6) * day;
+    u["uSunIntensity"]!.value = 46 * Math.pow(above, 0.6) * day;
     u["uTurbidity"]!.value = 1.4 + (1 - above) * 1.8;
 
     const target = this.pmrem.fromScene(this.scene, 0, 1, 200);
@@ -213,3 +193,4 @@ export function sunElevationRad(dayFactor: number): number {
     THREE.MathUtils.lerp(SUN.nightElevationDeg, SUN.dayElevationDeg, dayFactor),
   );
 }
+

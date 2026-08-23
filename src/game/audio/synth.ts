@@ -652,6 +652,387 @@ export function sineSweep(
   return end;
 }
 
+export interface SubPunchOptions {
+  freq?: number;
+  freqEnd?: number;
+  gain: number;
+  decay: number;
+  attack?: number;
+  drive?: number;
+  rand?: Rand;
+}
+
+/**
+ * Visceral 40Hz chest-punch sub-bass thump.
+ * Features a saturated sub-octave fundamental gliding down from ~54Hz to ~36Hz,
+ * processed through a soft saturator and steep lowpass filter.
+ */
+export function subPunchSweep(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  when: number,
+  options: SubPunchOptions,
+): number {
+  const from = options.freq ?? 54;
+  const to = options.freqEnd ?? 36;
+  const attack = options.attack ?? 0.0015;
+  const decay = options.decay;
+  const gain = options.gain;
+  const drive = options.drive ?? 1.5;
+
+  const osc = ctx.createOscillator();
+  osc.type = "sine";
+  glide(osc.frequency, when, from, to, decay * 0.85);
+
+  const subOsc = ctx.createOscillator();
+  subOsc.type = "triangle";
+  glide(subOsc.frequency, when, from * 0.5, to * 0.5, decay * 0.7);
+
+  const shaper = waveshaper(ctx, "soft", drive, "2x");
+  const lp = biquad(ctx, "lowpass", 110, 1.2);
+  const g = gainNode(ctx, 0);
+
+  osc.connect(shaper);
+  subOsc.connect(shaper);
+  shaper.connect(lp);
+  lp.connect(g);
+  g.connect(dest);
+
+  const end = scheduleEnv(g.gain, when, {
+    peak: gain,
+    attack,
+    decay,
+    shape: "exp",
+  });
+
+  osc.start(when);
+  subOsc.start(when);
+  osc.stop(end + 0.02);
+  subOsc.stop(end + 0.02);
+  return end;
+}
+
+/**
+ * Signature Call of Duty hitmarker metallic ping.
+ * Crisp high-Q resonant double ping with instant transient attack.
+ */
+export function metallicHitPing(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  when: number,
+  options: { gain?: number; pitch?: number; rand?: Rand } = {},
+): number {
+  const gain = options.gain ?? 0.42;
+  const p = options.pitch ?? 1;
+  let end = when;
+
+  // Ultra-crisp transient click (0.2ms)
+  end = Math.max(
+    end,
+    transientClick(ctx, dest, when, {
+      freq: 3800 * p,
+      q: 4.5,
+      gain: gain * 0.8,
+      decay: 0.012,
+      rand: options.rand,
+    }),
+  );
+
+  // Dual high-Q resonant metal pings
+  end = Math.max(
+    end,
+    modeRing(
+      ctx,
+      dest,
+      when,
+      [
+        { hz: 2750 * p, q: 36, gain: gain * 0.65 },
+        { hz: 4850 * p, q: 32, gain: gain * 0.45 },
+        { hz: 7200 * p, q: 28, gain: gain * 0.2 },
+      ],
+      { decay: 0.048, attack: 0.0003, rand: options.rand },
+    ),
+  );
+
+  return end;
+}
+
+/**
+ * Skull crunch & heavy bone break for headshot kills.
+ * Combines organic crunch noise with low-end sub thud and metallic ring.
+ */
+export function boneCrunch(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  when: number,
+  options: { gain?: number; rand?: Rand } = {},
+): number {
+  const gain = options.gain ?? 0.7;
+  const rand = options.rand;
+  let end = when;
+
+  // Heavy skull thud (sub-bass punch)
+  end = Math.max(
+    end,
+    subPunchSweep(ctx, dest, when, {
+      freq: 68,
+      freqEnd: 32,
+      gain: gain * 0.9,
+      decay: 0.14,
+      attack: 0.001,
+      drive: 2.2,
+      rand,
+    }),
+  );
+
+  // Organic crunch texture (low/mid frequency tearing noise)
+  end = Math.max(
+    end,
+    noiseBurst(ctx, dest, when, {
+      kind: "brown",
+      filter: "bandpass",
+      freq: 420,
+      freqEnd: 110,
+      q: 2.2,
+      gain: gain * 0.85,
+      attack: 0.001,
+      decay: 0.075,
+      drive: 2.6,
+      rand,
+    }),
+  );
+
+  // High-frequency bone snap clicks
+  end = Math.max(
+    end,
+    patter(ctx, dest, when, {
+      count: 5,
+      seconds: 0.04,
+      freq: 3100,
+      freqSpread: 0.6,
+      q: 6,
+      gain: gain * 0.6,
+      decay: 0.015,
+      rand: rand ?? Math.random,
+    }),
+  );
+
+  // Metallic helmet ding / kill ping
+  end = Math.max(
+    end,
+    modeRing(
+      ctx,
+      dest,
+      when + 0.003,
+      [
+        { hz: 3450, q: 28, gain: gain * 0.55 },
+        { hz: 5200, q: 24, gain: gain * 0.35 },
+      ],
+      { decay: 0.18, attack: 0.0005, rand },
+    ),
+  );
+
+  return end;
+}
+
+export type RadioCalloutType =
+  | "contact-front"
+  | "reloading"
+  | "hostile-down"
+  | "frag-out"
+  | "chatter";
+
+/**
+ * Procedural tactical squad radio voice synthesizer.
+ * Synthesizes RF squelch bursts, bandpass walkie-talkie filtering (300-3400Hz),
+ * subtle bitcrush/tanh saturation, and formant-shaped phonetic cadences.
+ */
+export function proceduralRadioCallout(
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+  when: number,
+  type: RadioCalloutType,
+  rand?: Rand,
+): number {
+  const r = rand ?? Math.random;
+  let end = when;
+
+  // Radio bus: bandpass + distortion + gain
+  const bp = biquad(ctx, "bandpass", 1650, 0.85);
+  const hp = biquad(ctx, "highpass", 380, 0.7);
+  const lp = biquad(ctx, "lowpass", 3200, 0.8);
+  const drive = waveshaper(ctx, "soft", 1.8, "2x");
+  const radioOut = gainNode(ctx, 0.65);
+  connectChain([bp, hp, lp, drive, radioOut]);
+  radioOut.connect(dest);
+
+  // 1. Initial mic-key squelch burst (noise click + chirp)
+  end = Math.max(
+    end,
+    noiseBurst(ctx, bp, when, {
+      kind: "pink",
+      filter: "bandpass",
+      freq: 2200,
+      q: 2.5,
+      gain: 0.35,
+      attack: 0.002,
+      decay: 0.045,
+      rand: r,
+    }),
+  );
+  end = Math.max(
+    end,
+    sineSweep(ctx, bp, when, {
+      from: 1400,
+      to: 950,
+      seconds: 0.035,
+      gain: 0.18,
+      attack: 0.001,
+      decay: 0.035,
+    }),
+  );
+
+  // RF background hiss during transmission
+  const voiceStartTime = when + 0.035;
+
+  // Syllable formant definitions per callout type: [duration, pitchGlideFrom, pitchGlideTo, formantFrequencies, gain]
+  interface Syllable {
+    dur: number;
+    pitchFrom: number;
+    pitchTo: number;
+    formants: number[];
+    gain: number;
+    unvoiced?: boolean;
+  }
+
+  let syllables: Syllable[] = [];
+  switch (type) {
+    case "contact-front":
+      // "Con-tact front!"
+      syllables = [
+        { dur: 0.09, pitchFrom: 135, pitchTo: 145, formants: [550, 1400, 2400], gain: 0.4 },
+        { dur: 0.13, pitchFrom: 160, pitchTo: 130, formants: [680, 1750, 2700], gain: 0.55 },
+        { dur: 0.04, pitchFrom: 140, pitchTo: 140, formants: [2200, 3100, 3800], gain: 0.25, unvoiced: true },
+        { dur: 0.22, pitchFrom: 175, pitchTo: 110, formants: [450, 1200, 2200], gain: 0.65 },
+      ];
+      break;
+    case "reloading":
+      // "Re-load-ing!"
+      syllables = [
+        { dur: 0.08, pitchFrom: 130, pitchTo: 140, formants: [480, 1850, 2600], gain: 0.38 },
+        { dur: 0.16, pitchFrom: 155, pitchTo: 145, formants: [620, 1250, 2450], gain: 0.58 },
+        { dur: 0.14, pitchFrom: 135, pitchTo: 115, formants: [420, 1950, 2700], gain: 0.45 },
+      ];
+      break;
+    case "hostile-down":
+      // "Hos-tile down!"
+      syllables = [
+        { dur: 0.1, pitchFrom: 150, pitchTo: 140, formants: [650, 1350, 2400], gain: 0.45 },
+        { dur: 0.14, pitchFrom: 155, pitchTo: 125, formants: [450, 1850, 2650], gain: 0.52 },
+        { dur: 0.24, pitchFrom: 165, pitchTo: 105, formants: [580, 1100, 2250], gain: 0.68 },
+      ];
+      break;
+    case "frag-out":
+      // "Frag out!"
+      syllables = [
+        { dur: 0.16, pitchFrom: 160, pitchTo: 145, formants: [700, 1600, 2550], gain: 0.6 },
+        { dur: 0.03, pitchFrom: 150, pitchTo: 150, formants: [2400, 3200, 4100], gain: 0.3, unvoiced: true },
+        { dur: 0.2, pitchFrom: 175, pitchTo: 115, formants: [620, 1200, 2350], gain: 0.65 },
+      ];
+      break;
+    case "chatter":
+    default:
+      // Short tactical acknowledgement
+      syllables = [
+        { dur: 0.1, pitchFrom: 140, pitchTo: 150, formants: [500, 1500, 2500], gain: 0.45 },
+        { dur: 0.15, pitchFrom: 145, pitchTo: 120, formants: [600, 1300, 2400], gain: 0.5 },
+      ];
+      break;
+  }
+
+  let sylTime = voiceStartTime;
+  for (const syl of syllables) {
+    if (syl.unvoiced) {
+      // Unvoiced plosive / fricative noise
+      end = Math.max(
+        end,
+        noiseBurst(ctx, bp, sylTime, {
+          kind: "white",
+          filter: "bandpass",
+          freq: syl.formants[0] ?? 2400,
+          q: 2.2,
+          gain: syl.gain * 0.4,
+          attack: 0.003,
+          decay: syl.dur,
+          rand: r,
+        }),
+      );
+    } else {
+      // Voiced glottal oscillator (sawtooth with pitch glide)
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      glide(osc.frequency, sylTime, syl.pitchFrom * range(r, 0.96, 1.04), syl.pitchTo, syl.dur);
+
+      const sylGain = gainNode(ctx, 0);
+      scheduleEnv(sylGain.gain, sylTime, {
+        peak: syl.gain,
+        attack: 0.008,
+        hold: syl.dur * 0.6,
+        decay: syl.dur * 0.4,
+      });
+
+      // Formant resonator bank for this syllable
+      const f1 = biquad(ctx, "bandpass", syl.formants[0] ?? 500, 4.5);
+      const f2 = biquad(ctx, "bandpass", syl.formants[1] ?? 1500, 5.0);
+      const f3 = biquad(ctx, "bandpass", syl.formants[2] ?? 2500, 5.5);
+
+      const fSum = gainNode(ctx, 0.5);
+      osc.connect(sylGain);
+      sylGain.connect(f1);
+      sylGain.connect(f2);
+      sylGain.connect(f3);
+      f1.connect(fSum);
+      f2.connect(fSum);
+      f3.connect(fSum);
+      fSum.connect(bp);
+
+      osc.start(sylTime);
+      osc.stop(sylTime + syl.dur + 0.02);
+      end = Math.max(end, sylTime + syl.dur + 0.02);
+    }
+    sylTime += syl.dur + 0.015;
+  }
+
+  // 3. Squelch release tail (roger beep + squelch gate closure)
+  const squelchTime = sylTime + 0.02;
+  end = Math.max(
+    end,
+    sineSweep(ctx, bp, squelchTime, {
+      from: 1850,
+      to: 1200,
+      seconds: 0.04,
+      gain: 0.15,
+      attack: 0.001,
+      decay: 0.04,
+    }),
+  );
+  end = Math.max(
+    end,
+    noiseBurst(ctx, bp, squelchTime + 0.02, {
+      kind: "pink",
+      filter: "bandpass",
+      freq: 1900,
+      q: 2.5,
+      gain: 0.25,
+      attack: 0.001,
+      decay: 0.04,
+      rand: r,
+    }),
+  );
+
+  return end + 0.05;
+}
+
 /**
  * Scatter `count` micro-bursts across `seconds` with a decaying envelope —
  * gravel underfoot, glass tinkles, explosion debris, belt links.

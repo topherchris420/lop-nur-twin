@@ -18,6 +18,7 @@ import {
   scheduleEnv,
   sineSweep,
   slapBack,
+  subPunchSweep,
   transientClick,
   waveshaper,
   type EnvironmentId,
@@ -657,19 +658,19 @@ export function renderShot(
         harmonic: 0.22,
       }),
     );
-    // Chest punch. Big calibres only; it is what a .50 has that a 9 mm doesn't.
-    if (tone.calibre > 0.7) {
-      mark(
-        sineSweep(ctx, bodyOut, when + 0.004, {
-          from: tone.subHz * 1.6 * pitch,
-          to: tone.subHz * 0.7 * pitch,
-          seconds: 0.09,
-          gain: 0.5 * tone.bodyLevel * clamp(tone.calibre - 0.5, 0, 1.6),
-          attack: 0.006,
-          decay: tone.bodyDecay * 1.4 * t.bodyDecayScale,
-        }),
-      );
-    }
+
+    // Layer 1: Heavy 40Hz chest-punch sub-bass thump (Modern Warfare sub-octave kick)
+    mark(
+      subPunchSweep(ctx, bodyOut, when + 0.001, {
+        freq: clamp(tone.subHz * 1.2 * pitch, 38, 62),
+        freqEnd: clamp(tone.subHz * 0.7 * pitch, 28, 42),
+        gain: 0.75 * tone.bodyLevel * clamp(0.5 + tone.calibre * 0.5, 0.4, 1.8),
+        attack: 0.0012,
+        decay: Math.max(0.08, tone.bodyDecay * 1.25 * t.bodyDecayScale * vDecay),
+        drive: 1.8,
+        rand,
+      }),
+    );
 
     /* --------------------------------------------------- mechanism -- */
     if (t.mech > 0.02) {
@@ -677,13 +678,28 @@ export function renderShot(
         mark(
           transientClick(ctx, sum, when + delay * range(rand, 0.9, 1.12), {
             freq: hz * pitch * vHz,
-            q: 5.5,
-            gain: tone.mechLevel * level * t.mech,
-            decay: (0.009 + level * 0.011) * vDecay,
+            q: 6.2,
+            gain: tone.mechLevel * level * t.mech * 1.25,
+            decay: (0.009 + level * 0.012) * vDecay,
+            drive: 1.3,
             rand,
           }),
         );
       }
+      // Mechanical slide cycle clack / bolt carrier ring
+      mark(
+        modeRing(
+          ctx,
+          sum,
+          when + 0.008,
+          [
+            { hz: 2400 * pitch, q: 22, gain: 0.14 * tone.mechLevel * t.mech },
+            { hz: 4100 * pitch, q: 26, gain: 0.09 * tone.mechLevel * t.mech },
+            { hz: 6200 * pitch, q: 30, gain: 0.05 * tone.mechLevel * t.mech },
+          ],
+          { decay: 0.045 * vDecay, attack: 0.0004, rand },
+        ),
+      );
       // Belt links and a heavy carrier: the LMG's rattle.
       if (tone.weaponClass === "lmg") {
         mark(

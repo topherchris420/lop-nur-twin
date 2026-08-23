@@ -299,6 +299,10 @@ attribute vec4 aUp;      // xyz + spawnTime
 attribute vec4 aMeta;    // tile index, lifetime, rotation, opacity
 varying vec2 vUv;
 varying float vFade;
+varying vec3 vNormal;
+varying vec3 vTangent;
+varying vec3 vBitangent;
+varying vec2 vLocal;
 uniform float uTime;
 uniform vec2 uAtlas;
 void main() {
@@ -308,6 +312,10 @@ void main() {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     vUv = vec2(0.0);
     vFade = 0.0;
+    vNormal = vec3(0.0, 1.0, 0.0);
+    vTangent = vec3(1.0, 0.0, 0.0);
+    vBitangent = vec3(0.0, 0.0, 1.0);
+    vLocal = vec2(0.0);
     return;
   }
   float rot = aMeta.z;
@@ -321,6 +329,10 @@ void main() {
   float col = mod(tile, uAtlas.x);
   float row = floor(tile / uAtlas.x);
   vUv = (uv + vec2(col, row)) / uAtlas;
+  vLocal = corner;
+  vTangent = normalize(aRight.xyz);
+  vBitangent = normalize(aUp.xyz);
+  vNormal = normalize(cross(aRight.xyz, aUp.xyz));
   // Hold full strength for most of the life, then fade out over the last 20%.
   vFade = aMeta.w * smoothstep(1.0, 0.8, age / life);
   #include <logdepthbuf_vertex>
@@ -333,12 +345,24 @@ const DECAL_FRAGMENT = /* glsl */ `
 uniform sampler2D uMap;
 varying vec2 vUv;
 varying float vFade;
+varying vec3 vNormal;
+varying vec3 vTangent;
+varying vec3 vBitangent;
+varying vec2 vLocal;
 void main() {
   #include <logdepthbuf_fragment>
   vec4 texel = texture2D(uMap, vUv);
   float alpha = texel.a * vFade;
   if (alpha < 0.004) discard;
-  gl_FragColor = vec4(texel.rgb, alpha);
+
+  // Normal-mapped crater cavity: simulate 3D indent catching the sun
+  vec2 rad = vLocal * 2.0;
+  float d = length(rad);
+  vec3 craterN = normalize(vNormal + (-rad.x * vTangent - rad.y * vBitangent) * smoothstep(0.05, 0.65, d) * 0.75);
+  vec3 sunDir = normalize(vec3(0.42, 0.82, -0.38));
+  float diff = clamp(dot(craterN, sunDir), 0.38, 1.28);
+
+  gl_FragColor = vec4(texel.rgb * diff, alpha);
   #include <colorspace_fragment>
 }
 `;
@@ -509,14 +533,17 @@ varying vec4 vColor;
 varying vec2 vUv;
 void main() {
   #include <logdepthbuf_fragment>
-  // Hot thin core inside a softer sheath, brightest at the head.
+  // High-detail phosphor glow: ultra-bright hot needle core + glowing sheath
   float across = 1.0 - abs(vUv.x - 0.5) * 2.0;
-  float core = pow(across, 8.0);
-  float sheath = pow(across, 1.6);
-  float along = pow(vUv.y, 1.7);
-  float intensity = (core * 2.6 + sheath * 0.55) * along * vColor.w;
+  float needle = pow(across, 14.0) * 3.8;
+  float core = pow(across, 4.5) * 1.5;
+  float sheath = pow(across, 1.35) * 0.4;
+  float along = pow(vUv.y, 1.4);
+  float intensity = (needle + core + sheath) * along * vColor.w;
   if (intensity < 0.002) discard;
-  gl_FragColor = vec4(vColor.rgb * intensity, intensity * 0.35);
+  // White-hot core blending into colored phosphor glow
+  vec3 hotRgb = mix(vColor.rgb, vec3(1.4, 1.4, 1.4), pow(across, 7.0) * 0.7);
+  gl_FragColor = vec4(hotRgb * intensity, min(1.0, intensity * 0.45));
 }
 `;
 
@@ -689,15 +716,28 @@ class CasingRenderer {
     }
   }
 
-  eject(position: THREE.Vector3, direction: THREE.Vector3, rand: () => number): void {
+  eject(
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    rand: () => number,
+    linearVelocity?: THREE.Vector3,
+  ): void {
     const casing = this.casings[this.cursor]!;
     this.cursor = (this.cursor + 1) % this.casings.length;
     casing.position.copy(position);
     casing.velocity
       .copy(direction)
-      .multiplyScalar(2.6 + rand() * 1.4)
-      .add(_tmpA.set((rand() - 0.5) * 0.8, 1.5 + rand() * 0.9, (rand() - 0.5) * 0.8));
-    casing.spin.set((rand() - 0.5) * 34, (rand() - 0.5) * 26, (rand() - 0.5) * 40);
+      .multiplyScalar(3.2 + rand() * 1.6)
+      .add(_tmpA.set((rand() - 0.5) * 0.8, 1.8 + rand() * 1.0, (rand() - 0.5) * 0.8));
+    if (linearVelocity) {
+      casing.velocity.addScaledVector(linearVelocity, 0.6);
+    }
+    // 3-axis rapid tumbling spin (35 - 65 rad/s)
+    casing.spin.set(
+      (rand() - 0.5) * 55,
+      (rand() - 0.5) * 42,
+      (rand() - 0.5) * 65,
+    );
     casing.rotation.identity();
     casing.life = 0;
     casing.bounces = 0;
@@ -718,30 +758,56 @@ class CasingRenderer {
         this.mesh.setMatrixAt(i, this.dummy.matrix);
         continue;
       }
-      casing.velocity.y -= 9.81 * dt;
+      casing.velocity.y -= 12.5 * dt; // Gravity
       _tmpA.copy(casing.velocity).multiplyScalar(dt);
+      const stepLen = _tmpA.length();
       const ground = world ? world.groundAt(casing.position.x, casing.position.z) : 0;
-      casing.position.add(_tmpA);
-      if (casing.position.y <= ground + 0.006) {
-        casing.position.y = ground + 0.006;
-        if (casing.velocity.y < -0.4 && casing.bounces < 3) {
+
+      let hitNormal: THREE.Vector3 | null = null;
+      // Check wall/prop collisions via raycast
+      if (world && stepLen > 0.005) {
+        _tmpB.copy(casing.velocity).normalize();
+        const wallHit = world.raycast(casing.position, _tmpB, stepLen + 0.015, 0x07);
+        if (wallHit && wallHit.distance <= stepLen + 0.01) {
+          casing.position.copy(wallHit.point).addScaledVector(wallHit.normal, 0.008);
+          hitNormal = wallHit.normal;
+        }
+      }
+
+      if (!hitNormal) {
+        casing.position.add(_tmpA);
+        if (casing.position.y <= ground + 0.006) {
+          casing.position.y = ground + 0.006;
+          _tmpC.set(0, 1, 0);
+          hitNormal = _tmpC;
+        }
+      }
+
+      // Physical bouncing with restitution, spin disruption, and metallic clatter audio
+      if (hitNormal) {
+        const speed = casing.velocity.length();
+        if (speed > 0.4 && casing.bounces < 4) {
           casing.bounces += 1;
-          casing.velocity.y *= -0.36;
-          casing.velocity.x *= 0.55;
-          casing.velocity.z *= 0.55;
-          casing.spin.multiplyScalar(0.5);
-          if (casing.bounces <= 2) {
+          casing.velocity.reflect(hitNormal).multiplyScalar(0.44);
+          casing.spin.set(
+            (Math.random() - 0.5) * 35,
+            (Math.random() - 0.5) * 35,
+            (Math.random() - 0.5) * 35,
+          );
+          if (casing.bounces <= 3) {
             queueSound({
               id: "shell-drop",
               position: casing.position.clone(),
-              gain: 0.35 / casing.bounces,
+              gain: Math.min(0.65, 0.45 / casing.bounces),
+              pitch: 0.92 + Math.random() * 0.22,
             });
           }
         } else {
           casing.velocity.set(0, 0, 0);
-          casing.spin.multiplyScalar(0.8);
+          casing.spin.multiplyScalar(0.7);
         }
       }
+
       if (casing.spin.lengthSq() > 1e-5) {
         _tmpQuat.setFromEuler(
           _tmpEuler.set(casing.spin.x * dt, casing.spin.y * dt, casing.spin.z * dt),
@@ -828,7 +894,7 @@ export class FxManager {
 
   /* ---------------------------------------------------------------- */
 
-  /** Muzzle flash + smoke + a burst of unburnt powder sparks. */
+  /** Muzzle flash + multi-plane starburst cross planes + smoke + unburnt powder sparks. */
   muzzleFlash(
     position: THREE.Vector3,
     direction: THREE.Vector3,
@@ -839,42 +905,74 @@ export class FxManager {
     const rand = this.rand;
     const scale = this.quality.particleScale;
     if (!suppressed) {
-      const lobes = firstPerson ? 3 : 2;
-      for (let i = 0; i < lobes; i += 1) {
+      // 1. Multi-plane volumetric star-burst cross planes (0°, 60°, 120° axial angles)
+      const planes = firstPerson ? 3 : 2;
+      for (let i = 0; i < planes; i += 1) {
         const p = _spawn;
-        p.position.copy(position).addScaledVector(direction, 0.02 + i * 0.03);
-        p.velocity.copy(direction).multiplyScalar(1.5 + rand() * 2);
-        p.lifetime = 0.045 + rand() * 0.02;
-        p.size0 = calibre * (0.28 + i * 0.06);
-        p.size1 = calibre * (0.34 + i * 0.08);
-        // Well above 1.0: AgX + bloom turn this into a real flash.
-        p.color0.setRGB(11, 7.4, 3.2);
-        p.color1.setRGB(5, 2.2, 0.5);
+        p.position.copy(position).addScaledVector(direction, 0.015 + i * 0.025);
+        p.velocity.copy(direction).multiplyScalar(1.6 + rand() * 2.2);
+        p.lifetime = 0.042 + rand() * 0.018;
+        p.size0 = calibre * (0.32 + i * 0.08);
+        p.size1 = calibre * (0.42 + i * 0.1);
+        // Dazzling emissive HDR core for AgX bloom kick
+        p.color0.setRGB(18.0, 12.5, 5.5);
+        p.color1.setRGB(6.5, 2.8, 0.6);
         p.alpha0 = 1;
         p.alpha1 = 0;
         p.gravity = 0;
-        p.drag = 6;
-        p.rotation = rand() * Math.PI * 2;
+        p.drag = 5.5;
+        p.rotation = (i * Math.PI) / 3 + (rand() - 0.5) * 0.2;
         p.rotationRate = 0;
-        p.sprite = SPRITE.flash;
+        p.sprite = SPRITE.crossFlash;
         p.additive = 1;
         p.stretch = 0;
         p.turbulence = 0;
         this.particles.spawn(p);
       }
-      // Hot gas ball right at the crown.
+
+      // Radial compensator / muzzle brake gas vents
+      const vents = 4;
+      _tmpC.set(0, 1, 0);
+      if (Math.abs(direction.y) > 0.9) _tmpC.set(1, 0, 0);
+      _tmpA.crossVectors(direction, _tmpC).normalize();
+      _tmpB.crossVectors(direction, _tmpA).normalize();
+      for (let v = 0; v < vents; v += 1) {
+        const angle = (v / vents) * Math.PI * 2 + Math.PI / 4;
+        _tmpC.copy(_tmpA).multiplyScalar(Math.cos(angle)).addScaledVector(_tmpB, Math.sin(angle));
+        const p = _spawn;
+        p.position.copy(position).addScaledVector(direction, 0.02);
+        p.velocity.copy(_tmpC).multiplyScalar(4.5 + rand() * 3).addScaledVector(direction, 1.5);
+        p.lifetime = 0.038 + rand() * 0.015;
+        p.size0 = calibre * 0.15;
+        p.size1 = calibre * 0.32;
+        p.color0.setRGB(15.0, 9.5, 3.5);
+        p.color1.setRGB(4.5, 1.8, 0.4);
+        p.alpha0 = 0.9;
+        p.alpha1 = 0;
+        p.gravity = 0;
+        p.drag = 8;
+        p.rotation = rand() * 6.28;
+        p.rotationRate = 0;
+        p.sprite = SPRITE.flash;
+        p.additive = 1;
+        p.stretch = 0.8;
+        p.turbulence = 0;
+        this.particles.spawn(p);
+      }
+
+      // Hot gas ball right at the crown
       const gas = _spawn;
       gas.position.copy(position).addScaledVector(direction, 0.05);
-      gas.velocity.copy(direction).multiplyScalar(3.5);
-      gas.lifetime = 0.11;
-      gas.size0 = calibre * 0.18;
-      gas.size1 = calibre * 0.55;
-      gas.color0.setRGB(6, 3.4, 1.2);
-      gas.color1.setRGB(0.5, 0.3, 0.2);
-      gas.alpha0 = 0.85;
+      gas.velocity.copy(direction).multiplyScalar(3.8);
+      gas.lifetime = 0.12;
+      gas.size0 = calibre * 0.22;
+      gas.size1 = calibre * 0.68;
+      gas.color0.setRGB(8.5, 4.8, 1.6);
+      gas.color1.setRGB(0.6, 0.35, 0.2);
+      gas.alpha0 = 0.9;
       gas.alpha1 = 0;
-      gas.gravity = -1.2;
-      gas.drag = 5;
+      gas.gravity = -1.5;
+      gas.drag = 4.8;
       gas.rotation = rand() * 6.28;
       gas.rotationRate = (rand() - 0.5) * 6;
       gas.sprite = SPRITE.fire;
@@ -883,29 +981,29 @@ export class FxManager {
       gas.turbulence = 0;
       this.particles.spawn(gas);
 
-      // Unburnt powder thrown forward.
-      const sparks = Math.round(6 * scale);
+      // Unburnt powder sparks thrown forward
+      const sparks = Math.round(9 * scale);
       for (let i = 0; i < sparks; i += 1) {
         const p = _spawn;
         p.position.copy(position);
         p.velocity
           .copy(direction)
-          .multiplyScalar(7 + rand() * 9)
-          .add(_tmpA.set((rand() - 0.5) * 3, (rand() - 0.5) * 3, (rand() - 0.5) * 3));
-        p.lifetime = 0.16 + rand() * 0.22;
-        p.size0 = 0.012;
-        p.size1 = 0.004;
-        p.color0.setRGB(9, 4.4, 1.1);
-        p.color1.setRGB(2.2, 0.5, 0.08);
+          .multiplyScalar(8 + rand() * 12)
+          .add(_tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5));
+        p.lifetime = 0.18 + rand() * 0.25;
+        p.size0 = 0.014;
+        p.size1 = 0.003;
+        p.color0.setRGB(12.0, 6.5, 1.8);
+        p.color1.setRGB(3.2, 0.7, 0.09);
         p.alpha0 = 1;
         p.alpha1 = 0;
-        p.gravity = 7;
-        p.drag = 2.2;
+        p.gravity = 8.5;
+        p.drag = 1.9;
         p.rotation = 0;
         p.rotationRate = 0;
         p.sprite = SPRITE.spark;
         p.additive = 1;
-        p.stretch = 1.6;
+        p.stretch = 2.4;
         p.turbulence = 0;
         this.particles.spawn(p);
       }
@@ -913,30 +1011,30 @@ export class FxManager {
       this.popFlashLight(position, calibre);
     }
 
-    // Muzzle smoke, always — it is what makes sustained fire read as heat.
-    const puffs = Math.round((suppressed ? 4 : 2) * scale);
+    // Muzzle smoke puff
+    const puffs = Math.round((suppressed ? 4 : 3) * scale);
     for (let i = 0; i < puffs; i += 1) {
       const p = _spawn;
-      p.position.copy(position).addScaledVector(direction, 0.03 + rand() * 0.06);
+      p.position.copy(position).addScaledVector(direction, 0.03 + rand() * 0.07);
       p.velocity
         .copy(direction)
-        .multiplyScalar(1.4 + rand() * 1.6)
-        .add(_tmpA.set((rand() - 0.5) * 0.5, 0.35 + rand() * 0.4, (rand() - 0.5) * 0.5));
-      p.lifetime = 0.6 + rand() * 0.9;
-      p.size0 = calibre * 0.22;
-      p.size1 = calibre * (2.2 + rand());
-      p.color0.setRGB(0.42, 0.4, 0.37);
-      p.color1.setRGB(0.3, 0.29, 0.27);
-      p.alpha0 = suppressed ? 0.32 : 0.16;
+        .multiplyScalar(1.5 + rand() * 1.8)
+        .add(_tmpA.set((rand() - 0.5) * 0.6, 0.4 + rand() * 0.5, (rand() - 0.5) * 0.6));
+      p.lifetime = 0.7 + rand() * 1.0;
+      p.size0 = calibre * 0.24;
+      p.size1 = calibre * (2.4 + rand() * 1.2);
+      p.color0.setRGB(0.44, 0.42, 0.38);
+      p.color1.setRGB(0.32, 0.3, 0.28);
+      p.alpha0 = suppressed ? 0.35 : 0.18;
       p.alpha1 = 0;
-      p.gravity = -0.5;
-      p.drag = 1.6;
+      p.gravity = -0.6;
+      p.drag = 1.5;
       p.rotation = rand() * 6.28;
       p.rotationRate = (rand() - 0.5) * 1.6;
       p.sprite = SPRITE.smoke;
       p.additive = 0;
       p.stretch = 0;
-      p.turbulence = 0.25;
+      p.turbulence = 0.3;
       this.particles.spawn(p);
     }
   }
@@ -948,16 +1046,88 @@ export class FxManager {
     this.flashCursor += 1;
     const light = this.flashLights[index]!;
     light.position.copy(position);
-    light.intensity = 26 * calibre * 12;
-    light.distance = 16;
+    light.intensity = 32 * calibre * 12;
+    light.distance = 18;
     light.visible = true;
     this.flashTimers[index] = 0.055;
   }
 
   /** Casing ejection, called by the weapon layer with the port transform. */
-  ejectCasing(position: THREE.Vector3, direction: THREE.Vector3): void {
+  ejectCasing(
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    linearVelocity?: THREE.Vector3,
+  ): void {
     if (!this.quality.casings) return;
-    this.casings.eject(position, direction, this.rand);
+    this.casings.eject(position, direction, this.rand, linearVelocity);
+  }
+
+  /** Barrel heat mirage: shimmering refractive heat waves rising off a hot barrel. */
+  barrelHeatMirage(
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    heat: number,
+  ): void {
+    if (heat < 0.15) return;
+    const rand = this.rand;
+    const count = Math.min(3, Math.round(heat * 2.8 * this.quality.particleScale));
+    for (let i = 0; i < count; i += 1) {
+      const p = _spawn;
+      p.position
+        .copy(position)
+        .addScaledVector(direction, (rand() - 0.5) * 0.2);
+      p.position.y += 0.015 + rand() * 0.03;
+      p.velocity.set((rand() - 0.5) * 0.12, 0.45 + rand() * 0.6, (rand() - 0.5) * 0.12);
+      p.lifetime = 0.32 + rand() * 0.35;
+      p.size0 = 0.04 + rand() * 0.03;
+      p.size1 = 0.18 + rand() * 0.12;
+      p.color0.setRGB(1.0, 1.0, 1.0);
+      p.color1.setRGB(0.92, 0.9, 0.88);
+      p.alpha0 = Math.min(0.24, 0.08 * heat);
+      p.alpha1 = 0;
+      p.gravity = -1.8;
+      p.drag = 1.3;
+      p.rotation = rand() * 6.28;
+      p.rotationRate = (rand() - 0.5) * 3.5;
+      p.sprite = SPRITE.heatHaze;
+      p.additive = 1;
+      p.stretch = 0;
+      p.turbulence = 0.7;
+      this.particles.spawn(p);
+    }
+  }
+
+  /** Barrel smoke wisps rising off hot barrel after sustained burst fire. */
+  barrelSmoke(
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    heat: number,
+  ): void {
+    if (heat < 0.25) return;
+    const rand = this.rand;
+    const count = Math.min(2, Math.round(heat * 1.8 * this.quality.particleScale));
+    for (let i = 0; i < count; i += 1) {
+      const p = _spawn;
+      p.position.copy(position).addScaledVector(direction, (rand() - 0.5) * 0.15);
+      p.position.y += 0.01 + rand() * 0.02;
+      p.velocity.set((rand() - 0.5) * 0.08, 0.3 + rand() * 0.4, (rand() - 0.5) * 0.08);
+      p.lifetime = 0.65 + rand() * 0.6;
+      p.size0 = 0.025 + rand() * 0.02;
+      p.size1 = 0.18 + rand() * 0.14;
+      p.color0.setRGB(0.5, 0.48, 0.45);
+      p.color1.setRGB(0.35, 0.34, 0.32);
+      p.alpha0 = Math.min(0.25, 0.12 * heat);
+      p.alpha1 = 0;
+      p.gravity = -1.4;
+      p.drag = 1.1;
+      p.rotation = rand() * 6.28;
+      p.rotationRate = (rand() - 0.5) * 1.8;
+      p.sprite = SPRITE.smoke;
+      p.additive = 0;
+      p.stretch = 0;
+      p.turbulence = 0.4;
+      this.particles.spawn(p);
+    }
   }
 
   /* ---------------------------------------------------------------- */
@@ -976,82 +1146,94 @@ export class FxManager {
 
     const isBlood = request.kind === "blood" || request.kind === "blood-headshot";
     if (isBlood) {
-      const drops = Math.round((request.kind === "blood-headshot" ? 22 : 12) * scale);
+      const isHeadshot = request.kind === "blood-headshot";
+      const drops = Math.round((isHeadshot ? 26 : 14) * scale);
+      // Directional arterial splatter
       for (let i = 0; i < drops; i += 1) {
         const p = _spawn;
         p.position.copy(request.point);
         p.velocity
           .copy(request.incoming)
-          .multiplyScalar(2 + rand() * 5)
+          .multiplyScalar(2.5 + rand() * 6.5)
           .add(
-            _tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5),
+            _tmpA.set((rand() - 0.5) * 4, (rand() - 0.5) * 4, (rand() - 0.5) * 4),
           );
-        p.lifetime = 0.35 + rand() * 0.5;
-        p.size0 = 0.03 + rand() * 0.05;
-        p.size1 = 0.015;
-        p.color0.setRGB(0.32, 0.02, 0.02);
-        p.color1.setRGB(0.14, 0.01, 0.01);
-        p.alpha0 = 0.85;
+        p.lifetime = 0.38 + rand() * 0.55;
+        p.size0 = 0.035 + rand() * 0.06;
+        p.size1 = 0.016;
+        p.color0.setRGB(0.35, 0.02, 0.02);
+        p.color1.setRGB(0.15, 0.01, 0.01);
+        p.alpha0 = 0.9;
         p.alpha1 = 0;
         p.gravity = 11;
-        p.drag = 1.4;
+        p.drag = 1.3;
         p.rotation = rand() * 6.28;
         p.rotationRate = (rand() - 0.5) * 8;
         p.sprite = SPRITE.blood;
         p.additive = 0;
-        p.stretch = 0.6;
+        p.stretch = 0.7;
         p.turbulence = 0;
         this.particles.spawn(p);
       }
-      // Fine mist that hangs for a moment.
-      const mist = _spawn;
-      mist.position.copy(request.point);
-      mist.velocity.copy(request.incoming).multiplyScalar(1.2);
-      mist.lifetime = 0.45;
-      mist.size0 = 0.1;
-      mist.size1 = 0.42;
-      mist.color0.setRGB(0.28, 0.03, 0.03);
-      mist.color1.setRGB(0.16, 0.02, 0.02);
-      mist.alpha0 = 0.4;
-      mist.alpha1 = 0;
-      mist.gravity = 1.5;
-      mist.drag = 3;
-      mist.rotation = rand() * 6.28;
-      mist.rotationRate = 1;
-      mist.sprite = SPRITE.blood;
-      mist.additive = 0;
-      mist.stretch = 0;
-      mist.turbulence = 0.2;
-      this.particles.spawn(mist);
+
+      // Volumetric hanging blood mist
+      const mistClouds = isHeadshot ? 2 : 1;
+      for (let m = 0; m < mistClouds; m += 1) {
+        const mist = _spawn;
+        mist.position.copy(request.point).addScaledVector(request.incoming, 0.05 * m);
+        mist.velocity.copy(request.incoming).multiplyScalar(1.2 + rand() * 0.8);
+        mist.lifetime = 0.55 + rand() * 0.3;
+        mist.size0 = isHeadshot ? 0.16 : 0.11;
+        mist.size1 = isHeadshot ? 0.58 : 0.44;
+        mist.color0.setRGB(0.32, 0.03, 0.03);
+        mist.color1.setRGB(0.18, 0.015, 0.015);
+        mist.alpha0 = isHeadshot ? 0.55 : 0.42;
+        mist.alpha1 = 0;
+        mist.gravity = 1.2;
+        mist.drag = 2.8;
+        mist.rotation = rand() * 6.28;
+        mist.rotationRate = 1.2;
+        mist.sprite = SPRITE.bloodMist;
+        mist.additive = 0;
+        mist.stretch = 0;
+        mist.turbulence = 0.28;
+        this.particles.spawn(mist);
+      }
       return;
     }
 
     /* -------------------------------------------------------- sparks */
     if (profile.sparkiness > 0.05) {
-      const count = Math.round(profile.sparkiness * 16 * energy * scale);
+      const isMetal = request.surface === "metal" || request.surface === "thin-metal";
+      const count = Math.round(profile.sparkiness * (isMetal ? 24 : 16) * energy * scale);
       for (let i = 0; i < count; i += 1) {
         const p = _spawn;
         p.position.copy(request.point);
-        // Sparks fly back along the reflection, with a wide cone.
+        // Sparks fly back along the reflection with angular dispersion
         _tmpA.copy(request.incoming).reflect(request.normal);
         p.velocity
           .copy(_tmpA)
-          .multiplyScalar(4 + rand() * 12)
+          .multiplyScalar((isMetal ? 6 : 4) + rand() * (isMetal ? 16 : 10))
           .add(_tmpB.set((rand() - 0.5) * 6, (rand() - 0.5) * 6, (rand() - 0.5) * 6));
-        p.lifetime = 0.25 + rand() * 0.5;
-        p.size0 = 0.014;
+        p.lifetime = 0.28 + rand() * 0.55;
+        p.size0 = isMetal ? 0.016 : 0.013;
         p.size1 = 0.003;
-        p.color0.setRGB(12, 6, 1.6);
-        p.color1.setRGB(2.4, 0.4, 0.04);
+        if (isMetal) {
+          p.color0.setRGB(16.0, 9.5, 2.5);
+          p.color1.setRGB(3.8, 0.6, 0.06);
+        } else {
+          p.color0.setRGB(10.0, 5.5, 1.5);
+          p.color1.setRGB(2.2, 0.4, 0.04);
+        }
         p.alpha0 = 1;
         p.alpha1 = 0;
-        p.gravity = 9;
+        p.gravity = 9.81;
         p.drag = 1.1;
         p.rotation = 0;
         p.rotationRate = 0;
         p.sprite = SPRITE.spark;
         p.additive = 1;
-        p.stretch = 2.4;
+        p.stretch = isMetal ? 2.8 : 2.2;
         p.turbulence = 0;
         this.particles.spawn(p);
       }
@@ -1059,7 +1241,7 @@ export class FxManager {
 
     /* --------------------------------------------------------- dust */
     const dustCount = Math.round(
-      (request.surface === "sand" || request.surface === "gravel" ? 9 : 5) *
+      (request.surface === "sand" || request.surface === "gravel" ? 10 : 5) *
         energy *
         scale,
     );
@@ -1068,14 +1250,14 @@ export class FxManager {
       p.position.copy(request.point).addScaledVector(request.normal, 0.02);
       p.velocity
         .copy(request.normal)
-        .multiplyScalar(1.2 + rand() * 2.6)
-        .add(_tmpA.set((rand() - 0.5) * 1.6, rand() * 1.2, (rand() - 0.5) * 1.6));
-      p.lifetime = 0.5 + rand() * 1.1;
-      p.size0 = 0.05 + rand() * 0.06;
-      p.size1 = 0.34 + rand() * 0.4;
+        .multiplyScalar(1.2 + rand() * 2.8)
+        .add(_tmpA.set((rand() - 0.5) * 1.8, rand() * 1.4, (rand() - 0.5) * 1.8));
+      p.lifetime = 0.55 + rand() * 1.2;
+      p.size0 = 0.05 + rand() * 0.07;
+      p.size1 = 0.36 + rand() * 0.45;
       p.color0.copy(_tmpColor).multiplyScalar(1.05);
       p.color1.copy(_tmpColor).multiplyScalar(0.72);
-      p.alpha0 = 0.4;
+      p.alpha0 = 0.42;
       p.alpha1 = 0;
       p.gravity = 0.7;
       p.drag = 2.4;
@@ -1089,30 +1271,37 @@ export class FxManager {
     }
 
     /* ------------------------------------------------------- debris */
-    const debrisCount = Math.round(4 * energy * scale);
+    const debrisCount = Math.round(5 * energy * scale);
     for (let i = 0; i < debrisCount; i += 1) {
       const p = _spawn;
       p.position.copy(request.point);
       p.velocity
         .copy(request.normal)
-        .multiplyScalar(2.5 + rand() * 5)
-        .add(_tmpA.set((rand() - 0.5) * 4, rand() * 2, (rand() - 0.5) * 4));
-      p.lifetime = 0.6 + rand() * 0.7;
-      p.size0 = 0.012 + rand() * 0.018;
-      p.size1 = 0.01;
-      p.color0.copy(_tmpColor).multiplyScalar(0.8);
+        .multiplyScalar(3.0 + rand() * 6)
+        .add(_tmpA.set((rand() - 0.5) * 4.5, rand() * 2.5, (rand() - 0.5) * 4.5));
+      p.lifetime = 0.65 + rand() * 0.75;
+      p.size0 = 0.014 + rand() * 0.02;
+      p.size1 = 0.011;
+      p.color0.copy(_tmpColor).multiplyScalar(0.85);
       p.color1.copy(_tmpColor).multiplyScalar(0.5);
       p.alpha0 = 1;
       p.alpha1 = 0.6;
-      p.gravity = 13;
+      p.gravity = 13.5;
       p.drag = 0.5;
       p.rotation = rand() * 6.28;
-      p.rotationRate = (rand() - 0.5) * 16;
+      p.rotationRate = (rand() - 0.5) * 18;
       p.sprite = SPRITE.debris;
       p.additive = 0;
-      p.stretch = 0.2;
+      p.stretch = 0.25;
       p.turbulence = 0;
       this.particles.spawn(p);
+    }
+
+    /* ---------------------------------------------------- ricochet tracer */
+    if (request.kind === "ricochet") {
+      _tmpA.copy(request.incoming).reflect(request.normal).normalize();
+      _tmpB.copy(request.point).addScaledVector(_tmpA, 40);
+      this.tracers.add(request.point, _tmpB, 450, 0xffd277, false);
     }
 
     /* -------------------------------------------------------- decal */

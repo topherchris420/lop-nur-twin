@@ -420,7 +420,14 @@ export type SoundId =
   | "ui-confirm"
   | "killstreak-ready"
   | "jet-pass"
-  | "shell-drop";
+  | "shell-drop"
+  | "heartbeat"
+  | "radio-chirp"
+  | "radio-contact"
+  | "radio-reloading"
+  | "radio-hostile-down"
+  | "radio-frag-out"
+  | "radio-chatter";
 
 export interface SoundRequest {
   id: SoundId;

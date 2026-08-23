@@ -18,6 +18,7 @@ import {
   queueTracer,
   type Actor,
 } from "../core/gameState";
+import { recordGunfirePing } from "../core/combat";
 import type { CollisionWorld } from "../physics/collisionWorld";
 
 /**
@@ -104,6 +105,15 @@ export class WeaponRuntime {
 
   /** 0..1 aim-down-sight blend. */
   ads = 0;
+  /** Tac-Stance (45-degree canted stance) active flag. */
+  tacStance = false;
+  /** Heat level 0..2+ accumulated from rapid automatic fire. Drives barrel mirage. */
+  barrelHeat = 0;
+  /** Whether the weapon chamber inspect animation is currently active. */
+  inspecting = false;
+  inspectTimer = 0;
+  inspectDuration = 3.4;
+
   /** Accumulated view kick the camera should apply, in radians. */
   kickPitch = 0;
   kickYaw = 0;
@@ -148,6 +158,16 @@ export class WeaponRuntime {
     return this.state === "reloading";
   }
 
+  get isInspecting(): boolean {
+    return this.inspecting;
+  }
+
+  get inspectProgress(): number {
+    return this.inspectDuration > 0
+      ? Math.min(1, this.inspectTimer / this.inspectDuration)
+      : 0;
+  }
+
   get reloadProgress(): number {
     return this.reloadDuration > 0
       ? Math.min(1, this.stateTimer / this.reloadDuration)
@@ -156,6 +176,38 @@ export class WeaponRuntime {
 
   get needsReload(): boolean {
     return this.ammo <= 0 && this.reserve > 0;
+  }
+
+  toggleTacStance(): boolean {
+    this.tacStance = !this.tacStance;
+    return this.tacStance;
+  }
+
+  setTacStance(enabled: boolean): void {
+    this.tacStance = enabled;
+  }
+
+  beginInspect(): boolean {
+    if (
+      this.state === "reloading" ||
+      this.state === "raising" ||
+      this.state === "lowering"
+    ) {
+      return false;
+    }
+    this.inspecting = true;
+    this.inspectTimer = 0;
+    this.state = "inspecting";
+    queueSound({ id: "weapon-raise", gain: 0.35, pitch: 1.1, weaponId: this.def.id });
+    return true;
+  }
+
+  cancelInspect(): void {
+    if (this.inspecting) {
+      this.inspecting = false;
+      this.inspectTimer = 0;
+      if (this.state === "inspecting") this.state = "idle";
+    }
   }
 
   cycleFireMode(): void {
@@ -167,7 +219,9 @@ export class WeaponRuntime {
   /** Current cone half-angle in degrees, for the crosshair and for shooting. */
   spreadDeg(stance: Stance, speed: number, airborne: boolean): number {
     const s = this.def.spread;
-    const aimed = s.hipDeg + (s.adsDeg - s.hipDeg) * this.ads;
+    // In Tac-Stance, aimed spread is tightly collimated for tactical laser point-shooting
+    const targetAimed = this.tacStance ? s.hipDeg * 0.35 + s.adsDeg * 0.65 : s.adsDeg;
+    const aimed = s.hipDeg + (targetAimed - s.hipDeg) * this.ads;
     let spread = aimed;
     spread += s.moveDeg * Math.min(1, speed / 5) * (1 - this.ads * 0.55);
     if (airborne) spread += s.airDeg * (1 - this.ads * 0.3);
@@ -193,6 +247,27 @@ export class WeaponRuntime {
     this.ejectThisFrame = false;
     this.triggerWasHeld = this.triggerHeld;
     this.triggerHeld = context.wantsFire;
+
+    // Any combat input instantly cancels weapon inspect
+    if (
+      this.inspecting &&
+      (context.wantsFire ||
+        context.wantsAds ||
+        !context.canFire ||
+        this.state === "reloading")
+    ) {
+      this.cancelInspect();
+    }
+
+    if (this.inspecting) {
+      this.inspectTimer += dt;
+      if (this.inspectTimer >= this.inspectDuration) {
+        this.cancelInspect();
+      }
+    }
+
+    // Dissipate barrel heat from sustained automatic fire
+    this.barrelHeat = Math.max(0, this.barrelHeat - dt * 0.22);
 
     const h = this.def.handling;
     const adsTarget =
@@ -272,12 +347,15 @@ export class WeaponRuntime {
 
   fire(context: ShotContext): void {
     const def = this.def;
+    this.cancelInspect();
     this.ammo -= 1;
     this.shotClock = shotInterval(def.rpm);
     this.lastShotTime = context.time;
     this.firedThisFrame = true;
     this.ejectThisFrame = def.weaponClass !== "melee" && def.weaponClass !== "launcher";
     this.shotIndex += 1;
+    // Accumulate barrel heat for mirage distortion effects
+    this.barrelHeat = Math.min(2.5, this.barrelHeat + (def.weaponClass === "lmg" ? 0.09 : 0.12));
 
     if (this.fireMode === "burst") {
       this.shotsInBurst =
@@ -290,7 +368,7 @@ export class WeaponRuntime {
     const jitter = (this.rand() - 0.5) * 2 * def.recoil.jitterDeg;
     const pitchDeg = this.pattern[index * 2]!;
     const yawDeg = this.pattern[index * 2 + 1]! + jitter;
-    const adsScale = 1 - this.ads * 0.24;
+    const adsScale = 1 - this.ads * (this.tacStance ? 0.18 : 0.24);
     const pitchRad = THREE.MathUtils.degToRad(pitchDeg) * adsScale;
     const yawRad = THREE.MathUtils.degToRad(yawDeg) * adsScale;
     this.kickPitch += pitchRad;
@@ -313,6 +391,7 @@ export class WeaponRuntime {
       pitch: 0.985 + this.rand() * 0.03,
       variant: this.shotIndex & 7,
     });
+    recordGunfirePing(context.shooter, context.time);
 
     /* ---------------------------------------------------- rounds */
     const spread = THREE.MathUtils.degToRad(

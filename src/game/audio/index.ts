@@ -26,7 +26,15 @@ import {
   renderVault,
   renderWhizz,
 } from "./world";
-import { modeRing, noiseBurst, sineSweep, transientClick } from "./synth";
+import {
+  boneCrunch,
+  metallicHitPing,
+  modeRing,
+  noiseBurst,
+  proceduralRadioCallout,
+  sineSweep,
+  transientClick,
+} from "./synth";
 
 /**
  * The audio front end: one engine, and the map from sound id to the function
@@ -37,45 +45,41 @@ import { modeRing, noiseBurst, sineSweep, transientClick } from "./synth";
 /* Feedback                                                            */
 /* ------------------------------------------------------------------ */
 
-/** A hit confirmation. Short, dry and above the mix — never in the world. */
+/**
+ * Signature Call of Duty hitmarker metallic ping.
+ * Short, crisp, dry and above the mix — immediate hit confirmation.
+ */
 function renderHitmarker(v: VoiceRender): number {
-  return transientClick(v.ctx, v.dest, v.when, {
-    freq: 2600,
-    q: 3,
-    gain: 0.3,
-    decay: 0.045,
+  return metallicHitPing(v.ctx, v.dest, v.when, {
+    gain: 0.52 * (v.request.gain ?? 1),
+    pitch: v.request.pitch,
     rand: v.rand,
   });
 }
 
+/**
+ * Heavy skull crunch and bass thud for headshot kills.
+ * Visceral bone break + low sub-thump + high-Q helmet ding.
+ */
 function renderHeadshot(v: VoiceRender): number {
-  const end = renderHitmarker(v);
-  return Math.max(
-    end,
-    modeRing(
-      v.ctx,
-      v.dest,
-      v.when + 0.01,
-      [
-        { hz: 3400, q: 24, gain: 0.24 },
-        { hz: 5100, q: 20, gain: 0.14 },
-      ],
-      { decay: 0.16, rand: v.rand },
-    ),
-  );
+  return boneCrunch(v.ctx, v.dest, v.when, {
+    gain: 0.78 * (v.request.gain ?? 1),
+    rand: v.rand,
+  });
 }
 
 function renderKill(v: VoiceRender): number {
-  // Two rising partials: the genre's "confirmed" cue without a melody.
+  // Triple rising harmonic confirmation chord (880Hz, 1320Hz, 1760Hz) + crisp ping
   const end = modeRing(
     v.ctx,
     v.dest,
     v.when,
     [
-      { hz: 880, q: 20, gain: 0.2 },
-      { hz: 1320, q: 18, gain: 0.14 },
+      { hz: 880, q: 24, gain: 0.28 },
+      { hz: 1320, q: 22, gain: 0.22 },
+      { hz: 1760, q: 20, gain: 0.16 },
     ],
-    { decay: 0.2, rand: v.rand },
+    { decay: 0.22, rand: v.rand },
   );
   return Math.max(end, renderHitmarker(v));
 }
@@ -129,6 +133,106 @@ function renderUiSelect(v: VoiceRender): number {
   });
 }
 
+/** Critical low-health dual-thump heartbeat. */
+function renderHeartbeat(v: VoiceRender): number {
+  const g = v.request.gain ?? 1;
+  // First thump (lub)
+  let end = sineSweep(v.ctx, v.dest, v.when, {
+    from: 82,
+    to: 36,
+    seconds: 0.13,
+    gain: 0.75 * g,
+    attack: 0.005,
+    decay: 0.14,
+    rand: v.rand,
+  });
+  end = Math.max(
+    end,
+    noiseBurst(v.ctx, v.dest, v.when, {
+      kind: "brown",
+      filter: "lowpass",
+      freq: 140,
+      gain: 0.35 * g,
+      attack: 0.004,
+      decay: 0.11,
+      rand: v.rand,
+    }),
+  );
+  // Second thump (dub) slightly lighter, 140ms later
+  end = Math.max(
+    end,
+    sineSweep(v.ctx, v.dest, v.when + 0.14, {
+      from: 96,
+      to: 44,
+      seconds: 0.1,
+      gain: 0.55 * g,
+      attack: 0.004,
+      decay: 0.11,
+      rand: v.rand,
+    }),
+  );
+  end = Math.max(
+    end,
+    noiseBurst(v.ctx, v.dest, v.when + 0.14, {
+      kind: "brown",
+      filter: "lowpass",
+      freq: 160,
+      gain: 0.25 * g,
+      attack: 0.004,
+      decay: 0.09,
+      rand: v.rand,
+    }),
+  );
+  return end;
+}
+
+/** Tactical squad radio click and squelch chirp. */
+function renderRadioChirp(v: VoiceRender): number {
+  const g = v.request.gain ?? 1;
+  const click = transientClick(v.ctx, v.dest, v.when, {
+    freq: 2200,
+    q: 8,
+    gain: 0.22 * g,
+    decay: 0.025,
+    rand: v.rand,
+  });
+  const noise = noiseBurst(v.ctx, v.dest, v.when + 0.01, {
+    kind: "pink",
+    filter: "bandpass",
+    freq: 2400,
+    q: 2.5,
+    gain: 0.18 * g,
+    attack: 0.002,
+    decay: 0.04,
+    rand: v.rand,
+  });
+  return Math.max(click, noise);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tactical Squad Radio Callouts                                       */
+/* ------------------------------------------------------------------ */
+
+function renderRadioContact(v: VoiceRender): number {
+  return proceduralRadioCallout(v.ctx, v.dest, v.when, "contact-front", v.rand);
+}
+
+function renderRadioReloading(v: VoiceRender): number {
+  return proceduralRadioCallout(v.ctx, v.dest, v.when, "reloading", v.rand);
+}
+
+function renderRadioHostileDown(v: VoiceRender): number {
+  return proceduralRadioCallout(v.ctx, v.dest, v.when, "hostile-down", v.rand);
+}
+
+function renderRadioFragOut(v: VoiceRender): number {
+  return proceduralRadioCallout(v.ctx, v.dest, v.when, "frag-out", v.rand);
+}
+
+function renderRadioChatter(v: VoiceRender): number {
+  return proceduralRadioCallout(v.ctx, v.dest, v.when, "chatter", v.rand);
+}
+
 /* ------------------------------------------------------------------ */
 /* Registry                                                            */
 /* ------------------------------------------------------------------ */
@@ -158,6 +262,13 @@ const RENDERERS: Partial<Record<SoundId, VoiceRenderer>> = {
   kill: renderKill,
   damage: renderDamage,
   death: renderDeath,
+  heartbeat: renderHeartbeat,
+  "radio-chirp": renderRadioChirp,
+  "radio-contact": renderRadioContact,
+  "radio-reloading": renderRadioReloading,
+  "radio-hostile-down": renderRadioHostileDown,
+  "radio-frag-out": renderRadioFragOut,
+  "radio-chatter": renderRadioChatter,
   "ui-select": renderUiSelect,
   "ui-confirm": renderUiSelect,
 };

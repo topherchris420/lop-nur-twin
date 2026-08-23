@@ -97,8 +97,16 @@ const PRIORITY: Partial<Record<SoundId, number>> = {
   "reload-bolt": 6,
   impact: 4,
   ricochet: 4,
+  slide: 5,
   footstep: 2,
+  heartbeat: 9,
+  "radio-chirp": 7,
   "shell-drop": 1,
+  "radio-contact": 8,
+  "radio-reloading": 7,
+  "radio-hostile-down": 7,
+  "radio-frag-out": 8,
+  "radio-chatter": 6,
 };
 
 export interface AudioEngineOptions {
@@ -113,6 +121,10 @@ const _source = new THREE.Vector3();
 export class AudioEngine {
   readonly ctx: AudioContext;
   private readonly master: GainNode;
+  private readonly suppressionLp: BiquadFilterNode;
+  private readonly tinnitusGain: GainNode;
+  private readonly tinnitusOsc: OscillatorNode;
+  private readonly tinnitusLfo: OscillatorNode;
   private readonly limiter: DynamicsCompressorNode;
   private readonly buses = new Map<BusId, GainNode>();
   private readonly reverb: ConvolverPool;
@@ -120,6 +132,7 @@ export class AudioEngine {
   private readonly renderers = new Map<SoundId, VoiceRenderer>();
   private readonly maxVoices: number;
   private readonly options: AudioEngineOptions;
+  private tinnitusIntensity = 0;
   private unlocked = false;
 
   constructor(options: AudioEngineOptions = {}) {
@@ -140,13 +153,48 @@ export class AudioEngine {
     this.master.connect(this.limiter);
     this.limiter.connect(this.ctx.destination);
 
+    // Suppression / Acoustic trauma muffled lowpass filter
+    this.suppressionLp = this.ctx.createBiquadFilter();
+    this.suppressionLp.type = "lowpass";
+    this.suppressionLp.frequency.value = 20000;
+    this.suppressionLp.Q.value = 0.7071;
+    this.suppressionLp.connect(this.master);
+
+    // High-pitched 4kHz tinnitus ringing oscillator with subtle amplitude flutter
+    this.tinnitusOsc = this.ctx.createOscillator();
+    this.tinnitusOsc.type = "sine";
+    this.tinnitusOsc.frequency.value = 4080;
+    this.tinnitusGain = gainNode(this.ctx, 0);
+
+    this.tinnitusLfo = this.ctx.createOscillator();
+    this.tinnitusLfo.type = "sine";
+    this.tinnitusLfo.frequency.value = 4.2;
+    const lfoDepth = gainNode(this.ctx, 0.035);
+    this.tinnitusLfo.connect(lfoDepth);
+    lfoDepth.connect(this.tinnitusGain.gain);
+
+    this.tinnitusOsc.connect(this.tinnitusGain);
+    this.tinnitusGain.connect(this.master);
+    this.tinnitusOsc.start(0);
+    this.tinnitusLfo.start(0);
+
     for (const id of ["weapons", "world", "ui", "music"] as BusId[]) {
       const bus = gainNode(this.ctx, id === "music" ? 0.5 : 1);
-      bus.connect(this.master);
+      // Route through suppression filter, except UI which remains crisp
+      if (id === "ui") {
+        bus.connect(this.master);
+      } else {
+        bus.connect(this.suppressionLp);
+      }
       this.buses.set(id, bus);
     }
 
-    this.reverb = new ConvolverPool(this.ctx, this.master, 0.9);
+    this.reverb = new ConvolverPool(this.ctx, this.suppressionLp, 0.9);
+  }
+
+  /** Trigger acute explosion or heavy suppressive fire tinnitus ringing (fades over 2-3s). */
+  triggerTinnitus(intensity = 1): void {
+    this.tinnitusIntensity = Math.min(1, Math.max(this.tinnitusIntensity, intensity));
   }
 
   /** Register the renderer for a sound id. */
@@ -211,7 +259,28 @@ export class AudioEngine {
 
   /** Drain `game.soundQueue` and schedule a voice for each request. */
   update(dt: number): void {
-    void dt;
+    if (this.unlocked && this.ctx.state === "running") {
+      // 1. Suppression muffling and tinnitus ringing updates
+      this.tinnitusIntensity = Math.max(0, this.tinnitusIntensity - dt * 0.38);
+      const playerSupp = game.player.alive ? game.player.suppression : 0;
+      const eff = Math.min(1, Math.max(playerSupp, this.tinnitusIntensity));
+      const now = this.ctx.currentTime;
+
+      if (eff > 0.03) {
+        const cutoff = Math.max(420, 20000 * Math.pow(0.02, eff));
+        this.suppressionLp.frequency.setTargetAtTime(cutoff, now, 0.04);
+      } else {
+        this.suppressionLp.frequency.setTargetAtTime(20000, now, 0.08);
+      }
+
+      if (eff > 0.12) {
+        const ringGain = Math.min(0.18, (eff - 0.12) * 0.22);
+        this.tinnitusGain.gain.setTargetAtTime(ringGain, now, 0.04);
+      } else {
+        this.tinnitusGain.gain.setTargetAtTime(0, now, 0.08);
+      }
+    }
+
     const queue = game.soundQueue;
     if (queue.length === 0) {
       this.reap();
@@ -223,6 +292,14 @@ export class AudioEngine {
     }
 
     for (const request of queue) {
+      // Proximity to explosions causes acute acoustic trauma & tinnitus
+      if (request.id === "explosion" && request.position) {
+        const dist = game.cameraPosition.distanceTo(request.position);
+        if (dist < 18) {
+          const trauma = 1 - dist / 18;
+          this.triggerTinnitus(trauma);
+        }
+      }
       this.play(request);
     }
     queue.length = 0;
@@ -358,6 +435,16 @@ export class AudioEngine {
   dispose(): void {
     for (let i = this.voices.length - 1; i >= 0; i -= 1) this.stop(i);
     this.reverb.dispose();
+    try {
+      this.tinnitusOsc.stop();
+      this.tinnitusLfo.stop();
+      this.tinnitusOsc.disconnect();
+      this.tinnitusLfo.disconnect();
+      this.tinnitusGain.disconnect();
+      this.suppressionLp.disconnect();
+    } catch {
+      /* already disconnected */
+    }
     this.master.disconnect();
     this.limiter.disconnect();
     void this.ctx.close();

@@ -98,23 +98,30 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     if (victim.isPlayer) {
       _dir.copy(event.direction).normalize();
       const angle = Math.atan2(_dir.x, _dir.z);
-      game.hud.damageDirs.push({ angle, time });
-      if (game.hud.damageDirs.length > 6) game.hud.damageDirs.shift();
+      game.hud.damageDirs.push({ angle, time, amount: event.amount });
+      if (game.hud.damageDirs.length > 8) game.hud.damageDirs.shift();
       queueSound({ id: "damage", gain: Math.min(1, 0.35 + event.amount / 90) });
     }
 
     if (attacker?.isPlayer) {
       game.hud.hitmarker = victim.health <= 0 ? 420 : 240;
       game.hud.hitmarkerKill = victim.health <= 0;
-      queueSound({
-        id:
-          victim.health <= 0
-            ? "kill"
-            : event.region === "head"
-              ? "headshot"
-              : "hitmarker",
-        gain: 0.55,
-      });
+      if (victim.health <= 0) {
+        if (event.region === "head") {
+          queueSound({ id: "headshot", gain: 0.88 });
+        } else {
+          queueSound({ id: "kill", gain: 0.78 });
+        }
+        if (Math.random() < 0.35) {
+          queueSound({ id: "radio-hostile-down", gain: 0.65 });
+        }
+      } else {
+        if (event.region === "head") {
+          queueSound({ id: "headshot", gain: 0.72 });
+        } else {
+          queueSound({ id: "hitmarker", gain: 0.55 });
+        }
+      }
     }
 
     if (victim.health <= 0) {
@@ -144,6 +151,8 @@ function recordDamage(
     if (log.length > 8) log.shift();
   }
 }
+
+let scoreEventId = 1;
 
 function killActor(
   victim: Actor,
@@ -178,6 +187,16 @@ function killActor(
       if (helper && helper.team !== victim.team) {
         helper.assists += 1;
         assists.push(helper);
+        if (helper.isPlayer) {
+          game.hud.scoreEvents.push({
+            id: scoreEventId++,
+            label: "ASSIST",
+            points: 50,
+            time,
+            subtext: victim.name,
+            medal: true,
+          });
+        }
       }
     }
     log.length = 0;
@@ -186,7 +205,57 @@ function killActor(
   if (attacker && attacker.id !== victim.id && attacker.team !== victim.team) {
     attacker.kills += 1;
     attacker.streak += 1;
-    attacker.score += event.region === "head" ? 150 : 100;
+    const isHeadshot = event.region === "head";
+    attacker.score += isHeadshot ? 150 : 100;
+
+    if (attacker.isPlayer) {
+      // CoD MW style XP medals
+      game.hud.scoreEvents.push({
+        id: scoreEventId++,
+        label: "ELIMINATED",
+        points: 100,
+        time,
+        subtext: victim.name,
+        medal: true,
+      });
+      if (isHeadshot) {
+        game.hud.scoreEvents.push({
+          id: scoreEventId++,
+          label: "HEADSHOT",
+          points: 50,
+          time: time + 0.05,
+          medal: true,
+        });
+      }
+      if (event.distanceM > 40) {
+        game.hud.scoreEvents.push({
+          id: scoreEventId++,
+          label: "LONGSHOT",
+          points: 50,
+          time: time + 0.1,
+          subtext: `${event.distanceM.toFixed(0)}m`,
+          medal: true,
+        });
+      }
+      if (event.penetrated) {
+        game.hud.scoreEvents.push({
+          id: scoreEventId++,
+          label: "WALLBANG",
+          points: 25,
+          time: time + 0.15,
+          medal: false,
+        });
+      }
+      if (attacker.streak > 1 && attacker.streak % 2 === 0) {
+        game.hud.scoreEvents.push({
+          id: scoreEventId++,
+          label: `${attacker.streak}X STREAK`,
+          points: 50,
+          time: time + 0.2,
+          medal: true,
+        });
+      }
+    }
   }
 
   queueSound({ id: "death", position: victim.position.clone(), gain: 0.8 });
@@ -208,6 +277,8 @@ function killActor(
   };
 }
 
+let lastHeartbeatTime = 0;
+
 /** Health regeneration, suppression decay and respawn timers. */
 export function tickActorState(dt: number, time: number): void {
   for (const actor of game.actors) {
@@ -223,6 +294,35 @@ export function tickActorState(dt: number, time: number): void {
       actor.health = Math.min(actor.maxHealth, actor.health + COMBAT.regenRate * dt);
     }
   }
+
+  // Low health heartbeat pulse audio
+  if (game.player.alive && game.player.health < 35 && game.player.health > 0) {
+    const ratio = game.player.health / game.player.maxHealth;
+    const interval = THREE.MathUtils.lerp(0.52, 0.92, Math.max(0, ratio / 0.35));
+    if (time - lastHeartbeatTime >= interval) {
+      lastHeartbeatTime = time;
+      const gain = THREE.MathUtils.lerp(0.85, 0.4, ratio / 0.35);
+      queueSound({ id: "heartbeat", gain });
+    }
+  }
+}
+
+/** Record unsuppressed gunfire blips for radar minimap and tactical compass. */
+export function recordGunfirePing(shooter: Actor, time: number): void {
+  if (!game.hud.gunfirePings) return;
+  const camPos = game.cameraPosition;
+  const dx = shooter.position.x - camPos.x;
+  const dz = shooter.position.z - camPos.z;
+  const bearing = ((Math.atan2(dx, -dz) * 180) / Math.PI + 360) % 360;
+  game.hud.gunfirePings.push({
+    x: shooter.position.x,
+    y: shooter.position.y + 1.2,
+    z: shooter.position.z,
+    bearing,
+    time,
+    shooterTeam: shooter.team,
+  });
+  if (game.hud.gunfirePings.length > 24) game.hud.gunfirePings.shift();
 }
 
 /** Raise suppression on anyone a round passed close to. */
@@ -246,6 +346,9 @@ export function applyNearMissSuppression(
       actor.suppression = Math.min(1, actor.suppression + (1 - distance / 2.2) * 0.4);
       if (actor.isPlayer && distance < 1.4) {
         queueSound({ id: "whizz", gain: 0.6 - distance * 0.25 });
+        if (actor.suppression > 0.55 && Math.random() < 0.25) {
+          queueSound({ id: "radio-contact", gain: 0.6 });
+        }
       }
     }
   }

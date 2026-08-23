@@ -404,7 +404,7 @@ export class CollisionWorld {
   /** Bump this whenever static geometry changes so navmeshes can rebuild. */
   version = 0;
 
-  constructor(groundHeight: GroundHeightFn) {
+  constructor(groundHeight: GroundHeightFn = () => 0) {
     this.groundHeight = groundHeight;
   }
 
