@@ -31,6 +31,8 @@ analytical conclusion.
 
 ![Structure dossier — every claim with its source, uncertainty and temporal evidence](docs/screenshot-dossier.png)
 
+![Blacksite — first-person tactical simulation on the airfield tarmac](docs/screenshot-blacksite.png)
+
 ## Analytical capabilities
 
 - **One derived evidence ledger.** Every claim — a structure footprint, a runway
