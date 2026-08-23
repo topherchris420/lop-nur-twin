@@ -146,11 +146,11 @@ vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
   vec2 delta = lightPos - uv;
   vec2 ghostVec = (vec2(0.5) - lightPos) * ghostDispersal;
 
-  // 1. Central ray / starburst diffraction around intense source
+  // 1. Central starburst diffraction tight around the light source
   float d = length(delta);
   float angle = atan(delta.y, delta.x);
-  float rays = sin(angle * 14.0) * 0.5 + sin(angle * 32.0) * 0.25 + 0.25;
-  float starburst = exp(-d * 5.5) * 1.8 + exp(-d * 1.6) * 0.35 * (0.8 + 0.5 * rays);
+  float rays = max(0.0, sin(angle * 14.0) * 0.6 + sin(angle * 28.0) * 0.4);
+  float starburst = exp(-d * 22.0) * 2.2 + exp(-d * 6.5) * 0.45 * rays;
 
   // 2. Optical ghost reflections through the lens axis
   vec3 ghosts = vec3(0.0);
@@ -158,25 +158,25 @@ vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
     float fi = float(i);
     vec2 offset = fract(lightPos + ghostVec * fi);
     float dist = length(offset - uv);
-    float falloff = exp(-dist * (3.8 + fi * 2.8)) * (1.0 / (fi * 0.75 + 0.5));
+    float falloff = exp(-dist * (6.5 + fi * 3.5)) * (1.0 / (fi * 0.85 + 0.5));
 
     // Chromatic dispersion along ghost ray
-    ghosts.r += exp(-length(offset - uv - delta * 0.016) * (3.8 + fi * 2.8)) * falloff;
-    ghosts.g += exp(-length(offset - uv) * (3.8 + fi * 2.8)) * falloff;
-    ghosts.b += exp(-length(offset - uv + delta * 0.016) * (3.8 + fi * 2.8)) * falloff;
+    ghosts.r += exp(-length(offset - uv - delta * 0.016) * (6.5 + fi * 3.5)) * falloff;
+    ghosts.g += exp(-length(offset - uv) * (6.5 + fi * 3.5)) * falloff;
+    ghosts.b += exp(-length(offset - uv + delta * 0.016) * (6.5 + fi * 3.5)) * falloff;
   }
 
   // 3. Chromatic Halo Ring
   vec2 haloVec = normalize(delta + 1e-5) * haloRadius;
   float haloDist = length(uv - (lightPos - haloVec));
-  float haloWeight = exp(-haloDist * 16.0) * 0.55;
+  float haloWeight = exp(-haloDist * 28.0) * 0.45;
   vec3 halo = vec3(
-    exp(-length(uv - (lightPos - haloVec * 1.025)) * 16.0),
-    exp(-length(uv - (lightPos - haloVec * 1.000)) * 16.0),
-    exp(-length(uv - (lightPos - haloVec * 0.975)) * 16.0)
+    exp(-length(uv - (lightPos - haloVec * 1.025)) * 28.0),
+    exp(-length(uv - (lightPos - haloVec * 1.000)) * 28.0),
+    exp(-length(uv - (lightPos - haloVec * 0.975)) * 28.0)
   ) * haloWeight;
 
-  return (vec3(starburst) + ghosts * 1.1 + halo * 1.4) * intensity * flareTint;
+  return (vec3(starburst) + ghosts * 1.2 + halo * 1.4) * intensity * flareTint;
 }
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -184,33 +184,28 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   vec4 dirt = texture2D(tDirt, uv);
 
   vec3 flare = vec3(0.0);
-  float totalGlare = 0.0;
 
   // Sun flare (only if in front of camera and within view window)
   if (sunScreenPos.z > 0.5 && sunFlareIntensity > 0.001) {
     vec2 sunUv = sunScreenPos.xy;
-    // Check if sun is near the screen viewport
-    if (sunUv.x >= -0.25 && sunUv.x <= 1.25 && sunUv.y >= -0.25 && sunUv.y <= 1.25) {
+    if (sunUv.x >= -0.2 && sunUv.x <= 1.2 && sunUv.y >= -0.2 && sunUv.y <= 1.2) {
       flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity);
-      totalGlare += sunFlareIntensity;
     }
   }
 
   // Muzzle flash optical burst (originating from weapon muzzle screen quadrant)
   if (muzzleFlashIntensity > 0.001) {
     vec2 flashUv = vec2(0.58, 0.72);
-    vec3 flashFlare = computeOpticalGhosts(uv, flashUv, muzzleFlashIntensity * 2.4);
+    vec3 flashFlare = computeOpticalGhosts(uv, flashUv, muzzleFlashIntensity * 1.8);
     flare += flashFlare * vec3(1.25, 0.95, 0.72);
-    totalGlare += muzzleFlashIntensity * 2.2;
   }
 
   // Extract high-luminance glints from input HDR buffer to catch lens scratches
   float lum = dot(color, vec3(0.2126, 0.7152, 0.0722));
-  float highlightGlint = max(0.0, lum - 3.2) * 0.18;
-  totalGlare += highlightGlint;
+  float highlightGlint = max(0.0, lum - 3.2) * 0.15;
 
-  // Glass dust and micro-scratches illuminate under flare and highlight energy
-  vec3 illuminatedDirt = dirt.rgb * dirtIntensity * (flare * 1.6 + totalGlare * vec3(0.95, 0.92, 0.86));
+  // Glass dust and micro-scratches illuminate under direct flare or specular glints
+  vec3 illuminatedDirt = dirt.rgb * dirt.a * dirtIntensity * (flare * 1.5 + highlightGlint * vec3(0.95, 0.92, 0.86));
 
   color += flare + illuminatedDirt;
   outputColor = vec4(max(color, 0.0), inputColor.a);

@@ -236,7 +236,9 @@ async function captureBlacksite() {
     const { game } = globalThis.__combat;
     const player = game.player;
     player.alive = true;
-    player.health = player.maxHealth * 0.62;
+    player.health = player.maxHealth;
+    player.lastDamageTime = -999;
+    player.aimStance = "tac";
     player.velocity.set(0, 0, 0);
 
     let aimAt = null;
@@ -263,6 +265,14 @@ async function captureBlacksite() {
       head.y - (player.position.y + 1.62),
       Math.hypot(look.x, look.z),
     );
+    player.alive = true;
+    player.health = player.maxHealth;
+    player.lastDamageTime = -999;
+    player.aimStance = "tac";
+    player.aiming = true;
+    player.state = "idle";
+    player.velocity.set(0, 0, 0);
+
     return { standoff: +aimDistance.toFixed(1), contacts: inFrame };
   });
   if (framed) {
@@ -270,7 +280,14 @@ async function captureBlacksite() {
       `  framed a ${framed.standoff} m engagement, ${framed.contacts} within 80 m`,
     );
   }
-  await sleep(900);
+  // Brief 50ms tick to let viewmodel matrices update
+  await sleep(50);
+  await page.evaluate(() => {
+    const { game } = globalThis.__combat;
+    game.player.alive = true;
+    game.player.health = game.player.maxHealth;
+    game.player.lastDamageTime = -999;
+  });
   await shoot(page, "docs/screenshot-blacksite.png");
   await page.close();
 }

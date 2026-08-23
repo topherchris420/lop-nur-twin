@@ -65,14 +65,14 @@ void main() {
   float cosAngle = dot(dir, uSunDirection);
   float disc = smoothstep(0.9996, 0.99995, cosAngle);
 
-  float forwardScatter = henyeyGreenstein(max(cosAngle, 0.0), 0.78) * 12.5;
-  float wideGlow = pow(max(cosAngle, 0.0), 18.0) * 0.18 * uTurbidity;
-  float tightGlow = pow(max(cosAngle, 0.0), 320.0) * 0.65;
+  float forwardScatter = henyeyGreenstein(max(cosAngle, 0.0), 0.72) * 0.45;
+  float wideGlow = pow(max(cosAngle, 0.0), 24.0) * 0.06 * uTurbidity;
+  float tightGlow = pow(max(cosAngle, 0.0), 320.0) * 0.45;
 
-  color += uSunColor * (disc * uSunIntensity + (forwardScatter + wideGlow + tightGlow) * uSunIntensity * 0.26);
+  color += uSunColor * (disc * uSunIntensity + (forwardScatter + wideGlow + tightGlow) * uSunIntensity * 0.02);
 
   // Hard ceiling on radiance keeps the half-float convolution finite
-  color = min(color, vec3(140.0));
+  color = min(color, vec3(35.0));
   gl_FragColor = vec4(color, 1.0);
 }
 `;
