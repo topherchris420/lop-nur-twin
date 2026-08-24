@@ -22,7 +22,7 @@ canvas, no animation and no timers.
 | Requirement                    | How                                                                                                                                                  |
 | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Skip navigation                | First focusable element is a "Skip to the structure table" link, visually hidden until focused                                                       |
-| Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Twin (public-source model)"                                               |
+| Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Twin (public-source model)"                                                                        |
 | Semantic headings              | One `<h1>`, `<h2>` per section, no level skipped                                                                                                     |
 | Landmarks                      | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>`                                                                              |
 | Proper table markup            | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">`                                                                        |

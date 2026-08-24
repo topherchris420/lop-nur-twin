@@ -91,7 +91,7 @@ const DAY_HORIZON = new THREE.Color(0.285, 0.282, 0.258);
 const DAY_GROUND = new THREE.Color(0.32, 0.265, 0.195);
 const NIGHT_ZENITH = new THREE.Color(0.012, 0.02, 0.042);
 const NIGHT_HORIZON = new THREE.Color(0.035, 0.045, 0.062);
-const NIGHT_GROUND = new THREE.Color(0.014, 0.012, 0.010);
+const NIGHT_GROUND = new THREE.Color(0.014, 0.012, 0.01);
 const SUN_WARM = new THREE.Color(1.0, 0.95, 0.86);
 const SUN_LOW = new THREE.Color(1.0, 0.62, 0.32);
 
@@ -193,4 +193,3 @@ export function sunElevationRad(dayFactor: number): number {
     THREE.MathUtils.lerp(SUN.nightElevationDeg, SUN.dayElevationDeg, dayFactor),
   );
 }
-

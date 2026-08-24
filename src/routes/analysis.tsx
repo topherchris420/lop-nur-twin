@@ -116,8 +116,7 @@ function AnalysisView() {
   const setComparisonDate = useTwinStore((state) => state.setComparisonDate);
 
   useEffect(() => {
-    document.title =
-      "Structure analysis table — Lop Nur Twin (public-source model)";
+    document.title = "Structure analysis table — Lop Nur Twin (public-source model)";
   }, []);
 
   // A deep link from a dossier should land on its row, not at the top of a
@@ -1000,12 +999,12 @@ function AnalysisView() {
 
         <footer className="border-border text-muted-foreground mt-12 border-t pt-6 text-xs leading-relaxed">
           <p>
-            Lop Nur Twin · unclassified public-source research
-            prototype · not government-certified, not FedRAMP authorized, not CMMC
-            certified, and not approved for classified or controlled unclassified
-            information. Observation and simulation are labelled separately throughout:
-            source observations come from the cited register above; everything the model
-            adds is marked interpreted or illustrative.
+            Lop Nur Twin · unclassified public-source research prototype · not
+            government-certified, not FedRAMP authorized, not CMMC certified, and not
+            approved for classified or controlled unclassified information. Observation
+            and simulation are labelled separately throughout: source observations come
+            from the cited register above; everything the model adds is marked interpreted
+            or illustrative.
           </p>
         </footer>
       </div>

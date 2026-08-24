@@ -836,11 +836,7 @@ export function boneCrunch(
 }
 
 export type RadioCalloutType =
-  | "contact-front"
-  | "reloading"
-  | "hostile-down"
-  | "frag-out"
-  | "chatter";
+  "contact-front" | "reloading" | "hostile-down" | "frag-out" | "chatter";
 
 /**
  * Procedural tactical squad radio voice synthesizer.
@@ -910,42 +906,134 @@ export function proceduralRadioCallout(
     case "contact-front":
       // "Con-tact front!"
       syllables = [
-        { dur: 0.09, pitchFrom: 135, pitchTo: 145, formants: [550, 1400, 2400], gain: 0.4 },
-        { dur: 0.13, pitchFrom: 160, pitchTo: 130, formants: [680, 1750, 2700], gain: 0.55 },
-        { dur: 0.04, pitchFrom: 140, pitchTo: 140, formants: [2200, 3100, 3800], gain: 0.25, unvoiced: true },
-        { dur: 0.22, pitchFrom: 175, pitchTo: 110, formants: [450, 1200, 2200], gain: 0.65 },
+        {
+          dur: 0.09,
+          pitchFrom: 135,
+          pitchTo: 145,
+          formants: [550, 1400, 2400],
+          gain: 0.4,
+        },
+        {
+          dur: 0.13,
+          pitchFrom: 160,
+          pitchTo: 130,
+          formants: [680, 1750, 2700],
+          gain: 0.55,
+        },
+        {
+          dur: 0.04,
+          pitchFrom: 140,
+          pitchTo: 140,
+          formants: [2200, 3100, 3800],
+          gain: 0.25,
+          unvoiced: true,
+        },
+        {
+          dur: 0.22,
+          pitchFrom: 175,
+          pitchTo: 110,
+          formants: [450, 1200, 2200],
+          gain: 0.65,
+        },
       ];
       break;
     case "reloading":
       // "Re-load-ing!"
       syllables = [
-        { dur: 0.08, pitchFrom: 130, pitchTo: 140, formants: [480, 1850, 2600], gain: 0.38 },
-        { dur: 0.16, pitchFrom: 155, pitchTo: 145, formants: [620, 1250, 2450], gain: 0.58 },
-        { dur: 0.14, pitchFrom: 135, pitchTo: 115, formants: [420, 1950, 2700], gain: 0.45 },
+        {
+          dur: 0.08,
+          pitchFrom: 130,
+          pitchTo: 140,
+          formants: [480, 1850, 2600],
+          gain: 0.38,
+        },
+        {
+          dur: 0.16,
+          pitchFrom: 155,
+          pitchTo: 145,
+          formants: [620, 1250, 2450],
+          gain: 0.58,
+        },
+        {
+          dur: 0.14,
+          pitchFrom: 135,
+          pitchTo: 115,
+          formants: [420, 1950, 2700],
+          gain: 0.45,
+        },
       ];
       break;
     case "hostile-down":
       // "Hos-tile down!"
       syllables = [
-        { dur: 0.1, pitchFrom: 150, pitchTo: 140, formants: [650, 1350, 2400], gain: 0.45 },
-        { dur: 0.14, pitchFrom: 155, pitchTo: 125, formants: [450, 1850, 2650], gain: 0.52 },
-        { dur: 0.24, pitchFrom: 165, pitchTo: 105, formants: [580, 1100, 2250], gain: 0.68 },
+        {
+          dur: 0.1,
+          pitchFrom: 150,
+          pitchTo: 140,
+          formants: [650, 1350, 2400],
+          gain: 0.45,
+        },
+        {
+          dur: 0.14,
+          pitchFrom: 155,
+          pitchTo: 125,
+          formants: [450, 1850, 2650],
+          gain: 0.52,
+        },
+        {
+          dur: 0.24,
+          pitchFrom: 165,
+          pitchTo: 105,
+          formants: [580, 1100, 2250],
+          gain: 0.68,
+        },
       ];
       break;
     case "frag-out":
       // "Frag out!"
       syllables = [
-        { dur: 0.16, pitchFrom: 160, pitchTo: 145, formants: [700, 1600, 2550], gain: 0.6 },
-        { dur: 0.03, pitchFrom: 150, pitchTo: 150, formants: [2400, 3200, 4100], gain: 0.3, unvoiced: true },
-        { dur: 0.2, pitchFrom: 175, pitchTo: 115, formants: [620, 1200, 2350], gain: 0.65 },
+        {
+          dur: 0.16,
+          pitchFrom: 160,
+          pitchTo: 145,
+          formants: [700, 1600, 2550],
+          gain: 0.6,
+        },
+        {
+          dur: 0.03,
+          pitchFrom: 150,
+          pitchTo: 150,
+          formants: [2400, 3200, 4100],
+          gain: 0.3,
+          unvoiced: true,
+        },
+        {
+          dur: 0.2,
+          pitchFrom: 175,
+          pitchTo: 115,
+          formants: [620, 1200, 2350],
+          gain: 0.65,
+        },
       ];
       break;
     case "chatter":
     default:
       // Short tactical acknowledgement
       syllables = [
-        { dur: 0.1, pitchFrom: 140, pitchTo: 150, formants: [500, 1500, 2500], gain: 0.45 },
-        { dur: 0.15, pitchFrom: 145, pitchTo: 120, formants: [600, 1300, 2400], gain: 0.5 },
+        {
+          dur: 0.1,
+          pitchFrom: 140,
+          pitchTo: 150,
+          formants: [500, 1500, 2500],
+          gain: 0.45,
+        },
+        {
+          dur: 0.15,
+          pitchFrom: 145,
+          pitchTo: 120,
+          formants: [600, 1300, 2400],
+          gain: 0.5,
+        },
       ];
       break;
   }
@@ -971,7 +1059,13 @@ export function proceduralRadioCallout(
       // Voiced glottal oscillator (sawtooth with pitch glide)
       const osc = ctx.createOscillator();
       osc.type = "sawtooth";
-      glide(osc.frequency, sylTime, syl.pitchFrom * range(r, 0.96, 1.04), syl.pitchTo, syl.dur);
+      glide(
+        osc.frequency,
+        sylTime,
+        syl.pitchFrom * range(r, 0.96, 1.04),
+        syl.pitchTo,
+        syl.dur,
+      );
 
       const sylGain = gainNode(ctx, 0);
       scheduleEnv(sylGain.gain, sylTime, {

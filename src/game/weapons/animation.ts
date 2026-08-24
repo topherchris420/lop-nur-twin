@@ -303,7 +303,8 @@ export class ViewmodelAnimator {
 
       // Violent rotational barrel flip, torsional twist, and lateral whip
       this.recoilRot.velocity.x -= kick * 125;
-      this.recoilRot.velocity.z += runtime.viewRoll * 38 + (Math.random() - 0.5) * kick * 26;
+      this.recoilRot.velocity.z +=
+        runtime.viewRoll * 38 + (Math.random() - 0.5) * kick * 26;
       this.recoilRot.velocity.y += (Math.random() - 0.5) * kick * 24;
 
       this.boltVelocity = -model.parts.boltTravel * 52;

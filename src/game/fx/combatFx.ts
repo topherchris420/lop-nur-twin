@@ -733,11 +733,7 @@ class CasingRenderer {
       casing.velocity.addScaledVector(linearVelocity, 0.6);
     }
     // 3-axis rapid tumbling spin (35 - 65 rad/s)
-    casing.spin.set(
-      (rand() - 0.5) * 55,
-      (rand() - 0.5) * 42,
-      (rand() - 0.5) * 65,
-    );
+    casing.spin.set((rand() - 0.5) * 55, (rand() - 0.5) * 42, (rand() - 0.5) * 65);
     casing.rotation.identity();
     casing.life = 0;
     casing.bounces = 0;
@@ -938,10 +934,16 @@ export class FxManager {
       _tmpB.crossVectors(direction, _tmpA).normalize();
       for (let v = 0; v < vents; v += 1) {
         const angle = (v / vents) * Math.PI * 2 + Math.PI / 4;
-        _tmpC.copy(_tmpA).multiplyScalar(Math.cos(angle)).addScaledVector(_tmpB, Math.sin(angle));
+        _tmpC
+          .copy(_tmpA)
+          .multiplyScalar(Math.cos(angle))
+          .addScaledVector(_tmpB, Math.sin(angle));
         const p = _spawn;
         p.position.copy(position).addScaledVector(direction, 0.02);
-        p.velocity.copy(_tmpC).multiplyScalar(4.5 + rand() * 3).addScaledVector(direction, 1.5);
+        p.velocity
+          .copy(_tmpC)
+          .multiplyScalar(4.5 + rand() * 3)
+          .addScaledVector(direction, 1.5);
         p.lifetime = 0.038 + rand() * 0.015;
         p.size0 = calibre * 0.15;
         p.size1 = calibre * 0.32;
@@ -989,7 +991,9 @@ export class FxManager {
         p.velocity
           .copy(direction)
           .multiplyScalar(8 + rand() * 12)
-          .add(_tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5));
+          .add(
+            _tmpA.set((rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5, (rand() - 0.5) * 3.5),
+          );
         p.lifetime = 0.18 + rand() * 0.25;
         p.size0 = 0.014;
         p.size1 = 0.003;
@@ -1073,9 +1077,7 @@ export class FxManager {
     const count = Math.min(3, Math.round(heat * 2.8 * this.quality.particleScale));
     for (let i = 0; i < count; i += 1) {
       const p = _spawn;
-      p.position
-        .copy(position)
-        .addScaledVector(direction, (rand() - 0.5) * 0.2);
+      p.position.copy(position).addScaledVector(direction, (rand() - 0.5) * 0.2);
       p.position.y += 0.015 + rand() * 0.03;
       p.velocity.set((rand() - 0.5) * 0.12, 0.45 + rand() * 0.6, (rand() - 0.5) * 0.12);
       p.lifetime = 0.32 + rand() * 0.35;
@@ -1098,11 +1100,7 @@ export class FxManager {
   }
 
   /** Barrel smoke wisps rising off hot barrel after sustained burst fire. */
-  barrelSmoke(
-    position: THREE.Vector3,
-    direction: THREE.Vector3,
-    heat: number,
-  ): void {
+  barrelSmoke(position: THREE.Vector3, direction: THREE.Vector3, heat: number): void {
     if (heat < 0.25) return;
     const rand = this.rand;
     const count = Math.min(2, Math.round(heat * 1.8 * this.quality.particleScale));
@@ -1155,9 +1153,7 @@ export class FxManager {
         p.velocity
           .copy(request.incoming)
           .multiplyScalar(2.5 + rand() * 6.5)
-          .add(
-            _tmpA.set((rand() - 0.5) * 4, (rand() - 0.5) * 4, (rand() - 0.5) * 4),
-          );
+          .add(_tmpA.set((rand() - 0.5) * 4, (rand() - 0.5) * 4, (rand() - 0.5) * 4));
         p.lifetime = 0.38 + rand() * 0.55;
         p.size0 = 0.035 + rand() * 0.06;
         p.size1 = 0.016;

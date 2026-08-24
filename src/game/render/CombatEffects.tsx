@@ -40,7 +40,7 @@ const LOOK = {
     slope: 1.15,
     offset: -0.015,
     power: 1.12,
-    saturation: 1.20,
+    saturation: 1.2,
     bloomIntensity: 0.22,
     bloomThreshold: 2.8,
     streakIntensity: 0.12,
@@ -192,7 +192,8 @@ export function CombatEffects() {
 
     // 2. Muzzle flash flare burst
     const timeSinceFire = game.time - game.player.lastFireTime;
-    const flashEnergy = timeSinceFire >= 0 && timeSinceFire < 0.09 ? (1.0 - timeSinceFire / 0.09) : 0;
+    const flashEnergy =
+      timeSinceFire >= 0 && timeSinceFire < 0.09 ? 1.0 - timeSinceFire / 0.09 : 0;
     opticalFlare.muzzleFlashIntensity = flashEnergy;
 
     // 3. Dynamic camera velocity motion blur
@@ -202,7 +203,12 @@ export function CombatEffects() {
     const curRoll = _prevEuler.z;
 
     if (!lastState.current.initialized) {
-      lastState.current = { yaw: curYaw, pitch: curPitch, roll: curRoll, initialized: true };
+      lastState.current = {
+        yaw: curYaw,
+        pitch: curPitch,
+        roll: curRoll,
+        initialized: true,
+      };
     }
 
     let dYaw = curYaw - lastState.current.yaw;
@@ -224,7 +230,10 @@ export function CombatEffects() {
 
     // Linear motion (sprint / sliding expansion blur)
     const playerSpeed = game.player.speed ?? 0;
-    const forwardVel = Math.min(0.045, (playerSpeed / 8.0) * (game.player.state === "slide" ? 0.035 : 0.018));
+    const forwardVel = Math.min(
+      0.045,
+      (playerSpeed / 8.0) * (game.player.state === "slide" ? 0.035 : 0.018),
+    );
 
     motionBlur.setVelocity(rotVelX, rotVelY);
     motionBlur.setRollVelocity(rollVel);
@@ -290,4 +299,3 @@ export function CombatEffects() {
 }
 
 export default CombatEffects;
-

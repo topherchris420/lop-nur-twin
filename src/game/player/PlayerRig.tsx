@@ -5,7 +5,12 @@ import { useGameStore } from "../core/gameStore";
 import { useTwinStore } from "@/lib/store";
 import { readFlag } from "@/lib/params";
 import { game, eyePosition } from "../core/gameState";
-import { HUMAN_METRICS, MASK_BULLET, MASK_SOLID, horizontalToVerticalFov } from "../core/types";
+import {
+  HUMAN_METRICS,
+  MASK_BULLET,
+  MASK_SOLID,
+  horizontalToVerticalFov,
+} from "../core/types";
 import type { CollisionWorld } from "../physics/collisionWorld";
 import { PlayerController } from "./controller";
 import { InputManager } from "./input";

@@ -390,11 +390,31 @@ export interface GameState {
     }[];
     activeHardpoint: number | null;
     /** Score event toasts for the player (label + points). Consumed by the canvas painter. */
-    scoreEvents: { id?: number; label: string; points: number; time: number; subtext?: string; medal?: boolean }[];
+    scoreEvents: {
+      id?: number;
+      label: string;
+      points: number;
+      time: number;
+      subtext?: string;
+      medal?: boolean;
+    }[];
     /** Enemy gunfire pings for radar & compass: world pos, yaw bearing, time, shooterTeam */
-    gunfirePings: { x: number; y: number; z: number; bearing: number; time: number; shooterTeam: Team }[];
+    gunfirePings: {
+      x: number;
+      y: number;
+      z: number;
+      bearing: number;
+      time: number;
+      shooterTeam: Team;
+    }[];
     /** Tactical radio voice callouts */
-    radioCallouts: { id: number; speaker: string; text: string; team: Team; time: number }[];
+    radioCallouts: {
+      id: number;
+      speaker: string;
+      text: string;
+      team: Team;
+      time: number;
+    }[];
     tacStance: boolean;
     tacSprint: boolean;
     inspecting: boolean;

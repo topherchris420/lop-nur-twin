@@ -271,7 +271,11 @@ export class PlayerController {
     /* ----------------------------------------------- tac-stance ---- */
     if (input.tacStancePressed) {
       this.tacStanceActive = !this.tacStanceActive;
-      queueSound({ id: "ui-select", gain: 0.45, pitch: this.tacStanceActive ? 1.25 : 0.9 });
+      queueSound({
+        id: "ui-select",
+        gain: 0.45,
+        pitch: this.tacStanceActive ? 1.25 : 0.9,
+      });
     }
     input.tacStance = this.tacStanceActive;
     this.tacStanceBlend = damp(this.tacStanceBlend, this.tacStanceActive ? 1 : 0, 16, dt);

@@ -356,7 +356,10 @@ export class WeaponRuntime {
     this.ejectThisFrame = def.weaponClass !== "melee" && def.weaponClass !== "launcher";
     this.shotIndex += 1;
     // Accumulate barrel heat for mirage distortion effects
-    this.barrelHeat = Math.min(2.5, this.barrelHeat + (def.weaponClass === "lmg" ? 0.09 : 0.12));
+    this.barrelHeat = Math.min(
+      2.5,
+      this.barrelHeat + (def.weaponClass === "lmg" ? 0.09 : 0.12),
+    );
 
     if (this.fireMode === "burst") {
       this.shotsInBurst =

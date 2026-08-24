@@ -90,14 +90,19 @@ function paintHealth(ctx: CanvasRenderingContext2D, w: number, h: number): void 
   // Pulse faster and harder as health drops below 35%
   const isCritical = ratio < 0.35;
   const bpm = isCritical ? 75 + (0.35 - ratio) * 190 : 60;
-  const heartbeatPulse = Math.pow(Math.max(0, Math.sin((now / 1000) * (bpm / 60) * Math.PI)), 2.8);
+  const heartbeatPulse = Math.pow(
+    Math.max(0, Math.sin((now / 1000) * (bpm / 60) * Math.PI)),
+    2.8,
+  );
 
   const inner = Math.min(w, h) * (0.24 + ratio * 0.28);
   const outer = Math.max(w, h) * 0.74;
 
   const gradient = ctx.createRadialGradient(w / 2, h / 2, inner, w / 2, h / 2, outer);
   const baseAlpha = Math.pow(severity, 1.4) * 0.75;
-  const pulseAlpha = isCritical ? baseAlpha + (0.35 - ratio) * heartbeatPulse * 0.85 : baseAlpha;
+  const pulseAlpha = isCritical
+    ? baseAlpha + (0.35 - ratio) * heartbeatPulse * 0.85
+    : baseAlpha;
 
   gradient.addColorStop(0, "rgba(80,4,4,0)");
   gradient.addColorStop(0.55, `rgba(130,8,6,${pulseAlpha * 0.45})`);
@@ -612,7 +617,12 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
   for (const zone of hud.objectiveZones) {
     const [zx, zy] = worldToMap(zone.x, zone.z);
     ctx.save();
-    ctx.fillStyle = zone.owner === "blue" ? BLUE : zone.owner === "red" ? RED : "rgba(240,245,250,0.85)";
+    ctx.fillStyle =
+      zone.owner === "blue"
+        ? BLUE
+        : zone.owner === "red"
+          ? RED
+          : "rgba(240,245,250,0.85)";
     ctx.beginPath();
     ctx.arc(zx, zy, 5.5, 0, Math.PI * 2);
     ctx.fill();

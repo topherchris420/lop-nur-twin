@@ -315,8 +315,7 @@ function CompareView() {
   const bundledText = useRef<string | null>(null);
 
   useEffect(() => {
-    document.title =
-      "Model manifest comparison — Lop Nur Twin (public-source model)";
+    document.title = "Model manifest comparison — Lop Nur Twin (public-source model)";
   }, []);
 
   const accept = useCallback((side: Side, text: string, label: string) => {
@@ -576,11 +575,11 @@ function CompareView() {
 
         <footer className="border-border text-muted-foreground mt-12 border-t pt-6 text-xs leading-relaxed">
           <p>
-            Lop Nur Twin · unclassified public-source research
-            prototype · not government-certified, not FedRAMP authorized, not CMMC
-            certified, and not approved for classified or controlled unclassified
-            information. This page compares two statements about model content; it does
-            not validate either model against the real world.
+            Lop Nur Twin · unclassified public-source research prototype · not
+            government-certified, not FedRAMP authorized, not CMMC certified, and not
+            approved for classified or controlled unclassified information. This page
+            compares two statements about model content; it does not validate either model
+            against the real world.
           </p>
         </footer>
       </div>

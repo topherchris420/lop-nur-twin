@@ -196,12 +196,11 @@ export type SquadCalloutType =
   | "reloading"
   | "kill";
 
-export function emitSquadCallout(
-  bot: Bot,
-  type: SquadCalloutType,
-  time: number,
-): void {
-  if (time - CALLOUT_COOLDOWNS[bot.actor.team] < 2.0 || time - bot.lastCalloutTime < 4.2) {
+export function emitSquadCallout(bot: Bot, type: SquadCalloutType, time: number): void {
+  if (
+    time - CALLOUT_COOLDOWNS[bot.actor.team] < 2.0 ||
+    time - bot.lastCalloutTime < 4.2
+  ) {
     return;
   }
   CALLOUT_COOLDOWNS[bot.actor.team] = time;
@@ -262,11 +261,7 @@ export function emitSquadCallout(
       break;
     }
     case "pinned": {
-      const phrases = [
-        "I'm pinned down!",
-        "Taking heavy fire!",
-        "Need covering fire!",
-      ];
+      const phrases = ["I'm pinned down!", "Taking heavy fire!", "Need covering fire!"];
       text = phrases[Math.floor(bot.rand() * phrases.length)]!;
       break;
     }
@@ -777,9 +772,20 @@ export class BotManager {
       if (attacker && attacker.team !== actor.team) {
         bot.lastKnown.copy(attacker.position);
         this.report(actor.team, attacker.id, attacker.position, time);
-        if (bot.state !== "engage" && bot.state !== "slide" && bot.state !== "cover_peek") {
+        if (
+          bot.state !== "engage" &&
+          bot.state !== "slide" &&
+          bot.state !== "cover_peek"
+        ) {
           // Slide or break into cover
-          if (this.findTacticalCover(bot, attacker.position, bot.coverPosition, bot.coverNormal)) {
+          if (
+            this.findTacticalCover(
+              bot,
+              attacker.position,
+              bot.coverPosition,
+              bot.coverNormal,
+            )
+          ) {
             this.initiateSlide(bot, bot.coverPosition, time);
           } else {
             bot.state = "investigate";
@@ -791,9 +797,18 @@ export class BotManager {
     }
 
     // Heavy suppression check: under heavy suppression and low HP, dive for cover!
-    if (actor.suppression > 0.65 && actor.health < 65 && bot.state !== "slide" && bot.state !== "cover_peek") {
+    if (
+      actor.suppression > 0.65 &&
+      actor.health < 65 &&
+      bot.state !== "slide" &&
+      bot.state !== "cover_peek"
+    ) {
       emitSquadCallout(bot, "pinned", time);
-      const threat = hasTarget ? bot.lastKnown : (actor.lastAttackerId ? game.actorById.get(actor.lastAttackerId)?.position ?? bot.lastKnown : bot.lastKnown);
+      const threat = hasTarget
+        ? bot.lastKnown
+        : actor.lastAttackerId
+          ? (game.actorById.get(actor.lastAttackerId)?.position ?? bot.lastKnown)
+          : bot.lastKnown;
       if (this.findTacticalCover(bot, threat, bot.coverPosition, bot.coverNormal)) {
         this.initiateSlide(bot, bot.coverPosition, time);
       }
@@ -801,7 +816,11 @@ export class BotManager {
 
     // Flank detection: check if currently holding cover but enemy has flanked our position
     if (bot.state === "cover_peek" && hasTarget) {
-      const threatDir = _probe.copy(bot.lastKnown).sub(actor.position).setY(0).normalize();
+      const threatDir = _probe
+        .copy(bot.lastKnown)
+        .sub(actor.position)
+        .setY(0)
+        .normalize();
       const coverage = threatDir.dot(bot.coverNormal);
       const takingFlankDamage = time - actor.lastDamageTime < 0.3;
 
@@ -861,7 +880,14 @@ export class BotManager {
 
         // Tactical cover assessment: seek cover node if under fire or available nearby
         if (actor.suppression > 0.35 && distance > 12 && bot.stateTimer > 0.8) {
-          if (this.findTacticalCover(bot, target.position, bot.coverPosition, bot.coverNormal)) {
+          if (
+            this.findTacticalCover(
+              bot,
+              target.position,
+              bot.coverPosition,
+              bot.coverNormal,
+            )
+          ) {
             this.initiateSlide(bot, bot.coverPosition, time);
             break;
           }
@@ -873,7 +899,10 @@ export class BotManager {
           _desired.copy(target.position).sub(actor.position).setY(0).normalize();
           _right.crossVectors(_desired, UP).normalize();
           const flankDir = bot.rand() > 0.5 ? 1 : -1;
-          bot.goal.copy(target.position).addScaledVector(_right, flankDir * (14 + bot.rand() * 12)).addScaledVector(_desired, -8);
+          bot.goal
+            .copy(target.position)
+            .addScaledVector(_right, flankDir * (14 + bot.rand() * 12))
+            .addScaledVector(_desired, -8);
           bot.goal.y = this.world.groundAt(bot.goal.x, bot.goal.z);
           bot.isTacSprinting = true;
           bot.stateTimer = 0;
@@ -893,7 +922,9 @@ export class BotManager {
           _desired.copy(target.position).sub(actor.position).setY(0).normalize();
           _right.crossVectors(_desired, UP).normalize();
           const strafeDir = bot.rand() < 0.5 ? -1 : 1;
-          bot.goal.copy(actor.position).addScaledVector(_right, strafeDir * (5 + bot.rand() * 4));
+          bot.goal
+            .copy(actor.position)
+            .addScaledVector(_right, strafeDir * (5 + bot.rand() * 4));
           bot.stateTimer = 0;
         }
         break;
@@ -923,7 +954,11 @@ export class BotManager {
           }
         } else {
           // In peek mode: aim & fire burst
-          if (bot.peekTimer > bot.peekDuration || actor.suppression > 0.55 || time - actor.lastDamageTime < 0.2) {
+          if (
+            bot.peekTimer > bot.peekDuration ||
+            actor.suppression > 0.55 ||
+            time - actor.lastDamageTime < 0.2
+          ) {
             // Duck back into cover!
             bot.peeking = false;
             bot.peekTimer = 0;
@@ -939,7 +974,7 @@ export class BotManager {
         bot.slideTimer -= dt;
         actor.stance = "crouch";
         if (bot.slideTimer <= 0 || actor.position.distanceTo(bot.goal) < 1.4) {
-          bot.state = bot.hasCover ? "cover_peek" : (hasTarget ? "engage" : "investigate");
+          bot.state = bot.hasCover ? "cover_peek" : hasTarget ? "engage" : "investigate";
           bot.stateTimer = 0;
           bot.peeking = false;
           bot.peekTimer = 0;
@@ -999,7 +1034,7 @@ export class BotManager {
       bot.state === "slide" ||
       (bot.state === "cover_peek" && !bot.peeking) ||
       (bot.state === "engage" && actor.suppression > 0.35) ||
-      (bot.state === "suppress") ||
+      bot.state === "suppress" ||
       (bot.state === "engage" &&
         actor.position.distanceTo(bot.goal) < 1.5 &&
         bot.rand() < 0.4);
@@ -1043,7 +1078,13 @@ export class BotManager {
       const y = this.world.groundAt(x, z);
 
       _probe.set(x, y + HUMAN_METRICS.eyeHeight.crouch, z);
-      if (!this.world.isPositionFree(_probe, HUMAN_METRICS.radius, HUMAN_METRICS.colliderHeight.crouch)) {
+      if (
+        !this.world.isPositionFree(
+          _probe,
+          HUMAN_METRICS.radius,
+          HUMAN_METRICS.colliderHeight.crouch,
+        )
+      ) {
         continue;
       }
 
@@ -1209,7 +1250,12 @@ export class BotManager {
     actor.groundSurface = result.groundSurface;
     actor.speed = Math.hypot(actor.velocity.x, actor.velocity.z);
 
-    if (result.hitWall && actor.speed < 0.6 && bot.state !== "engage" && bot.state !== "cover_peek") {
+    if (
+      result.hitWall &&
+      actor.speed < 0.6 &&
+      bot.state !== "engage" &&
+      bot.state !== "cover_peek"
+    ) {
       if (bot.rand() < 0.05) this.pickPatrolGoal(bot);
     }
 
@@ -1236,7 +1282,11 @@ export class BotManager {
       bot.targetId !== null ? (game.actorById.get(bot.targetId) ?? null) : null;
 
     let wantsFire = false;
-    const isEngaging = (bot.state === "engage" || (bot.state === "cover_peek" && bot.peeking)) && target && target.alive && bot.timeSinceSeen < 0.5;
+    const isEngaging =
+      (bot.state === "engage" || (bot.state === "cover_peek" && bot.peeking)) &&
+      target &&
+      target.alive &&
+      bot.timeSinceSeen < 0.5;
     const isSuppressing = bot.state === "suppress";
 
     if (isEngaging && target) {
@@ -1267,7 +1317,8 @@ export class BotManager {
       // Turn toward aim with suppression dampening
       const wantYaw = forwardToYaw(_aim.x, _aim.z);
       const wantPitch = Math.asin(THREE.MathUtils.clamp(_aim.y, -1, 1));
-      const turnSpeed = THREE.MathUtils.lerp(5, 13, actor.skill) / (1 + actor.suppression * 0.6);
+      const turnSpeed =
+        THREE.MathUtils.lerp(5, 13, actor.skill) / (1 + actor.suppression * 0.6);
       const turn = turnSpeed * dt;
       const deltaYaw = yawDelta(actor.yaw, wantYaw);
       actor.yaw += THREE.MathUtils.clamp(deltaYaw, -turn, turn);
