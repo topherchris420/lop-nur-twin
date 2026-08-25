@@ -14,6 +14,8 @@ import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
 import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
+import { UavCamera } from "./render/UavCamera";
+import { spatialIntel } from "./core/spatialIntelligence";
 import { FxManager } from "./fx/combatFx";
 import { game, removeActor } from "./core/gameState";
 import { useGameStore } from "./core/gameStore";
@@ -257,6 +259,9 @@ function Simulation({ world, fx }: SimulationProps) {
     if (playing) game.time += dt;
     game.dt = dt;
     game.frame += 1;
+
+    // Update central spatial intelligence architecture
+    spatialIntel.update(game.time, dt);
 
     if (playing) {
       resolveDamage(game.time, kills);
@@ -559,6 +564,7 @@ function CombatWorld() {
       <FxHost onReady={handleFx} />
       <AudioHost world={world} />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
+      <UavCamera />
       {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />
       {post && (
