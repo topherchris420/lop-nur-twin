@@ -37,8 +37,8 @@ export function EvidenceLegend() {
     <section
       aria-labelledby="evidence-legend-heading"
       className={cn(
-        "hud-panel absolute right-4 bottom-4 z-10 w-[19rem] max-w-[calc(100vw-2rem)] p-3",
-        "max-sm:right-2 max-sm:bottom-2 max-sm:w-[15rem]",
+        "evidence-legend hud-panel absolute right-4 bottom-4 z-10 w-[19rem] max-w-[calc(100vw-2rem)] p-3",
+        "max-sm:right-2 max-sm:bottom-2 max-sm:w-[calc(100vw-1rem)]",
       )}
     >
       <div className="flex items-start justify-between gap-2">

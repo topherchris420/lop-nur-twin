@@ -133,12 +133,26 @@ body {
     width: 9.75rem;
   }
 
-  .hud-side-panel {
-    top: 0.5rem;
+  .hud-side-panel,
+  .hud-side-panel.research-panel,
+  .hud-side-panel.site-index-panel {
+    top: 4rem;
     right: 0.5rem;
     left: 0.5rem;
     width: auto;
-    max-height: calc(100dvh - 1rem);
+    max-height: calc(100dvh - 4.75rem);
+  }
+
+  .hud-side-panel > :last-child {
+    overflow-x: hidden;
+  }
+
+  .evidence-legend {
+    top: 4rem;
+    right: 0.5rem;
+    bottom: auto;
+    max-height: 55dvh;
+    overflow-y: auto;
   }
 
   .timeline-panel {
