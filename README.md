@@ -1,13 +1,13 @@
 # Lop Nur Twin
 
 An unclassified, public-source analytical reconstruction of a remote desert
-airfield near Lop Nur (~40.77° N, 89.28° E), where every claim carries an
-evidence classification, an uncertainty envelope and a citation.
+airfield near Lop Nur (~40.77° N, 89.28° E). Every claim carries an evidence
+classification, an uncertainty envelope and a citation.
 
 > **Public sources only. Not operational data.** This is a modeled
 > reconstruction built from cited open Earth-observation products and published
-> reporting. It is not an official facility record, not an aeronautical chart,
-> and not a verified statement of any building's interior use. It is **not
+> reporting. It is not an official facility record, an aeronautical chart, or a
+> verified statement of any building's interior use. It is **not
 > government-certified, not FedRAMP authorized, not CMMC certified, and not
 > approved for classified or Controlled Unclassified Information.** See
 > [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
@@ -15,6 +15,30 @@ evidence classification, an uncertainty envelope and a citation.
 ![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
 
 **Live demo:** <https://lop-nur-twin.vercel.app/>
+
+## At a glance
+
+- **Research surface:** `/` and `/analysis` expose the same model with 3D and
+  accessible analytical views.
+- **Audit surface:** `/compare` compares release manifests and makes model
+  changes explicit.
+- **Illustrative surface:** `/play` is a separate first-person simulation and
+  must not be used as evidence.
+- **Runtime:** Vite + React + TypeScript, with procedural Three.js rendering.
+- **Data policy:** deterministic, offline and source-led; no telemetry, binary
+  assets or runtime data downloads.
+
+## Contents
+
+- [Routes](#routes)
+- [Analytical capabilities](#analytical-capabilities)
+- [Evidence classifications](#evidence-classifications)
+- [Uncertainty and time](#uncertainty-and-time)
+- [Quick start](#quick-start)
+- [Validation and testing](#validation-and-testing)
+- [Documentation](#documentation)
+- [Known limitations](#known-limitations)
+- [License](#license)
 
 ## Routes
 
@@ -113,16 +137,48 @@ Full method: [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md) and
 
 ## Quick start
 
+### Prerequisites
+
+- Bun, or Node.js **22.18+**
+- A browser with WebGL support for `/`; `/analysis` works without WebGL
+
+### Install and run
+
 ```sh
 bun install
-bun run dev      # dev server on :5173 (regenerates the manifest first)
+bun run dev      # dev server on :5173; regenerates the manifest first
 bun run build    # validate → manifest → production build → strict typecheck
-bun run preview  # serve the build with the deployed security headers, on :4173
+bun run preview  # serve the production build on :4173
 ```
 
 `npm install && npm run dev` works too. The TypeScript build scripts run under
-either runtime — Bun natively, or **Node ≥ 22.18** through `scripts/run-ts.mjs` —
-and both produce byte-identical manifests.
+both runtimes — Bun natively, or **Node ≥ 22.18** through
+`scripts/run-ts.mjs` — and both produce byte-identical manifests.
+
+### Before opening a pull request
+
+```sh
+bun run check
+```
+
+This is the repository's full gate: formatting, linting, unit tests, evidence
+validation and the production build. For focused work, use the commands in
+[Validation and testing](#validation-and-testing).
+
+## Project shape
+
+```text
+src/lib/                 deterministic layout, evidence and validation
+src/components/          3D scene and route UI
+scripts/                 data validation and release-manifest generation
+tools/                   browser, accessibility and simulation checks
+docs/                    methods, provenance, architecture and operations
+experiments/              unfinished work excluded from production
+```
+
+The source register and geometry are the authoritative inputs. The evidence
+ledger and release manifest are generated from them; do not edit generated
+outputs by hand.
 
 ## Validation and testing
 
