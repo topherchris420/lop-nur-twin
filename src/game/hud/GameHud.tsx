@@ -5,6 +5,9 @@ import { useGameStore, type GameScreen } from "../core/gameStore";
 import { game } from "../core/gameState";
 import { WEAPON_LIST, getWeapon } from "../weapons/arsenal";
 import { CombatHud } from "./CombatHud";
+import { SpatialIntelligenceOverlay } from "./SpatialIntelligenceOverlay";
+import { TacticalMapOverlay } from "./TacticalMapOverlay";
+import { spatialIntel } from "../core/spatialIntelligence";
 
 /**
  * Screen shell: menus, killfeed and the in-game overlay.
@@ -746,12 +749,36 @@ export function GameHud() {
       if (game.hud.gunfirePings) game.hud.gunfirePings.length = 0;
       if (game.hud.radioCallouts) game.hud.radioCallouts.length = 0;
       if (game.hud.scoreEvents) game.hud.scoreEvents.length = 0;
+      spatialIntel.tacticalMapActive = false;
+      spatialIntel.uavActive = false;
     }
+  }, [screen]);
+
+  // Global hotkey listener for Sensor Modes, Tactical Map, UAV & Target Locking
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!IN_MATCH.includes(screen)) return;
+
+      if (e.code === "KeyN") {
+        spatialIntel.cycleSensorMode();
+      } else if (e.code === "KeyM") {
+        spatialIntel.tacticalMapActive = !spatialIntel.tacticalMapActive;
+      } else if (e.code === "KeyU") {
+        spatialIntel.uavActive = !spatialIntel.uavActive;
+      } else if (e.code === "KeyO" || e.code === "KeyK") {
+        spatialIntel.cycleTarget();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [screen]);
 
   return (
     <>
       {IN_MATCH.includes(screen) && <CombatHud />}
+      {IN_MATCH.includes(screen) && <SpatialIntelligenceOverlay />}
+      {IN_MATCH.includes(screen) && <TacticalMapOverlay />}
       {IN_MATCH.includes(screen) && <Killfeed />}
       {IN_MATCH.includes(screen) && <Scoreboard />}
 
