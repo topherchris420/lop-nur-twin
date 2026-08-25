@@ -13,9 +13,13 @@ import { game, queueSound, type Actor } from "./gameState";
 
 export const COMBAT = {
   /** Seconds after taking damage before regeneration starts. */
-  regenDelay: 5,
+  regenDelay: 3.5,
   /** Health per second once regeneration begins. */
-  regenRate: 40,
+  regenRate: 55,
+  /** Player damage dealt to bots, making hits feel more responsive. */
+  playerDamageScale: 1.2,
+  /** Incoming bot damage received by the player. */
+  playerIncomingDamageScale: 0.7,
   /** Seconds a damage contribution counts toward an assist. */
   assistWindow: 8,
   /** Seconds a corpse stays before the actor respawns. */
@@ -77,7 +81,13 @@ export function resolveDamage(time: number, out: KillReport[]): void {
       continue;
     }
 
-    victim.health -= event.amount;
+    const damageScale = attacker?.isPlayer
+      ? COMBAT.playerDamageScale
+      : victim.isPlayer
+        ? COMBAT.playerIncomingDamageScale
+        : 1;
+    const appliedDamage = event.amount * damageScale;
+    victim.health -= appliedDamage;
     victim.lastDamageTime = time;
     victim.lastAttackerId = event.attackerId;
 
@@ -85,7 +95,7 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     // suppresses hard and induces defensive flinch.
     victim.suppression = Math.min(1, victim.suppression + 0.65);
 
-    recordDamage(victim.id, event.attackerId, event.amount, time);
+    recordDamage(victim.id, event.attackerId, appliedDamage, time);
 
     // Every hit shows on the body it landed on. Without this a bot absorbs a
     // magazine with no visible acknowledgement, which reads as "my shots are
@@ -98,9 +108,9 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     if (victim.isPlayer) {
       _dir.copy(event.direction).normalize();
       const angle = Math.atan2(_dir.x, _dir.z);
-      game.hud.damageDirs.push({ angle, time, amount: event.amount });
+      game.hud.damageDirs.push({ angle, time, amount: appliedDamage });
       if (game.hud.damageDirs.length > 8) game.hud.damageDirs.shift();
-      queueSound({ id: "damage", gain: Math.min(1, 0.35 + event.amount / 90) });
+      queueSound({ id: "damage", gain: Math.min(1, 0.35 + appliedDamage / 90) });
     }
 
     if (attacker?.isPlayer) {

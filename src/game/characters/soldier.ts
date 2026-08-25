@@ -398,11 +398,12 @@ function buildParts(
   }
 
   /* ---------------------------------------------------------- hands */
-  add(ball(0.034, -0.184, 0.845, 0, 1.2, 1.35), palette.glove, 0.85);
-  add(ball(0.034, 0.184, 0.845, 0, 1.2, 1.35), palette.glove, 0.85);
-  for (const bone of [B.thumbL, B.indexL, B.gripL, B.thumbR, B.indexR, B.gripR]) {
-    add(limb(bone, 0.012, 0.009, 6), palette.glove, 0.85);
-  }
+  // Keep the palms as the silhouette anchor, but do not model separate finger
+  // chains here. At gameplay distance those chains overlap the held weapon and
+  // read as extra hands wrapped around the receiver; the first-person viewmodel
+  // owns its own detailed gripping hands.
+  add(ball(0.031, -0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.85);
+  add(ball(0.031, 0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.85);
 
   /* -------------------------------------------------------- variant */
   if (variant >= 1) {
