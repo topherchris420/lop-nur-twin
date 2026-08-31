@@ -14,7 +14,7 @@
 # that requires a reproducible supply chain.
 
 # ---------------------------------------------------------------- build stage
-FROM node:26.5-alpine AS build
+FROM node:26.8-alpine AS build
 
 WORKDIR /app
 
