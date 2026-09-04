@@ -1,8 +1,6 @@
 import {
   ALL_SEGMENTS,
   APRONS,
-  GRID_EASTING_ORIGIN,
-  GRID_NORTHING_ORIGIN,
   RUNWAYS,
   RUNWAY_CENTER,
   STRUCTURES,
@@ -16,6 +14,7 @@ import {
   isSubjectVisible,
   type EvidenceMode,
 } from "./evidenceMode";
+import { localToProjected } from "./geospatial";
 
 /**
  * The site-scale measuring tool. Everything here is deterministic and offline:
@@ -163,10 +162,7 @@ export interface GridCoordinate {
 
 /** Local metres → the public EPSG:32645 easting/northing the HUD reports. */
 export function gridEastingNorthing(x: number, z: number): GridCoordinate {
-  return {
-    easting: GRID_EASTING_ORIGIN + x,
-    northing: GRID_NORTHING_ORIGIN - z,
-  };
+  return localToProjected({ x, z });
 }
 
 /** Planar distance between two local points, in metres. */

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useTwinStore } from "@/lib/store";
+import { localToProjected } from "@/lib/geospatial";
 import { telemetry } from "@/lib/telemetry";
-import { GRID_EASTING_ORIGIN, GRID_NORTHING_ORIGIN } from "@/lib/layout";
 import { SITE_PROFILE } from "@/lib/siteData";
 
 const CARDINALS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
@@ -31,15 +31,12 @@ export function Hud() {
   useEffect(() => {
     let raf = 0;
     const loop = () => {
+      const projected = localToProjected({ x: telemetry.x, z: telemetry.z });
       if (eastRef.current) {
-        eastRef.current.textContent = (GRID_EASTING_ORIGIN + telemetry.x)
-          .toFixed(0)
-          .padStart(6, "0");
+        eastRef.current.textContent = projected.easting.toFixed(0).padStart(6, "0");
       }
       if (northRef.current) {
-        northRef.current.textContent = (GRID_NORTHING_ORIGIN - telemetry.z)
-          .toFixed(0)
-          .padStart(6, "0");
+        northRef.current.textContent = projected.northing.toFixed(0).padStart(6, "0");
       }
       if (altRef.current) {
         altRef.current.textContent = `${(SITE_PROFILE.terrainDatum.elevationM + telemetry.y).toFixed(0)} m`;
