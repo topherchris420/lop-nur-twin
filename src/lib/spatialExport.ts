@@ -277,6 +277,7 @@ function validateResponse(response: SuccessfulSpatialQuery): void {
   const authoritative = runSpatialQuery(response.query);
   if (
     !authoritative.ok ||
+    canonicalJson(authoritative.query) !== canonicalJson(response.query) ||
     canonicalJson(authoritative.results) !== canonicalJson(response.results)
   ) {
     throw new TypeError(

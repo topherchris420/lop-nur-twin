@@ -6,6 +6,7 @@ import {
 } from "./spatialExport";
 import {
   runSpatialQuery,
+  type SpatialQuery,
   type SpatialQueryResponse,
   type SuccessfulSpatialQuery,
 } from "./spatialQuery";
@@ -138,6 +139,21 @@ describe("spatial exports", () => {
     const fabricated: SuccessfulSpatialQuery = {
       ...response,
       results: [...response.results].reverse(),
+    };
+
+    expect(() => spatialResultsToJson(fabricated)).toThrow(/authoritative query/i);
+    expect(() => spatialResultsToCsv(fabricated)).toThrow(/authoritative query/i);
+    expect(() => spatialResultsToGeoJson(fabricated)).toThrow(/authoritative query/i);
+  });
+
+  it("rejects a forged or unnormalized query even when its results happen to match", () => {
+    const response = successful(runSpatialQuery({ kinds: ["aircraft"] }));
+    const fabricated: SuccessfulSpatialQuery = {
+      ...response,
+      query: {
+        ...response.query,
+        injected: true,
+      } as unknown as SpatialQuery,
     };
 
     expect(() => spatialResultsToJson(fabricated)).toThrow(/authoritative query/i);
