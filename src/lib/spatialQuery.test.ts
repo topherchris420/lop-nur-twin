@@ -3,6 +3,9 @@ import {
   footprintDistanceM,
   pointToSegmentDistance,
   polygonsIntersect,
+  runSpatialQuery,
+  type SpatialQueryResponse,
+  type SuccessfulSpatialQuery,
   type LocalRing,
 } from "./spatialQuery";
 
@@ -15,6 +18,11 @@ function square(centerX: number, centerZ: number, size: number): LocalRing {
     [centerX - half, centerZ + half],
     [centerX - half, centerZ - half],
   ];
+}
+
+function successful(response: SpatialQueryResponse): SuccessfulSpatialQuery {
+  if (!response.ok) throw new Error(response.errors.join("; "));
+  return response;
 }
 
 describe("spatial geometry primitives", () => {
@@ -50,5 +58,142 @@ describe("spatial geometry primitives", () => {
     expect(() => footprintDistanceM(closedTriangle, square(0, 0, 10))).toThrow(
       /at least four vertices/,
     );
+  });
+});
+
+describe("spatial query", () => {
+  it("filters stable subjects by kind and evidence classification", () => {
+    const response = successful(
+      runSpatialQuery({
+        kinds: ["aircraft"],
+        evidenceClasses: ["reported"],
+      }),
+    );
+
+    expect(response.results.map((result) => result.subject.id)).toEqual([
+      "j36-prototype",
+      "jxds-prototype",
+    ]);
+  });
+
+  it("distinguishes direct observation from subjects without it", () => {
+    const direct = successful(runSpatialQuery({ sourceSupport: "direct-observation" }));
+    const without = successful(
+      runSpatialQuery({ sourceSupport: "without-direct-observation" }),
+    );
+
+    expect(direct.results.map((result) => result.subject.id)).toEqual(["rwy-05-23"]);
+    expect(without.results.some((result) => result.subject.id === "rwy-05-23")).toBe(
+      false,
+    );
+  });
+
+  it("never treats unknown horizontal uncertainty as zero", () => {
+    const statedOnly = successful(
+      runSpatialQuery({
+        maximumStatedHorizontalUncertaintyM: 0,
+      }),
+    );
+    const includingUnknown = successful(
+      runSpatialQuery({
+        maximumStatedHorizontalUncertaintyM: 0,
+        includeUnknownHorizontalUncertainty: true,
+      }),
+    );
+
+    expect(statedOnly.results).toEqual([]);
+    expect(includingUnknown.results.length).toBeGreaterThan(0);
+    expect(
+      includingUnknown.results.every(
+        (result) => result.subject.uncertainty?.horizontalMeters === undefined,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps established, not-yet-evidenced, and undated presence distinct", () => {
+    const established = successful(
+      runSpatialQuery({
+        snapshotDate: "2021-06-30",
+        presence: ["established"],
+      }),
+    );
+    const future = successful(
+      runSpatialQuery({
+        snapshotDate: "2021-06-30",
+        presence: ["not-yet-evidenced"],
+      }),
+    );
+    const undated = successful(
+      runSpatialQuery({
+        snapshotDate: "2021-06-30",
+        presence: ["undated"],
+      }),
+    );
+
+    expect(established.results.map((result) => result.subject.id)).toEqual(["rwy-05-23"]);
+    expect(future.results.some((result) => result.subject.id === "j36-prototype")).toBe(
+      true,
+    );
+    expect(undated.results.some((result) => result.subject.id === "solar-field")).toBe(
+      true,
+    );
+  });
+
+  it("uses footprint proximity, excludes the anchor, and sorts by distance then id", () => {
+    const response = successful(
+      runSpatialQuery({
+        anchorSubjectId: "rwy-05-23",
+        maximumDistanceM: 500,
+      }),
+    );
+
+    expect(response.results.some((result) => result.subject.id === "rwy-05-23")).toBe(
+      false,
+    );
+    expect(response.results.slice(0, 3).map((result) => result.subject.id)).toEqual([
+      "tri-north",
+      "tri-west",
+      "twy-stub",
+    ]);
+    for (let index = 1; index < response.results.length; index += 1) {
+      expect(response.results[index]!.distanceM).toBeGreaterThanOrEqual(
+        response.results[index - 1]!.distanceM!,
+      );
+    }
+    expect(response.derivation).toMatch(/modeled footprint distance/i);
+  });
+
+  it("returns structured errors for invalid criteria without coercion", () => {
+    const invalid = [
+      runSpatialQuery({ kinds: ["invalid" as "structure"] }),
+      runSpatialQuery({ evidenceClasses: ["certain" as "observed"] }),
+      runSpatialQuery({ sourceSupport: "trusted" as "any" }),
+      runSpatialQuery({ maximumDistanceM: -1, anchorSubjectId: "rwy-05-23" }),
+      runSpatialQuery({ maximumDistanceM: 10 }),
+      runSpatialQuery({ anchorSubjectId: "does-not-exist", maximumDistanceM: 10 }),
+      runSpatialQuery({ snapshotDate: "2025-02-30" }),
+      runSpatialQuery({ presence: ["missing" as "undated"] }),
+      runSpatialQuery({
+        maximumStatedHorizontalUncertaintyM: Number.POSITIVE_INFINITY,
+      }),
+    ];
+
+    expect(invalid.every((response) => !response.ok && response.errors.length > 0)).toBe(
+      true,
+    );
+  });
+
+  it("does not mutate criteria and returns byte-stable ordering", () => {
+    const query = Object.freeze({
+      kinds: Object.freeze(["structure", "aircraft"] as const),
+      evidenceClasses: Object.freeze(["illustrative", "interpreted"] as const),
+    });
+    const first = successful(runSpatialQuery(query));
+    const second = successful(runSpatialQuery(query));
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+    expect(first.query).not.toBe(query);
+    expect(first.query.kinds).toEqual(["aircraft", "structure"]);
+    expect(first.query.evidenceClasses).toEqual(["interpreted", "illustrative"]);
   });
 });

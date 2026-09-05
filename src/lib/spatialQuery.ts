@@ -1,3 +1,13 @@
+import { EVIDENCE_CLASSIFICATIONS, type EvidenceClassification } from "./evidence";
+import { effectiveClassification } from "./evidenceMode";
+import {
+  SPATIAL_SUBJECTS,
+  getSpatialSubject,
+  type SpatialSubject,
+  type SpatialSubjectKind,
+} from "./spatialCatalog";
+import { deriveSnapshot, isIsoDate, type SubjectPresence } from "./temporal";
+
 export type LocalPoint = readonly [x: number, z: number];
 export type LocalRing = readonly LocalPoint[];
 
@@ -169,4 +179,266 @@ export function footprintDistanceM(left: LocalRing, right: LocalRing): number {
   }
 
   return best;
+}
+
+export type SourceSupport = "any" | "direct-observation" | "without-direct-observation";
+
+export interface SpatialQuery {
+  kinds?: readonly SpatialSubjectKind[];
+  evidenceClasses?: readonly EvidenceClassification[];
+  sourceSupport?: SourceSupport;
+  maximumStatedHorizontalUncertaintyM?: number;
+  includeUnknownHorizontalUncertainty?: boolean;
+  snapshotDate?: string;
+  presence?: readonly SubjectPresence[];
+  anchorSubjectId?: string;
+  maximumDistanceM?: number;
+}
+
+export interface SpatialQueryResult {
+  subject: SpatialSubject;
+  distanceM?: number;
+  presence?: SubjectPresence;
+}
+
+export type SpatialQueryResponse =
+  | {
+      ok: true;
+      query: SpatialQuery;
+      results: readonly SpatialQueryResult[];
+      derivation: string;
+    }
+  | { ok: false; errors: readonly string[] };
+
+export type SuccessfulSpatialQuery = Extract<SpatialQueryResponse, { ok: true }>;
+
+const SPATIAL_SUBJECT_KINDS: readonly SpatialSubjectKind[] = [
+  "aircraft",
+  "apron",
+  "pavement",
+  "structure",
+];
+const SOURCE_SUPPORT_VALUES: readonly SourceSupport[] = [
+  "any",
+  "direct-observation",
+  "without-direct-observation",
+];
+const SUBJECT_PRESENCE_VALUES: readonly SubjectPresence[] = [
+  "established",
+  "not-yet-evidenced",
+  "undated",
+];
+
+function normalizedMembers<T extends string>(
+  values: readonly T[] | undefined,
+  allowed: readonly T[],
+  label: string,
+  errors: string[],
+): readonly T[] | undefined {
+  if (values === undefined) return undefined;
+  const invalid = values.filter((value) => !allowed.includes(value));
+  if (invalid.length > 0) {
+    errors.push(`${label} contains unsupported value(s): ${invalid.join(", ")}`);
+    return undefined;
+  }
+  const requested = new Set(values);
+  return Object.freeze(allowed.filter((value) => requested.has(value)));
+}
+
+function finiteNonNegative(
+  value: number | undefined,
+  label: string,
+  errors: string[],
+): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isFinite(value) || value < 0) {
+    errors.push(`${label} must be a finite non-negative number`);
+    return undefined;
+  }
+  return value;
+}
+
+function hasDirectObservation(subjectId: string): boolean {
+  return effectiveClassification(subjectId) === "observed";
+}
+
+function normalizeQuery(query: SpatialQuery): {
+  query: SpatialQuery;
+  errors: readonly string[];
+} {
+  const errors: string[] = [];
+  const kinds = normalizedMembers(query.kinds, SPATIAL_SUBJECT_KINDS, "kinds", errors);
+  const evidenceClasses = normalizedMembers(
+    query.evidenceClasses,
+    EVIDENCE_CLASSIFICATIONS,
+    "evidenceClasses",
+    errors,
+  );
+  const presence = normalizedMembers(
+    query.presence,
+    SUBJECT_PRESENCE_VALUES,
+    "presence",
+    errors,
+  );
+  const maximumStatedHorizontalUncertaintyM = finiteNonNegative(
+    query.maximumStatedHorizontalUncertaintyM,
+    "maximumStatedHorizontalUncertaintyM",
+    errors,
+  );
+  const maximumDistanceM = finiteNonNegative(
+    query.maximumDistanceM,
+    "maximumDistanceM",
+    errors,
+  );
+
+  if (
+    query.sourceSupport !== undefined &&
+    !SOURCE_SUPPORT_VALUES.includes(query.sourceSupport)
+  ) {
+    errors.push(`sourceSupport contains unsupported value: ${query.sourceSupport}`);
+  }
+  if (query.snapshotDate !== undefined && !isIsoDate(query.snapshotDate)) {
+    errors.push("snapshotDate must be a valid ISO YYYY-MM-DD calendar date");
+  }
+  if (query.presence !== undefined && query.snapshotDate === undefined) {
+    errors.push("presence requires snapshotDate");
+  }
+  const hasAnchor = query.anchorSubjectId !== undefined;
+  const hasDistance = query.maximumDistanceM !== undefined;
+  if (hasAnchor !== hasDistance) {
+    errors.push("anchorSubjectId and maximumDistanceM must be provided together");
+  }
+  if (
+    query.anchorSubjectId !== undefined &&
+    getSpatialSubject(query.anchorSubjectId) === undefined
+  ) {
+    errors.push(
+      `anchorSubjectId does not name a spatial subject: ${query.anchorSubjectId}`,
+    );
+  }
+
+  const normalized: SpatialQuery = {
+    ...(kinds === undefined ? {} : { kinds }),
+    ...(evidenceClasses === undefined ? {} : { evidenceClasses }),
+    ...(query.sourceSupport === undefined ? {} : { sourceSupport: query.sourceSupport }),
+    ...(maximumStatedHorizontalUncertaintyM === undefined
+      ? {}
+      : { maximumStatedHorizontalUncertaintyM }),
+    ...(query.includeUnknownHorizontalUncertainty === undefined
+      ? {}
+      : {
+          includeUnknownHorizontalUncertainty: query.includeUnknownHorizontalUncertainty,
+        }),
+    ...(query.snapshotDate === undefined ? {} : { snapshotDate: query.snapshotDate }),
+    ...(presence === undefined ? {} : { presence }),
+    ...(query.anchorSubjectId === undefined
+      ? {}
+      : { anchorSubjectId: query.anchorSubjectId }),
+    ...(maximumDistanceM === undefined ? {} : { maximumDistanceM }),
+  };
+
+  return { query: Object.freeze(normalized), errors: Object.freeze(errors) };
+}
+
+const QUERY_DERIVATION =
+  "Results use deterministic modeled footprint distance in the local EPSG:32645 grid. Distances are planar model relationships, not geodesic or surveyed measurements; derived distance uncertainty is unknown.";
+
+export function runSpatialQuery(query: SpatialQuery): SpatialQueryResponse {
+  const normalized = normalizeQuery(query);
+  if (normalized.errors.length > 0) {
+    return { ok: false, errors: normalized.errors };
+  }
+
+  const kinds =
+    normalized.query.kinds === undefined ? undefined : new Set(normalized.query.kinds);
+  const evidenceClasses =
+    normalized.query.evidenceClasses === undefined
+      ? undefined
+      : new Set(normalized.query.evidenceClasses);
+  const presenceFilter =
+    normalized.query.presence === undefined
+      ? undefined
+      : new Set(normalized.query.presence);
+  const snapshot =
+    normalized.query.snapshotDate === undefined
+      ? undefined
+      : deriveSnapshot(normalized.query.snapshotDate);
+  const presenceById =
+    snapshot === undefined
+      ? undefined
+      : new Map(
+          snapshot.subjects.map((subject) => [subject.subjectId, subject.presence]),
+        );
+  const anchor =
+    normalized.query.anchorSubjectId === undefined
+      ? undefined
+      : getSpatialSubject(normalized.query.anchorSubjectId);
+
+  const results: SpatialQueryResult[] = [];
+  for (const subject of SPATIAL_SUBJECTS) {
+    if (kinds !== undefined && !kinds.has(subject.kind)) continue;
+    if (evidenceClasses !== undefined && !evidenceClasses.has(subject.evidenceClass)) {
+      continue;
+    }
+
+    const directObservation = hasDirectObservation(subject.id);
+    if (normalized.query.sourceSupport === "direct-observation" && !directObservation) {
+      continue;
+    }
+    if (
+      normalized.query.sourceSupport === "without-direct-observation" &&
+      directObservation
+    ) {
+      continue;
+    }
+
+    const maximumUncertainty = normalized.query.maximumStatedHorizontalUncertaintyM;
+    if (maximumUncertainty !== undefined) {
+      const horizontal = subject.uncertainty?.horizontalMeters;
+      if (horizontal === undefined) {
+        if (!normalized.query.includeUnknownHorizontalUncertainty) continue;
+      } else if (horizontal > maximumUncertainty) {
+        continue;
+      }
+    }
+
+    const presence = presenceById?.get(subject.id);
+    if (presenceFilter !== undefined) {
+      if (presence === undefined || !presenceFilter.has(presence)) continue;
+    }
+
+    let distanceM: number | undefined;
+    if (anchor !== undefined) {
+      if (subject.id === anchor.id) continue;
+      distanceM = footprintDistanceM(subject.footprint, anchor.footprint);
+      if (distanceM > normalized.query.maximumDistanceM!) continue;
+    }
+
+    results.push({
+      subject,
+      ...(distanceM === undefined ? {} : { distanceM }),
+      ...(presence === undefined ? {} : { presence }),
+    });
+  }
+
+  results.sort((left, right) => {
+    if (left.distanceM !== undefined || right.distanceM !== undefined) {
+      const distance =
+        (left.distanceM ?? Number.POSITIVE_INFINITY) -
+        (right.distanceM ?? Number.POSITIVE_INFINITY);
+      if (Math.abs(distance) > EPSILON) return distance;
+    }
+    return left.subject.id < right.subject.id
+      ? -1
+      : left.subject.id > right.subject.id
+        ? 1
+        : 0;
+  });
+
+  return {
+    ok: true,
+    query: normalized.query,
+    results: Object.freeze(results),
+    derivation: QUERY_DERIVATION,
+  };
 }
