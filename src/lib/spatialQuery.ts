@@ -1,0 +1,172 @@
+export type LocalPoint = readonly [x: number, z: number];
+export type LocalRing = readonly LocalPoint[];
+
+const EPSILON = 1e-9;
+
+function assertFinitePoint(point: LocalPoint, name: string): void {
+  if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
+    throw new RangeError(`${name} must contain only finite coordinates`);
+  }
+}
+
+function ringVertices(ring: LocalRing): readonly LocalPoint[] {
+  if (ring.length < 4) {
+    throw new RangeError("polygon rings must contain at least four points");
+  }
+  ring.forEach((point, index) => assertFinitePoint(point, `ring[${index}]`));
+
+  const first = ring[0]!;
+  const last = ring[ring.length - 1]!;
+  const vertices =
+    Math.abs(first[0] - last[0]) <= EPSILON && Math.abs(first[1] - last[1]) <= EPSILON
+      ? ring.slice(0, -1)
+      : ring;
+  if (vertices.length < 4) {
+    throw new RangeError("polygon rings must contain at least four vertices");
+  }
+  return vertices;
+}
+
+function cross(origin: LocalPoint, left: LocalPoint, right: LocalPoint): number {
+  return (
+    (left[0] - origin[0]) * (right[1] - origin[1]) -
+    (left[1] - origin[1]) * (right[0] - origin[0])
+  );
+}
+
+function pointEquals(left: LocalPoint, right: LocalPoint): boolean {
+  return (
+    Math.abs(left[0] - right[0]) <= EPSILON && Math.abs(left[1] - right[1]) <= EPSILON
+  );
+}
+
+function pointOnSegment(point: LocalPoint, a: LocalPoint, b: LocalPoint): boolean {
+  if (Math.abs(cross(a, b, point)) > EPSILON) return false;
+  return (
+    point[0] <= Math.max(a[0], b[0]) + EPSILON &&
+    point[0] + EPSILON >= Math.min(a[0], b[0]) &&
+    point[1] <= Math.max(a[1], b[1]) + EPSILON &&
+    point[1] + EPSILON >= Math.min(a[1], b[1])
+  );
+}
+
+function segmentsIntersect(
+  a: LocalPoint,
+  b: LocalPoint,
+  c: LocalPoint,
+  d: LocalPoint,
+): boolean {
+  if (pointEquals(a, b)) return pointOnSegment(a, c, d);
+  if (pointEquals(c, d)) return pointOnSegment(c, a, b);
+
+  const abC = cross(a, b, c);
+  const abD = cross(a, b, d);
+  const cdA = cross(c, d, a);
+  const cdB = cross(c, d, b);
+
+  if (Math.abs(abC) <= EPSILON && pointOnSegment(c, a, b)) return true;
+  if (Math.abs(abD) <= EPSILON && pointOnSegment(d, a, b)) return true;
+  if (Math.abs(cdA) <= EPSILON && pointOnSegment(a, c, d)) return true;
+  if (Math.abs(cdB) <= EPSILON && pointOnSegment(b, c, d)) return true;
+
+  return abC > EPSILON !== abD > EPSILON && cdA > EPSILON !== cdB > EPSILON;
+}
+
+function pointInPolygon(point: LocalPoint, ring: LocalRing): boolean {
+  const vertices = ringVertices(ring);
+  let inside = false;
+
+  for (let index = 0; index < vertices.length; index += 1) {
+    const current = vertices[index]!;
+    const next = vertices[(index + 1) % vertices.length]!;
+    if (pointOnSegment(point, current, next)) return true;
+
+    const intersects =
+      current[1] > point[1] !== next[1] > point[1] &&
+      point[0] <
+        ((next[0] - current[0]) * (point[1] - current[1])) / (next[1] - current[1]) +
+          current[0];
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
+export function pointToSegmentDistance(
+  point: LocalPoint,
+  a: LocalPoint,
+  b: LocalPoint,
+): number {
+  assertFinitePoint(point, "point");
+  assertFinitePoint(a, "segment start");
+  assertFinitePoint(b, "segment end");
+
+  const deltaX = b[0] - a[0];
+  const deltaZ = b[1] - a[1];
+  const lengthSquared = deltaX * deltaX + deltaZ * deltaZ;
+  if (lengthSquared <= EPSILON) {
+    return Math.hypot(point[0] - a[0], point[1] - a[1]);
+  }
+
+  const projection =
+    ((point[0] - a[0]) * deltaX + (point[1] - a[1]) * deltaZ) / lengthSquared;
+  const clamped = Math.min(1, Math.max(0, projection));
+  const nearestX = a[0] + deltaX * clamped;
+  const nearestZ = a[1] + deltaZ * clamped;
+  return Math.hypot(point[0] - nearestX, point[1] - nearestZ);
+}
+
+export function polygonsIntersect(left: LocalRing, right: LocalRing): boolean {
+  const leftVertices = ringVertices(left);
+  const rightVertices = ringVertices(right);
+
+  for (let leftIndex = 0; leftIndex < leftVertices.length; leftIndex += 1) {
+    const leftStart = leftVertices[leftIndex]!;
+    const leftEnd = leftVertices[(leftIndex + 1) % leftVertices.length]!;
+    for (let rightIndex = 0; rightIndex < rightVertices.length; rightIndex += 1) {
+      const rightStart = rightVertices[rightIndex]!;
+      const rightEnd = rightVertices[(rightIndex + 1) % rightVertices.length]!;
+      if (segmentsIntersect(leftStart, leftEnd, rightStart, rightEnd)) return true;
+    }
+  }
+
+  return (
+    pointInPolygon(leftVertices[0]!, right) || pointInPolygon(rightVertices[0]!, left)
+  );
+}
+
+export function footprintDistanceM(left: LocalRing, right: LocalRing): number {
+  const leftVertices = ringVertices(left);
+  const rightVertices = ringVertices(right);
+  if (polygonsIntersect(left, right)) return 0;
+
+  let best = Number.POSITIVE_INFINITY;
+
+  for (const point of leftVertices) {
+    for (let index = 0; index < rightVertices.length; index += 1) {
+      best = Math.min(
+        best,
+        pointToSegmentDistance(
+          point,
+          rightVertices[index]!,
+          rightVertices[(index + 1) % rightVertices.length]!,
+        ),
+      );
+    }
+  }
+
+  for (const point of rightVertices) {
+    for (let index = 0; index < leftVertices.length; index += 1) {
+      best = Math.min(
+        best,
+        pointToSegmentDistance(
+          point,
+          leftVertices[index]!,
+          leftVertices[(index + 1) % leftVertices.length]!,
+        ),
+      );
+    }
+  }
+
+  return best;
+}
