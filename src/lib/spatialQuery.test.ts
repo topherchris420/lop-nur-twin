@@ -161,6 +161,10 @@ describe("spatial query", () => {
       );
     }
     expect(response.derivation).toMatch(/modeled footprint distance/i);
+    expect(
+      response.results.every((result) => result.anchor?.subjectId === "rwy-05-23"),
+    ).toBe(true);
+    expect(response.results[0]?.anchor?.uncertainty).toBeDefined();
   });
 
   it("returns structured errors for invalid criteria without coercion", () => {

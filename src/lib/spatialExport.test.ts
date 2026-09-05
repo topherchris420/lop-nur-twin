@@ -9,6 +9,7 @@ import {
   type SpatialQueryResponse,
   type SuccessfulSpatialQuery,
 } from "./spatialQuery";
+import type { LocalRing } from "./spatialQuery";
 
 function successful(response: SpatialQueryResponse): SuccessfulSpatialQuery {
   if (!response.ok) throw new Error(response.errors.join("; "));
@@ -62,7 +63,7 @@ describe("spatial exports", () => {
     const [header] = csv.split("\r\n");
 
     expect(header).toBe(
-      "subject_id,label,kind,evidence_class,confidence,source_ids,presence,modeled_distance_m,horizontal_uncertainty_m,footprint_uncertainty_m,distance_uncertainty",
+      "subject_id,label,kind,evidence_class,confidence,source_ids,presence,modeled_distance_m,horizontal_uncertainty_m,footprint_uncertainty_m,anchor_subject_id,anchor_horizontal_uncertainty_m,anchor_footprint_uncertainty_m,distance_uncertainty",
     );
     expect(csv).toContain("not stated");
     expect(csv).toContain('"');
@@ -105,8 +106,43 @@ describe("spatial exports", () => {
         expect(latitude).toBeLessThan(42);
       }
       expect(feature.properties["distanceUncertainty"]).toBe("unknown");
+      expect(feature.properties["anchorSubjectId"]).toBe("rwy-05-23");
+      expect(feature.properties["anchorUncertainty"]).toBeDefined();
       expect(feature.id.startsWith("live-aircraft-")).toBe(false);
     }
+  });
+
+  it("rejects an unclosed source ring instead of repairing it", () => {
+    const response = successful(runSpatialQuery({ kinds: ["aircraft"] }));
+    const first = response.results[0]!;
+    const unclosed: LocalRing = [
+      ...first.subject.footprint.slice(0, -1),
+      [first.subject.footprint[0]![0] + 1, first.subject.footprint[0]![1]],
+    ];
+    const fabricated: SuccessfulSpatialQuery = {
+      ...response,
+      results: [
+        {
+          ...first,
+          subject: { ...first.subject, footprint: unclosed },
+        },
+        ...response.results.slice(1),
+      ],
+    };
+
+    expect(() => spatialResultsToGeoJson(fabricated)).toThrow(/closed/i);
+  });
+
+  it("rejects fabricated unsorted results before serializing any format", () => {
+    const response = successful(runSpatialQuery({ kinds: ["aircraft"] }));
+    const fabricated: SuccessfulSpatialQuery = {
+      ...response,
+      results: [...response.results].reverse(),
+    };
+
+    expect(() => spatialResultsToJson(fabricated)).toThrow(/authoritative query/i);
+    expect(() => spatialResultsToCsv(fabricated)).toThrow(/authoritative query/i);
+    expect(() => spatialResultsToGeoJson(fabricated)).toThrow(/authoritative query/i);
   });
 
   it("exports a valid empty result instead of treating it as an error", () => {

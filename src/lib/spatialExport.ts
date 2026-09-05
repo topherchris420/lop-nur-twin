@@ -1,10 +1,8 @@
 import { canonicalJson } from "./canonicalJson";
 import { KNOWN_LIMITATIONS, PRIMARY_CRS } from "./evidence";
 import { localToProjected, localToWgs84 } from "./geospatial";
-import type {
-  SpatialQueryResult,
-  SuccessfulSpatialQuery,
-} from "./spatialQuery";
+import { runSpatialQuery } from "./spatialQuery";
+import type { SpatialQueryResult, SuccessfulSpatialQuery } from "./spatialQuery";
 
 export const SPATIAL_EXPORT_SCHEMA_VERSION = "lop-nur-spatial-query/1.0.0";
 
@@ -56,6 +54,8 @@ function resultRecord(result: SpatialQueryResult) {
       : { modeledDistanceM: rounded(result.distanceM, 3) }),
     horizontalUncertaintyM: subject.uncertainty?.horizontalMeters ?? "not stated",
     footprintUncertaintyM: subject.uncertainty?.footprintMeters ?? "not stated",
+    anchorSubjectId: result.anchor?.subjectId ?? "not stated",
+    anchorUncertainty: result.anchor?.uncertainty ?? "not stated",
     distanceUncertainty: "unknown",
     observedDate: subject.observedDate ?? "not stated",
     localFootprint: subject.footprint,
@@ -85,7 +85,8 @@ export function spatialResultsToJson(
   response: SuccessfulSpatialQuery,
   identity?: SpatialExportIdentity,
 ): string {
-  return `${canonicalJson(exportEnvelope(response, identity))}\n`;
+  validateResponse(response);
+  return serializeJsonDocument(exportEnvelope(response, identity));
 }
 
 function csvText(value: string): string {
@@ -97,6 +98,7 @@ function csvMetric(value: number | undefined): string {
 }
 
 export function spatialResultsToCsv(response: SuccessfulSpatialQuery): string {
+  validateResponse(response);
   const header = [
     "subject_id",
     "label",
@@ -108,9 +110,12 @@ export function spatialResultsToCsv(response: SuccessfulSpatialQuery): string {
     "modeled_distance_m",
     "horizontal_uncertainty_m",
     "footprint_uncertainty_m",
+    "anchor_subject_id",
+    "anchor_horizontal_uncertainty_m",
+    "anchor_footprint_uncertainty_m",
     "distance_uncertainty",
   ].join(",");
-  const rows = response.results.map(({ subject, distanceM, presence }) =>
+  const rows = response.results.map(({ subject, distanceM, presence, anchor }) =>
     [
       csvText(subject.id),
       csvText(subject.label),
@@ -122,6 +127,9 @@ export function spatialResultsToCsv(response: SuccessfulSpatialQuery): string {
       csvMetric(distanceM),
       csvMetric(subject.uncertainty?.horizontalMeters),
       csvMetric(subject.uncertainty?.footprintMeters),
+      csvText(anchor?.subjectId ?? "not stated"),
+      csvMetric(anchor?.uncertainty?.horizontalMeters),
+      csvMetric(anchor?.uncertainty?.footprintMeters),
       csvText("unknown"),
     ].join(","),
   );
@@ -141,6 +149,18 @@ interface GeoJsonFeature {
 }
 
 function wgs84Ring(result: SpatialQueryResult): readonly GeoJsonPosition[] {
+  const localFirst = result.subject.footprint[0];
+  const localLast = result.subject.footprint.at(-1);
+  if (
+    localFirst === undefined ||
+    localLast === undefined ||
+    localFirst[0] !== localLast[0] ||
+    localFirst[1] !== localLast[1]
+  ) {
+    throw new RangeError(
+      `GeoJSON source polygon for ${result.subject.id} must already be closed`,
+    );
+  }
   const positions = result.subject.footprint.map(([x, z]) => {
     const coordinate = localToWgs84({ x, z });
     const position: GeoJsonPosition = [
@@ -161,12 +181,18 @@ function wgs84Ring(result: SpatialQueryResult): readonly GeoJsonPosition[] {
     return position;
   });
   const first = positions[0];
-  if (first === undefined || positions.length < 5) {
+  const last = positions.at(-1);
+  if (
+    first === undefined ||
+    last === undefined ||
+    positions.length < 5 ||
+    first[0] !== last[0] ||
+    first[1] !== last[1]
+  ) {
     throw new RangeError(
       `GeoJSON polygon for ${result.subject.id} must contain a closed ring`,
     );
   }
-  positions[positions.length - 1] = first;
   return positions;
 }
 
@@ -191,6 +217,8 @@ function geoJsonFeature(result: SpatialQueryResult): GeoJsonFeature {
         result.distanceM === undefined ? "not stated" : rounded(result.distanceM, 3),
       horizontalUncertaintyM: subject.uncertainty?.horizontalMeters ?? "not stated",
       footprintUncertaintyM: subject.uncertainty?.footprintMeters ?? "not stated",
+      anchorSubjectId: result.anchor?.subjectId ?? "not stated",
+      anchorUncertainty: result.anchor?.uncertainty ?? "not stated",
       distanceUncertainty: "unknown",
       sourceCoordinateReferenceSystem: PRIMARY_CRS,
       derivation:
@@ -203,6 +231,7 @@ export function spatialResultsToGeoJson(
   response: SuccessfulSpatialQuery,
   identity?: SpatialExportIdentity,
 ): string {
+  validateResponse(response);
   const keptIdentity = exportIdentity(identity);
   const collection = {
     type: "FeatureCollection",
@@ -217,5 +246,47 @@ export function spatialResultsToGeoJson(
       knownLimitations: KNOWN_LIMITATIONS,
     },
   };
-  return `${canonicalJson(collection)}\n`;
+  return serializeJsonDocument(collection);
+}
+
+function validateResponse(response: SuccessfulSpatialQuery): void {
+  for (const result of response.results) {
+    const first = result.subject.footprint[0];
+    const last = result.subject.footprint.at(-1);
+    if (
+      first === undefined ||
+      last === undefined ||
+      first[0] !== last[0] ||
+      first[1] !== last[1]
+    ) {
+      throw new RangeError(
+        `Spatial result polygon for ${result.subject.id} must be closed`,
+      );
+    }
+    if (
+      result.subject.footprint.some(
+        ([x, z]) => !Number.isFinite(x) || !Number.isFinite(z),
+      )
+    ) {
+      throw new RangeError(
+        `Spatial result polygon for ${result.subject.id} must contain finite coordinates`,
+      );
+    }
+  }
+
+  const authoritative = runSpatialQuery(response.query);
+  if (
+    !authoritative.ok ||
+    canonicalJson(authoritative.results) !== canonicalJson(response.results)
+  ) {
+    throw new TypeError(
+      "Spatial export response does not match the authoritative query result",
+    );
+  }
+}
+
+function serializeJsonDocument(value: unknown): string {
+  const document = `${canonicalJson(value)}\n`;
+  JSON.parse(document);
+  return document;
 }

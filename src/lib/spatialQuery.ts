@@ -7,6 +7,7 @@ import {
   type SpatialSubjectKind,
 } from "./spatialCatalog";
 import { deriveSnapshot, isIsoDate, type SubjectPresence } from "./temporal";
+import type { UncertaintyEnvelope } from "./uncertainty";
 
 export type LocalPoint = readonly [x: number, z: number];
 export type LocalRing = readonly LocalPoint[];
@@ -199,6 +200,10 @@ export interface SpatialQueryResult {
   subject: SpatialSubject;
   distanceM?: number;
   presence?: SubjectPresence;
+  anchor?: {
+    subjectId: string;
+    uncertainty?: UncertaintyEnvelope;
+  };
 }
 
 export type SpatialQueryResponse =
@@ -373,6 +378,15 @@ export function runSpatialQuery(query: SpatialQuery): SpatialQueryResponse {
     normalized.query.anchorSubjectId === undefined
       ? undefined
       : getSpatialSubject(normalized.query.anchorSubjectId);
+  const anchorMetadata =
+    anchor === undefined
+      ? undefined
+      : Object.freeze({
+          subjectId: anchor.id,
+          ...(anchor.uncertainty === undefined
+            ? {}
+            : { uncertainty: anchor.uncertainty }),
+        });
 
   const results: SpatialQueryResult[] = [];
   for (const subject of SPATIAL_SUBJECTS) {
@@ -418,6 +432,7 @@ export function runSpatialQuery(query: SpatialQuery): SpatialQueryResponse {
       subject,
       ...(distanceM === undefined ? {} : { distanceM }),
       ...(presence === undefined ? {} : { presence }),
+      ...(anchorMetadata === undefined ? {} : { anchor: anchorMetadata }),
     });
   }
 
