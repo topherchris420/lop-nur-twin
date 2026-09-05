@@ -33,6 +33,11 @@ const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 /** Dates are ISO calendar dates and nothing else. */
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+function boundedString(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > MAX_VALUE_LENGTH) return null;
+  return value;
+}
+
 function rawParam(name: string): string | null {
   if (typeof window === "undefined") return null;
   let value: string | null = null;
@@ -41,9 +46,7 @@ function rawParam(name: string): string | null {
   } catch {
     return null;
   }
-  if (value === null) return null;
-  if (value.length > MAX_VALUE_LENGTH) return null;
-  return value;
+  return boundedString(value);
 }
 
 /** A finite number, or null. Empty and whitespace-only strings are *not* zero. */
@@ -64,8 +67,50 @@ function clamp(value: number, min: number, max: number): number {
  * false. Deliberately strict so a typo cannot silently enable a mode.
  */
 export function readFlag(name: string): boolean {
-  const raw = rawParam(name);
-  return raw === "1" || raw === "true";
+  return parseBooleanValue(rawParam(name)) === true;
+}
+
+/** Parse an explicitly encoded boolean without JavaScript truthiness. */
+export function parseBooleanValue(value: unknown): boolean | null {
+  const raw = boundedString(value);
+  if (raw === "1" || raw === "true") return true;
+  if (raw === "0" || raw === "false") return false;
+  return null;
+}
+
+/**
+ * Parse a finite float that must already lie inside the declared range.
+ * Unlike the interactive renderer readers, analytical URLs reject out-of-range
+ * values instead of clamping them to a different reproducible question.
+ */
+export function parseBoundedFloatValue(
+  value: unknown,
+  min: number,
+  max: number,
+): number | null {
+  const parsed = finiteNumber(boundedString(value));
+  if (parsed === null || parsed < min || parsed > max) return null;
+  return parsed;
+}
+
+/** Parse a comma-separated enum set and return it in vocabulary order. */
+export function parseCommaEnumValue<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+): readonly T[] | null {
+  const raw = boundedString(value);
+  if (raw === null) return null;
+  if (raw.length === 0) return [];
+  const parts = raw.split(",");
+  if (
+    parts.some(
+      (part) => part.length === 0 || !(allowed as readonly string[]).includes(part),
+    )
+  ) {
+    return null;
+  }
+  const requested = new Set(parts);
+  return allowed.filter((member) => requested.has(member));
 }
 
 /** An integer parameter, clamped into `[min, max]`. Non-integers are rejected. */
@@ -94,9 +139,13 @@ export function readEnumParam<T extends string>(
 
 /** A model id (structure, source, zone). Shape-checked, existence is the caller's job. */
 export function readIdParam(name: string): string | null {
-  const raw = rawParam(name);
-  if (raw === null) return null;
-  return ID_PATTERN.test(raw) ? raw : null;
+  return parseIdValue(rawParam(name));
+}
+
+/** A bounded model slug from route search input. Existence is the caller's job. */
+export function parseIdValue(value: unknown): string | null {
+  const raw = boundedString(value);
+  return raw !== null && ID_PATTERN.test(raw) ? raw : null;
 }
 
 /**
@@ -107,7 +156,12 @@ export function readIdParam(name: string): string | null {
  * at is the caller's job.
  */
 export function readIsoDateParam(name: string): string | null {
-  const raw = rawParam(name);
+  return parseIsoDateValue(rawParam(name));
+}
+
+/** A bounded, real ISO calendar date from route search input. */
+export function parseIsoDateValue(value: unknown): string | null {
+  const raw = boundedString(value);
   if (raw === null || !ISO_DATE_PATTERN.test(raw)) return null;
   const timestamp = Date.parse(`${raw}T00:00:00Z`);
   if (Number.isNaN(timestamp)) return null;

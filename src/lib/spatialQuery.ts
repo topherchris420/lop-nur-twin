@@ -217,18 +217,18 @@ export type SpatialQueryResponse =
 
 export type SuccessfulSpatialQuery = Extract<SpatialQueryResponse, { ok: true }>;
 
-const SPATIAL_SUBJECT_KINDS: readonly SpatialSubjectKind[] = [
+export const SPATIAL_SUBJECT_KINDS: readonly SpatialSubjectKind[] = [
   "aircraft",
   "apron",
   "pavement",
   "structure",
 ];
-const SOURCE_SUPPORT_VALUES: readonly SourceSupport[] = [
+export const SOURCE_SUPPORT_VALUES: readonly SourceSupport[] = [
   "any",
   "direct-observation",
   "without-direct-observation",
 ];
-const SUBJECT_PRESENCE_VALUES: readonly SubjectPresence[] = [
+export const SUBJECT_PRESENCE_VALUES: readonly SubjectPresence[] = [
   "established",
   "not-yet-evidenced",
   "undated",

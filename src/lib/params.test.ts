@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  parseBooleanValue,
+  parseBoundedFloatValue,
+  parseCommaEnumValue,
+  parseIdValue,
+  parseIsoDateValue,
   readEnumParam,
   readFlag,
   readFloatParam,
@@ -163,6 +168,47 @@ describe("readIsoDateParam", () => {
         withSearch(`?d=${encodeURIComponent(value)}`, () => readIsoDateParam("d")),
       ).toBeNull();
     }
+  });
+});
+
+describe("pure route-value parsers", () => {
+  it("normalizes comma enum lists into allowed vocabulary order", () => {
+    const allowed = ["aircraft", "apron", "pavement", "structure"] as const;
+    expect(parseCommaEnumValue("structure,aircraft,structure", allowed)).toEqual([
+      "aircraft",
+      "structure",
+    ]);
+    expect(parseCommaEnumValue("", allowed)).toEqual([]);
+    expect(parseCommaEnumValue("structure,unknown", allowed)).toBeNull();
+    expect(parseCommaEnumValue("x".repeat(65), allowed)).toBeNull();
+    expect(parseCommaEnumValue(["structure"], allowed)).toBeNull();
+  });
+
+  it("parses explicit booleans without truthy coercion", () => {
+    expect(parseBooleanValue("1")).toBe(true);
+    expect(parseBooleanValue("true")).toBe(true);
+    expect(parseBooleanValue("0")).toBe(false);
+    expect(parseBooleanValue("false")).toBe(false);
+    expect(parseBooleanValue("yes")).toBeNull();
+    expect(parseBooleanValue(undefined)).toBeNull();
+  });
+
+  it("rejects non-finite, negative, and out-of-range spatial thresholds", () => {
+    expect(parseBoundedFloatValue("500", 0, SITE_SIZE)).toBe(500);
+    expect(parseBoundedFloatValue("0", 0, SITE_SIZE)).toBe(0);
+    expect(parseBoundedFloatValue("-1", 0, SITE_SIZE)).toBeNull();
+    expect(parseBoundedFloatValue(String(SITE_SIZE + 1), 0, SITE_SIZE)).toBeNull();
+    expect(parseBoundedFloatValue("1e309", 0, SITE_SIZE)).toBeNull();
+    expect(parseBoundedFloatValue("", 0, SITE_SIZE)).toBeNull();
+  });
+
+  it("shares id and calendar-date rules with browser readers", () => {
+    expect(parseIdValue("rwy-05-23")).toBe("rwy-05-23");
+    expect(parseIdValue("../rwy")).toBeNull();
+    expect(parseIdValue("a".repeat(65))).toBeNull();
+    expect(parseIsoDateValue("2025-09-13")).toBe("2025-09-13");
+    expect(parseIsoDateValue("2025-02-30")).toBeNull();
+    expect(parseIsoDateValue("<script>")).toBeNull();
   });
 });
 

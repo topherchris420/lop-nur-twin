@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Crosshair, Download, ExternalLink, GitCompare, Globe2 } from "lucide-react";
 import {
   STRUCTURES,
   STRUCTURE_TYPE_LABELS,
+  SITE_SIZE,
   isAircraft,
   type StructureDef,
 } from "@/lib/layout";
@@ -45,6 +46,21 @@ import {
 } from "@/lib/temporal";
 import { formatUncertainty } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
+import { SpatialQueryPanel } from "@/components/evidence/SpatialQueryPanel";
+import {
+  parseBooleanValue,
+  parseBoundedFloatValue,
+  parseCommaEnumValue,
+  parseIdValue,
+  parseIsoDateValue,
+} from "@/lib/params";
+import {
+  SOURCE_SUPPORT_VALUES,
+  SPATIAL_SUBJECT_KINDS,
+  SUBJECT_PRESENCE_VALUES,
+  type SourceSupport,
+} from "@/lib/spatialQuery";
+import { getSpatialSubject } from "@/lib/spatialCatalog";
 
 /**
  * `/analysis` — the model without the 3D scene.
@@ -69,6 +85,15 @@ import { useTwinStore } from "@/lib/store";
 interface AnalysisSearch {
   /** Row to highlight, handed over from a dossier in the 3D twin. */
   structure?: string;
+  kinds?: string;
+  classes?: string;
+  support?: SourceSupport;
+  uncertainty?: number;
+  includeUnknown?: true;
+  spatialDate?: string;
+  presence?: string;
+  anchor?: string;
+  distance?: number;
 }
 
 export const Route = createFileRoute("/analysis")({
@@ -76,11 +101,49 @@ export const Route = createFileRoute("/analysis")({
   // Search parameters arrive from links and from whatever a visitor types.
   // Anything that is not a plausible model id is dropped rather than trusted.
   validateSearch: (search: Record<string, unknown>): AnalysisSearch => {
-    const raw = search["structure"];
-    if (typeof raw !== "string") return {};
-    const id = raw.trim();
-    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) return {};
-    return STRUCTURES.some((structure) => structure.id === id) ? { structure: id } : {};
+    const validated: AnalysisSearch = {};
+    const structure = parseIdValue(search["structure"]);
+    if (
+      structure !== null &&
+      STRUCTURES.some((candidate) => candidate.id === structure)
+    ) {
+      validated.structure = structure;
+    }
+
+    const kinds = parseCommaEnumValue(search["kinds"], SPATIAL_SUBJECT_KINDS);
+    if (kinds !== null && kinds.length !== SPATIAL_SUBJECT_KINDS.length) {
+      validated.kinds = kinds.join(",");
+    }
+    const classes = parseCommaEnumValue(search["classes"], EVIDENCE_CLASSIFICATIONS);
+    if (classes !== null && classes.length !== EVIDENCE_CLASSIFICATIONS.length) {
+      validated.classes = classes.join(",");
+    }
+    const support = parseCommaEnumValue(search["support"], SOURCE_SUPPORT_VALUES);
+    if (support?.length === 1 && support[0] !== "any") {
+      validated.support = support[0];
+    }
+    const uncertainty = parseBoundedFloatValue(search["uncertainty"], 0, SITE_SIZE);
+    if (uncertainty !== null) validated.uncertainty = uncertainty;
+    if (parseBooleanValue(search["includeUnknown"]) === true) {
+      validated.includeUnknown = true;
+    }
+
+    const spatialDate = parseIsoDateValue(search["spatialDate"]);
+    if (spatialDate !== null) {
+      validated.spatialDate = spatialDate;
+      const presence = parseCommaEnumValue(search["presence"], SUBJECT_PRESENCE_VALUES);
+      if (presence !== null && presence.length !== SUBJECT_PRESENCE_VALUES.length) {
+        validated.presence = presence.join(",");
+      }
+    }
+
+    const anchor = parseIdValue(search["anchor"]);
+    const distance = parseBoundedFloatValue(search["distance"], 0, SITE_SIZE);
+    if (anchor !== null && getSpatialSubject(anchor) !== undefined && distance !== null) {
+      validated.anchor = anchor;
+      validated.distance = distance;
+    }
+    return validated;
   },
 });
 
@@ -100,7 +163,9 @@ function structureConfidence(structure: StructureDef): number {
 }
 
 function AnalysisView() {
-  const { structure: highlighted } = Route.useSearch();
+  const routeSearch = Route.useSearch();
+  const { structure: highlighted } = routeSearch;
+  const navigate = useNavigate({ from: "/analysis" });
   const [query, setQuery] = useState("");
   const [enabled, setEnabled] =
     useState<readonly EvidenceClassification[]>(ALL_CLASSIFICATIONS);
@@ -193,6 +258,27 @@ function AnalysisView() {
           evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
         }
       : null;
+  const spatialIdentity =
+    manifest.status === "ready"
+      ? {
+          modelVersion: manifest.manifest.modelVersion,
+          geometryHash: manifest.manifest.geometryHash,
+          evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
+        }
+      : undefined;
+
+  const updateSpatialSearch = useCallback(
+    (next: Omit<AnalysisSearch, "structure">) => {
+      void navigate({
+        replace: true,
+        search: {
+          ...(highlighted === undefined ? {} : { structure: highlighted }),
+          ...next,
+        },
+      });
+    },
+    [highlighted, navigate],
+  );
 
   const toggleClassification = (classification: EvidenceClassification) => {
     setEnabled((current) =>
@@ -205,10 +291,10 @@ function AnalysisView() {
   return (
     <div className="bg-background text-foreground h-full overflow-y-auto">
       <a
-        href="#structure-table"
+        href="#spatial-query-results"
         className="bg-primary text-primary-foreground focus:ring-ring sr-only rounded px-4 py-2 text-sm font-semibold focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:ring-2"
       >
-        Skip to the structure table
+        Skip to spatial query results
       </a>
 
       <div className="mx-auto max-w-[110rem] px-4 py-8 sm:px-8">
@@ -712,6 +798,20 @@ function AnalysisView() {
             ))}
           </ul>
         </section>
+
+        <SpatialQueryPanel
+          search={routeSearch}
+          onChange={updateSpatialSearch}
+          identity={spatialIdentity}
+        />
+        <p className="mt-3 text-xs">
+          <a
+            href="#structure-table"
+            className="text-primary focus-visible:ring-ring underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+          >
+            Skip to the complete structure table
+          </a>
+        </p>
 
         <section aria-labelledby="table-heading" className="mt-10">
           <h2 id="table-heading" className="text-lg font-semibold">

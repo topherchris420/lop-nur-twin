@@ -115,6 +115,11 @@ const HOSTILE = [
   "/?evidence=not-a-mode&snapshot=2025-02-30",
   "/?evidence=observed&snapshot=9999-99-99",
   `/?snapshot=${encodeURIComponent("<script>alert(1)</script>")}`,
+  "/analysis?kinds=structure,unknown&distance=1e309",
+  `/analysis?anchor=${encodeURIComponent("<script>alert(1)</script>")}&distance=500`,
+  "/analysis?anchor=rwy-05-23&distance=-1",
+  "/analysis?spatialDate=2025-02-30&presence=established",
+  "/analysis?uncertainty=-1&includeUnknown=yes",
   "/compare?anything=" + "b".repeat(300),
 ];
 for (const path of HOSTILE) {
@@ -173,7 +178,7 @@ console.log("\n=== keyboard navigation on /analysis ===");
   });
   check(
     "first Tab reaches the skip-navigation link",
-    first.tag === "A" && /skip to the structure table/i.test(first.text),
+    first.tag === "A" && /skip to spatial query results/i.test(first.text),
     `${first.tag}: ${first.text.slice(0, 40)}`,
   );
 
@@ -182,7 +187,7 @@ console.log("\n=== keyboard navigation on /analysis ===");
   const afterSkip = await page.evaluate(() => document.activeElement?.id ?? "");
   check(
     "activating the skip link moves focus to the table",
-    afterSkip === "structure-table",
+    afterSkip === "spatial-query-results",
     `focus: #${afterSkip}`,
   );
 
@@ -200,7 +205,7 @@ console.log("\n=== keyboard navigation on /analysis ===");
   // the bookmark controls before the search field. Walking further is the point
   // of the check — that the order is header, then controls, then rows — not a
   // relaxation of it.
-  for (let index = 0; index < 44; index += 1) {
+  for (let index = 0; index < 130; index += 1) {
     await page.keyboard.press("Tab");
     stops.push(
       await page.evaluate(() => {
@@ -218,19 +223,21 @@ console.log("\n=== keyboard navigation on /analysis ===");
     `stop ${stops.findIndex((stop) => stop.includes("structure-search")) + 1} of ${stops.length}`,
   );
   check(
-    "tabbing reaches the four evidence filter checkboxes",
-    stops.filter((stop) => stop.startsWith("INPUT")).length >= 5,
-    `${stops.filter((stop) => stop.startsWith("INPUT")).length} inputs (search + filters)`,
+    "tabbing reaches spatial query controls",
+    stops.some((stop) => stop.includes("spatial-support")) &&
+      stops.some((stop) => stop.includes("spatial-anchor")) &&
+      stops.filter((stop) => stop.startsWith("INPUT")).length >= 13,
+    `${stops.filter((stop) => stop.startsWith("INPUT")).length} inputs`,
   );
   const searchStop = stops.findIndex((stop) => stop.includes("structure-search"));
-  const firstRowLink = stops.findIndex((stop) => stop.includes("Open in 3D"));
+  const spatialSupportStop = stops.findIndex((stop) => stop.includes("spatial-support"));
   check(
-    "tab order is header, then controls, then table",
-    stops[0].includes("Skip to the structure") &&
+    "tab order is header, then spatial controls, then structure controls",
+    stops[0].includes("Skip to spatial query") &&
+      spatialSupportStop !== -1 &&
       searchStop !== -1 &&
-      firstRowLink !== -1 &&
-      searchStop < firstRowLink,
-    `skip link first, search at ${searchStop + 1}, first row link at ${firstRowLink + 1} of ${stops.length}`,
+      spatialSupportStop < searchStop,
+    `skip link first, spatial support at ${spatialSupportStop + 1}, structure search at ${searchStop + 1} of ${stops.length}`,
   );
   await page.close();
 }
@@ -263,7 +270,8 @@ console.log("\n=== evidence filtering and search ===");
 
   // Uncheck "Illustrative".
   await page.evaluate(() => {
-    const labels = [...document.querySelectorAll("label")];
+    const section = document.querySelector("#table-heading")?.closest("section");
+    const labels = [...(section?.querySelectorAll("label") ?? [])];
     const target = labels.find((label) => /illustrative/i.test(label.textContent ?? ""));
     target?.querySelector("input")?.click();
   });
@@ -282,7 +290,8 @@ console.log("\n=== evidence filtering and search ===");
 
   // Restore, then search.
   await page.evaluate(() => {
-    const labels = [...document.querySelectorAll("label")];
+    const section = document.querySelector("#table-heading")?.closest("section");
+    const labels = [...(section?.querySelectorAll("label") ?? [])];
     const target = labels.find((label) => /illustrative/i.test(label.textContent ?? ""));
     target?.querySelector("input")?.click();
   });
@@ -299,7 +308,85 @@ console.log("\n=== evidence filtering and search ===");
 }
 
 /* ------------------------------------------------------------------ */
-/* 5. Deep links between the table and the 3D dossier                  */
+/* 5. Deterministic spatial query deep links                           */
+/* ------------------------------------------------------------------ */
+
+console.log("\n=== deterministic spatial query ===");
+{
+  const { page, errors } = await open(
+    `${previewOrigin}/analysis?anchor=rwy-05-23&distance=500`,
+    { settle: 2500 },
+  );
+  const state = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#spatial-query-results tbody tr")];
+    const status = [...document.querySelectorAll("[role='status']")].find((node) =>
+      /modeled spatial subject/.test(node.textContent ?? ""),
+    );
+    const buttons = [...document.querySelectorAll("button")].filter((button) =>
+      /^Export (JSON|CSV|GeoJSON)$/.test(button.textContent?.trim() ?? ""),
+    );
+    return {
+      count: rows.length,
+      first: rows[0]?.querySelector("th")?.textContent ?? "",
+      status: status?.textContent ?? "",
+      exportsEnabled: buttons.length === 3 && buttons.every((button) => !button.disabled),
+    };
+  });
+  check(
+    "runway proximity deep link returns ordered results",
+    state.count > 0 && /tri-north/.test(state.first),
+    `${state.count} rows · first ${state.first.trim().slice(0, 40)}`,
+  );
+  check(
+    "spatial result count is announced as text",
+    state.status.includes(String(state.count)),
+    state.status.trim(),
+  );
+  check(
+    "valid spatial results enable all three exports",
+    state.exportsEnabled,
+    state.exportsEnabled ? "JSON, CSV, GeoJSON" : "export disabled",
+  );
+  check(
+    "spatial query deep link has no page errors",
+    errors.length === 0,
+    errors[0] ?? "clean",
+  );
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const firstAfterReload = await page.evaluate(
+    () => document.querySelector("#spatial-query-results tbody tr th")?.textContent ?? "",
+  );
+  check(
+    "spatial query ordering survives refresh",
+    firstAfterReload === state.first,
+    firstAfterReload.trim().slice(0, 40),
+  );
+  await page.close();
+}
+
+for (const [path, expected] of [
+  [
+    "/analysis?kinds=structure,aircraft&support=without-direct-observation",
+    "without direct observation",
+  ],
+  ["/analysis?uncertainty=0&includeUnknown=1", "unknown uncertainty"],
+  ["/analysis?spatialDate=2025-09-13&presence=established", "snapshot presence"],
+]) {
+  const { page, errors } = await open(`${previewOrigin}${path}`, { settle: 2000 });
+  const rows = await page.evaluate(
+    () => document.querySelectorAll("#spatial-query-results tbody tr").length,
+  );
+  check(
+    `spatial filter works: ${expected}`,
+    rows > 0 && errors.length === 0,
+    `${rows} rows`,
+  );
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
+/* 6. Deep links between the table and the 3D dossier                  */
 /* ------------------------------------------------------------------ */
 
 console.log("\n=== deep links between the two views ===");
@@ -335,7 +422,7 @@ console.log("\n=== deep links between the two views ===");
 }
 
 /* ------------------------------------------------------------------ */
-/* 6. Narrow viewport                                                  */
+/* 7. Narrow viewport                                                  */
 /* ------------------------------------------------------------------ */
 
 console.log("\n=== mobile viewport (390 x 844) ===");
@@ -382,7 +469,7 @@ for (const [path, settle] of [
 }
 
 /* ------------------------------------------------------------------ */
-/* 7. Reduced motion reaches the application state (dev build only)     */
+/* 8. Reduced motion reaches the application state (dev build only)     */
 /* ------------------------------------------------------------------ */
 
 if (devOrigin !== "-") {
