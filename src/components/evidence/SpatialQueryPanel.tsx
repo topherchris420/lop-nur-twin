@@ -17,6 +17,7 @@ import {
   SPATIAL_SUBJECT_KINDS,
   SUBJECT_PRESENCE_VALUES,
   runSpatialQuery,
+  type SpatialQuery,
   type SourceSupport,
 } from "@/lib/spatialQuery";
 import { TEMPORAL_SNAPSHOT_DATES, type SubjectPresence } from "@/lib/temporal";
@@ -37,6 +38,38 @@ interface SpatialQueryPanelProps {
   search: SpatialQuerySearchState;
   onChange: (next: SpatialQuerySearchState) => void;
   identity?: SpatialExportIdentity;
+}
+
+function decodedSelection<T extends string>(
+  value: string | undefined,
+): readonly T[] | undefined {
+  if (value === undefined) return undefined;
+  return value === "" ? [] : (value.split(",") as T[]);
+}
+
+export function spatialQueryFromSearch(search: SpatialQuerySearchState): SpatialQuery {
+  const kinds = decodedSelection<SpatialSubjectKind>(search.kinds);
+  const evidenceClasses = decodedSelection<EvidenceClassification>(search.classes);
+  const presence = decodedSelection<SubjectPresence>(search.presence);
+  return {
+    ...(kinds === undefined ? {} : { kinds }),
+    ...(evidenceClasses === undefined ? {} : { evidenceClasses }),
+    ...(search.support === undefined ? {} : { sourceSupport: search.support }),
+    ...(search.uncertainty === undefined
+      ? {}
+      : { maximumStatedHorizontalUncertaintyM: search.uncertainty }),
+    ...(search.includeUnknown === undefined
+      ? {}
+      : { includeUnknownHorizontalUncertainty: true }),
+    ...(search.spatialDate === undefined ? {} : { snapshotDate: search.spatialDate }),
+    ...(presence === undefined ? {} : { presence }),
+    ...(search.anchor === undefined
+      ? {}
+      : {
+          anchorSubjectId: search.anchor,
+          maximumDistanceM: search.distance,
+        }),
+  };
 }
 
 const KIND_LABELS: Record<SpatialSubjectKind, string> = {
@@ -86,33 +119,7 @@ export function SpatialQueryPanel({
   const kinds = selectedValues(search.kinds, SPATIAL_SUBJECT_KINDS);
   const classes = selectedValues(search.classes, EVIDENCE_CLASSIFICATIONS);
   const presence = selectedValues(search.presence, SUBJECT_PRESENCE_VALUES);
-  const response = runSpatialQuery({
-    ...(search.kinds === undefined
-      ? {}
-      : { kinds: search.kinds.split(",") as SpatialSubjectKind[] }),
-    ...(search.classes === undefined
-      ? {}
-      : {
-          evidenceClasses: search.classes.split(",") as EvidenceClassification[],
-        }),
-    ...(search.support === undefined ? {} : { sourceSupport: search.support }),
-    ...(search.uncertainty === undefined
-      ? {}
-      : { maximumStatedHorizontalUncertaintyM: search.uncertainty }),
-    ...(search.includeUnknown === undefined
-      ? {}
-      : { includeUnknownHorizontalUncertainty: true }),
-    ...(search.spatialDate === undefined ? {} : { snapshotDate: search.spatialDate }),
-    ...(search.presence === undefined
-      ? {}
-      : { presence: search.presence.split(",") as SubjectPresence[] }),
-    ...(search.anchor === undefined
-      ? {}
-      : {
-          anchorSubjectId: search.anchor,
-          maximumDistanceM: search.distance,
-        }),
-  });
+  const response = runSpatialQuery(spatialQueryFromSearch(search));
 
   const update = (patch: Partial<SpatialQuerySearchState>) =>
     onChange({ ...search, ...patch });
