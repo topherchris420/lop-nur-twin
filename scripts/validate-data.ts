@@ -853,9 +853,7 @@ for (const subject of SPATIAL_SUBJECTS) {
   );
 }
 const runwaySpatial = SPATIAL_SUBJECTS.find((subject) => subject.id === "rwy-05-23");
-const northStripSpatial = SPATIAL_SUBJECTS.find(
-  (subject) => subject.id === "tri-north",
-);
+const northStripSpatial = SPATIAL_SUBJECTS.find((subject) => subject.id === "tri-north");
 check(runwaySpatial !== undefined, "Spatial catalog must contain the modeled runway");
 check(
   northStripSpatial !== undefined,
