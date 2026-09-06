@@ -64,7 +64,7 @@ describe("spatial exports", () => {
     const [header] = csv.split("\r\n");
 
     expect(header).toBe(
-      "subject_id,label,kind,evidence_class,confidence,source_ids,presence,modeled_distance_m,horizontal_uncertainty_m,footprint_uncertainty_m,anchor_subject_id,anchor_horizontal_uncertainty_m,anchor_footprint_uncertainty_m,distance_uncertainty",
+      "subject_id,label,kind,evidence_class,confidence,source_ids,presence,modeled_distance_m,horizontal_uncertainty_m,footprint_uncertainty_m,anchor_subject_id,anchor_horizontal_uncertainty_m,anchor_footprint_uncertainty_m,subject_uncertainty_json,anchor_uncertainty_json,distance_uncertainty",
     );
     expect(csv).toContain("not stated");
     expect(csv).toContain('"');
@@ -99,6 +99,12 @@ describe("spatial exports", () => {
       expect(feature.geometry.type).toBe("Polygon");
       const ring = feature.geometry.coordinates[0]!;
       expect(ring[0]).toEqual(ring.at(-1));
+      const area =
+        ring.slice(0, -1).reduce((sum, point, index, points) => {
+          const next = points[(index + 1) % points.length]!;
+          return sum + point[0]! * next[1]! - next[0]! * point[1]!;
+        }, 0) / 2;
+      expect(area).toBeGreaterThan(0);
       expect(ring.flat().every(Number.isFinite)).toBe(true);
       for (const [longitude, latitude] of ring) {
         expect(longitude).toBeGreaterThan(89);
@@ -109,6 +115,7 @@ describe("spatial exports", () => {
       expect(feature.properties["distanceUncertainty"]).toBe("unknown");
       expect(feature.properties["anchorSubjectId"]).toBe("rwy-05-23");
       expect(feature.properties["anchorUncertainty"]).toBeDefined();
+      expect(feature.properties["subjectUncertainty"]).toBeDefined();
       expect(feature.id.startsWith("live-aircraft-")).toBe(false);
     }
   });

@@ -182,6 +182,41 @@ export function footprintDistanceM(left: LocalRing, right: LocalRing): number {
   return best;
 }
 
+export function footprintCentroid(ring: LocalRing): LocalPoint {
+  const vertices = ringVertices(ring);
+  const sum = vertices.reduce(
+    (value, [x, z]) => [value[0] + x, value[1] + z] as LocalPoint,
+    [0, 0] as LocalPoint,
+  );
+  return [sum[0] / vertices.length, sum[1] / vertices.length];
+}
+
+export type CardinalRelation =
+  "north-of" | "south-of" | "east-of" | "west-of" | "coincident";
+
+export function cardinalRelation(left: LocalRing, right: LocalRing): CardinalRelation {
+  const [leftX, leftZ] = footprintCentroid(left);
+  const [rightX, rightZ] = footprintCentroid(right);
+  const dx = leftX - rightX;
+  const dz = leftZ - rightZ;
+  if (Math.abs(dx) <= EPSILON && Math.abs(dz) <= EPSILON) return "coincident";
+  if (Math.abs(dx) > Math.abs(dz)) return dx > 0 ? "east-of" : "west-of";
+  return dz < 0 ? "north-of" : "south-of";
+}
+
+export function nearestSpatialSubject(
+  anchorSubjectId: string,
+): SpatialSubject | undefined {
+  const anchor = getSpatialSubject(anchorSubjectId);
+  if (anchor === undefined) return undefined;
+  return SPATIAL_SUBJECTS.filter((subject) => subject.id !== anchor.id).sort((a, b) => {
+    const delta =
+      footprintDistanceM(a.footprint, anchor.footprint) -
+      footprintDistanceM(b.footprint, anchor.footprint);
+    return Math.abs(delta) > EPSILON ? delta : a.id.localeCompare(b.id);
+  })[0];
+}
+
 export type SourceSupport = "any" | "direct-observation" | "without-direct-observation";
 
 export interface SpatialQuery {
@@ -349,6 +384,24 @@ const QUERY_DERIVATION =
   "Results use deterministic modeled footprint distance in the local EPSG:32645 grid. Distances are planar model relationships, not geodesic or surveyed measurements; derived distance uncertainty is unknown.";
 
 export function runSpatialQuery(query: SpatialQuery): SpatialQueryResponse {
+  if (typeof query !== "object" || query === null || Array.isArray(query)) {
+    return { ok: false, errors: ["query must be an object"] };
+  }
+  const runtime = query as Record<string, unknown>;
+  for (const key of ["kinds", "evidenceClasses", "presence"] as const) {
+    if (runtime[key] !== undefined && !Array.isArray(runtime[key])) {
+      return { ok: false, errors: [`${key} must be an array`] };
+    }
+  }
+  if (
+    runtime["includeUnknownHorizontalUncertainty"] !== undefined &&
+    typeof runtime["includeUnknownHorizontalUncertainty"] !== "boolean"
+  ) {
+    return {
+      ok: false,
+      errors: ["includeUnknownHorizontalUncertainty must be a boolean"],
+    };
+  }
   const normalized = normalizeQuery(query);
   if (normalized.errors.length > 0) {
     return { ok: false, errors: normalized.errors };

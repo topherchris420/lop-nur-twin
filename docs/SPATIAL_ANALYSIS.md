@@ -97,6 +97,40 @@ Every format includes classification, confidence, sources, temporal presence,
 modeled distance, subject uncertainty, anchor uncertainty, and the statement
 that distance uncertainty is unknown.
 
+Abbreviated examples:
+
+```json
+{
+  "schemaVersion": "lop-nur-spatial-query/1.0.0",
+  "query": { "anchorSubjectId": "rwy-05-23", "maximumDistanceM": 500 },
+  "results": [
+    { "subjectId": "tri-north", "modeledDistanceM": 0, "distanceUncertainty": "unknown" }
+  ]
+}
+```
+
+```csv
+subject_id,label,kind,evidence_class,modeled_distance_m,distance_uncertainty
+"tri-north","North graded strip","pavement","illustrative",0,"unknown"
+```
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "tri-north",
+      "geometry": { "type": "Polygon", "coordinates": "generated closed WGS84 ring" }
+    }
+  ]
+}
+```
+
+The GeoJSON fragment above is structural shorthand, not a valid standalone
+feature; actual exports contain closed counterclockwise rings with five
+positions and complete provenance properties.
+
 ## Reproduction
 
 1. Check out the commit or deployment identified by the geometry and evidence

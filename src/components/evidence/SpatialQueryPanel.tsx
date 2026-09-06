@@ -160,7 +160,7 @@ export function SpatialQueryPanel({
                   type="checkbox"
                   checked={kinds.has(kind)}
                   onChange={() => toggle(kind, kinds, SPATIAL_SUBJECT_KINDS, "kinds")}
-                  className="accent-primary"
+                  className="accent-primary focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
                 />
                 {KIND_LABELS[kind]}
               </label>
@@ -179,7 +179,7 @@ export function SpatialQueryPanel({
                   onChange={() =>
                     toggle(classification, classes, EVIDENCE_CLASSIFICATIONS, "classes")
                   }
-                  className="accent-primary"
+                  className="accent-primary focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
                 />
                 <span aria-hidden="true">
                   {EVIDENCE_CLASSIFICATION_META[classification].glyph}
@@ -244,7 +244,7 @@ export function SpatialQueryPanel({
               onChange={(event) =>
                 update({ includeUnknown: event.target.checked ? true : undefined })
               }
-              className="mt-0.5 accent-primary"
+              className="mt-0.5 accent-primary focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
             />
             Include subjects whose horizontal uncertainty is not stated
           </label>
@@ -285,7 +285,7 @@ export function SpatialQueryPanel({
                   onChange={() =>
                     toggle(value, presence, SUBJECT_PRESENCE_VALUES, "presence")
                   }
-                  className="accent-primary"
+                  className="accent-primary focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
                 />
                 {PRESENCE_LABELS[value]}
               </label>

@@ -129,7 +129,7 @@ export const Route = createFileRoute("/analysis")({
     }
 
     const spatialDate = parseIsoDateValue(search["spatialDate"]);
-    if (spatialDate !== null) {
+    if (spatialDate !== null && TEMPORAL_SNAPSHOT_DATES.includes(spatialDate)) {
       validated.spatialDate = spatialDate;
       const presence = parseCommaEnumValue(search["presence"], SUBJECT_PRESENCE_VALUES);
       if (presence !== null && presence.length !== SUBJECT_PRESENCE_VALUES.length) {

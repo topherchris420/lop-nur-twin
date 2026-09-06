@@ -21,14 +21,14 @@ canvas, no animation and no timers.
 
 | Requirement                    | How                                                                                                                                                  |
 | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skip navigation                | First focusable element is a "Skip to the structure table" link, visually hidden until focused                                                       |
+| Skip navigation                | First focusable element is a "Skip to spatial query results" link, visually hidden until focused; a second link reaches the structure table          |
 | Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Twin (public-source model)"                                                                        |
 | Semantic headings              | One `<h1>`, `<h2>` per section, no level skipped                                                                                                     |
 | Landmarks                      | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>`                                                                              |
 | Proper table markup            | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">`                                                                        |
 | Full keyboard navigation       | Native controls only — no custom widgets, no keyboard traps, no positive `tabindex`                                                                  |
 | Logical tab order              | DOM order matches visual order                                                                                                                       |
-| Visible focus indicators       | `focus-visible:ring-2` on every link, button, input and checkbox                                                                                     |
+| Visible focus indicators       | `focus-visible:ring-2` on every link, button, input and checkbox, including the spatial query controls                                               |
 | Screen-reader labels           | `<label for>` on the search field and every filter checkbox; `aria-describedby` hint; external links append a visually-hidden "(opens in a new tab)" |
 | Status messages                | Result count and manifest state use `role="status"`                                                                                                  |
 | No information by colour alone | Evidence status pairs a glyph and a word with its tint; confidence is a number and a rank in text                                                    |

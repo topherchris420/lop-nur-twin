@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   footprintDistanceM,
+  footprintCentroid,
+  cardinalRelation,
+  nearestSpatialSubject,
   pointToSegmentDistance,
   polygonsIntersect,
   runSpatialQuery,
@@ -58,6 +61,20 @@ describe("spatial geometry primitives", () => {
     expect(() => footprintDistanceM(closedTriangle, square(0, 0, 10))).toThrow(
       /at least four vertices/,
     );
+  });
+
+  it("derives centroids, cardinal relations, and stable nearest ties", () => {
+    expect(footprintCentroid(square(10, 20, 4))).toEqual([10, 20]);
+    expect(cardinalRelation(square(0, 0, 2), square(0, -10, 2))).toBe("south-of");
+    expect(nearestSpatialSubject("rwy-05-23")?.id).toBe("tri-north");
+  });
+
+  it("returns structured errors for forged runtime shapes", () => {
+    expect(runSpatialQuery("bad" as never)).toMatchObject({ ok: false });
+    expect(runSpatialQuery({ kinds: "aircraft" } as never)).toMatchObject({ ok: false });
+    expect(
+      runSpatialQuery({ includeUnknownHorizontalUncertainty: "yes" } as never),
+    ).toMatchObject({ ok: false });
   });
 });
 

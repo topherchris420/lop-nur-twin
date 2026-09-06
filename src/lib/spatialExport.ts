@@ -54,6 +54,7 @@ function resultRecord(result: SpatialQueryResult) {
       : { modeledDistanceM: rounded(result.distanceM, 3) }),
     horizontalUncertaintyM: subject.uncertainty?.horizontalMeters ?? "not stated",
     footprintUncertaintyM: subject.uncertainty?.footprintMeters ?? "not stated",
+    subjectUncertainty: subject.uncertainty ?? "not stated",
     anchorSubjectId: result.anchor?.subjectId ?? "not stated",
     anchorUncertainty: result.anchor?.uncertainty ?? "not stated",
     distanceUncertainty: "unknown",
@@ -113,6 +114,8 @@ export function spatialResultsToCsv(response: SuccessfulSpatialQuery): string {
     "anchor_subject_id",
     "anchor_horizontal_uncertainty_m",
     "anchor_footprint_uncertainty_m",
+    "subject_uncertainty_json",
+    "anchor_uncertainty_json",
     "distance_uncertainty",
   ].join(",");
   const rows = response.results.map(({ subject, distanceM, presence, anchor }) =>
@@ -130,6 +133,16 @@ export function spatialResultsToCsv(response: SuccessfulSpatialQuery): string {
       csvText(anchor?.subjectId ?? "not stated"),
       csvMetric(anchor?.uncertainty?.horizontalMeters),
       csvMetric(anchor?.uncertainty?.footprintMeters),
+      csvText(
+        subject.uncertainty === undefined
+          ? "not stated"
+          : canonicalJson(subject.uncertainty),
+      ),
+      csvText(
+        anchor?.uncertainty === undefined
+          ? "not stated"
+          : canonicalJson(anchor.uncertainty),
+      ),
       csvText("unknown"),
     ].join(","),
   );
@@ -193,7 +206,17 @@ function wgs84Ring(result: SpatialQueryResult): readonly GeoJsonPosition[] {
       `GeoJSON polygon for ${result.subject.id} must contain a closed ring`,
     );
   }
-  return positions;
+  const open = positions.slice(0, -1);
+  const signedArea =
+    open.reduce((sum, point, index) => {
+      const next = open[(index + 1) % open.length]!;
+      return sum + point[0] * next[1] - next[0] * point[1];
+    }, 0) / 2;
+  if (Math.abs(signedArea) <= Number.EPSILON) {
+    throw new RangeError(`GeoJSON polygon for ${result.subject.id} has zero area`);
+  }
+  const exterior = signedArea > 0 ? open : [...open].reverse();
+  return [...exterior, exterior[0]!];
 }
 
 function geoJsonFeature(result: SpatialQueryResult): GeoJsonFeature {
@@ -217,6 +240,7 @@ function geoJsonFeature(result: SpatialQueryResult): GeoJsonFeature {
         result.distanceM === undefined ? "not stated" : rounded(result.distanceM, 3),
       horizontalUncertaintyM: subject.uncertainty?.horizontalMeters ?? "not stated",
       footprintUncertaintyM: subject.uncertainty?.footprintMeters ?? "not stated",
+      subjectUncertainty: subject.uncertainty ?? "not stated",
       anchorSubjectId: result.anchor?.subjectId ?? "not stated",
       anchorUncertainty: result.anchor?.uncertainty ?? "not stated",
       distanceUncertainty: "unknown",
