@@ -23,11 +23,18 @@ describe("geospatial transforms", () => {
       northing: SITE_PROFILE.localCrs.runwayCenterNorthingM,
     });
     expect(geographic.latitude).toBeCloseTo(SITE_PROFILE.referenceCoordinate.latitude, 5);
-    expect(geographic.longitude).toBeCloseTo(SITE_PROFILE.referenceCoordinate.longitude, 5);
+    expect(geographic.longitude).toBeCloseTo(
+      SITE_PROFILE.referenceCoordinate.longitude,
+      5,
+    );
   });
 
   it("round-trips representative local and geographic coordinates", () => {
-    for (const point of [{ x: 0, z: 0 }, { x: -3400, z: 3400 }, { x: 3400, z: -3400 }]) {
+    for (const point of [
+      { x: 0, z: 0 },
+      { x: -3400, z: 3400 },
+      { x: 3400, z: -3400 },
+    ]) {
       const roundTrip = projectedToLocal(localToProjected(point));
       expect(roundTrip.x).toBeCloseTo(point.x, 8);
       expect(roundTrip.z).toBeCloseTo(point.z, 8);

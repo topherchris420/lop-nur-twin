@@ -154,6 +154,12 @@ in the combat map too. See [AGENTS.md](../AGENTS.md) for extension recipes.
 
 ## Built With
 
+The accessible analysis route also derives 68 stable spatial footprints from
+the 45 structures, 20 pavement segments and 3 aprons. These support
+evidence-aware temporal and proximity queries plus JSON, CSV and WGS84 GeoJSON
+export. The catalog contains no live aircraft or other moving scene entity;
+full method and limitations are in [`SPATIAL_ANALYSIS.md`](SPATIAL_ANALYSIS.md).
+
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
 drei · @react-three/postprocessing (with hand-written GLSL effects and passes) ·
 Tailwind CSS 4 · zustand · simplex-noise · leva and puppeteer (dev only)

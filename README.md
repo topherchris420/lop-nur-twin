@@ -72,6 +72,9 @@ analytical conclusion.
   diff two dates.
 - **Measurement.** Snap to modeled vertices, read distances and grid bearings in
   EPSG:32645, and copy out a citable plain-text summary.
+- **Deterministic spatial queries.** Filter every stable modeled footprint by
+  evidence, source support, uncertainty, temporal presence and edge-to-edge
+  proximity, then export canonical JSON, CSV or WGS84 GeoJSON.
 - **A release manifest.** SHA-256 over canonicalised model data, per-subject
   digests, and an explicit statement of what the model does not know.
 - **Local bookmarks.** A saved analytical position carrying the hashes of the
@@ -184,7 +187,7 @@ outputs by hand.
 
 ```sh
 bun run check        # format:check → lint → test:run → test:evidence → build
-bun run test:run     # 198 unit tests over the deterministic modules
+bun run test:run     # unit tests over the deterministic modules
 bun run test:evidence # proves all 35 evidence-validator rules still fire
 bun run validate:data # sources, geometry, bounds, geodesy, evidence ledger
 bun run a11y         # axe-core + CSP checks, against the preview build
@@ -205,6 +208,7 @@ what each check does and does not prove:
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                             | Setup, the rules a change has to hold to, and what a pull request needs             |
 | [`docs/VALIDATION.md`](docs/VALIDATION.md)                       | Every check, what it proves, and the repository settings code cannot configure      |
 | [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)             | Source registration, classification, confidence, hashing, reproducing a release     |
+| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)           | Footprint derivation, spatial queries, distance semantics and interoperable exports |
 | [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)         | The envelope schema, where a number may come from, and what the build refuses       |
 | [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)               | The three dates, the event ledger, snapshots and change comparison                  |
 | [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)           | Manifest schema 1.1, the four per-subject hashes, and what a diff cannot see        |

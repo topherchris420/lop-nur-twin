@@ -58,6 +58,9 @@ import {
 import { createCircuitCurve } from "../src/lib/flightPath";
 import { terrainHeight } from "../src/lib/terrain";
 import * as THREE from "three";
+import { canonicalJson } from "../src/lib/canonicalJson";
+import { SPATIAL_SUBJECTS } from "../src/lib/spatialCatalog";
+import { footprintDistanceM, runSpatialQuery } from "../src/lib/spatialQuery";
 
 const errors: string[] = [];
 const siteLimitM = SITE_SIZE / 2;
@@ -805,6 +808,79 @@ check(
   "Evidence ledger must be sorted by record id so release hashes stay stable",
 );
 
+/* ------------------------------------------------------------------ */
+/* Derived spatial catalog and query                                   */
+/* ------------------------------------------------------------------ */
+
+const expectedSpatialIds = [...STRUCTURES, ...ALL_SEGMENTS, ...APRONS]
+  .map((record) => record.id)
+  .sort();
+const spatialIds = SPATIAL_SUBJECTS.map((subject) => subject.id);
+check(
+  SPATIAL_SUBJECTS.length === expectedSpatialIds.length,
+  "Spatial catalog must contain every layout structure, segment, and apron exactly once",
+);
+check(
+  canonicalJson(spatialIds) === canonicalJson(expectedSpatialIds),
+  "Spatial catalog ids must exactly match the sorted layout ids",
+);
+check(
+  new Set(spatialIds).size === spatialIds.length,
+  "Spatial catalog ids must be unique",
+);
+for (const subject of SPATIAL_SUBJECTS) {
+  const first = subject.footprint[0];
+  const last = subject.footprint.at(-1);
+  check(
+    subject.footprint.length === 5 &&
+      first !== undefined &&
+      last !== undefined &&
+      first[0] === last[0] &&
+      first[1] === last[1],
+    `Spatial subject "${subject.id}" must have a closed four-corner footprint`,
+  );
+  check(
+    subject.footprint.every(([x, z]) => Number.isFinite(x) && Number.isFinite(z)),
+    `Spatial subject "${subject.id}" footprint must be finite`,
+  );
+  check(
+    subject.sourceIds.length > 0,
+    `Spatial subject "${subject.id}" must retain evidence source linkage`,
+  );
+  check(
+    !subject.id.startsWith("live-aircraft-"),
+    `Live ADS-B subject "${subject.id}" must not enter analytical exports`,
+  );
+}
+const runwaySpatial = SPATIAL_SUBJECTS.find((subject) => subject.id === "rwy-05-23");
+check(runwaySpatial !== undefined, "Spatial catalog must contain the modeled runway");
+if (runwaySpatial !== undefined) {
+  check(
+    footprintDistanceM(runwaySpatial.footprint, runwaySpatial.footprint) === 0,
+    "A footprint must have zero modeled distance from itself",
+  );
+}
+const representativeQuery = {
+  anchorSubjectId: "rwy-05-23",
+  maximumDistanceM: 500,
+} as const;
+const spatialQueryA = runSpatialQuery(representativeQuery);
+const spatialQueryB = runSpatialQuery(representativeQuery);
+check(
+  spatialQueryA.ok && spatialQueryB.ok,
+  "Representative runway proximity query must validate",
+);
+if (spatialQueryA.ok && spatialQueryB.ok) {
+  check(
+    canonicalJson(spatialQueryA) === canonicalJson(spatialQueryB),
+    "Repeated spatial queries must produce byte-identical canonical results",
+  );
+  check(
+    spatialQueryA.results.every((result) => result.subject.id !== "rwy-05-23"),
+    "A proximity query must exclude its anchor subject",
+  );
+}
+
 if (errors.length > 0) {
   console.error(`[validate:data] ${errors.length} validation error(s):`);
   for (const error of errors) console.error(`- ${error}`);
@@ -812,5 +888,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources, ${SNAP_TARGETS.length} snap targets, ${ledgerResult.recordCount} evidence records`,
+  `[validate:data] OK: ${ALL_SEGMENTS.length} segments, ${APRONS.length} aprons, ${STRUCTURES.length} structures, ${PUBLIC_SOURCES.length} sources, ${SNAP_TARGETS.length} snap targets, ${ledgerResult.recordCount} evidence records, ${SPATIAL_SUBJECTS.length} spatial subjects`,
 );

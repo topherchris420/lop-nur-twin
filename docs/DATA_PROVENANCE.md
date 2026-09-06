@@ -125,6 +125,12 @@ structures.
 
 ## 6. Updating a source
 
+Spatial exports do not add provenance. They join layout subjects to the same
+derived records through stable ids and carry the existing classifications,
+sources and uncertainty unchanged. Before serialization, the exporter reruns
+the query and rejects criteria or results that differ from the authoritative
+normalized response. See [`SPATIAL_ANALYSIS.md`](SPATIAL_ANALYSIS.md).
+
 1. Edit the entry in `PUBLIC_SOURCES` — including `accessedOn`, which records
    when a human last looked at it.
 2. Update whatever claims changed in `src/lib/layout.ts`. If a claim is now

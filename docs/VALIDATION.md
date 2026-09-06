@@ -77,6 +77,13 @@ Coverage is reported over `src/lib/` only, so the number means something rather
 than being diluted by scene code verified in a browser. It is a map of what is
 tested, not a target to hit.
 
+Spatial suites additionally cover WGS84/UTM/local round trips, oriented
+footprint derivation, intersection and distance boundaries, query composition,
+unknown uncertainty, temporal presence, canonical export determinism, malformed
+responses and RFC 7946 coordinate/ring validity. `validate:data` gates catalog
+completeness, evidence linkage, finite closed rings, live-entity exclusion and
+representative repeated-query equality.
+
 ## Manifest reproducibility
 
 ```sh
@@ -99,7 +106,7 @@ the artifact that actually ships — including its security headers.
 ```sh
 bun run build && bun run preview &
 bun run a11y     # axe-core on all four routes + CSP violations
-bun run routes   # 52 checks: deep links, refreshes, hostile parameters,
+bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
                  # keyboard order, filtering, mobile reflow, reduced motion
 ```
 
@@ -113,6 +120,10 @@ a WebGL canvas, and an axe rule cannot inspect one.
 and asserts it renders normally with no page errors. It once proved a real bug
 into existence: a manifest fetch whose effect aborted its own request and left
 the panel reading "Reading the manifest…" forever.
+
+The route gate also loads canonical spatial-query links and checks keyboard
+order, proximity ordering, result announcements, export availability, empty and
+hostile filters, refresh stability, and mobile containment.
 
 **Automated checks cover only part of WCAG 2.1 AA.** Screen-reader narration,
 keyboard-only task completion, 200% zoom and colour-contrast review of the

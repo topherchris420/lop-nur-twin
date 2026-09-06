@@ -121,6 +121,13 @@ record, because the ledger is derived from the same file.
 
 ## 7. Blacksite simulation layer
 
+The analytical layout also feeds `src/lib/spatialCatalog.ts`, which derives
+closed local footprints and joins them to evidence and uncertainty. Pure
+`spatialQuery.ts` predicates compose evidence, temporal presence and
+edge-to-edge EPSG:32645 proximity; `spatialExport.ts` emits canonical JSON,
+CSV and WGS84 GeoJSON. `/analysis` is the only UI consumer. Live ADS-B remains
+an opt-in scene layer and is excluded from this pipeline.
+
 `src/game/` mounts the twin's `Terrain`, `Pavements`, `Structures` and
 `Atmosphere` unchanged and **bakes its collision out of the rendered scene
 graph**, so the playable map and the analytical model cannot drift apart. Under

@@ -144,27 +144,27 @@ export function projectedToWgs84(point: ProjectedCoordinate): GeographicCoordina
   const tanPhi1 = Math.tan(phi1);
   const n1 = WGS84_A / Math.sqrt(1 - WGS84_E2 * sinPhi1 * sinPhi1);
   const r1 =
-    (WGS84_A * (1 - WGS84_E2)) /
-    Math.pow(1 - WGS84_E2 * sinPhi1 * sinPhi1, 3 / 2);
+    (WGS84_A * (1 - WGS84_E2)) / Math.pow(1 - WGS84_E2 * sinPhi1 * sinPhi1, 3 / 2);
   const t1 = tanPhi1 * tanPhi1;
   const c1 = WGS84_EP2 * cosPhi1 * cosPhi1;
   const d = x / n1;
 
   const latitudeRad =
     phi1 -
-    (n1 * tanPhi1 * (d * d / 2 -
-      ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * WGS84_EP2) * d ** 4) / 24 +
-      ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * WGS84_EP2 - 3 * c1 * c1) *
-        d ** 6) /
-        720)) /
+    (n1 *
+      tanPhi1 *
+      ((d * d) / 2 -
+        ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * WGS84_EP2) * d ** 4) / 24 +
+        ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * WGS84_EP2 - 3 * c1 * c1) *
+          d ** 6) /
+          720)) /
       r1;
 
   const longitudeRad =
     CENTRAL_MERIDIAN_RAD +
     (d -
       ((1 + 2 * t1 + c1) * d ** 3) / 6 +
-      ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * WGS84_EP2 + 24 * t1 * t1) *
-        d ** 5) /
+      ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * WGS84_EP2 + 24 * t1 * t1) * d ** 5) /
         120) /
       cosPhi1;
 
@@ -202,7 +202,7 @@ export function wgs84ToProjected(point: GeographicCoordinate): ProjectedCoordina
         (m +
           n *
             tanLatitude *
-            (a * a / 2 +
+            ((a * a) / 2 +
               ((5 - t + 9 * c + 4 * c * c) * a ** 4) / 24 +
               ((61 - 58 * t + t * t + 600 * c - 330 * WGS84_EP2) * a ** 6) / 720)),
   };

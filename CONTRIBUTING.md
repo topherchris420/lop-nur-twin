@@ -105,6 +105,13 @@ that has been quietly disabled.
 
 ## Determinism
 
+Spatial analysis follows the same rule. Add geometry only in `layout.ts`;
+`spatialCatalog.ts` derives footprints and evidence joins. Query code must use
+modeled footprint distance, keep unknown uncertainty distinct from zero, and
+exclude live ADS-B or other moving simulation entities. Run the spatial unit
+tests and route checks for any query, CRS, URL or export change. See
+[`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md).
+
 **Everything is procedural and seeded.** All randomness flows through
 `mulberry32`/`seededNoise2D` in `src/lib/noise.ts`, so a given seed always
 reproduces the same site. No binary assets and no runtime downloads — drei
