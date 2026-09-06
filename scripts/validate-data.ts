@@ -853,12 +853,25 @@ for (const subject of SPATIAL_SUBJECTS) {
   );
 }
 const runwaySpatial = SPATIAL_SUBJECTS.find((subject) => subject.id === "rwy-05-23");
+const northStripSpatial = SPATIAL_SUBJECTS.find(
+  (subject) => subject.id === "tri-north",
+);
 check(runwaySpatial !== undefined, "Spatial catalog must contain the modeled runway");
+check(
+  northStripSpatial !== undefined,
+  "Spatial catalog must contain the north graded strip",
+);
 if (runwaySpatial !== undefined) {
   check(
     footprintDistanceM(runwaySpatial.footprint, runwaySpatial.footprint) === 0,
     "A footprint must have zero modeled distance from itself",
   );
+  if (northStripSpatial !== undefined) {
+    check(
+      footprintDistanceM(runwaySpatial.footprint, northStripSpatial.footprint) === 0,
+      "Distinct intersecting runway and north-strip footprints must have zero modeled distance",
+    );
+  }
 }
 const representativeQuery = {
   anchorSubjectId: "rwy-05-23",
