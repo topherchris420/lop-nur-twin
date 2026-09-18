@@ -33,18 +33,18 @@ import { useTwinStore } from "@/lib/store";
 /** Day and night want different exposure and lens character. */
 const LOOK = {
   day: {
-    exposure: 1.08,
-    slope: 1.09,
-    offset: -0.008,
-    power: 1.05,
-    saturation: 1.2,
-    bloomIntensity: 0.5,
-    bloomThreshold: 0.62,
-    streakIntensity: 0.4,
-    streakThreshold: 0.78,
-    grain: 0.014,
-    aberration: 0.0013,
-    radialBlur: 0.0032,
+    exposure: 1.04,
+    slope: 1.08,
+    offset: -0.006,
+    power: 1.03,
+    saturation: 1.08,
+    bloomIntensity: 0.34,
+    bloomThreshold: 0.72,
+    streakIntensity: 0.26,
+    streakThreshold: 0.84,
+    grain: 0.008,
+    aberration: 0.0008,
+    radialBlur: 0.0018,
   },
   night: {
     // a night frame is mostly shadow, so it needs the exposure and the lift
