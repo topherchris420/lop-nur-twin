@@ -6,7 +6,6 @@ import {
   getWeaponMaterials,
   type WeaponMaterials,
 } from "./materials";
-import { buildArms } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
@@ -1472,13 +1471,6 @@ function buildLongGun(
   );
   root.add(leftHand);
 
-  // Hands, parented to the anchors rather than solved against them. In a first
-  // person view the hands never move relative to the gun, so making them
-  // children of it gets recoil, sway, aim-down-sights and the reload for free.
-  const arms = buildArms();
-  rightHand.add(arms.right);
-  leftHand.add(arms.left);
-
   // The optic group is parented at `-0.03` along Z and its axis empty sits at
   // the optical height, so the sight line is the sum of the two local offsets.
   // Reading it this way avoids depending on a world matrix that has not been
@@ -1522,9 +1514,8 @@ function buildLongGun(
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles + arms.triangleCount,
+    triangleCount: triangles,
     dispose() {
-      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
@@ -1729,10 +1720,6 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
   leftHand.position.set(-0.02, -0.03, 0.005);
   root.add(leftHand);
 
-  const arms = buildArms();
-  rightHand.add(arms.right);
-  leftHand.add(arms.left);
-
   return {
     root,
     parts: {
@@ -1760,9 +1747,8 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles + arms.triangleCount,
+    triangleCount: triangles,
     dispose() {
-      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
@@ -1827,9 +1813,6 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
   const leftHand = anchor(-0.04, -0.02, 0.04);
   const rightHand = anchor(0, 0, 0.05);
   const laserEmitter = anchor(0, 0, -0.16);
-  const arms = buildArms();
-  rightHand.add(arms.right);
-  leftHand.add(arms.left);
 
   return {
     root,
@@ -1858,9 +1841,8 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles + arms.triangleCount,
+    triangleCount: triangles,
     dispose() {
-      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
@@ -1936,9 +1918,6 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
   const leftHand = anchor(0, axisY - 0.05, -0.24);
   const rightHand = anchor(0, -0.02, 0.03);
   const laserEmitter = anchor(0.04, axisY + 0.03, -0.24);
-  const arms = buildArms();
-  rightHand.add(arms.right);
-  leftHand.add(arms.left);
 
   return {
     root,
@@ -1967,9 +1946,8 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
     hipRotation: new THREE.Euler(),
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
-    triangleCount: triangles + arms.triangleCount,
+    triangleCount: triangles,
     dispose() {
-      arms.dispose();
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
