@@ -9,14 +9,7 @@ import type { GameModeId, MatchPhase, Team } from "./types";
  */
 
 export type GameScreen =
-  | "boot"
-  | "menu"
-  | "loadout"
-  | "briefing"
-  | "playing"
-  | "paused"
-  | "killcam"
-  | "results";
+  "boot" | "menu" | "loadout" | "briefing" | "playing" | "paused" | "killcam" | "results";
 
 export interface Loadout {
   primaryId: string;

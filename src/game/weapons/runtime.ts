@@ -37,13 +37,7 @@ import type { CollisionWorld } from "../physics/collisionWorld";
  */
 
 export type WeaponState =
-  | "idle"
-  | "firing"
-  | "reloading"
-  | "raising"
-  | "lowering"
-  | "melee"
-  | "inspecting";
+  "idle" | "firing" | "reloading" | "raising" | "lowering" | "melee" | "inspecting";
 
 export interface ShotContext {
   shooter: Actor;

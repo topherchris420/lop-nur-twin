@@ -64,9 +64,7 @@ export const UNCERTAINTY_LEVELS: readonly UncertaintyLevel[] = [
 
 /** Where a numeric uncertainty came from. Required whenever one is present. */
 export type UncertaintyBasis =
-  | "stated-in-source"
-  | "project-documented"
-  | "derived-from-source-resolution";
+  "stated-in-source" | "project-documented" | "derived-from-source-resolution";
 
 export const UNCERTAINTY_BASES: readonly UncertaintyBasis[] = [
   "stated-in-source",

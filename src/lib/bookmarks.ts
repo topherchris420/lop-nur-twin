@@ -486,10 +486,7 @@ export function duplicateBookmark(bookmark: Bookmark): Bookmark {
 /* ------------------------------------------------------------------ */
 
 export type ReproducibilityVerdict =
-  | "matches"
-  | "evidence-changed"
-  | "geometry-changed"
-  | "unknown";
+  "matches" | "evidence-changed" | "geometry-changed" | "unknown";
 
 export interface ReproducibilityCheck {
   verdict: ReproducibilityVerdict;
