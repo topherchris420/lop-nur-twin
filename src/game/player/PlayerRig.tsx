@@ -380,12 +380,12 @@ export function PlayerRig({
       if (s.swapPressed) {
         const prevActive = held.active;
         held.active = held.active === "primary" ? "secondary" : "primary";
-      const nextModel = held.models[held.active].root;
-      const previousModel = held.models[prevActive].root;
-      viewmodelRoot.remove(previousModel, nextModel);
-      previousModel.visible = false;
-      nextModel.visible = true;
-      viewmodelRoot.add(nextModel);
+        const nextModel = held.models[held.active].root;
+        const previousModel = held.models[prevActive].root;
+        viewmodelRoot.remove(previousModel, nextModel);
+        previousModel.visible = false;
+        nextModel.visible = true;
+        viewmodelRoot.add(nextModel);
 
         held[held.active].raise();
         held[held.active].setTacStance(controller.isTacStance);
