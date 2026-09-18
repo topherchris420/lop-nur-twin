@@ -836,7 +836,11 @@ export function boneCrunch(
 }
 
 export type RadioCalloutType =
-  "contact-front" | "reloading" | "hostile-down" | "frag-out" | "chatter";
+  | "contact-front"
+  | "reloading"
+  | "hostile-down"
+  | "frag-out"
+  | "chatter";
 
 /**
  * Procedural tactical squad radio voice synthesizer.

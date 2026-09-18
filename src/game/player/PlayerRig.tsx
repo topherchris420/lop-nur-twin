@@ -282,8 +282,9 @@ export function PlayerRig({
     const secondaryDef = getWeapon(loadout.secondaryId);
     const primaryModel = buildWeaponModel(primaryDef);
     const secondaryModel = buildWeaponModel(secondaryDef);
+    primaryModel.root.visible = true;
     secondaryModel.root.visible = false;
-    viewmodelRoot.add(primaryModel.root, secondaryModel.root);
+    viewmodelRoot.add(primaryModel.root);
     weapons.current = {
       primary: new WeaponRuntime(primaryDef),
       secondary: new WeaponRuntime(secondaryDef),
@@ -371,9 +372,12 @@ export function PlayerRig({
 
       /* ------------------------------------------------- weapons */
       if (s.swapPressed) {
+        const prevActive = held.active;
         held.active = held.active === "primary" ? "secondary" : "primary";
-        held.models.primary.root.visible = held.active === "primary";
-        held.models.secondary.root.visible = held.active === "secondary";
+        viewmodelRoot.remove(held.models[prevActive].root);
+        held.models[prevActive].root.visible = false;
+        held.models[held.active].root.visible = true;
+        viewmodelRoot.add(held.models[held.active].root);
         held[held.active].raise();
         held[held.active].setTacStance(controller.isTacStance);
         animator.reset();

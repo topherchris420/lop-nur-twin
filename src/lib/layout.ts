@@ -680,7 +680,10 @@ export type MissionTaskId =
   | "apply-climatology";
 
 export type MissionRelationshipKind =
-  "part-of" | "follows-route" | "supported-by" | "derived-from";
+  | "part-of"
+  | "follows-route"
+  | "supported-by"
+  | "derived-from";
 
 export type MissionTimestampKind =
   | "calendar-observation"
@@ -817,40 +820,44 @@ function simulatedObservation(note: string): MissionObservation {
 }
 
 const PAVEMENT_MISSION_ENTITIES: MissionEntityDef[] = [
-  ...ALL_SEGMENTS.map((segment): MissionEntityDef => ({
-    id: segment.id,
-    kind: "pavement",
-    label: segment.name,
-    observedDate: segment.observedDate,
-    observation: pavementObservation(segment),
-    capabilities: ["timeline-visibility", "surface-support"],
-    relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      TASK_TIMELINE,
-      {
-        id: "provide-surface",
-        label: "Provide modeled surface",
-        execution: "reactive",
-      },
-    ],
-  })),
-  ...APRONS.map((apron): MissionEntityDef => ({
-    id: apron.id,
-    kind: "pavement",
-    label: apron.name,
-    observedDate: apron.observedDate,
-    observation: pavementObservation(apron),
-    capabilities: ["timeline-visibility", "surface-support"],
-    relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      TASK_TIMELINE,
-      {
-        id: "provide-surface",
-        label: "Provide modeled surface",
-        execution: "reactive",
-      },
-    ],
-  })),
+  ...ALL_SEGMENTS.map(
+    (segment): MissionEntityDef => ({
+      id: segment.id,
+      kind: "pavement",
+      label: segment.name,
+      observedDate: segment.observedDate,
+      observation: pavementObservation(segment),
+      capabilities: ["timeline-visibility", "surface-support"],
+      relationships: PART_OF_SITE,
+      taskableBehaviors: [
+        TASK_TIMELINE,
+        {
+          id: "provide-surface",
+          label: "Provide modeled surface",
+          execution: "reactive",
+        },
+      ],
+    }),
+  ),
+  ...APRONS.map(
+    (apron): MissionEntityDef => ({
+      id: apron.id,
+      kind: "pavement",
+      label: apron.name,
+      observedDate: apron.observedDate,
+      observation: pavementObservation(apron),
+      capabilities: ["timeline-visibility", "surface-support"],
+      relationships: PART_OF_SITE,
+      taskableBehaviors: [
+        TASK_TIMELINE,
+        {
+          id: "provide-surface",
+          label: "Provide modeled surface",
+          execution: "reactive",
+        },
+      ],
+    }),
+  ),
 ];
 
 const STRUCTURE_MISSION_ENTITIES: MissionEntityDef[] = STRUCTURES.map(

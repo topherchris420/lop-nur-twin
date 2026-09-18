@@ -67,7 +67,10 @@ import {
 /* ------------------------------------------------------------------ */
 
 export type EvidenceClassification =
-  "observed" | "reported" | "interpreted" | "illustrative";
+  | "observed"
+  | "reported"
+  | "interpreted"
+  | "illustrative";
 
 export interface EvidenceRecord {
   /** Stable, deterministic identifier: `ev-<subject>-<source>`. */
@@ -736,18 +739,20 @@ function simulationRecords(): EvidenceRecord[] {
     })),
   ];
 
-  return simulated.map(({ id, claim }): EvidenceRecord => ({
-    id: `ev-${id}-${MODEL_INTERNAL_SOURCE_ID}`,
-    subjectId: id,
-    claim,
-    classification: "illustrative",
-    confidence: CONFIDENCE_SCALE.low,
-    ...internalSourceFields(),
-    analystNotes:
-      "Illustrative simulation element. Motion is deterministic scenario content and carries no claim about site activity.",
-    uncertainty: illustrativeUncertainty(),
-    subjectKind: "simulation",
-  }));
+  return simulated.map(
+    ({ id, claim }): EvidenceRecord => ({
+      id: `ev-${id}-${MODEL_INTERNAL_SOURCE_ID}`,
+      subjectId: id,
+      claim,
+      classification: "illustrative",
+      confidence: CONFIDENCE_SCALE.low,
+      ...internalSourceFields(),
+      analystNotes:
+        "Illustrative simulation element. Motion is deterministic scenario content and carries no claim about site activity.",
+      uncertainty: illustrativeUncertainty(),
+      subjectKind: "simulation",
+    }),
+  );
 }
 
 /**

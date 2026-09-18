@@ -192,7 +192,11 @@ export function footprintCentroid(ring: LocalRing): LocalPoint {
 }
 
 export type CardinalRelation =
-  "north-of" | "south-of" | "east-of" | "west-of" | "coincident";
+  | "north-of"
+  | "south-of"
+  | "east-of"
+  | "west-of"
+  | "coincident";
 
 export function cardinalRelation(left: LocalRing, right: LocalRing): CardinalRelation {
   const [leftX, leftZ] = footprintCentroid(left);

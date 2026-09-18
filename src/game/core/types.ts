@@ -224,7 +224,15 @@ export const PLAYER_ENTITY_ID: EntityId = 0;
 export type Stance = "stand" | "crouch" | "prone";
 
 export type CharacterState =
-  "idle" | "walk" | "run" | "sprint" | "slide" | "mantle" | "jump" | "fall" | "dead";
+  | "idle"
+  | "walk"
+  | "run"
+  | "sprint"
+  | "slide"
+  | "mantle"
+  | "jump"
+  | "fall"
+  | "dead";
 
 export interface CharacterMetrics {
   /** Capsule radius in metres. */
@@ -450,7 +458,12 @@ export interface SoundRequest {
 /* ------------------------------------------------------------------ */
 
 export type ImpactKind =
-  "bullet" | "ricochet" | "penetration-exit" | "explosion" | "blood" | "blood-headshot";
+  | "bullet"
+  | "ricochet"
+  | "penetration-exit"
+  | "explosion"
+  | "blood"
+  | "blood-headshot";
 
 export interface ImpactRequest {
   kind: ImpactKind;
