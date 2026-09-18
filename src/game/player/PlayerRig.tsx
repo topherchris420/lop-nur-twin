@@ -282,9 +282,15 @@ export function PlayerRig({
     const secondaryDef = getWeapon(loadout.secondaryId);
     const primaryModel = buildWeaponModel(primaryDef);
     const secondaryModel = buildWeaponModel(secondaryDef);
-    primaryModel.root.visible = true;
-    secondaryModel.root.visible = false;
-    viewmodelRoot.add(primaryModel.root);
+    const models = [primaryModel.root, secondaryModel.root];
+    const mountActiveModel = (activeModel: THREE.Object3D): void => {
+      // A weapon model owns its hands. Keep exactly one model mounted so a
+      // loadout swap can never leave a hidden/previous arm rig rendering.
+      viewmodelRoot.remove(...models);
+      for (const model of models) model.visible = model === activeModel;
+      viewmodelRoot.add(activeModel);
+    };
+    mountActiveModel(primaryModel.root);
     weapons.current = {
       primary: new WeaponRuntime(primaryDef),
       secondary: new WeaponRuntime(secondaryDef),
@@ -374,10 +380,13 @@ export function PlayerRig({
       if (s.swapPressed) {
         const prevActive = held.active;
         held.active = held.active === "primary" ? "secondary" : "primary";
-        viewmodelRoot.remove(held.models[prevActive].root);
-        held.models[prevActive].root.visible = false;
-        held.models[held.active].root.visible = true;
-        viewmodelRoot.add(held.models[held.active].root);
+      const nextModel = held.models[held.active].root;
+      const previousModel = held.models[prevActive].root;
+      viewmodelRoot.remove(previousModel, nextModel);
+      previousModel.visible = false;
+      nextModel.visible = true;
+      viewmodelRoot.add(nextModel);
+
         held[held.active].raise();
         held[held.active].setTacStance(controller.isTacStance);
         animator.reset();
