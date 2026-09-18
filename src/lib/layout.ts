@@ -827,7 +827,11 @@ const PAVEMENT_MISSION_ENTITIES: MissionEntityDef[] = [
     relationships: PART_OF_SITE,
     taskableBehaviors: [
       TASK_TIMELINE,
-      { id: "provide-surface", label: "Provide modeled surface", execution: "reactive" },
+      {
+        id: "provide-surface",
+        label: "Provide modeled surface",
+        execution: "reactive",
+      },
     ],
   })),
   ...APRONS.map((apron): MissionEntityDef => ({
@@ -840,7 +844,11 @@ const PAVEMENT_MISSION_ENTITIES: MissionEntityDef[] = [
     relationships: PART_OF_SITE,
     taskableBehaviors: [
       TASK_TIMELINE,
-      { id: "provide-surface", label: "Provide modeled surface", execution: "reactive" },
+      {
+        id: "provide-surface",
+        label: "Provide modeled surface",
+        execution: "reactive",
+      },
     ],
   })),
 ];

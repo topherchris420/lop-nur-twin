@@ -221,7 +221,7 @@ function drawCrossFlash(ctx: CanvasRenderingContext2D, seed: number): void {
     ctx.save();
     ctx.rotate((i * Math.PI) / 2 + (rand() - 0.5) * 0.1);
     const len = c * (0.75 + rand() * 0.22);
-    const width = c * 0.18;
+    const width = c * 0.22;
     const g = ctx.createLinearGradient(0, 0, len, 0);
     g.addColorStop(0, "rgba(255,255,255,1)");
     g.addColorStop(0.2, "rgba(255,255,255,0.85)");
@@ -258,14 +258,14 @@ function drawCrossFlash(ctx: CanvasRenderingContext2D, seed: number): void {
   }
 
   // Intense blinding central spherical core
-  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.55);
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.6);
   core.addColorStop(0, "rgba(255,255,255,1)");
   core.addColorStop(0.3, "rgba(255,255,255,0.9)");
   core.addColorStop(0.65, "rgba(255,255,255,0.4)");
   core.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = core;
   ctx.beginPath();
-  ctx.arc(0, 0, c * 0.55, 0, Math.PI * 2);
+  ctx.arc(0, 0, c * 0.6, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.translate(-c, -c);
