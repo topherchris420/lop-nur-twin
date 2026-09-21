@@ -287,15 +287,13 @@ function buildParts(
   // Brow shadow, a nose, and eye sockets. Three small solids, and between them
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
-  // Sockets sit in the brow shadow. The eyes themselves stay wetter and
-  // slightly forward of that shadow, or the face goes back to a blank oval.
-  // Eye openings sit proud of the gaiter. At two metres a 1 cm sphere is a
-  // speck; these are large enough that the face still has eyes after the
-  // grade crushes the skin.
-  add(ball(0.028, -0.038, 1.64, -0.096, 0.42, 0.32), 0x100e0c, 0.14);
-  add(ball(0.028, 0.038, 1.64, -0.096, 0.42, 0.32), 0x100e0c, 0.14);
-  add(ball(0.008, -0.03, 1.652, -0.108), 0xe6e0d2, 0.22);
-  add(ball(0.008, 0.046, 1.652, -0.108), 0xe6e0d2, 0.22);
+  // Sclera first. A black slit in a shadowed face reads as a hole, not an eye.
+  add(ball(0.024, -0.037, 1.636, -0.104, 0.5, 0.38), 0xe8e0d0, 0.4);
+  add(ball(0.024, 0.037, 1.636, -0.104, 0.5, 0.38), 0xe8e0d0, 0.4);
+  add(ball(0.01, -0.037, 1.638, -0.114, 0.65, 0.5), 0x120f0c, 0.18);
+  add(ball(0.01, 0.037, 1.638, -0.114, 0.65, 0.5), 0x120f0c, 0.18);
+  add(ball(0.005, -0.03, 1.646, -0.12), 0xfff4e4, 0.18);
+  add(ball(0.005, 0.044, 1.646, -0.12), 0xfff4e4, 0.18);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
