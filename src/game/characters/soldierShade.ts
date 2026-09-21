@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v1";
+const CACHE_KEY = "soldier-shade-v2";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -94,10 +94,25 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float darken = weave * 0.05 * cloth;
   vec3 shaded = diffuseColor.rgb * (1.0 - darken);
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
+
+  // Undersides of the helmet brim, pouches and pack. A single key leaves
+  // those cavities the same value as the lit cloth, which is why the kit
+  // reads as one faceted lump at a few metres.
+  float cavity = max(-worldN.y, 0.0);
+  cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
+  dusted *= 1.0 - cavity * 0.38;
+
+  // Grazing rim in view space, stronger where the face is already dark, so
+  // the silhouette separates from the sand without lighting the sun side twice.
+  vec3 viewN = normalize(mat3(viewMatrix) * worldN);
+  float ndotv = clamp(dot(viewN, normalize(-vViewPosition)), 0.0, 1.0);
+  float rim = pow(1.0 - ndotv, 3.0) * (1.0 - upN) * dielectric;
+  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.16;
+
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);
   float ratio = dustL / baseL;
-  float limited = clamp(ratio, 0.85, 1.08);
+  float limited = clamp(ratio, 0.82, 1.12);
   diffuseColor.rgb = dusted * (limited / ratio);
 
   roughnessFactor = clamp(

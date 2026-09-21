@@ -15,6 +15,7 @@ import { useTwinStore } from "@/lib/store";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import { sunState } from "@/lib/sunState";
 import { CombatScreenEffect, HdrGuardEffect, setPostExposure } from "./screenEffects";
+import { ViewmodelCompositePass, setViewmodelPassMounted } from "./viewmodelPass";
 import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
 
@@ -127,6 +128,7 @@ export function CombatEffects() {
   const motionBlur = useMemo(() => new CameraMotionBlurEffect(), []);
   const lens = useMemo(() => new LensArtifactsEffect(), []);
   const sensorFx = useMemo(() => new SensorModeEffect(), []);
+  const viewmodelPass = useMemo(() => new ViewmodelCompositePass(), []);
   const streaks = useMemo(
     () =>
       new AnamorphicStreaksPass({
@@ -145,6 +147,10 @@ export function CombatEffects() {
   useEffect(() => () => lens.dispose(), [lens]);
   useEffect(() => () => sensorFx.dispose(), [sensorFx]);
   useEffect(() => () => streaks.dispose(), [streaks]);
+  useEffect(() => {
+    setViewmodelPassMounted(true);
+    return () => setViewmodelPassMounted(false);
+  }, []);
 
   useEffect(() => {
     activeCombatEffect = combat;
@@ -250,6 +256,7 @@ export function CombatEffects() {
   if (minimal) {
     return (
       <EffectComposer multisampling={0} frameBufferType={THREE.HalfFloatType}>
+        <primitive object={viewmodelPass} />
         <primitive object={agx} />
       </EffectComposer>
     );
@@ -271,6 +278,9 @@ export function CombatEffects() {
       />,
     );
   }
+  // After occlusion, before bloom, so the rifle shares the world's glare
+  // and AgX without being darkened by the ambient-occlusion pass.
+  passes.push(<primitive key="viewmodel" object={viewmodelPass} />);
   if (upTo >= 2) {
     passes.push(
       <Bloom

@@ -23,6 +23,7 @@ import { applyNearMissSuppression } from "../core/combat";
 import { ViewmodelStage } from "./viewmodelStage";
 import { sunElevationRad, SUN } from "../render/environment";
 import { getPostExposure } from "../render/screenEffects";
+import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
 
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
@@ -210,6 +211,10 @@ export function PlayerRig({
   const controller = useMemo(() => new PlayerController(), []);
   const animator = useMemo(() => new ViewmodelAnimator(), []);
   const stage = useMemo(() => new ViewmodelStage(), []);
+  useEffect(() => {
+    bindViewmodelStage(stage);
+    return () => bindViewmodelStage(null);
+  }, [stage]);
   const laser = useMemo(() => createTacticalLaser(), []);
   const viewmodelRoot = stage.root;
   /** 0..1 death-camera blend; eased so respawning stands you back up. */
@@ -343,6 +348,7 @@ export function PlayerRig({
 
     if (playing && player.alive) {
       const s = input.state;
+      if (import.meta.env.DEV && game.forceAds) s.ads = true;
 
       /* ---------------------------------------------------- look */
       player.yaw += s.lookYaw;
@@ -550,6 +556,23 @@ export function PlayerRig({
     );
     stage.setAds(active.ads);
 
+    // Sun and aspect have to be current before the composer (priority 1)
+    // samples the weapon. The late useFrame below only presents when there
+    // is no composite pass.
+    const size = _state.size;
+    stage.setAspect(size.width / Math.max(1, size.height));
+    const dayFactor = useTwinStore.getState().night ? 0 : 1;
+    const elevation = sunElevationRad(dayFactor);
+    const azimuth = THREE.MathUtils.degToRad(SUN.azimuthDeg);
+    _sunDir.set(
+      Math.sin(azimuth) * Math.cos(elevation),
+      Math.sin(elevation),
+      -Math.cos(azimuth) * Math.cos(elevation),
+    );
+    _sunDir.applyQuaternion(_invQuat.copy(_state.camera.quaternion).invert());
+    _sunColor.setHex(dayFactor > 0.5 ? 0xfff1da : 0x9fb4d8);
+    stage.setSun(_sunDir, _sunColor, Math.max(0.08, Math.sin(elevation)));
+
     /* --------------------------------------------------------- state */
     game.cameraPosition.copy(camera.position);
     game.cameraForward.copy(_forward);
@@ -589,22 +612,9 @@ export function PlayerRig({
       gl2.render(state.scene, state.camera);
     }
     if (!viewmodelRoot.visible) return;
-
-    const size = state.size;
-    stage.setAspect(size.width / Math.max(1, size.height));
-
-    // Track the world sun so the weapon is lit from the same direction.
-    const dayFactor = useTwinStore.getState().night ? 0 : 1;
-    const elevation = sunElevationRad(dayFactor);
-    const azimuth = THREE.MathUtils.degToRad(SUN.azimuthDeg);
-    _sunDir.set(
-      Math.sin(azimuth) * Math.cos(elevation),
-      Math.sin(elevation),
-      -Math.cos(azimuth) * Math.cos(elevation),
-    );
-    _sunDir.applyQuaternion(_invQuat.copy(state.camera.quaternion).invert());
-    _sunColor.setHex(dayFactor > 0.5 ? 0xfff1da : 0x9fb4d8);
-    stage.setSun(_sunDir, _sunColor, Math.max(0.08, Math.sin(elevation)));
+    // The composer pass draws the weapon into the HDR buffer. A second
+    // present here would grade it again, on top of the bloom.
+    if (postEnabled && viewmodelPassActive()) return;
 
     stage.render(gl2, THREE.AgXToneMapping, postEnabled ? getPostExposure() : 0.68);
   }, 2);

@@ -292,6 +292,12 @@ export interface GameState {
   frame: number;
   /** True while the simulation should advance. */
   running: boolean;
+  /**
+   * Dev-only. Headless captures have no mouse button, and the rig reads its
+   * own input state rather than `game.input`, so a capture sets this to hold
+   * aim-down-sights. Stays false in play.
+   */
+  forceAds: boolean;
 
   input: InputState;
   actors: Actor[];
@@ -467,6 +473,7 @@ export const game: GameState = {
   dt: 0,
   frame: 0,
   running: false,
+  forceAds: false,
   input: createInputState(),
   actors: [player],
   actorById: new Map([[PLAYER_ENTITY_ID, player]]),
@@ -535,6 +542,7 @@ export function resetGameState(): void {
   game.time = 0;
   game.frame = 0;
   game.running = false;
+  game.forceAds = false;
   game.actors = [game.player];
   game.actorById = new Map([[game.player.id, game.player]]);
   game.damageQueue.length = 0;
