@@ -38,13 +38,13 @@ import { useGameStore } from "../core/gameStore";
 
 const LOOK = {
   day: {
-    exposure: 0.85,
-    slope: 1.15,
-    offset: -0.015,
-    power: 1.12,
-    saturation: 1.2,
-    bloomIntensity: 0.22,
-    bloomThreshold: 2.6,
+    exposure: 0.64,
+    slope: 1.08,
+    offset: -0.01,
+    power: 1.06,
+    saturation: 1.08,
+    bloomIntensity: 0.14,
+    bloomThreshold: 3.4,
     streakIntensity: 0.12,
     streakThreshold: 4.5,
     sunFlareIntensity: 0.25,

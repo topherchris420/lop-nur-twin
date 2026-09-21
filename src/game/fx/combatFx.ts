@@ -908,8 +908,8 @@ export class FxManager {
         p.position.copy(position).addScaledVector(direction, 0.015 + i * 0.025);
         p.velocity.copy(direction).multiplyScalar(1.6 + rand() * 2.2);
         p.lifetime = 0.042 + rand() * 0.018;
-        p.size0 = calibre * (0.32 + i * 0.08);
-        p.size1 = calibre * (0.42 + i * 0.1);
+        p.size0 = calibre * (firstPerson ? 0.85 : 0.32 + i * 0.08);
+        p.size1 = calibre * (firstPerson ? 1.15 : 0.42 + i * 0.1);
         // Dazzling emissive HDR core for AgX bloom kick
         p.color0.setRGB(18.0, 12.5, 5.5);
         p.color1.setRGB(6.5, 2.8, 0.6);

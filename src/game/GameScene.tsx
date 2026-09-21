@@ -384,7 +384,7 @@ function CombatExposure({ postEnabled }: { postEnabled: boolean }) {
   const gl = useThree((s) => s.gl);
   useEffect(() => {
     if (postEnabled) return;
-    gl.toneMappingExposure = 0.62;
+    gl.toneMappingExposure = 0.52;
   }, [gl, postEnabled]);
   return null;
 }
@@ -414,15 +414,9 @@ function EnvironmentLighting({ onReady }: { onReady: (texture: THREE.Texture) =>
       dayFactor: night ? 0 : 1,
     });
     scene.environment = texture;
-    // The daytime map is authored as radiance (see `render/environment.ts`),
-    // so it is bound at unity. It used to be weighted to 0.38 to stop the map
-    // doubling the ambient, but that dial hit the lakebed bounce as hard as the
-    // sky, and the bounce is the only thing filling the shadow side of anything
-    // at eye level — a soldier three metres away read as a silhouette. The sky
-    // half of the map was re-authored 0.38x to compensate, so the exposure of
-    // an upward-facing surface is unchanged and only walls, undersides and
-    // people get the light back. Night is a separate, dimmer authoring.
-    scene.environmentIntensity = night ? 0.22 : 1;
+    // Daytime IBL sits under unity so sunlit concrete does not double the
+    // key. Night is a separate, dimmer authoring.
+    scene.environmentIntensity = night ? 0.22 : 0.68;
     onReady(texture);
     return () => {
       scene.environment = null;

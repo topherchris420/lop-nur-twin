@@ -603,7 +603,7 @@ export function PlayerRig({
     _sunColor.setHex(dayFactor > 0.5 ? 0xfff1da : 0x9fb4d8);
     stage.setSun(_sunDir, _sunColor, Math.max(0.08, Math.sin(elevation)));
 
-    stage.render(gl2, THREE.AgXToneMapping, postEnabled ? getPostExposure() : 1.05);
+    stage.render(gl2, THREE.AgXToneMapping, postEnabled ? getPostExposure() : 0.68);
   }, 2);
 
   return null;

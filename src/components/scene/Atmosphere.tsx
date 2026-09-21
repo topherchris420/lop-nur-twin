@@ -74,12 +74,12 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     const s = new Sky();
     s.scale.setScalar(30000);
     const u = s.material.uniforms;
-    if (u.turbidity) u.turbidity.value = 6;
-    if (u.rayleigh) u.rayleigh.value = 2.8;
-    if (u.mieCoefficient) u.mieCoefficient.value = 0.008;
-    if (u.mieDirectionalG) u.mieDirectionalG.value = 0.85;
+    if (u.turbidity) u.turbidity.value = groundLevel ? 9.5 : 6;
+    if (u.rayleigh) u.rayleigh.value = groundLevel ? 2.05 : 2.8;
+    if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.012 : 0.008;
+    if (u.mieDirectionalG) u.mieDirectionalG.value = groundLevel ? 0.8 : 0.85;
     return s;
-  }, []);
+  }, [groundLevel]);
 
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const moonRef = useRef<THREE.DirectionalLight>(null);
@@ -187,8 +187,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
 
     fog.color.copy(scratchColor.lerpColors(NIGHT.fogColor, DAY.fogColor, next));
     fog.density = THREE.MathUtils.lerp(
-      0.00022,
-      FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
+      groundLevel ? 0.00045 : 0.00022,
+      groundLevel ? 0.00095 : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
       next,
     );
 

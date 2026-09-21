@@ -647,11 +647,10 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
     vertexColors: true,
     roughness: 0.88,
     metalness: 0,
-    // Unity, not the 0.55 this used to carry. Fabric and webbing see the whole
-    // sky and the whole ground bounce like anything else does; halving the map
-    // halved the only light reaching the shadow side of a soldier, which is the
-    // side the camera is usually looking at.
-    envMapIntensity: 1,
+    // Half the sky, not unity. At 1.0 the daytime map still over-fills
+    // fabric and the shadow side of a soldier reads as a silhouette no
+    // longer — it reads as a lit cutout. Night stays a separate authoring.
+    envMapIntensity: 0.5,
   });
   // Route the per-vertex roughness/metalness attribute into the standard
   // shader. One material, but a rubber sole and a plastic lens still behave

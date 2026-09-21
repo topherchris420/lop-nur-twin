@@ -785,8 +785,9 @@ function buildLongGun(
       );
     }
   } else {
+    const hgShell = spec.stockKind === "collapsible" ? m.polymerTan : m.receiver;
     asm.add(
-      m.receiver,
+      hgShell,
       place(
         shell(spec.handguardRadius, spec.handguardRadius - 0.004, hgLen, 20),
         0,
@@ -808,7 +809,7 @@ function buildLongGun(
     }
     // Anti-rotation flats top and bottom keep the section from reading round.
     asm.add(
-      m.receiver,
+      spec.stockKind === "collapsible" ? m.polymerTan : m.receiver,
       place(
         chamferedBox(0.028, 0.005, hgLen, { radius: 0.002 }),
         0,
@@ -1014,7 +1015,7 @@ function buildLongGun(
     const magAsm = new Assembler();
     if (spec.magKind === "curved") {
       magAsm.add(
-        m.polymer,
+        m.polymerTan,
         place(
           curvedMagazine(spec.magWidth, 0.035, spec.magLength, 0.34, 9),
           0,
@@ -1038,7 +1039,7 @@ function buildLongGun(
         );
       }
       magAsm.add(
-        m.polymer,
+        m.polymerTan,
         place(
           chamferedBox(spec.magWidth * 1.12, 0.011, 0.042, { radius: 0.002 }),
           0,
@@ -1302,8 +1303,9 @@ function buildLongGun(
         ),
       );
     } else {
+      const stockPolymer = spec.stockKind === "collapsible" ? m.polymerTan : m.polymer;
       asm.add(
-        m.polymer,
+        stockPolymer,
         place(
           chamferedBox(0.038, 0.06, 0.11, { radius: 0.008, curveSegments: 5 }),
           0,
@@ -1312,7 +1314,7 @@ function buildLongGun(
         ),
       );
       asm.add(
-        m.polymer,
+        stockPolymer,
         place(
           chamferedBox(0.03, 0.02, 0.075, { radius: 0.006 }),
           0,
@@ -1980,12 +1982,8 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   // Hip carry: grip low and outboard so the receiver sits clear of the
   // crosshair, muzzle canted inboard so the weapon converges on the centre.
   const bulk = weaponClass === "pistol" || weaponClass === "melee" ? 0.72 : 1;
-  model.hipPosition.set(
-    0.185 * bulk,
-    -0.255 * bulk,
-    -0.4 - (weaponClass === "sniper" ? 0.06 : 0),
-  );
-  model.hipRotation.set(0.055, -0.088, 0.052);
+  model.hipPosition.set(0.12 * bulk, -0.19 * bulk, -0.34 * bulk);
+  model.hipRotation.set(0.04, -0.07, 0.16);
 }
 
 export function buildWeaponModel(def: WeaponDef): WeaponModel {

@@ -373,24 +373,24 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const steel = new THREE.MeshStandardMaterial({
     name: "weapon-steel-metal",
-    color: 0x26272b,
+    color: 0x1c1d20,
     metalness: 1,
-    roughness: 0.65,
+    roughness: 0.78,
     normalMap: repeat(scratchNormal, 6),
     normalScale: new THREE.Vector2(0.35, 0.35),
     roughnessMap: repeat(steelRough, 4),
-    envMapIntensity: 0.78,
+    envMapIntensity: 0.22,
   });
 
   const receiver = new THREE.MeshStandardMaterial({
     name: "weapon-receiver-metal",
-    color: 0x212226,
-    metalness: 0.88,
-    roughness: 0.6,
+    color: 0x18191c,
+    metalness: 0.82,
+    roughness: 0.72,
     normalMap: repeat(receiverNormal, 5),
     normalScale: new THREE.Vector2(0.25, 0.25),
     roughnessMap: repeat(receiverRough, 3),
-    envMapIntensity: 0.75,
+    envMapIntensity: 0.2,
   });
   // Micro panel lines, edge wear and grazing rim for military hard-anodised alloy
   applyHardSurface(receiver, {
@@ -415,7 +415,7 @@ export function getWeaponMaterials(): WeaponMaterials {
     roughness: 0.5,
     normalMap: repeat(brushedNormal, 8),
     normalScale: new THREE.Vector2(0.25, 0.25),
-    envMapIntensity: 0.82,
+    envMapIntensity: 0.28,
   });
 
   const carbonFouling = new THREE.MeshStandardMaterial({
@@ -451,7 +451,8 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const polymerTan = polymer.clone();
   polymerTan.name = "weapon-polymer-tan";
-  polymerTan.color.setHex(0x7d6b4e);
+  polymerTan.color.setHex(0x9a7d54);
+  polymerTan.envMapIntensity = 0.32;
 
   const grip = new THREE.MeshStandardMaterial({
     name: "weapon-grip-polymer",

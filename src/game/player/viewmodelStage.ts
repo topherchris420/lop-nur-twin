@@ -48,17 +48,17 @@ export class ViewmodelStage {
     this.camera = new THREE.PerspectiveCamera(options.fov, 1, 0.01, 8);
     this.scene.add(this.root);
 
-    this.key = new THREE.DirectionalLight(0xfff1da, 3.1);
+    this.key = new THREE.DirectionalLight(0xfff1da, 1.45);
     this.key.position.set(0.6, 1.1, 0.35);
     this.scene.add(this.key);
     this.scene.add(this.key.target);
 
-    this.fill = new THREE.HemisphereLight(0xcfe2f8, 0xb39d78, 0.62);
+    this.fill = new THREE.HemisphereLight(0xcfe2f8, 0xb39d78, 0.38);
     this.scene.add(this.fill);
 
     // A cool back-rim keeps the weapon's silhouette legible against a bright
     // desert floor, which is otherwise the hardest case for a black rifle.
-    this.rim = new THREE.DirectionalLight(0x9dc4ff, 1.15);
+    this.rim = new THREE.DirectionalLight(0x9dc4ff, 0.7);
     this.rim.position.set(-0.8, 0.35, -1);
     this.scene.add(this.rim);
   }
@@ -67,19 +67,17 @@ export class ViewmodelStage {
   setSun(direction: THREE.Vector3, color: THREE.Color, intensity: number): void {
     this.key.position.copy(direction).multiplyScalar(3);
     this.key.color.copy(color);
-    this.key.intensity = 0.5 + intensity * 0.85;
-    this.fill.intensity = 0.2 + intensity * 0.16;
-    this.rim.intensity = 0.4 + intensity * 0.3;
+    this.key.intensity = 0.35 + intensity * 0.55;
+    this.fill.intensity = 0.14 + intensity * 0.1;
+    this.rim.intensity = 0.28 + intensity * 0.22;
   }
 
   setEnvironment(texture: THREE.Texture | null): void {
     this.scene.environment = texture;
-    // Slightly under the world's weighting. At full strength the sky reflection
-    // overwhelms the dark anodised finishes and the weapon reads as bare
-    // polished aluminium instead of parkerised steel. (This was 0.42 back when
-    // the world bound the same map at 0.38; it tracks that dial, which is now
-    // unity — see `render/environment.ts`.)
-    this.scene.environmentIntensity = 1.1;
+    // A whisper of the sky, not a chrome wrap. At anything near the world's
+    // 0.68 the dark Magpul furniture and parkerised steel pick up the apron
+    // as a mirror and the OSLO reads as polished aluminium.
+    this.scene.environmentIntensity = 0.08;
   }
 
   /**

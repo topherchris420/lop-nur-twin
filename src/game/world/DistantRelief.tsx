@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
-import { seededNoise2D } from "@/lib/noise";
+import { mulberry32, seededNoise2D, SITE_SEED } from "@/lib/noise";
 import { SITE_SIZE } from "@/lib/layout";
 
 /**
@@ -103,10 +103,93 @@ function buildRelief(): THREE.BufferGeometry {
   return geometry;
 }
 
+const CLOUD_COUNT = 16;
+
+/**
+ * Soft desert cloud billboard. Seeded blobs, no download, alpha only at the
+ * edges so FogExp2 can eat the silhouette the way real haze does.
+ */
+function makeCloudSpriteMap(): THREE.CanvasTexture {
+  const S = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas context unavailable");
+  ctx.clearRect(0, 0, S, S);
+  const rand = mulberry32(SITE_SEED + 0xc10d);
+  for (let i = 0; i < 18; i += 1) {
+    const cx = S * (0.26 + rand() * 0.48);
+    const cy = S * (0.32 + rand() * 0.36);
+    const rx = S * (0.14 + rand() * 0.22);
+    const ry = rx * (0.45 + rand() * 0.35);
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
+    g.addColorStop(0, `rgba(255,246,228,${0.28 + rand() * 0.38})`);
+    g.addColorStop(1, "rgba(255,246,228,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, (rand() - 0.5) * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function buildCloudDeck(): {
+  group: THREE.Group;
+  dispose: () => void;
+} {
+  const group = new THREE.Group();
+  group.name = "distant-clouds";
+  group.userData["noCollide"] = true;
+
+  const map = makeCloudSpriteMap();
+  const material = new THREE.SpriteMaterial({
+    map,
+    color: new THREE.Color("#d4c0a0"),
+    transparent: true,
+    depthWrite: false,
+    fog: true,
+    opacity: 0.78,
+  });
+  material.name = "distant-cloud";
+
+  const rand = mulberry32(SITE_SEED + 0xc10e);
+  for (let i = 0; i < CLOUD_COUNT; i += 1) {
+    const sprite = new THREE.Sprite(material);
+    const angle = (i / CLOUD_COUNT) * Math.PI * 2 + (rand() - 0.5) * 0.28;
+    const radius = 1400 + rand() * 1600;
+    sprite.position.set(
+      Math.cos(angle) * radius,
+      220 + rand() * 420,
+      Math.sin(angle) * radius,
+    );
+    const width = 220 + rand() * 340;
+    sprite.scale.set(width, width * (0.32 + rand() * 0.22), 1);
+    sprite.castShadow = false;
+    sprite.receiveShadow = false;
+    sprite.userData["noCollide"] = true;
+    sprite.renderOrder = -2;
+    sprite.frustumCulled = false;
+    group.add(sprite);
+  }
+
+  return {
+    group,
+    dispose: () => {
+      group.clear();
+      material.dispose();
+      map.dispose();
+    },
+  };
+}
+
 export function DistantRelief() {
   const scene = useThree((s) => s.scene);
 
-  const { geometry, material } = useMemo(() => {
+  const { geometry, material, clouds } = useMemo(() => {
     const g = buildRelief();
     const m = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -114,7 +197,7 @@ export function DistantRelief() {
       metalness: 0,
     });
     m.name = "distant-relief";
-    return { geometry: g, material: m };
+    return { geometry: g, material: m, clouds: buildCloudDeck() };
   }, []);
 
   useEffect(() => {
@@ -127,12 +210,15 @@ export function DistantRelief() {
     mesh.userData["noCollide"] = true;
     mesh.renderOrder = -1;
     scene.add(mesh);
+    scene.add(clouds.group);
     return () => {
       scene.remove(mesh);
+      scene.remove(clouds.group);
       geometry.dispose();
       material.dispose();
+      clouds.dispose();
     };
-  }, [scene, geometry, material]);
+  }, [scene, geometry, material, clouds]);
 
   return null;
 }
