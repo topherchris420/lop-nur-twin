@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v4";
+const CACHE_KEY = "soldier-shade-v5";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -91,8 +91,12 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float upN = max(worldN.y, 0.0);
   float dust = upN * upN * smoothstep(0.2, 0.45, roughnessFactor);
 
-  float darken = weave * 0.05 * cloth;
+  float darken = weave * 0.16 * cloth;
   vec3 shaded = diffuseColor.rgb * (1.0 - darken);
+  // Horizontal cloth breaks. A torso of one roughness is a single facet;
+  // a few darker bands are what read as a shirt at two metres.
+  float bands = smoothstep(0.08, 0.0, abs(fract(vSoldierPos.y * 6.5) - 0.5));
+  shaded *= 1.0 - bands * 0.22 * cloth;
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
 
   // Undersides of the helmet brim, pouches and pack. A single key leaves
@@ -119,7 +123,7 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);
   float ratio = dustL / baseL;
-  float limited = clamp(ratio, 0.82, 1.12);
+  float limited = clamp(ratio, 0.48, 1.32);
   diffuseColor.rgb = dusted * (limited / ratio);
 
   roughnessFactor = clamp(

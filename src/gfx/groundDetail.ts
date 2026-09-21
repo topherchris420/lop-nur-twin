@@ -263,7 +263,10 @@ const SURFACE = /* glsl */ `
       vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
       vec2 gdChipF = fract(gdChipUv) - 0.5;
       float gdChip = step(0.92, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.08, 0.2, length(gdChipF)));
-      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.1 * gdFine - gdStone * 0.42 * gdFine + gdChip * 0.2 * gdFine;
+      // gdFine dies a few metres out. Stones have to ride gdAmt or a
+      // standing camera only sees pepper, and gdAmt is 0 past fadeEnd.
+      float gdNear = max(gdFine, gdAmt * 0.8);
+      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.08 * gdFine - gdStone * 0.62 * gdNear + gdChip * 0.34 * gdNear;
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -535,7 +538,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd9:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd10:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
