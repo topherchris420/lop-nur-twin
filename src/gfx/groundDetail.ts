@@ -249,7 +249,7 @@ const SURFACE = /* glsl */ `
       // die with gdAmt, so the aerial route past fadeEnd is unchanged.
       float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
       float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
-      diffuseColor.rgb *= 1.0 + gdStain * 0.14 * gdAmt + gdWide * 0.18 * gdAmt;
+      diffuseColor.rgb *= 1.0 + gdStain * 0.26 * gdAmt + gdWide * 0.36 * gdAmt;
       float gdSpeck =
         gdHash21(floor(gdWp * 1.6)) * 0.55 +
         gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
@@ -259,7 +259,7 @@ const SURFACE = /* glsl */ `
       vec2 gdStoneCell = floor(gdStoneUv);
       vec2 gdStoneF = fract(gdStoneUv) - 0.5;
       float gdPick = gdHash21(gdStoneCell);
-      float gdStone = step(0.8, gdPick) * (1.0 - smoothstep(0.1, 0.24, length(gdStoneF)));
+      float gdStone = step(0.62, gdPick) * (1.0 - smoothstep(0.12, 0.32, length(gdStoneF)));
       vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
       vec2 gdChipF = fract(gdChipUv) - 0.5;
       float gdChip = step(0.92, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.08, 0.2, length(gdChipF)));
@@ -535,7 +535,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd8:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd9:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

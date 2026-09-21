@@ -525,6 +525,16 @@ export function getWeaponMaterials(): WeaponMaterials {
     sheen: 0.06,
     envMapIntensity: 0.35,
   });
+  // Centre stays clear; the rim thickens. A constant alpha is a grey plate.
+  lens.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <opaque_fragment>",
+      `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
+       diffuseColor.a = mix(0.05, 0.65, lensFres);
+       #include <opaque_fragment>`,
+    );
+  };
+  lens.customProgramCacheKey = () => "lens-fresnel-v1";
 
   const reticle = new THREE.MeshBasicMaterial({
     name: "weapon-reticle",

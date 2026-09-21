@@ -289,10 +289,13 @@ function buildParts(
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
   // Sockets sit in the brow shadow. The eyes themselves stay wetter and
   // slightly forward of that shadow, or the face goes back to a blank oval.
-  add(ball(0.02, -0.036, 1.634, -0.082, 0.48, 0.38), 0x161310, 0.16);
-  add(ball(0.02, 0.036, 1.634, -0.082, 0.48, 0.38), 0x161310, 0.16);
-  add(ball(0.0055, -0.028, 1.642, -0.092), 0xd2ccbe, 0.28);
-  add(ball(0.0055, 0.044, 1.642, -0.092), 0xd2ccbe, 0.28);
+  // Eye openings sit proud of the gaiter. At two metres a 1 cm sphere is a
+  // speck; these are large enough that the face still has eyes after the
+  // grade crushes the skin.
+  add(ball(0.028, -0.038, 1.64, -0.096, 0.42, 0.32), 0x100e0c, 0.14);
+  add(ball(0.028, 0.038, 1.64, -0.096, 0.42, 0.32), 0x100e0c, 0.14);
+  add(ball(0.008, -0.03, 1.652, -0.108), 0xe6e0d2, 0.22);
+  add(ball(0.008, 0.046, 1.652, -0.108), 0xe6e0d2, 0.22);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
