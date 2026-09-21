@@ -329,6 +329,7 @@ function buildOptic(
     );
     glass.position.set(0, axisY, 0.004);
     glass.rotation.x = -0.14;
+    glass.renderOrder = 2;
     group.add(glass);
   } else if (kind === "holo") {
     axisY = railTop + 0.031;
@@ -373,6 +374,7 @@ function buildOptic(
     );
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.031, 0.026), m.lens);
     glass.position.set(0, axisY, -0.038);
+    glass.renderOrder = 2;
     group.add(glass);
   } else {
     // Magnified optic: a turned tube with an objective bell and a sunshade.
@@ -465,10 +467,12 @@ function buildOptic(
     // Ocular and objective glass.
     const ocular = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.86, 24), m.lens);
     ocular.position.set(0, axisY, length / 2 - 0.004);
+    ocular.renderOrder = 2;
     group.add(ocular);
     const objective = new THREE.Mesh(new THREE.CircleGeometry(objR * 0.86, 28), m.lens);
     objective.position.set(0, axisY, -length / 2 + 0.006);
     objective.rotation.y = Math.PI;
+    objective.renderOrder = 2;
     group.add(objective);
   }
 

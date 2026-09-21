@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v2";
+const CACHE_KEY = "soldier-shade-v4";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -100,7 +100,14 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   // reads as one faceted lump at a few metres.
   float cavity = max(-worldN.y, 0.0);
   cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
-  dusted *= 1.0 - cavity * 0.38;
+  dusted *= 1.0 - cavity * 0.55;
+
+  // Brow shadow only. The eyes sit near y = 1.63, z = -0.08; a band that
+  // includes them paints the sockets the same value as the skin and the
+  // face goes blank again. The brim is the strip just above that line.
+  float brow = smoothstep(1.648, 1.672, vSoldierPos.y) * (1.0 - smoothstep(1.70, 1.735, vSoldierPos.y));
+  float face = brow * smoothstep(0.02, -0.05, vSoldierPos.z);
+  dusted *= 1.0 - face * 0.48 * dielectric;
 
   // Grazing rim in view space, stronger where the face is already dark, so
   // the silhouette separates from the sand without lighting the sun side twice.

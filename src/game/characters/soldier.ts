@@ -287,8 +287,13 @@ function buildParts(
   // Brow shadow, a nose, and eye sockets. Three small solids, and between them
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
-  add(ball(0.0132, -0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.74);
-  add(ball(0.0132, 0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.74);
+  // Sockets sit in the brow shadow. The eyes themselves stay wetter and
+  // slightly forward of that shadow, or the face goes back to a blank oval.
+  add(ball(0.02, -0.036, 1.634, -0.082, 0.48, 0.38), 0x161310, 0.16);
+  add(ball(0.02, 0.036, 1.634, -0.082, 0.48, 0.38), 0x161310, 0.16);
+  add(ball(0.0055, -0.028, 1.642, -0.092), 0xd2ccbe, 0.28);
+  add(ball(0.0055, 0.044, 1.642, -0.092), 0xd2ccbe, 0.28);
+  add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
   // Neck gaiter bunched at the collar.

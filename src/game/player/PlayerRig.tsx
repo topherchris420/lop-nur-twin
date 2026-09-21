@@ -539,6 +539,9 @@ export function PlayerRig({
     }
 
     /* ----------------------------------------------------- viewmodel */
+    // Dev captures set this so the sight can be measured at full aim.
+    // The ease never quite finishes inside a headless frame budget.
+    if (import.meta.env.DEV && game.forceAds) active.ads = 1;
     animator.update(
       model,
       active,

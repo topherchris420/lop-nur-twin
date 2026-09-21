@@ -251,10 +251,19 @@ const SURFACE = /* glsl */ `
       float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
       diffuseColor.rgb *= 1.0 + gdStain * 0.14 * gdAmt + gdWide * 0.18 * gdAmt;
       float gdSpeck =
-        gdHash21(floor(gdWp * 1.6)) * 0.45 +
-        gdHash21(floor(gdWp * 2.7 + vec2(3.0, 1.0))) * 0.35 +
-        gdHash21(floor(gdWp * 9.4 + vec2(4.0, 11.0))) * 0.2;
-      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.55 * gdFine;
+        gdHash21(floor(gdWp * 1.6)) * 0.55 +
+        gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
+      // Stones a boot would notice: a few per stride, tens of centimetres
+      // across, not a pepper of one-pixel cells.
+      vec2 gdStoneUv = gdWp * 0.48 + vec2(8.0, 3.0);
+      vec2 gdStoneCell = floor(gdStoneUv);
+      vec2 gdStoneF = fract(gdStoneUv) - 0.5;
+      float gdPick = gdHash21(gdStoneCell);
+      float gdStone = step(0.8, gdPick) * (1.0 - smoothstep(0.1, 0.24, length(gdStoneF)));
+      vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
+      vec2 gdChipF = fract(gdChipUv) - 0.5;
+      float gdChip = step(0.92, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.08, 0.2, length(gdChipF)));
+      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.1 * gdFine - gdStone * 0.42 * gdFine + gdChip * 0.2 * gdFine;
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -269,10 +278,12 @@ const SURFACE = /* glsl */ `
         float gdOut = length(max(gdQ, vec2(0.0)));
         float gdIn = min(max(gdQ.x, gdQ.y), 0.0);
         float gdSd = gdOut + gdIn;
-        float gdBand = (1.0 - smoothstep(0.0, 2.6, gdSd)) * smoothstep(-0.35, 0.08, gdSd);
+        // Wide enough that a person standing off the wall still sees the
+        // stain. A 4 m ring sits under the mesh and never enters the frame.
+        float gdBand = (1.0 - smoothstep(0.0, 11.0, gdSd)) * smoothstep(-0.55, 0.15, gdSd);
         gdOccl = max(gdOccl, gdBand);
       }
-      diffuseColor.rgb *= 1.0 - gdOccl * 0.42 * gdAmt;
+      diffuseColor.rgb *= 1.0 - gdOccl * 0.62 * gdAmt;
     }
 
     // --- surface state: polished <-> loose -------------------------------
@@ -524,7 +535,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd4:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd8:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
