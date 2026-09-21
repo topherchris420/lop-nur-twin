@@ -255,14 +255,14 @@ const SURFACE = /* glsl */ `
         gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
       // Stones a boot would notice: a few per stride, tens of centimetres
       // across, not a pepper of one-pixel cells.
-      vec2 gdStoneUv = gdWp * 0.48 + vec2(8.0, 3.0);
+      vec2 gdStoneUv = gdWp * 0.26 + vec2(8.0, 3.0);
       vec2 gdStoneCell = floor(gdStoneUv);
       vec2 gdStoneF = fract(gdStoneUv) - 0.5;
       float gdRad = length(gdStoneF);
       float gdPick = gdHash21(gdStoneCell);
-      float gdOn = step(0.58, gdPick);
-      float gdDisk = 1.0 - smoothstep(0.06, 0.2, gdRad);
-      float gdRim = smoothstep(0.14, 0.2, gdRad) * (1.0 - smoothstep(0.2, 0.3, gdRad));
+      float gdOn = step(0.72, gdPick);
+      float gdDisk = 1.0 - smoothstep(0.08, 0.28, gdRad);
+      float gdRim = smoothstep(0.18, 0.26, gdRad) * (1.0 - smoothstep(0.26, 0.38, gdRad));
       vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
       vec2 gdChipF = fract(gdChipUv) - 0.5;
       float gdChip = step(0.9, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.06, 0.16, length(gdChipF)));
@@ -287,11 +287,11 @@ const SURFACE = /* glsl */ `
         float gdSd = gdOut + gdIn;
         // Wide enough that a person standing off the wall still sees the
         // stain. A 4 m ring sits under the mesh and never enters the frame.
-        float gdBand = (1.0 - smoothstep(0.0, 14.0, gdSd)) * smoothstep(-0.6, 0.2, gdSd);
-        float gdSkirt = 1.0 - smoothstep(0.0, 2.4, gdSd);
-        gdOccl = max(gdOccl, max(gdBand, gdSkirt));
+        float gdBand = (1.0 - smoothstep(0.0, 16.0, gdSd)) * smoothstep(-0.7, 0.25, gdSd);
+        float gdSkirt = 1.0 - smoothstep(0.0, 4.5, gdSd);
+        gdOccl = max(gdOccl, max(gdBand * 0.85, gdSkirt));
       }
-      diffuseColor.rgb *= 1.0 - gdOccl * 0.72 * gdAmt;
+      diffuseColor.rgb *= 1.0 - gdOccl * 0.82 * gdAmt;
     }
 
     // --- surface state: polished <-> loose -------------------------------
@@ -543,7 +543,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd11:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd12:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

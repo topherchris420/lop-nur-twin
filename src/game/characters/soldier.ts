@@ -287,13 +287,16 @@ function buildParts(
   // Brow shadow, a nose, and eye sockets. Three small solids, and between them
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
-  // Sclera first. A black slit in a shadowed face reads as a hole, not an eye.
-  add(ball(0.024, -0.037, 1.636, -0.104, 0.5, 0.38), 0xe8e0d0, 0.4);
-  add(ball(0.024, 0.037, 1.636, -0.104, 0.5, 0.38), 0xe8e0d0, 0.4);
-  add(ball(0.01, -0.037, 1.638, -0.114, 0.65, 0.5), 0x120f0c, 0.18);
-  add(ball(0.01, 0.037, 1.638, -0.114, 0.65, 0.5), 0x120f0c, 0.18);
-  add(ball(0.005, -0.03, 1.646, -0.12), 0xfff4e4, 0.18);
-  add(ball(0.005, 0.044, 1.646, -0.12), 0xfff4e4, 0.18);
+  // Recessed, not stuck on. A sphere proud of the skin is a sticker.
+  add(ball(0.022, -0.037, 1.634, -0.09, 0.46, 0.34), 0xe4dcc8, 0.42);
+  add(ball(0.022, 0.037, 1.634, -0.09, 0.46, 0.34), 0xe4dcc8, 0.42);
+  add(ball(0.009, -0.037, 1.636, -0.1, 0.7, 0.5), 0x1a120e, 0.2);
+  add(ball(0.009, 0.037, 1.636, -0.1, 0.7, 0.5), 0x1a120e, 0.2);
+  add(ball(0.004, -0.031, 1.642, -0.106), 0xfff6ea, 0.16);
+  add(ball(0.004, 0.043, 1.642, -0.106), 0xfff6ea, 0.16);
+  // Upper lids cut the sclera so the eye sits under the brow.
+  add(slab(0.034, 0.009, 0.014, -0.037, 1.65, -0.098, 0.002, -0.35), palette.skin, 0.7);
+  add(slab(0.034, 0.009, 0.014, 0.037, 1.65, -0.098, 0.002, -0.35), palette.skin, 0.7);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);

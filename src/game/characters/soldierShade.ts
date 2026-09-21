@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v6";
+const CACHE_KEY = "soldier-shade-v7";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -93,9 +93,19 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
 
   float darken = weave * 0.2 * cloth;
   vec3 shaded = diffuseColor.rgb * (1.0 - darken);
-  // Wide bands, not hairlines. A 1 cm stripe disappears at two metres.
-  float bands = smoothstep(0.28, 0.02, abs(fract(vSoldierPos.y * 5.5) - 0.5));
-  shaded *= 1.0 - bands * 0.38 * cloth;
+  // Wide bands plus a vertical seam. One direction still reads as a flat dye.
+  float bands = smoothstep(0.32, 0.04, abs(fract(vSoldierPos.y * 4.8) - 0.5));
+  float seam = smoothstep(0.22, 0.02, abs(fract(vSoldierPos.x * 3.2 + vSoldierPos.z) - 0.5));
+  shaded *= 1.0 - (bands * 0.42 + seam * 0.18) * cloth;
+  // Socket ring around each eye. The centre of the sclera is left alone.
+  vec2 eyeL = vSoldierPos.xy - vec2(-0.037, 1.634);
+  vec2 eyeR = vSoldierPos.xy - vec2(0.037, 1.634);
+  float sock = max(
+    smoothstep(0.042, 0.018, length(eyeL)) * (1.0 - smoothstep(0.01, 0.018, length(eyeL))),
+    smoothstep(0.042, 0.018, length(eyeR)) * (1.0 - smoothstep(0.01, 0.018, length(eyeR)))
+  );
+  sock *= 1.0 - smoothstep(-0.08, -0.02, vSoldierPos.z);
+  shaded *= 1.0 - sock * 0.5 * dielectric;
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
 
   // Undersides of the helmet brim, pouches and pack. A single key leaves
