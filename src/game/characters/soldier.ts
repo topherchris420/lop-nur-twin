@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { mulberry32, seededNoise2D } from "@/lib/noise";
 import type { Team } from "../core/types";
+import { applySoldierShade } from "./soldierShade";
 import {
   B,
   BONE_COUNT,
@@ -29,6 +30,10 @@ import {
  * than it buys at the distances soldiers are actually seen from; a multi-scale
  * blotch evaluated at each vertex's rest position gives the same read and
  * costs nothing.
+ *
+ * One material covers the whole mesh. Per-vertex roughness and metalness, plus
+ * a cloth weave and lakebed dust, are injected in `soldierShade.ts` so a
+ * helmet, a buckle and a sleeve do not share a highlight.
  */
 
 export type SoldierVariant = 0 | 1 | 2;
@@ -57,7 +62,10 @@ interface Palette {
   camo: readonly [number, number, number, number];
   gear: number;
   webbing: number;
+  /** Magazine and cargo pouches. Darker than the plate so the chest breaks up. */
+  pouch: number;
   boot: number;
+  sole: number;
   helmet: number;
   skin: number;
   glove: number;
@@ -71,22 +79,26 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
   // a soldier is ten metres away, which is exactly when it needs to read.
   blue: {
     camo: [0x9a8a63, 0xc4b389, 0x4a4433, 0xd8cba4],
-    gear: 0x7d7358,
+    gear: 0x6e654c,
     webbing: 0x8a7f62,
-    boot: 0x37312a,
+    pouch: 0x3e3a2e,
+    boot: 0x2a261f,
+    sole: 0x1f1c18,
     helmet: 0x5f5745,
-    skin: 0x9d8368,
+    skin: 0xa07e64,
     glove: 0x2f2a24,
     lens: 0x1b2a33,
   },
   // Cooler grey-green, so the two sides read apart at 60 m.
   red: {
     camo: [0x5b6150, 0x8b9179, 0x2e3227, 0xa8ad92],
-    gear: 0x646353,
+    gear: 0x55574a,
     webbing: 0x6f6d59,
-    boot: 0x2b2b28,
+    pouch: 0x3a3c32,
+    boot: 0x2c2c28,
+    sole: 0x1e1e1c,
     helmet: 0x4a4d43,
-    skin: 0x8f7761,
+    skin: 0x96745c,
     glove: 0x26261f,
     lens: 0x1b2a33,
   },
@@ -212,6 +224,9 @@ function buildParts(
 ): Part[] {
   const parts: Part[] = [];
   const camoBase = palette.camo[0];
+  // Roughness is the material class the shade shader splits on:
+  // ~0.88 cloth (weave), ~0.72 skin (matte, no weave), ~0.46–0.58 helmet
+  // polymer and boot leather, ~0.32 metal, ~0.98 rubber, ~0.12 glass.
   const add = (
     geometry: THREE.BufferGeometry,
     color: number,
@@ -233,9 +248,9 @@ function buildParts(
   add(limb(B.upperArmR, 0.055, 0.045), camoBase);
   add(limb(B.foreArmL, 0.045, 0.036), camoBase);
   add(limb(B.foreArmR, 0.045, 0.036), camoBase);
-  add(limb(B.foreTwistL, 0.036, 0.033), palette.glove);
-  add(limb(B.foreTwistR, 0.036, 0.033), palette.glove);
-  add(limb(B.neck, 0.048, 0.05), palette.skin);
+  add(limb(B.foreTwistL, 0.036, 0.033), palette.glove, 0.88);
+  add(limb(B.foreTwistR, 0.036, 0.033), palette.glove, 0.88);
+  add(limb(B.neck, 0.048, 0.05), palette.skin, 0.72);
 
   // Torso: three stacked slabs following the spine, narrowing at the waist.
   add(slab(0.31, 0.15, 0.19, 0, 1.0, 0, 0.05), camoBase);
@@ -246,7 +261,7 @@ function buildParts(
   add(ball(0.078, 0.155, 1.395, -0.014, 0.9, 0.95), camoBase);
 
   /* ---------------------------------------------------------- head */
-  add(ball(0.093, 0, 1.615, 0.004, 1.15, 1.06), palette.skin);
+  add(ball(0.093, 0, 1.615, 0.004, 1.15, 1.06), palette.skin, 0.72);
 
   // Face covering, from the bridge of the nose down.
   //
@@ -267,54 +282,53 @@ function buildParts(
   );
   mask.scale(1, 1.19, 1.09);
   mask.translate(0, 1.615, 0.004);
-  add(mask, palette.webbing, 0.94);
+  add(mask, palette.webbing, 0.9);
 
   // Brow shadow, a nose, and eye sockets. Three small solids, and between them
   // they are what stop a head reading as a bald sphere at three metres.
-  add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin);
-  add(ball(0.0132, -0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.6);
-  add(ball(0.0132, 0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.6);
+  add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
+  add(ball(0.0132, -0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.74);
+  add(ball(0.0132, 0.034, 1.629, -0.07, 0.7, 0.5), 0x241f1a, 0.74);
 
-  add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.94);
+  add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
   // Neck gaiter bunched at the collar.
-  add(slab(0.135, 0.06, 0.135, 0, 1.512, 0.008, 0.05), palette.webbing, 0.95);
+  add(slab(0.135, 0.06, 0.135, 0, 1.512, 0.008, 0.05), palette.webbing, 0.9);
+  // Collar stand behind the gaiter, so the neck is not a bare tube under the helmet.
+  add(slab(0.13, 0.078, 0.042, 0, 1.53, 0.086, 0.012), palette.gear, 0.9);
 
   /* -------------------------------------------------------- helmet */
-  const helmetY = 1.674;
-  // Rim just above the brow. A combat helmet clears the eyes; this one used
-  // to reach the bridge of the nose, which is most of why the face was a void.
-  const helm = new THREE.SphereGeometry(0.107, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55);
-  helm.scale(1, 1.06, 1.12);
-  helm.translate(0, helmetY, 0.004);
-  add(helm, palette.helmet, 0.52);
-  // Brim, side rails, NVG mount and counterweight pouch.
-  add(slab(0.192, 0.026, 0.022, 0, helmetY - 0.02, -0.104, 0.008), palette.helmet, 0.52);
-  add(
-    slab(0.013, 0.028, 0.14, -0.106, helmetY - 0.004, 0.006, 0.005),
-    0x22231f,
-    0.42,
-    0.6,
-  );
-  add(
-    slab(0.013, 0.028, 0.14, 0.106, helmetY - 0.004, 0.006, 0.005),
-    0x22231f,
-    0.42,
-    0.6,
-  );
-  add(slab(0.05, 0.045, 0.03, 0, helmetY + 0.012, -0.108, 0.008), 0x2a2b26, 0.4, 0.7);
-  add(slab(0.11, 0.06, 0.055, 0, helmetY - 0.01, 0.105, 0.02), palette.webbing, 0.9);
-  // Goggles pushed up onto the shell.
-  add(slab(0.178, 0.044, 0.048, 0, helmetY + 0.038, -0.066, 0.018), 0x1d1e1a, 0.35);
-  add(
-    slab(0.134, 0.028, 0.012, 0, helmetY + 0.038, -0.09, 0.006),
-    palette.lens,
-    0.12,
-    0.2,
-  );
-  // Headset cup and boom mic.
-  add(ball(0.043, -0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
-  add(ball(0.043, 0.107, 1.612, 0.01, 0.95, 0.85), 0x24251f, 0.5);
-  add(limb(B.head, 0.006, 0.006, 6), 0x24251f, 0.5);
+  // FAST/ACH shell: wider than it is tall, longer front-to-back, crown pulled
+  // down. A near-sphere reads as a mannequin head at 8 m even with small
+  // accessories stuck to it. The brim, the shroud and the nape are what break
+  // that outline, and they only work if they stay clear of the eyes — the rim
+  // sits near y = 1.67. Dropping it onto the brow turns the face back into a void.
+  const helmetY = 1.69;
+  const helm = new THREE.SphereGeometry(0.114, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58);
+  // Low crown, long front-to-back. The rim stays near y = 1.67, above the eyes.
+  helm.scale(1.14, 0.74, 1.38);
+  helm.translate(0, helmetY, 0.006);
+  add(helm, palette.helmet, 0.46);
+  // Brow brim, tilted so the profile has a peak instead of a circular cut.
+  add(slab(0.21, 0.026, 0.07, 0, 1.668, -0.158, 0.006, -0.18), palette.helmet, 0.5);
+  // Side rails. Thick enough to step the front silhouette, and metal rather
+  // than the shell's matte polymer.
+  add(slab(0.022, 0.034, 0.12, -0.142, 1.662, 0.01, 0.004), 0x2c2e28, 0.32, 0.74);
+  add(slab(0.022, 0.034, 0.12, 0.142, 1.662, 0.01, 0.004), 0x2c2e28, 0.32, 0.74);
+  // NVG shroud: the rectangular bump on the front of a modern helmet.
+  add(slab(0.078, 0.062, 0.05, 0, 1.708, -0.168, 0.006), 0x2a2c26, 0.34, 0.7);
+  add(slab(0.034, 0.04, 0.02, 0, 1.71, -0.198, 0.004), 0x23241e, 0.3, 0.76);
+  // Nape and a flat crown patch, so the shell is not a dome from any side.
+  add(slab(0.14, 0.024, 0.04, 0, 1.656, 0.152, 0.006), palette.helmet, 0.5);
+  add(slab(0.07, 0.012, 0.09, 0, 1.782, -0.004, 0.003), palette.webbing, 0.9);
+  // Counterweight pouch on the rear.
+  add(slab(0.1, 0.052, 0.048, 0, 1.668, 0.182, 0.012), palette.pouch, 0.9);
+  // Goggles pushed up onto the shell. The lens is glass, not cloth.
+  add(slab(0.15, 0.032, 0.036, 0, 1.742, -0.132, 0.008), 0x24261f, 0.4, 0.08);
+  add(slab(0.11, 0.016, 0.012, 0, 1.744, -0.152, 0.004), palette.lens, 0.12, 0.12);
+  // Headset cups and a boom toward the mouth, not a spike through the skull.
+  add(ball(0.038, -0.12, 1.598, 0.012, 0.9, 0.82), 0x2a2b26, 0.55);
+  add(ball(0.038, 0.12, 1.598, 0.012, 0.9, 0.82), 0x2a2b26, 0.55);
+  add(slab(0.01, 0.01, 0.08, -0.062, 1.582, -0.028, 0.003), 0x2c2d27, 0.42, 0.28);
 
   /* ---------------------------------------------------- plate carrier */
   // A plate bag, not a slab.
@@ -326,34 +340,43 @@ function buildParts(
   // different angle. Narrower and shorter than before as well, so the
   // camouflage underneath shows at the edges and the torso keeps a waist.
   const plateY = 1.192;
-  add(slab(0.298, 0.28, 0.085, 0, plateY, -0.118, 0.028), palette.gear, 0.86);
-  add(slab(0.298, 0.265, 0.08, 0, plateY - 0.012, 0.108, 0.028), palette.gear, 0.86);
+  add(slab(0.3, 0.27, 0.09, 0, plateY, -0.125, 0.026), palette.gear, 0.9);
+  add(slab(0.3, 0.26, 0.08, 0, plateY - 0.01, 0.12, 0.026), palette.gear, 0.9);
   // PALS rows across the plate. The lower ones end up behind the magazine
   // pouches, which is exactly where they are on the real thing.
   for (let i = 0; i < 4; i += 1) {
     add(
-      slab(0.268, 0.015, 0.013, 0, plateY - 0.098 + i * 0.063, -0.167, 0.004),
+      slab(0.26, 0.014, 0.012, 0, plateY - 0.09 + i * 0.058, -0.176, 0.004),
       palette.webbing,
-      0.93,
+      0.9,
     );
   }
   // Yoke: the front panel carries over each shoulder to the back panel.
   for (const side of [-1, 1]) {
-    add(slab(0.058, 0.05, 0.255, side * 0.107, 1.372, -0.004, 0.018), palette.gear, 0.88);
-    // Buckle where the yoke meets the plate.
-    add(slab(0.05, 0.036, 0.022, side * 0.107, 1.318, -0.15, 0.006), 0x2a2b26, 0.5, 0.4);
+    add(slab(0.058, 0.05, 0.255, side * 0.107, 1.372, -0.004, 0.018), palette.gear, 0.9);
+    // Buckle where the yoke meets the plate. Metal, not nylon.
+    add(
+      slab(0.05, 0.036, 0.022, side * 0.107, 1.318, -0.182, 0.006),
+      0x2a2b26,
+      0.36,
+      0.62,
+    );
   }
   // Cummerbund wrapping the ribs, with a side plate pocket on each flank.
-  add(slab(0.355, 0.108, 0.226, 0, 1.048, -0.004, 0.045), palette.webbing, 0.92);
+  add(slab(0.355, 0.108, 0.226, 0, 1.048, -0.004, 0.045), palette.webbing, 0.9);
   for (const side of [-1, 1]) {
-    add(slab(0.03, 0.15, 0.16, side * 0.178, 1.14, 0.002, 0.02), palette.gear, 0.87);
+    add(slab(0.03, 0.15, 0.16, side * 0.178, 1.14, 0.002, 0.02), palette.gear, 0.9);
   }
-  // Shoulder pads.
-  add(slab(0.1, 0.12, 0.13, -0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
-  add(slab(0.1, 0.12, 0.13, 0.145, 1.33, -0.01, 0.035), palette.gear, 0.86);
+  // Shoulder caps sit on the trapezius, inboard of the deltoid. A pad out on
+  // the upper-arm bone swings up into the helmet when the rifle pose lifts
+  // the arm, because those vertices are skinned by proximity.
+  add(slab(0.11, 0.045, 0.13, -0.132, 1.39, -0.02, 0.014), palette.gear, 0.9);
+  add(slab(0.11, 0.045, 0.13, 0.132, 1.39, -0.02, 0.014), palette.gear, 0.9);
   // Radio antenna off the left shoulder: a thin vertical against the sky is
   // worth more to a silhouette at distance than any amount of surface detail.
-  add(slab(0.012, 0.3, 0.012, -0.128, 1.52, 0.13, 0.004), 0x24251f, 0.5);
+  // Antenna off the radio pouch, behind the shoulder. A mast rooted at the
+  // neck reads as a spike through the helmet.
+  add(slab(0.012, 0.34, 0.012, -0.12, 1.42, 0.21, 0.004), 0x2c2e28, 0.4, 0.45);
 
   // Four magazine pouches across the chest, each with a flap.
   //
@@ -361,26 +384,39 @@ function buildParts(
   // front face is at z = -0.16, and the pouches used to sit at -0.152, which
   // left about two centimetres showing on a 0.34 m panel — so the chest read
   // as one flat dark slab with no kit on it.
-  for (let i = 0; i < 4; i += 1) {
-    const x = -0.115 + i * 0.077;
-    add(slab(0.07, 0.12, 0.075, x, 1.132, -0.196, 0.014), palette.webbing, 0.9);
-    add(slab(0.074, 0.042, 0.034, x, 1.194, -0.213, 0.01), palette.gear, 0.88);
-    // Pull tab, so the flap has a direction and catches an edge of light.
-    add(slab(0.016, 0.03, 0.012, x, 1.166, -0.232, 0.005), palette.gear, 0.86);
+  // Three pouches, not four narrow ones. At 8 m the narrow row fused into the
+  // plate and the chest went back to being one slab. The flaps are the lighter
+  // webbing tone so each pouch has a lit edge.
+  for (let i = 0; i < 3; i += 1) {
+    const x = -0.092 + i * 0.092;
+    add(slab(0.08, 0.132, 0.086, x, 1.118, -0.222, 0.012), palette.pouch, 0.9);
+    add(slab(0.084, 0.04, 0.034, x, 1.182, -0.252, 0.008), palette.webbing, 0.88);
+    add(slab(0.018, 0.03, 0.012, x, 1.154, -0.268, 0.004), palette.gear, 0.86);
   }
-  // Radio pouch and admin pouch.
-  add(slab(0.075, 0.13, 0.07, -0.138, 1.235, 0.152, 0.014), palette.webbing, 0.9);
-  add(slab(0.1, 0.075, 0.058, 0.122, 1.2, 0.156, 0.014), palette.webbing, 0.9);
-  add(limb(B.gearRoot, 0.006, 0.005, 6), 0x1c1d19, 0.6);
+  // Radio pouch and admin pouch, proud of the back plate.
+  add(slab(0.072, 0.12, 0.055, -0.12, 1.22, 0.188, 0.012), palette.pouch, 0.9);
+  add(slab(0.096, 0.07, 0.05, 0.12, 1.2, 0.186, 0.012), palette.pouch, 0.9);
+  add(limb(B.gearRoot, 0.006, 0.005, 6), 0x2a2b26, 0.45, 0.35);
 
   /* ----------------------------------------------------------- belt */
   add(slab(0.33, 0.062, 0.24, 0, 0.955, 0, 0.03), palette.webbing, 0.9);
-  add(slab(0.085, 0.11, 0.07, 0.152, 0.93, 0.03, 0.018), palette.webbing, 0.9);
-  add(slab(0.075, 0.1, 0.062, -0.152, 0.93, 0.04, 0.018), palette.webbing, 0.9);
+  // Hip pouches offset fore and aft so a side view is not a smooth belt line.
+  add(slab(0.078, 0.12, 0.058, 0.12, 0.9, -0.155, 0.014), palette.pouch, 0.9);
+  add(slab(0.072, 0.1, 0.05, -0.1, 0.92, 0.155, 0.014), palette.pouch, 0.9);
+
+  /* ------------------------------------------------- elbow / thighs */
+  // Pads and cargo pockets break the tube silhouette of the limbs.
+  add(slab(0.064, 0.078, 0.046, -0.214, 1.098, 0.022, 0.012), 0x2e2f28, 0.5);
+  add(slab(0.064, 0.078, 0.046, 0.214, 1.098, 0.022, 0.012), 0x2e2f28, 0.5);
+  for (const side of [-1, 1]) {
+    const x = side * 0.1;
+    add(slab(0.086, 0.1, 0.042, x, 0.68, -0.092, 0.01), palette.pouch, 0.9);
+    add(slab(0.09, 0.026, 0.018, x, 0.728, -0.104, 0.006), palette.gear, 0.88);
+  }
 
   /* ------------------------------------------------------ knee pads */
-  add(slab(0.11, 0.11, 0.09, -0.099, 0.5, -0.035, 0.03), 0x2e2f28, 0.72);
-  add(slab(0.11, 0.11, 0.09, 0.099, 0.5, -0.035, 0.03), 0x2e2f28, 0.72);
+  add(slab(0.11, 0.11, 0.09, -0.099, 0.5, -0.04, 0.03), 0x2e2f28, 0.5);
+  add(slab(0.11, 0.11, 0.09, 0.099, 0.5, -0.04, 0.03), 0x2e2f28, 0.5);
 
   /* ---------------------------------------------------------- boots */
   for (const side of [-1, 1]) {
@@ -388,13 +424,17 @@ function buildParts(
     // Ankle cuff, then a boot that tapers toward the toe. It used to be a
     // near-cuboid 0.235 m deep with a bevelled nose, which portraits showed
     // reading as a wedge rather than a boot.
-    add(slab(0.102, 0.09, 0.118, x, 0.168, 0.014, 0.026), palette.boot, 0.7);
-    add(slab(0.096, 0.088, 0.125, x, 0.098, 0.006, 0.024), palette.boot, 0.68);
-    add(slab(0.092, 0.072, 0.2, x, 0.056, -0.05, 0.022), palette.boot, 0.68);
-    add(slab(0.072, 0.05, 0.06, x, 0.042, -0.132, 0.018), palette.boot, 0.7);
-    // Sole, proud of the upper, with a heel block.
-    add(slab(0.1, 0.026, 0.215, x, 0.017, -0.046, 0.008), 0x1a1a18, 0.95);
-    add(slab(0.098, 0.03, 0.07, x, 0.03, 0.026, 0.008), 0x1a1a18, 0.95);
+    // Trousers bloused over the boot: wider than the upper, and camo, so the
+    // ankle reads as cloth meeting darker leather.
+    add(slab(0.112, 0.04, 0.14, x, 0.205, 0.008, 0.02), camoBase, 0.9);
+    add(slab(0.102, 0.09, 0.118, x, 0.168, 0.014, 0.026), palette.boot, 0.58);
+    add(slab(0.096, 0.088, 0.125, x, 0.098, 0.006, 0.024), palette.boot, 0.58);
+    add(slab(0.092, 0.072, 0.2, x, 0.056, -0.05, 0.022), palette.boot, 0.56);
+    add(slab(0.072, 0.05, 0.06, x, 0.042, -0.132, 0.018), palette.boot, 0.58);
+    add(slab(0.026, 0.07, 0.014, x, 0.11, -0.078, 0.004), 0x3a342c, 0.62);
+    // Sole, proud of the upper, with a heel block. Rubber, not leather.
+    add(slab(0.1, 0.026, 0.215, x, 0.017, -0.046, 0.008), palette.sole, 0.98);
+    add(slab(0.098, 0.03, 0.07, x, 0.03, 0.026, 0.008), palette.sole, 0.98);
   }
 
   /* ---------------------------------------------------------- hands */
@@ -402,8 +442,8 @@ function buildParts(
   // chains here. At gameplay distance those chains overlap the held weapon and
   // read as extra hands wrapped around the receiver; the first-person viewmodel
   // owns its own detailed gripping hands.
-  add(ball(0.031, -0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.85);
-  add(ball(0.031, 0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.85);
+  add(ball(0.031, -0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.88);
+  add(ball(0.031, 0.184, 0.845, 0, 1.12, 1.24), palette.glove, 0.88);
 
   /* -------------------------------------------------------- variant */
   if (variant >= 1) {
@@ -564,8 +604,13 @@ function camoColorAt(
     blotchFine(u * s * 4.2, v * s * 4.2) * 0.13;
   const t = n * 0.5 + 0.5;
   // Four hard-edged bands, the way a printed disruptive pattern reads.
-  const index = t < 0.3 ? 2 : t < 0.55 ? 0 : t < 0.8 ? 1 : 3;
-  return out.setHex(palette.camo[index]).convertSRGBToLinear();
+  // Band widths, not the four tone values. The pale band has to be large
+  // enough to show up on a limb, or the leg averages back to one colour by 8 m.
+  const index = t < 0.22 ? 2 : t < 0.46 ? 0 : t < 0.7 ? 1 : 3;
+  // setHex already decodes sRGB into the linear working space. A second
+  // conversion crushes the four value bands toward black, which is how a
+  // disruptive pattern disappears at the range it was built for.
+  return out.setHex(palette.camo[index]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -618,7 +663,7 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
           _color,
         );
       } else {
-        _color.setHex(part.color).convertSRGBToLinear();
+        _color.setHex(part.color);
       }
       colors[v * 3] = _color.r;
       colors[v * 3 + 1] = _color.g;
@@ -652,28 +697,9 @@ function buildGeometry(team: Team, variant: SoldierVariant, seed: number): Cache
     // longer — it reads as a lit cutout. Night stays a separate authoring.
     envMapIntensity: 0.5,
   });
-  // Route the per-vertex roughness/metalness attribute into the standard
-  // shader. One material, but a rubber sole and a plastic lens still behave
-  // differently under the sun.
-  material.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace(
-        "#include <common>",
-        "#include <common>\nattribute vec2 pbr;\nvarying vec2 vPbr;",
-      )
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vPbr = pbr;");
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying vec2 vPbr;")
-      .replace(
-        "#include <roughnessmap_fragment>",
-        "float roughnessFactor = clamp(vPbr.x, 0.04, 1.0);",
-      )
-      .replace(
-        "#include <metalnessmap_fragment>",
-        "float metalnessFactor = clamp(vPbr.y, 0.0, 1.0);",
-      );
-  };
-  material.customProgramCacheKey = () => `soldier-pbr-${team}-${variant}`;
+  // Per-vertex roughness/metalness, plus a cloth weave and dust. One material,
+  // but a rubber sole, a polymer helmet and a glass lens still split under the sun.
+  applySoldierShade(material);
 
   const build: CachedBuild = { geometry: merged, material, refs: 1 };
   cache.set(key, build);

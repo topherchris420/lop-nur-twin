@@ -9,14 +9,17 @@ import { useTwinStore, type QualityTier } from "@/lib/store";
 import { getQualityProfile } from "@/lib/quality";
 
 /** Lop Nur / Gobi palette: tan lakebed, darker desert-pavement gravel,
- *  pale dry playa, and slightly damp-looking dry-wash channels. */
-const C_DARK = new THREE.Color("#7c7660");
-const C_BASE = new THREE.Color("#a99e80");
-const C_DUST = new THREE.Color("#cabc98");
-const C_GRAVEL = new THREE.Color("#6c6653");
-const C_PLAYA = new THREE.Color("#c8c0a4");
-const C_WADI = new THREE.Color("#867753");
-const C_COMPACT = new THREE.Color("#bcb094");
+ *  pale dry playa, and slightly damp-looking dry-wash channels.
+ *  Value is spread a little wider than a single tan so sunlit playa and
+ *  shaded gravel separate. Hues stay in that desaturated band — no new
+ *  vegetation green or red sand. */
+const C_DARK = new THREE.Color("#706a54");
+const C_BASE = new THREE.Color("#aea384");
+const C_DUST = new THREE.Color("#d2c4a2");
+const C_GRAVEL = new THREE.Color("#5c5644");
+const C_PLAYA = new THREE.Color("#d5cdb6");
+const C_WADI = new THREE.Color("#7a6c4a");
+const C_COMPACT = new THREE.Color("#c8bca0");
 
 const geometryCache = new Map<number, THREE.PlaneGeometry>();
 
@@ -44,11 +47,11 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
     const m = mottle(x, z);
     const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
     scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
-    scratch.lerp(C_DUST, Math.pow(Math.max(0, m), 2.2) * 0.5);
-    scratch.lerp(C_GRAVEL, gravelField(x, z) * 0.6);
-    scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.5);
-    scratch.lerp(C_WADI, wadiMask(x, z) * 0.55);
-    scratch.lerp(C_COMPACT, (1 - flat) * 0.5);
+    scratch.lerp(C_DUST, Math.pow(Math.max(0, m), 2.2) * 0.58);
+    scratch.lerp(C_GRAVEL, gravelField(x, z) * 0.7);
+    scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.58);
+    scratch.lerp(C_WADI, wadiMask(x, z) * 0.6);
+    scratch.lerp(C_COMPACT, (1 - flat) * 0.55);
 
     colors[i * 3] = scratch.r;
     colors[i * 3 + 1] = scratch.g;

@@ -283,22 +283,12 @@ export function PlayerRig({
     const primaryModel = buildWeaponModel(primaryDef);
     const secondaryModel = buildWeaponModel(secondaryDef);
     const models = [primaryModel.root, secondaryModel.root];
-    const removeExtraArms = (model: THREE.Object3D): void => {
-      // Older weapon builds could leave a separate detailed arm rig attached
-      // to the weapon. The weapon viewmodel should not render that rig: the
-      // current silhouette is intentionally weapon-only.
-      model.traverse((object) => {
-        if (object.name === "viewmodel-arm" || object.name === "viewmodel-arms") {
-          object.visible = false;
-        }
-      });
-    };
     const mountActiveModel = (activeModel: THREE.Object3D): void => {
-      // Keep exactly one model mounted and strip any legacy arm meshes before
-      // it becomes visible during a loadout swap.
+      // Keep exactly one model mounted across a loadout swap. The gloved arms
+      // parented to the hand anchors are the held silhouette — hiding them
+      // puts the rifle back in the air.
       viewmodelRoot.remove(...models);
       for (const model of models) {
-        removeExtraArms(model);
         model.visible = model === activeModel;
       }
       viewmodelRoot.add(activeModel);

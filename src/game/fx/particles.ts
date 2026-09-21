@@ -44,28 +44,28 @@ const ATLAS_TILE = 256;
 function drawSmoke(ctx: CanvasRenderingContext2D, seed: number): void {
   const rand = mulberry32(seed);
   const c = ATLAS_TILE / 2;
-  // Layered soft blobs give a puff with internal structure rather than a
-  // uniform gaussian, which is what makes smoke read as volume.
-  for (let i = 0; i < 26; i += 1) {
+  // Wide, low-contrast lobes. The particle colour tints this grey, so a
+  // dense white core here would read as a cotton ball instead of drift.
+  for (let i = 0; i < 16; i += 1) {
     const angle = rand() * Math.PI * 2;
-    const dist = Math.pow(rand(), 0.6) * c * 0.52;
+    const dist = Math.pow(rand(), 0.5) * c * 0.66;
     const x = c + Math.cos(angle) * dist;
     const y = c + Math.sin(angle) * dist;
-    const r = c * (0.2 + rand() * 0.32);
-    const alpha = 0.05 + rand() * 0.07;
+    const r = c * (0.32 + rand() * 0.4);
+    const alpha = 0.045 + rand() * 0.05;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(255,255,255,${alpha})`);
-    g.addColorStop(0.55, `rgba(255,255,255,${alpha * 0.55})`);
+    g.addColorStop(0.62, `rgba(255,255,255,${alpha * 0.35})`);
     g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
-  // Mask to a circle so the puff never shows its tile edges.
   ctx.globalCompositeOperation = "destination-in";
-  const mask = ctx.createRadialGradient(c, c, c * 0.2, c, c, c * 0.98);
-  mask.addColorStop(0, "rgba(255,255,255,1)");
+  const mask = ctx.createRadialGradient(c, c, c * 0.04, c, c, c * 0.98);
+  mask.addColorStop(0, "rgba(255,255,255,0.85)");
+  mask.addColorStop(0.65, "rgba(255,255,255,0.4)");
   mask.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = mask;
   ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
@@ -74,39 +74,47 @@ function drawSmoke(ctx: CanvasRenderingContext2D, seed: number): void {
 
 function drawSpark(ctx: CanvasRenderingContext2D): void {
   const c = ATLAS_TILE / 2;
-  // A stretched streak: bright thin core with a soft halo.
-  const g = ctx.createLinearGradient(0, c, ATLAS_TILE, c);
-  g.addColorStop(0, "rgba(255,255,255,0)");
-  g.addColorStop(0.45, "rgba(255,255,255,1)");
-  g.addColorStop(0.6, "rgba(255,255,255,1)");
-  g.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, c - 4, ATLAS_TILE, 8);
-  const halo = ctx.createRadialGradient(c, c, 0, c, c, c * 0.5);
-  halo.addColorStop(0, "rgba(255,255,255,0.65)");
-  halo.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = halo;
+  // Streak along +V, which the stretch shader maps onto velocity. The quad
+  // stays a centimetre or two across; a radial halo here is what turns that
+  // into a glowing pill.
+  const across = ctx.createLinearGradient(0, 0, ATLAS_TILE, 0);
+  across.addColorStop(0, "rgba(255,255,255,0)");
+  across.addColorStop(0.4, "rgba(255,255,255,0.08)");
+  across.addColorStop(0.47, "rgba(255,255,255,0.7)");
+  across.addColorStop(0.5, "rgba(255,255,255,1)");
+  across.addColorStop(0.53, "rgba(255,255,255,0.7)");
+  across.addColorStop(0.6, "rgba(255,255,255,0.08)");
+  across.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = across;
   ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+  ctx.globalCompositeOperation = "destination-in";
+  const along = ctx.createLinearGradient(c, ATLAS_TILE, c, 0);
+  along.addColorStop(0, "rgba(255,255,255,0)");
+  along.addColorStop(0.2, "rgba(255,255,255,0.2)");
+  along.addColorStop(0.62, "rgba(255,255,255,0.75)");
+  along.addColorStop(1, "rgba(255,255,255,1)");
+  ctx.fillStyle = along;
+  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+  ctx.globalCompositeOperation = "source-over";
 }
 
 function drawDust(ctx: CanvasRenderingContext2D, seed: number): void {
   const rand = mulberry32(seed);
   const c = ATLAS_TILE / 2;
-  const g = ctx.createRadialGradient(c, c, 0, c, c, c);
-  g.addColorStop(0, "rgba(255,255,255,0.42)");
-  g.addColorStop(0.4, "rgba(255,255,255,0.2)");
+  const g = ctx.createRadialGradient(c, c, 0, c, c, c * 0.96);
+  g.addColorStop(0, "rgba(255,255,255,0.4)");
+  g.addColorStop(0.42, "rgba(255,255,255,0.18)");
+  g.addColorStop(0.75, "rgba(255,255,255,0.06)");
   g.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
-  // Grain so it does not look like an airbrushed circle.
-  ctx.globalCompositeOperation = "destination-in";
-  for (let i = 0; i < 900; i += 1) {
+  // Fine grit. Low alpha so a settling puff stays soft instead of a sticker.
+  for (let i = 0; i < 380; i += 1) {
     const x = rand() * ATLAS_TILE;
     const y = rand() * ATLAS_TILE;
-    ctx.fillStyle = `rgba(255,255,255,${0.6 + rand() * 0.4})`;
-    ctx.fillRect(x, y, 2 + rand() * 3, 2 + rand() * 3);
+    ctx.fillStyle = `rgba(255,255,255,${0.012 + rand() * 0.035})`;
+    ctx.fillRect(x, y, 1 + rand() * 2, 1 + rand() * 2);
   }
-  ctx.globalCompositeOperation = "source-over";
 }
 
 function drawDebris(ctx: CanvasRenderingContext2D, seed: number): void {
@@ -165,19 +173,19 @@ function drawFire(ctx: CanvasRenderingContext2D, seed: number): void {
 function drawFlash(ctx: CanvasRenderingContext2D, seed: number): void {
   const rand = mulberry32(seed);
   const c = ATLAS_TILE / 2;
-  // A multi-lobe star: the asymmetric petal count is what stops a muzzle
-  // flash looking like a generic glow sprite.
-  const lobes = 5 + Math.floor(rand() * 4);
+  // Tight star. Bloom supplies the glow; a fat radial core here is the
+  // lingering orange blob once the particle is tinted.
   ctx.translate(c, c);
-  for (let i = 0; i < lobes; i += 1) {
-    const angle = (i / lobes) * Math.PI * 2 + rand() * 0.5;
-    const len = c * (0.45 + rand() * 0.5);
-    const width = c * (0.1 + rand() * 0.12);
+  const spikes = 4 + Math.floor(rand() * 3);
+  for (let i = 0; i < spikes; i += 1) {
+    const angle = (i / spikes) * Math.PI * 2 + rand() * 0.25;
+    const len = c * (0.18 + rand() * 0.16);
+    const width = c * (0.018 + rand() * 0.016);
     ctx.save();
     ctx.rotate(angle);
     const g = ctx.createLinearGradient(0, 0, len, 0);
     g.addColorStop(0, "rgba(255,255,255,1)");
-    g.addColorStop(0.35, "rgba(255,255,255,0.6)");
+    g.addColorStop(0.45, "rgba(255,255,255,0.4)");
     g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -188,13 +196,13 @@ function drawFlash(ctx: CanvasRenderingContext2D, seed: number): void {
     ctx.fill();
     ctx.restore();
   }
-  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.42);
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.11);
   core.addColorStop(0, "rgba(255,255,255,1)");
-  core.addColorStop(0.5, "rgba(255,255,255,0.7)");
+  core.addColorStop(0.6, "rgba(255,255,255,0.9)");
   core.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = core;
   ctx.beginPath();
-  ctx.arc(0, 0, c * 0.42, 0, Math.PI * 2);
+  ctx.arc(0, 0, c * 0.11, 0, Math.PI * 2);
   ctx.fill();
   ctx.translate(-c, -c);
 }
@@ -210,62 +218,41 @@ function drawRing(ctx: CanvasRenderingContext2D): void {
   ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
 }
 
-/** Multi-plane starburst cross muzzle flash with compensator gas jets. */
+/** Anisotropic muzzle blast: one long blade, a short tongue, a tiny seed. */
 function drawCrossFlash(ctx: CanvasRenderingContext2D, seed: number): void {
   const rand = mulberry32(seed);
   const c = ATLAS_TILE / 2;
   ctx.translate(c, c);
 
-  // 4 primary compensator jets along cardinal cross axes
-  for (let i = 0; i < 4; i += 1) {
-    ctx.save();
-    ctx.rotate((i * Math.PI) / 2 + (rand() - 0.5) * 0.1);
-    const len = c * (0.75 + rand() * 0.22);
-    const width = c * 0.22;
-    const g = ctx.createLinearGradient(0, 0, len, 0);
-    g.addColorStop(0, "rgba(255,255,255,1)");
-    g.addColorStop(0.2, "rgba(255,255,255,0.85)");
-    g.addColorStop(0.6, "rgba(255,255,255,0.35)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(0, -width);
-    ctx.lineTo(len, 0);
-    ctx.lineTo(0, width);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
+  const blade = ctx.createLinearGradient(-c * 0.95, 0, c * 0.95, 0);
+  blade.addColorStop(0, "rgba(255,255,255,0)");
+  blade.addColorStop(0.16, "rgba(255,255,255,0.28)");
+  blade.addColorStop(0.5, "rgba(255,255,255,1)");
+  blade.addColorStop(0.84, "rgba(255,255,255,0.28)");
+  blade.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = blade;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, c * 0.92, c * (0.035 + rand() * 0.018), 0, 0, Math.PI * 2);
+  ctx.fill();
 
-  // 4 secondary diagonal spikes
-  for (let i = 0; i < 4; i += 1) {
-    ctx.save();
-    ctx.rotate((i * Math.PI) / 2 + Math.PI / 4 + (rand() - 0.5) * 0.15);
-    const len = c * (0.45 + rand() * 0.2);
-    const width = c * 0.1;
-    const g = ctx.createLinearGradient(0, 0, len, 0);
-    g.addColorStop(0, "rgba(255,255,255,0.9)");
-    g.addColorStop(0.5, "rgba(255,255,255,0.25)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(0, -width);
-    ctx.lineTo(len, 0);
-    ctx.lineTo(0, width);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
+  ctx.save();
+  ctx.rotate(Math.PI / 2);
+  const tongue = ctx.createLinearGradient(-c * 0.34, 0, c * 0.34, 0);
+  tongue.addColorStop(0, "rgba(255,255,255,0)");
+  tongue.addColorStop(0.5, "rgba(255,255,255,0.4)");
+  tongue.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = tongue;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, c * 0.32, c * 0.022, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
-  // Intense blinding central spherical core
-  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.6);
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, c * 0.08);
   core.addColorStop(0, "rgba(255,255,255,1)");
-  core.addColorStop(0.3, "rgba(255,255,255,0.9)");
-  core.addColorStop(0.65, "rgba(255,255,255,0.4)");
   core.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = core;
   ctx.beginPath();
-  ctx.arc(0, 0, c * 0.6, 0, Math.PI * 2);
+  ctx.arc(0, 0, c * 0.08, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.translate(-c, -c);
@@ -325,26 +312,22 @@ function drawBloodMist(ctx: CanvasRenderingContext2D, seed: number): void {
   }
 }
 
-/** Phosphor bullet tracer head with bright core and sheath. */
+/** Thin tracer head. Bright along +V, a few pixels across, no sheath. */
 function drawTracerHead(ctx: CanvasRenderingContext2D): void {
   const c = ATLAS_TILE / 2;
-  // Intense elongated bullet head
-  const g = ctx.createLinearGradient(0, c, ATLAS_TILE, c);
-  g.addColorStop(0, "rgba(255,255,255,0)");
-  g.addColorStop(0.4, "rgba(255,255,255,0.85)");
-  g.addColorStop(0.7, "rgba(255,255,255,1)");
-  g.addColorStop(1, "rgba(255,255,255,1)");
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.ellipse(c, c, c * 0.8, c * 0.35, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  const halo = ctx.createRadialGradient(c * 1.2, c, 0, c, c, c * 0.75);
-  halo.addColorStop(0, "rgba(255,255,255,1)");
-  halo.addColorStop(0.4, "rgba(255,255,255,0.6)");
-  halo.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = halo;
-  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+  const along = ctx.createLinearGradient(c, ATLAS_TILE, c, 0);
+  along.addColorStop(0, "rgba(255,255,255,0)");
+  along.addColorStop(0.35, "rgba(255,255,255,0.35)");
+  along.addColorStop(0.78, "rgba(255,255,255,1)");
+  along.addColorStop(1, "rgba(255,255,255,1)");
+  ctx.fillStyle = along;
+  ctx.fillRect(c - 5, 0, 10, ATLAS_TILE);
+  const core = ctx.createLinearGradient(c, ATLAS_TILE, c, 0);
+  core.addColorStop(0, "rgba(255,255,255,0)");
+  core.addColorStop(0.55, "rgba(255,255,255,0.8)");
+  core.addColorStop(1, "rgba(255,255,255,1)");
+  ctx.fillStyle = core;
+  ctx.fillRect(c - 1.5, 0, 3, ATLAS_TILE);
 }
 
 let atlasTexture: THREE.CanvasTexture | null = null;

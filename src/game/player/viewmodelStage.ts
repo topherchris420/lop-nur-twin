@@ -33,6 +33,7 @@ export class ViewmodelStage {
   private readonly key: THREE.DirectionalLight;
   private readonly fill: THREE.HemisphereLight;
   private readonly rim: THREE.DirectionalLight;
+  private readonly bounce: THREE.DirectionalLight;
   private readonly options: ViewmodelStageOptions;
   private adsBlend = 0;
 
@@ -53,7 +54,10 @@ export class ViewmodelStage {
     this.scene.add(this.key);
     this.scene.add(this.key.target);
 
-    this.fill = new THREE.HemisphereLight(0xcfe2f8, 0xb39d78, 0.38);
+    // Sky stays cool; the ground hemisphere is desert sand, or the glove
+    // undersides and the dust cover pick up a blue fill that doesn't exist
+    // on this site.
+    this.fill = new THREE.HemisphereLight(0xd5e4f5, 0xc6a36e, 0.42);
     this.scene.add(this.fill);
 
     // A cool back-rim keeps the weapon's silhouette legible against a bright
@@ -61,23 +65,42 @@ export class ViewmodelStage {
     this.rim = new THREE.DirectionalLight(0x9dc4ff, 0.7);
     this.rim.position.set(-0.8, 0.35, -1);
     this.scene.add(this.rim);
+
+    // Upward bounce. With only the key and the hemisphere, the palm side of
+    // the glove and the inside of the dust cover fall out of the sun and read
+    // as unlit black. No shadow map — the viewmodel pass has no casters worth
+    // the cost, and a shadow on the hands flickers with the sway.
+    this.bounce = new THREE.DirectionalLight(0xffd2a8, 0.12);
+    this.bounce.position.set(0.08, -0.85, -0.55);
+    this.scene.add(this.bounce);
+    this.scene.add(this.bounce.target);
   }
 
   /** Point the key light along the world sun and match its colour. */
   setSun(direction: THREE.Vector3, color: THREE.Color, intensity: number): void {
     this.key.position.copy(direction).multiplyScalar(3);
     this.key.color.copy(color);
-    this.key.intensity = 0.35 + intensity * 0.55;
-    this.fill.intensity = 0.14 + intensity * 0.1;
+    // The combat grade sits near exposure 0.64. A key under 1 leaves a
+    // gunmetal receiver on the wrong side of AgX's toe, which is how the
+    // rifle became a black cutout against the sand.
+    this.key.intensity = 1.15 + intensity * 1.35;
+    // Full sun stays under half a unit. Higher than that and the sand bounce
+    // lifts the whole rifle off the key and the parkerising goes grey.
+    this.fill.intensity = 0.22 + intensity * 0.26;
     this.rim.intensity = 0.28 + intensity * 0.22;
+    this.bounce.intensity = 0.04 + intensity * 0.14;
   }
 
   setEnvironment(texture: THREE.Texture | null): void {
     this.scene.environment = texture;
-    // A whisper of the sky, not a chrome wrap. At anything near the world's
-    // 0.68 the dark Magpul furniture and parkerised steel pick up the apron
-    // as a mirror and the OSLO reads as polished aluminium.
-    this.scene.environmentIntensity = 0.08;
+    // Enough desert sky to pull an edge out of parkerising and a glove seam,
+    // still far under the world's 0.68 — near that the furniture wraps the
+    // apron and the rifle reads as polished aluminium.
+    // Material.envMapIntensity is already ~0.2 on the dark finishes. This
+    // scene multiplier stacks with that, so a "subtle" 0.2 here is really
+    // ~0.04 and the metal stops reflecting entirely. 1 keeps the per-material
+    // values meaningful; the world's 0.68 is a different scene.
+    this.scene.environmentIntensity = 1;
   }
 
   /**
@@ -141,6 +164,7 @@ export class ViewmodelStage {
     this.key.dispose();
     this.fill.dispose();
     this.rim.dispose();
+    this.bounce.dispose();
     this.scene.clear();
   }
 }

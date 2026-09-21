@@ -6,6 +6,7 @@ import {
   getWeaponMaterials,
   type WeaponMaterials,
 } from "./materials";
+import { buildArms } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
@@ -1961,6 +1962,18 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
 /* Public entry point                                                  */
 /* ------------------------------------------------------------------ */
 
+function armTriangles(group: THREE.Group): number {
+  const value = group.userData["triangles"];
+  return typeof value === "number" ? value : 0;
+}
+
+/** Geometry for an arm that never joins the weapon tree (the pistol's off hand). */
+function releaseDetachedArm(group: THREE.Object3D): void {
+  group.traverse((object) => {
+    if (object instanceof THREE.Mesh) object.geometry.dispose();
+  });
+}
+
 /**
  * Derive the camera-space transforms.
  *
@@ -2002,6 +2015,28 @@ export function buildWeaponModel(def: WeaponDef): WeaponModel {
     default:
       model = buildLongGun(def, specForClass(def.weaponClass), m);
       break;
+  }
+  // Hands go on before the noCollide walk below, and before the aim pose is
+  // measured, so a glove cannot miss the pass that marks the viewmodel.
+  if (def.weaponClass !== "melee") {
+    const arms = buildArms();
+    model.parts.rightHand.add(arms.right);
+    if (def.weaponClass === "pistol") {
+      // One-handed. The support mesh never enters the tree, so the root
+      // traverse will not see it — free that geometry now. Materials are
+      // shared with the firing hand and stay until arms.dispose().
+      releaseDetachedArm(arms.left);
+    } else {
+      model.parts.leftHand.add(arms.left);
+    }
+    const disposeGeometry = model.dispose.bind(model);
+    const support = def.weaponClass === "pistol" ? 0 : armTriangles(arms.left);
+    model.triangleCount += armTriangles(arms.right) + support;
+    model.dispose = () => {
+      // arms.dispose frees materials and the glove map; the traverse frees mesh geometry.
+      arms.dispose();
+      disposeGeometry();
+    };
   }
   deriveTransforms(model, def.weaponClass);
   model.root.name = `weapon-${def.id}`;

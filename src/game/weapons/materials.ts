@@ -371,11 +371,18 @@ export function getWeaponMaterials(): WeaponMaterials {
     return t;
   };
 
+  // Parkerising and anodising are dark, but they are not a hole in the
+  // frame. These hexes are sRGB; three stores them as linear albedo, and
+  // AgX at the combat exposure maps anything near 0x1c to a clipped black
+  // with no edge left to catch the sun. The values below are the darkest
+  // grey that still reads as a machined object. Metalness stays low on the
+  // coated parts — a conversion coating has a diffuse body; metalness 1
+  // here was a black mirror with nothing to reflect.
   const steel = new THREE.MeshStandardMaterial({
     name: "weapon-steel-metal",
-    color: 0x1c1d20,
-    metalness: 1,
-    roughness: 0.78,
+    color: 0x5a5e66,
+    metalness: 0.34,
+    roughness: 0.62,
     normalMap: repeat(scratchNormal, 6),
     normalScale: new THREE.Vector2(0.35, 0.35),
     roughnessMap: repeat(steelRough, 4),
@@ -384,9 +391,9 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const receiver = new THREE.MeshStandardMaterial({
     name: "weapon-receiver-metal",
-    color: 0x18191c,
-    metalness: 0.82,
-    roughness: 0.72,
+    color: 0x4c525c,
+    metalness: 0.3,
+    roughness: 0.58,
     normalMap: repeat(receiverNormal, 5),
     normalScale: new THREE.Vector2(0.25, 0.25),
     roughnessMap: repeat(receiverRough, 3),
@@ -410,9 +417,9 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const nitride = new THREE.MeshStandardMaterial({
     name: "weapon-nitride-metal",
-    color: 0x171819,
-    metalness: 1,
-    roughness: 0.5,
+    color: 0x3e444c,
+    metalness: 0.42,
+    roughness: 0.46,
     normalMap: repeat(brushedNormal, 8),
     normalScale: new THREE.Vector2(0.25, 0.25),
     envMapIntensity: 0.28,
@@ -420,7 +427,7 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const carbonFouling = new THREE.MeshStandardMaterial({
     name: "weapon-carbon-fouling",
-    color: 0x121314,
+    color: 0x2a2c30,
     metalness: 0.05,
     roughness: 0.92,
     normalMap: repeat(steelNormal.clone(), 6),
@@ -440,7 +447,7 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const polymer = new THREE.MeshStandardMaterial({
     name: "weapon-polymer",
-    color: 0x24252a,
+    color: 0x3a3e46,
     metalness: 0,
     roughness: 0.56,
     normalMap: repeat(polymerNormal, 4),
@@ -456,7 +463,7 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const grip = new THREE.MeshStandardMaterial({
     name: "weapon-grip-polymer",
-    color: 0x1f2024,
+    color: 0x343830,
     metalness: 0,
     roughness: 0.76,
     normalMap: repeat(stipple, 3),
@@ -466,7 +473,7 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const rubber = new THREE.MeshStandardMaterial({
     name: "weapon-rubber",
-    color: 0x151618,
+    color: 0x2c3036,
     metalness: 0,
     roughness: 0.88,
     normalMap: repeat(polymerNormal.clone(), 8),
@@ -517,9 +524,9 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const optic = new THREE.MeshStandardMaterial({
     name: "weapon-optic-metal",
-    color: 0x1c1d21,
-    metalness: 0.86,
-    roughness: 0.56,
+    color: 0x454a52,
+    metalness: 0.32,
+    roughness: 0.52,
     normalMap: repeat(scratchNormal.clone(), 7),
     normalScale: new THREE.Vector2(0.25, 0.25),
     envMapIntensity: 0.75,

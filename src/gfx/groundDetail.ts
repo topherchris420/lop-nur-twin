@@ -30,12 +30,19 @@ import type { QualityTier } from "@/lib/store";
  *  - **cracks** gated by a per-slab hash so only some slabs are cracked, which
  *    decorrelates the crack tile from the joint grid;
  *  - **traffic polish** stretched along the direction the strip is driven;
- *  - a **dust overlay** that settles in the loose patches and in the joints.
+ *  - a **dust overlay** that settles on upward-facing loose patches and in
+ *    the joints, lifting albedo toward the lakebed tint as roughness rises;
+ *  - a **large-scale albedo mottle** (analytic sin/hash, 4–18 m) so a 512 px
+ *    tile cannot stamp across an apron.
  *
- * Everything is fenced behind a distance fade. Past `fadeEnd` the surface is
- * bit-for-bit what it was before, which is what keeps the aerial twin route
- * from regressing and stops the metre-scale layers from shimmering when a tile
- * falls below a pixel. Analytic terms (joints) additionally fade on `fwidth`.
+ * Everything is fenced behind a distance fade. The micro amount `gdAmt` is 0
+ * at and beyond `fadeEnd` (`gdFade.y`): mottling, the extra roughness swing,
+ * the upward dust lift and the fine normal all ride that factor, so those
+ * terms cannot move the aerial route past the fade. The pre-existing macro
+ * fade is untouched — it still ends at 2.1×fadeEnd, far below the altitude
+ * the aerial camera flies at. Analytic joints additionally fade on `fwidth`
+ * so a groove thinner than about a pixel and a half drops out instead of
+ * shimmering.
  *
  * Patching happens through `onBeforeCompile`, per the rules in
  * `.claude/skills/blender-hardsurface/SKILL.md`, so shadows, fog, the env map,
@@ -183,6 +190,10 @@ const SURFACE = /* glsl */ `
     vec2 gdFw = fwidth(gdUv);
     float gdFoot = sqrt(max(gdFw.x * gdFw.y, 1e-8));
     float gdFine = gdAmt * (1.0 - smoothstep(1.6, 4.0, gdFoot));
+    // Fine normals are full at a couple of metres (gdFoot is millimetres to
+    // centimetres there) and gone once the grain's footprint leaves that read.
+    // Roughness and albedo keep the longer gdFine tail; normals must not.
+    float gdNormKeep = 1.0 - smoothstep(0.22, 0.9, gdFoot);
 
     // axis-swapped and offset so the macro tap does not sit on top of the fine
     // one and double its contrast
@@ -200,7 +211,7 @@ const SURFACE = /* glsl */ `
     // --- shading normal ------------------------------------------------
     if (gdFine > 0.0) {
       vec2 gdNf = texture2D(gdNormalMap, gdUv).xy * 2.0 - 1.0;
-      gdBump.xz += gdNf * gdNormalStrength.x * gdFine * gdCalm;
+      gdBump.xz += gdNf * gdNormalStrength.x * gdFine * gdNormKeep * gdCalm;
     }
     if (gdMacroAmt > 0.0) {
       vec2 gdNm = texture2D(gdNormalMap, gdUvM).xy * 2.0 - 1.0;
@@ -209,9 +220,38 @@ const SURFACE = /* glsl */ `
 
     // --- albedo grain ---------------------------------------------------
     // the macro tap only breaks up the flatness; run it well under the fine
-    // one or the two beat together into blotch
+    // one or the two beat together into blotch. mix() is 1 past fadeEnd, so
+    // the aerial grain is unchanged; up close pavement sheds pebbles and
+    // open desert keeps them.
     float gdGrainF = (gdSf.r - 0.5) * gdFine * gdCalm + (gdSm.r - 0.5) * gdMacroAmt * 0.3;
-    diffuseColor.rgb *= 1.0 + gdGrainF * gdGrain;
+    #ifdef GD_JOINTS
+      float gdPebble = 0.7;
+    #else
+      float gdPebble = 1.18;
+    #endif
+    diffuseColor.rgb *= 1.0 + gdGrainF * gdGrain * mix(1.0, gdPebble, gdAmt);
+
+    // Large-scale value mottling, wavelengths 4–18 m, so a 512 px tile cannot
+    // stamp across an apron. Analytic — no extra texture tap — and multiplied
+    // by gdAmt, which is exactly 0 at and beyond fadeEnd.
+    if (gdAmt > 0.001) {
+      vec2 gdWp = vGdWorld.xz;
+      float gdMottle =
+        sin(dot(gdWp, vec2(0.349, 0.151))) * 0.52 +
+        sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.33 +
+        (gdHash21(floor(gdWp * 0.217 + vec2(0.5))) - 0.5);
+      diffuseColor.rgb *= 1.0 + gdMottle * 0.28 * gdAmt;
+      // Two more wavelengths so the apron is not one noise scale. The 20 m
+      // term is a stain; the floor() hashes are pebbles. Both die with gdAmt
+      // / gdFine, so the aerial route past fadeEnd is unchanged.
+      float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
+      diffuseColor.rgb *= 1.0 + gdStain * 0.14 * gdAmt;
+      float gdSpeck =
+        gdHash21(floor(gdWp * 1.6)) * 0.45 +
+        gdHash21(floor(gdWp * 2.7 + vec2(3.0, 1.0))) * 0.35 +
+        gdHash21(floor(gdWp * 9.4 + vec2(4.0, 11.0))) * 0.2;
+      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.55 * gdFine;
+    }
 
     // --- surface state: polished <-> loose -------------------------------
     // -1 traffic-polished / compacted, +1 loose and powdered. This is the term
@@ -220,18 +260,30 @@ const SURFACE = /* glsl */ `
     // change the specular response, not just nudge it.
     float gdPatch = (gdSm.g - 0.5) * 2.0 * gdMacroAmt;
     float gdMicro = (gdSf.g - 0.5) * 2.0 * gdFine;
-    // the micro term is deliberately the smaller of the two: per-grain
-    // roughness swings make the specular sparkle rather than vary, which reads
-    // as noise. Roughness wants to move at the patch scale.
-    roughnessFactor = clamp(
-      roughnessFactor + (gdPatch * 0.78 + gdMicro * 0.15) * gdRoughness, 0.08, 1.0);
+    // the micro term stays the smaller of the two: per-grain roughness swings
+    // make the specular sparkle rather than vary. The patch coefficient is
+    // 0.78 past fadeEnd (gdAmt is 0 there) and a little wider up close.
+    // Floor 0.45 is polished concrete, not a mirror; 1.0 is loose dust.
+    float gdRoughDelta = (gdPatch * (0.78 + 0.2 * gdAmt) + gdMicro * 0.15) * gdRoughness;
+    roughnessFactor = clamp(roughnessFactor + gdRoughDelta, 0.45, 1.0);
     // a polished patch is darker and slightly more specular; a loose one is
     // paler and completely matte. Moving albedo and roughness together is what
     // separates "damp/worn" from "someone lowered a slider".
     float gdPolish = max(0.0, -gdPatch);
     float gdLoose = max(0.0, gdPatch);
-    diffuseColor.rgb *= 1.0 - gdPolish * 0.13;
-    diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor, gdLoose * gdDust);
+    diffuseColor.rgb *= 1.0 - gdPolish * (0.13 + 0.04 * gdAmt);
+    // Geometric view-normal's world up. Dust settles on upward faces and only
+    // where roughness rose (gdLoose). mix(..., gdAmt) leaves the previous
+    // gdLoose * gdDust weight untouched once gdAmt hits 0.
+    float gdUp = saturate(dot(normalize(vNormal), viewMatrix[1].xyz));
+    float gdDustBase = gdLoose * gdDust;
+    #ifdef GD_JOINTS
+      float gdDustExtra = 0.07;
+    #else
+      float gdDustExtra = 0.2;
+    #endif
+    float gdDustClose = gdLoose * gdUp * min(gdDust + gdDustExtra, 0.62);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor, mix(gdDustBase, gdDustClose, gdAmt));
 
     #ifdef GD_JOINTS
     {
@@ -240,25 +292,38 @@ const SURFACE = /* glsl */ `
       vec2 gdCellF = gdLocal / gdJoint.x;
       vec2 gdCellFw = max(fwidth(gdCellF), vec2(1e-5));
       vec2 gdEdge = abs(fract(gdCellF - 0.5) - 0.5);
-      vec2 gdHalf = vec2(gdJoint.y * 0.5 / gdJoint.x);
-      vec2 gdLine = 1.0 - smoothstep(gdHalf, gdHalf + gdCellFw * 1.4, gdEdge);
-      // a joint narrower than a pixel is aliasing, not detail
-      gdLine *= (1.0 - smoothstep(0.1, 0.32, max(gdCellFw.x, gdCellFw.y))) * gdMacroAmt;
+      float gdHalfW = gdJoint.y * 0.5 / max(gdJoint.x, 1e-4);
+      vec2 gdHalf = vec2(gdHalfW);
+      // Soft shoulder at least ~1.5 px wide. A hard step at grazing angles is
+      // what shimmers; the band tracks fwidth so the edge stays a few pixels.
+      vec2 gdAa = max(gdCellFw * 1.6, gdHalf * 0.75);
+      vec2 gdLine = 1.0 - smoothstep(gdHalf, gdHalf + gdAa, gdEdge);
+      // Fade each axis on its own derivative. The joint running across the
+      // view stays sharp; the one compressed along the view drops out once it
+      // is thinner than about a pixel and a half, instead of aliasing.
+      vec2 gdKeep = vec2(1.0) - smoothstep(gdHalf * 1.15, gdHalf * 3.4, gdCellFw);
+      gdLine *= gdKeep * gdMacroAmt;
       float gdSeam = max(gdLine.x, gdLine.y);
 
       diffuseColor.rgb *= mix(1.0, gdJoint.z, gdSeam);
-      roughnessFactor = clamp(roughnessFactor + gdSeam * 0.16, 0.06, 1.0);
-      // joints are where the wind puts the sand
-      diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor, gdSeam * gdDust * 0.55);
+      roughnessFactor = clamp(roughnessFactor + gdSeam * 0.16, 0.45, 1.0);
+      // joints are where the wind puts the sand; up close, only on faces that
+      // can hold it. Past fadeEnd the up-weight mixes back to 1.
+      diffuseColor.rgb = mix(
+        diffuseColor.rgb,
+        gdDustColor,
+        gdSeam * gdDust * 0.55 * mix(1.0, gdUp, gdAmt));
 
-      // groove relief, in the strip's frame then rotated back to world XZ
-      vec2 gdSlope = sign(fract(gdCellF - 0.5) - 0.5) * gdLine;
-      gdBump.xz -= (gdBasis.xy * gdSlope.x + vec2(-gdBasis.y, gdBasis.x) * gdSlope.y) * 0.5;
+      // smooth groove in the strip's frame, then rotated back to world XZ.
+      // A sign() step at the centre flickers; the ramp does not.
+      vec2 gdSigned = fract(gdCellF - 0.5) - 0.5;
+      vec2 gdSlope = clamp(gdSigned / max(gdHalf + gdAa, vec2(1e-4)), -1.0, 1.0) * gdLine;
+      gdBump.xz -= (gdBasis.xy * gdSlope.x + vec2(-gdBasis.y, gdBasis.x) * gdSlope.y) * 0.38;
 
       // per-slab PBR drift: a pour is never uniform across a day's work
       vec2 gdCell = floor(gdCellF);
       float gdSlab = gdHash21(gdCell + 13.0);
-      roughnessFactor = clamp(roughnessFactor + (gdSlab - 0.5) * 0.09 * gdMacroAmt, 0.06, 1.0);
+      roughnessFactor = clamp(roughnessFactor + (gdSlab - 0.5) * 0.09 * gdMacroAmt, 0.45, 1.0);
       diffuseColor.rgb *= 1.0 + (gdHash21(gdCell * 1.31 - 7.0) - 0.5) * 0.05 * gdMacroAmt;
 
       if (gdCracks > 0.0) {
@@ -270,7 +335,7 @@ const SURFACE = /* glsl */ `
         // cracks stop at the joints, the way slabs really fail
         gdCrack *= 1.0 - gdSeam;
         diffuseColor.rgb *= 1.0 - gdCrack * 0.42;
-        roughnessFactor = clamp(roughnessFactor + gdCrack * 0.2, 0.06, 1.0);
+        roughnessFactor = clamp(roughnessFactor + gdCrack * 0.2, 0.45, 1.0);
       }
     }
     #endif
@@ -285,8 +350,8 @@ const SURFACE = /* glsl */ `
         dot(gdRelT, gdBasis.xy) / 52.0);
       float gdWear = smoothstep(0.44, 0.8, texture2D(gdSurfaceMap, gdTrackUv).g)
                    * gdTracks * gdMacroAmt;
-      roughnessFactor = clamp(roughnessFactor - gdWear * 0.28, 0.06, 1.0);
-      diffuseColor.rgb *= 1.0 - gdWear * 0.11;
+      roughnessFactor = clamp(roughnessFactor - gdWear * (0.28 + 0.06 * gdAmt), 0.45, 1.0);
+      diffuseColor.rgb *= 1.0 - gdWear * (0.11 + 0.03 * gdAmt);
     }
     #endif
   }
@@ -393,8 +458,9 @@ vGdCompact = gdCompact;
       );
   };
 
-  // the injections are switched by #defines, so they have to be part of the key
-  const cacheKey = `gd:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  // Defines switch the injection, and the GLSL string itself is versioned:
+  // three caches programs on this key, not on the onBeforeCompile output.
+  const cacheKey = `gd3:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
@@ -417,12 +483,14 @@ export const GROUND_DETAIL_PRESETS = {
   pavement: {
     scale: 1.05,
     macro: 10.7,
-    normalStrength: [1.0, 0.42] as [number, number],
+    // Fine normal is eased off from 1.0: the map already carries relief, and
+    // more of it reads as crumpled paper. Roughness and joints do the work.
+    normalStrength: [0.84, 0.42] as [number, number],
     roughness: 0.48,
     grain: 0.21,
     jointSpacing: 6.25,
-    jointWidth: 0.045,
-    jointDarken: 0.6,
+    jointWidth: 0.056,
+    jointDarken: 0.55,
     cracks: 0.8,
     tracks: 0.6,
     dust: 0.24,
@@ -437,7 +505,9 @@ export const GROUND_DETAIL_PRESETS = {
   desert: {
     scale: 1.35,
     macro: 8.6,
-    normalStrength: [1.15, 0.62] as [number, number],
+    // Still stronger than pavement so the lakebed stays pebbled, but not
+    // pushed past the point where the fine layer looks like crumpled paper.
+    normalStrength: [0.98, 0.62] as [number, number],
     roughness: 0.34,
     grain: 0.3,
     dust: 0.18,
@@ -447,7 +517,7 @@ export const GROUND_DETAIL_PRESETS = {
   dirt: {
     scale: 1.5,
     macro: 7.4,
-    normalStrength: [1.05, 0.6] as [number, number],
+    normalStrength: [0.92, 0.6] as [number, number],
     roughness: 0.3,
     grain: 0.28,
     tracks: 0.45,
