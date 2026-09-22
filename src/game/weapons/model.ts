@@ -426,19 +426,39 @@ function buildOptic(
     const bezelZ = -0.033;
     asm.add(
       m.bareMetal,
-      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY + glassH / 2, bezelZ),
+      place(
+        chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }),
+        0,
+        axisY + glassH / 2,
+        bezelZ,
+      ),
     );
     asm.add(
       m.bareMetal,
-      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY - glassH / 2, bezelZ),
+      place(
+        chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }),
+        0,
+        axisY - glassH / 2,
+        bezelZ,
+      ),
     );
     asm.add(
       m.bareMetal,
-      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), -glassW / 2, axisY, bezelZ),
+      place(
+        chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }),
+        -glassW / 2,
+        axisY,
+        bezelZ,
+      ),
     );
     asm.add(
       m.bareMetal,
-      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), glassW / 2, axisY, bezelZ),
+      place(
+        chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }),
+        glassW / 2,
+        axisY,
+        bezelZ,
+      ),
     );
   } else {
     // Magnified optic: a turned tube with an objective bell and a sunshade.
