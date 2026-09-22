@@ -198,7 +198,8 @@ Shipped code only: a development-only advisory should not block a documentation
 change. Advisories in the toolchain still surface through Trivy and Dependabot.
 
 CI additionally runs CodeQL (`security-extended`), Gitleaks over the full
-history, Trivy filesystem and configuration scans, GitHub dependency review on
+history (default rules, plus the false-positive allowlist in `.gitleaks.toml`),
+Trivy filesystem and configuration scans, GitHub dependency review on
 pull requests, and generates CycloneDX and SPDX software bills of materials as
 run artifacts. The SBOM describes a _resolved_ dependency tree, so it is
 published per run rather than committed, where it would be stale the moment a

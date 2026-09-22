@@ -114,7 +114,13 @@ any kind.
   pull-request workflow is granted write permissions, so a malicious pull
   request cannot exfiltrate anything by editing a workflow.
 - Gitleaks scans full history on every run, so a credential committed by
-  mistake is caught rather than quietly living in the log.
+  mistake is caught rather than quietly living in the log. The configuration
+  is `.gitleaks.toml`, which extends the default ruleset.
+- The one allowlist entry is on `generic-api-key`, and both of its conditions
+  have to match: the captured value is exactly `soldier-shade-v` plus digits,
+  and the path is `src/game/characters/soldierShade.ts`. That string is a
+  Three.js `customProgramCacheKey` version, not a credential. A different
+  value in that file, or the same string anywhere else, still fails the scan.
 - If a secret is ever committed: rotate it first, then remove it from history.
   Rotation is the fix; history rewriting is cleanup.
 

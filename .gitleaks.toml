@@ -1,0 +1,22 @@
+# Extends the built-in Gitleaks rules. This file only records false positives.
+# Do not add a path here unless the captured value is also constrained: a
+# path-only allowlist would hide a real credential in that file.
+title = "lop-nur-twin"
+
+[extend]
+useDefault = true
+
+# `customProgramCacheKey` versions in the soldier shader. The identifier is
+# named CACHE_KEY, so the generic-api-key rule treats
+# `soldier-shade-vN` as a credential. It is a public Three.js program-cache
+# version. Both checks are required: the secret must be exactly that version
+# string, and it must be in this file. Any other value in the file still fails.
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Three.js customProgramCacheKey versions in src/game/characters/soldierShade.ts (soldier-shade-vN). Not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^soldier-shade-v\d+$''']
+paths = ['''(^|/)src/game/characters/soldierShade\.ts$''']

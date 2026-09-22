@@ -406,7 +406,11 @@ function buildParts(
   // webbing tone so each pouch has a lit edge.
   for (let i = 0; i < 3; i += 1) {
     const x = -0.092 + i * 0.092;
-    add(slab(0.08, 0.132, 0.086, x, 1.118, -0.222, 0.012), i === 1 ? 0x1c1a14 : palette.pouch, 0.9);
+    add(
+      slab(0.08, 0.132, 0.086, x, 1.118, -0.222, 0.012),
+      i === 1 ? 0x1c1a14 : palette.pouch,
+      0.9,
+    );
     add(slab(0.084, 0.04, 0.034, x, 1.182, -0.252, 0.008), palette.webbing, 0.88);
     add(slab(0.018, 0.03, 0.012, x, 1.154, -0.268, 0.004), palette.gear, 0.86);
   }

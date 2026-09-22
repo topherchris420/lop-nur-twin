@@ -223,7 +223,9 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      # Gitleaks scans history, not just the working tree.
+      # Gitleaks scans history, not just the working tree. It loads
+      # `.gitleaks.toml` from this checkout, which extends the default rules
+      # and allowlists one documented false positive.
       - name: Check out the full history
         uses: actions/checkout@v4
         with:
