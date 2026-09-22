@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v13";
+const CACHE_KEY = "soldier-shade-v14";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -99,9 +99,9 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   shaded *= 1.0 - (bands * 0.42 + seam * 0.18) * cloth;
   // Large patches. A 60/m wave averages to one colour once the portrait is
   // scaled, which is why the plate kept reading as a single slab.
-  float blot = sin(vSoldierPos.x * 18.0) * sin(vSoldierPos.y * 14.0 + vSoldierPos.z * 8.0);
-  float fine = sin(vSoldierPos.x * 36.0 + 1.3) * sin(vSoldierPos.y * 28.0);
-  shaded *= 1.0 + (blot * 0.38 + fine * 0.14) * cloth;
+  float blot = sin(vSoldierPos.x * 12.0) * sin(vSoldierPos.y * 9.0 + vSoldierPos.z * 6.0);
+  float fine = sin(vSoldierPos.x * 28.0 + 1.3) * sin(vSoldierPos.y * 22.0);
+  shaded *= 1.0 + (blot * 0.48 + fine * 0.18) * cloth;
   // Socket ring around each eye. edge0 must be below edge1 or the hole
   // inverts and the sclera is the part that goes dark.
   vec2 eyeL = vSoldierPos.xy - vec2(-0.036, 1.633);
@@ -118,7 +118,7 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   // reads as one faceted lump at a few metres.
   float cavity = max(-worldN.y, 0.0);
   cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
-  dusted *= 1.0 - cavity * 0.72;
+  dusted *= 1.0 - cavity * 0.88;
 
   // Brow shadow only. The eyes sit near y = 1.63, z = -0.08; a band that
   // includes them paints the sockets the same value as the skin and the
@@ -132,12 +132,12 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   vec3 viewN = normalize(mat3(viewMatrix) * worldN);
   float ndotv = clamp(dot(viewN, normalize(-vViewPosition)), 0.0, 1.0);
   float rim = pow(1.0 - ndotv, 3.0) * (1.0 - upN) * dielectric;
-  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.28;
+  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.38;
 
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);
   float ratio = dustL / baseL;
-  float limited = clamp(ratio, 0.30, 1.48);
+  float limited = clamp(ratio, 0.22, 1.55);
   diffuseColor.rgb = dusted * (limited / ratio);
 
   roughnessFactor = clamp(

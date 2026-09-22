@@ -81,7 +81,7 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
     camo: [0x9a8a63, 0xc4b389, 0x4a4433, 0xd8cba4],
     gear: 0x6e654c,
     webbing: 0x8a7f62,
-    pouch: 0x3e3a2e,
+    pouch: 0x2a261c,
     boot: 0x2a261f,
     sole: 0x1f1c18,
     helmet: 0x5f5745,
@@ -301,8 +301,10 @@ function buildParts(
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
-  // Neck gaiter bunched at the collar.
-  add(slab(0.135, 0.06, 0.135, 0, 1.512, 0.008, 0.05), palette.webbing, 0.9);
+  // Neck gaiter bunched at the collar — tall enough that a skinned head
+  // never reads as floating above the kit.
+  add(slab(0.14, 0.09, 0.14, 0, 1.495, 0.01, 0.05), palette.webbing, 0.9);
+  add(slab(0.12, 0.055, 0.12, 0, 1.545, 0.006, 0.04), 0x3a3830, 0.88);
   // Collar stand behind the gaiter, so the neck is not a bare tube under the helmet.
   add(slab(0.13, 0.078, 0.042, 0, 1.53, 0.086, 0.012), palette.gear, 0.9);
 
@@ -404,7 +406,7 @@ function buildParts(
   // webbing tone so each pouch has a lit edge.
   for (let i = 0; i < 3; i += 1) {
     const x = -0.092 + i * 0.092;
-    add(slab(0.08, 0.132, 0.086, x, 1.118, -0.222, 0.012), palette.pouch, 0.9);
+    add(slab(0.08, 0.132, 0.086, x, 1.118, -0.222, 0.012), i === 1 ? 0x1c1a14 : palette.pouch, 0.9);
     add(slab(0.084, 0.04, 0.034, x, 1.182, -0.252, 0.008), palette.webbing, 0.88);
     add(slab(0.018, 0.03, 0.012, x, 1.154, -0.268, 0.004), palette.gear, 0.86);
   }

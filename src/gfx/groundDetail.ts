@@ -239,28 +239,26 @@ const SURFACE = /* glsl */ `
     // by gdAmt, which is exactly 0 at and beyond fadeEnd.
     if (gdAmt > 0.001) {
       vec2 gdWp = vGdWorld.xz;
-      vec2 gdCell = floor(gdWp * 0.18);
-      vec2 gdBf = fract(gdWp * 0.18);
-      gdBf = gdBf * gdBf * (3.0 - 2.0 * gdBf);
-      float gdSoft = mix(
-        mix(gdHash21(gdCell), gdHash21(gdCell + vec2(1.0, 0.0)), gdBf.x),
-        mix(gdHash21(gdCell + vec2(0.0, 1.0)), gdHash21(gdCell + vec2(1.0, 1.0)), gdBf.x),
-        gdBf.y);
+      // Continuous mottling only. A soft cell hash still left square seams
+      // once the values jumped between cells.
       float gdMottle =
-        sin(dot(gdWp, vec2(0.349, 0.151))) * 0.52 +
-        sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.33 +
-        (gdSoft - 0.5);
-      diffuseColor.rgb *= 1.0 + gdMottle * 0.22 * gdAmt;
-      // Two more wavelengths so the apron is not one noise scale. The 20 m
-      // term is a stain; the ~80 m term is a patch you can walk across. Both
-      // die with gdAmt, so the aerial route past fadeEnd is unchanged.
-      // The cell hash used to be a hard floor(), which read as pale squares.
+        sin(dot(gdWp, vec2(0.349, 0.151))) * 0.42 +
+        sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.28 +
+        sin(dot(gdWp, vec2(0.91, -0.47))) * 0.18 +
+        sin(dot(gdWp, vec2(-0.63, 0.22))) * 0.12;
+      diffuseColor.rgb *= 1.0 + gdMottle * 0.34 * gdAmt;
       float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
       float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
-      diffuseColor.rgb *= 1.0 + gdStain * 0.42 * gdAmt + gdWide * 0.36 * gdAmt;
+      float gdDirt = sin(dot(gdWp, vec2(0.55, 0.19))) * sin(dot(gdWp, vec2(-0.21, 0.41)));
+      diffuseColor.rgb *= 1.0
+        + gdStain * 0.38 * gdAmt
+        + gdWide * 0.32 * gdAmt
+        + gdDirt * 0.22 * gdAmt;
+      // Speckle without a hard cell edge: two soft hashes, no floor() step.
       float gdSpeck =
-        gdHash21(floor(gdWp * 1.6)) * 0.55 +
-        gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
+        sin(dot(gdWp, vec2(2.7, 1.9))) * 0.45 +
+        sin(dot(gdWp, vec2(-3.4, 2.1))) * 0.35 +
+        sin(dot(gdWp, vec2(5.1, -4.2))) * 0.2;
       // Stones a boot would notice: a few per stride, tens of centimetres
       // across, not a pepper of one-pixel cells.
       vec2 gdStoneUv = gdWp * 0.95 + vec2(8.0, 3.0);
@@ -282,7 +280,7 @@ const SURFACE = /* glsl */ `
       vec2 gdSh = gdStoneF - vec2(0.045, 0.02);
       float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.05, length(gdSh))) * (1.0 - gdBody);
       diffuseColor.rgb *= 1.0
-        + (gdSpeck - 0.5) * 0.08 * gdFine
+        + gdSpeck * 0.07 * gdFine
         + gdOn * (gdHi * 1.15 + max(gdLit, 0.0) * 1.35 - gdBody * 0.12) * gdNear
         + gdChip * 0.22 * gdNear;
       diffuseColor.rgb *= 1.0 - gdShadow * 0.32 * gdNear;
@@ -303,13 +301,13 @@ const SURFACE = /* glsl */ `
         float gdOut = length(max(gdQ, vec2(0.0)));
         float gdIn = min(max(gdQ.x, gdQ.y), 0.0);
         float gdSd = gdOut + gdIn;
-        // A short skirt. A 16 m stain covers the whole standing frame, so the
-        // ground is one value and the wall has no seam. Full dark within about
-        // a metre, gone by five, which is what a person at the wall can see.
-        float gdBand = (1.0 - smoothstep(1.2, 4.2, gdSd)) * smoothstep(-0.45, 0.08, gdSd);
-        gdOccl = max(gdOccl, gdBand);
+        // Darkest at the wall (gdSd ~ 0), gone by about three metres so a
+        // standing frame still sees the seam as a gradient, not a full wash.
+        float gdBand = (1.0 - smoothstep(0.15, 3.2, gdSd)) * smoothstep(-0.35, 0.05, gdSd);
+        float gdGrit = (1.0 - smoothstep(0.0, 1.1, gdSd)) * smoothstep(-0.2, 0.02, gdSd);
+        gdOccl = max(gdOccl, max(gdBand * 0.88, gdGrit));
       }
-      diffuseColor.rgb *= 1.0 - gdOccl * 0.93 * gdAmt;
+      diffuseColor.rgb *= 1.0 - gdOccl * 0.95 * gdAmt;
     }
 
     // --- surface state: polished <-> loose -------------------------------
@@ -561,7 +559,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd18:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd19:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
