@@ -356,8 +356,8 @@ function buildParts(
   // pouches, which is exactly where they are on the real thing.
   // A darker admin panel and a vertical strap, large enough that a portrait
   // at two metres still shows more than one value after the image is scaled.
-  add(slab(0.2, 0.15, 0.018, 0, plateY + 0.02, -0.192, 0.005), 0x3c3a30, 0.88);
-  add(slab(0.016, 0.22, 0.016, 0, plateY, -0.204, 0.003), 0x24231e, 0.84);
+  add(slab(0.2, 0.15, 0.018, 0, plateY + 0.02, -0.192, 0.005), 0x1a1814, 0.88);
+  add(slab(0.016, 0.22, 0.016, 0, plateY, -0.204, 0.003), 0x12110e, 0.84);
   for (let i = 0; i < 4; i += 1) {
     add(
       slab(0.24, 0.026, 0.014, 0, plateY - 0.09 + i * 0.052, -0.21, 0.004),

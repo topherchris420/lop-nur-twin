@@ -239,17 +239,25 @@ const SURFACE = /* glsl */ `
     // by gdAmt, which is exactly 0 at and beyond fadeEnd.
     if (gdAmt > 0.001) {
       vec2 gdWp = vGdWorld.xz;
+      vec2 gdCell = floor(gdWp * 0.18);
+      vec2 gdBf = fract(gdWp * 0.18);
+      gdBf = gdBf * gdBf * (3.0 - 2.0 * gdBf);
+      float gdSoft = mix(
+        mix(gdHash21(gdCell), gdHash21(gdCell + vec2(1.0, 0.0)), gdBf.x),
+        mix(gdHash21(gdCell + vec2(0.0, 1.0)), gdHash21(gdCell + vec2(1.0, 1.0)), gdBf.x),
+        gdBf.y);
       float gdMottle =
         sin(dot(gdWp, vec2(0.349, 0.151))) * 0.52 +
         sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.33 +
-        (gdHash21(floor(gdWp * 0.217 + vec2(0.5))) - 0.5);
-      diffuseColor.rgb *= 1.0 + gdMottle * 0.28 * gdAmt;
+        (gdSoft - 0.5);
+      diffuseColor.rgb *= 1.0 + gdMottle * 0.22 * gdAmt;
       // Two more wavelengths so the apron is not one noise scale. The 20 m
       // term is a stain; the ~80 m term is a patch you can walk across. Both
       // die with gdAmt, so the aerial route past fadeEnd is unchanged.
+      // The cell hash used to be a hard floor(), which read as pale squares.
       float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
       float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
-      diffuseColor.rgb *= 1.0 + gdStain * 0.55 * gdAmt + gdWide * 0.72 * gdAmt;
+      diffuseColor.rgb *= 1.0 + gdStain * 0.42 * gdAmt + gdWide * 0.36 * gdAmt;
       float gdSpeck =
         gdHash21(floor(gdWp * 1.6)) * 0.55 +
         gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
@@ -274,9 +282,9 @@ const SURFACE = /* glsl */ `
       float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.05, length(gdSh))) * (1.0 - gdBody);
       diffuseColor.rgb *= 1.0
         + (gdSpeck - 0.5) * 0.08 * gdFine
-        + gdOn * (gdHi * 0.7 + max(gdLit, 0.0) * 2.2 - gdBody * 0.35) * gdNear
+        + gdOn * (gdHi * 1.15 + max(gdLit, 0.0) * 1.35 - gdBody * 0.12) * gdNear
         + gdChip * 0.22 * gdNear;
-      diffuseColor.rgb *= 1.0 - gdShadow * 0.55 * gdNear;
+      diffuseColor.rgb *= 1.0 - gdShadow * 0.32 * gdNear;
       // Radial slope so the disc is a pebble. Same near gate as the albedo,
       // so the aerial twin past fadeEnd never sees it.
       gdBump.xz += normalize(gdStoneF + vec2(1e-4)) * gdOn * gdBody * 4.5 * gdNear;
@@ -552,7 +560,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd16:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd17:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
