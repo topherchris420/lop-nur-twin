@@ -261,32 +261,30 @@ const SURFACE = /* glsl */ `
         sin(dot(gdWp, vec2(5.1, -4.2))) * 0.2;
       // Stones a boot would notice: a few per stride, tens of centimetres
       // across, not a pepper of one-pixel cells.
-      vec2 gdStoneUv = gdWp * 0.95 + vec2(8.0, 3.0);
+      vec2 gdStoneUv = gdWp * 0.72 + vec2(8.0, 3.0);
       vec2 gdStoneCell = floor(gdStoneUv);
       vec2 gdJit = vec2(gdHash21(gdStoneCell + 2.1), gdHash21(gdStoneCell + 5.7)) - 0.5;
-      vec2 gdStoneF = fract(gdStoneUv + gdJit * 0.62) - 0.5;
+      vec2 gdStoneF = fract(gdStoneUv) - 0.5 - gdJit * 0.55;
       float gdPick = gdHash21(gdStoneCell);
-      float gdOn = step(0.9, gdPick);
-      float gdRad = mix(0.05, 0.16, gdPick);
-      float gdBody = 1.0 - smoothstep(gdRad * 0.25, gdRad, length(gdStoneF));
-      float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.45, length(gdStoneF - vec2(0.03, -0.02)));
-      // Sun-facing side of the pebble. A flat disc has no silhouette.
-      float gdLit = dot(gdStoneF, vec2(0.93, 0.37));
-      vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
-      float gdChip = step(0.93, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.05, 0.14, length(fract(gdChipUv) - 0.5)));
-      float gdNear = max(gdFine, gdAmt * 0.8);
-      // Shadow sits down-sun of the disc, outside the body, so a pebble has a
-      // dark side even where the normal tilt is smaller than a pixel.
-      vec2 gdSh = gdStoneF - vec2(0.045, 0.02);
-      float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.05, length(gdSh))) * (1.0 - gdBody);
+      float gdOn = step(0.88, gdPick);
+      float gdRad = mix(0.06, 0.14, fract(gdPick * 17.0));
+      float gdBody = 1.0 - smoothstep(gdRad * 0.2, gdRad, length(gdStoneF));
+      float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.4, length(gdStoneF - vec2(0.028, -0.018)));
+      float gdLit = dot(normalize(gdStoneF + vec2(1e-4)), vec2(0.93, 0.37));
+      float gdNear = max(gdFine, gdAmt * 0.85);
+      vec2 gdSh = gdStoneF - vec2(0.05, 0.025);
+      float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.06, length(gdSh))) * (1.0 - gdBody);
+      // Fine grain rides gdAmt up close so the looking-down frame is not one wash.
+      float gdCloseGrain =
+        sin(dot(gdWp, vec2(11.0, 7.3))) * 0.4 +
+        sin(dot(gdWp, vec2(-8.2, 13.1))) * 0.35 +
+        sin(dot(gdWp, vec2(17.4, -9.6))) * 0.25;
       diffuseColor.rgb *= 1.0
-        + gdSpeck * 0.07 * gdFine
-        + gdOn * (gdHi * 1.15 + max(gdLit, 0.0) * 1.35 - gdBody * 0.12) * gdNear
-        + gdChip * 0.22 * gdNear;
-      diffuseColor.rgb *= 1.0 - gdShadow * 0.32 * gdNear;
-      // Radial slope so the disc is a pebble. Same near gate as the albedo,
-      // so the aerial twin past fadeEnd never sees it.
-      gdBump.xz += normalize(gdStoneF + vec2(1e-4)) * gdOn * gdBody * 4.5 * gdNear;
+        + gdSpeck * 0.09 * gdFine
+        + gdCloseGrain * 0.12 * gdAmt
+        + gdOn * (gdHi * 0.9 + max(gdLit, 0.0) * 0.85 - gdBody * 0.08) * gdNear;
+      diffuseColor.rgb *= 1.0 - gdShadow * 0.4 * gdNear;
+      gdBump.xz += normalize(gdStoneF + vec2(1e-4)) * gdOn * gdBody * 3.8 * gdNear;
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -303,11 +301,13 @@ const SURFACE = /* glsl */ `
         float gdSd = gdOut + gdIn;
         // Darkest at the wall (gdSd ~ 0), gone by about three metres so a
         // standing frame still sees the seam as a gradient, not a full wash.
-        float gdBand = (1.0 - smoothstep(0.15, 3.2, gdSd)) * smoothstep(-0.35, 0.05, gdSd);
-        float gdGrit = (1.0 - smoothstep(0.0, 1.1, gdSd)) * smoothstep(-0.2, 0.02, gdSd);
-        gdOccl = max(gdOccl, max(gdBand * 0.88, gdGrit));
+        float gdBand = (1.0 - smoothstep(0.05, 2.8, gdSd)) * smoothstep(-0.25, 0.04, gdSd);
+        float gdGrit = (1.0 - smoothstep(0.0, 0.85, gdSd)) * smoothstep(-0.15, 0.02, gdSd);
+        gdOccl = max(gdOccl, max(gdBand, gdGrit * 1.05));
       }
-      diffuseColor.rgb *= 1.0 - gdOccl * 0.95 * gdAmt;
+      diffuseColor.rgb *= 1.0 - gdOccl * 0.97 * gdAmt;
+      // A thin grit line right against the wall so the join is not a knife edge.
+      roughnessFactor = clamp(roughnessFactor + gdOccl * 0.18 * gdAmt, 0.45, 1.0);
     }
 
     // --- surface state: polished <-> loose -------------------------------
@@ -559,7 +559,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd19:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd20:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

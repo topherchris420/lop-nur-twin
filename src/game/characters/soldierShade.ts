@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v14";
+const CACHE_KEY = "soldier-shade-v15";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -113,9 +113,10 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   shaded *= 1.0 - sock * 0.5 * dielectric;
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
 
-  // Undersides of the helmet brim, pouches and pack. A single key leaves
-  // those cavities the same value as the lit cloth, which is why the kit
-  // reads as one faceted lump at a few metres.
+  // Recess between pouches and the plate. Underside cavity alone is not
+  // enough when every front face points at the key light.
+  float recess = smoothstep(-0.12, -0.22, vSoldierPos.z) * cloth;
+  dusted *= 1.0 - recess * 0.35;
   float cavity = max(-worldN.y, 0.0);
   cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
   dusted *= 1.0 - cavity * 0.88;
@@ -161,7 +162,7 @@ const EYE_LIGHT = /* glsl */ `
     1.0 - smoothstep(0.005, 0.016, length(eR))
   );
   eye *= 1.0 - smoothstep(-0.12, -0.05, vSoldierPos.z);
-  totalEmissiveRadiance += vec3(0.78, 0.72, 0.62) * eye * 1.35;
+  totalEmissiveRadiance += vec3(0.45, 0.4, 0.34) * eye * 0.35;
 }
 `;
 

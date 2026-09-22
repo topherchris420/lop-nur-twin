@@ -79,7 +79,7 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
   // a soldier is ten metres away, which is exactly when it needs to read.
   blue: {
     camo: [0x9a8a63, 0xc4b389, 0x4a4433, 0xd8cba4],
-    gear: 0x6e654c,
+    gear: 0x4a4538,
     webbing: 0x8a7f62,
     pouch: 0x2a261c,
     boot: 0x2a261f,
@@ -288,14 +288,14 @@ function buildParts(
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
   // Recessed, not stuck on. A sphere proud of the skin is a sticker.
-  add(ball(0.021, -0.036, 1.633, -0.09, 0.58, 0.42), 0xf7f1e6, 0.38);
-  add(ball(0.021, 0.036, 1.633, -0.09, 0.58, 0.42), 0xf7f1e6, 0.38);
-  add(ball(0.0105, -0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
-  add(ball(0.0105, 0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
-  add(ball(0.0052, -0.036, 1.637, -0.104, 0.75, 0.58), 0x0c0a08, 0.12);
-  add(ball(0.0052, 0.036, 1.637, -0.104, 0.75, 0.58), 0x0c0a08, 0.12);
-  add(ball(0.0046, -0.029, 1.644, -0.108), 0xffffff, 0.05);
-  add(ball(0.0046, 0.043, 1.644, -0.108), 0xffffff, 0.05);
+  add(ball(0.019, -0.036, 1.633, -0.09, 0.55, 0.4), 0xe8e0d4, 0.42);
+  add(ball(0.019, 0.036, 1.633, -0.09, 0.55, 0.4), 0xe8e0d4, 0.42);
+  add(ball(0.012, -0.036, 1.635, -0.098, 0.7, 0.52), 0x5a4030, 0.28);
+  add(ball(0.012, 0.036, 1.635, -0.098, 0.7, 0.52), 0x5a4030, 0.28);
+  add(ball(0.0058, -0.036, 1.637, -0.106, 0.75, 0.55), 0x0a0806, 0.1);
+  add(ball(0.0058, 0.036, 1.637, -0.106, 0.75, 0.55), 0x0a0806, 0.1);
+  add(ball(0.0032, -0.03, 1.642, -0.11), 0xfff8ee, 0.08);
+  add(ball(0.0032, 0.042, 1.642, -0.11), 0xfff8ee, 0.08);
   add(slab(0.026, 0.007, 0.012, -0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.026, 0.007, 0.012, 0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
