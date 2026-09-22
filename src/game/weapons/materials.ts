@@ -296,13 +296,18 @@ export function createCollimatedReticleMaterial(
       uAds: { value: 0 },
     },
     vertexShader: /* glsl */ `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec2 vUv;
       void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        #include <logdepthbuf_vertex>
       }
     `,
     fragmentShader: /* glsl */ `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform sampler2D uReticleTexture;
       uniform vec3 uColor;
       uniform float uBrightness;
@@ -329,10 +334,10 @@ export function createCollimatedReticleMaterial(
         }
 
         // Ghost reflection inside optical lens glass thickness
-        vec2 ghostUv = parallaxUv + vec2(0.008, 0.006);
+        vec2 ghostUv = parallaxUv + vec2(0.004, 0.003);
         vec4 ghostTex = vec4(0.0);
         if (ghostUv.x >= 0.0 && ghostUv.x <= 1.0 && ghostUv.y >= 0.0 && ghostUv.y <= 1.0) {
-          ghostTex = texture2D(uReticleTexture, ghostUv) * 0.14;
+          ghostTex = texture2D(uReticleTexture, ghostUv) * 0.08;
         }
 
         vec3 color = uColor * (tex.rgb * tex.a + ghostTex.rgb * ghostTex.a) * uBrightness;
@@ -342,6 +347,7 @@ export function createCollimatedReticleMaterial(
         alpha *= smoothstep(0.12, 0.7, uAds);
 
         gl_FragColor = vec4(color, alpha);
+        #include <logdepthbuf_fragment>
       }
     `,
   });
@@ -501,17 +507,35 @@ export function getWeaponMaterials(): WeaponMaterials {
 
   const lens = new THREE.MeshPhysicalMaterial({
     name: "weapon-lens-glass",
-    color: 0x0b1a26,
+    // A reflex window. A dark albedo at any opacity still fills the glass
+    // with navy, because the combat env map is a smooth sky gradient and
+    // that reflection becomes the whole surface. Keep the tint pale and the
+    // reflection an edge, so the reticle and the world both show through.
+    color: 0xb7c4d1,
     metalness: 0,
     roughness: 0.04,
     transmission: 0,
+    transparent: true,
+    opacity: 0.16,
+    depthWrite: false,
+    side: THREE.DoubleSide,
     clearcoat: 1,
-    clearcoatRoughness: 0.015,
-    reflectivity: 1,
-    sheenColor: new THREE.Color(0x4a78ff),
-    sheen: 0.65,
-    envMapIntensity: 2.4,
+    clearcoatRoughness: 0.06,
+    reflectivity: 0.5,
+    sheen: 0.06,
+    envMapIntensity: 0.35,
   });
+  // Centre stays clear; the rim thickens. A constant alpha is a grey plate.
+  lens.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <opaque_fragment>",
+      `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
+       diffuseColor.a = mix(0.08, 0.5, lensFres);
+       outgoingLight += vec3(0.85, 0.92, 1.0) * lensFres * lensFres * 0.55;
+       #include <opaque_fragment>`,
+    );
+  };
+  lens.customProgramCacheKey = () => "lens-fresnel-v2";
 
   const reticle = new THREE.MeshBasicMaterial({
     name: "weapon-reticle",

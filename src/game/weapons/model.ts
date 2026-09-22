@@ -323,13 +323,58 @@ function buildOptic(
       place(tube(0.0055, 0.006, 0.009, 14), 0, axisY + 0.014, 0.019, Math.PI / 2, 0, 0),
     );
     // Lens: a large flat window, slightly reclined like a real reflex sight.
-    const glass = new THREE.Mesh(
-      new THREE.PlaneGeometry(tubeR * 1.85, bodyH * 0.82),
-      m.lens,
-    );
+    const glassW = tubeR * 1.85;
+    const glassH = bodyH * 0.82;
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
     glass.position.set(0, axisY, 0.004);
     glass.rotation.x = -0.14;
+    glass.renderOrder = 2;
     group.add(glass);
+    // A flat pane has one normal, so fresnel is the same colour as the sky
+    // across the whole window. The lip has to be thick enough to be a
+    // machined edge at aim distance, and bright enough to separate from the glass.
+    const lip = 0.0068;
+    const bezelZ = 0.009;
+    asm.add(
+      m.bareMetal,
+      place(
+        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
+        0,
+        axisY + glassH / 2,
+        bezelZ,
+        -0.14,
+      ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(
+        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
+        0,
+        axisY - glassH / 2,
+        bezelZ,
+        -0.14,
+      ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(
+        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
+        -glassW / 2,
+        axisY,
+        bezelZ,
+        -0.14,
+      ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(
+        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
+        glassW / 2,
+        axisY,
+        bezelZ,
+        -0.14,
+      ),
+    );
   } else if (kind === "holo") {
     axisY = railTop + 0.031;
     asm.add(
@@ -371,9 +416,30 @@ function buildOptic(
         0,
       ),
     );
-    const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.031, 0.026), m.lens);
+    const glassW = 0.031;
+    const glassH = 0.026;
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
     glass.position.set(0, axisY, -0.038);
+    glass.renderOrder = 2;
     group.add(glass);
+    const lip = 0.0055;
+    const bezelZ = -0.033;
+    asm.add(
+      m.bareMetal,
+      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY + glassH / 2, bezelZ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY - glassH / 2, bezelZ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), -glassW / 2, axisY, bezelZ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), glassW / 2, axisY, bezelZ),
+    );
   } else {
     // Magnified optic: a turned tube with an objective bell and a sunshade.
     const isScope = kind === "scope";
@@ -465,10 +531,12 @@ function buildOptic(
     // Ocular and objective glass.
     const ocular = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.86, 24), m.lens);
     ocular.position.set(0, axisY, length / 2 - 0.004);
+    ocular.renderOrder = 2;
     group.add(ocular);
     const objective = new THREE.Mesh(new THREE.CircleGeometry(objR * 0.86, 28), m.lens);
     objective.position.set(0, axisY, -length / 2 + 0.006);
     objective.rotation.y = Math.PI;
+    objective.renderOrder = 2;
     group.add(objective);
   }
 

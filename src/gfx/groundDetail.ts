@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { getGroundDetailMaps, type GroundDetailKind } from "@/lib/textures";
 import { getQualityProfile } from "@/lib/quality";
 import { SITE_SEED } from "@/lib/noise";
+import { STRUCTURES } from "@/lib/layout";
 import type { QualityTier } from "@/lib/store";
 
 /**
@@ -150,6 +151,8 @@ uniform float gdCracks;
 uniform float gdTracks;
 uniform float gdDust;
 uniform vec3 gdDustColor;
+uniform vec4 gdBoxA[48];
+uniform vec4 gdBoxB[48];
 
 varying vec3 vGdWorld;
 #ifdef GD_COMPACT
@@ -236,21 +239,76 @@ const SURFACE = /* glsl */ `
     // by gdAmt, which is exactly 0 at and beyond fadeEnd.
     if (gdAmt > 0.001) {
       vec2 gdWp = vGdWorld.xz;
+      vec2 gdCell = floor(gdWp * 0.18);
+      vec2 gdBf = fract(gdWp * 0.18);
+      gdBf = gdBf * gdBf * (3.0 - 2.0 * gdBf);
+      float gdSoft = mix(
+        mix(gdHash21(gdCell), gdHash21(gdCell + vec2(1.0, 0.0)), gdBf.x),
+        mix(gdHash21(gdCell + vec2(0.0, 1.0)), gdHash21(gdCell + vec2(1.0, 1.0)), gdBf.x),
+        gdBf.y);
       float gdMottle =
         sin(dot(gdWp, vec2(0.349, 0.151))) * 0.52 +
         sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.33 +
-        (gdHash21(floor(gdWp * 0.217 + vec2(0.5))) - 0.5);
-      diffuseColor.rgb *= 1.0 + gdMottle * 0.28 * gdAmt;
+        (gdSoft - 0.5);
+      diffuseColor.rgb *= 1.0 + gdMottle * 0.22 * gdAmt;
       // Two more wavelengths so the apron is not one noise scale. The 20 m
-      // term is a stain; the floor() hashes are pebbles. Both die with gdAmt
-      // / gdFine, so the aerial route past fadeEnd is unchanged.
+      // term is a stain; the ~80 m term is a patch you can walk across. Both
+      // die with gdAmt, so the aerial route past fadeEnd is unchanged.
+      // The cell hash used to be a hard floor(), which read as pale squares.
       float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
-      diffuseColor.rgb *= 1.0 + gdStain * 0.14 * gdAmt;
+      float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
+      diffuseColor.rgb *= 1.0 + gdStain * 0.42 * gdAmt + gdWide * 0.36 * gdAmt;
       float gdSpeck =
-        gdHash21(floor(gdWp * 1.6)) * 0.45 +
-        gdHash21(floor(gdWp * 2.7 + vec2(3.0, 1.0))) * 0.35 +
-        gdHash21(floor(gdWp * 9.4 + vec2(4.0, 11.0))) * 0.2;
-      diffuseColor.rgb *= 1.0 + (gdSpeck - 0.5) * 0.55 * gdFine;
+        gdHash21(floor(gdWp * 1.6)) * 0.55 +
+        gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
+      // Stones a boot would notice: a few per stride, tens of centimetres
+      // across, not a pepper of one-pixel cells.
+      vec2 gdStoneUv = gdWp * 1.35 + vec2(8.0, 3.0);
+      vec2 gdStoneCell = floor(gdStoneUv);
+      vec2 gdStoneF = fract(gdStoneUv) - 0.5;
+      float gdPick = gdHash21(gdStoneCell);
+      float gdOn = step(0.72, gdPick);
+      float gdRad = mix(0.05, 0.16, gdPick);
+      float gdBody = 1.0 - smoothstep(gdRad * 0.25, gdRad, length(gdStoneF));
+      float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.45, length(gdStoneF - vec2(0.03, -0.02)));
+      // Sun-facing side of the pebble. A flat disc has no silhouette.
+      float gdLit = dot(gdStoneF, vec2(0.93, 0.37));
+      vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
+      float gdChip = step(0.93, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.05, 0.14, length(fract(gdChipUv) - 0.5)));
+      float gdNear = max(gdFine, gdAmt * 0.8);
+      // Shadow sits down-sun of the disc, outside the body, so a pebble has a
+      // dark side even where the normal tilt is smaller than a pixel.
+      vec2 gdSh = gdStoneF - vec2(0.045, 0.02);
+      float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.05, length(gdSh))) * (1.0 - gdBody);
+      diffuseColor.rgb *= 1.0
+        + (gdSpeck - 0.5) * 0.08 * gdFine
+        + gdOn * (gdHi * 1.15 + max(gdLit, 0.0) * 1.35 - gdBody * 0.12) * gdNear
+        + gdChip * 0.22 * gdNear;
+      diffuseColor.rgb *= 1.0 - gdShadow * 0.32 * gdNear;
+      // Radial slope so the disc is a pebble. Same near gate as the albedo,
+      // so the aerial twin past fadeEnd never sees it.
+      gdBump.xz += normalize(gdStoneF + vec2(1e-4)) * gdOn * gdBody * 4.5 * gdNear;
+
+      // Contact at structure feet. A ring just outside each footprint, not a
+      // disc under the building (the mesh already covers that). gdAmt keeps
+      // it off the aerial twin.
+      float gdOccl = 0.0;
+      for (int i = 0; i < 48; i++) {
+        vec2 gdC = vGdWorld.xz - gdBoxA[i].xy;
+        float gdCos = gdBoxB[i].x;
+        float gdSin = gdBoxB[i].y;
+        vec2 gdL = vec2(gdCos * gdC.x - gdSin * gdC.y, gdSin * gdC.x + gdCos * gdC.y);
+        vec2 gdQ = abs(gdL) - gdBoxA[i].zw;
+        float gdOut = length(max(gdQ, vec2(0.0)));
+        float gdIn = min(max(gdQ.x, gdQ.y), 0.0);
+        float gdSd = gdOut + gdIn;
+        // A short skirt. A 16 m stain covers the whole standing frame, so the
+        // ground is one value and the wall has no seam. Full dark within about
+        // a metre, gone by five, which is what a person at the wall can see.
+        float gdBand = (1.0 - smoothstep(1.2, 4.2, gdSd)) * smoothstep(-0.45, 0.08, gdSd);
+        gdOccl = max(gdOccl, gdBand);
+      }
+      diffuseColor.rgb *= 1.0 - gdOccl * 0.93 * gdAmt;
     }
 
     // --- surface state: polished <-> loose -------------------------------
@@ -372,6 +430,46 @@ if (dot(gdBump, gdBump) > 1e-8) {
 
 const patched = new WeakSet<THREE.Material>();
 
+const CONTACT_LIMIT = 48;
+
+/**
+ * Oriented footprints of the largest structures, in the local frame.
+ * `A` is centre XZ and half-extents. `B.xy` is the yaw (cos, sin) of the
+ * group's Y rotation, matching `StructureNode`. Unused slots sit far away
+ * with a zero extent so the contact ring never fires.
+ */
+function buildContactBoxes(): { a: THREE.Vector4[]; b: THREE.Vector4[] } {
+  const ranked = [...STRUCTURES].sort(
+    (p, q) => q.size[0] * q.size[2] - p.size[0] * p.size[2],
+  );
+  const a: THREE.Vector4[] = [];
+  const b: THREE.Vector4[] = [];
+  for (let i = 0; i < CONTACT_LIMIT; i += 1) {
+    const structure = ranked[i];
+    if (!structure) {
+      a.push(new THREE.Vector4(1e6, 1e6, 0, 0));
+      b.push(new THREE.Vector4(1, 0, 0, 0));
+      continue;
+    }
+    a.push(
+      new THREE.Vector4(
+        structure.position[0],
+        structure.position[1],
+        structure.size[0] * 0.5,
+        structure.size[2] * 0.5,
+      ),
+    );
+    b.push(
+      new THREE.Vector4(Math.cos(structure.rotation), Math.sin(structure.rotation), 0, 0),
+    );
+  }
+  return { a, b };
+}
+
+const CONTACT = buildContactBoxes();
+const CONTACT_A = CONTACT.a;
+const CONTACT_B = CONTACT.b;
+
 /**
  * Injects the close-range ground pipeline into a standard material.
  *
@@ -417,6 +515,8 @@ export function applyGroundDetail<M extends THREE.MeshStandardMaterial>(
     gdTracks: { value: o.tracks },
     gdDust: { value: o.dust },
     gdDustColor: { value: o.dustColor },
+    gdBoxA: { value: CONTACT_A },
+    gdBoxB: { value: CONTACT_B },
   };
 
   material.userData.groundDetail = uniforms;
@@ -460,7 +560,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd3:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd17:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

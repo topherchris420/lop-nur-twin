@@ -82,8 +82,12 @@ export class ViewmodelStage {
     this.key.color.copy(color);
     // The combat grade sits near exposure 0.64. A key under 1 leaves a
     // gunmetal receiver on the wrong side of AgX's toe, which is how the
-    // rifle became a black cutout against the sand.
-    this.key.intensity = 1.15 + intensity * 1.35;
+    // rifle became a black cutout against the sand. `direction` is already
+    // in view space (camera looks down -Z); when the sun is in front of the
+    // lens the same key has to climb or the rifle stays a silhouette inside
+    // the glare.
+    const sunAhead = Math.max(0, -direction.z);
+    this.key.intensity = 1.15 + intensity * 1.35 * (1 + sunAhead * 1.6);
     // Full sun stays under half a unit. Higher than that and the sand bounce
     // lifts the whole rifle off the key and the parkerising goes grey.
     this.fill.intensity = 0.22 + intensity * 0.26;

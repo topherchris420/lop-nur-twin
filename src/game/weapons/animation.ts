@@ -316,7 +316,8 @@ export class ViewmodelAnimator {
 
     /* -------------------------------------------------- breathing */
     this.breathPhase += dt * (ads > 0.5 ? 1.15 : 1.65);
-    const breathAmp = (ads > 0.5 ? 0.0015 : 0.0042) * (1 - view.sprintPose);
+    const breathAmp =
+      (ads > 0.85 ? 0.00025 : ads > 0.5 ? 0.0015 : 0.0042) * (1 - view.sprintPose);
     const breathX = Math.sin(this.breathPhase * 0.63) * breathAmp;
     const breathY = Math.sin(this.breathPhase) * breathAmp * 0.72;
 

@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v1";
+const CACHE_KEY = "soldier-shade-v12";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -91,13 +91,53 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float upN = max(worldN.y, 0.0);
   float dust = upN * upN * smoothstep(0.2, 0.45, roughnessFactor);
 
-  float darken = weave * 0.05 * cloth;
+  float darken = weave * 0.2 * cloth;
   vec3 shaded = diffuseColor.rgb * (1.0 - darken);
+  // Wide bands plus a vertical seam. One direction still reads as a flat dye.
+  float bands = smoothstep(0.32, 0.04, abs(fract(vSoldierPos.y * 4.8) - 0.5));
+  float seam = smoothstep(0.22, 0.02, abs(fract(vSoldierPos.x * 3.2 + vSoldierPos.z) - 0.5));
+  shaded *= 1.0 - (bands * 0.42 + seam * 0.18) * cloth;
+  // Large patches. A 60/m wave averages to one colour once the portrait is
+  // scaled, which is why the plate kept reading as a single slab.
+  float blot = sin(vSoldierPos.x * 18.0) * sin(vSoldierPos.y * 14.0 + vSoldierPos.z * 8.0);
+  float fine = sin(vSoldierPos.x * 36.0 + 1.3) * sin(vSoldierPos.y * 28.0);
+  shaded *= 1.0 + (blot * 0.38 + fine * 0.14) * cloth;
+  // Socket ring around each eye. edge0 must be below edge1 or the hole
+  // inverts and the sclera is the part that goes dark.
+  vec2 eyeL = vSoldierPos.xy - vec2(-0.036, 1.633);
+  vec2 eyeR = vSoldierPos.xy - vec2(0.036, 1.633);
+  float sockL = smoothstep(0.022, 0.030, length(eyeL)) * (1.0 - smoothstep(0.034, 0.050, length(eyeL)));
+  float sockR = smoothstep(0.022, 0.030, length(eyeR)) * (1.0 - smoothstep(0.034, 0.050, length(eyeR)));
+  float sock = max(sockL, sockR);
+  sock *= 1.0 - smoothstep(-0.08, -0.02, vSoldierPos.z);
+  shaded *= 1.0 - sock * 0.5 * dielectric;
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
+
+  // Undersides of the helmet brim, pouches and pack. A single key leaves
+  // those cavities the same value as the lit cloth, which is why the kit
+  // reads as one faceted lump at a few metres.
+  float cavity = max(-worldN.y, 0.0);
+  cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
+  dusted *= 1.0 - cavity * 0.72;
+
+  // Brow shadow only. The eyes sit near y = 1.63, z = -0.08; a band that
+  // includes them paints the sockets the same value as the skin and the
+  // face goes blank again. The brim is the strip just above that line.
+  float brow = smoothstep(1.648, 1.672, vSoldierPos.y) * (1.0 - smoothstep(1.70, 1.735, vSoldierPos.y));
+  float face = brow * smoothstep(0.02, -0.05, vSoldierPos.z);
+  dusted *= 1.0 - face * 0.48 * dielectric;
+
+  // Grazing rim in view space, stronger where the face is already dark, so
+  // the silhouette separates from the sand without lighting the sun side twice.
+  vec3 viewN = normalize(mat3(viewMatrix) * worldN);
+  float ndotv = clamp(dot(viewN, normalize(-vViewPosition)), 0.0, 1.0);
+  float rim = pow(1.0 - ndotv, 3.0) * (1.0 - upN) * dielectric;
+  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.28;
+
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);
   float ratio = dustL / baseL;
-  float limited = clamp(ratio, 0.85, 1.08);
+  float limited = clamp(ratio, 0.30, 1.48);
   diffuseColor.rgb = dusted * (limited / ratio);
 
   roughnessFactor = clamp(
@@ -109,6 +149,19 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
     0.04,
     1.0
   );
+}
+`;
+
+const EYE_LIGHT = /* glsl */ `
+{
+  vec2 eL = vSoldierPos.xy - vec2(-0.036, 1.633);
+  vec2 eR = vSoldierPos.xy - vec2(0.036, 1.633);
+  float eye = max(
+    1.0 - smoothstep(0.005, 0.016, length(eL)),
+    1.0 - smoothstep(0.005, 0.016, length(eR))
+  );
+  eye *= 1.0 - smoothstep(-0.12, -0.05, vSoldierPos.z);
+  totalEmissiveRadiance += vec3(0.62, 0.56, 0.46) * eye;
 }
 `;
 
@@ -159,6 +212,12 @@ export function applySoldierShade(
       "#include <metalnessmap_fragment>",
       METALNESS_AND_SHADE,
       "metalnessmap_fragment",
+    );
+    shader.fragmentShader = replaceChunk(
+      shader.fragmentShader,
+      "#include <emissivemap_fragment>",
+      `#include <emissivemap_fragment>\n${EYE_LIGHT}`,
+      "emissivemap_fragment",
     );
   };
   // The chunk does not vary per team; colours and pbr live in the geometry.
