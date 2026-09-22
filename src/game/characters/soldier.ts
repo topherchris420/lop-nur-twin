@@ -351,6 +351,7 @@ function buildParts(
   // camouflage underneath shows at the edges and the torso keeps a waist.
   const plateY = 1.192;
   add(slab(0.3, 0.27, 0.09, 0, plateY, -0.125, 0.026), palette.gear, 0.9);
+  add(slab(0.26, 0.22, 0.07, 0, plateY - 0.02, -0.118, 0.022), 0x4a4638, 0.86);
   add(slab(0.3, 0.26, 0.08, 0, plateY - 0.01, 0.12, 0.026), palette.gear, 0.9);
   // PALS rows across the plate. The lower ones end up behind the magazine
   // pouches, which is exactly where they are on the real thing.

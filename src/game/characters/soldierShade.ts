@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v12";
+const CACHE_KEY = "soldier-shade-v13";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -161,7 +161,7 @@ const EYE_LIGHT = /* glsl */ `
     1.0 - smoothstep(0.005, 0.016, length(eR))
   );
   eye *= 1.0 - smoothstep(-0.12, -0.05, vSoldierPos.z);
-  totalEmissiveRadiance += vec3(0.62, 0.56, 0.46) * eye;
+  totalEmissiveRadiance += vec3(0.78, 0.72, 0.62) * eye * 1.35;
 }
 `;
 

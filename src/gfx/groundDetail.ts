@@ -263,11 +263,12 @@ const SURFACE = /* glsl */ `
         gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
       // Stones a boot would notice: a few per stride, tens of centimetres
       // across, not a pepper of one-pixel cells.
-      vec2 gdStoneUv = gdWp * 1.35 + vec2(8.0, 3.0);
+      vec2 gdStoneUv = gdWp * 0.95 + vec2(8.0, 3.0);
       vec2 gdStoneCell = floor(gdStoneUv);
-      vec2 gdStoneF = fract(gdStoneUv) - 0.5;
+      vec2 gdJit = vec2(gdHash21(gdStoneCell + 2.1), gdHash21(gdStoneCell + 5.7)) - 0.5;
+      vec2 gdStoneF = fract(gdStoneUv + gdJit * 0.62) - 0.5;
       float gdPick = gdHash21(gdStoneCell);
-      float gdOn = step(0.72, gdPick);
+      float gdOn = step(0.9, gdPick);
       float gdRad = mix(0.05, 0.16, gdPick);
       float gdBody = 1.0 - smoothstep(gdRad * 0.25, gdRad, length(gdStoneF));
       float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.45, length(gdStoneF - vec2(0.03, -0.02)));
@@ -560,7 +561,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd17:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd18:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
