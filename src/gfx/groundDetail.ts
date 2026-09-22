@@ -259,19 +259,22 @@ const SURFACE = /* glsl */ `
       vec2 gdStoneCell = floor(gdStoneUv);
       vec2 gdStoneF = fract(gdStoneUv) - 0.5;
       float gdPick = gdHash21(gdStoneCell);
-      float gdOn = step(0.78, gdPick);
-      float gdBody = 1.0 - smoothstep(0.02, 0.11, length(gdStoneF));
-      float gdHi = 1.0 - smoothstep(0.0, 0.06, length(gdStoneF - vec2(0.03, -0.02)));
+      float gdOn = step(0.72, gdPick);
+      float gdRad = mix(0.05, 0.16, gdPick);
+      float gdBody = 1.0 - smoothstep(gdRad * 0.25, gdRad, length(gdStoneF));
+      float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.45, length(gdStoneF - vec2(0.03, -0.02)));
+      // Sun-facing side of the pebble. A flat disc has no silhouette.
+      float gdLit = dot(gdStoneF, vec2(0.93, 0.37));
       vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
       float gdChip = step(0.93, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.05, 0.14, length(fract(gdChipUv) - 0.5)));
       float gdNear = max(gdFine, gdAmt * 0.8);
       diffuseColor.rgb *= 1.0
         + (gdSpeck - 0.5) * 0.08 * gdFine
-        + gdOn * (gdHi * 0.4 - gdBody * 0.55) * gdNear
+        + gdOn * (gdHi * 0.55 + gdLit * 1.8 - gdBody * 0.72) * gdNear
         + gdChip * 0.22 * gdNear;
       // Radial slope so the disc is a pebble. Same near gate as the albedo,
       // so the aerial twin past fadeEnd never sees it.
-      gdBump.xz += gdStoneF * gdOn * gdBody * 2.4 * gdNear;
+      gdBump.xz += gdStoneF * gdOn * gdBody * 7.5 * gdNear;
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -286,11 +289,11 @@ const SURFACE = /* glsl */ `
         float gdOut = length(max(gdQ, vec2(0.0)));
         float gdIn = min(max(gdQ.x, gdQ.y), 0.0);
         float gdSd = gdOut + gdIn;
-        // Wide enough that a person standing off the wall still sees the
-        // stain. A 4 m ring sits under the mesh and never enters the frame.
-        float gdBand = (1.0 - smoothstep(0.0, 16.0, gdSd)) * smoothstep(-0.7, 0.25, gdSd);
-        float gdSkirt = 1.0 - smoothstep(0.0, 4.5, gdSd);
-        gdOccl = max(gdOccl, max(gdBand * 0.85, gdSkirt));
+        // A short skirt. A 16 m stain covers the whole standing frame, so the
+        // ground is one value and the wall has no seam. Full dark within about
+        // a metre, gone by five, which is what a person at the wall can see.
+        float gdBand = (1.0 - smoothstep(0.8, 5.0, gdSd)) * smoothstep(-0.5, 0.12, gdSd);
+        gdOccl = max(gdOccl, gdBand);
       }
       diffuseColor.rgb *= 1.0 - gdOccl * 0.82 * gdAmt;
     }
@@ -544,7 +547,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd14:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd15:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

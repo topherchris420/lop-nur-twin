@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v9";
+const CACHE_KEY = "soldier-shade-v10";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -97,10 +97,11 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float bands = smoothstep(0.32, 0.04, abs(fract(vSoldierPos.y * 4.8) - 0.5));
   float seam = smoothstep(0.22, 0.02, abs(fract(vSoldierPos.x * 3.2 + vSoldierPos.z) - 0.5));
   shaded *= 1.0 - (bands * 0.42 + seam * 0.18) * cloth;
-  // Continuous, so a 0.3 m plate holds several values. floor() of a 3.2/m
-  // grid is one cell across that plate and the vest stays one colour.
-  float blot = sin(vSoldierPos.x * 62.0) * sin(vSoldierPos.y * 48.0 + vSoldierPos.z * 36.0);
-  shaded *= 1.0 + blot * 0.28 * cloth;
+  // Large patches. A 60/m wave averages to one colour once the portrait is
+  // scaled, which is why the plate kept reading as a single slab.
+  float blot = sin(vSoldierPos.x * 18.0) * sin(vSoldierPos.y * 14.0 + vSoldierPos.z * 8.0);
+  float fine = sin(vSoldierPos.x * 36.0 + 1.3) * sin(vSoldierPos.y * 28.0);
+  shaded *= 1.0 + (blot * 0.38 + fine * 0.14) * cloth;
   // Socket ring around each eye. The hole is wider than the sclera so the
   // white is not painted out.
   vec2 eyeL = vSoldierPos.xy - vec2(-0.036, 1.633);

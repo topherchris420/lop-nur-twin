@@ -290,10 +290,12 @@ function buildParts(
   // Recessed, not stuck on. A sphere proud of the skin is a sticker.
   add(ball(0.0185, -0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
   add(ball(0.0185, 0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
-  add(ball(0.0072, -0.036, 1.636, -0.098, 0.72, 0.55), 0x1c140f, 0.18);
-  add(ball(0.0072, 0.036, 1.636, -0.098, 0.72, 0.55), 0x1c140f, 0.18);
-  add(ball(0.003, -0.031, 1.64, -0.1), 0xfff8ee, 0.18);
-  add(ball(0.003, 0.041, 1.64, -0.1), 0xfff8ee, 0.18);
+  add(ball(0.0105, -0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
+  add(ball(0.0105, 0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
+  add(ball(0.0052, -0.036, 1.637, -0.104, 0.75, 0.58), 0x0c0a08, 0.12);
+  add(ball(0.0052, 0.036, 1.637, -0.104, 0.75, 0.58), 0x0c0a08, 0.12);
+  add(ball(0.0046, -0.029, 1.644, -0.108), 0xffffff, 0.05);
+  add(ball(0.0046, 0.043, 1.644, -0.108), 0xffffff, 0.05);
   add(slab(0.026, 0.007, 0.012, -0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.026, 0.007, 0.012, 0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
@@ -352,10 +354,14 @@ function buildParts(
   add(slab(0.3, 0.26, 0.08, 0, plateY - 0.01, 0.12, 0.026), palette.gear, 0.9);
   // PALS rows across the plate. The lower ones end up behind the magazine
   // pouches, which is exactly where they are on the real thing.
+  // A darker admin panel and a vertical strap, large enough that a portrait
+  // at two metres still shows more than one value after the image is scaled.
+  add(slab(0.2, 0.15, 0.018, 0, plateY + 0.02, -0.192, 0.005), 0x3c3a30, 0.88);
+  add(slab(0.016, 0.22, 0.016, 0, plateY, -0.204, 0.003), 0x24231e, 0.84);
   for (let i = 0; i < 4; i += 1) {
     add(
-      slab(0.26, 0.014, 0.012, 0, plateY - 0.09 + i * 0.058, -0.176, 0.004),
-      i % 2 === 0 ? palette.webbing : 0x3e3a30,
+      slab(0.24, 0.026, 0.014, 0, plateY - 0.09 + i * 0.052, -0.21, 0.004),
+      i % 2 === 0 ? palette.webbing : 0x2e2c24,
       0.9,
     );
   }

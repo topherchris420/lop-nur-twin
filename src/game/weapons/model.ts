@@ -331,13 +331,14 @@ function buildOptic(
     glass.renderOrder = 2;
     group.add(glass);
     // A flat pane has one normal, so fresnel is the same colour as the sky
-    // across the whole window. A steel lip in front of the glass is the edge.
-    const lip = 0.0032;
-    const bezelZ = 0.008;
+    // across the whole window. The lip has to be thick enough to be a
+    // machined edge at aim distance, and bright enough to separate from the glass.
+    const lip = 0.0068;
+    const bezelZ = 0.009;
     asm.add(
-      m.steel,
+      m.bareMetal,
       place(
-        chamferedBox(glassW + lip * 2, lip, 0.003, { radius: 0.0006 }),
+        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
         0,
         axisY + glassH / 2,
         bezelZ,
@@ -345,9 +346,9 @@ function buildOptic(
       ),
     );
     asm.add(
-      m.steel,
+      m.bareMetal,
       place(
-        chamferedBox(glassW + lip * 2, lip, 0.003, { radius: 0.0006 }),
+        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
         0,
         axisY - glassH / 2,
         bezelZ,
@@ -355,9 +356,9 @@ function buildOptic(
       ),
     );
     asm.add(
-      m.steel,
+      m.bareMetal,
       place(
-        chamferedBox(lip, glassH, 0.003, { radius: 0.0006 }),
+        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
         -glassW / 2,
         axisY,
         bezelZ,
@@ -365,9 +366,9 @@ function buildOptic(
       ),
     );
     asm.add(
-      m.steel,
+      m.bareMetal,
       place(
-        chamferedBox(lip, glassH, 0.003, { radius: 0.0006 }),
+        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
         glassW / 2,
         axisY,
         bezelZ,
@@ -421,23 +422,23 @@ function buildOptic(
     glass.position.set(0, axisY, -0.038);
     glass.renderOrder = 2;
     group.add(glass);
-    const lip = 0.0028;
-    const bezelZ = -0.034;
+    const lip = 0.0055;
+    const bezelZ = -0.033;
     asm.add(
-      m.steel,
-      place(chamferedBox(glassW + lip * 2, lip, 0.0026, { radius: 0.0005 }), 0, axisY + glassH / 2, bezelZ),
+      m.bareMetal,
+      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY + glassH / 2, bezelZ),
     );
     asm.add(
-      m.steel,
-      place(chamferedBox(glassW + lip * 2, lip, 0.0026, { radius: 0.0005 }), 0, axisY - glassH / 2, bezelZ),
+      m.bareMetal,
+      place(chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }), 0, axisY - glassH / 2, bezelZ),
     );
     asm.add(
-      m.steel,
-      place(chamferedBox(lip, glassH, 0.0026, { radius: 0.0005 }), -glassW / 2, axisY, bezelZ),
+      m.bareMetal,
+      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), -glassW / 2, axisY, bezelZ),
     );
     asm.add(
-      m.steel,
-      place(chamferedBox(lip, glassH, 0.0026, { radius: 0.0005 }), glassW / 2, axisY, bezelZ),
+      m.bareMetal,
+      place(chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }), glassW / 2, axisY, bezelZ),
     );
   } else {
     // Magnified optic: a turned tube with an objective bell and a sunshade.
