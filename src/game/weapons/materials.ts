@@ -530,11 +530,12 @@ export function getWeaponMaterials(): WeaponMaterials {
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <opaque_fragment>",
       `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
-       diffuseColor.a = mix(0.05, 0.65, lensFres);
+       diffuseColor.a = mix(0.08, 0.5, lensFres);
+       outgoingLight += vec3(0.85, 0.92, 1.0) * lensFres * lensFres * 0.55;
        #include <opaque_fragment>`,
     );
   };
-  lens.customProgramCacheKey = () => "lens-fresnel-v1";
+  lens.customProgramCacheKey = () => "lens-fresnel-v2";
 
   const reticle = new THREE.MeshBasicMaterial({
     name: "weapon-reticle",

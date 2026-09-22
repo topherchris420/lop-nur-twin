@@ -288,15 +288,14 @@ function buildParts(
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
   // Recessed, not stuck on. A sphere proud of the skin is a sticker.
-  add(ball(0.022, -0.037, 1.634, -0.09, 0.46, 0.34), 0xe4dcc8, 0.42);
-  add(ball(0.022, 0.037, 1.634, -0.09, 0.46, 0.34), 0xe4dcc8, 0.42);
-  add(ball(0.009, -0.037, 1.636, -0.1, 0.7, 0.5), 0x1a120e, 0.2);
-  add(ball(0.009, 0.037, 1.636, -0.1, 0.7, 0.5), 0x1a120e, 0.2);
-  add(ball(0.004, -0.031, 1.642, -0.106), 0xfff6ea, 0.16);
-  add(ball(0.004, 0.043, 1.642, -0.106), 0xfff6ea, 0.16);
-  // Upper lids cut the sclera so the eye sits under the brow.
-  add(slab(0.034, 0.009, 0.014, -0.037, 1.65, -0.098, 0.002, -0.35), palette.skin, 0.7);
-  add(slab(0.034, 0.009, 0.014, 0.037, 1.65, -0.098, 0.002, -0.35), palette.skin, 0.7);
+  add(ball(0.015, -0.036, 1.633, -0.088, 0.55, 0.4), 0xddd4c4, 0.45);
+  add(ball(0.015, 0.036, 1.633, -0.088, 0.55, 0.4), 0xddd4c4, 0.45);
+  add(ball(0.0065, -0.036, 1.635, -0.096, 0.75, 0.55), 0x1c140f, 0.22);
+  add(ball(0.0065, 0.036, 1.635, -0.096, 0.75, 0.55), 0x1c140f, 0.22);
+  add(ball(0.003, -0.031, 1.64, -0.1), 0xfff8ee, 0.18);
+  add(ball(0.003, 0.041, 1.64, -0.1), 0xfff8ee, 0.18);
+  add(slab(0.026, 0.007, 0.012, -0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
+  add(slab(0.026, 0.007, 0.012, 0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
