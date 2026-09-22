@@ -255,13 +255,13 @@ const SURFACE = /* glsl */ `
         gdHash21(floor(gdWp * 4.2 + vec2(2.0, 7.0))) * 0.45;
       // Stones a boot would notice: a few per stride, tens of centimetres
       // across, not a pepper of one-pixel cells.
-      vec2 gdStoneUv = gdWp * 0.55 + vec2(8.0, 3.0);
+      vec2 gdStoneUv = gdWp * 1.35 + vec2(8.0, 3.0);
       vec2 gdStoneCell = floor(gdStoneUv);
       vec2 gdStoneF = fract(gdStoneUv) - 0.5;
       float gdPick = gdHash21(gdStoneCell);
       float gdOn = step(0.78, gdPick);
-      float gdBody = 1.0 - smoothstep(0.04, 0.16, length(gdStoneF));
-      float gdHi = 1.0 - smoothstep(0.0, 0.1, length(gdStoneF - vec2(0.045, -0.03)));
+      float gdBody = 1.0 - smoothstep(0.02, 0.11, length(gdStoneF));
+      float gdHi = 1.0 - smoothstep(0.0, 0.06, length(gdStoneF - vec2(0.03, -0.02)));
       vec2 gdChipUv = gdWp * 2.1 + vec2(1.7, 4.2);
       float gdChip = step(0.93, gdHash21(floor(gdChipUv))) * (1.0 - smoothstep(0.05, 0.14, length(fract(gdChipUv) - 0.5)));
       float gdNear = max(gdFine, gdAmt * 0.8);
@@ -269,6 +269,9 @@ const SURFACE = /* glsl */ `
         + (gdSpeck - 0.5) * 0.08 * gdFine
         + gdOn * (gdHi * 0.4 - gdBody * 0.55) * gdNear
         + gdChip * 0.22 * gdNear;
+      // Radial slope so the disc is a pebble. Same near gate as the albedo,
+      // so the aerial twin past fadeEnd never sees it.
+      gdBump.xz += gdStoneF * gdOn * gdBody * 2.4 * gdNear;
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -541,7 +544,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd13:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd14:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

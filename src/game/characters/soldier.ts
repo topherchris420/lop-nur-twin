@@ -288,10 +288,10 @@ function buildParts(
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
   // Recessed, not stuck on. A sphere proud of the skin is a sticker.
-  add(ball(0.015, -0.036, 1.633, -0.088, 0.55, 0.4), 0xddd4c4, 0.45);
-  add(ball(0.015, 0.036, 1.633, -0.088, 0.55, 0.4), 0xddd4c4, 0.45);
-  add(ball(0.0065, -0.036, 1.635, -0.096, 0.75, 0.55), 0x1c140f, 0.22);
-  add(ball(0.0065, 0.036, 1.635, -0.096, 0.75, 0.55), 0x1c140f, 0.22);
+  add(ball(0.0185, -0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
+  add(ball(0.0185, 0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
+  add(ball(0.0072, -0.036, 1.636, -0.098, 0.72, 0.55), 0x1c140f, 0.18);
+  add(ball(0.0072, 0.036, 1.636, -0.098, 0.72, 0.55), 0x1c140f, 0.18);
   add(ball(0.003, -0.031, 1.64, -0.1), 0xfff8ee, 0.18);
   add(ball(0.003, 0.041, 1.64, -0.1), 0xfff8ee, 0.18);
   add(slab(0.026, 0.007, 0.012, -0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
@@ -355,7 +355,7 @@ function buildParts(
   for (let i = 0; i < 4; i += 1) {
     add(
       slab(0.26, 0.014, 0.012, 0, plateY - 0.09 + i * 0.058, -0.176, 0.004),
-      palette.webbing,
+      i % 2 === 0 ? palette.webbing : 0x3e3a30,
       0.9,
     );
   }

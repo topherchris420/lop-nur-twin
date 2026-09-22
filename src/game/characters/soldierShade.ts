@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v8";
+const CACHE_KEY = "soldier-shade-v9";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -97,16 +97,17 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float bands = smoothstep(0.32, 0.04, abs(fract(vSoldierPos.y * 4.8) - 0.5));
   float seam = smoothstep(0.22, 0.02, abs(fract(vSoldierPos.x * 3.2 + vSoldierPos.z) - 0.5));
   shaded *= 1.0 - (bands * 0.42 + seam * 0.18) * cloth;
-  // The plate is one vertex color. A coarse blotch is what stops it reading
-  // as a single green panel at two metres.
-  float blot = fract(sin(dot(floor(vSoldierPos * vec3(3.2, 2.4, 3.2)), vec3(12.9898, 78.233, 45.164))) * 43758.5453);
-  shaded *= mix(0.7, 1.16, blot) * cloth + (1.0 - cloth);
-  // Socket ring around each eye. The centre of the sclera is left alone.
+  // Continuous, so a 0.3 m plate holds several values. floor() of a 3.2/m
+  // grid is one cell across that plate and the vest stays one colour.
+  float blot = sin(vSoldierPos.x * 62.0) * sin(vSoldierPos.y * 48.0 + vSoldierPos.z * 36.0);
+  shaded *= 1.0 + blot * 0.28 * cloth;
+  // Socket ring around each eye. The hole is wider than the sclera so the
+  // white is not painted out.
   vec2 eyeL = vSoldierPos.xy - vec2(-0.036, 1.633);
   vec2 eyeR = vSoldierPos.xy - vec2(0.036, 1.633);
   float sock = max(
-    smoothstep(0.042, 0.018, length(eyeL)) * (1.0 - smoothstep(0.01, 0.018, length(eyeL))),
-    smoothstep(0.042, 0.018, length(eyeR)) * (1.0 - smoothstep(0.01, 0.018, length(eyeR)))
+    smoothstep(0.048, 0.026, length(eyeL)) * (1.0 - smoothstep(0.022, 0.030, length(eyeL))),
+    smoothstep(0.048, 0.026, length(eyeR)) * (1.0 - smoothstep(0.022, 0.030, length(eyeR)))
   );
   sock *= 1.0 - smoothstep(-0.08, -0.02, vSoldierPos.z);
   shaded *= 1.0 - sock * 0.5 * dielectric;
