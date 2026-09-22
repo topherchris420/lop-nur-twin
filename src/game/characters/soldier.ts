@@ -288,8 +288,8 @@ function buildParts(
   // they are what stop a head reading as a bald sphere at three metres.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
   // Recessed, not stuck on. A sphere proud of the skin is a sticker.
-  add(ball(0.0185, -0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
-  add(ball(0.0185, 0.036, 1.633, -0.088, 0.58, 0.42), 0xf5efe4, 0.42);
+  add(ball(0.021, -0.036, 1.633, -0.09, 0.58, 0.42), 0xf7f1e6, 0.38);
+  add(ball(0.021, 0.036, 1.633, -0.09, 0.58, 0.42), 0xf7f1e6, 0.38);
   add(ball(0.0105, -0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
   add(ball(0.0105, 0.036, 1.635, -0.096, 0.72, 0.55), 0x6b4e38, 0.32);
   add(ball(0.0052, -0.036, 1.637, -0.104, 0.75, 0.58), 0x0c0a08, 0.12);

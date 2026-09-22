@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v10";
+const CACHE_KEY = "soldier-shade-v11";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -102,14 +102,13 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   float blot = sin(vSoldierPos.x * 18.0) * sin(vSoldierPos.y * 14.0 + vSoldierPos.z * 8.0);
   float fine = sin(vSoldierPos.x * 36.0 + 1.3) * sin(vSoldierPos.y * 28.0);
   shaded *= 1.0 + (blot * 0.38 + fine * 0.14) * cloth;
-  // Socket ring around each eye. The hole is wider than the sclera so the
-  // white is not painted out.
+  // Socket ring around each eye. edge0 must be below edge1 or the hole
+  // inverts and the sclera is the part that goes dark.
   vec2 eyeL = vSoldierPos.xy - vec2(-0.036, 1.633);
   vec2 eyeR = vSoldierPos.xy - vec2(0.036, 1.633);
-  float sock = max(
-    smoothstep(0.048, 0.026, length(eyeL)) * (1.0 - smoothstep(0.022, 0.030, length(eyeL))),
-    smoothstep(0.048, 0.026, length(eyeR)) * (1.0 - smoothstep(0.022, 0.030, length(eyeR)))
-  );
+  float sockL = smoothstep(0.022, 0.030, length(eyeL)) * (1.0 - smoothstep(0.034, 0.050, length(eyeL)));
+  float sockR = smoothstep(0.022, 0.030, length(eyeR)) * (1.0 - smoothstep(0.034, 0.050, length(eyeR)));
+  float sock = max(sockL, sockR);
   sock *= 1.0 - smoothstep(-0.08, -0.02, vSoldierPos.z);
   shaded *= 1.0 - sock * 0.5 * dielectric;
   vec3 dusted = mix(shaded, uSoldierLakebed, dust * 0.14);
@@ -119,7 +118,7 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   // reads as one faceted lump at a few metres.
   float cavity = max(-worldN.y, 0.0);
   cavity = cavity * cavity * dielectric * (1.0 - metalnessFactor);
-  dusted *= 1.0 - cavity * 0.55;
+  dusted *= 1.0 - cavity * 0.72;
 
   // Brow shadow only. The eyes sit near y = 1.63, z = -0.08; a band that
   // includes them paints the sockets the same value as the skin and the
@@ -133,12 +132,12 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   vec3 viewN = normalize(mat3(viewMatrix) * worldN);
   float ndotv = clamp(dot(viewN, normalize(-vViewPosition)), 0.0, 1.0);
   float rim = pow(1.0 - ndotv, 3.0) * (1.0 - upN) * dielectric;
-  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.16;
+  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.28;
 
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);
   float ratio = dustL / baseL;
-  float limited = clamp(ratio, 0.48, 1.32);
+  float limited = clamp(ratio, 0.30, 1.48);
   diffuseColor.rgb = dusted * (limited / ratio);
 
   roughnessFactor = clamp(
