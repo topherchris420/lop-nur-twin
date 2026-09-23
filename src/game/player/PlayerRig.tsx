@@ -21,6 +21,7 @@ import { getWeapon } from "../weapons/arsenal";
 import type { FxManager } from "../fx/combatFx";
 import { applyNearMissSuppression } from "../core/combat";
 import { ViewmodelStage } from "./viewmodelStage";
+import { isCoarsePointer } from "@/lib/touchInput";
 import { sunElevationRad, SUN } from "../render/environment";
 import { getPostExposure } from "../render/screenEffects";
 import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
@@ -285,12 +286,15 @@ export function PlayerRig({
   useEffect(() => {
     const primaryDef = getWeapon(loadout.primaryId);
     const secondaryDef = getWeapon(loadout.secondaryId);
-    const primaryModel = buildWeaponModel(primaryDef);
-    const secondaryModel = buildWeaponModel(secondaryDef);
+    // On touch devices the near-camera sleeves and gloves spread across the
+    // tall viewport and read as extra limbs. Keep the weapon, omit those meshes.
+    const showArms = !isCoarsePointer();
+    const primaryModel = buildWeaponModel(primaryDef, showArms);
+    const secondaryModel = buildWeaponModel(secondaryDef, showArms);
     const models = [primaryModel.root, secondaryModel.root];
     const mountActiveModel = (activeModel: THREE.Object3D): void => {
       // Keep exactly one model mounted across a loadout swap. The gloved arms
-      // parented to the hand anchors are the held silhouette — hiding them
+      // parented to the weapon root are the held silhouette — hiding them
       // puts the rifle back in the air.
       viewmodelRoot.remove(...models);
       for (const model of models) {

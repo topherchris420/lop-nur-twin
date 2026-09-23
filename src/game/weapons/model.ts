@@ -2400,7 +2400,7 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   }
 }
 
-export function buildWeaponModel(def: WeaponDef): WeaponModel {
+export function buildWeaponModel(def: WeaponDef, showArms = true): WeaponModel {
   const m = getWeaponMaterials();
   let model: WeaponModel;
   switch (def.weaponClass) {
@@ -2419,7 +2419,7 @@ export function buildWeaponModel(def: WeaponDef): WeaponModel {
   }
   // Hands go on before the noCollide walk below, and before the aim pose is
   // measured, so a glove cannot miss the pass that marks the viewmodel.
-  if (model.grasp) {
+  if (showArms && model.grasp) {
     const arms = buildArms(model.grasp);
     model.root.add(arms.right);
     if (arms.left) model.root.add(arms.left);
