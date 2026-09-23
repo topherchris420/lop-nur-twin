@@ -189,6 +189,16 @@ Two subsystems have contracts worth knowing before you touch them:
   is what makes the solve closed-form; do not add a rest rotation. The model
   faces `-z`, so a positive X rotation swings a bone _forward_ — getting that
   backwards is what made every knee bend the wrong way for weeks.
+- **First-person hands are solved against the weapon, not posed.**
+  `weapons/arms.ts` sculpts each glove as one signed distance field
+  (`weapons/sdf.ts`) and closes every finger joint until it meets the
+  `GraspSpec` contact solids the weapon builder returns. Change a grip,
+  handguard or trigger and update its contact solid in the same edit, or the
+  fingers close on air or inside the polymer. Hand placement is palm point,
+  facing and index side; keep the back of the support hand toward the eye —
+  any hold that points the hand away from the camera foreshortens it behind
+  its own wrist. Bakes are cached per contact set and their geometry is
+  shared, so weapon disposal skips meshes marked `sharedGeometry`.
 - **`world/clutter.ts` cannot use `mergeAndDispose`.** Normalising for merge
   deletes every attribute except position, normal and uv, which is right for
   the weapons it was written for and silently drops the vertex colours all

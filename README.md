@@ -67,7 +67,7 @@ invented. A note on the route says so, outside the game HUD, because the HUD
 comes and goes and the note must not. The simulation reads the layout and
 writes nothing back to the evidence ledger.
 
-These four frames are from a local run of this tree (`/play`, quality tier 2).
+These frames are from a local run of this tree (`/play`, quality tier 2).
 
 ![Blacksite title screen: the word Blacksite, the line Lop Nur · First-Person Engagement Simulator, and Press any key to continue.](docs/screenshots/title.png)
 
@@ -77,12 +77,18 @@ The boot screen. Any key opens the menu.
 
 The menu: mode, opposition, difficulty, loadout, and a way back to the twin.
 
-![First-person match on the apron: a rifle in the lower right, another soldier ahead, hangar walls to the right, and the combat HUD (compass, health, ammunition, minimap).](docs/screenshots/gameplay.png)
+![First-person match on the apron: a carbine held in two gloved hands, the support hand over the handguard, hangar walls behind, and the combat HUD (compass, health, ammunition, minimap).](docs/screenshots/gameplay.png)
 
-In a match. The rifle, the HUD, and the other soldier belong to the simulation,
-not to the analytical model.
+In a match. The rifle, the HUD, and the other soldiers belong to the
+simulation, not to the analytical model.
 
-![A procedural soldier at a few metres on the apron, helmet and vest on, rifle held across the body, with the match compass and minimap still on screen.](docs/screenshots/character.png)
+![Aiming down the sights: the red dot's tube frames the reticle, the support glove wraps the handguard below it.](docs/screenshots/aim.png)
+
+Aimed. The gloves are sculpted as signed distance fields and their fingers are
+solved against the weapon's own grip and handguard, so the hold follows the
+gun rather than being posed by hand.
+
+![A procedural soldier a few metres ahead on the apron, helmet and vest on, rifle held across the body, with the player's gloved support arm and carbine in the foreground](docs/screenshots/character.png)
 
 A soldier at a few metres. Characters are built in code. There is no imported
 character mesh.
