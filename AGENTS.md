@@ -195,10 +195,12 @@ Two subsystems have contracts worth knowing before you touch them:
   `GraspSpec` contact solids the weapon builder returns. Change a grip,
   handguard or trigger and update its contact solid in the same edit, or the
   fingers close on air or inside the polymer. Hand placement is palm point,
-  facing and index side; keep the back of the support hand toward the eye —
-  any hold that points the hand away from the camera foreshortens it behind
-  its own wrist. Bakes are cached per contact set and their geometry is
-  shared, so weapon disposal skips meshes marked `sharedGeometry`.
+  facing and index side. The long-gun support hand holds the handguard from
+  underneath — palm on the lowest solid under the hold (a shotgun's magazine
+  tube, not the handguard above it), fingers up the far side, thumb along the
+  near side. An overhand hold reads as the hand lying on top of the gun.
+  Bakes are cached per contact set and their geometry is shared, so weapon
+  disposal skips meshes marked `sharedGeometry`.
 - **`world/clutter.ts` cannot use `mergeAndDispose`.** Normalising for merge
   deletes every attribute except position, normal and uv, which is right for
   the weapons it was written for and silently drops the vertex colours all
