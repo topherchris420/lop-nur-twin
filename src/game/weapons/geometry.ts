@@ -269,9 +269,13 @@ export function picatinnyRail(
     ];
     rib.setAttribute("position", new THREE.BufferAttribute(verts, 3));
     rib.setIndex(idx);
-    rib.computeVertexNormals();
-    rib.translate(0, 0, start + i * pitch);
-    parts.push(rib);
+    // Flat faces: shared vertices average the flank and top normals and
+    // every rib shades like a twist of rope.
+    const flat = rib.toNonIndexed();
+    rib.dispose();
+    flat.computeVertexNormals();
+    flat.translate(0, 0, start + i * pitch);
+    parts.push(flat);
   }
   return mergeAndDispose(parts);
 }
@@ -349,7 +353,9 @@ export function portRing(
 
 /**
  * A curved box-magazine body. `curve` is the radius of the arc the magazine
- * follows; a 5.56 mag is roughly 0.36 m, a 7.62 mag much tighter.
+ * follows; a 5.56 mag is roughly 0.36 m, a 7.62 mag much tighter. The top
+ * leaves the magwell vertically and the body sweeps toward the muzzle (−Z)
+ * as it drops; the result is centred on its vertical extent like a box.
  */
 export function curvedMagazine(
   width: number,
@@ -363,29 +369,31 @@ export function curvedMagazine(
   const totalAngle = length / curveRadius;
   for (let i = 0; i < segments; i += 1) {
     const t = (i + 0.5) / segments;
-    const angle = (t - 0.5) * totalAngle;
+    const angle = t * totalAngle;
     // Taper slightly toward the floorplate, as a real double-stack does.
     const taper = 1 - t * 0.06;
-    const seg = chamferedBox(width * taper, segLength * 1.06, depth * taper, {
+    const seg = chamferedBox(width * taper, segLength * 1.08, depth * taper, {
       radius: 0.0016,
       chamfer: 0.0004,
       curveSegments: 3,
     });
-    seg.rotateX(Math.PI / 2);
     seg.rotateX(angle);
     seg.translate(
       0,
-      -curveRadius + Math.cos(angle) * curveRadius,
-      Math.sin(angle) * curveRadius,
+      length / 2 - curveRadius * Math.sin(angle),
+      -(curveRadius - curveRadius * Math.cos(angle)),
     );
-    seg.translate(0, -(length / 2) * 0 - 0, 0);
     parts.push(seg);
   }
   const merged = mergeAndDispose(parts);
-  // Orient down the -Y axis: magazines hang below the magwell.
-  merged.rotateX(-Math.PI / 2);
   merged.computeVertexNormals();
   return merged;
+}
+
+/** Where a `curvedMagazine` spine sits `drop` metres below its top, in Z. */
+export function curvedMagazineOffset(drop: number, curveRadius: number): number {
+  const a = Math.min(drop, curveRadius) / curveRadius;
+  return -(curveRadius - curveRadius * Math.cos(a));
 }
 
 /**
@@ -431,6 +439,67 @@ export function mergeAndDispose(parts: THREE.BufferGeometry[]): THREE.BufferGeom
   }
   for (const p of normalized) p.dispose();
   return merged;
+}
+
+/**
+ * A closed side profile with a fillet at every corner. Points are
+ * `[z, y, radius]` in weapon space (z toward the butt, y up).
+ */
+export function profileShape(points: readonly (readonly [number, number, number?])[]): THREE.Shape {
+  const shape = new THREE.Shape();
+  const n = points.length;
+  const at = (i: number) => {
+    const p = points[((i % n) + n) % n]!;
+    // Shape x is *forward* (−z) so the slab below maps on with a rotation,
+    // never a mirror.
+    return new THREE.Vector2(-p[0], p[1]);
+  };
+  for (let i = 0; i < n; i += 1) {
+    const prev = at(i - 1);
+    const cur = at(i);
+    const next = at(i + 1);
+    const r = points[i]![2] ?? 0;
+    const inDir = cur.clone().sub(prev);
+    const outDir = next.clone().sub(cur);
+    const inLen = inDir.length();
+    const outLen = outDir.length();
+    const rr = Math.min(r, inLen * 0.49, outLen * 0.49);
+    const a = cur.clone().addScaledVector(inDir.normalize(), -rr);
+    const b = cur.clone().addScaledVector(outDir.normalize(), rr);
+    if (i === 0) shape.moveTo(a.x, a.y);
+    else shape.lineTo(a.x, a.y);
+    if (rr > 1e-6) shape.quadraticCurveTo(cur.x, cur.y, b.x, b.y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+/**
+ * Extrude a side profile across the weapon (along X), centred, with rounded
+ * bevels on both faces. Moulded furniture — grips, stocks, trigger guards,
+ * lower receivers — is a side silhouette with softened edges, and this is
+ * the one primitive that gets that silhouette exactly right.
+ */
+export function sideSlab(
+  shape: THREE.Shape,
+  width: number,
+  bevel = 0.0015,
+  curveSegments = 5,
+): THREE.BufferGeometry {
+  const b = Math.min(bevel, width * 0.3);
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: Math.max(1e-4, width - b * 2),
+    bevelEnabled: true,
+    bevelThickness: b,
+    bevelSize: b * 0.9,
+    bevelOffset: -b * 0.9,
+    bevelSegments: 3,
+    curveSegments,
+  });
+  geometry.translate(0, 0, -(width - b * 2) / 2);
+  geometry.rotateY(Math.PI / 2);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 /** Convenience: transform a geometry then return it. */

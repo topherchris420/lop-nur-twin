@@ -6,10 +6,11 @@ import {
   getWeaponMaterials,
   type WeaponMaterials,
 } from "./materials";
-import { buildArms } from "./arms";
+import { buildArms, type GraspSpec } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
+  curvedMagazineOffset,
   flutes,
   lathe,
   mergeAndDispose,
@@ -18,6 +19,8 @@ import {
   picatinnyRail,
   place,
   portRing,
+  profileShape,
+  sideSlab,
   shell,
   tube,
 } from "./geometry";
@@ -79,7 +82,21 @@ export interface WeaponModel {
   adsDistance: number;
   adsRotation: THREE.Euler;
   triangleCount: number;
+  /** How the hands hold it. Absent means the weapon is drawn without arms. */
+  grasp?: GraspSpec;
   dispose(): void;
+}
+
+/**
+ * Free a weapon's geometry. The arms' meshes are shared through the bake
+ * cache and outlive any one weapon, so they are skipped.
+ */
+function disposeTree(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    if (object instanceof THREE.Mesh && !object.userData["sharedGeometry"]) {
+      object.geometry.dispose();
+    }
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -268,198 +285,135 @@ function buildOptic(
   let axisY = railTop;
 
   if (kind === "reddot") {
-    const bodyH = 0.038;
-    const tubeR = 0.0155;
-    axisY = railTop + 0.0285;
-    // Mount base + throw lever.
+    // Micro red dot on a co-witness riser: a turned aluminium tube with a
+    // flared sunshade, two capped turrets and a clamp base. Every shooter
+    // on the flight line has one, so it has to survive close inspection.
+    const tubeR = 0.0138;
+    axisY = railTop + 0.0355;
     asm.add(
       m.optic,
-      place(chamferedBox(0.026, 0.014, 0.052, { radius: 0.002 }), 0, railTop + 0.007, 0),
-    );
-    asm.add(
-      m.optic,
-      place(
-        chamferedBox(0.0075, 0.011, 0.03, { radius: 0.002 }),
-        0.016,
-        railTop + 0.008,
-        0.004,
+      sideSlab(
+        profileShape([
+          [0.028, railTop, 0.001],
+          [0.028, railTop + 0.009, 0.002],
+          [0.018, railTop + 0.012, 0.003],
+          [0.014, axisY - tubeR + 0.002, 0.003],
+          [-0.016, axisY - tubeR + 0.002, 0.003],
+          [-0.02, railTop + 0.012, 0.003],
+          [-0.028, railTop + 0.009, 0.002],
+          [-0.028, railTop, 0.001],
+        ]),
+        0.024,
+        0.0018,
       ),
     );
-    // Body: an open-emitter housing — two uprights and a hood.
+    // Clamp knob on the right of the base.
     asm.add(
-      m.optic,
-      place(
-        chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }),
-        -0.0155,
-        railTop + bodyH / 2 + 0.012,
-        0,
-      ),
+      m.steel,
+      place(tube(0.0052, 0.0052, 0.008, 16), 0.016, railTop + 0.006, 0.004, 0, Math.PI / 2, 0),
     );
     asm.add(
       m.optic,
       place(
-        chamferedBox(0.0055, bodyH, 0.05, { radius: 0.0015 }),
-        0.0155,
-        railTop + bodyH / 2 + 0.012,
+        // Outer profile rear to front, then the bore back again, so the tube
+        // has a wall instead of reading as a ring from behind.
+        lathe(
+          [
+            [tubeR * 0.8, 0.026],
+            [tubeR * 1.02, 0.025],
+            [tubeR * 1.02, 0.012],
+            [tubeR * 0.94, 0.009],
+            [tubeR * 0.94, -0.012],
+            [tubeR * 1.04, -0.016],
+            [tubeR * 1.14, -0.024],
+            [tubeR * 1.14, -0.029],
+            [tubeR * 0.96, -0.0305],
+            [tubeR * 0.9, -0.03],
+            [tubeR * 0.9, 0.022],
+            [tubeR * 0.8, 0.026],
+          ],
+          32,
+        ),
         0,
-      ),
-    );
-    asm.add(
-      m.optic,
-      place(
-        chamferedBox(0.036, 0.006, 0.05, { radius: 0.0015 }),
-        0,
-        railTop + bodyH + 0.014,
-        0,
-      ),
-    );
-    // Windage / elevation turrets.
-    asm.add(
-      m.optic,
-      place(tube(0.0055, 0.006, 0.009, 14), 0.017, axisY, 0.019, 0, Math.PI / 2, 0),
-    );
-    asm.add(
-      m.optic,
-      place(tube(0.0055, 0.006, 0.009, 14), 0, axisY + 0.014, 0.019, Math.PI / 2, 0, 0),
-    );
-    // Lens: a large flat window, slightly reclined like a real reflex sight.
-    const glassW = tubeR * 1.85;
-    const glassH = bodyH * 0.82;
-    const glass = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
-    glass.position.set(0, axisY, 0.004);
-    glass.rotation.x = -0.14;
-    glass.renderOrder = 2;
-    group.add(glass);
-    // A flat pane has one normal, so fresnel is the same colour as the sky
-    // across the whole window. The lip has to be thick enough to be a
-    // machined edge at aim distance, and bright enough to separate from the glass.
-    const lip = 0.0068;
-    const bezelZ = 0.009;
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
-        0,
-        axisY + glassH / 2,
-        bezelZ,
-        -0.14,
-      ),
-    );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(glassW + lip * 2, lip, 0.0045, { radius: 0.001 }),
-        0,
-        axisY - glassH / 2,
-        bezelZ,
-        -0.14,
-      ),
-    );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
-        -glassW / 2,
         axisY,
-        bezelZ,
-        -0.14,
+        0,
       ),
     );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(lip, glassH, 0.0045, { radius: 0.001 }),
-        glassW / 2,
-        axisY,
-        bezelZ,
-        -0.14,
-      ),
-    );
+    // Turret housings and caps.
+    asm.add(m.optic, place(chamferedBox(0.016, 0.012, 0.016, { radius: 0.004 }), 0, axisY + tubeR, -0.001));
+    asm.add(m.optic, place(tube(0.0068, 0.0072, 0.007, 20), 0, axisY + tubeR + 0.009, -0.001, Math.PI / 2, 0, 0));
+    asm.add(m.optic, place(chamferedBox(0.012, 0.016, 0.016, { radius: 0.004 }), tubeR, axisY, -0.001));
+    asm.add(m.optic, place(tube(0.0068, 0.0072, 0.007, 20), tubeR + 0.008, axisY, -0.001, 0, Math.PI / 2, 0));
+    // Knurled rings on the caps catch a line of light.
+    asm.add(m.bareMetal, place(shell(0.0073, 0.0069, 0.0016, 20), 0, axisY + tubeR + 0.0125, -0.001, Math.PI / 2, 0, 0));
+    asm.add(m.bareMetal, place(shell(0.0073, 0.0069, 0.0016, 20), tubeR + 0.0115, axisY, -0.001, 0, Math.PI / 2, 0));
+    const front = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.98, 32), m.lens);
+    front.position.set(0, axisY, -0.026);
+    front.renderOrder = 2;
+    group.add(front);
+    const rear = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.82, 32), m.lens);
+    rear.position.set(0, axisY, 0.025);
+    rear.renderOrder = 2;
+    group.add(rear);
   } else if (kind === "holo") {
-    axisY = railTop + 0.031;
+    // Holographic sight: a long base with the battery at the front and a
+    // hooded window at the back. From the shooter's eye it is a frame, so
+    // the hood is two moulded side walls and a bent roof, not a box.
+    axisY = railTop + 0.03;
+    const glassW = 0.03;
+    const glassH = 0.024;
     asm.add(
       m.optic,
-      place(
-        chamferedBox(0.03, 0.016, 0.095, { radius: 0.002 }),
-        0,
-        railTop + 0.008,
-        0.012,
+      sideSlab(
+        profileShape([
+          [0.042, railTop, 0.001],
+          [0.042, railTop + 0.012, 0.004],
+          [-0.058, railTop + 0.012, 0.004],
+          [-0.058, railTop, 0.001],
+        ]),
+        0.03,
+        0.002,
       ),
     );
+    // Battery housing and its cap.
+    asm.add(m.optic, place(chamferedBox(0.03, 0.022, 0.034, { radius: 0.005 }), 0, railTop + 0.021, -0.04));
+    asm.add(m.optic, place(tube(0.0095, 0.0095, 0.006, 20), 0, railTop + 0.021, -0.059));
+    for (const side of [-1, 1]) {
+      asm.add(
+        m.optic,
+        place(
+          sideSlab(
+            profileShape([
+              [0.034, railTop + 0.011, 0.001],
+              [0.034, axisY + glassH / 2 + 0.004, 0.006],
+              [-0.012, axisY + glassH / 2 + 0.004, 0.006],
+              [-0.022, railTop + 0.011, 0.001],
+            ]),
+            0.005,
+            0.0012,
+          ),
+          side * (glassW / 2 + 0.0035),
+          0,
+          0,
+        ),
+      );
+    }
     asm.add(
       m.optic,
-      place(
-        chamferedBox(0.042, 0.042, 0.052, { radius: 0.003 }),
-        0,
-        railTop + 0.033,
-        -0.014,
-      ),
+      place(chamferedBox(glassW + 0.012, 0.005, 0.044, { radius: 0.0022 }), 0, axisY + glassH / 2 + 0.0055, 0.012),
     );
-    asm.add(
-      m.optic,
-      place(
-        chamferedBox(0.036, 0.026, 0.042, { radius: 0.002 }),
-        0,
-        railTop + 0.028,
-        0.042,
-      ),
-    );
-    asm.add(
-      m.optic,
-      place(
-        tube(0.004, 0.004, 0.006, 10),
-        0.019,
-        railTop + 0.026,
-        0.05,
-        0,
-        Math.PI / 2,
-        0,
-      ),
-    );
-    const glassW = 0.031;
-    const glassH = 0.026;
+    // Brightness buttons on the left of the base, facing the shooter.
+    for (const dz of [0.03, 0.02]) {
+      asm.add(m.rubber, place(chamferedBox(0.004, 0.006, 0.007, { radius: 0.0018 }), -0.0165, railTop + 0.007, dz));
+    }
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
-    glass.position.set(0, axisY, -0.038);
+    glass.position.set(0, axisY, -0.004);
     glass.renderOrder = 2;
     group.add(glass);
-    const lip = 0.0055;
-    const bezelZ = -0.033;
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }),
-        0,
-        axisY + glassH / 2,
-        bezelZ,
-      ),
-    );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(glassW + lip * 2, lip, 0.004, { radius: 0.0008 }),
-        0,
-        axisY - glassH / 2,
-        bezelZ,
-      ),
-    );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }),
-        -glassW / 2,
-        axisY,
-        bezelZ,
-      ),
-    );
-    asm.add(
-      m.bareMetal,
-      place(
-        chamferedBox(lip, glassH, 0.004, { radius: 0.0008 }),
-        glassW / 2,
-        axisY,
-        bezelZ,
-      ),
-    );
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
+    back.position.set(0, axisY, 0.03);
+    back.renderOrder = 2;
+    group.add(back);
   } else {
     // Magnified optic: a turned tube with an objective bell and a sunshade.
     const isScope = kind === "scope";
@@ -571,7 +525,7 @@ function buildOptic(
     new THREE.PlaneGeometry(reticleSize, reticleSize),
     collimatedMaterial,
   );
-  reticle.position.set(0, axisY, kind === "holo" ? -0.04 : -0.02);
+  reticle.position.set(0, axisY, kind === "holo" ? -0.006 : -0.02);
   reticle.renderOrder = 8;
   reticle.visible = false;
   group.add(reticle);
@@ -724,21 +678,25 @@ function buildLongGun(
     m.receiver,
     place(chamferedBox(0.05, 0.008, 0.058, { radius: 0.003 }), 0, -0.02, -0.078),
   );
-  // Trigger guard: an arc of small segments.
-  for (let i = 0; i <= 9; i += 1) {
-    const t = i / 9;
-    const angle = Math.PI * (0.08 + t * 0.84);
-    asm.add(
-      m.receiver,
-      place(
-        chamferedBox(0.0075, 0.006, 0.011, { radius: 0.0018 }),
-        0,
-        -0.019 - Math.sin(angle) * 0.019,
-        -0.028 + Math.cos(angle) * 0.023,
-        Math.PI / 2 - angle,
-      ),
-    );
-  }
+  // Trigger guard: one moulded loop from the grip to the magwell. A chain of
+  // small boxes along an arc read as beads at viewmodel distance.
+  asm.add(
+    m.receiver,
+    sideSlab(
+      profileShape([
+        [0.012, -0.0165, 0.0005],
+        [0.012, -0.0405, 0.007],
+        [-0.058, -0.0405, 0.006],
+        [-0.058, -0.0165, 0.0005],
+        [-0.0525, -0.0165, 0.0005],
+        [-0.0525, -0.0355, 0.003],
+        [0.0065, -0.0355, 0.004],
+        [0.0065, -0.0165, 0.0005],
+      ]),
+      0.011,
+      0.0016,
+    ),
+  );
   // Selector, magazine release, bolt catch, takedown pins.
   asm.add(
     m.steel,
@@ -813,23 +771,16 @@ function buildLongGun(
   // Ejection port with a dust cover hinged below it.
   const ejectionPort = new THREE.Group();
   const portAsm = new Assembler();
+  // Parts are placed relative to the group, which carries the port's
+  // position; placing them in weapon space as well hung the dust cover a
+  // couple of centimetres off the receiver.
   portAsm.add(
     m.nitride,
-    place(
-      chamferedBox(0.004, 0.021, 0.038, { radius: 0.003 }),
-      0.0205,
-      spec.receiverTop - 0.022,
-      -0.036,
-    ),
+    place(chamferedBox(0.004, 0.021, 0.038, { radius: 0.003 }), -0.0035, 0, 0),
   );
   portAsm.add(
     m.receiver,
-    place(
-      chamferedBox(0.005, 0.024, 0.042, { radius: 0.003 }),
-      0.0225,
-      spec.receiverTop - 0.022,
-      -0.036,
-    ),
+    place(chamferedBox(0.005, 0.024, 0.042, { radius: 0.003 }), -0.0015, 0, 0),
   );
   portAsm.flushInto(ejectionPort);
   ejectionPort.position.set(0.024, spec.receiverTop - 0.022, -0.036);
@@ -875,37 +826,33 @@ function buildLongGun(
     }
   } else {
     const hgShell = spec.stockKind === "collapsible" ? m.polymerTan : m.receiver;
+    // Free-float handguard: a rounded-square section, not a pipe. Its flats
+    // are what catch the key light and make the part read as machined.
+    const hgW = spec.handguardRadius * 1.96;
+    const hgH = spec.handguardRadius * 2.1;
     asm.add(
       hgShell,
       place(
-        shell(spec.handguardRadius, spec.handguardRadius - 0.004, hgLen, 20),
+        chamferedBox(hgW, hgH, hgLen, { radius: spec.handguardRadius * 0.6, curveSegments: 5 }),
         0,
         spec.receiverTop - 0.028,
         hgCenter,
       ),
     );
-    // M-LOK slot rows at 3, 6 and 9 o'clock.
+    // M-LOK slot rows at 3, 6 and 9 o'clock, a hair proud so they read as
+    // dark recesses without boolean geometry.
     const slots = Math.max(3, Math.floor(hgLen / 0.048));
-    for (const angle of [0, Math.PI / 2, -Math.PI / 2, Math.PI]) {
+    for (const angle of [Math.PI / 2, -Math.PI / 2, Math.PI]) {
       const g = mlokSlots(slots, hgLen / slots);
       g.rotateZ(angle);
+      const half = Math.abs(Math.sin(angle)) > 0.5 ? hgW / 2 : hgH / 2;
       g.translate(
-        Math.sin(angle) * (spec.handguardRadius - 0.0008),
-        spec.receiverTop - 0.028 + Math.cos(angle) * (spec.handguardRadius - 0.0008),
+        Math.sin(angle) * (half - 0.0005),
+        spec.receiverTop - 0.028 + Math.cos(angle) * (half - 0.0005),
         hgCenter,
       );
       asm.add(m.nitride, g);
     }
-    // Anti-rotation flats top and bottom keep the section from reading round.
-    asm.add(
-      spec.stockKind === "collapsible" ? m.polymerTan : m.receiver,
-      place(
-        chamferedBox(0.028, 0.005, hgLen, { radius: 0.002 }),
-        0,
-        spec.receiverTop - 0.028 + spec.handguardRadius - 0.001,
-        hgCenter,
-      ),
-    );
   }
   // Barrel nut.
   asm.add(
@@ -1120,7 +1067,7 @@ function buildLongGun(
             tube(0.0022, 0.0022, 0.004, 8),
             spec.magWidth / 2 - 0.001,
             -0.05 - i * 0.028,
-            0.006 + i * 0.0035,
+            0.006 + curvedMagazineOffset(0.036 + i * 0.028, 0.34),
             0,
             Math.PI / 2,
             0,
@@ -1133,7 +1080,8 @@ function buildLongGun(
           chamferedBox(spec.magWidth * 1.12, 0.011, 0.042, { radius: 0.002 }),
           0,
           -spec.magLength - 0.014,
-          0.03,
+          curvedMagazineOffset(spec.magLength, 0.34),
+          spec.magLength / 0.34,
         ),
       );
     } else if (spec.magKind === "box") {
@@ -1221,7 +1169,9 @@ function buildLongGun(
   }
 
   /* --------------------------------------------------- pistol grip */
-  const gripAngle = 0.34;
+  // Negative: the grip rakes back at the bottom, as every AR grip does. With
+  // the sign flipped the base plate hung behind a forward-leaning grip.
+  const gripAngle = -0.34;
   asm.add(
     m.grip,
     place(
@@ -1306,8 +1256,8 @@ function buildLongGun(
         stockZ0 + 0.02 + bufferLen / 2,
       ),
     );
-    // Castellations on the buffer tube.
-    for (let i = 0; i < 5; i += 1) {
+    // Castellations on the buffer tube, where it is exposed ahead of the stock.
+    for (let i = 0; i < 1; i += 1) {
       asm.add(
         m.steel,
         place(
@@ -1393,23 +1343,29 @@ function buildLongGun(
       );
     } else {
       const stockPolymer = spec.stockKind === "collapsible" ? m.polymerTan : m.polymer;
+      // Carbine stock: a side profile with a raised cheek line, a raked toe
+      // and a butt tall enough for the pad.
+      const top = spec.receiverTop;
       asm.add(
         stockPolymer,
-        place(
-          chamferedBox(0.038, 0.06, 0.11, { radius: 0.008, curveSegments: 5 }),
-          0,
-          spec.receiverTop - 0.03,
-          buttZ - 0.055,
+        sideSlab(
+          profileShape([
+            [buttZ - 0.118, top - 0.004, 0.006],
+            [buttZ - 0.03, top + 0.001, 0.02],
+            [buttZ + 0.006, top + 0.001, 0.004],
+            [buttZ + 0.006, top - 0.062, 0.004],
+            [buttZ - 0.022, top - 0.062, 0.01],
+            [buttZ - 0.075, top - 0.044, 0.02],
+            [buttZ - 0.118, top - 0.044, 0.006],
+          ]),
+          0.034,
+          0.0035,
         ),
       );
+      // Adjustment lever under the tube.
       asm.add(
-        stockPolymer,
-        place(
-          chamferedBox(0.03, 0.02, 0.075, { radius: 0.006 }),
-          0,
-          spec.receiverTop + 0.004,
-          buttZ - 0.05,
-        ),
+        m.polymer,
+        place(chamferedBox(0.012, 0.01, 0.034, { radius: 0.003 }), 0, top - 0.048, buttZ - 0.1),
       );
     }
     // Butt pad + QD sling socket.
@@ -1506,30 +1462,9 @@ function buildLongGun(
     );
   }
 
-  /* ----------------------------------------------------- foregrip */
-  let foregrip: THREE.Object3D | null = null;
-  if (!spec.bipod && !spec.heatShield) {
-    const fg = new THREE.Group();
-    const fgAsm = new Assembler();
-    fgAsm.add(
-      m.grip,
-      place(
-        chamferedBox(0.026, 0.055, 0.03, { radius: 0.01, curveSegments: 5 }),
-        0,
-        -0.03,
-        0,
-        -0.12,
-      ),
-    );
-    fgAsm.add(
-      m.grip,
-      place(chamferedBox(0.03, 0.012, 0.034, { radius: 0.005 }), 0, -0.058, 0.006),
-    );
-    fgAsm.flushInto(fg);
-    fg.position.set(0, barrelY - spec.handguardRadius, spec.handguardFront + 0.075);
-    root.add(fg);
-    foregrip = fg;
-  }
+  // No vertical foregrip: the support hand clamps the handguard itself, and a
+  // grip under it is something the fingers would have to pass through.
+  const foregrip: THREE.Object3D | null = null;
 
   /* -------------------------------------------------------- optic */
   const opticKind: "reddot" | "holo" | "acog" | "scope" =
@@ -1578,6 +1513,16 @@ function buildLongGun(
   laserEmitter.position.set(0.024, barrelY + 0.012, spec.handguardFront + 0.02);
   root.add(laserEmitter);
 
+  const grasp = longGunGrasp(spec, {
+    upperZ,
+    upperLen,
+    hgCenter,
+    hgLen,
+    barrelY,
+    railTop,
+    railCenter: -0.05 - spec.railLength / 2 + 0.1,
+  });
+
   const model: WeaponModel = {
     root,
     parts: {
@@ -1606,13 +1551,72 @@ function buildLongGun(
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
+    grasp,
     dispose() {
-      root.traverse((object) => {
-        if (object instanceof THREE.Mesh) object.geometry.dispose();
-      });
+      disposeTree(root);
     },
   };
   return model;
+}
+
+/** What the hands hold on a long gun: pistol grip, trigger, handguard. */
+function longGunGrasp(
+  spec: LongGunSpec,
+  d: {
+    upperZ: number;
+    upperLen: number;
+    hgCenter: number;
+    hgLen: number;
+    barrelY: number;
+    railTop: number;
+    railCenter: number;
+  },
+): GraspSpec {
+  const gripPitch = -0.34;
+  const gy: [number, number, number] = [0, Math.cos(gripPitch), Math.sin(gripPitch)];
+  const gz: [number, number, number] = [0, -Math.sin(gripPitch), Math.cos(gripPitch)];
+  const gripTop: [number, number, number] = [0, -0.016, 0.0137];
+  // The palm wraps the back-right corner of the grip at middle-finger height.
+  const mid = 0.042;
+  const palm: [number, number, number] = [
+    0.6 * 0.024,
+    gripTop[1] - gy[1] * mid + gz[1] * 0.8 * 0.024,
+    gripTop[2] - gy[2] * mid + gz[2] * 0.8 * 0.024,
+  ];
+  const hold = spec.handguardFront + d.hgLen * 0.52;
+  const r = spec.handguardRadius + 0.0012;
+  return {
+    contact: [
+      { kind: "box", center: [0, -0.062, 0.03], half: [0.016, 0.049, 0.021], radius: 0.011, pitch: gripPitch },
+      { kind: "box", center: [0, -0.02, 0.046], half: [0.015, 0.012, 0.012], radius: 0.008, pitch: gripPitch },
+      { kind: "box", center: [0, 0.008, -0.03], half: [0.019, 0.025, 0.085], radius: 0.004 },
+      { kind: "box", center: [0, -0.006, -0.078], half: [0.023, 0.014, 0.026], radius: 0.004 },
+      { kind: "box", center: [0, -0.038, -0.023], half: [0.0055, 0.0028, 0.035], radius: 0.002 },
+      { kind: "box", center: [0, spec.receiverTop - 0.021, d.upperZ], half: [0.0205, 0.021, d.upperLen / 2], radius: 0.006 },
+      { kind: "box", center: [0, d.railTop - 0.004, d.railCenter], half: [0.0106, 0.0045, spec.railLength / 2], radius: 0.001 },
+      { kind: "box", center: [0, -0.012 - spec.magLength / 2, -0.084], half: [spec.magWidth / 2 + 0.001, spec.magLength / 2, 0.02], radius: 0.003 },
+      { kind: "tube", center: [0, d.barrelY, d.hgCenter], radius: r, halfLength: d.hgLen / 2 },
+    ],
+    right: {
+      palm,
+      facing: [-0.6, -0.8 * gz[1], -0.8 * gz[2]],
+      indexSide: gy,
+      forearm: [0.3, -0.5, 0.81],
+      thumb: [-0.42, 0.34, -0.84],
+      trigger: [0.002, -0.029, -0.033],
+    },
+    left: {
+      // Overhand: the palm rides the top left of the handguard with the
+      // knuckles up toward the eye, fingers wrapping down the far side and
+      // the thumb along the near side. Every other hold points the hand away
+      // from the camera and foreshortens it behind its own wrist.
+      palm: [-0.45 * (r + 0.001), d.barrelY + 0.85 * (r + 0.001), hold],
+      facing: [0.45, -0.85, 0],
+      indexSide: [0.3, 0.16, 0.9],
+      forearm: [-0.7, -0.45, 0.55],
+      thumb: [0.12, -0.25, -0.96],
+    },
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -1840,9 +1844,7 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
     dispose() {
-      root.traverse((object) => {
-        if (object instanceof THREE.Mesh) object.geometry.dispose();
-      });
+      disposeTree(root);
     },
   };
 }
@@ -1934,9 +1936,7 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
     dispose() {
-      root.traverse((object) => {
-        if (object instanceof THREE.Mesh) object.geometry.dispose();
-      });
+      disposeTree(root);
     },
   };
 }
@@ -2039,9 +2039,7 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
     dispose() {
-      root.traverse((object) => {
-        if (object instanceof THREE.Mesh) object.geometry.dispose();
-      });
+      disposeTree(root);
     },
   };
 }
@@ -2049,18 +2047,6 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
 /* ------------------------------------------------------------------ */
 /* Public entry point                                                  */
 /* ------------------------------------------------------------------ */
-
-function armTriangles(group: THREE.Group): number {
-  const value = group.userData["triangles"];
-  return typeof value === "number" ? value : 0;
-}
-
-/** Geometry for an arm that never joins the weapon tree (the pistol's off hand). */
-function releaseDetachedArm(group: THREE.Object3D): void {
-  group.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.geometry.dispose();
-  });
-}
 
 /**
  * Derive the camera-space transforms.
@@ -2106,22 +2092,13 @@ export function buildWeaponModel(def: WeaponDef): WeaponModel {
   }
   // Hands go on before the noCollide walk below, and before the aim pose is
   // measured, so a glove cannot miss the pass that marks the viewmodel.
-  if (def.weaponClass !== "melee") {
-    const arms = buildArms();
-    model.parts.rightHand.add(arms.right);
-    if (def.weaponClass === "pistol") {
-      // One-handed. The support mesh never enters the tree, so the root
-      // traverse will not see it — free that geometry now. Materials are
-      // shared with the firing hand and stay until arms.dispose().
-      releaseDetachedArm(arms.left);
-    } else {
-      model.parts.leftHand.add(arms.left);
-    }
+  if (model.grasp) {
+    const arms = buildArms(model.grasp);
+    model.root.add(arms.right);
+    if (arms.left) model.root.add(arms.left);
+    model.triangleCount += arms.triangleCount;
     const disposeGeometry = model.dispose.bind(model);
-    const support = def.weaponClass === "pistol" ? 0 : armTriangles(arms.left);
-    model.triangleCount += armTriangles(arms.right) + support;
     model.dispose = () => {
-      // arms.dispose frees materials and the glove map; the traverse frees mesh geometry.
       arms.dispose();
       disposeGeometry();
     };
