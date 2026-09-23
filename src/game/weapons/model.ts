@@ -310,7 +310,15 @@ function buildOptic(
     // Clamp knob on the right of the base.
     asm.add(
       m.steel,
-      place(tube(0.0052, 0.0052, 0.008, 16), 0.016, railTop + 0.006, 0.004, 0, Math.PI / 2, 0),
+      place(
+        tube(0.0052, 0.0052, 0.008, 16),
+        0.016,
+        railTop + 0.006,
+        0.004,
+        0,
+        Math.PI / 2,
+        0,
+      ),
     );
     asm.add(
       m.optic,
@@ -340,13 +348,68 @@ function buildOptic(
       ),
     );
     // Turret housings and caps.
-    asm.add(m.optic, place(chamferedBox(0.016, 0.012, 0.016, { radius: 0.004 }), 0, axisY + tubeR, -0.001));
-    asm.add(m.optic, place(tube(0.0068, 0.0072, 0.007, 20), 0, axisY + tubeR + 0.009, -0.001, Math.PI / 2, 0, 0));
-    asm.add(m.optic, place(chamferedBox(0.012, 0.016, 0.016, { radius: 0.004 }), tubeR, axisY, -0.001));
-    asm.add(m.optic, place(tube(0.0068, 0.0072, 0.007, 20), tubeR + 0.008, axisY, -0.001, 0, Math.PI / 2, 0));
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.016, 0.012, 0.016, { radius: 0.004 }),
+        0,
+        axisY + tubeR,
+        -0.001,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(
+        tube(0.0068, 0.0072, 0.007, 20),
+        0,
+        axisY + tubeR + 0.009,
+        -0.001,
+        Math.PI / 2,
+        0,
+        0,
+      ),
+    );
+    asm.add(
+      m.optic,
+      place(chamferedBox(0.012, 0.016, 0.016, { radius: 0.004 }), tubeR, axisY, -0.001),
+    );
+    asm.add(
+      m.optic,
+      place(
+        tube(0.0068, 0.0072, 0.007, 20),
+        tubeR + 0.008,
+        axisY,
+        -0.001,
+        0,
+        Math.PI / 2,
+        0,
+      ),
+    );
     // Knurled rings on the caps catch a line of light.
-    asm.add(m.bareMetal, place(shell(0.0073, 0.0069, 0.0016, 20), 0, axisY + tubeR + 0.0125, -0.001, Math.PI / 2, 0, 0));
-    asm.add(m.bareMetal, place(shell(0.0073, 0.0069, 0.0016, 20), tubeR + 0.0115, axisY, -0.001, 0, Math.PI / 2, 0));
+    asm.add(
+      m.bareMetal,
+      place(
+        shell(0.0073, 0.0069, 0.0016, 20),
+        0,
+        axisY + tubeR + 0.0125,
+        -0.001,
+        Math.PI / 2,
+        0,
+        0,
+      ),
+    );
+    asm.add(
+      m.bareMetal,
+      place(
+        shell(0.0073, 0.0069, 0.0016, 20),
+        tubeR + 0.0115,
+        axisY,
+        -0.001,
+        0,
+        Math.PI / 2,
+        0,
+      ),
+    );
     const front = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.98, 32), m.lens);
     front.position.set(0, axisY, -0.026);
     front.renderOrder = 2;
@@ -376,7 +439,15 @@ function buildOptic(
       ),
     );
     // Battery housing and its cap.
-    asm.add(m.optic, place(chamferedBox(0.03, 0.022, 0.034, { radius: 0.005 }), 0, railTop + 0.021, -0.04));
+    asm.add(
+      m.optic,
+      place(
+        chamferedBox(0.03, 0.022, 0.034, { radius: 0.005 }),
+        0,
+        railTop + 0.021,
+        -0.04,
+      ),
+    );
     asm.add(m.optic, place(tube(0.0095, 0.0095, 0.006, 20), 0, railTop + 0.021, -0.059));
     for (const side of [-1, 1]) {
       asm.add(
@@ -400,11 +471,24 @@ function buildOptic(
     }
     asm.add(
       m.optic,
-      place(chamferedBox(glassW + 0.012, 0.005, 0.044, { radius: 0.0022 }), 0, axisY + glassH / 2 + 0.0055, 0.012),
+      place(
+        chamferedBox(glassW + 0.012, 0.005, 0.044, { radius: 0.0022 }),
+        0,
+        axisY + glassH / 2 + 0.0055,
+        0.012,
+      ),
     );
     // Brightness buttons on the left of the base, facing the shooter.
     for (const dz of [0.03, 0.02]) {
-      asm.add(m.rubber, place(chamferedBox(0.004, 0.006, 0.007, { radius: 0.0018 }), -0.0165, railTop + 0.007, dz));
+      asm.add(
+        m.rubber,
+        place(
+          chamferedBox(0.004, 0.006, 0.007, { radius: 0.0018 }),
+          -0.0165,
+          railTop + 0.007,
+          dz,
+        ),
+      );
     }
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(glassW, glassH), m.lens);
     glass.position.set(0, axisY, -0.004);
@@ -851,7 +935,10 @@ function buildLongGun(
     asm.add(
       hgShell,
       place(
-        chamferedBox(hgW, hgH, hgLen, { radius: spec.handguardRadius * 0.6, curveSegments: 5 }),
+        chamferedBox(hgW, hgH, hgLen, {
+          radius: spec.handguardRadius * 0.6,
+          curveSegments: 5,
+        }),
         0,
         spec.receiverTop - 0.028,
         hgCenter,
@@ -1383,7 +1470,12 @@ function buildLongGun(
       // Adjustment lever under the tube.
       asm.add(
         m.polymer,
-        place(chamferedBox(0.012, 0.01, 0.034, { radius: 0.003 }), 0, top - 0.048, buttZ - 0.1),
+        place(
+          chamferedBox(0.012, 0.01, 0.034, { radius: 0.003 }),
+          0,
+          top - 0.048,
+          buttZ - 0.1,
+        ),
       );
     }
     // Butt pad + QD sling socket.
@@ -1624,15 +1716,62 @@ function longGunGrasp(
   const r = spec.handguardRadius + 0.0012;
   return {
     contact: [
-      { kind: "box", center: [0, -0.062, 0.03], half: [0.016, 0.049, 0.021], radius: 0.011, pitch: gripPitch },
-      { kind: "box", center: [0, -0.02, 0.046], half: [0.015, 0.012, 0.012], radius: 0.008, pitch: gripPitch },
-      { kind: "box", center: [0, 0.008, -0.03], half: [0.019, 0.025, 0.085], radius: 0.004 },
-      { kind: "box", center: [0, -0.006, -0.078], half: [0.023, 0.014, 0.026], radius: 0.004 },
-      { kind: "box", center: [0, -0.038, -0.023], half: [0.0055, 0.0028, 0.035], radius: 0.002 },
-      { kind: "box", center: [0, spec.receiverTop - 0.021, d.upperZ], half: [0.0205, 0.021, d.upperLen / 2], radius: 0.006 },
-      { kind: "box", center: [0, d.railTop - 0.004, d.railCenter], half: [0.0106, 0.0045, spec.railLength / 2], radius: 0.001 },
-      { kind: "box", center: [0, -0.012 - spec.magLength / 2, -0.084], half: [spec.magWidth / 2 + 0.001, spec.magLength / 2, 0.02], radius: 0.003 },
-      { kind: "tube", center: [0, d.barrelY, d.hgCenter], radius: r, halfLength: d.hgLen / 2 },
+      {
+        kind: "box",
+        center: [0, -0.062, 0.03],
+        half: [0.016, 0.049, 0.021],
+        radius: 0.011,
+        pitch: gripPitch,
+      },
+      {
+        kind: "box",
+        center: [0, -0.02, 0.046],
+        half: [0.015, 0.012, 0.012],
+        radius: 0.008,
+        pitch: gripPitch,
+      },
+      {
+        kind: "box",
+        center: [0, 0.008, -0.03],
+        half: [0.019, 0.025, 0.085],
+        radius: 0.004,
+      },
+      {
+        kind: "box",
+        center: [0, -0.006, -0.078],
+        half: [0.023, 0.014, 0.026],
+        radius: 0.004,
+      },
+      {
+        kind: "box",
+        center: [0, -0.038, -0.023],
+        half: [0.0055, 0.0028, 0.035],
+        radius: 0.002,
+      },
+      {
+        kind: "box",
+        center: [0, spec.receiverTop - 0.021, d.upperZ],
+        half: [0.0205, 0.021, d.upperLen / 2],
+        radius: 0.006,
+      },
+      {
+        kind: "box",
+        center: [0, d.railTop - 0.004, d.railCenter],
+        half: [0.0106, 0.0045, spec.railLength / 2],
+        radius: 0.001,
+      },
+      {
+        kind: "box",
+        center: [0, -0.012 - spec.magLength / 2, -0.084],
+        half: [spec.magWidth / 2 + 0.001, spec.magLength / 2, 0.02],
+        radius: 0.003,
+      },
+      {
+        kind: "tube",
+        center: [0, d.barrelY, d.hgCenter],
+        radius: r,
+        halfLength: d.hgLen / 2,
+      },
     ],
     right: firingHand([0, -0.062, 0.03], 0.049, gripPitch, [0.002, -0.029, -0.033]),
     left: {
@@ -1800,7 +1939,12 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     }
     asm.add(
       m.steel,
-      place(chamferedBox(0.016, 0.004, 0.006, { radius: 0.001 }), 0, slideY + 0.017, 0.03),
+      place(
+        chamferedBox(0.016, 0.004, 0.006, { radius: 0.001 }),
+        0,
+        slideY + 0.017,
+        0.03,
+      ),
     );
   }
 
@@ -1809,11 +1953,23 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     const magAsm = new Assembler();
     magAsm.add(
       m.nitride,
-      place(chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }), 0, -0.028, 0.014, -0.19),
+      place(
+        chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }),
+        0,
+        -0.028,
+        0.014,
+        -0.19,
+      ),
     );
     magAsm.add(
       m.polymer,
-      place(chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }), 0, -0.078, 0.024, -0.19),
+      place(
+        chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }),
+        0,
+        -0.078,
+        0.024,
+        -0.19,
+      ),
     );
     magAsm.flushInto(magazine);
   }
@@ -1894,15 +2050,38 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
  */
 function pistolGrasp(revolver: boolean, slideY: number): GraspSpec {
   const pitch = revolver ? -0.28 : -0.19;
-  const grip: [number, number, number] = revolver ? [0, -0.028, 0.062] : [0, -0.028, 0.014];
+  const grip: [number, number, number] = revolver
+    ? [0, -0.028, 0.062]
+    : [0, -0.028, 0.014];
   const half = revolver ? 0.0425 : 0.048;
   const gy: [number, number, number] = [0, Math.cos(pitch), Math.sin(pitch)];
   return {
     contact: [
-      { kind: "box", center: grip, half: [0.015, half, revolver ? 0.021 : 0.019], radius: 0.01, pitch },
-      { kind: "box", center: [0, slideY, -0.05], half: [0.013, 0.015, 0.0925], radius: 0.004 },
-      { kind: "box", center: [0, slideY - 0.03, -0.032], half: [0.012, 0.015, 0.065], radius: 0.004 },
-      { kind: "box", center: [0, slideY - 0.062, -0.03], half: [0.0035, 0.003, 0.022], radius: 0.002 },
+      {
+        kind: "box",
+        center: grip,
+        half: [0.015, half, revolver ? 0.021 : 0.019],
+        radius: 0.01,
+        pitch,
+      },
+      {
+        kind: "box",
+        center: [0, slideY, -0.05],
+        half: [0.013, 0.015, 0.0925],
+        radius: 0.004,
+      },
+      {
+        kind: "box",
+        center: [0, slideY - 0.03, -0.032],
+        half: [0.012, 0.015, 0.065],
+        radius: 0.004,
+      },
+      {
+        kind: "box",
+        center: [0, slideY - 0.062, -0.03],
+        half: [0.0035, 0.003, 0.022],
+        radius: 0.002,
+      },
     ],
     right: {
       ...firingHand(grip, half, pitch, [0.002, slideY - 0.058, -0.031]),
@@ -2009,8 +2188,18 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
     // the knife so the knuckles face the eye and the blade leads.
     grasp: {
       contact: [
-        { kind: "box", center: [0, 0, 0.04], half: [0.0085, 0.013, 0.048], radius: 0.006 },
-        { kind: "box", center: [0, 0, -0.016], half: [0.006, 0.015, 0.004], radius: 0.002 },
+        {
+          kind: "box",
+          center: [0, 0, 0.04],
+          half: [0.0085, 0.013, 0.048],
+          radius: 0.006,
+        },
+        {
+          kind: "box",
+          center: [0, 0, -0.016],
+          half: [0.006, 0.015, 0.004],
+          radius: 0.002,
+        },
         { kind: "box", center: [0, 0, 0.092], half: [0.007, 0.01, 0.006], radius: 0.003 },
       ],
       right: {
@@ -2128,9 +2317,26 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
     grasp: {
       contact: [
         { kind: "tube", center: [0, axisY, -0.28], radius: 0.044, halfLength: 0.43 },
-        { kind: "box", center: [0, -0.012, 0.03], half: [0.016, 0.05, 0.021], radius: 0.011, pitch: -0.3 },
-        { kind: "box", center: [0, 0.002, -0.24], half: [0.014, 0.0375, 0.018], radius: 0.01, pitch: -0.15 },
-        { kind: "box", center: [0, axisY - 0.05, 0.02], half: [0.015, 0.015, 0.045], radius: 0.004 },
+        {
+          kind: "box",
+          center: [0, -0.012, 0.03],
+          half: [0.016, 0.05, 0.021],
+          radius: 0.011,
+          pitch: -0.3,
+        },
+        {
+          kind: "box",
+          center: [0, 0.002, -0.24],
+          half: [0.014, 0.0375, 0.018],
+          radius: 0.01,
+          pitch: -0.15,
+        },
+        {
+          kind: "box",
+          center: [0, axisY - 0.05, 0.02],
+          half: [0.015, 0.015, 0.045],
+          radius: 0.004,
+        },
       ],
       right: firingHand([0, -0.012, 0.03], 0.05, -0.3, null),
       left: {

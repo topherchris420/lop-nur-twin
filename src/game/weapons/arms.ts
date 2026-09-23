@@ -356,7 +356,16 @@ function reachTrigger(
   for (let a1 = 0; a1 <= 1.2; a1 += 0.025) {
     for (let a2 = 0; a2 <= 1.5; a2 += 0.025) {
       const angles = [a1, a2, a2 * 0.45];
-      const segs = chainSegments(base, dir, axis, palmar, f.lengths, f.radii, angles, false);
+      const segs = chainSegments(
+        base,
+        dir,
+        axis,
+        palmar,
+        f.lengths,
+        f.radii,
+        angles,
+        false,
+      );
       const tip = segs[2]!;
       // The pad, not the nail: a point just palmar of the distal segment's middle.
       const pad = v3.add(
@@ -365,7 +374,14 @@ function reachTrigger(
       );
       let score = v3.length(v3.sub(pad, target));
       for (const s of segs) {
-        const clear = segmentClearance(contact, s.a, s.b, s.ra, s.rb, s.index === 0 ? 0.35 : 0);
+        const clear = segmentClearance(
+          contact,
+          s.a,
+          s.b,
+          s.ra,
+          s.rb,
+          s.index === 0 ? 0.35 : 0,
+        );
         if (clear < 0) score += -clear * 6 + 0.004;
       }
       if (score < bestScore) {
@@ -400,11 +416,20 @@ function solveHand(placement: HandPlacement, contact: Field, mirror: number): So
     if (i === 0 && placement.trigger) {
       angles = reachTrigger(contact, base, dir, axis, f, placement.trigger, palmarWorld);
     } else {
-      angles = closeChain(contact, base, dir, axis, f.lengths, f.radii, f.rest, [
-        1.75, 1.9, 1.4,
-      ]);
+      angles = closeChain(
+        contact,
+        base,
+        dir,
+        axis,
+        f.lengths,
+        f.radii,
+        f.rest,
+        [1.75, 1.9, 1.4],
+      );
     }
-    segments.push(...chainSegments(base, dir, axis, z, f.lengths, f.radii, angles, false));
+    segments.push(
+      ...chainSegments(base, dir, axis, z, f.lengths, f.radii, angles, false),
+    );
   });
 
   // Thumb: metacarpal along the requested direction, then IP/MCP close onto
@@ -426,7 +451,16 @@ function solveHand(placement: HandPlacement, contact: Field, mirror: number): So
     [0, 0.7, 0.9],
   );
   segments.push(
-    ...chainSegments(cmc, tdir, taxis, tdorsal, THUMB_LENGTHS, THUMB_RADII, tangles, true),
+    ...chainSegments(
+      cmc,
+      tdir,
+      taxis,
+      tdorsal,
+      THUMB_LENGTHS,
+      THUMB_RADII,
+      tangles,
+      true,
+    ),
   );
 
   const wrist = localToWorld(frame, mirror, [0.002, 0.004, -0.001]);
@@ -468,7 +502,11 @@ function gloveFields(hand: SolvedHand, contact: Field): GloveFields {
     metacarpals.push(roundCone(L(carpal[i]!), L(f.mcp), 0.0098, f.radii[0] * 1.02));
   });
   const thenar = ellipsoid(
-    frameFrom(L([-0.019, 0.034, -0.011]), dirOf(frame, mirror, [-0.45, 1, -0.2]), frame.z),
+    frameFrom(
+      L([-0.019, 0.034, -0.011]),
+      dirOf(frame, mirror, [-0.45, 1, -0.2]),
+      frame.z,
+    ),
     0.0145,
     0.026,
     0.0115,
@@ -503,14 +541,23 @@ function gloveFields(hand: SolvedHand, contact: Field): GloveFields {
       // Rubber armour on the back of each proximal phalanx.
       const mid = v3.lerp(s.a, s.b, 0.55);
       const along = v3.normalize(v3.sub(s.b, s.a));
-      const padFrame = frameFrom(v3.add(mid, v3.scale(s.dorsal, s.ra * 0.8)), along, s.dorsal);
+      const padFrame = frameFrom(
+        v3.add(mid, v3.scale(s.dorsal, s.ra * 0.8)),
+        along,
+        s.dorsal,
+      );
       padFields.push(roundBox(padFrame, s.ra * 0.66, 0.0095, 0.0021, 0.0019));
     }
   }
   // Knuckle guard: one moulded bar over the MCP row with a boss per knuckle.
   const knuckles: Field[] = FINGERS.map((f) => {
     const c = L([f.mcp[0], f.mcp[1] - 0.002, f.mcp[2] + f.radii[0] * 0.9]);
-    return ellipsoid({ o: c, x: frame.x, y: frame.y, z: frame.z }, f.radii[0] * 0.78, 0.0085, 0.0034);
+    return ellipsoid(
+      { o: c, x: frame.x, y: frame.y, z: frame.z },
+      f.radii[0] * 0.78,
+      0.0085,
+      0.0034,
+    );
   });
   const bar = roundBox(sub(0.001, 0.077, 0.0108), 0.029, 0.0058, 0.0019, 0.0017);
   const armor = union([...knuckles, bar, ...padFields]);
@@ -521,8 +568,7 @@ function gloveFields(hand: SolvedHand, contact: Field): GloveFields {
   );
   const fingers = union(fingerFields);
   const body: Field = (x, y, zz) => smin(palm(x, y, zz), fingers(x, y, zz), 0.0065);
-  const withArmor: Field = (x, y, zz) =>
-    smin(body(x, y, zz), armor(x, y, zz), 0.0032);
+  const withArmor: Field = (x, y, zz) => smin(body(x, y, zz), armor(x, y, zz), 0.0032);
   const withCuff: Field = (x, y, zz) => smin(withArmor(x, y, zz), cuff(x, y, zz), 0.006);
   // Carve the weapon out, with a hair of clearance, so a palm pressed against
   // polymer flattens against it instead of passing through.
@@ -565,7 +611,10 @@ function boundsOf(hand: SolvedHand): { min: V3; max: V3 } {
 }
 
 /** Segment nearest to a point, for the palmar test and stitch lines. */
-function nearestSegment(segments: readonly Segment[], p: V3): { seg: Segment | null; d: number } {
+function nearestSegment(
+  segments: readonly Segment[],
+  p: V3,
+): { seg: Segment | null; d: number } {
   let best: Segment | null = null;
   let bestD = Infinity;
   for (const s of segments) {
@@ -608,23 +657,32 @@ function bakeHand(hand: SolvedHand, contact: Field, cell: number): BakedMesh {
     const near = nearestSegment(hand.segments, p);
     const onFinger = near.seg !== null && near.d < 0.0035;
     // Palmar side: the palm's own normal, or the finger segment's.
-    const palmarRef = onFinger && near.seg ? v3.scale(near.seg.dorsal, -1) : v3.scale(z, -1);
+    const palmarRef =
+      onFinger && near.seg ? v3.scale(near.seg.dorsal, -1) : v3.scale(z, -1);
     const palmar = v3.dot(n, palmarRef);
     let leather = smoothstep(0.12, 0.42, palmar);
     if (onFinger && near.seg && near.seg.index === 2 && !near.seg.thumb) {
       // Reinforced fingertips wrap over the nail.
-      const tipT = v3.dot(v3.sub(p, near.seg.a), v3.normalize(v3.sub(near.seg.b, near.seg.a)));
+      const tipT = v3.dot(
+        v3.sub(p, near.seg.a),
+        v3.normalize(v3.sub(near.seg.b, near.seg.a)),
+      );
       leather = Math.max(leather, smoothstep(0.011, 0.016, tipT));
     }
     const armor = 1 - smoothstep(0.0002, 0.0014, armorD);
     const strap =
-      (1 - smoothstep(0.0006, 0.002, cuffD)) * smoothstep(-0.002, 0.0005, fields.body(px, py, pz));
+      (1 - smoothstep(0.0006, 0.002, cuffD)) *
+      smoothstep(-0.002, 0.0005, fields.body(px, py, pz));
     let color: V3 = v3.lerp(GLOVE, LEATHER, leather);
     color = v3.lerp(color, ARMOR, armor);
     color = v3.lerp(color, STRAP, strap);
     // A pale stitch line round the cuff mouth.
     const along = v3.dot(v3.sub(p, hand.wrist), hand.forearm);
-    color = v3.lerp(color, STITCH, strap * (1 - smoothstep(0.0006, 0.0014, Math.abs(along - 0.041))));
+    color = v3.lerp(
+      color,
+      STITCH,
+      strap * (1 - smoothstep(0.0006, 0.0014, Math.abs(along - 0.041))),
+    );
     const rough = 0.82 + (0.74 - 0.82) * leather + (0.6 - 0.82) * armor * (1 - leather);
 
     const ao = fieldOcclusion(occluder, px, py, pz, nx, ny, nz, 0.0028);
@@ -702,14 +760,19 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
       const long = Math.sin(a * 3 + s * 9 + phase[2]! * 6) * 0.5 + 0.5;
       const elastic = cuff > 0 ? Math.sin(a * 22) * 0.0007 * cuff : 0;
       const fold =
-        (crease1 * 0.0032 + crease2 * 0.0022) * (0.35 + bunch) + long * 0.0016 * (1 - cuff);
+        (crease1 * 0.0032 + crease2 * 0.0022) * (0.35 + bunch) +
+        long * 0.0016 * (1 - cuff);
       const r = base + fold + elastic;
       const ca = Math.cos(a);
       const sa = Math.sin(a);
       const ox = side[0] * ca * r + up[0] * sa * r * flat;
       const oy = side[1] * ca * r + up[1] * sa * r * flat;
       const oz = side[2] * ca * r + up[2] * sa * r * flat;
-      positions.push(start[0] + fa[0] * s + ox, start[1] + fa[1] * s + oy, start[2] + fa[2] * s + oz);
+      positions.push(
+        start[0] + fa[0] * s + ox,
+        start[1] + fa[1] * s + oy,
+        start[2] + fa[2] * s + oz,
+      );
       uvs.push(j / radial, s / 0.1);
       // Valleys darker; the cuff hem a touch darker still.
       const valley = 1 - (crease1 * 0.5 + crease2 * 0.3) * (0.3 + bunch) * 0.5;
@@ -738,7 +801,16 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
   const n = geometry.getAttribute("normal");
   const p = geometry.getAttribute("position");
   const probe = radial + 1 + 3;
-  const out = v3.sub([p.getX(probe), p.getY(probe), p.getZ(probe)], v3.add(start, v3.scale(fa, v3.dot(v3.sub([p.getX(probe), p.getY(probe), p.getZ(probe)], start), fa))));
+  const out = v3.sub(
+    [p.getX(probe), p.getY(probe), p.getZ(probe)],
+    v3.add(
+      start,
+      v3.scale(
+        fa,
+        v3.dot(v3.sub([p.getX(probe), p.getY(probe), p.getZ(probe)], start), fa),
+      ),
+    ),
+  );
   if (v3.dot(out, [n.getX(probe), n.getY(probe), n.getZ(probe)]) < 0) {
     const idx = geometry.getIndex()!;
     const arr = idx.array as Uint16Array | Uint32Array;
@@ -917,7 +989,8 @@ const CELL = 0.0022;
 /** Contact solids near enough to a hand to touch or shadow it. */
 function nearby(solids: readonly ContactSolid[], at: V3): ContactSolid[] {
   return solids.filter((s) => {
-    const extent = s.kind === "tube" ? Math.hypot(s.radius, s.halfLength) : v3.length(s.half);
+    const extent =
+      s.kind === "tube" ? Math.hypot(s.radius, s.halfLength) : v3.length(s.half);
     return v3.length(v3.sub(s.center, at)) - extent < 0.16;
   });
 }
@@ -963,7 +1036,10 @@ let gloveMaterial: THREE.MeshStandardMaterial | null = null;
 let sleeveMaterial: THREE.MeshStandardMaterial | null = null;
 let materialUsers = 0;
 
-function retainMaterials(): { glove: THREE.MeshStandardMaterial; sleeve: THREE.MeshStandardMaterial } {
+function retainMaterials(): {
+  glove: THREE.MeshStandardMaterial;
+  sleeve: THREE.MeshStandardMaterial;
+} {
   if (!gloveMaterial) gloveMaterial = armMaterial("glove");
   if (!sleeveMaterial) sleeveMaterial = armMaterial("sleeve");
   materialUsers += 1;

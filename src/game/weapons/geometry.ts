@@ -445,7 +445,9 @@ export function mergeAndDispose(parts: THREE.BufferGeometry[]): THREE.BufferGeom
  * A closed side profile with a fillet at every corner. Points are
  * `[z, y, radius]` in weapon space (z toward the butt, y up).
  */
-export function profileShape(points: readonly (readonly [number, number, number?])[]): THREE.Shape {
+export function profileShape(
+  points: readonly (readonly [number, number, number?])[],
+): THREE.Shape {
   const shape = new THREE.Shape();
   const n = points.length;
   const at = (i: number) => {

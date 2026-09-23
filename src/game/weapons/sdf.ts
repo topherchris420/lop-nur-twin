@@ -140,23 +140,27 @@ export function roundCone(a: V3, b: V3, ra: number, rb: number): Field {
   const ay = a[1];
   const az = a[2];
   const mid: V3 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
-  return bounded((x, y, z) => {
-    const pax = x - ax;
-    const pay = y - ay;
-    const paz = z - az;
-    const yy = pax * bax + pay * bay + paz * baz;
-    const zz = yy - l2;
-    const qx = pax * l2 - bax * yy;
-    const qy = pay * l2 - bay * yy;
-    const qz = paz * l2 - baz * yy;
-    const x2 = qx * qx + qy * qy + qz * qz;
-    const y2 = yy * yy * l2;
-    const z2 = zz * zz * l2;
-    const k = Math.sign(rr) * rr * rr * x2;
-    if (Math.sign(zz) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - rb;
-    if (Math.sign(yy) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - ra;
-    return (Math.sqrt(x2 * a2 * il2) + yy * rr) * il2 - ra;
-  }, mid, Math.sqrt(l2) / 2 + Math.max(ra, rb));
+  return bounded(
+    (x, y, z) => {
+      const pax = x - ax;
+      const pay = y - ay;
+      const paz = z - az;
+      const yy = pax * bax + pay * bay + paz * baz;
+      const zz = yy - l2;
+      const qx = pax * l2 - bax * yy;
+      const qy = pay * l2 - bay * yy;
+      const qz = paz * l2 - baz * yy;
+      const x2 = qx * qx + qy * qy + qz * qz;
+      const y2 = yy * yy * l2;
+      const z2 = zz * zz * l2;
+      const k = Math.sign(rr) * rr * rr * x2;
+      if (Math.sign(zz) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - rb;
+      if (Math.sign(yy) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - ra;
+      return (Math.sqrt(x2 * a2 * il2) + yy * rr) * il2 - ra;
+    },
+    mid,
+    Math.sqrt(l2) / 2 + Math.max(ra, rb),
+  );
 }
 
 /** Rounded box in a local frame. `h` are half extents, `r` the edge radius. */
@@ -168,16 +172,20 @@ export function roundBox(f: Frame, hx: number, hy: number, hz: number, r: number
   const bx = hx - r;
   const by = hy - r;
   const bz = hz - r;
-  return bounded((x, y, z) => {
-    const px = x - ox;
-    const py = y - oy;
-    const pz = z - oz;
-    const qx = Math.abs(px * xx + py * xy + pz * xz) - bx;
-    const qy = Math.abs(px * yx + py * yy + pz * yz) - by;
-    const qz = Math.abs(px * zx + py * zy + pz * zz) - bz;
-    const outside = len3(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0));
-    return outside + Math.min(Math.max(qx, qy, qz), 0) - r;
-  }, f.o, Math.hypot(hx, hy, hz));
+  return bounded(
+    (x, y, z) => {
+      const px = x - ox;
+      const py = y - oy;
+      const pz = z - oz;
+      const qx = Math.abs(px * xx + py * xy + pz * xz) - bx;
+      const qy = Math.abs(px * yx + py * yy + pz * yz) - by;
+      const qz = Math.abs(px * zx + py * zy + pz * zz) - bz;
+      const outside = len3(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0));
+      return outside + Math.min(Math.max(qx, qy, qz), 0) - r;
+    },
+    f.o,
+    Math.hypot(hx, hy, hz),
+  );
 }
 
 /** Ellipsoid in a local frame (Quílez's bound; exact enough near the surface). */
@@ -186,17 +194,21 @@ export function ellipsoid(f: Frame, rx: number, ry: number, rz: number): Field {
   const [xx, xy, xz] = f.x;
   const [yx, yy, yz] = f.y;
   const [zx, zy, zz] = f.z;
-  return bounded((x, y, z) => {
-    const px = x - ox;
-    const py = y - oy;
-    const pz = z - oz;
-    const lx = px * xx + py * xy + pz * xz;
-    const ly = px * yx + py * yy + pz * yz;
-    const lz = px * zx + py * zy + pz * zz;
-    const k0 = len3(lx / rx, ly / ry, lz / rz);
-    const k1 = len3(lx / (rx * rx), ly / (ry * ry), lz / (rz * rz));
-    return k1 > 1e-9 ? (k0 * (k0 - 1)) / k1 : -Math.min(rx, ry, rz);
-  }, f.o, Math.max(rx, ry, rz));
+  return bounded(
+    (x, y, z) => {
+      const px = x - ox;
+      const py = y - oy;
+      const pz = z - oz;
+      const lx = px * xx + py * xy + pz * xz;
+      const ly = px * yx + py * yy + pz * yz;
+      const lz = px * zx + py * zy + pz * zz;
+      const k0 = len3(lx / rx, ly / ry, lz / rz);
+      const k1 = len3(lx / (rx * rx), ly / (ry * ry), lz / (rz * rz));
+      return k1 > 1e-9 ? (k0 * (k0 - 1)) / k1 : -Math.min(rx, ry, rz);
+    },
+    f.o,
+    Math.max(rx, ry, rz),
+  );
 }
 
 /** Infinite-free cylinder along the local Y axis, capped at ±`h`. */
@@ -271,7 +283,14 @@ export interface Bounds {
 }
 
 /** Central-difference gradient, normalised. Writes into `out`. */
-export function gradient(f: Field, x: number, y: number, z: number, h: number, out: V3): V3 {
+export function gradient(
+  f: Field,
+  x: number,
+  y: number,
+  z: number,
+  h: number,
+  out: V3,
+): V3 {
   const gx = f(x + h, y, z) - f(x - h, y, z);
   const gy = f(x, y + h, z) - f(x, y - h, z);
   const gz = f(x, y, z + h) - f(x, y, z - h);
@@ -340,7 +359,9 @@ function sampleLevel(
         const c1 = c01 + (c11 - c01) * ty;
         const approx = c0 + (c1 - c0) * tz;
         out[idx] =
-          Math.abs(approx) > band ? approx : f(x0 + i * cell, y0 + j * cell, z0 + k * cell);
+          Math.abs(approx) > band
+            ? approx
+            : f(x0 + i * cell, y0 + j * cell, z0 + k * cell);
       }
     }
   }
@@ -454,7 +475,7 @@ export function surfaceNets(f: Field, bounds: Bounds, cell: number): SdfMesh {
           if (coord[u]! === 0 || coord[w]! === 0) continue;
           const du = u === 0 ? csx : u === 1 ? csy : csz;
           const dw = w === 0 ? csx : w === 1 ? csy : csz;
-          const a0 = cellIndex[ci]!;
+          const a0 = cellIndex[ci];
           const a1 = cellIndex[ci - du]!;
           const a2 = cellIndex[ci - du - dw]!;
           const a3 = cellIndex[ci - dw]!;
