@@ -126,6 +126,32 @@ const SPAWN_SIGHT_CLEARANCE = 90;
 /** How long a reported contact is worth acting on. */
 const CONTACT_TTL = 9;
 
+/**
+ * Slack a bot gives when its target is the player. Bot-on-bot fights keep the
+ * full numbers so the match around you still resolves at the same pace; the
+ * player gets a longer window before the first round, an aim cone that never
+ * closes as tightly, and longer gaps between bursts to move in.
+ */
+const PLAYER_MERCY = {
+  /** Seconds added to the reaction delay on acquiring the player. */
+  reaction: 0.4,
+  /** Multiplier on the aim-error cone. */
+  aimError: 2,
+  /** Fraction of the cone left after full convergence (bot targets: 0.35). */
+  convergedFloor: 0.6,
+  /** Aim wander never drops below this many metres at the target. */
+  minMissM: 0.35,
+  /**
+   * Aim point as a fraction of eye height. Centred on the eye, every upward
+   * wander of the cone is a headshot; this puts it on the chest.
+   */
+  aimHeight: 0.74,
+  /** Multiplier on the pause between bursts. */
+  burstPause: 1.7,
+  /** Target-selection bias toward the player over a nearer bot. */
+  priority: 35,
+} as const;
+
 type BotState =
   | "idle"
   | "patrol"
@@ -694,7 +720,7 @@ export class BotManager {
       if (firing) score += 45;
       // The player is the reason the match exists. A bot that can see them and
       // picks a bot four metres closer turns the match into a spectator sport.
-      if (other.isPlayer) score += 60;
+      if (other.isPlayer) score += PLAYER_MERCY.priority;
       if (score > bestScore) {
         bestScore = score;
         bestId = other.id;
@@ -710,7 +736,8 @@ export class BotManager {
         const baseReaction = THREE.MathUtils.lerp(0.55, 0.22, actor.skill);
         const sprintPenalty = bot.isTacSprinting ? 0.25 : 0;
         const suppressionPenalty = actor.suppression * 0.45;
-        bot.reaction = baseReaction + sprintPenalty + suppressionPenalty;
+        const playerBonus = target.isPlayer ? PLAYER_MERCY.reaction : 0;
+        bot.reaction = baseReaction + sprintPenalty + suppressionPenalty + playerBonus;
         emitSquadCallout(bot, "contact", time);
       }
       bot.timeOnTarget += dt;
@@ -1290,8 +1317,16 @@ export class BotManager {
     const isSuppressing = bot.state === "suppress";
 
     if (isEngaging && target) {
+      const vsPlayer = target.isPlayer;
       eyePosition(actor, _eye);
       eyePosition(target, _targetEye);
+      if (vsPlayer) {
+        _targetEye.y = THREE.MathUtils.lerp(
+          target.position.y,
+          _targetEye.y,
+          PLAYER_MERCY.aimHeight,
+        );
+      }
 
       // Lead the target by its own velocity over the round's flight time.
       const distance = _eye.distanceTo(_targetEye);
@@ -1302,12 +1337,21 @@ export class BotManager {
       _aim.copy(_targetEye).add(_lead).sub(_eye).normalize();
 
       // Suppression mechanics: aim error cone widens significantly when taking heavy fire / near misses
-      const baseError = THREE.MathUtils.lerp(5.5, 0.55, actor.skill);
+      const baseError =
+        THREE.MathUtils.lerp(5.5, 0.55, actor.skill) *
+        (vsPlayer ? PLAYER_MERCY.aimError : 1);
+      const floor = vsPlayer ? PLAYER_MERCY.convergedFloor : 0.35;
       const converge = Math.exp(-bot.timeOnTarget * (0.9 + actor.skill * 1.6));
       const suppressionMultiplier = 1 + actor.suppression * 2.8;
-      const errorDeg = baseError * (0.35 + 0.65 * converge) * suppressionMultiplier;
+      const errorDeg =
+        baseError * (floor + (1 - floor) * converge) * suppressionMultiplier;
       bot.aimNoisePhase += dt * (3.1 + actor.suppression * 4.2);
-      const errorRad = (errorDeg * Math.PI) / 180;
+      // An angular cone shrinks to nothing in metres up close, which is where
+      // bots end up against a player who stays put.
+      const errorRad = Math.max(
+        (errorDeg * Math.PI) / 180,
+        vsPlayer ? PLAYER_MERCY.minMissM / Math.max(1, distance) : 0,
+      );
       _right.crossVectors(_aim, UP).normalize();
       _aim
         .addScaledVector(_right, Math.sin(bot.aimNoisePhase * 1.7) * errorRad)
@@ -1394,7 +1438,9 @@ export class BotManager {
       bot.burst -= 1;
       if (bot.burst <= 0) {
         bot.burstPause =
-          THREE.MathUtils.lerp(0.72, 0.2, actor.skill) * (0.7 + bot.rand() * 0.6);
+          THREE.MathUtils.lerp(0.72, 0.2, actor.skill) *
+          (0.7 + bot.rand() * 0.6) *
+          (target?.isPlayer ? PLAYER_MERCY.burstPause : 1);
       }
       this.onFire?.(actor);
     }

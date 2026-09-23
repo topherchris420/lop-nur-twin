@@ -272,7 +272,7 @@ check(
 check(
   "the player can be hurt",
   report.playerHealthMin < 100,
-  `min health ${Math.round(report.playerHealthMin)}`,
+  `min health ${Math.round(report.playerHealthMin)}, ${report.playerDeaths} deaths in 60 s`,
 );
 check(
   "incoming fire suppresses",

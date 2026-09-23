@@ -213,7 +213,7 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setCrosshairStyle: (crosshairStyle) => set({ crosshairStyle }),
   botCount: 11,
   setBotCount: (botCount) => set({ botCount }),
-  botSkill: 0.62,
+  botSkill: 0.4,
   setBotSkill: (botSkill) => set({ botSkill }),
   matchSeed: 0x5eed1,
   rerollMatchSeed: () => set({ matchSeed: (Math.random() * 0xffffff) >>> 0 }),
