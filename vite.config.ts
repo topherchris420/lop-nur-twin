@@ -52,7 +52,19 @@ export const SECURITY_HEADERS: Record<string, string> = {
     "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()",
 };
 
+/**
+ * Short commit of the build, printed on the Blacksite menu so a stale
+ * deployment is visible at a glance. Read from the CI environment only; a
+ * local build prints nothing rather than guessing.
+ */
+const BUILD_COMMIT = (
+  process.env["VERCEL_GIT_COMMIT_SHA"] ??
+  process.env["GITHUB_SHA"] ??
+  ""
+).slice(0, 7);
+
 export default defineConfig({
+  define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) },
   preview: { headers: SECURITY_HEADERS },
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: true }),

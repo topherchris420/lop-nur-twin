@@ -79,6 +79,32 @@ curl -s https://<your-deployment>/model-manifest.json | head -20
 
 All four routes should return 200 on a direct request and on a refresh.
 
+### When the live site is older than `main`
+
+From mid-August 2026 every push to `main` produced a Vercel **Preview**
+deployment and nothing was promoted to production, so
+`lop-nur-twin.vercel.app` kept serving a build from 17 August while the
+README showed the current game. The Vercel project's production branch no
+longer pointed at `main` (the history was rewritten after that build, and the
+commit it was built from is on no branch today). Which branch Vercel promotes
+is a dashboard setting, so there are two ways to fix it — use one, not both:
+
+1. **Dashboard:** Project → Settings → Environments → Production → Branch
+   Tracking → `main`, then redeploy the latest `main` commit and promote it.
+2. **CI:** add `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` as
+   repository secrets. `.github/workflows/deploy-production.yml` then builds
+   and promotes every push to `main` with the Vercel CLI. Without the secrets
+   it skips with a notice.
+
+Two ways to tell which build is live:
+
+```sh
+curl -s https://lop-nur-twin.vercel.app/model-manifest.json | grep generatedAt
+```
+
+and the Blacksite menu, which prints `build <commit>` under the controls line
+when the bundle was built on Vercel or GitHub Actions.
+
 ## Container image
 
 ```sh

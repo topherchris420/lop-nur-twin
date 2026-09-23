@@ -1,0 +1,82 @@
+name: Deploy production
+
+# Why this exists: the Vercel Git integration had been building every push to
+# `main` as a *Preview* deployment since mid-August, so the public URL kept
+# serving an August build while the README showed the current game. Which
+# branch Vercel promotes is a dashboard setting nothing in the repository can
+# change. This workflow makes `main` the production source explicitly, using
+# the Vercel CLI, whenever the three credentials below are configured.
+#
+# Without them it does nothing and says so: a fork, or a repository that has
+# fixed the dashboard setting instead, sees one skipped job and no failure.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN       a token from vercel.com/account/tokens
+#   VERCEL_ORG_ID      `orgId` from `.vercel/project.json` after `vercel link`
+#   VERCEL_PROJECT_ID  `projectId` from the same file
+#
+# If Vercel's own Production Branch is also set to `main`, disable one of the
+# two, or every push deploys twice.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and promote main to production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Pinned: this CLI holds a production token.
+      VERCEL_CLI: vercel@59.26.0
+    steps:
+      - name: Check for Vercel credentials
+        id: creds
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::notice::VERCEL_TOKEN, VERCEL_ORG_ID or VERCEL_PROJECT_ID is not set; skipping the production deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the repository
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.18"
+
+      - name: Pull the production project settings
+        if: steps.creds.outputs.ready == 'true'
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      # `vercel build` runs the project's own build command, which is the full
+      # validate → manifest → bundle → typecheck gate, so a deploy cannot ship
+      # data that does not validate.
+      - name: Build
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+        run: npx --yes "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy the prebuilt output to production
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Deployed $url" >> "$GITHUB_STEP_SUMMARY"

@@ -412,6 +412,11 @@ function MainMenu() {
           WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · Q swap ·
           Esc menu
         </p>
+        {__BUILD_COMMIT__ ? (
+          <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-slate-400">
+            build {__BUILD_COMMIT__}
+          </p>
+        ) : null}
       </div>
     </Scrim>
   );
