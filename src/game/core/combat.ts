@@ -13,13 +13,18 @@ import { game, queueSound, type Actor } from "./gameState";
 
 export const COMBAT = {
   /** Seconds after taking damage before regeneration starts. */
-  regenDelay: 3.5,
+  regenDelay: 3,
   /** Health per second once regeneration begins. */
   regenRate: 55,
   /** Player damage dealt to bots, making hits feel more responsive. */
   playerDamageScale: 1.2,
   /** Incoming bot damage received by the player. */
-  playerIncomingDamageScale: 0.7,
+  playerIncomingDamageScale: 0.5,
+  /**
+   * Further scale on headshots the player takes, on top of the above, so a
+   * rifle, LMG or marksman round to the head is not a kill from full health.
+   */
+  playerIncomingHeadshotScale: 0.6,
   /** Seconds a damage contribution counts toward an assist. */
   assistWindow: 8,
   /** Seconds a corpse stays before the actor respawns. */
@@ -84,7 +89,8 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     const damageScale = attacker?.isPlayer
       ? COMBAT.playerDamageScale
       : victim.isPlayer
-        ? COMBAT.playerIncomingDamageScale
+        ? COMBAT.playerIncomingDamageScale *
+          (event.region === "head" ? COMBAT.playerIncomingHeadshotScale : 1)
         : 1;
     const appliedDamage = event.amount * damageScale;
     victim.health -= appliedDamage;

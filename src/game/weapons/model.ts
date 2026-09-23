@@ -6,7 +6,7 @@ import {
   getWeaponMaterials,
   type WeaponMaterials,
 } from "./materials";
-import { buildArms, type GraspSpec, type HandPlacement } from "./arms";
+import { buildArms, type ContactSolid, type GraspSpec, type HandPlacement } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
@@ -124,6 +124,14 @@ interface LongGunSpec {
   /** Muzzle device profile. */
   muzzle: "flash-hider" | "brake" | "comp" | "thread" | "choke";
 }
+
+/**
+ * Shotgun magazine tube under the barrel. Shared with the grasp, because the
+ * support palm seats on it rather than on the handguard above it.
+ */
+const MAG_TUBE_RADIUS = 0.0105;
+const MAG_TUBE_DROP = 0.023;
+const MAG_TUBE_OFFSET = 0.05;
 
 function specForClass(weaponClass: WeaponClass): LongGunSpec {
   const base: LongGunSpec = {
@@ -1261,15 +1269,20 @@ function buildLongGun(
     asm.add(
       m.steel,
       place(
-        tube(0.0105, 0.0105, spec.magLength, 18),
+        tube(MAG_TUBE_RADIUS, MAG_TUBE_RADIUS, spec.magLength, 18),
         0,
-        barrelY - 0.023,
-        spec.handguardFront + 0.05,
+        barrelY - MAG_TUBE_DROP,
+        spec.handguardFront + MAG_TUBE_OFFSET,
       ),
     );
     asm.add(
       m.steel,
-      place(shell(0.017, 0.0104, 0.012, 18), 0, barrelY - 0.023, spec.muzzleZ + 0.05),
+      place(
+        shell(0.017, 0.0104, 0.012, 18),
+        0,
+        barrelY - MAG_TUBE_DROP,
+        spec.muzzleZ + 0.05,
+      ),
     );
   }
 
@@ -1714,8 +1727,21 @@ function longGunGrasp(
   const gripPitch = -0.34;
   const hold = spec.handguardFront + d.hgLen * 0.52;
   const r = spec.handguardRadius + 0.0012;
+  const magTube: ContactSolid | null =
+    spec.magKind === "tube"
+      ? {
+          kind: "tube",
+          center: [0, d.barrelY - MAG_TUBE_DROP, spec.handguardFront + MAG_TUBE_OFFSET],
+          radius: MAG_TUBE_RADIUS + 0.0012,
+          halfLength: spec.magLength / 2,
+        }
+      : null;
+  // The palm seats on the lowest thing under the hold point.
+  const seatY = magTube ? magTube.center[1] : d.barrelY;
+  const seatR = magTube ? magTube.radius : r;
   return {
     contact: [
+      ...(magTube ? [magTube] : []),
       {
         kind: "box",
         center: [0, -0.062, 0.03],
@@ -1775,15 +1801,14 @@ function longGunGrasp(
     ],
     right: firingHand([0, -0.062, 0.03], 0.049, gripPitch, [0.002, -0.029, -0.033]),
     left: {
-      // Overhand: the palm rides the top left of the handguard with the
-      // knuckles up toward the eye, fingers wrapping down the far side and
-      // the thumb along the near side. Every other hold points the hand away
-      // from the camera and foreshortens it behind its own wrist.
-      palm: [-0.45 * (r + 0.001), d.barrelY + 0.85 * (r + 0.001), hold],
-      facing: [0.45, -0.85, 0],
-      indexSide: [0.3, 0.16, 0.9],
-      forearm: [-0.7, -0.45, 0.55],
-      thumb: [0.12, -0.25, -0.96],
+      // Underhand: the palm cups the bottom left of the handguard, fingers
+      // wrap under it and up the far side, the thumb lies forward along the
+      // near side, and the forearm drops away below the weapon.
+      palm: [-0.35 * (seatR + 0.001), seatY - 0.93 * (seatR + 0.001), hold],
+      facing: [0.35, 0.93, 0],
+      indexSide: [-0.3, 0, -0.95],
+      forearm: [-0.5, -0.55, 0.67],
+      thumb: [0.22, 0.18, -0.96],
     },
   };
 }

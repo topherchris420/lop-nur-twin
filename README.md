@@ -77,7 +77,7 @@ The boot screen. Any key opens the menu.
 
 The menu: mode, opposition, difficulty, loadout, and a way back to the twin.
 
-![First-person match on the apron: a carbine held in two gloved hands, the support hand over the handguard, hangar walls behind, and the combat HUD (compass, health, ammunition, minimap).](docs/screenshots/gameplay.png)
+![First-person match on the apron: a carbine held in two gloved hands, the support hand under the handguard, hangar walls behind, and the combat HUD (compass, health, ammunition, minimap).](docs/screenshots/gameplay.png)
 
 In a match. The rifle, the HUD, and the other soldiers belong to the
 simulation, not to the analytical model.
