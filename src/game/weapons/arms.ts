@@ -63,6 +63,11 @@ export interface HandPlacement {
   thumb: V3;
   /** Optional point the index fingertip reaches for (a trigger). */
   trigger?: V3;
+  /**
+   * Close over the firing hand as well as the weapon — a two-handed pistol
+   * grip, where the support fingers wrap the firing fingers.
+   */
+  cup?: boolean;
 }
 
 export interface GraspSpec {
@@ -98,7 +103,7 @@ function linear(hex: number): V3 {
 // Desaturated on purpose: a saturated glove under the desert key reads as a toy.
 const GLOVE = linear(0x8a7658);
 const LEATHER = linear(0x5b4d3e);
-const ARMOR = linear(0x3b3733);
+const ARMOR = linear(0x4a443d);
 const STRAP = linear(0x4a4239);
 const STITCH = linear(0xa39478);
 
@@ -537,6 +542,7 @@ function dirOf(frame: Frame, mirror: number, d: V3): V3 {
 interface BakedMesh {
   geometry: THREE.BufferGeometry;
   triangles: number;
+  shape: Field;
 }
 
 function boundsOf(hand: SolvedHand): { min: V3; max: V3 } {
@@ -595,8 +601,8 @@ function bakeHand(hand: SolvedHand, contact: Field, cell: number): BakedMesh {
     const p: V3 = [px, py, pz];
     const n: V3 = [nx, ny, nz];
 
-    let color: V3 = GLOVE;
-    let rough = 0.82;
+    // Regions blend over a few millimetres. A hard switch per vertex steps
+    // along the 2 mm lattice and reads as a stain, not a panel.
     const armorD = fields.armor(px, py, pz);
     const cuffD = fields.cuff(px, py, pz);
     const near = nearestSegment(hand.segments, p);
@@ -604,36 +610,28 @@ function bakeHand(hand: SolvedHand, contact: Field, cell: number): BakedMesh {
     // Palmar side: the palm's own normal, or the finger segment's.
     const palmarRef = onFinger && near.seg ? v3.scale(near.seg.dorsal, -1) : v3.scale(z, -1);
     const palmar = v3.dot(n, palmarRef);
-    if (armorD < 0.0007) {
-      color = ARMOR;
-      rough = 0.62;
-    } else if (cuffD < 0.0012 && fields.body(px, py, pz) > -0.0005) {
-      color = STRAP;
-      rough = 0.86;
-      // A pale stitch line around the cuff mouth.
-      const along = v3.dot(v3.sub(p, hand.wrist), hand.forearm);
-      if (Math.abs(along - 0.041) < 0.0011) color = STITCH;
-    } else if (palmar > 0.28) {
-      color = LEATHER;
-      rough = 0.74;
-    } else if (onFinger && near.seg && near.seg.index === 2 && !near.seg.thumb) {
+    let leather = smoothstep(0.12, 0.42, palmar);
+    if (onFinger && near.seg && near.seg.index === 2 && !near.seg.thumb) {
       // Reinforced fingertips wrap over the nail.
       const tipT = v3.dot(v3.sub(p, near.seg.a), v3.normalize(v3.sub(near.seg.b, near.seg.a)));
-      if (tipT > 0.013) {
-        color = LEATHER;
-        rough = 0.74;
-      }
+      leather = Math.max(leather, smoothstep(0.011, 0.016, tipT));
     }
-    // Seam where the leather palm meets the nylon back.
-    if (Math.abs(palmar - 0.28) < 0.05 && armorD > 0.001 && cuffD > 0.002) {
-      color = v3.lerp(color, STITCH, 0.35);
-    }
+    const armor = 1 - smoothstep(0.0002, 0.0014, armorD);
+    const strap =
+      (1 - smoothstep(0.0006, 0.002, cuffD)) * smoothstep(-0.002, 0.0005, fields.body(px, py, pz));
+    let color: V3 = v3.lerp(GLOVE, LEATHER, leather);
+    color = v3.lerp(color, ARMOR, armor);
+    color = v3.lerp(color, STRAP, strap);
+    // A pale stitch line round the cuff mouth.
+    const along = v3.dot(v3.sub(p, hand.wrist), hand.forearm);
+    color = v3.lerp(color, STITCH, strap * (1 - smoothstep(0.0006, 0.0014, Math.abs(along - 0.041))));
+    const rough = 0.82 + (0.74 - 0.82) * leather + (0.6 - 0.82) * armor * (1 - leather);
 
     const ao = fieldOcclusion(occluder, px, py, pz, nx, ny, nz, 0.0028);
     const contactAo = Math.max(0, Math.min(1, contact(px, py, pz) / 0.006));
     const occlusion = Math.min(ao, 0.45 + 0.55 * contactAo);
     // Knuckles and fingertips scuff lighter; creases collect dust darker.
-    const scuff = Math.max(0, v3.dot(n, y)) * 0.06 * (armorD < 0.0007 ? 1.6 : 1);
+    const scuff = Math.max(0, v3.dot(n, y)) * 0.06 * (1 + armor * 0.6);
     const cavity = 0.8 + 0.2 * ao;
     colors[v * 3] = Math.min(1, color[0] * cavity + scuff);
     colors[v * 3 + 1] = Math.min(1, color[1] * cavity + scuff * 0.95);
@@ -649,12 +647,17 @@ function bakeHand(hand: SolvedHand, contact: Field, cell: number): BakedMesh {
   geometry.setAttribute("surface", new THREE.BufferAttribute(surface, 2));
   geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
   geometry.computeBoundingSphere();
-  return { geometry, triangles: mesh.indices.length / 3 };
+  return { geometry, triangles: mesh.indices.length / 3, shape: fields.shape };
 }
 
 /* ------------------------------------------------------------------ */
 /* Sleeves                                                             */
 /* ------------------------------------------------------------------ */
+
+function smoothstep(a: number, b: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
 
 function hash1(n: number): number {
   const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -747,7 +750,7 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
     idx.needsUpdate = true;
     geometry.computeVertexNormals();
   }
-  return { geometry, triangles: indices.length / 3 };
+  return { geometry, triangles: indices.length / 3, shape: () => Infinity };
 }
 
 /* ------------------------------------------------------------------ */
@@ -897,6 +900,9 @@ interface BakedArm {
   glove: THREE.BufferGeometry;
   sleeve: THREE.BufferGeometry;
   triangles: number;
+  /** The glove as a field, for a support hand that closes over this one. */
+  shape: Field;
+  key: string;
 }
 
 /**
@@ -921,29 +927,36 @@ function bakeArm(
   solids: readonly ContactSolid[],
   mirror: number,
   seed: number,
+  under: BakedArm | null,
 ): BakedArm {
   const local = nearby(solids, placement.palm);
-  const key = JSON.stringify([placement, local, mirror, seed]);
+  const key = JSON.stringify([placement, local, mirror, seed, under?.key ?? null]);
   const hit = cache.get(key);
   if (hit) return hit;
-  const contact = union(local.map(solidField));
+  const weapon = union(local.map(solidField));
+  const contact: Field = under
+    ? (x, y, z) => Math.min(weapon(x, y, z), under.shape(x, y, z))
+    : weapon;
   const hand = solveHand(placement, contact, mirror);
   const glove = bakeHand(hand, contact, CELL);
   const sleeve = bakeSleeve(hand, seed);
-  const baked = {
+  const baked: BakedArm = {
     glove: glove.geometry,
     sleeve: sleeve.geometry,
     triangles: glove.triangles + sleeve.triangles,
+    shape: glove.shape,
+    key,
   };
   cache.set(key, baked);
   return baked;
 }
 
 function bakeSpec(spec: GraspSpec): { right: BakedArm; left: BakedArm | null } {
-  return {
-    right: bakeArm(spec.right, spec.contact, 1, 11),
-    left: spec.left ? bakeArm(spec.left, spec.contact, -1, 29) : null,
-  };
+  const right = bakeArm(spec.right, spec.contact, 1, 11, null);
+  const left = spec.left
+    ? bakeArm(spec.left, spec.contact, -1, 29, spec.left.cup ? right : null)
+    : null;
+  return { right, left };
 }
 
 let gloveMaterial: THREE.MeshStandardMaterial | null = null;

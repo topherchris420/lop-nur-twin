@@ -414,7 +414,7 @@ export function getWeaponMaterials(): WeaponMaterials {
     metalness: 0.42,
     roughness: 0.46,
     normalMap: repeat(brushedNormal, 8),
-    normalScale: new THREE.Vector2(0.25, 0.25),
+    normalScale: new THREE.Vector2(0.07, 0.07),
     envMapIntensity: 0.28,
   });
 

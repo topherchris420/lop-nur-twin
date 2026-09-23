@@ -6,7 +6,7 @@ import {
   getWeaponMaterials,
   type WeaponMaterials,
 } from "./materials";
-import { buildArms, type GraspSpec } from "./arms";
+import { buildArms, type GraspSpec, type HandPlacement } from "./arms";
 import {
   chamferedBox,
   curvedMagazine,
@@ -734,15 +734,33 @@ function buildLongGun(
   /* ------------------------------------------------- upper receiver */
   const upperLen = 0.2 + spec.receiverBack;
   const upperZ = -0.05;
-  asm.add(
-    m.receiver,
-    place(
-      chamferedBox(0.041, 0.042, upperLen, { radius: 0.006, curveSegments: 5 }),
-      0,
-      spec.receiverTop - 0.021,
-      upperZ,
-    ),
-  );
+  // Flat-top upper: full width through the port, then shoulders chamfered
+  // in to the rail base. As a box it was one grey slab filling the frame.
+  {
+    const section = new THREE.Shape();
+    const pts: [number, number][] = [
+      [-0.0205, -0.021],
+      [0.0205, -0.021],
+      [0.0205, 0.005],
+      [0.0125, 0.021],
+      [-0.0125, 0.021],
+      [-0.0205, 0.005],
+    ];
+    section.moveTo(pts[0]![0], pts[0]![1]);
+    for (const [x, y] of pts.slice(1)) section.lineTo(x, y);
+    section.closePath();
+    const upper = new THREE.ExtrudeGeometry(section, {
+      depth: upperLen - 0.003,
+      bevelEnabled: true,
+      bevelThickness: 0.0015,
+      bevelSize: 0.0012,
+      bevelOffset: -0.0012,
+      bevelSegments: 2,
+    });
+    upper.translate(0, spec.receiverTop - 0.021, upperZ - (upperLen - 0.003) / 2);
+    upper.computeVertexNormals();
+    asm.add(m.receiver, upper);
+  }
   // Brass deflector and forward assist on the ejection side.
   asm.add(
     m.receiver,
@@ -1559,6 +1577,35 @@ function buildLongGun(
   return model;
 }
 
+/**
+ * The firing hand on any pistol grip: palm wrapped round the back-right
+ * corner at middle-finger height, web of the hand up under the tang, thumb
+ * forward along the left of the frame, index reaching for the trigger.
+ */
+function firingHand(
+  gripCenter: [number, number, number],
+  halfHeight: number,
+  pitch: number,
+  trigger: [number, number, number] | null,
+): HandPlacement {
+  const gy: [number, number, number] = [0, Math.cos(pitch), Math.sin(pitch)];
+  const gz: [number, number, number] = [0, -Math.sin(pitch), Math.cos(pitch)];
+  const along = halfHeight - 0.042;
+  const out = 0.024;
+  return {
+    palm: [
+      0.6 * out,
+      gripCenter[1] + gy[1] * along + gz[1] * 0.8 * out,
+      gripCenter[2] + gy[2] * along + gz[2] * 0.8 * out,
+    ],
+    facing: [-0.6, -0.8 * gz[1], -0.8 * gz[2]],
+    indexSide: gy,
+    forearm: [0.3, -0.5, 0.81],
+    thumb: [-0.42, 0.34, -0.84],
+    ...(trigger ? { trigger } : {}),
+  };
+}
+
 /** What the hands hold on a long gun: pistol grip, trigger, handguard. */
 function longGunGrasp(
   spec: LongGunSpec,
@@ -1573,16 +1620,6 @@ function longGunGrasp(
   },
 ): GraspSpec {
   const gripPitch = -0.34;
-  const gy: [number, number, number] = [0, Math.cos(gripPitch), Math.sin(gripPitch)];
-  const gz: [number, number, number] = [0, -Math.sin(gripPitch), Math.cos(gripPitch)];
-  const gripTop: [number, number, number] = [0, -0.016, 0.0137];
-  // The palm wraps the back-right corner of the grip at middle-finger height.
-  const mid = 0.042;
-  const palm: [number, number, number] = [
-    0.6 * 0.024,
-    gripTop[1] - gy[1] * mid + gz[1] * 0.8 * 0.024,
-    gripTop[2] - gy[2] * mid + gz[2] * 0.8 * 0.024,
-  ];
   const hold = spec.handguardFront + d.hgLen * 0.52;
   const r = spec.handguardRadius + 0.0012;
   return {
@@ -1597,14 +1634,7 @@ function longGunGrasp(
       { kind: "box", center: [0, -0.012 - spec.magLength / 2, -0.084], half: [spec.magWidth / 2 + 0.001, spec.magLength / 2, 0.02], radius: 0.003 },
       { kind: "tube", center: [0, d.barrelY, d.hgCenter], radius: r, halfLength: d.hgLen / 2 },
     ],
-    right: {
-      palm,
-      facing: [-0.6, -0.8 * gz[1], -0.8 * gz[2]],
-      indexSide: gy,
-      forearm: [0.3, -0.5, 0.81],
-      thumb: [-0.42, 0.34, -0.84],
-      trigger: [0.002, -0.029, -0.033],
-    },
+    right: firingHand([0, -0.062, 0.03], 0.049, gripPitch, [0.002, -0.029, -0.033]),
     left: {
       // Overhand: the palm rides the top left of the handguard with the
       // knuckles up toward the eye, fingers wrapping down the far side and
@@ -1652,7 +1682,7 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
         0,
         -0.028,
         0.062,
-        0.28,
+        -0.28,
       ),
     );
     asm.add(
@@ -1734,7 +1764,7 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
         0,
         -0.028,
         0.014,
-        0.19,
+        -0.19,
       ),
     );
     asm.add(
@@ -1756,14 +1786,21 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
         -0.128,
       ),
     );
+    // Rear sight: two ears with a notch the front post sits in.
+    for (const side of [-1, 1]) {
+      asm.add(
+        m.steel,
+        place(
+          chamferedBox(0.0052, 0.009, 0.006, { radius: 0.001 }),
+          side * 0.0054,
+          slideY + 0.0195,
+          0.03,
+        ),
+      );
+    }
     asm.add(
       m.steel,
-      place(
-        chamferedBox(0.016, 0.009, 0.006, { radius: 0.001 }),
-        0,
-        slideY + 0.0195,
-        0.03,
-      ),
+      place(chamferedBox(0.016, 0.004, 0.006, { radius: 0.001 }), 0, slideY + 0.017, 0.03),
     );
   }
 
@@ -1772,11 +1809,11 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     const magAsm = new Assembler();
     magAsm.add(
       m.nitride,
-      place(chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }), 0, -0.028, 0.014, 0.19),
+      place(chamferedBox(0.0195, 0.098, 0.03, { radius: 0.003 }), 0, -0.028, 0.014, -0.19),
     );
     magAsm.add(
       m.polymer,
-      place(chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }), 0, -0.078, 0.024, 0.19),
+      place(chamferedBox(0.024, 0.009, 0.036, { radius: 0.002 }), 0, -0.078, 0.024, -0.19),
     );
     magAsm.flushInto(magazine);
   }
@@ -1843,8 +1880,41 @@ function buildPistol(m: WeaponMaterials, revolver: boolean): WeaponModel {
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
+    grasp: pistolGrasp(revolver, slideY),
     dispose() {
       disposeTree(root);
+    },
+  };
+}
+
+/**
+ * Two-handed pistol: the firing hand on the grip, the support palm on the
+ * exposed left panel with its fingers closed over the firing fingers and
+ * both thumbs forward along the frame.
+ */
+function pistolGrasp(revolver: boolean, slideY: number): GraspSpec {
+  const pitch = revolver ? -0.28 : -0.19;
+  const grip: [number, number, number] = revolver ? [0, -0.028, 0.062] : [0, -0.028, 0.014];
+  const half = revolver ? 0.0425 : 0.048;
+  const gy: [number, number, number] = [0, Math.cos(pitch), Math.sin(pitch)];
+  return {
+    contact: [
+      { kind: "box", center: grip, half: [0.015, half, revolver ? 0.021 : 0.019], radius: 0.01, pitch },
+      { kind: "box", center: [0, slideY, -0.05], half: [0.013, 0.015, 0.0925], radius: 0.004 },
+      { kind: "box", center: [0, slideY - 0.03, -0.032], half: [0.012, 0.015, 0.065], radius: 0.004 },
+      { kind: "box", center: [0, slideY - 0.062, -0.03], half: [0.0035, 0.003, 0.022], radius: 0.002 },
+    ],
+    right: {
+      ...firingHand(grip, half, pitch, [0.002, slideY - 0.058, -0.031]),
+      forearm: [0.18, -0.45, 0.87],
+    },
+    left: {
+      palm: [-0.03, grip[1] - gy[1] * 0.012, grip[2] - gy[2] * 0.012 - 0.004],
+      facing: [1, 0, -0.18],
+      indexSide: gy,
+      forearm: [-0.45, -0.45, 0.77],
+      thumb: [0.12, 0.2, -0.97],
+      cup: true,
     },
   };
 }
@@ -1890,7 +1960,7 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
   }
   asm.add(
     m.steel,
-    place(chamferedBox(0.014, 0.02, 0.012, { radius: 0.003 }), 0, 0, 0.104),
+    place(chamferedBox(0.014, 0.02, 0.012, { radius: 0.003 }), 0, 0, 0.092),
   );
 
   const triangles = asm.flushInto(root);
@@ -1935,6 +2005,23 @@ function buildKnife(m: WeaponMaterials): WeaponModel {
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
+    // A fist round the handle, index against the guard. The hip pose rolls
+    // the knife so the knuckles face the eye and the blade leads.
+    grasp: {
+      contact: [
+        { kind: "box", center: [0, 0, 0.04], half: [0.0085, 0.013, 0.048], radius: 0.006 },
+        { kind: "box", center: [0, 0, -0.016], half: [0.006, 0.015, 0.004], radius: 0.002 },
+        { kind: "box", center: [0, 0, 0.092], half: [0.007, 0.01, 0.006], radius: 0.003 },
+      ],
+      right: {
+        palm: [0.013, 0.004, 0.036],
+        facing: [-1, 0, 0],
+        indexSide: [0, 0, -1],
+        forearm: [0.15, 0.75, 0.65],
+        thumb: [-0.55, -0.3, -0.78],
+      },
+      left: null,
+    },
     dispose() {
       disposeTree(root);
     },
@@ -1972,7 +2059,7 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
       0,
       -0.012,
       0.03,
-      0.3,
+      -0.3,
     ),
   );
   asm.add(
@@ -2038,6 +2125,23 @@ function buildLauncher(m: WeaponMaterials): WeaponModel {
     adsDistance: -0.3,
     adsRotation: new THREE.Euler(),
     triangleCount: triangles,
+    grasp: {
+      contact: [
+        { kind: "tube", center: [0, axisY, -0.28], radius: 0.044, halfLength: 0.43 },
+        { kind: "box", center: [0, -0.012, 0.03], half: [0.016, 0.05, 0.021], radius: 0.011, pitch: -0.3 },
+        { kind: "box", center: [0, 0.002, -0.24], half: [0.014, 0.0375, 0.018], radius: 0.01, pitch: -0.15 },
+        { kind: "box", center: [0, axisY - 0.05, 0.02], half: [0.015, 0.015, 0.045], radius: 0.004 },
+      ],
+      right: firingHand([0, -0.012, 0.03], 0.05, -0.3, null),
+      left: {
+        // Wrapped round the vertical front grip, index under the tube.
+        palm: [-0.02, -0.004, -0.232],
+        facing: [1, 0, -0.15],
+        indexSide: [0, 1, 0],
+        forearm: [-0.55, -0.55, 0.62],
+        thumb: [0.4, 0.5, -0.3],
+      },
+    },
     dispose() {
       disposeTree(root);
     },
@@ -2061,16 +2165,33 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   model.sightOffset.copy(model.parts.sightAxis.position);
 
   // Eye relief: how far in front of the eye the optic sits when aimed. A
-  // magnified scope is held further out than a reflex sight.
+  // magnified scope is held further out than a reflex sight, which sits
+  // close enough that its tube frames the reticle.
   model.adsDistance =
-    weaponClass === "sniper" ? -0.34 : weaponClass === "marksman" ? -0.32 : -0.29;
+    weaponClass === "pistol"
+      ? -0.4
+      : weaponClass === "sniper"
+        ? -0.3
+        : weaponClass === "marksman"
+          ? -0.26
+          : -0.215;
   model.adsRotation.set(0, 0, 0);
 
-  // Hip carry: grip low and outboard so the receiver sits clear of the
-  // crosshair, muzzle canted inboard so the weapon converges on the centre.
-  const bulk = weaponClass === "pistol" || weaponClass === "melee" ? 0.72 : 1;
-  model.hipPosition.set(0.12 * bulk, -0.19 * bulk, -0.34 * bulk);
-  model.hipRotation.set(0.04, -0.07, 0.16);
+  // Hip carry: grip low and outboard, muzzle yawed inboard so the weapon
+  // converges on the centre and its left flank — the side the support hand
+  // is on — faces the eye. A slight cant to the right keeps the handguard's
+  // top and the glove on it in view instead of the underside.
+  if (weaponClass === "pistol") {
+    // Two hands, arms extended, the pistol just right of centre.
+    model.hipPosition.set(0.06, -0.088, -0.3);
+    model.hipRotation.set(0.02, 0.22, -0.08);
+  } else if (weaponClass === "melee") {
+    model.hipPosition.set(0.085, -0.095, -0.29);
+    model.hipRotation.set(0.3, 0.3, -1.1);
+  } else {
+    model.hipPosition.set(0.105, -0.11, -0.24);
+    model.hipRotation.set(0.01, 0.12, -0.07);
+  }
 }
 
 export function buildWeaponModel(def: WeaponDef): WeaponModel {

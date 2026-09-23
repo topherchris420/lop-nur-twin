@@ -34,15 +34,16 @@ export class ViewmodelStage {
   private readonly fill: THREE.HemisphereLight;
   private readonly rim: THREE.DirectionalLight;
   private readonly bounce: THREE.DirectionalLight;
+  private readonly shoulder: THREE.DirectionalLight;
   private readonly options: ViewmodelStageOptions;
   private adsBlend = 0;
 
-  // 96 horizontal is a wider lens than the world's 80, which is deliberate and
-  // is what shipping shooters do: at the world's own lens a rifle held where a
-  // rifle is held eats a third of the screen. These were 70/56 when they were
-  // being fed to a *vertical* FOV property — the same 102/86 horizontal at
-  // 16:9 — so the weapon is drawn at very close to the size it always was.
-  constructor(options: ViewmodelStageOptions = { fov: 96, adsFov: 80 }) {
+  // A slightly narrower lens than the world's 80, which is what shipping
+  // shooters do: it magnifies the hands and the receiver, the parts that
+  // establish the player as a body, without a rifle held where a rifle is
+  // held eating the screen. This was 96 while the arms were tubes; at that
+  // width a glove on the handguard is a smudge half a metre away.
+  constructor(options: ViewmodelStageOptions = { fov: 78, adsFov: 64 }) {
     this.options = options;
     // A very short depth range: the weapon lives between 5 cm and 4 m, so the
     // pass gets the whole precision budget to itself.
@@ -74,6 +75,15 @@ export class ViewmodelStage {
     this.bounce.position.set(0.08, -0.85, -0.55);
     this.scene.add(this.bounce);
     this.scene.add(this.bounce.target);
+
+    // A soft fill from over the shoulder, fixed to the camera. The key
+    // follows the sun, so facing away from it leaves the back of the gloves
+    // and the rifle's flank in shadow; this keeps them legible without
+    // flattening the key's modelling.
+    this.shoulder = new THREE.DirectionalLight(0xf3e6d2, 0.35);
+    this.shoulder.position.set(-0.35, 0.7, 0.6);
+    this.scene.add(this.shoulder);
+    this.scene.add(this.shoulder.target);
   }
 
   /** Point the key light along the world sun and match its colour. */
@@ -93,6 +103,7 @@ export class ViewmodelStage {
     this.fill.intensity = 0.22 + intensity * 0.26;
     this.rim.intensity = 0.28 + intensity * 0.22;
     this.bounce.intensity = 0.04 + intensity * 0.14;
+    this.shoulder.intensity = 0.14 + intensity * 0.3;
   }
 
   setEnvironment(texture: THREE.Texture | null): void {
@@ -169,6 +180,7 @@ export class ViewmodelStage {
     this.fill.dispose();
     this.rim.dispose();
     this.bounce.dispose();
+    this.shoulder.dispose();
     this.scene.clear();
   }
 }
