@@ -3,25 +3,25 @@
 > **An open-source 3D interactive reconstruction and browser-based tactical simulation of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E).**
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-lop--nur--twin.vercel.app-blue?style=for-the-badge&logo=vercel)](https://lop-nur-twin.vercel.app/)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green.style=for-the-badge)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=for-the-badge)](LICENSE)
 
 ---
 
-> ⚠️ **Public sources only. Not operational data.** This project is an analytical reconstruction built strictly from cited open Earth-observation products (Sentinel-2, Landsat, public satellite imagery) and published news reports. It is **not** an official facility record or aeronautical chart, and it is **not approved for classified or Controlled Unclassified Information**. See [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
+> ⚠️ **Public sources only. Not operational data.** This project is an analytical reconstruction built strictly from cited open Earth-observation products (Sentinel-2, Landsat, public satellite imagery, and open climatology). It is not a claim of access to classified information.
 
 ---
 
 ## 🎯 What is Lop Nur Twin?
 
-**Lop Nur Twin** bridges the gap between **Open-Source Intelligence (OSINT)** and **real-time 3D web graphics**. Located deep in China's Xinjiang desert, the Lop Nur facility has attracted global attention from defense analysts, journalists, and satellite imagery enthusiasts.
+**Lop Nur Twin** bridges the gap between **Open-Source Intelligence (OSINT)** and **real-time 3D web graphics**. Located deep in China's Xinjiang desert, the Lop Nur facility has attracted global interest due to its remote location and association with aerospace and defense testing.
 
-This repository transforms public satellite data into an **interactive 3D spatial model** you can explore in your browser, alongside an optional **tactical first-person shooter (`/play`)** running directly on top of the same reconstructed geography.
+This repository transforms public satellite data into an **interactive 3D spatial model** you can explore in your browser, alongside an optional **tactical first-person shooter (`/play`)** running on the same deterministic site geometry.
 
 ### Why You'll Love This:
 
-- 🎮 **For Gamers:** Jump straight into **Blacksite** (`/play`), a fast-paced first-person combat game running directly inside your browser. Experience procedural weapon grip solvers, custom shaders, dynamic AI combatants, and 60 FPS action—no downloads or installs required!
-- 🕵️ **For OSINT Researchers & Analysts:** Explore a mathematically rigorous 3D spatial model. Every runway, building, and taxiway is tagged with public satellite citations, confidence scores, structured uncertainty margins, and temporal presence tracking. Export canonical spatial data directly to **GeoJSON**, **CSV**, or **JSON**.
-- 🌍 **For Everyday Explorers & Tech Enthusiasts:** Orbit, walk across, and measure a real-world remote facility. Learn how satellite pixels are turned into 3D geometry, filter buildings by evidence levels, or run screen-reader friendly analytical reports on non-WebGL devices.
+- 🎮 **For Gamers:** Jump straight into **Blacksite** (`/play`), a fast-paced first-person combat game running directly inside your browser. Experience procedural weapon grip solvers, custom shaders, and tactical AI.
+- 🕵️ **For OSINT Researchers & Analysts:** Explore a mathematically rigorous 3D spatial model. Every runway, building, and taxiway is tagged with public satellite citations, confidence scores, and uncertainty envelopes.
+- 🌍 **For Everyday Explorers & Tech Enthusiasts:** Orbit, walk across, and measure a real-world remote facility. Learn how satellite pixels are turned into 3D geometry, filter buildings by evidence type, and inspect the full source ledger.
 
 ---
 
@@ -29,12 +29,12 @@ This repository transforms public satellite data into an **interactive 3D spatia
 
 The application offers four distinct modes tailored to different workflows and devices:
 
-| Route               | What It Is                                                                                                                                                                                 | Who It's For                    |
-| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------ |
-| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence sliders. | **Explorers & Analysts**        |
-| **`/play`**         | **Blacksite First-Person Simulator**<br>An action tactical match on the reconstructed airfield. Battle AI soldiers across realistic terrain with custom procedural weapons.                | **Gamers & Simulator Fans**     |
-| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation.      | **Researchers & Accessibility** |
-| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                                   | **Auditors & Developers**       |
+| Route               | What It Is                                                                                                                                                                   |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence filters. |
+| **`/play`**         | **Blacksite First-Person Simulator**<br>An action tactical match on the reconstructed airfield. Battle AI soldiers across realistic terrain with custom procedural weapons. **Illustrative fiction only.** |
+| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation. |
+| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                    |
 
 ---
 
@@ -42,19 +42,19 @@ The application offers four distinct modes tailored to different workflows and d
 
 `/play` turns the reconstructed Lop Nur runway and hangar compound into an interactive, browser-based tactical arena.
 
-> _Note: Blacksite is an illustrative game mode for testing character movement, spatial scale, and graphics. Its combat and military units are completely fictional and contribute nothing to the analytical intelligence model._
+> _Note: Blacksite is an illustrative game mode for testing character movement, spatial scale, and graphics. Its combat and military units are completely fictional and contribute nothing to the analytical model._
 
 ### Visual Tour of Blacksite
 
-| Screen                                             | Overview                                                                                                                                                                                           |
-| :------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Title Screen](docs/screenshots/title.png)        | **Instant Access:** Boot screen leads directly into game setup. Runs on WebGL with adaptive quality tiers for smooth performance on laptops and desktops alike.                                    |
-| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts.                                               |
-| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.                                                              |
-| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics—finger joints auto-fit against weapon rails and grips. |
-| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.                                                                  |
+| Screen                                             | Overview                                                                                                                                     |
+| :------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Title Screen](docs/screenshots/title.png)        | **Instant Access:** Boot screen leads directly into game setup. Runs on WebGL with adaptive quality tiers for smooth performance on laptops and mobile devices. |
+| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts. |
+| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.        |
+| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics. |
+| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.          |
 
-_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._
+_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._ 
 
 ---
 
@@ -86,7 +86,7 @@ You can filter the entire 3D scene using **4 Evidence Modes**:
 
 ### 2. Structured Uncertainty & Time Tracking
 
-- **Explicit Tolerances:** Uncertainty is tracked per claim (e.g. runway endpoints carry a ±40m uncertainty margin based on satellite ground sample distance). Unknown fields are printed as _"not stated"_—never zeroed out.
+- **Explicit Tolerances:** Uncertainty is tracked per claim (e.g. runway endpoints carry a ±40m uncertainty margin based on satellite ground sample distance). Unknown fields are printed as _"not stated"_, never silently converted to zero.
 - **Three Independent Dates:** To prevent misinterpreting publication dates as construction dates, the model tracks:
   1. _Site Event Date_ (when something physically existed on ground)
   2. _Evidence Publication Date_ (when satellite/report became public)
@@ -182,7 +182,7 @@ Deep dive into the underlying math, intelligence methodologies, and architecture
 | [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons           |
 | [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                              |
 | [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                   |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline          |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline           |
 | [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                |
 | [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                 |
 | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support              |
@@ -209,4 +209,4 @@ The complete list of limitations is maintained in `src/lib/evidence.ts` and rend
 ## 📄 License & Attribution
 
 - **Source Code & Documentation:** Licensed under the **[Apache License 2.0](LICENSE)**.
-- **Data & Satellite Imagery:** Public satellite products (Copernicus, ESA, DLR, Airbus Defence and Space, NASA POWER) are referenced under fair use and attributed in [`NOTICE`](NOTICE). No third-party proprietary raw provider data files are redistributed.
+- **Data & Satellite Imagery:** Public satellite products (Copernicus, ESA, DLR, Airbus Defence and Space, NASA POWER) are referenced under fair use and attributed in [`NOTICE`](NOTICE). No third-party imagery is bundled in this repository.
