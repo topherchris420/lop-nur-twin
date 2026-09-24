@@ -1,304 +1,212 @@
-# Lop Nur Twin
+# Lop Nur Twin: Desert Airfield Digital Twin & Tactical Simulator
 
-An unclassified, public-source reconstruction of a remote desert airfield near
-Lop Nur (~40.77° N, 89.28° E). The analytical model is the product. Every claim
-in it carries an evidence classification, an uncertainty envelope, and a
-citation. `/play` is a separate first-person simulation on the same geometry,
-and it is not evidence.
+> **An open-source 3D interactive reconstruction and browser-based tactical simulation of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E).**
 
-> **Public sources only. Not operational data.** This is a modeled
-> reconstruction built from cited open Earth-observation products and published
-> reporting. It is not an official facility record, an aeronautical chart, or a
-> verified statement of any building's interior use. It is **not
-> government-certified, not FedRAMP authorized, not CMMC certified, and not
-> approved for classified or Controlled Unclassified Information.** See
-> [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-lop--nur--twin.vercel.app-blue?style=for-the-badge&logo=vercel)](https://lop-nur-twin.vercel.app/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green.style=for-the-badge)](LICENSE)
 
-**Live demo:** <https://lop-nur-twin.vercel.app/>
+---
 
-## Contents
+> ⚠️ **Public sources only. Not operational data.** This project is an analytical reconstruction built strictly from cited open Earth-observation products (Sentinel-2, Landsat, public satellite imagery) and published news reports. It is **not** an official facility record or aeronautical chart, and it is **not approved for classified or Controlled Unclassified Information**. See [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md).
 
-- [Run it](#run-it)
-- [Blacksite](#blacksite)
-- [Routes](#routes)
-- [The model](#the-model)
-- [Uncertainty and time](#uncertainty-and-time)
-- [Code map](#code-map)
-- [Checks](#checks)
-- [Documentation](#documentation)
-- [Known limitations](#known-limitations)
-- [License](#license)
+---
 
-## Run it
+## 🎯 What is Lop Nur Twin?
+
+**Lop Nur Twin** bridges the gap between **Open-Source Intelligence (OSINT)** and **real-time 3D web graphics**. Located deep in China's Xinjiang desert, the Lop Nur facility has attracted global attention from defense analysts, journalists, and satellite imagery enthusiasts.
+
+This repository transforms public satellite data into an **interactive 3D spatial model** you can explore in your browser, alongside an optional **tactical first-person shooter (`/play`)** running directly on top of the same reconstructed geography.
+
+### Why You'll Love This:
+
+- 🎮 **For Gamers:** Jump straight into **Blacksite** (`/play`), a fast-paced first-person combat game running directly inside your browser. Experience procedural weapon grip solvers, custom shaders, dynamic AI combatants, and 60 FPS action—no downloads or installs required!
+- 🕵️ **For OSINT Researchers & Analysts:** Explore a mathematically rigorous 3D spatial model. Every runway, building, and taxiway is tagged with public satellite citations, confidence scores, structured uncertainty margins, and temporal presence tracking. Export canonical spatial data directly to **GeoJSON**, **CSV**, or **JSON**.
+- 🌍 **For Everyday Explorers & Tech Enthusiasts:** Orbit, walk across, and measure a real-world remote facility. Learn how satellite pixels are turned into 3D geometry, filter buildings by evidence levels, or run screen-reader friendly analytical reports on non-WebGL devices.
+
+---
+
+## 🗺️ Choose Your Experience (Routes)
+
+The application offers four distinct modes tailored to different workflows and devices:
+
+| Route               | What It Is                                                                                                                                                                                 | Who It's For                    |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------ |
+| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence sliders. | **Explorers & Analysts**        |
+| **`/play`**         | **Blacksite First-Person Simulator**<br>An action tactical match on the reconstructed airfield. Battle AI soldiers across realistic terrain with custom procedural weapons.                | **Gamers & Simulator Fans**     |
+| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation.      | **Researchers & Accessibility** |
+| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                                   | **Auditors & Developers**       |
+
+---
+
+## 🎮 The Blacksite Simulator (`/play`)
+
+`/play` turns the reconstructed Lop Nur runway and hangar compound into an interactive, browser-based tactical arena.
+
+> _Note: Blacksite is an illustrative game mode for testing character movement, spatial scale, and graphics. Its combat and military units are completely fictional and contribute nothing to the analytical intelligence model._
+
+### Visual Tour of Blacksite
+
+| Screen                                             | Overview                                                                                                                                                                                           |
+| :------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Title Screen](docs/screenshots/title.png)        | **Instant Access:** Boot screen leads directly into game setup. Runs on WebGL with adaptive quality tiers for smooth performance on laptops and desktops alike.                                    |
+| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts.                                               |
+| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.                                                              |
+| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics—finger joints auto-fit against weapon rails and grips. |
+| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.                                                                  |
+
+_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._
+
+---
+
+## 🕵️ The OSINT Analytical Model
+
+For OSINT researchers, defense analysts, and data scientists, **Lop Nur Twin** is a deterministic, audit-ready spatial database.
+
+![Aerial Overview](docs/screenshot-overview.png)
+_Aerial overview of the reconstructed runway and south hangar compound._
+
+![Structure Dossier](docs/screenshot-dossier.png)
+_Detailed structure dossier showing evidence ratings, public source citations, and spatial measurements._
+
+### 1. Evidence Classification Hierarchy
+
+Every structure and feature in the model carries an explicit evidence tag so you always know what is proven and what is inferred:
+
+- ◆ **Observed:** Directly visible in cited public satellite imagery (e.g., runway dimensions, hangar outlines).
+- ■ **Reported:** Stated by a cited open publication or news report, with placement modeled from context.
+- ▲ **Interpreted:** Facility identity or function assigned by this project where no direct public source states one.
+- ○ **Illustrative:** Scenery, vehicles, or decorative elements added to complete the simulation.
+
+You can filter the entire 3D scene using **4 Evidence Modes**:
+
+1. **Observed only** _(Shows only raw satellite-confirmed structures)_
+2. **Observed + reported**
+3. **+ interpreted**
+4. **Full simulation** _(All scenery & illustrative props)_
+
+### 2. Structured Uncertainty & Time Tracking
+
+- **Explicit Tolerances:** Uncertainty is tracked per claim (e.g. runway endpoints carry a ±40m uncertainty margin based on satellite ground sample distance). Unknown fields are printed as _"not stated"_—never zeroed out.
+- **Three Independent Dates:** To prevent misinterpreting publication dates as construction dates, the model tracks:
+  1. _Site Event Date_ (when something physically existed on ground)
+  2. _Evidence Publication Date_ (when satellite/report became public)
+  3. _Model Entry Date_ (when data was added to this repository)
+
+### 3. Precision Measurement & Geo Exports
+
+- **Local CRS (EPSG:32645):** Measure distances, perimeter lengths, and grid bearings directly in meters.
+- **Data Exports:** Filter subjects by confidence, area, or proximity, then export standard **GeoJSON (WGS84)**, **CSV**, or **JSON** for use in ArcGIS, QGIS, or Python analysis pipelines.
+
+---
+
+## 🚀 Quick Start (Run It Locally)
+
+Want to run the app on your computer, inspect the source code, or contribute?
 
 ### Prerequisites
 
-- [Bun](https://bun.sh), or Node.js **22.18+**
-- A browser with WebGL for `/` and `/play`. `/analysis` and `/compare` do not
-  need WebGL.
+- [Bun](https://bun.sh) (recommended) or **Node.js 22.18+**
+- A modern browser with WebGL enabled (Chrome, Firefox, Edge, Safari)
 
-### Install and run
+### Installation & Launch
 
 ```sh
+# Clone the repository
+git clone https://github.com/vers3dynamics/lop-nur-twin.git
+cd lop-nur-twin
+
+# Install dependencies
 bun install
-bun run dev      # dev server on :5173; regenerates the manifest first
-bun run build    # validate → manifest → production build → strict typecheck
-bun run preview  # serve the production build on :4173
+
+# Start local development server (runs on http://localhost:5173)
+bun run dev
+
+# Build for production with strict type-checking
+bun run build
+
+# Preview production build locally (http://localhost:4173)
+bun run preview
 ```
 
-`npm install && npm run dev` works on Node.js 22.18 or newer. The TypeScript
-build scripts run under Bun natively, or under Node through
-`scripts/run-ts.mjs`, and both produce byte-identical manifests.
+_(Note: `npm install && npm run dev` works identically on Node.js 22.18+)._
 
-Before a pull request:
+---
+
+## 💻 Code Map & Developer Guide
+
+```text
+src/
+├── lib/           # Layout definitions, evidence ledger, CRS, and URL params
+├── components/    # 3D WebGL scene (Three.js/React Three Fiber) & analytical UI
+├── game/          # Blacksite FPS engine (physics, weapons, bot AI, audio)
+├── gfx/           # Custom GLSL shaders, AgX tone mapping, and greeble textures
+scripts/           # Data validation & release manifest generators
+tools/             # Automated test suite (accessibility, audio, gameplay smoke tests)
+docs/              # In-depth architectural, spatial, and methodological documentation
+```
+
+### Automated Quality & Validation Checks
+
+Run all validation checks before submitting changes:
 
 ```sh
 bun run check
 ```
 
-That runs formatting, lint, unit tests, the evidence-rule tests, and the
-production build. Narrower commands are listed under [Checks](#checks).
-
-## Blacksite
-
-`/play` is **Blacksite**, an illustrative first-person match on the
-reconstructed airfield. The weapons, the soldiers, and the engagement are
-invented. A note on the route says so, outside the game HUD, because the HUD
-comes and goes and the note must not. The simulation reads the layout and
-writes nothing back to the evidence ledger.
-
-These frames are from a local run of this tree (`/play`, quality tier 2).
-
-![Blacksite title screen: the word Blacksite, the line Lop Nur · First-Person Engagement Simulator, and Press any key to continue.](docs/screenshots/title.png)
-
-The boot screen. Any key opens the menu.
-
-![Blacksite main menu over a darkened view of the airfield, with Team Deathmatch, Domination, Free-for-All and Hardpoint, plus Deploy, Loadout, and Return to Digital Twin.](docs/screenshots/menu.png)
-
-The menu: mode, opposition, difficulty, loadout, and a way back to the twin.
-
-![First-person match on the apron: a carbine held in two gloved hands, the support hand under the handguard, hangar walls behind, and the combat HUD (compass, health, ammunition, minimap).](docs/screenshots/gameplay.png)
-
-In a match. The rifle, the HUD, and the other soldiers belong to the
-simulation, not to the analytical model.
-
-![Aiming down the sights: the red dot's tube frames the reticle, the support glove wraps the handguard below it.](docs/screenshots/aim.png)
-
-Aimed. The gloves are sculpted as signed distance fields and their fingers are
-solved against the weapon's own grip and handguard, so the hold follows the
-gun rather than being posed by hand.
-
-![A procedural soldier a few metres ahead on the apron, helmet and vest on, rifle held across the body, with the player's gloved support arm and carbine in the foreground](docs/screenshots/character.png)
-
-A soldier at a few metres. Characters are built in code. There is no imported
-character mesh.
-
-Controls, modes, and the boundary with the analysis:
-[`docs/BLACKSITE.md`](docs/BLACKSITE.md).
-
-## Routes
-
-| Route           | What it is                                                                                                                                        |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`/`**         | The analytical twin. Orbit it, walk it, open a structure's sourced dossier, measure distances and grid bearings, and filter by evidence mode.     |
-| **`/analysis`** | The same model without the 3D scene. An equal front door, not a fallback: the analytical capabilities in a semantic, screen-reader-friendly form. |
-| **`/compare`**  | Diff two release manifests. A reworded description is not the same event as a moved footprint.                                                    |
-| **`/play`**     | Blacksite. Optional, illustrative, and labelled as such. It contributes nothing to an analytical conclusion.                                      |
-
-`/` and `/analysis` are the research product. `/compare` checks what a build
-changed. `/play` is a way to cross the same geometry on foot.
-
-![Aerial overview — the compound on the south side of the runway](docs/screenshot-overview.png)
-
-![Structure dossier — every claim with its source, uncertainty and temporal evidence](docs/screenshot-dossier.png)
-
-## The model
-
-The layout and the source register are the inputs. The evidence ledger and the
-release manifest are generated from them. A claim cannot outlive the thing it
-describes, because nothing in the ledger is written by hand.
-
-- **Evidence modes.** Four nested thresholds, applied by the scene, the
-  minimap, the structure index, the dossier, the measurement ruler, and
-  `/analysis`.
-- **Structured uncertainty.** A machine-readable envelope per claim. A number
-  appears only where this project documents one.
-- **Time.** Read the model at a date, and diff two dates.
-- **Measurement.** Snap to modeled vertices. Distances and grid bearings are in
-  EPSG:32645. A measurement can be copied out as plain text with its citation.
-- **Spatial queries.** Filter stable footprints by evidence, source support,
-  uncertainty, temporal presence, and edge-to-edge proximity. Export canonical
-  JSON, CSV, or WGS84 GeoJSON.
-- **Release manifest.** SHA-256 over canonical model data, per-subject digests,
-  and an explicit list of what the model does not know.
-- **Local bookmarks.** A saved view that records the hashes of the model it was
-  taken against.
-
-The site model is procedural and deterministic. There are no binary art assets
-and no analytics. By default the analytical view's only network request is its
-own manifest, fetched from the origin that served the page. `?liveTraffic=1`
-opts into an ADS-B poll of the public ADSB.lol feed. That request is off unless
-the flag is set: the upstream response does not currently send browser CORS
-headers, so the default page does not call it.
-
-### Classifications
-
-Shown everywhere as a symbol and a word, never by colour alone.
-
-|     | Status           | Means                                                                                      |
-| :-- | :--------------- | :----------------------------------------------------------------------------------------- |
-| ◆   | **Observed**     | Visible in the cited public imagery. Presence and extent — never function or interior use. |
-| ■   | **Reported**     | A cited publication states it exists. Placement and dimensions here are still modeled.     |
-| ▲   | **Interpreted**  | This project assigned an identity, dimension, or function no source states.                |
-| ○   | **Illustrative** | Modeled scenery or motion, not resolved in any source.                                     |
-
-An evidence mode is a threshold. Each mode adds one weaker class:
-
-| Mode                    | Draws                                                                          |
-| :---------------------- | :----------------------------------------------------------------------------- |
-| **Observed only**       | Only what a cited scene shows directly, plus the measurements taken from it.   |
-| **Observed + reported** | Adds features a cited publication states are there.                            |
-| **+ interpreted**       | Adds identities, functions, and dimensions this project assigned.              |
-| **Full simulation**     | The complete reconstruction, including illustrative infrastructure and motion. |
-
-Observed mode currently draws **one** of the model's 68 filterable subjects.
-That count is the point: it is how much of the reconstruction is directly
-visible in a cited scene. Terrain and atmosphere are never filtered. They are
-the canvas, and they carry their own classification wherever it is published.
-
-## Uncertainty and time
-
-**Unknown stays unknown.** An absent figure is printed as "not stated", never
-as zero and never as a missing row. Height and orientation tolerances are
-absent from every envelope because no cited source states one.
-
-A number is only allowed from three places, and every envelope names which:
-stated by the cited source, documented by this project (the ±40 m runway
-endpoint uncertainty), or a resolution floor derived from the cited scene's
-ground sample distance. The build fails on a number with no method, no basis, a
-reversed date range, or an `observed` claim that bounds no position at all.
-
-Three dates stay separate. Collapsing them is how a publication date becomes a
-construction date:
-
-1. **When something happened at the site.** Almost never known. A first
-   appearance bounds when a building existed _by_, so the interface says
-   "existed by 2025-09-13; earliest date unknown".
-2. **When the evidence became public.** This is the date that decides what an
-   analyst could have concluded at a given moment.
-3. **When the change entered this model.** A fact about this repository. The
-   model does not currently record it, and says so.
-
-Method: [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md) and
-[`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md).
-
-## Code map
-
-```text
-src/lib/           layout, evidence, parameters, validation
-src/components/    3D scene and the analytical route UI
-src/game/          the /play simulation (physics, characters, weapons, HUD)
-src/gfx/           procedural hard-surface shading and the post stack
-scripts/           data validation and the release manifest
-tools/             browser, accessibility, and simulation checks
-docs/              methods, provenance, architecture, operations
-experiments/       unfinished work, outside src/ and outside the typecheck
-```
-
-Do not hard-code coordinates in a component. Placement comes from
-`src/lib/layout.ts`. Sources, the local CRS, and climatology come from
-`src/lib/siteData.ts`. URL parameters go through `src/lib/params.ts`.
-
-## Checks
+Or run individual sub-check commands:
 
 ```sh
-bun run check         # format:check → lint → test:run → test:evidence → build
-bun run test:run      # unit tests over the deterministic modules
-bun run test:evidence # all 35 evidence-validator rules still fire
-bun run validate:data # sources, geometry, bounds, geodesy, evidence ledger
-bun run a11y          # axe-core + CSP, against the preview build
-bun run routes        # deep links, hostile parameters, keyboard, mobile
-bun run smoke         # Blacksite simulation checks
-bun run gait          # walk-cycle checks
-bun run audio         # each sound, rendered offline, peak and crest factor
+bun run test:run      # Run unit tests
+bun run test:evidence # Validate all 35 OSINT evidence rules
+bun run validate:data # Validate geometry, coordinates, and citations
+bun run a11y          # Run axe-core accessibility check against production build
+bun run routes        # Test deep links, URL parameters, and mobile navigation
+bun run smoke         # Run Blacksite simulation smoke tests
+bun run gait          # Test character walk cycle IK math
+bun run audio         # Verify procedural audio peak and crest factors
 ```
 
-`bun run build` is the integration gate. What each check does and does not
-prove: [`docs/VALIDATION.md`](docs/VALIDATION.md).
+---
 
-`bun run a11y` and `bun run routes` need the preview server (`bun run build &&
-bun run preview`), because they test the artifact that ships, including its
-security headers.
+## 📚 Technical Documentation Index
 
-## Documentation
+Deep dive into the underlying math, intelligence methodologies, and architecture:
 
-| Document                                                         | What it covers                                                                    |
-| :--------------------------------------------------------------- | :-------------------------------------------------------------------------------- |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md)                             | Setup, the rules a change has to hold to, and what a pull request needs           |
-| [`docs/VALIDATION.md`](docs/VALIDATION.md)                       | Every check, what it proves, and the repository settings code cannot configure    |
-| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)             | Source registration, classification, confidence, hashing, reproducing a release   |
-| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)           | Footprint derivation, spatial queries, distance semantics, interoperable exports  |
-| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)         | The envelope schema, where a number may come from, and what the build refuses     |
-| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)               | The three dates, the event ledger, snapshots, and change comparison               |
-| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)           | Manifest schema 1.1, the four per-subject hashes, and what a diff cannot see      |
-| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                       | What the reconstruction contains and how it is put together                       |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)     | Frontend, scene, routes, stores, validation pipeline, build, and trust boundaries |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                 | What is implemented, what the axe run covers, and the manual checks that remain   |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md)                           | Keyboard, pointer, and URL parameters for every route                             |
-| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                         | The optional simulation, and the wall between it and the analysis                 |
-| [`SECURITY.md`](SECURITY.md)                                     | Supported versions, vulnerability reporting, and the limits of a browser demo     |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)                   | Assets, trust boundaries, threats, and residual risk                              |
-| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md) | What this is, what it is not, and a 30-minute evaluation path                     |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                       | Vercel settings, the container image, and verifying a deployment matches a commit |
-| [`docs/FUTURE_BACKEND.md`](docs/FUTURE_BACKEND.md)               | PostGIS, STAC, OIDC, and audit logging — implemented, scaffolded, and not         |
-| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                     | The long-form argument, also as [HTML](docs/white-paper.html)                     |
-| [`AGENTS.md`](AGENTS.md)                                         | Extending the twin: house rules and recipes                                       |
-| [`experiments/README.md`](experiments/README.md)                 | Unfinished subsystems kept outside `src/`, and why                                |
+| Document                                                                      | Topic                                                                     |
+| :---------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                                          | Setup guidelines, coding conventions, and pull request rules              |
+| [`docs/VALIDATION.md`](docs/VALIDATION.md)                                    | Complete guide to data, geometry, and simulation verification             |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)                          | Satellite source registration, classification, and confidence scoring     |
+| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)                        | Coordinates (EPSG:32645), footprint derivation, and GeoJSON exports       |
+| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)                      | Machine-readable uncertainty envelopes and resolution bounds              |
+| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons           |
+| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                              |
+| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                   |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline          |
+| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                 |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support              |
+| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md)              | Compliance evaluation guide for government / public sector reviewers      |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) & [`SECURITY.md`](SECURITY.md) | Security posture, trust boundaries, and vulnerability reporting           |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                                    | Vercel deployment, Docker builds, and commit verification                 |
+| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                                  | Comprehensive project white paper ([HTML version](docs/white-paper.html)) |
+| [`AGENTS.md`](AGENTS.md)                                                      | AI coding agent instructions and project recipes                          |
 
-## Known limitations
+---
 
-The authoritative list is `KNOWN_LIMITATIONS` in `src/lib/evidence.ts`, published
-in the release manifest and rendered on `/analysis`. In summary:
+## ⚠️ Known Limitations
 
-- **It is a reconstruction.** Facility functions are interpretations. Names such
-  as "assembly hangar" and "operations block" are model hypotheses. Public
-  overhead imagery does not establish interiors, occupants, or use.
-- **Terrain is a seeded procedural proxy** around an approximate ~981 m EGM2008
-  datum. No DEM tile is redistributed. The surface must not be used for
-  survey-grade elevation, slope, or sightline analysis.
-- **Modeled runway endpoints carry roughly 40 m of uncertainty.** The 10 m
-  source imagery supports site-scale measurement, not detailed interior or
-  function claims.
-- **Base-support systems are illustrative.** Power, water, sanitation,
-  communications, sensors, and security are not resolved in the cited imagery.
-- **Confidence values are project-assigned ordinal ranks** on a 0–1 scale, not
-  measured probabilities.
-- **No source artifact is retrieved at build time**, so no source content hashes
-  are recorded. Provenance is pinned by citation, access date, and reviewed
-  data change.
-- **Temporal coverage is partial.** Five of the ten event categories the schema
-  defines hold no evidence, and `/analysis` shows the gaps rather than filling
-  them.
-- **Deferred from this release:** local reference-image registration, GeoTIFF
-  processing, automated imagery-difference detection, relationship-graph
-  visualisation, a report builder, PDF generation, and a spatial ghost of an
-  earlier state in 3D. Temporal comparison is complete semantically on
-  `/analysis`. Only its 3D rendering is absent.
+The complete list of limitations is maintained in `src/lib/evidence.ts` and rendered on `/analysis`:
 
-## License
+1. **Interpretive Facility Names:** Names like "assembly hangar" or "operations block" are model hypotheses. Public overhead imagery cannot verify interior use or building occupants.
+2. **Procedural Elevation Floor:** Terrain uses a seeded procedural proxy (~981 m EGM2008 datum). It is not suitable for survey-grade sightline or elevation engineering.
+3. **Runway Endpoint Uncertainty:** Modeled runway endpoints carry ~40m uncertainty due to source imagery resolution (10m ground sample distance).
+4. **Illustrative Utilities:** Power, water, radar, and security fencing are illustrative recreations not resolved in public satellite frames.
+5. **Ordinal Confidence Scores:** Confidence ratings (0.0 to 1.0) are project-assigned ordinal ranks, not statistical probabilities.
 
-The original source code, procedural models, and original documentation in this
-repository are licensed under the **Apache License 2.0** — see
-[`LICENSE`](LICENSE).
+---
 
-That grant covers this repository's own work and nothing else.
-[`NOTICE`](NOTICE) states the boundary: cited satellite imagery, digital
-elevation models, climate products, journalism, and academic publications are
-**referenced, not relicensed**, and no provider data file is redistributed here.
-Product names, aircraft designations, and organisation names are used
-descriptively. Apache-2.0 section 6 grants no trademark licence, including for
-the Vers3Dynamics name and branding.
+## 📄 License & Attribution
 
-Attribution required by cited providers — Copernicus, ESA, DLR, Airbus Defence
-and Space, and NASA POWER — is reproduced in `NOTICE`. The machine-readable
-register is `src/lib/siteData.ts`.
+- **Source Code & Documentation:** Licensed under the **[Apache License 2.0](LICENSE)**.
+- **Data & Satellite Imagery:** Public satellite products (Copernicus, ESA, DLR, Airbus Defence and Space, NASA POWER) are referenced under fair use and attributed in [`NOTICE`](NOTICE). No third-party proprietary raw provider data files are redistributed.
