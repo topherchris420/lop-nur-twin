@@ -29,12 +29,12 @@ This repository transforms public satellite data into an **interactive 3D spatia
 
 The application offers four distinct modes tailored to different workflows and devices:
 
-| Route               | What It Is                                                                                                                                                                   |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence filters. |
+| Route               | What It Is                                                                                                                                                                                                 |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence filters.                 |
 | **`/play`**         | **Blacksite First-Person Simulator**<br>An action tactical match on the reconstructed airfield. Battle AI soldiers across realistic terrain with custom procedural weapons. **Illustrative fiction only.** |
-| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation. |
-| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                    |
+| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation.                      |
+| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                                                   |
 
 ---
 
@@ -46,15 +46,15 @@ The application offers four distinct modes tailored to different workflows and d
 
 ### Visual Tour of Blacksite
 
-| Screen                                             | Overview                                                                                                                                     |
-| :------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screen                                             | Overview                                                                                                                                                        |
+| :------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ![Title Screen](docs/screenshots/title.png)        | **Instant Access:** Boot screen leads directly into game setup. Runs on WebGL with adaptive quality tiers for smooth performance on laptops and mobile devices. |
-| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts. |
-| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.        |
-| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics. |
-| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.          |
+| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts.            |
+| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.                           |
+| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics.                    |
+| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.                               |
 
-_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._ 
+_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._
 
 ---
 
@@ -182,7 +182,7 @@ Deep dive into the underlying math, intelligence methodologies, and architecture
 | [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons           |
 | [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                              |
 | [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                   |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline           |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline          |
 | [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                |
 | [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                 |
 | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support              |
