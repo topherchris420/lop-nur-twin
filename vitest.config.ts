@@ -24,7 +24,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    // `server/` is the Jev decision endpoint; its tests use injected fetch and
+    // clocks and never reach TypeSafe.
+    include: ["src/**/*.test.ts", "server/**/*.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

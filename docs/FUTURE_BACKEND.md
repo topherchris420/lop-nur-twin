@@ -1,8 +1,15 @@
 # Future backend architecture
 
-Everything in this repository today runs in a browser from static files. That
-is a deliberate choice: it makes a release reproducible, keeps the whole data
-surface auditable, and means there is no server to compromise.
+Everything analytical in this repository today runs in a browser from static
+files. That is a deliberate choice: it makes a release reproducible, keeps the
+whole data surface auditable, and means there is no server to compromise.
+
+The single server-side component is outside the analytical model and optional:
+`api/jev/decision.ts`, a stateless Vercel Function that lets the TypeSafe Jev
+model choose the player's controls in the illustrative simulation
+(`/play?brain=jev`). It holds one credential, stores nothing, serves no model
+data, and the site works without it — see
+[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). Nothing below builds on it.
 
 This document describes what an authenticated, server-backed deployment would
 look like **if an agency pilot required one** — and is explicit about what is

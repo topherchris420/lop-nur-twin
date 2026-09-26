@@ -32,5 +32,9 @@
   // `scripts/` is in the project too. Those files decide what the validator
   // rejects and what the release manifest hashes, so they are production code
   // that happens to run at build time rather than in a browser.
-  "include": ["src", "scripts", "vite.config.ts", "vitest.config.ts"]
+  //
+  // `server/` and `api/` hold the one server-side feature, the Jev decision
+  // endpoint. They are strict-checked like everything else; the API key they
+  // read is server-only by construction (see docs/JEV_BLACKSITE.md).
+  "include": ["src", "scripts", "server", "api", "vite.config.ts", "vitest.config.ts"]
 }

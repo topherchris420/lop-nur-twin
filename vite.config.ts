@@ -1,8 +1,15 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { fileURLToPath, URL } from "node:url";
+// `.js` like every import in the server chain, which @vercel/node runs with its
+// specifiers as written. Vite's `configLoader: "native"` cannot load it yet.
+import {
+  MAX_BODY_BYTES,
+  clientKeyFrom,
+  createJevDecisionHandler,
+} from "./server/jev/handler.js";
 
 /**
  * The response headers the deployed site is expected to serve.
@@ -63,13 +70,83 @@ const BUILD_COMMIT = (
   ""
 ).slice(0, 7);
 
-export default defineConfig({
+const JEV_DECISION_PATH = "/api/jev/decision";
+
+/**
+ * Serves `/api/jev/decision` from `vite` and `vite preview`, so `/play?brain=jev`
+ * works locally without the Vercel CLI.
+ *
+ * It mounts the same handler the Vercel function exports. The credential comes
+ * from the shell or from `.env.local` (git-ignored) through `loadEnv` with the
+ * `TYPESAFE_` prefix, and goes only to that handler: it is never added to
+ * `define`, and Vite only inlines `VITE_`-prefixed variables into the bundle, so
+ * the browser build cannot contain it. `tools/jev-secret-scan.mjs` checks.
+ */
+function jevDecisionApi(env: Record<string, string>): Plugin {
+  const handle = createJevDecisionHandler({
+    apiKey: env["TYPESAFE_API_KEY"],
+    model: env["TYPESAFE_MODEL"],
+  });
+  const middleware: Connect.NextHandleFunction = (req, res, next) => {
+    const path = (req.url ?? "").split("?")[0];
+    if (path !== JEV_DECISION_PATH) {
+      next();
+      return;
+    }
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on("data", (chunk: Buffer) => {
+      // Keep one byte past the limit so the handler can report 413 itself.
+      if (size > MAX_BODY_BYTES) return;
+      chunks.push(chunk);
+      size += chunk.length;
+    });
+    req.on("end", () => {
+      const headers = new Headers();
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (typeof value === "string") headers.set(key, value);
+        else if (Array.isArray(value)) headers.set(key, value.join(", "));
+      }
+      const method = req.method ?? "GET";
+      const body = Buffer.concat(chunks).subarray(0, MAX_BODY_BYTES + 1);
+      const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, {
+        method,
+        headers,
+        body: method === "GET" || method === "HEAD" ? undefined : body,
+      });
+      handle(request, {
+        clientKey: clientKeyFrom(headers, req.socket.remoteAddress ?? "local"),
+      })
+        .then(async (response) => {
+          res.statusCode = response.status;
+          response.headers.forEach((value, key) => res.setHeader(key, value));
+          res.end(Buffer.from(await response.arrayBuffer()));
+        })
+        .catch(() => {
+          res.statusCode = 500;
+          res.end();
+        });
+    });
+  };
+  return {
+    name: "blacksite-jev-decision-api",
+    configureServer(server) {
+      server.middlewares.use(middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+    },
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) },
   preview: { headers: SECURITY_HEADERS },
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),
     tailwindcss(),
+    jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
   ],
   resolve: {
     alias: {
@@ -90,4 +167,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

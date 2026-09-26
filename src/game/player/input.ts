@@ -137,6 +137,15 @@ export class InputManager {
     if (document.pointerLockElement) document.exitPointerLock();
   }
 
+  /**
+   * Forget every held key and pending edge. Used when control comes back from
+   * a brain, so nothing pressed while the pointer was free leaks into play.
+   */
+  reset(): void {
+    this.clearHeld();
+    clearInputEdges(this.state);
+  }
+
   /** Call after the simulation step has consumed the state. */
   endFrame(): void {
     this.rawYaw = this.state.lookYaw;

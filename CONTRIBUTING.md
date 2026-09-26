@@ -33,15 +33,16 @@ bun run build && bun run preview &
 bun run a11y && bun run routes
 
 bun run dev &
-bun run smoke && bun run gait && bun run audio
+bun run smoke && bun run gait && bun run audio && bun run jev
 ```
 
 [`docs/VALIDATION.md`](docs/VALIDATION.md) says what each of these proves.
 
 **Keep the build green.** `bun run build` runs the data validator, regenerates
-the manifest, bundles, and finishes with a strict `tsc --noEmit` over `src/` and
-`scripts/` — no `any`, unused locals are errors, no exclusions. A change that
-needs the build red is a change that needs a different design.
+the manifest, bundles, runs a strict `tsc --noEmit` over `src/`, `scripts/`,
+`server/` and `api/` — no `any`, unused locals are errors, no exclusions — and
+finishes by scanning `dist/` for the Jev API key. A change that needs the build
+red is a change that needs a different design.
 
 ## Formatting and linting
 

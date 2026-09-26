@@ -7,9 +7,12 @@ when to run them.
 ## The gate
 
 `bun run build` is the authoritative integration gate. It runs the offline data
-validator, regenerates the release manifest, produces the production bundle, and
-finishes with a strict `tsc --noEmit` over every file in `src/` and `scripts/` —
-no `any`, unused locals are errors, no exclusions.
+validator, regenerates the release manifest, produces the production bundle,
+runs a strict `tsc --noEmit` over every file in `src/`, `scripts/`, `server/` and
+`api/` — no `any`, unused locals are errors, no exclusions — and finishes with
+`tools/jev-secret-scan.mjs`, which fails the build if `dist/` contains the
+TypeSafe credential's name, anything shaped like a TypeSafe key, or the
+configured key's value when it is present in the build environment.
 
 `bun run check` composes the full quality gate:
 
@@ -18,7 +21,7 @@ bun run format:check   # Prettier
 bun run lint           # ESLint
 bun run test:run       # Vitest
 bun run test:evidence  # the validator's own negative tests
-bun run build          # validate → manifest → bundle → strict typecheck
+bun run build          # validate → manifest → bundle → strict typecheck → secret scan
 ```
 
 Nothing in that list re-runs a build operation the build already performs.
@@ -141,6 +144,31 @@ bun run engagement   # 13 checks: the opposing force actually fights you
 bun run gait         # 15 checks on the walk cycle
 bun run audio        # renders each sound offline and measures peak + crest
 ```
+
+### The player brains
+
+```sh
+bun run test:jev                    # unit: contract, schema, executor, loop,
+                                    # providers, recorder, metrics, endpoint,
+                                    # credential boundary — no API calls
+bun run jev                         # 54 browser checks against the dev server,
+                                    # Jev path against a fake endpoint — no API calls
+JEV_LIVE_TEST=1 bun run jev:live    # the real TypeSafe API, through the dev server
+bun run benchmark:random            # repeatable episodes, seeded random brain
+JEV_LIVE_TEST=1 bun run benchmark:jev
+bun run replay:jev -- trace.jsonl   # replay a recorded control stream
+```
+
+`bun run jev` proves the pilot seat without spending anything: the random brain
+moves, turns and fires through the real rig; seed 42 reproduces its frames;
+errors, timeouts and an unconfigured service show ERROR, TIMEOUT and UNAVAILABLE
+while the simulation keeps running and nothing stays held; invalid answers are
+rejected; H hands control back; death and respawn leave the controller working;
+fallback and replay can never be labelled LIVE JEV; hostile `?brain=`, `?seed=`,
+`?fallback=` and `?trace=` values fall back to defaults. Anything that calls the
+real API requires `JEV_LIVE_TEST=1`. The headless tools stub the GPU draw and
+explain why in `tools/jev-harness.mjs`. See
+[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
 
 Each exists because a still frame reported something false. `tools/gait.mjs`
 steps one actor's animator across several stride cycles, because a headless

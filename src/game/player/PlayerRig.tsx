@@ -25,6 +25,8 @@ import { isCoarsePointer } from "@/lib/touchInput";
 import { sunElevationRad, SUN } from "../render/environment";
 import { getPostExposure } from "../render/screenEffects";
 import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
+import { pilot } from "../pilot/pilot";
+import { rigState } from "../pilot/rigState";
 
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
@@ -208,6 +210,7 @@ export function PlayerRig({
   const adsSensitivity = useGameStore((s) => s.adsSensitivity);
   const invertY = useGameStore((s) => s.invertY);
   const fovSetting = useGameStore((s) => s.fov);
+  const brain = useGameStore((s) => s.brain);
 
   const controller = useMemo(() => new PlayerController(), []);
   const animator = useMemo(() => new ViewmodelAnimator(), []);
@@ -249,8 +252,11 @@ export function PlayerRig({
         adsSensitivity,
         invertY,
         onLockChange: (locked) => {
-          if (!locked && useGameStore.getState().screen === "playing") {
-            useGameStore.getState().setScreen("paused");
+          // Releasing the pointer pauses a human's match. A brain plays without
+          // the pointer, so losing it then is not a reason to stop.
+          const state = useGameStore.getState();
+          if (!locked && state.screen === "playing" && state.brain === "human") {
+            state.setScreen("paused");
           }
         },
         onPause: () => {
@@ -281,6 +287,18 @@ export function PlayerRig({
     input.attach(element);
     return () => input.detach();
   }, [input, gl]);
+
+  // A takeover hands control back inside the user's own click or key press,
+  // which is the only moment the browser will grant the pointer lock.
+  useEffect(() => {
+    pilot.requestHumanLock = () => input.requestLock();
+    pilot.resetHumanInput = () => input.reset();
+    return () => {
+      pilot.requestHumanLock = null;
+      pilot.resetHumanInput = null;
+      rigState.ready = false;
+    };
+  }, [input]);
 
   // Build the loadout's weapons, and rebuild when the loadout changes.
   useEffect(() => {
@@ -320,15 +338,16 @@ export function PlayerRig({
     };
   }, [loadout.primaryId, loadout.secondaryId, viewmodelRoot, animator, onReady]);
 
-  // Grab the pointer whenever we enter play.
+  // Grab the pointer whenever a human enters play. A brain needs no pointer, so
+  // a spectator keeps the cursor to reach TAKE CONTROL.
   useEffect(() => {
-    if (screen === "playing") {
+    if (screen === "playing" && brain === "human") {
       const id = window.setTimeout(() => input.requestLock(), 60);
       return () => window.clearTimeout(id);
     }
     input.releaseLock();
     return undefined;
-  }, [screen, input]);
+  }, [screen, input, brain]);
 
   /* ------------------------------------------------------------ loop */
 
@@ -350,8 +369,12 @@ export function PlayerRig({
 
     input.adsBlend = active.ads;
 
+    // A brain in the pilot seat writes the same `InputState` a keyboard and
+    // mouse do; with a human in the seat this is null and nothing changes.
+    const piloted = pilot.frame(dt, playing);
+
     if (playing && player.alive) {
-      const s = input.state;
+      const s = piloted ?? input.state;
       if (import.meta.env.DEV && game.forceAds) s.ads = true;
 
       /* ---------------------------------------------------- look */
@@ -438,6 +461,7 @@ export function PlayerRig({
           origin: _eye,
           accuracy: 1,
         });
+        pilot.onPlayerShot();
         if (fx) {
           const calibre =
             active.def.weaponClass === "sniper" || active.def.weaponClass === "lmg"
@@ -550,8 +574,8 @@ export function PlayerRig({
       model,
       active,
       {
-        lookDeltaYaw: input.rawYaw,
-        lookDeltaPitch: input.rawPitch,
+        lookDeltaYaw: piloted ? pilot.executor.lastLookYaw : input.rawYaw,
+        lookDeltaPitch: piloted ? pilot.executor.lastLookPitch : input.rawPitch,
         speed: controller.speed,
         grounded: player.grounded,
         view,
@@ -608,7 +632,19 @@ export function PlayerRig({
     hud.inspecting = active.isInspecting;
     if (hud.hitmarker > 0) hud.hitmarker = Math.max(0, hud.hitmarker - dt * 1000);
 
+    // What the pilot's perception needs from the controller and the weapon.
+    rigState.ready = true;
+    rigState.firingBlocked = controller.firingBlocked;
+    rigState.sprinting = controller.sprinting;
+    rigState.sliding = controller.isSliding;
+    rigState.mantling = controller.isMantling;
+    rigState.slot = held.active;
+    rigState.weaponClass = active.def.weaponClass;
+    rigState.fireMode = active.fireMode;
+    rigState.horizontalFovDeg = horizontalFov.current;
+
     input.endFrame();
+    pilot.endFrame();
   });
 
   /* -------------------------------------------------- viewmodel pass */

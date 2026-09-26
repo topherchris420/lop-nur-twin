@@ -61,6 +61,15 @@ if (!isBun) {
         base = path.resolve(parent, specifier);
       }
       if (base !== null && !existsSync(base)) {
+        // Modules shared with the Vercel function import each other as
+        // `./x.js`, because native Node ESM on that platform needs the
+        // extension. Here the source is still `./x.ts`.
+        if (base.endsWith(".js") && existsSync(`${base.slice(0, -3)}.ts`)) {
+          return {
+            url: pathToFileURL(`${base.slice(0, -3)}.ts`).href,
+            shortCircuit: true,
+          };
+        }
         for (const suffix of CANDIDATE_SUFFIXES) {
           if (existsSync(base + suffix)) {
             return { url: pathToFileURL(base + suffix).href, shortCircuit: true };

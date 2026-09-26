@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "dist",
+  "functions": {
+    "api/jev/decision.ts": { "maxDuration": 10 }
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -35,11 +38,15 @@
         { "key": "Cache-Control", "value": "no-cache" },
         { "key": "Content-Type", "value": "application/json; charset=utf-8" }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

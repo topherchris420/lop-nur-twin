@@ -3,7 +3,8 @@
 **System:** Lop Nur Twin — a static, client-side web
 application serving a public-source geospatial reconstruction, an evidence
 ledger, an accessible analysis view, and an illustrative first-person
-simulation.
+simulation, plus one optional serverless function that lets the TypeSafe Jev
+model control the simulation's player (T12).
 
 **Method:** assets → trust boundaries → actors → threats → mitigations →
 residual risk. Written to be argued with. If a mitigation below is not visible
@@ -84,6 +85,9 @@ The boundaries that matter:
    _viewer_.
 4. **Browser → third parties.** Only two paths cross it: a link the viewer
    clicks, and one opt-in feed that is off by default.
+5. **Browser → the Jev function → TypeSafe.** Opt-in, same-origin. The function
+   holds the TypeSafe credential; the browser sends only a bounded observation,
+   and the function decides what TypeSafe is asked (T12).
 
 ## 3. Threat actors
 
@@ -224,6 +228,35 @@ nothing about the reader's path.
 That is a provenance limitation, documented in `docs/DATA_PROVENANCE.md`, not a
 code defect — and it is why no source content hash is fabricated.
 
+### T12 — The Jev decision endpoint
+
+`/api/jev/decision` is the one server-side component, and the one place a
+credential exists.
+
+**Threats.** (a) The TypeSafe key leaks — into the bundle, a response, a log or
+a trace. (b) The endpoint becomes a general prompt proxy that forwards whatever
+a caller sends. (c) A caller exhausts the account's credit or rate limit. (d) A
+model answer is treated as authority over game state.
+
+**Mitigations.** (a) The key is read only by `api/jev/decision.ts` and the Vite
+middleware; a unit test fails if browser code mentions or reads it; the build
+fails if `dist/` contains its name, a key-shaped string or its value; the
+handler never echoes upstream bodies or error messages, and its tests assert no
+response, header or log line carries the key. (b) The request must be a
+same-origin JSON body under 8 KiB holding a session id and an observation that
+passes a strict validator — every field typed, bounded and from a closed
+vocabulary, unknown fields rejected — and the server recomputes the legal
+options and writes every word of the question itself. (c) Per-client token
+bucket, per-session minimum interval, per-instance budget and concurrency cap,
+and a 1.8 s upstream timeout. (d) Answers are validated against the options
+offered, then become ordinary input: the rig, controller, weapon runtime and
+damage resolver decide every consequence, exactly as for a keyboard.
+
+**Residual risk.** The rate limits live in one function instance and reset on a
+cold start; a caller spreading requests across addresses and instances is slowed,
+not stopped. Durable limits need the host's firewall or a shared store. The
+observation is game state, not personal data, and nothing is persisted.
+
 ### T8 — Denial of service
 
 **Mitigations.** The application is static: capacity is the host's. The heaviest
@@ -285,7 +318,8 @@ build; same-origin `script-src` is the current compensating control.
 ## 5. Out of scope
 
 - Hardening the viewer's browser, operating system or extensions.
-- Availability guarantees, rate limiting and capacity — properties of the host.
+- Availability guarantees, rate limiting and capacity — properties of the host,
+  except the Jev endpoint's own limits (T12).
 - Correctness disputes about the model's content: those are issues and pull
   requests, and the project treats them as the desired outcome.
 - Anything requiring physical access to a viewer's machine.
@@ -300,5 +334,6 @@ build; same-origin `script-src` is the current compensating control.
 2. Everything in the repository and the bundle is public by design.
 3. Maintainers review data changes for sourcing as carefully as code changes
    for correctness.
-4. CI is not granted repository secrets or write permissions.
+4. CI is not granted repository secrets or write permissions. The TypeSafe key
+   lives only in the host's environment; nothing in CI calls TypeSafe.
 5. No non-public information is ever added to this system or a fork of it.

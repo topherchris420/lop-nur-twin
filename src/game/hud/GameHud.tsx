@@ -8,6 +8,8 @@ import { CombatHud } from "./CombatHud";
 import { SpatialIntelligenceOverlay } from "./SpatialIntelligenceOverlay";
 import { TacticalMapOverlay } from "./TacticalMapOverlay";
 import { spatialIntel } from "../core/spatialIntelligence";
+import { JevHud, PlayerControlSelector } from "./JevHud";
+import { PilotHost } from "../pilot/PilotHost";
 
 /**
  * Screen shell: menus, killfeed and the in-game overlay.
@@ -393,6 +395,8 @@ function MainMenu() {
           />
         </div>
 
+        <PlayerControlSelector />
+
         <div className="mt-8 flex flex-wrap gap-3">
           <TacticalButton
             primary
@@ -409,8 +413,8 @@ function MainMenu() {
           </TacticalLink>
         </div>
         <p className="mt-6 text-[10px] uppercase tracking-[0.24em] text-slate-600">
-          WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · Q swap ·
-          Esc menu
+          WASD move · Shift sprint · Ctrl crouch · Space jump/mantle · R reload · 1/2 swap
+          · H take control · Esc menu
         </p>
         {__BUILD_COMMIT__ ? (
           <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-slate-400">
@@ -581,6 +585,7 @@ function PauseMenu() {
           <TacticalButton onClick={() => setScreen("loadout")}>Loadout</TacticalButton>
           <TacticalButton onClick={() => setScreen("menu")}>Leave match</TacticalButton>
         </div>
+        <PlayerControlSelector />
         <div className="mt-8 space-y-3 border-t border-white/10 pt-6">
           <Slider
             label="Sensitivity"
@@ -781,11 +786,13 @@ export function GameHud() {
 
   return (
     <>
+      <PilotHost />
       {IN_MATCH.includes(screen) && <CombatHud />}
       {IN_MATCH.includes(screen) && <SpatialIntelligenceOverlay />}
       {IN_MATCH.includes(screen) && <TacticalMapOverlay />}
       {IN_MATCH.includes(screen) && <Killfeed />}
       {IN_MATCH.includes(screen) && <Scoreboard />}
+      {screen === "playing" && <JevHud />}
 
       {booting && <BootScreen onComplete={() => setBooting(false)} />}
 

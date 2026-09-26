@@ -4,6 +4,7 @@ import { MoveLeft } from "lucide-react";
 import { GameScene } from "@/game/GameScene";
 import { GameHud } from "@/game/hud/GameHud";
 import { useGameStore } from "@/game/core/gameStore";
+import { cn } from "@/lib/utils";
 
 /**
  * `/play` — Blacksite, the first-person engagement simulator, running on the
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/play")({
 
 function Play() {
   const screen = useGameStore((s) => s.screen);
+  // The crosshair replaces the cursor for a human; a spectator watching a brain
+  // keeps it, to reach TAKE CONTROL.
+  const brain = useGameStore((s) => s.brain);
 
   useEffect(() => {
     document.title =
@@ -27,7 +31,12 @@ function Play() {
   }, []);
 
   return (
-    <div className="relative h-full w-full cursor-none overflow-hidden bg-[#05070a] select-none">
+    <div
+      className={cn(
+        "relative h-full w-full overflow-hidden bg-[#05070a] select-none",
+        brain === "human" ? "cursor-none" : "cursor-auto",
+      )}
+    >
       <GameScene />
       <GameHud />
       <div className="pointer-events-none absolute top-3 left-3 z-40 flex flex-col items-start gap-2">
