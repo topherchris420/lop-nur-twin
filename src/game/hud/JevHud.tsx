@@ -111,18 +111,29 @@ export function JevHud() {
         const choice = t.frame ? t.frame[axis] : "—";
         const answer = t.axes?.[axis];
         const top = answer
-          ? answer.probabilities
-              .slice(0, 3)
-              .map(([option, p]) => `${option} ${fmtP(p)}`)
-              .join("  ")
+          ? answer.probabilities.slice(0, 3).map(([option, p]) => `${option} ${fmtP(p)}`)
           : t.frame
-            ? t.brain === "random" || t.label === "FALLBACK"
-              ? "uniform over legal options"
-              : "no probabilities recorded"
-            : "";
+            ? [
+                t.brain === "random" || t.label === "FALLBACK"
+                  ? "uniform over legal options"
+                  : "no probabilities recorded",
+              ]
+            : [];
         const [head, detail] = row.children as unknown as [HTMLElement, HTMLElement];
         head.textContent = `${AXIS_NAMES[axis].padEnd(7)}${choice.padEnd(17)}${answer ? `P ${fmtP(answer.probabilities[0]?.[1] ?? 0)} CONF ${fmtP(answer.confidence)}` : ""}`;
-        detail.textContent = top;
+        // One element per candidate, so a long top three wraps between
+        // candidates instead of cutting the third one off.
+        const key = top.join("\n");
+        if (detail.dataset["shown"] !== key) {
+          detail.dataset["shown"] = key;
+          detail.replaceChildren(
+            ...top.map((text) => {
+              const item = document.createElement("span");
+              item.textContent = text;
+              return item;
+            }),
+          );
+        }
       }
       if (metaRef.current) {
         const latency = t.latencyMs === null ? "—" : `${Math.round(t.latencyMs)} ms`;
@@ -174,7 +185,7 @@ export function JevHud() {
             }}
           >
             <div className="whitespace-pre text-slate-100" />
-            <div className="truncate pl-[7ch] text-[9px] text-slate-400 normal-case" />
+            <div className="flex flex-wrap gap-x-[1.5ch] pl-[7ch] text-[9px] text-slate-400 normal-case *:whitespace-nowrap" />
           </div>
         ))}
       </div>
