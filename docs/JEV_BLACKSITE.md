@@ -345,21 +345,32 @@ cursor is visible to reach Take control.
 ## The HUD
 
 A compact panel above the ammunition readout, repainted about eight times a
-second from the pilot's telemetry singleton — no React state on the frame loop:
+second from the pilot's telemetry singleton — no React state on the frame loop.
+This frame is from a live run (`seed=43`, a few seconds in, mid-reload):
 
 ```text
 JEV // BLACKSITE                  LIVE JEV EXECUTING
-MOVE   HOLD             P .79 CONF .77
-       HOLD .79  FORWARD .08  FORWARD_LEFT .03
-TURN   TURN_LEFT_SMALL  P .52 CONF .45
-       TURN_LEFT_SMALL .52  TURN_LEFT_FINE .16  NO_TURN .09
-TILT   LOOK_DOWN_FINE   P .65 CONF .58
-WEAPON NO_FIRE          P .34 CONF .20
-LATENCY 146 ms · TICK 34 · jev-1.13.0
-TARGET 47 m -2° · HP 100 · AMMO 14/210
+MOVE   HOLD             P .85 CONF .83
+       HOLD .85  FORWARD .07  FORWARD_LEFT .02
+TURN   TURN_LEFT_MEDIUM P .31 CONF .23
+       TURN_LEFT_MEDIUM .31
+       TURN_RIGHT_MEDIUM .20  NO_TURN .15
+TILT   LOOK_UP_FINE     P .68 CONF .62
+       LOOK_UP_FINE .68  NO_TILT .20
+       LOOK_DOWN_FINE .07
+WEAPON NO_FIRE          P .91 CONF .82
+       NO_FIRE .91  SWAP_WEAPON .09
+LATENCY 220 MS · TICK 27 · JEV-1.13.0
+TARGET 59 M -6° · HP 100 · AMMO 5/210
 Jev chooses · Blacksite decides what happens
 [ Take control · H ]  [ Save trace ]
 ```
+
+Each axis shows the choice, its probability and TypeSafe's confidence, then up
+to three candidates as TypeSafe ranked them; a long top three wraps between
+candidates rather than cutting one off. The weapon row lists two because only
+two were legal: a reload was in progress, which rules out firing, aiming and
+reloading.
 
 **Labels** say who is in control: **LIVE JEV** only while TypeSafe's answers are
 executing; **FALLBACK** from the first fallback frame until Jev answers again;
