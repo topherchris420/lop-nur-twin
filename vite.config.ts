@@ -3,11 +3,13 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { fileURLToPath, URL } from "node:url";
+// `.js` like every import in the server chain, which @vercel/node runs with its
+// specifiers as written. Vite's `configLoader: "native"` cannot load it yet.
 import {
   MAX_BODY_BYTES,
   clientKeyFrom,
   createJevDecisionHandler,
-} from "./server/jev/handler";
+} from "./server/jev/handler.js";
 
 /**
  * The response headers the deployed site is expected to serve.
