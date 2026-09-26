@@ -264,7 +264,7 @@ Under precision control each enemy is keyed by the slot that names it, and three
 more facts are added — how exposed it is, how it is moving across the view (from
 the player's own view of it, relative to the player's motion), and, per aim
 region, how wide it looks and what share of a round's possible directions the
-current and the fully aimed spread cone would put on it:
+current and the fully aimed spread cone would put on it (illustrative values, in the exact shape `server/jev/question.ts` writes):
 
 ```json
 "TARGET_0": {
@@ -683,8 +683,9 @@ permanent until pulled down.
 
 ## Benchmark methodology and results
 
-`bun run benchmark:random` and `JEV_LIVE_TEST=1 bun run benchmark:jev` run
-repeatable episodes (`--episodes`, `--seconds`, `--seed`, `--mode`) in a headless
+`bun run benchmark:random` and `JEV_LIVE_TEST=1 bun run benchmark:jev` (direct
+control, the original benchmark), and their `:precision` variants, run
+repeatable episodes (`--control`, `--episodes`, `--seconds`, `--seed`, `--mode`) in a headless
 browser against the dev server and write JSON to `shots/`. Every number comes
 from the simulation — rounds the weapon runtime fired, damage the resolver
 applied, kills and deaths the match recorded, metres the controller moved. A
@@ -705,41 +706,100 @@ share contacts, aim continuously with no step quantisation and act every frame
 with no latency; the player's seat takes half damage from bots and deals 1.2×,
 and bots aiming at the player react later and with a wider cone.
 
-**Measured, 26 September 2026.** Three episodes of 120 s of match time per brain,
-seeds 42–44, team deathmatch, 11 bots at the default skill (player plus 5 blue
-bots against 6 red), local dev server in this repository's development container
-calling TypeSafe over the internet. Six episodes are a small sample; treat these
-as a first measurement, not a ranking.
+**Measured, 26 September 2026, this build.** Four configurations, matched: three
+episodes of 120 s of match time each, seeds 42, 43 and 44, team deathmatch, 11
+bots at the default skill (the player plus 5 blue bots against 6 red), the
+default loadout (an automatic rifle: 2.2° hip spread, 0.02° aimed), stubbed
+rendering, a dev server in this repository's development container, and for
+Jev live calls to TypeSafe (`jev-1.13.0`) over the internet. The raw reports,
+every episode included, are in [`docs/benchmarks/2026-09-26/`](benchmarks/2026-09-26/).
+There is no bad episode left out: these are all twelve that were run.
 
-| Measure (360 s of match per brain)  | Jev (`jev-1.13.0`, live)                     | Random (seed 42–44) |
-| :---------------------------------- | :------------------------------------------- | :------------------ |
-| Kills / deaths                      | 10 / 1                                       | 0 / 1               |
-| Kills per minute                    | 1.66                                         | 0.00                |
-| Rounds fired / hits                 | 697 / 25 (3.6%)                              | 144 / 0 (0%)        |
-| Damage dealt / taken                | 1,658 / 556                                  | 0 / 730             |
-| Mean survival per life              | 88.9 s                                       | 88.8 s              |
-| Distance moved                      | 15 m                                         | 815 m               |
-| Decisions executed                  | 1,537                                        | 1,593               |
-| Timeouts / stale / invalid / errors | 0 / 0 / 0 / 0                                | 0 / 0 / 0 / 0       |
-| Round trip, browser ↔ TypeSafe      | mean 179 ms, p50 172 ms, p95 231 ms          | < 1 ms              |
-| Server ↔ TypeSafe                   | mean 167 ms, p50 163 ms, p95 214 ms          | —                   |
-| Mean TypeSafe confidence            | move 0.68, turn 0.54, tilt 0.68, weapon 0.48 | —                   |
+| Measure (3 × 120 s, seeds 42–44)                   | Random · direct | Random · precision | Jev · direct       | Jev · precision     |
+| :------------------------------------------------- | :-------------- | :----------------- | :----------------- | :------------------ |
+| Kills / deaths                                     | 0 / 1           | 4 / 4              | 15 / 4             | 148 / 0             |
+| K/D                                                | 0.00            | 1.00               | 3.75               | 148:0               |
+| Kills per minute                                   | 0.00            | 0.67               | 2.50               | 24.63               |
+| Rounds fired / hits                                | 126 / 0         | 163 / 20           | 720 / 44           | 323 / 249           |
+| Accuracy (hits / rounds)                           | 0.0%            | 12.3%              | 6.1%               | 77.1%               |
+| Headshots / upper-chest hits                       | 0 / 0           | 4 / 13             | 8 / 14             | 122 / 99            |
+| Shots per kill                                     | n/a             | 40.8               | 48.0               | 2.2                 |
+| Damage per shot                                    | 0.0             | 6.5                | 3.9                | 55.6                |
+| Damage dealt / taken                               | 0 / 476         | 1057 / 718         | 2788 / 817         | 17962 / 14          |
+| Mean survival per life                             | 88.9 s          | 48.6 s             | 48.7 s             | 120.2 s             |
+| Aim error at shot, mean / p95 †                    | 6.73° / 6.73°   | 1.70° / 5.76°      | 2.18° / 6.59°      | 0.28° / 0.30°       |
+| Aim error, enemy ≤10° from crosshair, mean / p95 † | 7.34° / 9.36°   | 2.32° / 7.53°      | 2.20° / 6.55°      | 1.66° / 7.63°       |
+| Engagement range at shot, mean                     | 70 m            | 66 m               | 82 m               | 103 m               |
+| ADS time share                                     | 7.6%            | 8.6%               | 12.4%              | 21.7%               |
+| Controller tracking error, mean / p95              | —               | 0.163° / 0.529°    | —                  | 0.083° / 0.305°     |
+| Target acquisition, mean / p95                     | —               | 0.25 s / 0.41 s    | —                  | 0.33 s / 0.54 s     |
+| Choice → first hit, mean / p95                     | —               | 0.41 s / 0.77 s    | —                  | 0.51 s / 0.79 s     |
+| Targets bound / switches / lost from sight         | —               | 397 / 254 / 4      | —                  | 303 / 26 / 8        |
+| Trigger opportunities held by the gate             | —               | 862 / 878 (98.2%)  | —                  | 2378 / 2657 (89.5%) |
+| Recoil counter per shot, mean                      | —               | 0.405°             | —                  | 0.268°              |
+| Decision → first controller step, mean             | —               | 1.7 ms             | —                  | 2.4 ms              |
+| Distance moved                                     | 810 m           | 769 m              | 75 m               | 0 m                 |
+| Decisions executed                                 | 1552            | 1490               | 1390               | 1479                |
+| Timeouts / stale / invalid / errors                | 0 / 0 / 0 / 0   | 0 / 0 / 0 / 0      | 0 / 0 / 0 / 0      | 0 / 0 / 0 / 0       |
+| Round trip, mean / p50 / p95                       | 1 / 1 / 2 ms    | 1 / 1 / 3 ms       | 212 / 209 / 260 ms | 209 / 207 / 261 ms  |
+| Blue bots in the same matches: K / D, accuracy     | 88 / 55, 15.0%  | 71 / 53, 14.8%     | 49 / 51, 12.0%     | 29 / 24, 6.8%       |
 
-Per episode, Jev: 2 kills / 1 death, 6 / 0, and 2 / 0. Blue bots in the same
-matches, for context: 84 kills and 43 deaths in the Jev episodes, 88 and 68 in
-the random episodes (about 30 bot-minutes each).
+† Measured the same way for every controller: the angle from the aim to the
+_upper chest_ of the nearest visible enemy within 10° of the crosshair. For
+headshot-heavy play it is biased upward — a head at 100 m sits about 0.3° above
+the upper chest — which is why Jev precision reads 0.28° there while its own
+tracking error, measured to the region it chose, is 0.08°.
 
-What the numbers show, and do not: Jev engaged, aimed and fired through the same
-controls and scored kills where the random policy scored none, under identical
-conditions. Jev also almost never moved (1,520 of 1,537 frames were HOLD) — it
-plays as a stationary shooter, which the bots, converging on the player, make
-viable. Win rates are not reported: two-minute episodes in which ten bots do
-most of the fighting cannot attribute a team result to the player.
+Per episode (kills/deaths, hits/rounds):
 
-A separate 60-second live check (`bun run jev:live`) made 278 decisions, fired
-240 rounds, executed 9 reload frames, landed 22 hits for 1,608 damage, rode out
-an injected three-second API outage with nothing held and recovered to LIVE JEV,
-and handed control back on H.
+| Seed | Random · direct | Random · precision | Jev · direct | Jev · precision |
+| :--- | :-------------- | :----------------- | :----------- | :-------------- |
+| 42   | 0/0, 0/42       | 2/1, 10/49         | 6/0, 17/240  | 43/0, 70/90     |
+| 43   | 0/0, 0/40       | 1/2, 9/69          | 3/2, 9/240   | 59/0, 98/125    |
+| 44   | 0/1, 0/44       | 1/1, 1/45          | 6/2, 18/240  | 46/0, 81/108    |
+
+**What the numbers show.**
+
+- **Precision control changed what Jev can do with its choices, dramatically.**
+  Against its own direct-control runs on the same seeds: accuracy 6.1 % → 77.1 %,
+  damage per shot 3.9 → 55.6, shots per kill 48 → 2.2, time from choosing a
+  target to hitting it 0.51 s on average, and no deaths in 360 s. Direct Jev
+  fired exactly 240 rounds in every episode — its entire load, rifle and reserve
+  — and ran dry; precision Jev fired 90–125 and let the gate hold 89.5 % of the
+  opportunities the trigger had.
+- **The controller alone is not the result.** The random brain through the same
+  controller went from 0 hits to 20 (12.3 %) and from 0 kills to 4 — and died as
+  often as it killed, switching targets 254 times and firing hip shots the gate
+  refused 98 % of the time. Jev's choices — engaging one target at a time (26
+  switches), aiming down the sights, choosing the head at range (122 of 249 hits)
+  — are what turned the controller into 148 kills.
+- **It is also far beyond "usually wins a fair fight".** 148 kills to 0 deaths and
+  14 damage taken is not a fair fight. Jev plays as a stationary marksman
+  (0 m moved) and engages at about 100 m, where the rifle's 0.02° aimed spread
+  still makes a head a one-round kill and where the bots — which deal half
+  damage to the player, aim at the player with twice their usual error and react
+  later (`PLAYER_MERCY`, `COMBAT`) — cannot answer. The blue bots' own tally
+  fell from 88 kills to 29 in these matches because Jev took the kills first.
+  Nothing in the simulation was changed to produce it, and every round was drawn
+  and traced by the weapon runtime; but whether this is the right _strength_ for
+  a spectator is a tuning question the benchmark raises, not one it answers.
+- **Blue-bot accuracy (6.8–15 %)** is context, not a controlled baseline: the
+  bots cannot sit in the player's seat, so the four configurations are compared
+  to each other and the bots are the backdrop.
+- **Latency is unchanged** — 209 ms mean round trip, p95 261 ms — and precision
+  control asks six questions instead of four without measurably slowing it.
+
+The live suite (`bun run jev:live`, 45 s) afterwards: 200 decisions, 29 targets
+bound, tracking error p50 0.051°, 37 hits for 2,146 damage from 32 rounds, the
+gate holding 227 of 259 opportunities, an injected API interruption shown as
+ERROR with nothing held and recovered to LIVE JEV, and control handed back on H
+— 13 of 13 checks.
+
+**Earlier measurement (contract v1, direct control only).** The first benchmark
+of this interface, before precision control existed — same seeds and settings,
+an earlier build — recorded Jev 10 kills / 1 death at 3.6 % accuracy (697
+rounds, 25 hits) and random 0 / 1. It is kept for the record; the direct row
+above is its successor on this build.
 
 ## Security
 

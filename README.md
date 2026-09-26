@@ -86,7 +86,14 @@ controls, and `/play?playerProfile=elite` gives a human **Elite Operator** —
 console-style aim friction and recoil help that never fires and always yields to
 the mouse.
 
-<!-- JEV_RESULTS -->
+In a matched benchmark — three two-minute team-deathmatch episodes per
+configuration on the same seeds, live TypeSafe calls — Jev under direct control
+hit 6.1 % of its rounds and went 15 kills to 4 deaths (emptying all 240 rounds
+every episode); under precision control it hit 77.1 %, needed 2.2 rounds per
+kill and went 148 to 0, while the random brain through the same controller went
+4 to 4. That last figure is far past "usually wins": Jev plays as a stationary
+long-range marksman the bots cannot answer. The method, all twelve episodes and
+the caveats are in [`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md).
 
 ---
 
