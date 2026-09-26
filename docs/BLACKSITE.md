@@ -50,14 +50,38 @@ genuinely as exposed as it looks from 400 m up.
 | `R` · `1`/`2` · `V` · `B`   | Reload · swap weapon · melee · cycle fire mode             |
 | `Q` / `E` · `G` · `T` · `F` | Lean left / right · lethal · tactical · interact           |
 | `Tab` · `Esc`               | Scoreboard · pause and release the mouse                   |
+| `H`                         | Take control back from Jev, random or replay               |
 
 `/play?autoplay=1` skips the menus. `?quality=0..3` pins a quality tier,
 `?at=<x>,<z>` and `?look=<deg>` place and aim the opening spawn, and
 `?mode=tdm|ffa|domination|hardpoint|gunfight` picks the ruleset.
+
+## Player control: human, Jev, random, replay
+
+The player does not have to be a person. **Player control** on the main and
+pause menus — or `?brain=` — puts a different brain in the seat, and every brain
+drives the same `InputState` the keyboard and mouse fill. The controller, the
+weapons, collision and damage cannot tell who is playing.
+
+| `?brain=` | Who controls the player                                                                            |
+| :-------- | :------------------------------------------------------------------------------------------------- |
+| `human`   | Keyboard and mouse. The default, and what any other value means.                                   |
+| `jev`     | The TypeSafe Jev model, through the server-side `/api/jev/decision` endpoint. Labelled LIVE JEV.   |
+| `random`  | A seeded random policy over the same controls and timing (`&seed=<int>`). Labelled RANDOM.         |
+| `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live. |
+
+`?seed=<int>` also pins the match seed. `?fallback=random` lets the random policy
+stand in, labelled FALLBACK, while Jev cannot answer. `?record=1` keeps the last
+trace in local storage when a match ends. `?autoplay` keeps its meaning: it only
+skips the menus. Press **H** during a match to take control back immediately.
+
+What a brain may see and choose, the timing rules, the server boundary and the
+measured results are in [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). None of it
+touches the analytical model: a brain is one more illustrative player.
 
 ## Verifying it
 
 The look is only half of it — the simulation and the audio have to be asserted
 too. See [`docs/VALIDATION.md`](VALIDATION.md) for the full command list; the
 Blacksite-specific ones are `bun run smoke`, `bun run engagement`,
-`bun run gait` and `bun run audio`.
+`bun run gait`, `bun run audio` and, for the player brains, `bun run jev`.

@@ -70,7 +70,7 @@ The release manifest publishes this as machine-readable fact:
 | **Reproducibility**                                   | Deterministic seeded generation, canonical-JSON SHA-256 hashes, `SOURCE_DATE_EPOCH` support, byte-identical output under two runtimes                                                      | `scripts/generate-manifest.ts`                         |
 | **Data lineage**                                      | Derived ledger, single source register, reviewable source updates, no runtime data dependency                                                                                              | `docs/DATA_PROVENANCE.md`                              |
 | **Accessibility**                                     | A genuine non-3D route, automated axe testing on the production build, and an honest list of untested manual checks                                                                        | `/analysis`, `docs/ACCESSIBILITY.md`                   |
-| **Security posture for a public demo**                | CSP verified against the real build, validated URL parameters, no storage, no secrets, supply-chain scanning in CI                                                                         | `docs/THREAT_MODEL.md`, `SECURITY.md`                  |
+| **Security posture for a public demo**                | CSP verified against the real build, validated URL parameters, no storage, no secrets in the repo or bundle (Jev's optional key stays server-side), supply-chain scanning in CI            | `docs/THREAT_MODEL.md`, `SECURITY.md`                  |
 
 ## 4. A 30-minute evaluation path
 

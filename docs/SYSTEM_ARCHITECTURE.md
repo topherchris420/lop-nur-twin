@@ -1,9 +1,15 @@
 # System architecture
 
 The Lop Nur Twin is a single-page web application with
-no backend. Everything a viewer sees is computed in their browser from data
-committed to this repository: there is no database, no API, no user account and
-no runtime dependency on a third-party service.
+no backend for the model. Everything a viewer sees of the reconstruction is
+computed in their browser from data committed to this repository: there is no
+database, no user account and no runtime dependency on a third-party service.
+
+The one exception is optional and outside the analytical model: a single
+serverless function, `/api/jev/decision`, lets the TypeSafe Jev model control
+the player in the illustrative simulation (`/play?brain=jev`). It holds a
+server-side credential, stores nothing, and the site works without it — see
+[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
 
 That constraint is deliberate. It makes a release reproducible, makes the whole
 data surface auditable, and keeps the deployment boundary small enough to
@@ -186,7 +192,8 @@ npm run build
   ├─ node scripts/run-ts.mjs scripts/validate-data.ts     # data + evidence gate
   ├─ node scripts/run-ts.mjs scripts/generate-manifest.ts # public/model-manifest.json
   ├─ vite build                                           # → dist/
-  └─ tsc --noEmit                                         # strict types
+  ├─ tsc --noEmit                                         # strict types
+  └─ node tools/jev-secret-scan.mjs dist                  # no credential in the bundle
 ```
 
 `scripts/run-ts.mjs` runs those TypeScript scripts under **either** runtime:
@@ -207,7 +214,8 @@ flowchart LR
   nginx --> browser
 ```
 
-Everything the host serves is static. The trust boundary is the origin: past
+Everything the host serves is static, except the optional Jev function on the
+Vercel deployment (the container has none). The trust boundary is the origin: past
 it, the viewer's browser holds the entire model and can be assumed hostile.
 Security headers (CSP, `nosniff`, `Referrer-Policy`, `X-Frame-Options`,
 `Cross-Origin-Opener-Policy`, `Permissions-Policy`, HSTS on the hosted demo)
@@ -226,4 +234,6 @@ project's control. Consequently:
 - the only runtime fetch is a same-origin request for `model-manifest.json`,
   made lazily when a manifest panel is opened;
 - the only third-party request is the opt-in `?liveTraffic=1` ADS-B feed,
-  which is off by default and confined by `connect-src`.
+  which is off by default and confined by `connect-src`;
+- choosing Jev on `/play` adds same-origin requests to `/api/jev/decision`,
+  carrying a bounded game observation and nothing else.

@@ -183,6 +183,13 @@ jobs:
       - name: Synthesised audio checks
         run: bun run audio
 
+      # The player seat: the random brain through the real rig, replay, and the
+      # Jev client against a fake decision endpoint installed in the test
+      # browser. The dev server here has no key and no TypeSafe call is made;
+      # the tool fails if any answer came from anything but the test double.
+      - name: Player-brain checks (no API calls)
+        run: bun run jev
+
       - name: Start the preview server with production security headers
         run: |
           bun run preview --port 4173 > /tmp/preview-server.log 2>&1 &

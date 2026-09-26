@@ -19,7 +19,12 @@ import { spatialIntel } from "./core/spatialIntelligence";
 import { FxManager } from "./fx/combatFx";
 import { game, removeActor } from "./core/gameState";
 import { useGameStore } from "./core/gameStore";
-import { resolveDamage, tickActorState, type KillReport } from "./core/combat";
+import {
+  damageObservers,
+  resolveDamage,
+  tickActorState,
+  type KillReport,
+} from "./core/combat";
 import { BotManager } from "./ai/bots";
 import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
@@ -222,7 +227,9 @@ function exposeDevHandle(state: unknown): void {
   };
   // The damage pipeline and the arsenal registry, so a harness can step a
   // whole frame in the order this component does instead of approximating it.
-  dev.__combatModules = { resolveDamage, tickActorState };
+  // `damageObservers` lets the Jev benchmark count the bots' damage the same
+  // read-only way the pilot counts the player's.
+  dev.__combatModules = { resolveDamage, tickActorState, damageObservers };
   dev.__combatWeapons = WEAPONS;
   dev.__combat = {
     r3f: state,

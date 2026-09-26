@@ -56,6 +56,29 @@ The application offers four distinct modes tailored to different workflows and d
 
 _For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._
 
+### Jev Plays Blacksite
+
+Blacksite can optionally place the player under a bounded
+[TypeSafe](https://docs.typesafe.ai/) Jev controller. Jev receives a compact
+structured observation — what the player can see, the HUD, the weapon — and picks
+one movement, one view rotation and one weapon action from a host-defined set.
+It has no direct access to physics, damage, hit registration, score or any
+authoritative state: its choices become the same input a keyboard and mouse
+produce, and Blacksite decides what happens.
+
+```sh
+cp .env.example .env.local     # set TYPESAFE_API_KEY (server-side only)
+bun run dev                    # then open /play?brain=jev
+```
+
+The credential stays on the server (`/api/jev/decision`); the browser bundle is
+scanned for it on every build. Press **H** at any time to take control back.
+`/play?brain=random&seed=42` runs a seeded random baseline through the same
+controls. In a first benchmark — three two-minute team-deathmatch episodes per
+brain, identical seeds — Jev scored 10 kills for 1 death and the random baseline
+0 for 1; the method, the caveats and the full numbers are in
+[`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md).
+
 ---
 
 ## 🕵️ The OSINT Analytical Model
@@ -164,6 +187,8 @@ bun run routes        # Test deep links, URL parameters, and mobile navigation
 bun run smoke         # Run Blacksite simulation smoke tests
 bun run gait          # Test character walk cycle IK math
 bun run audio         # Verify procedural audio peak and crest factors
+bun run test:jev      # Jev pilot and decision-endpoint unit tests (no API calls)
+bun run jev           # Jev pilot browser checks against a fake endpoint (no API calls)
 ```
 
 ---
@@ -172,25 +197,26 @@ bun run audio         # Verify procedural audio peak and crest factors
 
 Deep dive into the underlying math, intelligence methodologies, and architecture:
 
-| Document                                                                      | Topic                                                                     |
-| :---------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md)                                          | Setup guidelines, coding conventions, and pull request rules              |
-| [`docs/VALIDATION.md`](docs/VALIDATION.md)                                    | Complete guide to data, geometry, and simulation verification             |
-| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)                          | Satellite source registration, classification, and confidence scoring     |
-| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)                        | Coordinates (EPSG:32645), footprint derivation, and GeoJSON exports       |
-| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)                      | Machine-readable uncertainty envelopes and resolution bounds              |
-| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons           |
-| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                              |
-| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                   |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline          |
-| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                 |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support              |
-| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md)              | Compliance evaluation guide for government / public sector reviewers      |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) & [`SECURITY.md`](SECURITY.md) | Security posture, trust boundaries, and vulnerability reporting           |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                                    | Vercel deployment, Docker builds, and commit verification                 |
-| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                                  | Comprehensive project white paper ([HTML version](docs/white-paper.html)) |
-| [`AGENTS.md`](AGENTS.md)                                                      | AI coding agent instructions and project recipes                          |
+| Document                                                                      | Topic                                                                              |
+| :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                                          | Setup guidelines, coding conventions, and pull request rules                       |
+| [`docs/VALIDATION.md`](docs/VALIDATION.md)                                    | Complete guide to data, geometry, and simulation verification                      |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)                          | Satellite source registration, classification, and confidence scoring              |
+| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)                        | Coordinates (EPSG:32645), footprint derivation, and GeoJSON exports                |
+| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)                      | Machine-readable uncertainty envelopes and resolution bounds                       |
+| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons                    |
+| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                                       |
+| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                            |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline                   |
+| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                         |
+| [`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md)                              | Jev Plays Blacksite: the bounded model controller, its boundaries and measurements |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                          |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support                       |
+| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md)              | Compliance evaluation guide for government / public sector reviewers               |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) & [`SECURITY.md`](SECURITY.md) | Security posture, trust boundaries, and vulnerability reporting                    |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                                    | Vercel deployment, Docker builds, and commit verification                          |
+| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                                  | Comprehensive project white paper ([HTML version](docs/white-paper.html))          |
+| [`AGENTS.md`](AGENTS.md)                                                      | AI coding agent instructions and project recipes                                   |
 
 ---
 

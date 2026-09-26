@@ -1,12 +1,22 @@
 import { create } from "zustand";
-import { readEnumParam, readFlag } from "@/lib/params";
+import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
+import type { ParsedTrace } from "../pilot/recorder";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
  * `gameState.ts`; this store only holds things that change on an event —
  * menu screens, loadout choices, match phase, settings.
  */
+
+/**
+ * Who controls the player. `human` is the keyboard and mouse; the others are
+ * brains that drive the same input through `src/game/pilot/` — the TypeSafe
+ * Jev model, a seeded random baseline, or a recorded trace played back.
+ */
+export type BrainKind = "human" | "jev" | "random" | "replay";
+
+export const BRAIN_KINDS: readonly BrainKind[] = ["human", "jev", "random", "replay"];
 
 export type GameScreen =
   "boot" | "menu" | "loadout" | "briefing" | "playing" | "paused" | "killcam" | "results";
@@ -123,6 +133,17 @@ interface GameStoreState {
   /** Deterministic match seed, so a given match replays identically. */
   matchSeed: number;
   rerollMatchSeed: () => void;
+
+  /** Who controls the player. Changes on a menu choice or a takeover. */
+  brain: BrainKind;
+  setBrain: (brain: BrainKind) => void;
+  /** Seeds the random brain; `?seed=` also pins the match seed. */
+  brainSeed: number;
+  /** `?fallback=random`: a labelled stand-in while Jev cannot answer. */
+  brainFallback: "random" | null;
+  /** The validated trace the replay brain plays back, once one is loaded. */
+  replayTrace: ParsedTrace | null;
+  setReplayTrace: (trace: ParsedTrace | null) => void;
 }
 
 let killfeedId = 1;
@@ -141,6 +162,20 @@ const GAME_MODE_IDS = ["tdm", "domination", "ffa", "hardpoint", "gunfight"] as c
 function initialMode(): GameModeId {
   return readEnumParam<GameModeId>("mode", GAME_MODE_IDS) ?? "tdm";
 }
+
+/**
+ * `?brain=human|jev|random|replay` picks who controls the player; anything else
+ * — including a missing parameter — is the human, exactly as before. It never
+ * changes `?autoplay`, which still only decides whether the menus are skipped.
+ */
+function initialBrain(): BrainKind {
+  return readEnumParam<BrainKind>("brain", BRAIN_KINDS) ?? "human";
+}
+
+const DEFAULT_MATCH_SEED = 0x5eed1;
+
+/** `?seed=<int>` pins both the match seed and the random brain's seed. */
+const SEED_PARAM = readIntParam("seed", 0, 0x7fffffff);
 
 export const useGameStore = create<GameStoreState>()((set) => ({
   screen: initialScreen(),
@@ -215,6 +250,13 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setBotCount: (botCount) => set({ botCount }),
   botSkill: 0.4,
   setBotSkill: (botSkill) => set({ botSkill }),
-  matchSeed: 0x5eed1,
+  matchSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
   rerollMatchSeed: () => set({ matchSeed: (Math.random() * 0xffffff) >>> 0 }),
+
+  brain: initialBrain(),
+  setBrain: (brain) => set({ brain }),
+  brainSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
+  brainFallback: readEnumParam<"random">("fallback", ["random"]),
+  replayTrace: null,
+  setReplayTrace: (replayTrace) => set({ replayTrace }),
 }));

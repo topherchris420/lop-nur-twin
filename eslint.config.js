@@ -57,7 +57,15 @@ export default tseslint.config(
   /* Application and build-script sources.                             */
   /* ---------------------------------------------------------------- */
   {
-    files: ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "*.ts"],
+    // `server/` and `api/` are the Jev decision endpoint: server-side code
+    // held to the same rules as the application it serves.
+    files: [
+      "src/**/*.{ts,tsx}",
+      "scripts/**/*.ts",
+      "server/**/*.ts",
+      "api/**/*.ts",
+      "*.ts",
+    ],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,
@@ -98,7 +106,7 @@ export default tseslint.config(
   /* Vitest suites.                                                    */
   /* ---------------------------------------------------------------- */
   {
-    files: ["src/**/*.test.ts"],
+    files: ["src/**/*.test.ts", "server/**/*.test.ts"],
     rules: {
       // A suite that proves a validator rejects malformed input has to be able
       // to construct malformed input.

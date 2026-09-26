@@ -1,8 +1,11 @@
 # Security policy
 
 Lop Nur Twin is an unclassified, public-source
-research prototype that runs entirely in a browser. It holds no user accounts,
-no personal data, no credentials and no non-public information. That shapes
+research prototype that runs in a browser. It holds no user accounts, no
+personal data and no non-public information. It has one optional server-side
+component — the Jev decision endpoint behind `/play?brain=jev` — and that holds
+the project's only credential, a TypeSafe API key kept in the host's environment
+and never in the repository or the bundle. That shapes
 everything below: the realistic risks here are supply-chain compromise of the
 build, a cross-site scripting bug in a citation, and — the one specific to this
 project — a viewer mistaking modeled interpretation for verified intelligence.
@@ -63,12 +66,19 @@ any kind.
 - Bugs in the build, validation or manifest pipeline that let unvalidated data
   or an incorrect hash ship as if it had passed.
 - Deployment configuration that weakens the shipped security headers.
+- The Jev decision endpoint (`/api/jev/decision`): anything that exposes the
+  TypeSafe credential, gets it into the bundle, a response or a log; that makes
+  the endpoint forward text the browser chose to TypeSafe (it must only send the
+  server's own question); or that bypasses its validation or rate limits.
 
 ## What is out of scope
 
 - Denial of service by loading the 3D scene on constrained hardware, or by
-  requesting a large number of pages. This is a static site; capacity is the
-  host's concern.
+  requesting a large number of pages. The site is static; capacity is the
+  host's concern. The one exception is the Jev endpoint, which spends API
+  credit: its in-memory limits are documented as per-instance brakes, not a
+  wall, so exceeding them by spreading requests across many addresses or
+  instances is a known limitation (see `docs/JEV_BLACKSITE.md`), not a finding.
 - Disagreements about the _content_ of the model — a wrong footprint, a
   questionable interpretation, a stale source. Those are correctness issues:
   open a normal issue or a pull request. They are the point of the project.
@@ -100,9 +110,15 @@ any kind.
 
 ## Secret handling
 
-- **This repository contains no secrets, and no part of the application needs
-  one.** It is a static client-side build; there is no server, no API key, and
-  no authentication.
+- **This repository contains no secrets.** The analytical site needs none. One
+  optional feature does: `/play?brain=jev` calls TypeSafe through
+  `api/jev/decision.ts`, which reads `TYPESAFE_API_KEY` from the host's
+  environment (a Vercel _Sensitive_ variable in production; `.env.local`, which
+  is git-ignored, in development). Only `api/jev/decision.ts` and the Vite
+  middleware read it; `src/game/pilot/secretBoundary.test.ts` fails if browser
+  code mentions or reads it, and `bun run build` ends with
+  `tools/jev-secret-scan.mjs`, which fails if the built bundle contains its name,
+  a TypeSafe-shaped key, or its value. There is no authentication.
 - Anything placed in a frontend build is public. Never add a credential to
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite
   inlines `VITE_`-prefixed values into the bundle, where any visitor can read
@@ -145,6 +161,10 @@ State these plainly to anyone evaluating this project:
   ADS-B feed. It is off by default; without it the application makes no
   cross-origin request at all. Remove `https://api.adsb.lol` from the
   Content-Security-Policy to forbid it entirely.
+- **One opt-in server-side call exists**: choosing Jev on `/play` makes the page
+  post a bounded game observation (numbers and fixed vocabularies — no free
+  text, no identity) to this deployment's own `/api/jev/decision`, which asks
+  TypeSafe a question the server writes. The browser never talks to TypeSafe.
 - **This system is not accredited.** It is not FedRAMP authorized, not CMMC
   certified, not government-certified, and not approved for classified
   information or Controlled Unclassified Information. Do not place non-public

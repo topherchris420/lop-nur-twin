@@ -13,16 +13,17 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 | Output directory               | `dist`                                                    |
 | Node version                   | **22.18 or newer** (declared in `package.json` `engines`) |
 | Framework preset               | Vite                                                      |
-| Environment variables required | none                                                      |
-| Secrets required               | none                                                      |
+| Environment variables required | none for the site; see below for `/play?brain=jev`        |
+| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev (optional)  |
 
-`npm run build` is four steps, in this order:
+`npm run build` is five steps, in this order:
 
 ```text
 node scripts/run-ts.mjs scripts/validate-data.ts       # data + evidence gate
 node scripts/run-ts.mjs scripts/generate-manifest.ts   # public/model-manifest.json
 vite build                                             # → dist/
 tsc --noEmit                                           # strict typecheck
+node tools/jev-secret-scan.mjs dist                    # no credential in the bundle
 ```
 
 Data validation and manifest generation run **before** Vite, so a deployment
@@ -42,20 +43,47 @@ If your platform pins an older Node, either raise it or install Bun and run
 
 ## Vercel
 
-`vercel.json` in the repository root configures three things:
+`vercel.json` in the repository root configures four things:
 
-1. **SPA rewrites** — `/(.*)` → `/index.html`. Vercel checks the filesystem
-   _before_ applying rewrites, so real files (`/assets/*`,
+1. **SPA rewrites** — `/((?!api/).*)` → `/index.html`. Vercel checks the
+   filesystem _before_ applying rewrites, so real files (`/assets/*`,
    `/model-manifest.json`) are served as themselves and only unmatched paths
    fall through to the app shell. This is what makes `/play` and `/analysis`
-   work when opened directly and survive a refresh.
+   work when opened directly and survive a refresh. `/api/` is excluded
+   explicitly, so a mistyped API path is a 404 rather than the app shell.
 2. **Security headers** on every response: Content-Security-Policy,
    `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`,
    `Cross-Origin-Opener-Policy`, `Permissions-Policy` and
    `Strict-Transport-Security`.
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
-   describe a build the visitor is not looking at.
+   describe a build the visitor is not looking at; `/api/*` is `no-store`.
+4. **One function** — `api/jev/decision.ts`, the server side of
+   `/play?brain=jev`, capped at 10 seconds.
+
+### The Jev decision endpoint
+
+The site works without it. To let `/play?brain=jev` call TypeSafe, set in
+**Project → Settings → Environment Variables**:
+
+| Variable           | Type      | Environments        | Value                   |
+| :----------------- | :-------- | :------------------ | :---------------------- |
+| `TYPESAFE_API_KEY` | Sensitive | Production, Preview | the TypeSafe API key    |
+| `TYPESAFE_MODEL`   | Plain     | all                 | `jev-latest` (optional) |
+
+Never prefix either with `VITE_`: Vite inlines `VITE_*` values into the browser
+bundle. Environment variables apply to the next deployment, so redeploy after
+setting them, then check:
+
+```sh
+curl -s https://<deployment>/api/jev/decision   # {"configured":true,"model":"jev-latest",…}
+```
+
+Without the key the endpoint answers 503 and the game shows JEV UNAVAILABLE.
+The endpoint's rate limits are in memory per function instance; for durable
+limits add a rate-limit rule for `/api/jev/decision` in the project's Firewall.
+Everything else — the boundary, the limits, local development — is in
+[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
 
 ### Redeploying after these changes
 
@@ -126,7 +154,8 @@ Properties:
   reading static files is required.
 - **No embedded secrets.** The build takes no credential and the image contains
   none; `.dockerignore` keeps `.env*`, keys and local state out of the build
-  context entirely.
+  context entirely. The image has no Jev endpoint either: `/api/*` answers 404
+  in the endpoint's error shape, and `/play?brain=jev` shows JEV UNAVAILABLE.
 - **`--ignore-scripts` on install**, so no dependency postinstall executes
   during an image build. Puppeteer's browser download is skipped: it is a test
   dependency and has no place in a production image.

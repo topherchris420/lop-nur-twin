@@ -50,6 +50,21 @@ export interface KillReport {
   assists: Actor[];
 }
 
+export interface AppliedDamage {
+  attacker: Actor | null;
+  victim: Actor;
+  /** Damage actually subtracted, after the player scaling above. */
+  amount: number;
+  killed: boolean;
+}
+
+/**
+ * Read-only observers of applied damage, for statistics (the pilot's accuracy
+ * and damage counters). They are told what the resolver already decided; they
+ * receive no way to change it, and nothing here reads their return value.
+ */
+export const damageObservers: ((report: AppliedDamage) => void)[] = [];
+
 const _dir = new THREE.Vector3();
 const _facing = new THREE.Vector3();
 
@@ -138,6 +153,16 @@ export function resolveDamage(time: number, out: KillReport[]): void {
           queueSound({ id: "hitmarker", gain: 0.55 });
         }
       }
+    }
+
+    if (damageObservers.length > 0) {
+      const report: AppliedDamage = {
+        attacker,
+        victim,
+        amount: appliedDamage,
+        killed: victim.health <= 0,
+      };
+      for (const observe of damageObservers) observe(report);
     }
 
     if (victim.health <= 0) {

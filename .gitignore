@@ -8,6 +8,8 @@ dist-ssr
 .vite
 .vercel
 .env*
+# The one env file that is committed: placeholders only, never a value.
+!.env.example
 .gstack/
 
 # Generated per build by scripts/generate-manifest.ts. It is a release artifact

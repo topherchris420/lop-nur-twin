@@ -171,6 +171,8 @@ and the twin can never drift apart.
   collide-and-slide, and an analytic heightfield raycast that calls the same
   `terrainHeight` the terrain mesh is displaced by.
 - `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
+- `pilot/` — who sits in the player's seat: the human, the TypeSafe Jev model,
+  a seeded random baseline or a recorded trace. See "The player seat" below.
 - Unfinished match-mode subsystems live in `experiments/game-modes/`, outside
   `src/` and outside the TypeScript project entirely. `tsconfig.json` has no
   exclusions: every file under `src/` is strict-checked. See
@@ -234,6 +236,66 @@ Three things that will bite anyone extending this:
    which is why `render/environment.ts` generates a bounded sky instead of
    pre-filtering three's `Sky`.
 
+## The player seat (`src/game/pilot/`)
+
+`/play?brain=human|jev|random|replay` chooses who drives the player. The rule
+the whole directory exists to keep is in `docs/JEV_BLACKSITE.md`: a brain
+_chooses_ controls; Blacksite decides what they do. Read that document before
+changing anything here.
+
+- **A brain writes `InputState` and nothing else.** There is one seam, in
+  `PlayerRig.tsx`: `pilot.frame(dt, playing) ?? input.state`. The controller,
+  weapon runtime, recoil, collision and damage then run exactly as they do
+  for a human. Never give a brain a path to the camera, the actor, the
+  weapon's ammunition or the bots.
+- **Offer only controls the rig already consumes.** `contract.ts` is the
+  vocabulary; each action maps to held inputs, edges or a bounded look delta
+  that `executor.ts` applies for a host-defined window and then releases.
+  Adding or changing an action bumps `ACTION_CONTRACT_VERSION`, and traces
+  recorded under the old version are then rejected on load, as they should be.
+- **Describe what a control does, never when to use it.** The action
+  descriptions and the server's question are semantics only. `legalActionsFor`
+  filters by mechanics (no ammunition, already reloading, pitch limit), never
+  by tactics — a filter that removes "bad" choices is the host playing for the
+  model. Arithmetic stays in code: the question `server/jev/question.ts` writes
+  states, per visible enemy, the turn and tilt that would centre the crosshair
+  on it, so the model is never asked to subtract bearings.
+- **Perception is the player's, not the world's.** `perception.ts` reports an
+  enemy only inside the camera's field of view, within sight range, with a
+  clear line to the head or chest. Anything else arrives the way it reaches a
+  human: a gunfire ping, a damage direction, a remembered last-seen position.
+- **`contract.ts`, `observation.ts` and `decision.ts` are shared with the
+  server.** `@vercel/node` compiles each file on its own and keeps import
+  specifiers, so those three and everything under `server/` import siblings
+  as `./x.js` and never through the `@/` alias — an extensionless import
+  builds, typechecks and then fails at runtime with `ERR_MODULE_NOT_FOUND`.
+- **The key never reaches the browser.** Only `api/jev/decision.ts` and the
+  dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`, and there is
+  never a `VITE_`-prefixed copy. `secretBoundary.test.ts` fails if any other
+  file reads it or browser code mentions it, and `bun run build` ends with
+  `tools/jev-secret-scan.mjs` over `dist/`. The endpoint is not a prompt
+  proxy: the browser sends a validated observation, and the server writes the
+  question.
+- **Labels are claims.** LIVE JEV is shown only while the controls in effect
+  came from a validated TypeSafe answer; anything the fallback issues is
+  labelled FALLBACK, and a failure shows the status TIMEOUT, UNAVAILABLE or
+  ERROR rather than a substitute. Probabilities and confidence are displayed as
+  TypeSafe returned them, and the random brain has none — never fill them in.
+- **No network on the frame loop.** Decisions are requested from a 50 ms timer
+  in `pilot.ts`, at most one in flight, with monotonic sequence numbers; a late
+  or superseded answer is dropped, not applied. `useFrame` only executes the
+  frame already accepted.
+- **Frame outcomes compare monotonic counters.** `pilot.ts` measures a
+  frame's shots, hits and damage against `lifetime` counters that never reset.
+  Measuring against the resettable benchmark metrics once produced a negative
+  shot count; the server rejected the observation with a 400, and every later
+  decision failed with it.
+- **Offline tools never call TypeSafe.** `bun run jev` answers from a fake
+  endpoint installed with `beforeNavigate`, _before_ the page loads — a route
+  added after navigation loses the race to the first request — and asserts
+  the only model it saw was the test double. Anything that spends credit
+  (`jev:live`, `benchmark:jev`) refuses to start without `JEV_LIVE_TEST=1`.
+
 ## Verifying changes
 
 ```sh
@@ -261,6 +323,7 @@ bun run smoke                 # 22 checks; exits non-zero on failure
 bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
+bun run jev                   # 54 checks on the player seat; no API calls
 bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
