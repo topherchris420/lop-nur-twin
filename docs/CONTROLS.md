@@ -66,7 +66,8 @@ A **shareable bookmark link** is built from this set and nothing else. The
 analyst note, the tags and the measurement path are never placed in a URL — see
 [`docs/THREAT_MODEL.md`](THREAT_MODEL.md).
 
-Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?near=`, and for
-the player brains `?brain=`, `?seed=`, `?fallback=`, `?trace=`, `?record=`);
+Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?near=`, for the
+player brains `?brain=`, `?jevControl=`, `?seed=`, `?fallback=`, `?trace=`,
+`?record=`, and for a human `?playerProfile=` and `?eliteRecoil=`);
 they are listed in [`docs/BLACKSITE.md`](BLACKSITE.md). In Blacksite, `H` takes
 control back from a brain; the `H` above is the twin's help overlay.

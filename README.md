@@ -61,10 +61,18 @@ _For full control mappings, game modes, and physics details, see [`docs/BLACKSIT
 Blacksite can optionally place the player under a bounded
 [TypeSafe](https://docs.typesafe.ai/) Jev controller. Jev receives a compact
 structured observation — what the player can see, the HUD, the weapon — and picks
-one movement, one view rotation and one weapon action from a host-defined set.
-It has no direct access to physics, damage, hit registration, score or any
-authoritative state: its choices become the same input a keyboard and mouse
-produce, and Blacksite decides what happens.
+a movement, a view rotation and a weapon action from a host-defined set, plus,
+under **precision control**, which visible enemy to engage and where on it.
+
+**Jev decides what it wants to do. A deterministic local motor controller
+executes those decisions at frame rate. Blacksite alone decides what actually
+happened.** Remote inference answers in 130–260 ms — enough to choose, too slow
+to hold a crosshair through recoil — so the aiming, recoil control and trigger
+discipline run locally, every frame, through the same mouse-style input a person
+uses. Neither Jev nor the controller can touch physics, damage, hit
+registration, hitboxes, score or any authoritative state, and a test fails if
+control code ever tries. The original stepped interface stays available as
+`?jevControl=direct` for comparison, and every result says which mode produced it.
 
 ```sh
 cp .env.example .env.local     # set TYPESAFE_API_KEY (server-side only)
@@ -74,10 +82,11 @@ bun run dev                    # then open /play?brain=jev
 The credential stays on the server (`/api/jev/decision`); the browser bundle is
 scanned for it on every build. Press **H** at any time to take control back.
 `/play?brain=random&seed=42` runs a seeded random baseline through the same
-controls. In a first benchmark — three two-minute team-deathmatch episodes per
-brain, identical seeds — Jev scored 10 kills for 1 death and the random baseline
-0 for 1; the method, the caveats and the full numbers are in
-[`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md).
+controls, and `/play?playerProfile=elite` gives a human **Elite Operator** —
+console-style aim friction and recoil help that never fires and always yields to
+the mouse.
+
+<!-- JEV_RESULTS -->
 
 ---
 

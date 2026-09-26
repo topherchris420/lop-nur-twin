@@ -964,6 +964,18 @@ async function liveChecks() {
   );
   report("took damage", ep.damageTaken > 0, `${ep.damageTaken.toFixed(0)}`);
   report("died and kept deciding after respawn", ep.deaths > 0, `${ep.deaths} deaths`);
+  report(
+    "tracked enemies Jev chose (precision controller)",
+    (ep.motor?.targetsBound ?? 0) > 0,
+    ep.motor
+      ? `${ep.motor.targetsBound} bound, tracking error p50 ${ep.motor.trackingErrorDeg.p50?.toFixed(3) ?? "n/a"}°`
+      : `control ${ep.control}`,
+  );
+  report(
+    "the fire gate held rounds that were unlikely to land",
+    (ep.motor?.gateSuppressed ?? 0) > 0,
+    ep.motor ? `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}` : "n/a",
+  );
   console.log(
     `  latency: mean ${ep.latency.meanMs?.toFixed(0)} ms, p50 ${ep.latency.p50Ms?.toFixed(0)} ms, p95 ${ep.latency.p95Ms?.toFixed(0)} ms (${ep.latency.count} samples)`,
   );

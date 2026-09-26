@@ -248,6 +248,20 @@ changing anything here.
   weapon runtime, recoil, collision and damage then run exactly as they do
   for a human. Never give a brain a path to the camera, the actor, the
   weapon's ammunition or the bots.
+- **Cognition and motor control are separate, and stay labelled.** Under
+  `jevControl=precision` a brain names a target slot and an aim region;
+  `motor.ts` executes them at frame rate. The controller may only rewrite the
+  `InputState` (look, trigger, sights, and movement shaped to make the requested
+  action coherent — never a destination). It never picks an enemy by itself,
+  reads a body only while `hasLineOfSight` reaches it, and lets go on death,
+  sight loss, outage or takeover. `authority.test.ts` fails if any control-layer
+  file queues damage, writes a collider, health or weapon state, moves a body,
+  fires a weapon or touches the camera — add new control files to its list.
+  Every episode, trace and benchmark names its `control` and `profile`; never
+  report a precision result as the brain's aim alone.
+- **Hitboxes have one definition.** `characters/hitboxSpecs.ts` builds the
+  colliders and feeds the aim geometry; a test pins the numbers. Changing a box
+  changes every shooter, so it is a gameplay change, not a controller tweak.
 - **Offer only controls the rig already consumes.** `contract.ts` is the
   vocabulary; each action maps to held inputs, edges or a bounded look delta
   that `executor.ts` applies for a host-defined window and then releases.
@@ -323,7 +337,7 @@ bun run smoke                 # 22 checks; exits non-zero on failure
 bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
-bun run jev                   # 54 checks on the player seat; no API calls
+bun run jev                   # 72 checks on the player seat; no API calls
 bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera

@@ -148,14 +148,17 @@ bun run audio        # renders each sound offline and measures peak + crest
 ### The player brains
 
 ```sh
-bun run test:jev                    # unit: contract, schema, executor, loop,
-                                    # providers, recorder, metrics, endpoint,
-                                    # credential boundary — no API calls
-bun run jev                         # 54 browser checks against the dev server,
+bun run test:jev                    # unit: contract, schema, executor, motor
+                                    # controller, fire gate, engagement axes,
+                                    # authority, loop, providers, recorder,
+                                    # metrics, endpoint, credential boundary
+bun run jev                         # 72 browser checks against the dev server,
                                     # Jev path against a fake endpoint — no API calls
 JEV_LIVE_TEST=1 bun run jev:live    # the real TypeSafe API, through the dev server
-bun run benchmark:random            # repeatable episodes, seeded random brain
-JEV_LIVE_TEST=1 bun run benchmark:jev
+bun run benchmark:random            # repeatable episodes, seeded random brain, direct
+bun run benchmark:random:precision  # …the same brain through the precision controller
+JEV_LIVE_TEST=1 bun run benchmark:jev            # Jev, direct control (the original)
+JEV_LIVE_TEST=1 bun run benchmark:jev:precision  # Jev, precision control
 bun run replay:jev -- trace.jsonl   # replay a recorded control stream
 ```
 
@@ -164,6 +167,10 @@ moves, turns and fires through the real rig; seed 42 reproduces its frames;
 errors, timeouts and an unconfigured service show ERROR, TIMEOUT and UNAVAILABLE
 while the simulation keeps running and nothing stays held; invalid answers are
 rejected; H hands control back; death and respawn leave the controller working;
+under precision control the tracking controller binds only living enemies Jev
+named, never measures one without a sight line, holds the chosen region, lets go
+during an outage and on takeover, and labels its episode and trace; Elite
+Operator switches on and off visibly and labels a human episode;
 fallback and replay can never be labelled LIVE JEV; hostile `?brain=`, `?seed=`,
 `?fallback=` and `?trace=` values fall back to defaults. Anything that calls the
 real API requires `JEV_LIVE_TEST=1`. The headless tools stub the GPU draw and
