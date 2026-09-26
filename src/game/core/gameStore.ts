@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
 import type { ParsedTrace } from "../pilot/recorder";
+import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -17,6 +18,15 @@ import type { ParsedTrace } from "../pilot/recorder";
 export type BrainKind = "human" | "jev" | "random" | "replay";
 
 export const BRAIN_KINDS: readonly BrainKind[] = ["human", "jev", "random", "replay"];
+
+/**
+ * How a human's aim reaches the view. `standard` is the raw mouse. `elite` is
+ * Elite Operator: target friction, a slight slowdown across a visible enemy,
+ * very mild rotational help while aiming down the sights and, optionally,
+ * learned recoil help. The mouse always wins; it never fires for you.
+ */
+export type PlayerProfile = "standard" | "elite";
+export const PLAYER_PROFILES: readonly PlayerProfile[] = ["standard", "elite"];
 
 export type GameScreen =
   "boot" | "menu" | "loadout" | "briefing" | "playing" | "paused" | "killcam" | "results";
@@ -144,6 +154,19 @@ interface GameStoreState {
   /** The validated trace the replay brain plays back, once one is loaded. */
   replayTrace: ParsedTrace | null;
   setReplayTrace: (trace: ParsedTrace | null) => void;
+  /**
+   * `?jevControl=direct|precision`: how a brain's aim reaches the view. Direct
+   * is the original stepped interface, kept for comparison; precision adds a
+   * target choice executed by the local tracking controller.
+   */
+  jevControl: ControlMode;
+  setJevControl: (control: ControlMode) => void;
+  /** `?playerProfile=standard|elite` — Elite Operator for the human. */
+  playerProfile: PlayerProfile;
+  setPlayerProfile: (profile: PlayerProfile) => void;
+  /** Elite Operator's learned recoil help. On by default within Elite Operator. */
+  eliteRecoilAssist: boolean;
+  toggleEliteRecoilAssist: () => void;
 }
 
 let killfeedId = 1;
@@ -259,4 +282,12 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   brainFallback: readEnumParam<"random">("fallback", ["random"]),
   replayTrace: null,
   setReplayTrace: (replayTrace) => set({ replayTrace }),
+  jevControl: readEnumParam<ControlMode>("jevControl", CONTROL_MODES) ?? "precision",
+  setJevControl: (jevControl) => set({ jevControl }),
+  playerProfile:
+    readEnumParam<PlayerProfile>("playerProfile", PLAYER_PROFILES) ?? "standard",
+  setPlayerProfile: (playerProfile) => set({ playerProfile }),
+  eliteRecoilAssist: readEnumParam<"0" | "1">("eliteRecoil", ["0", "1"]) !== "0",
+  toggleEliteRecoilAssist: () =>
+    set((s) => ({ eliteRecoilAssist: !s.eliteRecoilAssist })),
 }));

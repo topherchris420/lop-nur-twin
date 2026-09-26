@@ -2,8 +2,14 @@
 /**
  * Repeatable episodes of Blacksite with a brain in the player's seat.
  *
- *   node tools/jev-benchmark.mjs --brain random [--episodes 3] [--seconds 90]
- *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --episodes 3
+ *   node tools/jev-benchmark.mjs --brain random --control direct [--episodes 3] [--seconds 90]
+ *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --control precision --episodes 3
+ *
+ * `--control direct|precision` is required, and every report names it. In
+ * `precision` the brain chooses a target and an aim region and the local
+ * tracking controller (`src/game/pilot/motor.ts`) executes them at frame rate;
+ * a precision result is the brain's choices *and* that controller, never the
+ * brain issuing every 60 Hz correction by itself.
  *
  * Options: --seed <n> (base seed; episode i uses seed+i), --mode tdm|domination|…,
  * --out <file.json> (default shots/jev-benchmark-<brain>-<time>.json), and an
@@ -48,6 +54,7 @@ import {
 } from "./jev-harness.mjs";
 
 const brain = option("brain", "random");
+const control = option("control", "");
 const episodes = Number(option("episodes", "3"));
 const seconds = Number(option("seconds", "90"));
 const baseSeed = Number(option("seed", "42"));
@@ -56,11 +63,17 @@ const origin =
   process.argv.slice(2).find((a) => a.startsWith("http")) ?? "http://localhost:5173";
 const out = option(
   "out",
-  `shots/jev-benchmark-${brain}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+  `shots/jev-benchmark-${brain}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 
 if (!["random", "jev"].includes(brain)) {
   console.error("--brain must be random or jev");
+  process.exit(2);
+}
+if (!["direct", "precision"].includes(control)) {
+  console.error(
+    "--control must be direct or precision: a result has to say which controller produced it",
+  );
   process.exit(2);
 }
 if (brain === "jev" && process.env.JEV_LIVE_TEST !== "1") {
@@ -99,7 +112,7 @@ try {
     const { page, errors } = await openPlay(
       browser,
       origin,
-      `autoplay=1&quality=0&brain=${brain}&seed=${seed}&mode=${mode}`,
+      `autoplay=1&quality=0&brain=${brain}&jevControl=${control}&seed=${seed}&mode=${mode}`,
     );
     await waitForPilot(page);
     // Count the blue bots' damage through the same read-only tap the pilot uses.

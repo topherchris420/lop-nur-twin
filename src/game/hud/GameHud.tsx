@@ -621,6 +621,22 @@ function PauseMenu() {
             onChange={store.setMasterVolume}
           />
           <Toggle
+            label="Elite Operator aim"
+            value={store.playerProfile === "elite"}
+            onChange={() =>
+              store.setPlayerProfile(
+                store.playerProfile === "elite" ? "standard" : "elite",
+              )
+            }
+          />
+          {store.playerProfile === "elite" && (
+            <Toggle
+              label="Elite recoil help"
+              value={store.eliteRecoilAssist}
+              onChange={store.toggleEliteRecoilAssist}
+            />
+          )}
+          <Toggle
             label="Invert look"
             value={store.invertY}
             onChange={store.toggleInvertY}

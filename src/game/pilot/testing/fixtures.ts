@@ -15,6 +15,7 @@ import { legalActionsFor, type JevObservation, type LegalActions } from "../obse
 export function makeObservation(
   overrides: {
     sequence?: number;
+    control?: JevObservation["control"];
     player?: Partial<JevObservation["player"]>;
     weapon?: Partial<JevObservation["weapon"]>;
     perception?: Partial<JevObservation["perception"]>;
@@ -41,12 +42,41 @@ export function makeObservation(
     reserve: 120,
     reloading: false,
     canFire: true,
+    spreadDeg: 1.8,
+    aimedSpreadDeg: 0.35,
     ...overrides.weapon,
+  };
+  const control = overrides.control ?? "direct";
+  const perception: JevObservation["perception"] = {
+    visibleEnemies: [
+      {
+        bearingDeg: 9.4,
+        elevationDeg: -0.6,
+        distanceM: 27,
+        onCrosshair: false,
+        firing: true,
+        headVisible: true,
+        chestVisible: true,
+        lateralMps: -1.2,
+        tracked: false,
+      },
+    ],
+    contacts: [{ source: "gunfire", bearingDeg: -120, distanceM: 60, ageS: 1.2 }],
+    damage: { ageS: 0.5, bearingDeg: 12 },
+    obstacles: {
+      forwardM: null,
+      leftM: 3.1,
+      rightM: null,
+      backM: null,
+      forwardClimbable: false,
+    },
+    ...overrides.perception,
   };
   return {
     schemaVersion: OBSERVATION_SCHEMA_VERSION,
     actionContract: ACTION_CONTRACT_VERSION,
     sequence: overrides.sequence ?? 1,
+    control,
     match: {
       mode: "tdm",
       phase: "live",
@@ -57,34 +87,20 @@ export function makeObservation(
     },
     player,
     weapon,
-    perception: {
-      visibleEnemies: [
-        {
-          bearingDeg: 9.4,
-          elevationDeg: -0.6,
-          distanceM: 27,
-          onCrosshair: false,
-          firing: true,
-        },
-      ],
-      contacts: [{ source: "gunfire", bearingDeg: -120, distanceM: 60, ageS: 1.2 }],
-      damage: { ageS: 0.5, bearingDeg: 12 },
-      obstacles: {
-        forwardM: null,
-        leftM: 3.1,
-        rightM: null,
-        backM: null,
-        forwardClimbable: false,
-      },
-      ...overrides.perception,
-    },
+    perception,
     objective: { kind: "none", bearingDeg: null, distanceM: null, state: null },
     previous: { frame: null, outcome: null },
-    legal: legalActionsFor(player, weapon),
+    legal: legalActionsFor(player, weapon, {
+      control,
+      visibleEnemies: perception.visibleEnemies.length,
+    }),
   };
 }
 
-/** TypeSafe-shaped Choice answers that pick the first legal option of each axis. */
+/**
+ * TypeSafe-shaped Choice answers that pick the first legal option of each
+ * asked axis. An axis with a single option is not asked, so it gets no answer.
+ */
 export function fakeAnswers(
   legal: LegalActions,
   pick: Partial<Record<(typeof AXES)[number], string>> = {},
@@ -92,6 +108,7 @@ export function fakeAnswers(
   const answers: Record<string, unknown> = {};
   for (const axis of AXES) {
     const options = legal[axis] as readonly string[];
+    if (options.length < 2) continue;
     const choice = pick[axis] ?? options[0]!;
     const rest = (1 - 0.7) / Math.max(1, options.length - 1);
     const probabilities: Record<string, number> = {};

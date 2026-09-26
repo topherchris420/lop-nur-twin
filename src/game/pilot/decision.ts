@@ -30,7 +30,19 @@ export interface AxisDecision<A extends Axis> {
   probabilities: [AxisActions[A], number][];
 }
 
-export type DecisionAxes = { [A in Axis]: AxisDecision<A> };
+/**
+ * One answer per axis that was asked. `target` and `aim` are null when they
+ * were not asked — a single legal option is not a choice, and no probability
+ * or confidence is ever invented for it.
+ */
+export type DecisionAxes = {
+  move: AxisDecision<"move">;
+  turn: AxisDecision<"turn">;
+  tilt: AxisDecision<"tilt">;
+  weapon: AxisDecision<"weapon">;
+  target: AxisDecision<"target"> | null;
+  aim: AxisDecision<"aim"> | null;
+};
 
 export interface JevDecision {
   schemaVersion: typeof DECISION_SCHEMA_VERSION;
@@ -165,7 +177,10 @@ export function parseAxisDecision<A extends Axis>(
   };
 }
 
-/** Validate all four axis answers; the first failure is reported. */
+/**
+ * Validate the answers for every asked axis; the first failure is reported.
+ * An axis with one legal option must *not* carry an answer — it was not asked.
+ */
 export function parseAllAxes(
   answers: Record<string, unknown>,
   legal: LegalActions,
@@ -178,19 +193,43 @@ export function parseAllAxes(
   if (!tilt.ok) return tilt;
   const weapon = parseAxisDecision("weapon", answers["weapon"], legal.weapon);
   if (!weapon.ok) return weapon;
+  const optional = <A extends "target" | "aim">(
+    axis: A,
+  ): Validated<AxisDecision<A> | null> => {
+    const answer = answers[axis];
+    if (legal[axis].length < 2) {
+      return answer === undefined || answer === null
+        ? { ok: true, value: null }
+        : { ok: false, error: `${axis}: answered, but it was not asked` };
+    }
+    return parseAxisDecision(axis, answer, legal[axis] as AxisActions[A][]);
+  };
+  const target = optional("target");
+  if (!target.ok) return target;
+  const aim = optional("aim");
+  if (!aim.ok) return aim;
   return {
     ok: true,
-    value: { move: move.value, turn: turn.value, tilt: tilt.value, weapon: weapon.value },
+    value: {
+      move: move.value,
+      turn: turn.value,
+      tilt: tilt.value,
+      weapon: weapon.value,
+      target: target.value,
+      aim: aim.value,
+    },
   };
 }
 
-/** The frame the axis answers select. */
-export function frameOf(axes: DecisionAxes): ControlFrame {
+/** The frame the axis answers select; an unasked axis takes its only legal option. */
+export function frameOf(axes: DecisionAxes, legal: LegalActions): ControlFrame {
   return {
     move: axes.move.choice,
     turn: axes.turn.choice,
     tilt: axes.tilt.choice,
     weapon: axes.weapon.choice,
+    target: axes.target?.choice ?? legal.target[0] ?? "NONE",
+    aim: axes.aim?.choice ?? legal.aim[0] ?? "CENTER_MASS",
   };
 }
 
@@ -227,7 +266,7 @@ export function validateDecision(
   const parsed = parseAllAxes(axesRaw, expected.legal);
   if (!parsed.ok) return parsed;
   const axes = parsed.value;
-  const frame = frameOf(axes);
+  const frame = frameOf(axes, expected.legal);
   if (AXES.some((axis) => frameRaw[axis] !== frame[axis])) {
     return { ok: false, error: "frame disagrees with the axis answers" };
   }

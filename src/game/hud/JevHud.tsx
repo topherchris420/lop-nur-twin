@@ -41,6 +41,16 @@ const AXIS_NAMES: Record<Axis, string> = {
   turn: "TURN",
   tilt: "TILT",
   weapon: "WEAPON",
+  target: "TARGET",
+  aim: "AIM",
+};
+
+const GATE_NAMES: Record<string, string> = {
+  idle: "—",
+  tracking: "TRACKING",
+  settling: "ADS SETTLING",
+  open: "TRIGGER OPEN",
+  held: "TRIGGER HELD",
 };
 
 function fmtP(value: number): string {
@@ -72,7 +82,11 @@ export function JevHud() {
     turn: null,
     tilt: null,
     weapon: null,
+    target: null,
+    aim: null,
   });
+  const motorRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
   const metaRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
@@ -108,19 +122,27 @@ export function JevHud() {
       for (const axis of AXES) {
         const row = axisRefs.current[axis];
         if (!row) continue;
+        // Target and aim exist only under precision control.
+        row.hidden = (axis === "target" || axis === "aim") && t.control !== "precision";
         const choice = t.frame ? t.frame[axis] : "—";
         const answer = t.axes?.[axis];
-        const top = answer
-          ? answer.probabilities.slice(0, 3).map(([option, p]) => `${option} ${fmtP(p)}`)
-          : t.frame
-            ? [
-                t.brain === "random" || t.label === "FALLBACK"
-                  ? "uniform over legal options"
-                  : "no probabilities recorded",
-              ]
-            : [];
+        const engagement = axis === "target" || axis === "aim";
+        const top = engagement
+          ? []
+          : answer
+            ? answer.probabilities
+                .slice(0, 3)
+                .map(([option, p]) => `${option} ${fmtP(p)}`)
+            : t.frame
+              ? [
+                  t.brain === "random" || t.label === "FALLBACK"
+                    ? "uniform over legal options"
+                    : "no probabilities recorded",
+                ]
+              : [];
+        const unasked = engagement && t.frame !== null && t.axes !== null && !answer;
         const [head, detail] = row.children as unknown as [HTMLElement, HTMLElement];
-        head.textContent = `${AXIS_NAMES[axis].padEnd(7)}${choice.padEnd(17)}${answer ? `P ${fmtP(answer.probabilities[0]?.[1] ?? 0)} CONF ${fmtP(answer.confidence)}` : ""}`;
+        head.textContent = `${AXIS_NAMES[axis].padEnd(7)}${choice.padEnd(17)}${answer ? `P ${fmtP(answer.probabilities[0]?.[1] ?? 0)} CONF ${fmtP(answer.confidence)}` : unasked ? "NOT ASKED" : ""}`;
         // One element per candidate, so a long top three wraps between
         // candidates instead of cutting the third one off.
         const key = top.join("\n");
@@ -134,6 +156,19 @@ export function JevHud() {
             }),
           );
         }
+      }
+      if (motorRef.current) {
+        const m = t.motor;
+        motorRef.current.textContent =
+          t.control !== "precision"
+            ? "CONTROL DIRECT · STEPPED TURNS BY THE BRAIN"
+            : m.bound
+              ? `PRECISION · ${m.heldAim ?? m.aim ?? ""}${m.heldAim && m.heldAim !== m.aim ? "*" : ""} · ERR ${m.errorDeg === null ? "—" : `${m.errorDeg.toFixed(2)}°`} · ${GATE_NAMES[m.gate] ?? m.gate}${m.distanceM === null ? "" : ` · ${Math.round(m.distanceM)} M`}`
+              : "PRECISION · NO TARGET TRACKED";
+      }
+      if (statsRef.current) {
+        const accuracy = t.shots > 0 ? `${Math.round((t.hits / t.shots) * 100)}%` : "—";
+        statsRef.current.textContent = `ACC ${accuracy} · HITS ${t.hits}/${t.shots} · K/D ${t.kills}/${t.deaths}`;
       }
       if (metaRef.current) {
         const latency = t.latencyMs === null ? "—" : `${Math.round(t.latencyMs)} ms`;
@@ -189,12 +224,14 @@ export function JevHud() {
           </div>
         ))}
       </div>
-      <div ref={metaRef} className="mt-1.5 truncate text-slate-400" />
+      <div ref={motorRef} className="mt-1.5 truncate text-[#9fd0ff]" />
+      <div ref={statsRef} className="truncate text-slate-300" />
+      <div ref={metaRef} className="truncate text-slate-400" />
       <div ref={targetRef} className="truncate text-slate-400" />
       <div ref={errorRef} className="truncate text-[#ff8a80] normal-case" />
       <p className="mt-0.5 truncate text-[9px] tracking-[0.1em] text-slate-400 normal-case">
         {brain === "jev"
-          ? "Jev chooses · Blacksite decides what happens"
+          ? "Jev chooses · local controller executes · Blacksite decides"
           : brain === "random"
             ? "Seeded random policy · same controls, same timing"
             : "Recorded controls played back · not live"}
@@ -239,6 +276,10 @@ export function PlayerControlSelector() {
   const seed = useGameStore((s) => s.brainSeed);
   const trace = useGameStore((s) => s.replayTrace);
   const setReplayTrace = useGameStore((s) => s.setReplayTrace);
+  const control = useGameStore((s) => s.jevControl);
+  const setControl = useGameStore((s) => s.setJevControl);
+  const profile = useGameStore((s) => s.playerProfile);
+  const setProfile = useGameStore((s) => s.setPlayerProfile);
   const [service, setService] = useState<JevServiceStatus | null>(null);
   const [traceError, setTraceError] = useState<string | null>(null);
 
@@ -293,10 +334,72 @@ export function PlayerControlSelector() {
           </button>
         ))}
       </div>
+      {brain === "human" ? (
+        <div
+          role="group"
+          aria-label="Aim profile"
+          className="mt-2 grid grid-cols-2 gap-2 font-mono text-[10px] tracking-[0.14em] uppercase"
+        >
+          {(
+            [
+              ["standard", "Standard aim"],
+              ["elite", "Elite Operator"],
+            ] as const
+          ).map(([id, name]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={profile === id}
+              onClick={() => setProfile(id)}
+              className={cn(
+                "px-3 py-1.5 text-left focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none",
+                profile === id
+                  ? "bg-white/[0.12] text-slate-100"
+                  : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08]",
+              )}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div
+          role="group"
+          aria-label="Aim control"
+          className="mt-2 grid grid-cols-2 gap-2 font-mono text-[10px] tracking-[0.14em] uppercase"
+        >
+          {(
+            [
+              ["precision", "Precision control"],
+              ["direct", "Direct control"],
+            ] as const
+          ).map(([id, name]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={control === id}
+              onClick={() => setControl(id)}
+              className={cn(
+                "px-3 py-1.5 text-left focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none",
+                control === id
+                  ? "bg-white/[0.12] text-slate-100"
+                  : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08]",
+              )}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
       <p className="mt-3 text-[11px] leading-relaxed text-slate-400">
-        {brain === "human" && "Keyboard and mouse. The default."}
+        {brain === "human" &&
+          (profile === "elite"
+            ? "Keyboard and mouse with Elite Operator: target friction, gentle aimed tracking help and learned recoil help. It never fires for you and the mouse always overrides it."
+            : "Keyboard and mouse. The default.")}
         {brain === "jev" &&
-          "Jev controls the player through the same movement, aim and weapon controls a person has. Blacksite still controls the world: physics, hits, damage and scoring. Press H in the match to take control."}
+          (control === "precision"
+            ? "Jev chooses where to move, which visible enemy to engage and where on it; a deterministic local controller executes that aim and trigger discipline at frame rate. Blacksite still decides every hit. Press H to take control."
+            : "Jev turns the view itself in fixed steps, the original interface. Blacksite still controls the world: physics, hits, damage and scoring. Press H in the match to take control.")}
         {brain === "random" &&
           `A seeded random policy (seed ${seed}) picks from the same controls on the same timing. A baseline, not Jev.`}
         {brain === "replay" &&

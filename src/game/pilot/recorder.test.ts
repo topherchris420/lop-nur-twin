@@ -19,7 +19,14 @@ function record(sequence: number, actionStart: number | null): TraceRecord {
     source: "jev",
     observationHash: hashObservation(observation),
     legal: observation.legal,
-    frame: { move: "FORWARD", turn: "TURN_RIGHT_FINE", tilt: "NO_TILT", weapon: "FIRE" },
+    frame: {
+      move: "FORWARD",
+      turn: "TURN_RIGHT_FINE",
+      tilt: "NO_TILT",
+      weapon: "FIRE",
+      target: "NONE",
+      aim: "CENTER_MASS",
+    },
     axes: null,
     model: "jev-1.13.0",
     latencyMs: 140,
@@ -40,6 +47,7 @@ function recorderWith(records: TraceRecord[]): TraceRecorder {
   recorder.begin({
     brain: "jev",
     seed: 42,
+    control: "precision",
     mode: "tdm",
     matchId: "m",
     startedAt: "2026-09-26T00:00:00.000Z",
@@ -95,7 +103,7 @@ describe("traces", () => {
       false,
     );
     expect(
-      parseTrace(withHeader({ actionContract: "blacksite-jev-actions/v2" })).ok,
+      parseTrace(withHeader({ actionContract: "blacksite-jev-actions/v1" })).ok,
     ).toBe(false);
     expect(parseTrace(withHeader({ observationSchema: "x" })).ok).toBe(false);
     // The executed frame, not the legal list that also names FIRE.

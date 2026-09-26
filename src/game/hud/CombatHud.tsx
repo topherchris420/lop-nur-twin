@@ -880,6 +880,20 @@ function paintAmmo(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   ctx.fillStyle = "rgba(226,232,240,0.9)";
   ctx.fillText(label, right - 7, bottom - 32);
 
+  // Elite Operator chip: the aim help is on, and says so.
+  if (hud.eliteOperator) {
+    const elite = "ELITE OPERATOR";
+    const eliteW = ctx.measureText(elite).width + 14;
+    const eliteX = right - chipW - 6 - eliteW;
+    ctx.fillStyle = "rgba(77,163,255,0.18)";
+    chamferPath(ctx, eliteX, bottom - 44, eliteW, 16, 4);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(77,163,255,0.7)";
+    ctx.stroke();
+    ctx.fillStyle = "#9fd0ff";
+    ctx.fillText(elite, eliteX + eliteW - 7, bottom - 32);
+  }
+
   // Magazine bar: one tick per round
   const ticks = Math.min(hud.magSize, 40);
   const barW = 128;

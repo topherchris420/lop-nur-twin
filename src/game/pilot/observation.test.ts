@@ -147,7 +147,7 @@ describe("legal actions", () => {
     expect(up.some((a) => a.startsWith("LOOK_DOWN"))).toBe(true);
   });
 
-  it("keeps contract order and always leaves at least two options per axis", () => {
+  it("keeps contract order and always leaves at least two options per core axis", () => {
     const legal = legalActionsFor(
       { ...player, stance: "prone", grounded: false, pitchDeg: 85 },
       { ...weapon, reloading: true, canFire: false },
@@ -158,7 +158,9 @@ describe("legal actions", () => {
         options.includes(a),
       );
       expect(options).toEqual(order);
-      expect(options.length).toBeGreaterThanOrEqual(2);
+      // Target and aim are single-option (not asked) outside precision control.
+      const core = axis !== "target" && axis !== "aim";
+      expect(options.length).toBeGreaterThanOrEqual(core ? 2 : 1);
     }
   });
 });

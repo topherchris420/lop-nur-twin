@@ -18,6 +18,8 @@ const frame = (overrides: Partial<ControlFrame> = {}): ControlFrame => ({
   turn: "NO_TURN",
   tilt: "NO_TILT",
   weapon: "NO_FIRE",
+  target: "NONE",
+  aim: "CENTER_MASS",
   ...overrides,
 });
 const ctx = (

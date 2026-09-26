@@ -2,9 +2,11 @@ import { canonicalize } from "@/lib/canonicalJson";
 import {
   ACTION_CONTRACT_VERSION,
   AXES,
+  CONTROL_MODES,
   OBSERVATION_SCHEMA_VERSION,
   isAxisAction,
   type ControlFrame,
+  type ControlMode,
 } from "./contract";
 import type { DecisionAxes } from "./decision";
 import type { LegalActions, PreviousOutcome } from "./observation";
@@ -24,7 +26,7 @@ import type { LegalActions, PreviousOutcome } from "./observation";
  * The API key never reaches the browser, so it cannot be in a trace.
  */
 
-export const TRACE_VERSION = "blacksite-jev-trace/v1";
+export const TRACE_VERSION = "blacksite-jev-trace/v2";
 export const MAX_TRACE_RECORDS = 5000;
 export const MAX_TRACE_EVENTS = 2000;
 
@@ -37,6 +39,11 @@ export interface TraceHeader {
   observationSchema: typeof OBSERVATION_SCHEMA_VERSION;
   brain: "jev" | "random" | "replay";
   seed: number;
+  /**
+   * How the frames reached the view. A `precision` trace's target choices were
+   * executed by the local tracking controller, not by the brain frame by frame.
+   */
+  control: ControlMode;
   mode: string;
   matchId: string;
   startedAt: string;
@@ -72,6 +79,8 @@ export interface TraceRecord {
   actionEnd: number | null;
   endReason: "expired" | "replaced" | "cleared" | null;
   execution: PreviousOutcome | null;
+  /** Precision control only: whether the chosen slot bound a target. */
+  engagement?: { targetBound: boolean };
   playerAfter: PlayerSnapshot | null;
   matchId: string;
   seed: number;
@@ -92,7 +101,8 @@ export interface TraceEvent {
     | "takeover"
     | "death"
     | "respawn"
-    | "skipped";
+    | "skipped"
+    | "target_released";
   detail: string;
 }
 
@@ -201,6 +211,9 @@ export function parseTrace(
       ok: false,
       error: `Trace uses action contract ${String(header.actionContract)}; this build speaks ${ACTION_CONTRACT_VERSION}.`,
     };
+  }
+  if (!(CONTROL_MODES as readonly unknown[]).includes(header.control)) {
+    return { ok: false, error: `Unknown control mode ${String(header.control)}.` };
   }
   if (header.observationSchema !== OBSERVATION_SCHEMA_VERSION) {
     return {

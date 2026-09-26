@@ -27,6 +27,8 @@ import { getPostExposure } from "../render/screenEffects";
 import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
 import { pilot } from "../pilot/pilot";
 import { rigState } from "../pilot/rigState";
+import { EliteOperatorAssist, type AssistEnemy, type AssistSense } from "./eliteAssist";
+import { MASK_SIGHT, OPPOSING_TEAM } from "../core/types";
 
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
@@ -213,6 +215,26 @@ export function PlayerRig({
   const brain = useGameStore((s) => s.brain);
 
   const controller = useMemo(() => new PlayerController(), []);
+  // Elite Operator: reshapes a human's mouse look near a visible enemy. The
+  // sense object is reused every frame; nothing here is React state.
+  const elite = useMemo(() => {
+    const enemies: AssistEnemy[] = [];
+    const holder: { world: CollisionWorld | null } = { world: null };
+    const sense: AssistSense = {
+      dt: 0,
+      eye: new THREE.Vector3(),
+      aim: new THREE.Vector3(0, 0, -1),
+      halfFovDeg: { h: 40, v: 25 },
+      ads: 0,
+      playerSpeed: 0,
+      enemies,
+      sightline: (id, point) =>
+        holder.world
+          ? holder.world.hasLineOfSight(sense.eye, point, MASK_SIGHT, id)
+          : false,
+    };
+    return { assist: new EliteOperatorAssist(), sense, enemies, holder };
+  }, []);
   const animator = useMemo(() => new ViewmodelAnimator(), []);
   const stage = useMemo(() => new ViewmodelStage(), []);
   useEffect(() => {
@@ -373,9 +395,35 @@ export function PlayerRig({
     // mouse do; with a human in the seat this is null and nothing changes.
     const piloted = pilot.frame(dt, playing);
 
+    const store = useGameStore.getState();
+    const eliteOn =
+      !piloted && store.brain === "human" && store.playerProfile === "elite";
     if (playing && player.alive) {
       const s = piloted ?? input.state;
       if (import.meta.env.DEV && game.forceAds) s.ads = true;
+
+      if (eliteOn) {
+        const sense = elite.sense;
+        sense.dt = dt;
+        eyePosition(player, sense.eye);
+        sense.aim.copy(game.cameraForward);
+        if (sense.aim.lengthSq() < 1e-8) sense.aim.set(0, 0, -1);
+        sense.aim.normalize();
+        sense.halfFovDeg.h = horizontalFov.current / 2;
+        sense.halfFovDeg.v = Math.max(10, game.cameraFov / 2);
+        sense.ads = active.ads;
+        sense.playerSpeed = player.speed;
+        elite.enemies.length = 0;
+        const enemyTeam = OPPOSING_TEAM[player.team];
+        for (const other of game.actors) {
+          if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+          elite.enemies.push(other);
+        }
+        elite.holder.world = world;
+        elite.assist.apply(s, sense);
+      } else if (elite.assist.telemetry.active) {
+        elite.assist.reset();
+      }
 
       /* ---------------------------------------------------- look */
       player.yaw += s.lookYaw;
@@ -462,6 +510,9 @@ export function PlayerRig({
           accuracy: 1,
         });
         pilot.onPlayerShot();
+        if (eliteOn) {
+          elite.assist.onShot(active.lastPatternKickDeg, store.eliteRecoilAssist);
+        }
         if (fx) {
           const calibre =
             active.def.weaponClass === "sniper" || active.def.weaponClass === "lmg"
@@ -574,8 +625,8 @@ export function PlayerRig({
       model,
       active,
       {
-        lookDeltaYaw: piloted ? pilot.executor.lastLookYaw : input.rawYaw,
-        lookDeltaPitch: piloted ? pilot.executor.lastLookPitch : input.rawPitch,
+        lookDeltaYaw: piloted ? pilot.lastLookYaw : input.rawYaw,
+        lookDeltaPitch: piloted ? pilot.lastLookPitch : input.rawPitch,
         speed: controller.speed,
         grounded: player.grounded,
         view,
@@ -642,6 +693,8 @@ export function PlayerRig({
     rigState.weaponClass = active.def.weaponClass;
     rigState.fireMode = active.fireMode;
     rigState.horizontalFovDeg = horizontalFov.current;
+    rigState.weapon = active;
+    game.hud.eliteOperator = eliteOn;
 
     input.endFrame();
     pilot.endFrame();

@@ -127,6 +127,16 @@ export class WeaponRuntime {
   firedThisFrame = false;
   /** Set for one frame when a casing should be ejected. */
   ejectThisFrame = false;
+  /**
+   * The *pattern* part of the last shot's view kick, degrees, after the ADS
+   * scale — the deterministic spray a practised player learns. The random
+   * jitter layered on top is deliberately not included: nobody can learn it.
+   * Read-only knowledge for the precision controller and Elite Operator; the
+   * kick itself is applied exactly as before.
+   */
+  readonly lastPatternKickDeg = { pitch: 0, yaw: 0 };
+  /** Rounds fired over this runtime's life. Monotonic; for observers only. */
+  shotsFired = 0;
 
   private shotClock = 0;
   private shotsInBurst = 0;
@@ -172,6 +182,17 @@ export class WeaponRuntime {
     return this.reloadDuration > 0
       ? Math.min(1, this.stateTimer / this.reloadDuration)
       : 0;
+  }
+
+  /** The action is cycled and the trigger would release a round if pulled now. */
+  get readyToFire(): boolean {
+    return (
+      this.state !== "reloading" &&
+      this.state !== "raising" &&
+      this.shotClock <= 0 &&
+      this.burstCooldown <= 0 &&
+      this.ammo > 0
+    );
   }
 
   get needsReload(): boolean {
@@ -229,6 +250,18 @@ export class WeaponRuntime {
     if (stance === "crouch") spread *= s.crouchScale;
     else if (stance === "prone") spread *= s.crouchScale * 0.72;
     return spread + this.bloom * adsDamping;
+  }
+
+  /**
+   * The cone a settled shot would have: fully aimed, standing still, grounded,
+   * no bloom. The same formula as `spreadDeg`, evaluated at those inputs.
+   */
+  settledSpreadDeg(stance: Stance): number {
+    const s = this.def.spread;
+    let spread = this.tacStance ? s.hipDeg * 0.25 + s.adsDeg * 0.75 : s.adsDeg;
+    if (stance === "crouch") spread *= s.crouchScale;
+    else if (stance === "prone") spread *= s.crouchScale * 0.72;
+    return spread;
   }
 
   /* ---------------------------------------------------------------- */
@@ -375,6 +408,9 @@ export class WeaponRuntime {
     const adsScale = 1 - this.ads * (this.tacStance ? 0.18 : 0.24);
     const pitchRad = THREE.MathUtils.degToRad(pitchDeg) * adsScale;
     const yawRad = THREE.MathUtils.degToRad(yawDeg) * adsScale;
+    this.lastPatternKickDeg.pitch = pitchDeg * adsScale;
+    this.lastPatternKickDeg.yaw = this.pattern[index * 2 + 1]! * adsScale;
+    this.shotsFired += 1;
     this.kickPitch += pitchRad;
     this.kickYaw += yawRad;
     this.recenterPitch += pitchRad * def.recoil.recenterFraction;
