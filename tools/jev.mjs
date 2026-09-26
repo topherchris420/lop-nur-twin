@@ -320,16 +320,22 @@ async function offline() {
     await untilAlive(page);
     // A hung request: timeout, then recovery. An idle player may be killed
     // meanwhile, and DEAD rightly outranks TIMEOUT, so the counter decides.
-    const beforeHang = await page.evaluate(() => ({
-      ...globalThis.__jev.pilot.metrics.counters,
-    }));
+    // Wait for it rather than a fixed interval: the errors above can leave the
+    // loop backing off for up to 4 s before it asks again, and a death abandons
+    // the request in flight uncounted, so a timeout needs a full
+    // REQUEST_TIMEOUT_MS on one life. A fixed 3.5 s sleep failed intermittently.
+    const hangCounters = () =>
+      page.evaluate(() => ({ ...globalThis.__jev.pilot.metrics.counters }));
+    const beforeHang = await hangCounters();
     behaviour.current = () => "hang";
-    await sleep(3500);
+    let afterHang = beforeHang;
+    const hangDeadline = Date.now() + 15000;
+    while (afterHang.timeouts <= beforeHang.timeouts && Date.now() < hangDeadline) {
+      await sleep(250);
+      afterHang = await hangCounters();
+    }
     t = await telemetry(page);
     let alive = (await playerState(page)).alive;
-    const afterHang = await page.evaluate(() => ({
-      ...globalThis.__jev.pilot.metrics.counters,
-    }));
     check(
       "a hung request becomes TIMEOUT",
       afterHang.timeouts > beforeHang.timeouts && (!alive || t.status === "TIMEOUT"),
@@ -470,39 +476,50 @@ async function offline() {
     const samples = [];
     for (let i = 0; i < 80; i += 1) {
       await runFor(page, 0.25);
-      samples.push(
-        await page.evaluate(() => {
-          const { game } = globalThis.__combat;
+      const sample = await page.evaluate(() => {
+        const { game } = globalThis.__combat;
+        const m = globalThis.__jev.telemetry.motor;
+        if (!m.bound || m.targetId === null) return { bound: false };
+        const target = game.actorById.get(m.targetId);
+        const p = game.player;
+        const eye = { x: p.position.x, y: p.position.y + 1.62, z: p.position.z };
+        const V = game.cameraForward.constructor;
+        const from = new V(eye.x, eye.y, eye.z);
+        const head = new V(
+          target.position.x,
+          target.position.y + 1.62,
+          target.position.z,
+        );
+        const chest = new V(
+          target.position.x,
+          target.position.y + 1.3,
+          target.position.z,
+        );
+        const sight =
+          game.world.hasLineOfSight(from, head, 3, target.id) ||
+          game.world.hasLineOfSight(from, chest, 3, target.id); // MASK_SIGHT: world | prop
+        return {
+          bound: true,
+          id: m.targetId,
+          error: m.errorDeg,
+          gate: m.gate,
+          alive: target.alive,
+          team: target.team !== p.team,
+          sight,
+        };
+      });
+      // A kill can resolve after the controller's step in the same frame, so a
+      // sample may catch it still bound to an enemy that has just died. The
+      // controller checks the body on every step; the fault would be staying
+      // bound, so step on and require the release.
+      if (sample.bound && !sample.alive) {
+        await runFor(page, 0.1);
+        sample.released = await page.evaluate((id) => {
           const m = globalThis.__jev.telemetry.motor;
-          if (!m.bound || m.targetId === null) return { bound: false };
-          const target = game.actorById.get(m.targetId);
-          const p = game.player;
-          const eye = { x: p.position.x, y: p.position.y + 1.62, z: p.position.z };
-          const V = game.cameraForward.constructor;
-          const from = new V(eye.x, eye.y, eye.z);
-          const head = new V(
-            target.position.x,
-            target.position.y + 1.62,
-            target.position.z,
-          );
-          const chest = new V(
-            target.position.x,
-            target.position.y + 1.3,
-            target.position.z,
-          );
-          const sight =
-            game.world.hasLineOfSight(from, head, 3, target.id) ||
-            game.world.hasLineOfSight(from, chest, 3, target.id); // MASK_SIGHT: world | prop
-          return {
-            bound: true,
-            error: m.errorDeg,
-            gate: m.gate,
-            alive: target.alive,
-            team: target.team !== p.team,
-            sight,
-          };
-        }),
-      );
+          return !m.bound || m.targetId !== id;
+        }, sample.id);
+      }
+      samples.push(sample);
     }
     const bound = samples.filter((x) => x.bound);
     const measured = bound.filter((x) => x.error !== null);
@@ -511,10 +528,12 @@ async function offline() {
       bound.length > 5,
       `${bound.length}/${samples.length} samples bound`,
     );
+    const justKilled = bound.filter((x) => !x.alive);
     check(
       "it only ever binds living enemies",
-      bound.every((x) => x.alive && x.team),
-      "alive, opposing",
+      bound.every((x) => x.team && (x.alive || x.released)),
+      `alive, opposing; ${justKilled.length} caught in the kill frame, ` +
+        `${justKilled.filter((x) => x.released).length} released next step`,
     );
     const blind = measured.filter((x) => !x.sight).length;
     check(
@@ -581,8 +600,21 @@ async function offline() {
       `${outage.status}, bound=${outage.bound}`,
     );
     behaviour.current = engage;
-    await runFor(page, 3);
-    const recovered = await telemetry(page);
+    // An unavailable service backs the loop off for 5 s before it asks again,
+    // so a fixed wait shorter than that failed intermittently. Wait for it.
+    let recovered = await telemetry(page);
+    for (
+      let waited = 0;
+      waited < 10 &&
+      !(
+        recovered.label === "LIVE JEV" &&
+        ["EXECUTING", "DECIDING", "OBSERVING"].includes(recovered.status)
+      );
+      waited += 0.5
+    ) {
+      await runFor(page, 0.5);
+      recovered = await telemetry(page);
+    }
     check(
       "control resumes after the outage",
       recovered.label === "LIVE JEV" &&
