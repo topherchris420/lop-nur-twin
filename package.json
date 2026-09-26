@@ -64,7 +64,7 @@
     "@rolldown/binding-win32-x64-msvc": "^1.2.10"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.5",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.40",
     "@types/node": "^26.6.2",
@@ -74,7 +74,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/coverage-v8": "^5.0.1",
     "axe-core": "^4.12.1",
-    "eslint": "^10.11.0",
+    "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.12.0",
