@@ -669,6 +669,17 @@ benchmarks.
    mid-burst. The next live run (seed 44): no target-bound round left with more
    than 0.4° of error.
 
+7. **Questions that stand alone.** Reviewed against TypeSafe's own guidance
+   (the `typesafe-ai` skill): questions in one request run in parallel and
+   cannot see each other's answers. The aim question had asked about "the
+   tracked enemy" — an answer it cannot see — so it now states its premise
+   ("Suppose the aiming controller tracks one of the enemies listed under
+   `enemies_in_view_nearest_crosshair_first`…"), and both engagement questions
+   name that state path. This came after the matched benchmark below; a 45 s
+   live check afterwards (195 decisions, 43 hits, tracking p50 0.053°, 13/13
+   checks) showed nothing broken, but the benchmark figures were measured with
+   the earlier wording.
+
 The recoil, spread, damage, hitboxes, bots and collision were not changed. The
 hitbox table moved to `characters/hitboxSpecs.ts` so the colliders and the aim
 geometry read one definition; a test pins its numbers. `WeaponRuntime` gained

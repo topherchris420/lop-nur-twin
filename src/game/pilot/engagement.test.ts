@@ -225,3 +225,19 @@ describe("hit geometry", () => {
     expect(angularRadiusDeg(0.19, 30)).toBeCloseTo(0.3628, 3);
   });
 });
+
+describe("the engagement questions stand alone", () => {
+  it("name where their facts are and state their premise, since parallel questions cannot see each other", () => {
+    const request = buildSystemOneRequest(
+      makeObservation({ control: "precision" }),
+      "jev-latest",
+    );
+    const target = request.questions.target!.instructions.question;
+    const aim = request.questions.aim!.instructions.question;
+    expect(target).toContain("`enemies_in_view_nearest_crosshair_first`");
+    expect(aim).toContain("`enemies_in_view_nearest_crosshair_first`");
+    expect(aim).toMatch(/^Suppose/);
+    // The aim question must not depend on the target answer it cannot see.
+    expect(aim).not.toMatch(/the tracked enemy/);
+  });
+});

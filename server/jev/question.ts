@@ -376,8 +376,12 @@ function context(obs: JevObservation): string {
 }
 
 const QUESTIONS: Record<Axis, string> = {
-  target: `Which enemy in view should the aiming controller track during the next ${CONTROL_WINDOW_S} seconds?`,
-  aim: "Which part of the tracked enemy should the crosshair be held on?",
+  // Questions in one request run in parallel and cannot see each other's
+  // answers (TypeSafe's guidance), so each names where its facts are in the
+  // state, and the aim question states its premise instead of leaning on the
+  // target answer.
+  target: `Which of the enemies listed under \`enemies_in_view_nearest_crosshair_first\` (keyed TARGET_0, TARGET_1, …) should the aiming controller track during the next ${CONTROL_WINDOW_S} seconds, if any?`,
+  aim: "Suppose the aiming controller tracks one of the enemies listed under `enemies_in_view_nearest_crosshair_first`. Which part of that enemy should the crosshair be held on? Each listed enemy's `chance_per_round_with_crosshair_on_it` states how wide each part looks and how likely a round is to land on it.",
   move: `Which movement should the player make during the next ${CONTROL_WINDOW_S} seconds?`,
   turn: `Which horizontal view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
   tilt: `Which vertical view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
