@@ -1,5 +1,5 @@
 import { mulberry32 } from "@/lib/noise";
-import type { ControlFrame } from "./contract";
+import type { ControlFrame, ControlMode } from "./contract";
 import { readDecisionError, validateDecision } from "./decision";
 import { validateObservation, type LegalActions } from "./observation";
 import type {
@@ -175,9 +175,11 @@ export async function probeJevService(
 /**
  * The seeded random baseline.
  *
- * It draws four numbers per decision — one per axis — whatever the state, so a
- * given seed always consumes the stream identically, and it picks uniformly
- * among the *legal* options it was offered. Same observation, same options,
+ * In direct control it draws four numbers per decision — one per axis —
+ * whatever the state, exactly as it always has, so a seed's frames are
+ * unchanged. In precision control it draws six: the same four, then the target
+ * slot and the aim region. Either way a given seed consumes the stream
+ * identically, and it picks uniformly among the *legal* options it was offered. Same observation, same options,
  * same seed: same sequence of frames. It receives exactly the observation Jev
  * does and uses only its legal lists; it reports no probabilities, because it
  * has none worth reporting beyond "uniform".
@@ -190,7 +192,7 @@ export class RandomProvider implements DecisionProvider {
     this.rand = mulberry32(seed >>> 0);
   }
 
-  pick(legal: LegalActions): ControlFrame {
+  pick(legal: LegalActions, control: ControlMode = "direct"): ControlFrame {
     const draw = <T>(options: readonly T[]): T =>
       options[Math.min(options.length - 1, Math.floor(this.rand() * options.length))]!;
     // Always move, turn, tilt, weapon: the draw order is part of the seed's meaning.
@@ -198,14 +200,19 @@ export class RandomProvider implements DecisionProvider {
     const turn = draw(legal.turn);
     const tilt = draw(legal.tilt);
     const weapon = draw(legal.weapon);
-    return { move, turn, tilt, weapon };
+    if (control !== "precision") {
+      return { move, turn, tilt, weapon, target: legal.target[0]!, aim: legal.aim[0]! };
+    }
+    const target = draw(legal.target);
+    const aim = draw(legal.aim);
+    return { move, turn, tilt, weapon, target, aim };
   }
 
   decide({ observation }: DecisionRequest): Promise<ProviderResult> {
     return Promise.resolve({
       ok: true,
       decision: {
-        frame: this.pick(observation.legal),
+        frame: this.pick(observation.legal, observation.control),
         axes: null,
         model: null,
         serverLatencyMs: null,

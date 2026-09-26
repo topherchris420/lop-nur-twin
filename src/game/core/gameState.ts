@@ -376,6 +376,8 @@ export interface GameState {
     /** Milliseconds remaining on the hitmarker. */
     hitmarker: number;
     hitmarkerKill: boolean;
+    /** Elite Operator is reshaping the human's aim this match. */
+    eliteOperator: boolean;
     /** Radians: yaw of the most recent damage source relative to the camera. */
     damageDirs: { angle: number; time: number; amount?: number }[];
     scoreBlue: number;
@@ -448,6 +450,7 @@ function createHud(): GameState["hud"] {
     spreadDeg: 1,
     hitmarker: 0,
     hitmarkerKill: false,
+    eliteOperator: false,
     damageDirs: [],
     scoreBlue: 0,
     scoreRed: 0,

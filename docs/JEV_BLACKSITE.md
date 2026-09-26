@@ -2,8 +2,21 @@
 
 `/play?brain=jev` puts the player's character under the control of **Jev**, the
 TypeSafe System One model, through the same controls a person uses. Jev chooses
-a movement, a view rotation and a weapon action; Blacksite executes them and
-decides what happens.
+a movement, a view rotation and a weapon action — and, under precision control,
+which visible enemy to engage and where on it. Blacksite executes those choices
+and decides what happens.
+
+> **Jev selects bounded tactical and engagement intent. A deterministic local
+> controller executes that intent at frame rate. Blacksite alone decides what
+> actually happened.**
+
+Remote inference takes 130–260 ms per decision. That is enough to choose what to
+do and far too slow to hold a crosshair on a moving torso through recoil, which
+needs a correction every frame. So the work is split, as it is split in a
+person: cognition at Jev's cadence, motor control at the simulation's. A result
+under precision control is Jev's choices _and_ that controller together — never
+Jev issuing every 60 Hz correction by itself — and every benchmark and trace
+says which control mode produced it.
 
 > A model selecting an action is not the authority over game state. Blacksite's
 > deterministic simulation remains authoritative over the consequences of that
@@ -25,6 +38,8 @@ see [The analytical boundary](#the-analytical-boundary).
 - [Architecture](#architecture)
 - [The action contract](#the-action-contract)
 - [The observation](#the-observation)
+- [The precision motor controller](#the-precision-motor-controller)
+- [Elite Operator](#elite-operator)
 - [Decision cadence and timing](#decision-cadence-and-timing)
 - [The server boundary](#the-server-boundary)
 - [Configuration, local development and deployment](#configuration-local-development-and-deployment)
@@ -49,13 +64,28 @@ Jev controls exactly what a keyboard and mouse control:
 | **turn**   | none, or rotate the view left/right by 0.5°, 2°, 6° or 25°, or turn around (180°)                              |
 | **tilt**   | none, or tilt the view up/down by 0.5°, 2° or 6°                                                               |
 | **weapon** | trigger released, fire, aim down sights, aim and fire, reload, swap weapon                                     |
+| **target** | _precision only_: track none, or the enemy listed as `TARGET_0` … `TARGET_3` — slots of its own observation    |
+| **aim**    | _precision only_: hold the crosshair on the centre of mass, the upper chest, or the head                       |
+
+Two control modes (`?jevControl=`, or the menu's Precision / Direct control):
+
+- **Direct** — the original interface, unchanged and kept for comparison. Jev
+  turns the view itself in fixed steps; to hit something it has to rotate the
+  crosshair onto it four or five times a second, and recoil climbs the view on
+  every burst exactly as it does for a person.
+- **Precision** (the default) — Jev also names a target and an aim region; the
+  [precision motor controller](#the-precision-motor-controller) tracks that
+  choice every frame and gates the trigger. It aims with the same view rotation
+  a mouse produces, through the same recoil, spread and collision.
 
 Jev does **not** set, and has no path to set: player or enemy position or
 velocity, health, ammunition, damage, hit registration, score, objectives,
-respawns, match state or collision. It has no aim assist and no snapping — to hit
-something it has to rotate the crosshair onto it in fixed steps, and recoil
-climbs the view on every burst exactly as it does for a person. It gets no
-teleport, noclip, invulnerability or infinite ammunition.
+respawns, match state or collision. The local controller cannot either: its
+whole output is the same `InputState` — look deltas, trigger, sights, movement —
+and `src/game/pilot/authority.test.ts` fails if any control-layer file queues
+damage, writes a collider, health or weapon state, moves a body, fires a weapon
+directly or touches the camera. Neither gets a teleport, noclip,
+invulnerability, infinite ammunition, a larger hitbox or a bent round.
 
 Controls the input layer carries but the player rig does not act on — melee,
 interact, grenade, tactical — are deliberately **not** offered. Lean is not
@@ -92,6 +122,13 @@ ActionExecutor (executor.ts) ─ one control frame, held for ≤ 0.4 s of simula
 InputState ─ the same struct the keyboard and mouse fill
       │
       ▼
+PrecisionMotorController (motor.ts, precision control only) ─ every simulation step:
+      │   tracks the chosen enemy while a sight line reaches it, counters the
+      │   learned recoil pattern, gates the trigger on the spread cone
+      ▼
+InputState, rewritten ─ look deltas, trigger, sights, movement: nothing else
+      │
+      ▼
 PlayerRig → PlayerController, WeaponRuntime, CollisionWorld, resolveDamage, MatchDirector
       │
       ▼
@@ -109,8 +146,20 @@ rig's `fire()`.
 
 ## The action contract
 
-`src/game/pilot/contract.ts`, versioned `blacksite-jev-actions/v1`. A decision
-is one **control frame**: exactly one action per axis.
+`src/game/pilot/contract.ts`, versioned `blacksite-jev-actions/v2`. A decision
+is one **control frame**: exactly one action per axis — `move`, `turn`, `tilt`,
+`weapon`, `target`, `aim`.
+
+**An axis with a single legal option is not a choice, and is not asked.** In
+direct control `target` is always `NONE` and `aim` always `CENTER_MASS`, so the
+server sends TypeSafe exactly the original four questions and the decision
+carries `null` for the other two — no probability or confidence is invented
+for them. In precision control, with `n` enemies listed, `target` offers `NONE`
+and `TARGET_0` … `TARGET_{n-1}` and `aim` all three regions; with nobody in
+view both collapse to one option and are not asked. A slot names an entry of the
+observation the decision was made from. The browser keeps the slot → entity map
+for that observation; neither the observation nor the question ever carries an
+entity id, and a slot whose observation has been forgotten binds nothing.
 
 - **Held** controls (movement, sprint, trigger, aim-down-sights) are written on
   every simulation step of the frame and released when it ends.
@@ -121,6 +170,13 @@ is one **control frame**: exactly one action per axis.
   mouse path — spread over the first 0.15 s of the frame.
 - A **semi-automatic** weapon needs a fresh trigger pull per shot, so a FIRE
   frame after a FIRE frame releases the trigger for one step first.
+
+The target and aim descriptions follow the same rule, for example:
+`TARGET_0 — Track the enemy listed as TARGET_0: the aiming controller turns the
+view onto it continuously, and while the weapon choice fires it pulls the
+trigger only when the crosshair is on it. Tracking stops if it leaves sight or
+is eliminated.` and `HEAD — Hold the crosshair on the head: about half the
+torso's width, three and a half times the damage.`
 
 Every action has a description that says what it does and never when to use it,
 for example: `TURN_RIGHT_SMALL — Rotate the view 2 degrees to the right.`,
@@ -135,27 +191,30 @@ least two options.
 
 ## The observation
 
-`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v1`. It
+`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v2`. It
 holds only numbers, booleans and strings from closed vocabularies; the validator
 rejects unknown fields, out-of-range numbers and oversized arrays.
 
 ```text
 interface JevObservation {   // a sketch; the exact types are in observation.ts
-  schemaVersion: "blacksite-jev-observation/v1";
-  actionContract: "blacksite-jev-actions/v1";
+  schemaVersion: "blacksite-jev-observation/v2";
+  actionContract: "blacksite-jev-actions/v2";
   sequence: number;                       // monotonic per page
+  control: "direct" | "precision";
   match: { mode; phase; timeRemainingS; team; ownScore; enemyScore };
   player: { alive; health; headingDeg; pitchDeg; speedMps; stance; motion; grounded; adsProgress };
-  weapon: { slot; weaponClass; fireMode; ammo; magSize; reserve; reloading; canFire };
+  weapon: { slot; weaponClass; fireMode; ammo; magSize; reserve; reloading; canFire;
+            spreadDeg; aimedSpreadDeg };                 // WeaponRuntime.spreadDeg, now and settled
   perception: {
-    visibleEnemies: { bearingDeg; elevationDeg; distanceM; onCrosshair; firing }[]; // ≤ 4
+    visibleEnemies: { bearingDeg; elevationDeg; distanceM; onCrosshair; firing;
+                      headVisible; chestVisible; lateralMps; tracked }[];          // ≤ 4
     contacts: { source: "gunfire" | "last_seen"; bearingDeg; distanceM; ageS }[];   // ≤ 3
     damage: { ageS; bearingDeg } | null;
     obstacles: { forwardM; leftM; rightM; backM; forwardClimbable };               // null = clear
   };
   objective: { kind: "none" | "zone" | "hardpoint"; bearingDeg; distanceM; state };
   previous: { frame: ControlFrame | null; outcome: { shotsFired; hitConfirmed; killConfirmed; damageTaken; movementBlocked } | null };
-  legal: { move: []; turn: []; tilt: []; weapon: [] };
+  legal: { move: []; turn: []; tilt: []; weapon: []; target: []; aim: [] };
 }
 ```
 
@@ -201,6 +260,126 @@ The size classes (fine, small, medium, large) are the sizes of the rotations on
 offer. That restates where the enemy is in the units of the controls; which
 enemy to engage, and whether to engage at all, is Jev's decision.
 
+Under precision control each enemy is keyed by the slot that names it, and three
+more facts are added — how exposed it is, how it is moving across the view (from
+the player's own view of it, relative to the player's motion), and, per aim
+region, how wide it looks and what share of a round's possible directions the
+current and the fully aimed spread cone would put on it (illustrative values, in the exact shape `server/jev/question.ts` writes):
+
+```json
+"TARGET_0": {
+  "distance": "96 m (very long range)",
+  "exposure": "fully exposed",
+  "motion": "moving left across the view at 2.4 m/s",
+  "being_tracked": false,
+  "chance_per_round_with_crosshair_on_it": {
+    "CENTER_MASS": "0.29 degrees wide; unlikely with the current spread, very likely fully aimed",
+    "UPPER_CHEST": "0.22 degrees wide; unlikely with the current spread, very likely fully aimed",
+    "HEAD": "0.17 degrees wide; unlikely with the current spread, very likely fully aimed"
+  }
+}
+```
+
+Those shares are the same geometry the fire gate uses (`hitGeometry.ts`, below):
+arithmetic done in code, stated as a fact. Nothing says which region to choose.
+
+## The precision motor controller
+
+`src/game/pilot/motor.ts`. It runs on every simulation step while Jev's latest
+decision names a target, after the executor has written the frame, and rewrites
+only the input. Everything it may sense passes through one narrow interface
+(`MotorSense`): the eye, the real aim direction (the camera's forward — where
+this step's round will go), the field of view, the player's own body and weapon,
+and, for the one enemy it was given, a living body and sight-line tests with the
+same `CollisionWorld.hasLineOfSight` the bots and perception use.
+
+**Binding.** A decision naming `TARGET_n` binds the entity in that slot of that
+decision's observation. The next decision re-confirms, switches or releases it.
+The binding is also released — and counted, by reason — when the enemy dies,
+when neither its head nor its chest has had a sight line for 0.12 s, or when no
+decision has re-confirmed it for 1 s (an outage). **There is no emergency
+fallback targeting:** the controller never picks an enemy by itself. When Jev
+cannot answer, it finishes the current binding until that 1 s runs out, then
+the seat idles — or, with `?fallback=random`, the labelled FALLBACK policy picks.
+
+**Seeing like a player.** The target is sampled only while it is in sight, and
+the controller uses those samples 50 ms late — a perceptual delay; Jev's own
+decision latency sits on top. Its motion is estimated from successive samples
+alone and extrapolated over at most 0.22 s (the delay, one frame of shot lag and,
+for projectile weapons, the round's flight time plus gravity drop). During the
+0.12 s sight-loss grace it extrapolates the last sample; it never reads where a
+hidden enemy actually is. If the chosen region is the part in cover (a head
+behind a parapet), it holds the part it can see.
+
+**Control law** (`axisRate`), per axis:
+
+- a velocity command = the target's angular velocity (feed-forward) plus the
+  slower of `11.5/s × error` and the fastest rate that can still stop inside the
+  acceleration limit (`0.82 × √(2·a·error)`);
+- the commanded rate changes by at most 4,200 °/s² per second and never exceeds
+  560 °/s from the hip, 300 °/s fully aimed (pitch 70 % of both).
+
+Far away it is a time-optimal flick that decelerates within its own limit, so it
+cannot overshoot; close in it is first order, which converges exponentially with
+no oscillation. A seeded, smoothed hand tremor of 0.06° is added to the aim
+point. Unit tests (`motor.test.ts`) check the rate and acceleration limits every
+step, no sign reversal across a 40° flick, sub-0.15° hold on a still target,
+0.35° on a 4.5 m/s strafer at 25 m, and bit-identical output for a seed.
+
+**Recoil feed-forward.** `WeaponRuntime` still builds each weapon's recoil
+pattern from its seed and still kicks the view in full on every shot, jitter
+included (`authority.test.ts` asserts it). What a practised player learns is the
+pattern; after each shot the controller reads that shot's deterministic kick
+(`WeaponRuntime.lastPatternKickDeg`, which excludes the jitter) and queues 90 %
+of it as a counter-rotation over ~30 ms. The feedback loop ignores the part the
+counter will remove, so the two do not add up and dip under the target. The
+random jitter and the remaining 10 % are left to feedback: visible recoil,
+controlled — not removed.
+
+**Fire gate.** Jev's FIRE or ADS_FIRE is permission to engage, not an order to
+empty the magazine. On each step the gate computes the share of the weapon's
+real spread cone (`WeaponRuntime.spreadDeg` — stance, speed, air, sights, bloom)
+that falls on a disc inside the chosen region's hitboxes, at the current
+estimated error. `WeaponRuntime.fireOne` draws a round uniformly over a disc of
+the spread's radius, so that share is the small-angle geometry of the real draw,
+not a tuned curve. The trigger opens at 42 % (automatic) or 55 % (single-shot),
+16 % / 30 % inside 12 m where rounds are cheap and time is not, 18 % for a
+multi-pellet shell; an automatic burst is held while the share stays above 24 %
+(10 % close in) and is re-judged after nine rounds. Single-shot weapons get one
+press per cycled round. It is judged "a step ahead", because the rig advances
+the weapon's clock after the controller runs. The outcome of every round is
+still the weapon runtime's spread draw and the collision world's raycast. When
+the named target is gone, the trigger stays released for the rest of that
+frame instead of emptying into the wall it went behind.
+
+**Sights.** With ADS or ADS_FIRE and a target beyond 12 m, the gate waits until
+the sights are 70 % up; closer, hip fire and Tac-Stance stay available.
+
+**Movement shaping — never strategy.** Asked to fire, a SPRINT_FORWARD becomes a
+walk, because a sprint blocks the weapon. If the movement spread is what keeps a
+shot below the threshold and standing still would clear it, the controller
+counter-strafes against the body's drift for at most 0.28 s, then gives Jev's
+movement back for at least 0.7 s. It does not choose where to go, when to take
+cover, or when to crouch.
+
+**Human takeover, death, respawn, pause, a brain switch** all reset the
+controller with the executor; nothing it held survives them.
+
+## Elite Operator
+
+`src/game/player/eliteAssist.ts`, `?playerProfile=elite` or the menus: the human
+equivalent, and deliberately weaker, because the human stays authoritative. It
+reshapes only the mouse's own motion for a frame, only while the crosshair is
+already within a few body-widths of a visible enemy: friction across the body
+(up to 22 % from the hip, 38 % aimed, strongest at its centre), a rotational
+nudge while aiming and moving (30 % of the target's angular motion, capped at
+6 °/s), and optional learned recoil help (45 % of the pattern kick). It never
+fires, never snaps, holds one target rather than jumping to one crossing in
+front, tests the sight line every frame, never pulls toward an enemy the mouse
+is moving away from, and steps aside for 0.25 s on any look faster than 220 °/s.
+An ELITE OPERATOR chip shows while it is on, and episode statistics are
+labelled `profile: elite`.
+
 ## Decision cadence and timing
 
 Measured before choosing: from this development container, TypeSafe answered a
@@ -213,6 +392,8 @@ reported about 100 ms. So:
 | Minimum interval between requests | 200 ms in the browser (≤ 5 per second) |
 | Server minimum per session        | 150 ms                                 |
 | Control frame (TTL)               | 0.4 s of simulation time               |
+| Target binding without a decision | released after 1 s                     |
+| Precision controller              | every simulation step (60 Hz)          |
 | Rotation completes within         | 0.15 s                                 |
 | Browser request timeout           | 2.2 s                                  |
 | Server → TypeSafe timeout         | 1.8 s                                  |
@@ -346,7 +527,22 @@ cursor is visible to reach Take control.
 
 A compact panel above the ammunition readout, repainted about eight times a
 second from the pilot's telemetry singleton — no React state on the frame loop.
-This frame is from a live run (`seed=43`, a few seconds in, mid-reload):
+Under precision control it adds the TARGET and AIM choices (with Jev's
+probability and confidence, or NOT ASKED), then three spectator lines:
+
+```text
+PRECISION · HEAD · ERR 0.06° · TRIGGER OPEN · 118 M
+ACC 80% · HITS 36/45 · K/D 21/0
+LATENCY 207 MS · TICK 131 · JEV-1.13.0
+```
+
+— the region actually held (marked `*` when the chosen one is in cover), the
+live angle from the crosshair to it, the fire gate's state (TRACKING, ADS
+SETTLING, TRIGGER OPEN, TRIGGER HELD), the range, and the episode's accuracy
+and K/D. Under direct control that line reads `CONTROL DIRECT · STEPPED TURNS BY
+THE BRAIN`. Everything finer — distributions, gate counts, recoil figures —
+belongs to the trace and the benchmark, not the HUD. The frame below is from a
+direct-control live run (`seed=43`, a few seconds in, mid-reload):
 
 ```text
 JEV // BLACKSITE                  LIVE JEV EXECUTING
@@ -388,10 +584,13 @@ each choice and probes the service before a match: "Jev ready · jev-latest" or
 ## Random baseline, fallback, recording and replay
 
 **Random** (`/play?brain=random&seed=42`) uses the same observation, the same
-legal options, the same cadence limits and the same executor. It draws exactly
-four numbers per decision from `mulberry32(seed)` — one per axis — and picks
-uniformly among the legal options, so the same seed and the same options give
-the same frames: `bun run jev` runs seed 42 twice and compares every frame
+legal options, the same cadence limits and the same executor. Under direct
+control it draws exactly four numbers per decision from `mulberry32(seed)` — one
+per axis, as it always has, so a seed's frames are unchanged
+(`engagement.test.ts` re-derives them from the stream); under precision control
+it draws six, adding a target slot and an aim region, and its engagements then
+run through the same motor controller. It picks uniformly among the legal
+options, so the same seed and the same options give the same frames: `bun run jev` runs seed 42 twice and compares every frame
 decided from identical options (63 of 63 matched in the run recorded here). It answers in under a millisecond, so it decides about as often as the
 200 ms cap allows; Jev decides about as often as its latency allows.
 
@@ -416,7 +615,10 @@ frame at its recorded simulation time through the same executor, with no model
 call, labelled REPLAY. Traces with another trace, contract or observation
 version, or with a control this build does not know, are refused. What a replay
 reproduces is the **control stream**: `replay:jev` checked 84 of 84 frames of a
-recorded run executed in order. What it does not reproduce is the world — frame
+recorded run executed in order. Traces are now `blacksite-jev-trace/v2`; the
+header records the control mode and a replay runs under the mode it was
+recorded with. A replayed `TARGET_n` names the enemy in that slot of the view at
+replay time — the control stream replays, the world does not. What it does not reproduce is the world — frame
 pacing is not deterministic, so the bots, spread and damage diverge.
 
 ## Tuning the interface
@@ -448,12 +650,53 @@ benchmarks.
    observation before sending, so a bad field fails locally, by name. Both have
    regression tests.
 
-The recoil, spread, damage, bots and collision were not touched.
+4. **Cognition and motor control, separated.** Measured before building it: the
+   direct interface's best run hit 3.6 % of its rounds, and the reason was
+   structural — a torso at 25 m is ±0.6° and the loop moved the crosshair in
+   fixed steps five times a second while recoil climbed every round. The
+   target and aim axes and the precision controller are the response.
+5. **Too steady to be a person.** The first live precision run (45 s, seed 42)
+   went 18 kills for no deaths at 89 % accuracy, 17 of them one-shot headshots
+   at around 100 m, holding a 0.06° median error with a 0.03° tremor and a
+   33 ms perceptual delay. Nothing was falsified — every round went through the
+   weapon runtime — but no hand is that still. Tremor went to 0.06° and the
+   delay to 50 ms; the next run on seed 43 hit 54 %.
+6. **A latch that never re-checked.** That trace also showed an automatic burst
+   firing five rounds at a 0 % hit share. The rig advances the weapon's shot
+   clock _after_ the controller runs, so while the trigger was held the
+   controller never saw the weapon "ready" and never re-judged the burst.
+   Readiness is now judged a step ahead; a regression test side-steps an enemy
+   mid-burst. The next live run (seed 44): no target-bound round left with more
+   than 0.4° of error.
+
+7. **Questions that stand alone.** Reviewed against TypeSafe's own guidance
+   (the `typesafe-ai` skill): questions in one request run in parallel and
+   cannot see each other's answers. The aim question had asked about "the
+   tracked enemy" — an answer it cannot see — so it now states its premise
+   ("Suppose the aiming controller tracks one of the enemies listed under
+   `enemies_in_view_nearest_crosshair_first`…"), and both engagement questions
+   name that state path. This came after the matched benchmark below; a 45 s
+   live check afterwards (195 decisions, 43 hits, tracking p50 0.053°, 13/13
+   checks) showed nothing broken, but the benchmark figures were measured with
+   the earlier wording.
+
+The recoil, spread, damage, hitboxes, bots and collision were not changed. The
+hitbox table moved to `characters/hitboxSpecs.ts` so the colliders and the aim
+geometry read one definition; a test pins its numbers. `WeaponRuntime` gained
+read-only readouts (`lastPatternKickDeg`, `settledSpreadDeg`, `readyToFire`,
+`cycleRemainingS`, `shotsFired`) and nothing that changes how it fires.
+
+One pre-existing quirk, found and left as it was because changing it would
+change every controller's recoil and break comparison with earlier results: the
+rig adds only each shot's new kick to the view, so the runtime's
+`recenterFraction` spring-back never reaches the camera — all recoil is
+permanent until pulled down.
 
 ## Benchmark methodology and results
 
-`bun run benchmark:random` and `JEV_LIVE_TEST=1 bun run benchmark:jev` run
-repeatable episodes (`--episodes`, `--seconds`, `--seed`, `--mode`) in a headless
+`bun run benchmark:random` and `JEV_LIVE_TEST=1 bun run benchmark:jev` (direct
+control, the original benchmark), and their `:precision` variants, run
+repeatable episodes (`--control`, `--episodes`, `--seconds`, `--seed`, `--mode`) in a headless
 browser against the dev server and write JSON to `shots/`. Every number comes
 from the simulation — rounds the weapon runtime fired, damage the resolver
 applied, kills and deaths the match recorded, metres the controller moved. A
@@ -474,41 +717,100 @@ share contacts, aim continuously with no step quantisation and act every frame
 with no latency; the player's seat takes half damage from bots and deals 1.2×,
 and bots aiming at the player react later and with a wider cone.
 
-**Measured, 26 September 2026.** Three episodes of 120 s of match time per brain,
-seeds 42–44, team deathmatch, 11 bots at the default skill (player plus 5 blue
-bots against 6 red), local dev server in this repository's development container
-calling TypeSafe over the internet. Six episodes are a small sample; treat these
-as a first measurement, not a ranking.
+**Measured, 26 September 2026, this build.** Four configurations, matched: three
+episodes of 120 s of match time each, seeds 42, 43 and 44, team deathmatch, 11
+bots at the default skill (the player plus 5 blue bots against 6 red), the
+default loadout (an automatic rifle: 2.2° hip spread, 0.02° aimed), stubbed
+rendering, a dev server in this repository's development container, and for
+Jev live calls to TypeSafe (`jev-1.13.0`) over the internet. The raw reports,
+every episode included, are in [`docs/benchmarks/2026-09-26/`](benchmarks/2026-09-26/).
+There is no bad episode left out: these are all twelve that were run.
 
-| Measure (360 s of match per brain)  | Jev (`jev-1.13.0`, live)                     | Random (seed 42–44) |
-| :---------------------------------- | :------------------------------------------- | :------------------ |
-| Kills / deaths                      | 10 / 1                                       | 0 / 1               |
-| Kills per minute                    | 1.66                                         | 0.00                |
-| Rounds fired / hits                 | 697 / 25 (3.6%)                              | 144 / 0 (0%)        |
-| Damage dealt / taken                | 1,658 / 556                                  | 0 / 730             |
-| Mean survival per life              | 88.9 s                                       | 88.8 s              |
-| Distance moved                      | 15 m                                         | 815 m               |
-| Decisions executed                  | 1,537                                        | 1,593               |
-| Timeouts / stale / invalid / errors | 0 / 0 / 0 / 0                                | 0 / 0 / 0 / 0       |
-| Round trip, browser ↔ TypeSafe      | mean 179 ms, p50 172 ms, p95 231 ms          | < 1 ms              |
-| Server ↔ TypeSafe                   | mean 167 ms, p50 163 ms, p95 214 ms          | —                   |
-| Mean TypeSafe confidence            | move 0.68, turn 0.54, tilt 0.68, weapon 0.48 | —                   |
+| Measure (3 × 120 s, seeds 42–44)                   | Random · direct | Random · precision | Jev · direct       | Jev · precision     |
+| :------------------------------------------------- | :-------------- | :----------------- | :----------------- | :------------------ |
+| Kills / deaths                                     | 0 / 1           | 4 / 4              | 15 / 4             | 148 / 0             |
+| K/D                                                | 0.00            | 1.00               | 3.75               | 148:0               |
+| Kills per minute                                   | 0.00            | 0.67               | 2.50               | 24.63               |
+| Rounds fired / hits                                | 126 / 0         | 163 / 20           | 720 / 44           | 323 / 249           |
+| Accuracy (hits / rounds)                           | 0.0%            | 12.3%              | 6.1%               | 77.1%               |
+| Headshots / upper-chest hits                       | 0 / 0           | 4 / 13             | 8 / 14             | 122 / 99            |
+| Shots per kill                                     | n/a             | 40.8               | 48.0               | 2.2                 |
+| Damage per shot                                    | 0.0             | 6.5                | 3.9                | 55.6                |
+| Damage dealt / taken                               | 0 / 476         | 1057 / 718         | 2788 / 817         | 17962 / 14          |
+| Mean survival per life                             | 88.9 s          | 48.6 s             | 48.7 s             | 120.2 s             |
+| Aim error at shot, mean / p95 †                    | 6.73° / 6.73°   | 1.70° / 5.76°      | 2.18° / 6.59°      | 0.28° / 0.30°       |
+| Aim error, enemy ≤10° from crosshair, mean / p95 † | 7.34° / 9.36°   | 2.32° / 7.53°      | 2.20° / 6.55°      | 1.66° / 7.63°       |
+| Engagement range at shot, mean                     | 70 m            | 66 m               | 82 m               | 103 m               |
+| ADS time share                                     | 7.6%            | 8.6%               | 12.4%              | 21.7%               |
+| Controller tracking error, mean / p95              | —               | 0.163° / 0.529°    | —                  | 0.083° / 0.305°     |
+| Target acquisition, mean / p95                     | —               | 0.25 s / 0.41 s    | —                  | 0.33 s / 0.54 s     |
+| Choice → first hit, mean / p95                     | —               | 0.41 s / 0.77 s    | —                  | 0.51 s / 0.79 s     |
+| Targets bound / switches / lost from sight         | —               | 397 / 254 / 4      | —                  | 303 / 26 / 8        |
+| Trigger opportunities held by the gate             | —               | 862 / 878 (98.2%)  | —                  | 2378 / 2657 (89.5%) |
+| Recoil counter per shot, mean                      | —               | 0.405°             | —                  | 0.268°              |
+| Decision → first controller step, mean             | —               | 1.7 ms             | —                  | 2.4 ms              |
+| Distance moved                                     | 810 m           | 769 m              | 75 m               | 0 m                 |
+| Decisions executed                                 | 1552            | 1490               | 1390               | 1479                |
+| Timeouts / stale / invalid / errors                | 0 / 0 / 0 / 0   | 0 / 0 / 0 / 0      | 0 / 0 / 0 / 0      | 0 / 0 / 0 / 0       |
+| Round trip, mean / p50 / p95                       | 1 / 1 / 2 ms    | 1 / 1 / 3 ms       | 212 / 209 / 260 ms | 209 / 207 / 261 ms  |
+| Blue bots in the same matches: K / D, accuracy     | 88 / 55, 15.0%  | 71 / 53, 14.8%     | 49 / 51, 12.0%     | 29 / 24, 6.8%       |
 
-Per episode, Jev: 2 kills / 1 death, 6 / 0, and 2 / 0. Blue bots in the same
-matches, for context: 84 kills and 43 deaths in the Jev episodes, 88 and 68 in
-the random episodes (about 30 bot-minutes each).
+† Measured the same way for every controller: the angle from the aim to the
+_upper chest_ of the nearest visible enemy within 10° of the crosshair. For
+headshot-heavy play it is biased upward — a head at 100 m sits about 0.3° above
+the upper chest — which is why Jev precision reads 0.28° there while its own
+tracking error, measured to the region it chose, is 0.08°.
 
-What the numbers show, and do not: Jev engaged, aimed and fired through the same
-controls and scored kills where the random policy scored none, under identical
-conditions. Jev also almost never moved (1,520 of 1,537 frames were HOLD) — it
-plays as a stationary shooter, which the bots, converging on the player, make
-viable. Win rates are not reported: two-minute episodes in which ten bots do
-most of the fighting cannot attribute a team result to the player.
+Per episode (kills/deaths, hits/rounds):
 
-A separate 60-second live check (`bun run jev:live`) made 278 decisions, fired
-240 rounds, executed 9 reload frames, landed 22 hits for 1,608 damage, rode out
-an injected three-second API outage with nothing held and recovered to LIVE JEV,
-and handed control back on H.
+| Seed | Random · direct | Random · precision | Jev · direct | Jev · precision |
+| :--- | :-------------- | :----------------- | :----------- | :-------------- |
+| 42   | 0/0, 0/42       | 2/1, 10/49         | 6/0, 17/240  | 43/0, 70/90     |
+| 43   | 0/0, 0/40       | 1/2, 9/69          | 3/2, 9/240   | 59/0, 98/125    |
+| 44   | 0/1, 0/44       | 1/1, 1/45          | 6/2, 18/240  | 46/0, 81/108    |
+
+**What the numbers show.**
+
+- **Precision control changed what Jev can do with its choices, dramatically.**
+  Against its own direct-control runs on the same seeds: accuracy 6.1 % → 77.1 %,
+  damage per shot 3.9 → 55.6, shots per kill 48 → 2.2, time from choosing a
+  target to hitting it 0.51 s on average, and no deaths in 360 s. Direct Jev
+  fired exactly 240 rounds in every episode — its entire load, rifle and reserve
+  — and ran dry; precision Jev fired 90–125 and let the gate hold 89.5 % of the
+  opportunities the trigger had.
+- **The controller alone is not the result.** The random brain through the same
+  controller went from 0 hits to 20 (12.3 %) and from 0 kills to 4 — and died as
+  often as it killed, switching targets 254 times and firing hip shots the gate
+  refused 98 % of the time. Jev's choices — engaging one target at a time (26
+  switches), aiming down the sights, choosing the head at range (122 of 249 hits)
+  — are what turned the controller into 148 kills.
+- **It is also far beyond "usually wins a fair fight".** 148 kills to 0 deaths and
+  14 damage taken is not a fair fight. Jev plays as a stationary marksman
+  (0 m moved) and engages at about 100 m, where the rifle's 0.02° aimed spread
+  still makes a head a one-round kill and where the bots — which deal half
+  damage to the player, aim at the player with twice their usual error and react
+  later (`PLAYER_MERCY`, `COMBAT`) — cannot answer. The blue bots' own tally
+  fell from 88 kills to 29 in these matches because Jev took the kills first.
+  Nothing in the simulation was changed to produce it, and every round was drawn
+  and traced by the weapon runtime; but whether this is the right _strength_ for
+  a spectator is a tuning question the benchmark raises, not one it answers.
+- **Blue-bot accuracy (6.8–15 %)** is context, not a controlled baseline: the
+  bots cannot sit in the player's seat, so the four configurations are compared
+  to each other and the bots are the backdrop.
+- **Latency is unchanged** — 209 ms mean round trip, p95 261 ms — and precision
+  control asks six questions instead of four without measurably slowing it.
+
+The live suite (`bun run jev:live`, 45 s) afterwards: 200 decisions, 29 targets
+bound, tracking error p50 0.051°, 37 hits for 2,146 damage from 32 rounds, the
+gate holding 227 of 259 opportunities, an injected API interruption shown as
+ERROR with nothing held and recovered to LIVE JEV, and control handed back on H
+— 13 of 13 checks.
+
+**Earlier measurement (contract v1, direct control only).** The first benchmark
+of this interface, before precision control existed — same seeds and settings,
+an earlier build — recorded Jev 10 kills / 1 death at 3.6 % accuracy (697
+rounds, 25 hits) and random 0 / 1. It is kept for the record; the direct row
+above is its successor on this build.
 
 ## Security
 
@@ -551,34 +853,73 @@ by request interception inside its own test browser. The offline browser suite
 asserts that no decision in it came from TypeSafe. Nothing in ordinary CI
 spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 
-| Command                                 | Calls TypeSafe | What it checks                                                                                                                        |
-| :-------------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| `bun run test:jev`                      | no             | unit tests: contract, schema, executor, loop, providers, recorder, metrics, server, secret boundary                                   |
-| `bun run jev`                           | no             | 54 browser checks: random brain, Jev client against a fake, failures, takeover, switching, death, respawn, replay, hostile parameters |
-| `JEV_LIVE_TEST=1 bun run jev:live`      | yes            | live decisions, model version, request shape, outage recovery, takeover                                                               |
-| `bun run benchmark:random`              | no             | episodes with the random brain                                                                                                        |
-| `JEV_LIVE_TEST=1 bun run benchmark:jev` | yes            | episodes with Jev                                                                                                                     |
-| `bun run replay:jev -- trace.jsonl`     | no             | replays a recorded control stream                                                                                                     |
-| `bun run scan:secrets`                  | no             | the build-output credential scan                                                                                                      |
+| Command                                                             | Calls TypeSafe | What it checks                                                                                                                                                                   |
+| :------------------------------------------------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run test:jev`                                                  | no             | unit tests: contract, schema, executor, motor controller, fire gate, engagement axes, authority, loop, providers, recorder, metrics, server, secret boundary                     |
+| `bun run jev`                                                       | no             | 72 browser checks: random brain, Jev client against a fake, precision control, Elite Operator, failures, outage, takeover, switching, death, respawn, replay, hostile parameters |
+| `JEV_LIVE_TEST=1 bun run jev:live`                                  | yes            | live decisions, model version, request shape, outage recovery, takeover                                                                                                          |
+| `bun run benchmark:random` / `benchmark:random:precision`           | no             | episodes with the random brain, direct / precision control                                                                                                                       |
+| `JEV_LIVE_TEST=1 bun run benchmark:jev` / `benchmark:jev:precision` | yes            | episodes with Jev, direct (the original benchmark) / precision control                                                                                                           |
+| `bun run replay:jev -- trace.jsonl`                                 | no             | replays a recorded control stream                                                                                                                                                |
+| `bun run scan:secrets`                                              | no             | the build-output credential scan                                                                                                                                                 |
 
 ## Limitations
 
-- **Jev barely moves.** It plays from wherever it spawns, turning and firing.
-  Nothing in the interface prevents movement; nothing rewards it either, and
-  this has not been tuned.
-- **Latency is part of the game.** Every decision is about a situation 150–450 ms
-  old by the time it executes, and Jev decides about four times a second; bots
-  act every frame. A slower network means a slower Jev.
-- **Accuracy is low** (3.6% in the benchmark): long-range targets are a fraction
-  of a degree wide and aim moves in fixed steps.
+These are the boundaries of the experiment as it now stands, not failures.
+
+- **Latency is not solved; it is separated.** Remote inference remains slower
+  than frame-level control: every Jev decision is about a situation 150–450 ms
+  old by the time it executes, and Jev decides about four or five times a
+  second. Precision control does not hide that — it gives the motor work to a
+  local controller that runs every frame and leaves Jev the decisions that
+  survive the delay: which enemy, which region, whether to fire, where to move.
+  A slower network still means a slower Jev: later target choices, later
+  switches, later reactions to a new threat.
+- **Jev's cognition and the local execution are different things.** Under
+  precision control the accuracy, tracking error, recoil control and trigger
+  discipline in the results belong to Jev's choices _and_ a deterministic,
+  hand-designed controller. The comparison that isolates Jev's contribution is
+  the random brain through the same controller (`random · precision`). Direct
+  control remains available, unchanged, for the question "how well does the
+  model aim by itself".
+- **The local controller is motor assistance, bounded and documented.** It is
+  tuned to an elite human's limits — 560 °/s peak, 4,200 °/s², a 50 ms
+  perceptual delay, a 0.06° tremor, 90 % of the learned recoil pattern — and
+  those limits are choices, not measurements of any person. It sees only what a
+  sight line reaches and never picks a target, but it is steadier and faster to
+  settle than most people. Elite Operator gives a human a deliberately weaker
+  version of the same kind of help.
+- **Network and service dependence.** LIVE JEV needs the TypeSafe service, the
+  deployment's key and a working network. When any of them fails the seat says
+  so (TIMEOUT, UNAVAILABLE, ERROR), the controller lets go within a second, and
+  the player idles — or, with `?fallback=random`, a labelled FALLBACK acts.
+- **API cost.** Every decision is a TypeSafe request — about 270 a minute in
+  play, six questions each under precision control. Nothing in ordinary CI
+  spends credit; benchmarks and live checks require `JEV_LIVE_TEST=1`.
+- **Rate limits are per instance** (see [The server boundary](#the-server-boundary)),
+  and the TypeSafe account's own limit (1,200 requests per minute at the time of
+  writing) caps concurrent spectators at roughly four before 429s.
+- **Hand-designed observation semantics.** What Jev reads — which facts, in what
+  words, the size classes, the hit-share bands — was written by hand and tuned on
+  short runs. A different rendering could change its choices.
+- **Jev still barely moves.** It chose HOLD in almost every frame, as it did
+  before: it plays as a stationary marksman, which the bots — converging on the
+  player across open ground — make effective. Nothing prevents movement and
+  nothing prompts it; the controller shapes movement but never chooses it.
+- **The results are environment-specific.** The site is large and open, bots
+  spawn 45–135 m from the fight and the reference rifle's aimed spread is 0.02°,
+  so most engagements are long, ADS, first-shot contests that reward steady
+  aim. Under the player-seat rules (half damage taken, 1.2× dealt, bots slower
+  and wider when aiming at the player) a controller that holds still and aims
+  well is at its strongest here; closer, cover-heavy maps would test different
+  skills.
 - **Perception is conservative.** Jev gets no audio (footsteps), no teammates'
   positions and no live overlay brackets, all of which a person has.
-- **Rate limits are per instance** (see above), and the TypeSafe account's own
-  limit (1,200 requests per minute at the time of writing) caps concurrent
-  spectators at roughly five before 429s.
-- **Replay reproduces controls, not outcomes.**
-- **The benchmark is small** — three episodes per brain — and headless, with
-  rendering stubbed.
+- **Replay reproduces controls, not outcomes**, and a replayed target slot
+  names whoever is in that slot of the view at replay time.
+- **The benchmarks are small** — three two-minute episodes per configuration —
+  and headless, with rendering stubbed. Treat them as a measurement of this
+  build on this machine, not a ranking.
 - **Very slow clients degrade to TIMEOUT.** When a frame takes longer than the
   2.2 s request timeout (seen under software rendering), answers arrive too late
   and are discarded; the player idles rather than acting on a stale decision.
@@ -592,6 +933,10 @@ spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 | `src/game/pilot/decision.ts`                           | decision schema and validation (shared)                                  |
 | `src/game/pilot/perception.ts`                         | builds observations from the live game                                   |
 | `src/game/pilot/executor.ts`                           | control frame → `InputState`, with expiry                                |
+| `src/game/pilot/motor.ts`                              | the precision motor controller: tracking, recoil feed-forward, fire gate |
+| `src/game/pilot/hitGeometry.ts`                        | aim points, angular sizes, spread-cone share (shared with the server)    |
+| `src/game/characters/hitboxSpecs.ts`                   | the one hitbox table colliders and aim geometry read                     |
+| `src/game/player/eliteAssist.ts`                       | Elite Operator, the human aim help                                       |
 | `src/game/pilot/loop.ts`                               | one request in flight, sequences, staleness, timeouts, backoff, fallback |
 | `src/game/pilot/providers.ts`                          | the Jev HTTP brain and the seeded random brain                           |
 | `src/game/pilot/pilot.ts`                              | the pilot seat: brain selection, frames, takeover, telemetry             |
@@ -603,7 +948,8 @@ spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 | `api/jev/decision.ts`                                  | the Vercel Function                                                      |
 | `tools/jev*.mjs`                                       | browser checks, benchmark, replay, secret scan                           |
 
-The shared modules import each other as `./x.js`: the Vercel function runs as
+The shared modules (now also `hitGeometry.ts` and `characters/hitboxSpecs.ts`)
+import each other as `./x.js`: the Vercel function runs as
 native Node ESM, which resolves nothing without an extension, and TypeScript and
 Vite map `./x.js` back to `./x.ts`. Keep them free of `@/` aliases for the same
 reason.

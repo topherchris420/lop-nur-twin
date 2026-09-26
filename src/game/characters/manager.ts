@@ -12,6 +12,7 @@ import { CharacterAnimator } from "./animation";
 import { buildSoldier, type SoldierModel } from "./soldier";
 import { buildHeldWeapon, type HeldWeaponModel } from "./heldWeapon";
 import { B } from "./rig";
+import { REGION_SPECS } from "./hitboxSpecs";
 
 /**
  * Binds soldier models, animators and hitboxes to actors.
@@ -47,34 +48,6 @@ interface Bound {
   regions: HitRegion[];
 }
 
-interface RegionSpec {
-  region: HitRegion;
-  /** Fraction of stance height at the box centre. */
-  centre: number;
-  /** Half extents in metres, before stance scaling. */
-  half: [number, number, number];
-}
-
-/**
- * The hit regions, stacked so that **consecutive boxes overlap**.
- *
- * Sized from the fractions of standing height a body actually occupies, then
- * deliberately grown until each box's top reaches past the next one's bottom.
- * Boxes that merely touch leave a seam at every joint — hips, ankles, the base
- * of the neck — and a round through a seam registers as world geometry, so a
- * centre-mass shot silently does nothing. Overlaps cost nothing: the raycast
- * returns the nearest hit, so the more specific box in front always wins.
- */
-const REGION_SPECS: readonly RegionSpec[] = [
-  { region: "head", centre: 0.94, half: [0.145, 0.16, 0.15] },
-  { region: "neck", centre: 0.862, half: [0.11, 0.08, 0.11] },
-  { region: "chest", centre: 0.755, half: [0.26, 0.19, 0.18] },
-  { region: "stomach", centre: 0.6, half: [0.24, 0.175, 0.165] },
-  { region: "arm", centre: 0.73, half: [0.34, 0.2, 0.14] },
-  { region: "leg", centre: 0.34, half: [0.22, 0.36, 0.16] },
-  { region: "foot", centre: 0.085, half: [0.22, 0.16, 0.2] },
-];
-
 const _centre = new THREE.Vector3();
 const _quat = new THREE.Quaternion();
 const _euler = new THREE.Euler();
@@ -108,7 +81,7 @@ export class CharacterManager {
     for (const spec of REGION_SPECS) {
       const collider = makeCollider(
         _centre.set(0, -1000, 0),
-        new THREE.Vector3(...spec.half),
+        new THREE.Vector3(spec.half[0], spec.half[1], spec.half[2]),
         _quat.identity(),
         LAYER.character,
         "flesh",

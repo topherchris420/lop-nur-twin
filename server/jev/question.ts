@@ -1,14 +1,22 @@
 import {
   AXIS_DESCRIPTIONS,
+  AXIS_ACTIONS,
   CONTROL_WINDOW_S,
   type Axis,
   type AxisActions,
 } from "../../src/game/pilot/contract.js";
-import type {
-  Contact,
-  JevObservation,
-  VisibleEnemy,
+import {
+  askedAxes,
+  type Contact,
+  type JevObservation,
+  type VisibleEnemy,
 } from "../../src/game/pilot/observation.js";
+import {
+  aimRegionGeometry,
+  angularRadiusDeg,
+  chanceBand,
+  coneHitFraction,
+} from "../../src/game/pilot/hitGeometry.js";
 
 /**
  * The TypeSafe question, built on the server from a validated observation.
@@ -29,13 +37,15 @@ import type {
 export interface SystemOneRequest {
   model: string;
   state: Record<string, unknown>;
-  questions: Record<
-    Axis,
-    {
-      type: "choice";
-      instructions: { context: string; question: string };
-      criteria: Record<string, string>;
-    }
+  questions: Partial<
+    Record<
+      Axis,
+      {
+        type: "choice";
+        instructions: { context: string; question: string };
+        criteria: Record<string, string>;
+      }
+    >
   >;
 }
 
@@ -145,6 +155,53 @@ function describeEnemy(enemy: VisibleEnemy): Record<string, unknown> {
   };
 }
 
+function motion(lateralMps: number): string {
+  const speed = Math.abs(lateralMps);
+  if (speed < 0.5) return "not moving across the view";
+  return `moving ${lateralMps > 0 ? "right" : "left"} across the view at ${round(speed, 1)} m/s`;
+}
+
+function exposure(enemy: VisibleEnemy): string {
+  if (enemy.headVisible && enemy.chestVisible) return "fully exposed";
+  if (enemy.headVisible) return "partly covered: only the head is in clear sight";
+  return "partly covered: the head is hidden";
+}
+
+/**
+ * The same enemy, for precision control: named by the slot the target choice
+ * offers, with how large each aim region looks and what share of the weapon's
+ * cone would land on it — hip and aimed. The arithmetic is done here, from the
+ * observation's own spread and distance, so Jev compares words, not angles.
+ */
+function describeTarget(
+  enemy: VisibleEnemy,
+  obs: JevObservation,
+): Record<string, unknown> {
+  const w = obs.weapon;
+  const regions = AXIS_ACTIONS.aim.map((aim) => {
+    const geometry = aimRegionGeometry(aim, "stand");
+    const radius = angularRadiusDeg(geometry.radiusM, enemy.distanceM);
+    return {
+      aim,
+      widthDeg: round(radius * 2, 2),
+      now: chanceBand(coneHitFraction(0, w.spreadDeg, radius)),
+      aimed: chanceBand(coneHitFraction(0, w.aimedSpreadDeg, radius)),
+    };
+  });
+  return {
+    ...describeEnemy(enemy),
+    exposure: exposure(enemy),
+    motion: motion(enemy.lateralMps),
+    being_tracked: enemy.tracked,
+    chance_per_round_with_crosshair_on_it: Object.fromEntries(
+      regions.map((r) => [
+        r.aim,
+        `${r.widthDeg} degrees wide; ${r.now} with the current spread, ${r.aimed} fully aimed`,
+      ]),
+    ),
+  };
+}
+
 function describeContact(contact: Contact): Record<string, unknown> {
   return {
     kind: contact.source === "gunfire" ? "enemy gunfire heard" : "enemy last seen",
@@ -239,12 +296,25 @@ export function renderState(obs: JevObservation): Record<string, unknown> {
       spare_rounds: w.reserve,
       reloading: w.reloading,
       can_fire: w.canFire ? "yes" : "no, not while sprinting or climbing",
+      ...(obs.control === "precision"
+        ? {
+            spread: `${round(w.spreadDeg, 2)} degrees now; ${round(w.aimedSpreadDeg, 2)} degrees fully aimed and still`,
+          }
+        : {}),
     },
     // Nearest to the crosshair first: the order the perception layer sorts in.
+    // In precision control each one is keyed by the target slot that names it.
     enemies_in_view_nearest_crosshair_first:
-      perception.visibleEnemies.length > 0
-        ? perception.visibleEnemies.map(describeEnemy)
-        : "none",
+      perception.visibleEnemies.length === 0
+        ? "none"
+        : obs.control === "precision"
+          ? Object.fromEntries(
+              perception.visibleEnemies.map((enemy, i) => [
+                `TARGET_${i}`,
+                describeTarget(enemy, obs),
+              ]),
+            )
+          : perception.visibleEnemies.map(describeEnemy),
     other_contacts:
       perception.contacts.length > 0 ? perception.contacts.map(describeContact) : "none",
     damage: perception.damage
@@ -281,7 +351,11 @@ export function renderState(obs: JevObservation): Record<string, unknown> {
   }
   const result = outcome(obs);
   if (obs.previous.frame && result) {
-    state["last_control"] = { ...obs.previous.frame, result };
+    const { target, aim, ...core } = obs.previous.frame;
+    state["last_control"] =
+      obs.control === "precision"
+        ? { ...core, target, aim, result }
+        : { ...core, result };
   }
   return state;
 }
@@ -292,11 +366,22 @@ function context(obs: JevObservation): string {
     MODE_RULES[obs.match.mode],
     "Rounds travel where the crosshair points, give or take weapon spread; aiming down the sights tightens the spread.",
     "Health regenerates a few seconds after the player stops taking damage.",
+    ...(obs.control === "precision"
+      ? [
+          "A local aiming controller carries out the target choice: it turns the view onto the chosen enemy continuously and, while the weapon choice fires, pulls the trigger only when the crosshair is on the chosen part of it. While an enemy is tracked, the turn and tilt choices are not applied. It never picks an enemy by itself.",
+        ]
+      : []),
     `This choice controls the next ${CONTROL_WINDOW_S} seconds; after it you will see the new situation and choose again.`,
   ].join(" ");
 }
 
 const QUESTIONS: Record<Axis, string> = {
+  // Questions in one request run in parallel and cannot see each other's
+  // answers (TypeSafe's guidance), so each names where its facts are in the
+  // state, and the aim question states its premise instead of leaning on the
+  // target answer.
+  target: `Which of the enemies listed under \`enemies_in_view_nearest_crosshair_first\` (keyed TARGET_0, TARGET_1, …) should the aiming controller track during the next ${CONTROL_WINDOW_S} seconds, if any?`,
+  aim: "Suppose the aiming controller tracks one of the enemies listed under `enemies_in_view_nearest_crosshair_first`. Which part of that enemy should the crosshair be held on? Each listed enemy's `chance_per_round_with_crosshair_on_it` states how wide each part looks and how likely a round is to land on it.",
   move: `Which movement should the player make during the next ${CONTROL_WINDOW_S} seconds?`,
   turn: `Which horizontal view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
   tilt: `Which vertical view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
@@ -324,16 +409,10 @@ export function buildSystemOneRequest(
     instructions: { context: shared, question: QUESTIONS[axis] },
     criteria: criteria(axis, obs.legal[axis]),
   });
-  // All four are asked in one request: TypeSafe evaluates them in parallel
-  // against the same state, so four questions cost barely more time than one.
-  return {
-    model,
-    state: renderState(obs),
-    questions: {
-      move: question("move"),
-      turn: question("turn"),
-      tilt: question("tilt"),
-      weapon: question("weapon"),
-    },
-  };
+  // Every asked axis goes in one request: TypeSafe evaluates them in parallel
+  // against the same state, so six questions cost barely more time than one.
+  // An axis with a single legal option is not a question and is not sent.
+  const questions: SystemOneRequest["questions"] = {};
+  for (const axis of askedAxes(obs.legal)) questions[axis] = question(axis);
+  return { model, state: renderState(obs), questions };
 }

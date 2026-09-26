@@ -411,8 +411,8 @@ describe("the question", () => {
   it("describes only the options that are legal", () => {
     const observation = makeObservation({ player: { stance: "stand" } });
     const request = buildSystemOneRequest(observation, "jev-latest");
-    expect(Object.keys(request.questions.move.criteria)).not.toContain("STAND");
-    expect(Object.keys(request.questions.move.criteria)).toEqual(observation.legal.move);
+    expect(Object.keys(request.questions.move!.criteria)).not.toContain("STAND");
+    expect(Object.keys(request.questions.move!.criteria)).toEqual(observation.legal.move);
   });
 
   it("stays small enough for the model's context budget", () => {

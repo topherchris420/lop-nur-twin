@@ -16,6 +16,7 @@ import {
   ACTION_CONTRACT_VERSION,
   OBSERVATION_SCHEMA_VERSION,
   type ControlFrame,
+  type ControlMode,
 } from "./contract";
 import {
   MAX_CONTACTS,
@@ -92,6 +93,9 @@ export interface PerceptionInput {
   sequence: number;
   previousFrame: ControlFrame | null;
   previousOutcome: PreviousOutcome | null;
+  control: ControlMode;
+  /** The enemy the precision controller is tracking, if any. Marked, never revealed. */
+  trackedId: EntityId | null;
 }
 
 export class Perception {
@@ -100,10 +104,17 @@ export class Perception {
   /** The nearest visible enemy at the last capture, for the HUD. */
   lastTarget: { distanceM: number; bearingDeg: number; onCrosshair: boolean } | null =
     null;
+  /**
+   * The entity behind each `TARGET_n` slot of the last capture, in slot order.
+   * It stays in the browser: the observation and the question carry only the
+   * slot, so a brain can name an enemy it was shown and nothing else.
+   */
+  lastTargetIds: EntityId[] = [];
 
   reset(): void {
     this.lastSeen.clear();
     this.lastTarget = null;
+    this.lastTargetIds = [];
   }
 
   capture(input: PerceptionInput): JevObservation {
@@ -146,11 +157,17 @@ export class Perception {
       const elevation =
         (Math.asin(THREE.MathUtils.clamp(_to.y / distance, -1, 1)) - aimPitch) * RAD;
       if (Math.abs(bearing) > halfH || Math.abs(elevation) > halfV) continue;
-      const seen =
-        !world ||
-        world.hasLineOfSight(_eye, _head, MASK_SIGHT, other.id) ||
-        world.hasLineOfSight(_eye, _chest, MASK_SIGHT, other.id);
-      if (!seen) continue;
+      const headVisible =
+        !world || world.hasLineOfSight(_eye, _head, MASK_SIGHT, other.id);
+      const chestVisible =
+        !world || world.hasLineOfSight(_eye, _chest, MASK_SIGHT, other.id);
+      if (!headVisible && !chestVisible) continue;
+      // Motion across the view, as the player would see it: relative velocity
+      // projected on the view's horizontal right-hand axis.
+      const lateral =
+        (other.velocity.x - player.velocity.x) * -_aim.z +
+        (other.velocity.z - player.velocity.z) * _aim.x;
+      const flat = Math.hypot(_aim.x, _aim.z) || 1;
       this.lastSeen.set(other.id, {
         x: other.position.x,
         y: other.position.y,
@@ -165,6 +182,10 @@ export class Perception {
         onCrosshair: crosshairId === other.id,
         firing:
           now - other.lastFireTime >= 0 && now - other.lastFireTime < FIRING_WINDOW_S,
+        headVisible,
+        chestVisible,
+        lateralMps: round1(THREE.MathUtils.clamp(lateral / flat, -50, 50)),
+        tracked: input.trackedId === other.id,
       });
     }
     visible.sort(
@@ -174,6 +195,10 @@ export class Perception {
         a.distanceM - b.distanceM ||
         a.id - b.id,
     );
+    const listed = visible.slice(0, MAX_VISIBLE_ENEMIES);
+    this.lastTargetIds = listed.map((v) => v.id);
+    // Only a listed enemy can be marked tracked; one tracked beyond the list
+    // cap is simply not reported as tracked.
     const visibleIds = new Set(visible.map((v) => v.id));
     const nearest = visible[0];
     this.lastTarget = nearest
@@ -306,6 +331,11 @@ export class Perception {
     };
     // The heading wraps to exactly 360 when rounded up; the schema is [0, 360].
     const magSize = Math.max(1, Math.round(hud.magSize));
+    const runtime = rigState.weapon;
+    const spread = runtime
+      ? runtime.spreadDeg(player.stance, player.speed, !player.grounded)
+      : 0;
+    const settled = runtime ? runtime.settledSpreadDeg(player.stance) : 0;
     const weapon: JevObservation["weapon"] = {
       slot: rigState.slot,
       weaponClass: rigState.weaponClass,
@@ -315,6 +345,8 @@ export class Perception {
       reserve: Math.max(0, Math.round(hud.reserve)),
       reloading: hud.reloading,
       canFire: !rigState.firingBlocked,
+      spreadDeg: Math.round(THREE.MathUtils.clamp(spread, 0, 45) * 100) / 100,
+      aimedSpreadDeg: Math.round(THREE.MathUtils.clamp(settled, 0, 45) * 100) / 100,
     };
 
     const director = game.matchDirector;
@@ -326,6 +358,7 @@ export class Perception {
       schemaVersion: OBSERVATION_SCHEMA_VERSION,
       actionContract: ACTION_CONTRACT_VERSION,
       sequence: input.sequence,
+      control: input.control,
       match: {
         mode,
         phase:
@@ -343,9 +376,7 @@ export class Perception {
       player: playerObs,
       weapon,
       perception: {
-        visibleEnemies: visible
-          .slice(0, MAX_VISIBLE_ENEMIES)
-          .map(({ id: _id, ...enemy }) => enemy),
+        visibleEnemies: listed.map(({ id: _id, ...enemy }) => enemy),
         contacts: contacts
           .slice(0, MAX_CONTACTS)
           .map(({ key: _key, ...contact }) => contact),
@@ -357,7 +388,10 @@ export class Perception {
         frame: input.previousFrame,
         outcome: input.previousOutcome,
       },
-      legal: legalActionsFor(playerObs, weapon),
+      legal: legalActionsFor(playerObs, weapon, {
+        control: input.control,
+        visibleEnemies: listed.length,
+      }),
     };
   }
 

@@ -143,7 +143,14 @@ describe("Jev HTTP provider", () => {
     }) as unknown as typeof fetch;
     const bad = makeObservation({ sequence: 5 });
     bad.previous = {
-      frame: { move: "HOLD", turn: "NO_TURN", tilt: "NO_TILT", weapon: "FIRE" },
+      frame: {
+        move: "HOLD",
+        turn: "NO_TURN",
+        tilt: "NO_TILT",
+        weapon: "FIRE",
+        target: "NONE",
+        aim: "CENTER_MASS",
+      },
       outcome: {
         shotsFired: -3,
         hitConfirmed: false,

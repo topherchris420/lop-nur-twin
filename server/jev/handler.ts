@@ -404,7 +404,7 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       sequence,
       source: "typesafe",
       model: reply.model,
-      frame: frameOf(axes),
+      frame: frameOf(axes, observation.legal),
       axes,
       latencyMs,
       usage:

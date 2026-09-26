@@ -75,6 +75,35 @@ stand in, labelled FALLBACK, while Jev cannot answer. `?record=1` keeps the last
 trace in local storage when a match ends. `?autoplay` keeps its meaning: it only
 skips the menus. Press **H** during a match to take control back immediately.
 
+**How a brain's aim reaches the view** — `?jevControl=`, or the menu's Precision
+control / Direct control:
+
+| `?jevControl=` | What it means                                                                                                                                                                                                                            |
+| :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `precision`    | The default. The brain also chooses which visible enemy to engage and where on it; a deterministic local controller tracks that choice at frame rate and pulls the trigger only while a round has a fair chance. Blacksite decides hits. |
+| `direct`       | The original interface, kept for comparison: the brain turns the view itself in fixed steps, four or five times a second.                                                                                                                |
+
+### Elite Operator (human aim help)
+
+`?playerProfile=elite`, or **Elite Operator** on the menus and **Elite Operator
+aim** in the pause settings, gives a person the kind of aim help a polished
+console shooter has, and nothing more. An **ELITE OPERATOR** chip sits beside
+the fire mode while it is on.
+
+- **Friction:** the look slows a little across a visible enemy near the
+  crosshair, most at its centre, so a sweep stops on the body.
+- **Rotational help while aiming down the sights:** when you or the target move,
+  a small share of the target's own motion is added — capped at 6° a second.
+- **Learned recoil help** (_Elite recoil help_, on by default; `?eliteRecoil=0`
+  turns it off): part of each shot's fixed recoil pattern is countered, as a
+  practised hand would. The kick still lands and the random jitter is yours.
+
+It never fires, never snaps between enemies, never helps toward an enemy behind
+a wall (it tests the sight line every frame), never pulls toward a target you
+are turning away from, and steps aside for a quarter second on any fast flick —
+the mouse always wins. Hitboxes, spread, recoil and damage are the same for
+everyone.
+
 What a brain may see and choose, the timing rules, the server boundary and the
 measured results are in [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). None of it
 touches the analytical model: a brain is one more illustrative player.

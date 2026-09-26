@@ -1,5 +1,11 @@
 import * as THREE from "three";
-import { OPPOSING_TEAM, yawToForward, type DamageEvent, type EntityId } from "./types";
+import {
+  OPPOSING_TEAM,
+  yawToForward,
+  type DamageEvent,
+  type EntityId,
+  type HitRegion,
+} from "./types";
 import { game, queueSound, type Actor } from "./gameState";
 
 /**
@@ -56,6 +62,8 @@ export interface AppliedDamage {
   /** Damage actually subtracted, after the player scaling above. */
   amount: number;
   killed: boolean;
+  /** The hitbox the round landed in, as the weapon runtime reported it. */
+  region: HitRegion | null;
 }
 
 /**
@@ -161,6 +169,7 @@ export function resolveDamage(time: number, out: KillReport[]): void {
         victim,
         amount: appliedDamage,
         killed: victim.health <= 0,
+        region: event.region,
       };
       for (const observe of damageObservers) observe(report);
     }

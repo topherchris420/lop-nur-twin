@@ -63,14 +63,24 @@ const idle = (input) =>
 /* A fake decision endpoint, inside the test browser only               */
 /* ------------------------------------------------------------------ */
 
-const AXES = ["move", "turn", "tilt", "weapon"];
+const AXES = ["move", "turn", "tilt", "weapon", "target", "aim"];
 
+/**
+ * A decision in the endpoint's shape. An axis with one legal option is not
+ * asked — no answer, and the frame takes that option — exactly as the server
+ * does it.
+ */
 function fakeDecision(observation, pick = {}) {
   const axes = {};
   const frame = {};
   for (const axis of AXES) {
     const options = observation.legal[axis];
     const choice = options.includes(pick[axis]) ? pick[axis] : options[0];
+    if (options.length < 2) {
+      axes[axis] = null;
+      frame[axis] = choice;
+      continue;
+    }
     const rest = 0.3 / Math.max(1, options.length - 1);
     const probabilities = options.map((option) => [
       option,
@@ -81,7 +91,7 @@ function fakeDecision(observation, pick = {}) {
     frame[axis] = choice;
   }
   return {
-    schemaVersion: "blacksite-jev-decision/v1",
+    schemaVersion: "blacksite-jev-decision/v2",
     sequence: observation.sequence,
     source: "typesafe",
     model: "jev-test-double",
@@ -155,7 +165,7 @@ async function offline() {
     const { page, errors } = await openPlay(
       browser,
       origin,
-      "autoplay=1&quality=0&brain=random&seed=42",
+      "autoplay=1&quality=0&brain=random&jevControl=direct&seed=42",
     );
     await waitForPilot(page);
     const before = await playerState(page);
@@ -285,7 +295,7 @@ async function offline() {
     behaviour.current = () => ({
       status: 502,
       body: {
-        schemaVersion: "blacksite-jev-decision/v1",
+        schemaVersion: "blacksite-jev-decision/v2",
         sequence: null,
         error: { code: "upstream_error", message: "test" },
         retryAfterMs: null,
@@ -310,16 +320,22 @@ async function offline() {
     await untilAlive(page);
     // A hung request: timeout, then recovery. An idle player may be killed
     // meanwhile, and DEAD rightly outranks TIMEOUT, so the counter decides.
-    const beforeHang = await page.evaluate(() => ({
-      ...globalThis.__jev.pilot.metrics.counters,
-    }));
+    // Wait for it rather than a fixed interval: the errors above can leave the
+    // loop backing off for up to 4 s before it asks again, and a death abandons
+    // the request in flight uncounted, so a timeout needs a full
+    // REQUEST_TIMEOUT_MS on one life. A fixed 3.5 s sleep failed intermittently.
+    const hangCounters = () =>
+      page.evaluate(() => ({ ...globalThis.__jev.pilot.metrics.counters }));
+    const beforeHang = await hangCounters();
     behaviour.current = () => "hang";
-    await sleep(3500);
+    let afterHang = beforeHang;
+    const hangDeadline = Date.now() + 15000;
+    while (afterHang.timeouts <= beforeHang.timeouts && Date.now() < hangDeadline) {
+      await sleep(250);
+      afterHang = await hangCounters();
+    }
     t = await telemetry(page);
     let alive = (await playerState(page)).alive;
-    const afterHang = await page.evaluate(() => ({
-      ...globalThis.__jev.pilot.metrics.counters,
-    }));
     check(
       "a hung request becomes TIMEOUT",
       afterHang.timeouts > beforeHang.timeouts && (!alive || t.status === "TIMEOUT"),
@@ -336,7 +352,7 @@ async function offline() {
     behaviour.current = () => ({
       status: 503,
       body: {
-        schemaVersion: "blacksite-jev-decision/v1",
+        schemaVersion: "blacksite-jev-decision/v2",
         sequence: null,
         error: { code: "not_configured", message: "no key" },
         retryAfterMs: null,
@@ -428,6 +444,242 @@ async function offline() {
       () => globalThis.__combat.store.getState().brain,
     );
     check("the store records the takeover", storeBrain === "human", storeBrain);
+    await page.close();
+  }
+
+  /* ------------------------------------------------ precision control */
+  console.log("\nprecision control against a fake endpoint (no TypeSafe call)");
+  {
+    // The fake always engages the first listed enemy, aimed, on the upper chest.
+    const engage = (obs) => ({
+      body: fakeDecision(obs, {
+        move: "HOLD",
+        weapon: obs.legal.weapon.includes("ADS_FIRE") ? "ADS_FIRE" : "RELOAD",
+        target: "TARGET_0",
+        aim: "UPPER_CHEST",
+      }),
+    });
+    const behaviour = { current: engage };
+    const { page, errors } = await openPlay(
+      browser,
+      origin,
+      "autoplay=1&quality=0&brain=jev&jevControl=precision&seed=7",
+      { beforeNavigate: (fresh) => interceptDecisions(fresh, behaviour) },
+    );
+    await waitForPilot(page);
+    const control = await page.evaluate(() => globalThis.__jev.telemetry.control);
+    check("the seat reports precision control", control === "precision", control);
+
+    // Sample the controller while it plays. Every sample with a measured error
+    // must have a clear sight line from the eye to the bound enemy's head or
+    // chest: the controller measures only what it can see.
+    const samples = [];
+    for (let i = 0; i < 80; i += 1) {
+      await runFor(page, 0.25);
+      const sample = await page.evaluate(() => {
+        const { game } = globalThis.__combat;
+        const m = globalThis.__jev.telemetry.motor;
+        if (!m.bound || m.targetId === null) return { bound: false };
+        const target = game.actorById.get(m.targetId);
+        const p = game.player;
+        const eye = { x: p.position.x, y: p.position.y + 1.62, z: p.position.z };
+        const V = game.cameraForward.constructor;
+        const from = new V(eye.x, eye.y, eye.z);
+        const head = new V(
+          target.position.x,
+          target.position.y + 1.62,
+          target.position.z,
+        );
+        const chest = new V(
+          target.position.x,
+          target.position.y + 1.3,
+          target.position.z,
+        );
+        const sight =
+          game.world.hasLineOfSight(from, head, 3, target.id) ||
+          game.world.hasLineOfSight(from, chest, 3, target.id); // MASK_SIGHT: world | prop
+        return {
+          bound: true,
+          id: m.targetId,
+          error: m.errorDeg,
+          gate: m.gate,
+          alive: target.alive,
+          team: target.team !== p.team,
+          sight,
+        };
+      });
+      // A kill can resolve after the controller's step in the same frame, so a
+      // sample may catch it still bound to an enemy that has just died. The
+      // controller checks the body on every step; the fault would be staying
+      // bound, so step on and require the release.
+      if (sample.bound && !sample.alive) {
+        await runFor(page, 0.1);
+        sample.released = await page.evaluate((id) => {
+          const m = globalThis.__jev.telemetry.motor;
+          return !m.bound || m.targetId !== id;
+        }, sample.id);
+      }
+      samples.push(sample);
+    }
+    const bound = samples.filter((x) => x.bound);
+    const measured = bound.filter((x) => x.error !== null);
+    check(
+      "the tracking controller binds the enemy Jev named",
+      bound.length > 5,
+      `${bound.length}/${samples.length} samples bound`,
+    );
+    const justKilled = bound.filter((x) => !x.alive);
+    check(
+      "it only ever binds living enemies",
+      bound.every((x) => x.team && (x.alive || x.released)),
+      `alive, opposing; ${justKilled.length} caught in the kill frame, ` +
+        `${justKilled.filter((x) => x.released).length} released next step`,
+    );
+    const blind = measured.filter((x) => !x.sight).length;
+    check(
+      "it never measures or tracks an enemy without a sight line",
+      blind <= 1,
+      `${blind} of ${measured.length} measured samples without sight`,
+    );
+    const tight = measured.filter((x) => x.error < 0.5).length;
+    check(
+      "tracking holds the crosshair on the chosen region",
+      measured.length > 0 && tight / measured.length > 0.5,
+      `${tight}/${measured.length} samples under 0.5°`,
+    );
+    const ep = await episode(page);
+    check(
+      "rounds leave through the weapon runtime and some land",
+      ep.shotsFired > 0 && ep.hits > 0,
+      `${ep.hits}/${ep.shotsFired}`,
+    );
+    check(
+      "the episode is labelled with its controller",
+      ep.brain === "jev" && ep.control === "precision" && ep.motor !== null,
+      `${ep.brain}/${ep.control}`,
+    );
+    check(
+      "the fire gate reports what it suppressed",
+      ep.motor.triggerOpportunities >= ep.motor.gateSuppressed &&
+        ep.motor.gateSuppressedFraction !== null,
+      `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}`,
+    );
+    const trace = await page.evaluate(() => globalThis.__jev.exportTrace());
+    const header = JSON.parse(trace.split("\n")[0]);
+    check(
+      "the trace header names the controller",
+      header.control === "precision" && header.traceVersion === "blacksite-jev-trace/v2",
+      `${header.control} ${header.traceVersion}`,
+    );
+    check(
+      "trace frames carry the target slot and aim region",
+      trace.includes('"target":"TARGET_0"') && trace.includes('"aim":"UPPER_CHEST"'),
+      "TARGET_0 / UPPER_CHEST",
+    );
+
+    // Outage: answers stop. Nothing is re-confirmed, so within the binding
+    // timeout the controller lets go and the trigger stays released.
+    behaviour.current = () => ({
+      status: 503,
+      body: {
+        schemaVersion: "blacksite-jev-decision/v2",
+        sequence: null,
+        error: { code: "not_configured", message: "outage" },
+        retryAfterMs: null,
+      },
+    });
+    await runFor(page, 2);
+    const outage = await page.evaluate(() => ({
+      bound: globalThis.__jev.telemetry.motor.bound,
+      fire: globalThis.__jev.pilot.input.fire,
+      status: globalThis.__jev.telemetry.status,
+    }));
+    check(
+      "during an outage tracking releases and nothing fires",
+      !outage.bound && !outage.fire,
+      `${outage.status}, bound=${outage.bound}`,
+    );
+    behaviour.current = engage;
+    // An unavailable service backs the loop off for 5 s before it asks again,
+    // so a fixed wait shorter than that failed intermittently. Wait for it.
+    let recovered = await telemetry(page);
+    for (
+      let waited = 0;
+      waited < 10 &&
+      !(
+        recovered.label === "LIVE JEV" &&
+        ["EXECUTING", "DECIDING", "OBSERVING"].includes(recovered.status)
+      );
+      waited += 0.5
+    ) {
+      await runFor(page, 0.5);
+      recovered = await telemetry(page);
+    }
+    check(
+      "control resumes after the outage",
+      recovered.label === "LIVE JEV" &&
+        ["EXECUTING", "DECIDING", "OBSERVING"].includes(recovered.status),
+      recovered.status,
+    );
+
+    await page.keyboard.press("KeyH");
+    await sleep(300);
+    const after = await page.evaluate(() => ({
+      bound: globalThis.__jev.telemetry.motor.bound,
+      brain: globalThis.__jev.telemetry.brain,
+    }));
+    check(
+      "takeover releases the tracking controller too",
+      after.brain === "human" && !after.bound && idle(await pilotInput(page)),
+      `${after.brain}, bound=${after.bound}`,
+    );
+    check(
+      "no page errors under precision control",
+      errors.length === 0,
+      errors[0] ?? "clean",
+    );
+    await page.close();
+  }
+
+  /* ------------------------------------------------ Elite Operator */
+  console.log("\nElite Operator (human)");
+  {
+    const { page, errors } = await openPlay(
+      browser,
+      origin,
+      "autoplay=1&quality=0&playerProfile=elite",
+    );
+    await waitForPilot(page);
+    await runFor(page, 1);
+    const state = await page.evaluate(() => ({
+      profile: globalThis.__combat.store.getState().playerProfile,
+      flag: globalThis.__combat.game.hud.eliteOperator,
+      brain: globalThis.__jev.telemetry.brain,
+      episode: globalThis.__jev.episode(),
+    }));
+    check(
+      "?playerProfile=elite turns Elite Operator on, visibly",
+      state.profile === "elite" && state.flag === true,
+      `${state.profile}, HUD chip ${state.flag}`,
+    );
+    check(
+      "a human episode is labelled with its profile",
+      state.brain === "human" &&
+        state.episode.control === "none" &&
+        state.episode.profile === "elite",
+      `${state.episode.brain}/${state.episode.control}/${state.episode.profile}`,
+    );
+    await page.evaluate(() =>
+      globalThis.__combat.store.getState().setPlayerProfile("standard"),
+    );
+    await runFor(page, 0.5);
+    const off = await page.evaluate(() => globalThis.__combat.game.hud.eliteOperator);
+    check("switching back to standard turns it off", off === false, `chip ${off}`);
+    check(
+      "no page errors with Elite Operator",
+      errors.length === 0,
+      errors[0] ?? "clean",
+    );
     await page.close();
   }
 
@@ -744,6 +996,18 @@ async function liveChecks() {
   );
   report("took damage", ep.damageTaken > 0, `${ep.damageTaken.toFixed(0)}`);
   report("died and kept deciding after respawn", ep.deaths > 0, `${ep.deaths} deaths`);
+  report(
+    "tracked enemies Jev chose (precision controller)",
+    (ep.motor?.targetsBound ?? 0) > 0,
+    ep.motor
+      ? `${ep.motor.targetsBound} bound, tracking error p50 ${ep.motor.trackingErrorDeg.p50?.toFixed(3) ?? "n/a"}°`
+      : `control ${ep.control}`,
+  );
+  report(
+    "the fire gate held rounds that were unlikely to land",
+    (ep.motor?.gateSuppressed ?? 0) > 0,
+    ep.motor ? `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}` : "n/a",
+  );
   console.log(
     `  latency: mean ${ep.latency.meanMs?.toFixed(0)} ms, p50 ${ep.latency.p50Ms?.toFixed(0)} ms, p95 ${ep.latency.p95Ms?.toFixed(0)} ms (${ep.latency.count} samples)`,
   );

@@ -27,6 +27,8 @@ function response(overrides: Record<string, unknown> = {}): Record<string, unkno
       turn: "TURN_RIGHT_SMALL",
       tilt: legal.tilt[0],
       weapon: "FIRE",
+      target: "NONE",
+      aim: "CENTER_MASS",
     },
     axes,
     latencyMs: 131,

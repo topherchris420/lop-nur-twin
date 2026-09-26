@@ -2,12 +2,17 @@ import {
   ACTION_CONTRACT_VERSION,
   AXES,
   AXIS_ACTIONS,
+  CONTROL_MODES,
+  CORE_AXES,
   OBSERVATION_SCHEMA_VERSION,
   PITCH_LIMIT_DEG,
   isAxisAction,
+  type AimAction,
   type Axis,
   type ControlFrame,
+  type ControlMode,
   type MoveAction,
+  type TargetAction,
   type TiltAction,
   type TurnAction,
   type WeaponAction,
@@ -87,6 +92,16 @@ export interface VisibleEnemy {
   onCrosshair: boolean;
   /** Muzzle flash seen in the last second. */
   firing: boolean;
+  /** A clear sight line reaches the head / the chest. Both: fully exposed. */
+  headVisible: boolean;
+  chestVisible: boolean;
+  /**
+   * Speed across the view, m/s, right-positive — from the enemy's own motion as
+   * the player sees it, not a plan.
+   */
+  lateralMps: number;
+  /** The precision controller is tracking this enemy now. */
+  tracked: boolean;
 }
 
 export interface Contact {
@@ -112,12 +127,18 @@ export interface LegalActions {
   turn: TurnAction[];
   tilt: TiltAction[];
   weapon: WeaponAction[];
+  /** Only NONE outside precision control, or when no enemy is in view. */
+  target: TargetAction[];
+  /** Only CENTER_MASS when there is nothing to aim at. */
+  aim: AimAction[];
 }
 
 export interface JevObservation {
   schemaVersion: typeof OBSERVATION_SCHEMA_VERSION;
   actionContract: typeof ACTION_CONTRACT_VERSION;
   sequence: number;
+  /** Who turns the view: the brain in steps, or the local tracking controller. */
+  control: ControlMode;
   match: {
     mode: GameModeName;
     phase: (typeof MATCH_PHASES)[number];
@@ -149,6 +170,10 @@ export interface JevObservation {
     reloading: boolean;
     /** False while sprinting or climbing — the rig will not let a shot out. */
     canFire: boolean;
+    /** The spread cone's half-angle right now, degrees — `WeaponRuntime.spreadDeg`. */
+    spreadDeg: number;
+    /** The same cone fully aimed down the sights, standing still, no bloom. */
+    aimedSpreadDeg: number;
   };
   perception: {
     visibleEnemies: VisibleEnemy[];
@@ -194,6 +219,10 @@ export function legalActionsFor(
     JevObservation["weapon"],
     "ammo" | "magSize" | "reserve" | "reloading" | "canFire"
   >,
+  engagement: { control: ControlMode; visibleEnemies: number } = {
+    control: "direct",
+    visibleEnemies: 0,
+  },
 ): LegalActions {
   const move = AXIS_ACTIONS.move.filter((action) => {
     switch (action) {
@@ -230,7 +259,20 @@ export function legalActionsFor(
         return true;
     }
   });
-  return { move, turn, tilt, weapon: weaponActions };
+  // A slot exists only for an enemy that is actually listed; tracking is a
+  // precision-control choice, so direct control offers nothing but NONE.
+  const slots =
+    engagement.control === "precision"
+      ? Math.min(MAX_VISIBLE_ENEMIES, Math.max(0, engagement.visibleEnemies))
+      : 0;
+  const target = AXIS_ACTIONS.target.slice(0, 1 + slots);
+  const aim = slots > 0 ? [...AXIS_ACTIONS.aim] : AXIS_ACTIONS.aim.slice(0, 1);
+  return { move, turn, tilt, weapon: weaponActions, target, aim };
+}
+
+/** Axes with a real choice in them. A single legal option is not asked. */
+export function askedAxes(legal: LegalActions): Axis[] {
+  return AXES.filter((axis) => legal[axis].length >= 2);
 }
 
 export function sameLegalActions(a: LegalActions, b: LegalActions): boolean {
@@ -331,6 +373,8 @@ function frame(value: unknown, path: string): ControlFrame | null {
     turn: oneOf(f["turn"], `${path}.turn`, AXIS_ACTIONS.turn),
     tilt: oneOf(f["tilt"], `${path}.tilt`, AXIS_ACTIONS.tilt),
     weapon: oneOf(f["weapon"], `${path}.weapon`, AXIS_ACTIONS.weapon),
+    target: oneOf(f["target"], `${path}.target`, AXIS_ACTIONS.target),
+    aim: oneOf(f["aim"], `${path}.aim`, AXIS_ACTIONS.aim),
   };
 }
 
@@ -349,6 +393,7 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       "schemaVersion",
       "actionContract",
       "sequence",
+      "control",
       "match",
       "player",
       "weapon",
@@ -392,6 +437,8 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       "reserve",
       "reloading",
       "canFire",
+      "spreadDeg",
+      "aimedSpreadDeg",
     ]);
     const perception = record(o["perception"], "perception", [
       "visibleEnemies",
@@ -419,6 +466,7 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       schemaVersion: OBSERVATION_SCHEMA_VERSION,
       actionContract: ACTION_CONTRACT_VERSION,
       sequence: integer(o["sequence"], "observation.sequence", 1, 2 ** 31 - 1),
+      control: oneOf(o["control"], "observation.control", CONTROL_MODES),
       match: {
         mode: oneOf(m["mode"], "match.mode", GAME_MODES),
         phase: oneOf(m["phase"], "match.phase", MATCH_PHASES),
@@ -447,6 +495,8 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
         reserve: integer(w["reserve"], "weapon.reserve", 0, 10000),
         reloading: boolean(w["reloading"], "weapon.reloading"),
         canFire: boolean(w["canFire"], "weapon.canFire"),
+        spreadDeg: number(w["spreadDeg"], "weapon.spreadDeg", 0, 45),
+        aimedSpreadDeg: number(w["aimedSpreadDeg"], "weapon.aimedSpreadDeg", 0, 45),
       },
       perception: {
         visibleEnemies: list(
@@ -461,6 +511,10 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
             "distanceM",
             "onCrosshair",
             "firing",
+            "headVisible",
+            "chestVisible",
+            "lateralMps",
+            "tracked",
           ]);
           return {
             bearingDeg: number(e["bearingDeg"], `${path}.bearingDeg`, -ANGLE, ANGLE),
@@ -473,6 +527,10 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
             distanceM: number(e["distanceM"], `${path}.distanceM`, 0, SIGHT_RANGE_M),
             onCrosshair: boolean(e["onCrosshair"], `${path}.onCrosshair`),
             firing: boolean(e["firing"], `${path}.firing`),
+            headVisible: boolean(e["headVisible"], `${path}.headVisible`),
+            chestVisible: boolean(e["chestVisible"], `${path}.chestVisible`),
+            lateralMps: number(e["lateralMps"], `${path}.lateralMps`, -50, 50),
+            tracked: boolean(e["tracked"], `${path}.tracked`),
           };
         }),
         contacts: list(perception["contacts"], "perception.contacts", MAX_CONTACTS).map(
@@ -596,17 +654,25 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
         turn: axisList(legal["turn"], "legal.turn", "turn") as TurnAction[],
         tilt: axisList(legal["tilt"], "legal.tilt", "tilt") as TiltAction[],
         weapon: axisList(legal["weapon"], "legal.weapon", "weapon") as WeaponAction[],
+        target: axisList(legal["target"], "legal.target", "target") as TargetAction[],
+        aim: axisList(legal["aim"], "legal.aim", "aim") as AimAction[],
       },
     };
 
     if (observation.weapon.ammo > observation.weapon.magSize) {
       fail("weapon.ammo", "exceeds the magazine");
     }
-    const expected = legalActionsFor(observation.player, observation.weapon);
+    if (observation.perception.visibleEnemies.filter((e) => e.tracked).length > 1) {
+      fail("perception.visibleEnemies", "more than one enemy marked tracked");
+    }
+    const expected = legalActionsFor(observation.player, observation.weapon, {
+      control: observation.control,
+      visibleEnemies: observation.perception.visibleEnemies.length,
+    });
     if (!sameLegalActions(expected, observation.legal)) {
       fail("legal", "does not match the state it was sent with");
     }
-    for (const axis of AXES) {
+    for (const axis of CORE_AXES) {
       if (observation.legal[axis].length < 2)
         fail(`legal.${axis}`, "fewer than two options");
     }
