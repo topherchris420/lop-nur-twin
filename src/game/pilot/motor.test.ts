@@ -97,7 +97,8 @@ class Bench {
       s = (s * 9301 + 49297) % 233280;
       return s / 233280;
     };
-    const ready = (): boolean => this.shotClock <= 0;
+    // As in the rig, the clock advances after the controller runs.
+    const ready = (): boolean => this.shotClock <= DT * 0.999;
     this.weapon = {
       fireMode: this.options.fireMode,
       weaponClass: "assault",
@@ -389,6 +390,33 @@ describe("precision motor controller", () => {
     // Every round left close to the chest.
     expect(Math.max(...bench.shotErrors)).toBeLessThan(0.6);
     expect(bench.suppressed).toBeGreaterThan(0);
+  });
+
+  it("releases an automatic burst when the aim leaves tolerance, then reacquires", () => {
+    const enemy = at(1, 60, 0);
+    const bench = new Bench({ targets: [enemy], spreadDeg: 0.05, rpm: 700 });
+    bench.motor.engage({ targetId: 1, aim: "UPPER_CHEST" }, 0);
+    bench.run(0.6, FIRE);
+    const before = bench.shots;
+    expect(before).toBeGreaterThan(0);
+    // The enemy side-steps a metre and a half: the aim is suddenly well off it.
+    enemy.position.x += 1.5;
+    const errors: number[] = [];
+    let firedWhileOff = 0;
+    for (let i = 0; i < 12; i += 1) {
+      const shots = bench.shots;
+      const error = bench.errorTo(enemy);
+      bench.step(FIRE);
+      if (bench.shots > shots) {
+        errors.push(error);
+        if (error > 0.6) firedWhileOff += 1;
+      }
+    }
+    // The first rounds after the step may already be committed; the burst
+    // must not keep emptying the magazine at the old spot.
+    expect(firedWhileOff).toBeLessThanOrEqual(1);
+    bench.run(0.8, FIRE);
+    expect(bench.shots).toBeGreaterThan(before + 2);
   });
 
   it("holds fire when the spread cone is much wider than the region", () => {

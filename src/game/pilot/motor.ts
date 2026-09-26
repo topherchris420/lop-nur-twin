@@ -128,6 +128,12 @@ export interface MotorWeapon {
   /** Pellets per round: 1 except for shotguns. */
   readonly pellets: number;
   readonly ads: number;
+  /**
+   * A pull this step would release a round: the action cycles within this
+   * step, there is a round, the weapon is not reloading or raising, and the
+   * rig is not blocking the shot. The rig advances the weapon's clock after
+   * the controller runs, so "ready now" would lag a held trigger by a round.
+   */
   readonly readyToFire: boolean;
   readonly isReloading: boolean;
   spreadDeg(stance: Stance, speed: number, airborne: boolean): number;

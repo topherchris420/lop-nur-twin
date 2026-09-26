@@ -227,6 +227,8 @@ class Pilot {
   private readonly slots = new Map<number, EntityId[]>();
   private auditPhase = 0;
   private readonly sense: MotorSense;
+  /** This simulation step's length, for the weapon-readiness lookahead. */
+  private readonly step = { dt: 1 / 60 };
   private loop: DecisionLoop | null = null;
   private replay: ReplayState | null = null;
   private pending: Pending | null = null;
@@ -286,6 +288,7 @@ class Pilot {
    * the same `hasLineOfSight` the bots and the perception layer use.
    */
   private createSense(): MotorSense {
+    const step = this.step;
     const weapon: MotorWeapon = {
       get fireMode() {
         return rigState.weapon?.fireMode ?? "semi";
@@ -303,7 +306,9 @@ class Pilot {
         return rigState.weapon?.ads ?? 0;
       },
       get readyToFire() {
-        return (rigState.weapon?.readyToFire ?? false) && !rigState.firingBlocked;
+        const w = rigState.weapon;
+        if (!w || rigState.firingBlocked || w.ammo <= 0 || w.isReloading) return false;
+        return w.state !== "raising" && w.cycleRemainingS <= step.dt * 0.999;
       },
       get isReloading() {
         return rigState.weapon?.isReloading ?? false;
@@ -822,6 +827,7 @@ class Pilot {
       // now executes its engagement part. With nothing bound it changes nothing.
       const frame = this.executor.current;
       const weapon = frame ? WEAPON_INPUT[frame.weapon] : null;
+      this.step.dt = dt;
       this.motor.apply(
         this.input,
         this.refreshSense(),

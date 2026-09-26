@@ -195,6 +195,15 @@ export class WeaponRuntime {
     );
   }
 
+  /**
+   * Seconds until the action has cycled and a held or pulled trigger would
+   * release a round, ignoring ammunition. The clock is advanced in `update`,
+   * which runs after anything reading this in the same step.
+   */
+  get cycleRemainingS(): number {
+    return Math.max(this.shotClock, this.burstCooldown);
+  }
+
   get needsReload(): boolean {
     return this.ammo <= 0 && this.reserve > 0;
   }
