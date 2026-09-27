@@ -9,6 +9,7 @@ import {
   type NavigationMode,
 } from "../pilot/contract";
 import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
+import { SEAT_RULES, type SeatRules } from "./combat";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -178,6 +179,8 @@ interface GameStoreState {
    * policy. Never applied to Jev, whose latency is real.
    */
   brainLatencyMs: number;
+  /** `?seat=mercy|even`: the rules the player's seat fights under. See `core/combat.ts`. */
+  seatRules: SeatRules;
   /** `?policy=`: which scripted reference policy the `script` brain runs. */
   brainPolicy: ScriptPolicy;
   setBrainPolicy: (policy: ScriptPolicy) => void;
@@ -325,6 +328,7 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   brainFallback: readEnumParam<"random">("fallback", ["random"]),
   brainPolicy: readEnumParam<ScriptPolicy>("policy", SCRIPT_POLICIES) ?? "marksman",
   brainCadenceMs: readIntParam("cadence", 50, 2000),
+  seatRules: readEnumParam<SeatRules>("seat", SEAT_RULES) ?? "mercy",
   brainLatencyMs: readIntParam("latency", 0, 1500) ?? 0,
   setBrainPolicy: (brainPolicy) => set({ brainPolicy }),
   replayTrace: null,

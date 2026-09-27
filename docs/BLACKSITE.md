@@ -30,27 +30,27 @@ understand a place's scale is to have to cross it under fire: the assembly
 hangar is 126 m of wall you have to run the length of, and the apron is
 genuinely as exposed as it looks from 400 m up.
 
-|                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| :---------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ballistics**          | Rounds walk through up to four surfaces, spending a penetration budget per material and losing damage as they go — sheet-metal cladding is defeatable, a concrete revetment is not. Shallow hits on hard materials ricochet. Heavy calibres fly a simulated projectile with drag and drop instead of hitscanning.                                                                                                                                                                                                                                                                                               |
-| **Recoil is a pattern** | Each weapon derives a fixed spray sequence from its seed, so it can be learned and pulled down, exactly as in the games this is modelled on. Random jitter is layered on top but stays small.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Sixteen weapons**     | Assault, SMG, LMG, marksman, sniper, shotgun, pistol, launcher, melee — balanced to the genre's numbers: a 3–4 shot kill inside 30 m for a rifle, 200–500 ms time-to-kill for every automatic at 10/25/50 m. `ttkTable()` in `weapons/arsenal.ts` prints the whole matrix.                                                                                                                                                                                                                                                                                                                                      |
-| **Bots that fight you** | A small explicit state machine, not a behaviour tree. What makes them fair rather than robotic is three numbers that scale with skill: a reaction delay before a spotted target may be shot at, an aim-error cone that _converges_ the longer they hold you rather than snapping to zero, and burst discipline that leaves gaps to move in. They share contacts across the squad, investigate gunfire through walls, and turn toward rounds that come from somewhere they cannot see. Against the player they give extra slack: slower first shot, a wider cone aimed at the chest, longer gaps between bursts. |
-| **Procedural soldiers** | No clip data. Legs are _placed_, not rotated: each foot follows an explicit trajectory and two-bone IK solves the hip and knee to reach it, so stride length is tied to measured speed and a planted foot never slides. Aim twists the spine, the off hand is solved onto the weapon's handguard, and hits, recoil and suppression are additive layers on top.                                                                                                                                                                                                                                                  |
-| **Hands that hold it**  | The first-person gloves are sculpted, not assembled: each is one signed distance field — palm, metacarpals, finger segments, knuckle armour, cuff — meshed once with surface nets. Every finger joint closes until it meets the weapon's own contact shape, so the grip follows the gun; the weapon is carved out of the palm and darkens the glove where they touch. Rifles are held from under the handguard, pistols a two-handed grip whose support fingers close over the firing hand.                                                                                                                     |
-| **Synthesised audio**   | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| :---------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ballistics**          | Rounds walk through up to four surfaces, spending a penetration budget per material and losing damage as they go — sheet-metal cladding is defeatable, a concrete revetment is not. Shallow hits on hard materials ricochet. Heavy calibres fly a simulated projectile with drag and drop instead of hitscanning.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Recoil is a pattern** | Each weapon derives a fixed spray sequence from its seed, so it can be learned and pulled down, exactly as in the games this is modelled on. Random jitter is layered on top but stays small.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Sixteen weapons**     | Assault, SMG, LMG, marksman, sniper, shotgun, pistol, launcher, melee — balanced to the genre's numbers: a 3–4 shot kill inside 30 m for a rifle, 200–500 ms time-to-kill for every automatic at 10/25/50 m. `ttkTable()` in `weapons/arsenal.ts` prints the whole matrix.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Bots that fight you** | A small explicit state machine, not a behaviour tree. Out of their own weapon's range and in sight of the enemy they want, they do not charge across the apron: they bound between points that enemy cannot see, or break sight. What makes them fair rather than robotic is three numbers that scale with skill: a reaction delay before a spotted target may be shot at, an aim-error cone that _converges_ the longer they hold you rather than snapping to zero, and burst discipline that leaves gaps to move in. They share contacts across the squad, investigate gunfire through walls, and turn toward rounds that come from somewhere they cannot see. Against the player they give extra slack: slower first shot, a wider cone aimed at the chest, longer gaps between bursts. |
+| **Procedural soldiers** | No clip data. Legs are _placed_, not rotated: each foot follows an explicit trajectory and two-bone IK solves the hip and knee to reach it, so stride length is tied to measured speed and a planted foot never slides. Aim twists the spine, the off hand is solved onto the weapon's handguard, and hits, recoil and suppression are additive layers on top.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **Hands that hold it**  | The first-person gloves are sculpted, not assembled: each is one signed distance field — palm, metacarpals, finger segments, knuckle armour, cuff — meshed once with surface nets. Every finger joint closes until it meets the weapon's own contact shape, so the grip follows the gun; the weapon is carved out of the palm and darkens the glove where they touch. Rifles are held from under the handguard, pistols a two-handed grip whose support fingers close over the firing hand.                                                                                                                                                                                                                                                                                                |
+| **Synthesised audio**   | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 **Controls**
 
-| Input                       | Action                                                     |
-| :-------------------------- | :--------------------------------------------------------- |
-| `W` `A` `S` `D`             | Move; `Shift` sprints, `Ctrl`/`C` crouches, `Z` goes prone |
-| `Space`                     | Jump, and mantle onto anything shoulder-height             |
-| Mouse                       | Look; left fires, right aims down sights                   |
-| `R` · `1`/`2` · `V` · `B`   | Reload · swap weapon · melee · cycle fire mode             |
-| `Q` / `E` · `G` · `T` · `F` | Lean left / right · lethal · tactical · interact           |
-| `Tab` · `Esc`               | Scoreboard · pause and release the mouse                   |
-| `H`                         | Take control back from Jev, random or replay               |
+| Input               | Action                                                                    |
+| :------------------ | :------------------------------------------------------------------------ |
+| `W` `A` `S` `D`     | Move; `Shift` sprints, `Ctrl`/`C` crouches, `Z` goes prone                |
+| `Space`             | Jump, and mantle onto anything shoulder-height                            |
+| Mouse               | Look; left fires, right aims down sights                                  |
+| `R` · `1`/`2` · `B` | Reload · swap weapon · cycle fire mode                                    |
+| `Q` / `E`           | Lean left / right (moves the camera; rounds leave from the un-leaned eye) |
+| `Tab` · `Esc`       | Scoreboard · pause and release the mouse                                  |
+| `H`                 | Take control back from Jev, random or replay                              |
 
 `/play?autoplay=1` skips the menus. `?quality=0..3` pins a quality tier,
 `?at=<x>,<z>` and `?look=<deg>` place and aim the opening spawn, and
@@ -63,14 +63,20 @@ pause menus — or `?brain=` — puts a different brain in the seat, and every b
 drives the same `InputState` the keyboard and mouse fill. The controller, the
 weapons, collision and damage cannot tell who is playing.
 
-| `?brain=` | Who controls the player                                                                            |
-| :-------- | :------------------------------------------------------------------------------------------------- |
-| `human`   | Keyboard and mouse. The default, and what any other value means.                                   |
-| `jev`     | The TypeSafe Jev model, through the server-side `/api/jev/decision` endpoint. Labelled LIVE JEV.   |
-| `random`  | A seeded random policy over the same controls and timing (`&seed=<int>`). Labelled RANDOM.         |
-| `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live. |
+| `?brain=` | Who controls the player                                                                                    |
+| :-------- | :--------------------------------------------------------------------------------------------------------- |
+| `human`   | Keyboard and mouse. The default, and what any other value means.                                           |
+| `jev`     | The TypeSafe Jev model, through the server-side `/api/jev/decision` endpoint. Labelled LIVE JEV.           |
+| `random`  | A seeded random policy over the same controls and timing (`&seed=<int>`). Labelled RANDOM.                 |
+| `script`  | A hand-written reference policy (`&policy=marksman\|skirmisher`), same observation and controls. SCRIPTED. |
+| `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live.         |
 
-`?seed=<int>` also pins the match seed. `?fallback=random` lets the random policy
+`?seed=<int>` also pins the match seed; the results screen prints it and offers
+**Same seed**, which rebuilds the identical match — the same bots, weapons and
+spawns — so a person can play the match a model just played, or hand theirs to
+one. `?jevNav=places|steps` chooses how a brain moves (see below);
+`?cadence=<ms>` and `?latency=<ms>` set a local brain's decision interval and
+answer delay for experiments. `?fallback=random` lets the random policy
 stand in, labelled FALLBACK, while Jev cannot answer. `?record=1` keeps the last
 trace in local storage when a match ends. `?autoplay` keeps its meaning: it only
 skips the menus. Press **H** during a match to take control back immediately.
@@ -103,6 +109,30 @@ a wall (it tests the sight line every frame), never pulls toward a target you
 are turning away from, and steps aside for a quarter second on any fast flick —
 the mouse always wins. Hitboxes, spread, recoil and damage are the same for
 everyone.
+
+**How a brain's movement reaches the body** — `?jevNav=`:
+
+| `?jevNav=` | What it means                                                                                                                                                                                                       |
+| :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `places`   | The default. The observation lists a few nearby places — cover from the enemies it knows about, a way nearer, round, back, the objective — with facts; the brain may name one and a local navigator walks it there. |
+| `steps`    | The original interface: the brain walks the body itself, relative to the view.                                                                                                                                      |
+
+### One set of senses
+
+The HUD tells a person about enemies exactly what a brain in the same seat is
+told: gunfire on the radar and compass only within the 115 m a brain hears,
+the direction of a hit, teammates within the radar's 145 m. There are no
+brackets over enemies, no drone camera and no thermal view; what you see of
+the enemy is what is on the screen. A kill is confirmed under the crosshair
+with the name and the range — on this site, the distance is the story — and
+there are no XP popups or squad chatter.
+
+### The debrief
+
+The results screen ends with a debrief kept by the same rule for every seat:
+how much of each life was spent in an enemy's sight line, and each death
+classed as _never seen_, _seen, not engaged_ or _engaged, exchange lost_, with
+the range, whether there was any cover within 10 m, and where.
 
 What a brain may see and choose, the timing rules, the server boundary and the
 measured results are in [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). None of it

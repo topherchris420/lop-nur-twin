@@ -12,6 +12,7 @@ import { GROUND_OVERLOOK } from "@/lib/layout";
 import { readFloatParam, readHeadingParam, readSitePointParam } from "@/lib/params";
 import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
+import { mirageState } from "./world/mirage";
 import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
 import { FxManager } from "./fx/combatFx";
@@ -20,6 +21,7 @@ import { useGameStore } from "./core/gameStore";
 import {
   damageObservers,
   resolveDamage,
+  seat,
   tickActorState,
   type KillReport,
 } from "./core/combat";
@@ -389,6 +391,24 @@ function AudioHost({ world }: { world: CollisionWorld | null }) {
  * composer's own AgX pass is in charge. This runs after `Atmosphere`'s effect
  * and pulls the non-composer tiers back in line with the top one.
  */
+/** The seat's rules, from `?seat=`: mercy for a person by default, or even. */
+function SeatRulesHost() {
+  const rules = useGameStore((s) => s.seatRules);
+  useEffect(() => {
+    seat.rules = rules;
+  }, [rules]);
+  return null;
+}
+
+/** Heat shimmer by day only: the lakebed is cold at night. */
+function MirageByDaylight() {
+  const night = useTwinStore((s) => s.night);
+  useEffect(() => {
+    mirageState.strength = night ? 0 : 1;
+  }, [night]);
+  return null;
+}
+
 function CombatExposure({ postEnabled }: { postEnabled: boolean }) {
   const gl = useThree((s) => s.gl);
   useEffect(() => {
@@ -566,6 +586,8 @@ function CombatWorld() {
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />
       <AudioHost world={world} />
+      <MirageByDaylight />
+      <SeatRulesHost />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
       {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />

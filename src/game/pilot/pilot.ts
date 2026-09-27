@@ -18,6 +18,7 @@ import {
   type HitRegion,
 } from "../core/types";
 import { GROUND_ZONES } from "@/lib/layout";
+import { mirageOffset } from "../world/mirage";
 import {
   MOVE_INPUT,
   WEAPON_INPUT,
@@ -32,6 +33,7 @@ import {
 import { aimRegionGeometry } from "./hitGeometry";
 import {
   PrecisionMotorController,
+  type MotorBody,
   type MotorSense,
   type MotorTelemetry,
   type MotorWeapon,
@@ -203,6 +205,7 @@ const AUDIT_CONE_DEG = 10;
 const _eye = new THREE.Vector3();
 const _chest = new THREE.Vector3();
 const _navFrom = new THREE.Vector3();
+const _shift = new THREE.Vector3();
 const _navDir = new THREE.Vector3();
 const _to = new THREE.Vector3();
 
@@ -404,6 +407,7 @@ class Pilot {
       spreadDeg: (stance, speed, airborne) =>
         rigState.weapon ? rigState.weapon.spreadDeg(stance, speed, airborne) : 90,
     };
+    const apparent: MotorBody = { stance: "stand", position: new THREE.Vector3() };
     const sense: MotorSense = {
       now: 0,
       eye: new THREE.Vector3(),
@@ -422,7 +426,13 @@ class Pilot {
         if (!actor || !actor.alive || actor.team !== OPPOSING_TEAM[game.player.team]) {
           return null;
         }
-        return actor;
+        // The body the seat sees: displaced by the heat shimmer at range, as
+        // it is drawn for a person. Rounds still meet the real one.
+        apparent.stance = actor.stance;
+        apparent.position
+          .copy(actor.position)
+          .add(mirageOffset(sense.eye, actor.position, actor.id, game.time, _shift));
+        return apparent;
       },
       sightline: (id, point) => {
         const world = game.world;
@@ -700,6 +710,7 @@ class Pilot {
     metrics.navigation = this.brain === "human" ? "none" : this.options.navigation;
     metrics.intervalMs = this.negotiated?.intervalMs ?? null;
     metrics.injectedLatencyMs = this.brain === "human" ? 0 : this.options.latencyMs;
+    metrics.seat = useGameStore.getState().seatRules;
   }
 
   /** Current metrics, from the player's own kill and death counters. */

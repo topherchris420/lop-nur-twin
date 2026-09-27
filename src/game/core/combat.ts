@@ -38,6 +38,21 @@ export const COMBAT = {
   friendlyFire: false,
 } as const;
 
+/**
+ * The rules the player's seat fights under, whoever sits in it.
+ *
+ *  - `mercy` (the default): the seat takes half damage (less still to the
+ *    head), deals 1.2×, and bots aiming at it react later, with a wider cone
+ *    and longer pauses (`PLAYER_MERCY` in `ai/bots.ts`). A difficulty setting
+ *    for a person, and what every benchmark before `?seat=` measured.
+ *  - `even` (`?seat=even`): none of that. The seat is one more combatant under
+ *    the rules the bots fight each other by — the footing on which two brains,
+ *    or a brain and a person, can be compared without the game helping one.
+ */
+export const SEAT_RULES = ["mercy", "even"] as const;
+export type SeatRules = (typeof SEAT_RULES)[number];
+export const seat = { rules: "mercy" as SeatRules };
+
 interface DamageRecord {
   attackerId: EntityId;
   amount: number;
@@ -109,12 +124,15 @@ export function resolveDamage(time: number, out: KillReport[]): void {
       continue;
     }
 
-    const damageScale = attacker?.isPlayer
-      ? COMBAT.playerDamageScale
-      : victim.isPlayer
-        ? COMBAT.playerIncomingDamageScale *
-          (event.region === "head" ? COMBAT.playerIncomingHeadshotScale : 1)
-        : 1;
+    const merciful = seat.rules === "mercy";
+    const damageScale = !merciful
+      ? 1
+      : attacker?.isPlayer
+        ? COMBAT.playerDamageScale
+        : victim.isPlayer
+          ? COMBAT.playerIncomingDamageScale *
+            (event.region === "head" ? COMBAT.playerIncomingHeadshotScale : 1)
+          : 1;
     const appliedDamage = event.amount * damageScale;
     victim.health -= appliedDamage;
     victim.lastDamageTime = time;

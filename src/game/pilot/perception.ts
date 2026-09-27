@@ -36,6 +36,7 @@ import {
 } from "./observation";
 import { rigState } from "./rigState";
 import { findPlaces, type FoundPlace, type Threat } from "./places";
+import { mirageAmplitude, mirageOffset } from "../world/mirage";
 
 /**
  * Builds a brain's observation from the live game, at decision time only.
@@ -73,6 +74,8 @@ const _head = new THREE.Vector3();
 const _chest = new THREE.Vector3();
 const _probe = new THREE.Vector3();
 const _dir = new THREE.Vector3();
+const _shimmer = new THREE.Vector3();
+const _apparent = new THREE.Vector3();
 
 const RAD = 180 / Math.PI;
 const round1 = (value: number): number => Math.round(value * 10) / 10;
@@ -112,6 +115,9 @@ export function sightOf(
   _to.copy(_chest).sub(eye);
   const distance = _to.length();
   if (distance > SIGHT_RANGE_M || distance < 1e-3) return null;
+  // Where the seat sees it: displaced by the heat shimmer at range, exactly as
+  // the body is drawn for a person. Sight lines below test the real body.
+  _to.add(mirageOffset(eye, other.position, other.id, game.time, _shimmer));
   const bearing = bearingTo(aimYaw, _to.x, _to.z);
   const elevation =
     (Math.asin(THREE.MathUtils.clamp(_to.y / distance, -1, 1)) - aimPitch) * RAD;
@@ -215,7 +221,13 @@ export class Perception {
         bearingDeg: round1(bearing),
         elevationDeg: round1(elevation),
         distanceM: round1(distance),
-        onCrosshair: crosshairId === other.id,
+        onCrosshair: onApparentCrosshair(
+          _eye,
+          _aim,
+          other,
+          distance,
+          crosshairId === other.id,
+        ),
         firing:
           now - other.lastFireTime >= 0 && now - other.lastFireTime < FIRING_WINDOW_S,
         headVisible,
@@ -569,6 +581,31 @@ export class Perception {
             : "enemy",
     };
   }
+}
+
+/**
+ * Whether the crosshair is on the body the seat sees. Close in that is the
+ * crosshair ray against the real hitboxes. Where the shimmer displaces the
+ * body, the ray would report the real body — which nobody can see — so the
+ * test is made against the displaced chest and head instead.
+ */
+function onApparentCrosshair(
+  eye: THREE.Vector3,
+  aim: THREE.Vector3,
+  other: Actor,
+  distance: number,
+  rayHit: boolean,
+): boolean {
+  if (mirageAmplitude(distance) < 0.02) return rayHit;
+  mirageOffset(eye, other.position, other.id, game.time, _shimmer);
+  const test = (height: number, radius: number): boolean => {
+    _apparent
+      .set(other.position.x, other.position.y + height, other.position.z)
+      .add(_shimmer)
+      .sub(eye);
+    return _apparent.angleTo(aim) <= Math.atan2(radius, _apparent.length());
+  };
+  return test(chestHeight(other), 0.22) || test(chestHeight(other) + 0.47, 0.11);
 }
 
 function nullable(value: number | null): number | null {

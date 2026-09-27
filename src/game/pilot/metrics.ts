@@ -117,6 +117,8 @@ export interface EpisodeMetrics {
   intervalMs: number | null;
   /** Delay added to a local brain's answers for an experiment; 0 otherwise. */
   injectedLatencyMs: number;
+  /** The rules the seat fought under: `mercy` or `even` (see `core/combat.ts`). */
+  seat: string;
   simSeconds: number;
   wallSeconds: number;
   kills: number;
@@ -260,6 +262,7 @@ export class PilotMetrics {
   navigation = "none";
   intervalMs: number | null = null;
   injectedLatencyMs = 0;
+  seat = "mercy";
   headshots = 0;
   upperChestHits = 0;
   adsSeconds = 0;
@@ -480,6 +483,7 @@ export class PilotMetrics {
       navigation: this.navigation,
       intervalMs: this.intervalMs,
       injectedLatencyMs: this.injectedLatencyMs,
+      seat: this.seat,
       simSeconds: this.simSeconds,
       wallSeconds: Math.max(0, (wallNow - this.startWall) / 1000),
       kills: episodeKills,
@@ -600,6 +604,7 @@ export interface AggregateMetrics {
   navigation: string;
   /** Decision interval and any injected latency, as run. */
   interval: string;
+  seat: string;
   episodes: number;
   simSeconds: number;
   kills: number;
@@ -671,12 +676,14 @@ export function aggregateEpisodes(
     profile: new Set<string>(),
     navigation: new Set<string>(),
     interval: new Set<string>(),
+    seat: new Set<string>(),
   };
   for (const episode of episodes) {
     labels.brain.add(episode.brain);
     labels.control.add(episode.control);
     labels.profile.add(episode.profile);
     labels.navigation.add(episode.navigation);
+    labels.seat.add(episode.seat);
     labels.interval.add(
       `${episode.intervalMs ?? "default"} ms${episode.injectedLatencyMs > 0 ? ` +${episode.injectedLatencyMs} ms latency` : ""}`,
     );
@@ -750,6 +757,7 @@ export function aggregateEpisodes(
     profile: label(labels.profile),
     navigation: label(labels.navigation),
     interval: label(labels.interval),
+    seat: label(labels.seat),
     episodes: episodes.length,
     simSeconds,
     kills,

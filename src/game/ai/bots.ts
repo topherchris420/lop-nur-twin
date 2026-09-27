@@ -24,7 +24,8 @@ import type { CollisionWorld } from "../physics/collisionWorld";
 import type { MatchDirector } from "../modes/match";
 import { WeaponRuntime } from "../weapons/runtime";
 import { getWeapon } from "../weapons/arsenal";
-import { applyNearMissSuppression, respawnActor } from "../core/combat";
+import { applyNearMissSuppression, respawnActor, seat } from "../core/combat";
+import { mirageOffset } from "../world/mirage";
 
 /**
  * Bot brains.
@@ -170,6 +171,36 @@ const PLAYER_MERCY = {
   burstPause: 1.7,
   /** Target-selection bias toward the player over a nearer bot. */
   priority: 35,
+  /** Multiplier on the settled miss radius when the target is the player. */
+  settledMiss: 1.3,
+} as const;
+
+/**
+ * A still target in the open gets found. A bot that is itself steady and has
+ * held a target that has not moved for a while stops aiming with an angular
+ * cone — whose size in metres grows with range, so that at 100 m no bot could
+ * ever hit anyone — and converges to a miss radius in metres at the target
+ * instead. Moving targets keep the angular model, so moving is what protects
+ * you at range, as it should be. The same rule applies whoever the target is;
+ * the player keeps a larger radius (`PLAYER_MERCY.settledMiss`).
+ *
+ * Measured, not assumed: before it, a scripted marksman standing on the apron
+ * took 0 damage in six minutes while every one of its victims could see it.
+ */
+/** Beyond this, a bot with nowhere hidden to bound to holds instead of charging. */
+const HOLD_BEYOND_M = 60;
+
+const SETTLED_AIM = {
+  /** Seconds the target must have been nearly still. */
+  targetStillS: 1.5,
+  /** The target counts as still below this speed, m/s. */
+  stillSpeed: 0.6,
+  /** The shooter must be moving slower than this, m/s. */
+  selfSpeed: 1.2,
+  /** And must have held the target this long. */
+  holdS: 1,
+  /** Converged miss radius at the target, metres: at skill 0 and at skill 1. */
+  missM: [1.3, 0.35] as const,
 } as const;
 
 type BotState =
@@ -230,6 +261,10 @@ interface Bot {
   flankedDetected: boolean;
   /** Game time of the last check that the way ahead is in an enemy's sight. */
   exposureCheckAt: number;
+  /** Seconds the current target has been nearly still. */
+  targetStillS: number;
+  /** Engaging from where it stands: out of range, in the open, nowhere to bound. */
+  holding: boolean;
 }
 
 const CALLOUT_COOLDOWNS: Record<Team, number> = { blue: -99, red: -99 };
@@ -601,6 +636,8 @@ export class BotManager {
         lastCalloutTime: -99,
         flankedDetected: false,
         exposureCheckAt: -99,
+        targetStillS: 0,
+        holding: false,
       });
     }
   }
@@ -612,6 +649,7 @@ export class BotManager {
     for (const bot of this.bots) {
       const actor = bot.actor;
       if (!actor.alive) {
+        if (bot.state !== "dead") this.onBotDown(actor, time);
         bot.state = "dead";
         // Corpses still fall. Skipping the sweep entirely leaves a body shot
         // on a stair or a container hanging in the air until it respawns.
@@ -638,6 +676,19 @@ export class BotManager {
       this.move(bot, dt);
       this.shoot(bot, dt, time);
     }
+  }
+
+  /**
+   * A teammate going down gives away where the round came from: the squad
+   * treats the killer's position as a contact, as it would a shot it heard.
+   * Without it, a shooter at range could drop one bot after another while the
+   * rest kept fighting whatever they were fighting.
+   */
+  private onBotDown(actor: Actor, time: number): void {
+    const killer =
+      actor.lastAttackerId !== null ? game.actorById.get(actor.lastAttackerId) : null;
+    if (!killer || !killer.alive || killer.team === actor.team) return;
+    this.report(actor.team, killer.id, killer.position, time);
   }
 
   /** Let a dead actor fall to the ground; no steering, no input. */
@@ -735,8 +786,11 @@ export class BotManager {
       yawToForward(actor.yaw, _aim);
       _toTarget.y = 0;
       const facing = _toTarget.normalize().dot(_aim);
-      // Anything very close is noticed regardless of where they are looking.
-      if (facing < fov && distance > 6) continue;
+      // Anything very close is noticed regardless of where they are looking —
+      // and so is anyone shooting within sight: a report and a muzzle flash
+      // turn heads. Without this a shooter at range could drop a squad one by
+      // one while every bot facing away kept its back turned.
+      if (facing < fov && distance > 6 && !firing) continue;
 
       eyePosition(other, _targetEye);
       if (!this.world.hasLineOfSight(_eye, _targetEye, MASK_SIGHT, other.id)) continue;
@@ -758,11 +812,13 @@ export class BotManager {
       if (bot.targetId !== bestId) {
         bot.targetId = bestId;
         bot.timeOnTarget = 0;
+        bot.targetStillS = 0;
         // Reaction time: human-like reaction window giving the player tactical initiative
         const baseReaction = THREE.MathUtils.lerp(0.55, 0.22, actor.skill);
         const sprintPenalty = bot.isTacSprinting ? 0.25 : 0;
         const suppressionPenalty = actor.suppression * 0.45;
-        const playerBonus = target.isPlayer ? PLAYER_MERCY.reaction : 0;
+        const playerBonus =
+          target.isPlayer && seat.rules === "mercy" ? PLAYER_MERCY.reaction : 0;
         bot.reaction = baseReaction + sprintPenalty + suppressionPenalty + playerBonus;
         emitSquadCallout(bot, "contact", time);
       }
@@ -963,6 +1019,7 @@ export class BotManager {
           break;
         }
 
+        bot.holding = false;
         if (distance > optimal * 1.6) {
           // Out of range and in the target's sight: bound, do not charge. The
           // search is throttled — it costs a few dozen raycasts.
@@ -984,8 +1041,18 @@ export class BotManager {
               break;
             }
           }
-          bot.goal.copy(target.position);
-          bot.isTacSprinting = distance > 30;
+          if (distance > HOLD_BEYOND_M) {
+            // Far out, in the open, nowhere hidden to go: running at the
+            // target is how bots died by the dozen. Hold still, get low and
+            // shoot back — a steady shooter aims better at a still target
+            // (SETTLED_AIM), so this is a duel, not a gallery.
+            bot.goal.copy(actor.position);
+            bot.isTacSprinting = false;
+            bot.holding = true;
+          } else {
+            bot.goal.copy(target.position);
+            bot.isTacSprinting = distance > 30;
+          }
         } else if (distance < optimal * 0.45) {
           // Back off along the line to the target.
           _desired.copy(actor.position).sub(target.position).setY(0).normalize();
@@ -1132,14 +1199,20 @@ export class BotManager {
     }
 
     // Stance update: crouch when suppressed, peeking-tucked, or holding cover
+    if (bot.state !== "engage") bot.holding = false;
+    // Some bots fight from a crouch when they stop, some standing: a fixed
+    // trait per bot. It used to be re-rolled every frame, which made a
+    // stopped bot's head bob between two heights sixty times a second.
+    const crouchesWhenStopped = bot.flank > 0;
     const wantsCrouch =
       bot.state === "slide" ||
       (bot.state === "cover_peek" && !bot.peeking) ||
       (bot.state === "engage" && actor.suppression > 0.35) ||
       bot.state === "suppress" ||
+      (bot.state === "engage" && bot.holding) ||
       (bot.state === "engage" &&
         actor.position.distanceTo(bot.goal) < 1.5 &&
-        bot.rand() < 0.4);
+        crouchesWhenStopped);
     actor.stance = wantsCrouch ? "crouch" : "stand";
   }
 
@@ -1288,7 +1361,18 @@ export class BotManager {
         actor.id,
       );
       if (blocked) continue;
-      const score = progress - reach * 0.3;
+      // A bound is a sprint through the open: prefer the ones the threat sees
+      // least of. Two points along the way, at chest height.
+      let seen = 0;
+      for (const t of [0.35, 0.7]) {
+        _probe.set(
+          actor.position.x + (x - actor.position.x) * t,
+          actor.position.y + 1.2,
+          actor.position.z + (z - actor.position.z) * t,
+        );
+        if (this.world.hasLineOfSight(_targetEye, _probe, MASK_SIGHT)) seen += 1;
+      }
+      const score = progress - reach * 0.3 - (seen / 2) * reach * 0.6;
       if (score > bestScore) {
         bestScore = score;
         bot.coverPosition.set(x, y, z);
@@ -1468,7 +1552,9 @@ export class BotManager {
     const isSuppressing = bot.state === "suppress";
 
     if (isEngaging && target) {
-      const vsPlayer = target.isPlayer;
+      // Mercy is a seat rule, not a property of the player: under `?seat=even`
+      // the player is aimed at exactly as a bot would be.
+      const vsPlayer = target.isPlayer && seat.rules === "mercy";
       eyePosition(actor, _eye);
       eyePosition(target, _targetEye);
       if (vsPlayer) {
@@ -1478,6 +1564,10 @@ export class BotManager {
           PLAYER_MERCY.aimHeight,
         );
       }
+
+      // Aim at the body as this bot sees it: displaced by the heat shimmer
+      // at range, by the same rule that displaces it for every other seat.
+      _targetEye.add(mirageOffset(_eye, target.position, target.id, time, _lead));
 
       // Lead the target by its own velocity over the round's flight time.
       const distance = _eye.distanceTo(_targetEye);
@@ -1499,10 +1589,23 @@ export class BotManager {
       bot.aimNoisePhase += dt * (3.1 + actor.suppression * 4.2);
       // An angular cone shrinks to nothing in metres up close, which is where
       // bots end up against a player who stays put.
-      const errorRad = Math.max(
+      let errorRad = Math.max(
         (errorDeg * Math.PI) / 180,
         vsPlayer ? PLAYER_MERCY.minMissM / Math.max(1, distance) : 0,
       );
+      bot.targetStillS =
+        target.speed < SETTLED_AIM.stillSpeed ? bot.targetStillS + dt : 0;
+      if (
+        bot.targetStillS > SETTLED_AIM.targetStillS &&
+        actor.speed < SETTLED_AIM.selfSpeed &&
+        bot.timeOnTarget > SETTLED_AIM.holdS
+      ) {
+        const missM =
+          THREE.MathUtils.lerp(SETTLED_AIM.missM[0], SETTLED_AIM.missM[1], actor.skill) *
+          (vsPlayer ? PLAYER_MERCY.settledMiss : 1) *
+          (1 + actor.suppression * 1.5);
+        errorRad = Math.min(errorRad, missM / Math.max(1, distance));
+      }
       _right.crossVectors(_aim, UP).normalize();
       _aim
         .addScaledVector(_right, Math.sin(bot.aimNoisePhase * 1.7) * errorRad)
@@ -1591,7 +1694,7 @@ export class BotManager {
         bot.burstPause =
           THREE.MathUtils.lerp(0.72, 0.2, actor.skill) *
           (0.7 + bot.rand() * 0.6) *
-          (target?.isPlayer ? PLAYER_MERCY.burstPause : 1);
+          (target?.isPlayer && seat.rules === "mercy" ? PLAYER_MERCY.burstPause : 1);
       }
       this.onFire?.(actor);
     }

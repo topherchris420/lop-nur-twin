@@ -56,6 +56,11 @@ const pct = (value) =>
  * the arm did not measure prints "n/a", never zero.
  */
 const ROWS = [
+  [
+    "Interface",
+    (a) =>
+      `${a.control} · ${a.navigation ?? "?"} · ${a.interval ?? "?"} · seat ${a.seat ?? "mercy"}`,
+  ],
   ["Kills / deaths", (a) => `${a.kills} / ${a.deaths}`],
   ["Kills per minute", (a, m) => fmt(m > 0 ? a.kills / m : null)],
   ["Deaths per minute", (a, m) => fmt(m > 0 ? a.deaths / m : null)],

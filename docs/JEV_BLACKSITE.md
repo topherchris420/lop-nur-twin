@@ -40,6 +40,11 @@ see [The analytical boundary](#the-analytical-boundary).
 - [The observation](#the-observation)
 - [The precision motor controller](#the-precision-motor-controller)
 - [Elite Operator](#elite-operator)
+- [Places: the feet's precision control](#places-the-feets-precision-control)
+- [One set of senses](#one-set-of-senses)
+- [The debrief](#the-debrief)
+- [Capability negotiation](#capability-negotiation)
+- [Scripted reference policies](#scripted-reference-policies)
 - [Decision cadence and timing](#decision-cadence-and-timing)
 - [The server boundary](#the-server-boundary)
 - [Configuration, local development and deployment](#configuration-local-development-and-deployment)
@@ -379,6 +384,144 @@ front, tests the sight line every frame, never pulls toward an enemy the mouse
 is moving away from, and steps aside for 0.25 s on any look faster than 220 °/s.
 An ELITE OPERATOR chip shows while it is on, and episode statistics are
 labelled `profile: elite`.
+
+## Places: the feet's precision control
+
+`src/game/pilot/places.ts`, `navigator.ts`; `?jevNav=places` (the default) or
+`?jevNav=steps` for the original interface. Contract and observation v3.
+
+The first benchmark's most striking behaviour was not the accuracy. It was
+that Jev almost never moved: 0 m in 360 s under precision control. The move
+axis offered walking directions relative to the view — FORWARD, STRAFE_LEFT —
+and nothing that said where cover was, how far, or what the walk there would
+cost. A brain choosing four times a second between "forward" and "left" with
+no notion of the ground has no movement decision to make, so it made none.
+
+Places give movement the same split precision control gave aim. Each
+observation may list up to four places, found from the collision world and
+from the threats the observation already reports — the enemies in view,
+remembered sightings, gunfire heard, the direction of the last hit taken 60 m
+out — and from nothing else:
+
+| Kind        | What it is                                                                                |
+| :---------- | :---------------------------------------------------------------------------------------- |
+| `cover`     | the nearest reachable point no known threat can see a crouched body at                    |
+| `advance`   | such a point at least 4 m nearer the nearest known threat                                 |
+| `flank`     | such a point at least 35° round that threat from where the player stands, and not further |
+| `withdraw`  | such a point at least 5 m further from it                                                 |
+| `objective` | the objective zone's centre, in modes that have one, whatever can see it                  |
+
+Each comes with facts, not coordinates: bearing from the crosshair, distance,
+whether it is hidden from every known threat, how many metres of the straight
+walk there stand in some known threat's sight, and how far the nearest known
+threat would be. The server states them in words, including the time at a run.
+"Hidden" is literal: hidden from the threats the observation mentions, which
+may not be all the threats there are.
+
+The `go` axis offers `NONE`, `CONTINUE` (only while travelling) and one
+`PLACE_n` per listed place. A slot binds the world point the browser kept for
+that observation — the observation itself never carries it. The navigator then
+writes `moveX`, `moveY` and `sprint`, relative to the body's current facing, so
+it can strafe toward cover while the crosshair stays on an enemy; it runs only
+toward a place mostly ahead and never while the weapon choice fires. It never
+turns the view, jumps, changes stance or fires; the move axis's jump and stance
+choices still apply. It lets go on arrival (1.1 m), after 1.5 s without
+progress, after 1.5 s without a CONTINUE or a new place, and on NONE, death,
+takeover or pause. It never chooses a destination.
+
+The finder offers only places reachable by a straight walk — nothing at waist
+height in the way — because the navigator walks straight lines with feelers,
+not paths. The navigation grid in `ai/navmesh.ts` is built for more and is not
+used yet. The candidate search is deterministic: fixed rings of 5, 9, 14, 20
+and 27 m, sixteen spokes each, the nearest three known threats tested, route
+exposure measured only for the places that are listed.
+
+## One set of senses
+
+A comparison between a person and a model means something only if they are
+told the same things. Before this version the human's HUD drew brackets with
+names and ranges on every enemy that had a sight line to the player, at any
+range and whichever way the player faced, kept them at live positions after
+sight was lost, and offered a UAV orbit camera, thermal and night-vision modes
+and target lock — none of it available to a brain, none of it documented or
+tested. It is gone. What remains follows one rule each way:
+
+| Channel            | Human HUD                            | Brain's observation                                          |
+| :----------------- | :----------------------------------- | :----------------------------------------------------------- |
+| Enemies            | what is on screen                    | `sightOf`: field of view, 165 m, clear line to head or chest |
+| Gunfire            | radar and compass pings within 115 m | contacts within 115 m                                        |
+| Hits               | the damage direction indicator       | `damage`: bearing and age                                    |
+| Teammates          | radar chevrons within 145 m          | `allies`: bearing and distance, 145 m                        |
+| Remembered enemies | the player's memory                  | last-seen positions, 6 s                                     |
+
+The asymmetries that remain are stated rather than hidden: a person hears
+footsteps and sees pixels; a brain gets exact bearings and the places list.
+
+## The debrief
+
+`src/game/pilot/debrief.ts`, on the results screen and in every benchmark
+report. For every seat — the human's included, by the same rule — it samples
+a few times a second, for each living enemy, whether it was **in view**
+(perception's own `sightOf`) and whether it had a **sight line to the seat**
+(whichever way either faced). Each death is then classed once:
+
+- **never seen** — the killer was not in view at any point that life;
+- **seen, not engaged** — it was in view, and no round was fired at it;
+- **engaged, exchange lost** — the seat fired at it and died anyway;
+- **no attacker**.
+
+It also reports the share of each life spent in some enemy's sight line, the
+longest unbroken stretch, deaths with no cover within 10 m ("open ground") and
+the nearest named zone, and the time from first sight to each kill. A
+kill/death ratio says who won; the debrief says whether a loss was a failure
+to see, a failure to act on what was seen, or a fight lost fairly — which for
+a person and for a model are different failures with different fixes.
+
+It reads the authoritative simulation — that is what "what happened" means —
+and is never fed back into an observation.
+
+## Capability negotiation
+
+`src/game/pilot/capabilities.ts`. A brain declares what it can use —
+engagement modes, navigation modes, the fastest cadence it can sustain, local
+or remote inference, memory, vision — and the host declares what it accepts:
+precision and direct control, places and steps, decisions every 100 ms. The
+seat runs the best interface both support, notes anything not granted as
+asked, and records it in the trace header (`interface`) and in every
+statistic (`navigation`, `intervalMs`, `injectedLatencyMs`).
+`GET /api/jev/decision` reports the Jev adapter's declaration.
+
+Nothing in the simulation depends on the outcome. What changes is which axes
+are asked, how often, and which local controllers execute.
+
+The host accepts more than today's remote model can use at speed. For local
+brains two parameters turn that headroom into an experiment: `?cadence=<ms>`
+sets the decision interval (50–2000) and `?latency=<ms>` holds each answer
+back (0–1500) before the loop sees it. The same policy can then be measured
+at today's round trip, at half of it and at twice it — what a faster or slower
+model would gain here, measured before that model exists. Neither parameter
+applies to Jev, whose latency is real.
+
+## Scripted reference policies
+
+`src/game/pilot/policies.ts`, `?brain=script&policy=marksman|skirmisher`,
+labelled SCRIPTED. A few dozen lines each; they read the observation a model
+reads, choose only legal options, and go through the same executor, motor
+controller and navigator. They claim no probabilities.
+
+- **marksman** holds still, aims down the sights and engages the enemy nearest
+  the crosshair — the head beyond 40 m, otherwise the upper chest; with nothing
+  in view it turns toward the freshest thing heard, else sweeps a quarter turn
+  at a time. It is the strategy the first benchmark found Jev playing, written
+  down.
+- **skirmisher** engages the same way but keeps moving: under places
+  navigation it takes cover when hurt or hit, closes on distant enemies
+  through places hidden from them, and otherwise goes where the fighting was
+  heard or to the objective; under steps navigation it strafes and walks.
+
+They are measuring instruments. When a model's result looks like a strategy,
+write the strategy down and run it on the same seeds; if the script matches
+the model, the finding is about the game.
 
 ## Decision cadence and timing
 
