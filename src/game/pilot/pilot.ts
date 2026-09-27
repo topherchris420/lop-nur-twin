@@ -310,6 +310,8 @@ class Pilot {
    * every observation after it.
    */
   private readonly lifetime = { shots: 0, hits: 0, damageTaken: 0 };
+  /** The event time of the last damaging round, to count each round once. */
+  private lastHitEventTime: number | null = null;
   private timer: number | null = null;
   private lastX = 0;
   private lastZ = 0;
@@ -1354,10 +1356,16 @@ class Pilot {
     region: HitRegion | null = null,
     victimId: EntityId | null = null,
     killed = false,
+    eventTime: number | null = null,
   ): void {
     if (attackerIsPlayer && !victimIsPlayer) {
-      this.lifetime.hits += 1;
-      this.metrics.onHit(amount, region);
+      // One round can strike two hitboxes (it passes through an arm into the
+      // chest); it is still one round that hit. Damage and regions count every
+      // strike, the hit count counts the round once.
+      const newRound = eventTime === null || eventTime !== this.lastHitEventTime;
+      this.lastHitEventTime = eventTime;
+      if (newRound) this.lifetime.hits += 1;
+      this.metrics.onHit(amount, region, newRound);
       if (killed && victimId !== null) {
         const victim = game.actorById.get(victimId);
         this.debrief.onKill(

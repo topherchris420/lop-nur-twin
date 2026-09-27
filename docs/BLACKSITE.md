@@ -40,6 +40,37 @@ genuinely as exposed as it looks from 400 m up.
 | **Hands that hold it**  | The first-person gloves are sculpted, not assembled: each is one signed distance field — palm, metacarpals, finger segments, knuckle armour, cuff — meshed once with surface nets. Every finger joint closes until it meets the weapon's own contact shape, so the grip follows the gun; the weapon is carved out of the palm and darkens the glove where they touch. Rifles are held from under the handguard, pistols a two-handed grip whose support fingers close over the firing hand.                                                                                                                                                                                                                                                                                                |
 | **Synthesised audio**   | Every sound is generated at runtime — no samples. Weapon reports, impacts by surface, ricochets, rounds cracking past your ear, footsteps that read the material underfoot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
+## Distance, exposure, heat
+
+The compound is a few large buildings standing on a dry lakebed. The ground
+between them is where Blacksite is decided, and three rules make it a
+different problem from the fighting around the structures:
+
+- **Heat shimmer.** By day the lakebed and the concrete on it bend the air
+  above them. Beyond 45 m a figure is _seen_ displaced from where it stands by
+  a slow, small drift across the line of sight — about 0.2 m at 100 m, half a
+  metre at 150 m — while its body, and every round, stay where they are. The
+  person in the seat sees the drift; a brain is told the drifted bearings; the
+  aiming controllers and the bots aim at the drifted body. Centre mass at
+  120 m is still a fair shot. A head is not a certainty for anyone. At night
+  there is no shimmer. (`world/mirage.ts`)
+- **Exposure cuts both ways.** A bot that is steady and has held a still
+  target stops aiming with an angular cone and converges to a miss radius in
+  metres, so standing still in the open is no longer safe at any range; moving
+  is. Out of its weapon's range it does not charge across the apron: it bounds
+  between points the enemy cannot see, choosing routes the enemy sees least of,
+  or holds, crouches and returns fire. A shot that drops a teammate gives the
+  shooter's position away, and anyone firing within sight turns heads.
+- **The seat's rules are a setting.** By default the seat — whoever is in it —
+  takes half damage, deals 1.2× and is aimed at more slowly and loosely: a
+  difficulty setting for a person. `?seat=even` removes all of it, so the seat
+  fights under the rules the bots fight each other by, which is the footing on
+  which two brains, or a brain and a person, can be compared.
+
+These rules exist because a measurement said the ground did not matter. The
+story, and the numbers, are in
+[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md#the-marksman-exploit).
+
 **Controls**
 
 | Input               | Action                                                                    |

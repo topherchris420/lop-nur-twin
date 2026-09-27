@@ -187,11 +187,11 @@ function BootScreen({ onComplete }: { onComplete: () => void }) {
         <h1 className="text-8xl font-black uppercase tracking-[0.05em] text-white">
           Blacksite
         </h1>
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-500">
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-400">
           Lop Nur · First-Person Engagement Simulator
         </p>
       </div>
-      <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-400 animate-pulse">
+      <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-300">
         Press any key to continue
       </p>
     </div>
@@ -780,7 +780,7 @@ function ResultsScreen() {
 
         <Debrief />
 
-        <div className="mx-auto mt-10 flex max-w-sm gap-3">
+        <div className="mx-auto mt-10 flex max-w-lg gap-3">
           <TacticalButton
             primary
             onClick={() => {
@@ -804,7 +804,7 @@ function ResultsScreen() {
           </TacticalButton>
           <TacticalButton onClick={() => setScreen("menu")}>Menu</TacticalButton>
         </div>
-        <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-slate-500">
+        <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-slate-400">
           SEED {matchSeed} · /play?seed={matchSeed}&amp;brain=jev hands this match to Jev
         </p>
       </div>

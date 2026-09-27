@@ -79,6 +79,12 @@ export interface AppliedDamage {
   killed: boolean;
   /** The hitbox the round landed in, as the weapon runtime reported it. */
   region: HitRegion | null;
+  /**
+   * The damage event's own time. A round that passes through one hitbox into
+   * another — an arm, then the chest — reports twice with the same time, so a
+   * counter of rounds that hit keys on this, not on the report.
+   */
+  eventTime: number;
 }
 
 /**
@@ -188,6 +194,7 @@ export function resolveDamage(time: number, out: KillReport[]): void {
         amount: appliedDamage,
         killed: victim.health <= 0,
         region: event.region,
+        eventTime: event.time,
       };
       for (const observe of damageObservers) observe(report);
     }

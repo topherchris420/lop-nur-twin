@@ -130,7 +130,7 @@ try {
     // Count the blue bots' damage through the same read-only tap the pilot uses.
     await page.evaluate(() => {
       const { game } = globalThis.__combat;
-      const bots = { dealt: 0, taken: 0, hits: 0, shots: 0 };
+      const bots = { dealt: 0, taken: 0, hits: 0, shots: 0, lastRound: "" };
       globalThis.__benchBots = bots;
       const team = game.player.team;
       // A bot fires at most one round a frame and stamps lastFireTime when it
@@ -154,7 +154,10 @@ try {
         ) {
           if (report.victim.team !== team) {
             bots.dealt += report.amount;
-            bots.hits += 1;
+            // One round can strike two hitboxes; count it once.
+            const key = `${report.attacker.id}:${report.eventTime}`;
+            if (key !== bots.lastRound) bots.hits += 1;
+            bots.lastRound = key;
           }
         }
         if (!report.victim.isPlayer && report.victim.team === team)

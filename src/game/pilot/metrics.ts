@@ -361,8 +361,13 @@ export class PilotMetrics {
     this.shotsFired += 1;
   }
 
-  onHit(amount: number, region: HitRegion | null = null): void {
-    this.hits += 1;
+  /**
+   * A strike on a body. `newRound` is false for the second hitbox a single
+   * round passes into: damage and the region count, the hit does not, so
+   * accuracy is rounds that struck a body over rounds fired.
+   */
+  onHit(amount: number, region: HitRegion | null = null, newRound = true): void {
+    if (newRound) this.hits += 1;
     this.damageDealt += amount;
     if (region === "head") this.headshots += 1;
     else if (region === "chest" || region === "neck") this.upperChestHits += 1;

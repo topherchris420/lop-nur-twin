@@ -450,10 +450,13 @@ async function offline() {
   /* ------------------------------------------------ precision control */
   console.log("\nprecision control against a fake endpoint (no TypeSafe call)");
   {
-    // The fake always engages the first listed enemy, aimed, on the upper chest.
+    // The fake always engages the first listed enemy, aimed, on the upper chest,
+    // and sweeps the view while nobody is listed: the bots no longer walk into
+    // a view that never turns (they stay out of sight lines across open ground).
     const engage = (obs) => ({
       body: fakeDecision(obs, {
         move: "HOLD",
+        turn: obs.perception.visibleEnemies.length > 0 ? "NO_TURN" : "TURN_RIGHT_MEDIUM",
         weapon: obs.legal.weapon.includes("ADS_FIRE") ? "ADS_FIRE" : "RELOAD",
         target: "TARGET_0",
         aim: "UPPER_CHEST",
@@ -560,9 +563,12 @@ async function offline() {
     );
     check(
       "the fire gate reports what it suppressed",
-      ep.motor.triggerOpportunities >= ep.motor.gateSuppressed &&
+      ep.motor !== null &&
+        ep.motor.triggerOpportunities >= ep.motor.gateSuppressed &&
         ep.motor.gateSuppressedFraction !== null,
-      `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}`,
+      ep.motor
+        ? `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}`
+        : "never bound",
     );
     const trace = await page.evaluate(() => globalThis.__jev.exportTrace());
     const header = JSON.parse(trace.split("\n")[0]);
@@ -656,6 +662,8 @@ async function offline() {
       return {
         body: fakeDecision(obs, {
           move: "HOLD",
+          turn:
+            obs.perception.visibleEnemies.length > 0 ? "NO_TURN" : "TURN_RIGHT_MEDIUM",
           weapon: obs.legal.weapon.includes("ADS_FIRE") ? "ADS_FIRE" : "NO_FIRE",
           target: "TARGET_0",
           aim: "UPPER_CHEST",

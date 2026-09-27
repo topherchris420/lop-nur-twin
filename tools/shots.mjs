@@ -292,7 +292,58 @@ async function captureBlacksite() {
   await page.close();
 }
 
+/* ------------------------------------------------------------------ */
+/* The debrief                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The results screen after a real match played by a scripted policy: a
+ * minute and a quarter of simulation with drawing switched off (the match is
+ * the same, it just is not painted — see tools/jev-harness.mjs), then drawing
+ * back on, the clock run out, and the debrief photographed as it stands.
+ */
+async function captureDebrief() {
+  console.log("debrief:");
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1600, height: 900 });
+  await page.goto(
+    `${origin}/play?autoplay=1&quality=${Math.min(2, Number(quality))}&brain=script&policy=skirmisher&seed=42&jevNav=places`,
+    { waitUntil: "domcontentloaded", timeout: 90000 },
+  );
+  await page.waitForFunction(() => globalThis.__combat?.r3f?.gl != null, {
+    timeout: 90000,
+  });
+  await page.evaluate(() => {
+    const gl = globalThis.__combat.r3f.gl;
+    globalThis.__drawFrame = gl.render.bind(gl);
+    gl.render = (scene) => scene.updateMatrixWorld();
+  });
+  await page.waitForFunction(
+    () => globalThis.__combat.game.matchDirector?.phase === "live",
+    { timeout: 90000 },
+  );
+  const start = await page.evaluate(() => globalThis.__combat.game.time);
+  for (;;) {
+    await sleep(1000);
+    const now = await page.evaluate(() => globalThis.__combat.game.time);
+    if (now - start >= 75) break;
+  }
+  await page.evaluate(() => {
+    const { game, r3f } = globalThis.__combat;
+    r3f.gl.render = globalThis.__drawFrame;
+    game.matchDirector.timeRemaining = 0.05;
+  });
+  await page.waitForFunction(
+    () => globalThis.__combat.store.getState().screen === "results",
+    { timeout: 60000 },
+  );
+  await sleep(6000);
+  await shoot(page, "docs/screenshots/debrief.png");
+  await page.close();
+}
+
 if (!only || only === "twin") await captureTwin();
 if (!only || only === "blacksite") await captureBlacksite();
+if (!only || only === "debrief") await captureDebrief();
 
 await browser.close();

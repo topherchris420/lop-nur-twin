@@ -181,6 +181,7 @@ interface GameStoreState {
   brainLatencyMs: number;
   /** `?seat=mercy|even`: the rules the player's seat fights under. See `core/combat.ts`. */
   seatRules: SeatRules;
+  setSeatRules: (rules: SeatRules) => void;
   /** `?policy=`: which scripted reference policy the `script` brain runs. */
   brainPolicy: ScriptPolicy;
   setBrainPolicy: (policy: ScriptPolicy) => void;
@@ -329,6 +330,7 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   brainPolicy: readEnumParam<ScriptPolicy>("policy", SCRIPT_POLICIES) ?? "marksman",
   brainCadenceMs: readIntParam("cadence", 50, 2000),
   seatRules: readEnumParam<SeatRules>("seat", SEAT_RULES) ?? "mercy",
+  setSeatRules: (seatRules) => set({ seatRules }),
   brainLatencyMs: readIntParam("latency", 0, 1500) ?? 0,
   setBrainPolicy: (brainPolicy) => set({ brainPolicy }),
   replayTrace: null,

@@ -64,6 +64,7 @@ export function PilotHost() {
         report.region,
         report.victim.id,
         report.killed,
+        report.eventTime,
       );
     damageObservers.push(observe);
     return () => {
