@@ -152,7 +152,7 @@ bun run test:jev                    # unit: contract, schema, executor, motor
                                     # controller, fire gate, engagement axes,
                                     # authority, loop, providers, recorder,
                                     # metrics, endpoint, credential boundary
-bun run jev                         # 72 browser checks against the dev server,
+bun run jev                         # browser checks against the dev server,
                                     # Jev path against a fake endpoint — no API calls
 JEV_LIVE_TEST=1 bun run jev:live    # the real TypeSafe API, through the dev server
 bun run benchmark:random            # repeatable episodes, seeded random brain, direct
@@ -160,7 +160,25 @@ bun run benchmark:random:precision  # …the same brain through the precision co
 JEV_LIVE_TEST=1 bun run benchmark:jev            # Jev, direct control (the original)
 JEV_LIVE_TEST=1 bun run benchmark:jev:precision  # Jev, precision control
 bun run replay:jev -- trace.jsonl   # replay a recorded control stream
+node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
+node tools/experiment.mjs tools/experiments/exposure.json   # matched arms, one table
+node tools/kill-anatomy.mjs --policy marksman               # what each victim was doing
 ```
+
+### Experiments
+
+`tools/experiment.mjs` runs several seat configurations — brain, policy,
+control, navigation, cadence, injected latency — on the same seeds through
+`jev-benchmark.mjs` and prints one table, and `--compare` diffs two runs of
+the same experiment. An experiment file in `tools/experiments/` states its
+hypothesis and its deciding metric before it runs. `--origin` points every
+arm at another build (a worktree of an older commit on another port), which is
+how "this change against the last one" is measured. Arms run one at a time:
+each episode records how far simulated time fell behind real time, and a
+lagged episode is flagged in the report rather than silently compared.
+
+Same-seed episodes are not replicas — frame pacing is not deterministic, so
+the bots diverge within seconds — which is why every table prints each seed.
 
 `bun run jev` proves the pilot seat without spending anything: the random brain
 moves, turns and fires through the real rig; seed 42 reproduces its frames;

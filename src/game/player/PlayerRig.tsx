@@ -27,6 +27,7 @@ import { getPostExposure } from "../render/screenEffects";
 import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
 import { pilot } from "../pilot/pilot";
 import { rigState } from "../pilot/rigState";
+import { mirageOffset } from "../world/mirage";
 import { EliteOperatorAssist, type AssistEnemy, type AssistSense } from "./eliteAssist";
 import { MASK_SIGHT, OPPOSING_TEAM } from "../core/types";
 
@@ -71,6 +72,7 @@ const _probeEnd = new THREE.Vector3();
 const _sunDir = new THREE.Vector3();
 const _sunColor = new THREE.Color();
 const _invQuat = new THREE.Quaternion();
+const _shimmer = new THREE.Vector3();
 
 /** Procedural collimated tactical laser beam and glowing endpoint dot. */
 function createTacticalLaser(): {
@@ -233,7 +235,8 @@ export function PlayerRig({
           ? holder.world.hasLineOfSight(sense.eye, point, MASK_SIGHT, id)
           : false,
     };
-    return { assist: new EliteOperatorAssist(), sense, enemies, holder };
+    const apparent = new Map<number, AssistEnemy>();
+    return { assist: new EliteOperatorAssist(), sense, enemies, holder, apparent };
   }, []);
   const animator = useMemo(() => new ViewmodelAnimator(), []);
   const stage = useMemo(() => new ViewmodelStage(), []);
@@ -417,7 +420,17 @@ export function PlayerRig({
         const enemyTeam = OPPOSING_TEAM[player.team];
         for (const other of game.actors) {
           if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
-          elite.enemies.push(other);
+          // The body as the player sees it through the heat shimmer.
+          let seen = elite.apparent.get(other.id);
+          if (!seen) {
+            seen = { id: other.id, position: new THREE.Vector3(), stance: other.stance };
+            elite.apparent.set(other.id, seen);
+          }
+          seen.stance = other.stance;
+          seen.position
+            .copy(other.position)
+            .add(mirageOffset(sense.eye, other.position, other.id, game.time, _shimmer));
+          elite.enemies.push(seen);
         }
         elite.holder.world = world;
         elite.assist.apply(s, sense);

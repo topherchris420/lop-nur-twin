@@ -375,6 +375,11 @@ export interface GameState {
     spreadDeg: number;
     /** Milliseconds remaining on the hitmarker. */
     hitmarker: number;
+    /**
+     * The player's last kill, for the quiet confirmation under the crosshair:
+     * who, and how far. On this site the distance is the story.
+     */
+    lastKill: { name: string; rangeM: number; headshot: boolean; time: number } | null;
     hitmarkerKill: boolean;
     /** Elite Operator is reshaping the human's aim this match. */
     eliteOperator: boolean;
@@ -449,6 +454,7 @@ function createHud(): GameState["hud"] {
     reloadProgress: 0,
     spreadDeg: 1,
     hitmarker: 0,
+    lastKill: null,
     hitmarkerKill: false,
     eliteOperator: false,
     damageDirs: [],
@@ -564,6 +570,29 @@ export function resetGameState(): void {
   p.streak = 0;
   p.velocity.set(0, 0, 0);
   p.stance = "stand";
+}
+
+/**
+ * Start the player's match over: score, health, stance, motion. The actor
+ * lists and the HUD belong to the scene and are left alone. Called when a
+ * match is built, so a rematch — on a new seed or the same one — starts from
+ * nothing, as the first match did.
+ */
+export function resetPlayerForMatch(): void {
+  const p = game.player;
+  p.health = p.maxHealth;
+  p.alive = true;
+  p.respawnTimer = 0;
+  p.kills = 0;
+  p.deaths = 0;
+  p.assists = 0;
+  p.score = 0;
+  p.streak = 0;
+  p.velocity.set(0, 0, 0);
+  p.stance = "stand";
+  p.lastAttackerId = null;
+  game.hud.lastKill = null;
+  game.hud.damageDirs.length = 0;
 }
 
 /** Exported so `Queue` stays available if a system wants a pooled channel. */

@@ -1,0 +1,12 @@
+{
+  "name": "jev-live",
+  "hypothesis": "Given places, the live model will make movement decisions it did not make with stepped movement (0 m moved in the first benchmark), and a model that moves between hidden places spends less of its life in enemy sight lines. Whether that costs or gains kills is open.",
+  "metric": "Distance moved and time in an enemy's sight line; kills, deaths and damage taken as context. Spends TypeSafe credit: run with JEV_LIVE_TEST=1.",
+  "seeds": [42, 43, 44],
+  "seconds": 120,
+  "mode": "tdm",
+  "arms": [
+    { "id": "jev-places", "brain": "jev", "control": "precision", "query": "jevNav=places" },
+    { "id": "jev-steps", "brain": "jev", "control": "precision", "query": "jevNav=steps" }
+  ]
+}

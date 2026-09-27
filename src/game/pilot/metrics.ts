@@ -1,5 +1,6 @@
 import { AXES, AXIS_ACTIONS, type Axis, type ControlFrame } from "./contract";
 import type { HitRegion } from "../core/types";
+import { mergeDebriefs, type DebriefSummary } from "./debrief";
 
 /**
  * Per-episode statistics for whoever is controlling the player.
@@ -94,11 +95,30 @@ export interface MotorMetrics {
   executionLatencyMs: Distribution;
 }
 
+/** Places navigation: what the navigator was asked to do and how it ended. */
+export interface PlaceMetrics {
+  /** PLACE_n choices that bound a place. */
+  chosen: number;
+  byKind: Record<string, number>;
+  /** Why each travel ended: arrived, blocked, timeout, cleared, replaced. */
+  releases: Record<string, number>;
+  /** Seconds each ended travel lasted. */
+  travelS: Distribution;
+}
+
 export interface EpisodeMetrics {
   /** Who was in the seat and how their aim reached the view. */
   brain: string;
   control: string;
   profile: string;
+  /** Places or steps navigation; "none" for the human. */
+  navigation: string;
+  /** The negotiated decision interval; null for the human. */
+  intervalMs: number | null;
+  /** Delay added to a local brain's answers for an experiment; 0 otherwise. */
+  injectedLatencyMs: number;
+  /** The rules the seat fought under: `mercy` or `even` (see `core/combat.ts`). */
+  seat: string;
   simSeconds: number;
   wallSeconds: number;
   kills: number;
@@ -125,6 +145,10 @@ export interface EpisodeMetrics {
   /** Sim seconds during which a fallback brain, not the primary, was in control. */
   fallbackSeconds: number;
   /** Raw samples, for pooling percentiles across episodes. Stripped from reports. */
+  /** What the seat perceived against what happened; see debrief.ts. */
+  debrief?: DebriefSummary;
+  /** Null unless the navigator was asked to go somewhere. */
+  places: PlaceMetrics | null;
   raw?: RawSamples;
 }
 
@@ -137,6 +161,7 @@ export interface RawSamples {
   firstHit: number[];
   recoil: number[];
   execution: number[];
+  travel: number[];
 }
 
 export function distribution(samples: readonly number[]): Distribution {
@@ -161,6 +186,7 @@ function emptyRaw(): RawSamples {
     firstHit: [],
     recoil: [],
     execution: [],
+    travel: [],
   };
 }
 
@@ -233,6 +259,10 @@ export class PilotMetrics {
   brain = "human";
   control = "direct";
   profile = "standard";
+  navigation = "none";
+  intervalMs: number | null = null;
+  injectedLatencyMs = 0;
+  seat = "mercy";
   headshots = 0;
   upperChestHits = 0;
   adsSeconds = 0;
@@ -246,6 +276,9 @@ export class PilotMetrics {
   releases: Record<string, number> = {};
   triggerOpportunities = 0;
   gateSuppressed = 0;
+  placesChosen = 0;
+  placesByKind: Record<string, number> = {};
+  placeReleases: Record<string, number> = {};
   private raw = emptyRaw();
   private histogram = emptyHistogram();
   private latencies: number[] = [];
@@ -300,6 +333,9 @@ export class PilotMetrics {
     this.releases = {};
     this.triggerOpportunities = 0;
     this.gateSuppressed = 0;
+    this.placesChosen = 0;
+    this.placesByKind = {};
+    this.placeReleases = {};
     this.raw = emptyRaw();
     this.startWall = wallNow;
     this.baseKills = kills;
@@ -325,8 +361,13 @@ export class PilotMetrics {
     this.shotsFired += 1;
   }
 
-  onHit(amount: number, region: HitRegion | null = null): void {
-    this.hits += 1;
+  /**
+   * A strike on a body. `newRound` is false for the second hitbox a single
+   * round passes into: damage and the region count, the hit does not, so
+   * accuracy is rounds that struck a body over rounds fired.
+   */
+  onHit(amount: number, region: HitRegion | null = null, newRound = true): void {
+    if (newRound) this.hits += 1;
     this.damageDealt += amount;
     if (region === "head") this.headshots += 1;
     else if (region === "chest" || region === "neck") this.upperChestHits += 1;
@@ -382,6 +423,16 @@ export class PilotMetrics {
     push(this.raw.recoil, degrees);
   }
 
+  onPlaceChosen(kind: string): void {
+    this.placesChosen += 1;
+    this.placesByKind[kind] = (this.placesByKind[kind] ?? 0) + 1;
+  }
+
+  onPlaceReleased(reason: string, seconds: number): void {
+    this.placeReleases[reason] = (this.placeReleases[reason] ?? 0) + 1;
+    push(this.raw.travel, seconds);
+  }
+
   onExecutionLatency(ms: number): void {
     push(this.raw.execution, ms);
   }
@@ -434,6 +485,10 @@ export class PilotMetrics {
       brain: this.brain,
       control: this.control,
       profile: this.profile,
+      navigation: this.navigation,
+      intervalMs: this.intervalMs,
+      injectedLatencyMs: this.injectedLatencyMs,
+      seat: this.seat,
       simSeconds: this.simSeconds,
       wallSeconds: Math.max(0, (wallNow - this.startWall) / 1000),
       kills: episodeKills,
@@ -483,6 +538,15 @@ export class PilotMetrics {
           )
         : null,
       fallbackSeconds: this.fallbackSeconds,
+      places:
+        this.placesChosen > 0
+          ? {
+              chosen: this.placesChosen,
+              byKind: { ...this.placesByKind },
+              releases: { ...this.placeReleases },
+              travelS: distribution(this.raw.travel),
+            }
+          : null,
       raw: JSON.parse(JSON.stringify(this.raw)) as RawSamples,
     };
   }
@@ -542,6 +606,10 @@ export interface AggregateMetrics {
   brain: string;
   control: string;
   profile: string;
+  navigation: string;
+  /** Decision interval and any injected latency, as run. */
+  interval: string;
+  seat: string;
   episodes: number;
   simSeconds: number;
   kills: number;
@@ -563,6 +631,9 @@ export interface AggregateMetrics {
   shooting: ShootingMetrics;
   motor: MotorMetrics | null;
   fallbackSeconds: number;
+  places: PlaceMetrics | null;
+  /** Pooled debriefs; null when no episode carried one. */
+  debrief: DebriefSummary | null;
 }
 
 /**
@@ -598,16 +669,41 @@ export function aggregateEpisodes(
   };
   let motor: MotorCounts | null = null;
   let fallbackSeconds = 0;
+  const debriefs: DebriefSummary[] = [];
+  let places: {
+    chosen: number;
+    byKind: Record<string, number>;
+    releases: Record<string, number>;
+  } | null = null;
   const labels = {
     brain: new Set<string>(),
     control: new Set<string>(),
     profile: new Set<string>(),
+    navigation: new Set<string>(),
+    interval: new Set<string>(),
+    seat: new Set<string>(),
   };
   for (const episode of episodes) {
     labels.brain.add(episode.brain);
     labels.control.add(episode.control);
     labels.profile.add(episode.profile);
+    labels.navigation.add(episode.navigation);
+    labels.seat.add(episode.seat);
+    labels.interval.add(
+      `${episode.intervalMs ?? "default"} ms${episode.injectedLatencyMs > 0 ? ` +${episode.injectedLatencyMs} ms latency` : ""}`,
+    );
     fallbackSeconds += episode.fallbackSeconds;
+    if (episode.debrief) debriefs.push(episode.debrief);
+    if (episode.places) {
+      places ??= { chosen: 0, byKind: {}, releases: {} };
+      places.chosen += episode.places.chosen;
+      for (const [k, n] of Object.entries(episode.places.byKind)) {
+        places.byKind[k] = (places.byKind[k] ?? 0) + n;
+      }
+      for (const [k, n] of Object.entries(episode.places.releases)) {
+        places.releases[k] = (places.releases[k] ?? 0) + n;
+      }
+    }
     shooting.headshots += episode.shooting.headshots;
     shooting.upperChestHits += episode.shooting.upperChestHits;
     const alive = episode.lifeSeconds.reduce((a, b) => a + b, 0);
@@ -664,6 +760,9 @@ export function aggregateEpisodes(
     brain: label(labels.brain),
     control: label(labels.control),
     profile: label(labels.profile),
+    navigation: label(labels.navigation),
+    interval: label(labels.interval),
+    seat: label(labels.seat),
     episodes: episodes.length,
     simSeconds,
     kills,
@@ -684,5 +783,7 @@ export function aggregateEpisodes(
     shooting: shootingOf(shooting, raw),
     motor: motor ? motorOf(motor, raw) : null,
     fallbackSeconds,
+    places: places ? { ...places, travelS: distribution(raw.travel) } : null,
+    debrief: debriefs.length > 0 ? mergeDebriefs(debriefs) : null,
   };
 }

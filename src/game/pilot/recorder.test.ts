@@ -26,6 +26,7 @@ function record(sequence: number, actionStart: number | null): TraceRecord {
       weapon: "FIRE",
       target: "NONE",
       aim: "CENTER_MASS",
+      go: "NONE",
     },
     axes: null,
     model: "jev-1.13.0",
@@ -46,8 +47,11 @@ function recorderWith(records: TraceRecord[]): TraceRecorder {
   const recorder = new TraceRecorder();
   recorder.begin({
     brain: "jev",
+    policy: null,
     seed: 42,
     control: "precision",
+    navigation: "steps",
+    interface: null,
     mode: "tdm",
     matchId: "m",
     startedAt: "2026-09-26T00:00:00.000Z",

@@ -40,6 +40,11 @@ see [The analytical boundary](#the-analytical-boundary).
 - [The observation](#the-observation)
 - [The precision motor controller](#the-precision-motor-controller)
 - [Elite Operator](#elite-operator)
+- [Places: the feet's precision control](#places-the-feets-precision-control)
+- [One set of senses](#one-set-of-senses)
+- [The debrief](#the-debrief)
+- [Capability negotiation](#capability-negotiation)
+- [Scripted reference policies](#scripted-reference-policies)
 - [Decision cadence and timing](#decision-cadence-and-timing)
 - [The server boundary](#the-server-boundary)
 - [Configuration, local development and deployment](#configuration-local-development-and-deployment)
@@ -66,6 +71,7 @@ Jev controls exactly what a keyboard and mouse control:
 | **weapon** | trigger released, fire, aim down sights, aim and fire, reload, swap weapon                                     |
 | **target** | _precision only_: track none, or the enemy listed as `TARGET_0` … `TARGET_3` — slots of its own observation    |
 | **aim**    | _precision only_: hold the crosshair on the centre of mass, the upper chest, or the head                       |
+| **go**     | _places only_: no destination, keep going, or the place listed as `PLACE_0` … `PLACE_3`                        |
 
 Two control modes (`?jevControl=`, or the menu's Precision / Direct control):
 
@@ -146,9 +152,10 @@ rig's `fire()`.
 
 ## The action contract
 
-`src/game/pilot/contract.ts`, versioned `blacksite-jev-actions/v2`. A decision
+`src/game/pilot/contract.ts`, versioned `blacksite-jev-actions/v3`. A decision
 is one **control frame**: exactly one action per axis — `move`, `turn`, `tilt`,
-`weapon`, `target`, `aim`.
+`weapon`, `target`, `aim`, `go`. v3 added `go` (see
+[Places](#places-the-feets-precision-control)); v2 traces are refused.
 
 **An axis with a single legal option is not a choice, and is not asked.** In
 direct control `target` is always `NONE` and `aim` always `CENTER_MASS`, so the
@@ -191,16 +198,17 @@ least two options.
 
 ## The observation
 
-`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v2`. It
+`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v3`. It
 holds only numbers, booleans and strings from closed vocabularies; the validator
 rejects unknown fields, out-of-range numbers and oversized arrays.
 
 ```text
 interface JevObservation {   // a sketch; the exact types are in observation.ts
-  schemaVersion: "blacksite-jev-observation/v2";
-  actionContract: "blacksite-jev-actions/v2";
+  schemaVersion: "blacksite-jev-observation/v3";
+  actionContract: "blacksite-jev-actions/v3";
   sequence: number;                       // monotonic per page
   control: "direct" | "precision";
+  navigation: "steps" | "places";
   match: { mode; phase; timeRemainingS; team; ownScore; enemyScore };
   player: { alive; health; headingDeg; pitchDeg; speedMps; stance; motion; grounded; adsProgress };
   weapon: { slot; weaponClass; fireMode; ammo; magSize; reserve; reloading; canFire;
@@ -211,10 +219,13 @@ interface JevObservation {   // a sketch; the exact types are in observation.ts
     contacts: { source: "gunfire" | "last_seen"; bearingDeg; distanceM; ageS }[];   // ≤ 3
     damage: { ageS; bearingDeg } | null;
     obstacles: { forwardM; leftM; rightM; backM; forwardClimbable };               // null = clear
+    places: { kind; bearingDeg; distanceM; hidden; routeExposedM; threatDistanceM }[]; // ≤ 4, places only
+    allies: { bearingDeg; distanceM }[];                                            // ≤ 3, radar range
   };
   objective: { kind: "none" | "zone" | "hardpoint"; bearingDeg; distanceM; state };
+  travel: { kind; bearingDeg; remainingM } | null;          // where the navigator is going
   previous: { frame: ControlFrame | null; outcome: { shotsFired; hitConfirmed; killConfirmed; damageTaken; movementBlocked } | null };
-  legal: { move: []; turn: []; tilt: []; weapon: []; target: []; aim: [] };
+  legal: { move: []; turn: []; tilt: []; weapon: []; target: []; aim: []; go: [] };
 }
 ```
 
@@ -379,6 +390,149 @@ front, tests the sight line every frame, never pulls toward an enemy the mouse
 is moving away from, and steps aside for 0.25 s on any look faster than 220 °/s.
 An ELITE OPERATOR chip shows while it is on, and episode statistics are
 labelled `profile: elite`.
+
+## Places: the feet's precision control
+
+`src/game/pilot/places.ts`, `navigator.ts`; `?jevNav=places` (the default) or
+`?jevNav=steps` for the original interface. Contract and observation v3.
+
+The first benchmark's most striking behaviour was not the accuracy. It was
+that Jev almost never moved: 0 m in 360 s under precision control. The move
+axis offered walking directions relative to the view — FORWARD, STRAFE_LEFT —
+and nothing that said where cover was, how far, or what the walk there would
+cost. A brain choosing four times a second between "forward" and "left" with
+no notion of the ground has no movement decision to make, so it made none.
+
+Places give movement the same split precision control gave aim. Each
+observation may list up to four places, found from the collision world and
+from the threats the observation already reports — the enemies in view,
+remembered sightings, gunfire heard, the direction of the last hit taken 60 m
+out — and from nothing else:
+
+| Kind        | What it is                                                                                |
+| :---------- | :---------------------------------------------------------------------------------------- |
+| `cover`     | the nearest reachable point no known threat can see a crouched body at                    |
+| `advance`   | such a point at least 4 m nearer the nearest known threat                                 |
+| `flank`     | such a point at least 35° round that threat from where the player stands, and not further |
+| `withdraw`  | such a point at least 5 m further from it                                                 |
+| `objective` | the objective zone's centre, in modes that have one, whatever can see it                  |
+
+Each comes with facts, not coordinates: bearing from the crosshair, distance,
+whether it is hidden from every known threat, how many metres of the straight
+walk there stand in some known threat's sight, and how far the nearest known
+threat would be. The server states them in words, including the time at a run.
+"Hidden" is literal: hidden from the threats the observation mentions, which
+may not be all the threats there are.
+
+The `go` axis offers `NONE`, `CONTINUE` (only while travelling) and one
+`PLACE_n` per listed place. A slot binds the world point the browser kept for
+that observation — the observation itself never carries it. The navigator then
+writes `moveX`, `moveY` and `sprint`, relative to the body's current facing, so
+it can strafe toward cover while the crosshair stays on an enemy; it runs only
+toward a place mostly ahead and never while the weapon choice fires. It never
+turns the view, jumps, changes stance or fires; the move axis's jump and stance
+choices still apply. It lets go on arrival (1.1 m), after 1.5 s without
+progress, after 1.5 s without a CONTINUE or a new place, and on NONE, death,
+takeover or pause. It never chooses a destination.
+
+Places are listed nearest first. `?placeOrder=shuffled` lists the same places
+in a seeded random order instead — slot order is presentation, and the live
+run in [The live model on the new game](#the-live-model-on-the-new-game) is
+why the option exists.
+
+The finder offers only places reachable by a straight walk — nothing at waist
+height in the way — because the navigator walks straight lines with feelers,
+not paths. The navigation grid in `ai/navmesh.ts` is built for more and is not
+used yet. The candidate search is deterministic: fixed rings of 5, 9, 14, 20
+and 27 m, sixteen spokes each, the nearest three known threats tested, route
+exposure measured only for the places that are listed.
+
+## One set of senses
+
+A comparison between a person and a model means something only if they are
+told the same things. Before this version the human's HUD drew brackets with
+names and ranges on every enemy that had a sight line to the player, at any
+range and whichever way the player faced, kept them at live positions after
+sight was lost, and offered a UAV orbit camera, thermal and night-vision modes
+and target lock — none of it available to a brain, none of it documented or
+tested. It is gone. What remains follows one rule each way:
+
+| Channel            | Human HUD                            | Brain's observation                                          |
+| :----------------- | :----------------------------------- | :----------------------------------------------------------- |
+| Enemies            | what is on screen                    | `sightOf`: field of view, 165 m, clear line to head or chest |
+| Gunfire            | radar and compass pings within 115 m | contacts within 115 m                                        |
+| Hits               | the damage direction indicator       | `damage`: bearing and age                                    |
+| Teammates          | radar chevrons within 145 m          | `allies`: bearing and distance, 145 m                        |
+| Remembered enemies | the player's memory                  | last-seen positions, 6 s                                     |
+
+The asymmetries that remain are stated rather than hidden: a person hears
+footsteps and sees pixels; a brain gets exact bearings and the places list.
+
+## The debrief
+
+`src/game/pilot/debrief.ts`, on the results screen and in every benchmark
+report. For every seat — the human's included, by the same rule — it samples
+a few times a second, for each living enemy, whether it was **in view**
+(perception's own `sightOf`) and whether it had a **sight line to the seat**
+(whichever way either faced). Each death is then classed once:
+
+- **never seen** — the killer was not in view at any point that life;
+- **seen, not engaged** — it was in view, and no round was fired at it;
+- **engaged, exchange lost** — the seat fired at it and died anyway;
+- **no attacker**.
+
+It also reports the share of each life spent in some enemy's sight line, the
+longest unbroken stretch, deaths with no cover within 10 m ("open ground") and
+the nearest named zone, and the time from first sight to each kill. A
+kill/death ratio says who won; the debrief says whether a loss was a failure
+to see, a failure to act on what was seen, or a fight lost fairly — which for
+a person and for a model are different failures with different fixes.
+
+It reads the authoritative simulation — that is what "what happened" means —
+and is never fed back into an observation.
+
+## Capability negotiation
+
+`src/game/pilot/capabilities.ts`. A brain declares what it can use —
+engagement modes, navigation modes, the fastest cadence it can sustain, local
+or remote inference, memory, vision — and the host declares what it accepts:
+precision and direct control, places and steps, decisions every 100 ms. The
+seat runs the best interface both support, notes anything not granted as
+asked, and records it in the trace header (`interface`) and in every
+statistic (`navigation`, `intervalMs`, `injectedLatencyMs`).
+`GET /api/jev/decision` reports the Jev adapter's declaration.
+
+Nothing in the simulation depends on the outcome. What changes is which axes
+are asked, how often, and which local controllers execute.
+
+The host accepts more than today's remote model can use at speed. For local
+brains two parameters turn that headroom into an experiment: `?cadence=<ms>`
+sets the decision interval (50–2000) and `?latency=<ms>` holds each answer
+back (0–1500) before the loop sees it. The same policy can then be measured
+at today's round trip, at half of it and at twice it — what a faster or slower
+model would gain here, measured before that model exists. Neither parameter
+applies to Jev, whose latency is real.
+
+## Scripted reference policies
+
+`src/game/pilot/policies.ts`, `?brain=script&policy=marksman|skirmisher`,
+labelled SCRIPTED. A few dozen lines each; they read the observation a model
+reads, choose only legal options, and go through the same executor, motor
+controller and navigator. They claim no probabilities.
+
+- **marksman** holds still, aims down the sights and engages the enemy nearest
+  the crosshair — the head beyond 40 m, otherwise the upper chest; with nothing
+  in view it turns toward the freshest thing heard, else sweeps a quarter turn
+  at a time. It is the strategy the first benchmark found Jev playing, written
+  down.
+- **skirmisher** engages the same way but keeps moving: under places
+  navigation it takes cover when hurt or hit, closes on distant enemies
+  through places hidden from them, and otherwise goes where the fighting was
+  heard or to the objective; under steps navigation it strafes and walks.
+
+They are measuring instruments. When a model's result looks like a strategy,
+write the strategy down and run it on the same seeds; if the script matches
+the model, the finding is about the game.
 
 ## Decision cadence and timing
 
@@ -615,7 +769,7 @@ frame at its recorded simulation time through the same executor, with no model
 call, labelled REPLAY. Traces with another trace, contract or observation
 version, or with a control this build does not know, are refused. What a replay
 reproduces is the **control stream**: `replay:jev` checked 84 of 84 frames of a
-recorded run executed in order. Traces are now `blacksite-jev-trace/v2`; the
+recorded run executed in order. Traces are now `blacksite-jev-trace/v3`; the
 header records the control mode and a replay runs under the mode it was
 recorded with. A replayed `TARGET_n` names the enemy in that slot of the view at
 replay time — the control stream replays, the world does not. What it does not reproduce is the world — frame
@@ -755,6 +909,10 @@ There is no bad episode left out: these are all twelve that were run.
 | Round trip, mean / p50 / p95                       | 1 / 1 / 2 ms    | 1 / 1 / 3 ms       | 212 / 209 / 260 ms | 209 / 207 / 261 ms  |
 | Blue bots in the same matches: K / D, accuracy     | 88 / 55, 15.0%  | 71 / 53, 14.8%     | 49 / 51, 12.0%     | 29 / 24, 6.8%       |
 
+Accuracy here counted hitbox strikes, not rounds: a round passing through an
+arm into the chest counted twice. It is now counted once; the difference is
+small at range and does not touch kills, deaths or damage.
+
 † Measured the same way for every controller: the angle from the aim to the
 _upper chest_ of the nearest visible enemy within 10° of the crosshair. For
 headshot-heavy play it is biased upward — a head at 100 m sits about 0.3° above
@@ -812,6 +970,158 @@ an earlier build — recorded Jev 10 kills / 1 death at 3.6 % accuracy (697
 rounds, 25 hits) and random 0 / 1. It is kept for the record; the direct row
 above is its successor on this build.
 
+## The marksman exploit
+
+The 26 September benchmark above ends on a question it could not answer:
+148 kills to 0 deaths, standing still, is not a fair fight — but was it the
+model, the controller or the map? The experiments below, all on 27 September,
+answer it. They run through `tools/experiment.mjs` on seeds 42–44, 3 × 120 s
+per arm, team deathmatch, 11 bots at the default skill, one arm at a time,
+rendering stubbed as above; the reports are in
+[`docs/benchmarks/2026-09-27/`](benchmarks/2026-09-27/). The "before" arms ran
+against a worktree of commit `ea55c93` served on its own port, the "after"
+arms against `d77f16a`. No episode lagged real time.
+
+**A script matches the model.** The strategy the benchmark found Jev playing —
+hold still, aim down the sights, engage the enemy nearest the crosshair, the
+head beyond 40 m — written as the `marksman` policy and run through the same
+precision controller on the same seeds, on the old build:
+
+| 3 × 120 s, seeds 42–44, precision control | Kills / deaths | Damage per round | Damage taken | Moved | Range at shot |
+| :---------------------------------------- | -------------: | ---------------: | -----------: | ----: | ------------: |
+| Jev (live, 26 September)                  |        148 / 0 |             55.6 |           14 |   0 m |         103 m |
+| scripted `marksman`, old build            |        153 / 0 |             74.6 |           80 |   0 m |         109 m |
+| scripted `skirmisher`, old build          |        168 / 0 |             52.4 |          116 | 763 m |         102 m |
+
+A plain script did what the model did, so the finding was about the game.
+
+**Why.** `tools/kill-anatomy.mjs` records what each victim was doing when the
+seat killed it. On the old build, seed 42, 90 s: 32 kills; every victim could
+see the shooter; 30 were sprinting (14 flanking, 14 charging in `engage`);
+18 were fighting the seat's teammates at the time. Over the same 90 s the bots
+fired 46 rounds at the seat with a median aim error of 3.9° at a median range
+of 136 m — about nine metres of miss. Their aim is an angular cone tuned for
+10–40 m, and the seat's mercy rules halved what little landed. The ground did
+not matter, because nothing on it could reach a still shooter.
+
+**What changed** (`d77f16a`; see [`docs/BLACKSITE.md`](BLACKSITE.md#distance-exposure-heat)):
+heat shimmer beyond 45 m, for every seat; bots that bound between points hidden
+from the shooter instead of charging, prefer routes it sees least of, and hold
+and return fire when there is nowhere to go; a steady bot converging on a still
+target in metres rather than degrees; a teammate's death giving the shooter
+away; anyone firing within sight turning heads; spawns out of sight to the full
+165 m; and `?seat=even` to remove the seat's mercy rules.
+
+| 3 × 120 s, seeds 42–44      | Kills / deaths | Kills / min | Damage per round | Damage taken | Headshots | In a sight line | Longest stretch |
+| :-------------------------- | -------------: | ----------: | ---------------: | -----------: | --------: | --------------: | --------------: |
+| `marksman`, old build       |        153 / 0 |        25.5 |             74.6 |           80 |       150 |    not measured |    not measured |
+| `marksman`, new build       |         81 / 0 |        13.5 |             51.2 |           43 |        78 |             35% |           9.5 s |
+| `marksman`, new build, even |         78 / 0 |        13.0 |             43.7 |          108 |       104 |             36% |           8.9 s |
+| `skirmisher`, old build     |        168 / 0 |        29.3 |             52.4 |          116 |       153 |    not measured |    not measured |
+| `skirmisher`, new build     |        107 / 0 |        17.8 |             59.0 |          104 |        56 |             43% |          17.2 s |
+| `random`, old build         |          5 / 2 |         0.8 |              8.2 |          634 |         7 |    not measured |    not measured |
+| `random`, new build         |          2 / 1 |         0.3 |              3.9 |          173 |         3 |             93% |          63.8 s |
+
+Per seed, kills/deaths, old → new: marksman 48/0 → 27/0, 44/0 → 32/0,
+61/0 → 22/0; skirmisher 58/0 → 34/0, 65/0 → 34/0, 45/0 → 39/0.
+
+**Halved, not solved.** The farming rate fell by half and headshots by half,
+the seat now takes damage, and a death at range is now possible (one did
+happen in a single-episode probe under even rules). But over six minutes the
+still marksman was never killed, under either seat rule. The asymmetry that
+remains is first-shot lethality: the precision controller, with its 0.06°
+tremor, and a 0.02° aimed rifle kill within about three seconds of first
+sight, and a bot that sees it has to react, turn and settle before its first
+useful round. A further change — squads that learn where a still shooter is
+looking and circle behind it — was built, measured and removed: the flankers
+took the right routes and died crossing its field of view at ~100 m. Closing
+the rest means a less steady controller or bots with marksman-grade aim; both
+change what the benchmark measures, so it is left as an open, measured design
+question rather than tuned until the number looked better.
+
+**How much the results move by themselves.** The same configuration — the
+skirmisher under places navigation, no added latency, new build — ran twice
+(the first arm of the places experiment and the first of the horizon
+experiment): 93 and 80 kills, 36 % and 43 % of life in a sight line, longest
+stretches of 11.5 s and 16.1 s. Differences smaller than that are noise.
+
+### Places against steps
+
+The `places` experiment: the same policies with and without places.
+
+| 3 × 120 s, seeds 42–44, new build | Kills / deaths | Damage taken | Moved | Range at shot | In a sight line | Longest stretch |
+| :-------------------------------- | -------------: | -----------: | ----: | ------------: | --------------: | --------------: |
+| `skirmisher`, places              |         93 / 0 |          180 | 605 m |          60 m |             36% |          11.5 s |
+| `skirmisher`, steps               |         97 / 0 |           97 | 704 m |          75 m |             44% |          27.1 s |
+| `random`, places                  |          1 / 1 |          182 | 912 m |         110 m |             59% |          52.3 s |
+| `random`, steps                   |          7 / 2 |          335 | 799 m |          78 m |             78% |          78.5 s |
+
+With places the skirmisher fought closer and kept its longest exposed stretch
+under half as long, at the same kill rate; its mean exposure fell by about as
+much as run-to-run noise. The random brain, which picks a place at random,
+spent less of its life in sight lines — cover and hidden places are most of
+what is on offer — and shot less well while walking. Places cost main-thread
+time: finding them takes 5–11 ms per observation (p95 23 ms), paid five times a
+second while the seat is under places navigation.
+
+### Latency: what a faster model would gain here
+
+The `horizon` experiment holds the policy fixed — the skirmisher, places,
+precision control — and delays each answer:
+
+| Injected answer latency         | Kills / deaths | Damage taken | First sight to kill | Moved | Decisions |
+| :------------------------------ | -------------: | -----------: | ------------------: | ----: | --------: |
+| 0 ms (a local policy)           |         80 / 0 |           52 |               2.6 s | 751 m |      1607 |
+| 250 ms (today's Jev round trip) |         87 / 0 |          115 |               3.1 s | 489 m |      1202 |
+| 600 ms (a slow remote model)    |         63 / 1 |          193 |               5.8 s | 350 m |       546 |
+| 250 ms, deciding every 500 ms   |         76 / 0 |          164 |               3.6 s | 492 m |       688 |
+
+With the aim and the walk executed locally, a quarter-second round trip costs
+nothing this benchmark can see; at 600 ms the policy is measurably slower to
+convert a sighting into a kill and kills about a quarter less. So on this
+game, today, a model's speed is not the bottleneck; its choices are. A model
+twice as fast would not play better here by speed alone — and a model that
+slows toward half a second would.
+
+### The live model on the new game
+
+Two live experiments on 27 September, `jev-1.13.0` through TypeSafe, build
+`9ba93e5`, precision control, mercy rules, seeds 42–44, 3 × 120 s per arm. No
+timeouts, stale, invalid or failed decisions; round trip p50 163–168 ms, p95
+218–220 ms. (A first attempt at `jev-live` failed before any decision: its
+first page never started its match within the harness's 60 s. The rerun is
+what is reported.)
+
+| Jev, live                 | Kills / deaths | Rounds | Damage taken |   Moved | In a sight line | Range at shot |
+| :------------------------ | -------------: | -----: | -----------: | ------: | --------------: | ------------: |
+| 26 Sept., old game, steps |        148 / 0 |    323 |           14 |     0 m |    not measured |         103 m |
+| stepped movement          |         58 / 0 |    231 |           21 |     0 m |             52% |         117 m |
+| places, nearest first     |          8 / 0 |     25 |           23 | 1 085 m |             22% |          75 m |
+| places, shuffled order    |         38 / 0 |    106 |          238 |   996 m |             39% |  not compared |
+
+- **On the new game the same model with the same interface kills 61 % less**
+  (148 → 58), still standing still: the exposure changes act on a live model
+  as they did on the script.
+- **Given places, it moves.** 1 085 m where it had moved 0 m in every earlier
+  run; 208 place choices, 190 of them cover. Its time in enemy sight lines
+  more than halved (52 % → 22 %). It also nearly stopped fighting — 25 rounds
+  in six minutes. No death in either arm.
+- **It chose `PLACE_0` in 208 of 208 choices.** With places listed nearest
+  first that is either a preference for the nearest cover or for the first
+  option shown, and slot order is presentation the host controls.
+  `?placeOrder=shuffled` lists the same places in a seeded random order: the
+  slots it chose spread (62 / 44 / 29 for slots 0 / 1 / 2) while the kind held
+  (125 of 135 cover, 93 %, against 91 %). The preference is for cover. Order
+  still pulled it toward the top of the list, which is why the default is a
+  documented choice rather than an accident. With shuffled order it also
+  fought more (38 kills; per seed 4, 20, 14), which three episodes cannot
+  explain.
+
+What this shows is a behaviour, not a ranking: offered a way to hide, the
+model hides. Whether that is good play depends on the mode — in team
+deathmatch it gives up kills; in an objective mode it might not — and that is
+the next experiment, not a conclusion.
+
 ## Security
 
 - The key is read in exactly two places, both server-side: `api/jev/decision.ts`
@@ -853,15 +1163,15 @@ by request interception inside its own test browser. The offline browser suite
 asserts that no decision in it came from TypeSafe. Nothing in ordinary CI
 spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 
-| Command                                                             | Calls TypeSafe | What it checks                                                                                                                                                                   |
-| :------------------------------------------------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run test:jev`                                                  | no             | unit tests: contract, schema, executor, motor controller, fire gate, engagement axes, authority, loop, providers, recorder, metrics, server, secret boundary                     |
-| `bun run jev`                                                       | no             | 72 browser checks: random brain, Jev client against a fake, precision control, Elite Operator, failures, outage, takeover, switching, death, respawn, replay, hostile parameters |
-| `JEV_LIVE_TEST=1 bun run jev:live`                                  | yes            | live decisions, model version, request shape, outage recovery, takeover                                                                                                          |
-| `bun run benchmark:random` / `benchmark:random:precision`           | no             | episodes with the random brain, direct / precision control                                                                                                                       |
-| `JEV_LIVE_TEST=1 bun run benchmark:jev` / `benchmark:jev:precision` | yes            | episodes with Jev, direct (the original benchmark) / precision control                                                                                                           |
-| `bun run replay:jev -- trace.jsonl`                                 | no             | replays a recorded control stream                                                                                                                                                |
-| `bun run scan:secrets`                                              | no             | the build-output credential scan                                                                                                                                                 |
+| Command                                                             | Calls TypeSafe | What it checks                                                                                                                                                                                                   |
+| :------------------------------------------------------------------ | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run test:jev`                                                  | no             | unit tests: contract, schema, executor, motor controller, fire gate, engagement axes, places, navigator, debrief, capabilities, policies, authority, loop, providers, recorder, metrics, server, secret boundary |
+| `bun run jev`                                                       | no             | browser checks: random brain, Jev client against a fake, precision control, places navigation, Elite Operator, failures, outage, takeover, switching, death, respawn, replay, hostile parameters                 |
+| `JEV_LIVE_TEST=1 bun run jev:live`                                  | yes            | live decisions, model version, request shape, outage recovery, takeover                                                                                                                                          |
+| `bun run benchmark:random` / `benchmark:random:precision`           | no             | episodes with the random brain, direct / precision control                                                                                                                                                       |
+| `JEV_LIVE_TEST=1 bun run benchmark:jev` / `benchmark:jev:precision` | yes            | episodes with Jev, direct (the original benchmark) / precision control                                                                                                                                           |
+| `bun run replay:jev -- trace.jsonl`                                 | no             | replays a recorded control stream                                                                                                                                                                                |
+| `bun run scan:secrets`                                              | no             | the build-output credential scan                                                                                                                                                                                 |
 
 ## Limitations
 
@@ -902,10 +1212,13 @@ These are the boundaries of the experiment as it now stands, not failures.
 - **Hand-designed observation semantics.** What Jev reads — which facts, in what
   words, the size classes, the hit-share bands — was written by hand and tuned on
   short runs. A different rendering could change its choices.
-- **Jev still barely moves.** It chose HOLD in almost every frame, as it did
-  before: it plays as a stationary marksman, which the bots — converging on the
-  player across open ground — make effective. Nothing prevents movement and
-  nothing prompts it; the controller shapes movement but never chooses it.
+- **Places are straight walks.** The navigator walks straight lines with
+  feelers; the finder therefore offers only places reachable that way. Cover
+  behind a building's far side, reachable only round a corner, is not offered.
+  The navigation grid in `ai/navmesh.ts` would lift this and is not used yet.
+- **"Hidden" means hidden from known threats.** A place is hidden from the
+  enemies the observation reports, which is exactly what a brain knows and not
+  necessarily all there are.
 - **The results are environment-specific.** The site is large and open, bots
   spawn 45–135 m from the fight and the reference rifle's aimed spread is 0.02°,
   so most engagements are long, ADS, first-shot contests that reward steady
@@ -913,8 +1226,10 @@ These are the boundaries of the experiment as it now stands, not failures.
   and wider when aiming at the player) a controller that holds still and aims
   well is at its strongest here; closer, cover-heavy maps would test different
   skills.
-- **Perception is conservative.** Jev gets no audio (footsteps), no teammates'
-  positions and no live overlay brackets, all of which a person has.
+- **Perception is close to a person's, not identical.** Since v3 the human
+  HUD shows enemies only as a brain is told about them, and a brain gets the
+  teammates the radar shows. A person still hears footsteps and reads pixels;
+  a brain gets exact bearings, distances and the places list.
 - **Replay reproduces controls, not outcomes**, and a replayed target slot
   names whoever is in that slot of the view at replay time.
 - **The benchmarks are small** — three two-minute episodes per configuration —
@@ -937,6 +1252,13 @@ These are the boundaries of the experiment as it now stands, not failures.
 | `src/game/pilot/hitGeometry.ts`                        | aim points, angular sizes, spread-cone share (shared with the server)    |
 | `src/game/characters/hitboxSpecs.ts`                   | the one hitbox table colliders and aim geometry read                     |
 | `src/game/player/eliteAssist.ts`                       | Elite Operator, the human aim help                                       |
+| `src/game/pilot/places.ts`, `navigator.ts`             | places navigation: the finder and the local walking controller           |
+| `src/game/pilot/debrief.ts`                            | what the seat perceived, against what happened                           |
+| `src/game/pilot/capabilities.ts`                       | capability negotiation (shared with the server)                          |
+| `src/game/pilot/policies.ts`                           | the scripted reference policies                                          |
+| `src/game/world/mirage.ts`                             | heat shimmer: how far a body at range appears displaced                  |
+| `tools/experiment.mjs`, `tools/experiments/*.json`     | matched experiments and their questions                                  |
+| `tools/kill-anatomy.mjs`                               | what each victim was doing when the seat killed it                       |
 | `src/game/pilot/loop.ts`                               | one request in flight, sequences, staleness, timeouts, backoff, fallback |
 | `src/game/pilot/providers.ts`                          | the Jev HTTP brain and the seeded random brain                           |
 | `src/game/pilot/pilot.ts`                              | the pilot seat: brain selection, frames, takeover, telemetry             |

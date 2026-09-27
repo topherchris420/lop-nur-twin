@@ -63,7 +63,7 @@ const idle = (input) =>
 /* A fake decision endpoint, inside the test browser only               */
 /* ------------------------------------------------------------------ */
 
-const AXES = ["move", "turn", "tilt", "weapon", "target", "aim"];
+const AXES = ["move", "turn", "tilt", "weapon", "target", "aim", "go"];
 
 /**
  * A decision in the endpoint's shape. An axis with one legal option is not
@@ -91,7 +91,7 @@ function fakeDecision(observation, pick = {}) {
     frame[axis] = choice;
   }
   return {
-    schemaVersion: "blacksite-jev-decision/v2",
+    schemaVersion: "blacksite-jev-decision/v3",
     sequence: observation.sequence,
     source: "typesafe",
     model: "jev-test-double",
@@ -295,7 +295,7 @@ async function offline() {
     behaviour.current = () => ({
       status: 502,
       body: {
-        schemaVersion: "blacksite-jev-decision/v2",
+        schemaVersion: "blacksite-jev-decision/v3",
         sequence: null,
         error: { code: "upstream_error", message: "test" },
         retryAfterMs: null,
@@ -352,7 +352,7 @@ async function offline() {
     behaviour.current = () => ({
       status: 503,
       body: {
-        schemaVersion: "blacksite-jev-decision/v2",
+        schemaVersion: "blacksite-jev-decision/v3",
         sequence: null,
         error: { code: "not_configured", message: "no key" },
         retryAfterMs: null,
@@ -450,10 +450,13 @@ async function offline() {
   /* ------------------------------------------------ precision control */
   console.log("\nprecision control against a fake endpoint (no TypeSafe call)");
   {
-    // The fake always engages the first listed enemy, aimed, on the upper chest.
+    // The fake always engages the first listed enemy, aimed, on the upper chest,
+    // and sweeps the view while nobody is listed: the bots no longer walk into
+    // a view that never turns (they stay out of sight lines across open ground).
     const engage = (obs) => ({
       body: fakeDecision(obs, {
         move: "HOLD",
+        turn: obs.perception.visibleEnemies.length > 0 ? "NO_TURN" : "TURN_RIGHT_MEDIUM",
         weapon: obs.legal.weapon.includes("ADS_FIRE") ? "ADS_FIRE" : "RELOAD",
         target: "TARGET_0",
         aim: "UPPER_CHEST",
@@ -560,15 +563,18 @@ async function offline() {
     );
     check(
       "the fire gate reports what it suppressed",
-      ep.motor.triggerOpportunities >= ep.motor.gateSuppressed &&
+      ep.motor !== null &&
+        ep.motor.triggerOpportunities >= ep.motor.gateSuppressed &&
         ep.motor.gateSuppressedFraction !== null,
-      `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}`,
+      ep.motor
+        ? `${ep.motor.gateSuppressed}/${ep.motor.triggerOpportunities}`
+        : "never bound",
     );
     const trace = await page.evaluate(() => globalThis.__jev.exportTrace());
     const header = JSON.parse(trace.split("\n")[0]);
     check(
       "the trace header names the controller",
-      header.control === "precision" && header.traceVersion === "blacksite-jev-trace/v2",
+      header.control === "precision" && header.traceVersion === "blacksite-jev-trace/v3",
       `${header.control} ${header.traceVersion}`,
     );
     check(
@@ -582,7 +588,7 @@ async function offline() {
     behaviour.current = () => ({
       status: 503,
       body: {
-        schemaVersion: "blacksite-jev-decision/v2",
+        schemaVersion: "blacksite-jev-decision/v3",
         sequence: null,
         error: { code: "not_configured", message: "outage" },
         retryAfterMs: null,
@@ -642,6 +648,133 @@ async function offline() {
   }
 
   /* ------------------------------------------------ Elite Operator */
+  console.log("\nplaces navigation against a fake endpoint (no TypeSafe call)");
+  {
+    // The fake takes the first place offered, keeps going while it travels,
+    // and otherwise engages what it sees. Every observation it is sent is kept.
+    const seen = [];
+    const go = (obs) => {
+      seen.push(obs);
+      const legal = obs.legal.go;
+      const choice = legal.includes("CONTINUE")
+        ? "CONTINUE"
+        : (legal.find((g) => g.startsWith("PLACE_")) ?? "NONE");
+      return {
+        body: fakeDecision(obs, {
+          move: "HOLD",
+          turn:
+            obs.perception.visibleEnemies.length > 0 ? "NO_TURN" : "TURN_RIGHT_MEDIUM",
+          weapon: obs.legal.weapon.includes("ADS_FIRE") ? "ADS_FIRE" : "NO_FIRE",
+          target: "TARGET_0",
+          aim: "UPPER_CHEST",
+          go: choice,
+        }),
+      };
+    };
+    const behaviour = { current: go };
+    const { page, errors } = await openPlay(
+      browser,
+      origin,
+      "autoplay=1&quality=0&brain=jev&jevControl=precision&jevNav=places&seed=11",
+      { beforeNavigate: (fresh) => interceptDecisions(fresh, behaviour) },
+    );
+    await waitForPilot(page);
+    await page.evaluate(() => globalThis.__jev.resetMetrics());
+    await runFor(page, 40);
+    const navigation = await page.evaluate(() => globalThis.__jev.telemetry.navigation);
+    check("the seat reports places navigation", navigation === "places", navigation);
+    const offered = seen.filter((o) => o.perception.places.length > 0);
+    check(
+      "observations list places once there is something to place against",
+      offered.length > 0,
+      `${offered.length} of ${seen.length} observations`,
+    );
+    const kinds = new Set(offered.flatMap((o) => o.perception.places.map((p) => p.kind)));
+    check(
+      "places are of the contract's kinds",
+      [...kinds].every((k) =>
+        ["cover", "advance", "flank", "withdraw", "objective"].includes(k),
+      ),
+      [...kinds].join(", ") || "none",
+    );
+    check(
+      "a place carries bearings and distances, never coordinates",
+      offered.every((o) =>
+        o.perception.places.every(
+          (p) => !("x" in p) && !("z" in p) && Object.keys(p).length === 6,
+        ),
+      ),
+      "six facts per place",
+    );
+    check(
+      "GO is offered for exactly the places listed",
+      seen.every(
+        (o) =>
+          o.legal.go.filter((g) => g.startsWith("PLACE_")).length ===
+          o.perception.places.length,
+      ),
+      "slots match",
+    );
+    const ep = await episode(page);
+    check(
+      "the navigator took the body to chosen places",
+      ep.places !== null && ep.places.chosen > 0 && ep.distanceM > 5,
+      ep.places
+        ? `${ep.places.chosen} chosen, ended ${JSON.stringify(ep.places.releases)}, moved ${Math.round(ep.distanceM)} m`
+        : "none chosen",
+    );
+    check(
+      "every statistic names its interface",
+      ep.navigation === "places" && ep.control === "precision" && ep.intervalMs === 200,
+      `${ep.control} · ${ep.navigation} · ${ep.intervalMs} ms`,
+    );
+    const trace = await page.evaluate(() => globalThis.__jev.exportTrace());
+    const header = JSON.parse(trace.split("\n")[0]);
+    check(
+      "the trace header records the negotiated interface",
+      header.navigation === "places" && header.interface?.intervalMs === 200,
+      JSON.stringify(header.interface),
+    );
+    check(
+      "the debrief is kept for the seat",
+      ep.debrief && ep.debrief.aliveSeconds > 30,
+      ep.debrief
+        ? `${Math.round(ep.debrief.aliveSeconds)} s alive, ${Math.round((ep.debrief.exposedFraction ?? 0) * 100)}% in a sight line`
+        : "missing",
+    );
+    check("no page errors under places", errors.length === 0, errors[0] ?? "clean");
+    await page.close();
+  }
+  {
+    const seen = [];
+    const behaviour = {
+      current: (obs) => {
+        seen.push(obs);
+        return { body: fakeDecision(obs, { move: "HOLD" }) };
+      },
+    };
+    const { page } = await openPlay(
+      browser,
+      origin,
+      "autoplay=1&quality=0&brain=jev&jevControl=precision&jevNav=steps&seed=11",
+      { beforeNavigate: (fresh) => interceptDecisions(fresh, behaviour) },
+    );
+    await waitForPilot(page);
+    await runFor(page, 6);
+    check(
+      "?jevNav=steps lists no places and offers no destination",
+      seen.length > 0 &&
+        seen.every(
+          (o) =>
+            o.navigation === "steps" &&
+            o.perception.places.length === 0 &&
+            o.legal.go.length === 1,
+        ),
+      `${seen.length} observations`,
+    );
+    await page.close();
+  }
+
   console.log("\nElite Operator (human)");
   {
     const { page, errors } = await openPlay(

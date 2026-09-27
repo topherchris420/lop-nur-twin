@@ -2,7 +2,15 @@ import { create } from "zustand";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
 import type { ParsedTrace } from "../pilot/recorder";
-import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
+import {
+  CONTROL_MODES,
+  NAVIGATION_MODES,
+  type ControlMode,
+  type NavigationMode,
+} from "../pilot/contract";
+import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
+import { SEAT_RULES, type SeatRules } from "./combat";
+import { PLACE_ORDERS, type PlaceOrder } from "../pilot/places";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -15,9 +23,15 @@ import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
  * brains that drive the same input through `src/game/pilot/` — the TypeSafe
  * Jev model, a seeded random baseline, or a recorded trace played back.
  */
-export type BrainKind = "human" | "jev" | "random" | "replay";
+export type BrainKind = "human" | "jev" | "random" | "script" | "replay";
 
-export const BRAIN_KINDS: readonly BrainKind[] = ["human", "jev", "random", "replay"];
+export const BRAIN_KINDS: readonly BrainKind[] = [
+  "human",
+  "jev",
+  "random",
+  "script",
+  "replay",
+];
 
 /**
  * How a human's aim reaches the view. `standard` is the raw mouse. `elite` is
@@ -143,6 +157,9 @@ interface GameStoreState {
   /** Deterministic match seed, so a given match replays identically. */
   matchSeed: number;
   rerollMatchSeed: () => void;
+  /** Bumped to rebuild the match on the same seed: the same bots, spawns and weapons. */
+  matchNonce: number;
+  replayMatchSeed: () => void;
 
   /** Who controls the player. Changes on a menu choice or a takeover. */
   brain: BrainKind;
@@ -151,6 +168,24 @@ interface GameStoreState {
   brainSeed: number;
   /** `?fallback=random`: a labelled stand-in while Jev cannot answer. */
   brainFallback: "random" | null;
+  /**
+   * `?cadence=<ms>`: an experiment's decision interval for a local brain
+   * (random, scripted), 50–2000 ms. Null keeps the contract's 200 ms. Jev's
+   * cadence is set by its latency and the endpoint's pacing, not by this.
+   */
+  brainCadenceMs: number | null;
+  /**
+   * `?latency=<ms>`: delay a local brain's answers by this much, 0–1500 ms, to
+   * measure what a slower or faster remote model would do with the same
+   * policy. Never applied to Jev, whose latency is real.
+   */
+  brainLatencyMs: number;
+  /** `?seat=mercy|even`: the rules the player's seat fights under. See `core/combat.ts`. */
+  seatRules: SeatRules;
+  setSeatRules: (rules: SeatRules) => void;
+  /** `?policy=`: which scripted reference policy the `script` brain runs. */
+  brainPolicy: ScriptPolicy;
+  setBrainPolicy: (policy: ScriptPolicy) => void;
   /** The validated trace the replay brain plays back, once one is loaded. */
   replayTrace: ParsedTrace | null;
   setReplayTrace: (trace: ParsedTrace | null) => void;
@@ -161,6 +196,20 @@ interface GameStoreState {
    */
   jevControl: ControlMode;
   setJevControl: (control: ControlMode) => void;
+  /**
+   * `?jevNav=places|steps`: how a brain's movement reaches the body. Places
+   * lets it name a nearby place for the local navigator to walk to; steps is
+   * the original view-relative walking, kept for comparison.
+   */
+  jevNav: NavigationMode;
+  setJevNav: (navigation: NavigationMode) => void;
+  /**
+   * `?placeOrder=nearest|shuffled`: how the places are listed. Nearest first is
+   * the default; shuffled lists the same places in a seeded random order, to
+   * tell a brain's preference for a place from a preference for the first
+   * option it is shown.
+   */
+  placeOrder: PlaceOrder;
   /** `?playerProfile=standard|elite` — Elite Operator for the human. */
   playerProfile: PlayerProfile;
   setPlayerProfile: (profile: PlayerProfile) => void;
@@ -274,16 +323,31 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   botSkill: 0.4,
   setBotSkill: (botSkill) => set({ botSkill }),
   matchSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
-  rerollMatchSeed: () => set({ matchSeed: (Math.random() * 0xffffff) >>> 0 }),
+  rerollMatchSeed: () =>
+    set((s) => ({
+      matchSeed: (Math.random() * 0xffffff) >>> 0,
+      matchNonce: s.matchNonce + 1,
+    })),
+  matchNonce: 0,
+  replayMatchSeed: () => set((s) => ({ matchNonce: s.matchNonce + 1 })),
 
   brain: initialBrain(),
   setBrain: (brain) => set({ brain }),
   brainSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
   brainFallback: readEnumParam<"random">("fallback", ["random"]),
+  brainPolicy: readEnumParam<ScriptPolicy>("policy", SCRIPT_POLICIES) ?? "marksman",
+  brainCadenceMs: readIntParam("cadence", 50, 2000),
+  seatRules: readEnumParam<SeatRules>("seat", SEAT_RULES) ?? "mercy",
+  setSeatRules: (seatRules) => set({ seatRules }),
+  brainLatencyMs: readIntParam("latency", 0, 1500) ?? 0,
+  setBrainPolicy: (brainPolicy) => set({ brainPolicy }),
   replayTrace: null,
   setReplayTrace: (replayTrace) => set({ replayTrace }),
   jevControl: readEnumParam<ControlMode>("jevControl", CONTROL_MODES) ?? "precision",
   setJevControl: (jevControl) => set({ jevControl }),
+  jevNav: readEnumParam<NavigationMode>("jevNav", NAVIGATION_MODES) ?? "places",
+  setJevNav: (jevNav) => set({ jevNav }),
+  placeOrder: readEnumParam<PlaceOrder>("placeOrder", PLACE_ORDERS) ?? "nearest",
   playerProfile:
     readEnumParam<PlayerProfile>("playerProfile", PLAYER_PROFILES) ?? "standard",
   setPlayerProfile: (playerProfile) => set({ playerProfile }),

@@ -29,6 +29,7 @@ function response(overrides: Record<string, unknown> = {}): Record<string, unkno
       weapon: "FIRE",
       target: "NONE",
       aim: "CENTER_MASS",
+      go: "NONE",
     },
     axes,
     latencyMs: 131,

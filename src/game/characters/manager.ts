@@ -13,6 +13,7 @@ import { buildSoldier, type SoldierModel } from "./soldier";
 import { buildHeldWeapon, type HeldWeaponModel } from "./heldWeapon";
 import { B } from "./rig";
 import { REGION_SPECS } from "./hitboxSpecs";
+import { mirageOffset } from "../world/mirage";
 
 /**
  * Binds soldier models, animators and hitboxes to actors.
@@ -52,6 +53,7 @@ const _centre = new THREE.Vector3();
 const _quat = new THREE.Quaternion();
 const _euler = new THREE.Euler();
 const _cameraFlat = new THREE.Vector3();
+const _shimmer = new THREE.Vector3();
 
 export class CharacterManager {
   readonly group = new THREE.Group();
@@ -177,7 +179,13 @@ export class CharacterManager {
       // through the ground as the body folds.
       visual.weapon.mesh.visible = actor.alive;
 
-      visual.model.group.position.copy(actor.position);
+      // Drawn where the heat shimmer shows it, not where it is: the hitboxes
+      // above stay on the simulation. See world/mirage.ts.
+      visual.model.group.position
+        .copy(actor.position)
+        .add(
+          mirageOffset(camera.position, actor.position, actor.id, game.time, _shimmer),
+        );
       // Per-foot ground sampling and the off-hand IK only read at close range,
       // and the ground sampler is the most expensive thing in the pose.
       visual.animator.update(

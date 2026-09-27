@@ -42,6 +42,7 @@ export type DecisionAxes = {
   weapon: AxisDecision<"weapon">;
   target: AxisDecision<"target"> | null;
   aim: AxisDecision<"aim"> | null;
+  go: AxisDecision<"go"> | null;
 };
 
 export interface JevDecision {
@@ -193,7 +194,7 @@ export function parseAllAxes(
   if (!tilt.ok) return tilt;
   const weapon = parseAxisDecision("weapon", answers["weapon"], legal.weapon);
   if (!weapon.ok) return weapon;
-  const optional = <A extends "target" | "aim">(
+  const optional = <A extends "target" | "aim" | "go">(
     axis: A,
   ): Validated<AxisDecision<A> | null> => {
     const answer = answers[axis];
@@ -208,6 +209,8 @@ export function parseAllAxes(
   if (!target.ok) return target;
   const aim = optional("aim");
   if (!aim.ok) return aim;
+  const go = optional("go");
+  if (!go.ok) return go;
   return {
     ok: true,
     value: {
@@ -217,6 +220,7 @@ export function parseAllAxes(
       weapon: weapon.value,
       target: target.value,
       aim: aim.value,
+      go: go.value,
     },
   };
 }
@@ -230,6 +234,7 @@ export function frameOf(axes: DecisionAxes, legal: LegalActions): ControlFrame {
     weapon: axes.weapon.choice,
     target: axes.target?.choice ?? legal.target[0] ?? "NONE",
     aim: axes.aim?.choice ?? legal.aim[0] ?? "CENTER_MASS",
+    go: axes.go?.choice ?? legal.go[0] ?? "NONE",
   };
 }
 

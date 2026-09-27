@@ -7,19 +7,33 @@ import {
   type InputState,
 } from "../core/gameState";
 import { useGameStore, type BrainKind } from "../core/gameStore";
-import { MASK_SIGHT, OPPOSING_TEAM, type EntityId, type HitRegion } from "../core/types";
+import {
+  HUMAN_METRICS,
+  MASK_MOVEMENT,
+  MASK_SIGHT,
+  OPPOSING_TEAM,
+  forwardToYaw,
+  yawToForward,
+  type EntityId,
+  type HitRegion,
+} from "../core/types";
+import { GROUND_ZONES } from "@/lib/layout";
+import { mirageOffset } from "../world/mirage";
 import {
   MOVE_INPUT,
   WEAPON_INPUT,
   frameLabel,
+  placeSlot,
   targetSlot,
   type Axis,
   type ControlFrame,
   type ControlMode,
+  type NavigationMode,
 } from "./contract";
 import { aimRegionGeometry } from "./hitGeometry";
 import {
   PrecisionMotorController,
+  type MotorBody,
   type MotorSense,
   type MotorTelemetry,
   type MotorWeapon,
@@ -35,8 +49,12 @@ import {
 } from "./loop";
 import { PilotMetrics, type EpisodeMetrics } from "./metrics";
 import type { PreviousOutcome } from "./observation";
-import { Perception } from "./perception";
+import { Perception, sightOf } from "./perception";
+import { Debrief, type EnemySample } from "./debrief";
+import { PlaceNavigator, type NavSense, type NavTelemetry } from "./navigator";
+import type { FoundPlace } from "./places";
 import {
+  DelayedProvider,
   JevHttpProvider,
   RandomProvider,
   newSessionId,
@@ -50,6 +68,14 @@ import {
   type ParsedTrace,
   type TraceRecord,
 } from "./recorder";
+import { ScriptedProvider, type ScriptPolicy } from "./policies";
+import {
+  JEV_CAPABILITIES,
+  LOCAL_POLICY_CAPABILITIES,
+  negotiate,
+  type Capabilities,
+  type Negotiated,
+} from "./capabilities";
 import { rigState } from "./rigState";
 
 /**
@@ -83,7 +109,8 @@ export type PilotStatus =
   | "MATCH_COMPLETE";
 
 /** Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer. */
-export type ControlLabel = "HUMAN" | "LIVE JEV" | "RANDOM" | "REPLAY" | "FALLBACK";
+export type ControlLabel =
+  "HUMAN" | "LIVE JEV" | "RANDOM" | "SCRIPTED" | "REPLAY" | "FALLBACK";
 
 export interface PilotTelemetry {
   brain: BrainKind;
@@ -110,6 +137,9 @@ export interface PilotTelemetry {
   traceRecords: number;
   /** The precision controller's live state; `bound` is false outside precision control. */
   motor: MotorTelemetry;
+  /** Who walks the body, and where the navigator is taking it. */
+  navigation: NavigationMode;
+  nav: NavTelemetry;
   /** This episode's shooting, for the spectator panel. */
   shots: number;
   hits: number;
@@ -119,9 +149,17 @@ export interface PilotTelemetry {
 
 export interface BrainOptions {
   seed: number;
+  /** The scripted reference policy, for the `script` brain. */
+  policy: ScriptPolicy;
   fallback: "random" | null;
   trace: ParsedTrace | null;
   control: ControlMode;
+  /** How a brain's movement reaches the body; see `NAVIGATION_MODES`. */
+  navigation: NavigationMode;
+  /** An experiment's decision interval for a local brain; null for the default. */
+  intervalMs: number | null;
+  /** Injected answer delay for a local brain, ms. Never applied to Jev. */
+  latencyMs: number;
 }
 
 const TICK_MS = 50;
@@ -166,6 +204,9 @@ const AUDIT_CONE_DEG = 10;
 
 const _eye = new THREE.Vector3();
 const _chest = new THREE.Vector3();
+const _navFrom = new THREE.Vector3();
+const _shift = new THREE.Vector3();
+const _navDir = new THREE.Vector3();
 const _to = new THREE.Vector3();
 
 interface ReplayState {
@@ -181,9 +222,14 @@ class Pilot {
   readonly executor = new ActionExecutor();
   /** The local tracking controller. Runs only in precision control. */
   readonly motor = new PrecisionMotorController();
+  /** The local walking controller. Runs only under places navigation. */
+  readonly navigator = new PlaceNavigator();
   readonly perception = new Perception();
   readonly recorder = new TraceRecorder();
   readonly metrics = new PilotMetrics();
+  /** What the seat perceived against what happened. Kept for every seat. */
+  readonly debrief = new Debrief();
+  private debriefDt = 0;
   readonly telemetry: PilotTelemetry = {
     brain: "human",
     label: "HUMAN",
@@ -205,6 +251,8 @@ class Pilot {
     traceRecords: 0,
     control: "direct",
     motor: this.motor.telemetry,
+    navigation: "steps",
+    nav: this.navigator.telemetry,
     shots: 0,
     hits: 0,
     kills: 0,
@@ -219,12 +267,23 @@ class Pilot {
   private brain: BrainKind = "human";
   private options: BrainOptions = {
     seed: 0,
+    policy: "marksman",
     fallback: null,
     trace: null,
     control: "direct",
+    navigation: "steps",
+    intervalMs: null,
+    latencyMs: 0,
   };
+  /** The interface the seat is actually running, after negotiation. */
+  private negotiated: Negotiated | null = null;
+  /** What was asked for, before negotiation: the idempotence key. */
+  private requested: BrainOptions = { ...this.options };
   /** The entities behind each observation's target slots, by sequence. Never sent. */
   private readonly slots = new Map<number, EntityId[]>();
+  /** The world points behind each observation's place slots, by sequence. Never sent. */
+  private readonly placeSlots = new Map<number, FoundPlace[]>();
+  private readonly navSense: NavSense;
   private auditPhase = 0;
   private readonly sense: MotorSense;
   /** This simulation step's length, for the weapon-readiness lookahead. */
@@ -251,6 +310,8 @@ class Pilot {
    * every observation after it.
    */
   private readonly lifetime = { shots: 0, hits: 0, damageTaken: 0 };
+  /** The event time of the last damaging round, to count each round once. */
+  private lastHitEventTime: number | null = null;
   private timer: number | null = null;
   private lastX = 0;
   private lastZ = 0;
@@ -261,6 +322,38 @@ class Pilot {
     this.executor.onFrameEnd = (frame, reason, simTime) =>
       this.finishFrame(frame, reason, simTime);
     this.sense = this.createSense();
+    this.navSense = {
+      now: 0,
+      x: 0,
+      z: 0,
+      yaw: 0,
+      probe: (dirX, dirZ, range) => {
+        const world = game.world;
+        if (!world) return null;
+        const p = game.player.position;
+        _navFrom.set(p.x, p.y + 0.9, p.z);
+        _navDir.set(dirX, 0, dirZ);
+        const hit = world.raycast(
+          _navFrom,
+          _navDir,
+          range,
+          MASK_MOVEMENT,
+          game.player.id,
+        );
+        return hit ? hit.distance : null;
+      },
+    };
+    this.navigator.events = {
+      onGo: (kind) => this.metrics.onPlaceChosen(kind),
+      onRelease: (reason, kind, seconds) => {
+        this.metrics.onPlaceReleased(reason, seconds);
+        this.recorder.event({
+          kind: "travel_ended",
+          sequence: null,
+          detail: `${kind}: ${reason} after ${seconds.toFixed(1)} s`,
+        });
+      },
+    };
     this.motor.events = {
       onBind: (_id, switched) => this.metrics.onBind(switched),
       onRelease: (id, reason) => {
@@ -316,6 +409,7 @@ class Pilot {
       spreadDeg: (stance, speed, airborne) =>
         rigState.weapon ? rigState.weapon.spreadDeg(stance, speed, airborne) : 90,
     };
+    const apparent: MotorBody = { stance: "stand", position: new THREE.Vector3() };
     const sense: MotorSense = {
       now: 0,
       eye: new THREE.Vector3(),
@@ -334,13 +428,29 @@ class Pilot {
         if (!actor || !actor.alive || actor.team !== OPPOSING_TEAM[game.player.team]) {
           return null;
         }
-        return actor;
+        // The body the seat sees: displaced by the heat shimmer at range, as
+        // it is drawn for a person. Rounds still meet the real one.
+        apparent.stance = actor.stance;
+        apparent.position
+          .copy(actor.position)
+          .add(mirageOffset(sense.eye, actor.position, actor.id, game.time, _shift));
+        return apparent;
       },
       sightline: (id, point) => {
         const world = game.world;
         return world ? world.hasLineOfSight(sense.eye, point, MASK_SIGHT, id) : false;
       },
     };
+    return sense;
+  }
+
+  private refreshNavSense(): NavSense {
+    const sense = this.navSense;
+    const player = game.player;
+    sense.now = game.time;
+    sense.x = player.position.x;
+    sense.z = player.position.z;
+    sense.yaw = player.yaw;
     return sense;
   }
 
@@ -393,18 +503,54 @@ class Pilot {
 
   /** Put a brain (or the human) in the seat. Idempotent for the same settings. */
   setBrain(brain: BrainKind, options: BrainOptions): void {
+    const previous = this.requested;
     if (
       brain === this.brain &&
-      options.seed === this.options.seed &&
-      options.fallback === this.options.fallback &&
-      options.trace === this.options.trace &&
-      options.control === this.options.control
+      options.seed === previous.seed &&
+      options.policy === previous.policy &&
+      options.fallback === previous.fallback &&
+      options.trace === previous.trace &&
+      options.control === previous.control &&
+      options.navigation === previous.navigation &&
+      options.intervalMs === previous.intervalMs &&
+      options.latencyMs === previous.latencyMs
     ) {
       return;
     }
     this.release();
     this.brain = brain;
-    this.options = options;
+    // What the seat runs is what both sides support. The simulation's rules do
+    // not depend on it; which axes are asked, how often, and which local
+    // controllers execute do.
+    const local = brain === "random" || brain === "script";
+    const capabilities: Capabilities =
+      brain === "jev"
+        ? JEV_CAPABILITIES
+        : brain === "replay" && options.trace
+          ? {
+              ...LOCAL_POLICY_CAPABILITIES,
+              control: [options.trace.header.control],
+              navigation: [options.trace.header.navigation],
+            }
+          : LOCAL_POLICY_CAPABILITIES;
+    const negotiated =
+      brain === "human"
+        ? null
+        : negotiate(capabilities, {
+            control: options.control,
+            navigation: options.navigation,
+            intervalMs: local ? options.intervalMs : null,
+          });
+    this.negotiated = negotiated;
+    this.options = negotiated
+      ? {
+          ...options,
+          control: negotiated.control,
+          navigation: negotiated.navigation,
+          latencyMs: local ? options.latencyMs : 0,
+        }
+      : options;
+    this.requested = options;
     this.failure = null;
     this.fallbackActive = false;
     this.telemetry.service = null;
@@ -413,6 +559,7 @@ class Pilot {
     this.telemetry.seed = options.seed;
     this.telemetry.fallback = options.fallback;
     this.telemetry.control = options.control;
+    this.telemetry.navigation = options.navigation;
 
     if (brain === "human") {
       this.stopTimer();
@@ -433,10 +580,16 @@ class Pilot {
         this.failure = { kind: "invalid", detail: "No compatible trace is loaded." };
       }
     } else {
-      const primary =
+      const inner =
         brain === "jev"
           ? new JevHttpProvider(this.session)
-          : new RandomProvider(options.seed);
+          : brain === "script"
+            ? new ScriptedProvider(options.policy)
+            : new RandomProvider(options.seed);
+      const primary =
+        brain !== "jev" && this.options.latencyMs > 0
+          ? new DelayedProvider(inner, this.options.latencyMs)
+          : inner;
       const fallback =
         brain === "jev" && options.fallback === "random"
           ? new RandomProvider((options.seed ^ 0x9e3779b9) >>> 0)
@@ -445,6 +598,7 @@ class Pilot {
         primary,
         fallback,
         clock: browserClock,
+        minIntervalMs: negotiated?.intervalMs,
         onDecision: (decision) => this.accept(decision),
         onEvent: (event) => this.onLoopEvent(event),
       });
@@ -483,8 +637,10 @@ class Pilot {
     this.probe?.abort();
     this.probe = null;
     this.slots.clear();
+    this.placeSlots.clear();
     this.executor.clear(this.input, game.time);
     this.motor.reset();
+    this.navigator.reset();
   }
 
   private checkService(): void {
@@ -508,6 +664,7 @@ class Pilot {
     const store = useGameStore.getState();
     this.matchId = `${store.matchSeed.toString(16)}-${Date.now().toString(36)}`;
     this.metrics.reset(game.player.kills, game.player.deaths, performance.now());
+    this.debrief.reset();
     this.labelMetrics();
     this.lastEnded = null;
     this.lastExecutedSequence = 0;
@@ -515,8 +672,18 @@ class Pilot {
     if (this.brain !== "human") {
       this.recorder.begin({
         brain: this.brain,
+        policy: this.brain === "script" ? this.options.policy : null,
         seed: this.options.seed,
         control: this.options.control,
+        navigation: this.options.navigation,
+        interface: this.negotiated
+          ? {
+              intervalMs: this.negotiated.intervalMs,
+              injectedLatencyMs: this.options.latencyMs,
+              inference: this.negotiated.inference,
+              notes: this.negotiated.notes,
+            }
+          : null,
         mode: store.mode,
         matchId: this.matchId,
         startedAt: new Date().toISOString(),
@@ -531,6 +698,7 @@ class Pilot {
   /** Restart the statistics from now, keeping the brain, trace and match. */
   resetMetrics(): void {
     this.metrics.reset(game.player.kills, game.player.deaths, performance.now());
+    this.debrief.reset();
     this.labelMetrics();
   }
 
@@ -541,15 +709,24 @@ class Pilot {
     metrics.control = this.brain === "human" ? "none" : this.options.control;
     metrics.profile =
       this.brain === "human" ? useGameStore.getState().playerProfile : "n/a";
+    const store = useGameStore.getState();
+    metrics.navigation =
+      this.brain === "human"
+        ? "none"
+        : this.options.navigation === "places" && store.placeOrder === "shuffled"
+          ? "places-shuffled"
+          : this.options.navigation;
+    metrics.intervalMs = this.negotiated?.intervalMs ?? null;
+    metrics.injectedLatencyMs = this.brain === "human" ? 0 : this.options.latencyMs;
+    metrics.seat = useGameStore.getState().seatRules;
   }
 
   /** Current metrics, from the player's own kill and death counters. */
   episode(): EpisodeMetrics {
-    return this.metrics.snapshot(
-      game.player.kills,
-      game.player.deaths,
-      performance.now(),
-    );
+    return {
+      ...this.metrics.snapshot(game.player.kills, game.player.deaths, performance.now()),
+      debrief: this.debrief.summary(),
+    };
   }
 
   /* ---------------------------------------------------------------- */
@@ -593,6 +770,8 @@ class Pilot {
             : (this.lastEnded?.outcome ?? null),
           control: this.options.control,
           trackedId: this.motor.targetId,
+          navigation: this.options.navigation,
+          travel: this.navigator.target,
         });
         this.rememberSlots(sequence);
         return observation;
@@ -604,17 +783,19 @@ class Pilot {
 
   private rememberSlots(sequence: number): void {
     this.slots.set(sequence, [...this.perception.lastTargetIds]);
+    this.placeSlots.set(sequence, [...this.perception.lastPlaces]);
     for (const key of this.slots.keys()) {
       if (key <= sequence - SLOT_MEMORY) this.slots.delete(key);
+    }
+    for (const key of this.placeSlots.keys()) {
+      if (key <= sequence - SLOT_MEMORY) this.placeSlots.delete(key);
     }
   }
 
   private accept(decision: AcceptedDecision): void {
     const source: DecisionSource = decision.fallback
       ? "fallback-random"
-      : decision.provider === "jev"
-        ? "jev"
-        : "random";
+      : decision.provider;
     const counters = this.metrics.counters;
     counters.accepted += 1;
     this.fallbackActive = decision.fallback;
@@ -753,10 +934,12 @@ class Pilot {
     if (this.wasAlive && !player.alive) {
       this.lifeId += 1;
       this.metrics.onDeath();
+      this.recordDeath(simTime);
       this.loop?.abandon();
       this.pending = null;
       this.executor.clear(this.input, simTime);
       this.motor.reset();
+      this.navigator.reset();
       if (this.active) {
         this.recorder.event({ kind: "death", sequence: null, detail: game.hud.killedBy });
       }
@@ -785,9 +968,12 @@ class Pilot {
             (this.fallbackActive || this.executing?.source === "fallback-random"),
         );
         this.auditPhase = (this.auditPhase + 1) % AUDIT_STRIDE;
+        this.debriefDt += dt;
         if (this.auditPhase === 0) {
           const audit = this.auditNearest();
           if (audit) this.metrics.onAimAudit(audit.errorDeg);
+          this.debrief.sample(simTime, this.debriefDt, this.senseEnemies());
+          this.debriefDt = 0;
         }
       }
     }
@@ -804,6 +990,7 @@ class Pilot {
     if (!playing || !player.alive) {
       if (this.executor.current) this.executor.clear(this.input, simTime);
       this.motor.reset();
+      this.navigator.reset();
       this.pending = null;
       this.updateTelemetry();
       return null;
@@ -822,6 +1009,13 @@ class Pilot {
       stance: player.stance,
       fireMode: rigState.fireMode,
     });
+    if (this.options.navigation === "places") {
+      // The navigator walks toward the chosen place, overwriting only the
+      // movement axes and sprint. With no destination it changes nothing.
+      const frame = this.executor.current;
+      const firing = frame ? WEAPON_INPUT[frame.weapon].fire : false;
+      this.navigator.apply(this.input, this.refreshNavSense(), firing);
+    }
     if (this.options.control === "precision") {
       // The executor has written the brain's frame; the tracking controller
       // now executes its engagement part. With nothing bound it changes nothing.
@@ -851,7 +1045,7 @@ class Pilot {
    * feeds can be compared across them. Sight is tested exactly as perception
    * tests it.
    */
-  private auditNearest(): { errorDeg: number; rangeM: number } | null {
+  private auditNearest(): { errorDeg: number; rangeM: number; id: EntityId } | null {
     const world = game.world;
     if (!world) return null;
     const player = game.player;
@@ -859,7 +1053,7 @@ class Pilot {
     eyePosition(player, _eye);
     const aim = game.cameraForward;
     if (aim.lengthSq() < 1e-8) return null;
-    let best: { errorDeg: number; rangeM: number } | null = null;
+    let best: { errorDeg: number; rangeM: number; id: EntityId } | null = null;
     for (const other of game.actors) {
       if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
       const chest = aimRegionGeometry("UPPER_CHEST", other.stance);
@@ -870,9 +1064,90 @@ class Pilot {
       const error = (_to.angleTo(aim) * 180) / Math.PI;
       if (error > AUDIT_CONE_DEG || (best && error >= best.errorDeg)) continue;
       if (!world.hasLineOfSight(_eye, _chest, MASK_SIGHT, other.id)) continue;
-      best = { errorDeg: error, rangeM: range };
+      best = { errorDeg: error, rangeM: range, id: other.id };
     }
     return best;
+  }
+
+  /**
+   * For the debrief: every living enemy within sight range, whether the seat
+   * can see it (perception's own rule, `sightOf`) and whether it holds a
+   * sight line to the seat's chest (whichever way it faces).
+   */
+  private senseEnemies(): EnemySample[] {
+    const player = game.player;
+    const world = game.world;
+    const out: EnemySample[] = [];
+    if (!world) return out;
+    const enemyTeam = OPPOSING_TEAM[player.team];
+    eyePosition(player, _eye);
+    const aim = game.cameraForward;
+    const aimYaw = forwardToYaw(aim.x, aim.z);
+    const aimPitch = Math.asin(THREE.MathUtils.clamp(aim.y, -1, 1));
+    const fov = {
+      h: rigState.horizontalFovDeg / 2,
+      v: Math.max(10, game.cameraFov / 2),
+    };
+    _chest.set(
+      player.position.x,
+      player.position.y + HUMAN_METRICS.eyeHeight[player.stance] - 0.35,
+      player.position.z,
+    );
+    for (const other of game.actors) {
+      if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+      if (other.position.distanceTo(player.position) > 165) continue;
+      const inView = sightOf(_eye, aimYaw, aimPitch, fov, other) !== null;
+      eyePosition(other, _to);
+      const exposedTo = world.hasLineOfSight(_to, _chest, MASK_SIGHT, player.id);
+      out.push({ id: other.id, inView, exposedTo });
+    }
+    return out;
+  }
+
+  private recordDeath(simTime: number): void {
+    const player = game.player;
+    const attacker =
+      player.lastAttackerId !== null ? game.actorById.get(player.lastAttackerId) : null;
+    const killer = attacker && !attacker.isPlayer ? attacker : null;
+    // Cover within reach: anything standing within 10 m at waist height.
+    let openGround = true;
+    const world = game.world;
+    if (world) {
+      _eye.set(player.position.x, player.position.y + 0.9, player.position.z);
+      for (let i = 0; i < 8 && openGround; i += 1) {
+        yawToForward((i / 8) * Math.PI * 2, _to);
+        if (world.raycast(_eye, _to, 10, MASK_MOVEMENT, player.id)) openGround = false;
+      }
+    }
+    let place: string | null = null;
+    let nearest = Infinity;
+    for (const zone of GROUND_ZONES) {
+      const d =
+        Math.hypot(
+          zone.position[0] - player.position.x,
+          zone.position[1] - player.position.z,
+        ) - zone.radius;
+      if (d < nearest) {
+        nearest = d;
+        place = zone.name;
+      }
+    }
+    const record = this.debrief.onDeath(
+      simTime,
+      killer ? { id: killer.id, name: killer.name } : null,
+      {
+        rangeM: killer ? killer.position.distanceTo(player.position) : null,
+        openGround,
+        place,
+      },
+    );
+    if (this.active) {
+      this.recorder.event({
+        kind: "debrief",
+        sequence: null,
+        detail: `${record.cls}${record.killer ? ` by ${record.killer}` : ""}${record.rangeM === null ? "" : ` at ${Math.round(record.rangeM)} m`}${record.openGround ? " on open ground" : ""}`,
+      });
+    }
   }
 
   /** After the rig has consumed the step, clear one-shot edges and look deltas. */
@@ -895,6 +1170,30 @@ class Pilot {
         simTime,
       );
       if (next.record) next.record.engagement = { targetBound: id !== undefined };
+    }
+    if (this.options.navigation === "places") {
+      const go = next.frame.go;
+      if (go === "NONE") {
+        this.navigator.clear(simTime);
+      } else if (go === "CONTINUE") {
+        this.navigator.confirm(simTime);
+      } else {
+        const slot = placeSlot(go);
+        const place =
+          slot === null ? undefined : this.placeSlots.get(next.sequence)?.[slot];
+        // A slot whose observation has been forgotten binds nothing.
+        if (place) {
+          this.navigator.go(place, simTime, {
+            x: player.position.x,
+            z: player.position.z,
+          });
+        }
+        if (next.record)
+          next.record.travel = {
+            placeBound: place !== undefined,
+            kind: place?.kind ?? null,
+          };
+      }
     }
     this.executing = {
       sequence: next.sequence,
@@ -1016,6 +1315,8 @@ class Pilot {
         previousOutcome: null,
         control: "precision",
         trackedId: this.motor.targetId,
+        navigation: this.options.navigation,
+        travel: this.navigator.target,
       });
       this.rememberSlots(sequence);
     }
@@ -1043,7 +1344,10 @@ class Pilot {
     this.lifetime.shots += 1;
     this.metrics.onShot();
     const audit = this.auditNearest();
-    if (audit) this.metrics.onShotAudit(audit.errorDeg, audit.rangeM);
+    if (audit) {
+      this.metrics.onShotAudit(audit.errorDeg, audit.rangeM);
+      this.debrief.onEngaged(audit.id);
+    }
     const weapon = rigState.weapon;
     if (this.active && this.options.control === "precision" && weapon) {
       this.motor.onShot(weapon.lastPatternKickDeg);
@@ -1057,10 +1361,25 @@ class Pilot {
     amount: number,
     region: HitRegion | null = null,
     victimId: EntityId | null = null,
+    killed = false,
+    eventTime: number | null = null,
   ): void {
     if (attackerIsPlayer && !victimIsPlayer) {
-      this.lifetime.hits += 1;
-      this.metrics.onHit(amount, region);
+      // One round can strike two hitboxes (it passes through an arm into the
+      // chest); it is still one round that hit. Damage and regions count every
+      // strike, the hit count counts the round once.
+      const newRound = eventTime === null || eventTime !== this.lastHitEventTime;
+      this.lastHitEventTime = eventTime;
+      if (newRound) this.lifetime.hits += 1;
+      this.metrics.onHit(amount, region, newRound);
+      if (killed && victimId !== null) {
+        const victim = game.actorById.get(victimId);
+        this.debrief.onKill(
+          game.time,
+          victimId,
+          victim ? victim.position.distanceTo(game.player.position) : null,
+        );
+      }
       if (victimId !== null) {
         const seconds = this.motor.noteHit(victimId, game.time);
         if (seconds !== null) this.metrics.onFirstHit(seconds);
@@ -1081,6 +1400,7 @@ class Pilot {
     const executing = this.executing;
     t.brain = this.brain;
     t.control = this.options.control;
+    t.navigation = this.options.navigation;
     t.shots = this.metrics.shotsFired;
     t.hits = this.metrics.hits;
     t.kills = game.player.kills - this.metrics.killsAtStart;
@@ -1097,11 +1417,13 @@ class Pilot {
         ? "HUMAN"
         : this.brain === "random"
           ? "RANDOM"
-          : this.brain === "replay"
-            ? "REPLAY"
-            : this.fallbackActive || executing?.source === "fallback-random"
-              ? "FALLBACK"
-              : "LIVE JEV";
+          : this.brain === "script"
+            ? "SCRIPTED"
+            : this.brain === "replay"
+              ? "REPLAY"
+              : this.fallbackActive || executing?.source === "fallback-random"
+                ? "FALLBACK"
+                : "LIVE JEV";
     t.status = this.status();
   }
 

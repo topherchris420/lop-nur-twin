@@ -238,7 +238,7 @@ Three things that will bite anyone extending this:
 
 ## The player seat (`src/game/pilot/`)
 
-`/play?brain=human|jev|random|replay` chooses who drives the player. The rule
+`/play?brain=human|jev|random|script|replay` chooses who drives the player. The rule
 the whole directory exists to keep is in `docs/JEV_BLACKSITE.md`: a brain
 _chooses_ controls; Blacksite decides what they do. Read that document before
 changing anything here.
@@ -257,8 +257,39 @@ changing anything here.
   sight loss, outage or takeover. `authority.test.ts` fails if any control-layer
   file queues damage, writes a collider, health or weapon state, moves a body,
   fires a weapon or touches the camera — add new control files to its list.
-  Every episode, trace and benchmark names its `control` and `profile`; never
-  report a precision result as the brain's aim alone.
+  Every episode, trace and benchmark names its `control`, `navigation`,
+  interval and `profile`; never report a precision result as the brain's aim
+  alone.
+- **Places are the feet's precision control.** Under `jevNav=places` the
+  observation lists up to four places (`places.ts`: cover from the threats the
+  observation reports, a way nearer, round, back, the objective) with facts,
+  never coordinates; a brain names one and `navigator.ts` walks there by
+  writing `moveX`, `moveY` and `sprint` only. It never turns the view, never
+  picks a destination, and lets go on arrival, no progress, or 1.5 s without
+  confirmation. "Hidden" means hidden from _known_ threats — the finder must
+  never consult a bot, a spawn or anything the observation did not report.
+- **Negotiate, do not special-case.** `capabilities.ts` is where a brain says
+  what it can use and the host says what it accepts. A new model or adapter
+  declares capabilities; it does not get a branch in `pilot.ts`. The host
+  deliberately accepts more than today's remote model can use at speed.
+  `?cadence=`/`?latency=` apply to local brains only; Jev's latency is never
+  altered, and an injected delay is recorded in every report it touches.
+- **One set of senses.** What the human's HUD shows about enemies is what a
+  brain's observation may contain: gunfire within `HEARING_RANGE_M`, the hit
+  direction, teammates within `RADAR_RANGE_M`. A HUD element that reveals an
+  enemy the observation would not (a bracket through a wall, a ping from
+  400 m) breaks every human-versus-model comparison; add it to both or to
+  neither. The ESP overlay, UAV camera and sensor modes were removed for this.
+- **The debrief is after-action, and for every seat.** `debrief.ts` classes
+  deaths by what the seat perceived (`sightOf`, perception's own rule) against
+  what the simulation did. It reads authoritative state — that is its job —
+  so it must never feed an observation.
+- **Scripted policies are measuring instruments.** `policies.ts` holds
+  hand-written players (`marksman`, `skirmisher`) that read the same
+  observation and choose only legal options. They are labelled SCRIPTED and
+  claim no probabilities. When a model's result looks like a strategy, write
+  the strategy down as a policy and run it on the same seeds: if the script
+  matches the model, the finding is about the game.
 - **Hitboxes have one definition.** `characters/hitboxSpecs.ts` builds the
   colliders and feeds the aim geometry; a test pins the numbers. Changing a box
   changes every shooter, so it is a gameplay change, not a controller tweak.
@@ -278,9 +309,10 @@ changing anything here.
   enemy only inside the camera's field of view, within sight range, with a
   clear line to the head or chest. Anything else arrives the way it reaches a
   human: a gunfire ping, a damage direction, a remembered last-seen position.
-- **`contract.ts`, `observation.ts` and `decision.ts` are shared with the
-  server.** `@vercel/node` compiles each file on its own and keeps import
-  specifiers, so those three and everything under `server/` import siblings
+- **`contract.ts`, `observation.ts`, `decision.ts`, `hitGeometry.ts` and
+  `capabilities.ts` are shared with the server.** `@vercel/node` compiles each
+  file on its own and keeps import specifiers, so those and everything under
+  `server/` import siblings
   as `./x.js` and never through the `@/` alias — an extensionless import
   builds, typechecks and then fails at runtime with `ERR_MODULE_NOT_FOUND`.
 - **The key never reaches the browser.** Only `api/jev/decision.ts` and the
@@ -310,6 +342,38 @@ changing anything here.
   the only model it saw was the test double. Anything that spends credit
   (`jev:live`, `benchmark:jev`) refuses to start without `JEV_LIVE_TEST=1`.
 
+### Recipe: measure a change to `/play`
+
+A gameplay change is not done when it compiles; it is done when a matched
+experiment says what it did.
+
+1. Write the question down as an experiment file in `tools/experiments/`: a
+   hypothesis, the deciding metric, seeds, length, and the arms (brain,
+   policy, control, `query` for anything else). Include an arm that should
+   _not_ change, as a control.
+2. Serve the old build from a worktree on another port:
+   `git worktree add /tmp/before <commit>` and `vite --port 5174` inside it.
+3. Run the same file against both builds, one arm at a time:
+   `node tools/experiment.mjs tools/experiments/x.json --origin http://localhost:5174 --out shots/experiments/x-before`,
+   then again against the current dev server.
+4. `node tools/experiment.mjs --compare before/experiment.json after/experiment.json`.
+
+Run arms sequentially. Two headless pages share one software GPU; when the
+simulation falls behind real time the benchmark flags the episode (`pacing`)
+because decisions are paced in wall time. Same-seed runs still differ from
+each other — frame pacing is not deterministic — so report every episode and
+do not read a single seed as a result.
+
+### Recipe: add a brain
+
+1. Implement `DecisionProvider` (`loop.ts`): take an observation, return a
+   frame of legal options, or a typed failure. Never throw at the loop.
+2. Declare its `Capabilities` (`capabilities.ts`) and add a `BrainKind`.
+3. Give it a label that tells the truth (`ControlLabel` in `pilot.ts`), and
+   record `null` wherever it has no probabilities.
+4. Add it to the benchmark's `--brain` list and run the matched experiments
+   against the existing seats.
+
 ## Verifying changes
 
 ```sh
@@ -337,7 +401,7 @@ bun run smoke                 # 22 checks; exits non-zero on failure
 bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
-bun run jev                   # 72 checks on the player seat; no API calls
+bun run jev                   # the player seat, places included; no API calls
 bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera

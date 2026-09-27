@@ -108,3 +108,18 @@ describe("benchmark aggregation", () => {
     expect(aggregateEpisodes([m.snapshot(4, 0, 0)]).killDeathRatio).toBeNull();
   });
 });
+
+describe("hits are rounds, not hitbox strikes", () => {
+  it("counts a round that passes through an arm into the chest once", () => {
+    const m = new PilotMetrics();
+    m.reset(0, 0, 0);
+    m.onShot();
+    m.onHit(20, "left_upper_arm" as never, true);
+    m.onHit(30, "chest", false);
+    const e = m.snapshot(0, 0, 0);
+    expect(e.hits).toBe(1);
+    expect(e.accuracy).toBe(1);
+    expect(e.damageDealt).toBe(50);
+    expect(e.shooting.upperChestHits).toBe(1);
+  });
+});

@@ -5,11 +5,10 @@ import { useGameStore, type GameScreen } from "../core/gameStore";
 import { game } from "../core/gameState";
 import { WEAPON_LIST, getWeapon } from "../weapons/arsenal";
 import { CombatHud } from "./CombatHud";
-import { SpatialIntelligenceOverlay } from "./SpatialIntelligenceOverlay";
-import { TacticalMapOverlay } from "./TacticalMapOverlay";
-import { spatialIntel } from "../core/spatialIntelligence";
 import { JevHud, PlayerControlSelector } from "./JevHud";
 import { PilotHost } from "../pilot/PilotHost";
+import { pilot } from "../pilot/pilot";
+import { DEATH_CLASS_TEXT } from "../pilot/debrief";
 
 /**
  * Screen shell: menus, killfeed and the in-game overlay.
@@ -188,11 +187,11 @@ function BootScreen({ onComplete }: { onComplete: () => void }) {
         <h1 className="text-8xl font-black uppercase tracking-[0.05em] text-white">
           Blacksite
         </h1>
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-500">
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-400">
           Lop Nur · First-Person Engagement Simulator
         </p>
       </div>
-      <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-400 animate-pulse">
+      <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-300">
         Press any key to continue
       </p>
     </div>
@@ -657,9 +656,75 @@ function PauseMenu() {
   );
 }
 
+function formatSeconds(seconds: number): string {
+  const whole = Math.round(seconds);
+  return whole >= 60 ? `${Math.floor(whole / 60)} min ${whole % 60} s` : `${whole} s`;
+}
+
+/**
+ * What the seat perceived, set against what happened — kept by the same rule
+ * for a person and for any brain (`pilot/debrief.ts`). "Seen" means exactly
+ * what a brain would have been told: in the field of view, within sight range,
+ * with a clear line to the head or chest.
+ */
+function Debrief() {
+  const d = pilot.debrief.summary();
+  const label = pilot.telemetry.label;
+  if (d.aliveSeconds < 1) return null;
+  const deaths = d.deaths;
+  const parts = (
+    [
+      [deaths.unseen, "to an enemy never seen"],
+      [deaths.seen_not_engaged, "seen, not engaged"],
+      [deaths.engaged, "exchange lost"],
+      [deaths.other, "no attacker"],
+    ] as const
+  )
+    .filter(([n]) => n > 0)
+    .map(([n, text]) => `${n} ${text}`);
+  return (
+    <section
+      aria-label="Debrief"
+      className="mx-auto mt-10 max-w-xl border-t border-white/10 pt-6 text-left text-[13px] leading-relaxed text-slate-300"
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-slate-500">
+        Debrief · {label}
+      </p>
+      <p className="mt-3">
+        Alive {formatSeconds(d.aliveSeconds)}; in an enemy&apos;s sight line{" "}
+        {d.exposedFraction === null ? "—" : `${Math.round(d.exposedFraction * 100)}%`} of
+        it, the longest stretch {formatSeconds(d.longestExposedS)}.
+      </p>
+      <p>
+        {deaths.total === 0
+          ? "No deaths."
+          : `${deaths.total} death${deaths.total === 1 ? "" : "s"}: ${parts.join(", ")}. ${deaths.onOpenGround} on open ground.`}
+        {d.kills.meanSightToKillS !== null
+          ? ` Kills came ${d.kills.meanSightToKillS.toFixed(1)} s after first sight.`
+          : ""}
+      </p>
+      {d.recentDeaths.length > 0 && (
+        <ol className="mt-3 space-y-0.5 font-mono text-[11px] text-slate-400">
+          {d.recentDeaths.slice(-4).map((death) => (
+            <li key={death.time}>
+              {death.killer ?? "—"}
+              {death.rangeM === null ? "" : ` · ${Math.round(death.rangeM)} m`} ·{" "}
+              {DEATH_CLASS_TEXT[death.cls]}
+              {death.openGround ? " · open ground" : ""}
+              {death.place ? ` · near ${death.place}` : ""}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function ResultsScreen() {
   const setScreen = useGameStore((s) => s.setScreen);
   const rerollMatchSeed = useGameStore((s) => s.rerollMatchSeed);
+  const replayMatchSeed = useGameStore((s) => s.replayMatchSeed);
+  const matchSeed = useGameStore((s) => s.matchSeed);
   const hud = game.hud;
   const player = game.player;
   const won = hud.scoreBlue > hud.scoreRed;
@@ -713,7 +778,9 @@ function ResultsScreen() {
           </div>
         </dl>
 
-        <div className="mx-auto mt-10 flex max-w-sm gap-3">
+        <Debrief />
+
+        <div className="mx-auto mt-10 flex max-w-lg gap-3">
           <TacticalButton
             primary
             onClick={() => {
@@ -725,8 +792,21 @@ function ResultsScreen() {
           >
             Rematch
           </TacticalButton>
+          <TacticalButton
+            onClick={() => {
+              // The same bots, weapons and spawns: the match someone — or
+              // something — else just played, for you to play.
+              replayMatchSeed();
+              setScreen("playing");
+            }}
+          >
+            Same seed
+          </TacticalButton>
           <TacticalButton onClick={() => setScreen("menu")}>Menu</TacticalButton>
         </div>
+        <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-slate-400">
+          SEED {matchSeed} · /play?seed={matchSeed}&amp;brain=jev hands this match to Jev
+        </p>
       </div>
     </Scrim>
   );
@@ -775,37 +855,13 @@ export function GameHud() {
       if (game.hud.gunfirePings) game.hud.gunfirePings.length = 0;
       if (game.hud.radioCallouts) game.hud.radioCallouts.length = 0;
       if (game.hud.scoreEvents) game.hud.scoreEvents.length = 0;
-      spatialIntel.tacticalMapActive = false;
-      spatialIntel.uavActive = false;
     }
-  }, [screen]);
-
-  // Global hotkey listener for Sensor Modes, Tactical Map, UAV & Target Locking
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!IN_MATCH.includes(screen)) return;
-
-      if (e.code === "KeyN") {
-        spatialIntel.cycleSensorMode();
-      } else if (e.code === "KeyM") {
-        spatialIntel.tacticalMapActive = !spatialIntel.tacticalMapActive;
-      } else if (e.code === "KeyU") {
-        spatialIntel.uavActive = !spatialIntel.uavActive;
-      } else if (e.code === "KeyO" || e.code === "KeyK") {
-        spatialIntel.cycleTarget();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [screen]);
 
   return (
     <>
       <PilotHost />
       {IN_MATCH.includes(screen) && <CombatHud />}
-      {IN_MATCH.includes(screen) && <SpatialIntelligenceOverlay />}
-      {IN_MATCH.includes(screen) && <TacticalMapOverlay />}
       {IN_MATCH.includes(screen) && <Killfeed />}
       {IN_MATCH.includes(screen) && <Scoreboard />}
       {screen === "playing" && <JevHud />}

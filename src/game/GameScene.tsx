@@ -12,16 +12,16 @@ import { GROUND_OVERLOOK } from "@/lib/layout";
 import { readFloatParam, readHeadingParam, readSitePointParam } from "@/lib/params";
 import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
+import { mirageState } from "./world/mirage";
 import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
-import { UavCamera } from "./render/UavCamera";
-import { spatialIntel } from "./core/spatialIntelligence";
 import { FxManager } from "./fx/combatFx";
-import { game, removeActor } from "./core/gameState";
+import { game, removeActor, resetPlayerForMatch } from "./core/gameState";
 import { useGameStore } from "./core/gameStore";
 import {
   damageObservers,
   resolveDamage,
+  seat,
   tickActorState,
   type KillReport,
 } from "./core/combat";
@@ -125,6 +125,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
   const botCount = useGameStore((s) => s.botCount);
   const botSkill = useGameStore((s) => s.botSkill);
   const matchSeed = useGameStore((s) => s.matchSeed);
+  const matchNonce = useGameStore((s) => s.matchNonce);
   const mode = useGameStore((s) => s.mode);
   const setScreen = useGameStore((s) => s.setScreen);
   const managers = useRef<{
@@ -134,6 +135,11 @@ function Combatants({ world }: { world: CollisionWorld }) {
   } | null>(null);
 
   useEffect(() => {
+    // Every match starts from the opening spawn with a clean score — the first
+    // one and every rematch alike. The nonce rebuilds on the same seed.
+    void matchNonce;
+    resetPlayerForMatch();
+    placeOpeningSpawn(world);
     const characters = new CharacterManager(world);
     const bots = new BotManager(world, {
       count: botCount,
@@ -184,7 +190,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
         (globalThis as { __combatSim?: unknown }).__combatSim = undefined;
       }
     };
-  }, [world, scene, botCount, botSkill, matchSeed, mode, setScreen]);
+  }, [world, scene, botCount, botSkill, matchSeed, matchNonce, mode, setScreen]);
 
   useFrame((_state, rawDelta) => {
     const held = managers.current;
@@ -268,8 +274,6 @@ function Simulation({ world, fx }: SimulationProps) {
     game.frame += 1;
 
     // Update central spatial intelligence architecture
-    spatialIntel.update(game.time, dt);
-
     if (playing) {
       resolveDamage(game.time, kills);
       for (const kill of kills) {
@@ -387,6 +391,24 @@ function AudioHost({ world }: { world: CollisionWorld | null }) {
  * composer's own AgX pass is in charge. This runs after `Atmosphere`'s effect
  * and pulls the non-composer tiers back in line with the top one.
  */
+/** The seat's rules, from `?seat=`: mercy for a person by default, or even. */
+function SeatRulesHost() {
+  const rules = useGameStore((s) => s.seatRules);
+  useEffect(() => {
+    seat.rules = rules;
+  }, [rules]);
+  return null;
+}
+
+/** Heat shimmer by day only: the lakebed is cold at night. */
+function MirageByDaylight() {
+  const night = useTwinStore((s) => s.night);
+  useEffect(() => {
+    mirageState.strength = night ? 0 : 1;
+  }, [night]);
+  return null;
+}
+
 function CombatExposure({ postEnabled }: { postEnabled: boolean }) {
   const gl = useThree((s) => s.gl);
   useEffect(() => {
@@ -564,8 +586,9 @@ function CombatWorld() {
       <CollisionBaker onBaked={handleBaked} />
       <FxHost onReady={handleFx} />
       <AudioHost world={world} />
+      <MirageByDaylight />
+      <SeatRulesHost />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
-      <UavCamera />
       {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />
       {post && (

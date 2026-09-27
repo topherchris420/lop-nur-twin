@@ -20,6 +20,7 @@ const frame = (overrides: Partial<ControlFrame> = {}): ControlFrame => ({
   weapon: "NO_FIRE",
   target: "NONE",
   aim: "CENTER_MASS",
+  go: "NONE",
   ...overrides,
 });
 const ctx = (

@@ -3,6 +3,7 @@
  * Repeatable episodes of Blacksite with a brain in the player's seat.
  *
  *   node tools/jev-benchmark.mjs --brain random --control direct [--episodes 3] [--seconds 90]
+ *   node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
  *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --control precision --episodes 3
  *
  * `--control direct|precision` is required, and every report names it. In
@@ -54,6 +55,14 @@ import {
 } from "./jev-harness.mjs";
 
 const brain = option("brain", "random");
+const policy = option("policy", "marksman");
+// Extra `/play` parameters for this run, e.g. `botSkill=0.6`. Only names the
+// page already reads through src/lib/params.ts do anything.
+const extraQuery = option("query", "");
+if (extraQuery && !/^[A-Za-z0-9_=&.,-]+$/.test(extraQuery)) {
+  console.error("--query takes plain name=value pairs joined by &");
+  process.exit(2);
+}
 const control = option("control", "");
 const episodes = Number(option("episodes", "3"));
 const seconds = Number(option("seconds", "90"));
@@ -63,11 +72,11 @@ const origin =
   process.argv.slice(2).find((a) => a.startsWith("http")) ?? "http://localhost:5173";
 const out = option(
   "out",
-  `shots/jev-benchmark-${brain}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+  `shots/jev-benchmark-${brain}${brain === "script" ? `-${policy}` : ""}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 
-if (!["random", "jev"].includes(brain)) {
-  console.error("--brain must be random or jev");
+if (!["random", "jev", "script"].includes(brain)) {
+  console.error("--brain must be random, script or jev");
   process.exit(2);
 }
 if (!["direct", "precision"].includes(control)) {
@@ -113,13 +122,15 @@ try {
     const { page, errors } = await openPlay(
       browser,
       origin,
-      `autoplay=1&quality=0&brain=${brain}&jevControl=${control}&seed=${seed}&mode=${mode}`,
+      `autoplay=1&quality=0&brain=${brain}&jevControl=${control}&seed=${seed}&mode=${mode}` +
+        (brain === "script" ? `&policy=${policy}` : "") +
+        (extraQuery ? `&${extraQuery}` : ""),
     );
     await waitForPilot(page);
     // Count the blue bots' damage through the same read-only tap the pilot uses.
     await page.evaluate(() => {
       const { game } = globalThis.__combat;
-      const bots = { dealt: 0, taken: 0, hits: 0, shots: 0 };
+      const bots = { dealt: 0, taken: 0, hits: 0, shots: 0, lastRound: "" };
       globalThis.__benchBots = bots;
       const team = game.player.team;
       // A bot fires at most one round a frame and stamps lastFireTime when it
@@ -143,7 +154,10 @@ try {
         ) {
           if (report.victim.team !== team) {
             bots.dealt += report.amount;
-            bots.hits += 1;
+            // One round can strike two hitboxes; count it once.
+            const key = `${report.attacker.id}:${report.eventTime}`;
+            if (key !== bots.lastRound) bots.hits += 1;
+            bots.lastRound = key;
           }
         }
         if (!report.victim.isPlayer && report.victim.team === team)
@@ -205,6 +219,20 @@ try {
       pageErrors: errors.slice(0, 5),
     });
     const m = metrics;
+    // Decisions are paced in wall time and the simulation in frames. When
+    // frames run slow (dt is clamped at 50 ms), simulated time falls behind
+    // real time and a brain gets more decisions per simulated second than it
+    // would in play — so an episode that lagged says so in its report.
+    const lagged = ran > 0 && wall / ran > 1.15;
+    results[results.length - 1].pacing = {
+      wallPerSimSecond: ran > 0 ? wall / ran : null,
+      lagged,
+    };
+    if (lagged) {
+      console.warn(
+        `  warning: simulation ran at ${((ran / wall) * 100).toFixed(0)}% of real time; decisions per simulated second were inflated. Run fewer pages at once.`,
+      );
+    }
     console.log(
       `episode ${i + 1}/${episodes} seed ${seed}: ${ran.toFixed(0)} s sim in ${wall.toFixed(0)} s wall · ` +
         `K ${m.kills} D ${m.deaths} · shots ${m.shotsFired} hits ${m.hits} · ` +
@@ -238,6 +266,8 @@ try {
   const report = {
     tool: "tools/jev-benchmark.mjs",
     brain,
+    policy: brain === "script" ? policy : null,
+    query: extraQuery || null,
     control,
     controlNote:
       control === "precision"
@@ -312,6 +342,20 @@ try {
     );
     console.log(
       `  decision → first controller step: ${dist(m.executionLatencyMs, 1, " ms")}`,
+    );
+  }
+  if (a.places) {
+    const p = a.places;
+    console.log(
+      `  places: ${p.chosen} chosen ${JSON.stringify(p.byKind)} · ended ${JSON.stringify(p.releases)} · travel ${dist(p.travelS, 1, " s")}`,
+    );
+  }
+  if (a.debrief) {
+    const d = a.debrief;
+    console.log(
+      `  debrief: in an enemy's sight line ${d.exposedFraction === null ? "n/a" : `${(d.exposedFraction * 100).toFixed(0)}%`} of the time alive (longest ${fmt(d.longestExposedS, 1)} s) · ` +
+        `deaths ${d.deaths.total}: never seen ${d.deaths.unseen}, seen not engaged ${d.deaths.seen_not_engaged}, engaged ${d.deaths.engaged}, on open ground ${d.deaths.onOpenGround} · ` +
+        `first sight to kill ${fmt(d.kills.meanSightToKillS, 2)} s`,
     );
   }
   if (a.fallbackSeconds > 0)

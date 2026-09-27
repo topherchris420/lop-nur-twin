@@ -115,6 +115,9 @@ for (const route of ROUTES) {
     console.log(`   - [${violation.impact}] ${violation.id}: ${violation.help}`);
     for (const node of violation.nodes.slice(0, 3)) {
       console.log(`       ${node.target.join(" ")}`);
+      // Why it failed, in axe's words (for contrast: the measured ratio).
+      const reason = node.any?.[0]?.message ?? node.all?.[0]?.message;
+      if (reason) console.log(`         ${reason.split("\n")[0].slice(0, 200)}`);
     }
     if (violation.nodes.length > 3) {
       console.log(`       …and ${violation.nodes.length - 3} more node(s)`);

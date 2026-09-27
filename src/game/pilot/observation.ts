@@ -4,6 +4,7 @@ import {
   AXIS_ACTIONS,
   CONTROL_MODES,
   CORE_AXES,
+  NAVIGATION_MODES,
   OBSERVATION_SCHEMA_VERSION,
   PITCH_LIMIT_DEG,
   isAxisAction,
@@ -11,7 +12,9 @@ import {
   type Axis,
   type ControlFrame,
   type ControlMode,
+  type GoAction,
   type MoveAction,
+  type NavigationMode,
   type TargetAction,
   type TiltAction,
   type TurnAction,
@@ -70,16 +73,60 @@ export const FIRE_MODES = ["auto", "semi", "burst", "bolt", "pump"] as const;
 export const CONTACT_SOURCES = ["gunfire", "last_seen"] as const;
 export const OBJECTIVE_KINDS = ["none", "zone", "hardpoint"] as const;
 export const OBJECTIVE_STATES = ["neutral", "friendly", "enemy", "contested"] as const;
+/**
+ * The kinds of place the host lists under places navigation. Each is defined
+ * by geometry and by the threats the observation already reports — nothing a
+ * brain could not in principle work out from what it was shown:
+ *
+ *  - `cover` — the nearest reachable point that no known threat can see a
+ *    crouched body at;
+ *  - `advance` — such a point, nearer the nearest known threat;
+ *  - `flank` — such a point, to one side of the line to that threat;
+ *  - `withdraw` — such a point, further from it;
+ *  - `objective` — the objective zone, whatever can see it.
+ */
+export const PLACE_KINDS = [
+  "cover",
+  "advance",
+  "flank",
+  "withdraw",
+  "objective",
+] as const;
 
 /** Caps, so the state a brain reads (and the request the server accepts) stays small. */
 export const MAX_VISIBLE_ENEMIES = 4;
 export const MAX_CONTACTS = 3;
+export const MAX_PLACES = 4;
 /** Probes report obstacles out to this range; beyond it a direction is "clear". */
 export const OBSTACLE_PROBE_M = 8;
 /** Enemies further than this are not reported as visible (the bots' sight range). */
 export const SIGHT_RANGE_M = 165;
+/**
+ * Gunfire further than this is not heard — the bots' hearing range, and the
+ * HUD's: the radar and compass draw a shot only inside it, so a person and a
+ * brain hear the same shots.
+ */
+export const HEARING_RANGE_M = 115;
+/** The radar's radius. Teammates inside it are on the HUD, so in the observation too. */
+export const RADAR_RANGE_M = 145;
+export const MAX_ALLIES = 3;
 
 export type GameModeName = (typeof GAME_MODES)[number];
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
+export interface Place {
+  kind: PlaceKind;
+  /** Degrees from the crosshair to the place, clockwise-positive. */
+  bearingDeg: number;
+  /** Straight-line metres from the player. */
+  distanceM: number;
+  /** No known threat has a sight line to a crouched body there. */
+  hidden: boolean;
+  /** Metres of the straight route that stand in some known threat's sight. */
+  routeExposedM: number;
+  /** Metres from the place to the nearest known threat; null when none is known. */
+  threatDistanceM: number | null;
+}
 export type ContactSource = (typeof CONTACT_SOURCES)[number];
 
 export interface VisibleEnemy {
@@ -131,6 +178,8 @@ export interface LegalActions {
   target: TargetAction[];
   /** Only CENTER_MASS when there is nothing to aim at. */
   aim: AimAction[];
+  /** Only NONE under steps navigation, or with no place listed and no travel under way. */
+  go: GoAction[];
 }
 
 export interface JevObservation {
@@ -139,6 +188,8 @@ export interface JevObservation {
   sequence: number;
   /** Who turns the view: the brain in steps, or the local tracking controller. */
   control: ControlMode;
+  /** Who walks the body: the brain in steps, or the local navigator to a place. */
+  navigation: NavigationMode;
   match: {
     mode: GameModeName;
     phase: (typeof MATCH_PHASES)[number];
@@ -188,7 +239,13 @@ export interface JevObservation {
       /** The obstacle ahead is low enough to climb (clear at head height). */
       forwardClimbable: boolean;
     };
+    /** Places navigation only; otherwise empty. At most `MAX_PLACES`, nearest first. */
+    places: Place[];
+    /** Living teammates inside radar range, nearest first — what the radar shows. */
+    allies: { bearingDeg: number; distanceM: number }[];
   };
+  /** The place the navigator is taking the body to, while it is. */
+  travel: { kind: PlaceKind; bearingDeg: number; remainingM: number } | null;
   objective: {
     kind: (typeof OBJECTIVE_KINDS)[number];
     bearingDeg: number | null;
@@ -219,7 +276,13 @@ export function legalActionsFor(
     JevObservation["weapon"],
     "ammo" | "magSize" | "reserve" | "reloading" | "canFire"
   >,
-  engagement: { control: ControlMode; visibleEnemies: number } = {
+  engagement: {
+    control: ControlMode;
+    visibleEnemies: number;
+    navigation?: NavigationMode;
+    places?: number;
+    travelling?: boolean;
+  } = {
     control: "direct",
     visibleEnemies: 0,
   },
@@ -267,7 +330,18 @@ export function legalActionsFor(
       : 0;
   const target = AXIS_ACTIONS.target.slice(0, 1 + slots);
   const aim = slots > 0 ? [...AXIS_ACTIONS.aim] : AXIS_ACTIONS.aim.slice(0, 1);
-  return { move, turn, tilt, weapon: weaponActions, target, aim };
+  // Places exist only under places navigation, and only those actually listed;
+  // CONTINUE only while the navigator is taking the body somewhere.
+  const placesNav = engagement.navigation === "places";
+  const placeSlots = placesNav
+    ? Math.min(MAX_PLACES, Math.max(0, engagement.places ?? 0))
+    : 0;
+  const go = AXIS_ACTIONS.go.filter((action) => {
+    if (action === "NONE") return true;
+    if (action === "CONTINUE") return placesNav && engagement.travelling === true;
+    return Number(action.slice(6)) < placeSlots;
+  });
+  return { move, turn, tilt, weapon: weaponActions, target, aim, go };
 }
 
 /** Axes with a real choice in them. A single legal option is not asked. */
@@ -375,6 +449,7 @@ function frame(value: unknown, path: string): ControlFrame | null {
     weapon: oneOf(f["weapon"], `${path}.weapon`, AXIS_ACTIONS.weapon),
     target: oneOf(f["target"], `${path}.target`, AXIS_ACTIONS.target),
     aim: oneOf(f["aim"], `${path}.aim`, AXIS_ACTIONS.aim),
+    go: oneOf(f["go"], `${path}.go`, AXIS_ACTIONS.go),
   };
 }
 
@@ -394,11 +469,13 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       "actionContract",
       "sequence",
       "control",
+      "navigation",
       "match",
       "player",
       "weapon",
       "perception",
       "objective",
+      "travel",
       "previous",
       "legal",
     ]);
@@ -445,6 +522,8 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       "contacts",
       "damage",
       "obstacles",
+      "places",
+      "allies",
     ]);
     const obstacles = record(perception["obstacles"], "perception.obstacles", [
       "forwardM",
@@ -467,6 +546,7 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       actionContract: ACTION_CONTRACT_VERSION,
       sequence: integer(o["sequence"], "observation.sequence", 1, 2 ** 31 - 1),
       control: oneOf(o["control"], "observation.control", CONTROL_MODES),
+      navigation: oneOf(o["navigation"], "observation.navigation", NAVIGATION_MODES),
       match: {
         mode: oneOf(m["mode"], "match.mode", GAME_MODES),
         phase: oneOf(m["phase"], "match.phase", MATCH_PHASES),
@@ -593,7 +673,68 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
             "obstacles.forwardClimbable",
           ),
         },
+        places: list(perception["places"], "perception.places", MAX_PLACES).map(
+          (entry, i) => {
+            const path = `perception.places[${i}]`;
+            const pl = record(entry, path, [
+              "kind",
+              "bearingDeg",
+              "distanceM",
+              "hidden",
+              "routeExposedM",
+              "threatDistanceM",
+            ]);
+            return {
+              kind: oneOf(pl["kind"], `${path}.kind`, PLACE_KINDS),
+              bearingDeg: number(pl["bearingDeg"], `${path}.bearingDeg`, -ANGLE, ANGLE),
+              distanceM: number(pl["distanceM"], `${path}.distanceM`, 0, MAX_DISTANCE_M),
+              hidden: boolean(pl["hidden"], `${path}.hidden`),
+              routeExposedM: number(
+                pl["routeExposedM"],
+                `${path}.routeExposedM`,
+                0,
+                MAX_DISTANCE_M,
+              ),
+              threatDistanceM: nullableNumber(
+                pl["threatDistanceM"],
+                `${path}.threatDistanceM`,
+                0,
+                MAX_DISTANCE_M,
+              ),
+            };
+          },
+        ),
+        allies: list(perception["allies"], "perception.allies", MAX_ALLIES).map(
+          (entry, i) => {
+            const path = `perception.allies[${i}]`;
+            const a = record(entry, path, ["bearingDeg", "distanceM"]);
+            return {
+              bearingDeg: number(a["bearingDeg"], `${path}.bearingDeg`, -ANGLE, ANGLE),
+              distanceM: number(a["distanceM"], `${path}.distanceM`, 0, RADAR_RANGE_M),
+            };
+          },
+        ),
       },
+      travel:
+        o["travel"] === null
+          ? null
+          : (() => {
+              const t = record(o["travel"], "travel", [
+                "kind",
+                "bearingDeg",
+                "remainingM",
+              ]);
+              return {
+                kind: oneOf(t["kind"], "travel.kind", PLACE_KINDS),
+                bearingDeg: number(t["bearingDeg"], "travel.bearingDeg", -ANGLE, ANGLE),
+                remainingM: number(
+                  t["remainingM"],
+                  "travel.remainingM",
+                  0,
+                  MAX_DISTANCE_M,
+                ),
+              };
+            })(),
       objective: {
         kind: oneOf(objective["kind"], "objective.kind", OBJECTIVE_KINDS),
         bearingDeg: nullableNumber(
@@ -656,6 +797,7 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
         weapon: axisList(legal["weapon"], "legal.weapon", "weapon") as WeaponAction[],
         target: axisList(legal["target"], "legal.target", "target") as TargetAction[],
         aim: axisList(legal["aim"], "legal.aim", "aim") as AimAction[],
+        go: axisList(legal["go"], "legal.go", "go") as GoAction[],
       },
     };
 
@@ -665,9 +807,18 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
     if (observation.perception.visibleEnemies.filter((e) => e.tracked).length > 1) {
       fail("perception.visibleEnemies", "more than one enemy marked tracked");
     }
+    if (observation.navigation === "steps") {
+      if (observation.perception.places.length > 0) {
+        fail("perception.places", "listed under steps navigation");
+      }
+      if (observation.travel !== null) fail("travel", "set under steps navigation");
+    }
     const expected = legalActionsFor(observation.player, observation.weapon, {
       control: observation.control,
       visibleEnemies: observation.perception.visibleEnemies.length,
+      navigation: observation.navigation,
+      places: observation.perception.places.length,
+      travelling: observation.travel !== null,
     });
     if (!sameLegalActions(expected, observation.legal)) {
       fail("legal", "does not match the state it was sent with");

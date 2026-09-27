@@ -9,23 +9,23 @@ import {
   LensArtifactsEffect,
   OpticalLensDirtAndFlareEffect,
 } from "@/gfx/postfx";
-import { SensorModeEffect } from "@/gfx/sensorFx";
-import { spatialIntel } from "../core/spatialIntelligence";
 import { useTwinStore } from "@/lib/store";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import { sunState } from "@/lib/sunState";
 import { CombatScreenEffect, HdrGuardEffect, setPostExposure } from "./screenEffects";
 import { ViewmodelCompositePass, setViewmodelPassMounted } from "./viewmodelPass";
+import { HeatHazeEffect } from "./heatHaze";
+import { mirageState } from "../world/mirage";
 import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
 
 /**
- * Post-processing tuned for Call of Duty Modern Warfare-level AAA visuals.
+ * The top tier's post stack: a camera looking across a hot, bright lakebed.
  *
- * Full optical rendering pipeline:
  *   Scene (HDR linear)
  *     -> HdrGuard               finite radiance clamp (NaN/Inf protection)
  *     -> N8AO                   contact ambient occlusion
+ *     -> HeatHaze               distant air wavers (the visible face of world/mirage.ts)
  *     -> Bloom                  dual-filter mipmap highlight bloom
  *     -> AnamorphicStreaks      anamorphic horizontal lens flares
  *     -> OpticalLensDirtFlare   optical ghost flares + illuminated glass micro-scratches & dust
@@ -122,12 +122,12 @@ export function CombatEffects() {
   const camera = useThree((s) => s.camera);
 
   const guard = useMemo(() => new HdrGuardEffect({ ceiling: 40 }), []);
+  const haze = useMemo(() => new HeatHazeEffect(), []);
   const combat = useMemo(() => new CombatScreenEffect(), []);
   const agx = useMemo(() => new AgXToneMappingEffect(), []);
   const opticalFlare = useMemo(() => new OpticalLensDirtAndFlareEffect(), []);
   const motionBlur = useMemo(() => new CameraMotionBlurEffect(), []);
   const lens = useMemo(() => new LensArtifactsEffect(), []);
-  const sensorFx = useMemo(() => new SensorModeEffect(), []);
   const viewmodelPass = useMemo(() => new ViewmodelCompositePass(), []);
   const streaks = useMemo(
     () =>
@@ -145,7 +145,6 @@ export function CombatEffects() {
   useEffect(() => () => opticalFlare.dispose(), [opticalFlare]);
   useEffect(() => () => motionBlur.dispose(), [motionBlur]);
   useEffect(() => () => lens.dispose(), [lens]);
-  useEffect(() => () => sensorFx.dispose(), [sensorFx]);
   useEffect(() => () => streaks.dispose(), [streaks]);
   useEffect(() => {
     setViewmodelPassMounted(true);
@@ -189,6 +188,7 @@ export function CombatEffects() {
   });
 
   useFrame((_state, delta) => {
+    haze.drive(game.time, night ? 0 : mirageState.strength);
     const dt = Math.max(0.001, Math.min(0.1, delta));
 
     // 1. Calculate screen-space sun position for optical flare & lens dirt
@@ -248,9 +248,6 @@ export function CombatEffects() {
     motionBlur.setVelocity(rotVelX, rotVelY);
     motionBlur.setRollVelocity(rollVel);
     motionBlur.setForwardVelocity(forwardVel);
-
-    // 4. Update Sensor Mode Shader
-    sensorFx.setSensorMode(spatialIntel.sensorMode);
   });
 
   if (minimal) {
@@ -278,6 +275,9 @@ export function CombatEffects() {
       />,
     );
   }
+  // Heat haze on the world only: before the first-person weapon is composited,
+  // because the depth it reads is the world's, not the rifle's.
+  if (upTo >= 2) passes.push(<primitive key="haze" object={haze} />);
   // After occlusion, before bloom, so the rifle shares the world's glare
   // and AgX without being darkened by the ambient-occlusion pass.
   passes.push(<primitive key="viewmodel" object={viewmodelPass} />);
@@ -304,7 +304,6 @@ export function CombatEffects() {
     passes.push(
       <Vignette key="vignette" eskil={false} offset={0.3} darkness={look.vignette} />,
     );
-    passes.push(<primitive key="sensor" object={sensorFx} />);
   }
   if (upTo >= 5) passes.push(<SMAA key="smaa" />);
   if (upTo >= 6) passes.push(<primitive key="lens" object={lens} />);

@@ -9,6 +9,7 @@ import {
   askedAxes,
   type Contact,
   type JevObservation,
+  type Place,
   type VisibleEnemy,
 } from "../../src/game/pilot/observation.js";
 import {
@@ -211,6 +212,37 @@ function describeContact(contact: Contact): Record<string, unknown> {
   };
 }
 
+const PLACE_NAMES: Record<Place["kind"], string> = {
+  cover: "nearest cover from the enemies you know about",
+  advance: "cover nearer the nearest known enemy",
+  flank: "cover to one side of the nearest known enemy",
+  withdraw: "cover further from the nearest known enemy",
+  objective: "the objective zone",
+};
+
+/**
+ * One place, for places navigation. The arithmetic — how far, how long at a
+ * run, how much of the walk is in some known enemy's sight — is done here and
+ * stated as fact. "Known" is literal: the enemies in view, the ones remembered
+ * and the gunfire heard, nothing else. Nothing says which place to choose.
+ */
+function describePlace(place: Place): Record<string, unknown> {
+  const exposed = Math.min(place.routeExposedM, place.distanceM);
+  return {
+    what: PLACE_NAMES[place.kind],
+    direction: around(place.bearingDeg),
+    distance: `${round(place.distanceM)} m, about ${round(place.distanceM / 6.5, 1)} seconds at a run`,
+    hidden_there_from_known_enemies: place.hidden,
+    route_in_sight_of_known_enemies:
+      exposed < 0.5
+        ? "none of it"
+        : `about ${round(exposed)} m of the ${round(place.distanceM)} m`,
+    ...(place.threatDistanceM === null
+      ? {}
+      : { nearest_known_enemy_from_there: `${round(place.threatDistanceM)} m` }),
+  };
+}
+
 function obstacle(distanceM: number | null, where: string, climbable = false): string {
   if (distanceM === null) return `clear for at least 8 m ${where}`;
   const base = `blocked ${round(distanceM, 1)} m ${where}`;
@@ -331,6 +363,28 @@ export function renderState(obs: JevObservation): Record<string, unknown> {
       behind: obstacle(perception.obstacles.backM, "behind"),
     },
   };
+  state["teammates_on_radar"] =
+    perception.allies.length === 0
+      ? "none within 145 m"
+      : perception.allies.map((ally) => ({
+          direction: around(ally.bearingDeg),
+          distance: `${round(ally.distanceM)} m`,
+        }));
+  if (obs.navigation === "places") {
+    state["places_nearest_first"] =
+      perception.places.length === 0
+        ? "none: no known enemy and no objective to place yourself against"
+        : Object.fromEntries(
+            perception.places.map((place, i) => [`PLACE_${i}`, describePlace(place)]),
+          );
+    state["travelling_to"] = obs.travel
+      ? {
+          what: PLACE_NAMES[obs.travel.kind],
+          direction: around(obs.travel.bearingDeg),
+          remaining: `${round(obs.travel.remainingM)} m`,
+        }
+      : "nowhere: the movement choice moves the body";
+  }
   if (obs.objective.kind !== "none" && obs.objective.bearingDeg !== null) {
     state["objective"] = {
       kind: obs.objective.kind === "hardpoint" ? "active hardpoint zone" : "capture zone",
@@ -351,11 +405,13 @@ export function renderState(obs: JevObservation): Record<string, unknown> {
   }
   const result = outcome(obs);
   if (obs.previous.frame && result) {
-    const { target, aim, ...core } = obs.previous.frame;
-    state["last_control"] =
-      obs.control === "precision"
-        ? { ...core, target, aim, result }
-        : { ...core, result };
+    const { target, aim, go, ...core } = obs.previous.frame;
+    state["last_control"] = {
+      ...core,
+      ...(obs.control === "precision" ? { target, aim } : {}),
+      ...(obs.navigation === "places" ? { go } : {}),
+      result,
+    };
   }
   return state;
 }
@@ -369,6 +425,11 @@ function context(obs: JevObservation): string {
     ...(obs.control === "precision"
       ? [
           "A local aiming controller carries out the target choice: it turns the view onto the chosen enemy continuously and, while the weapon choice fires, pulls the trigger only when the crosshair is on the chosen part of it. While an enemy is tracked, the turn and tilt choices are not applied. It never picks an enemy by itself.",
+        ]
+      : []),
+    ...(obs.navigation === "places"
+      ? [
+          "A local movement controller carries out the place choice: it walks or runs the body to the chosen place by the straight route and stops there. While it does, the movement choice's walking directions are not applied; jumping and stance still are. It never picks a place by itself.",
         ]
       : []),
     `This choice controls the next ${CONTROL_WINDOW_S} seconds; after it you will see the new situation and choose again.`,
@@ -386,6 +447,7 @@ const QUESTIONS: Record<Axis, string> = {
   turn: `Which horizontal view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
   tilt: `Which vertical view rotation should the player make during the next ${CONTROL_WINDOW_S} seconds? The crosshair is at the centre of the view.`,
   weapon: `What should the player do with the weapon during the next ${CONTROL_WINDOW_S} seconds?`,
+  go: "Where should the movement controller take the player, if anywhere? The places on offer are listed under `places_nearest_first` (keyed PLACE_0, PLACE_1, …), and `travelling_to` says where it is taking the player now.",
 };
 
 function criteria<A extends Axis>(

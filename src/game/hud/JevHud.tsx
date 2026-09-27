@@ -1,3 +1,4 @@
+import { SCRIPT_POLICY_DESCRIPTIONS } from "../pilot/policies";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { game } from "../core/gameState";
@@ -25,6 +26,7 @@ const LABEL_COLOR: Record<ControlLabel, string> = {
   "LIVE JEV": "#4da3ff",
   FALLBACK: "#ffb648",
   RANDOM: "#cbd5e1",
+  SCRIPTED: "#b5c99a",
   REPLAY: "#c4a1ff",
   HUMAN: "#e2e8f0",
 };
@@ -43,6 +45,7 @@ const AXIS_NAMES: Record<Axis, string> = {
   weapon: "WEAPON",
   target: "TARGET",
   aim: "AIM",
+  go: "GO",
 };
 
 const GATE_NAMES: Record<string, string> = {
@@ -84,6 +87,7 @@ export function JevHud() {
     weapon: null,
     target: null,
     aim: null,
+    go: null,
   });
   const motorRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -122,11 +126,14 @@ export function JevHud() {
       for (const axis of AXES) {
         const row = axisRefs.current[axis];
         if (!row) continue;
-        // Target and aim exist only under precision control.
-        row.hidden = (axis === "target" || axis === "aim") && t.control !== "precision";
+        // Target and aim exist only under precision control, go only under
+        // places navigation.
+        row.hidden =
+          ((axis === "target" || axis === "aim") && t.control !== "precision") ||
+          (axis === "go" && t.navigation !== "places");
         const choice = t.frame ? t.frame[axis] : "—";
         const answer = t.axes?.[axis];
-        const engagement = axis === "target" || axis === "aim";
+        const engagement = axis === "target" || axis === "aim" || axis === "go";
         const top = engagement
           ? []
           : answer
@@ -137,7 +144,9 @@ export function JevHud() {
               ? [
                   t.brain === "random" || t.label === "FALLBACK"
                     ? "uniform over legal options"
-                    : "no probabilities recorded",
+                    : t.brain === "script"
+                      ? "rule-based, no probabilities"
+                      : "no probabilities recorded",
                 ]
               : [];
         const unasked = engagement && t.frame !== null && t.axes !== null && !answer;
@@ -165,6 +174,12 @@ export function JevHud() {
             : m.bound
               ? `PRECISION · ${m.heldAim ?? m.aim ?? ""}${m.heldAim && m.heldAim !== m.aim ? "*" : ""} · ERR ${m.errorDeg === null ? "—" : `${m.errorDeg.toFixed(2)}°`} · ${GATE_NAMES[m.gate] ?? m.gate}${m.distanceM === null ? "" : ` · ${Math.round(m.distanceM)} M`}`
               : "PRECISION · NO TARGET TRACKED";
+        if (t.navigation === "places") {
+          const n = t.nav;
+          motorRef.current.textContent += n.active
+            ? ` · GO ${String(n.kind).toUpperCase()}${n.remainingM === null ? "" : ` ${Math.round(n.remainingM)} M`}${n.sprinting ? " RUN" : ""}`
+            : "";
+        }
       }
       if (statsRef.current) {
         const accuracy = t.shots > 0 ? `${Math.round((t.hits / t.shots) * 100)}%` : "—";
@@ -234,7 +249,9 @@ export function JevHud() {
           ? "Jev chooses · local controller executes · Blacksite decides"
           : brain === "random"
             ? "Seeded random policy · same controls, same timing"
-            : "Recorded controls played back · not live"}
+            : brain === "script"
+              ? "Hand-written reference policy · same observation, same controls"
+              : "Recorded controls played back · not live"}
       </p>
       <div className="pointer-events-auto mt-1.5 flex gap-2">
         <button
@@ -267,8 +284,47 @@ const CHOICES: { id: BrainKind; name: string }[] = [
   { id: "human", name: "Human" },
   { id: "jev", name: "Jev" },
   { id: "random", name: "Random" },
+  { id: "script", name: "Scripted" },
   { id: "replay", name: "Replay" },
 ];
+
+/** A small two-way choice under the controller buttons. */
+function Toggle<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: readonly (readonly [T, string])[];
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="mt-2 grid grid-cols-2 gap-2 font-mono text-[10px] tracking-[0.14em] uppercase"
+    >
+      {options.map(([id, name]) => (
+        <button
+          key={id}
+          type="button"
+          aria-pressed={value === id}
+          onClick={() => onChange(id)}
+          className={cn(
+            "px-3 py-1.5 text-left focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none",
+            value === id
+              ? "bg-white/[0.12] text-slate-100"
+              : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08]",
+          )}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function PlayerControlSelector() {
   const brain = useGameStore((s) => s.brain);
@@ -280,6 +336,12 @@ export function PlayerControlSelector() {
   const setControl = useGameStore((s) => s.setJevControl);
   const profile = useGameStore((s) => s.playerProfile);
   const setProfile = useGameStore((s) => s.setPlayerProfile);
+  const navigation = useGameStore((s) => s.jevNav);
+  const setNavigation = useGameStore((s) => s.setJevNav);
+  const policy = useGameStore((s) => s.brainPolicy);
+  const setPolicy = useGameStore((s) => s.setBrainPolicy);
+  const seatRules = useGameStore((s) => s.seatRules);
+  const setSeatRules = useGameStore((s) => s.setSeatRules);
   const [service, setService] = useState<JevServiceStatus | null>(null);
   const [traceError, setTraceError] = useState<string | null>(null);
 
@@ -315,7 +377,7 @@ export function PlayerControlSelector() {
       <div
         role="group"
         aria-labelledby="player-control-label"
-        className="mt-3 grid grid-cols-4 gap-2"
+        className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5"
       >
         {CHOICES.map((choice) => (
           <button
@@ -391,14 +453,48 @@ export function PlayerControlSelector() {
           ))}
         </div>
       )}
+      {brain !== "human" && brain !== "replay" && (
+        <Toggle
+          label="Movement"
+          value={navigation}
+          onChange={setNavigation}
+          options={[
+            ["places", "Places navigation"],
+            ["steps", "Stepped movement"],
+          ]}
+        />
+      )}
+      {brain === "script" && (
+        <Toggle
+          label="Scripted policy"
+          value={policy}
+          onChange={setPolicy}
+          options={[
+            ["marksman", "Marksman"],
+            ["skirmisher", "Skirmisher"],
+          ]}
+        />
+      )}
+      <Toggle
+        label="Seat rules"
+        value={seatRules}
+        onChange={setSeatRules}
+        options={[
+          ["mercy", "Mercy (default)"],
+          ["even", "Even footing"],
+        ]}
+      />
       <p className="mt-3 text-[11px] leading-relaxed text-slate-400">
+        {brain === "script" && SCRIPT_POLICY_DESCRIPTIONS[policy]}{" "}
+        {seatRules === "even" &&
+          "Even footing: the seat takes and deals damage, and is aimed at, exactly as a bot is. "}
         {brain === "human" &&
           (profile === "elite"
             ? "Keyboard and mouse with Elite Operator: target friction, gentle aimed tracking help and learned recoil help. It never fires for you and the mouse always overrides it."
             : "Keyboard and mouse. The default.")}
         {brain === "jev" &&
           (control === "precision"
-            ? "Jev chooses where to move, which visible enemy to engage and where on it; a deterministic local controller executes that aim and trigger discipline at frame rate. Blacksite still decides every hit. Press H to take control."
+            ? `Jev chooses ${navigation === "places" ? "where to go among the places it is shown" : "how to move"}, which visible enemy to engage and where on it; deterministic local controllers execute the aim, the trigger discipline${navigation === "places" ? " and the walk" : ""} at frame rate. Blacksite still decides every hit. Press H to take control.`
             : "Jev turns the view itself in fixed steps, the original interface. Blacksite still controls the world: physics, hits, damage and scoring. Press H in the match to take control.")}
         {brain === "random" &&
           `A seeded random policy (seed ${seed}) picks from the same controls on the same timing. A baseline, not Jev.`}
