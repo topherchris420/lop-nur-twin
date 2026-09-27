@@ -3,6 +3,7 @@ import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
 import type { ParsedTrace } from "../pilot/recorder";
 import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
+import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -15,9 +16,15 @@ import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
  * brains that drive the same input through `src/game/pilot/` — the TypeSafe
  * Jev model, a seeded random baseline, or a recorded trace played back.
  */
-export type BrainKind = "human" | "jev" | "random" | "replay";
+export type BrainKind = "human" | "jev" | "random" | "script" | "replay";
 
-export const BRAIN_KINDS: readonly BrainKind[] = ["human", "jev", "random", "replay"];
+export const BRAIN_KINDS: readonly BrainKind[] = [
+  "human",
+  "jev",
+  "random",
+  "script",
+  "replay",
+];
 
 /**
  * How a human's aim reaches the view. `standard` is the raw mouse. `elite` is
@@ -151,6 +158,9 @@ interface GameStoreState {
   brainSeed: number;
   /** `?fallback=random`: a labelled stand-in while Jev cannot answer. */
   brainFallback: "random" | null;
+  /** `?policy=`: which scripted reference policy the `script` brain runs. */
+  brainPolicy: ScriptPolicy;
+  setBrainPolicy: (policy: ScriptPolicy) => void;
   /** The validated trace the replay brain plays back, once one is loaded. */
   replayTrace: ParsedTrace | null;
   setReplayTrace: (trace: ParsedTrace | null) => void;
@@ -280,6 +290,8 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setBrain: (brain) => set({ brain }),
   brainSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
   brainFallback: readEnumParam<"random">("fallback", ["random"]),
+  brainPolicy: readEnumParam<ScriptPolicy>("policy", SCRIPT_POLICIES) ?? "marksman",
+  setBrainPolicy: (brainPolicy) => set({ brainPolicy }),
   replayTrace: null,
   setReplayTrace: (replayTrace) => set({ replayTrace }),
   jevControl: readEnumParam<ControlMode>("jevControl", CONTROL_MODES) ?? "precision",

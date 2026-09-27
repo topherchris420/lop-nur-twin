@@ -29,7 +29,7 @@ import type { JevObservation } from "./observation";
  * fallback can never be mistaken for the primary.
  */
 
-export type ProviderKind = "jev" | "random";
+export type ProviderKind = "jev" | "random" | "script";
 
 export type FailureKind =
   | "timeout"

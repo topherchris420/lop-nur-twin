@@ -24,6 +24,7 @@ export function PilotHost() {
   const fallback = useGameStore((s) => s.brainFallback);
   const trace = useGameStore((s) => s.replayTrace);
   const control = useGameStore((s) => s.jevControl);
+  const policy = useGameStore((s) => s.brainPolicy);
   const screen = useGameStore((s) => s.screen);
 
   // `?brain=replay&trace=last` replays the trace this browser last kept.
@@ -38,8 +39,8 @@ export function PilotHost() {
   useEffect(() => {
     // A replay runs under the control mode it was recorded with.
     const mode = brain === "replay" && trace ? trace.header.control : control;
-    pilot.setBrain(brain, { seed, fallback, trace, control: mode });
-  }, [brain, seed, fallback, trace, control]);
+    pilot.setBrain(brain, { seed, policy, fallback, trace, control: mode });
+  }, [brain, seed, policy, fallback, trace, control]);
 
   useEffect(() => {
     const observe = (report: AppliedDamage): void =>

@@ -30,14 +30,16 @@ export const TRACE_VERSION = "blacksite-jev-trace/v2";
 export const MAX_TRACE_RECORDS = 5000;
 export const MAX_TRACE_EVENTS = 2000;
 
-export type DecisionSource = "jev" | "random" | "replay" | "fallback-random";
+export type DecisionSource = "jev" | "random" | "script" | "replay" | "fallback-random";
 
 export interface TraceHeader {
   type: "header";
   traceVersion: typeof TRACE_VERSION;
   actionContract: typeof ACTION_CONTRACT_VERSION;
   observationSchema: typeof OBSERVATION_SCHEMA_VERSION;
-  brain: "jev" | "random" | "replay";
+  brain: "jev" | "random" | "script" | "replay";
+  /** The scripted policy, for a `script` trace; null otherwise. */
+  policy: string | null;
   seed: number;
   /**
    * How the frames reached the view. A `precision` trace's target choices were

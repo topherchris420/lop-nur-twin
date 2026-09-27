@@ -46,6 +46,7 @@ function recorderWith(records: TraceRecord[]): TraceRecorder {
   const recorder = new TraceRecorder();
   recorder.begin({
     brain: "jev",
+    policy: null,
     seed: 42,
     control: "precision",
     mode: "tdm",

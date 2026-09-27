@@ -25,6 +25,7 @@ const LABEL_COLOR: Record<ControlLabel, string> = {
   "LIVE JEV": "#4da3ff",
   FALLBACK: "#ffb648",
   RANDOM: "#cbd5e1",
+  SCRIPTED: "#b5c99a",
   REPLAY: "#c4a1ff",
   HUMAN: "#e2e8f0",
 };
@@ -137,7 +138,9 @@ export function JevHud() {
               ? [
                   t.brain === "random" || t.label === "FALLBACK"
                     ? "uniform over legal options"
-                    : "no probabilities recorded",
+                    : t.brain === "script"
+                      ? "rule-based, no probabilities"
+                      : "no probabilities recorded",
                 ]
               : [];
         const unasked = engagement && t.frame !== null && t.axes !== null && !answer;
@@ -234,7 +237,9 @@ export function JevHud() {
           ? "Jev chooses · local controller executes · Blacksite decides"
           : brain === "random"
             ? "Seeded random policy · same controls, same timing"
-            : "Recorded controls played back · not live"}
+            : brain === "script"
+              ? "Hand-written reference policy · same observation, same controls"
+              : "Recorded controls played back · not live"}
       </p>
       <div className="pointer-events-auto mt-1.5 flex gap-2">
         <button
@@ -267,6 +272,7 @@ const CHOICES: { id: BrainKind; name: string }[] = [
   { id: "human", name: "Human" },
   { id: "jev", name: "Jev" },
   { id: "random", name: "Random" },
+  { id: "script", name: "Scripted" },
   { id: "replay", name: "Replay" },
 ];
 

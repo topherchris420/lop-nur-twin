@@ -50,6 +50,7 @@ import {
   type ParsedTrace,
   type TraceRecord,
 } from "./recorder";
+import { ScriptedProvider, type ScriptPolicy } from "./policies";
 import { rigState } from "./rigState";
 
 /**
@@ -83,7 +84,8 @@ export type PilotStatus =
   | "MATCH_COMPLETE";
 
 /** Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer. */
-export type ControlLabel = "HUMAN" | "LIVE JEV" | "RANDOM" | "REPLAY" | "FALLBACK";
+export type ControlLabel =
+  "HUMAN" | "LIVE JEV" | "RANDOM" | "SCRIPTED" | "REPLAY" | "FALLBACK";
 
 export interface PilotTelemetry {
   brain: BrainKind;
@@ -119,6 +121,8 @@ export interface PilotTelemetry {
 
 export interface BrainOptions {
   seed: number;
+  /** The scripted reference policy, for the `script` brain. */
+  policy: ScriptPolicy;
   fallback: "random" | null;
   trace: ParsedTrace | null;
   control: ControlMode;
@@ -219,6 +223,7 @@ class Pilot {
   private brain: BrainKind = "human";
   private options: BrainOptions = {
     seed: 0,
+    policy: "marksman",
     fallback: null,
     trace: null,
     control: "direct",
@@ -396,6 +401,7 @@ class Pilot {
     if (
       brain === this.brain &&
       options.seed === this.options.seed &&
+      options.policy === this.options.policy &&
       options.fallback === this.options.fallback &&
       options.trace === this.options.trace &&
       options.control === this.options.control
@@ -436,7 +442,9 @@ class Pilot {
       const primary =
         brain === "jev"
           ? new JevHttpProvider(this.session)
-          : new RandomProvider(options.seed);
+          : brain === "script"
+            ? new ScriptedProvider(options.policy)
+            : new RandomProvider(options.seed);
       const fallback =
         brain === "jev" && options.fallback === "random"
           ? new RandomProvider((options.seed ^ 0x9e3779b9) >>> 0)
@@ -515,6 +523,7 @@ class Pilot {
     if (this.brain !== "human") {
       this.recorder.begin({
         brain: this.brain,
+        policy: this.brain === "script" ? this.options.policy : null,
         seed: this.options.seed,
         control: this.options.control,
         mode: store.mode,
@@ -612,9 +621,7 @@ class Pilot {
   private accept(decision: AcceptedDecision): void {
     const source: DecisionSource = decision.fallback
       ? "fallback-random"
-      : decision.provider === "jev"
-        ? "jev"
-        : "random";
+      : decision.provider;
     const counters = this.metrics.counters;
     counters.accepted += 1;
     this.fallbackActive = decision.fallback;
@@ -1097,11 +1104,13 @@ class Pilot {
         ? "HUMAN"
         : this.brain === "random"
           ? "RANDOM"
-          : this.brain === "replay"
-            ? "REPLAY"
-            : this.fallbackActive || executing?.source === "fallback-random"
-              ? "FALLBACK"
-              : "LIVE JEV";
+          : this.brain === "script"
+            ? "SCRIPTED"
+            : this.brain === "replay"
+              ? "REPLAY"
+              : this.fallbackActive || executing?.source === "fallback-random"
+                ? "FALLBACK"
+                : "LIVE JEV";
     t.status = this.status();
   }
 

@@ -3,6 +3,7 @@
  * Repeatable episodes of Blacksite with a brain in the player's seat.
  *
  *   node tools/jev-benchmark.mjs --brain random --control direct [--episodes 3] [--seconds 90]
+ *   node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
  *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --control precision --episodes 3
  *
  * `--control direct|precision` is required, and every report names it. In
@@ -54,6 +55,14 @@ import {
 } from "./jev-harness.mjs";
 
 const brain = option("brain", "random");
+const policy = option("policy", "marksman");
+// Extra `/play` parameters for this run, e.g. `botSkill=0.6`. Only names the
+// page already reads through src/lib/params.ts do anything.
+const extraQuery = option("query", "");
+if (extraQuery && !/^[A-Za-z0-9_=&.,-]+$/.test(extraQuery)) {
+  console.error("--query takes plain name=value pairs joined by &");
+  process.exit(2);
+}
 const control = option("control", "");
 const episodes = Number(option("episodes", "3"));
 const seconds = Number(option("seconds", "90"));
@@ -63,11 +72,11 @@ const origin =
   process.argv.slice(2).find((a) => a.startsWith("http")) ?? "http://localhost:5173";
 const out = option(
   "out",
-  `shots/jev-benchmark-${brain}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+  `shots/jev-benchmark-${brain}${brain === "script" ? `-${policy}` : ""}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 
-if (!["random", "jev"].includes(brain)) {
-  console.error("--brain must be random or jev");
+if (!["random", "jev", "script"].includes(brain)) {
+  console.error("--brain must be random, script or jev");
   process.exit(2);
 }
 if (!["direct", "precision"].includes(control)) {
@@ -113,7 +122,9 @@ try {
     const { page, errors } = await openPlay(
       browser,
       origin,
-      `autoplay=1&quality=0&brain=${brain}&jevControl=${control}&seed=${seed}&mode=${mode}`,
+      `autoplay=1&quality=0&brain=${brain}&jevControl=${control}&seed=${seed}&mode=${mode}` +
+        (brain === "script" ? `&policy=${policy}` : "") +
+        (extraQuery ? `&${extraQuery}` : ""),
     );
     await waitForPilot(page);
     // Count the blue bots' damage through the same read-only tap the pilot uses.
@@ -238,6 +249,8 @@ try {
   const report = {
     tool: "tools/jev-benchmark.mjs",
     brain,
+    policy: brain === "script" ? policy : null,
+    query: extraQuery || null,
     control,
     controlNote:
       control === "precision"
