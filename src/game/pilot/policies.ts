@@ -3,12 +3,13 @@ import {
   TURN_STEP_DEG,
   type AimAction,
   type ControlFrame,
+  type GoAction,
   type TargetAction,
   type TiltAction,
   type TurnAction,
   type WeaponAction,
 } from "./contract";
-import type { JevObservation, LegalActions } from "./observation";
+import type { JevObservation, LegalActions, PlaceKind } from "./observation";
 import type { DecisionProvider, DecisionRequest, ProviderResult } from "./loop";
 
 /**
@@ -185,7 +186,44 @@ function marksman(obs: JevObservation, memory: PolicyMemory): ControlFrame {
     weapon: weaponFor(obs, engaging),
     target,
     aim,
+    go: "NONE",
   };
+}
+
+/** The slot of the first listed place of one of these kinds, in preference order. */
+function placeOf(obs: JevObservation, kinds: readonly PlaceKind[]): GoAction | null {
+  for (const kind of kinds) {
+    const index = obs.perception.places.findIndex((p) => p.kind === kind);
+    if (index >= 0) {
+      const go = `PLACE_${index}` as GoAction;
+      if (has(obs.legal.go, go)) return go;
+    }
+  }
+  return null;
+}
+
+/**
+ * Under places navigation the skirmisher's plan is short and legible: hurt or
+ * hit, get to cover; enemies far off, get nearer without being seen; nothing
+ * in view, go where the fighting was heard or to the objective. While a
+ * travel is under way it keeps going. It shoots whatever it sees on the way,
+ * as the marksman would.
+ */
+function skirmisherPlaces(obs: JevObservation, memory: PolicyMemory): ControlFrame {
+  const base = marksman(obs, memory);
+  const enemies = obs.perception.visibleEnemies;
+  const hurt = obs.player.health < 60 || obs.perception.damage !== null;
+  const nearest = enemies.reduce((m, e) => Math.min(m, e.distanceM), Infinity);
+  const travelling = obs.travel !== null && has(obs.legal.go, "CONTINUE");
+  const takingCover =
+    travelling && (obs.travel?.kind === "cover" || obs.travel?.kind === "withdraw");
+  let go: GoAction | null = null;
+  if (hurt) go = takingCover ? "CONTINUE" : placeOf(obs, ["cover", "withdraw"]);
+  else if (travelling) go = "CONTINUE";
+  else if (enemies.length > 0 && nearest > 45) go = placeOf(obs, ["advance", "flank"]);
+  else if (enemies.length === 0) go = placeOf(obs, ["advance", "objective", "flank"]);
+  if (go === null && obs.travel && has(obs.legal.go, "CONTINUE")) go = "CONTINUE";
+  return { ...base, go: go ?? "NONE" };
 }
 
 /**
@@ -194,6 +232,7 @@ function marksman(obs: JevObservation, memory: PolicyMemory): ControlFrame {
  * contract offers places it will choose among those instead.
  */
 function skirmisher(obs: JevObservation, memory: PolicyMemory): ControlFrame {
+  if (obs.navigation === "places") return skirmisherPlaces(obs, memory);
   const base = marksman(obs, memory);
   const legal = obs.legal.move;
   const engaging = obs.perception.visibleEnemies.length > 0;
@@ -235,7 +274,8 @@ export function isLegalFrame(frame: ControlFrame, legal: LegalActions): boolean 
     has(legal.tilt, frame.tilt) &&
     has(legal.weapon, frame.weapon) &&
     has(legal.target, frame.target) &&
-    has(legal.aim, frame.aim)
+    has(legal.aim, frame.aim) &&
+    has(legal.go, frame.go)
   );
 }
 
@@ -261,6 +301,7 @@ export class ScriptedProvider implements DecisionProvider {
       weapon: has(legal.weapon, frame.weapon) ? frame.weapon : legal.weapon[0]!,
       target: has(legal.target, frame.target) ? frame.target : legal.target[0]!,
       aim: has(legal.aim, frame.aim) ? frame.aim : legal.aim[0]!,
+      go: has(legal.go, frame.go) ? frame.go : legal.go[0]!,
     };
   }
 

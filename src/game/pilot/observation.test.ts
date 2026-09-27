@@ -159,7 +159,7 @@ describe("legal actions", () => {
       );
       expect(options).toEqual(order);
       // Target and aim are single-option (not asked) outside precision control.
-      const core = axis !== "target" && axis !== "aim";
+      const core = axis !== "target" && axis !== "aim" && axis !== "go";
       expect(options.length).toBeGreaterThanOrEqual(core ? 2 : 1);
     }
   });

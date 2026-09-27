@@ -44,6 +44,7 @@ const AXIS_NAMES: Record<Axis, string> = {
   weapon: "WEAPON",
   target: "TARGET",
   aim: "AIM",
+  go: "GO",
 };
 
 const GATE_NAMES: Record<string, string> = {
@@ -85,6 +86,7 @@ export function JevHud() {
     weapon: null,
     target: null,
     aim: null,
+    go: null,
   });
   const motorRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -123,11 +125,14 @@ export function JevHud() {
       for (const axis of AXES) {
         const row = axisRefs.current[axis];
         if (!row) continue;
-        // Target and aim exist only under precision control.
-        row.hidden = (axis === "target" || axis === "aim") && t.control !== "precision";
+        // Target and aim exist only under precision control, go only under
+        // places navigation.
+        row.hidden =
+          ((axis === "target" || axis === "aim") && t.control !== "precision") ||
+          (axis === "go" && t.navigation !== "places");
         const choice = t.frame ? t.frame[axis] : "—";
         const answer = t.axes?.[axis];
-        const engagement = axis === "target" || axis === "aim";
+        const engagement = axis === "target" || axis === "aim" || axis === "go";
         const top = engagement
           ? []
           : answer
@@ -168,6 +173,12 @@ export function JevHud() {
             : m.bound
               ? `PRECISION · ${m.heldAim ?? m.aim ?? ""}${m.heldAim && m.heldAim !== m.aim ? "*" : ""} · ERR ${m.errorDeg === null ? "—" : `${m.errorDeg.toFixed(2)}°`} · ${GATE_NAMES[m.gate] ?? m.gate}${m.distanceM === null ? "" : ` · ${Math.round(m.distanceM)} M`}`
               : "PRECISION · NO TARGET TRACKED";
+        if (t.navigation === "places") {
+          const n = t.nav;
+          motorRef.current.textContent += n.active
+            ? ` · GO ${String(n.kind).toUpperCase()}${n.remainingM === null ? "" : ` ${Math.round(n.remainingM)} M`}${n.sprinting ? " RUN" : ""}`
+            : "";
+        }
       }
       if (statsRef.current) {
         const accuracy = t.shots > 0 ? `${Math.round((t.hits / t.shots) * 100)}%` : "—";

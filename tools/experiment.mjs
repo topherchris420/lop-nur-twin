@@ -71,13 +71,28 @@ const ROWS = [
   ["Headshots", (a) => String(a.shooting.headshots)],
   ["ADS time share", (a) => pct(a.shooting.adsFraction)],
   [
-    "Time exposed to a living enemy",
-    (a) => (a.exposure ? pct(a.exposure.exposedFraction) : "n/a"),
+    "Time in an enemy's sight line",
+    (a) => (a.debrief ? pct(a.debrief.exposedFraction) : "n/a"),
   ],
   [
-    "Deaths to an enemy never seen",
+    "Longest stretch in a sight line",
+    (a) => (a.debrief ? `${fmt(a.debrief.longestExposedS, 1)} s` : "n/a"),
+  ],
+  [
+    "Deaths: never seen / seen, not engaged / engaged",
     (a) =>
-      a.debrief ? `${a.debrief.deaths.unseen} of ${a.debrief.deaths.total}` : "n/a",
+      a.debrief
+        ? `${a.debrief.deaths.unseen} / ${a.debrief.deaths.seen_not_engaged} / ${a.debrief.deaths.engaged}`
+        : "n/a",
+  ],
+  [
+    "Deaths on open ground",
+    (a) =>
+      a.debrief ? `${a.debrief.deaths.onOpenGround} of ${a.debrief.deaths.total}` : "n/a",
+  ],
+  [
+    "First sight to kill, mean",
+    (a) => (a.debrief ? `${fmt(a.debrief.kills.meanSightToKillS, 2)} s` : "n/a"),
   ],
   ["Places chosen", (a) => (a.places ? String(a.places.chosen) : "n/a")],
   ["Decisions executed", (a) => String(a.decisions.accepted)],
@@ -127,7 +142,8 @@ function runArm(arm, experiment, outFile) {
   ];
   if (arm.policy) args.push("--policy", arm.policy);
   if (arm.query) args.push("--query", arm.query);
-  if (arm.origin) args.push(arm.origin);
+  const origin = arm.origin ?? option("origin", null);
+  if (origin) args.push(origin);
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, args, { stdio: ["ignore", "pipe", "pipe"] });
     let log = "";
@@ -197,7 +213,14 @@ async function run(file) {
   );
   mkdirSync(outDir, { recursive: true });
   const parallel = Math.max(1, Number(option("parallel", "1")) || 1);
-  const build = gitBuild();
+  // The commit this checkout is at describes the build only when the arms run
+  // against this checkout's own server. Against another origin (a worktree of
+  // an older commit), say so, or pass --build to name it.
+  const build =
+    option("build", null) ??
+    (option("origin", null)
+      ? `unknown (served by ${option("origin", null)})`
+      : gitBuild());
   console.log(
     `${experiment.name}: ${experiment.arms.length} arms × ${experiment.seeds.length} seeds × ${experiment.seconds} s · build ${build ?? "unknown"}`,
   );
@@ -227,6 +250,9 @@ async function run(file) {
     seconds: experiment.seconds,
     mode: experiment.mode ?? "tdm",
     parallel,
+    laggedEpisodes: results.flatMap(({ id, report }) =>
+      report.episodes.filter((e) => e.pacing?.lagged).map((e) => `${id}:${e.seed}`),
+    ),
     arms: results.map(({ id, arm, report }) => ({
       id,
       arm,
@@ -250,6 +276,11 @@ async function run(file) {
   ]
     .filter((line, i, all) => !(line === "" && all[i - 1] === ""))
     .join("\n");
+  if (summary.laggedEpisodes.length > 0) {
+    console.warn(
+      `warning: ${summary.laggedEpisodes.length} episode(s) ran slower than real time (${summary.laggedEpisodes.join(", ")}); treat decision-rate-sensitive comparisons with care.`,
+    );
+  }
   writeFileSync(join(outDir, "experiment.json"), `${JSON.stringify(summary, null, 2)}\n`);
   writeFileSync(join(outDir, "experiment.md"), `${markdown}\n`);
   console.log(`\n${markdown}`);
@@ -270,6 +301,7 @@ function compare(fileA, fileB) {
     ["survival s", (x) => x.meanSurvivalS],
     ["moved m", (x) => x.distanceM],
     ["range m", (x) => x.shooting.engagementRangeM.mean],
+    ["exposed", (x) => x.debrief?.exposedFraction ?? null],
   ];
   for (const arm of arms) {
     const before = arm.aggregate;

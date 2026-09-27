@@ -35,6 +35,10 @@ const CONTROL_LAYER = [
   "src/game/pilot/pilot.ts",
   "src/game/pilot/recorder.ts",
   "src/game/pilot/metrics.ts",
+  "src/game/pilot/navigator.ts",
+  "src/game/pilot/places.ts",
+  "src/game/pilot/policies.ts",
+  "src/game/pilot/debrief.ts",
   "src/game/player/eliteAssist.ts",
 ];
 

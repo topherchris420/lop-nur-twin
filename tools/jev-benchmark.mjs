@@ -216,6 +216,20 @@ try {
       pageErrors: errors.slice(0, 5),
     });
     const m = metrics;
+    // Decisions are paced in wall time and the simulation in frames. When
+    // frames run slow (dt is clamped at 50 ms), simulated time falls behind
+    // real time and a brain gets more decisions per simulated second than it
+    // would in play — so an episode that lagged says so in its report.
+    const lagged = ran > 0 && wall / ran > 1.15;
+    results[results.length - 1].pacing = {
+      wallPerSimSecond: ran > 0 ? wall / ran : null,
+      lagged,
+    };
+    if (lagged) {
+      console.warn(
+        `  warning: simulation ran at ${((ran / wall) * 100).toFixed(0)}% of real time; decisions per simulated second were inflated. Run fewer pages at once.`,
+      );
+    }
     console.log(
       `episode ${i + 1}/${episodes} seed ${seed}: ${ran.toFixed(0)} s sim in ${wall.toFixed(0)} s wall · ` +
         `K ${m.kills} D ${m.deaths} · shots ${m.shotsFired} hits ${m.hits} · ` +
@@ -325,6 +339,20 @@ try {
     );
     console.log(
       `  decision → first controller step: ${dist(m.executionLatencyMs, 1, " ms")}`,
+    );
+  }
+  if (a.places) {
+    const p = a.places;
+    console.log(
+      `  places: ${p.chosen} chosen ${JSON.stringify(p.byKind)} · ended ${JSON.stringify(p.releases)} · travel ${dist(p.travelS, 1, " s")}`,
+    );
+  }
+  if (a.debrief) {
+    const d = a.debrief;
+    console.log(
+      `  debrief: in an enemy's sight line ${d.exposedFraction === null ? "n/a" : `${(d.exposedFraction * 100).toFixed(0)}%`} of the time alive (longest ${fmt(d.longestExposedS, 1)} s) · ` +
+        `deaths ${d.deaths.total}: never seen ${d.deaths.unseen}, seen not engaged ${d.deaths.seen_not_engaged}, engaged ${d.deaths.engaged}, on open ground ${d.deaths.onOpenGround} · ` +
+        `first sight to kill ${fmt(d.kills.meanSightToKillS, 2)} s`,
     );
   }
   if (a.fallbackSeconds > 0)

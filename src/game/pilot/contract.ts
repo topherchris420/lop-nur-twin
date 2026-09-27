@@ -28,9 +28,9 @@
  * (TypeScript and Vite map that back to `./x.ts`) and import no aliases.
  */
 
-export const ACTION_CONTRACT_VERSION = "blacksite-jev-actions/v2";
-export const OBSERVATION_SCHEMA_VERSION = "blacksite-jev-observation/v2";
-export const DECISION_SCHEMA_VERSION = "blacksite-jev-decision/v2";
+export const ACTION_CONTRACT_VERSION = "blacksite-jev-actions/v3";
+export const OBSERVATION_SCHEMA_VERSION = "blacksite-jev-observation/v3";
+export const DECISION_SCHEMA_VERSION = "blacksite-jev-decision/v3";
 
 /**
  * How a brain's aim reaches the view.
@@ -45,6 +45,21 @@ export const DECISION_SCHEMA_VERSION = "blacksite-jev-decision/v2";
  */
 export const CONTROL_MODES = ["direct", "precision"] as const;
 export type ControlMode = (typeof CONTROL_MODES)[number];
+
+/**
+ * How a brain's movement reaches the body — the same split as `ControlMode`,
+ * for the feet instead of the crosshair.
+ *
+ *  - `steps` — the brain walks the body itself, relative to the view, one
+ *    control window at a time. The original interface.
+ *  - `places` — the host also lists a few places nearby (cover from the
+ *    enemies the observation knows about, a way closer, a way round, a way
+ *    back, the objective) with facts about each; the brain may name one and a
+ *    local navigator (`navigator.ts`) walks or runs the body there. The brain
+ *    chooses where; the navigator only executes the walk.
+ */
+export const NAVIGATION_MODES = ["steps", "places"] as const;
+export type NavigationMode = (typeof NAVIGATION_MODES)[number];
 
 /* ------------------------------------------------------------------ */
 /* Vocabulary                                                          */
@@ -121,20 +136,38 @@ export const TARGET_ACTIONS = [
 /** Where on the tracked enemy the crosshair is held. */
 export const AIM_ACTIONS = ["CENTER_MASS", "UPPER_CHEST", "HEAD"] as const;
 
+/**
+ * Where the navigator takes the body. `PLACE_n` names the n-th place of the
+ * observation the decision was made from — like a target slot, a slot in a
+ * list the browser built, bound to a point the browser keeps. `CONTINUE`
+ * keeps going to the place already chosen; `NONE` hands the feet back to the
+ * move choice. Only `NONE` is legal under `steps` navigation.
+ */
+export const GO_ACTIONS = [
+  "NONE",
+  "CONTINUE",
+  "PLACE_0",
+  "PLACE_1",
+  "PLACE_2",
+  "PLACE_3",
+] as const;
+
 export type MoveAction = (typeof MOVE_ACTIONS)[number];
 export type TurnAction = (typeof TURN_ACTIONS)[number];
 export type TiltAction = (typeof TILT_ACTIONS)[number];
 export type WeaponAction = (typeof WEAPON_ACTIONS)[number];
 export type TargetAction = (typeof TARGET_ACTIONS)[number];
 export type AimAction = (typeof AIM_ACTIONS)[number];
+export type GoAction = (typeof GO_ACTIONS)[number];
 
-export const AXES = ["move", "turn", "tilt", "weapon", "target", "aim"] as const;
+export const AXES = ["move", "turn", "tilt", "weapon", "target", "aim", "go"] as const;
 export type Axis = (typeof AXES)[number];
 
 /**
  * The four axes a keyboard and mouse have. Each always has at least two legal
  * options, so each is always asked. `target` and `aim` exist only in precision
- * control; an axis with a single legal option is not a choice and is not asked.
+ * control, `go` only under places navigation; an axis with a single legal
+ * option is not a choice and is not asked.
  */
 export const CORE_AXES = ["move", "turn", "tilt", "weapon"] as const;
 export type CoreAxis = (typeof CORE_AXES)[number];
@@ -146,6 +179,7 @@ export interface AxisActions {
   weapon: WeaponAction;
   target: TargetAction;
   aim: AimAction;
+  go: GoAction;
 }
 
 /** One decision: exactly one control per axis, held for one control window. */
@@ -158,6 +192,7 @@ export const AXIS_ACTIONS: { readonly [A in Axis]: readonly AxisActions[A][] } =
   weapon: WEAPON_ACTIONS,
   target: TARGET_ACTIONS,
   aim: AIM_ACTIONS,
+  go: GO_ACTIONS,
 };
 
 /** The frame that does nothing. What every brain's input decays to. */
@@ -168,11 +203,17 @@ export const IDLE_FRAME: ControlFrame = {
   weapon: "NO_FIRE",
   target: "NONE",
   aim: "CENTER_MASS",
+  go: "NONE",
 };
 
 /** `TARGET_2` → 2; NONE → null. */
 export function targetSlot(target: TargetAction): number | null {
   return target === "NONE" ? null : Number(target.slice(7));
+}
+
+/** `PLACE_1` → 1; NONE and CONTINUE → null. */
+export function placeSlot(go: GoAction): number | null {
+  return go.startsWith("PLACE_") ? Number(go.slice(6)) : null;
 }
 
 export function isAxisAction<A extends Axis>(
@@ -187,7 +228,9 @@ export function isAxisAction<A extends Axis>(
 /** `STRAFE_LEFT · TURN_RIGHT_SMALL · LOOK_DOWN_SMALL · FIRE`, plus the engagement when there is one. */
 export function frameLabel(frame: ControlFrame): string {
   const core = CORE_AXES.map((axis) => frame[axis]).join(" · ");
-  return frame.target === "NONE" ? core : `${core} · ${frame.target} ${frame.aim}`;
+  const engaged =
+    frame.target === "NONE" ? core : `${core} · ${frame.target} ${frame.aim}`;
+  return frame.go === "NONE" ? engaged : `${engaged} · GO ${frame.go}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -355,6 +398,17 @@ export const AIM_DESCRIPTIONS: Readonly<Record<AimAction, string>> = {
   HEAD: "Hold the crosshair on the head: about half the torso's width, three and a half times the damage.",
 };
 
+export const GO_DESCRIPTIONS: Readonly<Record<GoAction, string>> = {
+  NONE: "Choose no destination. The movement choice moves the body directly.",
+  CONTINUE:
+    "Keep travelling to the place chosen earlier. The movement controller keeps walking or running the body toward it.",
+  PLACE_0:
+    "Travel to the place listed as PLACE_0: a local movement controller walks or runs the body there by the straight route and stops on arrival. While travelling, the movement choice's walking directions are not applied; its jump and stance choices are. Turning, aiming and the weapon stay under their own choices.",
+  PLACE_1: "Travel to the place listed as PLACE_1, in the same way.",
+  PLACE_2: "Travel to the place listed as PLACE_2, in the same way.",
+  PLACE_3: "Travel to the place listed as PLACE_3, in the same way.",
+};
+
 export const AXIS_DESCRIPTIONS: {
   readonly [A in Axis]: Readonly<Record<AxisActions[A], string>>;
 } = {
@@ -364,6 +418,7 @@ export const AXIS_DESCRIPTIONS: {
   weapon: WEAPON_DESCRIPTIONS,
   target: TARGET_DESCRIPTIONS,
   aim: AIM_DESCRIPTIONS,
+  go: GO_DESCRIPTIONS,
 };
 
 /** Maximum pitch a brain may tilt toward, in degrees; the rig clamps at ~88.9. */

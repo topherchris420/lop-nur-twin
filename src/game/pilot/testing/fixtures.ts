@@ -16,6 +16,8 @@ export function makeObservation(
   overrides: {
     sequence?: number;
     control?: JevObservation["control"];
+    navigation?: JevObservation["navigation"];
+    travel?: JevObservation["travel"];
     player?: Partial<JevObservation["player"]>;
     weapon?: Partial<JevObservation["weapon"]>;
     perception?: Partial<JevObservation["perception"]>;
@@ -47,6 +49,7 @@ export function makeObservation(
     ...overrides.weapon,
   };
   const control = overrides.control ?? "direct";
+  const navigation = overrides.navigation ?? "steps";
   const perception: JevObservation["perception"] = {
     visibleEnemies: [
       {
@@ -70,13 +73,16 @@ export function makeObservation(
       backM: null,
       forwardClimbable: false,
     },
+    places: [],
     ...overrides.perception,
   };
+  const travel = navigation === "places" ? (overrides.travel ?? null) : null;
   return {
     schemaVersion: OBSERVATION_SCHEMA_VERSION,
     actionContract: ACTION_CONTRACT_VERSION,
     sequence: overrides.sequence ?? 1,
     control,
+    navigation,
     match: {
       mode: "tdm",
       phase: "live",
@@ -89,10 +95,14 @@ export function makeObservation(
     weapon,
     perception,
     objective: { kind: "none", bearingDeg: null, distanceM: null, state: null },
+    travel,
     previous: { frame: null, outcome: null },
     legal: legalActionsFor(player, weapon, {
       control,
       visibleEnemies: perception.visibleEnemies.length,
+      navigation,
+      places: perception.places.length,
+      travelling: travel !== null,
     }),
   };
 }

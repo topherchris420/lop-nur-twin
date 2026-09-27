@@ -150,6 +150,7 @@ describe("Jev HTTP provider", () => {
         weapon: "FIRE",
         target: "NONE",
         aim: "CENTER_MASS",
+        go: "NONE",
       },
       outcome: {
         shotsFired: -3,

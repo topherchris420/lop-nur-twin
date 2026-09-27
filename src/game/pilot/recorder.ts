@@ -7,6 +7,8 @@ import {
   isAxisAction,
   type ControlFrame,
   type ControlMode,
+  type NavigationMode,
+  NAVIGATION_MODES,
 } from "./contract";
 import type { DecisionAxes } from "./decision";
 import type { LegalActions, PreviousOutcome } from "./observation";
@@ -26,7 +28,7 @@ import type { LegalActions, PreviousOutcome } from "./observation";
  * The API key never reaches the browser, so it cannot be in a trace.
  */
 
-export const TRACE_VERSION = "blacksite-jev-trace/v2";
+export const TRACE_VERSION = "blacksite-jev-trace/v3";
 export const MAX_TRACE_RECORDS = 5000;
 export const MAX_TRACE_EVENTS = 2000;
 
@@ -46,6 +48,8 @@ export interface TraceHeader {
    * executed by the local tracking controller, not by the brain frame by frame.
    */
   control: ControlMode;
+  /** How the frames reached the feet: stepped, or a place walked to by the navigator. */
+  navigation: NavigationMode;
   mode: string;
   matchId: string;
   startedAt: string;
@@ -83,6 +87,8 @@ export interface TraceRecord {
   execution: PreviousOutcome | null;
   /** Precision control only: whether the chosen slot bound a target. */
   engagement?: { targetBound: boolean };
+  /** Places navigation only, for a PLACE_n choice: whether it bound a place, and which kind. */
+  travel?: { placeBound: boolean; kind: string | null };
   playerAfter: PlayerSnapshot | null;
   matchId: string;
   seed: number;
@@ -104,7 +110,9 @@ export interface TraceEvent {
     | "death"
     | "respawn"
     | "skipped"
-    | "target_released";
+    | "target_released"
+    | "travel_ended"
+    | "debrief";
   detail: string;
 }
 
@@ -216,6 +224,9 @@ export function parseTrace(
   }
   if (!(CONTROL_MODES as readonly unknown[]).includes(header.control)) {
     return { ok: false, error: `Unknown control mode ${String(header.control)}.` };
+  }
+  if (!(NAVIGATION_MODES as readonly unknown[]).includes(header.navigation)) {
+    return { ok: false, error: `Unknown navigation mode ${String(header.navigation)}.` };
   }
   if (header.observationSchema !== OBSERVATION_SCHEMA_VERSION) {
     return {

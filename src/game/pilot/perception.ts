@@ -17,6 +17,7 @@ import {
   OBSERVATION_SCHEMA_VERSION,
   type ControlFrame,
   type ControlMode,
+  type NavigationMode,
 } from "./contract";
 import {
   MAX_CONTACTS,
@@ -26,10 +27,12 @@ import {
   legalActionsFor,
   type Contact,
   type JevObservation,
+  type PlaceKind,
   type PreviousOutcome,
   type VisibleEnemy,
 } from "./observation";
 import { rigState } from "./rigState";
+import { findPlaces, type FoundPlace, type Threat } from "./places";
 
 /**
  * Builds a brain's observation from the live game, at decision time only.
@@ -82,6 +85,42 @@ function chestHeight(actor: Actor): number {
   return actor.stance === "prone" ? 0.3 : actor.stance === "crouch" ? 0.8 : 1.15;
 }
 
+/**
+ * The one rule for "the seat can see this enemy", shared by the observation a
+ * brain receives and by the debrief every seat gets: alive, within sight
+ * range, inside the camera's field of view, and a clear line from the eye to
+ * its head or its chest. Returns null when it cannot be seen.
+ */
+export function sightOf(
+  eye: THREE.Vector3,
+  aimYaw: number,
+  aimPitch: number,
+  halfFov: { h: number; v: number },
+  other: Actor,
+): {
+  distance: number;
+  bearing: number;
+  elevation: number;
+  headVisible: boolean;
+  chestVisible: boolean;
+} | null {
+  if (!other.alive) return null;
+  const world = game.world;
+  eyePosition(other, _head);
+  _chest.set(other.position.x, other.position.y + chestHeight(other), other.position.z);
+  _to.copy(_chest).sub(eye);
+  const distance = _to.length();
+  if (distance > SIGHT_RANGE_M || distance < 1e-3) return null;
+  const bearing = bearingTo(aimYaw, _to.x, _to.z);
+  const elevation =
+    (Math.asin(THREE.MathUtils.clamp(_to.y / distance, -1, 1)) - aimPitch) * RAD;
+  if (Math.abs(bearing) > halfFov.h || Math.abs(elevation) > halfFov.v) return null;
+  const headVisible = !world || world.hasLineOfSight(eye, _head, MASK_SIGHT, other.id);
+  const chestVisible = !world || world.hasLineOfSight(eye, _chest, MASK_SIGHT, other.id);
+  if (!headVisible && !chestVisible) return null;
+  return { distance, bearing, elevation, headVisible, chestVisible };
+}
+
 interface Sighting {
   x: number;
   y: number;
@@ -96,6 +135,10 @@ export interface PerceptionInput {
   control: ControlMode;
   /** The enemy the precision controller is tracking, if any. Marked, never revealed. */
   trackedId: EntityId | null;
+  /** Who walks the body; places are found only under places navigation. */
+  navigation: NavigationMode;
+  /** Where the navigator is taking the body, if anywhere. */
+  travel: { x: number; z: number; kind: PlaceKind } | null;
 }
 
 export class Perception {
@@ -110,11 +153,18 @@ export class Perception {
    * slot, so a brain can name an enemy it was shown and nothing else.
    */
   lastTargetIds: EntityId[] = [];
+  /**
+   * The world point behind each `PLACE_n` slot of the last capture. Like the
+   * target slots, it stays in the browser: the observation carries bearings
+   * and distances, never coordinates.
+   */
+  lastPlaces: FoundPlace[] = [];
 
   reset(): void {
     this.lastSeen.clear();
     this.lastTarget = null;
     this.lastTargetIds = [];
+    this.lastPlaces = [];
   }
 
   capture(input: PerceptionInput): JevObservation {
@@ -144,24 +194,9 @@ export class Perception {
     const visible: (VisibleEnemy & { id: EntityId })[] = [];
     for (const other of game.actors) {
       if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
-      eyePosition(other, _head);
-      _chest.set(
-        other.position.x,
-        other.position.y + chestHeight(other),
-        other.position.z,
-      );
-      _to.copy(_chest).sub(_eye);
-      const distance = _to.length();
-      if (distance > SIGHT_RANGE_M || distance < 1e-3) continue;
-      const bearing = bearingTo(aimYaw, _to.x, _to.z);
-      const elevation =
-        (Math.asin(THREE.MathUtils.clamp(_to.y / distance, -1, 1)) - aimPitch) * RAD;
-      if (Math.abs(bearing) > halfH || Math.abs(elevation) > halfV) continue;
-      const headVisible =
-        !world || world.hasLineOfSight(_eye, _head, MASK_SIGHT, other.id);
-      const chestVisible =
-        !world || world.hasLineOfSight(_eye, _chest, MASK_SIGHT, other.id);
-      if (!headVisible && !chestVisible) continue;
+      const sight = sightOf(_eye, aimYaw, aimPitch, { h: halfH, v: halfV }, other);
+      if (!sight) continue;
+      const { distance, bearing, elevation, headVisible, chestVisible } = sight;
       // Motion across the view, as the player would see it: relative velocity
       // projected on the view's horizontal right-hand axis.
       const lateral =
@@ -211,6 +246,7 @@ export class Perception {
 
     /* ------------------------------------------------- contacts */
     const contacts: (Contact & { key: string })[] = [];
+    const contactPositions = new Map<string, Threat>();
     for (const [id, sighting] of this.lastSeen) {
       const actor = game.actorById.get(id);
       const age = now - sighting.time;
@@ -221,6 +257,7 @@ export class Perception {
       if (visibleIds.has(id)) continue;
       const dx = sighting.x - player.position.x;
       const dz = sighting.z - player.position.z;
+      contactPositions.set(`seen-${id}`, { x: sighting.x, y: sighting.y, z: sighting.z });
       contacts.push({
         key: `seen-${id}`,
         source: "last_seen",
@@ -255,6 +292,11 @@ export class Perception {
             Math.abs(c.bearingDeg - bearingTo(aimYaw, dx, dz)) < 6,
         );
       if (duplicate) continue;
+      contactPositions.set(`ping-${i}`, {
+        x: ping.x,
+        y: world ? world.groundAt(ping.x, ping.z) : player.position.y,
+        z: ping.z,
+      });
       contacts.push({
         key: `ping-${i}`,
         source: "gunfire",
@@ -266,6 +308,21 @@ export class Perception {
     contacts.sort(
       (a, b) => a.ageS - b.ageS || a.distanceM - b.distanceM || (a.key < b.key ? -1 : 1),
     );
+
+    /* ------------------------------------------ known threats */
+    // Only what this observation reports: the enemies listed as visible, the
+    // remembered sightings and the gunfire heard, at the positions where they
+    // were seen or heard — and the direction of the last hit, taken 60 m out.
+    const threats: Threat[] = [];
+    for (const enemy of listed) {
+      const actor = game.actorById.get(enemy.id);
+      if (actor)
+        threats.push({ x: actor.position.x, y: actor.position.y, z: actor.position.z });
+    }
+    for (const contact of contacts.slice(0, MAX_CONTACTS)) {
+      const at = contactPositions.get(contact.key);
+      if (at) threats.push(at);
+    }
 
     /* --------------------------------------------------- damage */
     let damage: JevObservation["perception"]["damage"] = null;
@@ -303,6 +360,52 @@ export class Perception {
     /* ------------------------------------------------ objective */
     const mode = useGameStore.getState().mode;
     const objective = this.objective(mode, aimYaw);
+
+    /* --------------------------------------------------- places */
+    if (lastHit && damage) {
+      const a = lastHit.angle;
+      const x = player.position.x - Math.sin(a) * 60;
+      const z = player.position.z - Math.cos(a) * 60;
+      threats.push({ x, y: world ? world.groundAt(x, z) : player.position.y, z });
+    }
+    const places: FoundPlace[] =
+      input.navigation === "places" && world
+        ? findPlaces(
+            world,
+            {
+              x: player.position.x,
+              y: player.position.y,
+              z: player.position.z,
+              id: player.id,
+            },
+            aimYaw,
+            threats,
+            this.objectivePoint,
+          )
+        : [];
+    this.lastPlaces = places;
+    const travel: JevObservation["travel"] =
+      input.navigation === "places" && input.travel
+        ? {
+            kind: input.travel.kind,
+            bearingDeg: round1(
+              bearingTo(
+                aimYaw,
+                input.travel.x - player.position.x,
+                input.travel.z - player.position.z,
+              ),
+            ),
+            remainingM: round1(
+              Math.min(
+                5000,
+                Math.hypot(
+                  input.travel.x - player.position.x,
+                  input.travel.z - player.position.z,
+                ),
+              ),
+            ),
+          }
+        : null;
 
     /* -------------------------------------------------- player */
     const motion = rigState.mantling
@@ -359,6 +462,7 @@ export class Perception {
       actionContract: ACTION_CONTRACT_VERSION,
       sequence: input.sequence,
       control: input.control,
+      navigation: input.navigation,
       match: {
         mode,
         phase:
@@ -382,8 +486,10 @@ export class Perception {
           .map(({ key: _key, ...contact }) => contact),
         damage,
         obstacles,
+        places: places.map(({ x: _x, z: _z, ...place }) => place),
       },
       objective,
+      travel,
       previous: {
         frame: input.previousFrame,
         outcome: input.previousOutcome,
@@ -391,14 +497,21 @@ export class Perception {
       legal: legalActionsFor(playerObs, weapon, {
         control: input.control,
         visibleEnemies: listed.length,
+        navigation: input.navigation,
+        places: places.length,
+        travelling: travel !== null,
       }),
     };
   }
+
+  /** The objective zone's centre at the last capture, for the places finder. */
+  private objectivePoint: { x: number; z: number } | null = null;
 
   private objective(
     mode: JevObservation["match"]["mode"],
     aimYaw: number,
   ): JevObservation["objective"] {
+    this.objectivePoint = null;
     const none: JevObservation["objective"] = {
       kind: "none",
       bearingDeg: null,
@@ -422,6 +535,7 @@ export class Perception {
         .sort((a, b) => distanceTo(a) - distanceTo(b) || (a.id < b.id ? -1 : 1))[0];
     }
     if (!zone) return none;
+    this.objectivePoint = { x: zone.x, z: zone.z };
     return {
       kind: mode === "hardpoint" ? "hardpoint" : "zone",
       bearingDeg: round1(

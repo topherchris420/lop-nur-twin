@@ -1,5 +1,5 @@
 import { mulberry32 } from "@/lib/noise";
-import type { ControlFrame, ControlMode } from "./contract";
+import type { ControlFrame, ControlMode, NavigationMode } from "./contract";
 import { readDecisionError, validateDecision } from "./decision";
 import { validateObservation, type LegalActions } from "./observation";
 import type {
@@ -192,27 +192,31 @@ export class RandomProvider implements DecisionProvider {
     this.rand = mulberry32(seed >>> 0);
   }
 
-  pick(legal: LegalActions, control: ControlMode = "direct"): ControlFrame {
+  pick(
+    legal: LegalActions,
+    control: ControlMode = "direct",
+    navigation: NavigationMode = "steps",
+  ): ControlFrame {
     const draw = <T>(options: readonly T[]): T =>
       options[Math.min(options.length - 1, Math.floor(this.rand() * options.length))]!;
-    // Always move, turn, tilt, weapon: the draw order is part of the seed's meaning.
+    // Always move, turn, tilt, weapon: the draw order is part of the seed's
+    // meaning. Precision adds target and aim; places adds the destination, last,
+    // so a seed's frames under the older interfaces are unchanged.
     const move = draw(legal.move);
     const turn = draw(legal.turn);
     const tilt = draw(legal.tilt);
     const weapon = draw(legal.weapon);
-    if (control !== "precision") {
-      return { move, turn, tilt, weapon, target: legal.target[0]!, aim: legal.aim[0]! };
-    }
-    const target = draw(legal.target);
-    const aim = draw(legal.aim);
-    return { move, turn, tilt, weapon, target, aim };
+    const target = control === "precision" ? draw(legal.target) : legal.target[0]!;
+    const aim = control === "precision" ? draw(legal.aim) : legal.aim[0]!;
+    const go = navigation === "places" ? draw(legal.go) : legal.go[0]!;
+    return { move, turn, tilt, weapon, target, aim, go };
   }
 
   decide({ observation }: DecisionRequest): Promise<ProviderResult> {
     return Promise.resolve({
       ok: true,
       decision: {
-        frame: this.pick(observation.legal, observation.control),
+        frame: this.pick(observation.legal, observation.control, observation.navigation),
         axes: null,
         model: null,
         serverLatencyMs: null,

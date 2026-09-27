@@ -2,7 +2,12 @@ import { create } from "zustand";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import type { GameModeId, MatchPhase, Team } from "./types";
 import type { ParsedTrace } from "../pilot/recorder";
-import { CONTROL_MODES, type ControlMode } from "../pilot/contract";
+import {
+  CONTROL_MODES,
+  NAVIGATION_MODES,
+  type ControlMode,
+  type NavigationMode,
+} from "../pilot/contract";
 import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
 
 /**
@@ -171,6 +176,13 @@ interface GameStoreState {
    */
   jevControl: ControlMode;
   setJevControl: (control: ControlMode) => void;
+  /**
+   * `?jevNav=places|steps`: how a brain's movement reaches the body. Places
+   * lets it name a nearby place for the local navigator to walk to; steps is
+   * the original view-relative walking, kept for comparison.
+   */
+  jevNav: NavigationMode;
+  setJevNav: (navigation: NavigationMode) => void;
   /** `?playerProfile=standard|elite` — Elite Operator for the human. */
   playerProfile: PlayerProfile;
   setPlayerProfile: (profile: PlayerProfile) => void;
@@ -296,6 +308,8 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setReplayTrace: (replayTrace) => set({ replayTrace }),
   jevControl: readEnumParam<ControlMode>("jevControl", CONTROL_MODES) ?? "precision",
   setJevControl: (jevControl) => set({ jevControl }),
+  jevNav: readEnumParam<NavigationMode>("jevNav", NAVIGATION_MODES) ?? "places",
+  setJevNav: (jevNav) => set({ jevNav }),
   playerProfile:
     readEnumParam<PlayerProfile>("playerProfile", PLAYER_PROFILES) ?? "standard",
   setPlayerProfile: (playerProfile) => set({ playerProfile }),

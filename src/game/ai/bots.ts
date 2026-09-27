@@ -58,6 +58,21 @@ import { applyNearMissSuppression, respawnActor } from "../core/combat";
  *    inside somebody's line of sight and never on top of a live enemy.
  *  - **Shared contacts.** A bot that sees or hears an enemy tells its team, so
  *    a single contact pulls the squad in rather than one bot at a time.
+ *
+ * ## Why they do not run at you across the apron
+ *
+ * The compound is a few large buildings standing on open lakebed, so the
+ * ground between them is where a fight is decided by who stood still. A bot
+ * that is out of its own weapon's range and in sight of the enemy it wants to
+ * close on does not sprint straight at it: it *bounds* — picks a point nearer
+ * the threat that the threat cannot see, sprints to it, and looks again from
+ * there. Where there is no such point it breaks sight instead of walking into
+ * the open. Close in, where its weapon works, it fights as before.
+ *
+ * This was measured, not assumed. Before it, a scripted policy that held one
+ * spot and aimed down the sights went 161 kills to 0 deaths over three
+ * two-minute matches, without moving a metre — the same strategy the live
+ * model had found. See docs/JEV_BLACKSITE.md, "The marksman exploit".
  */
 
 const BOT_NAMES = [
@@ -122,7 +137,12 @@ const SPAWN_BAND_MIN = 45;
 const SPAWN_BAND_MAX = 135;
 /** Never spawn this close to a live enemy, or where one can see you. */
 const SPAWN_ENEMY_CLEARANCE = 32;
-const SPAWN_SIGHT_CLEARANCE = 90;
+/**
+ * No spawn inside an enemy's sight line out to the full sight range. At 90 m a
+ * returning bot could appear in the open, in plain view of a rifle that kills
+ * at 100 m with one round — which is what a stationary marksman farmed.
+ */
+const SPAWN_SIGHT_CLEARANCE = SIGHT_RANGE;
 /** How long a reported contact is worth acting on. */
 const CONTACT_TTL = 9;
 
@@ -162,6 +182,7 @@ type BotState =
   | "cover_peek"
   | "suppress"
   | "flank"
+  | "bound"
   | "reload"
   | "dead";
 
@@ -207,6 +228,8 @@ interface Bot {
   suppressTimer: number;
   lastCalloutTime: number;
   flankedDetected: boolean;
+  /** Game time of the last check that the way ahead is in an enemy's sight. */
+  exposureCheckAt: number;
 }
 
 const CALLOUT_COOLDOWNS: Record<Team, number> = { blue: -99, red: -99 };
@@ -576,6 +599,7 @@ export class BotManager {
         suppressTimer: 0,
         lastCalloutTime: -99,
         flankedDetected: false,
+        exposureCheckAt: -99,
       });
     }
   }
@@ -653,6 +677,7 @@ export class BotManager {
     bot.slideTimer = 0;
     bot.isTacSprinting = false;
     bot.flankedDetected = false;
+    bot.exposureCheckAt = -99;
     this.pickPatrolGoal(bot);
   }
 
@@ -938,6 +963,26 @@ export class BotManager {
         }
 
         if (distance > optimal * 1.6) {
+          // Out of range and in the target's sight: bound, do not charge. The
+          // search is throttled — it costs a few dozen raycasts.
+          if (time - bot.exposureCheckAt > 1) {
+            bot.exposureCheckAt = time;
+            if (this.beginBound(bot, target.position, time)) break;
+            // Nothing nearer is hidden from it. Far out, get out of its sight
+            // rather than walk into the open; nearer, close the distance.
+            if (
+              distance > optimal * 2.5 &&
+              this.findTacticalCover(
+                bot,
+                target.position,
+                bot.coverPosition,
+                bot.coverNormal,
+              )
+            ) {
+              this.initiateSlide(bot, bot.coverPosition, time);
+              break;
+            }
+          }
           bot.goal.copy(target.position);
           bot.isTacSprinting = distance > 30;
         } else if (distance < optimal * 0.45) {
@@ -967,6 +1012,15 @@ export class BotManager {
         }
 
         bot.peekTimer += dt;
+        if (
+          !bot.peeking &&
+          bot.peekTimer > bot.peekDuration &&
+          actor.position.distanceTo(bot.lastKnown) > this.optimalRange(bot) * 1.6 &&
+          bot.rand() < 0.5 &&
+          this.beginBound(bot, bot.lastKnown, time)
+        ) {
+          break;
+        }
         if (!bot.peeking) {
           // Tucked in crouched cover: recover suppression and plan peek
           actor.stance = "crouch";
@@ -1033,10 +1087,30 @@ export class BotManager {
         break;
       }
 
+      case "bound":
+        if (actor.position.distanceTo(bot.goal) < 1.6 || bot.stateTimer > 7) {
+          // Arrived behind something the threat cannot see through: hold it,
+          // and look again from there.
+          bot.isTacSprinting = false;
+          bot.state = "cover_peek";
+          bot.peeking = false;
+          bot.peekTimer = 0;
+          bot.stateTimer = 0;
+        }
+        break;
+
       case "investigate":
         if (hasTarget) {
           bot.state = "engage";
           bot.stateTimer = 0;
+        } else if (
+          time - bot.exposureCheckAt > 1.2 &&
+          actor.position.distanceTo(bot.goal) > 40
+        ) {
+          // Walking toward where an enemy was: if that spot can see this bot,
+          // so could whoever is there. Bound instead of strolling in.
+          bot.exposureCheckAt = time;
+          if (this.exposedTo(actor, bot.goal)) this.beginBound(bot, bot.goal, time);
         } else if (actor.position.distanceTo(bot.goal) < 3 || bot.stateTimer > 9) {
           bot.state = "patrol";
           if (!this.followTeamContact(bot, time)) this.pickPatrolGoal(bot);
@@ -1151,6 +1225,82 @@ export class BotManager {
     bot.goal.copy(contact.position).addScaledVector(_right, bot.flank);
     bot.goal.y = this.world.groundAt(bot.goal.x, bot.goal.z);
     bot.state = "investigate";
+    return true;
+  }
+
+  /** A standing eye at `point` can see this actor's chest. */
+  private exposedTo(actor: Actor, point: THREE.Vector3): boolean {
+    _targetEye.set(point.x, point.y + HUMAN_METRICS.eyeHeight.stand, point.z);
+    _probe.set(
+      actor.position.x,
+      actor.position.y + HUMAN_METRICS.eyeHeight[actor.stance] - 0.35,
+      actor.position.z,
+    );
+    return this.world.hasLineOfSight(_targetEye, _probe, MASK_SIGHT, actor.id);
+  }
+
+  /**
+   * Start a bound toward `threat`: a sprint to a nearer point that a standing
+   * eye at the threat cannot see, reachable in a straight line. Returns false
+   * — and changes nothing — when no such point is within reach, which on the
+   * open lakebed is often.
+   */
+  private beginBound(bot: Bot, threat: THREE.Vector3, time: number): boolean {
+    const actor = bot.actor;
+    const toThreat = _desired.copy(threat).sub(actor.position).setY(0);
+    const range = toThreat.length();
+    if (range < 12) return false;
+    toThreat.multiplyScalar(1 / range);
+    const heading = Math.atan2(toThreat.z, toThreat.x);
+    _targetEye.set(threat.x, threat.y + HUMAN_METRICS.eyeHeight.stand, threat.z);
+
+    let bestScore = -Infinity;
+    for (let i = 0; i < 18; i += 1) {
+      const angle = heading + (bot.rand() - 0.5) * 2.8;
+      const reach = 6 + bot.rand() * 20;
+      const x = actor.position.x + Math.cos(angle) * reach;
+      const z = actor.position.z + Math.sin(angle) * reach;
+      const progress = range - Math.hypot(threat.x - x, threat.z - z);
+      if (progress < 2) continue;
+      const y = this.world.groundAt(x, z);
+      _spawn.set(x, y, z);
+      if (
+        !this.world.isPositionFree(
+          _spawn,
+          HUMAN_METRICS.radius,
+          HUMAN_METRICS.colliderHeight.crouch,
+        )
+      ) {
+        continue;
+      }
+      // Hidden from the threat, crouched.
+      _probe.set(x, y + HUMAN_METRICS.eyeHeight.crouch, z);
+      if (this.world.hasLineOfSight(_targetEye, _probe, MASK_SIGHT)) continue;
+      // Reachable without running into the thing that hides it.
+      _shotEnd.set(x - actor.position.x, 0, z - actor.position.z).normalize();
+      _lead.set(actor.position.x, actor.position.y + 0.9, actor.position.z);
+      const blocked = this.world.raycast(
+        _lead,
+        _shotEnd,
+        reach - 0.8,
+        MASK_SIGHT,
+        actor.id,
+      );
+      if (blocked) continue;
+      const score = progress - reach * 0.3;
+      if (score > bestScore) {
+        bestScore = score;
+        bot.coverPosition.set(x, y, z);
+      }
+    }
+    if (bestScore === -Infinity) return false;
+    bot.coverNormal.copy(threat).sub(bot.coverPosition).setY(0).normalize();
+    bot.hasCover = true;
+    bot.goal.copy(bot.coverPosition);
+    bot.state = "bound";
+    bot.isTacSprinting = true;
+    bot.stateTimer = 0;
+    emitSquadCallout(bot, "moving_cover", time);
     return true;
   }
 
