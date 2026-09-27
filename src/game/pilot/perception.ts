@@ -20,7 +20,10 @@ import {
   type NavigationMode,
 } from "./contract";
 import {
+  HEARING_RANGE_M,
+  MAX_ALLIES,
   MAX_CONTACTS,
+  RADAR_RANGE_M,
   MAX_VISIBLE_ENEMIES,
   OBSTACLE_PROBE_M,
   SIGHT_RANGE_M,
@@ -55,8 +58,6 @@ import { findPlaces, type FoundPlace, type Threat } from "./places";
  * Nothing here reads a bot's plan, a spawn, a hidden position or a future.
  */
 
-/** How far unsuppressed gunfire is heard — the bots' own hearing range. */
-const HEARING_RANGE_M = 115;
 /** Gunfire pings and sightings older than this are forgotten. */
 const PING_MEMORY_S = 3;
 const SIGHTING_MEMORY_S = 6;
@@ -361,6 +362,22 @@ export class Perception {
     const mode = useGameStore.getState().mode;
     const objective = this.objective(mode, aimYaw);
 
+    /* --------------------------------------------------- allies */
+    const allies: JevObservation["perception"]["allies"] = game.actors
+      .filter((a) => !a.isPlayer && a.alive && a.team === player.team)
+      .map((a) => ({
+        dx: a.position.x - player.position.x,
+        dz: a.position.z - player.position.z,
+      }))
+      .map(({ dx, dz }) => ({ dx, dz, d: Math.hypot(dx, dz) }))
+      .filter(({ d }) => d <= RADAR_RANGE_M)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, MAX_ALLIES)
+      .map(({ dx, dz, d }) => ({
+        bearingDeg: round1(bearingTo(aimYaw, dx, dz)),
+        distanceM: round1(Math.min(d, RADAR_RANGE_M)),
+      }));
+
     /* --------------------------------------------------- places */
     if (lastHit && damage) {
       const a = lastHit.angle;
@@ -487,6 +504,7 @@ export class Perception {
         damage,
         obstacles,
         places: places.map(({ x: _x, z: _z, ...place }) => place),
+        allies,
       },
       objective,
       travel,

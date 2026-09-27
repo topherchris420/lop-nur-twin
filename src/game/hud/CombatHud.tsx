@@ -1,3 +1,4 @@
+import { HEARING_RANGE_M, RADAR_RANGE_M } from "../pilot/observation";
 import { useEffect, useRef } from "react";
 import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
@@ -5,7 +6,12 @@ import { COMBAT } from "../core/combat";
 import { STRUCTURES, RUNWAYS, TAXIWAYS, APRONS } from "@/lib/layout";
 
 /**
- * Modern Warfare-Style AAA Tactical HUD.
+ * The in-match HUD.
+ *
+ * It says what a player needs and then gets out of the way: no XP popups, no
+ * radio chatter, no chips for equipment the rig does not act on. What it shows
+ * about enemies is what a brain in the same seat is told — shots heard within
+ * hearing range, the direction of a hit — and nothing a person could not see.
  *
  * Every element is painted into one canvas from a `requestAnimationFrame`
  * loop that reads the mutable `game.hud` block directly. No React state is
@@ -14,16 +20,14 @@ import { STRUCTURES, RUNWAYS, TAXIWAYS, APRONS } from "@/lib/layout";
  * Features:
  *  - Tactical Compass with degree numbers, cardinal labels & red diamond enemy fire indicators
  *  - Radar Minimap with 360° sweep line, site structures outline, player heading & gunfire pings
- *  - CoD XP Score Popups & animated medals (+100 ELIMINATED, HEADSHOT, LONGSHOT, DOUBLE KILL)
+ *  - A kill confirmation under the crosshair: the name and the range, nothing else
  *  - Critical Health Screen with bloody pulsing vignette & heartbeat sync
  *  - Directional Damage Indicators with curved red damage arcs
- *  - Tactical Squad Radio Feed
  */
 
 const BLUE = "#4da3ff";
 const RED = "#ff5a4d";
 const AMBER = "#ffb648";
-const GOLD = "#ffd700";
 const CYAN = "#4df0ff";
 const INK = "rgba(9,10,12,0.85)";
 const COMBAT_RESPAWN_SECONDS = COMBAT.respawnDelay;
@@ -408,6 +412,9 @@ function paintCompass(ctx: CanvasRenderingContext2D, w: number): void {
     if (ping.shooterTeam === game.player.team) continue;
     const age = now - ping.time;
     if (age > 3.2) continue;
+    // Heard only within hearing range: the same shots a brain is told about.
+    if (Math.hypot(ping.x - playerPos.x, ping.z - playerPos.z) > HEARING_RANGE_M)
+      continue;
 
     let delta = ping.bearing - heading;
     while (delta > 180) delta -= 360;
@@ -475,7 +482,7 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
   const cx = mapX + mapSize / 2;
   const cy = mapY + mapSize / 2;
   const radius = mapSize / 2 - 6;
-  const mapRangeM = 145; // 145m map view radius
+  const mapRangeM = RADAR_RANGE_M; // the radius a brain is told about teammates within
   const scale = radius / mapRangeM;
 
   const player = game.player;
@@ -660,6 +667,11 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
     if (ping.shooterTeam === player.team) continue;
     const age = now - ping.time;
     if (age > 2.8) continue;
+    if (
+      Math.hypot(ping.x - player.position.x, ping.z - player.position.z) > HEARING_RANGE_M
+    ) {
+      continue;
+    }
     const [gx, gy] = worldToMap(ping.x, ping.z);
     const alpha = Math.max(0, 1 - age / 2.8);
     const ripple = 3 + (age / 2.8) * 18;
@@ -714,118 +726,28 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
 /* 6. CoD XP Score Popups & Medals (+100 ELIMINATED, HEADSHOT, etc.)  */
 /* ------------------------------------------------------------------ */
 
-function paintScoreEvents(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-  const hud = game.hud;
-  const events = hud.scoreEvents;
-  if (!events || events.length === 0) return;
-
-  const now = game.time;
-  // Positioned in center-right (Modern Warfare style)
-  const x = w * 0.62;
-  let baseY = h * 0.42;
-
+function paintKillConfirm(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  const kill = game.hud.lastKill;
+  if (!kill) return;
+  const age = game.time - kill.time;
+  if (age < 0 || age > 1.8) return;
+  // No medal, no points: who fell, and how far away they were.
+  const alpha = Math.min(1, age * 10) * Math.min(1, (1.8 - age) / 0.6);
   ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  // Prune expired events
-  while (events.length > 0 && now - events[0]!.time > 2.8) {
-    events.shift();
-  }
-
-  for (const event of events) {
-    const age = now - event.time;
-    if (age < 0) continue;
-    const alpha = Math.max(0, Math.min(1, (2.8 - age) / 0.8));
-    const pop = Math.min(1, age * 8); // Scale pop in
-    const slideOffset = (1 - pop) * 24;
-
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(x, baseY - slideOffset);
-
-    // Medal Background Plate
-    const isMedal = event.medal !== false;
-    const cardW = 210;
-    const cardH = 32;
-
-    chamferPath(ctx, 0, -cardH / 2, cardW, cardH, 6);
-    ctx.fillStyle = isMedal ? "rgba(18,22,28,0.85)" : INK;
-    ctx.fill();
-    ctx.strokeStyle = isMedal ? "rgba(255,215,0,0.45)" : "rgba(77,163,255,0.3)";
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    // Gold / White XP Points Badge
-    ctx.textAlign = "left";
-    ctx.font = "800 16px ui-monospace, monospace";
-    ctx.fillStyle = isMedal ? GOLD : "#f0f4f8";
-    ctx.shadowColor = isMedal ? "rgba(255,215,0,0.6)" : "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = 6;
-    ctx.fillText(`+${event.points}`, 12, 0);
-
-    // Medal Title (e.g. ELIMINATED, HEADSHOT, LONGSHOT)
-    ctx.font = "700 11px ui-sans-serif, system-ui, sans-serif";
-    ctx.letterSpacing = "1.5px";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(event.label.toUpperCase(), 72, event.subtext ? -5 : 0);
-
-    // Subtext (e.g. victim name or distance)
-    if (event.subtext) {
-      ctx.font = "600 9px ui-monospace, monospace";
-      ctx.fillStyle = "rgba(148,163,184,0.9)";
-      ctx.letterSpacing = "1px";
-      ctx.fillText(event.subtext.toUpperCase(), 72, 8);
-    }
-
-    ctx.restore();
-    baseY += 38;
-  }
-
-  ctx.restore();
-}
-
-/* ------------------------------------------------------------------ */
-/* 7. Tactical Squad Radio Callout Feed                               */
-/* ------------------------------------------------------------------ */
-
-function paintSquadRadioFeed(ctx: CanvasRenderingContext2D, h: number): void {
-  const hud = game.hud;
-  const callouts = hud.radioCallouts;
-  if (!callouts || callouts.length === 0) return;
-
-  const now = game.time;
-  const x = 36;
-  let y = h - 145;
-
-  ctx.save();
-  ctx.textBaseline = "middle";
-
-  // Prune expired callouts
-  while (callouts.length > 0 && now - callouts[0]!.time > 4.2) {
-    callouts.shift();
-  }
-
-  for (const callout of callouts) {
-    const age = now - callout.time;
-    const alpha = Math.max(0, Math.min(1, (4.2 - age) / 0.8));
-
-    ctx.save();
-    ctx.globalAlpha = alpha;
-
-    ctx.font = "700 11px ui-monospace, monospace";
-    const speakerText = `[${callout.speaker}]`;
-    const speakerW = ctx.measureText(speakerText).width;
-
-    ctx.fillStyle = callout.team === "blue" ? BLUE : RED;
-    ctx.fillText(speakerText, x, y);
-
-    ctx.font = "600 11px ui-sans-serif, system-ui, sans-serif";
-    ctx.fillStyle = "rgba(236,242,248,0.95)";
-    ctx.fillText(` ${callout.text}`, x + speakerW + 4, y);
-
-    ctx.restore();
-    y -= 20;
-  }
+  ctx.font = "600 11px ui-monospace, monospace";
+  ctx.letterSpacing = "2px";
+  ctx.fillStyle = "rgba(236,242,248,0.92)";
+  ctx.shadowColor = "rgba(0,0,0,0.7)";
+  ctx.shadowBlur = 4;
+  const range = `${Math.round(kill.rangeM)} M`;
+  ctx.fillText(
+    `${kill.name}  ·  ${range}${kill.headshot ? "  ·  HEAD" : ""}`,
+    w / 2,
+    h / 2 + 46,
+  );
   ctx.restore();
 }
 
@@ -1010,32 +932,6 @@ function paintObjectives(ctx: CanvasRenderingContext2D, w: number): void {
   ctx.restore();
 }
 
-function paintEquipment(ctx: CanvasRenderingContext2D, h: number): void {
-  const hud = game.hud;
-  const x = 46;
-  const y = h - 58;
-  ctx.save();
-  ctx.font = "600 12px ui-sans-serif, system-ui";
-  ctx.textBaseline = "middle";
-  const chip = (label: string, count: number, offset: number, color: string): void => {
-    ctx.fillStyle = INK;
-    chamferPath(ctx, x + offset, y, 54, 24, 6);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(226,232,240,0.18)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = count > 0 ? color : "rgba(226,232,240,0.28)";
-    ctx.textAlign = "left";
-    ctx.fillText(label, x + offset + 9, y + 12);
-    ctx.textAlign = "right";
-    ctx.fillStyle = count > 0 ? "rgba(240,245,250,0.95)" : "rgba(226,232,240,0.3)";
-    ctx.fillText(String(count), x + offset + 45, y + 12);
-  };
-  chip("LTH", hud.grenades, 0, AMBER);
-  chip("TAC", hud.tacticals, 62, BLUE);
-  ctx.restore();
-}
-
 function paintEliminated(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   const hud = game.hud;
   if (hud.alive) return;
@@ -1133,9 +1029,7 @@ export function CombatHud() {
       paintScore(ctx, w);
       paintObjectives(ctx, w);
       paintAmmo(ctx, w, h);
-      paintEquipment(ctx, h);
-      paintScoreEvents(ctx, w, h);
-      paintSquadRadioFeed(ctx, h);
+      paintKillConfirm(ctx, w, h);
       paintEliminated(ctx, w, h);
       if (fpsRef.current) paintStats(ctx, w);
     };

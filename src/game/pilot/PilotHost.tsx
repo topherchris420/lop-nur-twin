@@ -26,6 +26,8 @@ export function PilotHost() {
   const control = useGameStore((s) => s.jevControl);
   const policy = useGameStore((s) => s.brainPolicy);
   const navigation = useGameStore((s) => s.jevNav);
+  const intervalMs = useGameStore((s) => s.brainCadenceMs);
+  const latencyMs = useGameStore((s) => s.brainLatencyMs);
   const screen = useGameStore((s) => s.screen);
 
   // `?brain=replay&trace=last` replays the trace this browser last kept.
@@ -48,8 +50,10 @@ export function PilotHost() {
       trace,
       control: mode,
       navigation: nav,
+      intervalMs,
+      latencyMs,
     });
-  }, [brain, seed, policy, fallback, trace, control, navigation]);
+  }, [brain, seed, policy, fallback, trace, control, navigation, intervalMs, latencyMs]);
 
   useEffect(() => {
     const observe = (report: AppliedDamage): void =>

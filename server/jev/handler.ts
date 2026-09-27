@@ -13,6 +13,7 @@ import {
   type JevDecision,
 } from "../../src/game/pilot/decision.js";
 import { validateObservation } from "../../src/game/pilot/observation.js";
+import { JEV_CAPABILITIES } from "../../src/game/pilot/capabilities.js";
 import { buildSystemOneRequest } from "./question.js";
 import { DEFAULT_RATE_LIMITS, RateLimiter } from "./rateLimit.js";
 
@@ -180,6 +181,9 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       model,
       actionContract: ACTION_CONTRACT_VERSION,
       observationSchema: OBSERVATION_SCHEMA_VERSION,
+      // What this adapter can take: the interfaces its question builder
+      // speaks. The seat negotiates against it; see capabilities.ts.
+      capabilities: JEV_CAPABILITIES,
       limits: {
         maxBodyBytes: MAX_BODY_BYTES,
         minIntervalMs: DEFAULT_RATE_LIMITS.sessionMinIntervalMs,

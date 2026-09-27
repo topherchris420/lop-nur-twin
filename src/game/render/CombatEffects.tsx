@@ -9,8 +9,6 @@ import {
   LensArtifactsEffect,
   OpticalLensDirtAndFlareEffect,
 } from "@/gfx/postfx";
-import { SensorModeEffect } from "@/gfx/sensorFx";
-import { spatialIntel } from "../core/spatialIntelligence";
 import { useTwinStore } from "@/lib/store";
 import { readEnumParam, readFlag, readIntParam } from "@/lib/params";
 import { sunState } from "@/lib/sunState";
@@ -127,7 +125,6 @@ export function CombatEffects() {
   const opticalFlare = useMemo(() => new OpticalLensDirtAndFlareEffect(), []);
   const motionBlur = useMemo(() => new CameraMotionBlurEffect(), []);
   const lens = useMemo(() => new LensArtifactsEffect(), []);
-  const sensorFx = useMemo(() => new SensorModeEffect(), []);
   const viewmodelPass = useMemo(() => new ViewmodelCompositePass(), []);
   const streaks = useMemo(
     () =>
@@ -145,7 +142,6 @@ export function CombatEffects() {
   useEffect(() => () => opticalFlare.dispose(), [opticalFlare]);
   useEffect(() => () => motionBlur.dispose(), [motionBlur]);
   useEffect(() => () => lens.dispose(), [lens]);
-  useEffect(() => () => sensorFx.dispose(), [sensorFx]);
   useEffect(() => () => streaks.dispose(), [streaks]);
   useEffect(() => {
     setViewmodelPassMounted(true);
@@ -248,9 +244,6 @@ export function CombatEffects() {
     motionBlur.setVelocity(rotVelX, rotVelY);
     motionBlur.setRollVelocity(rollVel);
     motionBlur.setForwardVelocity(forwardVel);
-
-    // 4. Update Sensor Mode Shader
-    sensorFx.setSensorMode(spatialIntel.sensorMode);
   });
 
   if (minimal) {
@@ -304,7 +297,6 @@ export function CombatEffects() {
     passes.push(
       <Vignette key="vignette" eskil={false} offset={0.3} darkness={look.vignette} />,
     );
-    passes.push(<primitive key="sensor" object={sensorFx} />);
   }
   if (upTo >= 5) passes.push(<SMAA key="smaa" />);
   if (upTo >= 6) passes.push(<primitive key="lens" object={lens} />);

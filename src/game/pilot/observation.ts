@@ -101,6 +101,15 @@ export const MAX_PLACES = 4;
 export const OBSTACLE_PROBE_M = 8;
 /** Enemies further than this are not reported as visible (the bots' sight range). */
 export const SIGHT_RANGE_M = 165;
+/**
+ * Gunfire further than this is not heard — the bots' hearing range, and the
+ * HUD's: the radar and compass draw a shot only inside it, so a person and a
+ * brain hear the same shots.
+ */
+export const HEARING_RANGE_M = 115;
+/** The radar's radius. Teammates inside it are on the HUD, so in the observation too. */
+export const RADAR_RANGE_M = 145;
+export const MAX_ALLIES = 3;
 
 export type GameModeName = (typeof GAME_MODES)[number];
 export type PlaceKind = (typeof PLACE_KINDS)[number];
@@ -232,6 +241,8 @@ export interface JevObservation {
     };
     /** Places navigation only; otherwise empty. At most `MAX_PLACES`, nearest first. */
     places: Place[];
+    /** Living teammates inside radar range, nearest first — what the radar shows. */
+    allies: { bearingDeg: number; distanceM: number }[];
   };
   /** The place the navigator is taking the body to, while it is. */
   travel: { kind: PlaceKind; bearingDeg: number; remainingM: number } | null;
@@ -512,6 +523,7 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
       "damage",
       "obstacles",
       "places",
+      "allies",
     ]);
     const obstacles = record(perception["obstacles"], "perception.obstacles", [
       "forwardM",
@@ -689,6 +701,16 @@ export function validateObservation(value: unknown): Validated<JevObservation> {
                 0,
                 MAX_DISTANCE_M,
               ),
+            };
+          },
+        ),
+        allies: list(perception["allies"], "perception.allies", MAX_ALLIES).map(
+          (entry, i) => {
+            const path = `perception.allies[${i}]`;
+            const a = record(entry, path, ["bearingDeg", "distanceM"]);
+            return {
+              bearingDeg: number(a["bearingDeg"], `${path}.bearingDeg`, -ANGLE, ANGLE),
+              distanceM: number(a["distanceM"], `${path}.distanceM`, 0, RADAR_RANGE_M),
             };
           },
         ),

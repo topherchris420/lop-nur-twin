@@ -259,7 +259,14 @@ function killActor(
     attacker.score += isHeadshot ? 150 : 100;
 
     if (attacker.isPlayer) {
-      // CoD MW style XP medals
+      game.hud.lastKill = {
+        name: victim.name,
+        rangeM: event.distanceM,
+        headshot: isHeadshot,
+        time,
+      };
+      // Score events feed the scoring engine and the results screen; the HUD
+      // no longer paints them as popups.
       game.hud.scoreEvents.push({
         id: scoreEventId++,
         label: "ELIMINATED",

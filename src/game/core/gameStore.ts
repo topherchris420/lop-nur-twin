@@ -155,6 +155,9 @@ interface GameStoreState {
   /** Deterministic match seed, so a given match replays identically. */
   matchSeed: number;
   rerollMatchSeed: () => void;
+  /** Bumped to rebuild the match on the same seed: the same bots, spawns and weapons. */
+  matchNonce: number;
+  replayMatchSeed: () => void;
 
   /** Who controls the player. Changes on a menu choice or a takeover. */
   brain: BrainKind;
@@ -163,6 +166,18 @@ interface GameStoreState {
   brainSeed: number;
   /** `?fallback=random`: a labelled stand-in while Jev cannot answer. */
   brainFallback: "random" | null;
+  /**
+   * `?cadence=<ms>`: an experiment's decision interval for a local brain
+   * (random, scripted), 50–2000 ms. Null keeps the contract's 200 ms. Jev's
+   * cadence is set by its latency and the endpoint's pacing, not by this.
+   */
+  brainCadenceMs: number | null;
+  /**
+   * `?latency=<ms>`: delay a local brain's answers by this much, 0–1500 ms, to
+   * measure what a slower or faster remote model would do with the same
+   * policy. Never applied to Jev, whose latency is real.
+   */
+  brainLatencyMs: number;
   /** `?policy=`: which scripted reference policy the `script` brain runs. */
   brainPolicy: ScriptPolicy;
   setBrainPolicy: (policy: ScriptPolicy) => void;
@@ -296,13 +311,21 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   botSkill: 0.4,
   setBotSkill: (botSkill) => set({ botSkill }),
   matchSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
-  rerollMatchSeed: () => set({ matchSeed: (Math.random() * 0xffffff) >>> 0 }),
+  rerollMatchSeed: () =>
+    set((s) => ({
+      matchSeed: (Math.random() * 0xffffff) >>> 0,
+      matchNonce: s.matchNonce + 1,
+    })),
+  matchNonce: 0,
+  replayMatchSeed: () => set((s) => ({ matchNonce: s.matchNonce + 1 })),
 
   brain: initialBrain(),
   setBrain: (brain) => set({ brain }),
   brainSeed: SEED_PARAM ?? DEFAULT_MATCH_SEED,
   brainFallback: readEnumParam<"random">("fallback", ["random"]),
   brainPolicy: readEnumParam<ScriptPolicy>("policy", SCRIPT_POLICIES) ?? "marksman",
+  brainCadenceMs: readIntParam("cadence", 50, 2000),
+  brainLatencyMs: readIntParam("latency", 0, 1500) ?? 0,
   setBrainPolicy: (brainPolicy) => set({ brainPolicy }),
   replayTrace: null,
   setReplayTrace: (replayTrace) => set({ replayTrace }),

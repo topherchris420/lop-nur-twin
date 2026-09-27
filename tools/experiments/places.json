@@ -1,0 +1,14 @@
+{
+  "name": "places",
+  "hypothesis": "Offering places (cover, a way nearer, a way round, a way back, the objective) with exposure facts, executed by a local navigator, turns movement into a decision a policy can make: a seat that uses them spends less time in enemy sight lines and dies less on open ground than the same policy walking relative to its view.",
+  "metric": "Share of life in an enemy's sight line; deaths on open ground; deaths per minute. Kills per minute as the check that moving does not simply trade away the fight.",
+  "seeds": [42, 43, 44],
+  "seconds": 120,
+  "mode": "tdm",
+  "arms": [
+    { "id": "skirmisher-places", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=places" },
+    { "id": "skirmisher-steps", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=steps" },
+    { "id": "random-places", "brain": "random", "control": "precision", "query": "jevNav=places" },
+    { "id": "random-steps", "brain": "random", "control": "precision", "query": "jevNav=steps" }
+  ]
+}

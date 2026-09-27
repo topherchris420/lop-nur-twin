@@ -74,6 +74,7 @@ export function makeObservation(
       forwardClimbable: false,
     },
     places: [],
+    allies: [],
     ...overrides.perception,
   };
   const travel = navigation === "places" ? (overrides.travel ?? null) : null;

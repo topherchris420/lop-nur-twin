@@ -346,7 +346,8 @@ export function emitSquadCallout(bot: Bot, type: SquadCalloutType, time: number)
     if (game.hud.radioCallouts.length > 5) game.hud.radioCallouts.shift();
   }
 
-  queueSound({ id: "radio-chirp", gain: 0.45 });
+  // The callout is kept as data; the HUD no longer prints squad chatter, and a
+  // chirp with nothing to read after it is only noise.
 }
 
 /** What one side currently believes about where the other side is. */

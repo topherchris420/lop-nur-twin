@@ -50,6 +50,17 @@ export interface TraceHeader {
   control: ControlMode;
   /** How the frames reached the feet: stepped, or a place walked to by the navigator. */
   navigation: NavigationMode;
+  /**
+   * The negotiated interface: decision interval, any injected latency (local
+   * brains only, for experiments), where inference ran, and every request
+   * that was not granted as asked.
+   */
+  interface: {
+    intervalMs: number;
+    injectedLatencyMs: number;
+    inference: "local" | "remote";
+    notes: string[];
+  } | null;
   mode: string;
   matchId: string;
   startedAt: string;

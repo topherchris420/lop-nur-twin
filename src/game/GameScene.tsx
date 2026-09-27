@@ -14,10 +14,8 @@ import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
 import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
-import { UavCamera } from "./render/UavCamera";
-import { spatialIntel } from "./core/spatialIntelligence";
 import { FxManager } from "./fx/combatFx";
-import { game, removeActor } from "./core/gameState";
+import { game, removeActor, resetPlayerForMatch } from "./core/gameState";
 import { useGameStore } from "./core/gameStore";
 import {
   damageObservers,
@@ -125,6 +123,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
   const botCount = useGameStore((s) => s.botCount);
   const botSkill = useGameStore((s) => s.botSkill);
   const matchSeed = useGameStore((s) => s.matchSeed);
+  const matchNonce = useGameStore((s) => s.matchNonce);
   const mode = useGameStore((s) => s.mode);
   const setScreen = useGameStore((s) => s.setScreen);
   const managers = useRef<{
@@ -134,6 +133,11 @@ function Combatants({ world }: { world: CollisionWorld }) {
   } | null>(null);
 
   useEffect(() => {
+    // Every match starts from the opening spawn with a clean score — the first
+    // one and every rematch alike. The nonce rebuilds on the same seed.
+    void matchNonce;
+    resetPlayerForMatch();
+    placeOpeningSpawn(world);
     const characters = new CharacterManager(world);
     const bots = new BotManager(world, {
       count: botCount,
@@ -184,7 +188,7 @@ function Combatants({ world }: { world: CollisionWorld }) {
         (globalThis as { __combatSim?: unknown }).__combatSim = undefined;
       }
     };
-  }, [world, scene, botCount, botSkill, matchSeed, mode, setScreen]);
+  }, [world, scene, botCount, botSkill, matchSeed, matchNonce, mode, setScreen]);
 
   useFrame((_state, rawDelta) => {
     const held = managers.current;
@@ -268,8 +272,6 @@ function Simulation({ world, fx }: SimulationProps) {
     game.frame += 1;
 
     // Update central spatial intelligence architecture
-    spatialIntel.update(game.time, dt);
-
     if (playing) {
       resolveDamage(game.time, kills);
       for (const kill of kills) {
@@ -565,7 +567,6 @@ function CombatWorld() {
       <FxHost onReady={handleFx} />
       <AudioHost world={world} />
       <PlayerRig world={world} fx={fx} postEnabled={post} environment={environment} />
-      <UavCamera />
       {world ? <Combatants world={world} /> : null}
       <Simulation world={world} fx={fx} />
       {post && (

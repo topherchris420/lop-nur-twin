@@ -111,6 +111,12 @@ export interface EpisodeMetrics {
   brain: string;
   control: string;
   profile: string;
+  /** Places or steps navigation; "none" for the human. */
+  navigation: string;
+  /** The negotiated decision interval; null for the human. */
+  intervalMs: number | null;
+  /** Delay added to a local brain's answers for an experiment; 0 otherwise. */
+  injectedLatencyMs: number;
   simSeconds: number;
   wallSeconds: number;
   kills: number;
@@ -251,6 +257,9 @@ export class PilotMetrics {
   brain = "human";
   control = "direct";
   profile = "standard";
+  navigation = "none";
+  intervalMs: number | null = null;
+  injectedLatencyMs = 0;
   headshots = 0;
   upperChestHits = 0;
   adsSeconds = 0;
@@ -468,6 +477,9 @@ export class PilotMetrics {
       brain: this.brain,
       control: this.control,
       profile: this.profile,
+      navigation: this.navigation,
+      intervalMs: this.intervalMs,
+      injectedLatencyMs: this.injectedLatencyMs,
       simSeconds: this.simSeconds,
       wallSeconds: Math.max(0, (wallNow - this.startWall) / 1000),
       kills: episodeKills,
@@ -585,6 +597,9 @@ export interface AggregateMetrics {
   brain: string;
   control: string;
   profile: string;
+  navigation: string;
+  /** Decision interval and any injected latency, as run. */
+  interval: string;
   episodes: number;
   simSeconds: number;
   kills: number;
@@ -654,11 +669,17 @@ export function aggregateEpisodes(
     brain: new Set<string>(),
     control: new Set<string>(),
     profile: new Set<string>(),
+    navigation: new Set<string>(),
+    interval: new Set<string>(),
   };
   for (const episode of episodes) {
     labels.brain.add(episode.brain);
     labels.control.add(episode.control);
     labels.profile.add(episode.profile);
+    labels.navigation.add(episode.navigation);
+    labels.interval.add(
+      `${episode.intervalMs ?? "default"} ms${episode.injectedLatencyMs > 0 ? ` +${episode.injectedLatencyMs} ms latency` : ""}`,
+    );
     fallbackSeconds += episode.fallbackSeconds;
     if (episode.debrief) debriefs.push(episode.debrief);
     if (episode.places) {
@@ -727,6 +748,8 @@ export function aggregateEpisodes(
     brain: label(labels.brain),
     control: label(labels.control),
     profile: label(labels.profile),
+    navigation: label(labels.navigation),
+    interval: label(labels.interval),
     episodes: episodes.length,
     simSeconds,
     kills,

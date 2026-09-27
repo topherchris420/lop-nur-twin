@@ -226,6 +226,47 @@ export class RandomProvider implements DecisionProvider {
   }
 }
 
+/**
+ * A local brain whose answers arrive late, for measuring what latency costs.
+ *
+ * The inner brain decides on the observation at once — the observation was
+ * captured when the request was issued, as a remote model's would be — and the
+ * answer is held for `delayMs` before the loop sees it. The loop's own rules
+ * then apply unchanged: one request in flight, staleness, timeouts. It is only
+ * ever wrapped round the random and scripted brains, never round Jev.
+ */
+export class DelayedProvider implements DecisionProvider {
+  readonly kind: DecisionProvider["kind"];
+
+  constructor(
+    private readonly inner: DecisionProvider,
+    readonly delayMs: number,
+  ) {
+    this.kind = inner.kind;
+  }
+
+  async decide(request: DecisionRequest): Promise<ProviderResult> {
+    const result = await this.inner.decide(request);
+    return new Promise((resolve) => {
+      const aborted = (): void => {
+        clearTimeout(timer);
+        resolve({
+          ok: false,
+          failure: "aborted",
+          detail: "request aborted",
+          retryAfterMs: null,
+        });
+      };
+      const timer = setTimeout(() => {
+        request.signal.removeEventListener("abort", aborted);
+        resolve(result);
+      }, this.delayMs);
+      if (request.signal.aborted) aborted();
+      else request.signal.addEventListener("abort", aborted, { once: true });
+    });
+  }
+}
+
 /** A fresh per-page session id for the server's pacing limit. Not an identity. */
 export function newSessionId(): string {
   const bytes = new Uint8Array(12);

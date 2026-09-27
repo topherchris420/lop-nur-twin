@@ -363,6 +363,13 @@ export function renderState(obs: JevObservation): Record<string, unknown> {
       behind: obstacle(perception.obstacles.backM, "behind"),
     },
   };
+  state["teammates_on_radar"] =
+    perception.allies.length === 0
+      ? "none within 145 m"
+      : perception.allies.map((ally) => ({
+          direction: around(ally.bearingDeg),
+          distance: `${round(ally.distanceM)} m`,
+        }));
   if (obs.navigation === "places") {
     state["places_nearest_first"] =
       perception.places.length === 0

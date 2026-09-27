@@ -52,6 +52,7 @@ import { Debrief, type EnemySample } from "./debrief";
 import { PlaceNavigator, type NavSense, type NavTelemetry } from "./navigator";
 import type { FoundPlace } from "./places";
 import {
+  DelayedProvider,
   JevHttpProvider,
   RandomProvider,
   newSessionId,
@@ -66,6 +67,13 @@ import {
   type TraceRecord,
 } from "./recorder";
 import { ScriptedProvider, type ScriptPolicy } from "./policies";
+import {
+  JEV_CAPABILITIES,
+  LOCAL_POLICY_CAPABILITIES,
+  negotiate,
+  type Capabilities,
+  type Negotiated,
+} from "./capabilities";
 import { rigState } from "./rigState";
 
 /**
@@ -146,6 +154,10 @@ export interface BrainOptions {
   control: ControlMode;
   /** How a brain's movement reaches the body; see `NAVIGATION_MODES`. */
   navigation: NavigationMode;
+  /** An experiment's decision interval for a local brain; null for the default. */
+  intervalMs: number | null;
+  /** Injected answer delay for a local brain, ms. Never applied to Jev. */
+  latencyMs: number;
 }
 
 const TICK_MS = 50;
@@ -257,7 +269,13 @@ class Pilot {
     trace: null,
     control: "direct",
     navigation: "steps",
+    intervalMs: null,
+    latencyMs: 0,
   };
+  /** The interface the seat is actually running, after negotiation. */
+  private negotiated: Negotiated | null = null;
+  /** What was asked for, before negotiation: the idempotence key. */
+  private requested: BrainOptions = { ...this.options };
   /** The entities behind each observation's target slots, by sequence. Never sent. */
   private readonly slots = new Map<number, EntityId[]>();
   /** The world points behind each observation's place slots, by sequence. Never sent. */
@@ -473,20 +491,54 @@ class Pilot {
 
   /** Put a brain (or the human) in the seat. Idempotent for the same settings. */
   setBrain(brain: BrainKind, options: BrainOptions): void {
+    const previous = this.requested;
     if (
       brain === this.brain &&
-      options.seed === this.options.seed &&
-      options.policy === this.options.policy &&
-      options.fallback === this.options.fallback &&
-      options.trace === this.options.trace &&
-      options.control === this.options.control &&
-      options.navigation === this.options.navigation
+      options.seed === previous.seed &&
+      options.policy === previous.policy &&
+      options.fallback === previous.fallback &&
+      options.trace === previous.trace &&
+      options.control === previous.control &&
+      options.navigation === previous.navigation &&
+      options.intervalMs === previous.intervalMs &&
+      options.latencyMs === previous.latencyMs
     ) {
       return;
     }
     this.release();
     this.brain = brain;
-    this.options = options;
+    // What the seat runs is what both sides support. The simulation's rules do
+    // not depend on it; which axes are asked, how often, and which local
+    // controllers execute do.
+    const local = brain === "random" || brain === "script";
+    const capabilities: Capabilities =
+      brain === "jev"
+        ? JEV_CAPABILITIES
+        : brain === "replay" && options.trace
+          ? {
+              ...LOCAL_POLICY_CAPABILITIES,
+              control: [options.trace.header.control],
+              navigation: [options.trace.header.navigation],
+            }
+          : LOCAL_POLICY_CAPABILITIES;
+    const negotiated =
+      brain === "human"
+        ? null
+        : negotiate(capabilities, {
+            control: options.control,
+            navigation: options.navigation,
+            intervalMs: local ? options.intervalMs : null,
+          });
+    this.negotiated = negotiated;
+    this.options = negotiated
+      ? {
+          ...options,
+          control: negotiated.control,
+          navigation: negotiated.navigation,
+          latencyMs: local ? options.latencyMs : 0,
+        }
+      : options;
+    this.requested = options;
     this.failure = null;
     this.fallbackActive = false;
     this.telemetry.service = null;
@@ -516,12 +568,16 @@ class Pilot {
         this.failure = { kind: "invalid", detail: "No compatible trace is loaded." };
       }
     } else {
-      const primary =
+      const inner =
         brain === "jev"
           ? new JevHttpProvider(this.session)
           : brain === "script"
             ? new ScriptedProvider(options.policy)
             : new RandomProvider(options.seed);
+      const primary =
+        brain !== "jev" && this.options.latencyMs > 0
+          ? new DelayedProvider(inner, this.options.latencyMs)
+          : inner;
       const fallback =
         brain === "jev" && options.fallback === "random"
           ? new RandomProvider((options.seed ^ 0x9e3779b9) >>> 0)
@@ -530,6 +586,7 @@ class Pilot {
         primary,
         fallback,
         clock: browserClock,
+        minIntervalMs: negotiated?.intervalMs,
         onDecision: (decision) => this.accept(decision),
         onEvent: (event) => this.onLoopEvent(event),
       });
@@ -607,6 +664,14 @@ class Pilot {
         seed: this.options.seed,
         control: this.options.control,
         navigation: this.options.navigation,
+        interface: this.negotiated
+          ? {
+              intervalMs: this.negotiated.intervalMs,
+              injectedLatencyMs: this.options.latencyMs,
+              inference: this.negotiated.inference,
+              notes: this.negotiated.notes,
+            }
+          : null,
         mode: store.mode,
         matchId: this.matchId,
         startedAt: new Date().toISOString(),
@@ -632,6 +697,9 @@ class Pilot {
     metrics.control = this.brain === "human" ? "none" : this.options.control;
     metrics.profile =
       this.brain === "human" ? useGameStore.getState().playerProfile : "n/a";
+    metrics.navigation = this.brain === "human" ? "none" : this.options.navigation;
+    metrics.intervalMs = this.negotiated?.intervalMs ?? null;
+    metrics.injectedLatencyMs = this.brain === "human" ? 0 : this.options.latencyMs;
   }
 
   /** Current metrics, from the player's own kill and death counters. */
