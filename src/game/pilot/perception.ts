@@ -35,7 +35,7 @@ import {
   type VisibleEnemy,
 } from "./observation";
 import { rigState } from "./rigState";
-import { findPlaces, type FoundPlace, type Threat } from "./places";
+import { findPlaces, shufflePlaces, type FoundPlace, type Threat } from "./places";
 import { mirageAmplitude, mirageOffset } from "../world/mirage";
 
 /**
@@ -397,7 +397,7 @@ export class Perception {
       const z = player.position.z - Math.cos(a) * 60;
       threats.push({ x, y: world ? world.groundAt(x, z) : player.position.y, z });
     }
-    const places: FoundPlace[] =
+    const found: FoundPlace[] =
       input.navigation === "places" && world
         ? findPlaces(
             world,
@@ -412,6 +412,11 @@ export class Perception {
             this.objectivePoint,
           )
         : [];
+    const store = useGameStore.getState();
+    const places =
+      store.placeOrder === "shuffled"
+        ? shufflePlaces(found, (store.matchSeed * 2654435761) ^ input.sequence)
+        : found;
     this.lastPlaces = places;
     const travel: JevObservation["travel"] =
       input.navigation === "places" && input.travel

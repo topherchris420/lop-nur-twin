@@ -1,254 +1,334 @@
-# Lop Nur Twin: Desert Airfield Digital Twin & Tactical Simulator
+# Lop Nur Twin
 
-> **An open-source 3D interactive reconstruction and browser-based tactical simulation of a remote desert airfield near Lop Nur (~40.77° N, 89.28° E).**
+A 3D reconstruction of a remote desert airfield near Lop Nur (~40.77° N,
+89.28° E), built only from cited public sources — and, standing on exactly the
+same geometry, **Blacksite**: a deterministic world in which a person, a
+language model, a hand-written policy and a seeded random baseline can each
+take the same seat, through the same controls, and be measured against what
+actually happened.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-lop--nur--twin.vercel.app-blue?style=for-the-badge&logo=vercel)](https://lop-nur-twin.vercel.app/)
+[![Live demo](https://img.shields.io/badge/Live%20demo-lop--nur--twin.vercel.app-blue?style=for-the-badge&logo=vercel)](https://lop-nur-twin.vercel.app/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=for-the-badge)](LICENSE)
 
----
+|                 | **The twin** — `/`, `/analysis`, `/compare`                                                                             | **Blacksite** — `/play`                                                        |
+| :-------------- | :---------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
+| What it is      | An analytical reconstruction. Every structure carries a derived, cited evidence record.                                 | A game and an experimental environment built on that reconstruction.           |
+| What it claims  | Only what its sources support: _observed_, _reported_, _interpreted_ or _illustrative_ — and the build fails otherwise. | Nothing about the real site. Every soldier, weapon and engagement is invented. |
+| What they share | Geometry, and only geometry. The ledger does not know `/play` exists; nothing in the game can write to it.              |                                                                                |
 
-> ⚠️ **Public sources only. Not operational data.** This project is an analytical reconstruction built strictly from cited open Earth-observation products (Sentinel-2, Landsat, public satellite imagery, and open climatology). It is not a claim of access to classified information.
-
----
-
-## 🎯 What is Lop Nur Twin?
-
-**Lop Nur Twin** bridges the gap between **Open-Source Intelligence (OSINT)** and **real-time 3D web graphics**. Located deep in China's Xinjiang desert, the Lop Nur facility has attracted global interest due to its remote location and association with aerospace and defense testing.
-
-This repository transforms public satellite data into an **interactive 3D spatial model** you can explore in your browser, alongside an optional **tactical first-person shooter (`/play`)** running on the same deterministic site geometry.
-
-### Why You'll Love This:
-
-- 🎮 **For Gamers:** Jump straight into **Blacksite** (`/play`), a fast-paced first-person combat game running directly inside your browser. Experience procedural weapon grip solvers, custom shaders, and tactical AI.
-- 🕵️ **For OSINT Researchers & Analysts:** Explore a mathematically rigorous 3D spatial model. Every runway, building, and taxiway is tagged with public satellite citations, confidence scores, and uncertainty envelopes.
-- 🌍 **For Everyday Explorers & Tech Enthusiasts:** Orbit, walk across, and measure a real-world remote facility. Learn how satellite pixels are turned into 3D geometry, filter buildings by evidence type, and inspect the full source ledger.
+![The reconstructed runway and south hangar compound](docs/screenshot-overview.png)
 
 ---
 
-## 🗺️ Choose Your Experience (Routes)
+## What happened when a model played it
 
-The application offers four distinct modes tailored to different workflows and devices:
+Blacksite lets a model sit in the player's seat. In the first matched benchmark
+the model — TypeSafe's Jev, choosing targets and aim regions while a local
+controller held the crosshair — went **148 kills to 0 deaths at 77 % accuracy
+without moving a metre**, headshotting bots at about 100 m.
 
-| Route               | What It Is                                                                                                                                                                                                 |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`/`** _(Default)_ | **Interactive 3D Digital Twin**<br>Fly around or walk through the 3D airfield. Click buildings to open evidence dossiers, measure ground distances, and adjust time or confidence filters.                 |
-| **`/play`**         | **Blacksite First-Person Simulator**<br>An action tactical match on the reconstructed airfield. Battle AI soldiers across realistic terrain with custom procedural weapons. **Illustrative fiction only.** |
-| **`/analysis`**     | **Semantic Analytical Ledger**<br>The complete intelligence model in a screen-reader friendly, WebGL-free table view. Perfect for low-bandwidth, mobile, or text-first investigation.                      |
-| **`/compare`**      | **Manifest & Version Diff**<br>Cryptographically compare two model releases to see exactly what geometry, evidence, or citations changed between builds.                                                   |
+It would have been easy to publish that as a result about the model. Instead
+the strategy was written down as a script of a few dozen lines — hold still, aim down the
+sights, take the head beyond 40 m — and run offline on the same seeds:
 
----
+| 3 × 120 s, seeds 42–44, same controller | Kills / deaths | Accuracy | Moved | Mean range |
+| :-------------------------------------- | -------------: | -------: | ----: | ---------: |
+| Jev (live), precision control           |        148 / 0 |   77.1 % |   0 m |      103 m |
+| **scripted marksman**, same controller  |    **153 / 0** |   79.8 % |   0 m |      109 m |
 
-## 🎮 The Blacksite Simulator (`/play`)
+The script matched the model. **The finding was about the map**: on open
+lakebed, at 100 m, nothing could touch a still shooter. A diagnostic
+(`tools/kill-anatomy.mjs`, on the old build) showed why. In ninety seconds on
+seed 42 all 32 victims could see the shooter and 30 of them were sprinting
+across open ground at or around it; the bots fired 46 rounds back, with a
+median aim error of 3.9° — about nine metres at the median range of 136 m.
+So the world was changed, not the number:
 
-`/play` turns the reconstructed Lop Nur runway and hangar compound into an interactive, browser-based tactical arena.
+- **Heat shimmer.** By day, beyond 45 m, a body is _seen_ displaced by a slow
+  drift that grows with range — drawn that way for the person, reported that
+  way to a model, aimed at that way by every controller and bot. Rounds go to
+  the real body. A head at 130 m stops being a certainty for anyone.
+- **Exposure cuts both ways.** Bots out of range stop charging across open
+  ground; they bound between points hidden from the shooter or hold and return
+  fire, and a steady bot converges on a still target in metres, not degrees.
+  Standing still in the open is no longer safe at any range. Moving is.
+- **Seat rules are a setting.** `?seat=even` removes the help the seat gets by
+  default, so two brains — or a brain and a person — can be compared without
+  the game helping one of them.
 
-> _Note: Blacksite is an illustrative game mode for testing character movement, spatial scale, and graphics. Its combat and military units are completely fictional and contribute nothing to the analytical model._
+| Same seeds, 3 × 120 s         | Kills / deaths | Headshots | Damage taken | Time in a sight line |
+| :---------------------------- | -------------: | --------: | -----------: | -------------------: |
+| marksman, before              |        153 / 0 |       150 |           80 |         not measured |
+| marksman, after               |         81 / 0 |        78 |           43 |                  35% |
+| marksman, after, `?seat=even` |         78 / 0 |       104 |          108 |                  36% |
 
-### Visual Tour of Blacksite
-
-| Screen                                             | Overview                                                                                                                                                        |
-| :------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Title Screen](docs/screenshots/title.png)        | **Instant Access:** Boot screen leads directly into game setup. Runs on WebGL with adaptive quality tiers for smooth performance on laptops and mobile devices. |
-| ![Main Menu](docs/screenshots/menu.png)            | **Game Modes & Loadouts:** Choose Team Deathmatch, Domination, Free-for-All, or Hardpoint. Customize AI difficulty, bot counts, and weapon loadouts.            |
-| ![Gameplay](docs/screenshots/gameplay.png)         | **Tactical Combat:** Full combat HUD featuring dynamic minimap, compass, health, ammo counters, and responsive first-person controls.                           |
-| ![Aim Down Sights](docs/screenshots/aim.png)       | **Procedural Weapon Mechanics:** Weapon gloves and hands are sculpted dynamically using Signed Distance Fields (SDF) and inverse kinematics.                    |
-| ![Character Model](docs/screenshots/character.png) | **Procedural Soldier AI:** Character meshes and combat animations are generated entirely in code—no heavy 3D character downloads.                               |
-
-_For full control mappings, game modes, and physics details, see [`docs/BLACKSITE.md`](docs/BLACKSITE.md)._
-
-### Jev Plays Blacksite
-
-Blacksite can optionally place the player under a bounded
-[TypeSafe](https://docs.typesafe.ai/) Jev controller. Jev receives a compact
-structured observation — what the player can see, the HUD, the weapon — and picks
-a movement, a view rotation and a weapon action from a host-defined set, plus,
-under **precision control**, which visible enemy to engage and where on it.
-
-**Jev decides what it wants to do. A deterministic local motor controller
-executes those decisions at frame rate. Blacksite alone decides what actually
-happened.** Remote inference answers in 130–260 ms — enough to choose, too slow
-to hold a crosshair through recoil — so the aiming, recoil control and trigger
-discipline run locally, every frame, through the same mouse-style input a person
-uses. Neither Jev nor the controller can touch physics, damage, hit
-registration, hitboxes, score or any authoritative state, and a test fails if
-control code ever tries. The original stepped interface stays available as
-`?jevControl=direct` for comparison, and every result says which mode produced it.
-
-```sh
-cp .env.example .env.local     # set TYPESAFE_API_KEY (server-side only)
-bun run dev                    # then open /play?brain=jev
-```
-
-The credential stays on the server (`/api/jev/decision`); the browser bundle is
-scanned for it on every build. Press **H** at any time to take control back.
-`/play?brain=random&seed=42` runs a seeded random baseline through the same
-controls, and `/play?playerProfile=elite` gives a human **Elite Operator** —
-console-style aim friction and recoil help that never fires and always yields to
-the mouse.
-
-In a matched benchmark — three two-minute team-deathmatch episodes per
-configuration on the same seeds, live TypeSafe calls — Jev under direct control
-hit 6.1 % of its rounds and went 15 kills to 4 deaths (emptying all 240 rounds
-every episode); under precision control it hit 77.1 %, needed 2.2 rounds per
-kill and went 148 to 0, while the random brain through the same controller went
-4 to 4. That last figure is far past "usually wins": Jev plays as a stationary
-long-range marksman the bots cannot answer. The method, all twelve episodes and
-the caveats are in [`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md).
+Halved, not solved: the still marksman now takes damage and kills half as
+often, but in six minutes it was never killed. What remains is first-shot
+lethality at range, and closing it would change what the benchmark measures;
+it is written up as an open design question, with a change that was tried,
+measured and removed. ([the full account](docs/JEV_BLACKSITE.md#the-marksman-exploit))
 
 ---
 
-## 🕵️ The OSINT Analytical Model
-
-For OSINT researchers, defense analysts, and data scientists, **Lop Nur Twin** is a deterministic, audit-ready spatial database.
-
-![Aerial Overview](docs/screenshot-overview.png)
-_Aerial overview of the reconstructed runway and south hangar compound._
-
-![Structure Dossier](docs/screenshot-dossier.png)
-_Detailed structure dossier showing evidence ratings, public source citations, and spatial measurements._
-
-### 1. Evidence Classification Hierarchy
-
-Every structure and feature in the model carries an explicit evidence tag so you always know what is proven and what is inferred:
-
-- ◆ **Observed:** Directly visible in cited public satellite imagery (e.g., runway dimensions, hangar outlines).
-- ■ **Reported:** Stated by a cited open publication or news report, with placement modeled from context.
-- ▲ **Interpreted:** Facility identity or function assigned by this project where no direct public source states one.
-- ○ **Illustrative:** Scenery, vehicles, or decorative elements added to complete the simulation.
-
-You can filter the entire 3D scene using **4 Evidence Modes**:
-
-1. **Observed only** _(Shows only raw satellite-confirmed structures)_
-2. **Observed + reported**
-3. **+ interpreted**
-4. **Full simulation** _(All scenery & illustrative props)_
-
-### 2. Structured Uncertainty & Time Tracking
-
-- **Explicit Tolerances:** Uncertainty is tracked per claim (e.g. runway endpoints carry a ±40m uncertainty margin based on satellite ground sample distance). Unknown fields are printed as _"not stated"_, never silently converted to zero.
-- **Three Independent Dates:** To prevent misinterpreting publication dates as construction dates, the model tracks:
-  1. _Site Event Date_ (when something physically existed on ground)
-  2. _Evidence Publication Date_ (when satellite/report became public)
-  3. _Model Entry Date_ (when data was added to this repository)
-
-### 3. Precision Measurement & Geo Exports
-
-- **Local CRS (EPSG:32645):** Measure distances, perimeter lengths, and grid bearings directly in meters.
-- **Data Exports:** Filter subjects by confidence, area, or proximity, then export standard **GeoJSON (WGS84)**, **CSV**, or **JSON** for use in ArcGIS, QGIS, or Python analysis pipelines.
-
----
-
-## 🚀 Quick Start (Run It Locally)
-
-Want to run the app on your computer, inspect the source code, or contribute?
-
-### Prerequisites
-
-- [Bun](https://bun.sh) (recommended) or **Node.js 22.18+**
-- A modern browser with WebGL enabled (Chrome, Firefox, Edge, Safari)
-
-### Installation & Launch
-
-```sh
-# Clone the repository
-git clone https://github.com/vers3dynamics/lop-nur-twin.git
-cd lop-nur-twin
-
-# Install dependencies
-bun install
-
-# Start local development server (runs on http://localhost:5173)
-bun run dev
-
-# Build for production with strict type-checking
-bun run build
-
-# Preview production build locally (http://localhost:4173)
-bun run preview
-```
-
-_(Note: `npm install && npm run dev` works identically on Node.js 22.18+)._
-
----
-
-## 💻 Code Map & Developer Guide
+## One seat
 
 ```text
-src/
-├── lib/           # Layout definitions, evidence ledger, CRS, and URL params
-├── components/    # 3D WebGL scene (Three.js/React Three Fiber) & analytical UI
-├── game/          # Blacksite FPS engine (physics, weapons, bot AI, audio)
-├── gfx/           # Custom GLSL shaders, AgX tone mapping, and greeble textures
-scripts/           # Data validation & release manifest generators
-tools/             # Automated test suite (accessibility, audio, gameplay smoke tests)
-docs/              # In-depth architectural, spatial, and methodological documentation
+  person ─ keyboard, mouse ───────────────────────────────────────┐
+                                                                  │
+  Jev (remote)  ─┐                                                │
+  scripted      ─┼─ observation ─→ choice ─→ executor ─┬─→ InputState ─→ the same controller,
+  random (seed) ─┤   what the seat    of one            │                weapons, recoil, collision,
+  replay trace  ─┘   can perceive     option per axis   │                hit registration, damage
+                                                        ├ motor (aim, trigger) — precision control
+                                                        └ navigator (feet)     — places navigation
 ```
 
-### Automated Quality & Validation Checks
+Every brain writes the `InputState` a keyboard and mouse fill, and nothing
+else. `PlayerRig` reads `pilot.frame(dt) ?? keyboard` — that one line is the
+whole integration — and the controller, the weapon runtime, collision and the
+damage resolver cannot tell who is playing. A test fails if any code between a
+choice and the input queues damage, writes health, moves a body, fires a weapon
+or touches the camera.
 
-Run all validation checks before submitting changes:
+The split that makes a remote model playable is **cognition at the model's
+cadence, motor control at the simulation's**. Jev answers in 130–260 ms: enough
+to choose, far too slow to hold a crosshair through recoil. So it chooses — which
+enemy, which part of it, whether to fire, and since v3 **where to go** — and two
+deterministic local controllers execute at 60 Hz: a motor controller for the
+crosshair and trigger, and a navigator for the feet. Neither ever chooses a
+target or a destination. Every result says which controllers were in play, and
+the random brain through the same controllers is always reported beside it,
+because the controller alone is not the result.
+
+| `?brain=` | Label    | What sits in the seat                                                       |
+| :-------- | :------- | :-------------------------------------------------------------------------- |
+| `human`   | HUMAN    | A person.                                                                   |
+| `jev`     | LIVE JEV | TypeSafe's Jev, through a server that owns the key and writes the question. |
+| `script`  | SCRIPTED | A hand-written reference policy: `&policy=marksman` or `skirmisher`.        |
+| `random`  | RANDOM   | A seeded uniform policy over the legal controls.                            |
+| `replay`  | REPLAY   | A recorded trace's control stream.                                          |
+
+Press **H** at any time to take the seat back.
+
+![Blacksite beside the main hangar: a compass carrying heard gunfire, a radar, a killfeed and the rounds left](docs/screenshot-blacksite.png)
+
+### Places: the feet get the same deal the crosshair got
+
+The first benchmark's quietest number was the most telling: 0 m moved. The move
+axis offered "forward" and "strafe left" and nothing about where cover was, so
+there was no movement decision to make. Now each observation may list up to four
+**places** — nearest cover from the enemies the observation knows about, a way
+nearer, a way round, a way back, the objective — with facts: bearing, distance,
+whether it is hidden from every _known_ threat, and how many metres of the walk
+there stand in some known threat's sight. A brain names one; the navigator walks
+it there by pressing the same keys a person would.
+
+| Skirmisher policy, 3 × 120 s | Kills / deaths | Range at shot | Time in a sight line | Longest stretch in one |
+| :--------------------------- | -------------: | ------------: | -------------------: | ---------------------: |
+| walking by steps             |         97 / 0 |          75 m |                  44% |                 27.1 s |
+| choosing places              |         93 / 0 |          60 m |                  36% |                 11.5 s |
+
+The same configuration run twice gave 93 and 80 kills and 36 % and 43 %
+exposure, so read the mean exposure as a hint and the longest stretch — cut by
+more than half — as the finding.
+
+And the live model, same seeds, same new build:
+
+| Jev, live, 3 × 120 s | Kills / deaths |   Moved | Time in a sight line |
+| :------------------- | -------------: | ------: | -------------------: |
+| walking by steps     |         58 / 0 |     0 m |                  52% |
+| choosing places      |          8 / 0 | 1 085 m |                  22% |
+
+Offered places, the model that had never moved walked a kilometre, chose cover
+190 times in 208, halved its exposure — and nearly stopped fighting. It picked
+the first place listed every time, so the list was shuffled and the run
+repeated: the slots spread, and 93 % of its choices were still cover. The
+preference was for cover, not for the top of the list.
+
+### One set of senses
+
+A comparison between a person and a model means something only if they are told
+the same things. The HUD used to draw brackets through walls, a drone camera and
+a thermal view — none of it available to a model. It is gone. What a person is
+shown about enemies is what a model is told: what is on screen, gunfire within
+the 115 m a model hears, the direction of a hit, teammates within the radar's
+145 m. A kill is confirmed under the crosshair with the name and the range —
+nothing else. On this site, the distance is the story.
+
+### The debrief
+
+Every seat, the person's included, ends a match with the same after-action
+record, kept by the same rule. This one is from a real match, the scripted
+skirmisher on seed 42 (`node tools/shots.mjs --only debrief`):
+
+![The results screen: score, kills, and a debrief in two sentences](docs/screenshots/debrief.png)
+
+Each death is classed — _never seen_, _seen, not engaged_, or _engaged,
+exchange lost_ — with the range, whether any cover stood within 10 m, and the
+nearest named place. A kill/death ratio says who won. The debrief says whether a loss was a failure to
+_see_, a failure to _act_ on what was seen, or a fight lost fairly — different
+failures, for a person and for a model, with different fixes. It reads what
+really happened, and is never fed back to a model mid-match.
+
+---
+
+## Built for the next model, measured on this one
+
+A brain declares what it can use — precision or direct control, places or
+steps, how often it can decide, where it runs — and the host declares what it
+accepts. The host accepts more than today's remote model can use at speed:
+places, precision control, ten decisions a second. A faster model arrives into
+an interface already waiting for it, and says so by declaration rather than by
+a rewrite. (`src/game/pilot/capabilities.ts`)
+
+That headroom is also an experiment. For local brains, `?latency=` holds each
+answer back and `?cadence=` sets how often they decide, so the gain a faster
+model would bring _here_ can be measured before that model exists:
+
+| Same policy, answers delayed by | Kills / deaths | First sight to kill |
+| :------------------------------ | -------------: | ------------------: |
+| 0 ms                            |         80 / 0 |               2.6 s |
+| 250 ms (today's Jev round trip) |         87 / 0 |               3.1 s |
+| 600 ms                          |         63 / 1 |               5.8 s |
+
+With aim and footwork executed locally, a quarter-second round trip costs
+nothing measurable here; by 600 ms it costs a quarter of the kills. On this
+game a model's speed is not the bottleneck — its choices are.
+
+---
+
+## Measure it yourself
 
 ```sh
-bun run check
+bun install
+bun run dev                                    # http://localhost:5173/play
+
+# a matched experiment: several seats, the same seeds, one table
+node tools/experiment.mjs tools/experiments/exposure.json
+node tools/experiment.mjs tools/experiments/places.json
+node tools/experiment.mjs tools/experiments/horizon.json
+node tools/experiment.mjs --compare before/experiment.json after/experiment.json
+
+# one seat, repeatable episodes
+node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
+bun run benchmark:random:precision
+JEV_LIVE_TEST=1 bun run benchmark:jev:precision   # live model; spends API credit
+
+# what each victim was doing when the seat killed it
+node tools/kill-anatomy.mjs --policy marksman
 ```
 
-Or run individual sub-check commands:
+An experiment file states its hypothesis and its deciding metric before it
+runs. Arms run one at a time, against any build (`--origin` points at a
+worktree of an older commit), and an episode whose simulation fell behind real
+time is flagged rather than silently compared. Same-seed episodes are not
+replicas — frame pacing diverges the bots within seconds — so every table
+prints every seed. Every number comes from the simulation: rounds the weapon
+runtime fired, damage the resolver applied, metres the controller moved.
+Nothing is estimated, and a statistic with no samples prints as _n/a_.
+
+The model is only called when you say so: `bun run jev` runs its checks against
+a fake endpoint installed inside the test browser, and anything that spends
+credit refuses to start without `JEV_LIVE_TEST=1`. The key never reaches the
+browser; the build scans its own output for it.
+
+To give Jev the seat: `cp .env.example .env.local`, set `TYPESAFE_API_KEY`,
+`bun run dev`, open `/play?brain=jev`. After any match, **Same seed** replays the
+identical match — so a person can play the one the model just played.
+
+---
+
+## The analytical twin
+
+The twin is the part of this repository that makes claims, and it is built to
+make as few as the sources allow.
+
+![A structure dossier: evidence classification, sources and measured extents](docs/screenshot-dossier.png)
+
+- **Every claim is classified**, and the classification is load-bearing:
+  ◆ _observed_ in a cited scene, ■ _reported_ by a cited publication,
+  ▲ _interpreted_ by this project, ○ _illustrative_. The evidence ledger is
+  derived from the layout and the source register — never hand-written — and
+  `bun run build` fails if an illustrative subject claims more, an observed one
+  has no citable source, or interpreted wording asserts verification. The
+  validator's own 35 rules are tested for firing.
+- **Unknown stays unknown.** An uncertainty the sources do not state prints as
+  "not stated", never as zero. Three dates — when something existed on the
+  ground, when the evidence was published, when it entered this model — are
+  three separate fields.
+- **Measured in a public frame.** Distances and bearings in EPSG:32645;
+  GeoJSON (WGS84), CSV and JSON exports; release manifests with SHA-256 hashes
+  of the geometry and the evidence ledger, diffable at `/compare`.
+- **Accessible without WebGL.** `/analysis` is the whole model as a semantic
+  table, and every analytical capability has a representation there; `bun run
+a11y` gates it on axe-core.
+
+The twin's documentation: [data provenance](docs/DATA_PROVENANCE.md),
+[uncertainty](docs/UNCERTAINTY_MODEL.md), [temporal model](docs/TEMPORAL_MODEL.md),
+[spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md),
+[site model](docs/SITE_MODEL.md).
+
+---
+
+## Run it
 
 ```sh
-bun run test:run      # Run unit tests
-bun run test:evidence # Validate all 35 OSINT evidence rules
-bun run validate:data # Validate geometry, coordinates, and citations
-bun run a11y          # Run axe-core accessibility check against production build
-bun run routes        # Test deep links, URL parameters, and mobile navigation
-bun run smoke         # Run Blacksite simulation smoke tests
-bun run gait          # Test character walk cycle IK math
-bun run audio         # Verify procedural audio peak and crest factors
-bun run test:jev      # Jev pilot and decision-endpoint unit tests (no API calls)
-bun run jev           # Jev pilot browser checks against a fake endpoint (no API calls)
+bun install          # or npm install, on Node 22.18+
+bun run dev          # http://localhost:5173 — the twin; /play — Blacksite
+bun run build        # validate data → manifest → bundle → strict typecheck → secret scan
+bun run check        # format, lint, unit tests, evidence-rule tests, build
+```
+
+Browser suites, against the dev server: `bun run smoke` (the simulation),
+`bun run engagement` (the match actually plays), `bun run gait` (the walk
+cycle), `bun run audio`, `bun run jev` (the player seat, no API calls); and
+against `bun run preview`: `bun run a11y` and `bun run routes`. What each one
+proves is in [`docs/VALIDATION.md`](docs/VALIDATION.md).
+
+```text
+src/lib/          layout (the single source of geometry), evidence ledger, CRS, URL parameters
+src/components/   the twin's scene and analytical UI
+src/game/         Blacksite: physics, weapons, characters, bots, audio, HUD
+src/game/pilot/   the seat: contract, observation, executor, motor, navigator, debrief, brains
+server/, api/     the Jev endpoint — the only code that holds the key
+tools/            browser suites, benchmarks, experiments, diagnostics
+docs/             how every part works, and what it does not do
 ```
 
 ---
 
-## 📚 Technical Documentation Index
+## What it cannot tell you
 
-Deep dive into the underlying math, intelligence methodologies, and architecture:
+- **About the real site:** facility names are this project's hypotheses;
+  terrain is a seeded proxy, not survey elevation; runway ends carry ~40 m of
+  uncertainty; utilities and fences are illustrative; confidence scores are
+  ordinal ranks, not probabilities. The full list is rendered on `/analysis`.
+- **About Blacksite's players:** the benchmarks are small (three two-minute
+  episodes per arm) and headless; same-seed episodes diverge; the motor
+  controller and navigator are hand-designed, so a precision result is the
+  model's choices _and_ those controllers; the places finder offers straight
+  walks only; what a model reads was written by hand and a different wording
+  could change its choices. A live model result depends on its service, its
+  latency and its version, which every trace records.
+- **About anything real:** nothing in Blacksite is evidence about Lop Nur, its
+  activity, or anyone's tactics. It is fiction standing on a reconstruction.
 
-| Document                                                                      | Topic                                                                              |
-| :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md)                                          | Setup guidelines, coding conventions, and pull request rules                       |
-| [`docs/VALIDATION.md`](docs/VALIDATION.md)                                    | Complete guide to data, geometry, and simulation verification                      |
-| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)                          | Satellite source registration, classification, and confidence scoring              |
-| [`docs/SPATIAL_ANALYSIS.md`](docs/SPATIAL_ANALYSIS.md)                        | Coordinates (EPSG:32645), footprint derivation, and GeoJSON exports                |
-| [`docs/UNCERTAINTY_MODEL.md`](docs/UNCERTAINTY_MODEL.md)                      | Machine-readable uncertainty envelopes and resolution bounds                       |
-| [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md)                            | Event ledgers, 3-date temporal tracking, and change comparisons                    |
-| [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md)                        | SHA-256 release manifests and schema diffing                                       |
-| [`docs/SITE_MODEL.md`](docs/SITE_MODEL.md)                                    | Airfield reconstruction details and procedural assembly                            |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                  | React Three Fiber frontend, state stores, and rendering pipeline                   |
-| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                      | First-person combat simulation architecture and HUD design                         |
-| [`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md)                              | Jev Plays Blacksite: the bounded model controller, its boundaries and measurements |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md)                                        | Full keyboard, mouse, touch, and URL parameter references                          |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)                              | WCAG compliance, axe-core testing, and screen reader support                       |
-| [`docs/GOVERNMENT_EVALUATION.md`](docs/GOVERNMENT_EVALUATION.md)              | Compliance evaluation guide for government / public sector reviewers               |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) & [`SECURITY.md`](SECURITY.md) | Security posture, trust boundaries, and vulnerability reporting                    |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                                    | Vercel deployment, Docker builds, and commit verification                          |
-| [`docs/WHITE_PAPER.md`](docs/WHITE_PAPER.md)                                  | Comprehensive project white paper ([HTML version](docs/white-paper.html))          |
-| [`AGENTS.md`](AGENTS.md)                                                      | AI coding agent instructions and project recipes                                   |
+## Documentation
 
----
+| Document                                                                     | What it covers                                                                 |
+| :--------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
+| [`docs/BLACKSITE.md`](docs/BLACKSITE.md)                                     | the game: ballistics, bots, heat, senses, seat rules, controls                 |
+| [`docs/JEV_BLACKSITE.md`](docs/JEV_BLACKSITE.md)                             | the seat: contract, observation, controllers, places, debrief, every benchmark |
+| [`docs/VALIDATION.md`](docs/VALIDATION.md)                                   | every check, what it proves and what it does not                               |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)                 | rendering, stores, the frame loop                                              |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md)                                       | keys, touch, URL parameters                                                    |
+| [`docs/DATA_PROVENANCE.md`](docs/DATA_PROVENANCE.md)                         | sources, classification, confidence                                            |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md), [`SECURITY.md`](SECURITY.md) | trust boundaries                                                               |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)                                   | Vercel, Docker, the key                                                        |
+| [`AGENTS.md`](AGENTS.md)                                                     | rules and recipes for anyone — or anything — changing the code                 |
 
-## ⚠️ Known Limitations
+## License
 
-The complete list of limitations is maintained in `src/lib/evidence.ts` and rendered on `/analysis`:
-
-1. **Interpretive Facility Names:** Names like "assembly hangar" or "operations block" are model hypotheses. Public overhead imagery cannot verify interior use or building occupants.
-2. **Procedural Elevation Floor:** Terrain uses a seeded procedural proxy (~981 m EGM2008 datum). It is not suitable for survey-grade sightline or elevation engineering.
-3. **Runway Endpoint Uncertainty:** Modeled runway endpoints carry ~40m uncertainty due to source imagery resolution (10m ground sample distance).
-4. **Illustrative Utilities:** Power, water, radar, and security fencing are illustrative recreations not resolved in public satellite frames.
-5. **Ordinal Confidence Scores:** Confidence ratings (0.0 to 1.0) are project-assigned ordinal ranks, not statistical probabilities.
-
----
-
-## 📄 License & Attribution
-
-- **Source Code & Documentation:** Licensed under the **[Apache License 2.0](LICENSE)**.
-- **Data & Satellite Imagery:** Public satellite products (Copernicus, ESA, DLR, Airbus Defence and Space, NASA POWER) are referenced under fair use and attributed in [`NOTICE`](NOTICE). No third-party imagery is bundled in this repository.
+Code and documentation: [Apache License 2.0](LICENSE). Public data products
+(Copernicus, ESA, DLR, Airbus Defence and Space, NASA POWER) are referenced and
+attributed in [`NOTICE`](NOTICE); no third-party imagery is bundled.

@@ -10,6 +10,7 @@ import {
 } from "../pilot/contract";
 import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
 import { SEAT_RULES, type SeatRules } from "./combat";
+import { PLACE_ORDERS, type PlaceOrder } from "../pilot/places";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -202,6 +203,13 @@ interface GameStoreState {
    */
   jevNav: NavigationMode;
   setJevNav: (navigation: NavigationMode) => void;
+  /**
+   * `?placeOrder=nearest|shuffled`: how the places are listed. Nearest first is
+   * the default; shuffled lists the same places in a seeded random order, to
+   * tell a brain's preference for a place from a preference for the first
+   * option it is shown.
+   */
+  placeOrder: PlaceOrder;
   /** `?playerProfile=standard|elite` — Elite Operator for the human. */
   playerProfile: PlayerProfile;
   setPlayerProfile: (profile: PlayerProfile) => void;
@@ -339,6 +347,7 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   setJevControl: (jevControl) => set({ jevControl }),
   jevNav: readEnumParam<NavigationMode>("jevNav", NAVIGATION_MODES) ?? "places",
   setJevNav: (jevNav) => set({ jevNav }),
+  placeOrder: readEnumParam<PlaceOrder>("placeOrder", PLACE_ORDERS) ?? "nearest",
   playerProfile:
     readEnumParam<PlayerProfile>("playerProfile", PLAYER_PROFILES) ?? "standard",
   setPlayerProfile: (playerProfile) => set({ playerProfile }),

@@ -67,7 +67,7 @@ analyst note, the tags and the measurement path are never placed in a URL — se
 [`docs/THREAT_MODEL.md`](THREAT_MODEL.md).
 
 Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?near=`, for the
-player brains `?brain=`, `?policy=`, `?jevControl=`, `?jevNav=`, `?seed=`,
+player brains `?brain=`, `?policy=`, `?jevControl=`, `?jevNav=`, `?placeOrder=`, `?seat=`, `?seed=`,
 `?fallback=`, `?trace=`, `?record=`, and for experiments with local brains
 `?cadence=` and `?latency=`; for a human `?playerProfile=` and `?eliteRecoil=`);
 they are listed in [`docs/BLACKSITE.md`](BLACKSITE.md). In Blacksite, `H` takes

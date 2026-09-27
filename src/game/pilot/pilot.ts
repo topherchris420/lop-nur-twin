@@ -709,7 +709,13 @@ class Pilot {
     metrics.control = this.brain === "human" ? "none" : this.options.control;
     metrics.profile =
       this.brain === "human" ? useGameStore.getState().playerProfile : "n/a";
-    metrics.navigation = this.brain === "human" ? "none" : this.options.navigation;
+    const store = useGameStore.getState();
+    metrics.navigation =
+      this.brain === "human"
+        ? "none"
+        : this.options.navigation === "places" && store.placeOrder === "shuffled"
+          ? "places-shuffled"
+          : this.options.navigation;
     metrics.intervalMs = this.negotiated?.intervalMs ?? null;
     metrics.injectedLatencyMs = this.brain === "human" ? 0 : this.options.latencyMs;
     metrics.seat = useGameStore.getState().seatRules;

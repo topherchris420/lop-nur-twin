@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mulberry32 } from "@/lib/noise";
 import {
   HUMAN_METRICS,
   MASK_MOVEMENT,
@@ -36,6 +37,23 @@ import { MAX_PLACES, type Place, type PlaceKind } from "./observation";
  * The list is sorted nearest first and capped at `MAX_PLACES`. Its order says
  * nothing about which to choose.
  */
+
+export const PLACE_ORDERS = ["nearest", "shuffled"] as const;
+export type PlaceOrder = (typeof PLACE_ORDERS)[number];
+
+/**
+ * The same places in a seeded random order. Slot order is presentation, and
+ * presentation can steer a model: this exists to measure whether it does.
+ */
+export function shufflePlaces<T>(places: readonly T[], seed: number): T[] {
+  const out = [...places];
+  const next = mulberry32(seed >>> 0);
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(next() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
 
 /** What the finder may ask of the world: the same queries the bots use. */
 export interface PlaceWorld {

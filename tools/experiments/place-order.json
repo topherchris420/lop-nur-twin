@@ -1,0 +1,11 @@
+{
+  "name": "place-order",
+  "hypothesis": "In the jev-live experiment Jev chose PLACE_0 in 208 of 208 place choices, with places listed nearest first. If that is a preference for the nearest cover, shuffling the list will leave the kinds it chooses unchanged and spread its slots; if it is a preference for the first option shown, it will keep choosing slot 0 and the kinds will follow the shuffle.",
+  "metric": "The distribution of GO slots chosen, and the kinds of place bound. Spends TypeSafe credit: run with JEV_LIVE_TEST=1.",
+  "seeds": [42, 43, 44],
+  "seconds": 120,
+  "mode": "tdm",
+  "arms": [
+    { "id": "jev-places-shuffled", "brain": "jev", "control": "precision", "query": "jevNav=places&placeOrder=shuffled" }
+  ]
+}

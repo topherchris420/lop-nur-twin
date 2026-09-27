@@ -435,6 +435,11 @@ choices still apply. It lets go on arrival (1.1 m), after 1.5 s without
 progress, after 1.5 s without a CONTINUE or a new place, and on NONE, death,
 takeover or pause. It never chooses a destination.
 
+Places are listed nearest first. `?placeOrder=shuffled` lists the same places
+in a seeded random order instead — slot order is presentation, and the live
+run in [The live model on the new game](#the-live-model-on-the-new-game) is
+why the option exists.
+
 The finder offers only places reachable by a straight walk — nothing at waist
 height in the way — because the navigator walks straight lines with feelers,
 not paths. The navigation grid in `ai/navmesh.ts` is built for more and is not
@@ -991,11 +996,13 @@ precision controller on the same seeds, on the old build:
 A plain script did what the model did, so the finding was about the game.
 
 **Why.** `tools/kill-anatomy.mjs` records what each victim was doing when the
-seat killed it. Every victim could see the shooter; most were running across
-open ground at ~100 m, and many were fighting the seat's teammates. At that
-range the bots' aim — an angular cone tuned for 10–40 m — was metres wide, and
-the seat's mercy rules halved what little landed. The ground did not matter,
-because nothing on it could reach a still shooter.
+seat killed it. On the old build, seed 42, 90 s: 32 kills; every victim could
+see the shooter; 30 were sprinting (14 flanking, 14 charging in `engage`);
+18 were fighting the seat's teammates at the time. Over the same 90 s the bots
+fired 46 rounds at the seat with a median aim error of 3.9° at a median range
+of 136 m — about nine metres of miss. Their aim is an angular cone tuned for
+10–40 m, and the seat's mercy rules halved what little landed. The ground did
+not matter, because nothing on it could reach a still shooter.
 
 **What changed** (`d77f16a`; see [`docs/BLACKSITE.md`](BLACKSITE.md#distance-exposure-heat)):
 heat shimmer beyond 45 m, for every seat; bots that bound between points hidden
@@ -1075,6 +1082,45 @@ convert a sighting into a kill and kills about a quarter less. So on this
 game, today, a model's speed is not the bottleneck; its choices are. A model
 twice as fast would not play better here by speed alone — and a model that
 slows toward half a second would.
+
+### The live model on the new game
+
+Two live experiments on 27 September, `jev-1.13.0` through TypeSafe, build
+`9ba93e5`, precision control, mercy rules, seeds 42–44, 3 × 120 s per arm. No
+timeouts, stale, invalid or failed decisions; round trip p50 163–168 ms, p95
+218–220 ms. (A first attempt at `jev-live` failed before any decision: its
+first page never started its match within the harness's 60 s. The rerun is
+what is reported.)
+
+| Jev, live                 | Kills / deaths | Rounds | Damage taken |   Moved | In a sight line | Range at shot |
+| :------------------------ | -------------: | -----: | -----------: | ------: | --------------: | ------------: |
+| 26 Sept., old game, steps |        148 / 0 |    323 |           14 |     0 m |    not measured |         103 m |
+| stepped movement          |         58 / 0 |    231 |           21 |     0 m |             52% |         117 m |
+| places, nearest first     |          8 / 0 |     25 |           23 | 1 085 m |             22% |          75 m |
+| places, shuffled order    |         38 / 0 |    106 |          238 |   996 m |             39% |  not compared |
+
+- **On the new game the same model with the same interface kills 61 % less**
+  (148 → 58), still standing still: the exposure changes act on a live model
+  as they did on the script.
+- **Given places, it moves.** 1 085 m where it had moved 0 m in every earlier
+  run; 208 place choices, 190 of them cover. Its time in enemy sight lines
+  more than halved (52 % → 22 %). It also nearly stopped fighting — 25 rounds
+  in six minutes. No death in either arm.
+- **It chose `PLACE_0` in 208 of 208 choices.** With places listed nearest
+  first that is either a preference for the nearest cover or for the first
+  option shown, and slot order is presentation the host controls.
+  `?placeOrder=shuffled` lists the same places in a seeded random order: the
+  slots it chose spread (62 / 44 / 29 for slots 0 / 1 / 2) while the kind held
+  (125 of 135 cover, 93 %, against 91 %). The preference is for cover. Order
+  still pulled it toward the top of the list, which is why the default is a
+  documented choice rather than an accident. With shuffled order it also
+  fought more (38 kills; per seed 4, 20, 14), which three episodes cannot
+  explain.
+
+What this shows is a behaviour, not a ranking: offered a way to hide, the
+model hides. Whether that is good play depends on the mode — in team
+deathmatch it gives up kills; in an objective mode it might not — and that is
+the next experiment, not a conclusion.
 
 ## Security
 

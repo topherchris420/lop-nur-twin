@@ -8,6 +8,7 @@ import {
 } from "./observation";
 import { RandomProvider } from "./providers";
 import { ScriptedProvider } from "./policies";
+import { shufflePlaces } from "./places";
 import { makeObservation } from "./testing/fixtures";
 import { buildSystemOneRequest } from "../../../server/jev/question";
 
@@ -205,5 +206,26 @@ describe("the skirmisher under places", () => {
       },
     });
     expect(new ScriptedProvider("skirmisher").pick(far).go).toBe("PLACE_1");
+  });
+});
+
+describe("place order", () => {
+  it("shuffles the same places deterministically, and only reorders them", () => {
+    const list = [
+      cover,
+      advance,
+      { ...cover, kind: "flank" as const },
+      { ...advance, kind: "withdraw" as const },
+    ];
+    const a = shufflePlaces(list, 1234);
+    expect(shufflePlaces(list, 1234)).toEqual(a);
+    expect([...a].sort((x, y) => x.kind.localeCompare(y.kind))).toEqual(
+      [...list].sort((x, y) => x.kind.localeCompare(y.kind)),
+    );
+    // Across seeds, every place reaches the first slot.
+    const firsts = new Set(
+      Array.from({ length: 64 }, (_, i) => shufflePlaces(list, i + 1)[0]!.kind),
+    );
+    expect(firsts.size).toBe(4);
   });
 });
