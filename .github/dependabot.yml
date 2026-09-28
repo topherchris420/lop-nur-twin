@@ -12,6 +12,13 @@ updates:
       day: monday
       time: "06:00"
     open-pull-requests-limit: 5
+    # eslint-plugin-jsx-a11y 6.x supports ESLint through 9. Keep the core and
+    # its recommended rules on that major until the plugin supports an upgrade.
+    ignore:
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
     groups:
       three-and-react-three:
         patterns:
