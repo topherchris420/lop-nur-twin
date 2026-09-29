@@ -476,8 +476,18 @@ async function offline() {
     // Sample the controller while it plays. Every sample with a measured error
     // must have a clear sight line from the eye to the bound enemy's head or
     // chest: the controller measures only what it can see.
+    //
+    // Sample until the controller has had enough to show, not for a fixed
+    // time. An enemy enters view by chance (bots avoid open sight lines, and
+    // frame pacing is not deterministic), so a fixed 20 s on this seed bound
+    // anywhere from 4 to 17 of 80 samples, and judged the crosshair from as
+    // few as 3. Until 20 measured samples, capped at 80 s: five runs took
+    // 90–320 samples to get there and held 70–88% under 0.5°.
     const samples = [];
-    for (let i = 0; i < 80; i += 1) {
+    const WANT_MEASURED = 20;
+    const MAX_SAMPLES = 320;
+    let measuredSoFar = 0;
+    while (samples.length < MAX_SAMPLES && measuredSoFar < WANT_MEASURED) {
       await runFor(page, 0.25);
       const sample = await page.evaluate(() => {
         const { game } = globalThis.__combat;
@@ -523,6 +533,7 @@ async function offline() {
         }, sample.id);
       }
       samples.push(sample);
+      if (sample.bound && sample.error !== null) measuredSoFar += 1;
     }
     const bound = samples.filter((x) => x.bound);
     const measured = bound.filter((x) => x.error !== null);
