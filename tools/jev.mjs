@@ -132,6 +132,43 @@ async function interceptDecisions(page, behaviour) {
   });
 }
 
+/**
+ * Bring a live enemy in front of the living player, on clear ground with a
+ * sight line to the chest, and turn the player to face it. The enemy comes to
+ * the player rather than the reverse: the player's position is one the game
+ * has already checked is clear. Returns whether an enemy could be placed.
+ */
+function stageEnemy(page) {
+  return page.evaluate(() => {
+    const { game } = globalThis.__combat;
+    const p = game.player;
+    if (!p.alive) return false;
+    const enemy = game.actors.find((a) => !a.isPlayer && a.alive && a.team !== p.team);
+    if (!enemy) return false;
+    const V = game.cameraForward.constructor;
+    const eye = new V(p.position.x, p.position.y + 1.62, p.position.z);
+    for (const dist of [22, 16, 11]) {
+      for (let i = 0; i < 12; i += 1) {
+        const yaw = p.yaw + (i % 2 === 0 ? 1 : -1) * Math.floor(i / 2) * 0.15;
+        const x = p.position.x - Math.sin(yaw) * dist;
+        const z = p.position.z - Math.cos(yaw) * dist;
+        const y = game.world.groundAt(x, z);
+        if (!game.world.isPositionFree({ x, y, z, isVector3: true }, 0.4, 1.8)) continue;
+        const chest = new V(x, y + 1.3, z);
+        if (!game.world.hasLineOfSight(eye, chest, 3, enemy.id)) continue;
+        enemy.position.set(x, y, z);
+        enemy.velocity.set(0, 0, 0);
+        enemy.stance = "stand";
+        p.velocity.set(0, 0, 0);
+        p.yaw = yaw;
+        p.pitch = 0;
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
 /** Let the match respawn the player if a phase left them dead. */
 async function untilAlive(page) {
   for (let i = 0; i < 60; i += 1) {
@@ -479,15 +516,26 @@ async function offline() {
     //
     // Sample until the controller has had enough to show, not for a fixed
     // time. An enemy enters view by chance (bots avoid open sight lines, and
-    // frame pacing is not deterministic), so a fixed 20 s on this seed bound
-    // anywhere from 4 to 17 of 80 samples, and judged the crosshair from as
-    // few as 3. Until 20 measured samples, capped at 80 s: five runs took
-    // 90–320 samples to get there and held 70–88% under 0.5°.
+    // frame pacing is not deterministic): a fixed 20 s on this seed bound
+    // anywhere from 4 to 17 of 80 samples, and even waiting up to 80 s bound
+    // only 5–10 of 320 on a slow runner, which failed CI on main. So the
+    // harness does not wait for luck: whenever no enemy is bound it stands a
+    // live one in the player's sight line (`stageEnemy`, as closeup.mjs does),
+    // and the controller is then judged on tracking it, which is what this
+    // check is about. The staging is the harness's; the controller still
+    // decides what to bind and how to aim, and is measured against the
+    // authoritative geometry exactly as before.
     const samples = [];
     const WANT_MEASURED = 20;
     const MAX_SAMPLES = 320;
+    const RESTAGE_AFTER = 8; // samples (2 s) without a bound enemy
     let measuredSoFar = 0;
+    let unbound = 0;
     while (samples.length < MAX_SAMPLES && measuredSoFar < WANT_MEASURED) {
+      if (unbound >= RESTAGE_AFTER) {
+        await stageEnemy(page);
+        unbound = 0;
+      }
       await runFor(page, 0.25);
       const sample = await page.evaluate(() => {
         const { game } = globalThis.__combat;
@@ -533,6 +581,7 @@ async function offline() {
         }, sample.id);
       }
       samples.push(sample);
+      unbound = sample.bound ? 0 : unbound + 1;
       if (sample.bound && sample.error !== null) measuredSoFar += 1;
     }
     const bound = samples.filter((x) => x.bound);
