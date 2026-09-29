@@ -69,6 +69,8 @@ export interface BrainMeta {
   confidenceSources: ConfidenceSource[];
   /** A test double stands in for the model. Its results are never a model's. */
   testDouble: boolean;
+  /** The service's stated configuration at the start of the arm (see `ArmRun.service`). */
+  parameters: Record<string, unknown> | null;
 }
 
 export interface EpisodeRun {
@@ -95,6 +97,12 @@ export interface ArmRun {
   episodes: EpisodeRun[];
   /** Set when the arm was not run, e.g. live flags missing. */
   pending: string | null;
+  /**
+   * The remote service's own status at the start of the arm — provider, model
+   * alias, effort, confidence mode, limits — as its model parameters. Null for
+   * local brains. Never contains a key.
+   */
+  service?: Record<string, unknown> | null;
 }
 
 export interface DecisionMetrics {
@@ -401,6 +409,21 @@ function validationSummary(runs: readonly EpisodeRun[]): ValidationSummary {
   };
 }
 
+/** The fields of a service status that describe how the model is asked. */
+function pickParameters(status: Record<string, unknown>): Record<string, unknown> {
+  const keep = [
+    "service",
+    "provider",
+    "model",
+    "confidence",
+    "effort",
+    "limits",
+    "actionContract",
+    "observationSchema",
+  ];
+  return Object.fromEntries(Object.entries(status).filter(([k]) => keep.includes(k)));
+}
+
 function brainMeta(run: ArmRun): BrainMeta {
   const records = run.episodes.flatMap((e) => e.decisions);
   const first = run.episodes[0]?.brain;
@@ -425,6 +448,7 @@ function brainMeta(run: ArmRun): BrainMeta {
     policy: run.arm.policy ?? null,
     confidenceSources: sources,
     testDouble: run.episodes.some((e) => e.brain.testDouble),
+    parameters: run.service ? pickParameters(run.service) : null,
   };
 }
 

@@ -126,6 +126,11 @@ if (!Number.isInteger(episodes) || episodes < 1 || !(seconds > 0)) {
   process.exit(2);
 }
 
+// The remote service's own statement of what it is configured to ask — provider,
+// model alias, effort, confidence mode, limits — recorded in the report as the
+// run's model parameters. It never contains a key.
+let service = null;
+
 if (brain === "llm") {
   const status = await fetch(`${origin}/api/llm/decision`)
     .then((r) => r.json())
@@ -142,6 +147,7 @@ if (brain === "llm") {
     );
     process.exit(2);
   }
+  service = status;
 }
 
 if (brain === "jev") {
@@ -154,6 +160,7 @@ if (brain === "jev") {
     );
     process.exit(2);
   }
+  service = status;
 }
 
 const browser = await launch();
@@ -335,6 +342,7 @@ try {
     brain,
     policy: brain === "script" ? policy : null,
     testDouble: fakeLlm,
+    service,
     seeds,
     query: extraQuery || null,
     control,

@@ -230,6 +230,7 @@ function loadArm(dir, entry) {
     query: entry.query,
     origin: entry.origin,
     build: entry.build,
+    service: armReport.service ?? null,
     episodes,
     pending: null,
   };

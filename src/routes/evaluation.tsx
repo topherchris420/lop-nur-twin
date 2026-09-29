@@ -158,6 +158,17 @@ function ArmsTable({ evaluation }: { evaluation: Evaluation }) {
                       <div className="text-muted-foreground">
                         confidence: {arm.brain.confidenceSources.join(", ") || "none"}
                       </div>
+                      {arm.brain.parameters ? (
+                        <div className="text-muted-foreground break-all">
+                          as configured:{" "}
+                          {Object.entries(arm.brain.parameters)
+                            .filter(([k]) =>
+                              ["provider", "model", "effort", "confidence"].includes(k),
+                            )
+                            .map(([k, v]) => `${k}=${String(v)}`)
+                            .join(" · ")}
+                        </div>
+                      ) : null}
                     </td>
                     <td className="max-w-[16rem] px-2 py-2 font-mono break-words">
                       {arm.config.query}
