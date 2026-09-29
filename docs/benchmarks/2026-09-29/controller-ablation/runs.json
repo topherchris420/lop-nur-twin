@@ -1,0 +1,147 @@
+{
+  "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z",
+  "startedAt": "2026-09-29T17:13:48.960Z",
+  "finishedAt": "2026-09-29T17:57:52.457Z",
+  "git": {
+    "commit": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "dirty": false
+  },
+  "node": "v22.22.2",
+  "platform": "linux",
+  "cpus": 4,
+  "liveFlagsSet": [],
+  "arms": [
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher-precision",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "skirmisher-precision.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher-degraded",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&motor=degraded&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "skirmisher-degraded.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher-direct",
+        "brain": "script",
+        "control": "direct",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      "query": "brain=script&jevControl=direct&policy=skirmisher&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "skirmisher-direct.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random-precision",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=random&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "random-precision.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random-degraded",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      "query": "brain=random&jevControl=precision&jevNav=places&motor=degraded&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "random-degraded.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random-direct",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      },
+      "query": "brain=random&jevControl=direct&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "random-direct.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev-precision",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=jev&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": null,
+      "pending": "arm jev-precision calls a paid jev API; set JEV_LIVE_TEST=1 to confirm"
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev-degraded",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      "query": "brain=jev&jevControl=precision&jevNav=places&motor=degraded&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": null,
+      "pending": "arm jev-degraded calls a paid jev API; set JEV_LIVE_TEST=1 to confirm"
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev-direct",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      },
+      "query": "brain=jev&jevControl=direct&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": null,
+      "pending": "arm jev-direct calls a paid jev API; set JEV_LIVE_TEST=1 to confirm"
+    }
+  ]
+}

@@ -27,5 +27,8 @@ describe("chart helpers", () => {
     expect(formatValue(Number.NaN)).toBe("n/a");
     expect(formatValue(0)).toBe("0.00");
     expect(formatValue(1234.5)).toBe("1,235");
+    expect(formatValue(11.434, 3)).toBe("11.4");
+    expect(formatValue(-80.664, 3)).toBe("-80.7");
+    expect(formatValue(0.1234, 3)).toBe("0.123");
   });
 });

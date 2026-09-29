@@ -42,11 +42,24 @@ export function niceTicks(min: number, max: number, count = 5): number[] {
   return ticks;
 }
 
+/** A tick label at the precision of the tick step, so an axis reads 0, 1,000, 2,000. */
+export function formatTick(value: number, ticks: readonly number[]): string {
+  const step = ticks.length > 1 ? Math.abs(ticks[1]! - ticks[0]!) : 1;
+  const decimals = step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9));
+  return value.toLocaleString("en", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
 export function formatValue(value: number | null | undefined, digits = 2): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "n/a";
   const abs = Math.abs(value);
   if (abs >= 1000) return value.toLocaleString("en", { maximumFractionDigits: 0 });
-  return value.toFixed(abs >= 100 ? 0 : digits);
+  // Three significant figures at most above 10: a seed-to-seed spread in the
+  // hundreds makes a third decimal noise, not precision.
+  if (abs >= 100) return value.toFixed(0);
+  return value.toFixed(abs >= 10 ? Math.min(digits, 1) : digits);
 }
 
 export interface StripRow {
@@ -113,7 +126,7 @@ export function StripPlot({
             strokeWidth={1}
           />
           <text x={x(t)} y={height - 8} textAnchor="middle" fill={VIZ.muted}>
-            {formatValue(t)}
+            {formatTick(t, ticks)}
           </text>
         </g>
       ))}
@@ -355,7 +368,7 @@ export function SweepChart({
         <g key={`y${t}`}>
           <line x1={left} x2={width - right} y1={y(t)} y2={y(t)} stroke={VIZ.grid} />
           <text x={left - 8} y={y(t) + 4} textAnchor="end" fill={VIZ.muted}>
-            {formatValue(t)}
+            {formatTick(t, yt)}
           </text>
         </g>
       ))}
