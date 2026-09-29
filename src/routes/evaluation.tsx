@@ -9,6 +9,7 @@ import {
 import { decisionType } from "@/game/eval/outcomeContracts";
 import { pct, usd } from "@/game/eval/report";
 import type { SampleSummary } from "@/game/eval/stats";
+import { ScrollRegion } from "@/game/eval/ui/ScrollRegion";
 import {
   LatencyHistogram,
   Legend,
@@ -116,7 +117,7 @@ function armLabel(arm: ArmEvaluation): string {
 function ArmsTable({ evaluation }: { evaluation: Evaluation }) {
   const primary = evaluation.experiment.primaryMetric;
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Arms" className="overflow-x-auto">
       <table className="w-full min-w-[70rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           One row per arm. Intervals are 95% over episodes; n is the number of episodes
@@ -219,7 +220,7 @@ function ArmsTable({ evaluation }: { evaluation: Evaluation }) {
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 
@@ -232,7 +233,7 @@ function EpisodesTable({
 }) {
   const primary = evaluation.experiment.primaryMetric.id;
   return (
-    <div className="max-h-[28rem] overflow-auto">
+    <ScrollRegion label="Episodes" className="max-h-[28rem] overflow-auto">
       <table className="w-full min-w-[60rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           Every episode, with the files its numbers came from
@@ -278,7 +279,7 @@ function EpisodesTable({
           )}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 
@@ -362,7 +363,7 @@ function LedgerTable({ evaluation }: { evaluation: Evaluation }) {
   const arms = evaluation.arms.filter((a) => a.status === "complete");
   return (
     <>
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Computational ledger" className="overflow-x-auto">
         <table className="w-full min-w-[64rem] border-collapse text-left text-xs">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             The computational ledger. Unknown is printed as n/a, never as zero; a total is
@@ -427,7 +428,7 @@ function LedgerTable({ evaluation }: { evaluation: Evaluation }) {
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {arms.map((arm) => (
           <figure key={arm.id} className="border-border rounded-md border p-3">
@@ -449,7 +450,7 @@ function LedgerTable({ evaluation }: { evaluation: Evaluation }) {
 function ValidationTable({ evaluation }: { evaluation: Evaluation }) {
   const arms = evaluation.arms.filter((a) => a.status === "complete");
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Validation at execution" className="overflow-x-auto">
       <table className="w-full min-w-[64rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           What happened to each accepted decision at execution, and why requests failed.
@@ -503,7 +504,7 @@ function ValidationTable({ evaluation }: { evaluation: Evaluation }) {
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 
@@ -518,7 +519,7 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
       </p>
     );
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Decisions" className="overflow-x-auto">
       <table className="w-full min-w-[60rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           Decisions the contract selected, and how their outcome windows were classed.
@@ -580,7 +581,7 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 

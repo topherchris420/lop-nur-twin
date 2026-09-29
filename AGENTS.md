@@ -465,7 +465,7 @@ test the artifact that actually ships — including its security headers:
 
 ```sh
 bun run a11y                  # axe-core on every route (+ /evaluation with a run open) + CSP
-bun run routes                # 52 checks: deep links, refreshes, hostile
+bun run routes                # 70 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```
 

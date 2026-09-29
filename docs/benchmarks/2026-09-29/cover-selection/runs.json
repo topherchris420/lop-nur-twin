@@ -1,0 +1,72 @@
+{
+  "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z",
+  "startedAt": "2026-09-29T18:09:30.860Z",
+  "finishedAt": "2026-09-29T18:24:40.308Z",
+  "git": {
+    "commit": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "dirty": false
+  },
+  "node": "v22.22.2",
+  "platform": "linux",
+  "cpus": 4,
+  "liveFlagsSet": [],
+  "arms": [
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=jev&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": null,
+      "pending": "arm jev calls a paid jev API; set JEV_LIVE_TEST=1 to confirm"
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "llm",
+        "brain": "llm",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=llm&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": null,
+      "pending": "arm llm calls a paid llm API; set LLM_LIVE_TEST=1 to confirm"
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "skirmisher.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=random&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5173",
+      "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+      "report": "random.json",
+      "pending": null
+    }
+  ]
+}

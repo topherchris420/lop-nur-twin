@@ -3,6 +3,7 @@ import { AXES } from "../../pilot/contract";
 import type { DecisionTypeContract } from "../outcomeContracts";
 import type { DecisionRecord, FailureRecord } from "../records";
 import { VIZ, formatValue } from "./charts";
+import { ScrollRegion } from "./ScrollRegion";
 
 /**
  * One episode's decisions, row by row: what was chosen, with what stated
@@ -167,7 +168,7 @@ export function DecisionTrace({
           Only decisions {contract.id} selects
         </label>
       ) : null}
-      <div className="mt-2 max-h-[32rem] overflow-auto">
+      <ScrollRegion label="Decision trace" className="mt-2 max-h-[32rem] overflow-auto">
         <table className="w-full min-w-[70rem] border-collapse text-left text-[11px]">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             Decisions in sequence order
@@ -257,7 +258,7 @@ export function DecisionTrace({
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </div>
   );
 }

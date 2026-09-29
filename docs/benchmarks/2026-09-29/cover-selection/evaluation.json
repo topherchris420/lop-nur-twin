@@ -1,0 +1,2770 @@
+{
+  "schema": "blacksite-evaluation/v1",
+  "generatedAt": "2026-09-29T18:29:57.288Z",
+  "status": "partial",
+  "experiment": {
+    "id": "cover-selection-v1",
+    "question": "When a decision system chooses between places, does it choose ones that keep the seat out of enemy sight?",
+    "hypothesis": "A brain that uses the places' facts (hidden, route exposure) spends a smaller share of the following five seconds in an enemy's sight line than a random chooser offered the same places through the same navigator. If it does not, the choice of place is not what reduces exposure here.",
+    "independentVariable": "brain",
+    "primaryMetric": {
+      "id": "exposure_fraction_next_window",
+      "label": "Exposure in the window after",
+      "unit": "share",
+      "description": "Mean over the selected decisions of the share of window samples in which some enemy held a sight line to the seat."
+    },
+    "secondaryMetrics": [
+      "damage_taken_next_window",
+      "death_rate_next_window",
+      "success_rate",
+      "place_reached_rate",
+      "first_slot_share",
+      "decision_count"
+    ],
+    "decisionType": {
+      "id": "cover-selection/v1",
+      "rule": "Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+      "applies": "An executed decision whose go choice is PLACE_n, taken when at least two places were offered, and which bound a place."
+    },
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seedPreset": "quick",
+    "durationS": 120,
+    "mode": "tdm",
+    "definitionHash": "49a9816cbe3ca1f5",
+    "definition": {
+      "schema": "blacksite-experiment/v1",
+      "id": "cover-selection-v1",
+      "question": "When a decision system chooses between places, does it choose ones that keep the seat out of enemy sight?",
+      "hypothesis": "A brain that uses the places' facts (hidden, route exposure) spends a smaller share of the following five seconds in an enemy's sight line than a random chooser offered the same places through the same navigator. If it does not, the choice of place is not what reduces exposure here.",
+      "independentVariable": "brain",
+      "primaryMetric": "exposure_fraction_next_window",
+      "secondaryMetrics": [
+        "damage_taken_next_window",
+        "death_rate_next_window",
+        "success_rate",
+        "place_reached_rate",
+        "first_slot_share",
+        "decision_count"
+      ],
+      "decisionType": "cover-selection/v1",
+      "outcomeWindowS": 5,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "seedPreset": "quick",
+      "duration": 120,
+      "mode": "tdm",
+      "arms": [
+        {
+          "seat": "even",
+          "id": "jev",
+          "brain": "jev",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "llm",
+          "brain": "llm",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "skirmisher",
+          "brain": "script",
+          "control": "precision",
+          "policy": "skirmisher",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "random",
+          "brain": "random",
+          "control": "precision",
+          "navigation": "places"
+        }
+      ],
+      "controls": [
+        "random"
+      ],
+      "calibrationField": "probability",
+      "contributionFactors": [],
+      "notes": "The navigator walks wherever it is told and never chooses; the place is the brain's. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+    }
+  },
+  "environment": {
+    "gitCommit": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "gitDirty": false,
+    "servedBuilds": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "node": "v22.22.2",
+    "platform": "linux",
+    "cpus": 4,
+    "rendering": "stubbed (matrices only; see tools/jev-harness.mjs)",
+    "actionContract": "blacksite-jev-actions/v3",
+    "observationSchema": "blacksite-jev-observation/v3",
+    "decisionSchema": "blacksite-jev-decision/v3",
+    "llmDecisionSchema": "blacksite-llm-decision/v1",
+    "decisionRecordSchema": "blacksite-decision/v1",
+    "traceSchema": "blacksite-jev-trace/v3",
+    "experimentSchema": "blacksite-experiment/v1",
+    "evaluationSchema": "blacksite-evaluation/v1"
+  },
+  "provenance": {
+    "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z",
+    "startedAt": "2026-09-29T18:09:30.860Z",
+    "finishedAt": "2026-09-29T18:24:40.308Z",
+    "definitionFile": "tools/experiments/cover-selection.json",
+    "definitionFileHash": "b6d47a1eed725fd9",
+    "overrides": [
+      "none"
+    ],
+    "liveFlagsSet": [],
+    "pricingFile": "config/pricing.json",
+    "pricingHash": "055f71c0fea9918a",
+    "evaluatedAt": "2026-09-29T18:29:57.288Z",
+    "evaluatedAtCommit": "c3f477676ab5971d7d25aab200aae8f10b5433c3"
+  },
+  "arms": [
+    {
+      "id": "jev",
+      "status": "pending",
+      "pendingReason": "arm jev calls a paid jev API; set JEV_LIVE_TEST=1 to confirm",
+      "brain": {
+        "id": "jev",
+        "kind": "jev",
+        "provider": "typesafe",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=jev&jevControl=precision&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [],
+      "aggregate": {
+        "exposure_fraction_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "death_rate_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "success_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "place_reached_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "first_slot_share": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decision_count": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "accuracy": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_dealt_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "exposure_fraction": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "distance_m": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decisions_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        }
+      },
+      "decisionMetrics": {
+        "contract": "cover-selection/v1",
+        "rule": "Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+        "controllerCannot": "The navigator walks to the place it is given and never picks one; which place, and whether to move at all, is the brain's.",
+        "matched": 0,
+        "scored": 0,
+        "incomplete": 0,
+        "classes": {
+          "beneficial": 0,
+          "neutral": 0,
+          "harmful": 0
+        },
+        "successRate": null,
+        "successInterval": null,
+        "harmfulRate": null,
+        "harmfulInterval": null,
+        "measure": {
+          "name": "exposure fraction in window",
+          "unit": "share",
+          "summary": {
+            "n": 0,
+            "mean": null,
+            "median": null,
+            "sd": null,
+            "min": null,
+            "max": null,
+            "p90": null,
+            "p95": null,
+            "p99": null,
+            "ci95": null,
+            "notes": []
+          }
+        },
+        "byChoice": {},
+        "slotBias": null,
+        "note": "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance."
+      },
+      "calibration": {
+        "available": false,
+        "reason": "jev states no probability or confidence; none is filled in"
+      },
+      "ledger": {
+        "calls": 0,
+        "decisions": 0,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": []
+        },
+        "decisionsPerMinute": null,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": 0
+      },
+      "validation": {
+        "executed": 0,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "llm",
+      "status": "pending",
+      "pendingReason": "arm llm calls a paid llm API; set LLM_LIVE_TEST=1 to confirm",
+      "brain": {
+        "id": "llm",
+        "kind": "llm",
+        "provider": "unknown",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "llm",
+        "brain": "llm",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=llm&jevControl=precision&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [],
+      "aggregate": {
+        "exposure_fraction_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "death_rate_next_window": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "success_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "place_reached_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "first_slot_share": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decision_count": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "accuracy": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_dealt_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "exposure_fraction": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "distance_m": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decisions_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        }
+      },
+      "decisionMetrics": {
+        "contract": "cover-selection/v1",
+        "rule": "Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+        "controllerCannot": "The navigator walks to the place it is given and never picks one; which place, and whether to move at all, is the brain's.",
+        "matched": 0,
+        "scored": 0,
+        "incomplete": 0,
+        "classes": {
+          "beneficial": 0,
+          "neutral": 0,
+          "harmful": 0
+        },
+        "successRate": null,
+        "successInterval": null,
+        "harmfulRate": null,
+        "harmfulInterval": null,
+        "measure": {
+          "name": "exposure fraction in window",
+          "unit": "share",
+          "summary": {
+            "n": 0,
+            "mean": null,
+            "median": null,
+            "sd": null,
+            "min": null,
+            "max": null,
+            "p90": null,
+            "p95": null,
+            "p99": null,
+            "ci95": null,
+            "notes": []
+          }
+        },
+        "byChoice": {},
+        "slotBias": null,
+        "note": "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance."
+      },
+      "calibration": {
+        "available": false,
+        "reason": "llm states no probability or confidence; none is filled in"
+      },
+      "ledger": {
+        "calls": 0,
+        "decisions": 0,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": []
+        },
+        "decisionsPerMinute": null,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": 0
+      },
+      "validation": {
+        "executed": 0,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "skirmisher",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-skirmisher-s42",
+          "seed": 42,
+          "simSeconds": 120.15440000000078,
+          "wallSeconds": 120.428,
+          "lagged": false,
+          "decisions": 499,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.3562946207676539,
+            "damage_taken_next_window": 23,
+            "death_rate_next_window": 0.14285714285714285,
+            "success_rate": 0.5714285714285714,
+            "place_reached_rate": 0.42857142857142855,
+            "first_slot_share": 0.2857142857142857,
+            "decision_count": 7,
+            "kills_per_minute": 4.49361906093345,
+            "deaths_per_minute": 0.9985820135407667,
+            "accuracy": 0.5,
+            "damage_dealt_per_minute": 679.2973495345191,
+            "damage_taken_per_minute": 178.60359857186194,
+            "exposure_fraction": 0.1334608835267517,
+            "distance_m": 105.43532505772035,
+            "decisions_per_minute": 249.14621237842132
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher.json",
+            "decisions": "skirmisher.seed42.eval.json.gz",
+            "trace": "skirmisher.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-skirmisher-s43",
+          "seed": 43,
+          "simSeconds": 120.13390000000018,
+          "wallSeconds": 120.272,
+          "lagged": false,
+          "decisions": 505,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.278339202259625,
+            "damage_taken_next_window": 12.270833333333334,
+            "death_rate_next_window": 0.08333333333333333,
+            "success_rate": 0.5,
+            "place_reached_rate": 0.5833333333333334,
+            "first_slot_share": 0.15384615384615385,
+            "decision_count": 13,
+            "kills_per_minute": 9.987673546231676,
+            "deaths_per_minute": 0.49938367731158384,
+            "accuracy": 0.75,
+            "damage_dealt_per_minute": 1346.3489794986626,
+            "damage_taken_per_minute": 73.53424648413072,
+            "exposure_fraction": 0.23986226541263816,
+            "distance_m": 217.72735440253072,
+            "decisions_per_minute": 252.18875704234983
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher.json",
+            "decisions": "skirmisher.seed43.eval.json.gz",
+            "trace": "skirmisher.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-skirmisher-s44",
+          "seed": 44,
+          "simSeconds": 120.14239999999982,
+          "wallSeconds": 120.629,
+          "lagged": false,
+          "decisions": 521,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.17658477161655295,
+            "damage_taken_next_window": 0,
+            "death_rate_next_window": 0,
+            "success_rate": 0.8,
+            "place_reached_rate": 0.8,
+            "first_slot_share": 0.2,
+            "decision_count": 10,
+            "kills_per_minute": 7.489813853159711,
+            "deaths_per_minute": 0.4993209235439807,
+            "accuracy": 0.6101694915254238,
+            "damage_dealt_per_minute": 1022.0930434934083,
+            "damage_taken_per_minute": 57.254633698170544,
+            "exposure_fraction": 0.25375903210114187,
+            "distance_m": 141.56285486900296,
+            "decisions_per_minute": 260.14620116641396
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher.json",
+            "decisions": "skirmisher.seed44.eval.json.gz",
+            "trace": "skirmisher.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "exposure_fraction_next_window": {
+          "n": 3,
+          "mean": 0.2704061982146106,
+          "median": 0.278339202259625,
+          "sd": 0.09011718418460224,
+          "min": 0.17658477161655295,
+          "max": 0.3562946207676539,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.04652463431832571,
+            "hi": 0.4942877621108955,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_next_window": {
+          "n": 3,
+          "mean": 11.756944444444445,
+          "median": 12.270833333333334,
+          "sd": 11.508608140978325,
+          "min": 0,
+          "max": 23,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -16.834330484804674,
+            "hi": 40.34821937369357,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "death_rate_next_window": {
+          "n": 3,
+          "mean": 0.07539682539682539,
+          "median": 0.08333333333333333,
+          "sd": 0.071758497301687,
+          "min": 0,
+          "max": 0.14285714285714285,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.10287555122159565,
+            "hi": 0.25366920201524645,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "success_rate": {
+          "n": 3,
+          "mean": 0.6238095238095238,
+          "median": 0.5714285714285714,
+          "sd": 0.1567093587800413,
+          "min": 0.5,
+          "max": 0.8,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.23449047619047608,
+            "hi": 1.0131285714285716,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "place_reached_rate": {
+          "n": 3,
+          "mean": 0.6039682539682539,
+          "median": 0.5833333333333334,
+          "sd": 0.18657209298438623,
+          "min": 0.42857142857142855,
+          "max": 0.8,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.1404600747603592,
+            "hi": 1.0674764331761486,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "first_slot_share": {
+          "n": 3,
+          "mean": 0.21318681318681318,
+          "median": 0.2,
+          "sd": 0.06691576856104758,
+          "min": 0.15384615384615385,
+          "max": 0.2857142857142857,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.046945412611306386,
+            "hi": 0.37942821376231994,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decision_count": {
+          "n": 3,
+          "mean": 10,
+          "median": 10,
+          "sd": 3,
+          "min": 7,
+          "max": 13,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 2.546985375031121,
+            "hi": 17.45301462496888,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 7.323702153441612,
+          "median": 7.489813853159711,
+          "sd": 2.7507914305602696,
+          "min": 4.49361906093345,
+          "max": 9.987673546231676,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.48980589937336116,
+            "hi": 14.157598407509862,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.6657622047987771,
+          "median": 0.49938367731158384,
+          "sd": 0.2882304109610916,
+          "min": 0.4993209235439807,
+          "max": 0.9985820135407667,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.050299617952491604,
+            "hi": 1.3818240275500457,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.6200564971751413,
+          "median": 0.6101694915254238,
+          "sd": 0.12529291544432256,
+          "min": 0.5,
+          "max": 0.75,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.3087865201046329,
+            "hi": 0.9313264742456497,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 1015.91312417553,
+          "median": 1022.0930434934083,
+          "sd": 333.5687527505189,
+          "min": 679.2973495345191,
+          "max": 1346.3489794986626,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 187.21552661478154,
+            "hi": 1844.6107217362785,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 103.13082625138775,
+          "median": 73.53424648413072,
+          "sd": 65.86623542771214,
+          "min": 57.254633698170544,
+          "max": 178.60359857186194,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -60.503179060072895,
+            "hi": 266.76483156284837,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.20902739368017728,
+          "median": 0.23986226541263816,
+          "sd": 0.06581035726748868,
+          "min": 0.1334608835267517,
+          "max": 0.25375903210114187,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.04553220861717058,
+            "hi": 0.37252257874318395,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 154.90851144308468,
+          "median": 141.56285486900296,
+          "sd": 57.32324899758331,
+          "min": 105.43532505772035,
+          "max": 217.72735440253072,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 12.498173733177651,
+            "hi": 297.3188491529917,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 253.827056862395,
+          "median": 252.18875704234983,
+          "sd": 5.680049124722518,
+          "min": 249.14621237842132,
+          "max": 260.14620116641396,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 239.71589379669547,
+            "hi": 267.93821992809455,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": {
+        "contract": "cover-selection/v1",
+        "rule": "Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+        "controllerCannot": "The navigator walks to the place it is given and never picks one; which place, and whether to move at all, is the brain's.",
+        "matched": 30,
+        "scored": 29,
+        "incomplete": 1,
+        "classes": {
+          "beneficial": 18,
+          "neutral": 9,
+          "harmful": 2
+        },
+        "successRate": 0.6206896551724138,
+        "successInterval": {
+          "lo": 0.4400222620928496,
+          "hi": 0.7731220426913266,
+          "method": "95% Wilson interval, n=29"
+        },
+        "harmfulRate": 0.06896551724137931,
+        "harmfulInterval": {
+          "lo": 0.019120864097994433,
+          "hi": 0.21964947595851925,
+          "method": "95% Wilson interval, n=29"
+        },
+        "measure": {
+          "name": "exposure fraction in window",
+          "unit": "share",
+          "summary": {
+            "n": 29,
+            "mean": 0.2620682927122278,
+            "median": 0.10526315789473684,
+            "sd": 0.3349382436760093,
+            "min": 0,
+            "max": 1,
+            "p90": 0.9302325581395349,
+            "p95": 1,
+            "p99": null,
+            "ci95": {
+              "lo": 0.13466326564581924,
+              "hi": 0.3894733197786364,
+              "method": "95% t interval, n=29"
+            },
+            "notes": [
+              "p99 needs n >= 100"
+            ]
+          }
+        },
+        "byChoice": {
+          "PLACE_1": {
+            "n": 22,
+            "successRate": 0.6818181818181818
+          },
+          "PLACE_0": {
+            "n": 6,
+            "successRate": 0.3333333333333333
+          },
+          "PLACE_2": {
+            "n": 1,
+            "successRate": 1
+          }
+        },
+        "slotBias": {
+          "firstShare": 0.2,
+          "expected": 0.35000000000000003,
+          "n": 30
+        },
+        "note": "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance."
+      },
+      "calibration": {
+        "available": false,
+        "reason": "script states no probability or confidence; none is filled in"
+      },
+      "ledger": {
+        "calls": 1525,
+        "decisions": 1525,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1525,
+          "mean": 7.168590163934439,
+          "median": 6,
+          "sd": 7.343324385951135,
+          "min": 0.3,
+          "max": 72.7,
+          "p90": 15.4,
+          "p95": 20.9,
+          "p99": 33.9,
+          "ci95": {
+            "lo": 6.799729226459642,
+            "hi": 7.5374511014092365,
+            "method": "95% t interval, n=1525"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            649,
+            496,
+            339,
+            38,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 253.86294785654997,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 44
+        },
+        "costPerUsefulDecisionUsd": 0,
+        "usefulDecisions": 18
+      },
+      "validation": {
+        "executed": 1525,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1525,
+          "mean": 9.64,
+          "median": 8,
+          "sd": 8.062638633368323,
+          "min": 1,
+          "max": 92,
+          "p90": 18,
+          "p95": 23,
+          "p99": 39,
+          "ci95": {
+            "lo": 9.235007344287494,
+            "hi": 10.044992655712507,
+            "method": "95% t interval, n=1525"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1525,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "random",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "random",
+        "kind": "random",
+        "provider": "local",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=random&jevControl=precision&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-random-s42",
+          "seed": 42,
+          "simSeconds": 120.224,
+          "wallSeconds": 120.492,
+          "lagged": false,
+          "decisions": 506,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.3342802851708536,
+            "damage_taken_next_window": 9.588373990479896,
+            "death_rate_next_window": 0.05113636363636364,
+            "success_rate": 0.5738636363636364,
+            "place_reached_rate": 0,
+            "first_slot_share": 0.2994652406417112,
+            "decision_count": 187,
+            "kills_per_minute": 0,
+            "deaths_per_minute": 0.4989845664073608,
+            "accuracy": 0,
+            "damage_dealt_per_minute": 0,
+            "damage_taken_per_minute": 131.72313480365767,
+            "exposure_fraction": 0.3570117072933716,
+            "distance_m": 294.1294327995787,
+            "decisions_per_minute": 252.4861906021246
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random.json",
+            "decisions": "random.seed42.eval.json.gz",
+            "trace": "random.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-random-s43",
+          "seed": 43,
+          "simSeconds": 120.24780000000021,
+          "wallSeconds": 120.556,
+          "lagged": false,
+          "decisions": 505,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.1711529006437317,
+            "damage_taken_next_window": 0,
+            "death_rate_next_window": 0,
+            "success_rate": 0.7302631578947368,
+            "place_reached_rate": 0.013157894736842105,
+            "first_slot_share": 0.41818181818181815,
+            "decision_count": 165,
+            "kills_per_minute": 0.49883314613233787,
+            "deaths_per_minute": 0.49883314613233787,
+            "accuracy": 0.04878048780487805,
+            "damage_dealt_per_minute": 72.02236095782352,
+            "damage_taken_per_minute": 108.74443676324807,
+            "exposure_fraction": 0.5053088757047488,
+            "distance_m": 296.53944203513583,
+            "decisions_per_minute": 251.9107387968306
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random.json",
+            "decisions": "random.seed43.eval.json.gz",
+            "trace": "random.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "cover-selection-v1-2026-09-29T18-09-30-858Z-random-s44",
+          "seed": 44,
+          "simSeconds": 120.21110000000023,
+          "wallSeconds": 121.297,
+          "lagged": false,
+          "decisions": 483,
+          "failures": 0,
+          "metrics": {
+            "exposure_fraction_next_window": 0.593183440033418,
+            "damage_taken_next_window": 15.018417952783228,
+            "death_rate_next_window": 0.12686567164179105,
+            "success_rate": 0.3208955223880597,
+            "place_reached_rate": 0,
+            "first_slot_share": 0.31343283582089554,
+            "decision_count": 134,
+            "kills_per_minute": 0,
+            "deaths_per_minute": 0.9979624932429588,
+            "accuracy": 0.05263157894736842,
+            "damage_dealt_per_minute": 71.65713454430728,
+            "damage_taken_per_minute": 126.65042252675353,
+            "exposure_fraction": 0.543906638607231,
+            "distance_m": 294.87869985208715,
+            "decisions_per_minute": 241.00794211817453
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random.json",
+            "decisions": "random.seed44.eval.json.gz",
+            "trace": "random.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "exposure_fraction_next_window": {
+          "n": 3,
+          "mean": 0.36620554194933447,
+          "median": 0.3342802851708536,
+          "sd": 0.2128188444655838,
+          "min": 0.1711529006437317,
+          "max": 0.593183440033418,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.16250844480765664,
+            "hi": 0.8949195287063256,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_next_window": {
+          "n": 3,
+          "mean": 8.20226398108771,
+          "median": 9.588373990479896,
+          "sd": 7.604550951221466,
+          "min": 0,
+          "max": 15.018417952783228,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -10.690012504170488,
+            "hi": 27.094540466345904,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "death_rate_next_window": {
+          "n": 3,
+          "mean": 0.0593340117593849,
+          "median": 0.05113636363636364,
+          "sd": 0.06382887854523485,
+          "min": 0,
+          "max": 0.12686567164179105,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.09923851000494766,
+            "hi": 0.21790653352371747,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "success_rate": {
+          "n": 3,
+          "mean": 0.5416741055488109,
+          "median": 0.5738636363636364,
+          "sd": 0.20657344861003038,
+          "min": 0.3208955223880597,
+          "max": 0.7302631578947368,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.028475794341873084,
+            "hi": 1.0548724167557486,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "place_reached_rate": {
+          "n": 3,
+          "mean": 0.0043859649122807015,
+          "median": 0,
+          "sd": 0.00759671406828455,
+          "min": 0,
+          "max": 0.013157894736842105,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.014486842105263159,
+            "hi": 0.023258771929824562,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "first_slot_share": {
+          "n": 3,
+          "mean": 0.34369329821480826,
+          "median": 0.31343283582089554,
+          "sd": 0.0648858854754184,
+          "min": 0.2994652406417112,
+          "max": 0.41818181818181815,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.18249481374735854,
+            "hi": 0.504891782682258,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decision_count": {
+          "n": 3,
+          "mean": 162,
+          "median": 165,
+          "sd": 26.627053911388696,
+          "min": 134,
+          "max": 187,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 95.84939259286175,
+            "hi": 228.15060740713824,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 0.16627771537744596,
+          "median": 0,
+          "sd": 0.2880014512002132,
+          "min": 0,
+          "max": 0.49883314613233787,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.5492152938917041,
+            "hi": 0.881770724646596,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.6652600685942192,
+          "median": 0.4989845664073608,
+          "sd": 0.28812876159347167,
+          "min": 0.49883314613233787,
+          "max": 0.9979624932429588,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.05054922274921958,
+            "hi": 1.381069359937658,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.03380402225074882,
+          "median": 0.04878048780487805,
+          "sd": 0.02933839917230971,
+          "min": 0,
+          "max": 0.05263157894736842,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.039082483784050874,
+            "hi": 0.10669052828554851,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 47.893165167376935,
+          "median": 71.65713454430728,
+          "sd": 41.477099704481724,
+          "min": 0,
+          "max": 72.02236095782352,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -55.14997839888795,
+            "hi": 150.93630873364182,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 122.37266469788642,
+          "median": 126.65042252675353,
+          "sd": 12.071849482987531,
+          "min": 108.74443676324807,
+          "max": 131.72313480365767,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 92.38210778217673,
+            "hi": 152.36322161359612,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.4687424072017838,
+          "median": 0.5053088757047488,
+          "sd": 0.09866741509630625,
+          "min": 0.3570117072933716,
+          "max": 0.543906638607231,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.22361917796156855,
+            "hi": 0.7138656364419991,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 295.1825248956006,
+          "median": 294.87869985208715,
+          "sd": 1.233397085965068,
+          "min": 294.1294327995787,
+          "max": 296.53944203513583,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 292.11834938890337,
+            "hi": 298.2467004022978,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 248.46829050570992,
+          "median": 251.9107387968306,
+          "sd": 6.467254807304668,
+          "min": 241.00794211817453,
+          "max": 252.4861906021246,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 232.4014422849626,
+            "hi": 264.53513872645726,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": {
+        "contract": "cover-selection/v1",
+        "rule": "Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+        "controllerCannot": "The navigator walks to the place it is given and never picks one; which place, and whether to move at all, is the brain's.",
+        "matched": 486,
+        "scored": 462,
+        "incomplete": 24,
+        "classes": {
+          "beneficial": 255,
+          "neutral": 170,
+          "harmful": 37
+        },
+        "successRate": 0.551948051948052,
+        "successInterval": {
+          "lo": 0.506358011977979,
+          "hi": 0.5966813043905034,
+          "method": "95% Wilson interval, n=462"
+        },
+        "harmfulRate": 0.08008658008658008,
+        "harmfulInterval": {
+          "lo": 0.05865888325293395,
+          "hi": 0.10843997610183384,
+          "method": "95% Wilson interval, n=462"
+        },
+        "measure": {
+          "name": "exposure fraction in window",
+          "unit": "share",
+          "summary": {
+            "n": 462,
+            "mean": 0.3557037923212023,
+            "median": 0.1398496240601504,
+            "sd": 0.40698537245374694,
+            "min": 0,
+            "max": 1,
+            "p90": 1,
+            "p95": 1,
+            "p99": 1,
+            "ci95": {
+              "lo": 0.31849325764904524,
+              "hi": 0.3929143269933594,
+              "method": "95% t interval, n=462"
+            },
+            "notes": []
+          }
+        },
+        "byChoice": {
+          "PLACE_0": {
+            "n": 161,
+            "successRate": 0.5590062111801242
+          },
+          "PLACE_1": {
+            "n": 152,
+            "successRate": 0.5394736842105263
+          },
+          "PLACE_2": {
+            "n": 144,
+            "successRate": 0.5694444444444444
+          },
+          "PLACE_3": {
+            "n": 5,
+            "successRate": 0.2
+          }
+        },
+        "slotBias": {
+          "firstShare": 0.3436213991769547,
+          "expected": 0.3456790123456796,
+          "n": 486
+        },
+        "note": "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance."
+      },
+      "calibration": {
+        "available": false,
+        "reason": "random states no probability or confidence; none is filled in"
+      },
+      "ledger": {
+        "calls": 1494,
+        "decisions": 1494,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1494,
+          "mean": 11.660508701472569,
+          "median": 10.55,
+          "sd": 9.420485793613151,
+          "min": 0.2,
+          "max": 97.7,
+          "p90": 23.7,
+          "p95": 29,
+          "p99": 39.8,
+          "ci95": {
+            "lo": 11.182418201595684,
+            "hi": 12.138599201349454,
+            "method": "95% t interval, n=1494"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            407,
+            296,
+            667,
+            122,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1494
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1494
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1494
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1494
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 248.52855513804477,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 1
+        },
+        "costPerUsefulDecisionUsd": 0,
+        "usefulDecisions": 255
+      },
+      "validation": {
+        "executed": 1494,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1494,
+          "mean": 14.051539491298527,
+          "median": 12,
+          "sd": 9.748788079974096,
+          "min": 1,
+          "max": 107,
+          "p90": 26,
+          "p95": 32,
+          "p99": 45,
+          "ci95": {
+            "lo": 13.556787620911065,
+            "hi": 14.54629136168599,
+            "method": "95% t interval, n=1494"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1493,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 1,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "metric": "exposure_fraction_next_window",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.022014335596800272,
+          0.10718630161589329,
+          -0.4165986684168651
+        ],
+        "n": 3,
+        "meanDifference": -0.09579934373472383,
+        "ci95": {
+          "lo": -0.7940606876495485,
+          "hi": 0.6024620001801008,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_taken_next_window",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          13.411626009520104,
+          12.270833333333334,
+          -15.018417952783228
+        ],
+        "n": 3,
+        "meanDifference": 3.554680463356737,
+        "ci95": {
+          "lo": -36.430458643679685,
+          "hi": 43.53981957039316,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "death_rate_next_window",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.0917207792207792,
+          0.08333333333333333,
+          -0.12686567164179105
+        ],
+        "n": 3,
+        "meanDifference": 0.016062813637440488,
+        "ci95": {
+          "lo": -0.2916242661562893,
+          "hi": 0.3237498934311703,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "success_rate",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -0.0024350649350649567,
+          -0.23026315789473684,
+          0.47910447761194036
+        ],
+        "n": 3,
+        "meanDifference": 0.08213541826071286,
+        "ci95": {
+          "lo": -0.8176092104951092,
+          "hi": 0.9818800470165348,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "place_reached_rate",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.42857142857142855,
+          0.5701754385964912,
+          0.8
+        ],
+        "n": 3,
+        "meanDifference": 0.5995822890559733,
+        "ci95": {
+          "lo": 0.1338873561693093,
+          "hi": 1.0652772219426374,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "first_slot_share",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -0.013750954927425507,
+          -0.2643356643356643,
+          -0.11343283582089553
+        ],
+        "n": 3,
+        "meanDifference": -0.1305064850279951,
+        "ci95": {
+          "lo": -0.44393512910812843,
+          "hi": 0.1829221590521382,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "decision_count",
+      "reference": "random",
+      "arm": "skirmisher",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -180,
+          -152,
+          -124
+        ],
+        "n": 3,
+        "meanDifference": -152,
+        "ci95": {
+          "lo": -221.56146983304288,
+          "hi": -82.43853016695712,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    }
+  ],
+  "sweeps": [],
+  "contribution": null,
+  "warnings": [
+    {
+      "id": "insufficient-seeds",
+      "severity": "info",
+      "arm": null,
+      "message": "3 seeds per arm. Treat every difference as exploratory; use a 10-seed development set or a 30-seed evaluation set before claiming one.",
+      "evidence": {
+        "seeds": 3
+      },
+      "possibleCauses": [
+        "a quick check, by design"
+      ],
+      "suggestedRun": "set \"seeds\": { \"preset\": \"dev\" } or { \"preset\": \"eval\" }"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher",
+      "message": "skirmisher chose move=HOLD in 100.0% of 1525 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 1525
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher",
+      "message": "skirmisher chose target=TARGET_0 in 98.9% of 186 decisions where the target axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "target",
+        "action": "TARGET_0",
+        "share": 0.989247311827957,
+        "n": 186
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "skirmisher",
+      "message": "skirmisher chose slot 0 of the target axis in 95.7% of 46 decisions with two or more slots offered; a position-blind chooser would pick it 46.4% of the time.",
+      "evidence": {
+        "axis": "target",
+        "firstShare": 0.9565217391304348,
+        "expectedShare": 0.4637681159420289,
+        "n": 46
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    },
+    {
+      "id": "model-irrelevance",
+      "severity": "warning",
+      "arm": "skirmisher",
+      "message": "On exposure_fraction_next_window, skirmisher is not distinguishable from random (random choices through the same controllers): paired difference -0.096 with a 95% interval [-0.794, 0.602] over 3 seeds.",
+      "evidence": {
+        "arm": 0.2704061982146106,
+        "randomBaseline": 0.36620554194933447,
+        "pairedSeeds": 3
+      },
+      "possibleCauses": [
+        "the deterministic controller solves most of the task",
+        "the metric does not depend on the choices the brain makes",
+        "too few seeds to separate them"
+      ],
+      "suggestedRun": "node tools/experiment.mjs tools/experiments/controller-ablation.json"
+    }
+  ],
+  "artifacts": {
+    "definition": "definition.json",
+    "arms": {
+      "jev": [],
+      "llm": [],
+      "skirmisher": [
+        "skirmisher.json",
+        "skirmisher.seed42.eval.json.gz",
+        "skirmisher.seed42.trace.jsonl.gz",
+        "skirmisher.json",
+        "skirmisher.seed43.eval.json.gz",
+        "skirmisher.seed43.trace.jsonl.gz",
+        "skirmisher.json",
+        "skirmisher.seed44.eval.json.gz",
+        "skirmisher.seed44.trace.jsonl.gz"
+      ],
+      "random": [
+        "random.json",
+        "random.seed42.eval.json.gz",
+        "random.seed42.trace.jsonl.gz",
+        "random.json",
+        "random.seed43.eval.json.gz",
+        "random.seed43.trace.jsonl.gz",
+        "random.json",
+        "random.seed44.eval.json.gz",
+        "random.seed44.trace.jsonl.gz"
+      ]
+    }
+  },
+  "notes": [
+    "Episodes are the unit of every interval. Episodes on the same seed start the same match but diverge: frame pacing is not deterministic.",
+    "Decision-level pools overlap in time; their n overstates independent evidence.",
+    "Outcome contract cover-selection/v1: Beneficial: in the window the seat did not die, took no damage, and was in some enemy's sight line in at most 25% of exposure samples (at most a quarter of the time seen). Harmful: it died, or took at least 25 damage (a quarter of full health). Otherwise neutral.",
+    "Arm jev is pending: arm jev calls a paid jev API; set JEV_LIVE_TEST=1 to confirm. No figure for it is a measurement.",
+    "Arm llm is pending: arm llm calls a paid llm API; set LLM_LIVE_TEST=1 to confirm. No figure for it is a measurement."
+  ]
+}
