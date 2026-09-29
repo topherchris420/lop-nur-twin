@@ -309,19 +309,50 @@ changing anything here.
   enemy only inside the camera's field of view, within sight range, with a
   clear line to the head or chest. Anything else arrives the way it reaches a
   human: a gunfire ping, a damage direction, a remembered last-seen position.
-- **`contract.ts`, `observation.ts`, `decision.ts`, `hitGeometry.ts` and
-  `capabilities.ts` are shared with the server.** `@vercel/node` compiles each
+- **`contract.ts`, `observation.ts`, `decision.ts`, `llmDecision.ts`,
+  `hash.ts`, `hitGeometry.ts` and `capabilities.ts` are shared with the
+  server**, and `src/game/eval/` is imported in-process by
+  `tools/experiment.mjs` under plain Node (`scripts/ts-hooks.mjs`). `@vercel/node` compiles each
   file on its own and keeps import specifiers, so those and everything under
   `server/` import siblings
   as `./x.js` and never through the `@/` alias — an extensionless import
   builds, typechecks and then fails at runtime with `ERR_MODULE_NOT_FOUND`.
-- **The key never reaches the browser.** Only `api/jev/decision.ts` and the
-  dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`, and there is
-  never a `VITE_`-prefixed copy. `secretBoundary.test.ts` fails if any other
-  file reads it or browser code mentions it, and `bun run build` ends with
-  `tools/jev-secret-scan.mjs` over `dist/`. The endpoint is not a prompt
+- **The keys never reach the browser.** Only `api/jev/decision.ts` and the
+  dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`; only
+  `api/llm/decision.ts` and the same middleware read `LLM_API_KEY`; there is
+  never a `VITE_`-prefixed copy, and `@anthropic-ai/sdk` is imported under
+  `server/` only. `secretBoundary.test.ts` fails if any other file reads a key
+  or browser code mentions one, and `bun run build` ends with
+  `tools/jev-secret-scan.mjs` over `dist/`. Neither endpoint is a prompt
   proxy: the browser sends a validated observation, and the server writes the
   question.
+- **Jev and the LLM are asked the same question.** Both are built from
+  `questionParts()` in `server/jev/question.ts`; `server/llm/handler.test.ts`
+  fails if the state, questions or option descriptions diverge. Change the
+  wording for one and you have changed it for both, which is the point. Where
+  the APIs genuinely differ (parallel per-axis questions against one
+  completion, probabilities against a written confidence, 1.5 s against 12 s
+  answer age) the difference is declared in `capabilities.ts` and stated in the
+  docs — never quietly compensated.
+- **Every decision leaves a record, and unknown stays null.** A brain returns
+  `accounting` (`brain.ts`) and, if it states one, a `confidence` with its
+  source (`provider-probability`, `verbalized`); the seat turns that into a
+  `blacksite-decision/v1` record with an outcome window. Tokens, prices and
+  confidences a brain does not report are `null`, never zero and never 1/k.
+- **Stale answers fail closed.** `staleness.ts` re-judges every frame at
+  execution against the world as it is then; under the default
+  `?stale=strict` a frame with an illegal part does not run. Do not add a path
+  that executes an answer because it arrived; `?stale=observe` exists only to
+  measure the difference.
+- **Measuring is not judging.** The browser records raw outcome windows;
+  success is decided offline by an outcome contract in
+  `eval/outcomeContracts.ts`. A contract's rule is never edited in place — a
+  changed rule is a new version (`/v2`) — because experiments declared against
+  the old one must still be scored against it. A primary metric must be in
+  `eval/metricRegistry.ts` before an experiment can name it.
+- **Prices live in `config/pricing.json` and nowhere else**, each with a source
+  and a date; the committed file prices nothing. `pricing.test.ts` fails on a
+  dollar-per-token figure anywhere in the source.
 - **Labels are claims.** LIVE JEV is shown only while the controls in effect
   came from a validated TypeSafe answer; anything the fallback issues is
   labelled FALLBACK, and a failure shows the status TIMEOUT, UNAVAILABLE or
@@ -336,27 +367,39 @@ changing anything here.
   Measuring against the resettable benchmark metrics once produced a negative
   shot count; the server rejected the observation with a 400, and every later
   decision failed with it.
-- **Offline tools never call TypeSafe.** `bun run jev` answers from a fake
+- **Offline tools never call a paid model.** `bun run jev` answers from a fake
   endpoint installed with `beforeNavigate`, _before_ the page loads — a route
   added after navigation loses the race to the first request — and asserts
-  the only model it saw was the test double. Anything that spends credit
-  (`jev:live`, `benchmark:jev`) refuses to start without `JEV_LIVE_TEST=1`.
+  the only model it saw was the test double. `bun run llm` runs the real LLM
+  endpoint against `tools/fake-llm.mjs` on its own dev server. Anything that
+  spends credit (`jev:live`, `benchmark:jev`, a Jev or LLM experiment arm)
+  refuses to start without `JEV_LIVE_TEST=1` or `LLM_LIVE_TEST=1`; the
+  experiment runner records unflagged live arms as PENDING and fills in
+  nothing for them.
 
 ### Recipe: measure a change to `/play`
 
 A gameplay change is not done when it compiles; it is done when a matched
 experiment says what it did.
 
-1. Write the question down as an experiment file in `tools/experiments/`: a
-   hypothesis, the deciding metric, seeds, length, and the arms (brain,
-   policy, control, `query` for anything else). Include an arm that should
-   _not_ change, as a control.
+1. Write the question down as an experiment file in `tools/experiments/`
+   (`blacksite-experiment/v1`, see `src/game/eval/experimentSpec.ts`): the
+   question, a hypothesis that could be false, the primary metric by registry
+   id, the outcome contract if it is a decision metric, seeds (or a preset),
+   duration, and the arms. Name at least one arm that should _not_ change in
+   `controls`. `node tools/experiment.mjs x.json --dry-run` validates it and
+   prints the plan without running anything; commit it before you run it.
 2. Serve the old build from a worktree on another port:
    `git worktree add /tmp/before <commit>` and `vite --port 5174` inside it.
 3. Run the same file against both builds, one arm at a time:
    `node tools/experiment.mjs tools/experiments/x.json --origin http://localhost:5174 --out shots/experiments/x-before`,
    then again against the current dev server.
-4. `node tools/experiment.mjs --compare before/experiment.json after/experiment.json`.
+4. `node tools/experiment.mjs --compare before/evaluation.json after/evaluation.json`.
+5. Archive what you will cite: `node tools/experiment.mjs --archive <run> docs/benchmarks/<date>/<id>`
+   copies the run with its decision records and traces gzipped and
+   re-evaluates it there, so every number keeps a path back to its episodes.
+   `--evaluate <dir>` re-scores saved artifacts (for example after adding a
+   sourced price) without running a match.
 
 Run arms sequentially. Two headless pages share one software GPU; when the
 simulation falls behind real time the benchmark flags the episode (`pacing`)
@@ -368,11 +411,17 @@ do not read a single seed as a result.
 
 1. Implement `DecisionProvider` (`loop.ts`): take an observation, return a
    frame of legal options, or a typed failure. Never throw at the loop.
-2. Declare its `Capabilities` (`capabilities.ts`) and add a `BrainKind`.
+2. Give it a `descriptor` (`brain.ts`), return `accounting` with every
+   figure it cannot measure as `null`, and a `confidence` only with its true
+   source. Declare its `Capabilities` (`capabilities.ts`) — including any
+   longer loop limits it needs, which are then recorded with its results —
+   and add a `BrainKind`.
 3. Give it a label that tells the truth (`ControlLabel` in `pilot.ts`), and
    record `null` wherever it has no probabilities.
-4. Add it to the benchmark's `--brain` list and run the matched experiments
-   against the existing seats.
+4. Add it to the benchmark's `--brain` list and to `BRAINS` and `LIVE_FLAGS`
+   in `eval/experimentSpec.ts` if it spends money, then run the matched
+   experiments against the existing seats. A remote brain needs an offline test
+   double before it needs a live run.
 
 ## Verifying changes
 
@@ -402,6 +451,8 @@ bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
 bun run jev                   # the player seat, places included; no API calls
+bun run llm                   # the LLM seat against the offline test double
+bun run test:eval             # evaluation core, seat and server unit tests
 bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
@@ -413,7 +464,7 @@ The analytical side has its own two, and both need the **preview** server
 test the artifact that actually ships — including its security headers:
 
 ```sh
-bun run a11y                  # axe-core on all four routes + CSP violations
+bun run a11y                  # axe-core on every route (+ /evaluation with a run open) + CSP
 bun run routes                # 52 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```

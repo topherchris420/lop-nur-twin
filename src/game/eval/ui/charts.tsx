@@ -31,10 +31,14 @@ export function niceTicks(min: number, max: number, count = 5): number[] {
   const raw = (max - min) / count;
   const magnitude = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw) ?? raw;
+  // Round to the step's own precision, so 3 × 0.2 prints as 0.6.
+  const decimals = Math.max(0, Math.ceil(-Math.log10(step)) + 1);
+  // The ticks cover the range — the first at or below the minimum, the last at
+  // or above the maximum — because the charts use them as the axis extent.
+  const first = Math.floor(min / step + 1e-9);
+  const last = Math.ceil(max / step - 1e-9);
   const ticks: number[] = [];
-  for (let t = Math.ceil(min / step) * step; t <= max + step * 1e-9; t += step) {
-    ticks.push(Math.round(t / step) * step);
-  }
+  for (let k = first; k <= last; k += 1) ticks.push(Number((k * step).toFixed(decimals)));
   return ticks;
 }
 

@@ -44,6 +44,30 @@ const ROUTES = [
   // canvas, so every axe finding on it is a real finding about real markup
   // rather than a complaint about a WebGL surface.
   { path: "/compare", label: "Model manifest comparison", gate: true, settle: 1500 },
+  // `/evaluation` renders tables and inline SVG, no canvas: gated like
+  // `/compare`. The second pass opens the newest archived evaluation first, so
+  // the tables and charts are what axe inspects, not just the empty page.
+  {
+    path: "/evaluation",
+    label: "Blacksite evaluation (empty)",
+    gate: true,
+    settle: 1500,
+  },
+  {
+    path: "/evaluation",
+    label: "Blacksite evaluation (an archived run open)",
+    gate: true,
+    settle: 1500,
+    prepare: async (page) => {
+      const opened = await page.evaluate(() => {
+        const list = document.querySelector('section[aria-labelledby="open-heading"] ul');
+        const first = list?.querySelector("button");
+        first?.click();
+        return first !== null && first !== undefined;
+      });
+      if (opened) await page.waitForSelector("#arms", { timeout: 15000 });
+    },
+  },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];
@@ -86,6 +110,7 @@ for (const route of ROUTES) {
   const url = `${origin}${route.path}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
   await new Promise((resolve) => setTimeout(resolve, route.settle));
+  if (route.prepare) await route.prepare(page);
 
   await page.evaluate(axeSource);
   const results = await page.evaluate(

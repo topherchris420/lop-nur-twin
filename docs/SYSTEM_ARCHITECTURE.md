@@ -5,10 +5,11 @@ no backend for the model. Everything a viewer sees of the reconstruction is
 computed in their browser from data committed to this repository: there is no
 database, no user account and no runtime dependency on a third-party service.
 
-The one exception is optional and outside the analytical model: a single
-serverless function, `/api/jev/decision`, lets the TypeSafe Jev model control
-the player in the illustrative simulation (`/play?brain=jev`). It holds a
-server-side credential, stores nothing, and the site works without it — see
+The exceptions are optional and outside the analytical model: two serverless
+functions, `/api/jev/decision` and `/api/llm/decision`, let the TypeSafe Jev
+model or a configured conventional LLM control the player in the illustrative
+simulation (`/play?brain=jev`, `?brain=llm`). Each holds a server-side
+credential, stores nothing, and the site works without them — see
 [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
 
 That constraint is deliberate. It makes a release reproducible, makes the whole
@@ -235,5 +236,6 @@ project's control. Consequently:
   made lazily when a manifest panel is opened;
 - the only third-party request is the opt-in `?liveTraffic=1` ADS-B feed,
   which is off by default and confined by `connect-src`;
-- choosing Jev on `/play` adds same-origin requests to `/api/jev/decision`,
-  carrying a bounded game observation and nothing else.
+- choosing Jev or the LLM on `/play` adds same-origin requests to
+  `/api/jev/decision` or `/api/llm/decision`, carrying a bounded game
+  observation and nothing else.
