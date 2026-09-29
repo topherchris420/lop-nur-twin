@@ -6,15 +6,15 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 
 ## Build settings
 
-| Setting                        | Value                                                     |
-| :----------------------------- | :-------------------------------------------------------- |
-| Install command                | `npm ci` (or `bun install --frozen-lockfile`)             |
-| Build command                  | `npm run build`                                           |
-| Output directory               | `dist`                                                    |
-| Node version                   | **22.18 or newer** (declared in `package.json` `engines`) |
-| Framework preset               | Vite                                                      |
-| Environment variables required | none for the site; see below for `/play?brain=jev`        |
-| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev (optional)  |
+| Setting                        | Value                                                                                         |
+| :----------------------------- | :-------------------------------------------------------------------------------------------- |
+| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                 |
+| Build command                  | `npm run build`                                                                               |
+| Output directory               | `dist`                                                                                        |
+| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                     |
+| Framework preset               | Vite                                                                                          |
+| Environment variables required | none for the site; see below for `/play?brain=jev`                                            |
+| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat (both optional) |
 
 `npm run build` is five steps, in this order:
 
@@ -58,8 +58,10 @@ If your platform pins an older Node, either raise it or install Bun and run
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
    describe a build the visitor is not looking at; `/api/*` is `no-store`.
-4. **One function** — `api/jev/decision.ts`, the server side of
-   `/play?brain=jev`, capped at 10 seconds.
+4. **Two functions** — `api/jev/decision.ts`, the server side of
+   `/play?brain=jev`, capped at 10 seconds; and `api/llm/decision.ts`, the
+   server side of `/play?brain=llm`, capped at 30 seconds because a
+   conventional LLM answers in seconds and may be retried within its deadline.
 
 ### The Jev decision endpoint
 
@@ -84,6 +86,17 @@ The endpoint's rate limits are in memory per function instance; for durable
 limits add a rate-limit rule for `/api/jev/decision` in the project's Firewall.
 Everything else — the boundary, the limits, local development — is in
 [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
+
+### The LLM decision endpoint
+
+Optional, and off unless configured. Set `LLM_PROVIDER` (`anthropic` or
+`openai-compatible`), `LLM_API_KEY` (type **Sensitive**) and, for
+`openai-compatible`, `LLM_MODEL` and `LLM_BASE_URL`; the other `LLM_*`
+variables are in `.env.example`. Never `VITE_`-prefixed. Check with
+`curl -s https://<deployment>/api/llm/decision`, which reports the provider and
+model and never the key. Without configuration it answers 503 and the game
+shows LLM UNAVAILABLE. Its rate limits are the Jev endpoint's, per instance; add
+a Firewall rule for `/api/llm/decision` too if it is enabled in production.
 
 ### Redeploying after these changes
 

@@ -1,11 +1,30 @@
 {
-  "name": "place-order",
+  "schema": "blacksite-experiment/v1",
+  "id": "place-order",
+  "question": "Is Jev's constant PLACE_0 choice a preference for the nearest cover or for the first option shown?",
   "hypothesis": "In the jev-live experiment Jev chose PLACE_0 in 208 of 208 place choices, with places listed nearest first. If that is a preference for the nearest cover, shuffling the list will leave the kinds it chooses unchanged and spread its slots; if it is a preference for the first option shown, it will keep choosing slot 0 and the kinds will follow the shuffle.",
-  "metric": "The distribution of GO slots chosen, and the kinds of place bound. Spends TypeSafe credit: run with JEV_LIVE_TEST=1.",
-  "seeds": [42, 43, 44],
-  "seconds": 120,
+  "independentVariable": "placeOrder",
+  "primaryMetric": "first_slot_share",
+  "secondaryMetrics": [
+    "success_rate",
+    "place_reached_rate"
+  ],
+  "decisionType": "navigation/v1",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "duration": 120,
   "mode": "tdm",
   "arms": [
-    { "id": "jev-places-shuffled", "brain": "jev", "control": "precision", "query": "jevNav=places&placeOrder=shuffled" }
-  ]
+    {
+      "id": "jev-places-shuffled",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "shuffled"
+    }
+  ],
+  "notes": "Spends TypeSafe credit: run with JEV_LIVE_TEST=1. Originally declared with the prose metric: The distribution of GO slots chosen, and the kinds of place bound. Spends TypeSafe credit: run with JEV_LIVE_TEST=1."
 }

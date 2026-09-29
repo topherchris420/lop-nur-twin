@@ -5,7 +5,11 @@ import { game } from "../core/gameState";
 import { useGameStore, type BrainKind } from "../core/gameStore";
 import { AXES, type Axis } from "../pilot/contract";
 import { pilot, type ControlLabel, type PilotStatus } from "../pilot/pilot";
-import { probeJevService, type JevServiceStatus } from "../pilot/providers";
+import {
+  LLM_DECISION_ENDPOINT,
+  probeJevService,
+  type JevServiceStatus,
+} from "../pilot/providers";
 import { storeTraceLocally } from "../pilot/traceStorage";
 import { parseTrace } from "../pilot/recorder";
 
@@ -24,6 +28,7 @@ import { parseTrace } from "../pilot/recorder";
 
 const LABEL_COLOR: Record<ControlLabel, string> = {
   "LIVE JEV": "#4da3ff",
+  "LIVE LLM": "#7fd4c1",
   FALLBACK: "#ffb648",
   RANDOM: "#cbd5e1",
   SCRIPTED: "#b5c99a",
@@ -113,7 +118,9 @@ export function JevHud() {
         labelRef.current.textContent =
           t.label === "LIVE JEV" && t.status === "UNAVAILABLE"
             ? "JEV UNAVAILABLE"
-            : t.label;
+            : t.label === "LIVE LLM" && t.status === "UNAVAILABLE"
+              ? "LLM UNAVAILABLE"
+              : t.label;
         labelRef.current.style.color =
           t.status === "UNAVAILABLE" ? "#ff8a80" : LABEL_COLOR[t.label];
       }
@@ -247,11 +254,13 @@ export function JevHud() {
       <p className="mt-0.5 truncate text-[9px] tracking-[0.1em] text-slate-400 normal-case">
         {brain === "jev"
           ? "Jev chooses · local controller executes · Blacksite decides"
-          : brain === "random"
-            ? "Seeded random policy · same controls, same timing"
-            : brain === "script"
-              ? "Hand-written reference policy · same observation, same controls"
-              : "Recorded controls played back · not live"}
+          : brain === "llm"
+            ? "LLM chooses · local controller executes · Blacksite decides"
+            : brain === "random"
+              ? "Seeded random policy · same controls, same timing"
+              : brain === "script"
+                ? "Hand-written reference policy · same observation, same controls"
+                : "Recorded controls played back · not live"}
       </p>
       <div className="pointer-events-auto mt-1.5 flex gap-2">
         <button
@@ -283,6 +292,7 @@ export function JevHud() {
 const CHOICES: { id: BrainKind; name: string }[] = [
   { id: "human", name: "Human" },
   { id: "jev", name: "Jev" },
+  { id: "llm", name: "LLM" },
   { id: "random", name: "Random" },
   { id: "script", name: "Scripted" },
   { id: "replay", name: "Replay" },
@@ -346,9 +356,11 @@ export function PlayerControlSelector() {
   const [traceError, setTraceError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (brain !== "jev") return undefined;
+    if (brain !== "jev" && brain !== "llm") return undefined;
+    setService(null);
     const controller = new AbortController();
-    void probeJevService(undefined, controller.signal).then((status) => {
+    const endpoint = brain === "llm" ? LLM_DECISION_ENDPOINT : undefined;
+    void probeJevService(endpoint, controller.signal).then((status) => {
       if (!controller.signal.aborted) setService(status);
     });
     return () => controller.abort();
@@ -496,12 +508,14 @@ export function PlayerControlSelector() {
           (control === "precision"
             ? `Jev chooses ${navigation === "places" ? "where to go among the places it is shown" : "how to move"}, which visible enemy to engage and where on it; deterministic local controllers execute the aim, the trigger discipline${navigation === "places" ? " and the walk" : ""} at frame rate. Blacksite still decides every hit. Press H to take control.`
             : "Jev turns the view itself in fixed steps, the original interface. Blacksite still controls the world: physics, hits, damage and scoring. Press H in the match to take control.")}
+        {brain === "llm" &&
+          "A conventional language model, configured on the server, is asked the same question from the same observation Jev is, and chooses among the same options; the same local controllers execute it. Its confidence, if any, is a number it wrote, not a probability. Press H to take control."}
         {brain === "random" &&
           `A seeded random policy (seed ${seed}) picks from the same controls on the same timing. A baseline, not Jev.`}
         {brain === "replay" &&
           "Plays back a recorded trace through the same controls. Not a live model."}
       </p>
-      {brain === "jev" && (
+      {(brain === "jev" || brain === "llm") && (
         <p
           className={cn(
             "mt-2 font-mono text-[10px] tracking-[0.14em] uppercase",
@@ -515,8 +529,8 @@ export function PlayerControlSelector() {
           {service === null
             ? "Checking the decision service…"
             : service.available
-              ? `Jev ready · ${service.model ?? "model unknown"}`
-              : `Jev unavailable — ${service.detail}`}
+              ? `${brain === "llm" ? "LLM" : "Jev"} ready · ${service.model ?? "model unknown"}`
+              : `${brain === "llm" ? "LLM" : "Jev"} unavailable — ${service.detail}`}
         </p>
       )}
       {brain === "replay" && (

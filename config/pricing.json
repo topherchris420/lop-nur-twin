@@ -1,0 +1,37 @@
+{
+  "schema": "blacksite-pricing/v1",
+  "currency": "USD",
+  "$comment": "Prices are unknown until someone fills them in from a source they can cite. A null price prints as n/a in every evaluation; it is never treated as zero. Every non-null price needs `source` and `asOf` (YYYY-MM-DD), and the evaluation validates that. Read by src/game/eval/pricing.ts only.",
+  "models": [
+    {
+      "provider": "typesafe",
+      "model": "jev-",
+      "match": "prefix",
+      "inputPerMTok": null,
+      "outputPerMTok": null,
+      "perRequest": null,
+      "source": null,
+      "asOf": null
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-",
+      "match": "prefix",
+      "inputPerMTok": null,
+      "outputPerMTok": null,
+      "perRequest": null,
+      "source": null,
+      "asOf": null
+    },
+    {
+      "provider": "openai-compatible",
+      "model": "",
+      "match": "prefix",
+      "inputPerMTok": null,
+      "outputPerMTok": null,
+      "perRequest": null,
+      "source": null,
+      "asOf": null
+    }
+  ]
+}

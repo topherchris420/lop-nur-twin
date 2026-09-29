@@ -53,6 +53,8 @@ see [The analytical boundary](#the-analytical-boundary).
 - [Random baseline, fallback, recording and replay](#random-baseline-fallback-recording-and-replay)
 - [Tuning the interface](#tuning-the-interface)
 - [Benchmark methodology and results](#benchmark-methodology-and-results)
+- [A conventional LLM in the seat](#a-conventional-llm-in-the-seat)
+- [The evaluation harness](#the-evaluation-harness)
 - [Security](#security)
 - [The analytical boundary](#the-analytical-boundary)
 - [Live and mock](#live-and-mock)
@@ -570,6 +572,19 @@ as a duplicate. Failures back off: 250 ms after a timeout, the server's
 `Retry-After` on rate limiting, five seconds when the service is unavailable,
 and 0.5–4 s exponentially for other errors.
 
+**Revalidation at execution** (since 29 September 2026, `staleness.ts`). An
+answer that passes the loop's checks is judged once more when its frame would
+start: the host recomputes what is legal _now_, by perception's rules — is the
+enemy the target slot named still alive and in view, is the magazine still
+loaded, is the seat still on the ground for a JUMP, is there still a travel for
+a CONTINUE — and under the default `?stale=strict` refuses the whole frame if
+any part has become illegal. The seat idles until the next valid decision; the
+refusal is an event in the trace and a `rejected_stale` decision record.
+`?stale=observe` executes it anyway and records that it did, which is how the
+seat behaved before and is kept only to measure the difference. Every decision
+record carries its age at execution and everything that had changed, legal or
+not. Benchmarks before this date ran without the check.
+
 ## The server boundary
 
 `POST /api/jev/decision` (`api/jev/decision.ts` → `server/jev/handler.ts`):
@@ -723,8 +738,11 @@ two were legal: a reload was in progress, which rules out firing, aiming and
 reloading.
 
 **Labels** say who is in control: **LIVE JEV** only while TypeSafe's answers are
-executing; **FALLBACK** from the first fallback frame until Jev answers again;
-**RANDOM**; **REPLAY**; and **JEV UNAVAILABLE** when the service cannot answer.
+executing; **LIVE LLM** only while a conventional LLM's are (see
+[A conventional LLM in the seat](#a-conventional-llm-in-the-seat)); **FALLBACK**
+from the first fallback frame until Jev answers again; **RANDOM**; **SCRIPTED**;
+**REPLAY**; and **JEV UNAVAILABLE** / **LLM UNAVAILABLE** when the service cannot
+answer.
 Probabilities and confidence are shown only when TypeSafe supplied them — the
 random brain shows "uniform over legal options", and nothing is ever filled in.
 
@@ -1122,6 +1140,76 @@ model hides. Whether that is good play depends on the mode — in team
 deathmatch it gives up kills; in an objective mode it might not — and that is
 the next experiment, not a conclusion.
 
+## A conventional LLM in the seat
+
+`/play?brain=llm`, `server/llm/`, `api/llm/decision.ts`. A second remote brain
+behind the same seam, so the question "is this Jev, or would any capable model
+do the same here?" can be asked on matched seeds.
+
+- **The same question.** The server builds the LLM's prompt from
+  `questionParts()` — the function Jev's TypeSafe request is built from — so the
+  context, the rendered state, each question and each option's description are
+  the same text. `server/llm/handler.test.ts` fails if they diverge. The format
+  instructions say how to answer and nothing about how to play.
+- **The same boundary.** Same-origin JSON under 8 KiB holding
+  `{ session, observation }`, the shared validator, the same rate limits, a
+  server-built question: not a prompt proxy. The key (`LLM_API_KEY`) is read
+  only by `api/llm/decision.ts` and the Vite middleware; `secretBoundary.test.ts`
+  and the build-output scan cover it as they cover TypeSafe's.
+- **Provider and model are configuration**, never code: `LLM_PROVIDER`
+  (`anthropic`, through the official SDK, or `openai-compatible`), `LLM_MODEL`,
+  `LLM_BASE_URL`, `LLM_EFFORT`, `LLM_CONFIDENCE` (`verbalized` or `none`),
+  timeouts, retries and a token cap — see `.env.example`. Server-side
+  refusal fallbacks to another model are deliberately not enabled: a different
+  model silently answering part of an arm would confound it.
+- **Every answer is validated** against the options offered. Malformed output
+  is `upstream_invalid` and is not retried (resampling until valid would hide
+  the failure); a refusal is `upstream_refused`; rate limits, overload, 5xx and
+  dropped connections are retried within the deadline and the retries are
+  returned with the decision.
+- **Stated differences from Jev.** Jev answers each axis as a separate question,
+  in parallel, with a probability for every option; the LLM answers all axes in
+  one completion and, under `verbalized`, writes a confidence per axis, recorded
+  with that source and never presented as a probability. The LLM's loop limits
+  are 12 s to answer and 12 s of maximum answer age, against Jev's 2.2 s and
+  1.5 s, declared in `LLM_CAPABILITIES` and recorded with every result, because
+  under Jev's limits it could never act; every late answer is still revalidated
+  at execution.
+- **Offline.** `bun run llm` plays `/play?brain=llm` against
+  `tools/fake-llm.mjs`, a blind test double that picks uniformly among the
+  offered options, served on its own dev server; the real endpoint, adapter,
+  validation, revalidation and records all run. Its model id is
+  `fake-llm-test-double` and every report labels it TEST DOUBLE. Live runs need
+  `LLM_LIVE_TEST=1`.
+
+No live LLM run has been made in this repository yet; the comparison
+experiment (`tools/experiments/llm-comparison.json`) is declared and pending.
+
+## The evaluation harness
+
+Everything above measures a brain's play. [`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)
+explains how the harness turns that into evidence a reader can check; in short:
+
+- **Decision records** (`blacksite-decision/v1`): every accepted decision, with
+  the observation, the options, the choice, its stated confidence and where the
+  number came from, its accounting (latency, bytes, tokens, cost), its
+  revalidation, what the controllers did with it, and a five-second **outcome
+  window** of what the world did next (`pilot/outcomes.ts`). The benchmark writes
+  them per episode beside each report.
+- **Declared experiments** (`blacksite-experiment/v1`): question, hypothesis,
+  primary metric, outcome contract, seeds and arms, validated and hashed before
+  anything runs; paid arms run only with their flag and are otherwise PENDING.
+- **Outcome contracts** (`eval/outcomeContracts.ts`): cover selection, threat
+  priority, engage/disengage, navigation, reload and shot decisions, each with a
+  versioned rule for beneficial, neutral and harmful.
+- **The evaluation** (`blacksite-evaluation/v1`, `tools/experiment.mjs`): every
+  episode, aggregates with intervals, paired differences by seed, calibration,
+  the computational ledger, staleness, latency sweeps, matched-ablation
+  contrasts and benchmark warnings; readable at `/evaluation`.
+- **New seat parameters** for experiments: `?stale=strict|observe`,
+  `?motor=standard|degraded` (a slower, shakier, later hand for controller
+  ablations), `?targetOrder=nearest|shuffled`, `?outcomeWindow=<s>`.
+
 ## Security
 
 - The key is read in exactly two places, both server-side: `api/jev/decision.ts`
@@ -1172,6 +1260,8 @@ spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 | `JEV_LIVE_TEST=1 bun run benchmark:jev` / `benchmark:jev:precision` | yes            | episodes with Jev, direct (the original benchmark) / precision control                                                                                                                                           |
 | `bun run replay:jev -- trace.jsonl`                                 | no             | replays a recorded control stream                                                                                                                                                                                |
 | `bun run scan:secrets`                                              | no             | the build-output credential scan                                                                                                                                                                                 |
+| `bun run llm`                                                       | no             | the LLM seat end to end against the offline test double                                                                                                                                                          |
+| `node tools/experiment.mjs tools/experiments/<x>.json`              | only flagged   | a declared experiment and its evaluation; Jev and LLM arms run only with `JEV_LIVE_TEST=1` / `LLM_LIVE_TEST=1`, and are PENDING otherwise                                                                        |
 
 ## Limitations
 
@@ -1241,34 +1331,41 @@ These are the boundaries of the experiment as it now stands, not failures.
 
 ## Files
 
-| Path                                                   | Role                                                                     |
-| :----------------------------------------------------- | :----------------------------------------------------------------------- |
-| `src/game/pilot/contract.ts`                           | action vocabulary, descriptions, timing (shared with the server)         |
-| `src/game/pilot/observation.ts`                        | observation schema, validator, legal actions (shared)                    |
-| `src/game/pilot/decision.ts`                           | decision schema and validation (shared)                                  |
-| `src/game/pilot/perception.ts`                         | builds observations from the live game                                   |
-| `src/game/pilot/executor.ts`                           | control frame → `InputState`, with expiry                                |
-| `src/game/pilot/motor.ts`                              | the precision motor controller: tracking, recoil feed-forward, fire gate |
-| `src/game/pilot/hitGeometry.ts`                        | aim points, angular sizes, spread-cone share (shared with the server)    |
-| `src/game/characters/hitboxSpecs.ts`                   | the one hitbox table colliders and aim geometry read                     |
-| `src/game/player/eliteAssist.ts`                       | Elite Operator, the human aim help                                       |
-| `src/game/pilot/places.ts`, `navigator.ts`             | places navigation: the finder and the local walking controller           |
-| `src/game/pilot/debrief.ts`                            | what the seat perceived, against what happened                           |
-| `src/game/pilot/capabilities.ts`                       | capability negotiation (shared with the server)                          |
-| `src/game/pilot/policies.ts`                           | the scripted reference policies                                          |
-| `src/game/world/mirage.ts`                             | heat shimmer: how far a body at range appears displaced                  |
-| `tools/experiment.mjs`, `tools/experiments/*.json`     | matched experiments and their questions                                  |
-| `tools/kill-anatomy.mjs`                               | what each victim was doing when the seat killed it                       |
-| `src/game/pilot/loop.ts`                               | one request in flight, sequences, staleness, timeouts, backoff, fallback |
-| `src/game/pilot/providers.ts`                          | the Jev HTTP brain and the seeded random brain                           |
-| `src/game/pilot/pilot.ts`                              | the pilot seat: brain selection, frames, takeover, telemetry             |
-| `src/game/pilot/recorder.ts`, `traceStorage.ts`        | JSONL traces, replay parsing, local storage                              |
-| `src/game/pilot/metrics.ts`                            | episode statistics and benchmark aggregation                             |
-| `src/game/pilot/rigState.ts`, `PilotHost.tsx`          | rig facts for perception; lifecycle, H key, dev handle                   |
-| `src/game/hud/JevHud.tsx`                              | the panel and the Player control selector                                |
-| `server/jev/handler.ts`, `question.ts`, `rateLimit.ts` | the endpoint                                                             |
-| `api/jev/decision.ts`                                  | the Vercel Function                                                      |
-| `tools/jev*.mjs`                                       | browser checks, benchmark, replay, secret scan                           |
+| Path                                                          | Role                                                                      |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------ |
+| `src/game/pilot/contract.ts`                                  | action vocabulary, descriptions, timing (shared with the server)          |
+| `src/game/pilot/observation.ts`                               | observation schema, validator, legal actions (shared)                     |
+| `src/game/pilot/decision.ts`                                  | decision schema and validation (shared)                                   |
+| `src/game/pilot/perception.ts`                                | builds observations from the live game                                    |
+| `src/game/pilot/executor.ts`                                  | control frame → `InputState`, with expiry                                 |
+| `src/game/pilot/motor.ts`                                     | the precision motor controller: tracking, recoil feed-forward, fire gate  |
+| `src/game/pilot/hitGeometry.ts`                               | aim points, angular sizes, spread-cone share (shared with the server)     |
+| `src/game/characters/hitboxSpecs.ts`                          | the one hitbox table colliders and aim geometry read                      |
+| `src/game/player/eliteAssist.ts`                              | Elite Operator, the human aim help                                        |
+| `src/game/pilot/places.ts`, `navigator.ts`                    | places navigation: the finder and the local walking controller            |
+| `src/game/pilot/debrief.ts`                                   | what the seat perceived, against what happened                            |
+| `src/game/pilot/capabilities.ts`                              | capability negotiation (shared with the server)                           |
+| `src/game/pilot/policies.ts`                                  | the scripted reference policies                                           |
+| `src/game/world/mirage.ts`                                    | heat shimmer: how far a body at range appears displaced                   |
+| `tools/experiment.mjs`, `tools/experiments/*.json`            | matched experiments and their questions                                   |
+| `tools/kill-anatomy.mjs`                                      | what each victim was doing when the seat killed it                        |
+| `src/game/pilot/loop.ts`                                      | one request in flight, sequences, staleness, timeouts, backoff, fallback  |
+| `src/game/pilot/providers.ts`                                 | the Jev HTTP brain and the seeded random brain                            |
+| `src/game/pilot/pilot.ts`                                     | the pilot seat: brain selection, frames, takeover, telemetry              |
+| `src/game/pilot/recorder.ts`, `traceStorage.ts`               | JSONL traces, replay parsing, local storage                               |
+| `src/game/pilot/metrics.ts`                                   | episode statistics and benchmark aggregation                              |
+| `src/game/pilot/rigState.ts`, `PilotHost.tsx`                 | rig facts for perception; lifecycle, H key, dev handle                    |
+| `src/game/hud/JevHud.tsx`                                     | the panel and the Player control selector                                 |
+| `server/jev/handler.ts`, `question.ts`, `rateLimit.ts`        | the endpoint                                                              |
+| `api/jev/decision.ts`                                         | the Vercel Function                                                       |
+| `tools/jev*.mjs`                                              | browser checks, benchmark, replay, secret scan                            |
+| `src/game/pilot/brain.ts`, `llmDecision.ts`                   | brain descriptors and accounting; the LLM decision schema (shared)        |
+| `src/game/pilot/staleness.ts`, `outcomes.ts`                  | revalidation at execution; per-decision outcome windows                   |
+| `server/llm/`, `api/llm/decision.ts`                          | the LLM endpoint: prompt, adapters, handler                               |
+| `src/game/eval/`                                              | records, contracts, statistics, calibration, ledger, warnings, evaluation |
+| `src/routes/evaluation.tsx`, `src/game/eval/ui/`              | the `/evaluation` page                                                    |
+| `config/pricing.json`                                         | the only place a model price may live (none is set)                       |
+| `tools/experiment.mjs`, `tools/fake-llm.mjs`, `tools/llm.mjs` | experiments and evaluations; the offline LLM test double                  |
 
 The shared modules (now also `hitGeometry.ts` and `characters/hitboxSpecs.ts`)
 import each other as `./x.js`: the Vercel function runs as

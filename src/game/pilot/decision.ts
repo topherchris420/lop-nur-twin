@@ -57,7 +57,14 @@ export interface JevDecision {
   /** Server-measured duration of the TypeSafe call, in milliseconds. */
   latencyMs: number;
   usage: { inputTokens: number; outputTokens: number } | null;
+  /**
+   * FNV-1a of the question the server built, so a trace can show exactly what
+   * was asked without storing it. Optional: servers before it omit it.
+   */
+  questionHash?: string;
 }
+
+export const QUESTION_HASH = /^[0-9a-f]{16}$/;
 
 export const DECISION_ERROR_CODES = [
   "invalid_request",
@@ -72,6 +79,7 @@ export const DECISION_ERROR_CODES = [
   "upstream_timeout",
   "upstream_error",
   "upstream_invalid",
+  "upstream_refused",
 ] as const;
 
 export type DecisionErrorCode = (typeof DECISION_ERROR_CODES)[number];
@@ -293,6 +301,7 @@ export function validateDecision(
     }
   }
 
+  const questionHash = value["questionHash"];
   return {
     ok: true,
     value: {
@@ -304,6 +313,9 @@ export function validateDecision(
       axes,
       latencyMs: latency,
       usage,
+      ...(typeof questionHash === "string" && QUESTION_HASH.test(questionHash)
+        ? { questionHash }
+        : {}),
     },
   };
 }

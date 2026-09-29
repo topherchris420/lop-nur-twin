@@ -6,6 +6,8 @@ import {
 } from "./contract";
 import type { DecisionAxes } from "./decision";
 import type { JevObservation } from "./observation";
+import type { BrainDescriptor, ProviderAccounting } from "./brain";
+import type { DecisionConfidence } from "../eval/records";
 
 /**
  * The decision loop: when to ask, and whether to believe the answer.
@@ -29,7 +31,7 @@ import type { JevObservation } from "./observation";
  * fallback can never be mistaken for the primary.
  */
 
-export type ProviderKind = "jev" | "random" | "script";
+export type ProviderKind = "jev" | "llm" | "random" | "script";
 
 export type FailureKind =
   | "timeout"
@@ -38,7 +40,9 @@ export type FailureKind =
   | "http_error"
   | "invalid"
   | "network"
-  | "aborted";
+  | "aborted"
+  /** The model declined to answer. Never turned into a decision. */
+  | "refused";
 
 export interface ProviderDecision {
   frame: ControlFrame;
@@ -49,6 +53,17 @@ export interface ProviderDecision {
   /** Server-measured TypeSafe latency, when there is one. */
   serverLatencyMs: number | null;
   usage: { inputTokens: number; outputTokens: number } | null;
+  /**
+   * What the call cost, as far as the provider can say. Optional so a brain
+   * written before accounting existed still plugs in; the seat then records
+   * every figure as unknown.
+   */
+  accounting?: ProviderAccounting;
+  /**
+   * Stated confidence and where it came from. Absent means derived from
+   * `axes` (TypeSafe) or none at all — never a default number.
+   */
+  confidence?: DecisionConfidence;
 }
 
 export type ProviderResult =
@@ -63,6 +78,8 @@ export interface DecisionRequest {
 
 export interface DecisionProvider {
   readonly kind: ProviderKind;
+  /** What the brain is, for reports. See `brain.ts`. */
+  readonly descriptor?: BrainDescriptor;
   decide(request: DecisionRequest): Promise<ProviderResult>;
 }
 
@@ -80,9 +97,16 @@ export interface AcceptedDecision extends ProviderDecision {
 
 export type LoopEvent =
   | { kind: "requested"; sequence: number }
-  | { kind: "stale"; sequence: number; reason: string }
+  /** An answer that arrived and was discarded; `latencyMs` is how long it took. */
+  | { kind: "stale"; sequence: number; reason: string; latencyMs: number }
   | { kind: "duplicate"; sequence: number }
-  | { kind: "failure"; sequence: number; failure: FailureKind; detail: string }
+  | {
+      kind: "failure";
+      sequence: number;
+      failure: FailureKind;
+      detail: string;
+      latencyMs: number;
+    }
   | { kind: "aborted"; sequence: number };
 
 export interface LoopContext {
@@ -279,6 +303,7 @@ export class DecisionLoop {
         sequence: flight.sequence,
         failure,
         detail: flight.timedOut ? "no answer in time" : result.detail,
+        latencyMs: this.clock.now() - flight.issuedAt,
       });
       this.backoffUntil =
         this.clock.now() + backoffFor(failure, this.failureStreak, result.retryAfterMs);
@@ -297,7 +322,12 @@ export class DecisionLoop {
             ? "the observation is too old"
             : null;
     if (stale !== null) {
-      this.onEvent({ kind: "stale", sequence: flight.sequence, reason: stale });
+      this.onEvent({
+        kind: "stale",
+        sequence: flight.sequence,
+        reason: stale,
+        latencyMs: receivedAt - flight.issuedAt,
+      });
       return;
     }
     this.failureStreak = 0;

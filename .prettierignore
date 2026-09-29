@@ -46,3 +46,8 @@ experiments
 # A dated archive of planning documents. These are a record of what was decided
 # and when; reformatting one rewrites a historical document to no benefit.
 docs/superpowers
+
+# Benchmark artifacts are written by `tools/experiment.mjs` and rewritten by
+# `--archive` and `--evaluate`. They are records of a run; formatting one by
+# hand makes the next re-score a whole-file diff.
+docs/benchmarks/**/*.json

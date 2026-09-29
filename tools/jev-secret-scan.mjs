@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prove the browser build carries no TypeSafe credential.
+ * Prove the browser build carries no model-provider credential.
  *
  * The Jev decision endpoint reads `TYPESAFE_API_KEY` on the server. Nothing in
  * `src/` may read it, and `src/game/pilot/secretBoundary.test.ts` checks the
@@ -12,6 +12,10 @@
  *  - anything shaped like a TypeSafe key (`apikey_` followed by a long token);
  *  - the actual key, when `TYPESAFE_API_KEY` is set in this environment — as it
  *    is on a Vercel build. The value is compared, never printed.
+ *
+ * The same rules cover the LLM endpoint's `LLM_API_KEY`: its name, a
+ * `VITE_LLM…` copy, key shapes of the providers it supports (`sk-ant-…`,
+ * `sk-…`), and the configured value.
  *
  *   node tools/jev-secret-scan.mjs            # scans dist/
  *   node tools/jev-secret-scan.mjs path/to/output
@@ -28,18 +32,29 @@ if (!existsSync(root)) {
   process.exit(2);
 }
 
-const key = (process.env.TYPESAFE_API_KEY ?? "").trim();
 const patterns = [
   {
     name: "credential variable name",
-    test: (text) => /TYPESAFE_API_KEY|VITE_TYPESAFE/.test(text),
+    test: (text) => /TYPESAFE_API_KEY|VITE_TYPESAFE|LLM_API_KEY|VITE_LLM_/.test(text),
   },
   { name: "TypeSafe-shaped key", test: (text) => /apikey_[A-Za-z0-9_]{24,}/.test(text) },
+  {
+    name: "Anthropic-shaped key",
+    test: (text) => /sk-ant-[A-Za-z0-9_-]{20,}/.test(text),
+  },
+  {
+    name: "OpenAI-shaped key",
+    test: (text) => /\bsk-(proj-)?[A-Za-z0-9]{32,}/.test(text),
+  },
 ];
-if (key.length >= 12) {
+const configured = [];
+for (const variable of ["TYPESAFE_API_KEY", "LLM_API_KEY"]) {
+  const value = (process.env[variable] ?? "").trim();
+  if (value.length < 12) continue;
+  configured.push(variable);
   patterns.push({
-    name: "the configured TYPESAFE_API_KEY value",
-    test: (text) => text.includes(key),
+    name: `the configured ${variable} value`,
+    test: (text) => text.includes(value),
   });
 }
 
@@ -71,5 +86,7 @@ if (findings.length > 0) {
 }
 console.log(
   `jev-secret-scan: ${scanned} files in ${root}/ clean` +
-    (key.length >= 12 ? " (including the configured key's value)" : ""),
+    (configured.length > 0
+      ? ` (including the configured value of ${configured.join(", ")})`
+      : ""),
 );

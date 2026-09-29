@@ -75,6 +75,7 @@ for (const [path, expectedTitleFragment, settle] of [
   ["/", "Lop Nur Twin", 6000],
   ["/analysis", "Structure analysis table", 2500],
   ["/compare", "Model manifest comparison", 2500],
+  ["/evaluation", "Blacksite evaluation", 2500],
   ["/play", "Blacksite", 6000],
 ]) {
   const { page, errors, status } = await open(`${previewOrigin}${path}`, { settle });
@@ -121,10 +122,16 @@ const HOSTILE = [
   "/analysis?spatialDate=2025-02-30&presence=established",
   "/analysis?uncertainty=-1&includeUnknown=yes",
   "/compare?anything=" + "b".repeat(300),
+  `/evaluation?file=${encodeURIComponent("../../etc/passwd")}&x=${"c".repeat(300)}`,
 ];
 for (const path of HOSTILE) {
   const { page, errors } = await open(`${previewOrigin}${path}`, {
-    settle: path.startsWith("/analysis") || path.startsWith("/compare") ? 2000 : 5000,
+    settle:
+      path.startsWith("/analysis") ||
+      path.startsWith("/compare") ||
+      path.startsWith("/evaluation")
+        ? 2000
+        : 5000,
   });
   // "The app rendered something real": the twin draws a canvas, `/analysis`
   // draws its table, and `/compare` draws its heading before either manifest is

@@ -1,0 +1,5104 @@
+{
+  "schema": "blacksite-evaluation/v1",
+  "generatedAt": "2026-09-29T17:58:10.735Z",
+  "status": "partial",
+  "experiment": {
+    "id": "controller-ablation-v1",
+    "question": "How much of the seat's damage output comes from the choices, and how much from the aiming controller?",
+    "hypothesis": "If the controller does most of the work, random choices through the precision controller will approach the scripted policy through it, and degrading the controller will cost both about equally. If the choices matter, the policy keeps most of its advantage over random under every controller.",
+    "independentVariable": "control",
+    "primaryMetric": {
+      "id": "damage_dealt_per_minute",
+      "label": "Damage dealt / min",
+      "unit": "hp/min",
+      "description": "Damage the resolver applied from the seat per minute."
+    },
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "accuracy",
+      "deaths_per_minute"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seedPreset": "quick",
+    "durationS": 120,
+    "mode": "tdm",
+    "definitionHash": "51e20adc3796a0c7",
+    "definition": {
+      "schema": "blacksite-experiment/v1",
+      "id": "controller-ablation-v1",
+      "question": "How much of the seat's damage output comes from the choices, and how much from the aiming controller?",
+      "hypothesis": "If the controller does most of the work, random choices through the precision controller will approach the scripted policy through it, and degrading the controller will cost both about equally. If the choices matter, the policy keeps most of its advantage over random under every controller.",
+      "independentVariable": "control",
+      "primaryMetric": "damage_dealt_per_minute",
+      "secondaryMetrics": [
+        "kills_per_minute",
+        "accuracy",
+        "deaths_per_minute"
+      ],
+      "decisionType": null,
+      "outcomeWindowS": 5,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "seedPreset": "quick",
+      "duration": 120,
+      "mode": "tdm",
+      "arms": [
+        {
+          "seat": "even",
+          "id": "skirmisher-precision",
+          "brain": "script",
+          "control": "precision",
+          "policy": "skirmisher",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "skirmisher-degraded",
+          "brain": "script",
+          "control": "precision",
+          "policy": "skirmisher",
+          "navigation": "places",
+          "motor": "degraded"
+        },
+        {
+          "seat": "even",
+          "id": "skirmisher-direct",
+          "brain": "script",
+          "control": "direct",
+          "policy": "skirmisher",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "random-precision",
+          "brain": "random",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "random-degraded",
+          "brain": "random",
+          "control": "precision",
+          "navigation": "places",
+          "motor": "degraded"
+        },
+        {
+          "seat": "even",
+          "id": "random-direct",
+          "brain": "random",
+          "control": "direct",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "jev-precision",
+          "brain": "jev",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "jev-degraded",
+          "brain": "jev",
+          "control": "precision",
+          "navigation": "places",
+          "motor": "degraded"
+        },
+        {
+          "seat": "even",
+          "id": "jev-direct",
+          "brain": "jev",
+          "control": "direct",
+          "navigation": "places"
+        }
+      ],
+      "controls": [
+        "random-precision"
+      ],
+      "calibrationField": "probability",
+      "contributionFactors": [
+        "brain",
+        "control",
+        "motor"
+      ],
+      "notes": "Contrasts are reported between arms that differ in one factor only; interactions are reported, not assumed away. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+    }
+  },
+  "environment": {
+    "gitCommit": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "gitDirty": false,
+    "servedBuilds": "e9c405ed731d4c186126e6c1300483ce23c45ce0",
+    "node": "v22.22.2",
+    "platform": "linux",
+    "cpus": 4,
+    "rendering": "stubbed (matrices only; see tools/jev-harness.mjs)",
+    "actionContract": "blacksite-jev-actions/v3",
+    "observationSchema": "blacksite-jev-observation/v3",
+    "decisionSchema": "blacksite-jev-decision/v3",
+    "llmDecisionSchema": "blacksite-llm-decision/v1",
+    "decisionRecordSchema": "blacksite-decision/v1",
+    "traceSchema": "blacksite-jev-trace/v3",
+    "experimentSchema": "blacksite-experiment/v1",
+    "evaluationSchema": "blacksite-evaluation/v1"
+  },
+  "provenance": {
+    "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z",
+    "startedAt": "2026-09-29T17:13:48.960Z",
+    "finishedAt": "2026-09-29T17:57:52.457Z",
+    "definitionFile": "tools/experiments/controller-ablation.json",
+    "definitionFileHash": "4fba761c0bc06702",
+    "overrides": [
+      "none"
+    ],
+    "liveFlagsSet": [],
+    "pricingFile": "config/pricing.json",
+    "pricingHash": "055f71c0fea9918a",
+    "evaluatedAt": "2026-09-29T17:58:10.735Z",
+    "evaluatedAtCommit": "86b8dacc6883c2d3909905442058b357ea10155e"
+  },
+  "arms": [
+    {
+      "id": "skirmisher-precision",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher-precision",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-precision-s42",
+          "seed": 42,
+          "simSeconds": 120.0803000000002,
+          "wallSeconds": 120.551,
+          "lagged": false,
+          "decisions": 516,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 1077.5034992337332,
+            "kills_per_minute": 8.492074064206774,
+            "accuracy": 0.6451612903225806,
+            "deaths_per_minute": 0.49953376848275144,
+            "damage_taken_per_minute": 59.974024244039136,
+            "exposure_fraction": 0.16115101163541018,
+            "distance_m": 107.43555870158437,
+            "decisions_per_minute": 257.75942453709973
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-precision.json",
+            "decisions": "skirmisher-precision.seed42.eval.json.gz",
+            "trace": "skirmisher-precision.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-precision-s43",
+          "seed": 43,
+          "simSeconds": 120.24879999999817,
+          "wallSeconds": 120.496,
+          "lagged": false,
+          "decisions": 503,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 979.138635300184,
+            "kills_per_minute": 6.9855166953850025,
+            "accuracy": 0.5217391304347826,
+            "deaths_per_minute": 0.49896547824178583,
+            "damage_taken_per_minute": 61.97899687980343,
+            "exposure_fraction": 0.3195608368630708,
+            "distance_m": 74.00150499828668,
+            "decisions_per_minute": 250.48067007737654
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-precision.json",
+            "decisions": "skirmisher-precision.seed43.eval.json.gz",
+            "trace": "skirmisher-precision.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-precision-s44",
+          "seed": 44,
+          "simSeconds": 120.11499999999893,
+          "wallSeconds": 120.433,
+          "lagged": false,
+          "decisions": 506,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 1748.950256077922,
+            "kills_per_minute": 11.487153533298677,
+            "accuracy": 0.6271186440677966,
+            "deaths_per_minute": 0.49944145796950773,
+            "damage_taken_per_minute": 53.38142880030172,
+            "exposure_fraction": 0.3335799715845141,
+            "distance_m": 238.4492648722867,
+            "decisions_per_minute": 252.71737773257087
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-precision.json",
+            "decisions": "skirmisher-precision.seed44.eval.json.gz",
+            "trace": "skirmisher-precision.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 1268.5307968706131,
+          "median": 1077.5034992337332,
+          "sd": 418.95232927261395,
+          "min": 979.138635300184,
+          "max": 1748.950256077922,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 227.7115177927567,
+            "hi": 2309.3500759484696,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 8.988248097630152,
+          "median": 8.492074064206774,
+          "sd": 2.2914678829732864,
+          "min": 6.9855166953850025,
+          "max": 11.487153533298677,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 3.295466882814692,
+            "hi": 14.681029312445611,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.5980063549417199,
+          "median": 0.6271186440677966,
+          "sd": 0.06666259386989458,
+          "min": 0.5217391304347826,
+          "max": 0.6451612903225806,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.4323939259248249,
+            "hi": 0.763618783958615,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.4993135682313483,
+          "median": 0.49944145796950773,
+          "sd": 0.00030496768408971837,
+          "min": 0.49896547824178583,
+          "max": 0.49953376848275144,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.4985559253614605,
+            "hi": 0.5000712111012362,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 58.44481664138143,
+          "median": 59.974024244039136,
+          "sd": 4.4981553040592415,
+          "min": 53.38142880030172,
+          "max": 61.97899687980343,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 47.26987755253647,
+            "hi": 69.61975573022639,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.27143060669433167,
+          "median": 0.3195608368630708,
+          "sd": 0.09576181832731807,
+          "min": 0.16115101163541018,
+          "max": 0.3335799715845141,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.03352586252529349,
+            "hi": 0.5093353508633698,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 139.96210952405258,
+          "median": 107.43555870158437,
+          "sd": 86.91518171872592,
+          "min": 74.00150499828668,
+          "max": 238.4492648722867,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -75.96459730311142,
+            "hi": 355.8888163512166,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 253.65249078234902,
+          "median": 252.71737773257087,
+          "sd": 3.7283902603045913,
+          "min": 250.48067007737654,
+          "max": 257.75942453709973,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 244.38990840313514,
+            "hi": 262.9150731615629,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1525,
+        "decisions": 1525,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1525,
+          "mean": 7.538885245901653,
+          "median": 5.9,
+          "sd": 8.116792810473934,
+          "min": 0.2,
+          "max": 93.1,
+          "p90": 16.8,
+          "p95": 21.7,
+          "p99": 35.8,
+          "ci95": {
+            "lo": 7.131172383442791,
+            "hi": 7.946598108360516,
+            "method": "95% t interval, n=1525"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            700,
+            380,
+            390,
+            49,
+            6,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1525
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 253.85351015594563,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 54
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1525,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1525,
+          "mean": 10.362622950819672,
+          "median": 8,
+          "sd": 8.57797603783323,
+          "min": 1,
+          "max": 95,
+          "p90": 20,
+          "p95": 26,
+          "p99": 39,
+          "ci95": {
+            "lo": 9.931744493508857,
+            "hi": 10.793501408130487,
+            "method": "95% t interval, n=1525"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1525,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "skirmisher-degraded",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher-degraded",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "motor": "degraded",
+        "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&motor=degraded&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-degraded-s42",
+          "seed": 42,
+          "simSeconds": 120.021999999999,
+          "wallSeconds": 120.317,
+          "lagged": false,
+          "decisions": 504,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 1408.1348560566669,
+            "kills_per_minute": 9.49579019967814,
+            "accuracy": 0.6666666666666666,
+            "deaths_per_minute": 0.49977843156200735,
+            "damage_taken_per_minute": 106.90260651111338,
+            "exposure_fraction": 0.2882755707228864,
+            "distance_m": 112.98548033368479,
+            "decisions_per_minute": 251.88832950725168
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-degraded.json",
+            "decisions": "skirmisher-degraded.seed42.eval.json.gz",
+            "trace": "skirmisher-degraded.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-degraded-s43",
+          "seed": 43,
+          "simSeconds": 120.1548000000002,
+          "wallSeconds": 120.748,
+          "lagged": false,
+          "decisions": 483,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 880.9324902387443,
+            "kills_per_minute": 6.490199798304583,
+            "accuracy": 0.6388888888888888,
+            "deaths_per_minute": 0.9984922766622435,
+            "damage_taken_per_minute": 177.21360104551917,
+            "exposure_fraction": 0.19591941173909697,
+            "distance_m": 218.43176637771043,
+            "decisions_per_minute": 241.13588481393182
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-degraded.json",
+            "decisions": "skirmisher-degraded.seed43.eval.json.gz",
+            "trace": "skirmisher-degraded.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-degraded-s44",
+          "seed": 44,
+          "simSeconds": 120.08509999999961,
+          "wallSeconds": 120.466,
+          "lagged": false,
+          "decisions": 487,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 1274.5330216493396,
+            "kills_per_minute": 9.491773796043429,
+            "accuracy": 0.4647887323943662,
+            "deaths_per_minute": 0.9991340837940453,
+            "damage_taken_per_minute": 163.5530940377336,
+            "exposure_fraction": 0.39508511250722106,
+            "distance_m": 260.80530056611053,
+            "decisions_per_minute": 243.28914940385002
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-degraded.json",
+            "decisions": "skirmisher-degraded.seed44.eval.json.gz",
+            "trace": "skirmisher-degraded.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 1187.8667893149168,
+          "median": 1274.5330216493396,
+          "sd": 274.07820143398266,
+          "min": 880.9324902387443,
+          "max": 1408.1348560566669,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 506.963841424037,
+            "hi": 1868.7697372057964,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 8.492587931342051,
+          "median": 9.491773796043429,
+          "sd": 1.7341201542486886,
+          "min": 6.490199798304583,
+          "max": 9.49579019967814,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 4.184446974319129,
+            "hi": 12.800728888364972,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.5901147626499739,
+          "median": 0.6388888888888888,
+          "sd": 0.10942057223982163,
+          "min": 0.4647887323943662,
+          "max": 0.6666666666666666,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.3182770542580224,
+            "hi": 0.8619524710419253,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.8324682640060987,
+          "median": 0.9984922766622435,
+          "sd": 0.28811802518734714,
+          "min": 0.49977843156200735,
+          "max": 0.9991340837940453,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.11668564552661542,
+            "hi": 1.548250882485582,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 149.2231005314554,
+          "median": 163.5530940377336,
+          "sd": 37.28163788679076,
+          "min": 106.90260651111338,
+          "max": 177.21360104551917,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 56.60290306044027,
+            "hi": 241.84329800247053,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.29309336498973476,
+          "median": 0.2882755707228864,
+          "sd": 0.0996702184547257,
+          "min": 0.19591941173909697,
+          "max": 0.39508511250722106,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.0454788330507635,
+            "hi": 0.540707896928706,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 197.4075157591686,
+          "median": 218.43176637771043,
+          "sd": 76.11957139225173,
+          "min": 112.98548033368479,
+          "max": 260.80530056611053,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 8.300756148230334,
+            "hi": 386.5142753701069,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 245.43778790834452,
+          "median": 243.28914940385002,
+          "sd": 5.689134581636546,
+          "min": 241.13588481393182,
+          "max": 251.88832950725168,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 231.3040534948934,
+            "hi": 259.57152232179567,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1474,
+        "decisions": 1474,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1474,
+          "mean": 7.813500678426059,
+          "median": 6.5,
+          "sd": 7.374153562136916,
+          "min": 0.1,
+          "max": 62.3,
+          "p90": 16.8,
+          "p95": 21.7,
+          "p99": 34.4,
+          "ci95": {
+            "lo": 7.436727150722827,
+            "hi": 8.19027420612929,
+            "method": "95% t interval, n=1474"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            557,
+            510,
+            355,
+            51,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1474
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1474
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1474
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1474
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 245.48807409276498,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 51
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1474,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1474,
+          "mean": 10.639755766621438,
+          "median": 9,
+          "sd": 7.816536438570688,
+          "min": 1,
+          "max": 82,
+          "p90": 20,
+          "p95": 26,
+          "p99": 40,
+          "ci95": {
+            "lo": 10.240379216680472,
+            "hi": 11.039132316562403,
+            "method": "95% t interval, n=1474"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1474,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "skirmisher-direct",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher-direct",
+        "brain": "script",
+        "control": "direct",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "query": "brain=script&jevControl=direct&policy=skirmisher&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-direct-s42",
+          "seed": 42,
+          "simSeconds": 120.0869999999983,
+          "wallSeconds": 120.527,
+          "lagged": false,
+          "decisions": 462,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 379.58326016808695,
+            "kills_per_minute": 1.9979753849432902,
+            "accuracy": 0.03864734299516908,
+            "deaths_per_minute": 1.498481538707468,
+            "damage_taken_per_minute": 187.50976823242524,
+            "exposure_fraction": 0.35915945795292653,
+            "distance_m": 165.83565351545724,
+            "decisions_per_minute": 230.76615696095004
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-direct.json",
+            "decisions": "skirmisher-direct.seed42.eval.json.gz",
+            "trace": "skirmisher-direct.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-direct-s43",
+          "seed": 43,
+          "simSeconds": 120.11129999999928,
+          "wallSeconds": 120.47,
+          "lagged": false,
+          "decisions": 525,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 208.839918447056,
+            "kills_per_minute": 0.4994136051919082,
+            "accuracy": 0.015384615384615385,
+            "deaths_per_minute": 0,
+            "damage_taken_per_minute": 33.43801784472105,
+            "exposure_fraction": 0.9049480889665705,
+            "distance_m": 119.0113644063234,
+            "decisions_per_minute": 262.19214272575175
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-direct.json",
+            "decisions": "skirmisher-direct.seed43.eval.json.gz",
+            "trace": "skirmisher-direct.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-skirmisher-direct-s44",
+          "seed": 44,
+          "simSeconds": 120.01539999999825,
+          "wallSeconds": 120.513,
+          "lagged": false,
+          "decisions": 533,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0,
+            "damage_taken_per_minute": 0,
+            "exposure_fraction": 0.19121678792239963,
+            "distance_m": 71.6955672078775,
+            "decisions_per_minute": 266.4225154517596
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-direct.json",
+            "decisions": "skirmisher-direct.seed44.eval.json.gz",
+            "trace": "skirmisher-direct.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 196.14105953838097,
+          "median": 208.839918447056,
+          "sd": 190.10999082937548,
+          "min": 0,
+          "max": 379.58326016808695,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -276.156454462964,
+            "hi": 668.438573539726,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 0.8324629967117327,
+          "median": 0.4994136051919082,
+          "sd": 1.0397922064545475,
+          "min": 0,
+          "max": 1.9979753849432902,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -1.750732510499735,
+            "hi": 3.4156585039232006,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.01801065279326149,
+          "median": 0.015384615384615385,
+          "sd": 0.019457038173891415,
+          "min": 0,
+          "max": 0.03864734299516908,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.030327210562935334,
+            "hi": 0.06634851614945832,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.49949384623582266,
+          "median": 0,
+          "sd": 0.8651487197484412,
+          "min": 0,
+          "max": 1.498481538707468,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -1.6498281741169223,
+            "hi": 2.6488158665885675,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 73.64926202571543,
+          "median": 33.43801784472105,
+          "sd": 100.01343117092885,
+          "min": 0,
+          "max": 187.50976823242524,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -174.8179263777016,
+            "hi": 322.11645042913244,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.48510811161396555,
+          "median": 0.35915945795292653,
+          "sd": 0.3731626857575962,
+          "min": 0.19121678792239963,
+          "max": 0.9049480889665705,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.44195420653404455,
+            "hi": 1.4121704297619757,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 118.84752837655272,
+          "median": 119.0113644063234,
+          "sd": 47.07025700145612,
+          "min": 71.6955672078775,
+          "max": 165.83565351545724,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 1.9090904322539615,
+            "hi": 235.78596632085146,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 253.12693837948714,
+          "median": 262.19214272575175,
+          "sd": 19.480180250345033,
+          "min": 230.76615696095004,
+          "max": 266.4225154517596,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 204.73158227853665,
+            "hi": 301.5222944804376,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1520,
+        "decisions": 1520,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1520,
+          "mean": 9.442697368421069,
+          "median": 7.5,
+          "sd": 7.62152537700144,
+          "min": 0.3,
+          "max": 58.8,
+          "p90": 16.7,
+          "p95": 24.9,
+          "p99": 40.7,
+          "ci95": {
+            "lo": 9.059232017666243,
+            "hi": 9.826162719175894,
+            "method": "95% t interval, n=1520"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            379,
+            638,
+            429,
+            71,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1520
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1520
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1520
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1520
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 253.183041067014,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 5
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1520,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1520,
+          "mean": 11.890131578947368,
+          "median": 10,
+          "sd": 8.205581522330275,
+          "min": 1,
+          "max": 64,
+          "p90": 20,
+          "p95": 29,
+          "p99": 47,
+          "ci95": {
+            "lo": 11.477280339731834,
+            "hi": 12.302982818162903,
+            "method": "95% t interval, n=1520"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1520,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "random-precision",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "random",
+        "kind": "random",
+        "provider": "local",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "random-precision",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=random&jevControl=precision&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-precision-s42",
+          "seed": 42,
+          "simSeconds": 120.13529999999952,
+          "wallSeconds": 120.371,
+          "lagged": false,
+          "decisions": 509,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0.4993716240397512,
+            "damage_taken_per_minute": 87.66347870102418,
+            "exposure_fraction": 0.46353273978526044,
+            "distance_m": 306.3899660339609,
+            "decisions_per_minute": 254.18015663623333
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-precision.json",
+            "decisions": "random-precision.seed42.eval.json.gz",
+            "trace": "random-precision.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-precision-s43",
+          "seed": 43,
+          "simSeconds": 120.06490000000039,
+          "wallSeconds": 120.368,
+          "lagged": false,
+          "decisions": 510,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 24.134131808335933,
+            "kills_per_minute": 0,
+            "accuracy": 0.01639344262295082,
+            "deaths_per_minute": 0.4996714660110959,
+            "damage_taken_per_minute": 159.13602405738436,
+            "exposure_fraction": 0.7765190212103503,
+            "distance_m": 284.8211821109337,
+            "decisions_per_minute": 254.83244766565892
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-precision.json",
+            "decisions": "random-precision.seed43.eval.json.gz",
+            "trace": "random-precision.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-precision-s44",
+          "seed": 44,
+          "simSeconds": 120.09150000000017,
+          "wallSeconds": 120.613,
+          "lagged": false,
+          "decisions": 531,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 39.12017086971177,
+            "kills_per_minute": 0,
+            "accuracy": 0.037037037037037035,
+            "deaths_per_minute": 0,
+            "damage_taken_per_minute": 30.010012386402455,
+            "exposure_fraction": 0.7823646149707884,
+            "distance_m": 321.9243358362276,
+            "decisions_per_minute": 265.29771049574646
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-precision.json",
+            "decisions": "random-precision.seed44.eval.json.gz",
+            "trace": "random-precision.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 21.084767559349235,
+          "median": 24.134131808335933,
+          "sd": 19.737550733591796,
+          "min": 0,
+          "max": 39.12017086971177,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -27.94998386682573,
+            "hi": 70.1195189855242,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.01781015988666262,
+          "median": 0.01639344262295082,
+          "sd": 0.018559117542994535,
+          "min": 0,
+          "max": 0.037037037037037035,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.028296964938155634,
+            "hi": 0.06391728471148088,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.3330143633502824,
+          "median": 0.4993716240397512,
+          "sd": 0.2883989374538286,
+          "min": 0,
+          "max": 0.4996714660110959,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.3834661362060075,
+            "hi": 1.0494948629065723,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 92.26983838160368,
+          "median": 87.66347870102418,
+          "sd": 64.68613170258205,
+          "min": 30.010012386402455,
+          "max": 159.13602405738436,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -68.43239015573201,
+            "hi": 252.97206691893936,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.6741387919887997,
+          "median": 0.7765190212103503,
+          "sd": 0.1824136087581542,
+          "min": 0.46353273978526044,
+          "max": 0.7823646149707884,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.22096169403284144,
+            "hi": 1.127315889944758,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 304.3784946603741,
+          "median": 306.3899660339609,
+          "sd": 18.633183219884014,
+          "min": 284.8211821109337,
+          "max": 321.9243358362276,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 258.087365644534,
+            "hi": 350.6696236762142,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 258.10343826587956,
+          "median": 254.83244766565892,
+          "sd": 6.238953084039235,
+          "min": 254.18015663623333,
+          "max": 265.29771049574646,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 242.6037687392665,
+            "hi": 273.6031077924926,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1550,
+        "decisions": 1550,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1550,
+          "mean": 13.892387096774184,
+          "median": 13,
+          "sd": 8.887651473831435,
+          "min": 0.3,
+          "max": 82.4,
+          "p90": 25.2,
+          "p95": 29.3,
+          "p99": 39.7,
+          "ci95": {
+            "lo": 13.44957404459915,
+            "hi": 14.33520014894922,
+            "method": "95% t interval, n=1550"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            214,
+            341,
+            834,
+            157,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1550
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1550
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1550
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1550
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 258.12418104552495,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1550,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1550,
+          "mean": 16.210322580645162,
+          "median": 15,
+          "sd": 9.321924663451128,
+          "min": 1,
+          "max": 93,
+          "p90": 28,
+          "p95": 32,
+          "p99": 46,
+          "ci95": {
+            "lo": 15.745872559790662,
+            "hi": 16.67477260149966,
+            "method": "95% t interval, n=1550"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1550,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "random-degraded",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "random",
+        "kind": "random",
+        "provider": "local",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "random-degraded",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded",
+        "query": "brain=random&jevControl=precision&jevNav=places&motor=degraded&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-degraded-s42",
+          "seed": 42,
+          "simSeconds": 120.24569999999717,
+          "wallSeconds": 120.663,
+          "lagged": false,
+          "decisions": 534,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0,
+            "damage_taken_per_minute": 0,
+            "exposure_fraction": 0.43107036690572675,
+            "distance_m": 315.2208888746856,
+            "decisions_per_minute": 266.41942766388905
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-degraded.json",
+            "decisions": "random-degraded.seed42.eval.json.gz",
+            "trace": "random-degraded.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-degraded-s43",
+          "seed": 43,
+          "simSeconds": 120.13149999999732,
+          "wallSeconds": 120.273,
+          "lagged": false,
+          "decisions": 493,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 36.561389043808816,
+            "kills_per_minute": 0,
+            "accuracy": 0.01694915254237288,
+            "deaths_per_minute": 0.9987607044259432,
+            "damage_taken_per_minute": 183.29865493880726,
+            "exposure_fraction": 0.6947971267889477,
+            "distance_m": 278.11901263116476,
+            "decisions_per_minute": 246.19451364099504
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-degraded.json",
+            "decisions": "random-degraded.seed43.eval.json.gz",
+            "trace": "random-degraded.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-degraded-s44",
+          "seed": 44,
+          "simSeconds": 120.08809999999801,
+          "wallSeconds": 120.912,
+          "lagged": false,
+          "decisions": 539,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 60.99424155394176,
+            "kills_per_minute": 0,
+            "accuracy": 0.05263157894736842,
+            "deaths_per_minute": 0,
+            "damage_taken_per_minute": 102.70650026579972,
+            "exposure_fraction": 0.3168467299649932,
+            "distance_m": 318.50253096585215,
+            "decisions_per_minute": 269.3022872374574
+          },
+          "interface": {
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "degraded",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-degraded.json",
+            "decisions": "random-degraded.seed44.eval.json.gz",
+            "trace": "random-degraded.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 32.51854353258353,
+          "median": 36.561389043808816,
+          "sd": 30.697440048901065,
+          "min": 0,
+          "max": 60.99424155394176,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -43.74427967860482,
+            "hi": 108.78136674377188,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.0231935771632471,
+          "median": 0.01694915254237288,
+          "sd": 0.02686569196498768,
+          "min": 0,
+          "max": 0.05263157894736842,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.043549887878406926,
+            "hi": 0.08993704220490113,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.33292023480864774,
+          "median": 0,
+          "sd": 0.5766347615563386,
+          "min": 0,
+          "max": 0.9987607044259432,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -1.0996355355729637,
+            "hi": 1.7654760051902592,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 95.335051734869,
+          "median": 102.70650026579972,
+          "sd": 91.87139334785938,
+          "min": 0,
+          "max": 183.29865493880726,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -132.90456101108583,
+            "hi": 323.57466448082386,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.48090474121988924,
+          "median": 0.43107036690572675,
+          "sd": 0.19384071879331546,
+          "min": 0.3168467299649932,
+          "max": 0.6947971267889477,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.000661162807130744,
+            "hi": 0.9624706452469092,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 303.9474774905675,
+          "median": 315.2208888746856,
+          "sd": 22.42820749522085,
+          "min": 278.11901263116476,
+          "max": 318.50253096585215,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 248.22822466599496,
+            "hi": 359.66673031514006,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 260.6387428474472,
+          "median": 266.41942766388905,
+          "sd": 12.59184410071146,
+          "min": 246.19451364099504,
+          "max": 269.3022872374574,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 229.35634343480365,
+            "hi": 291.92114226009073,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1566,
+        "decisions": 1566,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1566,
+          "mean": 10.411238825031905,
+          "median": 9.3,
+          "sd": 9.192534900083421,
+          "min": 0.2,
+          "max": 70.3,
+          "p90": 22.5,
+          "p95": 27.2,
+          "p99": 39.2,
+          "ci95": {
+            "lo": 9.955584865672218,
+            "hi": 10.866892784391592,
+            "method": "95% t interval, n=1566"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            529,
+            305,
+            620,
+            110,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1566
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1566
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1566
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1566
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 260.6630929523645,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1566,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1566,
+          "mean": 13.142401021711366,
+          "median": 11,
+          "sd": 10.235353271657425,
+          "min": 1,
+          "max": 182,
+          "p90": 25,
+          "p95": 30,
+          "p99": 44,
+          "ci95": {
+            "lo": 12.635056824015308,
+            "hi": 13.649745219407425,
+            "method": "95% t interval, n=1566"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1565,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 1,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "random-direct",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "random",
+        "kind": "random",
+        "provider": "local",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "random-direct",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places",
+        "query": "brain=random&jevControl=direct&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-direct-s42",
+          "seed": 42,
+          "simSeconds": 120.18829999999949,
+          "wallSeconds": 120.419,
+          "lagged": false,
+          "decisions": 524,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0.49913483295621053,
+            "damage_taken_per_minute": 90.42825884069603,
+            "exposure_fraction": 0.09531629035268675,
+            "distance_m": 301.8160498138898,
+            "decisions_per_minute": 261.54665246905427
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-direct.json",
+            "decisions": "random-direct.seed42.eval.json.gz",
+            "trace": "random-direct.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-direct-s43",
+          "seed": 43,
+          "simSeconds": 120.20810000000041,
+          "wallSeconds": 120.432,
+          "lagged": false,
+          "decisions": 503,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0.9981276788291265,
+            "damage_taken_per_minute": 178.4254407653583,
+            "exposure_fraction": 0.5200470307314722,
+            "distance_m": 301.4485742299779,
+            "decisions_per_minute": 251.02911122552536
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-direct.json",
+            "decisions": "random-direct.seed43.eval.json.gz",
+            "trace": "random-direct.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "controller-ablation-v1-2026-09-29T17-13-48-958Z-random-direct-s44",
+          "seed": 44,
+          "simSeconds": 120.10829999999991,
+          "wallSeconds": 120.324,
+          "lagged": false,
+          "decisions": 509,
+          "failures": 0,
+          "metrics": {
+            "damage_dealt_per_minute": 0,
+            "kills_per_minute": 0,
+            "accuracy": 0,
+            "deaths_per_minute": 0.4994984203362455,
+            "damage_taken_per_minute": 118.02938507908829,
+            "exposure_fraction": 0.9713446295497038,
+            "distance_m": 289.8417418413323,
+            "decisions_per_minute": 254.2446959511489
+          },
+          "interface": {
+            "control": "direct",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random-direct.json",
+            "decisions": "random-direct.seed44.eval.json.gz",
+            "trace": "random-direct.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.6655869773738607,
+          "median": 0.4994984203362455,
+          "sd": 0.28798875263144535,
+          "min": 0.49913483295621053,
+          "max": 0.9981276788291265,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.04987448435570829,
+            "hi": 1.38104843910343,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 128.96102822838085,
+          "median": 118.02938507908829,
+          "sd": 45.00557324518969,
+          "min": 90.42825884069603,
+          "max": 178.4254407653583,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 17.151963027878566,
+            "hi": 240.77009342888314,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.5289026502112876,
+          "median": 0.5200470307314722,
+          "sd": 0.43808130440176224,
+          "min": 0.09531629035268675,
+          "max": 0.9713446295497038,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -0.5594394726659716,
+            "hi": 1.6172447730885469,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 297.7021219617333,
+          "median": 301.4485742299779,
+          "sd": 6.8097680800516,
+          "min": 289.8417418413323,
+          "max": 301.8160498138898,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 280.7843549306431,
+            "hi": 314.6198889928236,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 255.6068198819095,
+          "median": 254.2446959511489,
+          "sd": 5.389453094182743,
+          "min": 251.02911122552536,
+          "max": 261.54665246905427,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 242.2175956380669,
+            "hi": 268.99604412575206,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 1536,
+        "decisions": 1536,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 1536,
+          "mean": 8.561263020833328,
+          "median": 8.3,
+          "sd": 7.2152519036000085,
+          "min": 0.1,
+          "max": 42,
+          "p90": 18,
+          "p95": 21.8,
+          "p99": 28.9,
+          "ci95": {
+            "lo": 8.200137429565554,
+            "hi": 8.922388612101102,
+            "method": "95% t interval, n=1536"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            560,
+            344,
+            592,
+            40,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 1536
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 1536
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 1536
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 1536
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 255.64160467256056,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 1536,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 1536,
+          "mean": 11.136067708333334,
+          "median": 10,
+          "sd": 7.561197096377374,
+          "min": 1,
+          "max": 145,
+          "p90": 20,
+          "p95": 24,
+          "p99": 32,
+          "ci95": {
+            "lo": 10.757627453079174,
+            "hi": 11.514507963587494,
+            "method": "95% t interval, n=1536"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 1535,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 1,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "jev-precision",
+      "status": "pending",
+      "pendingReason": "arm jev-precision calls a paid jev API; set JEV_LIVE_TEST=1 to confirm",
+      "brain": {
+        "id": "jev",
+        "kind": "jev",
+        "provider": "typesafe",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "jev-precision",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=jev&jevControl=precision&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "accuracy": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "exposure_fraction": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "distance_m": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decisions_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 0,
+        "decisions": 0,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": []
+        },
+        "decisionsPerMinute": null,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 0,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "jev-degraded",
+      "status": "pending",
+      "pendingReason": "arm jev-degraded calls a paid jev API; set JEV_LIVE_TEST=1 to confirm",
+      "brain": {
+        "id": "jev",
+        "kind": "jev",
+        "provider": "typesafe",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "jev-degraded",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded",
+        "query": "brain=jev&jevControl=precision&jevNav=places&motor=degraded&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "accuracy": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "exposure_fraction": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "distance_m": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decisions_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 0,
+        "decisions": 0,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": []
+        },
+        "decisionsPerMinute": null,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 0,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "jev-direct",
+      "status": "pending",
+      "pendingReason": "arm jev-direct calls a paid jev API; set JEV_LIVE_TEST=1 to confirm",
+      "brain": {
+        "id": "jev",
+        "kind": "jev",
+        "provider": "typesafe",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "jev-direct",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places",
+        "query": "brain=jev&jevControl=direct&jevNav=places&seat=even",
+        "origin": "http://localhost:5173",
+        "build": "e9c405ed731d4c186126e6c1300483ce23c45ce0"
+      },
+      "episodes": [],
+      "aggregate": {
+        "damage_dealt_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "accuracy": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "damage_taken_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "exposure_fraction": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "distance_m": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "decisions_per_minute": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 0,
+        "decisions": 0,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": []
+        },
+        "decisionsPerMinute": null,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 0,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "metric": "damage_dealt_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-precision",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          1077.5034992337332,
+          955.004503491848,
+          1709.8300852082102
+        ],
+        "n": 3,
+        "meanDifference": 1247.4460293112638,
+        "ci95": {
+          "lo": 241.05671225893377,
+          "hi": 2253.835346363594,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_dealt_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          1408.1348560566669,
+          856.7983584304084,
+          1235.412850779628
+        ],
+        "n": 3,
+        "meanDifference": 1166.7820217555675,
+        "ci95": {
+          "lo": 466.1914828872558,
+          "hi": 1867.372560623879,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_dealt_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          379.58326016808695,
+          184.70578663872007,
+          -39.12017086971177
+        ],
+        "n": 3,
+        "meanDifference": 175.05629197903178,
+        "ci95": {
+          "lo": -345.45836586376595,
+          "hi": 695.5709498218296,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_dealt_per_minute",
+      "reference": "random-precision",
+      "arm": "random-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          12.427257235472883,
+          21.87407068422999
+        ],
+        "n": 3,
+        "meanDifference": 11.43377597323429,
+        "ci95": {
+          "lo": -15.821463146228094,
+          "hi": 38.68901509269668,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_dealt_per_minute",
+      "reference": "random-precision",
+      "arm": "random-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          -24.134131808335933,
+          -39.12017086971177
+        ],
+        "n": 3,
+        "meanDifference": -21.084767559349235,
+        "ci95": {
+          "lo": -70.1195189855242,
+          "hi": 27.94998386682573,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-precision",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          8.492074064206774,
+          6.9855166953850025,
+          11.487153533298677
+        ],
+        "n": 3,
+        "meanDifference": 8.988248097630152,
+        "ci95": {
+          "lo": 3.295466882814692,
+          "hi": 14.681029312445611,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          9.49579019967814,
+          6.490199798304583,
+          9.491773796043429
+        ],
+        "n": 3,
+        "meanDifference": 8.492587931342051,
+        "ci95": {
+          "lo": 4.184446974319129,
+          "hi": 12.800728888364972,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          1.9979753849432902,
+          0.4994136051919082,
+          0
+        ],
+        "n": 3,
+        "meanDifference": 0.8324629967117327,
+        "ci95": {
+          "lo": -1.750732510499735,
+          "hi": 3.4156585039232006,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random-precision",
+      "arm": "random-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          0,
+          0
+        ],
+        "n": 3,
+        "meanDifference": 0,
+        "ci95": {
+          "lo": 0,
+          "hi": 0,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random-precision",
+      "arm": "random-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          0,
+          0
+        ],
+        "n": 3,
+        "meanDifference": 0,
+        "ci95": {
+          "lo": 0,
+          "hi": 0,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random-precision",
+      "arm": "skirmisher-precision",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.6451612903225806,
+          0.5053456878118318,
+          0.5900816070307595
+        ],
+        "n": 3,
+        "meanDifference": 0.5801961950550573,
+        "ci95": {
+          "lo": 0.40522413504461585,
+          "hi": 0.7551682550654987,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random-precision",
+      "arm": "skirmisher-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.6666666666666666,
+          0.622495446265938,
+          0.42775169535732915
+        ],
+        "n": 3,
+        "meanDifference": 0.5723046027633113,
+        "ci95": {
+          "lo": 0.2564961447718406,
+          "hi": 0.888113060754782,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random-precision",
+      "arm": "skirmisher-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.03864734299516908,
+          -0.001008827238335435,
+          -0.037037037037037035
+        ],
+        "n": 3,
+        "meanDifference": 0.00020049290659887123,
+        "ci95": {
+          "lo": -0.09384830254210542,
+          "hi": 0.09424928835530318,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random-precision",
+      "arm": "random-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          0.0005557099194220608,
+          0.015594541910331383
+        ],
+        "n": 3,
+        "meanDifference": 0.005383417276584482,
+        "ci95": {
+          "lo": -0.016596659279759333,
+          "hi": 0.0273634938329283,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random-precision",
+      "arm": "random-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0,
+          -0.01639344262295082,
+          -0.037037037037037035
+        ],
+        "n": 3,
+        "meanDifference": -0.01781015988666262,
+        "ci95": {
+          "lo": -0.06391728471148088,
+          "hi": 0.028296964938155634,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-precision",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.0001621444430002228,
+          -0.0007059877693100791,
+          0.49944145796950773
+        ],
+        "n": 3,
+        "meanDifference": 0.16629920488106595,
+        "ci95": {
+          "lo": -0.5504571638460684,
+          "hi": 0.8830555736082003,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.00040680752225613626,
+          0.4988208106511476,
+          0.9991340837940453
+        ],
+        "n": 3,
+        "meanDifference": 0.49945390065581635,
+        "ci95": {
+          "lo": -0.7411350131613692,
+          "hi": 1.7400428144730018,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random-precision",
+      "arm": "skirmisher-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          0.9991099146677167,
+          -0.4996714660110959,
+          0
+        ],
+        "n": 3,
+        "meanDifference": 0.16647948288554026,
+        "ci95": {
+          "lo": -1.7294026062147598,
+          "hi": 2.06236157198584,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random-precision",
+      "arm": "random-degraded",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -0.4993716240397512,
+          0.4990892384148473,
+          0
+        ],
+        "n": 3,
+        "meanDifference": -0.00009412854163463417,
+        "ci95": {
+          "lo": -1.2403513801313772,
+          "hi": 1.2401631230481078,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random-precision",
+      "arm": "random-direct",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -0.00023679108354068834,
+          0.49845621281803054,
+          0.4994984203362455
+        ],
+        "n": 3,
+        "meanDifference": 0.33257261402357846,
+        "ci95": {
+          "lo": -0.38346799137881254,
+          "hi": 1.0486132194259694,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    }
+  ],
+  "sweeps": [],
+  "contribution": {
+    "factors": [
+      "brain",
+      "control",
+      "motor"
+    ],
+    "contrasts": [
+      {
+        "factor": "motor",
+        "from": {
+          "arm": "skirmisher-precision",
+          "level": "standard"
+        },
+        "to": {
+          "arm": "skirmisher-degraded",
+          "level": "degraded"
+        },
+        "heldFixed": {
+          "brain": "script:skirmisher",
+          "control": "precision",
+          "navigation": "places",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            330.63135682293364,
+            -98.20614506143966,
+            -474.41723442858233
+          ],
+          "n": 3,
+          "meanDifference": -80.66400755569612,
+          "ci95": {
+            "lo": -1081.3824627307567,
+            "hi": 920.0544476193644,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "control",
+        "from": {
+          "arm": "skirmisher-direct",
+          "level": "direct"
+        },
+        "to": {
+          "arm": "skirmisher-precision",
+          "level": "precision"
+        },
+        "heldFixed": {
+          "brain": "script:skirmisher",
+          "navigation": "places",
+          "motor": "standard",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            697.9202390656462,
+            770.298716853128,
+            1748.950256077922
+          ],
+          "n": 3,
+          "meanDifference": 1072.389737332232,
+          "ci95": {
+            "lo": -386.0041055390236,
+            "hi": 2530.783580203488,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "brain",
+        "from": {
+          "arm": "random-precision",
+          "level": "random"
+        },
+        "to": {
+          "arm": "skirmisher-precision",
+          "level": "script:skirmisher"
+        },
+        "heldFixed": {
+          "control": "precision",
+          "navigation": "places",
+          "motor": "standard",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            1077.5034992337332,
+            955.004503491848,
+            1709.8300852082102
+          ],
+          "n": 3,
+          "meanDifference": 1247.4460293112638,
+          "ci95": {
+            "lo": 241.05671225893377,
+            "hi": 2253.835346363594,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "motor",
+        "from": {
+          "arm": "random-precision",
+          "level": "standard"
+        },
+        "to": {
+          "arm": "random-degraded",
+          "level": "degraded"
+        },
+        "heldFixed": {
+          "brain": "random",
+          "control": "precision",
+          "navigation": "places",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            0,
+            12.427257235472883,
+            21.87407068422999
+          ],
+          "n": 3,
+          "meanDifference": 11.43377597323429,
+          "ci95": {
+            "lo": -15.821463146228094,
+            "hi": 38.68901509269668,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "brain",
+        "from": {
+          "arm": "random-degraded",
+          "level": "random"
+        },
+        "to": {
+          "arm": "skirmisher-degraded",
+          "level": "script:skirmisher"
+        },
+        "heldFixed": {
+          "control": "precision",
+          "navigation": "places",
+          "motor": "degraded",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            1408.1348560566669,
+            844.3711011949355,
+            1213.538780095398
+          ],
+          "n": 3,
+          "meanDifference": 1155.3482457823336,
+          "ci95": {
+            "lo": 443.95507590442423,
+            "hi": 1866.741415660243,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "brain",
+        "from": {
+          "arm": "random-direct",
+          "level": "random"
+        },
+        "to": {
+          "arm": "skirmisher-direct",
+          "level": "script:skirmisher"
+        },
+        "heldFixed": {
+          "control": "direct",
+          "navigation": "places",
+          "motor": "standard",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            379.58326016808695,
+            208.839918447056,
+            0
+          ],
+          "n": 3,
+          "meanDifference": 196.14105953838097,
+          "ci95": {
+            "lo": -276.156454462964,
+            "hi": 668.438573539726,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      },
+      {
+        "factor": "control",
+        "from": {
+          "arm": "random-direct",
+          "level": "direct"
+        },
+        "to": {
+          "arm": "random-precision",
+          "level": "precision"
+        },
+        "heldFixed": {
+          "brain": "random",
+          "navigation": "places",
+          "motor": "standard",
+          "policy": "folded into brain"
+        },
+        "difference": {
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "differences": [
+            0,
+            24.134131808335933,
+            39.12017086971177
+          ],
+          "n": 3,
+          "meanDifference": 21.084767559349235,
+          "ci95": {
+            "lo": -27.94998386682573,
+            "hi": 70.1195189855242,
+            "method": "95% t interval, n=3"
+          },
+          "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+        }
+      }
+    ],
+    "interactions": [
+      {
+        "factors": [
+          "brain",
+          "control"
+        ],
+        "cells": {
+          "brain=random,control=direct": "random-direct",
+          "brain=script:skirmisher,control=direct": "skirmisher-direct",
+          "brain=random,control=precision": "random-precision",
+          "brain=script:skirmisher,control=precision": "skirmisher-precision"
+        },
+        "differenceOfDifferences": 1051.304969772883,
+        "seeds": 3,
+        "note": "The effect of brain (random → script:skirmisher) at control=precision, minus the same effect at control=direct. Far from zero means the two factors do not contribute separately."
+      },
+      {
+        "factors": [
+          "brain",
+          "motor"
+        ],
+        "cells": {
+          "brain=random,motor=degraded": "random-degraded",
+          "brain=script:skirmisher,motor=degraded": "skirmisher-degraded",
+          "brain=random,motor=standard": "random-precision",
+          "brain=script:skirmisher,motor=standard": "skirmisher-precision"
+        },
+        "differenceOfDifferences": 92.09778352893022,
+        "seeds": 3,
+        "note": "The effect of brain (random → script:skirmisher) at motor=standard, minus the same effect at motor=degraded. Far from zero means the two factors do not contribute separately."
+      }
+    ],
+    "statement": "Each contrast is the paired, by-seed difference between two arms that differ in one factor only, at the other factors' stated levels. It is descriptive for this design and this environment. Effects interact, so they are not shares of a whole and do not sum to one."
+  },
+  "warnings": [
+    {
+      "id": "insufficient-seeds",
+      "severity": "info",
+      "arm": null,
+      "message": "3 seeds per arm. Treat every difference as exploratory; use a 10-seed development set or a 30-seed evaluation set before claiming one.",
+      "evidence": {
+        "seeds": 3
+      },
+      "possibleCauses": [
+        "a quick check, by design"
+      ],
+      "suggestedRun": "set \"seeds\": { \"preset\": \"dev\" } or { \"preset\": \"eval\" }"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-precision",
+      "message": "skirmisher-precision chose move=HOLD in 100.0% of 1525 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 1525
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-precision",
+      "message": "skirmisher-precision chose target=TARGET_0 in 98.5% of 194 decisions where the target axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "target",
+        "action": "TARGET_0",
+        "share": 0.9845360824742269,
+        "n": 194
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "skirmisher-precision",
+      "message": "skirmisher-precision chose slot 0 of the target axis in 92.7% of 41 decisions with two or more slots offered; a position-blind chooser would pick it 42.1% of the time.",
+      "evidence": {
+        "axis": "target",
+        "firstShare": 0.926829268292683,
+        "expectedShare": 0.42073170731707327,
+        "n": 41
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-degraded",
+      "message": "skirmisher-degraded chose move=HOLD in 100.0% of 1474 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 1474
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-degraded",
+      "message": "skirmisher-degraded chose target=TARGET_0 in 98.6% of 215 decisions where the target axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "target",
+        "action": "TARGET_0",
+        "share": 0.986046511627907,
+        "n": 215
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "skirmisher-degraded",
+      "message": "skirmisher-degraded chose slot 0 of the target axis in 94.7% of 57 decisions with two or more slots offered; a position-blind chooser would pick it 48.1% of the time.",
+      "evidence": {
+        "axis": "target",
+        "firstShare": 0.9473684210526315,
+        "expectedShare": 0.48099415204678364,
+        "n": 57
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-direct",
+      "message": "skirmisher-direct chose move=HOLD in 100.0% of 1520 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 1520
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "model-irrelevance",
+      "severity": "warning",
+      "arm": "skirmisher-direct",
+      "message": "On damage_dealt_per_minute, skirmisher-direct is not distinguishable from random-direct (random choices through the same controllers): paired difference 196.141 with a 95% interval [-276.156, 668.439] over 3 seeds.",
+      "evidence": {
+        "arm": 196.14105953838097,
+        "randomBaseline": 0,
+        "pairedSeeds": 3
+      },
+      "possibleCauses": [
+        "the deterministic controller solves most of the task",
+        "the metric does not depend on the choices the brain makes",
+        "too few seeds to separate them"
+      ],
+      "suggestedRun": "node tools/experiment.mjs tools/experiments/controller-ablation.json"
+    }
+  ],
+  "artifacts": {
+    "definition": "definition.json",
+    "arms": {
+      "skirmisher-precision": [
+        "skirmisher-precision.json",
+        "skirmisher-precision.seed42.eval.json.gz",
+        "skirmisher-precision.seed42.trace.jsonl.gz",
+        "skirmisher-precision.json",
+        "skirmisher-precision.seed43.eval.json.gz",
+        "skirmisher-precision.seed43.trace.jsonl.gz",
+        "skirmisher-precision.json",
+        "skirmisher-precision.seed44.eval.json.gz",
+        "skirmisher-precision.seed44.trace.jsonl.gz"
+      ],
+      "skirmisher-degraded": [
+        "skirmisher-degraded.json",
+        "skirmisher-degraded.seed42.eval.json.gz",
+        "skirmisher-degraded.seed42.trace.jsonl.gz",
+        "skirmisher-degraded.json",
+        "skirmisher-degraded.seed43.eval.json.gz",
+        "skirmisher-degraded.seed43.trace.jsonl.gz",
+        "skirmisher-degraded.json",
+        "skirmisher-degraded.seed44.eval.json.gz",
+        "skirmisher-degraded.seed44.trace.jsonl.gz"
+      ],
+      "skirmisher-direct": [
+        "skirmisher-direct.json",
+        "skirmisher-direct.seed42.eval.json.gz",
+        "skirmisher-direct.seed42.trace.jsonl.gz",
+        "skirmisher-direct.json",
+        "skirmisher-direct.seed43.eval.json.gz",
+        "skirmisher-direct.seed43.trace.jsonl.gz",
+        "skirmisher-direct.json",
+        "skirmisher-direct.seed44.eval.json.gz",
+        "skirmisher-direct.seed44.trace.jsonl.gz"
+      ],
+      "random-precision": [
+        "random-precision.json",
+        "random-precision.seed42.eval.json.gz",
+        "random-precision.seed42.trace.jsonl.gz",
+        "random-precision.json",
+        "random-precision.seed43.eval.json.gz",
+        "random-precision.seed43.trace.jsonl.gz",
+        "random-precision.json",
+        "random-precision.seed44.eval.json.gz",
+        "random-precision.seed44.trace.jsonl.gz"
+      ],
+      "random-degraded": [
+        "random-degraded.json",
+        "random-degraded.seed42.eval.json.gz",
+        "random-degraded.seed42.trace.jsonl.gz",
+        "random-degraded.json",
+        "random-degraded.seed43.eval.json.gz",
+        "random-degraded.seed43.trace.jsonl.gz",
+        "random-degraded.json",
+        "random-degraded.seed44.eval.json.gz",
+        "random-degraded.seed44.trace.jsonl.gz"
+      ],
+      "random-direct": [
+        "random-direct.json",
+        "random-direct.seed42.eval.json.gz",
+        "random-direct.seed42.trace.jsonl.gz",
+        "random-direct.json",
+        "random-direct.seed43.eval.json.gz",
+        "random-direct.seed43.trace.jsonl.gz",
+        "random-direct.json",
+        "random-direct.seed44.eval.json.gz",
+        "random-direct.seed44.trace.jsonl.gz"
+      ],
+      "jev-precision": [],
+      "jev-degraded": [],
+      "jev-direct": []
+    }
+  },
+  "notes": [
+    "Episodes are the unit of every interval. Episodes on the same seed start the same match but diverge: frame pacing is not deterministic.",
+    "Decision-level pools overlap in time; their n overstates independent evidence.",
+    "Arm jev-precision is pending: arm jev-precision calls a paid jev API; set JEV_LIVE_TEST=1 to confirm. No figure for it is a measurement.",
+    "Arm jev-degraded is pending: arm jev-degraded calls a paid jev API; set JEV_LIVE_TEST=1 to confirm. No figure for it is a measurement.",
+    "Arm jev-direct is pending: arm jev-direct calls a paid jev API; set JEV_LIVE_TEST=1 to confirm. No figure for it is a measurement."
+  ]
+}

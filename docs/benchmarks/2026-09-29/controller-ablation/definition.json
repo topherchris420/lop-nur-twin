@@ -1,0 +1,203 @@
+{
+  "file": "tools/experiments/controller-ablation.json",
+  "fileHash": "4fba761c0bc06702",
+  "hash": "51e20adc3796a0c7",
+  "overrides": [],
+  "raw": {
+    "schema": "blacksite-experiment/v1",
+    "id": "controller-ablation-v1",
+    "question": "How much of the seat's damage output comes from the choices, and how much from the aiming controller?",
+    "hypothesis": "If the controller does most of the work, random choices through the precision controller will approach the scripted policy through it, and degrading the controller will cost both about equally. If the choices matter, the policy keeps most of its advantage over random under every controller.",
+    "independentVariable": "control",
+    "primaryMetric": "damage_dealt_per_minute",
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "accuracy",
+      "deaths_per_minute"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": {
+      "preset": "quick",
+      "base": 42
+    },
+    "duration": 120,
+    "mode": "tdm",
+    "seat": "even",
+    "arms": [
+      {
+        "id": "skirmisher-precision",
+        "brain": "script",
+        "control": "precision",
+        "navigation": "places",
+        "policy": "skirmisher"
+      },
+      {
+        "id": "skirmisher-degraded",
+        "brain": "script",
+        "control": "precision",
+        "navigation": "places",
+        "policy": "skirmisher",
+        "motor": "degraded"
+      },
+      {
+        "id": "skirmisher-direct",
+        "brain": "script",
+        "control": "direct",
+        "navigation": "places",
+        "policy": "skirmisher"
+      },
+      {
+        "id": "random-precision",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "id": "random-degraded",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      {
+        "id": "random-direct",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "id": "jev-precision",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "id": "jev-degraded",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      {
+        "id": "jev-direct",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random-precision"
+    ],
+    "contributionFactors": [
+      "brain",
+      "control",
+      "motor"
+    ],
+    "notes": "Contrasts are reported between arms that differ in one factor only; interactions are reported, not assumed away. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+  },
+  "spec": {
+    "schema": "blacksite-experiment/v1",
+    "id": "controller-ablation-v1",
+    "question": "How much of the seat's damage output comes from the choices, and how much from the aiming controller?",
+    "hypothesis": "If the controller does most of the work, random choices through the precision controller will approach the scripted policy through it, and degrading the controller will cost both about equally. If the choices matter, the policy keeps most of its advantage over random under every controller.",
+    "independentVariable": "control",
+    "primaryMetric": "damage_dealt_per_minute",
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "accuracy",
+      "deaths_per_minute"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seedPreset": "quick",
+    "duration": 120,
+    "mode": "tdm",
+    "arms": [
+      {
+        "seat": "even",
+        "id": "skirmisher-precision",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "skirmisher-degraded",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      {
+        "seat": "even",
+        "id": "skirmisher-direct",
+        "brain": "script",
+        "control": "direct",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "random-precision",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "random-degraded",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      {
+        "seat": "even",
+        "id": "random-direct",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "jev-precision",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "jev-degraded",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "motor": "degraded"
+      },
+      {
+        "seat": "even",
+        "id": "jev-direct",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random-precision"
+    ],
+    "calibrationField": "probability",
+    "contributionFactors": [
+      "brain",
+      "control",
+      "motor"
+    ],
+    "notes": "Contrasts are reported between arms that differ in one factor only; interactions are reported, not assumed away. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+  }
+}

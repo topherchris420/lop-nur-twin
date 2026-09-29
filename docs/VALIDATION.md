@@ -108,14 +108,16 @@ the artifact that actually ships — including its security headers.
 
 ```sh
 bun run build && bun run preview &
-bun run a11y     # axe-core on all four routes + CSP violations
+bun run a11y     # axe-core on every route + CSP violations
 bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
                  # keyboard order, filtering, mobile reflow, reduced motion
 ```
 
-`bun run a11y` gates `/analysis` and `/compare` on serious and critical axe
-violations. `/` and `/play` are reported but not gated: their primary content is
-a WebGL canvas, and an axe rule cannot inspect one.
+`bun run a11y` gates `/analysis`, `/compare` and `/evaluation` on serious and
+critical axe violations — `/evaluation` twice, empty and with the newest archived
+run open, so its tables and charts are what is inspected. `/` and `/play` are
+reported but not gated: their primary content is a WebGL canvas, and an axe rule
+cannot inspect one.
 
 `tools/routes.mjs` is where a URL-parameter regression shows up. It throws
 `?quality=1e309`, `?at=1e308,-1e308`, `?snapshot=2025-02-30`,
@@ -161,17 +163,40 @@ JEV_LIVE_TEST=1 bun run benchmark:jev            # Jev, direct control (the orig
 JEV_LIVE_TEST=1 bun run benchmark:jev:precision  # Jev, precision control
 bun run replay:jev -- trace.jsonl   # replay a recorded control stream
 node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
-node tools/experiment.mjs tools/experiments/exposure.json   # matched arms, one table
+node tools/experiment.mjs tools/experiments/exposure.json   # a declared experiment + its evaluation
 node tools/kill-anatomy.mjs --policy marksman               # what each victim was doing
+bun run llm                         # the LLM seat end to end, against the offline test double
+bun run test:eval                   # unit: evaluation core, seat, both endpoints
 ```
+
+### The evaluation harness
+
+`bun run test:eval` covers what a result is made of, with synthetic inputs and
+fake providers only: the statistics (intervals, percentile gating, paired
+differences), calibration bins, Brier and ECE, pricing (a price needs a source
+and a date; unknown cost stays null; no price anywhere else in the source),
+the ledger, experiment contracts (malformed, misspelled or unregistered
+definitions are refused; live arms need their flag; a remote model's latency
+cannot be swept), outcome contracts, warnings (each fires on its signature and
+not on its absence), contribution contrasts and interactions, the evaluation
+schema and its determinism, revalidation of stale answers, outcome windows,
+decision accounting for every brain, LLM output validation, and the LLM
+endpoint: parity with Jev's question, both adapters (the Anthropic one through
+the official SDK against a fake transport), refusals, malformed output, retries,
+timeouts and key non-leakage. `bun run llm` then runs the real LLM endpoint and
+adapter in a browser against the offline double and checks the records it
+leaves (13 checks).
 
 ### Experiments
 
 `tools/experiment.mjs` runs several seat configurations — brain, policy,
-control, navigation, cadence, injected latency — on the same seeds through
-`jev-benchmark.mjs` and prints one table, and `--compare` diffs two runs of
-the same experiment. An experiment file in `tools/experiments/` states its
-hypothesis and its deciding metric before it runs. `--origin` points every
+control, navigation, cadence, injected latency, staleness policy, motor
+profile, option order — on the same seeds through `jev-benchmark.mjs`, then
+builds a `blacksite-evaluation/v1` from the saved artifacts alone, and
+`--compare` diffs two evaluations. An experiment file in `tools/experiments/`
+declares its question, hypothesis, primary metric and outcome contract before
+it runs, and a malformed one is refused (see
+[`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)). `--origin` points every
 arm at another build (a worktree of an older commit on another port), which is
 how "this change against the last one" is measured. Arms run one at a time:
 each episode records how far simulated time fell behind real time, and a

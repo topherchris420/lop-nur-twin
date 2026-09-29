@@ -66,10 +66,11 @@ any kind.
 - Bugs in the build, validation or manifest pipeline that let unvalidated data
   or an incorrect hash ship as if it had passed.
 - Deployment configuration that weakens the shipped security headers.
-- The Jev decision endpoint (`/api/jev/decision`): anything that exposes the
-  TypeSafe credential, gets it into the bundle, a response or a log; that makes
-  the endpoint forward text the browser chose to TypeSafe (it must only send the
-  server's own question); or that bypasses its validation or rate limits.
+- The decision endpoints (`/api/jev/decision`, `/api/llm/decision`): anything
+  that exposes the TypeSafe or LLM credential, gets it into the bundle, a
+  response or a log; that makes either endpoint forward text the browser chose
+  to a model (it must only send the server's own question); or that bypasses
+  their validation or rate limits.
 
 ## What is out of scope
 
@@ -118,7 +119,10 @@ any kind.
   middleware read it; `src/game/pilot/secretBoundary.test.ts` fails if browser
   code mentions or reads it, and `bun run build` ends with
   `tools/jev-secret-scan.mjs`, which fails if the built bundle contains its name,
-  a TypeSafe-shaped key, or its value. There is no authentication.
+  a TypeSafe-shaped key, or its value. `/play?brain=llm` works the same way
+  through `api/llm/decision.ts` and `LLM_API_KEY`, under the same test and scan
+  (which also looks for Anthropic- and OpenAI-shaped keys). There is no
+  authentication.
 - Anything placed in a frontend build is public. Never add a credential to
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite
   inlines `VITE_`-prefixed values into the bundle, where any visitor can read
@@ -161,10 +165,11 @@ State these plainly to anyone evaluating this project:
   ADS-B feed. It is off by default; without it the application makes no
   cross-origin request at all. Remove `https://api.adsb.lol` from the
   Content-Security-Policy to forbid it entirely.
-- **One opt-in server-side call exists**: choosing Jev on `/play` makes the page
-  post a bounded game observation (numbers and fixed vocabularies — no free
-  text, no identity) to this deployment's own `/api/jev/decision`, which asks
-  TypeSafe a question the server writes. The browser never talks to TypeSafe.
+- **Two opt-in server-side calls exist**: choosing Jev or the LLM on `/play`
+  makes the page post a bounded game observation (numbers and fixed
+  vocabularies — no free text, no identity) to this deployment's own
+  `/api/jev/decision` or `/api/llm/decision`, which asks the model a question
+  the server writes. The browser never talks to a model provider.
 - **This system is not accredited.** It is not FedRAMP authorized, not CMMC
   certified, not government-certified, and not approved for classified
   information or Controlled Unclassified Information. Do not place non-public

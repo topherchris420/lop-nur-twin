@@ -228,10 +228,17 @@ nothing about the reader's path.
 That is a provenance limitation, documented in `docs/DATA_PROVENANCE.md`, not a
 code defect — and it is why no source content hash is fabricated.
 
-### T12 — The Jev decision endpoint
+### T12 — The decision endpoints
 
-`/api/jev/decision` is the one server-side component, and the one place a
-credential exists.
+`/api/jev/decision` and `/api/llm/decision` are the server-side components,
+and the only places a credential exists. They share one boundary: the
+threats and mitigations below apply to both, with `LLM_API_KEY` in place of the
+TypeSafe key for the second. The LLM endpoint adds three: its provider base URL
+is operator configuration and must be `https` (or `http` to localhost), so a
+misconfiguration cannot send the key over plain HTTP to a remote host; its
+answers are validated against the offered options exactly as Jev's are, and a
+malformed answer is refused, never repaired; and it enables no provider-side
+fallback to a different model, so an answer's model is the one recorded.
 
 **Threats.** (a) The TypeSafe key leaks — into the bundle, a response, a log or
 a trace. (b) The endpoint becomes a general prompt proxy that forwards whatever

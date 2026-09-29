@@ -14,6 +14,7 @@ import {
 } from "../../src/game/pilot/decision.js";
 import { validateObservation } from "../../src/game/pilot/observation.js";
 import { JEV_CAPABILITIES } from "../../src/game/pilot/capabilities.js";
+import { canonicalHash } from "../../src/game/pilot/hash.js";
 import { buildSystemOneRequest } from "./question.js";
 import { DEFAULT_RATE_LIMITS, RateLimiter } from "./rateLimit.js";
 
@@ -43,7 +44,7 @@ export const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 export const DEFAULT_MODEL = "jev-latest";
 export const MAX_BODY_BYTES = 8192;
 
-const SESSION_ID = /^[a-f0-9]{16,64}$/;
+export const SESSION_ID = /^[a-f0-9]{16,64}$/;
 
 export interface JevServerConfig {
   /** The `TYPESAFE_API_KEY` value, read by the entry point. Absent means 503. */
@@ -81,7 +82,7 @@ const JSON_HEADERS = {
   "X-Content-Type-Options": "nosniff",
 } as const;
 
-function json(
+export function json(
   status: number,
   body: unknown,
   extra: Record<string, string> = {},
@@ -92,7 +93,7 @@ function json(
   });
 }
 
-function errorResponse(
+export function errorResponse(
   status: number,
   code: DecisionErrorCode,
   message: string,
@@ -118,7 +119,7 @@ function errorResponse(
  * mismatched `Origin`. Non-browser clients send neither and fall to the rate
  * limits, which is the protection that applies to them.
  */
-function isSameOrigin(request: Request): boolean {
+export function isSameOrigin(request: Request): boolean {
   const site = request.headers.get("sec-fetch-site");
   if (site !== null && site !== "same-origin" && site !== "none") return false;
   const origin = request.headers.get("origin");
@@ -130,7 +131,7 @@ function isSameOrigin(request: Request): boolean {
   }
 }
 
-async function readBody(request: Request, limit: number): Promise<string | null> {
+export async function readBody(request: Request, limit: number): Promise<string | null> {
   const reader = request.body?.getReader();
   if (!reader) return "";
   const chunks: Uint8Array[] = [];
@@ -154,7 +155,7 @@ async function readBody(request: Request, limit: number): Promise<string | null>
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
 
-function retryAfterHeader(value: string | null): number | null {
+export function retryAfterHeader(value: string | null): number | null {
   if (value === null) return null;
   const seconds = Number(value);
   if (!Number.isFinite(seconds) || seconds < 0) return null;
@@ -290,7 +291,10 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       });
     }
 
-    const body = JSON.stringify(buildSystemOneRequest(observation, model));
+    const question = buildSystemOneRequest(observation, model);
+    const body = JSON.stringify(question);
+    // Identifies exactly what was asked without storing it in the trace.
+    const questionHash = canonicalHash(question);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const started = now();
@@ -418,6 +422,7 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
         Number.isInteger(outputTokens)
           ? { inputTokens, outputTokens }
           : null,
+      questionHash,
     };
     return json(200, decision);
   };

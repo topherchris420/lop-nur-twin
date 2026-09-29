@@ -39,6 +39,10 @@ const CONTROL_LAYER = [
   "src/game/pilot/places.ts",
   "src/game/pilot/policies.ts",
   "src/game/pilot/debrief.ts",
+  "src/game/pilot/brain.ts",
+  "src/game/pilot/llmDecision.ts",
+  "src/game/pilot/staleness.ts",
+  "src/game/pilot/outcomes.ts",
   "src/game/player/eliteAssist.ts",
 ];
 

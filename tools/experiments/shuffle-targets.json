@@ -1,0 +1,72 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "shuffle-targets-v1",
+  "question": "Is a brain's preference for TARGET_0 a preference for that enemy (nearest the crosshair) or for the first option shown?",
+  "hypothesis": "Shuffling the target list leaves a crosshair-nearest preference visible in the enemies chosen but not in the slot index; a first-option preference keeps choosing slot 0.",
+  "independentVariable": "targetOrder",
+  "primaryMetric": "first_slot_share",
+  "secondaryMetrics": [
+    "target_kill_rate_next_window",
+    "success_rate",
+    "decision_count"
+  ],
+  "decisionType": "threat-priority/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "marksman-nearest",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman",
+      "targetOrder": "nearest"
+    },
+    {
+      "id": "marksman-shuffled",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman",
+      "targetOrder": "shuffled"
+    },
+    {
+      "id": "random-nearest",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "targetOrder": "nearest"
+    },
+    {
+      "id": "random-shuffled",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "targetOrder": "shuffled"
+    },
+    {
+      "id": "jev-nearest",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places",
+      "targetOrder": "nearest"
+    },
+    {
+      "id": "jev-shuffled",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places",
+      "targetOrder": "shuffled"
+    }
+  ],
+  "controls": [
+    "random-nearest"
+  ],
+  "notes": "The marksman always names slot 0, so under shuffling it names a random listed enemy: it is the check that the shuffle reaches the choice. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

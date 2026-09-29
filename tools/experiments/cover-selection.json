@@ -1,0 +1,57 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "cover-selection-v1",
+  "question": "When a decision system chooses between places, does it choose ones that keep the seat out of enemy sight?",
+  "hypothesis": "A brain that uses the places' facts (hidden, route exposure) spends a smaller share of the following five seconds in an enemy's sight line than a random chooser offered the same places through the same navigator. If it does not, the choice of place is not what reduces exposure here.",
+  "independentVariable": "brain",
+  "primaryMetric": "exposure_fraction_next_window",
+  "secondaryMetrics": [
+    "damage_taken_next_window",
+    "death_rate_next_window",
+    "success_rate",
+    "place_reached_rate",
+    "first_slot_share",
+    "decision_count"
+  ],
+  "decisionType": "cover-selection/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "calibrationField": "probability",
+  "notes": "The navigator walks wherever it is told and never chooses; the place is the brain's. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

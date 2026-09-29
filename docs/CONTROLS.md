@@ -67,8 +67,10 @@ analyst note, the tags and the measurement path are never placed in a URL — se
 [`docs/THREAT_MODEL.md`](THREAT_MODEL.md).
 
 Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?near=`, for the
-player brains `?brain=`, `?policy=`, `?jevControl=`, `?jevNav=`, `?placeOrder=`, `?seat=`, `?seed=`,
-`?fallback=`, `?trace=`, `?record=`, and for experiments with local brains
-`?cadence=` and `?latency=`; for a human `?playerProfile=` and `?eliteRecoil=`);
+player brains `?brain=` (`human`, `jev`, `llm`, `random`, `script`, `replay`), `?policy=`, `?jevControl=`, `?jevNav=`, `?placeOrder=`,
+`?targetOrder=`, `?seat=`, `?seed=`, `?fallback=`, `?trace=`, `?record=`; for
+evaluations `?stale=strict|observe`, `?motor=standard|degraded` and
+`?outcomeWindow=`; for experiments with local brains `?cadence=` and
+`?latency=`; for a human `?playerProfile=` and `?eliteRecoil=`);
 they are listed in [`docs/BLACKSITE.md`](BLACKSITE.md). In Blacksite, `H` takes
 control back from a brain; the `H` above is the twin's help overlay.

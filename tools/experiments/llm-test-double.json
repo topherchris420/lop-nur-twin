@@ -1,0 +1,43 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "llm-test-double-v1",
+  "question": "Does the LLM seat's whole pipeline — endpoint, adapter, validation, revalidation, records, ledger, calibration — produce a complete evaluation when a model sits behind it?",
+  "hypothesis": "A blind test double that picks uniformly among the offered options and writes a random confidence should score like the random brain on every decision metric and show no calibration (its confidence carries no information). If it does not, the pipeline, not a model, is doing something.",
+  "independentVariable": "brain",
+  "primaryMetric": "success_rate",
+  "secondaryMetrics": [
+    "decisions_per_minute",
+    "decision_latency_ms",
+    "world_changed_rate",
+    "harmful_rate"
+  ],
+  "decisionType": "engage-disengage/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 60,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "llm-test-double",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places",
+      "fakeLlm": true
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "calibrationField": "confidence",
+  "notes": "Calls no model and spends nothing: the double is tools/fake-llm.mjs, served on its own port. Its numbers are a pipeline check, never a language model's."
+}

@@ -460,21 +460,45 @@ function criteria<A extends Axis>(
   return out;
 }
 
+/**
+ * The words of one decision's question, independent of who is asked: the
+ * shared context, the rendered state, and per asked axis the question and the
+ * description of every offered option. Jev's request and the LLM prompt
+ * (`server/llm/prompt.ts`) are both built from this, so the two brains read the
+ * same text; only the envelope differs.
+ */
+export interface QuestionParts {
+  context: string;
+  state: Record<string, unknown>;
+  questions: Partial<Record<Axis, { question: string; options: Record<string, string> }>>;
+}
+
+export function questionParts(obs: JevObservation): QuestionParts {
+  const questions: QuestionParts["questions"] = {};
+  for (const axis of askedAxes(obs.legal)) {
+    questions[axis] = {
+      question: QUESTIONS[axis],
+      options: criteria(axis, obs.legal[axis]),
+    };
+  }
+  return { context: context(obs), state: renderState(obs), questions };
+}
+
 /** The complete TypeSafe request for one decision. The server owns every word. */
 export function buildSystemOneRequest(
   obs: JevObservation,
   model: string,
 ): SystemOneRequest {
-  const shared = context(obs);
+  const parts = questionParts(obs);
   const question = (axis: Axis): SystemOneRequest["questions"][Axis] => ({
     type: "choice",
-    instructions: { context: shared, question: QUESTIONS[axis] },
-    criteria: criteria(axis, obs.legal[axis]),
+    instructions: { context: parts.context, question: parts.questions[axis]!.question },
+    criteria: parts.questions[axis]!.options,
   });
   // Every asked axis goes in one request: TypeSafe evaluates them in parallel
   // against the same state, so six questions cost barely more time than one.
   // An axis with a single legal option is not a question and is not sent.
   const questions: SystemOneRequest["questions"] = {};
   for (const axis of askedAxes(obs.legal)) questions[axis] = question(axis);
-  return { model, state: renderState(obs), questions };
+  return { model, state: parts.state, questions };
 }

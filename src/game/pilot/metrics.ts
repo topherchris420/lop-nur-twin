@@ -33,6 +33,14 @@ export interface DecisionCounters {
   rateLimited: number;
   unavailable: number;
   aborted: number;
+  /** The model declined to answer. */
+  refused: number;
+  /** Decisions that reached execution with something the brain was shown changed. */
+  worldChanged: number;
+  /** Refused at execution under the strict policy: part of the choice had become illegal. */
+  rejectedStale: number;
+  /** Executed although part of the choice was illegal (the observe policy only). */
+  executedIllegal: number;
 }
 
 /** Mean, median, 95th percentile and count of a sample set; nulls with no samples. */
@@ -149,6 +157,12 @@ export interface EpisodeMetrics {
   debrief?: DebriefSummary;
   /** Null unless the navigator was asked to go somewhere. */
   places: PlaceMetrics | null;
+  /**
+   * Enemy rounds fired while that enemy held a sight line to the seat, and
+   * rounds that damaged the seat. A proxy for how often opponents hit: a round
+   * in the seat's line may have been meant for someone else.
+   */
+  opponent: { roundsInSight: number; hitsOnSeat: number };
   raw?: RawSamples;
 }
 
@@ -207,6 +221,10 @@ export function emptyCounters(): DecisionCounters {
     rateLimited: 0,
     unavailable: 0,
     aborted: 0,
+    refused: 0,
+    worldChanged: 0,
+    rejectedStale: 0,
+    executedIllegal: 0,
   };
 }
 
@@ -279,6 +297,8 @@ export class PilotMetrics {
   placesChosen = 0;
   placesByKind: Record<string, number> = {};
   placeReleases: Record<string, number> = {};
+  opponentRoundsInSight = 0;
+  opponentHitsOnSeat = 0;
   private raw = emptyRaw();
   private histogram = emptyHistogram();
   private latencies: number[] = [];
@@ -336,6 +356,8 @@ export class PilotMetrics {
     this.placesChosen = 0;
     this.placesByKind = {};
     this.placeReleases = {};
+    this.opponentRoundsInSight = 0;
+    this.opponentHitsOnSeat = 0;
     this.raw = emptyRaw();
     this.startWall = wallNow;
     this.baseKills = kills;
@@ -547,6 +569,10 @@ export class PilotMetrics {
               travelS: distribution(this.raw.travel),
             }
           : null,
+      opponent: {
+        roundsInSight: this.opponentRoundsInSight,
+        hitsOnSeat: this.opponentHitsOnSeat,
+      },
       raw: JSON.parse(JSON.stringify(this.raw)) as RawSamples,
     };
   }

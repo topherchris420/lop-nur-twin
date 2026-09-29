@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { MoveLeft } from "lucide-react";
+import { FileSearch, MoveLeft } from "lucide-react";
 import { GameScene } from "@/game/GameScene";
 import { GameHud } from "@/game/hud/GameHud";
 import { useGameStore } from "@/game/core/gameStore";
@@ -53,6 +53,15 @@ function Play() {
           >
             <MoveLeft className="size-3" aria-hidden="true" />
             Return to the analytical twin
+          </Link>
+        )}
+        {screen === "menu" && (
+          <Link
+            to="/evaluation"
+            className="pointer-events-auto inline-flex cursor-pointer items-center gap-1.5 rounded border border-white/15 bg-[#0b0e14]/80 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-slate-200 uppercase backdrop-blur-sm hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+          >
+            <FileSearch className="size-3" aria-hidden="true" />
+            Evaluations of the seat
           </Link>
         )}
       </div>

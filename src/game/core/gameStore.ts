@@ -11,6 +11,8 @@ import {
 import { SCRIPT_POLICIES, type ScriptPolicy } from "../pilot/policies";
 import { SEAT_RULES, type SeatRules } from "./combat";
 import { PLACE_ORDERS, type PlaceOrder } from "../pilot/places";
+import { MOTOR_PROFILES, type MotorProfile } from "../pilot/motor";
+import { STALE_POLICIES, type StalePolicy } from "../pilot/staleness";
 
 /**
  * Discrete game state for React. Anything that changes every frame belongs in
@@ -21,13 +23,15 @@ import { PLACE_ORDERS, type PlaceOrder } from "../pilot/places";
 /**
  * Who controls the player. `human` is the keyboard and mouse; the others are
  * brains that drive the same input through `src/game/pilot/` — the TypeSafe
- * Jev model, a seeded random baseline, or a recorded trace played back.
+ * Jev model, a conventional LLM behind `/api/llm/decision`, a seeded random
+ * baseline, a scripted policy, or a recorded trace played back.
  */
-export type BrainKind = "human" | "jev" | "random" | "script" | "replay";
+export type BrainKind = "human" | "jev" | "llm" | "random" | "script" | "replay";
 
 export const BRAIN_KINDS: readonly BrainKind[] = [
   "human",
   "jev",
+  "llm",
   "random",
   "script",
   "replay",
@@ -210,6 +214,24 @@ interface GameStoreState {
    * option it is shown.
    */
   placeOrder: PlaceOrder;
+  /**
+   * `?targetOrder=nearest|shuffled`: the same test for the target slots. Nearest
+   * the crosshair first is the default; shuffled lists the same enemies in a
+   * seeded random order.
+   */
+  targetOrder: PlaceOrder;
+  /**
+   * `?stale=strict|observe`: what happens to a decision part of which is no
+   * longer legal when it reaches execution. Strict (the default) refuses the
+   * whole frame — fail closed; observe executes it anyway and records that it
+   * did, which is how the seat behaved before 29 September 2026 and is kept
+   * only to measure the difference.
+   */
+  stalePolicy: StalePolicy;
+  /** `?motor=standard|degraded`: the precision controller's hand. See `MOTOR_SKILL`. */
+  motorProfile: MotorProfile;
+  /** `?outcomeWindow=<s>`: seconds each decision's outcome window runs, 1–30. Default 5. */
+  outcomeWindowS: number;
   /** `?playerProfile=standard|elite` — Elite Operator for the human. */
   playerProfile: PlayerProfile;
   setPlayerProfile: (profile: PlayerProfile) => void;
@@ -236,7 +258,7 @@ function initialMode(): GameModeId {
 }
 
 /**
- * `?brain=human|jev|random|replay` picks who controls the player; anything else
+ * `?brain=human|jev|llm|random|script|replay` picks who controls the player; anything else
  * — including a missing parameter — is the human, exactly as before. It never
  * changes `?autoplay`, which still only decides whether the menus are skipped.
  */
@@ -348,6 +370,10 @@ export const useGameStore = create<GameStoreState>()((set) => ({
   jevNav: readEnumParam<NavigationMode>("jevNav", NAVIGATION_MODES) ?? "places",
   setJevNav: (jevNav) => set({ jevNav }),
   placeOrder: readEnumParam<PlaceOrder>("placeOrder", PLACE_ORDERS) ?? "nearest",
+  targetOrder: readEnumParam<PlaceOrder>("targetOrder", PLACE_ORDERS) ?? "nearest",
+  stalePolicy: readEnumParam<StalePolicy>("stale", STALE_POLICIES) ?? "strict",
+  motorProfile: readEnumParam<MotorProfile>("motor", MOTOR_PROFILES) ?? "standard",
+  outcomeWindowS: readIntParam("outcomeWindow", 1, 30) ?? 5,
   playerProfile:
     readEnumParam<PlayerProfile>("playerProfile", PLAYER_PROFILES) ?? "standard",
   setPlayerProfile: (playerProfile) => set({ playerProfile }),
