@@ -5,6 +5,14 @@
  *   node tools/jev-benchmark.mjs --brain random --control direct [--episodes 3] [--seconds 90]
  *   node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
  *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --control precision --episodes 3
+ *   LLM_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain llm --control precision --seeds 42,43,44
+ *
+ * `--seeds 42,43,50` runs exactly those seeds; otherwise `--seed` and
+ * `--episodes` run consecutive ones. `--run-id` prefixes every episode's run
+ * id. Each episode's decision records (`blacksite-decision/v1`) and its trace
+ * are written beside the report as `<report>.seed<N>.eval.json` and
+ * `<report>.seed<N>.trace.jsonl`, and the report names them, so every number
+ * in it can be followed back to the decisions it came from.
  *
  * `--control direct|precision` is required, and every report names it. In
  * `precision` the brain chooses a target and an aim region and the local
@@ -64,9 +72,19 @@ if (extraQuery && !/^[A-Za-z0-9_=&.,-]+$/.test(extraQuery)) {
   process.exit(2);
 }
 const control = option("control", "");
-const episodes = Number(option("episodes", "3"));
+const seedList = option("seeds", null);
+const seeds = seedList
+  ? seedList.split(",").map((s) => Number(s.trim()))
+  : Array.from(
+      { length: Number(option("episodes", "3")) },
+      (_, i) => Number(option("seed", "42")) + i,
+    );
+const episodes = seeds.length;
 const seconds = Number(option("seconds", "90"));
-const baseSeed = Number(option("seed", "42"));
+const runIdPrefix = option("run-id", `${brain}-${Date.now().toString(36)}`);
+// Marks an LLM run as the offline test double (tools/fake-llm.mjs); its origin
+// must be a dev server wired to that double. Never set for a real model.
+const fakeLlm = flag("fake-llm");
 const mode = option("mode", "tdm");
 const origin =
   process.argv.slice(2).find((a) => a.startsWith("http")) ?? "http://localhost:5173";
@@ -75,8 +93,12 @@ const out = option(
   `shots/jev-benchmark-${brain}${brain === "script" ? `-${policy}` : ""}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 
-if (!["random", "jev", "script"].includes(brain)) {
-  console.error("--brain must be random, script or jev");
+if (!["random", "jev", "llm", "script"].includes(brain)) {
+  console.error("--brain must be random, script, jev or llm");
+  process.exit(2);
+}
+if (seeds.some((s) => !Number.isInteger(s) || s < 0)) {
+  console.error("--seeds takes non-negative integers joined by commas");
   process.exit(2);
 }
 if (!["direct", "precision"].includes(control)) {
@@ -92,9 +114,34 @@ if (brain === "jev" && process.env.JEV_LIVE_TEST !== "1") {
   );
   process.exit(2);
 }
+if (brain === "llm" && !fakeLlm && process.env.LLM_LIVE_TEST !== "1") {
+  console.error(
+    "--brain llm calls a paid model API and spends credit.\n" +
+      "Set LLM_LIVE_TEST=1 to confirm, and start the dev server with LLM_PROVIDER and LLM_API_KEY set.",
+  );
+  process.exit(2);
+}
 if (!Number.isInteger(episodes) || episodes < 1 || !(seconds > 0)) {
   console.error("--episodes must be a positive integer and --seconds positive");
   process.exit(2);
+}
+
+if (brain === "llm") {
+  const status = await fetch(`${origin}/api/llm/decision`)
+    .then((r) => r.json())
+    .catch(() => null);
+  if (!status?.configured) {
+    console.error(
+      `The LLM service at ${origin} is not configured: ${JSON.stringify(status)}`,
+    );
+    process.exit(2);
+  }
+  if (fakeLlm !== (status.model === "fake-llm-test-double")) {
+    console.error(
+      `--fake-llm ${fakeLlm ? "was" : "was not"} given but the server's model is ${status.model}; refusing to mislabel the run.`,
+    );
+    process.exit(2);
+  }
 }
 
 if (brain === "jev") {
@@ -118,7 +165,7 @@ let aggregatePage = null;
 
 try {
   for (let i = 0; i < episodes; i += 1) {
-    const seed = baseSeed + i;
+    const seed = seeds[i];
     const { page, errors } = await openPlay(
       browser,
       origin,
@@ -175,6 +222,16 @@ try {
     const raw = metrics.raw;
     delete metrics.raw;
     const lastError = await page.evaluate(() => globalThis.__jev.telemetry.lastError);
+    // The decision records and the trace, for the evaluation and for anyone
+    // who wants to check a number against the decisions behind it.
+    const evaluation = await page.evaluate(() => globalThis.__jev.evaluation());
+    const trace = await page.evaluate(() => globalThis.__jev.exportTrace());
+    const stem = out.replace(/\.json$/, "");
+    const evalFile = `${stem}.seed${seed}.eval.json`;
+    const traceFile = `${stem}.seed${seed}.trace.jsonl`;
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(evalFile, `${JSON.stringify(evaluation)}\n`);
+    writeFileSync(traceFile, trace);
     const samples = await page.evaluate(() => globalThis.__jev.samples());
     latency.push(...samples.latency);
     serverLatency.push(...samples.serverLatency);
@@ -209,7 +266,17 @@ try {
     rawSamples.push(raw);
     results.push({
       episode: i + 1,
+      runId: `${runIdPrefix}-s${seed}`,
       seed,
+      artifacts: { decisions: evalFile, trace: traceFile },
+      brainDescriptor: evaluation.brain,
+      testDouble: fakeLlm,
+      interface: {
+        ...(evaluation.interface ?? {}),
+        stale: evaluation.stale,
+        motor: evaluation.motor,
+        outcomeWindowS: evaluation.outcomeWindowS,
+      },
       simSecondsRequested: seconds,
       simSeconds: ran,
       wallSeconds: wall,
@@ -267,6 +334,8 @@ try {
     tool: "tools/jev-benchmark.mjs",
     brain,
     policy: brain === "script" ? policy : null,
+    testDouble: fakeLlm,
+    seeds,
     query: extraQuery || null,
     control,
     controlNote:

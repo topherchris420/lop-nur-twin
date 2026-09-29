@@ -31,9 +31,11 @@ const browserFiles = walk(join(ROOT, "src")).filter(
 const read = (path: string): string => readFileSync(path, "utf8");
 
 describe("credential boundary", () => {
-  it("no browser module mentions the key or a VITE_ copy of it", () => {
+  it("no browser module mentions a key or a VITE_ copy of one", () => {
     const offenders = browserFiles.filter((path) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE/.test(read(path)),
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE|LLM_API_KEY|VITE_LLM_|import\.meta\.env\.LLM_/.test(
+        read(path),
+      ),
     );
     expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
   });
@@ -65,9 +67,32 @@ describe("credential boundary", () => {
     expect(readers).toEqual(["api/jev/decision.ts", "vite.config.ts"]);
   });
 
+  it("the LLM key is read only by its server-side entry points", () => {
+    const readers = [...walk(join(ROOT, "server")), ...walk(join(ROOT, "api"))]
+      .concat([join(ROOT, "vite.config.ts")])
+      .filter((path) => !/\.test\.ts$/.test(path))
+      .filter((path) =>
+        /(?:process\.env|env)\[\s*["']LLM_API_KEY["']\s*\]|process\.env\.LLM_API_KEY/.test(
+          read(path),
+        ),
+      )
+      .map((path) => relative(ROOT, path))
+      .sort();
+    expect(readers).toEqual(["api/llm/decision.ts", "vite.config.ts"]);
+  });
+
+  it("the SDK that talks to a provider is imported only on the server", () => {
+    const offenders = browserFiles.filter((path) =>
+      /@anthropic-ai\/sdk/.test(read(path)),
+    );
+    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+  });
+
   it("the committed example environment file carries no value", () => {
     const example = read(join(ROOT, ".env.example"));
     const line = example.split("\n").find((l) => l.startsWith("TYPESAFE_API_KEY="));
     expect(line).toBe("TYPESAFE_API_KEY=");
+    const llm = example.split("\n").find((l) => l.startsWith("LLM_API_KEY="));
+    expect(llm).toBe("LLM_API_KEY=");
   });
 });

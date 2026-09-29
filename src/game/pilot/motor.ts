@@ -112,6 +112,46 @@ export const MOTOR = {
   settledSpeed: 0.7,
 } as const;
 
+/**
+ * The parts of `MOTOR` that describe the hand rather than the rules: how fast
+ * and how steadily it turns, how late it sees, how much recoil it has learned.
+ * `standard` is `MOTOR` itself. `degraded` is a deliberately worse hand —
+ * slower, later, shakier, half the recoil learned — so an ablation can ask how
+ * much of a result the controller's skill carried (`?motor=degraded`). The fire
+ * gate's rules, the binding rules and what it may sense are identical under
+ * both: a profile changes skill, never authority.
+ */
+export interface MotorSkill {
+  maxRateDegS: number;
+  maxRateAdsDegS: number;
+  maxAccelDegS2: number;
+  perceptionDelayS: number;
+  tremorDeg: number;
+  recoilLearned: number;
+}
+
+export const MOTOR_PROFILES = ["standard", "degraded"] as const;
+export type MotorProfile = (typeof MOTOR_PROFILES)[number];
+
+export const MOTOR_SKILL: Readonly<Record<MotorProfile, MotorSkill>> = {
+  standard: {
+    maxRateDegS: MOTOR.maxRateDegS,
+    maxRateAdsDegS: MOTOR.maxRateAdsDegS,
+    maxAccelDegS2: MOTOR.maxAccelDegS2,
+    perceptionDelayS: MOTOR.perceptionDelayS,
+    tremorDeg: MOTOR.tremorDeg,
+    recoilLearned: MOTOR.recoilLearned,
+  },
+  degraded: {
+    maxRateDegS: 240,
+    maxRateAdsDegS: 140,
+    maxAccelDegS2: 1400,
+    perceptionDelayS: 0.15,
+    tremorDeg: 0.25,
+    recoilLearned: 0.5,
+  },
+};
+
 const DEG = Math.PI / 180;
 const RAD = 180 / Math.PI;
 const G = 9.81;
@@ -323,6 +363,9 @@ export class PrecisionMotorController {
     stabilizing: false,
   };
 
+  /** The hand's skill; see `MOTOR_SKILL`. Set before a seat starts, never mid-binding. */
+  skill: MotorSkill = MOTOR_SKILL.standard;
+
   constructor(seed = 0x6a09e667) {
     this.tremor = mulberry32(seed >>> 0);
   }
@@ -436,8 +479,8 @@ export class PrecisionMotorController {
    */
   onShot(kickDeg: { pitch: number; yaw: number }): number {
     if (!this.binding) return 0;
-    const pitch = -kickDeg.pitch * MOTOR.recoilLearned;
-    const yaw = -kickDeg.yaw * MOTOR.recoilLearned;
+    const pitch = -kickDeg.pitch * this.skill.recoilLearned;
+    const yaw = -kickDeg.yaw * this.skill.recoilLearned;
     this.pendingPitch += pitch;
     this.pendingYaw += yaw;
     this.burstRounds += 1;
@@ -541,7 +584,7 @@ export class PrecisionMotorController {
     // The newest sample the delay allows, carried forward by the estimated
     // velocity. During the sight-loss grace the last sample is extrapolated —
     // nothing is read from the body while it is out of sight.
-    const delayed = this.delayedSample(bound, sense.now - MOTOR.perceptionDelayS);
+    const delayed = this.delayedSample(bound, sense.now - this.skill.perceptionDelayS);
     const sampleAge = Math.max(0, sense.now - delayed.t);
     const flight =
       sense.weapon &&
@@ -568,10 +611,10 @@ export class PrecisionMotorController {
 
     /* -------------------------------------------------- tremor */
     this.tremorYaw +=
-      ((this.tremor() - 0.5) * 2 * MOTOR.tremorDeg - this.tremorYaw) *
+      ((this.tremor() - 0.5) * 2 * this.skill.tremorDeg - this.tremorYaw) *
       Math.min(1, dt * 6);
     this.tremorPitch +=
-      ((this.tremor() - 0.5) * 2 * MOTOR.tremorDeg - this.tremorPitch) *
+      ((this.tremor() - 0.5) * 2 * this.skill.tremorDeg - this.tremorPitch) *
       Math.min(1, dt * 6);
 
     /* ------------------------------------------------- control */
@@ -598,14 +641,18 @@ export class PrecisionMotorController {
     const errorYaw = yawDelta(currentYaw, desiredYaw) * RAD - this.pendingYaw;
     const errorPitch = (desiredPitch - currentPitch) * RAD - this.pendingPitch;
     const ads = sense.weapon?.ads ?? 0;
-    const maxRate = THREE.MathUtils.lerp(MOTOR.maxRateDegS, MOTOR.maxRateAdsDegS, ads);
+    const maxRate = THREE.MathUtils.lerp(
+      this.skill.maxRateDegS,
+      this.skill.maxRateAdsDegS,
+      ads,
+    );
     this.rateYaw = axisRate(
       errorYaw,
       bound.omegaYaw,
       this.rateYaw,
       dt,
       maxRate,
-      MOTOR.maxAccelDegS2,
+      this.skill.maxAccelDegS2,
     );
     this.ratePitch = axisRate(
       errorPitch,
@@ -613,7 +660,7 @@ export class PrecisionMotorController {
       this.ratePitch,
       dt,
       maxRate * 0.7,
-      MOTOR.maxAccelDegS2 * 0.7,
+      this.skill.maxAccelDegS2 * 0.7,
     );
     const recoilBlend = 1 - Math.exp(-dt / MOTOR.recoilTauS);
     const counterYaw = this.pendingYaw * recoilBlend;

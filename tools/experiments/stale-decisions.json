@@ -1,0 +1,80 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "stale-decisions-v1",
+  "question": "When the world changes while a slow brain decides, how often does its answer arrive illegal, and what does refusing it (fail closed) cost against executing it anyway?",
+  "hypothesis": "The share of answers that are illegal at execution grows with latency. Under the strict policy none executes; under observe they do. If refusing them costs outcomes, the refusal rate matters; if it does not, fail-closed is free here.",
+  "independentVariable": "stale",
+  "primaryMetric": "illegal_executed_rate",
+  "secondaryMetrics": [
+    "stale_rejection_rate",
+    "world_changed_rate",
+    "age_at_execution_ms",
+    "deaths_per_minute",
+    "success_rate"
+  ],
+  "decisionType": "engage-disengage/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "random-strict-250",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 250,
+      "stale": "strict"
+    },
+    {
+      "id": "random-observe-250",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 250,
+      "stale": "observe"
+    },
+    {
+      "id": "random-strict-1000",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 1000,
+      "stale": "strict"
+    },
+    {
+      "id": "random-observe-1000",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 1000,
+      "stale": "observe"
+    },
+    {
+      "id": "skirmisher-strict-1000",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher",
+      "latencyMs": 1000,
+      "stale": "strict"
+    },
+    {
+      "id": "skirmisher-observe-1000",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher",
+      "latencyMs": 1000,
+      "stale": "observe"
+    }
+  ],
+  "controls": [
+    "random-strict-250"
+  ],
+  "notes": "Random changes stance and jumps often, so its answers are the likeliest to be overtaken by its own previous frame; the skirmisher rarely does. Observe is the pre-29-September behaviour, kept only to measure this."
+}

@@ -1,6 +1,8 @@
 import {
   CONTROL_MODES,
+  MAX_DECISION_AGE_MS,
   MIN_DECISION_INTERVAL_MS,
+  REQUEST_TIMEOUT_MS,
   NAVIGATION_MODES,
   type ControlMode,
   type NavigationMode,
@@ -45,6 +47,17 @@ export interface Capabilities {
   /** It reads rendered frames. No brain does yet, and the host offers none. */
   vision: boolean;
   observations: readonly ObservationFormat[];
+  /**
+   * How long the loop waits for an answer, and the oldest observation an
+   * answer may be about. Omitted means the contract's 2.2 s and 1.5 s. A brain
+   * that needs longer declares it; the host caps it; the negotiated values are
+   * recorded with every result, because a brain allowed to answer late is
+   * being judged under different rules — and the execution-time revalidation
+   * (`staleness.ts`) still refuses a late answer whose choice has become
+   * illegal.
+   */
+  requestTimeoutMs?: number;
+  maxDecisionAgeMs?: number;
 }
 
 /**
@@ -61,6 +74,9 @@ export const HOST_CAPABILITIES: Capabilities = {
   memory: false,
   vision: false,
   observations: ["structured-v3"],
+  // The longest the host will wait for, or accept, an answer.
+  requestTimeoutMs: 15_000,
+  maxDecisionAgeMs: 15_000,
 };
 
 /**
@@ -77,6 +93,28 @@ export const JEV_CAPABILITIES: Capabilities = {
   memory: false,
   vision: false,
   observations: ["structured-v3"],
+};
+
+/**
+ * A conventional LLM behind `/api/llm/decision`. The server builds it the
+ * same question Jev gets for every interface, so it is offered the same ones;
+ * its cadence is bound by its own latency (typically far above Jev's), with
+ * one request in flight, exactly as for Jev. It has no memory beyond the
+ * observation: each request is a fresh conversation.
+ */
+export const LLM_CAPABILITIES: Capabilities = {
+  control: ["precision", "direct"],
+  navigation: ["places", "steps"],
+  minIntervalMs: MIN_DECISION_INTERVAL_MS,
+  inference: "remote",
+  memory: false,
+  vision: false,
+  observations: ["structured-v3"],
+  // A conventional LLM answers in seconds, not Jev's ~200 ms: under the
+  // contract's 1.5 s age limit it would never act. These are its limits, and
+  // they are the most important stated difference between the two seats.
+  requestTimeoutMs: 12_000,
+  maxDecisionAgeMs: 12_000,
 };
 
 /** The seeded random policy and the scripted policies run in the page. */
@@ -102,6 +140,9 @@ export interface Negotiated {
   navigation: NavigationMode;
   intervalMs: number;
   inference: "local" | "remote";
+  /** The loop's request timeout and maximum answer age, after the host's caps. */
+  requestTimeoutMs: number;
+  maxDecisionAgeMs: number;
   /** Every place a request was not granted as asked, in words. */
   notes: string[];
 }
@@ -153,11 +194,26 @@ export function negotiate(
   const wanted = request.intervalMs ?? MIN_DECISION_INTERVAL_MS;
   if (wanted < floor)
     notes.push(`interval ${wanted} ms below the floor; using ${floor} ms`);
+  const cap = (
+    wantedMs: number | undefined,
+    fallback: number,
+    hostMax: number | undefined,
+  ): number => Math.min(wantedMs ?? fallback, hostMax ?? fallback);
   return {
     control,
     navigation,
     intervalMs: Math.max(floor, wanted),
     inference: brain.inference,
+    requestTimeoutMs: cap(
+      brain.requestTimeoutMs,
+      REQUEST_TIMEOUT_MS,
+      host.requestTimeoutMs,
+    ),
+    maxDecisionAgeMs: cap(
+      brain.maxDecisionAgeMs,
+      MAX_DECISION_AGE_MS,
+      host.maxDecisionAgeMs,
+    ),
     notes,
   };
 }

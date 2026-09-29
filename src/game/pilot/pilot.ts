@@ -32,7 +32,9 @@ import {
 } from "./contract";
 import { aimRegionGeometry } from "./hitGeometry";
 import {
+  MOTOR_SKILL,
   PrecisionMotorController,
+  type MotorProfile,
   type MotorBody,
   type MotorSense,
   type MotorTelemetry,
@@ -48,7 +50,7 @@ import {
   type LoopEvent,
 } from "./loop";
 import { PilotMetrics, type EpisodeMetrics } from "./metrics";
-import type { PreviousOutcome } from "./observation";
+import type { JevObservation, PreviousOutcome } from "./observation";
 import { Perception, sightOf } from "./perception";
 import { Debrief, type EnemySample } from "./debrief";
 import { PlaceNavigator, type NavSense, type NavTelemetry } from "./navigator";
@@ -56,11 +58,22 @@ import type { FoundPlace } from "./places";
 import {
   DelayedProvider,
   JevHttpProvider,
+  LLM_DECISION_ENDPOINT,
+  LlmHttpProvider,
   RandomProvider,
   newSessionId,
   probeJevService,
   type JevServiceStatus,
 } from "./providers";
+import { confidenceFromAxes, localAccounting, type BrainDescriptor } from "./brain";
+import { revalidate, type StalePolicy } from "./staleness";
+import { OutcomeTracker } from "./outcomes";
+import {
+  DECISION_RECORD_VERSION,
+  contextOf,
+  type DecisionRecord,
+  type FailureRecord,
+} from "../eval/records";
 import {
   TraceRecorder,
   hashObservation,
@@ -71,6 +84,7 @@ import {
 import { ScriptedProvider, type ScriptPolicy } from "./policies";
 import {
   JEV_CAPABILITIES,
+  LLM_CAPABILITIES,
   LOCAL_POLICY_CAPABILITIES,
   negotiate,
   type Capabilities,
@@ -110,7 +124,7 @@ export type PilotStatus =
 
 /** Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer. */
 export type ControlLabel =
-  "HUMAN" | "LIVE JEV" | "RANDOM" | "SCRIPTED" | "REPLAY" | "FALLBACK";
+  "HUMAN" | "LIVE JEV" | "LIVE LLM" | "RANDOM" | "SCRIPTED" | "REPLAY" | "FALLBACK";
 
 export interface PilotTelemetry {
   brain: BrainKind;
@@ -160,7 +174,16 @@ export interface BrainOptions {
   intervalMs: number | null;
   /** Injected answer delay for a local brain, ms. Never applied to Jev. */
   latencyMs: number;
+  /** What happens to a frame part of which is illegal at execution. */
+  stale: StalePolicy;
+  /** The precision controller's hand. */
+  motor: MotorProfile;
+  /** Seconds each decision's outcome window runs. */
+  outcomeWindowS: number;
 }
+
+/** Decision and failure records kept per episode for the evaluation. */
+const MAX_EVAL_RECORDS = 6000;
 
 const TICK_MS = 50;
 const RESPAWN_BANNER_MS = 1200;
@@ -193,6 +216,11 @@ interface Pending {
   record: TraceRecord | null;
   /** Wall time the decision was accepted, for the execution-latency figure. */
   receivedAt: number;
+  /** Wall time its observation was captured, for the age at execution. */
+  issuedAt: number;
+  /** The evaluation record, when the decision came from a brain (not replay). */
+  evalRecord: DecisionRecord | null;
+  observation: JevObservation | null;
 }
 
 /** Slot → entity maps kept for this many recent observations. */
@@ -229,6 +257,20 @@ class Pilot {
   readonly metrics = new PilotMetrics();
   /** What the seat perceived against what happened. Kept for every seat. */
   readonly debrief = new Debrief();
+  /** What the world did after each decision, for the evaluation. */
+  readonly outcomes = new OutcomeTracker(5, () => this.objectiveDistance());
+  /** This episode's decision records and failed requests. */
+  private evalRecords: DecisionRecord[] = [];
+  private evalFailures: FailureRecord[] = [];
+  /** Simulation time each observation was captured at, by sequence. */
+  private readonly captureSim = new Map<number, number>();
+  /** Who the provider says it is; filled when the seat starts. */
+  private descriptor: BrainDescriptor | null = null;
+  /** Each enemy's last fire time and whether it held a sight line to the seat, last sampled. */
+  private readonly enemyFire = new Map<EntityId, number>();
+  private readonly enemyExposed = new Map<EntityId, boolean>();
+  /** The event time of the last damaging round against the seat, to count each once. */
+  private lastTakenEventTime: number | null = null;
   private debriefDt = 0;
   readonly telemetry: PilotTelemetry = {
     brain: "human",
@@ -274,6 +316,9 @@ class Pilot {
     navigation: "steps",
     intervalMs: null,
     latencyMs: 0,
+    stale: "strict",
+    motor: "standard",
+    outcomeWindowS: 5,
   };
   /** The interface the seat is actually running, after negotiation. */
   private negotiated: Negotiated | null = null;
@@ -347,6 +392,7 @@ class Pilot {
       onGo: (kind) => this.metrics.onPlaceChosen(kind),
       onRelease: (reason, kind, seconds) => {
         this.metrics.onPlaceReleased(reason, seconds);
+        this.outcomes.travelEnded(reason);
         this.recorder.event({
           kind: "travel_ended",
           sequence: null,
@@ -513,7 +559,10 @@ class Pilot {
       options.control === previous.control &&
       options.navigation === previous.navigation &&
       options.intervalMs === previous.intervalMs &&
-      options.latencyMs === previous.latencyMs
+      options.latencyMs === previous.latencyMs &&
+      options.stale === previous.stale &&
+      options.motor === previous.motor &&
+      options.outcomeWindowS === previous.outcomeWindowS
     ) {
       return;
     }
@@ -526,13 +575,15 @@ class Pilot {
     const capabilities: Capabilities =
       brain === "jev"
         ? JEV_CAPABILITIES
-        : brain === "replay" && options.trace
-          ? {
-              ...LOCAL_POLICY_CAPABILITIES,
-              control: [options.trace.header.control],
-              navigation: [options.trace.header.navigation],
-            }
-          : LOCAL_POLICY_CAPABILITIES;
+        : brain === "llm"
+          ? LLM_CAPABILITIES
+          : brain === "replay" && options.trace
+            ? {
+                ...LOCAL_POLICY_CAPABILITIES,
+                control: [options.trace.header.control],
+                navigation: [options.trace.header.navigation],
+              }
+            : LOCAL_POLICY_CAPABILITIES;
     const negotiated =
       brain === "human"
         ? null
@@ -560,6 +611,9 @@ class Pilot {
     this.telemetry.fallback = options.fallback;
     this.telemetry.control = options.control;
     this.telemetry.navigation = options.navigation;
+    this.motor.skill = MOTOR_SKILL[options.motor];
+    this.outcomes.windowS = options.outcomeWindowS;
+    this.descriptor = null;
 
     if (brain === "human") {
       this.stopTimer();
@@ -583,13 +637,17 @@ class Pilot {
       const inner =
         brain === "jev"
           ? new JevHttpProvider(this.session)
-          : brain === "script"
-            ? new ScriptedProvider(options.policy)
-            : new RandomProvider(options.seed);
+          : brain === "llm"
+            ? new LlmHttpProvider(this.session)
+            : brain === "script"
+              ? new ScriptedProvider(options.policy)
+              : new RandomProvider(options.seed);
+      // Latency is injected only into local brains: a remote model's is real.
       const primary =
-        brain !== "jev" && this.options.latencyMs > 0
+        local && this.options.latencyMs > 0
           ? new DelayedProvider(inner, this.options.latencyMs)
           : inner;
+      this.descriptor = inner.descriptor ?? null;
       const fallback =
         brain === "jev" && options.fallback === "random"
           ? new RandomProvider((options.seed ^ 0x9e3779b9) >>> 0)
@@ -599,13 +657,25 @@ class Pilot {
         fallback,
         clock: browserClock,
         minIntervalMs: negotiated?.intervalMs,
+        timeoutMs: negotiated?.requestTimeoutMs,
+        maxAgeMs: negotiated?.maxDecisionAgeMs,
         onDecision: (decision) => this.accept(decision),
         onEvent: (event) => this.onLoopEvent(event),
       });
     }
+    if (brain === "replay") {
+      this.descriptor = {
+        id: "replay",
+        kind: "replay",
+        provider: "local",
+        model: null,
+        capabilities: capabilities,
+        confidence: "none",
+      };
+    }
     this.beginEpisode();
     this.startTimer();
-    if (brain === "jev") this.checkService();
+    if (brain === "jev" || brain === "llm") this.checkService(brain);
   }
 
   /**
@@ -643,10 +713,11 @@ class Pilot {
     this.navigator.reset();
   }
 
-  private checkService(): void {
+  private checkService(brain: "jev" | "llm"): void {
     const controller = new AbortController();
     this.probe = controller;
-    void probeJevService(undefined, controller.signal).then((status) => {
+    const endpoint = brain === "llm" ? LLM_DECISION_ENDPOINT : undefined;
+    void probeJevService(endpoint, controller.signal).then((status) => {
       if (this.probe !== controller) return;
       this.telemetry.service = status;
       if (!status.available && this.metrics.counters.accepted === 0) {
@@ -669,6 +740,7 @@ class Pilot {
     this.lastEnded = null;
     this.lastExecutedSequence = 0;
     this.perception.reset();
+    this.resetEvaluation();
     if (this.brain !== "human") {
       this.recorder.begin({
         brain: this.brain,
@@ -681,6 +753,8 @@ class Pilot {
               intervalMs: this.negotiated.intervalMs,
               injectedLatencyMs: this.options.latencyMs,
               inference: this.negotiated.inference,
+              requestTimeoutMs: this.negotiated.requestTimeoutMs,
+              maxDecisionAgeMs: this.negotiated.maxDecisionAgeMs,
               notes: this.negotiated.notes,
             }
           : null,
@@ -691,8 +765,32 @@ class Pilot {
           typeof __BUILD_COMMIT__ === "string" && __BUILD_COMMIT__
             ? __BUILD_COMMIT__
             : null,
+        evaluation: {
+          brain: {
+            id: this.descriptor?.id ?? this.brain,
+            provider: this.descriptor?.provider ?? "unknown",
+            model: this.descriptor?.model ?? null,
+            confidence: this.descriptor?.confidence ?? "none",
+          },
+          stale: this.options.stale,
+          motor: this.options.motor,
+          placeOrder: store.placeOrder,
+          targetOrder: store.targetOrder,
+          seat: store.seatRules,
+          decisionRecordSchema: DECISION_RECORD_VERSION,
+        },
       });
     }
+  }
+
+  /** Start the evaluation records over, closing any window still open as incomplete. */
+  private resetEvaluation(): void {
+    this.outcomes.closeAll(game.time);
+    this.evalRecords = [];
+    this.evalFailures = [];
+    this.captureSim.clear();
+    this.metrics.opponentRoundsInSight = 0;
+    this.metrics.opponentHitsOnSeat = 0;
   }
 
   /** Restart the statistics from now, keeping the brain, trace and match. */
@@ -700,6 +798,7 @@ class Pilot {
     this.metrics.reset(game.player.kills, game.player.deaths, performance.now());
     this.debrief.reset();
     this.labelMetrics();
+    this.resetEvaluation();
   }
 
   /** Every statistic says which controller and profile produced it. */
@@ -774,6 +873,12 @@ class Pilot {
           travel: this.navigator.target,
         });
         this.rememberSlots(sequence);
+        this.captureSim.set(sequence, game.time);
+        if (this.captureSim.size > SLOT_MEMORY * 4) {
+          for (const key of this.captureSim.keys()) {
+            if (key <= sequence - SLOT_MEMORY * 4) this.captureSim.delete(key);
+          }
+        }
         return observation;
       },
     });
@@ -823,6 +928,7 @@ class Pilot {
     this.telemetry.latencyMs = decision.latencyMs;
     this.telemetry.serverLatencyMs = decision.serverLatencyMs;
 
+    const evalRecord = this.evalRecord(decision, source);
     const record = this.recorder.record({
       type: "decision",
       timestamp: new Date().toISOString(),
@@ -849,8 +955,11 @@ class Pilot {
     // One pending frame at most; only ever replaced by a newer one.
     if (this.pending && this.pending.sequence >= decision.sequence) {
       this.metrics.counters.stale += 1;
+      if (evalRecord) evalRecord.validation.status = "superseded";
       return;
     }
+    if (this.pending?.evalRecord)
+      this.pending.evalRecord.validation.status = "superseded";
     this.pending = {
       sequence: decision.sequence,
       frame: decision.frame,
@@ -858,7 +967,69 @@ class Pilot {
       axes: decision.axes,
       record,
       receivedAt: performance.now(),
+      issuedAt: decision.issuedAt,
+      evalRecord,
+      observation: decision.observation,
     };
+  }
+
+  /**
+   * The evaluation record for an accepted decision: what it saw, what it could
+   * choose, what it chose, with what stated confidence, at what cost. Its
+   * validation, execution and outcome sections are filled as the frame runs.
+   */
+  private evalRecord(
+    decision: AcceptedDecision,
+    source: DecisionSource,
+  ): DecisionRecord | null {
+    if (this.evalRecords.length >= MAX_EVAL_RECORDS) return null;
+    const local = decision.provider !== "jev" && decision.provider !== "llm";
+    const accounting = decision.accounting ?? {
+      ...localAccounting(),
+      provider: local || decision.fallback ? "local" : "unknown",
+      model: decision.model,
+      providerLatencyMs: decision.serverLatencyMs,
+      inputTokens: decision.usage?.inputTokens ?? null,
+      outputTokens: decision.usage?.outputTokens ?? null,
+    };
+    const record: DecisionRecord = {
+      schema: DECISION_RECORD_VERSION,
+      episodeId: this.matchId,
+      seed: this.options.seed,
+      sequence: decision.sequence,
+      source,
+      brain: decision.fallback ? "fallback-random" : (this.descriptor?.id ?? this.brain),
+      observationHash: hashObservation(decision.observation),
+      observation: decision.observation,
+      context: contextOf(decision.observation),
+      legal: decision.observation.legal,
+      frame: decision.frame,
+      confidence: decision.confidence ?? confidenceFromAxes(decision.axes),
+      accounting: {
+        ...accounting,
+        wallLatencyMs: Math.round(decision.latencyMs * 10) / 10,
+        injectedLatencyMs: decision.fallback ? 0 : this.options.latencyMs,
+      },
+      issuedAtSim: round3(this.captureSim.get(decision.sequence) ?? game.time),
+      acceptedAtSim: round3(game.time),
+      validation: {
+        status: "not_executed",
+        ageAtExecutionMs: null,
+        worldChanged: [],
+        illegalAtExecution: [],
+      },
+      execution: {
+        actionStart: null,
+        actionEnd: null,
+        endReason: null,
+        targetBound: null,
+        placeBound: null,
+        placeKind: null,
+      },
+      outcome: null,
+    };
+    this.evalRecords.push(record);
+    return record;
   }
 
   private onLoopEvent(event: LoopEvent): void {
@@ -872,6 +1043,7 @@ class Pilot {
         break;
       case "stale":
         counters.stale += 1;
+        this.pushFailure(event.sequence, "stale", event.reason, event.latencyMs, true);
         this.recorder.event({
           kind: "stale",
           sequence: event.sequence,
@@ -889,9 +1061,11 @@ class Pilot {
         else if (kind === "unavailable") counters.unavailable += 1;
         else if (kind === "invalid") counters.invalid += 1;
         else if (kind === "aborted") counters.aborted += 1;
+        else if (kind === "refused") counters.refused += 1;
         else counters.errors += 1;
         this.failure = { kind, detail: event.detail };
         this.telemetry.lastError = `${kind}: ${event.detail}`.slice(0, 160);
+        this.pushFailure(event.sequence, kind, event.detail, event.latencyMs, false);
         this.recorder.event({
           kind:
             kind === "timeout"
@@ -902,13 +1076,34 @@ class Pilot {
                   ? "invalid"
                   : kind === "rate_limited"
                     ? "rate_limited"
-                    : "error",
+                    : kind === "refused"
+                      ? "refused"
+                      : "error",
           sequence: event.sequence,
           detail: event.detail,
         });
         break;
       }
     }
+  }
+
+  private pushFailure(
+    sequence: number,
+    kind: string,
+    detail: string,
+    latencyMs: number,
+    staleAnswer: boolean,
+  ): void {
+    if (this.evalFailures.length >= MAX_EVAL_RECORDS) return;
+    this.evalFailures.push({
+      schema: DECISION_RECORD_VERSION,
+      episodeId: this.matchId,
+      sequence,
+      kind,
+      detail: detail.slice(0, 160),
+      latencyMs: Math.round(latencyMs),
+      staleAnswer,
+    });
   }
 
   /* ---------------------------------------------------------------- */
@@ -935,6 +1130,7 @@ class Pilot {
       this.lifeId += 1;
       this.metrics.onDeath();
       this.recordDeath(simTime);
+      this.outcomes.death(simTime);
       this.loop?.abandon();
       this.pending = null;
       this.executor.clear(this.input, simTime);
@@ -960,6 +1156,8 @@ class Pilot {
         player.position.z - this.lastZ,
       );
       this.metrics.step(dt, player.alive, moved);
+      this.outcomes.step(simTime, player.alive && moved < 5 ? moved : 0);
+      if (player.alive) this.pollEnemyFire();
       if (player.alive) {
         this.metrics.stepState(
           dt,
@@ -972,8 +1170,16 @@ class Pilot {
         if (this.auditPhase === 0) {
           const audit = this.auditNearest();
           if (audit) this.metrics.onAimAudit(audit.errorDeg);
-          this.debrief.sample(simTime, this.debriefDt, this.senseEnemies());
+          const sensed = this.senseEnemies();
+          this.debrief.sample(simTime, this.debriefDt, sensed);
           this.debriefDt = 0;
+          this.enemyExposed.clear();
+          let exposed = false;
+          for (const enemy of sensed) {
+            this.enemyExposed.set(enemy.id, enemy.exposedTo);
+            if (enemy.exposedTo) exposed = true;
+          }
+          this.outcomes.exposureSample(exposed);
         }
       }
     }
@@ -992,6 +1198,7 @@ class Pilot {
       this.motor.reset();
       this.navigator.reset();
       this.pending = null;
+      // A decision dropped here never started; its record keeps "not_executed".
       this.updateTelemetry();
       return null;
     }
@@ -1158,6 +1365,39 @@ class Pilot {
   private begin(next: Pending, simTime: number): void {
     const player = game.player;
     this.lastExecutedSequence = next.sequence;
+    const evalRecord = next.evalRecord;
+    if (next.observation && evalRecord) {
+      // The world has moved since the observation. Recompute what is legal now,
+      // by perception's rules, and refuse the frame under the strict policy if
+      // any part of it no longer is: fail closed.
+      const check = revalidate(
+        next.observation,
+        next.frame,
+        this.executionSnapshot(next),
+      );
+      evalRecord.validation.ageAtExecutionMs = Math.round(
+        performance.now() - next.issuedAt,
+      );
+      evalRecord.validation.worldChanged = check.worldChanged;
+      evalRecord.validation.illegalAtExecution = check.illegal;
+      if (check.worldChanged.length > 0) this.metrics.counters.worldChanged += 1;
+      if (check.illegal.length > 0 && this.options.stale === "strict") {
+        evalRecord.validation.status = "rejected_stale";
+        this.metrics.counters.rejectedStale += 1;
+        this.recorder.event({
+          kind: "rejected_stale",
+          sequence: next.sequence,
+          detail: `illegal at execution: ${check.illegal.join(", ")}; changed: ${check.worldChanged.join(", ") || "nothing listed"}`,
+        });
+        // Nothing the brain held survives a refused frame: idle until the next
+        // valid decision. The controllers let go on their own timeouts.
+        this.executor.clear(this.input, simTime);
+        return;
+      }
+      evalRecord.validation.status =
+        check.illegal.length > 0 ? "executed_illegal" : "executed";
+      if (check.illegal.length > 0) this.metrics.counters.executedIllegal += 1;
+    }
     this.executor.start(next.frame, simTime);
     this.metrics.onExecutionLatency(Math.max(0, performance.now() - next.receivedAt));
     if (this.options.control === "precision") {
@@ -1212,6 +1452,81 @@ class Pilot {
       next.record.actionStart = round3(simTime);
       next.record.actionExpiry = round3(this.executor.expiryTime);
     }
+    if (evalRecord) {
+      const slot = targetSlot(next.frame.target);
+      const targetId =
+        this.options.control === "precision" && slot !== null
+          ? (this.slots.get(next.sequence)?.[slot] ?? null)
+          : null;
+      const place = placeSlot(next.frame.go);
+      const placeBound =
+        place !== null ? (next.record?.travel?.placeBound ?? false) : null;
+      evalRecord.execution = {
+        actionStart: round3(simTime),
+        actionEnd: null,
+        endReason: null,
+        targetBound: slot === null ? null : targetId !== null,
+        placeBound,
+        placeKind: (next.record?.travel?.kind ??
+          null) as DecisionRecord["execution"]["placeKind"],
+      };
+      this.outcomes.begin(evalRecord, simTime, {
+        targetId,
+        ownsTravel: placeBound === true,
+      });
+      this.executingEval = evalRecord;
+    } else {
+      this.executingEval = null;
+    }
+  }
+
+  /** The decision record of the frame executing now, to close its execution section. */
+  private executingEval: DecisionRecord | null = null;
+
+  /** The world as it stands at execution, read by perception's own rules. */
+  private executionSnapshot(next: Pending): Parameters<typeof revalidate>[2] {
+    const player = game.player;
+    const weapon = rigState.weapon;
+    const slot = targetSlot(next.frame.target);
+    let visible = 0;
+    let targetStillValid: boolean | null = null;
+    const targetId = slot === null ? undefined : this.slots.get(next.sequence)?.[slot];
+    if (slot !== null) targetStillValid = false;
+    const world = game.world;
+    if (world) {
+      eyePosition(player, _eye);
+      const aim = game.cameraForward;
+      const aimYaw = forwardToYaw(aim.x, aim.z);
+      const aimPitch = Math.asin(THREE.MathUtils.clamp(aim.y, -1, 1));
+      const fov = {
+        h: rigState.horizontalFovDeg / 2,
+        v: Math.max(10, game.cameraFov / 2),
+      };
+      const enemyTeam = OPPOSING_TEAM[player.team];
+      for (const other of game.actors) {
+        if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+        if (sightOf(_eye, aimYaw, aimPitch, fov, other) === null) continue;
+        visible += 1;
+        if (other.id === targetId) targetStillValid = true;
+      }
+    }
+    return {
+      alive: player.alive,
+      health: player.health,
+      stance: player.stance,
+      grounded: player.grounded,
+      pitchDeg: (player.pitch * 180) / Math.PI,
+      weapon: {
+        ammo: game.hud.ammo,
+        magSize: weapon?.def.magSize ?? next.observation?.weapon.magSize ?? 1,
+        reserve: game.hud.reserve,
+        reloading: weapon?.isReloading ?? false,
+        canFire: !rigState.firingBlocked,
+      },
+      visibleEnemies: Math.min(4, visible),
+      targetStillValid,
+      travelling: this.navigator.target !== null,
+    };
   }
 
   private outcome(executing: Executing, simTime: number): PreviousOutcome {
@@ -1244,6 +1559,12 @@ class Pilot {
     const outcome = this.outcome(executing, simTime);
     this.lastEnded = { frame, outcome };
     this.executing = null;
+    const evalRecord = this.executingEval;
+    if (evalRecord && evalRecord.sequence === executing.sequence) {
+      evalRecord.execution.actionEnd = round3(simTime);
+      evalRecord.execution.endReason = reason;
+      this.executingEval = null;
+    }
     const record = executing.record;
     if (record) {
       const player = game.player;
@@ -1327,6 +1648,11 @@ class Pilot {
       axes: due.axes,
       record,
       receivedAt: performance.now(),
+      // A replayed frame is not a decision: no observation to revalidate
+      // against, and no evaluation record — replay reproduces controls only.
+      issuedAt: performance.now(),
+      evalRecord: null,
+      observation: null,
     };
   }
 
@@ -1343,6 +1669,7 @@ class Pilot {
   onPlayerShot(): void {
     this.lifetime.shots += 1;
     this.metrics.onShot();
+    this.outcomes.shot();
     const audit = this.auditNearest();
     if (audit) {
       this.metrics.onShotAudit(audit.errorDeg, audit.rangeM);
@@ -1372,6 +1699,7 @@ class Pilot {
       this.lastHitEventTime = eventTime;
       if (newRound) this.lifetime.hits += 1;
       this.metrics.onHit(amount, region, newRound);
+      this.outcomes.damageDealt(victimId, amount, killed, newRound);
       if (killed && victimId !== null) {
         const victim = game.actorById.get(victimId);
         this.debrief.onKill(
@@ -1388,7 +1716,83 @@ class Pilot {
     if (victimIsPlayer) {
       this.lifetime.damageTaken += amount;
       this.metrics.onDamageTaken(amount);
+      this.outcomes.damageTaken(amount);
+      if (
+        !attackerIsPlayer &&
+        (eventTime === null || eventTime !== this.lastTakenEventTime)
+      ) {
+        this.metrics.opponentHitsOnSeat += 1;
+      }
+      this.lastTakenEventTime = eventTime;
     }
+  }
+
+  /**
+   * Enemy rounds fired while that enemy held a sight line to the seat, as of
+   * the last debrief sample: the denominator of how often the opponents hit.
+   * A proxy — a round in the seat's line may have been meant for a teammate —
+   * and labelled so wherever it is reported. Read-only.
+   */
+  private pollEnemyFire(): void {
+    const enemyTeam = OPPOSING_TEAM[game.player.team];
+    for (const other of game.actors) {
+      if (other.isPlayer || other.team !== enemyTeam) continue;
+      const last = this.enemyFire.get(other.id);
+      const t = other.lastFireTime;
+      this.enemyFire.set(other.id, t);
+      if (last === undefined || t === last || t <= 0) continue;
+      if (this.enemyExposed.get(other.id) === true) {
+        this.metrics.opponentRoundsInSight += 1;
+        this.outcomes.enemyShotInSight();
+      }
+    }
+  }
+
+  /** Metres from the seat to the objective's centre, as perception last located it. */
+  private objectiveDistance(): number | null {
+    const centre = this.perception.objectiveCentre;
+    if (!centre) return null;
+    const p = game.player.position;
+    return round3(Math.hypot(centre.x - p.x, centre.z - p.z));
+  }
+
+  /**
+   * This episode's evaluation records, for the benchmark harness. Windows
+   * still open are reported as they stand, marked incomplete, without being
+   * closed — the match goes on.
+   */
+  evaluationRecords(): {
+    episodeId: string;
+    brain: BrainDescriptor | null;
+    stale: StalePolicy;
+    motor: MotorProfile;
+    outcomeWindowS: number;
+    interface: Negotiated | null;
+    decisions: DecisionRecord[];
+    failures: FailureRecord[];
+  } {
+    const now = game.time;
+    const decisions = this.evalRecords.map((record) => {
+      const copy: DecisionRecord = JSON.parse(JSON.stringify(record)) as DecisionRecord;
+      if (record.outcome && !record.outcome.complete) {
+        copy.outcome = OutcomeTracker.provisional(
+          record,
+          now,
+          this.outcomes.startOf(record),
+        );
+      }
+      return copy;
+    });
+    return {
+      episodeId: this.matchId,
+      brain: this.descriptor,
+      stale: this.options.stale,
+      motor: this.options.motor,
+      outcomeWindowS: this.options.outcomeWindowS,
+      interface: this.negotiated,
+      decisions,
+      failures: this.evalFailures.map((f) => ({ ...f })),
+    };
   }
 
   /* ---------------------------------------------------------------- */
@@ -1423,7 +1827,9 @@ class Pilot {
               ? "REPLAY"
               : this.fallbackActive || executing?.source === "fallback-random"
                 ? "FALLBACK"
-                : "LIVE JEV";
+                : this.brain === "llm"
+                  ? "LIVE LLM"
+                  : "LIVE JEV";
     t.status = this.status();
   }
 
@@ -1444,7 +1850,11 @@ class Pilot {
     }
     if (this.executor.current) return "EXECUTING";
     if (this.loop?.inFlight) return "DECIDING";
-    if (this.brain === "jev" && this.metrics.counters.accepted === 0) return "CONNECTING";
+    if (
+      (this.brain === "jev" || this.brain === "llm") &&
+      this.metrics.counters.accepted === 0
+    )
+      return "CONNECTING";
     return "OBSERVING";
   }
 

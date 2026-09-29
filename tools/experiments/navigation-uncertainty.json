@@ -1,0 +1,54 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "navigation-uncertainty-v1",
+  "question": "Offered places whose safety is judged only against known threats, does the decision system reach where it chooses, and how often does it change its mind?",
+  "hypothesis": "A brain that commits to a place reaches it within five seconds more often, and reverses fewer travels, than a random chooser; 'hidden' means hidden from known threats only, so some chosen places will turn out exposed.",
+  "independentVariable": "brain",
+  "primaryMetric": "place_reached_rate",
+  "secondaryMetrics": [
+    "reversal_rate",
+    "exposure_fraction_next_window",
+    "death_rate_next_window",
+    "decision_count"
+  ],
+  "decisionType": "navigation/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "notes": "Incomplete information is structural: a place's facts are computed from the threats the observation reports, not from every enemy. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

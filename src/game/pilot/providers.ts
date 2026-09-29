@@ -1,7 +1,20 @@
 import { mulberry32 } from "@/lib/noise";
 import type { ControlFrame, ControlMode, NavigationMode } from "./contract";
 import { readDecisionError, validateDecision } from "./decision";
+import { validateLlmDecision } from "./llmDecision";
 import { validateObservation, type LegalActions } from "./observation";
+import {
+  confidenceFromAxes,
+  localAccounting,
+  utf8Bytes,
+  type BrainDescriptor,
+} from "./brain";
+import {
+  JEV_CAPABILITIES,
+  LLM_CAPABILITIES,
+  LOCAL_POLICY_CAPABILITIES,
+} from "./capabilities";
+import type { DecisionConfidence } from "../eval/records";
 import type {
   DecisionProvider,
   DecisionRequest,
@@ -19,15 +32,129 @@ import type {
  */
 
 export const JEV_DECISION_ENDPOINT = "/api/jev/decision";
+export const LLM_DECISION_ENDPOINT = "/api/llm/decision";
+
+type Posted =
+  | {
+      ok: true;
+      status: number;
+      body: unknown;
+      requestBytes: number;
+      responseBytes: number;
+    }
+  | { ok: false; result: ProviderResult };
 
 /**
- * The live TypeSafe Jev brain, through this deployment's own server.
- *
- * The browser sends the observation and nothing else — no prompt, no
- * credential. The server owns the question and the key.
+ * POST one observation to this deployment's own decision endpoint. The browser
+ * sends `{ session, observation }` and nothing else — no prompt, no
+ * credential; the server owns the question and the key. Shared by every
+ * remote brain so they are measured the same way: request and response sizes
+ * are the bytes on the wire as the page saw them.
  */
+async function postObservation(
+  fetchImpl: typeof fetch,
+  endpoint: string,
+  session: string,
+  request: DecisionRequest,
+): Promise<Posted> {
+  const { observation, signal } = request;
+  // The server validates too; checking here first turns a bad field into a
+  // named local error instead of an opaque 400, and spends no request on it.
+  const own = validateObservation(observation);
+  if (!own.ok) {
+    return {
+      ok: false,
+      result: {
+        ok: false,
+        failure: "invalid",
+        detail: `observation rejected locally: ${own.error}`,
+        retryAfterMs: null,
+      },
+    };
+  }
+  const payload = JSON.stringify({ session, observation });
+  let response: Response;
+  try {
+    response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      signal,
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+  } catch {
+    return {
+      ok: false,
+      result: signal.aborted
+        ? { ok: false, failure: "aborted", detail: "request aborted", retryAfterMs: null }
+        : { ok: false, failure: "network", detail: "network error", retryAfterMs: null },
+    };
+  }
+  let text = "";
+  try {
+    text = await response.text();
+  } catch {
+    text = "";
+  }
+  let body: unknown = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    body = null;
+  }
+  if (!response.ok) {
+    const error = readDecisionError(body);
+    const failure: FailureKind =
+      response.status === 504 || error?.code === "upstream_timeout"
+        ? "timeout"
+        : response.status === 429
+          ? "rate_limited"
+          : error?.code === "upstream_refused"
+            ? "refused"
+            : response.status === 503 ||
+                response.status === 404 ||
+                response.status === 405 ||
+                error?.code === "not_configured" ||
+                error?.code === "upstream_auth"
+              ? "unavailable"
+              : error?.code === "upstream_invalid"
+                ? "invalid"
+                : "http_error";
+    return {
+      ok: false,
+      result: {
+        ok: false,
+        failure,
+        detail: error ? `${error.code}: ${error.message}` : `HTTP ${response.status}`,
+        retryAfterMs: error?.retryAfterMs ?? null,
+      },
+    };
+  }
+  return {
+    ok: true,
+    status: response.status,
+    body,
+    requestBytes: utf8Bytes(payload),
+    responseBytes: utf8Bytes(text),
+  };
+}
+
+/** Bound here, not stored bare: `fetch` called off its global throws "Illegal invocation" in browsers. */
+const boundFetch = (fetchImpl?: typeof fetch): typeof fetch =>
+  fetchImpl ?? ((input, init) => fetch(input, init));
+
+/** The live TypeSafe Jev brain, through this deployment's own server. */
 export class JevHttpProvider implements DecisionProvider {
   readonly kind = "jev" as const;
+  readonly descriptor: BrainDescriptor = {
+    id: "jev",
+    kind: "jev",
+    provider: "typesafe",
+    model: null,
+    capabilities: JEV_CAPABILITIES,
+    confidence: "provider-probability",
+  };
   private readonly fetchImpl: typeof fetch;
 
   constructor(
@@ -35,73 +162,22 @@ export class JevHttpProvider implements DecisionProvider {
     private readonly endpoint: string = JEV_DECISION_ENDPOINT,
     fetchImpl?: typeof fetch,
   ) {
-    // Bound here, not stored bare: `fetch` called off its global throws
-    // "Illegal invocation" in browsers.
-    this.fetchImpl = fetchImpl ?? ((input, init) => fetch(input, init));
+    this.fetchImpl = boundFetch(fetchImpl);
   }
 
-  async decide({
-    sequence,
-    observation,
-    signal,
-  }: DecisionRequest): Promise<ProviderResult> {
-    // The server validates too; checking here first turns a bad field into a
-    // named local error instead of an opaque 400, and spends no request on it.
-    const own = validateObservation(observation);
-    if (!own.ok) {
-      return {
-        ok: false,
-        failure: "invalid",
-        detail: `observation rejected locally: ${own.error}`,
-        retryAfterMs: null,
-      };
-    }
-    let response: Response;
-    try {
-      response = await this.fetchImpl(this.endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session: this.session, observation }),
-        signal,
-        cache: "no-store",
-        credentials: "same-origin",
-      });
-    } catch {
-      return signal.aborted
-        ? { ok: false, failure: "aborted", detail: "request aborted", retryAfterMs: null }
-        : { ok: false, failure: "network", detail: "network error", retryAfterMs: null };
-    }
-
-    let body: unknown = null;
-    try {
-      body = await response.json();
-    } catch {
-      body = null;
-    }
-
-    if (!response.ok) {
-      const error = readDecisionError(body);
-      const failure: FailureKind =
-        response.status === 504 || error?.code === "upstream_timeout"
-          ? "timeout"
-          : response.status === 429
-            ? "rate_limited"
-            : response.status === 503 ||
-                response.status === 404 ||
-                response.status === 405 ||
-                error?.code === "not_configured" ||
-                error?.code === "upstream_auth"
-              ? "unavailable"
-              : "http_error";
-      return {
-        ok: false,
-        failure,
-        detail: error ? `${error.code}: ${error.message}` : `HTTP ${response.status}`,
-        retryAfterMs: error?.retryAfterMs ?? null,
-      };
-    }
-
-    const validated = validateDecision(body, { sequence, legal: observation.legal });
+  async decide(request: DecisionRequest): Promise<ProviderResult> {
+    const posted = await postObservation(
+      this.fetchImpl,
+      this.endpoint,
+      this.session,
+      request,
+    );
+    if (!posted.ok) return posted.result;
+    const { sequence, observation } = request;
+    const validated = validateDecision(posted.body, {
+      sequence,
+      legal: observation.legal,
+    });
     if (!validated.ok) {
       return {
         ok: false,
@@ -119,6 +195,110 @@ export class JevHttpProvider implements DecisionProvider {
         model: decision.model,
         serverLatencyMs: decision.latencyMs,
         usage: decision.usage,
+        confidence: confidenceFromAxes(decision.axes),
+        accounting: {
+          provider: "typesafe",
+          model: decision.model,
+          providerLatencyMs: decision.latencyMs,
+          requestBytes: posted.requestBytes,
+          responseBytes: posted.responseBytes,
+          inputTokens: decision.usage?.inputTokens ?? null,
+          outputTokens: decision.usage?.outputTokens ?? null,
+          reportedCostUsd: null,
+          // The Jev handler makes one upstream attempt and never retries.
+          retries: 0,
+          traceId: null,
+          questionHash: decision.questionHash ?? null,
+        },
+      },
+    };
+  }
+}
+
+/**
+ * A conventional LLM, through this deployment's own server
+ * (`server/llm/handler.ts`). The same observation, the same legal options and
+ * the same question text Jev is asked; the provider and model are server
+ * configuration, not part of this class. Its confidence, when present, is
+ * verbalized — a number the model wrote — and is labelled so.
+ */
+export class LlmHttpProvider implements DecisionProvider {
+  readonly kind = "llm" as const;
+  readonly descriptor: BrainDescriptor = {
+    id: "llm",
+    kind: "llm",
+    provider: "unknown until the first answer",
+    model: null,
+    capabilities: LLM_CAPABILITIES,
+    confidence: "verbalized",
+  };
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(
+    private readonly session: string,
+    private readonly endpoint: string = LLM_DECISION_ENDPOINT,
+    fetchImpl?: typeof fetch,
+  ) {
+    this.fetchImpl = boundFetch(fetchImpl);
+  }
+
+  async decide(request: DecisionRequest): Promise<ProviderResult> {
+    const posted = await postObservation(
+      this.fetchImpl,
+      this.endpoint,
+      this.session,
+      request,
+    );
+    if (!posted.ok) return posted.result;
+    const { sequence, observation } = request;
+    const validated = validateLlmDecision(posted.body, {
+      sequence,
+      legal: observation.legal,
+    });
+    if (!validated.ok) {
+      return {
+        ok: false,
+        failure: "invalid",
+        detail: validated.error,
+        retryAfterMs: null,
+      };
+    }
+    const d = validated.value;
+    const perAxis: DecisionConfidence["perAxis"] = {};
+    for (const [axis, answer] of Object.entries(d.answers)) {
+      if (answer)
+        perAxis[axis as keyof typeof perAxis] = {
+          probability: null,
+          confidence: answer.confidence,
+        };
+    }
+    return {
+      ok: true,
+      decision: {
+        frame: d.frame,
+        // `axes` is TypeSafe's shape, with a full distribution per axis; an
+        // LLM has none, so it stays null and the confidence travels separately.
+        axes: null,
+        model: d.model,
+        serverLatencyMs: d.latencyMs,
+        usage: d.usage,
+        confidence: {
+          source: d.confidenceSource,
+          perAxis: d.confidenceSource === "none" ? {} : perAxis,
+        },
+        accounting: {
+          provider: d.provider,
+          model: d.model,
+          providerLatencyMs: d.latencyMs,
+          requestBytes: posted.requestBytes,
+          responseBytes: posted.responseBytes,
+          inputTokens: d.usage?.inputTokens ?? null,
+          outputTokens: d.usage?.outputTokens ?? null,
+          reportedCostUsd: null,
+          retries: d.retries,
+          traceId: d.traceId,
+          questionHash: d.questionHash,
+        },
       },
     };
   }
@@ -186,6 +366,14 @@ export async function probeJevService(
  */
 export class RandomProvider implements DecisionProvider {
   readonly kind = "random" as const;
+  readonly descriptor: BrainDescriptor = {
+    id: "random",
+    kind: "random",
+    provider: "local",
+    model: null,
+    capabilities: LOCAL_POLICY_CAPABILITIES,
+    confidence: "none",
+  };
   private readonly rand: () => number;
 
   constructor(readonly seed: number) {
@@ -221,6 +409,8 @@ export class RandomProvider implements DecisionProvider {
         model: null,
         serverLatencyMs: null,
         usage: null,
+        confidence: { source: "none", perAxis: {} },
+        accounting: localAccounting(),
       },
     });
   }
@@ -237,12 +427,14 @@ export class RandomProvider implements DecisionProvider {
  */
 export class DelayedProvider implements DecisionProvider {
   readonly kind: DecisionProvider["kind"];
+  readonly descriptor: BrainDescriptor | undefined;
 
   constructor(
     private readonly inner: DecisionProvider,
     readonly delayMs: number,
   ) {
     this.kind = inner.kind;
+    this.descriptor = inner.descriptor;
   }
 
   async decide(request: DecisionRequest): Promise<ProviderResult> {

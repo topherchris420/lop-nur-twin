@@ -1,0 +1,58 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "llm-comparison-v1",
+  "question": "Given the same observation, options, controllers and scoring, how do Jev and a conventional LLM differ in what they choose, what it costs and how late it arrives?",
+  "hypothesis": "No winner is predicted. The LLM answers an order of magnitude slower, so it decides far less often and more of its answers meet a changed world; whether its choices, when they arrive, succeed more or less often than Jev's is the open question.",
+  "independentVariable": "brain",
+  "primaryMetric": "success_rate",
+  "secondaryMetrics": [
+    "harmful_rate",
+    "decisions_per_minute",
+    "decision_latency_ms",
+    "world_changed_rate",
+    "stale_rejection_rate",
+    "deaths_per_minute",
+    "kills_per_minute"
+  ],
+  "decisionType": "engage-disengage/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "calibrationField": "confidence",
+  "notes": "Stated differences: Jev answers each axis separately in parallel with a probability over every option; the LLM answers all axes in one completion and writes its own confidence (verbalized). The LLM's loop limits are 12 s (timeout and maximum answer age) against Jev's 2.2 s / 1.5 s, because otherwise it could never act; every late answer is still revalidated at execution. Calibration here uses each brain's `confidence` field, which for Jev is TypeSafe's confidence and for the LLM is the number it wrote; they are reported separately and never pooled. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

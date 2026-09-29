@@ -11,6 +11,8 @@ import {
 } from "./contract";
 import type { JevObservation, LegalActions, PlaceKind } from "./observation";
 import type { DecisionProvider, DecisionRequest, ProviderResult } from "./loop";
+import { localAccounting, type BrainDescriptor } from "./brain";
+import { LOCAL_POLICY_CAPABILITIES } from "./capabilities";
 
 /**
  * Scripted reference policies: hand-written players that sit in the same seat.
@@ -281,9 +283,19 @@ export function isLegalFrame(frame: ControlFrame, legal: LegalActions): boolean 
 
 export class ScriptedProvider implements DecisionProvider {
   readonly kind = "script" as const;
+  readonly descriptor: BrainDescriptor;
   private readonly memory: PolicyMemory = { decisions: 0, quiet: 0 };
 
-  constructor(readonly policy: ScriptPolicy) {}
+  constructor(readonly policy: ScriptPolicy) {
+    this.descriptor = {
+      id: `script:${policy}`,
+      kind: "script",
+      provider: "local",
+      model: null,
+      capabilities: LOCAL_POLICY_CAPABILITIES,
+      confidence: "none",
+    };
+  }
 
   /** One decision from one observation. Deterministic given the history. */
   pick(obs: JevObservation): ControlFrame {
@@ -314,6 +326,8 @@ export class ScriptedProvider implements DecisionProvider {
         model: null,
         serverLatencyMs: null,
         usage: null,
+        confidence: { source: "none", perAxis: {} },
+        accounting: localAccounting(),
       },
     });
   }

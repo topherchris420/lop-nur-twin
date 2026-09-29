@@ -1,333 +1,543 @@
 #!/usr/bin/env node
 /**
- * Matched experiments: several configurations of the player's seat, the same
- * seeds, one table.
+ * Declared, matched experiments with the seat, and their evaluation.
  *
- *   node tools/experiment.mjs tools/experiments/exposure.json
- *   node tools/experiment.mjs tools/experiments/exposure.json --parallel 2
- *   node tools/experiment.mjs --compare shots/experiments/a.json shots/experiments/b.json
+ *   node tools/experiment.mjs tools/experiments/cover-selection.json
+ *   node tools/experiment.mjs tools/experiments/latency-sweep.json --preset dev
+ *   node tools/experiment.mjs tools/experiments/x.json --dry-run
+ *   JEV_LIVE_TEST=1 node tools/experiment.mjs tools/experiments/jev-calibration.json
+ *   LLM_LIVE_TEST=1 node tools/experiment.mjs tools/experiments/llm-comparison.json
+ *   node tools/experiment.mjs --evaluate shots/experiments/<run>      # re-score saved artifacts
+ *   node tools/experiment.mjs --compare a/evaluation.json b/evaluation.json
  *
- * An experiment file names a question, the seeds, the episode length and the
- * arms to compare. Each arm is one seat configuration — a brain, a control
- * mode, a policy or profile — and, optionally, the origin of the build it runs
- * against, so "this build against the previous one" is two arms with two
- * origins (a `git worktree` of the old commit on another port):
+ * An experiment file (`blacksite-experiment/v1`, see
+ * `src/game/eval/experimentSpec.ts`) states its question, hypothesis, primary
+ * metric, decision type and outcome window, seeds, duration and arms *before*
+ * anything runs. The runner refuses a definition that is malformed, misspelled
+ * or names a metric this build cannot compute, and prints why.
  *
- *   {
- *     "name": "exposure",
- *     "hypothesis": "…what should change…",
- *     "metric": "kills per minute of the marksman arm",
- *     "seeds": [42, 43, 44], "seconds": 120, "mode": "tdm",
- *     "arms": [
- *       { "id": "marksman", "brain": "script", "policy": "marksman", "control": "precision" },
- *       { "id": "random",   "brain": "random", "control": "precision" }
- *     ]
- *   }
+ * Arms that would call a paid model (Jev, a real LLM) run only with their flag
+ * (`JEV_LIVE_TEST=1`, `LLM_LIVE_TEST=1`). Without it they are recorded as
+ * PENDING — in the evaluation, in the table, with the reason — and the other
+ * arms run; `--require-live` makes a missing flag an error instead. Nothing is
+ * ever filled in for a pending arm. An arm with `"fakeLlm": true` runs against
+ * the offline test double (`tools/fake-llm.mjs`) on its own dev server and is
+ * labelled TEST DOUBLE everywhere.
  *
- * Every arm is run by `tools/jev-benchmark.mjs`, unchanged, so an arm's JSON
- * is exactly the report that tool writes and every number in the table comes
- * from the simulation. The experiment adds nothing but the matching (same
- * seeds, same length, same mode) and the side-by-side. A Jev arm still needs
- * `JEV_LIVE_TEST=1` and spends credit; nothing here fakes a model's answer.
+ * Every arm is run by `tools/jev-benchmark.mjs`, one arm at a time by default
+ * (two pages share one software GPU and pace badly), and writes its report,
+ * each episode's decision records and each episode's trace. The evaluation is
+ * then built from those files alone, by `src/game/eval/evaluation.ts`, into:
  *
- * `--compare a.json b.json` diffs two experiment results arm by arm: the way to
- * say what a game change did to every seat at once.
+ *   evaluation.json   blacksite-evaluation/v1: every episode, aggregates,
+ *                     decision metrics, calibration, ledger, warnings, provenance
+ *   evaluation.md     the same, as the text table
+ *   episodes.csv      one row per episode, for plotting
+ *   sweep.csv         latency → outcome points, when the experiment sweeps
+ *   definition.json   the file as run, its hash, and any command-line overrides
+ *   runs.json         which report each arm wrote, for `--evaluate`
+ *
+ * `--preset quick|dev|eval` replaces the seeds with 3, 10 or 30 consecutive
+ * ones from the first declared seed; `--duration <s>` replaces the length.
+ * Both are recorded as overrides in the provenance, because a seed count chosen
+ * after seeing a result is a choice the reader deserves to know about.
  */
 
 import { spawn, execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { gunzipSync, gzipSync } from "node:zlib";
+import { cpus, platform } from "node:os";
+import { basename, dirname, join, relative } from "node:path";
+
+await import("../scripts/ts-hooks.mjs");
+const spec = await import("../src/game/eval/experimentSpec.ts");
+const evaluation = await import("../src/game/eval/evaluation.ts");
+const report = await import("../src/game/eval/report.ts");
+const pricingLib = await import("../src/game/eval/pricing.ts");
+const { fnv1a64 } = await import("../src/game/pilot/hash.ts");
+const contract = await import("../src/game/pilot/contract.ts");
+const records = await import("../src/game/eval/records.ts");
+const llm = await import("../src/game/pilot/llmDecision.ts");
+const recorder = await import("../src/game/pilot/recorder.ts");
 
 function option(name, fallback) {
   const index = process.argv.indexOf(`--${name}`);
   if (index < 0 || index + 1 >= process.argv.length) return fallback;
   return process.argv[index + 1];
 }
-
-const fmt = (value, digits = 2) =>
-  value === null || value === undefined || Number.isNaN(value)
-    ? "n/a"
-    : Number(value).toFixed(digits);
-const pct = (value) =>
-  value === null || value === undefined ? "n/a" : `${(value * 100).toFixed(1)}%`;
-
-/**
- * The rows every experiment prints. Each reads one arm's aggregate; a value
- * the arm did not measure prints "n/a", never zero.
- */
-const ROWS = [
-  [
-    "Interface",
-    (a) =>
-      `${a.control} · ${a.navigation ?? "?"} · ${a.interval ?? "?"} · seat ${a.seat ?? "mercy"}`,
-  ],
-  ["Kills / deaths", (a) => `${a.kills} / ${a.deaths}`],
-  ["Kills per minute", (a, m) => fmt(m > 0 ? a.kills / m : null)],
-  ["Deaths per minute", (a, m) => fmt(m > 0 ? a.deaths / m : null)],
-  ["Accuracy", (a) => pct(a.accuracy)],
-  ["Rounds per kill", (a) => fmt(a.shooting.shotsPerKill, 1)],
-  ["Damage dealt / taken", (a) => `${fmt(a.damageDealt, 0)} / ${fmt(a.damageTaken, 0)}`],
-  ["Mean survival per life", (a) => `${fmt(a.meanSurvivalS, 1)} s`],
-  ["Distance moved", (a) => `${fmt(a.distanceM, 0)} m`],
-  [
-    "Engagement range at shot, mean",
-    (a) => `${fmt(a.shooting.engagementRangeM.mean, 0)} m`,
-  ],
-  ["Headshots", (a) => String(a.shooting.headshots)],
-  ["ADS time share", (a) => pct(a.shooting.adsFraction)],
-  [
-    "Time in an enemy's sight line",
-    (a) => (a.debrief ? pct(a.debrief.exposedFraction) : "n/a"),
-  ],
-  [
-    "Longest stretch in a sight line",
-    (a) => (a.debrief ? `${fmt(a.debrief.longestExposedS, 1)} s` : "n/a"),
-  ],
-  [
-    "Deaths: never seen / seen, not engaged / engaged",
-    (a) =>
-      a.debrief
-        ? `${a.debrief.deaths.unseen} / ${a.debrief.deaths.seen_not_engaged} / ${a.debrief.deaths.engaged}`
-        : "n/a",
-  ],
-  [
-    "Deaths on open ground",
-    (a) =>
-      a.debrief ? `${a.debrief.deaths.onOpenGround} of ${a.debrief.deaths.total}` : "n/a",
-  ],
-  [
-    "First sight to kill, mean",
-    (a) => (a.debrief ? `${fmt(a.debrief.kills.meanSightToKillS, 2)} s` : "n/a"),
-  ],
-  ["Places chosen", (a) => (a.places ? String(a.places.chosen) : "n/a")],
-  ["Decisions executed", (a) => String(a.decisions.accepted)],
-  [
-    "Timeouts / stale / invalid / errors",
-    (a) =>
-      `${a.decisions.timeouts} / ${a.decisions.stale} / ${a.decisions.invalid} / ${a.decisions.errors}`,
-  ],
-  [
-    "Round trip p50 / p95",
-    (a) => `${fmt(a.latency.p50Ms, 0)} / ${fmt(a.latency.p95Ms, 0)} ms`,
-  ],
-];
+const flag = (name) => process.argv.includes(`--${name}`);
 
 function gitBuild() {
   try {
-    const commit = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
+    const commit = execFileSync("git", ["rev-parse", "HEAD"], {
       encoding: "utf8",
     }).trim();
     const dirty =
       execFileSync("git", ["status", "--porcelain", "--untracked-files=no"], {
         encoding: "utf8",
       }).trim().length > 0;
-    return dirty ? `${commit}+dirty` : commit;
+    return { commit, dirty };
   } catch {
-    return null;
+    return { commit: null, dirty: null };
   }
 }
 
-function runArm(arm, experiment, outFile) {
+function loadPricing() {
+  const file = option("pricing", "config/pricing.json");
+  if (!existsSync(file))
+    return { file, hash: null, config: null, errors: [`${file} not found`] };
+  const text = readFileSync(file, "utf8");
+  const parsed = pricingLib.parsePricing(JSON.parse(text));
+  if (!parsed.ok) {
+    console.error(
+      `pricing configuration ${file} is invalid:\n  ${parsed.errors.join("\n  ")}`,
+    );
+    process.exit(2);
+  }
+  return { file, hash: fnv1a64(text), config: parsed.value, errors: [] };
+}
+
+/** The benchmark's own flags carry brain, control and policy; the rest is query. */
+function benchmarkQuery(arm, outcomeWindowS) {
+  const rest = spec
+    .armQuery(arm)
+    .split("&")
+    .filter((p) => !/^(brain|jevControl|policy)=/.test(p));
+  rest.push(`outcomeWindow=${outcomeWindowS}`);
+  return rest.join("&");
+}
+
+function runArm(arm, experiment, outFile, origin, runId) {
   const args = [
     "tools/jev-benchmark.mjs",
     "--brain",
     arm.brain,
     "--control",
     arm.control,
-    "--episodes",
-    String(experiment.seeds.length),
+    "--seeds",
+    experiment.seeds.join(","),
     "--seconds",
-    String(experiment.seconds),
-    "--seed",
-    String(experiment.seeds[0]),
+    String(experiment.duration),
     "--mode",
-    experiment.mode ?? "tdm",
+    experiment.mode,
     "--out",
     outFile,
+    "--run-id",
+    `${runId}-${arm.id}`,
+    "--query",
+    benchmarkQuery(arm, experiment.outcomeWindowS),
   ];
   if (arm.policy) args.push("--policy", arm.policy);
-  if (arm.query) args.push("--query", arm.query);
-  const origin = arm.origin ?? option("origin", null);
+  if (arm.fakeLlm) args.push("--fake-llm");
   if (origin) args.push(origin);
-  return new Promise((resolve, reject) => {
+  return new Promise((resolvePromise, reject) => {
     const child = spawn(process.execPath, args, { stdio: ["ignore", "pipe", "pipe"] });
     let log = "";
     child.stdout.on("data", (chunk) => {
       log += chunk;
       for (const line of String(chunk).split("\n")) {
-        if (line.startsWith("episode ")) console.log(`  [${arm.id}] ${line}`);
+        if (line.startsWith("episode ") || line.includes("warning"))
+          console.log(`  [${arm.id}] ${line.trim()}`);
       }
     });
     child.stderr.on("data", (chunk) => (log += chunk));
     child.on("close", (code) =>
       code === 0
-        ? resolve(JSON.parse(readFileSync(outFile, "utf8")))
+        ? resolvePromise()
         : reject(new Error(`arm ${arm.id} exited ${code}:\n${log.slice(-2000)}`)),
     );
   });
 }
 
-function table(arms) {
-  const header = `| Measure (${arms[0]?.report.episodesRequested ?? "?"} × ${arms[0]?.report.secondsPerEpisode ?? "?"} s, matched seeds) | ${arms.map((a) => a.id).join(" | ")} |`;
-  const rule = `| :-- | ${arms.map(() => ":--").join(" | ")} |`;
-  const lines = [header, rule];
-  for (const [label, read] of ROWS) {
-    const cells = arms.map(({ report }) => {
-      const a = report.aggregate;
-      return read(a, a.simSeconds / 60);
-    });
-    if (cells.every((c) => c === "n/a")) continue;
-    lines.push(`| ${label} | ${cells.join(" | ")} |`);
+/**
+ * An artifact named in a report, looked up by file name inside the run
+ * directory — raw, or gzipped as `--archive` leaves it — so a run reads the
+ * same wherever it has been moved. Returns the name found and its text.
+ */
+function readArtifact(dir, named) {
+  if (!named) return null;
+  const name = basename(named);
+  if (existsSync(join(dir, name)))
+    return { name, text: readFileSync(join(dir, name), "utf8") };
+  if (existsSync(join(dir, `${name}.gz`))) {
+    return {
+      name: `${name}.gz`,
+      text: gunzipSync(readFileSync(join(dir, `${name}.gz`))).toString("utf8"),
+    };
   }
-  return lines.join("\n");
+  return null;
 }
 
-function perSeed(arms) {
-  const seeds = arms[0]?.report.episodes.map((e) => e.seed) ?? [];
-  const lines = [
-    `| Seed | ${arms.map((a) => a.id).join(" | ")} |`,
-    `| :-- | ${arms.map(() => ":--").join(" | ")} |`,
-  ];
-  for (const seed of seeds) {
-    const cells = arms.map(({ report }) => {
-      const e = report.episodes.find((x) => x.seed === seed);
-      if (!e) return "—";
-      const m = e.metrics;
-      return `${m.kills}/${m.deaths} K/D, ${m.hits}/${m.shotsFired} hits, ${Math.round(m.distanceM)} m`;
-    });
-    lines.push(`| ${seed} | ${cells.join(" | ")} |`);
+/** Read an arm's saved report and per-episode decision records into ArmRun form. */
+function loadArm(dir, entry) {
+  if (entry.pending || !entry.report) {
+    return {
+      arm: entry.arm,
+      query: entry.query,
+      origin: entry.origin,
+      build: entry.build,
+      episodes: [],
+      pending: entry.pending ?? "not run",
+    };
   }
-  return lines.join("\n");
+  const reportPath = join(dir, entry.report);
+  const armReport = JSON.parse(readFileSync(reportPath, "utf8"));
+  const episodes = armReport.episodes.map((e) => {
+    const decisionsFile = readArtifact(dir, e.artifacts?.decisions ?? null);
+    const saved = decisionsFile ? JSON.parse(decisionsFile.text) : null;
+    const traceName = e.artifacts?.trace
+      ? ([basename(e.artifacts.trace), `${basename(e.artifacts.trace)}.gz`].find((n) =>
+          existsSync(join(dir, n)),
+        ) ?? null)
+      : null;
+    return {
+      runId: e.runId ?? `${entry.arm.id}-s${e.seed}`,
+      seed: e.seed,
+      simSeconds: e.simSeconds,
+      wallSeconds: e.wallSeconds,
+      lagged: e.pacing?.lagged === true,
+      metrics: e.metrics,
+      decisions: saved?.decisions ?? [],
+      failures: saved?.failures ?? [],
+      brain: {
+        id: saved?.brain?.id ?? e.brainDescriptor?.id ?? entry.arm.brain,
+        kind: entry.arm.brain,
+        provider:
+          saved?.brain?.provider ?? (entry.arm.brain === "jev" ? "typesafe" : "local"),
+        testDouble: e.testDouble === true || armReport.testDouble === true,
+      },
+      interface: Object.fromEntries(
+        Object.entries(e.interface ?? {}).filter(
+          ([, v]) => v === null || ["string", "number", "boolean"].includes(typeof v),
+        ),
+      ),
+      artifacts: {
+        report: relative(dir, reportPath),
+        decisions: decisionsFile?.name ?? null,
+        trace: traceName,
+      },
+    };
+  });
+  return {
+    arm: entry.arm,
+    query: entry.query,
+    origin: entry.origin,
+    build: entry.build,
+    episodes,
+    pending: null,
+  };
+}
+
+function evaluate(dir) {
+  const runs = JSON.parse(readFileSync(join(dir, "runs.json"), "utf8"));
+  const definition = JSON.parse(readFileSync(join(dir, "definition.json"), "utf8"));
+  const pricing = loadPricing();
+  const arms = runs.arms.map((entry) => loadArm(dir, entry));
+  const git = gitBuild();
+  const result = evaluation.buildEvaluation({
+    spec: definition.spec,
+    specHash: definition.hash,
+    definitionPath: "definition.json",
+    arms,
+    pricing: pricing.config,
+    environment: {
+      gitCommit: runs.git?.commit ?? git.commit,
+      gitDirty: runs.git?.dirty ?? git.dirty,
+      servedBuilds: [...new Set(runs.arms.map((a) => a.build ?? "unknown"))].join(", "),
+      node: runs.node ?? process.version,
+      platform: runs.platform ?? platform(),
+      cpus: runs.cpus ?? cpus().length,
+      rendering: "stubbed (matrices only; see tools/jev-harness.mjs)",
+      actionContract: contract.ACTION_CONTRACT_VERSION,
+      observationSchema: contract.OBSERVATION_SCHEMA_VERSION,
+      decisionSchema: contract.DECISION_SCHEMA_VERSION,
+      llmDecisionSchema: llm.LLM_DECISION_SCHEMA,
+      decisionRecordSchema: records.DECISION_RECORD_VERSION,
+      traceSchema: recorder.TRACE_VERSION,
+      experimentSchema: spec.EXPERIMENT_SCHEMA,
+      evaluationSchema: evaluation.EVALUATION_SCHEMA,
+    },
+    provenance: {
+      runId: runs.runId,
+      startedAt: runs.startedAt,
+      finishedAt: runs.finishedAt,
+      definitionFile: definition.file,
+      definitionFileHash: definition.fileHash,
+      overrides: definition.overrides.length > 0 ? definition.overrides : ["none"],
+      liveFlagsSet: runs.liveFlagsSet,
+      pricingFile: pricing.file,
+      pricingHash: pricing.hash,
+      evaluatedAt: new Date().toISOString(),
+      evaluatedAtCommit: git.commit,
+    },
+    generatedAt: new Date().toISOString(),
+  });
+  const checked = evaluation.validateEvaluation(JSON.parse(JSON.stringify(result)));
+  if (!checked.ok)
+    throw new Error(`the evaluation failed its own schema check: ${checked.error}`);
+  writeFileSync(join(dir, "evaluation.json"), `${JSON.stringify(result, null, 2)}\n`);
+  const text = report.renderText(result);
+  writeFileSync(
+    join(dir, "evaluation.md"),
+    `# ${result.experiment.id}\n\n\`\`\`text\n${text}\n\`\`\`\n`,
+  );
+  writeFileSync(join(dir, "episodes.csv"), report.episodesCsv(result));
+  if (result.sweeps.length > 0) {
+    const rows = ["base,param,value,arm,n,mean,ci_lo,ci_hi,success_rate,decisions"];
+    for (const sweep of result.sweeps) {
+      for (const p of sweep.points) {
+        rows.push(
+          [
+            sweep.base,
+            sweep.param,
+            p.value,
+            p.arm,
+            p.primary.n,
+            p.primary.mean ?? "",
+            p.primary.ci95?.lo ?? "",
+            p.primary.ci95?.hi ?? "",
+            p.successRate ?? "",
+            p.decisions,
+          ].join(","),
+        );
+      }
+    }
+    writeFileSync(join(dir, "sweep.csv"), `${rows.join("\n")}\n`);
+  }
+  console.log(`\n${text}`);
+  console.log(
+    `\nwrote ${join(dir, "evaluation.json")}, evaluation.md, episodes.csv${result.sweeps.length ? ", sweep.csv" : ""}`,
+  );
+  return result;
 }
 
 async function run(file) {
-  const experiment = JSON.parse(readFileSync(file, "utf8"));
-  if (!Array.isArray(experiment.seeds) || experiment.seeds.length === 0) {
-    throw new Error("an experiment needs a non-empty seeds list");
+  const fileText = readFileSync(file, "utf8");
+  const parsed = spec.parseExperiment(JSON.parse(fileText));
+  if (!parsed.ok) {
+    console.error(
+      `${file} is not a valid experiment; nothing was run:\n  ${parsed.errors.join("\n  ")}`,
+    );
+    process.exit(2);
   }
-  // Consecutive seeds only: the benchmark runs seed, seed+1, …
-  experiment.seeds.forEach((seed, i) => {
-    if (seed !== experiment.seeds[0] + i) {
-      throw new Error("seeds must be consecutive integers (the benchmark steps by one)");
+  const experiment = parsed.spec;
+  const overrides = [];
+  const preset = option("preset", null);
+  if (preset) {
+    const count = spec.SEED_PRESETS[preset];
+    if (!count) {
+      console.error(
+        `--preset must be one of ${Object.keys(spec.SEED_PRESETS).join(", ")}`,
+      );
+      process.exit(2);
     }
-  });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const outDir = option(
-    "out",
-    join("shots", "experiments", `${experiment.name}-${stamp}`),
-  );
-  mkdirSync(outDir, { recursive: true });
-  const parallel = Math.max(1, Number(option("parallel", "1")) || 1);
-  // The commit this checkout is at describes the build only when the arms run
-  // against this checkout's own server. Against another origin (a worktree of
-  // an older commit), say so, or pass --build to name it.
-  const build =
-    option("build", null) ??
-    (option("origin", null)
-      ? `unknown (served by ${option("origin", null)})`
-      : gitBuild());
-  console.log(
-    `${experiment.name}: ${experiment.arms.length} arms × ${experiment.seeds.length} seeds × ${experiment.seconds} s · build ${build ?? "unknown"}`,
-  );
-  if (experiment.hypothesis) console.log(`  hypothesis: ${experiment.hypothesis}`);
-
-  const results = new Array(experiment.arms.length);
-  let next = 0;
-  const worker = async () => {
-    for (;;) {
-      const i = next++;
-      if (i >= experiment.arms.length) return;
-      const arm = experiment.arms[i];
-      const report = await runArm(arm, experiment, join(outDir, `${arm.id}.json`));
-      results[i] = { id: arm.id, arm, report };
-    }
-  };
-  await Promise.all(Array.from({ length: parallel }, worker));
-
-  const summary = {
-    tool: "tools/experiment.mjs",
-    name: experiment.name,
-    hypothesis: experiment.hypothesis ?? null,
-    metric: experiment.metric ?? null,
-    build,
-    finishedAt: new Date().toISOString(),
-    seeds: experiment.seeds,
-    seconds: experiment.seconds,
-    mode: experiment.mode ?? "tdm",
-    parallel,
-    laggedEpisodes: results.flatMap(({ id, report }) =>
-      report.episodes.filter((e) => e.pacing?.lagged).map((e) => `${id}:${e.seed}`),
-    ),
-    arms: results.map(({ id, arm, report }) => ({
-      id,
-      arm,
-      aggregate: report.aggregate,
-      blueBotBaseline: report.blueBotBaseline,
-      episodes: report.episodes,
-    })),
-  };
-  const markdown = [
-    `### ${experiment.name}`,
-    "",
-    experiment.hypothesis ? `**Hypothesis.** ${experiment.hypothesis}` : "",
-    experiment.metric ? `**Deciding metric.** ${experiment.metric}` : "",
-    "",
-    `Build \`${build ?? "unknown"}\`, mode ${summary.mode}, seeds ${experiment.seeds.join(", ")}, ${experiment.seconds} s each${parallel > 1 ? `, ${parallel} arms at a time` : ""}.`,
-    "",
-    table(results),
-    "",
-    perSeed(results),
-    "",
-  ]
-    .filter((line, i, all) => !(line === "" && all[i - 1] === ""))
-    .join("\n");
-  if (summary.laggedEpisodes.length > 0) {
-    console.warn(
-      `warning: ${summary.laggedEpisodes.length} episode(s) ran slower than real time (${summary.laggedEpisodes.join(", ")}); treat decision-rate-sensitive comparisons with care.`,
+    const base = experiment.seeds[0];
+    experiment.seeds = Array.from({ length: count }, (_, i) => base + i);
+    experiment.seedPreset = preset;
+    overrides.push(
+      `seeds: preset ${preset} (${count} seeds from ${base}) replaced the declared list`,
     );
   }
-  writeFileSync(join(outDir, "experiment.json"), `${JSON.stringify(summary, null, 2)}\n`);
-  writeFileSync(join(outDir, "experiment.md"), `${markdown}\n`);
-  console.log(`\n${markdown}`);
-  console.log(`wrote ${join(outDir, "experiment.json")} and experiment.md`);
+  const duration = option("duration", null);
+  if (duration) {
+    const d = Number(duration);
+    if (!(d >= 10 && d <= 1800)) {
+      console.error("--duration: seconds in [10, 1800]");
+      process.exit(2);
+    }
+    overrides.push(`duration: ${d} s replaced the declared ${experiment.duration} s`);
+    experiment.duration = d;
+  }
+  const only = option("arms", null);
+  if (only) {
+    const wanted = new Set(only.split(","));
+    experiment.arms = experiment.arms.filter((a) => wanted.has(a.id));
+    overrides.push(`arms: only ${[...wanted].join(", ")}`);
+  }
+  const hash = spec.experimentHash(experiment);
+
+  const pending = new Map();
+  for (const message of spec.liveGate(experiment.arms, process.env)) {
+    const id = /^arm (\S+)/.exec(message)?.[1];
+    if (id) pending.set(id, message);
+  }
+  if (pending.size > 0 && flag("require-live")) {
+    console.error(`live arms cannot run:\n  ${[...pending.values()].join("\n  ")}`);
+    process.exit(2);
+  }
+
+  console.log(`${experiment.id} (definition ${hash})`);
+  console.log(`  question:   ${experiment.question}`);
+  console.log(`  hypothesis: ${experiment.hypothesis}`);
+  console.log(
+    `  primary:    ${experiment.primaryMetric}${experiment.decisionType ? ` under ${experiment.decisionType}` : ""}, window ${experiment.outcomeWindowS} s`,
+  );
+  console.log(
+    `  ${experiment.arms.length} arms × ${experiment.seeds.length} seeds (${experiment.seeds.join(", ")}) × ${experiment.duration} s, mode ${experiment.mode}`,
+  );
+  for (const arm of experiment.arms) {
+    console.log(
+      `    ${arm.id.padEnd(28)} ${spec.armQuery(arm)}${arm.fakeLlm ? " [TEST DOUBLE]" : ""}${pending.has(arm.id) ? "  PENDING" : ""}`,
+    );
+  }
+  for (const o of overrides) console.log(`  override: ${o}`);
+  for (const [id, why] of pending) console.log(`  pending: ${id} — ${why}`);
+  if (flag("dry-run")) return;
+
+  const git = gitBuild();
+  const runId = `${experiment.id}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+  const outDir = option("out", join("shots", "experiments", runId));
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(
+    join(outDir, "definition.json"),
+    `${JSON.stringify({ file, fileHash: fnv1a64(fileText), hash, overrides, raw: JSON.parse(fileText), spec: experiment }, null, 2)}\n`,
+  );
+
+  const needsFake = experiment.arms.some((a) => a.fakeLlm && !pending.has(a.id));
+  let fake = null;
+  let fakeDev = null;
+  if (needsFake) {
+    const { startFakeLlm, startDevServer, FAKE_KEY, FAKE_MODEL } =
+      await import("./fake-llm.mjs");
+    fake = await startFakeLlm({ seed: experiment.seeds[0], latencyMs: [400, 1500] });
+    fakeDev = await startDevServer(Number(option("fake-port", "5175")), {
+      LLM_PROVIDER: "openai-compatible",
+      LLM_BASE_URL: fake.baseUrl,
+      LLM_API_KEY: FAKE_KEY,
+      LLM_MODEL: FAKE_MODEL,
+    });
+    console.log(`  test double on ${fakeDev.origin} (no model is called)`);
+  }
+
+  const startedAt = new Date().toISOString();
+  const entries = [];
+  const defaultOrigin = option("origin", null);
+  try {
+    for (const arm of experiment.arms) {
+      const origin = arm.fakeLlm ? fakeDev?.origin : (arm.origin ?? defaultOrigin);
+      const build =
+        arm.origin || (defaultOrigin && !arm.fakeLlm)
+          ? `unknown (served by ${origin})`
+          : git.commit;
+      const entry = {
+        arm,
+        query: spec.armQuery(arm),
+        origin: origin ?? "http://localhost:5173",
+        build,
+        report: null,
+        pending: pending.get(arm.id) ?? null,
+      };
+      entries.push(entry);
+      if (entry.pending) continue;
+      const outFile = join(outDir, `${arm.id.replace(/[^a-z0-9._-]/gi, "_")}.json`);
+      try {
+        await runArm(arm, experiment, outFile, origin, runId);
+        entry.report = basename(outFile);
+      } catch (error) {
+        entry.pending = `failed: ${String(error.message).split("\n")[0]}`;
+        console.error(`  [${arm.id}] ${error.message}`);
+      }
+    }
+  } finally {
+    fakeDev?.close();
+    await fake?.close();
+  }
+  const liveFlagsSet = Object.values(spec.LIVE_FLAGS).filter(
+    (f) => process.env[f] === "1",
+  );
+  writeFileSync(
+    join(outDir, "runs.json"),
+    `${JSON.stringify({ runId, startedAt, finishedAt: new Date().toISOString(), git, node: process.version, platform: platform(), cpus: cpus().length, liveFlagsSet, arms: entries }, null, 2)}\n`,
+  );
+  evaluate(outDir);
 }
 
 function compare(fileA, fileB) {
   const a = JSON.parse(readFileSync(fileA, "utf8"));
   const b = JSON.parse(readFileSync(fileB, "utf8"));
+  if (
+    a.schema === evaluation.EVALUATION_SCHEMA &&
+    b.schema === evaluation.EVALUATION_SCHEMA
+  ) {
+    console.log(
+      `${a.experiment.id} ${a.environment.gitCommit?.slice(0, 7)} → ${b.experiment.id} ${b.environment.gitCommit?.slice(0, 7)}`,
+    );
+    if (a.experiment.definitionHash !== b.experiment.definitionHash) {
+      console.log("  note: the two runs answered different definitions (hashes differ)");
+    }
+    const metric = a.experiment.primaryMetric.id;
+    for (const armA of a.arms) {
+      const armB = b.arms.find((x) => x.id === armA.id);
+      if (!armB) continue;
+      const cell = (arm) => {
+        const s = arm.aggregate[metric];
+        return s && s.n > 0
+          ? `${report.fmt(s.mean, 3)}${s.ci95 ? ` [${report.fmt(s.ci95.lo, 3)}, ${report.fmt(s.ci95.hi, 3)}]` : ""} n=${s.n}`
+          : arm.status.toUpperCase();
+      };
+      console.log(`  ${armA.id.padEnd(28)} ${metric}: ${cell(armA)} → ${cell(armB)}`);
+    }
+    return;
+  }
+  // Summaries written before blacksite-evaluation/v1.
   const arms = a.arms.filter((x) => b.arms.some((y) => y.id === x.id));
   console.log(
     `${basename(dirname(fileA))} (${a.build}) → ${basename(dirname(fileB))} (${b.build})`,
   );
-  const metrics = [
-    ["kills/min", (x) => (x.kills / x.simSeconds) * 60],
-    ["deaths/min", (x) => (x.deaths / x.simSeconds) * 60],
-    ["accuracy", (x) => x.accuracy],
-    ["survival s", (x) => x.meanSurvivalS],
-    ["moved m", (x) => x.distanceM],
-    ["range m", (x) => x.shooting.engagementRangeM.mean],
-    ["exposed", (x) => x.debrief?.exposedFraction ?? null],
-  ];
   for (const arm of arms) {
     const before = arm.aggregate;
     const after = b.arms.find((y) => y.id === arm.id).aggregate;
-    const cells = metrics.map(([label, read]) => {
-      const x = read(before);
-      const y = read(after);
-      return `${label} ${fmt(x)} → ${fmt(y)}`;
-    });
-    console.log(`  ${arm.id.padEnd(16)} ${cells.join(" · ")}`);
+    const m = (x) => (x.kills / x.simSeconds) * 60;
+    console.log(
+      `  ${arm.id.padEnd(16)} kills/min ${report.fmt(m(before))} → ${report.fmt(m(after))}`,
+    );
   }
 }
 
+/**
+ * Copy a run into an archive directory with its decision records and traces
+ * gzipped (they compress about eighteen-fold), then re-evaluate it there so the
+ * evaluation's artifact paths name the archived files.
+ */
+function archive(source, destination) {
+  mkdirSync(destination, { recursive: true });
+  for (const name of readdirSync(source)) {
+    const from = join(source, name);
+    if (/\.(eval\.json|trace\.jsonl)$/.test(name)) {
+      writeFileSync(
+        join(destination, `${name}.gz`),
+        gzipSync(readFileSync(from), { level: 9 }),
+      );
+    } else {
+      copyFileSync(from, join(destination, name));
+    }
+  }
+  evaluate(destination);
+}
+
 const compareIndex = process.argv.indexOf("--compare");
+const archiveIndex = process.argv.indexOf("--archive");
+const evaluateDir = option("evaluate", null);
 if (compareIndex >= 0) {
   compare(process.argv[compareIndex + 1], process.argv[compareIndex + 2]);
+} else if (archiveIndex >= 0) {
+  archive(process.argv[archiveIndex + 1], process.argv[archiveIndex + 2]);
+} else if (evaluateDir) {
+  evaluate(evaluateDir);
 } else {
   const file = process.argv.slice(2).find((arg) => arg.endsWith(".json"));
   if (!file) {
     console.error(
-      "usage: node tools/experiment.mjs <experiment.json> [--parallel n] [--out dir]",
+      "usage: node tools/experiment.mjs <experiment.json> [--preset quick|dev|eval] [--duration s] [--arms a,b] [--dry-run] [--out dir] [--origin url] [--pricing file] [--require-live]\n" +
+        "       node tools/experiment.mjs --evaluate <run dir>\n" +
+        "       node tools/experiment.mjs --compare a/evaluation.json b/evaluation.json",
     );
     process.exit(2);
   }

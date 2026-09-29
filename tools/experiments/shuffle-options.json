@@ -1,0 +1,86 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "shuffle-options-v1",
+  "question": "Is a brain's preference for the first place listed a preference for that place, or for the first option shown?",
+  "hypothesis": "If slot 0 is chosen because of what it is (the nearest cover), shuffling the list leaves the kinds chosen unchanged and spreads the slots; if it is chosen because it is first, the slot-0 share stays high and the kinds follow the shuffle.",
+  "independentVariable": "placeOrder",
+  "primaryMetric": "first_slot_share",
+  "secondaryMetrics": [
+    "success_rate",
+    "exposure_fraction_next_window",
+    "decision_count"
+  ],
+  "decisionType": "navigation/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "skirmisher-nearest",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher",
+      "placeOrder": "nearest"
+    },
+    {
+      "id": "skirmisher-shuffled",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher",
+      "placeOrder": "shuffled"
+    },
+    {
+      "id": "random-nearest",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "nearest"
+    },
+    {
+      "id": "random-shuffled",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "shuffled"
+    },
+    {
+      "id": "jev-nearest",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "nearest"
+    },
+    {
+      "id": "jev-shuffled",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "shuffled"
+    },
+    {
+      "id": "llm-nearest",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "nearest"
+    },
+    {
+      "id": "llm-shuffled",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places",
+      "placeOrder": "shuffled"
+    }
+  ],
+  "controls": [
+    "random-nearest"
+  ],
+  "notes": "The skirmisher picks by kind, not by slot, so under shuffling its slot-0 share should fall to about the position-blind rate: that arm is the check that the shuffle works. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

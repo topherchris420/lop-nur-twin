@@ -1,0 +1,62 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "threat-priority-v1",
+  "question": "With two or more enemies in view, does the decision system pick one the seat then eliminates, without dying?",
+  "hypothesis": "A brain that reads the enemies' facts (range, exposure, firing) eliminates its chosen target within five seconds more often than a random chooser naming a slot from the same list, through the same aiming controller.",
+  "independentVariable": "brain",
+  "primaryMetric": "target_kill_rate_next_window",
+  "secondaryMetrics": [
+    "success_rate",
+    "harmful_rate",
+    "damage_taken_next_window",
+    "first_slot_share",
+    "decision_count"
+  ],
+  "decisionType": "threat-priority/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "marksman",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "notes": "The aiming controller tracks whichever enemy it is given; which one is the brain's. The scripts always pick slot 0 (nearest the crosshair), which is a strategy, and a measuring instrument for position bias. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

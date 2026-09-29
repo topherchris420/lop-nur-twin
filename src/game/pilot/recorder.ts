@@ -1,4 +1,4 @@
-import { canonicalize } from "@/lib/canonicalJson";
+import { canonicalHash } from "./hash";
 import {
   ACTION_CONTRACT_VERSION,
   AXES,
@@ -32,14 +32,15 @@ export const TRACE_VERSION = "blacksite-jev-trace/v3";
 export const MAX_TRACE_RECORDS = 5000;
 export const MAX_TRACE_EVENTS = 2000;
 
-export type DecisionSource = "jev" | "random" | "script" | "replay" | "fallback-random";
+export type DecisionSource =
+  "jev" | "llm" | "random" | "script" | "replay" | "fallback-random";
 
 export interface TraceHeader {
   type: "header";
   traceVersion: typeof TRACE_VERSION;
   actionContract: typeof ACTION_CONTRACT_VERSION;
   observationSchema: typeof OBSERVATION_SCHEMA_VERSION;
-  brain: "jev" | "random" | "script" | "replay";
+  brain: "jev" | "llm" | "random" | "script" | "replay";
   /** The scripted policy, for a `script` trace; null otherwise. */
   policy: string | null;
   seed: number;
@@ -59,12 +60,30 @@ export interface TraceHeader {
     intervalMs: number;
     injectedLatencyMs: number;
     inference: "local" | "remote";
+    /** The loop's limits for this brain; absent in traces before they were recorded. */
+    requestTimeoutMs?: number;
+    maxDecisionAgeMs?: number;
     notes: string[];
   } | null;
   mode: string;
   matchId: string;
   startedAt: string;
   build: string | null;
+  /**
+   * Evaluation provenance, added with `blacksite-decision/v1`. Optional so
+   * traces recorded before it still replay: what the brain declared itself to
+   * be, the execution-time staleness policy, the motor profile, the option
+   * orders, the seat rules and the schema of the decision records.
+   */
+  evaluation?: {
+    brain: { id: string; provider: string; model: string | null; confidence: string };
+    stale: string;
+    motor: string;
+    placeOrder: string;
+    targetOrder: string;
+    seat: string;
+    decisionRecordSchema: string;
+  };
 }
 
 export interface PlayerSnapshot {
@@ -123,24 +142,16 @@ export interface TraceEvent {
     | "skipped"
     | "target_released"
     | "travel_ended"
-    | "debrief";
+    | "debrief"
+    | "rejected_stale"
+    | "refused";
   detail: string;
 }
 
-/** 64-bit FNV-1a as two 32-bit halves, hex. Stable across runtimes. */
-export function fnv1a64(text: string): string {
-  let h1 = 0x811c9dc5;
-  let h2 = 0xcbf29ce4;
-  for (let i = 0; i < text.length; i += 1) {
-    const c = text.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
-    h2 = Math.imul(h2 ^ c ^ (h1 >>> 7), 0x01000193) >>> 0;
-  }
-  return h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
-}
+export { fnv1a64 } from "./hash";
 
 export function hashObservation(observation: unknown): string {
-  return fnv1a64(JSON.stringify(canonicalize(observation)));
+  return canonicalHash(observation);
 }
 
 export class TraceRecorder {

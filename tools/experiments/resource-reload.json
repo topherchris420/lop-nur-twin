@@ -1,0 +1,53 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "resource-reload-v1",
+  "question": "Does the decision system spend the time a reload costs when it can afford to?",
+  "hypothesis": "Reloads chosen by a brain with a plan are followed by five damage-free seconds more often than reloads chosen at random.",
+  "independentVariable": "brain",
+  "primaryMetric": "success_rate",
+  "secondaryMetrics": [
+    "harmful_rate",
+    "decision_count",
+    "damage_taken_next_window"
+  ],
+  "decisionType": "reload/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "notes": "The constrained resource is time: a reload cannot fire. Ammunition is the default loadout's; no scarcity is added. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

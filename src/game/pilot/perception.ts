@@ -243,7 +243,19 @@ export class Perception {
         a.distanceM - b.distanceM ||
         a.id - b.id,
     );
-    const listed = visible.slice(0, MAX_VISIBLE_ENEMIES);
+    // Which enemies are listed is decided by the nearest-the-crosshair rule
+    // either way; `?targetOrder=shuffled` only reorders the listed ones, so a
+    // preference for an enemy can be told from a preference for slot 0.
+    const nearestFirst = visible.slice(0, MAX_VISIBLE_ENEMIES);
+    const listed =
+      useGameStore.getState().targetOrder === "shuffled"
+        ? shufflePlaces(
+            nearestFirst,
+            (useGameStore.getState().matchSeed * 2246822519) ^
+              input.sequence ^
+              0x5bd1e995,
+          )
+        : nearestFirst;
     this.lastTargetIds = listed.map((v) => v.id);
     // Only a listed enemy can be marked tracked; one tracked beyond the list
     // cap is simply not reported as tracked.
@@ -541,6 +553,11 @@ export class Perception {
 
   /** The objective zone's centre at the last capture, for the places finder. */
   private objectivePoint: { x: number; z: number } | null = null;
+
+  /** The objective's centre as of the last capture; null in modes without one. */
+  get objectiveCentre(): { x: number; z: number } | null {
+    return this.objectivePoint;
+  }
 
   private objective(
     mode: JevObservation["match"]["mode"],

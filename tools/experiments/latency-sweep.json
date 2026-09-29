@@ -1,0 +1,54 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "latency-sweep-v1",
+  "question": "How do outcomes change as the same decisions arrive later?",
+  "hypothesis": "If this game is cognition-bound at today's latencies, the same local policy loses little between 0 and 250 ms and degrades beyond; if it is latency-bound, it degrades from the start. A random chooser, whose choices carry no plan, should degrade less, which separates the cost of late decisions from the cost of late good decisions.",
+  "independentVariable": "latency",
+  "primaryMetric": "deaths_per_minute",
+  "secondaryMetrics": [
+    "kills_per_minute",
+    "first_sight_to_kill_s",
+    "world_changed_rate",
+    "stale_rejection_rate",
+    "success_rate",
+    "decisions_per_minute"
+  ],
+  "decisionType": "engage-disengage/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "sweep": {
+    "param": "latencyMs",
+    "values": [
+      0,
+      50,
+      100,
+      250,
+      500,
+      750,
+      1000,
+      1500
+    ]
+  },
+  "notes": "Latency is injected into local brains only; a remote model's is measured, never altered. Answers older than the contract's 1.5 s limit are discarded by the loop, so 1500 ms sits at that edge on purpose."
+}

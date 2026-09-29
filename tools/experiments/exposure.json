@@ -1,13 +1,44 @@
 {
-  "name": "exposure",
+  "schema": "blacksite-experiment/v1",
+  "id": "exposure",
+  "question": "Can a seat that holds still in the open at 100 m still farm the bots after the exposure changes?",
   "hypothesis": "A player who holds still in the open at 100 m should not be able to farm the bots: once they stop crossing open ground in a marksman's view and flank through cover instead, the marksman's kill rate falls and it starts taking damage, while a moving seat is not made weaker.",
-  "metric": "Marksman kills per minute and damage taken; random-precision K/D as the control for 'moving seats are not punished'.",
-  "seeds": [42, 43, 44],
-  "seconds": 120,
+  "independentVariable": "build",
+  "primaryMetric": "kills_per_minute",
+  "secondaryMetrics": [
+    "damage_taken_per_minute",
+    "kd_ratio",
+    "exposure_fraction"
+  ],
+  "decisionType": null,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "duration": 120,
   "mode": "tdm",
   "arms": [
-    { "id": "marksman", "brain": "script", "policy": "marksman", "control": "precision" },
-    { "id": "skirmisher", "brain": "script", "policy": "skirmisher", "control": "precision" },
-    { "id": "random", "brain": "random", "control": "precision" }
-  ]
+    {
+      "id": "marksman",
+      "brain": "script",
+      "policy": "marksman",
+      "control": "precision"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "policy": "skirmisher",
+      "control": "precision"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "notes": "Originally declared with the prose metric: Marksman kills per minute and damage taken; random-precision K/D as the control for 'moving seats are not punished'. Run once against each build (--origin) and compare with --compare."
 }

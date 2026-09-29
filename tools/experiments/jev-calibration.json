@@ -1,0 +1,48 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "jev-calibration-v1",
+  "question": "When Jev gives the target it chooses a probability p, is that target eliminated within five seconds about p of the time?",
+  "hypothesis": "Jev's stated probabilities rank its target choices by how often they succeed (higher bins, higher empirical rates). Whether they are calibrated to this outcome is open: TypeSafe's probability is over which option to choose, not over the game outcome, so a systematic gap is a finding about the proxy as much as about the model.",
+  "independentVariable": "brain",
+  "primaryMetric": "success_rate",
+  "secondaryMetrics": [
+    "target_kill_rate_next_window",
+    "harmful_rate",
+    "decision_count"
+  ],
+  "decisionType": "threat-priority/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "eval",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "marksman",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "calibrationField": "probability",
+  "notes": "30 episodes of live Jev: roughly 30 × 120 s × 4–5 decisions a second of TypeSafe calls. The scripts and random state no probability and are there for the base rates. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

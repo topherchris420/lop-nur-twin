@@ -1,14 +1,60 @@
 {
-  "name": "horizon",
+  "schema": "blacksite-experiment/v1",
+  "id": "horizon",
+  "question": "Does the same policy do measurably better when its answers arrive sooner?",
   "hypothesis": "If this game rewards a faster decision loop, the same policy should do measurably better as its answers arrive sooner — which is the gain a faster model would bring, measured before that model exists. If it does not, cadence is not the bottleneck and a faster model will not help here by speed alone.",
-  "metric": "Deaths per minute and kills per minute of the same policy across injected answer latencies (0 ms is a local policy; 200–250 ms is today's measured Jev round trip; 600 ms a slow remote model).",
-  "seeds": [42, 43, 44],
-  "seconds": 120,
+  "independentVariable": "latency",
+  "primaryMetric": "deaths_per_minute",
+  "secondaryMetrics": [
+    "kills_per_minute",
+    "first_sight_to_kill_s",
+    "decisions_per_minute"
+  ],
+  "decisionType": null,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "duration": 120,
   "mode": "tdm",
   "arms": [
-    { "id": "latency-0", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=places&latency=0" },
-    { "id": "latency-250", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=places&latency=250" },
-    { "id": "latency-600", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=places&latency=600" },
-    { "id": "latency-250-cadence-500", "brain": "script", "policy": "skirmisher", "control": "precision", "query": "jevNav=places&latency=250&cadence=500" }
-  ]
+    {
+      "id": "latency-0",
+      "brain": "script",
+      "policy": "skirmisher",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 0
+    },
+    {
+      "id": "latency-250",
+      "brain": "script",
+      "policy": "skirmisher",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 250
+    },
+    {
+      "id": "latency-600",
+      "brain": "script",
+      "policy": "skirmisher",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 600
+    },
+    {
+      "id": "latency-250-cadence-500",
+      "brain": "script",
+      "policy": "skirmisher",
+      "control": "precision",
+      "navigation": "places",
+      "latencyMs": 250,
+      "cadenceMs": 500
+    }
+  ],
+  "controls": [
+    "latency-0"
+  ],
+  "notes": "Originally declared with the prose metric: Deaths per minute and kills per minute of the same policy across injected answer latencies (0 ms is a local policy; 200–250 ms is today's measured Jev round trip; 600 ms a slow remote model)."
 }

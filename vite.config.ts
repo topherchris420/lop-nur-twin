@@ -10,6 +10,7 @@ import {
   clientKeyFrom,
   createJevDecisionHandler,
 } from "./server/jev/handler.js";
+import { createLlmDecisionHandler } from "./server/llm/handler.js";
 
 /**
  * The response headers the deployed site is expected to serve.
@@ -87,9 +88,42 @@ function jevDecisionApi(env: Record<string, string>): Plugin {
     apiKey: env["TYPESAFE_API_KEY"],
     model: env["TYPESAFE_MODEL"],
   });
+  return decisionApi("blacksite-jev-decision-api", JEV_DECISION_PATH, handle);
+}
+
+const LLM_DECISION_PATH = "/api/llm/decision";
+
+/**
+ * Serves `/api/llm/decision` the same way: the handler the Vercel function
+ * exports, configured from `LLM_`-prefixed variables in the shell or
+ * `.env.local`. Like the TypeSafe key, `LLM_API_KEY` goes to that handler and
+ * nowhere else — never into `define`, never `VITE_`-prefixed.
+ */
+function llmDecisionApi(env: Record<string, string>): Plugin {
+  const handle = createLlmDecisionHandler({
+    provider: env["LLM_PROVIDER"],
+    apiKey: env["LLM_API_KEY"],
+    model: env["LLM_MODEL"],
+    baseUrl: env["LLM_BASE_URL"],
+    effort: env["LLM_EFFORT"],
+    confidence: env["LLM_CONFIDENCE"],
+    timeoutMs: env["LLM_TIMEOUT_MS"],
+    maxRetries: env["LLM_MAX_RETRIES"],
+    maxTokens: env["LLM_MAX_TOKENS"],
+    responseFormat: env["LLM_RESPONSE_FORMAT"],
+  });
+  return decisionApi("blacksite-llm-decision-api", LLM_DECISION_PATH, handle);
+}
+
+/** Mount one decision handler at one path on the dev and preview servers. */
+function decisionApi(
+  name: string,
+  mountPath: string,
+  handle: (request: Request, meta: { clientKey: string }) => Promise<Response>,
+): Plugin {
   const middleware: Connect.NextHandleFunction = (req, res, next) => {
     const path = (req.url ?? "").split("?")[0];
-    if (path !== JEV_DECISION_PATH) {
+    if (path !== mountPath) {
       next();
       return;
     }
@@ -129,7 +163,7 @@ function jevDecisionApi(env: Record<string, string>): Plugin {
     });
   };
   return {
-    name: "blacksite-jev-decision-api",
+    name,
     configureServer(server) {
       server.middlewares.use(middleware);
     },
@@ -147,6 +181,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
+    llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
   ],
   resolve: {
     alias: {

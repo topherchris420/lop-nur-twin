@@ -28,6 +28,9 @@ export function PilotHost() {
   const navigation = useGameStore((s) => s.jevNav);
   const intervalMs = useGameStore((s) => s.brainCadenceMs);
   const latencyMs = useGameStore((s) => s.brainLatencyMs);
+  const stale = useGameStore((s) => s.stalePolicy);
+  const motor = useGameStore((s) => s.motorProfile);
+  const outcomeWindowS = useGameStore((s) => s.outcomeWindowS);
   const screen = useGameStore((s) => s.screen);
 
   // `?brain=replay&trace=last` replays the trace this browser last kept.
@@ -52,8 +55,24 @@ export function PilotHost() {
       navigation: nav,
       intervalMs,
       latencyMs,
+      stale,
+      motor,
+      outcomeWindowS,
     });
-  }, [brain, seed, policy, fallback, trace, control, navigation, intervalMs, latencyMs]);
+  }, [
+    brain,
+    seed,
+    policy,
+    fallback,
+    trace,
+    control,
+    navigation,
+    intervalMs,
+    latencyMs,
+    stale,
+    motor,
+    outcomeWindowS,
+  ]);
 
   useEffect(() => {
     const observe = (report: AppliedDamage): void =>
@@ -108,6 +127,8 @@ export function PilotHost() {
       },
       takeover: () => pilot.takeover(),
       aggregate: aggregateEpisodes,
+      /** This episode's decision records and failures, for the evaluation. */
+      evaluation: () => pilot.evaluationRecords(),
       /** Start the statistics over, so a benchmark measures only its own window. */
       resetMetrics: () => pilot.resetMetrics(),
     };
