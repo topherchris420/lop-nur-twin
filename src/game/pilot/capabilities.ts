@@ -30,7 +30,7 @@ import {
  * the cadence whatever was declared. The measured rate is in the metrics.
  */
 
-export const OBSERVATION_FORMATS = ["structured-v3"] as const;
+export const OBSERVATION_FORMATS = ["structured-v4"] as const;
 export type ObservationFormat = (typeof OBSERVATION_FORMATS)[number];
 
 export interface Capabilities {
@@ -73,7 +73,7 @@ export const HOST_CAPABILITIES: Capabilities = {
   inference: "local",
   memory: false,
   vision: false,
-  observations: ["structured-v3"],
+  observations: ["structured-v4"],
   // The longest the host will wait for, or accept, an answer.
   requestTimeoutMs: 15_000,
   maxDecisionAgeMs: 15_000,
@@ -92,7 +92,7 @@ export const JEV_CAPABILITIES: Capabilities = {
   inference: "remote",
   memory: false,
   vision: false,
-  observations: ["structured-v3"],
+  observations: ["structured-v4"],
 };
 
 /**
@@ -109,7 +109,7 @@ export const LLM_CAPABILITIES: Capabilities = {
   inference: "remote",
   memory: false,
   vision: false,
-  observations: ["structured-v3"],
+  observations: ["structured-v4"],
   // A conventional LLM answers in seconds, not Jev's ~200 ms: under the
   // contract's 1.5 s age limit it would never act. These are its limits, and
   // they are the most important stated difference between the two seats.
@@ -125,7 +125,7 @@ export const LOCAL_POLICY_CAPABILITIES: Capabilities = {
   inference: "local",
   memory: true,
   vision: false,
-  observations: ["structured-v3"],
+  observations: ["structured-v4"],
 };
 
 export interface NegotiationRequest {
@@ -136,6 +136,7 @@ export interface NegotiationRequest {
 }
 
 export interface Negotiated {
+  observationFormat: ObservationFormat;
   control: ControlMode;
   navigation: NavigationMode;
   intervalMs: number;
@@ -174,6 +175,10 @@ export function negotiate(
   host: Capabilities = HOST_CAPABILITIES,
 ): Negotiated {
   const notes: string[] = [];
+  const observationFormat = OBSERVATION_FORMATS.find(
+    (format) => brain.observations.includes(format) && host.observations.includes(format),
+  );
+  if (!observationFormat) throw new Error("no common observation interface");
   const control = pick(
     request.control,
     brain.control,
@@ -200,6 +205,7 @@ export function negotiate(
     hostMax: number | undefined,
   ): number => Math.min(wantedMs ?? fallback, hostMax ?? fallback);
   return {
+    observationFormat,
     control,
     navigation,
     intervalMs: Math.max(floor, wanted),

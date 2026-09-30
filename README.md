@@ -1,11 +1,19 @@
 # Lop Nur Twin
 
-A 3D reconstruction of a remote desert airfield near Lop Nur (~40.77° N,
-89.28° E), built only from cited public sources — and, standing on exactly the
-same geometry, **Blacksite**: a deterministic world in which a person, a
-language model, a hand-written policy and a seeded random baseline can each
-take the same seat, through the same controls, and be measured against what
-actually happened.
+One desert. Two ways to enter it.
+
+**The twin** reconstructs an airfield near Lop Nur (~40.77° N, 89.28° E)
+from cited public sources. Inspect a structure, follow its evidence, measure
+the ground, or compare revisions.
+
+**Blacksite** turns the same geometry into a playable experiment. Take the
+controls yourself, give the seat to Jev or a compatible language model, or run
+an offline policy. Each uses the same movement, weapons, collision and damage
+rules. Choices leave traces; the world decides their consequences.
+
+[Explore the twin](https://lop-nur-twin.vercel.app/) ·
+[Enter Blacksite](https://lop-nur-twin.vercel.app/play) ·
+[Read the evidence](https://lop-nur-twin.vercel.app/analysis)
 
 [![Live demo](https://img.shields.io/badge/Live%20demo-lop--nur--twin.vercel.app-blue?style=for-the-badge&logo=vercel)](https://lop-nur-twin.vercel.app/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=for-the-badge)](LICENSE)
@@ -24,17 +32,21 @@ actually happened.
 
 Blacksite lets a model sit in the player's seat. In the first matched benchmark
 the model — TypeSafe's Jev, choosing targets and aim regions while a local
-controller held the crosshair — went **148 kills to 0 deaths at 77 % accuracy
-without moving a metre**, headshotting bots at about 100 m.
+controller held the crosshair — went **148 kills to 0 deaths without moving
+a metre**, engaging bots at about 100 m.
 
 It would have been easy to publish that as a result about the model. Instead
 the strategy was written down as a script of a few dozen lines — hold still, aim down the
 sights, take the head beyond 40 m — and run offline on the same seeds:
 
-| 3 × 120 s, seeds 42–44, same controller | Kills / deaths | Accuracy | Moved | Mean range |
-| :-------------------------------------- | -------------: | -------: | ----: | ---------: |
-| Jev (live), precision control           |        148 / 0 |   77.1 % |   0 m |      103 m |
-| **scripted marksman**, same controller  |    **153 / 0** |   79.8 % |   0 m |      109 m |
+| Historical run: 3 × 120 s, seeds 42–44 | Kills / deaths | Moved | Mean range |
+| :------------------------------------- | -------------: | ----: | ---------: |
+| Jev (live), precision control          |        148 / 0 |   0 m |      103 m |
+| scripted marksman, same controller     |        153 / 0 |   0 m |      109 m |
+
+These are historical builds, not current performance promises. Their early
+hit counters counted body strikes rather than unique rounds, so the old
+accuracy percentages are deliberately omitted. [Artifact caveats](docs/benchmarks/2026-09-27/README.md).
 
 The script matched the model. **The finding was about the map**: on open
 lakebed, at 100 m, nothing could touch a still shooter. A diagnostic
@@ -72,15 +84,18 @@ measured and removed. ([the full account](docs/JEV_BLACKSITE.md#the-marksman-exp
 
 ## One seat
 
-```text
-  person ─ keyboard, mouse ───────────────────────────────────────┐
-                                                                  │
-  Jev (remote)  ─┐                                                │
-  scripted      ─┼─ observation ─→ choice ─→ executor ─┬─→ InputState ─→ the same controller,
-  random (seed) ─┤   what the seat    of one            │                weapons, recoil, collision,
-  replay trace  ─┘   can perceive     option per axis   │                hit registration, damage
-                                                        ├ motor (aim, trigger) — precision control
-                                                        └ navigator (feet)     — places navigation
+```mermaid
+flowchart TD
+  World["World and bounded perception"] --> Notes["Shared place field notes"]
+  Notes --> Human["Human: keyboard and mouse"]
+  World --> Brain["Model, script or seeded random"]
+  Brain --> Execute["Choices and local controllers"]
+  Replay["Recorded control trace"] --> Execute
+  Execute --> Input["InputState"]
+  Human --> Input
+  Input --> Rules["Movement, collision, weapons and damage"]
+  Rules --> World
+  Rules --> Evidence["Traces and after-action evaluation"]
 ```
 
 Every brain writes the `InputState` a keyboard and mouse fill, and nothing
@@ -172,6 +187,35 @@ really happened, and is never fed back to a model mid-match.
 
 ---
 
+## Field notes for whoever holds the controls
+
+The person can now read the same place facts the agent receives: cover,
+advance, flank, withdrawal or a reachable objective, with bearing, distance
+and sampled route exposure. Quiet text near the edge of the screen appears
+only while there is something to report. It never moves the human or chooses
+an action. With `?jevNav=steps`, the place layer is absent for both seats.
+
+Every place must pass a standing capsule and body-width straight-route check.
+A blocked objective is still shown as an objective, but is not offered as a
+walkable place. The search is local (128 m maximum route), without pathfinding.
+“Hidden” tests the standing eye against known threats; it does not promise
+whole-body invisibility or safety from unseen enemies. Notes expire after
+0.75 seconds of simulation time rather than silently presenting old safety
+facts as current.
+
+Observation v4 records that stricter meaning. Older observation traces are
+rejected on replay; their archived evaluations remain readable. Navigation-only
+traces now bind places even when no target is being tracked.
+
+The [declared clearance experiment](tools/experiments/place-clearance.json)
+compares the same scripted skirmisher on seeds 42–44 before and after these
+checks, with steps navigation as the unchanged control. It measures blocked
+and arrived travels alongside kills and exposure. This is an offline game
+experiment, not a live Jev result. In the three 45-second candidate episodes,
+all sixteen ended travels arrived, against thirteen blocked releases in the
+baseline. Exposure barely changed, distance fell, and no candidate objective
+trips were chosen. [Every seed, traces and source snapshots](docs/benchmarks/2026-09-30/README.md).
+
 ## Built for the next model, measured on this one
 
 A brain declares what it can use — precision or direct control, places or
@@ -207,6 +251,7 @@ bun run dev                                    # http://localhost:5173/play
 node tools/experiment.mjs tools/experiments/exposure.json
 node tools/experiment.mjs tools/experiments/places.json
 node tools/experiment.mjs tools/experiments/horizon.json
+node tools/experiment.mjs tools/experiments/place-clearance.json
 node tools/experiment.mjs --compare before/experiment.json after/experiment.json
 
 # one seat, repeatable episodes
@@ -284,6 +329,10 @@ Browser suites, against the dev server: `bun run smoke` (the simulation),
 cycle), `bun run audio`, `bun run jev` (the player seat, no API calls); and
 against `bun run preview`: `bun run a11y` and `bun run routes`. What each one
 proves is in [`docs/VALIDATION.md`](docs/VALIDATION.md).
+
+`node tools/places.mjs` checks human field notes, shared observations,
+navigation-only replay in direct and precision control, takeover and death
+against staged offline fixtures. It calls no provider.
 
 ```text
 src/lib/          layout (the single source of geometry), evidence ledger, CRS, URL parameters

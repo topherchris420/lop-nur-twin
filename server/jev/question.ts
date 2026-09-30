@@ -233,6 +233,7 @@ function describePlace(place: Place): Record<string, unknown> {
     direction: around(place.bearingDeg),
     distance: `${round(place.distanceM)} m, about ${round(place.distanceM / 6.5, 1)} seconds at a run`,
     hidden_there_from_known_enemies: place.hidden,
+    hidden_test: "standing eye, known enemies only; not whole-body invisibility",
     route_in_sight_of_known_enemies:
       exposed < 0.5
         ? "none of it"

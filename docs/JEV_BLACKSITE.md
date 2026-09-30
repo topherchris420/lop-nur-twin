@@ -200,13 +200,13 @@ least two options.
 
 ## The observation
 
-`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v3`. It
+`src/game/pilot/observation.ts`, versioned `blacksite-jev-observation/v4`. It
 holds only numbers, booleans and strings from closed vocabularies; the validator
 rejects unknown fields, out-of-range numbers and oversized arrays.
 
 ```text
 interface JevObservation {   // a sketch; the exact types are in observation.ts
-  schemaVersion: "blacksite-jev-observation/v3";
+  schemaVersion: "blacksite-jev-observation/v4";
   actionContract: "blacksite-jev-actions/v3";
   sequence: number;                       // monotonic per page
   control: "direct" | "precision";
@@ -396,7 +396,7 @@ labelled `profile: elite`.
 ## Places: the feet's precision control
 
 `src/game/pilot/places.ts`, `navigator.ts`; `?jevNav=places` (the default) or
-`?jevNav=steps` for the original interface. Contract and observation v3.
+`?jevNav=steps` for the original interface. Action contract v3; observation v4.
 
 The first benchmark's most striking behaviour was not the accuracy. It was
 that Jev almost never moved: 0 m in 360 s under precision control. The move
@@ -413,7 +413,7 @@ out — and from nothing else:
 
 | Kind        | What it is                                                                                |
 | :---------- | :---------------------------------------------------------------------------------------- |
-| `cover`     | the nearest reachable point no known threat can see a crouched body at                    |
+| `cover`     | the nearest reachable point no known threat can see the standing eye at                   |
 | `advance`   | such a point at least 4 m nearer the nearest known threat                                 |
 | `flank`     | such a point at least 35° round that threat from where the player stands, and not further |
 | `withdraw`  | such a point at least 5 m further from it                                                 |
@@ -424,7 +424,9 @@ whether it is hidden from every known threat, how many metres of the straight
 walk there stand in some known threat's sight, and how far the nearest known
 threat would be. The server states them in words, including the time at a run.
 "Hidden" is literal: hidden from the threats the observation mentions, which
-may not be all the threats there are.
+may not be all the threats there are. Observation v4 tests the standing eye,
+not a crouched eye; it does not promise whole-body invisibility. Route exposure
+is sampled at terrain height, not a linearly interpolated floor.
 
 The `go` axis offers `NONE`, `CONTINUE` (only while travelling) and one
 `PLACE_n` per listed place. A slot binds the world point the browser kept for
@@ -442,14 +444,27 @@ in a seeded random order instead — slot order is presentation, and the live
 run in [The live model on the new game](#the-live-model-on-the-new-game) is
 why the option exists.
 
-The finder offers only places reachable by a straight walk — nothing at waist
-height in the way — because the navigator walks straight lines with feelers,
-not paths. The navigation grid in `ai/navmesh.ts` is built for more and is not
+The finder offers only places that pass a standing capsule and body-width
+straight-route check: three lateral rays at three body heights, standing
+capsule samples at most one metre apart, and terrain slope checks. The query
+is bounded to 128 m. Objectives pass the same check; an unreachable centre
+remains in the objective observation but is not offered as a place. This is
+sampled reachability, not a pathfinding guarantee. If every live feeler is
+blocked the navigator releases movement immediately, then reports a blocked
+travel after the usual no-progress timeout. The navigation grid in `ai/navmesh.ts` is built for more and is not
 used yet. The candidate search is deterministic: fixed rings of 5, 9, 14, 20
 and 27 m, sixteen spokes each, the nearest three known threats tested, route
 exposure measured only for the places that are listed.
 
 ## One set of senses
+
+With places navigation, `PlacesHud` renders the same captured place facts for
+the human as for an agent. Human perception is captured at 250 ms simulation
+intervals on a timer; model notes use the model observation cadence. The notes
+show at most two places and expire after 0.75 s. They never request inference,
+choose an action, or read the debrief. Bearings and distances follow the
+player; exposure is explicitly labelled as a fact at capture. No notes appear
+under steps navigation. `node tools/places.mjs` checks this boundary.
 
 A comparison between a person and a model means something only if they are
 told the same things. Before this version the human's HUD drew brackets with
@@ -1302,8 +1317,10 @@ These are the boundaries of the experiment as it now stands, not failures.
 - **Hand-designed observation semantics.** What Jev reads — which facts, in what
   words, the size classes, the hit-share bands — was written by hand and tuned on
   short runs. A different rendering could change its choices.
-- **Places are straight walks.** The navigator walks straight lines with
-  feelers; the finder therefore offers only places reachable that way. Cover
+- **Places are sampled straight walks.** The navigator walks straight lines
+  with feelers; the finder checks standing clearance and body width within
+  128 m. A sampled check may still miss geometry, and long or obstructed
+  objectives are not offered as places. Cover
   behind a building's far side, reachable only round a corner, is not offered.
   The navigation grid in `ai/navmesh.ts` would lift this and is not used yet.
 - **"Hidden" means hidden from known threats.** A place is hidden from the
@@ -1319,9 +1336,13 @@ These are the boundaries of the experiment as it now stands, not failures.
 - **Perception is close to a person's, not identical.** Since v3 the human
   HUD shows enemies only as a brain is told about them, and a brain gets the
   teammates the radar shows. A person still hears footsteps and reads pixels;
-  a brain gets exact bearings, distances and the places list.
-- **Replay reproduces controls, not outcomes**, and a replayed target slot
-  names whoever is in that slot of the view at replay time.
+  a brain gets exact bearings and distances. The human now also reads the
+  captured places list, although it shows only two entries at a time.
+- **Replay reproduces controls, not outcomes.** A replayed target or place
+  slot names what occupies that slot at replay time. Navigation-only frames
+  refresh place slots even with target NONE and under direct control. Traces
+  carrying the older observation v3 are rejected because hidden-place semantics
+  changed; their saved evaluation artifacts still load.
 - **The benchmarks are small** — three two-minute episodes per configuration —
   and headless, with rendering stubbed. Treat them as a measurement of this
   build on this machine, not a ranking.

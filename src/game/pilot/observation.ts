@@ -79,7 +79,7 @@ export const OBJECTIVE_STATES = ["neutral", "friendly", "enemy", "contested"] as
  * brain could not in principle work out from what it was shown:
  *
  *  - `cover` — the nearest reachable point that no known threat can see a
- *    crouched body at;
+ *    standing eye at;
  *  - `advance` — such a point, nearer the nearest known threat;
  *  - `flank` — such a point, to one side of the line to that threat;
  *  - `withdraw` — such a point, further from it;
@@ -120,7 +120,7 @@ export interface Place {
   bearingDeg: number;
   /** Straight-line metres from the player. */
   distanceM: number;
-  /** No known threat has a sight line to a crouched body there. */
+  /** No known threat has a sight line to the standing eye there. Not whole-body invisibility. */
   hidden: boolean;
   /** Metres of the straight route that stand in some known threat's sight. */
   routeExposedM: number;

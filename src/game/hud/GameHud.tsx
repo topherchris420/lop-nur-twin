@@ -5,6 +5,7 @@ import { useGameStore, type GameScreen } from "../core/gameStore";
 import { game } from "../core/gameState";
 import { WEAPON_LIST, getWeapon } from "../weapons/arsenal";
 import { CombatHud } from "./CombatHud";
+import { PlacesHud } from "./PlacesHud";
 import { JevHud, PlayerControlSelector } from "./JevHud";
 import { PilotHost } from "../pilot/PilotHost";
 import { pilot } from "../pilot/pilot";
@@ -865,6 +866,7 @@ export function GameHud() {
       {IN_MATCH.includes(screen) && <Killfeed />}
       {IN_MATCH.includes(screen) && <Scoreboard />}
       {screen === "playing" && <JevHud />}
+      {screen === "playing" && <PlacesHud />}
 
       {booting && <BootScreen onComplete={() => setBooting(false)} />}
 

@@ -110,7 +110,7 @@ export async function runFor(page, seconds, wallLimitS = seconds * 4 + 30) {
 export async function waitForPilot(page, timeoutMs = 60000) {
   await page.waitForFunction(
     () => {
-      const director = globalThis.__combat.game.matchDirector;
+      const director = globalThis.__combat?.game.matchDirector;
       return director && director.phase === "live";
     },
     { timeout: timeoutMs },

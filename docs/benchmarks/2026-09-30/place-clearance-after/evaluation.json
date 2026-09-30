@@ -1,0 +1,1404 @@
+{
+  "schema": "blacksite-evaluation/v1",
+  "generatedAt": "2026-09-30T10:33:14.719Z",
+  "status": "complete",
+  "experiment": {
+    "id": "place-clearance-v1",
+    "question": "Does checking a body's walk, rather than a center ray, reduce blocked place navigation without trading away engagement?",
+    "hypothesis": "Standing clearance and route checks reduce blocked navigation releases as a share of ended travels; the unchanged steps arm should show only ordinary pacing variation.",
+    "independentVariable": "navigation",
+    "primaryMetric": {
+      "id": "place_blocked_rate",
+      "label": "Travels stopped by obstruction",
+      "unit": "share",
+      "description": "Share of ended travels released as blocked. Replacements, timeouts and clears remain in the denominator; active travels and resets on death are not ended-travel samples."
+    },
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "exposure_fraction",
+      "place_arrival_rate"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seedPreset": null,
+    "durationS": 45,
+    "mode": "domination",
+    "definitionHash": "38ff2f8b387b8ae5",
+    "definition": {
+      "schema": "blacksite-experiment/v1",
+      "id": "place-clearance-v1",
+      "question": "Does checking a body's walk, rather than a center ray, reduce blocked place navigation without trading away engagement?",
+      "hypothesis": "Standing clearance and route checks reduce blocked navigation releases as a share of ended travels; the unchanged steps arm should show only ordinary pacing variation.",
+      "independentVariable": "navigation",
+      "primaryMetric": "place_blocked_rate",
+      "secondaryMetrics": [
+        "kills_per_minute",
+        "exposure_fraction",
+        "place_arrival_rate"
+      ],
+      "decisionType": null,
+      "outcomeWindowS": 5,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "seedPreset": null,
+      "duration": 45,
+      "mode": "domination",
+      "arms": [
+        {
+          "seat": "even",
+          "id": "skirmisher-places",
+          "brain": "script",
+          "control": "precision",
+          "policy": "skirmisher",
+          "navigation": "places"
+        },
+        {
+          "seat": "even",
+          "id": "skirmisher-steps",
+          "brain": "script",
+          "control": "precision",
+          "policy": "skirmisher",
+          "navigation": "steps"
+        }
+      ],
+      "controls": [
+        "skirmisher-steps"
+      ],
+      "calibrationField": "probability",
+      "contributionFactors": [],
+      "notes": "Offline scripted policies only, no provider results. Run sequentially on the baseline and candidate builds. Short smoke experiment, not a model ranking; inspect every seed and pacing flag."
+    }
+  },
+  "environment": {
+    "gitCommit": "37060b2582fe25ac38ac086103480760c2a049c0",
+    "gitDirty": false,
+    "servedBuilds": "unknown (served by http://127.0.0.1:5175)",
+    "node": "v24.19.0",
+    "platform": "linux",
+    "cpus": 9,
+    "rendering": "stubbed (matrices only; see tools/jev-harness.mjs)",
+    "actionContract": "blacksite-jev-actions/v3",
+    "observationSchema": "blacksite-jev-observation/v4",
+    "decisionSchema": "blacksite-jev-decision/v3",
+    "llmDecisionSchema": "blacksite-llm-decision/v1",
+    "decisionRecordSchema": "blacksite-decision/v1",
+    "traceSchema": "blacksite-jev-trace/v3",
+    "experimentSchema": "blacksite-experiment/v1",
+    "evaluationSchema": "blacksite-evaluation/v1"
+  },
+  "provenance": {
+    "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z",
+    "startedAt": "2026-09-30T01:45:36.800Z",
+    "finishedAt": "2026-09-30T01:51:29.138Z",
+    "definitionFile": "tools/experiments/place-clearance.json",
+    "definitionFileHash": "faffbe70046f58ea",
+    "overrides": [
+      "none"
+    ],
+    "liveFlagsSet": [],
+    "pricingFile": "config/pricing.json",
+    "pricingHash": "055f71c0fea9918a",
+    "evaluatedAt": "2026-09-30T10:33:14.717Z",
+    "evaluatedAtCommit": null
+  },
+  "arms": [
+    {
+      "id": "skirmisher-places",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher-places",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places",
+        "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+        "origin": "http://127.0.0.1:5175",
+        "build": "unknown (served by http://127.0.0.1:5175)"
+      },
+      "episodes": [
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-places-s42",
+          "seed": 42,
+          "simSeconds": 45.214900000000526,
+          "wallSeconds": 45.221,
+          "lagged": false,
+          "decisions": 189,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": 0,
+            "kills_per_minute": 13.269961893092642,
+            "exposure_fraction": 0.4934986106654055,
+            "place_arrival_rate": 1,
+            "deaths_per_minute": 1.326996189309264,
+            "accuracy": 0.8235294117647058,
+            "damage_dealt_per_minute": 1653.3461214233482,
+            "damage_taken_per_minute": 195.0684398284618,
+            "distance_m": 111.32754240282034,
+            "decisions_per_minute": 250.8022797794509
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-places.json",
+            "decisions": "skirmisher-places.seed42.eval.json.gz",
+            "trace": "skirmisher-places.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-places-s43",
+          "seed": 43,
+          "simSeconds": 45.24810000000066,
+          "wallSeconds": 45.255,
+          "lagged": false,
+          "decisions": 199,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": 0,
+            "kills_per_minute": 18.557507284925926,
+            "exposure_fraction": 0.5006064328273422,
+            "place_arrival_rate": 1,
+            "deaths_per_minute": 0,
+            "accuracy": 0.7333333333333333,
+            "damage_dealt_per_minute": 2533.128728639656,
+            "damage_taken_per_minute": 0,
+            "distance_m": 91.19111731429949,
+            "decisions_per_minute": 263.7817106928757
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-places.json",
+            "decisions": "skirmisher-places.seed43.eval.json.gz",
+            "trace": "skirmisher-places.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-places-s44",
+          "seed": 44,
+          "simSeconds": 45.26500000000052,
+          "wallSeconds": 45.263,
+          "lagged": false,
+          "decisions": 218,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": 0,
+            "kills_per_minute": 15.906329393571019,
+            "exposure_fraction": 0.3987451673478347,
+            "place_arrival_rate": 1,
+            "deaths_per_minute": 0,
+            "accuracy": 0.5434782608695652,
+            "damage_dealt_per_minute": 1958.2196749654302,
+            "damage_taken_per_minute": 0,
+            "distance_m": 108.11754091059566,
+            "decisions_per_minute": 288.9649839832069
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-places.json",
+            "decisions": "skirmisher-places.seed44.eval.json.gz",
+            "trace": "skirmisher-places.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "place_blocked_rate": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 15.911266190529863,
+          "median": 15.906329393571019,
+          "sd": 2.6437761529009047,
+          "min": 13.269961893092642,
+          "max": 18.557507284925926,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 9.34323207962506,
+            "hi": 22.479300301434666,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.4642834036135275,
+          "median": 0.4934986106654055,
+          "sd": 0.05686893346621469,
+          "min": 0.3987451673478347,
+          "max": 0.5006064328273422,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.32300173933683407,
+            "hi": 0.6055650678902209,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "place_arrival_rate": {
+          "n": 3,
+          "mean": 1,
+          "median": 1,
+          "sd": 0,
+          "min": 1,
+          "max": 1,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 1,
+            "hi": 1,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0.44233206310308804,
+          "median": 0,
+          "sd": 0.7661416071113113,
+          "min": 0,
+          "max": 1.326996189309264,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -1.4610228044295,
+            "hi": 2.345686930635676,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.7001136686558681,
+          "median": 0.7333333333333333,
+          "sd": 0.14295041577549059,
+          "min": 0.5434782608695652,
+          "max": 0.8235294117647058,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.34497648884916365,
+            "hi": 1.0552508484625727,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 2048.2315083428116,
+          "median": 1958.2196749654302,
+          "sd": 446.744845074959,
+          "min": 1653.3461214233482,
+          "max": 2533.128728639656,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 938.3662203517697,
+            "hi": 3158.0967963338535,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 65.02281327615394,
+          "median": 0,
+          "sd": 112.62281624536273,
+          "min": 0,
+          "max": 195.0684398284618,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -214.77035225113644,
+            "hi": 344.81597880344435,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 103.5454002092385,
+          "median": 108.11754091059566,
+          "sd": 10.818838051341656,
+          "min": 91.19111731429949,
+          "max": 111.32754240282034,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 76.6677474686321,
+            "hi": 130.42305294984487,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 267.8496581518445,
+          "median": 263.7817106928757,
+          "sd": 19.403843573698,
+          "min": 250.8022797794509,
+          "max": 288.9649839832069,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 219.64394817338462,
+            "hi": 316.0553681303044,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 606,
+        "decisions": 606,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 606,
+          "mean": 8.534323432343227,
+          "median": 7.9,
+          "sd": 5.858130758849669,
+          "min": 0.2,
+          "max": 31.1,
+          "p90": 16.5,
+          "p95": 17.9,
+          "p99": 21.2,
+          "ci95": {
+            "lo": 8.066957639487445,
+            "hi": 9.001689225199009,
+            "method": "95% t interval, n=606"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            148,
+            231,
+            225,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 606
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 606
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 606
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 606
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 267.8887186136946,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (not this mode's objective)",
+          "count": 36
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 606,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 606,
+          "mean": 11.3993399339934,
+          "median": 11,
+          "sd": 4.969553538650139,
+          "min": 1,
+          "max": 34,
+          "p90": 18,
+          "p95": 20,
+          "p99": 23,
+          "ci95": {
+            "lo": 11.002865456836703,
+            "hi": 11.795814411150095,
+            "method": "95% t interval, n=606"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 606,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "skirmisher-steps",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "script:skirmisher",
+        "kind": "script",
+        "provider": "local",
+        "models": [],
+        "policy": "skirmisher",
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "even",
+        "id": "skirmisher-steps",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "steps",
+        "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=steps&seat=even",
+        "origin": "http://127.0.0.1:5175",
+        "build": "unknown (served by http://127.0.0.1:5175)"
+      },
+      "episodes": [
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-steps-s42",
+          "seed": 42,
+          "simSeconds": 45.218900000000446,
+          "wallSeconds": 45.224,
+          "lagged": false,
+          "decisions": 199,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": null,
+            "kills_per_minute": 15.917723058148324,
+            "exposure_fraction": 0.5745311830143127,
+            "place_arrival_rate": null,
+            "deaths_per_minute": 0,
+            "accuracy": 0.48936170212765956,
+            "damage_dealt_per_minute": 2352.319300111664,
+            "damage_taken_per_minute": 84.7346279818593,
+            "distance_m": 173.02995427303898,
+            "decisions_per_minute": 262.6424304594474
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "steps",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-steps.json",
+            "decisions": "skirmisher-steps.seed42.eval.json.gz",
+            "trace": "skirmisher-steps.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-steps-s43",
+          "seed": 43,
+          "simSeconds": 45.19600000000017,
+          "wallSeconds": 45.254,
+          "lagged": false,
+          "decisions": 216,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": null,
+            "kills_per_minute": 22.568368882201927,
+            "exposure_fraction": 0.49698207387282173,
+            "place_arrival_rate": null,
+            "deaths_per_minute": 0,
+            "accuracy": 0.4745762711864407,
+            "damage_dealt_per_minute": 3121.469238035258,
+            "damage_taken_per_minute": 35.1500437459198,
+            "distance_m": 170.22796324244905,
+            "decisions_per_minute": 286.75103991503624
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "steps",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-steps.json",
+            "decisions": "skirmisher-steps.seed43.eval.json.gz",
+            "trace": "skirmisher-steps.seed43.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z-skirmisher-steps-s44",
+          "seed": 44,
+          "simSeconds": 45.21480000000036,
+          "wallSeconds": 45.222,
+          "lagged": false,
+          "decisions": 209,
+          "failures": 0,
+          "metrics": {
+            "place_blocked_rate": null,
+            "kills_per_minute": 10.615992993444564,
+            "exposure_fraction": 0.36022869418010695,
+            "place_arrival_rate": null,
+            "deaths_per_minute": 0,
+            "accuracy": 0.3902439024390244,
+            "damage_dealt_per_minute": 1653.2241654332538,
+            "damage_taken_per_minute": 0,
+            "distance_m": 177.83325484571637,
+            "decisions_per_minute": 277.3428169537392
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "steps",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "skirmisher-steps.json",
+            "decisions": "skirmisher-steps.seed44.eval.json.gz",
+            "trace": "skirmisher-steps.seed44.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "place_blocked_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "kills_per_minute": {
+          "n": 3,
+          "mean": 16.367361644598272,
+          "median": 15.917723058148324,
+          "sd": 5.988860784018578,
+          "min": 10.615992993444564,
+          "max": 22.568368882201927,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 1.4890059745339226,
+            "hi": 31.24571731466262,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 3,
+          "mean": 0.4772473170224138,
+          "median": 0.49698207387282173,
+          "sd": 0.10850568948719816,
+          "min": 0.36022869418010695,
+          "max": 0.5745311830143127,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.20768248680894053,
+            "hi": 0.7468121472358871,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "place_arrival_rate": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "deaths_per_minute": {
+          "n": 3,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0,
+            "hi": 0,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 3,
+          "mean": 0.4513939585843749,
+          "median": 0.4745762711864407,
+          "sd": 0.0534710133339927,
+          "min": 0.3902439024390244,
+          "max": 0.48936170212765956,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 0.31855387712099037,
+            "hi": 0.5842340400477595,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 3,
+          "mean": 2375.670901193392,
+          "median": 2352.319300111664,
+          "sd": 734.4010289071131,
+          "min": 1653.2241654332538,
+          "max": 3121.469238035258,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 551.1703648477567,
+            "hi": 4200.1714375390275,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 3,
+          "mean": 39.96155724259304,
+          "median": 35.1500437459198,
+          "sd": 42.5717311299708,
+          "min": 0,
+          "max": 84.7346279818593,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": -65.80102099804537,
+            "hi": 145.72413548323146,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 3,
+          "mean": 173.6970574537348,
+          "median": 173.02995427303898,
+          "sd": 3.8462819817263725,
+          "min": 170.22796324244905,
+          "max": 177.83325484571637,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 164.1415921665478,
+            "hi": 183.2525227409218,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 3,
+          "mean": 275.5787624427409,
+          "median": 277.3428169537392,
+          "sd": 12.150727497103091,
+          "min": 262.6424304594474,
+          "max": 286.75103991503624,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 245.3922458627673,
+            "hi": 305.76527902271454,
+            "method": "95% t interval, n=3"
+          },
+          "notes": [
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 624,
+        "decisions": 624,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 624,
+          "mean": 0.7681089743589741,
+          "median": 0.7,
+          "sd": 0.4846858104122685,
+          "min": 0.1,
+          "max": 3.3,
+          "p90": 1.3,
+          "p95": 1.6,
+          "p99": 2.2,
+          "ci95": {
+            "lo": 0.7300044242412964,
+            "hi": 0.8062135244766517,
+            "method": "95% t interval, n=624"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            624,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 624
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 624
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 624
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 624
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 276.0457333460129,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": 0,
+        "objective": {
+          "label": "eliminations (not this mode's objective)",
+          "count": 37
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 624,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 624,
+          "mean": 7.698717948717949,
+          "median": 8,
+          "sd": 3.3723831122981784,
+          "min": 1,
+          "max": 14,
+          "p90": 12,
+          "p95": 12,
+          "p99": 13,
+          "ci95": {
+            "lo": 7.433591265497592,
+            "hi": 7.963844631938306,
+            "method": "95% t interval, n=624"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 624,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "metric": "place_blocked_rate",
+      "reference": "skirmisher-steps",
+      "arm": "skirmisher-places",
+      "difference": {
+        "seeds": [],
+        "differences": [],
+        "n": 0,
+        "meanDifference": null,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "skirmisher-steps",
+      "arm": "skirmisher-places",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -2.647761165055682,
+          -4.010861597276001,
+          5.290336400126455
+        ],
+        "n": 3,
+        "meanDifference": -0.4560954540684096,
+        "ci95": {
+          "lo": -12.934948775510296,
+          "hi": 12.022757867373478,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "exposure_fraction",
+      "reference": "skirmisher-steps",
+      "arm": "skirmisher-places",
+      "difference": {
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "differences": [
+          -0.0810325723489072,
+          0.003624358954520457,
+          0.03851647316772777
+        ],
+        "n": 3,
+        "meanDifference": -0.012963913408886326,
+        "ci95": {
+          "lo": -0.1656925657330442,
+          "hi": 0.13976473891527152,
+          "method": "95% t interval, n=3"
+        },
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "place_arrival_rate",
+      "reference": "skirmisher-steps",
+      "arm": "skirmisher-places",
+      "difference": {
+        "seeds": [],
+        "differences": [],
+        "n": 0,
+        "meanDifference": null,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    }
+  ],
+  "sweeps": [],
+  "contribution": null,
+  "warnings": [
+    {
+      "id": "insufficient-seeds",
+      "severity": "info",
+      "arm": null,
+      "message": "3 seeds per arm. Treat every difference as exploratory; use a 10-seed development set or a 30-seed evaluation set before claiming one.",
+      "evidence": {
+        "seeds": 3
+      },
+      "possibleCauses": [
+        "a quick check, by design"
+      ],
+      "suggestedRun": "set \"seeds\": { \"preset\": \"dev\" } or { \"preset\": \"eval\" }"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-places",
+      "message": "skirmisher-places chose move=HOLD in 100.0% of 606 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 606
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-places",
+      "message": "skirmisher-places chose target=TARGET_0 in 96.5% of 114 decisions where the target axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "target",
+        "action": "TARGET_0",
+        "share": 0.9649122807017544,
+        "n": 114
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "skirmisher-places",
+      "message": "skirmisher-places chose slot 0 of the target axis in 87.1% of 31 decisions with two or more slots offered; a position-blind chooser would pick it 41.7% of the time.",
+      "evidence": {
+        "axis": "target",
+        "firstShare": 0.8709677419354839,
+        "expectedShare": 0.41666666666666674,
+        "n": 31
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "skirmisher-steps",
+      "message": "skirmisher-steps chose target=TARGET_0 in 100.0% of 151 decisions where the target axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "target",
+        "action": "TARGET_0",
+        "share": 1,
+        "n": 151
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "skirmisher-steps",
+      "message": "skirmisher-steps chose slot 0 of the target axis in 100.0% of 39 decisions with two or more slots offered; a position-blind chooser would pick it 42.3% of the time.",
+      "evidence": {
+        "axis": "target",
+        "firstShare": 1,
+        "expectedShare": 0.4230769230769231,
+        "n": 39
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    }
+  ],
+  "artifacts": {
+    "definition": "definition.json",
+    "arms": {
+      "skirmisher-places": [
+        "skirmisher-places.json",
+        "skirmisher-places.seed42.eval.json.gz",
+        "skirmisher-places.seed42.trace.jsonl.gz",
+        "skirmisher-places.json",
+        "skirmisher-places.seed43.eval.json.gz",
+        "skirmisher-places.seed43.trace.jsonl.gz",
+        "skirmisher-places.json",
+        "skirmisher-places.seed44.eval.json.gz",
+        "skirmisher-places.seed44.trace.jsonl.gz"
+      ],
+      "skirmisher-steps": [
+        "skirmisher-steps.json",
+        "skirmisher-steps.seed42.eval.json.gz",
+        "skirmisher-steps.seed42.trace.jsonl.gz",
+        "skirmisher-steps.json",
+        "skirmisher-steps.seed43.eval.json.gz",
+        "skirmisher-steps.seed43.trace.jsonl.gz",
+        "skirmisher-steps.json",
+        "skirmisher-steps.seed44.eval.json.gz",
+        "skirmisher-steps.seed44.trace.jsonl.gz"
+      ]
+    }
+  },
+  "notes": [
+    "Episodes are the unit of every interval. Episodes on the same seed start the same match but diverge: frame pacing is not deterministic.",
+    "Decision-level pools overlap in time; their n overstates independent evidence."
+  ]
+}

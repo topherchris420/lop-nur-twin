@@ -253,6 +253,12 @@ class Pilot {
   /** The local walking controller. Runs only under places navigation. */
   readonly navigator = new PlaceNavigator();
   readonly perception = new Perception();
+  /** Shared field notes: captured perception only, never the debrief's omniscient state. */
+  readonly fieldNotes: { at: number; places: FoundPlace[] } = {
+    at: -Infinity,
+    places: [],
+  };
+  private humanSenseAt = -Infinity;
   readonly recorder = new TraceRecorder();
   readonly metrics = new PilotMetrics();
   /** What the seat perceived against what happened. Kept for every seat. */
@@ -616,7 +622,7 @@ class Pilot {
     this.descriptor = null;
 
     if (brain === "human") {
-      this.stopTimer();
+      this.startTimer();
       this.updateTelemetry();
       return;
     }
@@ -708,6 +714,9 @@ class Pilot {
     this.probe = null;
     this.slots.clear();
     this.placeSlots.clear();
+    this.fieldNotes.places = [];
+    this.fieldNotes.at = -Infinity;
+    this.humanSenseAt = -Infinity;
     this.executor.clear(this.input, game.time);
     this.motor.reset();
     this.navigator.reset();
@@ -740,6 +749,9 @@ class Pilot {
     this.lastEnded = null;
     this.lastExecutedSequence = 0;
     this.perception.reset();
+    this.fieldNotes.places = [];
+    this.fieldNotes.at = -Infinity;
+    this.humanSenseAt = -Infinity;
     this.resetEvaluation();
     if (this.brain !== "human") {
       this.recorder.begin({
@@ -846,6 +858,26 @@ class Pilot {
   private tick(): void {
     const loop = this.loop;
     if (!loop) {
+      if (
+        this.brain === "human" &&
+        useGameStore.getState().screen === "playing" &&
+        game.player.alive &&
+        rigState.ready &&
+        game.world &&
+        game.time - this.humanSenseAt >= 0.25
+      ) {
+        this.humanSenseAt = game.time;
+        this.perception.capture({
+          sequence: 0,
+          previousFrame: null,
+          previousOutcome: null,
+          control: "direct",
+          trackedId: null,
+          navigation: this.options.navigation,
+          travel: null,
+        });
+        this.refreshFieldNotes();
+      }
       this.updateTelemetry();
       return;
     }
@@ -889,12 +921,18 @@ class Pilot {
   private rememberSlots(sequence: number): void {
     this.slots.set(sequence, [...this.perception.lastTargetIds]);
     this.placeSlots.set(sequence, [...this.perception.lastPlaces]);
+    this.refreshFieldNotes();
     for (const key of this.slots.keys()) {
       if (key <= sequence - SLOT_MEMORY) this.slots.delete(key);
     }
     for (const key of this.placeSlots.keys()) {
       if (key <= sequence - SLOT_MEMORY) this.placeSlots.delete(key);
     }
+  }
+
+  private refreshFieldNotes(): void {
+    this.fieldNotes.at = game.time;
+    this.fieldNotes.places = [...this.perception.lastPlaces];
   }
 
   private accept(decision: AcceptedDecision): void {
@@ -1627,14 +1665,17 @@ class Pilot {
     });
     this.telemetry.model = due.model;
     const sequence = this.lastExecutedSequence + 1;
-    if (this.options.control === "precision" && due.frame.target !== "NONE") {
+    if (
+      (this.options.control === "precision" && due.frame.target !== "NONE") ||
+      (this.options.navigation === "places" && placeSlot(due.frame.go) !== null)
+    ) {
       // A replayed slot names the enemy in that slot of the view *now*: the
       // control stream replays, the world does not.
       this.perception.capture({
         sequence,
         previousFrame: null,
         previousOutcome: null,
-        control: "precision",
+        control: this.options.control,
         trackedId: this.motor.targetId,
         navigation: this.options.navigation,
         travel: this.navigator.target,

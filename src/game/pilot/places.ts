@@ -20,9 +20,8 @@ import { MAX_PLACES, type Place, type PlaceKind } from "./observation";
  * much as the brain's.
  *
  * The search is deterministic: a fixed ring of candidate points around the
- * player, tested in a fixed order. A candidate must be standing room for a
- * crouched body and reachable by a straight walk (nothing at waist height in
- * the way), because the navigator walks straight lines; a place it could only
+ * player, tested in a fixed order. A candidate must have standing room and a
+ * body-width straight walk, because the navigator walks straight lines; a place it could only
  * reach by pathfinding is not offered.
  *
  * Each kind keeps its best candidate:
@@ -93,6 +92,63 @@ const SPOKES = 16;
 /** Only the nearest few threats are tested; each costs raycasts per candidate. */
 const MAX_THREATS = 3;
 const ROUTE_SAMPLES = 4;
+/** A bounded local geometry query, not an unbounded path search. */
+export const MAX_PLACE_ROUTE_M = 128;
+
+/**
+ * Conservative straight-walk check. Three body-width rays at three heights
+ * reject thin geometry between capsule samples; metre-spaced standing capsule
+ * and terrain samples reject low ceilings and abrupt terrain. This is sampled
+ * reachability, not a pathfinding guarantee. Only geometry is consulted.
+ */
+export function canWalkTo(
+  world: PlaceWorld,
+  from: { x: number; y: number; z: number; id: number | null },
+  to: { x: number; z: number },
+): boolean {
+  const dx = to.x - from.x;
+  const dz = to.z - from.z;
+  const distance = Math.hypot(dx, dz);
+  if (!Number.isFinite(distance) || distance > MAX_PLACE_ROUTE_M) return false;
+  const steps = Math.max(1, Math.ceil(distance));
+  const radius = HUMAN_METRICS.radius;
+  const ground = world.groundAt(from.x, from.z);
+  const endGround = world.groundAt(to.x, to.z);
+  if (distance > 0) {
+    const sx = -dz / distance;
+    const sz = dx / distance;
+    _dir.set(dx, endGround - ground, dz);
+    const length = _dir.length();
+    _dir.normalize();
+    for (const offset of [-radius, 0, radius]) {
+      for (const height of [radius, 0.9, HUMAN_METRICS.eyeHeight.stand]) {
+        _from.set(from.x + sx * offset, ground + height, from.z + sz * offset);
+        if (world.raycast(_from, _dir, length, MASK_MOVEMENT, from.id)) return false;
+      }
+    }
+  }
+  let previousGround = ground;
+  for (let i = 1; i <= steps; i += 1) {
+    const t = i / steps;
+    const x = from.x + dx * t;
+    const z = from.z + dz * t;
+    const y = world.groundAt(x, z);
+    if (!Number.isFinite(y)) return false;
+    const rise = Math.abs(y - previousGround);
+    const run = distance / steps;
+    if (
+      rise > HUMAN_METRICS.stepHeight &&
+      rise > run * Math.tan(HUMAN_METRICS.maxSlope)
+    ) {
+      return false;
+    }
+    _point.set(x, y, z);
+    if (!world.isPositionFree(_point, radius, HUMAN_METRICS.colliderHeight.stand))
+      return false;
+    previousGround = y;
+  }
+  return true;
+}
 
 const _eye = new THREE.Vector3();
 const _point = new THREE.Vector3();
@@ -151,14 +207,14 @@ export function findPlaces(
   const here = threatDistance(player.x, player.z);
 
   /** Metres of the straight walk from the player that some threat can see. */
-  const routeExposure = (x: number, y: number, z: number, distance: number): number => {
+  const routeExposure = (x: number, z: number, distance: number): number => {
     if (threats.length === 0) return 0;
     let seen = 0;
     for (let i = 1; i <= ROUTE_SAMPLES; i += 1) {
       const t = i / (ROUTE_SAMPLES + 1);
       const px = player.x + (x - player.x) * t;
       const pz = player.z + (z - player.z) * t;
-      const py = player.y + (y - player.y) * t + HUMAN_METRICS.eyeHeight.stand - 0.35;
+      const py = world.groundAt(px, pz) + HUMAN_METRICS.eyeHeight.stand;
       if (seenByAny(world, threats, px, py, pz, player.id)) seen += 1;
     }
     return (seen / ROUTE_SAMPLES) * distance;
@@ -173,7 +229,7 @@ export function findPlaces(
     ),
     distanceM: round1(c.distance),
     hidden: c.hidden,
-    routeExposedM: round1(routeExposure(c.x, c.y, c.z, c.distance)),
+    routeExposedM: round1(routeExposure(c.x, c.z, c.distance)),
     threatDistanceM: c.threatDistance === null ? null : round1(c.threatDistance),
     x: c.x,
     z: c.z,
@@ -200,7 +256,7 @@ export function findPlaces(
           !world.isPositionFree(
             _point,
             HUMAN_METRICS.radius,
-            HUMAN_METRICS.colliderHeight.crouch,
+            HUMAN_METRICS.colliderHeight.stand,
           )
         ) {
           continue;
@@ -213,11 +269,12 @@ export function findPlaces(
           world,
           threats,
           x,
-          y + HUMAN_METRICS.eyeHeight.crouch,
+          y + HUMAN_METRICS.eyeHeight.stand,
           z,
           player.id,
         );
         if (!hidden) continue;
+        if (!canWalkTo(world, player, { x, z })) continue;
         const candidate: Candidate = {
           x,
           y,
@@ -251,7 +308,7 @@ export function findPlaces(
     if (places.some((p) => p.x === found.place.x && p.z === found.place.z)) continue;
     places.push(describe(found.place, kind));
   }
-  if (objective) {
+  if (objective && canWalkTo(world, player, objective)) {
     const y = world.groundAt(objective.x, objective.z);
     const distance = Math.hypot(objective.x - player.x, objective.z - player.z);
     const hidden =
@@ -260,7 +317,7 @@ export function findPlaces(
         world,
         threats,
         objective.x,
-        y + HUMAN_METRICS.eyeHeight.crouch,
+        y + HUMAN_METRICS.eyeHeight.stand,
         objective.z,
         player.id,
       );

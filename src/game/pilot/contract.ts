@@ -29,7 +29,7 @@
  */
 
 export const ACTION_CONTRACT_VERSION = "blacksite-jev-actions/v3";
-export const OBSERVATION_SCHEMA_VERSION = "blacksite-jev-observation/v3";
+export const OBSERVATION_SCHEMA_VERSION = "blacksite-jev-observation/v4";
 export const DECISION_SCHEMA_VERSION = "blacksite-jev-decision/v3";
 
 /**
