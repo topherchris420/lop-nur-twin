@@ -158,6 +158,13 @@ the enemy is what is on the screen. A kill is confirmed under the crosshair
 with the name and the range — on this site, the distance is the story — and
 there are no XP popups or squad chatter.
 
+With places navigation the person also receives quiet field notes from the
+same perception builder as the agent: nearby places, their bearings and
+distances, and sampled exposure to known threats. They do not steer the
+person. They expire after 0.75 s; no notes appear under steps navigation.
+A place must pass a standing body-width route check within 128 m. “Hidden”
+tests a standing eye against known threats, not the whole body or every enemy.
+
 ### The debrief
 
 The results screen ends with a debrief kept by the same rule for every seat:

@@ -315,3 +315,17 @@ GitHub-native features with similar names:
 | **Dependabot security updates**             | `.github/dependabot.yml` configures version updates; security updates are a separate repository toggle.                                                               |
 | **Default branch name**                     | Renaming it is a repository operation. The workflows resolve it at run time, so a rename needs no code change.                                                        |
 | **Vercel production branch**                | Configured in the Vercel project, not in `vercel.json`.                                                                                                               |
+
+## Shared place regressions
+
+`node tools/places.mjs` runs eleven staged offline browser checks against the
+dev server: field notes for a human, no movement or inference from reading
+them, parity with the agent observation, navigation-only replay under direct
+and precision control, release on takeover, hide on death, and page errors.
+These fixtures are plumbing evidence, not model performance results.
+
+`navigator.test.ts` additionally checks body-width corridors, obstructed
+objectives, low ceilings, terrain slope, route budget, standing-eye concealment
+and zero movement when every live feeler is blocked. The place-clearance
+experiment measures the actual match separately, with matched seeds and an
+unchanged steps arm.

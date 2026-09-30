@@ -1,0 +1,95 @@
+{
+  "file": "tools/experiments/place-clearance.json",
+  "fileHash": "faffbe70046f58ea",
+  "hash": "38ff2f8b387b8ae5",
+  "overrides": [],
+  "raw": {
+    "schema": "blacksite-experiment/v1",
+    "id": "place-clearance-v1",
+    "question": "Does checking a body's walk, rather than a center ray, reduce blocked place navigation without trading away engagement?",
+    "hypothesis": "Standing clearance and route checks reduce blocked navigation releases as a share of ended travels; the unchanged steps arm should show only ordinary pacing variation.",
+    "independentVariable": "navigation",
+    "primaryMetric": "place_blocked_rate",
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "exposure_fraction",
+      "place_arrival_rate"
+    ],
+    "decisionType": null,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "duration": 45,
+    "mode": "domination",
+    "seat": "even",
+    "arms": [
+      {
+        "id": "skirmisher-places",
+        "brain": "script",
+        "policy": "skirmisher",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "id": "skirmisher-steps",
+        "brain": "script",
+        "policy": "skirmisher",
+        "control": "precision",
+        "navigation": "steps"
+      }
+    ],
+    "controls": [
+      "skirmisher-steps"
+    ],
+    "notes": "Offline scripted policies only, no provider results. Run sequentially on the baseline and candidate builds. Short smoke experiment, not a model ranking; inspect every seed and pacing flag."
+  },
+  "spec": {
+    "schema": "blacksite-experiment/v1",
+    "id": "place-clearance-v1",
+    "question": "Does checking a body's walk, rather than a center ray, reduce blocked place navigation without trading away engagement?",
+    "hypothesis": "Standing clearance and route checks reduce blocked navigation releases as a share of ended travels; the unchanged steps arm should show only ordinary pacing variation.",
+    "independentVariable": "navigation",
+    "primaryMetric": "place_blocked_rate",
+    "secondaryMetrics": [
+      "kills_per_minute",
+      "exposure_fraction",
+      "place_arrival_rate"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seedPreset": null,
+    "duration": 45,
+    "mode": "domination",
+    "arms": [
+      {
+        "seat": "even",
+        "id": "skirmisher-places",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "skirmisher-steps",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "steps"
+      }
+    ],
+    "controls": [
+      "skirmisher-steps"
+    ],
+    "calibrationField": "probability",
+    "contributionFactors": [],
+    "notes": "Offline scripted policies only, no provider results. Run sequentially on the baseline and candidate builds. Short smoke experiment, not a model ranking; inspect every seed and pacing flag."
+  }
+}

@@ -21,6 +21,7 @@ describe("capability negotiation", () => {
       navigation: "places",
       intervalMs: 200,
       inference: "remote",
+      observationFormat: "structured-v4",
       notes: [],
     });
   });
@@ -65,6 +66,19 @@ describe("capability negotiation", () => {
   it("offers no vision: no brain reads frames, and the host sends none", () => {
     expect(HOST_CAPABILITIES.vision).toBe(false);
     expect(JEV_CAPABILITIES.vision).toBe(false);
+  });
+
+  it("fails closed when no observation format is shared", () => {
+    expect(() =>
+      negotiate(
+        { ...JEV_CAPABILITIES, observations: [] },
+        {
+          control: "precision",
+          navigation: "places",
+          intervalMs: null,
+        },
+      ),
+    ).toThrow("no common observation interface");
   });
 });
 

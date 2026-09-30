@@ -189,6 +189,7 @@ export class PlaceNavigator {
     let wx = dx / remaining;
     let wz = dz / remaining;
     const reach = Math.min(FEELER_M, remaining);
+    let clear = false;
     for (const bend of FEELER_ANGLES) {
       const c = Math.cos(bend);
       const s = Math.sin(bend);
@@ -197,8 +198,18 @@ export class PlaceNavigator {
       if (sense.probe(bx, bz, reach) === null) {
         wx = bx;
         wz = bz;
+        clear = true;
         break;
       }
+    }
+    // All feelers blocked: stop pushing into geometry, retain the destination
+    // until the ordinary no-progress timeout reports the blocked travel.
+    if (!clear) {
+      input.moveX = 0;
+      input.moveY = 0;
+      input.sprint = false;
+      this.syncTelemetry(remaining, false);
+      return;
     }
 
     // World direction → the body's own axes. yaw 0 faces -z; right is +x.

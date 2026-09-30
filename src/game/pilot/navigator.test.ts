@@ -5,7 +5,7 @@ import { LAYER, MASK_MOVEMENT } from "../core/types";
 import { CollisionWorld, makeCollider } from "../physics/collisionWorld";
 import { PlayerController } from "../player/controller";
 import { PlaceNavigator, type NavigatorRelease, type NavSense } from "./navigator";
-import { findPlaces } from "./places";
+import { canWalkTo, findPlaces, MAX_PLACE_ROUTE_M } from "./places";
 
 const DT = 1 / 60;
 
@@ -119,6 +119,91 @@ describe("the place navigator", () => {
     input.sprint = true;
     navigator.apply(input, { now: 0, x: 0, z: 0, yaw: 0, probe: () => null }, false);
     expect([input.moveX, input.moveY, input.sprint]).toEqual([0.3, -1, true]);
+  });
+
+  it("releases movement immediately when all feelers meet geometry", () => {
+    const { input, navigator } = rig(new CollisionWorld(() => 0));
+    navigator.go({ x: 0, z: -30, kind: "cover" }, 0, { x: 0, z: 0 });
+    input.moveY = 1;
+    input.sprint = true;
+    navigator.apply(input, { now: 0, x: 0, z: 0, yaw: 0, probe: () => 0.2 }, false);
+    expect([input.moveX, input.moveY, input.sprint]).toEqual([0, 0, false]);
+    expect(navigator.active).toBe(true);
+    navigator.apply(input, { now: 2, x: 0, z: 0, yaw: 0, probe: () => 0.2 }, false);
+    expect(navigator.active).toBe(false);
+  });
+});
+
+describe("body-width route queries", () => {
+  const from = { x: 0, y: 0, z: 0, id: null };
+
+  it("rejects a corridor the center ray fits through but the body does not", () => {
+    const world = new CollisionWorld(() => 0);
+    wall(world, 0.36, -4.5, 0.1, 0.2);
+    const destination = { x: 0, z: -10 };
+    expect(
+      world.raycast(
+        new THREE.Vector3(0, 0.9, 0),
+        new THREE.Vector3(0, 0, -1),
+        10,
+        MASK_MOVEMENT,
+        null,
+      ),
+    ).toBeNull();
+    expect(canWalkTo(world, from, destination)).toBe(false);
+    expect(findPlaces(world, from, 0, [], destination)).toEqual([]);
+  });
+
+  it("rejects objectives through walls and inside geometry", () => {
+    const world = new CollisionWorld(() => 0);
+    wall(world, 0, -5, 5, 0.25);
+    expect(findPlaces(world, from, 0, [], { x: 0, z: -10 })).toEqual([]);
+    expect(findPlaces(world, from, 0, [], { x: 0, z: -5 })).toEqual([]);
+  });
+
+  it("rejects a low ceiling that has room for a crouched but not standing body", () => {
+    const world = new CollisionWorld(() => 0);
+    world.addStatic(
+      makeCollider(
+        new THREE.Vector3(0, 1.55, -5),
+        new THREE.Vector3(3, 0.1, 3),
+        new THREE.Quaternion(),
+        LAYER.world,
+        "concrete",
+      ),
+    );
+    expect(canWalkTo(world, from, { x: 0, z: -10 })).toBe(false);
+  });
+
+  it("rejects steep terrain and bounds the geometry query", () => {
+    expect(canWalkTo(new CollisionWorld((x) => x * 3), from, { x: 10, z: 0 })).toBe(
+      false,
+    );
+    const world = new CollisionWorld(() => 0);
+    expect(canWalkTo(world, from, { x: MAX_PLACE_ROUTE_M + 1, z: 0 })).toBe(false);
+    expect(canWalkTo(world, from, { x: NaN, z: 0 })).toBe(false);
+    expect(canWalkTo(world, from, { x: 10, z: 0 })).toBe(true);
+  });
+
+  it("reports standing-eye concealment rather than claiming low cover hides a standing eye", () => {
+    const world = new CollisionWorld(() => 0);
+    world.addStatic(
+      makeCollider(
+        new THREE.Vector3(5, 0.6, 0),
+        new THREE.Vector3(0.2, 0.6, 6),
+        new THREE.Quaternion(),
+        LAYER.world,
+        "concrete",
+      ),
+    );
+    const places = findPlaces(
+      world,
+      { x: 9, y: 0, z: 0, id: null },
+      0,
+      [{ x: -30, y: 0, z: 0 }],
+      null,
+    );
+    expect(places).toEqual([]);
   });
 });
 

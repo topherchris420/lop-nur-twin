@@ -75,6 +75,16 @@ describe("observation hashes", () => {
 });
 
 describe("traces", () => {
+  it("rejects the older hidden-place semantics rather than silently reinterpreting them", () => {
+    const text = recorderWith([record(1, 10)]).toJsonl();
+    const lines = text.trim().split("\n");
+    const header = JSON.parse(lines[0]!);
+    header.observationSchema = "blacksite-jev-observation/v3";
+    lines[0] = JSON.stringify(header);
+    const parsed = parseTrace(lines.join("\n"));
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.error).toMatch(/Unsupported observation schema/);
+  });
   it("round-trips through JSON Lines", () => {
     const recorder = recorderWith([record(1, 10), record(2, 10.25)]);
     recorder.event({ kind: "timeout", sequence: 3, detail: "no answer in time" });

@@ -1,0 +1,45 @@
+{
+  "runId": "place-clearance-v1-2026-09-30T01-45-36-799Z",
+  "startedAt": "2026-09-30T01:45:36.800Z",
+  "finishedAt": "2026-09-30T01:51:29.138Z",
+  "git": {
+    "commit": "37060b2582fe25ac38ac086103480760c2a049c0",
+    "dirty": false
+  },
+  "node": "v24.19.0",
+  "platform": "linux",
+  "cpus": 9,
+  "liveFlagsSet": [],
+  "arms": [
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher-places",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "places"
+      },
+      "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=places&seat=even",
+      "origin": "http://127.0.0.1:5175",
+      "build": "unknown (served by http://127.0.0.1:5175)",
+      "report": "skirmisher-places.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "skirmisher-steps",
+        "brain": "script",
+        "control": "precision",
+        "policy": "skirmisher",
+        "navigation": "steps"
+      },
+      "query": "brain=script&jevControl=precision&policy=skirmisher&jevNav=steps&seat=even",
+      "origin": "http://127.0.0.1:5175",
+      "build": "unknown (served by http://127.0.0.1:5175)",
+      "report": "skirmisher-steps.json",
+      "pending": null
+    }
+  ]
+}

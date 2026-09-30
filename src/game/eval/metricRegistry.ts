@@ -103,6 +103,23 @@ const executedOrRejected = (r: DecisionRecord): boolean =>
   r.validation.status === "rejected_stale";
 
 export const METRICS: readonly MetricDefinition[] = [
+  ...(["blocked", "arrived"] as const).map((reason): MetricDefinition => ({
+    id: reason === "blocked" ? "place_blocked_rate" : "place_arrival_rate",
+    label: reason === "blocked" ? "Travels stopped by obstruction" : "Travels arriving",
+    unit: "share",
+    level: "episode",
+    direction: reason === "blocked" ? "lower" : "higher",
+    description: `Share of ended travels released as ${reason}. Replacements, timeouts and clears remain in the denominator; active travels and resets on death are not ended-travel samples.`,
+    read: (e) => {
+      const releases = e.metrics.places?.releases;
+      return releases
+        ? ratio(
+            releases[reason] ?? 0,
+            Object.values(releases).reduce((a, b) => a + b, 0),
+          )
+        : null;
+    },
+  })),
   {
     id: "kills_per_minute",
     label: "Kills per minute",
