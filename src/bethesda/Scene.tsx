@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { createCityGeometry } from "./geometry";
+import { CityAtmosphere } from "./Atmosphere";
 import { roads, sidewalks, green } from "./network";
 import { bounds, distance, signalPoints, type Point } from "./model";
 import { DT, type CitySimulation } from "./simulation";
@@ -14,6 +15,7 @@ export interface ViewControl {
   pitch: number;
   keys: Set<string>;
   tier: number;
+  quality: "auto" | "detail" | "economy";
   fps: number;
   ready: boolean;
   failed: boolean;
@@ -28,14 +30,39 @@ const palette = [
   "#dad7c8",
   "#3f484f",
 ];
-function StaticCity() {
+function StaticCity({ view }: { view: ViewControl }) {
   const built = useMemo(createCityGeometry, []);
+  const { camera } = useThree();
+  const tiles = useMemo(
+    () =>
+      built.group.children
+        .filter((o): o is THREE.Mesh => o instanceof THREE.Mesh)
+        .map((mesh) => {
+          mesh.geometry.computeBoundingSphere();
+          const sphere = mesh.geometry.boundingSphere!;
+          return {
+            mesh,
+            center: sphere.center.clone().add(mesh.position),
+            radius: sphere.radius,
+          };
+        }),
+    [built],
+  );
+  useFrame(() => {
+    const range = view.tier === 0 ? 600 : 1200;
+    for (const tile of tiles)
+      tile.mesh.visible =
+        Math.hypot(tile.center.x - camera.position.x, tile.center.z - camera.position.z) -
+          tile.radius <
+        range;
+  });
   useEffect(() => () => built.dispose(), [built]);
   return <primitive object={built.group} />;
 }
 function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   const bodies = useRef<THREE.InstancedMesh>(null),
     heads = useRef<THREE.InstancedMesh>(null),
+    arms = useRef<THREE.InstancedMesh>(null),
     legs = useRef<THREE.InstancedMesh>(null),
     cars = useRef<THREE.InstancedMesh>(null),
     cabins = useRef<THREE.InstancedMesh>(null),
@@ -47,6 +74,7 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     if (
       !bodies.current ||
       !heads.current ||
+      !arms.current ||
       !legs.current ||
       !cars.current ||
       !cabins.current ||
@@ -57,6 +85,7 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     let p = 0,
       v = 0,
       f = 0,
+      arm = 0,
       w = 0,
       l = 0;
     const eye =
@@ -111,6 +140,20 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
             0.18,
             h,
           );
+        for (const side of [-1, 1]) {
+          put(
+            arms.current,
+            arm,
+            x + Math.cos(h) * 0.28 * side - Math.sin(h) * swing * side,
+            1.03,
+            z - Math.sin(h) * 0.28 * side - Math.cos(h) * swing * side,
+            0.14,
+            0.62,
+            0.16,
+            h,
+          );
+          arms.current.setColorAt(arm++, color.set(palette[a.color]!));
+        }
         p++;
       } else {
         const emergency = a.kind === "emergency";
@@ -162,6 +205,7 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     for (const [mesh, n] of [
       [bodies.current, p],
       [heads.current, p],
+      [arms.current, arm],
       [legs.current, f],
       [cars.current, v],
       [cabins.current, v],
@@ -181,7 +225,11 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         frustumCulled={false}
         castShadow
       >
-        <boxGeometry />
+        <sphereGeometry args={[0.6, 8, 8]} />
+        <meshStandardMaterial roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={arms} args={[undefined, undefined, 1280]} frustumCulled={false}>
+        <sphereGeometry args={[0.5, 8, 6]} />
         <meshStandardMaterial roughness={0.95} />
       </instancedMesh>
       <instancedMesh ref={heads} args={[undefined, undefined, 640]} frustumCulled={false}>
@@ -214,8 +262,8 @@ function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         args={[undefined, undefined, 452]}
         frustumCulled={false}
       >
-        <boxGeometry />
-        <meshStandardMaterial color="#272a2a" />
+        <sphereGeometry args={[0.5, 10, 8]} />
+        <meshStandardMaterial color="#272a2a" roughness={0.95} />
       </instancedMesh>
       <instancedMesh ref={lights} args={[undefined, undefined, 3]} frustumCulled={false}>
         <boxGeometry />
@@ -344,8 +392,9 @@ function Events({ sim }: { sim: CitySimulation }) {
   );
 }
 function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
-  const { camera, gl, setDpr, scene } = useThree();
+  const { camera, gl, setDpr } = useThree();
   const stats = useRef({ elapsed: 0, frames: 0 });
+  const quality = useRef(view.quality);
   useEffect(() => {
     view.ready = true;
     const canvas = gl.domElement;
@@ -379,22 +428,24 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     };
   }, [gl, view]);
   useFrame((_, dt) => {
+    if (quality.current !== view.quality) {
+      quality.current = view.quality;
+      view.tier = view.quality === "economy" ? 0 : 1;
+      setDpr(view.tier ? Math.min(devicePixelRatio, 1.5) : 0.85);
+      gl.shadowMap.enabled = view.tier > 0;
+      stats.current = { elapsed: 0, frames: 0 };
+    }
     stats.current.elapsed += dt;
     stats.current.frames++;
     if (stats.current.elapsed >= 3) {
       view.fps = Math.round(stats.current.frames / stats.current.elapsed);
-      if (view.fps < 25 && view.tier > 0) {
+      if (view.quality === "auto" && view.fps < 25 && view.tier > 0) {
         view.tier = 0;
         setDpr(0.75);
         gl.shadowMap.enabled = false;
       }
       stats.current = { elapsed: 0, frames: 0 };
     }
-    const storm = sim.events.some((e) => e.kind === "storm");
-    if (scene.background instanceof THREE.Color)
-      scene.background.set(storm ? "#687982" : "#b4c6ce");
-    if (scene.fog instanceof THREE.Fog)
-      scene.fog.color.set(storm ? "#687982" : "#b4c6ce");
     if (view.mode !== "orbit") {
       const p = view.mode === "seat" ? sim.agents[0]!.point : sim.player;
       camera.position.set(p.x, view.mode === "seat" ? 2.5 : 1.72, p.z);
@@ -461,22 +512,8 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
         });
       }}
     >
-      <color attach="background" args={["#b4c6ce"]} />
-      <fog attach="fog" args={["#b4c6ce", 300, 1900]} />
-      <hemisphereLight args={["#d7e5ec", "#85816b", 2]} />
-      <directionalLight
-        position={[350, 650, -260]}
-        color="#fff1d7"
-        intensity={3}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-700}
-        shadow-camera-right={700}
-        shadow-camera-top={750}
-        shadow-camera-bottom={-750}
-        shadow-camera-far={1800}
-        shadow-bias={-0.0003}
-      />
+      <fog attach="fog" args={["#c2ced0", 220, 1750]} />
+      <CityAtmosphere sim={sim} view={view} />
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[
@@ -489,7 +526,7 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
         <planeGeometry args={[5000, 5000]} />
         <meshStandardMaterial color="#929984" roughness={1} />
       </mesh>
-      <StaticCity />
+      <StaticCity view={view} />
       <Actors sim={sim} view={view} />
       <Signals sim={sim} />
       <Events sim={sim} />

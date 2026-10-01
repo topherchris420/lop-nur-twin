@@ -5,11 +5,11 @@ import { CityDecisionBroker } from "./jev";
 import { parseScenario } from "./scenarios";
 import {
   buildings,
+  arrival,
   bounds,
   geographic,
   landmarks,
   roadWays,
-  row,
   SOURCE,
   type Point,
 } from "./model";
@@ -29,13 +29,14 @@ function world(sim?: CitySimulation) {
   const low = (navigator.hardwareConcurrency || 2) <= 4;
   const city = sim ?? new CitySimulation(PROFILES[low ? 0 : 1]);
   const view: ViewControl = {
-    mode: "orbit",
-    target: { ...row.point },
+    mode: "walk",
+    target: { ...arrival },
     relocate: true,
-    yaw: 0,
+    yaw: -Math.PI / 2,
     pitch: 0,
     keys: new Set(),
     tier: low ? 0 : 1,
+    quality: "auto",
     fps: 0,
     ready: false,
     failed: false,
@@ -76,8 +77,11 @@ function MiniMap({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       c.fillStyle = "#486267";
       for (const b of buildings) {
         c.beginPath();
-        b.ring.forEach((v, i) => (i === 0 ? c.moveTo(...p(v)) : c.lineTo(...p(v))));
-        c.fill();
+        for (const ring of [b.ring, ...b.holes]) {
+          ring.forEach((v, i) => (i === 0 ? c.moveTo(...p(v)) : c.lineTo(...p(v))));
+          c.closePath();
+        }
+        c.fill("evenodd");
       }
       c.strokeStyle = "#9fa89d";
       c.lineWidth = 0.8;
@@ -153,16 +157,17 @@ function Notes() {
             <td className="p-2">
               Flat ground; most heights inferred. Community height tags exist for{" "}
               {buildings.filter((b) => b.heightEvidence === "height tag").length}{" "}
-              footprints. Level tags use an assumed 3.3 metres per floor. No DEM, LiDAR,
-              courtyard reconstruction or interiors.
+              footprints. Level tags use an assumed 3.3 metres per floor. No DEM, LiDAR or
+              interiors. Two OSM multipolygon buildings include their mapped courtyards.
             </td>
           </tr>
           <tr>
             <th className="p-2 align-top">Procedural</th>
             <td className="p-2">
-              Façades, roofs, trees, signs, furniture, cars and people. Signals, routes,
-              crowds and emergency response are illustrative behavior, not measured
-              Bethesda traffic.
+              Façades, roofs, trees, signs, furniture, cars and people. Row storefront
+              frames, awnings, paving, curbs and lamps are illustrative detailing, not
+              surveyed placements. Signals, routes, crowds and emergency response are
+              illustrative behavior, not measured Bethesda traffic.
             </td>
           </tr>
           <tr>
@@ -183,10 +188,10 @@ function Notes() {
         </tbody>
       </table>
       <p className="mt-4">
-        Recognizable street relationships are the strongest feature. Repeated windows,
-        simple actors and missing terrain remain visibly artificial. A public reference
-        photograph of Woodmont / Bethesda Avenue was inspected qualitatively; it is not a
-        shipped texture or an achieved render.
+        Recognizable street relationships and the Bethesda Lane courtyard are the
+        strongest features. Repeated storefronts, simple actors and missing terrain remain
+        visibly artificial. A public reference photograph of Woodmont / Bethesda Avenue
+        was inspected qualitatively; it is not a shipped texture or an achieved render.
       </p>
       <div className="mt-4 flex flex-wrap gap-4">
         <button
@@ -427,6 +432,21 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
           </div>
         ) : null}
         <div className="mt-2 flex flex-wrap gap-3">
+          <button
+            className="text-[11px] text-slate-300 underline"
+            title="Auto reduces visual cost on slow hardware. Detail keeps reflections and block-scale shadows. Economy disables shadows."
+            onClick={() => {
+              view.quality =
+                view.quality === "auto"
+                  ? "detail"
+                  : view.quality === "detail"
+                    ? "economy"
+                    : "auto";
+              render();
+            }}
+          >
+            Visuals: {view.quality}
+          </button>
           {landmarks.map((p) => (
             <button
               key={p.name}

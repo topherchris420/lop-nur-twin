@@ -1,6 +1,13 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { mulberry32 } from "../lib/noise";
+import { metricBoxUV, surfaceMaterial, foliageTexture } from "./materials";
+import {
+  createDetailMaterials,
+  detailedBuildings,
+  detailBuilding,
+  detailStreet,
+} from "./detail";
 import {
   buildings,
   buildingAt,
@@ -12,6 +19,7 @@ import {
   pathWays,
   places,
   roadWays,
+  row,
   signalPoints,
   type Point,
 } from "./model";
@@ -68,18 +76,30 @@ function sign(text: string, bg = "#244b4b") {
 }
 export function createCityGeometry() {
   const group = new THREE.Group();
-  const buckets = new Map<THREE.Material, THREE.BufferGeometry[]>();
+  // Spatial tiles allow actual GPU frustum culling instead of drawing the whole city.
+  const buckets = new Map<
+    string,
+    { material: THREE.Material; parts: THREE.BufferGeometry[] }
+  >();
+  const detail = createDetailMaterials();
   const rng = mulberry32(393977);
   const material = (color: string, roughness = 1) =>
     new THREE.MeshStandardMaterial({ color, roughness });
-  const asphalt = material("#535b5b"),
+  const asphalt = surfaceMaterial("asphalt"),
     concrete = material("#b1ada0"),
     paint = material("#e4dfc2"),
     grass = material("#647c55"),
-    roof = material("#827e73"),
+    roof = surfaceMaterial("limestone", "#888982"),
     metal = material("#38413e", 0.7),
     trunk = material("#685043"),
-    leaf = material("#537452");
+    leaf = material("#4b6740");
+  const foliage = [leaf, material("#657a48"), material("#3e5d3c")];
+  const leafCards = new THREE.MeshStandardMaterial({
+    map: foliageTexture(),
+    alphaTest: 0.45,
+    side: THREE.DoubleSide,
+    roughness: 0.94,
+  });
   const brick = new THREE.MeshStandardMaterial({
       map: texture("brick"),
       roughness: 0.94,
@@ -94,12 +114,15 @@ export function createCityGeometry() {
     }
     for (const key of Object.keys(g.attributes))
       if (!["position", "normal", "uv"].includes(key)) g.deleteAttribute(key);
-    let list = buckets.get(m);
-    if (!list) {
-      list = [];
-      buckets.set(m, list);
+    g.computeBoundingBox();
+    const center = g.boundingBox!.getCenter(new THREE.Vector3());
+    const key = `${m.uuid}:${Math.floor(center.x / 100)}:${Math.floor(center.z / 100)}`;
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = { material: m, parts: [] };
+      buckets.set(key, bucket);
     }
-    list.push(g);
+    bucket.parts.push(g);
   }
   function box(
     p: Point,
@@ -111,6 +134,7 @@ export function createCityGeometry() {
     angle = 0,
   ) {
     const g = new THREE.BoxGeometry(w, h, d);
+    metricBoxUV(g);
     g.rotateY(angle);
     g.translate(p.x, y, p.z);
     add(g, m);
@@ -140,6 +164,18 @@ export function createCityGeometry() {
         b = w.points[i]!;
       strip(a, b, w.width + 2, 0.06, concrete);
       strip(a, b, w.width, 0.1, asphalt);
+      if (distance(lerp(a, b, 0.5), row.point) < 240 && distance(a, b) > 12) {
+        const length = distance(a, b),
+          angle = Math.atan2(b.x - a.x, b.z - a.z);
+        for (const side of [-1, 1])
+          for (let t = 4; t < length - 4; t += 3) {
+            const p = lerp(a, b, t / length);
+            p.x += Math.cos(angle) * (w.width / 2 + 0.16) * side;
+            p.z -= Math.sin(angle) * (w.width / 2 + 0.16) * side;
+            if (crossings.some((c) => distance(c.point, p) < 5)) continue;
+            box(p, 0.2, 0.24, 0.22, 2.94, detail.trim, angle);
+          }
+      }
       if (w.width > 7 && distance(a, b) > 10) {
         const d = distance(a, b);
         for (let t = 2; t < d - 4; t += 12)
@@ -154,7 +190,14 @@ export function createCityGeometry() {
     }
   for (const w of pathWays)
     for (let i = 1; i < w.points.length; i++)
-      if (!w.crossing) strip(w.points[i - 1]!, w.points[i]!, w.width, 0.13, concrete);
+      if (!w.crossing) {
+        const a = w.points[i - 1]!,
+          b = w.points[i]!;
+        const close = distance(lerp(a, b, 0.5), row.point) < 225;
+        const width = w.name === "Bethesda Lane" ? 8 : w.width;
+        strip(a, b, width + 0.18, 0.13, concrete);
+        strip(a, b, width - 0.14, 0.17, close ? detail.paving : concrete);
+      }
   for (const p of crossings) {
     let best: { a: Point; b: Point; width: number } | undefined,
       near = Infinity;
@@ -183,10 +226,18 @@ export function createCityGeometry() {
   }
   for (const b of buildings) {
     const shape = new THREE.Shape(b.ring.map((p) => new THREE.Vector2(p.x, -p.z)));
+    for (const hole of b.holes)
+      shape.holes.push(new THREE.Path(hole.map((p) => new THREE.Vector2(p.x, -p.z))));
     const g = new THREE.ExtrudeGeometry(shape, { depth: b.height, bevelEnabled: false });
     g.rotateX(-Math.PI / 2);
-    const facade =
-      b.height > 28
+    const detailed = detailedBuildings.has(b.id);
+    const facade = detailed
+      ? b.height > 35
+        ? detail.stone
+        : Number(b.id) % 4 === 0
+          ? detail.paleBrick
+          : detail.brick
+      : b.height > 28
         ? glass
         : b.type === "house" || b.type === "detached" || Number(b.id) % 3 === 0
           ? brick
@@ -210,12 +261,20 @@ export function createCityGeometry() {
           ),
         );
       }
+      if (detailed && i === 1) {
+        const p = s.getAttribute("position"),
+          n = s.getAttribute("normal"),
+          uv = s.getAttribute("uv");
+        for (let v = 0; v < p.count; v++)
+          uv.setXY(v, n.getZ(v) * p.getX(v) - n.getX(v) * p.getZ(v), p.getY(v));
+      }
       add(s, m);
     }
     g.dispose();
     if (b.height > 14 && buildingAt(b.center)?.id === b.id)
       box(b.center, b.height + 0.6, 3.5, 1.2, 2.5, metal);
-    if (b.height < 18 && !["house", "detached"].includes(b.type))
+    if (detailed) detailBuilding(b, { add, box }, detail);
+    if (!detailed && b.height < 18 && !["house", "detached"].includes(b.type))
       for (let i = 1; i < b.ring.length; i++) {
         const a = b.ring[i - 1]!,
           e = b.ring[i]!,
@@ -250,30 +309,69 @@ export function createCityGeometry() {
         const stem = new THREE.CylinderGeometry(0.15, 0.25, h, 5);
         stem.translate(p.x, h / 2, p.z);
         add(stem, trunk);
-        for (const offset of [-1, 1]) {
-          const crown = new THREE.IcosahedronGeometry(2.3 + rng(), 1);
-          crown.scale(1, 1.15, 1);
-          crown.translate(p.x + offset, h + 1, p.z);
-          add(crown, leaf);
+        const close = distance(p, row.point) < 240;
+        for (let branch = 0; branch < (close ? 7 : 3); branch++) {
+          const angle = branch * 2.4,
+            radius = close ? 1.6 : 1;
+          const x = p.x + Math.cos(angle) * radius,
+            z = p.z + Math.sin(angle) * radius;
+          const crown = new THREE.IcosahedronGeometry(close ? 1.1 : 1.6 + rng() * 0.8, 1);
+          crown.scale(1, 0.85 + rng() * 0.3, 1);
+          crown.translate(x, h + 0.6 + rng() * 1.2, z);
+          add(crown, foliage[branch % foliage.length]!);
+          if (close)
+            for (let k = 0; k < 3; k++) {
+              const leaves = new THREE.PlaneGeometry(4.8, 4.1);
+              leaves.rotateX((rng() - 0.5) * 0.8);
+              leaves.rotateY((k * Math.PI) / 3 + branch);
+              leaves.translate(x, h + 1, z);
+              add(leaves, leafCards);
+            }
+          if (close) {
+            const direction = new THREE.Vector3(x - p.x, 1.5, z - p.z);
+            const limb = new THREE.CylinderGeometry(0.04, 0.1, direction.length(), 5);
+            limb.applyQuaternion(
+              new THREE.Quaternion().setFromUnitVectors(
+                new THREE.Vector3(0, 1, 0),
+                direction.normalize(),
+              ),
+            );
+            limb.translate((p.x + x) / 2, h - 0.05, (p.z + z) / 2);
+            add(limb, trunk);
+          }
+        }
+        if (close) {
+          box(p, 0.18, 1.8, 0.08, 1.8, detail.dark);
+          box(p, 0.225, 1.55, 0.025, 1.55, detail.soil);
         }
       }
     }
   }
-  for (const p of signalPoints) box(p.point, 3.5, 0.13, 7, 0.13, metal);
+  detailStreet({ add, box }, detail);
+  for (const p of signalPoints) {
+    box(p.point, 3.5, 0.13, 7, 0.13, metal);
+    box(p.point, 0.25, 0.28, 0.5, 0.28, metal);
+    box(p.point, 5, 0.48, 1.15, 0.38, detail.dark);
+  }
   for (const p of parks) {
     const v = p.ring[0]!;
     box(v, 0.65, 2, 0.2, 0.5, trunk);
     box({ x: v.x, z: v.z + 0.2 }, 1.05, 2, 0.7, 0.1, trunk);
   }
   box(metro.point, 1.6, 0.7, 3.2, 0.7, metal);
-  for (const [m, list] of buckets) {
+  for (const { material: m, parts: list } of buckets.values()) {
     const g = mergeGeometries(list, false);
     list.forEach((x) => x.dispose());
     if (!g) continue;
     const mesh = new THREE.Mesh(g, m);
-    mesh.castShadow = [roof, brick, stone, glass, leaf].includes(
-      m as THREE.MeshStandardMaterial,
-    );
+    mesh.castShadow = ![
+      asphalt,
+      concrete,
+      paint,
+      grass,
+      detail.paving,
+      detail.soil,
+    ].includes(m as THREE.MeshStandardMaterial);
     mesh.receiveShadow = true;
     group.add(mesh);
   }
@@ -309,7 +407,11 @@ export function createCityGeometry() {
         if (o instanceof THREE.Mesh) {
           o.geometry.dispose();
           for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-            if (m instanceof THREE.MeshStandardMaterial) m.map?.dispose();
+            if (m instanceof THREE.MeshStandardMaterial) {
+              m.map?.dispose();
+              m.bumpMap?.dispose();
+              m.roughnessMap?.dispose();
+            }
             m.dispose();
           }
         }

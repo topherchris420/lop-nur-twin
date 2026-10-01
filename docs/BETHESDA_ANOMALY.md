@@ -22,7 +22,8 @@ are atmospheric; the parser uses the actual bounding box. Ordinary visits do
 not request the city or its geographic data. No main-interface mode button or
 public Bethesda route is added. **Return to the desert** remounts Lop Nur.
 
-Survey with orbit controls or choose **Walk**, then WASD / Shift. Drag to look;
+Arrival now begins on mapped public pavement near the Bethesda Lane entrance,
+outside building footprints and the enclosed courtyard. Use WASD / Shift to walk or choose **Survey** for orbit controls. Drag to look;
 double-click requests pointer lock and Escape releases it. **Pedestrian seat**
 follows actor 0 and offers its currently permitted actions. Named viewpoints
 return to survey mode. Touch supports surveying; walking currently needs a
@@ -68,7 +69,7 @@ the importer. The bundled derivative is `src/bethesda/data/osm.json`.
 | Data            | Included                                                                                                         |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Bounds          | Longitude −77.104 to −77.089; latitude 38.978 to 38.991; approximately 1.3 × 1.4 km                              |
-| Buildings       | 1,164 complete simple OSM footprint ways                                                                         |
+| Buildings       | 1,166 OSM footprints: 1,164 simple ways and two multipolygon buildings with courtyard holes                      |
 | Roads           | 476 in-bounds ways/fragments with node topology and one-way tags                                                 |
 | Walking/cycling | 871 mapped ways/fragments; underground/private paths excluded                                                    |
 | Green spaces    | Seven park/garden polygons, including Caroline Freeland and Veteran's Park                                       |
@@ -84,7 +85,10 @@ Actual OSM IDs, versions, edit timestamps, geometry and relevant tags are
 retained. Mapper identities, contact details and unrelated POIs are omitted.
 The acquisition date is not a date when every feature looked like the model.
 OSM can contain stale construction, old names, missing structures and errors.
-Multipolygon relations and courtyard holes are not reconstructed. Boundary
+Complete multipolygon rings are assembled only at exact shared OSM node IDs.
+Missing/ambiguous relation fragments are rejected. The two complete relations
+include the Bethesda Lane courtyard complex (13979605) and the retail block to
+its north (13979604). Building collision, roofs and the minimap preserve the holes. Boundary
 lines retain contiguous in-bounds vertices, so some stop short of the box.
 
 **© OpenStreetMap contributors.** The extracted and modified geographic database
@@ -118,21 +122,32 @@ A public reference was inspected: G. Edward Johnson's
 [Woodmont Avenue / Bethesda Avenue intersection, 30 March 2025](https://commons.wikimedia.org/wiki/File:Bethesda_downtown_intersection_2025-03-30_11-38-17.jpg),
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). It shows detailed brick
 storefronts, mature trees, poles, signals and material variation. The procedural
-view lacks that detail. This was qualitative comparison, not photogrammetry,
+view now has dimensional window reveals, sills, storefront glazing, cornices,
+awnings, brick paving and street furniture around Row. The design vocabulary is
+informed by the reference; individual façades and furnishing positions remain
+illustrative. The [EPA Bethesda Row case study](https://www.epa.gov/smartgrowth/create-walkable-neighborhoods-bethesda-row-bethesda-maryland)
+also describes the brick sidewalks, street trees and continuous shopfronts; its
+case study dates to 2006/2011 and is not a current tenant or condition survey. This was qualitative comparison, not photogrammetry,
 image alignment, a survey or a pixel-error measurement. The reference image is
 not shipped and must never be presented as an achieved render.
 
 Façades repeat generated window bays. Most heights, roof profiles, awnings,
 trees, furniture and sign placements/styles are inferred. Cars are simple
 bodies/cabins/wheels; pedestrians are animated primitives. There are no faithful
-interiors, Metro escalators, curb ramps, tree surveys, handcrafted landmark
-frontages or full traffic-signal assemblies. Some paths are disconnected or
-intersect footprint geometry, so walkers may wait or reverse. These are visible
+interiors, Metro escalators, surveyed curb ramps, tree surveys, faithfully measured
+landmark frontages or full traffic-signal assemblies. Curbs, lamp globes and
+slatted benches are illustrative. Untagged retail heights now use a conservative
+8–11 m typology estimate instead of arbitrary office-like heights; these are
+not measurements. Bethesda Lane uses an inferred 8 m paved width. Some paths are disconnected or
+intersect footprint geometry, so walkers may wait or reverse. The Bethesda Lane
+complex has a mapped overhead layer, but this model does not yet reconstruct
+the ground-floor passages through its ends; those boundaries remain solid. These are visible
 limitations, not hidden fidelity claims.
 
 A substantial realism pass needs lawful elevation/LiDAR data, measured building
 heights, local photographic review, manual landmark/storefront modeling,
-materials, roof profiles, curbs and higher-quality rigged actors.
+faithful materials/roof profiles and higher-quality rigged actors. The added
+detail improves depth cues; it does not establish photorealism.
 
 ## Simulation and performance
 
@@ -151,9 +166,14 @@ occupants, not individually modeled distant citizens or census estimates.**
 Active individual agents retain full fixed-step updates even when not drawn;
 there is no automatic promotion/demotion between cohorts and individual actors.
 
-Static geometry is merged; people and vehicles are instanced. Rendering culls
+Static geometry is merged in spatial tiles with distance/frustum culling and
+matching fog ranges (shorter in economy); people and vehicles are instanced. Rendering culls
 distant actors, lowers pixel ratio and disables shadows under sustained low
-frame rate. Weak hardware starts without shadows. Population is selected at
+frame rate. Weak hardware starts without shadows. **Visuals: auto → detail → economy**
+cycles the render preference. Auto retains adaptive degradation; detail keeps
+block-scale 2048 px shadows and at most 1.5 pixel ratio, while economy disables
+shadows. Local procedural sky reflections require no downloaded HDRI. These
+are artistic daylight conditions, not a measured timestamp/sun position. Population is selected at
 startup from hardware, not continually resized; this preserves experiment
 identity. Browser background throttling or overload can slow simulated time
 relative to wall time. There is no hardware-independent frame-rate guarantee.
@@ -201,6 +221,12 @@ decision. Checkpoints are recorded every 100 ticks. Re-import regenerates the
 simulation and verifies checkpoint hashes, the decision history and final state.
 It yields periodically to keep the UI responsive and never calls a model.
 
+New recordings use `bethesda-replay/v2` for the corrected public-path spawn.
+The loader understands v1 starting-position semantics when the data hash matches.
+The courtyard import changes the snapshot hash: recordings made against the
+previous snapshot require that revision of the project and are intentionally
+rejected here, rather than replayed against different collision geometry.
+
 Replay reproduces authoritative simulation state, not render timing or identical
 pixels. Hashes are integrity checks, not signatures proving trace authorship.
 The recorder caps 30,000 input commands and 60,000 decisions. Export refuses an
@@ -216,6 +242,7 @@ npm run format:check
 npm run lint
 npm run build
 npm run verify:bethesda
+node tools/bethesda-look.mjs
 ```
 
 The browser check uses the production artifact and security headers. It checks
@@ -223,7 +250,11 @@ lazy discovery, all five scenarios, a mocked provider outage through native
 fetch, walking, trace export/re-import, provenance, accessibility and return to
 Lop Nur. It writes local captures/checks under the Git-ignored `shots/bethesda/`.
 Set `PUPPETEER_EXECUTABLE_PATH` when using an existing Chromium installation.
-The same check is included in CI. Existing analytical/evidence/Blacksite tests
+The same check is included in CI. The look-development capture script records
+arrival, street, turned street and survey views in auto/detail modes, plus
+console/network evidence, under `shots/bethesda/look/`. It operates real controls
+and never requests Jev. Software-rendered Chromium captures establish visual
+output and errors, not a laptop/GPU performance benchmark. Existing analytical/evidence/Blacksite tests
 remain required; the city does not replace them.
 
 ## What still requires the owner

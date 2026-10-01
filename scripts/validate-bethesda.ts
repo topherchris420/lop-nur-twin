@@ -28,6 +28,12 @@ function coordinates(v: unknown): void {
 }
 for (const f of raw.features) {
   coordinates(f.geometry.coordinates);
+  if (f.geometry.type === "Polygon") {
+    for (const ring of f.geometry.coordinates as number[][][]) {
+      if (ring.length < 4 || JSON.stringify(ring[0]) !== JSON.stringify(ring.at(-1)))
+        fail("unclosed polygon ring");
+    }
+  }
   counts.set(f.properties.kind, (counts.get(f.properties.kind) ?? 0) + 1);
   if (!/^\d+$/.test(f.properties.osmId)) fail("source object id missing");
 }

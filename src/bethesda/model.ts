@@ -58,6 +58,7 @@ function center(ring: Point[]): Point {
 export interface Building {
   id: string;
   ring: Point[];
+  holes: Point[][];
   center: Point;
   height: number;
   heightEvidence: "height tag" | "levels × assumed 3.3 m" | "inferred";
@@ -83,10 +84,13 @@ export const buildings: Building[] = features
           ? levels * 3.3
           : ["house", "detached", "residential", "apartments"].includes(type)
             ? (type === "apartments" ? 13 : 7) + random() * 4
-            : 9 + Math.floor(random() * 7) * 3.3;
+            : type === "retail"
+              ? 8 + random() * 3
+              : 9 + Math.floor(random() * 7) * 3.3;
     return {
       id: p.osmId,
       ring,
+      holes: (f.geometry.coordinates as number[][][]).slice(1).map((r) => r.map(local)),
       center: center(ring),
       height: Math.min(150, Math.max(3, height)),
       heightEvidence:
@@ -121,7 +125,7 @@ for (const b of buildings) {
 export function buildingAt(p: Point) {
   return buildingGrid
     .get(`${Math.floor(p.x / 40)},${Math.floor(p.z / 40)}`)
-    ?.find((b) => inside(p, b.ring));
+    ?.find((b) => inside(p, b.ring) && !b.holes.some((hole) => inside(p, hole)));
 }
 export function moveWithCollision(a: Point, b: Point): Point {
   if (!inBounds(b)) return a;
@@ -191,6 +195,27 @@ export const signalPoints = places.filter((p) => p.kind === "signal"),
 export const row = places.find((p) => p.name === "Bethesda Row")!;
 export const metro = places.find((p) => p.kind === "metro")!;
 export const rescue = places.find((p) => p.kind === "rescue")!;
+// A POI label can lie inside a building (Row's label is inside the garage).
+// The Lane courtyard has unmodeled ground-floor passages: arrive on the
+// connected public pavement outside its outer footprint, not inside that court.
+const laneEntry = pathWays.find((w) => w.name === "Bethesda Lane")!.points[0]!;
+const laneBlock = buildings.find((b) => b.id === "13979605")!;
+const arrivalCandidates = pathWays
+  .filter((w) => !w.crossing)
+  .flatMap((w) => w.points)
+  .filter(
+    (p) =>
+      distance(p, laneEntry) < 65 &&
+      !inside(p, laneBlock.ring) &&
+      !buildingAt(p) &&
+      [-1, 1].every(
+        (s) => !buildingAt({ x: p.x + s, z: p.z }) && !buildingAt({ x: p.x, z: p.z + s }),
+      ),
+  );
+export const arrival = arrivalCandidates.sort(
+  (a, b) => distance(a, laneEntry) - distance(b, laneEntry),
+)[0]!;
+
 const wisconsin = roadWays.find((w) => w.name === "Wisconsin Avenue")!;
 export const landmarks = [
   { name: "Bethesda Row", point: row.point },

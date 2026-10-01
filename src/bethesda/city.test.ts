@@ -9,6 +9,8 @@ import {
 } from "./contract";
 import {
   buildings,
+  buildingAt,
+  arrival,
   local,
   geographic,
   DATA_VERSION,
@@ -56,7 +58,7 @@ describe("Bethesda data and discovery", () => {
         .update(readFileSync(new URL("./data/osm.json", import.meta.url)))
         .digest("hex"),
     ).toBe(DATA_VERSION);
-    expect(buildings.length).toBe(1164);
+    expect(buildings.length).toBe(1166);
     expect(SOURCE.counts.road).toBe(476);
     expect(SOURCE.license).toBe("ODbL-1.0");
     expect(row.id).toBe("2849739979");
@@ -216,4 +218,36 @@ describe("replay and outage", () => {
   });
   it("keeps the vocabulary complete and finite", () =>
     expect(new Set(ACTIONS).size).toBe(14));
+});
+
+describe("public-path arrival", () => {
+  it("keeps the real Bethesda Lane courtyard open and its perimeter solid", () => {
+    const block = buildings.find((b) => b.id === "13979605")!;
+    expect(block.holes).toHaveLength(1);
+    expect(buildingAt(local([-77.09781, 38.9815]))).toBeUndefined();
+    expect(buildingAt(local([-77.0981, 38.9815]))?.id).toBe(block.id);
+    expect(
+      moveWithCollision(local([-77.09781, 38.9815]), local([-77.0981, 38.9815])),
+    ).toEqual(local([-77.09781, 38.9815]));
+  });
+  it("starts outside buildings on the mapped Row pedestrian lane", () => {
+    expect(buildingAt(row.point)?.name).toBe("Bethesda Elm Street Garage");
+    expect(buildingAt(arrival)).toBeUndefined();
+    expect(distance(arrival, row.point)).toBeLessThan(190);
+    const sim = new CitySimulation(config);
+    expect(sim.player).toEqual(arrival);
+    const before = { ...sim.player };
+    sim.movePlayer(0.3, 0);
+    expect(distance(sim.player, before)).toBeGreaterThan(0.29);
+    expect(CitySimulation.replay(sim.export()).player).toEqual(sim.player);
+  });
+  it("preserves v1 replay's historical starting position", () => {
+    const legacy = new CitySimulation(config);
+    legacy.player = { ...row.point };
+    advance(legacy, 12);
+    const trace = { ...legacy.export(), schema: "bethesda-replay/v1" as const };
+    const restored = CitySimulation.replay(trace);
+    expect(restored.stateHash()).toBe(legacy.stateHash());
+    expect(CitySimulation.replay(restored.export()).stateHash()).toBe(legacy.stateHash());
+  });
 });

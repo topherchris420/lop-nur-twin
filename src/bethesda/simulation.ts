@@ -2,6 +2,7 @@ import { mulberry32 } from "../lib/noise";
 import { canonicalHash } from "../game/pilot/hash";
 import {
   DATA_VERSION,
+  arrival,
   buildingAt,
   bounds,
   distance,
@@ -79,7 +80,7 @@ type Command = (
   | { type: "move"; dx: number; dz: number }
 ) & { tick: number };
 export interface Trace {
-  schema: "bethesda-replay/v1";
+  schema: "bethesda-replay/v1" | "bethesda-replay/v2";
   dataVersion: string;
   config: Config;
   tick: number;
@@ -125,9 +126,10 @@ export class CitySimulation {
   readonly config: Config;
   tick = 0;
   paused = false;
-  player: Point = { ...row.point };
+  player: Point = { ...arrival };
   recordingComplete = true;
   private rng: () => number;
+  private replaySchema: Trace["schema"] = "bethesda-replay/v2";
   private eventId = 0;
   private activeDecision = new Map<number, number>();
   constructor(config: Config = PROFILES[1]!) {
@@ -579,7 +581,7 @@ export class CitySimulation {
       throw new Error("Recording limit reached. Reset to start a complete experiment.");
     for (const a of this.agents) this.finish(a);
     return {
-      schema: "bethesda-replay/v1",
+      schema: this.replaySchema,
       dataVersion: DATA_VERSION,
       config: { ...this.config },
       tick: this.tick,
@@ -592,7 +594,7 @@ export class CitySimulation {
   static *replaySteps(v: Trace): Generator<number, CitySimulation> {
     if (
       !v ||
-      v.schema !== "bethesda-replay/v1" ||
+      (v.schema !== "bethesda-replay/v1" && v.schema !== "bethesda-replay/v2") ||
       v.dataVersion !== DATA_VERSION ||
       !configOK(v.config) ||
       !Number.isInteger(v.tick) ||
@@ -607,6 +609,9 @@ export class CitySimulation {
     )
       throw new Error("Unsupported or oversized replay");
     const sim = new CitySimulation(v.config);
+    // v1 started at the geographic label, even when inside a footprint.
+    sim.replaySchema = v.schema;
+    if (v.schema === "bethesda-replay/v1") sim.player = { ...row.point };
     let i = 0,
       last = -1;
     for (const c of v.commands) {
