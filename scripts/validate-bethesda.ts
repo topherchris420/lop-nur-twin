@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import source from "../src/bethesda/data/source.json" with { type: "json" };
 import raw from "../src/bethesda/data/osm.json" with { type: "json" };
+import terrain from "../src/bethesda/data/terrain.json" with { type: "json" };
+import terrainSource from "../src/bethesda/data/terrain-source.json" with { type: "json" };
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -39,6 +41,22 @@ for (const f of raw.features) {
 }
 for (const [kind, n] of Object.entries(source.counts))
   if (counts.get(kind) !== n) fail("feature count differs: " + kind);
+const terrainBytes = readFileSync(
+  new URL("../src/bethesda/data/terrain.json", import.meta.url),
+);
+if (
+  createHash("sha256").update(terrainBytes).digest("hex") !== terrainSource.snapshotSha256
+)
+  fail("terrain checksum differs from acquisition manifest");
+if (
+  terrain.width !== 65 ||
+  terrain.height !== 65 ||
+  terrain.elevations.length !== 4225 ||
+  terrain.elevations.some((v) => !Number.isFinite(v) || v < 80 || v > 120) ||
+  terrain.bbox.some((v, i) => v !== raw.bbox[i]) ||
+  !terrainSource.licenseText.includes("You can copy, modify, distribute")
+)
+  fail("invalid terrain, crop bounds or redistribution terms");
 console.log(
-  `[validate:bethesda] ${raw.features.length} real OSM features; bounds, license and checksum verified`,
+  `[validate:bethesda] ${raw.features.length} real OSM features and 4225 real DTM samples; bounds, license and checksums verified`,
 );

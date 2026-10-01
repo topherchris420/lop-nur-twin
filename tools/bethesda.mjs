@@ -174,12 +174,31 @@ try {
     timeout: 30000,
   });
   check("re-import verifies decision history and state", true);
+  await click("Resume");
+  await writeFile("shots/bethesda/invalid-replay.json", "{}");
+  await (
+    await page.$('input[type="file"]')
+  ).uploadFile("shots/bethesda/invalid-replay.json");
+  await page.waitForFunction(
+    () => document.body.innerText.includes("Unsupported or oversized replay"),
+    { timeout: 30000 },
+  );
+  check(
+    "invalid replay preserves a running city",
+    await page.evaluate(() =>
+      [...document.querySelectorAll("button")].some(
+        (b) => b.textContent.trim() === "Pause",
+      ),
+    ),
+  );
+  await click("Pause");
   await click("Field notes");
   check(
     "fidelity and license are visible",
     await page.evaluate(
       () =>
-        document.body.innerText.includes("Flat ground") &&
+        document.body.innerText.includes("bare-earth LiDAR DTM") &&
+        document.body.innerText.includes("Redistribution permitted with attribution") &&
         document.body.innerText.includes("ODbL"),
     ),
   );

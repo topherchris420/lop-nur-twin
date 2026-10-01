@@ -4,9 +4,11 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { createCityGeometry } from "./geometry";
 import { CityAtmosphere } from "./Atmosphere";
-import { roads, sidewalks, green } from "./network";
+import { roads, green } from "./network";
 import { bounds, distance, signalPoints, type Point } from "./model";
-import { DT, type CitySimulation } from "./simulation";
+import { type CitySimulation } from "./simulation";
+import { Actors } from "./Actors";
+import { groundAt, minimumGround } from "./terrain";
 export interface ViewControl {
   mode: "orbit" | "walk" | "seat";
   target: Point;
@@ -20,16 +22,6 @@ export interface ViewControl {
   ready: boolean;
   failed: boolean;
 }
-const palette = [
-  "#3c5269",
-  "#6d5548",
-  "#606c51",
-  "#84909a",
-  "#c5b69b",
-  "#8a5c54",
-  "#dad7c8",
-  "#3f484f",
-];
 function StaticCity({ view }: { view: ViewControl }) {
   const built = useMemo(createCityGeometry, []);
   const { camera } = useThree();
@@ -59,219 +51,6 @@ function StaticCity({ view }: { view: ViewControl }) {
   useEffect(() => () => built.dispose(), [built]);
   return <primitive object={built.group} />;
 }
-function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
-  const bodies = useRef<THREE.InstancedMesh>(null),
-    heads = useRef<THREE.InstancedMesh>(null),
-    arms = useRef<THREE.InstancedMesh>(null),
-    legs = useRef<THREE.InstancedMesh>(null),
-    cars = useRef<THREE.InstancedMesh>(null),
-    cabins = useRef<THREE.InstancedMesh>(null),
-    wheels = useRef<THREE.InstancedMesh>(null),
-    lights = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []),
-    color = useMemo(() => new THREE.Color(), []);
-  useFrame(() => {
-    if (
-      !bodies.current ||
-      !heads.current ||
-      !arms.current ||
-      !legs.current ||
-      !cars.current ||
-      !cabins.current ||
-      !wheels.current ||
-      !lights.current
-    )
-      return;
-    let p = 0,
-      v = 0,
-      f = 0,
-      arm = 0,
-      w = 0,
-      l = 0;
-    const eye =
-        view.mode === "walk"
-          ? sim.player
-          : view.mode === "seat"
-            ? sim.agents[0]!.point
-            : view.target,
-      range = view.tier === 0 ? 220 : 600;
-    function put(
-      mesh: THREE.InstancedMesh,
-      i: number,
-      x: number,
-      y: number,
-      z: number,
-      sx: number,
-      sy: number,
-      sz: number,
-      heading: number,
-    ) {
-      dummy.position.set(x, y, z);
-      dummy.scale.set(sx, sy, sz);
-      dummy.rotation.set(0, heading, 0);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    for (const a of sim.agents) {
-      if (a.inside || distance(a.point, eye) > range) continue;
-      const e = (a.kind === "pedestrian" ? sidewalks : roads).edges[a.edge]!,
-        { x, z } = a.point,
-        h = e.heading;
-      if (a.kind === "pedestrian") {
-        put(bodies.current, p, x, 1.15, z, 0.44, 0.72, 0.3, h);
-        bodies.current.setColorAt(p, color.set(palette[a.color]!));
-        put(heads.current, p, x, 1.66, z, 0.24, 0.27, 0.24, h);
-        heads.current.setColorAt(
-          p,
-          color.set(["#bd9679", "#996e55", "#6c5042"][a.id % 3]!),
-        );
-        const swing = ["continue", "cross", "leave", "shelter"].includes(a.action)
-          ? Math.sin(sim.tick * DT * a.speed * 5 + a.id) * 0.12
-          : 0;
-        for (const side of [-1, 1])
-          put(
-            legs.current,
-            f++,
-            x + Math.cos(h) * 0.12 * side + Math.sin(h) * swing * side,
-            0.45,
-            z - Math.sin(h) * 0.12 * side + Math.cos(h) * swing * side,
-            0.16,
-            0.75,
-            0.18,
-            h,
-          );
-        for (const side of [-1, 1]) {
-          put(
-            arms.current,
-            arm,
-            x + Math.cos(h) * 0.28 * side - Math.sin(h) * swing * side,
-            1.03,
-            z - Math.sin(h) * 0.28 * side - Math.cos(h) * swing * side,
-            0.14,
-            0.62,
-            0.16,
-            h,
-          );
-          arms.current.setColorAt(arm++, color.set(palette[a.color]!));
-        }
-        p++;
-      } else {
-        const emergency = a.kind === "emergency";
-        put(
-          cars.current,
-          v,
-          x,
-          emergency ? 0.95 : 0.6,
-          z,
-          emergency ? 2.3 : 1.8,
-          emergency ? 1.5 : 0.75,
-          emergency ? 6 : 4.2,
-          h,
-        );
-        cars.current.setColorAt(v, color.set(emergency ? "#a03a30" : palette[a.color]!));
-        put(
-          cabins.current,
-          v++,
-          x,
-          emergency ? 1.95 : 1.17,
-          z,
-          emergency ? 2.1 : 1.5,
-          0.65,
-          emergency ? 2.6 : 2.2,
-          h,
-        );
-        for (const side of [-1, 1])
-          for (const end of [-1, 1])
-            put(
-              wheels.current,
-              w++,
-              x + Math.cos(h) * 0.9 * side + Math.sin(h) * 1.3 * end,
-              0.38,
-              z - Math.sin(h) * 0.9 * side + Math.cos(h) * 1.3 * end,
-              0.25,
-              0.6,
-              0.6,
-              h,
-            );
-        if (emergency && a.action === "respond") {
-          put(lights.current, l, x, 2.36, z, 1.5, 0.18, 0.25, h);
-          lights.current.setColorAt(
-            l++,
-            color.set(sim.tick % 8 < 4 ? "#ef5138" : "#5680ff"),
-          );
-        }
-      }
-    }
-    for (const [mesh, n] of [
-      [bodies.current, p],
-      [heads.current, p],
-      [arms.current, arm],
-      [legs.current, f],
-      [cars.current, v],
-      [cabins.current, v],
-      [wheels.current, w],
-      [lights.current, l],
-    ] as const) {
-      mesh.count = n;
-      mesh.instanceMatrix.needsUpdate = true;
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    }
-  });
-  return (
-    <>
-      <instancedMesh
-        ref={bodies}
-        args={[undefined, undefined, 640]}
-        frustumCulled={false}
-        castShadow
-      >
-        <sphereGeometry args={[0.6, 8, 8]} />
-        <meshStandardMaterial roughness={0.95} />
-      </instancedMesh>
-      <instancedMesh ref={arms} args={[undefined, undefined, 1280]} frustumCulled={false}>
-        <sphereGeometry args={[0.5, 8, 6]} />
-        <meshStandardMaterial roughness={0.95} />
-      </instancedMesh>
-      <instancedMesh ref={heads} args={[undefined, undefined, 640]} frustumCulled={false}>
-        <sphereGeometry args={[0.5, 8, 6]} />
-        <meshStandardMaterial roughness={0.9} />
-      </instancedMesh>
-      <instancedMesh ref={legs} args={[undefined, undefined, 1280]} frustumCulled={false}>
-        <boxGeometry />
-        <meshStandardMaterial color="#343d42" />
-      </instancedMesh>
-      <instancedMesh
-        ref={cars}
-        args={[undefined, undefined, 113]}
-        frustumCulled={false}
-        castShadow
-      >
-        <boxGeometry />
-        <meshStandardMaterial roughness={0.5} />
-      </instancedMesh>
-      <instancedMesh
-        ref={cabins}
-        args={[undefined, undefined, 113]}
-        frustumCulled={false}
-      >
-        <boxGeometry />
-        <meshStandardMaterial color="#4b6977" roughness={0.2} />
-      </instancedMesh>
-      <instancedMesh
-        ref={wheels}
-        args={[undefined, undefined, 452]}
-        frustumCulled={false}
-      >
-        <sphereGeometry args={[0.5, 10, 8]} />
-        <meshStandardMaterial color="#272a2a" roughness={0.95} />
-      </instancedMesh>
-      <instancedMesh ref={lights} args={[undefined, undefined, 3]} frustumCulled={false}>
-        <boxGeometry />
-        <meshBasicMaterial />
-      </instancedMesh>
-    </>
-  );
-}
 function Signals({ sim }: { sim: CitySimulation }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []),
@@ -286,7 +65,7 @@ function Signals({ sim }: { sim: CitySimulation }) {
   useFrame(() => {
     if (!mesh.current) return;
     signalPoints.forEach((p, i) => {
-      dummy.position.set(p.point.x, 5, p.point.z);
+      dummy.position.set(p.point.x, groundAt(p.point) + 5, p.point.z);
       dummy.scale.set(0.35, 0.9, 0.3);
       dummy.updateMatrix();
       mesh.current!.setMatrixAt(i, dummy.matrix);
@@ -310,6 +89,7 @@ function Signals({ sim }: { sim: CitySimulation }) {
   );
 }
 function Events({ sim }: { sim: CitySimulation }) {
+  const { camera } = useThree();
   const fire = useRef<THREE.Group>(null),
     object = useRef<THREE.Mesh>(null),
     rain = useRef<THREE.Points>(null),
@@ -333,14 +113,14 @@ function Events({ sim }: { sim: CitySimulation }) {
     if (fire.current) {
       fire.current.visible = !!f;
       if (f) {
-        fire.current.position.set(f.point.x, 0, f.point.z);
+        fire.current.position.set(f.point.x, groundAt(f.point), f.point.z);
         fire.current.scale.setScalar(1 + Math.sin(sim.tick * 0.3) * 0.03);
       }
     }
     if (perimeter.current) {
       perimeter.current.visible = !!f;
       if (f) {
-        perimeter.current.position.set(f.point.x, 0.22, f.point.z);
+        perimeter.current.position.set(f.point.x, groundAt(f.point) + 0.22, f.point.z);
         perimeter.current.scale.setScalar(f.radius);
       }
     }
@@ -349,7 +129,7 @@ function Events({ sim }: { sim: CitySimulation }) {
       if (u) {
         object.current.position.set(
           u.point.x,
-          90 + Math.sin(sim.tick * 0.01) * 3,
+          groundAt(u.point) + 90 + Math.sin(sim.tick * 0.01) * 3,
           u.point.z,
         );
         object.current.rotation.y = sim.tick * 0.006;
@@ -357,7 +137,11 @@ function Events({ sim }: { sim: CitySimulation }) {
     }
     if (rain.current) {
       rain.current.visible = storm;
-      rain.current.position.set(sim.player.x, 0, sim.player.z);
+      rain.current.position.set(
+        camera.position.x,
+        camera.position.y - 5,
+        camera.position.z,
+      );
       const a = geometry.getAttribute("position");
       for (let i = 0; i < 300; i++) a.setY(i, 30 - ((sim.tick * 0.7 + i) % 30));
       a.needsUpdate = true;
@@ -459,20 +243,24 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     }
     if (view.mode !== "orbit") {
       const p = view.mode === "seat" ? sim.agents[0]!.point : sim.player;
-      camera.position.set(p.x, view.mode === "seat" ? 2.5 : 1.72, p.z);
+      camera.position.set(p.x, groundAt(p) + (view.mode === "seat" ? 2.5 : 1.88), p.z);
       camera.rotation.order = "YXZ";
       camera.rotation.set(view.pitch, view.yaw, 0);
       view.target = { ...p };
     } else if (view.relocate) {
-      camera.position.set(view.target.x + 130, 110, view.target.z + 155);
-      camera.lookAt(view.target.x, 0, view.target.z);
+      camera.position.set(
+        view.target.x + 130,
+        groundAt(view.target) + 110,
+        view.target.z + 155,
+      );
+      camera.lookAt(view.target.x, groundAt(view.target), view.target.z);
       view.relocate = false;
     }
   });
   return view.mode === "orbit" ? (
     <OrbitControls
       makeDefault
-      target={[view.target.x, 0, view.target.z]}
+      target={[view.target.x, groundAt(view.target), view.target.z]}
       maxPolarAngle={Math.PI / 2 - 0.02}
       minDistance={8}
       maxDistance={1500}
@@ -514,10 +302,8 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
         antialias: true,
         powerPreference: "high-performance",
         logarithmicDepthBuffer: true,
-        toneMapping: THREE.AgXToneMapping,
       }}
       onCreated={({ gl }) => {
-        gl.toneMappingExposure = 1;
         gl.domElement.addEventListener("webglcontextlost", () => {
           view.failed = true;
         });
@@ -529,7 +315,7 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
         rotation={[-Math.PI / 2, 0, 0]}
         position={[
           (bounds.min.x + bounds.max.x) / 2,
-          -0.05,
+          minimumGround - 2,
           (bounds.min.z + bounds.max.z) / 2,
         ]}
         receiveShadow

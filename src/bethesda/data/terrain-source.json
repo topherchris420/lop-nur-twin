@@ -1,0 +1,31 @@
+{
+  "publisher": "Montgomery County Planning Department, MNCPPC",
+  "attribution": "\u00a9 Montgomery County Planning Department, MNCPPC",
+  "service": "https://montgomeryplans.org/server9/rest/services/Elevation/countywide_dtm/ImageServer",
+  "item": "https://www.arcgis.com/sharing/rest/content/items/0379353eb80b4207b979656bd9eadff9?f=json",
+  "reference": "https://montgomeryplanning.org/tools/gis-and-mapping/elevation-data/",
+  "acquiredAt": "2026-10-01T19:45:51.098826+00:00",
+  "sourceRasterSha256": "d4a3dba9684b6941563a7e3c3ed5ed87edc7743bdc5f5106f8016a0b1cc9b11f",
+  "snapshotSha256": "775dd73fbbf754c0fb533b0711bcc67b4b67acaf206202869cbf11e4b76c9fd7",
+  "license": "Publisher permission to copy, modify, distribute and analyze, including commercially, with attribution",
+  "licenseText": "You can copy, modify, distribute, and perform analysis on the data, even for commercial purposes, all without asking permission, but please provide attribution to the Montgomery County Planning Department. The Planning Department makes no warranties about the data, and disclaims liability for all uses of the data, to the fullest extent permitted by applicable law.",
+  "export": {
+    "bbox": "-77.104,38.978,-77.089,38.991",
+    "bboxSR": 4326,
+    "imageSR": 4326,
+    "size": "65,65",
+    "format": "tiff",
+    "pixelType": "F32",
+    "interpolation": "RSP_BilinearInterpolation",
+    "renderingRule": {
+      "rasterFunction": "None"
+    },
+    "adjustAspectRatio": false
+  },
+  "limitations": [
+    "65 \u00d7 65 bilinear export of publisher's one-foot DTM; about 20 \u00d7 22 metres between samples, not one-foot model detail",
+    "Publisher describes current LiDAR acquisition as late 2023 / early 2024; per-pixel acquisition dates and uncertainty are not exposed by this export",
+    "Bare earth, not building heights, curb profiles, steps, bridges or underpasses",
+    "Pixel-centre samples interpolated and clamped at the crop border; no extrapolation"
+  ]
+}

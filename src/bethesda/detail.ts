@@ -37,6 +37,8 @@ export function createDetailMaterials() {
   return {
     brick: surfaceMaterial("brick"),
     paleBrick: surfaceMaterial("brick", "#e5d2bf"),
+    redBrick: surfaceMaterial("brick", "#ca9581"),
+    lightStone: architecturalStone("#d0c5ad"),
     stone: architecturalStone("#baac94"),
     trim: new THREE.MeshStandardMaterial({ color: "#c4b69e", roughness: 0.82 }),
     dark: new THREE.MeshStandardMaterial({ color: "#303636", roughness: 0.67 }),
@@ -47,10 +49,11 @@ export function createDetailMaterials() {
       envMapIntensity: 1.25,
     }),
     warmGlass: new THREE.MeshStandardMaterial({
-      color: "#777364",
+      color: "#615b4c",
       roughness: 0.24,
       envMapIntensity: 0.9,
     }),
+    blind: new THREE.MeshStandardMaterial({ color: "#b3a88e", roughness: 0.94 }),
     awning: new THREE.MeshStandardMaterial({ color: "#304b46", roughness: 0.95 }),
     canvas: new THREE.MeshStandardMaterial({ color: "#c4b397", roughness: 0.98 }),
     wood: new THREE.MeshStandardMaterial({ color: "#715240", roughness: 0.9 }),
@@ -95,13 +98,38 @@ export function detailBuilding(b: Building, builder: CityBuilder, m: DetailMater
       for (let j = 0; j < bays; j++) {
         const along = (j + 0.5) * step,
           width = Math.min(2.6, step - 0.6);
+        // The architect describes a block with several facade themes. These
+        // modules are illustrative, not surveyed or identified tenant facades.
+        const theme = (Math.floor(j / 3) + i + (Number(b.id) % 5)) % 4;
+        if (b.height < 35) {
+          const face =
+            theme === 0
+              ? m.lightStone
+              : theme === 1
+                ? m.redBrick
+                : theme === 2
+                  ? m.paleBrick
+                  : m.brick;
+          box(
+            point(along, 0.025),
+            (b.height + 3.85) / 2,
+            step - 0.025,
+            Math.max(0.1, b.height - 3.85),
+            0.08,
+            face,
+            angle,
+          );
+        }
         // Dark reveals stand behind projecting frames; window panes sit within them.
         for (let f = 0; f < floors; f++) {
           const y =
             f === 0 ? 1.9 : 4.9 + ((f - 1) * (b.height - 5.5)) / Math.max(1, floors - 1);
           if (y + 1.05 > b.height - 0.4) continue;
-          const h = f === 0 ? 2.7 : 1.8,
-            w = f === 0 ? width : Math.min(1.7, width);
+          const h = f === 0 ? 2.7 : theme === 0 ? 2.1 : 1.8,
+            w =
+              f === 0
+                ? width
+                : Math.min(theme === 0 ? 2.1 : theme === 2 ? 1.45 : 1.7, width);
           box(point(along, 0.035), y, w + 0.22, h + 0.22, 0.08, m.dark, angle);
           box(
             point(along, 0.095),
@@ -126,6 +154,31 @@ export function detailBuilding(b: Building, builder: CityBuilder, m: DetailMater
           box(point(along, 0.19), y + h / 2, w + 0.22, 0.11, 0.26, m.trim, angle);
           box(point(along, 0.18), y, 0.05, h, 0.13, m.dark, angle);
           box(point(along, 0.18), y + h * 0.22, w, 0.045, 0.13, m.dark, angle);
+          if (f > 0 && random() < 0.35)
+            box(
+              point(along, 0.124),
+              y + h * 0.32,
+              w - 0.04,
+              h * 0.3,
+              0.02,
+              m.blind,
+              angle,
+            );
+          if (f > 0 && theme === 1 && length > 10) {
+            // Shallow Juliet rail and sill, inspired by the architect's photo.
+            box(point(along, 0.41), y - h * 0.38, w + 0.38, 0.06, 0.06, m.dark, angle);
+            for (let rail = -w / 2; rail <= w / 2; rail += 0.22)
+              box(
+                point(along + rail, 0.41),
+                y - h * 0.15,
+                0.025,
+                0.64,
+                0.035,
+                m.dark,
+                angle,
+              );
+            box(point(along, 0.41), y + h * 0.02, w + 0.38, 0.045, 0.055, m.dark, angle);
+          }
           if (f === 0 && j % 3 === 1) {
             // Entry transom / handle. Visual portal only; no claimed interior geometry.
             box(point(along + w * 0.18, 0.25), 1.15, 0.04, 0.42, 0.08, m.trim, angle);
@@ -251,8 +304,53 @@ export function detailStreet(builder: CityBuilder, m: DetailMaterials) {
             m.wood,
             angle,
           );
+          const planter = {
+            x: q.x + Math.sin(angle) * 1.75,
+            z: q.z + Math.cos(angle) * 1.75,
+          };
+          if (!buildingAt(planter)) {
+            box(planter, 0.42, 0.7, 0.7, 0.7, m.dark, angle);
+            box(planter, 0.79, 0.72, 0.08, 0.72, m.trim, angle);
+            box(planter, 0.82, 0.6, 0.02, 0.6, m.soil, angle);
+            const shrub = new THREE.SphereGeometry(0.38, 10, 7);
+            shrub.scale(1, 0.8, 1);
+            shrub.translate(planter.x, 1.02, planter.z);
+            add(shrub, m.awning);
+          }
         }
       }
+    }
+  }
+  // Signature ring-light concept documented by The Lighting Practice.
+  // Span, sag, diameter and placement are inferred from the mapped Lane.
+  const lane = pathWays.find((w) => w.name === "Bethesda Lane");
+  if (lane) {
+    const a = lane.points[0]!,
+      b = lane.points.at(-1)!,
+      length = distance(a, b);
+    const dx = (b.x - a.x) / length,
+      dz = (b.z - a.z) / length;
+    for (let t = 12; t < length - 8; t += 15) {
+      const p = lerp(a, b, t / length),
+        curve: THREE.Vector3[] = [];
+      for (let k = 0; k <= 16; k++) {
+        const across = -7 + (k * 14) / 16;
+        curve.push(
+          new THREE.Vector3(
+            p.x - dz * across,
+            6.2 + 0.017 * across * across,
+            p.z + dx * across,
+          ),
+        );
+      }
+      add(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(curve), 16, 0.012, 4, false),
+        m.dark,
+      );
+      const ring = new THREE.TorusGeometry(0.68, 0.035, 6, 24);
+      ring.rotateX(Math.PI / 2);
+      ring.translate(p.x, 5.9, p.z);
+      add(ring, m.canvas);
     }
   }
 }

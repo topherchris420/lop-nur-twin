@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { CitySimulation } from "./simulation";
 import type { ViewControl } from "./Scene";
+import { groundAt } from "./terrain";
 
 /** A local analytic sky, not a downloaded HDRI or a measured Bethesda light probe. */
 export function CityAtmosphere({
@@ -17,6 +18,10 @@ export function CityAtmosphere({
     fill = useRef<THREE.HemisphereLight>(null);
   const target = useMemo(() => new THREE.Object3D(), []);
   useEffect(() => {
+    const previousToneMapping = gl.toneMapping;
+    const previousExposure = gl.toneMappingExposure;
+    gl.toneMapping = THREE.AgXToneMapping;
+    gl.toneMappingExposure = 1;
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 256;
@@ -43,6 +48,8 @@ export function CityAtmosphere({
     scene.environment = environment.texture;
     scene.environmentIntensity = 0.55;
     return () => {
+      gl.toneMapping = previousToneMapping;
+      gl.toneMappingExposure = previousExposure;
       scene.background = previous.background;
       scene.environment = previous.environment;
       scene.environmentIntensity = previous.intensity;
@@ -70,8 +77,9 @@ export function CityAtmosphere({
     const x = Math.round(p.x / 4) * 4,
       z = Math.round(p.z / 4) * 4;
     const extent = view.mode === "orbit" ? 230 : 75;
-    sun.current.position.set(x - 160, 230, z + 100);
-    target.position.set(x, 0, z);
+    const y = groundAt({ x, z });
+    sun.current.position.set(x - 160, y + 230, z + 100);
+    target.position.set(x, y, z);
     target.updateMatrixWorld();
     const shadow = sun.current.shadow.camera;
     if (shadow.right !== extent) {

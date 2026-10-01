@@ -14,6 +14,8 @@ import {
   type Point,
 } from "./model";
 import snapshot from "./data/osm.json" with { type: "json" };
+import terrainSnapshot from "./data/terrain.json" with { type: "json" };
+import { TERRAIN_SOURCE } from "./terrain";
 import { safeExternalHref, EXTERNAL_LINK_PROPS } from "../lib/safeUrl";
 function save(name: string, value: unknown) {
   const url = URL.createObjectURL(
@@ -149,16 +151,20 @@ function Notes() {
               {SOURCE.counts.building} OSM building footprints, {SOURCE.counts.road} road
               fragments, {SOURCE.counts.path} walking/cycling ways, {SOURCE.counts.park}{" "}
               green spaces, 2 Metro entrances, signals and crossing points. Metres, north
-              up; WGS84 source coordinates.
+              up; WGS84 source coordinates. Montgomery Planning bare-earth LiDAR DTM:
+              4,225 samples over the same crop, roughly 20 × 22 metres apart, interpolated
+              for vertical placement.
             </td>
           </tr>
           <tr>
             <th className="p-2 align-top">Approximate</th>
             <td className="p-2">
-              Flat ground; most heights inferred. Community height tags exist for{" "}
+              Most building heights inferred. Community height tags exist for{" "}
               {buildings.filter((b) => b.heightEvidence === "height tag").length}{" "}
-              footprints. Level tags use an assumed 3.3 metres per floor. No DEM, LiDAR or
-              interiors. Two OSM multipolygon buildings include their mapped courtyards.
+              footprints. Level tags use an assumed 3.3 metres per floor. Terrain is a
+              coarse crop of real bare earth, with simplified building foundations; it
+              does not resolve curbs, steps or underpasses. No surveyed interiors. Two OSM
+              multipolygon buildings include their mapped courtyards.
             </td>
           </tr>
           <tr>
@@ -182,16 +188,21 @@ function Notes() {
             <td className="p-2">
               Retrieved {SOURCE.acquiredAt.slice(0, 10)} from OpenStreetMap. This date is
               retrieval, not a survey date. © OpenStreetMap contributors · ODbL 1.0. The
-              derivative database is downloadable below.
+              derivative database is downloadable below. Terrain retrieved{" "}
+              {TERRAIN_SOURCE.acquiredAt.slice(0, 10)}: © Montgomery County Planning
+              Department, MNCPPC. Redistribution permitted with attribution; provided
+              without warranties.
             </td>
           </tr>
         </tbody>
       </table>
       <p className="mt-4">
         Recognizable street relationships and the Bethesda Lane courtyard are the
-        strongest features. Repeated storefronts, simple actors and missing terrain remain
-        visibly artificial. A public reference photograph of Woodmont / Bethesda Avenue
-        was inspected qualitatively; it is not a shipped texture or an achieved render.
+        strongest features. Facades, foliage, civilian models and emergency vehicles still
+        look procedural. An architect's Bethesda Lane photograph informed material themes
+        and shallow rails; the ring-light concept comes from the lighting designer.
+        Locations and dimensions of that detailing remain illustrative. Reference photos
+        are not shipped textures or achieved renders.
       </p>
       <div className="mt-4 flex flex-wrap gap-4">
         <button
@@ -201,6 +212,20 @@ function Notes() {
         >
           Download geographic database
         </button>
+        <button
+          type="button"
+          className="underline"
+          onClick={() => save("bethesda-terrain.json", terrainSnapshot)}
+        >
+          Download elevation crop
+        </button>
+        <a
+          href={safeExternalHref(TERRAIN_SOURCE.item)}
+          {...EXTERNAL_LINK_PROPS}
+          className="underline"
+        >
+          Terrain source / permission
+        </a>
         <a
           href={safeExternalHref("https://www.openstreetmap.org/copyright")}
           {...EXTERNAL_LINK_PROPS}
@@ -307,6 +332,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
       return;
     }
     setBusy(true);
+    const previouslyPaused = sim.paused;
     sim.paused = true;
     try {
       const restored = await CitySimulation.replayAsync(
@@ -316,6 +342,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
       setWorld(world(restored));
       setMessage("Replay verified: checkpoints, decisions and final state match.");
     } catch (e) {
+      sim.paused = previouslyPaused;
       setMessage(e instanceof Error ? e.message : "Invalid replay");
     } finally {
       setBusy(false);
@@ -339,7 +366,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
           {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
         </p>
         <p className="mt-2 text-[11px] text-slate-300">
-          Real map · inferred elevations · illustrative behavior
+          Real map / terrain · inferred buildings · simulated behavior
         </p>
       </header>
       <nav

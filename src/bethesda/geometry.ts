@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { TessellateModifier } from "three/addons/modifiers/TessellateModifier.js";
 import { mulberry32 } from "../lib/noise";
 import { metricBoxUV, surfaceMaterial, foliageTexture } from "./materials";
 import {
@@ -9,6 +10,7 @@ import {
   detailStreet,
 } from "./detail";
 import {
+  bounds,
   buildings,
   buildingAt,
   crossings,
@@ -23,6 +25,7 @@ import {
   signalPoints,
   type Point,
 } from "./model";
+import { groundAt } from "./terrain";
 function texture(style: "brick" | "stone" | "glass") {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -76,6 +79,7 @@ function sign(text: string, bg = "#244b4b") {
 }
 export function createCityGeometry() {
   const group = new THREE.Group();
+  let buildingBase: number | null = null;
   // Spatial tiles allow actual GPU frustum culling instead of drawing the whole city.
   const buckets = new Map<
     string,
@@ -85,7 +89,8 @@ export function createCityGeometry() {
   const rng = mulberry32(393977);
   const material = (color: string, roughness = 1) =>
     new THREE.MeshStandardMaterial({ color, roughness });
-  const asphalt = surfaceMaterial("asphalt"),
+  const ground = material("#929984"),
+    asphalt = surfaceMaterial("asphalt"),
     concrete = material("#b1ada0"),
     paint = material("#e4dfc2"),
     grass = material("#647c55"),
@@ -106,7 +111,7 @@ export function createCityGeometry() {
     }),
     stone = new THREE.MeshStandardMaterial({ map: texture("stone"), roughness: 0.88 }),
     glass = new THREE.MeshStandardMaterial({ map: texture("glass"), roughness: 0.48 });
-  function add(g: THREE.BufferGeometry, m: THREE.Material) {
+  function add(g: THREE.BufferGeometry, m: THREE.Material, drape = false) {
     if (g.index) {
       const old = g;
       g = g.toNonIndexed();
@@ -116,6 +121,15 @@ export function createCityGeometry() {
       if (!["position", "normal", "uv"].includes(key)) g.deleteAttribute(key);
     g.computeBoundingBox();
     const center = g.boundingBox!.getCenter(new THREE.Vector3());
+    const positions = g.getAttribute("position");
+    const base = buildingBase ?? groundAt({ x: center.x, z: center.z });
+    for (let i = 0; i < positions.count; i++)
+      positions.setY(
+        i,
+        positions.getY(i) +
+          (drape ? groundAt({ x: positions.getX(i), z: positions.getZ(i) }) : base),
+      );
+    if (drape) g.computeVertexNormals();
     const key = `${m.uuid}:${Math.floor(center.x / 100)}:${Math.floor(center.z / 100)}`;
     let bucket = buckets.get(key);
     if (!bucket) {
@@ -140,23 +154,43 @@ export function createCityGeometry() {
     add(g, m);
   }
   function strip(a: Point, b: Point, width: number, y: number, m: THREE.Material) {
-    box(
-      lerp(a, b, 0.5),
-      y,
+    const length = distance(a, b),
+      p = lerp(a, b, 0.5);
+    const g = new THREE.BoxGeometry(
       width,
       0.055,
-      distance(a, b),
-      m,
-      Math.atan2(b.x - a.x, b.z - a.z),
+      length,
+      Math.max(1, Math.ceil(width / 4)),
+      1,
+      Math.max(1, Math.ceil(length / 8)),
     );
+    metricBoxUV(g);
+    g.rotateY(Math.atan2(b.x - a.x, b.z - a.z));
+    g.translate(p.x, y, p.z);
+    add(g, m, true);
   }
   function polygon(ring: Point[], y: number, m: THREE.Material) {
     const shape = new THREE.Shape(ring.map((p) => new THREE.Vector2(p.x, -p.z)));
-    const g = new THREE.ShapeGeometry(shape);
+    const original = new THREE.ShapeGeometry(shape);
+    const g = new TessellateModifier(12, 7).modify(original);
+    original.dispose();
     g.rotateX(-Math.PI / 2);
     g.translate(0, y, 0);
-    add(g, m);
+    add(g, m, true);
   }
+  const terrain = new THREE.PlaneGeometry(
+    bounds.max.x - bounds.min.x,
+    bounds.max.z - bounds.min.z,
+    64,
+    64,
+  );
+  terrain.rotateX(-Math.PI / 2);
+  terrain.translate(
+    (bounds.min.x + bounds.max.x) / 2,
+    -0.04,
+    (bounds.min.z + bounds.max.z) / 2,
+  );
+  add(terrain, ground, true);
   for (const p of parks) polygon(p.ring, 0.04, grass);
   for (const w of roadWays)
     for (let i = 1; i < w.points.length; i++) {
@@ -225,11 +259,25 @@ export function createCityGeometry() {
       );
   }
   for (const b of buildings) {
+    buildingBase = groundAt(b.center);
     const shape = new THREE.Shape(b.ring.map((p) => new THREE.Vector2(p.x, -p.z)));
     for (const hole of b.holes)
       shape.holes.push(new THREE.Path(hole.map((p) => new THREE.Vector2(p.x, -p.z))));
     const g = new THREE.ExtrudeGeometry(shape, { depth: b.height, bevelEnabled: false });
     g.rotateX(-Math.PI / 2);
+    // Flat floor/roof datum; a simplified foundation skirt reaches the sampled
+    // ground instead of bending entire buildings with the bare-earth raster.
+    const positions = g.getAttribute("position");
+    for (let i = 0; i < positions.count; i++)
+      if (positions.getY(i) < 0.001)
+        positions.setY(
+          i,
+          Math.min(
+            -0.2,
+            groundAt({ x: positions.getX(i), z: positions.getZ(i) }) - buildingBase - 0.2,
+          ),
+        );
+    g.computeVertexNormals();
     const detailed = detailedBuildings.has(b.id);
     const facade = detailed
       ? b.height > 35
@@ -291,6 +339,7 @@ export function createCityGeometry() {
           );
       }
   }
+  buildingBase = null;
   const planted: Point[] = [];
   for (const w of pathWays) {
     if (w.crossing) continue;
@@ -371,6 +420,7 @@ export function createCityGeometry() {
       grass,
       detail.paving,
       detail.soil,
+      ground,
     ].includes(m as THREE.MeshStandardMaterial);
     mesh.receiveShadow = true;
     group.add(mesh);
@@ -384,7 +434,7 @@ export function createCityGeometry() {
         new THREE.PlaneGeometry(3.5, 0.85),
         new THREE.MeshStandardMaterial({ map: sign(w.name), side: THREE.DoubleSide }),
       );
-    mesh.position.set(p.x, 3, p.z);
+    mesh.position.set(p.x, groundAt(p) + 3, p.z);
     group.add(mesh);
   }
   for (const p of places.filter(
@@ -397,7 +447,7 @@ export function createCityGeometry() {
         side: THREE.DoubleSide,
       }),
     );
-    mesh.position.set(p.point.x, 4, p.point.z);
+    mesh.position.set(p.point.x, groundAt(p.point) + 4, p.point.z);
     group.add(mesh);
   }
   return {

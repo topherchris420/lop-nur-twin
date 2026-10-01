@@ -66,16 +66,16 @@ The source register is `src/bethesda/data/source.json`. Its actual acquisition
 URL, retrieval timestamp, raw XML hash and distributed snapshot hash come from
 the importer. The bundled derivative is `src/bethesda/data/osm.json`.
 
-| Data            | Included                                                                                                         |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Bounds          | Longitude −77.104 to −77.089; latitude 38.978 to 38.991; approximately 1.3 × 1.4 km                              |
-| Buildings       | 1,166 OSM footprints: 1,164 simple ways and two multipolygon buildings with courtyard holes                      |
-| Roads           | 476 in-bounds ways/fragments with node topology and one-way tags                                                 |
-| Walking/cycling | 871 mapped ways/fragments; underground/private paths excluded                                                    |
-| Green spaces    | Seven park/garden polygons, including Caroline Freeland and Veteran's Park                                       |
-| Infrastructure  | 425 crossing points, 59 signal points, two Metro entrances and a rescue-station point                            |
-| Heights         | Community height tags where available; level tags converted using an assumed 3.3 m/floor; the remainder inferred |
-| Terrain         | **No elevation dataset incorporated; flat ground**                                                               |
+| Data            | Included                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Bounds          | Longitude −77.104 to −77.089; latitude 38.978 to 38.991; approximately 1.3 × 1.4 km                                |
+| Buildings       | 1,166 OSM footprints: 1,164 simple ways and two multipolygon buildings with courtyard holes                        |
+| Roads           | 476 in-bounds ways/fragments with node topology and one-way tags                                                   |
+| Walking/cycling | 871 mapped ways/fragments; underground/private paths excluded                                                      |
+| Green spaces    | Seven park/garden polygons, including Caroline Freeland and Veteran's Park                                         |
+| Infrastructure  | 425 crossing points, 59 signal points, two Metro entrances and a rescue-station point                              |
+| Heights         | Community height tags where available; level tags converted using an assumed 3.3 m/floor; the remainder inferred   |
+| Terrain         | Montgomery Planning bare-earth LiDAR DTM, exported as 65 × 65 samples over the OSM crop; roughly 20 × 22 m spacing |
 
 WGS84 coordinates are projected to a local metre frame around
 38.9847, −77.0947 using latitude-dependent ellipsoid scale factors. East is +x,
@@ -97,7 +97,34 @@ separately from the Apache-2.0 source code. The scene/minimap and Field notes
 provide [attribution](https://www.openstreetmap.org/copyright), and Field notes
 can download the complete derivative database. No map or imagery service is
 called at runtime. No proprietary imagery, purchased asset or paid geospatial
-service is used. County GIS and LiDAR are not incorporated.
+service is used.
+
+**© Montgomery County Planning Department, MNCPPC.** `terrain.json` is a small
+crop of the [countywide bare-earth DTM](https://montgomeryplanning.org/tools/gis-and-mapping/elevation-data/).
+The [publisher's explicit terms](https://www.arcgis.com/sharing/rest/content/items/0379353eb80b4207b979656bd9eadff9?f=json)
+permit copying, modification, distribution and analysis, including commercially,
+with attribution, and disclaim warranties/liability. The full permission text,
+exact export parameters, retrieval timestamp and raster/JSON hashes are in
+`terrain-source.json`. Field notes attribute the publisher and offer the elevation
+crop for download. This dataset is separate from the OSM derivative database.
+
+The source service identifies NAVD88 / Geoid12B vertical heights in US survey feet;
+the importer converts by 1200/3937 to metres. Rendering uses y = NAVD88 metres − 100.
+The arbitrary 100 m offset is a documented display datum, not a surveyed origin
+height. Samples span 87.58–113.55 m NAVD88. The publisher describes its current
+LiDAR program as late 2023 / early 2024; individual pixel dates/uncertainties are
+not exposed. The original service is one-foot resolution, but **this model is not**:
+the 65 × 65 bilinear crop captures broad slopes, not curbs, stairs or small earthworks.
+Pixel-centre samples are interpolated; values clamp at the crop border.
+
+One shared height function seats ground, subdivided road/path strips, buildings,
+street furniture, actors, effects and the walking/survey camera. Building floors
+and roofs remain level at the footprint-centre elevation, with simplified foundation
+skirts; these do not reconstruct actual grading or stepped foundations. The
+simulation still uses a planar street graph: slopes do not change agent speed,
+route cost or traffic mechanics. No building height is inferred from this DTM.
+The county's Buildings_3D endpoint was inspected, but exposed neither usable roof
+heights nor Z geometry in the queried layer; that data was not incorporated.
 
 To refresh, download the manifest's exact OSM XML URL, then run:
 
@@ -110,6 +137,20 @@ npm run build
 The importer runs the installed formatter before computing the snapshot hash.
 The build verifies byte integrity, coordinate bounds, counts, source IDs and
 license. Do not change the checksum just to suppress a validation failure.
+
+To reproduce the terrain crop, request `/exportImage` on the service in
+`terrain-source.json` using its `export` parameters and `f=json`. Save the returned
+TIFF plus export response, service metadata (`?f=json`) and item metadata. Then:
+
+```sh
+python scripts/import-bethesda-terrain.py crop.tiff export.json service.json item.json
+npm run build
+```
+
+The offline importer requires Pillow, refuses missing/unexpected samples or
+changed vertical units/permission, and writes JSON only. The small source TIFF
+is an acquisition intermediate, not a shipped binary asset. No countywide raster
+or paid service is required. Build validation checks both geographic checksums.
 
 ## What looks convincing and what looks fake
 
@@ -131,9 +172,25 @@ case study dates to 2006/2011 and is not a current tenant or condition survey. T
 image alignment, a survey or a pixel-error measurement. The reference image is
 not shipped and must never be presented as an achieved render.
 
+The [project architect's Bethesda Lane photograph](https://www.tortigallas.com/portfolio/upstairs-at-bethesda-row)
+was also inspected: reddish brick, pale contrasting frontage, large ground-floor
+glazing, shallow dark rails, planters and overhead fixtures. The architect describes
+several facade themes. The model now varies local facade modules, windows, blinds
+and Juliet rails; it still does not copy any individual shopfront. The
+[lighting designer documents catenary ring lights along Bethesda Lane](https://www.thelightingpractice.com/project/bethesda-row/).
+Their signature concept is represented procedurally; dimensions, spans and placement
+are inferred, not measured. These copyrighted project photographs are reference only,
+not redistributed assets or textures. The photograph's historical fixtures/tenants
+are not assumed to be current.
+
 Façades repeat generated window bays. Most heights, roof profiles, awnings,
-trees, furniture and sign placements/styles are inferred. Cars are simple
-bodies/cabins/wheels; pedestrians are animated primitives. There are no faithful
+trees, furniture and sign placements/styles are inferred. Cars now have rounded
+bodies with wheel openings, sloping glazing, roof panels, mirrors, trim, lamps and cylindrical tires/rims,
+with sedan/SUV proportions. Emergency vehicles are a generic enlarged variant,
+not a faithful Bethesda apparatus. Nearby civilians have articulated arms/legs,
+shoes, hair, basic faces, clothing variation, bags and a phone-recording pose;
+they are still visibly procedural, without realistic skin, fabric or facial animation.
+There are no faithful
 interiors, Metro escalators, surveyed curb ramps, tree surveys, faithfully measured
 landmark frontages or full traffic-signal assemblies. Curbs, lamp globes and
 slatted benches are illustrative. Untagged retail heights now use a conservative
@@ -144,10 +201,11 @@ complex has a mapped overhead layer, but this model does not yet reconstruct
 the ground-floor passages through its ends; those boundaries remain solid. These are visible
 limitations, not hidden fidelity claims.
 
-A substantial realism pass needs lawful elevation/LiDAR data, measured building
-heights, local photographic review, manual landmark/storefront modeling,
-faithful materials/roof profiles and higher-quality rigged actors. The added
-detail improves depth cues; it does not establish photorealism.
+A further realism pass needs measured building heights, finer terrain/grading,
+local photographic review, manual landmark/storefront and passage modeling,
+faithful materials/roof profiles and higher-quality civilian anatomy. The added
+detail and real broad terrain slopes improve depth cues; they do not establish
+photorealism.
 
 ## Simulation and performance
 
@@ -177,6 +235,18 @@ are artistic daylight conditions, not a measured timestamp/sun position. Populat
 startup from hardware, not continually resized; this preserves experiment
 identity. Browser background throttling or overload can slow simulated time
 relative to wall time. There is no hardware-independent frame-rate guarantee.
+
+Civilian gait uses measured displacement, a distance-driven planted/swing foot
+trajectory and the existing Blacksite clamped two-bone IK solver. Feet sample the
+same terrain as the actor. Stops stop the gait even when an action still names
+walking. Close-range anatomy/IK/faces and rims simplify with distance; instancing
+keeps the civilian population from creating hundreds of draw calls. Rendering
+interpolates positions over at most one tick; this is presentation, never authoritative
+world state. Missed render frames can change cosmetic gait phase, not experiment
+results. Vehicles tilt with the sampled road grade and sit on the same illustrative
+pavement lifts as the static street surfaces. Fire, smoke and rain remain simplified
+visual effects, not physical fluid or weather simulation. Browser captures do not
+prove photorealistic motion or a hardware FPS target.
 
 Road movement respects one-way topology, illustrative signal cycles, pedestrian
 crossings, headway, basic intersection reservations and emergency yielding.
@@ -221,7 +291,11 @@ decision. Checkpoints are recorded every 100 ticks. Re-import regenerates the
 simulation and verifies checkpoint hashes, the decision history and final state.
 It yields periodically to keep the UI responsive and never calls a model.
 
-New recordings use `bethesda-replay/v2` for the corrected public-path spawn.
+New recordings use `bethesda-replay/v2` for the corrected public-path spawn and
+include the elevation snapshot hash. A stated, mismatching terrain hash is rejected.
+Older traces without that optional field still verify their planar simulation
+state and retain the omission on re-export; they do not claim their original
+flat-ground presentation has been reproduced.
 The loader understands v1 starting-position semantics when the data hash matches.
 The courtyard import changes the snapshot hash: recordings made against the
 previous snapshot require that revision of the project and are intentionally

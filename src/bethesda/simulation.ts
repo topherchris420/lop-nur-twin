@@ -24,6 +24,7 @@ import {
   type Observation,
 } from "./contract";
 import { validScenario, type Scenario, type CityEvent } from "./scenarios";
+import { TERRAIN_VERSION } from "./terrain";
 export const DT = 0.1;
 export interface Config {
   seed: number;
@@ -82,6 +83,8 @@ type Command = (
 export interface Trace {
   schema: "bethesda-replay/v1" | "bethesda-replay/v2";
   dataVersion: string;
+  // Elevation changes only presentation; omission identifies an older trace.
+  terrainVersion?: string;
   config: Config;
   tick: number;
   commands: Command[];
@@ -130,6 +133,7 @@ export class CitySimulation {
   recordingComplete = true;
   private rng: () => number;
   private replaySchema: Trace["schema"] = "bethesda-replay/v2";
+  private terrainVersion: string | undefined = TERRAIN_VERSION;
   private eventId = 0;
   private activeDecision = new Map<number, number>();
   constructor(config: Config = PROFILES[1]!) {
@@ -583,6 +587,7 @@ export class CitySimulation {
     return {
       schema: this.replaySchema,
       dataVersion: DATA_VERSION,
+      ...(this.terrainVersion ? { terrainVersion: this.terrainVersion } : {}),
       config: { ...this.config },
       tick: this.tick,
       commands: structuredClone(this.commands),
@@ -596,6 +601,7 @@ export class CitySimulation {
       !v ||
       (v.schema !== "bethesda-replay/v1" && v.schema !== "bethesda-replay/v2") ||
       v.dataVersion !== DATA_VERSION ||
+      (v.terrainVersion !== undefined && v.terrainVersion !== TERRAIN_VERSION) ||
       !configOK(v.config) ||
       !Number.isInteger(v.tick) ||
       v.tick < 0 ||
@@ -611,6 +617,7 @@ export class CitySimulation {
     const sim = new CitySimulation(v.config);
     // v1 started at the geographic label, even when inside a footprint.
     sim.replaySchema = v.schema;
+    sim.terrainVersion = v.terrainVersion;
     if (v.schema === "bethesda-replay/v1") sim.player = { ...row.point };
     let i = 0,
       last = -1;
