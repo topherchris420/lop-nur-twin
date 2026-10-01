@@ -214,6 +214,10 @@ jobs:
           path: |
             /tmp/dev-server.log
             /tmp/preview-server.log
+            shots/bethesda/browser-checks.json
+            shots/bethesda/browser-failure.json
+            shots/bethesda/survey.png
+            shots/bethesda/walk-storm.png
           if-no-files-found: ignore
 
   secrets:

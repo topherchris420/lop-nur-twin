@@ -327,7 +327,11 @@ node tools/bethesda-look.mjs
 The browser check uses the production artifact and security headers. It checks
 lazy discovery, all five scenarios, a mocked provider outage through native
 fetch, walking, trace export/re-import, provenance, accessibility and return to
-Lop Nur. It writes local captures/checks under the Git-ignored `shots/bethesda/`.
+Lop Nur. Its 960 × 640 viewport and public Economy preference bound software-GPU
+raster cost; WebGL and the full simulation remain active. DOM/timer conditions
+use bounded interval polling rather than waiting for animation frames. It writes
+local captures/checks under the Git-ignored `shots/bethesda/`; CI uploads these
+and the error/HUD/provider-request diagnostics if a browser check fails.
 Set `PUPPETEER_EXECUTABLE_PATH` when using an existing Chromium installation.
 The same check is included in CI. The look-development capture script records
 arrival, street, turned street and survey views in auto/detail modes, plus

@@ -24,8 +24,11 @@ const server = process.argv[2]
       ],
       { stdio: "ignore" },
     );
-let browser;
-const checks = [];
+let browser, page;
+let providerCalls = 0;
+const checks = [],
+  errors = [],
+  resources = [];
 const check = (name, ok, detail = "") => {
   checks.push({ name, ok, detail });
   console.log(`${ok ? "PASS" : "FAIL"} ${name}${detail ? " " + detail : ""}`);
@@ -43,8 +46,14 @@ try {
     headless: true,
     args: ["--no-sandbox", "--enable-unsafe-swiftshader", "--use-gl=angle"],
   });
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1200, height: 800 });
+  page = await browser.newPage();
+  page.setDefaultTimeout(60000);
+  // Keep real WebGL enabled, with a bounded raster budget on software GPUs.
+  await page.setViewport({ width: 960, height: 640 });
+  // These are timer/DOM conditions, not render-frame conditions. Puppeteer's
+  // default rAF polling can stall behind a slow SwiftShader frame in CI.
+  const waitFor = (predicate, ...args) =>
+    page.waitForFunction(predicate, { polling: 100, timeout: 60000 }, ...args);
   await page.evaluateOnNewDocument(() => {
     Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 });
     globalThis.__csp = [];
@@ -52,9 +61,6 @@ try {
       globalThis.__csp.push(e.effectiveDirective),
     );
   });
-  const errors = [],
-    resources = [];
-  let providerCalls = 0;
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.setRequestInterception(true);
   page.on("request", (r) => {
@@ -72,10 +78,7 @@ try {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await page.waitForFunction(
-    () => document.body.innerText.includes("CONSTRUCTION TIMELINE"),
-    { timeout: 60000 },
-  );
+  await waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
   check("Lop Nur opens normally", (await page.title()).startsWith("Lop Nur"));
   check("city not initially mounted", !(await page.$('[data-bethesda="active"]')));
   check("city bundle remains lazy", !resources.some((r) => /\/App-[^/]+\.js/.test(r)));
@@ -97,6 +100,19 @@ try {
       button.click();
     }, name);
   await mkdir("shots/bethesda", { recursive: true });
+  // Use the existing public quality control without changing population or
+  // simulation state. Both clicks run before another frame, avoiding Detail's
+  // intermediate shadow allocation on the software renderer.
+  await page.evaluate(() => {
+    const button = [...document.querySelectorAll("button")].find(
+      (b) => b.textContent.trim() === "Visuals: auto",
+    );
+    if (!button) throw new Error("Missing visual quality control");
+    button.click();
+    button.click();
+  });
+  await waitFor(() => document.body.innerText.includes("Visuals: economy"));
+  check("economy visuals remain selectable with WebGL", true);
   await click("Pause");
   await page.screenshot({ path: "shots/bethesda/survey.png" });
   await click("~ telemetry");
@@ -111,7 +127,7 @@ try {
     await page.focus("#city-event");
     await page.keyboard.sendCharacter(event);
     await page.keyboard.press("Enter");
-    await page.waitForFunction(() => document.querySelector("#city-event").value === "");
+    await waitFor(() => document.querySelector("#city-event").value === "");
     check(
       "scenario: " + event,
       await page.evaluate(() => document.body.innerText.includes("Event injected:")),
@@ -120,9 +136,7 @@ try {
   await click("Close");
   await click("Resume");
   await click("Jev off");
-  await page.waitForFunction(() => /fallback [1-9]/.test(document.body.innerText), {
-    timeout: 20000,
-  });
+  await waitFor(() => /fallback [1-9]/.test(document.body.innerText));
   await click("Jev on");
   await click("Walk");
   // Hold through actual simulation progress. A wall-clock sleep can elapse
@@ -132,9 +146,8 @@ try {
   );
   await page.keyboard.down("KeyW");
   try {
-    await page.waitForFunction(
+    await waitFor(
       (tick) => Number(/tick (\d+)/.exec(document.body.innerText)?.[1]) >= tick + 3,
-      { timeout: 60000 },
       movementTick,
     );
   } finally {
@@ -152,7 +165,7 @@ try {
     };
   });
   await click("Export replay");
-  await page.waitForFunction(() => typeof globalThis.__cityExport === "string");
+  await waitFor(() => typeof globalThis.__cityExport === "string");
   const trace = await page.evaluate(() => globalThis.__cityExport),
     parsed = JSON.parse(trace);
   check(
@@ -170,18 +183,15 @@ try {
   );
   await writeFile("shots/bethesda/replay.json", trace);
   await (await page.$('input[type="file"]')).uploadFile("shots/bethesda/replay.json");
-  await page.waitForFunction(() => document.body.innerText.includes("Replay verified"), {
-    timeout: 30000,
-  });
+  await waitFor(() => document.body.innerText.includes("Replay verified"));
   check("re-import verifies decision history and state", true);
   await click("Resume");
   await writeFile("shots/bethesda/invalid-replay.json", "{}");
   await (
     await page.$('input[type="file"]')
   ).uploadFile("shots/bethesda/invalid-replay.json");
-  await page.waitForFunction(
-    () => document.body.innerText.includes("Unsupported or oversized replay"),
-    { timeout: 30000 },
+  await waitFor(() =>
+    document.body.innerText.includes("Unsupported or oversized replay"),
   );
   check(
     "invalid replay preserves a running city",
@@ -220,7 +230,7 @@ try {
   check("no CSP violations", (await page.evaluate(() => globalThis.__csp)).length === 0);
   await click("Close field notes");
   await click("Return to the desert");
-  await page.waitForFunction(() => document.title.startsWith("Lop Nur"));
+  await waitFor(() => document.title.startsWith("Lop Nur"));
   check("return restores Lop Nur", !(await page.$('[data-bethesda="active"]')));
   check("no page errors", errors.length === 0, errors.join("\n"));
   check(
@@ -231,9 +241,7 @@ try {
   );
   // Deliberate renderer failure after the normal error-free run. The city
   // must keep its independent timer and semantic controls alive.
-  await page.waitForFunction(() =>
-    document.body.innerText.includes("CONSTRUCTION TIMELINE"),
-  );
+  await waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
   await page.evaluate(() => {
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type, ...args) {
@@ -247,16 +255,12 @@ try {
   await page.focus("#anomaly-coordinate");
   await page.keyboard.sendCharacter("38.9847,-77.0947");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(
-    () => document.body.innerText.includes("3D rendering is unavailable"),
-    { timeout: 30000 },
-  );
+  await waitFor(() => document.body.innerText.includes("3D rendering is unavailable"));
   const readTick = () =>
     page.evaluate(() => Number(/tick (\d+)/.exec(document.body.innerText)?.[1]));
   const before = await readTick();
-  await page.waitForFunction(
+  await waitFor(
     (tick) => Number(/tick (\d+)/.exec(document.body.innerText)?.[1]) > tick,
-    {},
     before,
   );
   await click("~ telemetry");
@@ -271,6 +275,18 @@ try {
   );
   await writeFile("shots/bethesda/browser-checks.json", JSON.stringify(checks, null, 2));
   if (checks.some((c) => !c.ok)) process.exitCode = 1;
+} catch (error) {
+  await mkdir("shots/bethesda", { recursive: true });
+  const hud = await Promise.race([
+    page?.evaluate(() => document.body.innerText).catch(() => "unavailable"),
+    delay(5000).then(() => "browser did not respond within 5 seconds"),
+  ]);
+  await writeFile("shots/bethesda/browser-checks.json", JSON.stringify(checks, null, 2));
+  await writeFile(
+    "shots/bethesda/browser-failure.json",
+    JSON.stringify({ error: String(error), providerCalls, errors, hud }, null, 2),
+  );
+  throw error;
 } finally {
   await browser?.close();
   server?.kill();
