@@ -1,3 +1,4 @@
+import { createCityDecisionHandler } from "./city.js";
 import {
   ACTION_CONTRACT_VERSION,
   DECISION_SCHEMA_VERSION,
@@ -163,6 +164,7 @@ export function retryAfterHeader(value: string | null): number | null {
 }
 
 export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHandler {
+  const cityHandle = createCityDecisionHandler(config);
   const fetchImpl = config.fetchImpl ?? fetch;
   const limiter = config.limiter ?? new RateLimiter(DEFAULT_RATE_LIMITS);
   const now = config.now ?? (() => Date.now());
@@ -250,6 +252,17 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       return errorResponse(400, "invalid_request", "Expected { session, observation }.");
     }
     const envelope = payload as Record<string, unknown>;
+    const cityObservation = envelope["observation"] as { schema?: unknown } | undefined;
+    if (cityObservation?.schema === "bethesda-observation/v1") {
+      return cityHandle(
+        new Request(request.url, {
+          method: "POST",
+          headers: request.headers,
+          body: text,
+        }),
+        meta,
+      );
+    }
     const extraKeys = Object.keys(envelope).filter(
       (key) => key !== "session" && key !== "observation",
     );

@@ -1,3 +1,4 @@
+import { AnomalyGate } from "@/components/AnomalyGate";
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Scene } from "@/components/scene/Scene";
@@ -40,6 +41,14 @@ export const Route = createFileRoute("/")({
 });
 
 function App() {
+  return (
+    <AnomalyGate>
+      <TwinView />
+    </AnomalyGate>
+  );
+}
+
+function TwinView() {
   useKeyboardShortcuts();
   const { structure } = Route.useSearch();
   const select = useTwinStore((state) => state.select);
