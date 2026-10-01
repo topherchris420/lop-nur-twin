@@ -125,9 +125,21 @@ try {
   });
   await click("Jev on");
   await click("Walk");
+  // Hold through actual simulation progress. A wall-clock sleep can elapse
+  // entirely inside one software-rendered frame without a timer tick.
+  const movementTick = await page.evaluate(() =>
+    Number(/tick (\d+)/.exec(document.body.innerText)?.[1]),
+  );
   await page.keyboard.down("KeyW");
-  await delay(600);
-  await page.keyboard.up("KeyW");
+  try {
+    await page.waitForFunction(
+      (tick) => Number(/tick (\d+)/.exec(document.body.innerText)?.[1]) >= tick + 3,
+      { timeout: 60000 },
+      movementTick,
+    );
+  } finally {
+    await page.keyboard.up("KeyW");
+  }
   await click("Pause");
   await page.screenshot({ path: "shots/bethesda/walk-storm.png" });
   await page.evaluate(() => {

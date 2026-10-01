@@ -392,7 +392,18 @@ function Events({ sim }: { sim: CitySimulation }) {
   );
 }
 function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
-  const { camera, gl, setDpr } = useThree();
+  const { camera, gl, setDpr, scene } = useThree();
+  function setShadows(enabled: boolean) {
+    gl.shadowMap.enabled = enabled;
+    // Three's cached programs must be rebuilt when shadow support changes.
+    const materials = new Set<THREE.Material>();
+    scene.traverse((o) => {
+      if (o instanceof THREE.Mesh)
+        for (const m of Array.isArray(o.material) ? o.material : [o.material])
+          materials.add(m);
+    });
+    for (const material of materials) material.needsUpdate = true;
+  }
   const stats = useRef({ elapsed: 0, frames: 0 });
   const quality = useRef(view.quality);
   useEffect(() => {
@@ -432,7 +443,7 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       quality.current = view.quality;
       view.tier = view.quality === "economy" ? 0 : 1;
       setDpr(view.tier ? Math.min(devicePixelRatio, 1.5) : 0.85);
-      gl.shadowMap.enabled = view.tier > 0;
+      setShadows(view.tier > 0);
       stats.current = { elapsed: 0, frames: 0 };
     }
     stats.current.elapsed += dt;
@@ -442,7 +453,7 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       if (view.quality === "auto" && view.fps < 25 && view.tier > 0) {
         view.tier = 0;
         setDpr(0.75);
-        gl.shadowMap.enabled = false;
+        setShadows(false);
       }
       stats.current = { elapsed: 0, frames: 0 };
     }
