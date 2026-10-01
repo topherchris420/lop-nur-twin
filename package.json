@@ -14,7 +14,7 @@
     "benchmark:jev:precision": "node tools/jev-benchmark.mjs --brain jev --control precision",
     "benchmark:random": "node tools/jev-benchmark.mjs --brain random --control direct",
     "benchmark:random:precision": "node tools/jev-benchmark.mjs --brain random --control precision",
-    "build": "node scripts/run-ts.mjs scripts/validate-data.ts && node scripts/run-ts.mjs scripts/generate-manifest.ts && vite build && tsc --noEmit && node tools/jev-secret-scan.mjs dist",
+    "build": "node scripts/run-ts.mjs scripts/validate-data.ts && node scripts/run-ts.mjs scripts/validate-bethesda.ts && node scripts/run-ts.mjs scripts/generate-manifest.ts && vite build && tsc --noEmit && node tools/jev-secret-scan.mjs dist",
     "check": "bun run format:check && bun run lint && bun run test:run && bun run test:evidence && bun run build",
     "closeup": "node tools/closeup.mjs",
     "dev": "node scripts/run-ts.mjs scripts/generate-manifest.ts && vite",
@@ -45,7 +45,9 @@
     "test:jev": "vitest run src/game/pilot server",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
-    "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts"
+    "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
+    "test:bethesda": "vitest run src/bethesda server/jev/city.test.ts",
+    "verify:bethesda": "node tools/bethesda.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
