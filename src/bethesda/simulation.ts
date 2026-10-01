@@ -8,6 +8,7 @@ import {
   moveWithCollision,
   rescue,
   row,
+  metro,
   type Point,
 } from "./model";
 import { roads, sidewalks, green, nearest, nextToward, position } from "./network";
@@ -136,6 +137,12 @@ export class CitySimulation {
     const pedestrianEdges = sidewalks.edges.filter(
       (e) => !buildingAt(position(sidewalks, e, e.length / 2)),
     );
+    // Illustrative daytime concentration around the two real public anchors.
+    // This is a sampling policy, not a claim about measured pedestrian demand.
+    const coreEdges = pedestrianEdges.filter((e) => {
+      const p = position(sidewalks, e, e.length / 2);
+      return distance(p, row.point) < 160 || distance(p, metro.point) < 120;
+    });
     const vehicleEdges = roads.edges.filter(
       (e) => !buildingAt(position(roads, e, e.length / 2)),
     );
@@ -147,7 +154,12 @@ export class CitySimulation {
             ? "vehicle"
             : "emergency";
       const net = kind === "pedestrian" ? sidewalks : roads;
-      const candidates = kind === "pedestrian" ? pedestrianEdges : vehicleEdges;
+      const candidates =
+        kind === "pedestrian"
+          ? i % 2 === 0 && coreEdges.length
+            ? coreEdges
+            : pedestrianEdges
+          : vehicleEdges;
       const e =
         kind === "emergency"
           ? net.edges[nearest(net, rescue.point).out[0]!]!

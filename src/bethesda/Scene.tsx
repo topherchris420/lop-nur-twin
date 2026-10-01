@@ -244,7 +244,7 @@ function Signals({ sim }: { sim: CitySimulation }) {
       mesh.current!.setMatrixAt(i, dummy.matrix);
       mesh.current!.setColorAt(
         i,
-        color.set(edges[i] && green(sim.tick, edges[i]!) ? "#559c78" : "#c65239"),
+        color.set(edges[i] && green(sim.tick, edges[i]) ? "#559c78" : "#c65239"),
       );
     });
     mesh.current.instanceMatrix.needsUpdate = true;

@@ -203,6 +203,9 @@ jobs:
       - name: Route, parameter and interaction checks
         run: bun run routes
 
+      - name: Hidden Bethesda city checks (no API calls)
+        run: bun run verify:bethesda http://localhost:4173
+
       - name: Upload server logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

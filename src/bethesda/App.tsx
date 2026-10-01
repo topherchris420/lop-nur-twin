@@ -27,7 +27,7 @@ function save(name: string, value: unknown) {
 }
 function world(sim?: CitySimulation) {
   const low = (navigator.hardwareConcurrency || 2) <= 4;
-  const city = sim ?? new CitySimulation(PROFILES[low ? 0 : 1]!);
+  const city = sim ?? new CitySimulation(PROFILES[low ? 0 : 1]);
   const view: ViewControl = {
     mode: "orbit",
     target: { ...row.point },
