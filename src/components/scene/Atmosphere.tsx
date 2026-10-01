@@ -30,6 +30,30 @@ const NIGHT = {
   hemiGround: new THREE.Color("#14110d"),
 };
 
+/** The shared renderer-transform owner, including scenes with their own lighting. */
+export function useRendererToneMapping({
+  postprocessing,
+  exposure = 1.05,
+  restoreOnUnmount = false,
+}: {
+  postprocessing: boolean;
+  exposure?: number;
+  restoreOnUnmount?: boolean;
+}) {
+  const { gl } = useThree();
+  useEffect(() => {
+    const previousToneMapping = gl.toneMapping;
+    const previousExposure = gl.toneMappingExposure;
+    gl.toneMapping = postprocessing ? THREE.NoToneMapping : THREE.AgXToneMapping;
+    gl.toneMappingExposure = exposure;
+    return () => {
+      if (!restoreOnUnmount) return;
+      gl.toneMapping = previousToneMapping;
+      gl.toneMappingExposure = previousExposure;
+    };
+  }, [gl, postprocessing, exposure, restoreOnUnmount]);
+}
+
 export interface AtmosphereProps {
   /**
    * Tune for a camera standing on the ground rather than flying over it.
@@ -58,7 +82,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   const climate = getClimateMonth(environmentMonth);
   const dustFactor = climateDustFactor(climate);
   const quality = getQualityProfile(qualityTier);
-  const { scene, gl } = useThree();
+  const { scene } = useThree();
 
   // A box around the built-up area rather than the whole site: 300 m at 2048
   // is a 0.29 m texel against 0.98 m, and the near cascade covers what is
@@ -99,10 +123,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   // Tone mapping lives in exactly one place. On the top tier the composer's
   // AgX pass owns it and the renderer must stay linear (`Effects.tsx`);
   // below that the renderer applies AgX itself so every tier shares a look.
-  useEffect(() => {
-    gl.toneMapping = quality.postprocessing ? THREE.NoToneMapping : THREE.AgXToneMapping;
-    gl.toneMappingExposure = 1.05;
-  }, [gl, quality.postprocessing]);
+  useRendererToneMapping({ postprocessing: quality.postprocessing });
 
   // aim the sun's shadow frustum at the built-up area
   useEffect(() => {

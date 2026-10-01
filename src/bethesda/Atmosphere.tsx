@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { useRendererToneMapping } from "@/components/scene/Atmosphere";
 import type { CitySimulation } from "./simulation";
 import type { ViewControl } from "./Scene";
 import { groundAt } from "./terrain";
@@ -17,11 +18,12 @@ export function CityAtmosphere({
   const sun = useRef<THREE.DirectionalLight>(null),
     fill = useRef<THREE.HemisphereLight>(null);
   const target = useMemo(() => new THREE.Object3D(), []);
+  useRendererToneMapping({
+    postprocessing: false,
+    exposure: 1,
+    restoreOnUnmount: true,
+  });
   useEffect(() => {
-    const previousToneMapping = gl.toneMapping;
-    const previousExposure = gl.toneMappingExposure;
-    gl.toneMapping = THREE.AgXToneMapping;
-    gl.toneMappingExposure = 1;
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 256;
@@ -48,8 +50,6 @@ export function CityAtmosphere({
     scene.environment = environment.texture;
     scene.environmentIntensity = 0.55;
     return () => {
-      gl.toneMapping = previousToneMapping;
-      gl.toneMappingExposure = previousExposure;
       scene.background = previous.background;
       scene.environment = previous.environment;
       scene.environmentIntensity = previous.intensity;

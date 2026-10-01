@@ -236,6 +236,11 @@ startup from hardware, not continually resized; this preserves experiment
 identity. Browser background throttling or overload can slow simulated time
 relative to wall time. There is no hardware-independent frame-rate guarantee.
 
+Renderer tone mapping uses the shared owner in
+`src/components/scene/Atmosphere.tsx`. Lop Nur keeps its existing postprocessing
+switch and 1.05 exposure; Bethesda requests renderer AgX at exposure 1 and restores
+the prior transform on unmount. Its local sky and lighting remain separate.
+
 Civilian gait uses measured displacement, a distance-driven planted/swing foot
 trajectory and the existing Blacksite clamped two-bone IK solver. Feet sample the
 same terrain as the actor. Stops stop the gait even when an action still names
