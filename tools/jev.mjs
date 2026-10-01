@@ -361,22 +361,30 @@ async function offline() {
     // loop backing off for up to 4 s before it asks again, and a death abandons
     // the request in flight uncounted, so a timeout needs a full
     // REQUEST_TIMEOUT_MS on one life. A fixed 3.5 s sleep failed intermittently.
-    const hangCounters = () =>
-      page.evaluate(() => ({ ...globalThis.__jev.pilot.metrics.counters }));
-    const beforeHang = await hangCounters();
+    // The counter changes in the request callback; telemetry catches up on
+    // the next pilot tick/frame. Wait for both in one browser snapshot so a
+    // fresh timeout cannot be paired with the previous HTTP error's status.
+    const hangState = () =>
+      page.evaluate(() => ({
+        timeouts: globalThis.__jev.pilot.metrics.counters.timeouts,
+        status: globalThis.__jev.telemetry.status,
+        alive: globalThis.__combat.game.player.alive,
+      }));
+    const beforeHang = await hangState();
     behaviour.current = () => "hang";
     let afterHang = beforeHang;
+    const timedOut = (state) =>
+      state.timeouts > beforeHang.timeouts &&
+      (!state.alive || state.status === "TIMEOUT");
     const hangDeadline = Date.now() + 15000;
-    while (afterHang.timeouts <= beforeHang.timeouts && Date.now() < hangDeadline) {
+    while (!timedOut(afterHang) && Date.now() < hangDeadline) {
       await sleep(250);
-      afterHang = await hangCounters();
+      afterHang = await hangState();
     }
-    t = await telemetry(page);
-    let alive = (await playerState(page)).alive;
     check(
       "a hung request becomes TIMEOUT",
-      afterHang.timeouts > beforeHang.timeouts && (!alive || t.status === "TIMEOUT"),
-      `${afterHang.timeouts - beforeHang.timeouts} timeouts, ${t.status}`,
+      timedOut(afterHang),
+      `${afterHang.timeouts - beforeHang.timeouts} timeouts, ${afterHang.status}`,
     );
     check(
       "no input stays held while timing out",
@@ -397,7 +405,7 @@ async function offline() {
     });
     await sleep(3000);
     t = await telemetry(page);
-    alive = (await playerState(page)).alive;
+    const alive = (await playerState(page)).alive;
     const afterUnavailable = await page.evaluate(() => ({
       ...globalThis.__jev.pilot.metrics.counters,
     }));
