@@ -419,6 +419,25 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   ) : null;
 }
 export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
+  // R3F configures its renderer asynchronously; a missing WebGL context can
+  // reject before a React boundary sees it. Probe and release one context.
+  const supported = useMemo(() => {
+    try {
+      const context = document.createElement("canvas").getContext("webgl2");
+      if (!context) return false;
+      context.getExtension("WEBGL_lose_context")?.loseContext();
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+  if (!supported || view.failed)
+    return (
+      <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
+        3D rendering is unavailable. The map, rules, scenarios, field notes and replay
+        remain available.
+      </p>
+    );
   return (
     <Canvas
       shadows={view.tier > 0}
@@ -437,6 +456,9 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       }}
       onCreated={({ gl }) => {
         gl.toneMappingExposure = 1;
+        gl.domElement.addEventListener("webglcontextlost", () => {
+          view.failed = true;
+        });
       }}
     >
       <color attach="background" args={["#b4c6ce"]} />
