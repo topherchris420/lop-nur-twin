@@ -1,0 +1,425 @@
+/**
+ * `rain-bethesda/v1` — the narrow, versioned protocol between this repository's
+ * Bethesda simulation and the R.A.I.N. research runtime in
+ * `topherchris420/james_library`.
+ *
+ * Shared with the server (`server/rain/`), so it imports nothing and is
+ * imported as `./contracts.js`. It holds vocabularies and wire types only:
+ * no map, no simulator, no renderer.
+ *
+ * Who owns what is the point of the whole directory:
+ *
+ *   R.A.I.N.  the four perspectives, retrieval, quote verification, the
+ *             meeting, bounded proposals, pre-registration and the R.A.I.N.
+ *             run record (its own evaluation and interpretation).
+ *   Bethesda  the world: scenarios, simulation ticks, world observations,
+ *             matched runs, replay and deterministic world validation.
+ *   A human   whether a validated experiment may run.
+ *
+ * Every message that crosses the boundary has a closed shape. Unknown fields,
+ * unknown schemas, oversized payloads and stale or mismatched requests are
+ * rejected in `validation.ts`; nothing is repaired or guessed.
+ */
+
+export const RAIN_BETHESDA_SCHEMA = "rain-bethesda/v1" as const;
+export const EXPERIMENT_PROPOSAL_SCHEMA = "rain-bethesda-experiment/v1" as const;
+export const DEFINITION_SCHEMA = "bethesda-experiment-definition/v1" as const;
+export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as const;
+/**
+ * Not `bethesda-observation/*`: that family is the agent-perspective schema the
+ * city sends Jev (`contract.ts`, v2; v1 was retired), and the Jev endpoint
+ * routes every `bethesda-observation/` payload to its city handler. A world
+ * observation is the simulator's account of its own state, not an agent's view.
+ */
+export const WORLD_OBSERVATION_SCHEMA = "bethesda-world-observation/v1" as const;
+export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v1" as const;
+export const SESSION_SCHEMA = "rain-bethesda-session/v1" as const;
+/** The published R.A.I.N. criteria rule (james_library/experiments/evaluate.py). */
+export const CRITERIA_RULE = "rain-criteria/v1" as const;
+/** R.A.I.N.'s external-run contract (contracts/experiments/submission.schema.json). */
+export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
+/** R.A.I.N.'s pre-registration contract (contracts/experiments/experiment.schema.json). */
+export const RAIN_DEFINITION_SCHEMA = "rain-experiment/v1" as const;
+export const RAIN_DECISION_SCHEMA = "rain-bounded-decision/v1" as const;
+export const RAIN_REPOSITORY = "topherchris420/james_library" as const;
+export const LAB_REPOSITORY = "topherchris420/lop-nur-twin" as const;
+
+/**
+ * The four perspectives, by name only. Their roles, constraints and words are
+ * defined in james_library (the SOUL files) and arrive in R.A.I.N.'s records;
+ * this repository never writes them.
+ */
+export const PERSPECTIVES = ["James", "Jasmine", "Luca", "Elena"] as const;
+export type Perspective = (typeof PERSPECTIVES)[number];
+export const SOUL_FILES: Record<Perspective, string> = {
+  James: "JAMES_SOUL.md",
+  Jasmine: "JASMINE_SOUL.md",
+  Luca: "LUCA_SOUL.md",
+  Elena: "ELENA_SOUL.md",
+};
+
+/**
+ * OFFLINE: no R.A.I.N. runtime is reachable. Nothing is produced.
+ * DEMO:    a bundled recording of a real R.A.I.N. offline-engine meeting,
+ *          labelled prerecorded; no process runs.
+ * LIVE:    an explicitly configured backend answered, and validated.
+ */
+export type RuntimeMode = "OFFLINE" | "DEMO" | "LIVE";
+
+/** How the words in a meeting were produced. */
+export const GENERATIONS = ["scripted", "model"] as const;
+export type Generation = (typeof GENERATIONS)[number];
+
+// ---------------------------------------------------------------------------
+// Size limits. Every message is bounded in both directions.
+// ---------------------------------------------------------------------------
+export const LIMITS = {
+  question: 500,
+  hypothesis: 1000,
+  turns: 24,
+  quotesPerTurn: 6,
+  turnText: 2400,
+  quoteText: 800,
+  terms: 32,
+  readNext: 12,
+  suggestions: 8,
+  sourcePath: 300,
+  /** Bytes, measured on the UTF-8 encoding. */
+  meetingResponse: 256 * 1024,
+  identityResponse: 8 * 1024,
+  proposalResponse: 16 * 1024,
+  preregistrationResponse: 16 * 1024,
+  admissionResponse: 96 * 1024,
+  meetingRequest: 4 * 1024,
+  proposalRequest: 16 * 1024,
+  preregisterRequest: 64 * 1024,
+  submissionRequest: 256 * 1024,
+  /** A research session: meetings, then it must be restarted. */
+  meetingsPerSession: 12,
+  sessionMinutes: 120,
+  /** A R.A.I.N. proposal older than this is stale and is never approved. */
+  proposalTtlMs: 15 * 60 * 1000,
+  /** Experiment records kept in the in-browser registry. */
+  registryEntries: 64,
+} as const;
+
+// ---------------------------------------------------------------------------
+// The experimental substrate's closed vocabulary. Ids only: what each id
+// means in the map is resolved by the host (`experiments.ts`), never by the
+// proposer. A proposal can name these and nothing else.
+// ---------------------------------------------------------------------------
+export const SCENARIO_IDS = [
+  "metro_closure",
+  "fire",
+  "gas_leak",
+  "festival",
+  "rally",
+  "crash",
+  "outage",
+  "storm",
+] as const;
+export type ScenarioId = (typeof SCENARIO_IDS)[number];
+export const LOCATION_IDS = [
+  "bethesda_metro",
+  "bethesda_row",
+  "veterans_park",
+  "farm_womens_market",
+  "woodmont_bethesda",
+  "downtown",
+] as const;
+export type LocationId = (typeof LOCATION_IDS)[number];
+/** Which places each scenario may be run at. */
+export const SCENARIO_LOCATIONS: Record<ScenarioId, readonly LocationId[]> = {
+  metro_closure: ["bethesda_metro"],
+  fire: ["bethesda_row", "veterans_park", "farm_womens_market"],
+  gas_leak: ["bethesda_row", "farm_womens_market"],
+  festival: ["bethesda_row"],
+  rally: ["veterans_park"],
+  crash: ["woodmont_bethesda"],
+  outage: ["downtown"],
+  storm: ["downtown"],
+};
+export const SCENARIO_LABELS: Record<ScenarioId, string> = {
+  metro_closure: "Metro closure",
+  fire: "Fire",
+  gas_leak: "Gas leak",
+  festival: "Street festival",
+  rally: "Rally",
+  crash: "Vehicle collision",
+  outage: "Power outage",
+  storm: "Thunderstorm",
+};
+export const LOCATION_LABELS: Record<LocationId, string> = {
+  bethesda_metro: "Bethesda Metro entrance",
+  bethesda_row: "Bethesda Row",
+  veterans_park: "Veteran's Park",
+  farm_womens_market: "Farm Women's Market",
+  woodmont_bethesda: "Woodmont Ave & Bethesda Ave",
+  downtown: "Downtown Bethesda",
+};
+
+export const METRIC_IDS = [
+  "cohort_mean_distance_m",
+  "cohort_indoors",
+  "pedestrians_near",
+  "leaving",
+  "sheltering",
+  "watching",
+  "vehicles_held",
+] as const;
+export type MetricId = (typeof METRIC_IDS)[number];
+export interface MetricSpec {
+  unit: "m" | "count";
+  /** How the arm's value is formed from its window samples. */
+  aggregate: "final" | "mean";
+  description: string;
+  /** The largest minimum effect a proposal may pre-register. */
+  maxEffect: number;
+}
+/**
+ * Every metric is computed by `observations.ts` from authoritative simulator
+ * state — agents, actions, events — never from anything rendered.
+ */
+export const METRICS: Record<MetricId, MetricSpec> = {
+  cohort_mean_distance_m: {
+    unit: "m",
+    aggregate: "final",
+    description:
+      "Mean distance from the location of the pedestrians who were outdoors in its 150 m catchment at the start of the window (the cohort) and are outdoors at its end.",
+    maxEffect: 500,
+  },
+  cohort_indoors: {
+    unit: "count",
+    aggregate: "final",
+    description:
+      "Cohort members inside a building, the Metro or a bus at the end of the window.",
+    maxEffect: 200,
+  },
+  pedestrians_near: {
+    unit: "count",
+    aggregate: "mean",
+    description:
+      "Outdoor pedestrians within the near radius of the location, averaged over the window's samples.",
+    maxEffect: 200,
+  },
+  leaving: {
+    unit: "count",
+    aggregate: "mean",
+    description:
+      "Outdoor pedestrians within 300 m of the location whose current action is leave, averaged over the window's samples.",
+    maxEffect: 200,
+  },
+  sheltering: {
+    unit: "count",
+    aggregate: "mean",
+    description:
+      "Outdoor pedestrians within 300 m of the location whose current action is shelter, averaged over the window's samples.",
+    maxEffect: 200,
+  },
+  watching: {
+    unit: "count",
+    aggregate: "mean",
+    description:
+      "Outdoor pedestrians within 300 m of the location who are watching or recording, averaged over the window's samples.",
+    maxEffect: 200,
+  },
+  vehicles_held: {
+    unit: "count",
+    aggregate: "mean",
+    description:
+      "Cars and buses within 300 m of the location that are stopped or detouring, averaged over the window's samples.",
+    maxEffect: 100,
+  },
+};
+export const METRIC_LABELS: Record<MetricId, string> = {
+  cohort_mean_distance_m: "Cohort mean distance from the location",
+  cohort_indoors: "Cohort members indoors",
+  pedestrians_near: "Pedestrians near the location",
+  leaving: "Pedestrians leaving",
+  sheltering: "Pedestrians heading to shelter",
+  watching: "Pedestrians watching or recording",
+  vehicles_held: "Vehicles stopped or detouring",
+};
+
+export const EXPERIMENT_BOUNDS = {
+  maxSeeds: 5,
+  warmup: { min: 100, max: 1200 },
+  window: { min: 300, max: 3000 },
+  /** Ticks between world observations; warmup and window are multiples. */
+  sampleInterval: 100,
+  /** Seeds × 2 arms × (warmup + window). */
+  maxTotalTicks: 36000,
+} as const;
+export const DIRECTIONS = ["increase", "decrease"] as const;
+export type Direction = (typeof DIRECTIONS)[number];
+export const PROPOSAL_ORIGINS = ["rain", "fixture", "human"] as const;
+export type ProposalOrigin = (typeof PROPOSAL_ORIGINS)[number];
+
+// ---------------------------------------------------------------------------
+// Wire types. Snake case, like R.A.I.N.'s own contracts.
+// ---------------------------------------------------------------------------
+export interface Quote {
+  /** Corpus-relative path as R.A.I.N. reported it. Displayed, never opened. */
+  source: string;
+  line: number;
+  /** `[start, end)` character offsets in that file, from R.A.I.N.'s verifier. */
+  span_start: number;
+  span_end: number;
+  text: string;
+  /** R.A.I.N.'s `verify_quote` result when the record was produced. */
+  verified: boolean;
+}
+export interface Turn {
+  index: number;
+  speaker: Perspective;
+  /** As R.A.I.N. declared it. */
+  role: string;
+  move: string;
+  lead: string;
+  quotes: Quote[];
+  coda: string;
+  /** Quoted spans R.A.I.N. could not verify. */
+  unverified: number;
+}
+export interface Verdict {
+  agreed: string;
+  contested: string;
+  next_move: string;
+  read_next: string[];
+}
+export interface CitationAudit {
+  checked: number;
+  verified: number;
+  corpus_files: number;
+  corpus_sha256: string;
+}
+export interface RainRevision {
+  repository: typeof RAIN_REPOSITORY;
+  /** `git rev-parse HEAD` of the james_library checkout, or null when unknown. */
+  commit: string | null;
+  dirty: boolean | null;
+}
+export interface MeetingRecord {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "meeting";
+  request_id: string;
+  meeting_id: string;
+  question: string;
+  generation: Generation;
+  /** The R.A.I.N. code path that produced the meeting. */
+  engine: string;
+  /** Only when `generation` is `model`. */
+  model: string | null;
+  grounding: "strong" | "partial" | "none";
+  matched_terms: string[];
+  missing_terms: string[];
+  turns: Turn[];
+  verdict: Verdict;
+  audit: CitationAudit;
+  suggestions: string[];
+  rain: RainRevision;
+  produced_at: string;
+}
+export interface RainIdentity {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "identity";
+  bridge: { name: string; version: string };
+  rain: RainRevision;
+  corpus: { files: number; sha256: string };
+  meeting_engine: string;
+  meeting_generation: Generation;
+  model: string | null;
+  /** RAIN_DECISION_MODE as R.A.I.N. reports it; "off" proposes nothing. */
+  bounded_decision: string;
+  registry: { available: boolean; scratch: boolean };
+}
+/** One of the host's own experiment options, offered to R.A.I.N.'s router. */
+export interface ProposalOption {
+  id: string;
+  description: string;
+}
+export interface ProposalChoice {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "proposal-choice";
+  request_id: string;
+  decision: {
+    schema_version: typeof RAIN_DECISION_SCHEMA;
+    decision_id: string;
+    destination: string;
+    selected: string | null;
+    reason: string | null;
+    envelope_hash: string;
+    attempts: number;
+    latency_ms: number;
+  };
+}
+export interface Preregistration {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "preregistration";
+  request_id: string;
+  experiment_id: string;
+  experiment_version: number;
+  definition_sha256: string;
+  created_at: string;
+  registry: "scratch" | "configured";
+}
+export interface CriterionResult {
+  id: string;
+  metric: string;
+  op: ">=" | ">" | "<=" | "<";
+  value: number;
+  observed: number | null;
+  holds: boolean | null;
+}
+export interface Evaluation {
+  rule: typeof CRITERIA_RULE;
+  guards: CriterionResult[];
+  success: CriterionResult[];
+  failure: CriterionResult[];
+  summary: string;
+}
+export type RainRunStatus = "passed" | "failed" | "inconclusive" | "error";
+export type RainVerdict =
+  "supported" | "not_supported" | "insufficient_evidence" | "not_evaluated";
+export interface Admission {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "admission";
+  request_id: string;
+  run_id: string;
+  status: RainRunStatus;
+  hypothesis_verdict: RainVerdict;
+  evaluation: Evaluation | null;
+  interpretation: { deterministic: string; model: null };
+  definition_sha256: string;
+  recorded_at: string;
+}
+/** A structured experiment proposal. Ids from the closed vocabulary only. */
+export interface ExperimentProposal {
+  schema: typeof EXPERIMENT_PROPOSAL_SCHEMA;
+  proposal_id: string;
+  origin: ProposalOrigin;
+  question: string;
+  hypothesis: string;
+  scenario: ScenarioId;
+  location: LocationId;
+  primary_metric: MetricId;
+  expected_direction: Direction;
+  minimum_effect: number;
+  comparison: "matched_seed_control";
+  seeds: number[];
+  warmup_ticks: number;
+  observation_window_ticks: number;
+  /** R.A.I.N.'s bounded decision, when R.A.I.N. chose this option. */
+  rain_decision: { decision_id: string; envelope_hash: string } | null;
+  /** The meeting the proposal answers, if any. */
+  meeting_id: string | null;
+}
+
+export const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{3,63}$/;
+export const HEX32 = /^[0-9a-f]{32}$/;
+export const SHA256 = /^[0-9a-f]{64}$/;
+export const COMMIT = /^[0-9a-f]{40}$/;
+export const RAIN_EXPERIMENT_ID = /^V3D-EXP-[0-9]{4,}$/;
+export const RAIN_RUN_ID = /^V3D-EXP-[0-9]{4,}-RUN-[0-9]{4,}$/;
+/** R.A.I.N.'s actor pattern: a role label, never a name or an address. */
+export const OPERATOR = /^[A-Za-z0-9_.-]{1,64}$/;

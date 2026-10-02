@@ -161,7 +161,7 @@ export interface Decision {
   after: Snapshot;
   outcomeTick: number;
 }
-type Command = (
+export type Command = (
   | { type: "scenario"; scenario: Scenario }
   | {
       type: "decision";
@@ -1538,7 +1538,47 @@ export class CitySimulation {
       v.checkpoints.length > 180
     )
       throw new Error("Unsupported, mismatched or oversized replay");
-    const sim = new CitySimulation(v.config);
+    const steps = CitySimulation.execute(v.config, v.commands, v.tick);
+    let sim: CitySimulation;
+    for (;;) {
+      const next = steps.next();
+      if (next.done) {
+        sim = next.value;
+        break;
+      }
+      yield next.value.tick;
+    }
+    const actual = sim.export();
+    if (
+      actual.finalHash !== v.finalHash ||
+      canonicalHash(actual.checkpoints) !== canonicalHash(v.checkpoints) ||
+      canonicalHash(actual.decisions) !== canonicalHash(v.decisions)
+    )
+      throw new Error("Replay state or decision history differs");
+    return sim;
+  }
+  /**
+   * Re-execute recorded commands from a configuration, yielding the simulation
+   * at every 100th tick (before that tick's commands apply). Replay verifies a
+   * trace with this; the R.A.I.N. lab re-runs experiment arms with it, so both
+   * apply commands through exactly the same gate.
+   */
+  static *execute(
+    config: Config,
+    commands: readonly Command[],
+    finalTick: number,
+  ): Generator<CitySimulation, CitySimulation> {
+    if (
+      !configOK(config) ||
+      !Number.isInteger(finalTick) ||
+      finalTick < 0 ||
+      finalTick > 18000 ||
+      !Array.isArray(commands) ||
+      commands.length > 30000
+    )
+      throw new Error("Unsupported, mismatched or oversized replay");
+    const sim = new CitySimulation(config);
+    const v = { tick: finalTick, commands };
     let i = 0,
       last = -1;
     for (const c of v.commands) {
@@ -1593,15 +1633,8 @@ export class CitySimulation {
       }
       if (tick === v.tick) break;
       sim.step();
-      if (sim.tick % 100 === 0) yield sim.tick;
+      if (sim.tick % 100 === 0) yield sim;
     }
-    const actual = sim.export();
-    if (
-      actual.finalHash !== v.finalHash ||
-      canonicalHash(actual.checkpoints) !== canonicalHash(v.checkpoints) ||
-      canonicalHash(actual.decisions) !== canonicalHash(v.decisions)
-    )
-      throw new Error("Replay state or decision history differs");
     return sim;
   }
   static replay(v: Trace) {

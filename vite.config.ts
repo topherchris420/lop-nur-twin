@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { fileURLToPath, URL } from "node:url";
+import { execFileSync } from "node:child_process";
 // `.js` like every import in the server chain, which @vercel/node runs with its
 // specifiers as written. Vite's `configLoader: "native"` cannot load it yet.
 import {
@@ -70,6 +71,35 @@ const BUILD_COMMIT = (
   process.env["GITHUB_SHA"] ??
   ""
 ).slice(0, 7);
+
+/**
+ * The full revision for R.A.I.N. Lab provenance records. The CI environment's
+ * commit when it reports one (dirty state unknown, so `null`); otherwise the
+ * checkout's own `git rev-parse HEAD` with whether tracked files differ from
+ * it. Without git, unknown — recorded as such, never guessed.
+ */
+function labRevision(): {
+  commit: string | null;
+  dirty: boolean | null;
+  source: "ci" | "git" | "unknown";
+} {
+  const ci = process.env["VERCEL_GIT_COMMIT_SHA"] ?? process.env["GITHUB_SHA"] ?? "";
+  if (/^[0-9a-f]{40}$/.test(ci)) return { commit: ci, dirty: null, source: "ci" };
+  try {
+    const git = (args: string[]) =>
+      execFileSync("git", args, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 5000,
+      }).trim();
+    const commit = git(["rev-parse", "HEAD"]);
+    if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("no commit");
+    const dirty = git(["status", "--porcelain", "--untracked-files=no"]).length > 0;
+    return { commit, dirty, source: "git" };
+  } catch {
+    return { commit: null, dirty: null, source: "unknown" };
+  }
+}
 
 const JEV_DECISION_PATH = "/api/jev/decision";
 
@@ -174,7 +204,10 @@ function decisionApi(
 }
 
 export default defineConfig(({ mode }) => ({
-  define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) },
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
+    __LAB_REVISION__: JSON.stringify(labRevision()),
+  },
   preview: { headers: SECURITY_HEADERS },
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: true }),

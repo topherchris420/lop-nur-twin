@@ -1,0 +1,707 @@
+/**
+ * Fail-closed validation for everything that crosses the R.A.I.N. boundary.
+ *
+ * Shared by the browser and the server, which validates every upstream answer
+ * before the browser sees it; the browser validates again before anything is
+ * displayed. Each validator returns the value only when every field is present,
+ * typed, bounded and drawn from its vocabulary, and the object has no field
+ * the contract did not declare. Otherwise it returns the reasons. Nothing is
+ * coerced, trimmed into shape, defaulted or repaired.
+ */
+import {
+  COMMIT,
+  DIRECTIONS,
+  EXPERIMENT_BOUNDS,
+  EXPERIMENT_PROPOSAL_SCHEMA,
+  GENERATIONS,
+  HEX32,
+  ID,
+  LIMITS,
+  LOCATION_IDS,
+  METRICS,
+  METRIC_IDS,
+  PERSPECTIVES,
+  PROPOSAL_ORIGINS,
+  RAIN_BETHESDA_SCHEMA,
+  RAIN_DECISION_SCHEMA,
+  RAIN_EXPERIMENT_ID,
+  RAIN_REPOSITORY,
+  RAIN_RUN_ID,
+  SCENARIO_IDS,
+  SCENARIO_LOCATIONS,
+  SHA256,
+  CRITERIA_RULE,
+  type Admission,
+  type CriterionResult,
+  type Evaluation,
+  type ExperimentProposal,
+  type MeetingRecord,
+  type Preregistration,
+  type ProposalChoice,
+  type Quote,
+  type RainIdentity,
+  type RainRevision,
+  type Turn,
+} from "./contracts.js";
+
+export type Checked<T> = { ok: true; value: T } | { ok: false; errors: string[] };
+
+type Json = Record<string, unknown>;
+const isObject = (v: unknown): v is Json =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+
+/**
+ * Control characters other than newline and tab, and the bidirectional
+ * overrides that let text read differently from what it contains. Research
+ * prose has no use for either, so their presence rejects the message.
+ */
+// eslint-disable-next-line no-control-regex
+const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f‪-‮⁦-⁩]/;
+
+/** UTF-8 byte length without allocating the encoding. */
+export function utf8Length(text: string): number {
+  let n = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 0x80) n += 1;
+    else if (c < 0x800) n += 2;
+    else if (c >= 0xd800 && c <= 0xdbff) {
+      n += 4;
+      i++;
+    } else n += 3;
+  }
+  return n;
+}
+
+/** Parse a bounded JSON payload. Oversized or malformed text never reaches a validator. */
+export function parseBounded(text: string, maxBytes: number): Checked<unknown> {
+  if (utf8Length(text) > maxBytes)
+    return { ok: false, errors: [`payload exceeds ${maxBytes} bytes`] };
+  try {
+    return { ok: true, value: JSON.parse(text) as unknown };
+  } catch {
+    return { ok: false, errors: ["payload is not JSON"] };
+  }
+}
+
+class Reader {
+  readonly errors: string[] = [];
+  private readonly root: string;
+  constructor(root: string) {
+    this.root = root;
+  }
+  fail(path: string, why: string) {
+    this.errors.push(`${this.root}${path ? "." + path : ""}: ${why}`);
+  }
+  closed(v: Json, path: string, keys: readonly string[]) {
+    const allowed = new Set(keys);
+    for (const k of Object.keys(v))
+      if (!allowed.has(k)) this.fail(path, `unknown field "${k.slice(0, 40)}"`);
+    for (const k of keys) if (!(k in v)) this.fail(path, `missing field "${k}"`);
+  }
+  object(v: unknown, path: string, keys: readonly string[]): Json | null {
+    if (!isObject(v)) {
+      this.fail(path, "expected an object");
+      return null;
+    }
+    this.closed(v, path, keys);
+    return v;
+  }
+  text(v: unknown, path: string, max: number, min = 0): string {
+    if (typeof v !== "string") {
+      this.fail(path, "expected text");
+      return "";
+    }
+    if (v.length < min) this.fail(path, "too short");
+    if (v.length > max) this.fail(path, `longer than ${max} characters`);
+    if (UNSAFE_TEXT.test(v))
+      this.fail(path, "contains control or bidirectional characters");
+    return v;
+  }
+  pattern(v: unknown, path: string, re: RegExp): string {
+    if (typeof v !== "string" || !re.test(v)) {
+      this.fail(path, "malformed identifier");
+      return "";
+    }
+    return v;
+  }
+  integer(v: unknown, path: string, min: number, max: number): number {
+    if (typeof v !== "number" || !Number.isInteger(v) || v < min || v > max) {
+      this.fail(path, `expected an integer in [${min}, ${max}]`);
+      return 0;
+    }
+    return v;
+  }
+  number(v: unknown, path: string, min: number, max: number): number {
+    if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) {
+      this.fail(path, `expected a finite number in [${min}, ${max}]`);
+      return 0;
+    }
+    return v;
+  }
+  boolean(v: unknown, path: string): boolean {
+    if (typeof v !== "boolean") this.fail(path, "expected true or false");
+    return v === true;
+  }
+  oneOf<T extends string>(v: unknown, path: string, values: readonly T[]): T {
+    if (typeof v !== "string" || !values.includes(v as T)) {
+      this.fail(path, "not in the supported vocabulary");
+      return values[0]!;
+    }
+    return v as T;
+  }
+  array(v: unknown, path: string, max: number): unknown[] {
+    if (!Array.isArray(v)) {
+      this.fail(path, "expected a list");
+      return [];
+    }
+    if (v.length > max) this.fail(path, `more than ${max} items`);
+    return v.slice(0, max);
+  }
+  timestamp(v: unknown, path: string): string {
+    const s = this.text(v, path, 40, 20);
+    if (s && (!/^\d{4}-\d{2}-\d{2}T/.test(s) || Number.isNaN(Date.parse(s))))
+      this.fail(path, "not an ISO-8601 timestamp");
+    return s;
+  }
+  done<T>(value: T): Checked<T> {
+    return this.errors.length
+      ? { ok: false, errors: this.errors.slice(0, 20) }
+      : { ok: true, value };
+  }
+}
+
+/** The model-id shape the city's Jev proposals already use. */
+const MODEL_ID = /^[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,95}$/;
+/** Corpus-relative, no traversal, no scheme: a path is shown, never followed. */
+const SOURCE_PATH =
+  /^(?![/\\])(?!.*(?:^|[/\\])\.\.(?:[/\\]|$))(?![A-Za-z][A-Za-z0-9+.-]*:)[^\0]+$/;
+
+function revision(r: Reader, v: unknown, path: string): RainRevision {
+  const o = r.object(v, path, ["repository", "commit", "dirty"]);
+  if (!o) return { repository: RAIN_REPOSITORY, commit: null, dirty: null };
+  if (o.repository !== RAIN_REPOSITORY)
+    r.fail(path + ".repository", "unexpected repository");
+  const commit = o.commit === null ? null : r.pattern(o.commit, path + ".commit", COMMIT);
+  const dirty = o.dirty === null ? null : r.boolean(o.dirty, path + ".dirty");
+  return { repository: RAIN_REPOSITORY, commit, dirty };
+}
+
+function quote(r: Reader, v: unknown, path: string): Quote {
+  const o = r.object(v, path, [
+    "source",
+    "line",
+    "span_start",
+    "span_end",
+    "text",
+    "verified",
+  ]);
+  if (!o)
+    return { source: "", line: 1, span_start: 0, span_end: 0, text: "", verified: false };
+  const source = r.text(o.source, path + ".source", LIMITS.sourcePath, 1);
+  if (source && !SOURCE_PATH.test(source))
+    r.fail(path + ".source", "not a corpus-relative path");
+  const q: Quote = {
+    source,
+    line: r.integer(o.line, path + ".line", 1, 10_000_000),
+    span_start: r.integer(o.span_start, path + ".span_start", 0, 100_000_000),
+    span_end: r.integer(o.span_end, path + ".span_end", 0, 100_000_000),
+    text: r.text(o.text, path + ".text", LIMITS.quoteText, 1),
+    verified: r.boolean(o.verified, path + ".verified"),
+  };
+  if (q.verified && q.span_end <= q.span_start)
+    r.fail(path, "a verified quote needs a non-empty span");
+  return q;
+}
+
+function turn(r: Reader, v: unknown, path: string): Turn {
+  const o = r.object(v, path, [
+    "index",
+    "speaker",
+    "role",
+    "move",
+    "lead",
+    "quotes",
+    "coda",
+    "unverified",
+  ]);
+  const empty: Turn = {
+    index: 1,
+    speaker: "James",
+    role: "",
+    move: "",
+    lead: "",
+    quotes: [],
+    coda: "",
+    unverified: 0,
+  };
+  if (!o) return empty;
+  return {
+    index: r.integer(o.index, path + ".index", 1, LIMITS.turns),
+    speaker: r.oneOf(o.speaker, path + ".speaker", PERSPECTIVES),
+    role: r.text(o.role, path + ".role", 80, 1),
+    move: r.text(o.move, path + ".move", 40, 1),
+    lead: r.text(o.lead, path + ".lead", LIMITS.turnText),
+    quotes: r
+      .array(o.quotes, path + ".quotes", LIMITS.quotesPerTurn)
+      .map((q, i) => quote(r, q, `${path}.quotes[${i}]`)),
+    coda: r.text(o.coda, path + ".coda", LIMITS.turnText),
+    unverified: r.integer(o.unverified, path + ".unverified", 0, 100),
+  };
+}
+
+const terms = (r: Reader, v: unknown, path: string, max: number, len = 80) =>
+  r.array(v, path, max).map((t, i) => r.text(t, `${path}[${i}]`, len, 1));
+
+/**
+ * A meeting, as R.A.I.N. produced it. `expected` binds it to the request that
+ * asked for it: an answer to a different, older or invented request is stale.
+ */
+export function validateMeeting(
+  v: unknown,
+  expected?: { requestId: string; question: string },
+): Checked<MeetingRecord> {
+  const r = new Reader("meeting");
+  const o = r.object(v, "", [
+    "schema",
+    "kind",
+    "request_id",
+    "meeting_id",
+    "question",
+    "generation",
+    "engine",
+    "model",
+    "grounding",
+    "matched_terms",
+    "missing_terms",
+    "turns",
+    "verdict",
+    "audit",
+    "suggestions",
+    "rain",
+    "produced_at",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "meeting") r.fail("kind", "not a meeting");
+  const generation = r.oneOf(o.generation, "generation", GENERATIONS);
+  const model = o.model === null ? null : r.pattern(o.model, "model", MODEL_ID);
+  if (generation === "model" && model === null)
+    r.fail("model", "a model-generated meeting must name its model");
+  if (generation === "scripted" && model !== null)
+    r.fail("model", "a scripted meeting cannot name a model");
+  const verdict = r.object(o.verdict, "verdict", [
+    "agreed",
+    "contested",
+    "next_move",
+    "read_next",
+  ]);
+  const audit = r.object(o.audit, "audit", [
+    "checked",
+    "verified",
+    "corpus_files",
+    "corpus_sha256",
+  ]);
+  const record: MeetingRecord = {
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "meeting",
+    request_id: r.pattern(o.request_id, "request_id", HEX32),
+    meeting_id: r.pattern(o.meeting_id, "meeting_id", ID),
+    question: r.text(o.question, "question", LIMITS.question, 1),
+    generation,
+    engine: r.text(o.engine, "engine", 120, 1),
+    model,
+    grounding: r.oneOf(o.grounding, "grounding", ["strong", "partial", "none"] as const),
+    matched_terms: terms(r, o.matched_terms, "matched_terms", LIMITS.terms),
+    missing_terms: terms(r, o.missing_terms, "missing_terms", LIMITS.terms),
+    turns: r
+      .array(o.turns, "turns", LIMITS.turns)
+      .map((t, i) => turn(r, t, `turns[${i}]`)),
+    verdict: {
+      agreed: r.text(verdict?.agreed, "verdict.agreed", LIMITS.turnText),
+      contested: r.text(verdict?.contested, "verdict.contested", LIMITS.turnText),
+      next_move: r.text(verdict?.next_move, "verdict.next_move", LIMITS.turnText),
+      read_next: terms(r, verdict?.read_next, "verdict.read_next", LIMITS.readNext, 320),
+    },
+    audit: {
+      checked: r.integer(audit?.checked, "audit.checked", 0, 1000),
+      verified: r.integer(audit?.verified, "audit.verified", 0, 1000),
+      corpus_files: r.integer(audit?.corpus_files, "audit.corpus_files", 0, 100_000),
+      corpus_sha256: r.pattern(audit?.corpus_sha256, "audit.corpus_sha256", SHA256),
+    },
+    suggestions: terms(r, o.suggestions, "suggestions", LIMITS.suggestions, 300),
+    rain: revision(r, o.rain, "rain"),
+    produced_at: r.timestamp(o.produced_at, "produced_at"),
+  };
+  if (!record.turns.length) r.fail("turns", "a meeting has at least one turn");
+  record.turns.forEach((t, i) => {
+    if (t.index !== i + 1) r.fail(`turns[${i}].index`, "turns are numbered in order");
+  });
+  // The audit must describe the quotes actually present; a self-reported
+  // tally that disagrees with the record is a malformed record.
+  const quotes = record.turns.flatMap((t) => t.quotes);
+  if (record.audit.checked !== quotes.length)
+    r.fail("audit.checked", "does not match the quotes in the record");
+  if (record.audit.verified !== quotes.filter((q) => q.verified).length)
+    r.fail("audit.verified", "does not match the verified quotes in the record");
+  if (expected) {
+    if (record.request_id !== expected.requestId)
+      r.fail("request_id", "answers a different request (stale or mismatched)");
+    if (record.question !== expected.question)
+      r.fail("question", "answers a different question");
+  }
+  return r.done(record);
+}
+
+export function validateIdentity(v: unknown): Checked<RainIdentity> {
+  const r = new Reader("identity");
+  const o = r.object(v, "", [
+    "schema",
+    "kind",
+    "bridge",
+    "rain",
+    "corpus",
+    "meeting_engine",
+    "meeting_generation",
+    "model",
+    "bounded_decision",
+    "registry",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "identity") r.fail("kind", "not an identity");
+  const bridge = r.object(o.bridge, "bridge", ["name", "version"]);
+  const corpus = r.object(o.corpus, "corpus", ["files", "sha256"]);
+  const registry = r.object(o.registry, "registry", ["available", "scratch"]);
+  const generation = r.oneOf(o.meeting_generation, "meeting_generation", GENERATIONS);
+  const model = o.model === null ? null : r.pattern(o.model, "model", MODEL_ID);
+  if ((generation === "model") !== (model !== null))
+    r.fail("model", "a model is named exactly when meetings are model-generated");
+  return r.done({
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "identity",
+    bridge: {
+      name: r.text(bridge?.name, "bridge.name", 64, 1),
+      version: r.text(bridge?.version, "bridge.version", 32, 1),
+    },
+    rain: revision(r, o.rain, "rain"),
+    corpus: {
+      files: r.integer(corpus?.files, "corpus.files", 0, 100_000),
+      sha256: r.pattern(corpus?.sha256, "corpus.sha256", SHA256),
+    },
+    meeting_engine: r.text(o.meeting_engine, "meeting_engine", 120, 1),
+    meeting_generation: generation,
+    model,
+    bounded_decision: r.text(o.bounded_decision, "bounded_decision", 32, 1),
+    registry: {
+      available: r.boolean(registry?.available, "registry.available"),
+      scratch: r.boolean(registry?.scratch, "registry.scratch"),
+    },
+  });
+}
+
+/** R.A.I.N.'s bounded decision over the host's own options. */
+export function validateProposalChoice(
+  v: unknown,
+  expected: { requestId: string; optionIds: readonly string[] },
+): Checked<ProposalChoice> {
+  const r = new Reader("proposal");
+  const o = r.object(v, "", ["schema", "kind", "request_id", "decision"]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "proposal-choice") r.fail("kind", "not a proposal choice");
+  const d = r.object(o.decision, "decision", [
+    "schema_version",
+    "decision_id",
+    "destination",
+    "selected",
+    "reason",
+    "envelope_hash",
+    "attempts",
+    "latency_ms",
+  ]);
+  if (d && d.schema_version !== RAIN_DECISION_SCHEMA)
+    r.fail("decision.schema_version", "unsupported decision schema");
+  const destination = r.text(d?.destination, "decision.destination", 32, 1);
+  const selected =
+    d?.selected === null || d?.selected === undefined
+      ? null
+      : r.text(d.selected, "decision.selected", 64, 1);
+  if (selected !== null && !expected.optionIds.includes(selected))
+    r.fail("decision.selected", "is not one of the options offered");
+  if (selected !== null && destination !== "proposal")
+    r.fail("decision.destination", "a selection is only a proposal");
+  const requestId = r.pattern(o.request_id, "request_id", HEX32);
+  if (requestId && requestId !== expected.requestId)
+    r.fail("request_id", "answers a different request (stale or mismatched)");
+  return r.done({
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "proposal-choice",
+    request_id: requestId,
+    decision: {
+      schema_version: RAIN_DECISION_SCHEMA,
+      decision_id: r.pattern(
+        d?.decision_id,
+        "decision.decision_id",
+        /^[A-Za-z0-9][A-Za-z0-9_-]{3,63}$/,
+      ),
+      destination,
+      selected,
+      reason:
+        d?.reason === null || d?.reason === undefined
+          ? null
+          : r.text(d.reason, "decision.reason", 64, 1),
+      envelope_hash: r.pattern(d?.envelope_hash, "decision.envelope_hash", SHA256),
+      attempts: r.integer(d?.attempts, "decision.attempts", 0, 16),
+      latency_ms: r.number(d?.latency_ms, "decision.latency_ms", 0, 600_000),
+    },
+  });
+}
+
+export function validatePreregistration(
+  v: unknown,
+  expected: { requestId: string },
+): Checked<Preregistration> {
+  const r = new Reader("preregistration");
+  const o = r.object(v, "", [
+    "schema",
+    "kind",
+    "request_id",
+    "experiment_id",
+    "experiment_version",
+    "definition_sha256",
+    "created_at",
+    "registry",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "preregistration") r.fail("kind", "not a pre-registration");
+  const requestId = r.pattern(o.request_id, "request_id", HEX32);
+  if (requestId && requestId !== expected.requestId)
+    r.fail("request_id", "answers a different request (stale or mismatched)");
+  return r.done({
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "preregistration",
+    request_id: requestId,
+    experiment_id: r.pattern(o.experiment_id, "experiment_id", RAIN_EXPERIMENT_ID),
+    experiment_version: r.integer(o.experiment_version, "experiment_version", 1, 10_000),
+    definition_sha256: r.pattern(o.definition_sha256, "definition_sha256", SHA256),
+    created_at: r.timestamp(o.created_at, "created_at"),
+    registry: r.oneOf(o.registry, "registry", ["scratch", "configured"] as const),
+  });
+}
+
+function criterion(r: Reader, v: unknown, path: string): CriterionResult {
+  const o = r.object(v, path, ["id", "metric", "op", "value", "observed", "holds"]);
+  return {
+    id: r.pattern(o?.id, path + ".id", /^[GSF][0-9]{1,3}$/),
+    metric: r.pattern(o?.metric, path + ".metric", /^[a-z][a-z0-9_]{0,63}$/),
+    op: r.oneOf(o?.op, path + ".op", [">=", ">", "<=", "<"] as const),
+    value: r.number(o?.value, path + ".value", -1e12, 1e12),
+    observed:
+      o?.observed === null
+        ? null
+        : r.number(o?.observed, path + ".observed", -1e12, 1e12),
+    holds: o?.holds === null ? null : r.boolean(o?.holds, path + ".holds"),
+  };
+}
+export function validateEvaluation(r: Reader, v: unknown, path: string): Evaluation {
+  const o = r.object(v, path, ["rule", "guards", "success", "failure", "summary"]);
+  if (o && o.rule !== CRITERIA_RULE) r.fail(path + ".rule", "unsupported criteria rule");
+  const list = (k: "guards" | "success" | "failure") =>
+    r
+      .array(o?.[k], `${path}.${k}`, 32)
+      .map((c, i) => criterion(r, c, `${path}.${k}[${i}]`));
+  return {
+    rule: CRITERIA_RULE,
+    guards: list("guards"),
+    success: list("success"),
+    failure: list("failure"),
+    summary: r.text(o?.summary, path + ".summary", 2000, 1),
+  };
+}
+
+/** R.A.I.N.'s own run record for a submission it admitted. */
+export function validateAdmission(
+  v: unknown,
+  expected: { requestId: string; experimentId: string },
+): Checked<Admission> {
+  const r = new Reader("admission");
+  const o = r.object(v, "", [
+    "schema",
+    "kind",
+    "request_id",
+    "run_id",
+    "status",
+    "hypothesis_verdict",
+    "evaluation",
+    "interpretation",
+    "definition_sha256",
+    "recorded_at",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "admission") r.fail("kind", "not an admission");
+  const requestId = r.pattern(o.request_id, "request_id", HEX32);
+  if (requestId && requestId !== expected.requestId)
+    r.fail("request_id", "answers a different request (stale or mismatched)");
+  const runId = r.pattern(o.run_id, "run_id", RAIN_RUN_ID);
+  if (runId && !runId.startsWith(expected.experimentId + "-RUN-"))
+    r.fail("run_id", "belongs to a different experiment");
+  const status = r.oneOf(o.status, "status", [
+    "passed",
+    "failed",
+    "inconclusive",
+    "error",
+  ] as const);
+  const verdict = r.oneOf(o.hypothesis_verdict, "hypothesis_verdict", [
+    "supported",
+    "not_supported",
+    "insufficient_evidence",
+    "not_evaluated",
+  ] as const);
+  const expectedVerdict = {
+    passed: "supported",
+    failed: "not_supported",
+    inconclusive: "insufficient_evidence",
+    error: "not_evaluated",
+  }[status];
+  if (verdict !== expectedVerdict)
+    r.fail("hypothesis_verdict", "inconsistent with the run status");
+  const interpretation = r.object(o.interpretation, "interpretation", [
+    "deterministic",
+    "model",
+  ]);
+  if (interpretation && interpretation.model !== null)
+    r.fail("interpretation.model", "model interpretations are not accepted here");
+  const evaluation =
+    o.evaluation === null ? null : validateEvaluation(r, o.evaluation, "evaluation");
+  if ((status === "error") !== (evaluation === null))
+    r.fail("evaluation", "present exactly when the run was evaluated");
+  return r.done({
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "admission",
+    request_id: requestId,
+    run_id: runId,
+    status,
+    hypothesis_verdict: verdict,
+    evaluation,
+    interpretation: {
+      deterministic: r.text(
+        interpretation?.deterministic,
+        "interpretation.deterministic",
+        4000,
+        1,
+      ),
+      model: null,
+    },
+    definition_sha256: r.pattern(o.definition_sha256, "definition_sha256", SHA256),
+    recorded_at: r.timestamp(o.recorded_at, "recorded_at"),
+  });
+}
+
+/**
+ * The shape of a structured experiment proposal: closed fields, closed
+ * vocabulary, bounded numbers. Whatever its origin — R.A.I.N., the demo
+ * fixture or a person — a proposal passes exactly this check, and then the
+ * host's map-level checks in `experiments.ts`. A proposal never carries
+ * coordinates, code, URLs or world state: there is no field to put them in.
+ */
+export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
+  const r = new Reader("proposal");
+  const o = r.object(v, "", [
+    "schema",
+    "proposal_id",
+    "origin",
+    "question",
+    "hypothesis",
+    "scenario",
+    "location",
+    "primary_metric",
+    "expected_direction",
+    "minimum_effect",
+    "comparison",
+    "seeds",
+    "warmup_ticks",
+    "observation_window_ticks",
+    "rain_decision",
+    "meeting_id",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== EXPERIMENT_PROPOSAL_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.comparison !== "matched_seed_control")
+    r.fail("comparison", "only matched-seed controls are supported");
+  const scenario = r.oneOf(o.scenario, "scenario", SCENARIO_IDS);
+  const location = r.oneOf(o.location, "location", LOCATION_IDS);
+  if (
+    SCENARIO_IDS.includes(scenario) &&
+    LOCATION_IDS.includes(location) &&
+    o.scenario === scenario &&
+    o.location === location &&
+    !SCENARIO_LOCATIONS[scenario].includes(location)
+  )
+    r.fail("location", `is not a supported place for ${scenario}`);
+  const metric = r.oneOf(o.primary_metric, "primary_metric", METRIC_IDS);
+  const seedsRaw = r.array(o.seeds, "seeds", EXPERIMENT_BOUNDS.maxSeeds);
+  if (Array.isArray(o.seeds) && !o.seeds.length) r.fail("seeds", "at least one seed");
+  const seeds = seedsRaw.map((s, i) => r.integer(s, `seeds[${i}]`, 0, 0xffffffff));
+  if (new Set(seeds).size !== seeds.length) r.fail("seeds", "seeds must be distinct");
+  const warmup = r.integer(
+    o.warmup_ticks,
+    "warmup_ticks",
+    EXPERIMENT_BOUNDS.warmup.min,
+    EXPERIMENT_BOUNDS.warmup.max,
+  );
+  const window = r.integer(
+    o.observation_window_ticks,
+    "observation_window_ticks",
+    EXPERIMENT_BOUNDS.window.min,
+    EXPERIMENT_BOUNDS.window.max,
+  );
+  const step = EXPERIMENT_BOUNDS.sampleInterval;
+  if (warmup % step) r.fail("warmup_ticks", `must be a multiple of ${step}`);
+  if (window % step) r.fail("observation_window_ticks", `must be a multiple of ${step}`);
+  if (seeds.length * 2 * (warmup + window) > EXPERIMENT_BOUNDS.maxTotalTicks)
+    r.fail("seeds", `the run exceeds ${EXPERIMENT_BOUNDS.maxTotalTicks} simulated ticks`);
+  const spec = METRICS[metric];
+  const minimum = r.number(o.minimum_effect, "minimum_effect", 0, spec?.maxEffect ?? 0);
+  if (minimum <= 0) r.fail("minimum_effect", "must be greater than zero");
+  const origin = r.oneOf(o.origin, "origin", PROPOSAL_ORIGINS);
+  let decision: ExperimentProposal["rain_decision"] = null;
+  if (o.rain_decision !== null) {
+    const d = r.object(o.rain_decision, "rain_decision", [
+      "decision_id",
+      "envelope_hash",
+    ]);
+    decision = {
+      decision_id: r.pattern(d?.decision_id, "rain_decision.decision_id", ID),
+      envelope_hash: r.pattern(d?.envelope_hash, "rain_decision.envelope_hash", SHA256),
+    };
+  }
+  // R.A.I.N.'s choice must carry its decision record; a fixture can never claim
+  // one; a person may finalize a proposal from R.A.I.N.'s choice and keep the link.
+  if (origin === "rain" && decision === null)
+    r.fail("rain_decision", "a R.A.I.N. proposal carries its bounded decision");
+  if (origin === "fixture" && o.rain_decision !== null)
+    r.fail("rain_decision", "a fixture cannot claim a R.A.I.N. decision");
+  return r.done({
+    schema: EXPERIMENT_PROPOSAL_SCHEMA,
+    proposal_id: r.pattern(o.proposal_id, "proposal_id", ID),
+    origin,
+    question: r.text(o.question, "question", LIMITS.question, 1),
+    hypothesis: r.text(o.hypothesis, "hypothesis", LIMITS.hypothesis, 1),
+    scenario,
+    location,
+    primary_metric: metric,
+    expected_direction: r.oneOf(o.expected_direction, "expected_direction", DIRECTIONS),
+    minimum_effect: minimum,
+    comparison: "matched_seed_control",
+    seeds,
+    warmup_ticks: warmup,
+    observation_window_ticks: window,
+    rain_decision: decision,
+    meeting_id: o.meeting_id === null ? null : r.pattern(o.meeting_id, "meeting_id", ID),
+  });
+}
+
+export { Reader };
