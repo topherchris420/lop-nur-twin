@@ -302,7 +302,7 @@ describe("presentation claims stay derived", () => {
     expect(signalRigs.length).toBeGreaterThan(40);
     for (const r of signalRigs) {
       expect(buildingAt(r.pole)).toBeUndefined();
-      expect(r.heads).toHaveLength(2);
+      expect(r.heads).toHaveLength(3);
     }
   });
   it("abbreviates blade names the way the county does", () => {

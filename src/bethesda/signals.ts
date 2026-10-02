@@ -17,9 +17,11 @@ export interface SignalRig {
   angle: number;
   length: number;
   heads: Point[];
+  /** The mapped street the arm spans ("" when unnamed). */
+  spans: string;
 }
 function wayAt(p: Point) {
-  let best: { a: Point; b: Point; width: number } | undefined,
+  let best: { a: Point; b: Point; width: number; name: string } | undefined,
     d = Infinity;
   for (const w of roadWays)
     for (let i = 1; i < w.points.length; i++) {
@@ -28,28 +30,38 @@ function wayAt(p: Point) {
       const q = Math.min(distance(a, p), distance(b, p));
       if (q < d) {
         d = q;
-        best = { a, b, width: w.width };
+        best = { a, b, width: w.width, name: w.name };
       }
     }
   return best;
 }
 export const signalRigs: SignalRig[] = signalPoints.map((s, index) => {
   const way = wayAt(s.point);
-  const length = way ? way.width / 2 + 1.4 : 5;
+  // The pole stands just beyond the curb; the arm reaches most of the way
+  // across the carriageway, as in the reference.
+  const reach = way ? way.width / 2 + 1.4 : 5;
+  const length = way ? way.width * 0.85 + 1.4 : 6;
   const dx = way ? way.b.x - way.a.x : 1,
     dz = way ? way.b.z - way.a.z : 0,
     n = Math.hypot(dx, dz) || 1;
   // The perpendicular side that is not inside a footprint.
   let px = -dz / n,
     pz = dx / n;
-  if (buildingAt({ x: s.point.x + px * length, z: s.point.z + pz * length })) {
+  if (buildingAt({ x: s.point.x + px * reach, z: s.point.z + pz * reach })) {
     px = -px;
     pz = -pz;
   }
-  const pole = { x: s.point.x + px * length, z: s.point.z + pz * length };
-  const heads = [0.35, 0.7].map((t) => ({
+  const pole = { x: s.point.x + px * reach, z: s.point.z + pz * reach };
+  const heads = [0.3, 0.55, 0.8].map((t) => ({
     x: pole.x - px * length * t,
     z: pole.z - pz * length * t,
   }));
-  return { index, pole, angle: Math.atan2(-px, -pz), length, heads };
+  return {
+    index,
+    pole,
+    angle: Math.atan2(-px, -pz),
+    length,
+    heads,
+    spans: way?.name ?? "",
+  };
 });

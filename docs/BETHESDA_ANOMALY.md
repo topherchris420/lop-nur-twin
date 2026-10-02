@@ -215,20 +215,25 @@ Wisconsin Avenue's two carriageways was drawn 18 m wide.
 ## Reference comparison
 
 One public reference was compared at the same corner: G. Edward Johnson's
-[Woodmont Avenue / Bethesda Avenue intersection, 30 March 2025](https://commons.wikimedia.org/wiki/File:Bethesda_downtown_intersection_2025-03-30_11-38-17.jpg)
+[Woodmont Avenue / Bethesda Avenue intersection, 30 March
+2025](https://commons.wikimedia.org/wiki/File:Bethesda_downtown_intersection_2025-03-30_11-38-17.jpg)
 ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). It changed three
 things in this revision: street blades now use the county's "Av" abbreviation
-("Bethesda Av"); signals hang from mast arms over the carriageway from a corner
-pole (OSM places the signal node on the road; pole side and arm length are
-inferred from mapped width); and the mapped Woodmont Avenue cycletrack carries
-green conflict-zone paint near crossings (paint extents inferred). The photo
-also shows what is still missing: block-number plates, "NO TURN ON RED" and
-other regulatory signs, bollards and planters at the curb, leaf-off/spring trees,
-the Anthropologie corner's distinctive grey bay and parapet, and construction
-hoardings. This was qualitative comparison at a matched viewpoint, not image
-alignment, photogrammetry or a pixel-error measurement. The reference is not
-shipped, not used as a texture, and must never be presented as an achieved
-render. Earlier passes also used the [EPA Bethesda Row case study](https://www.epa.gov/smartgrowth/create-walkable-neighborhoods-bethesda-row-bethesda-maryland)
+("Bethesda Av"); signals hang from mast arms reaching most of the way across the
+carriageway from a curbside pole, with three heads and a blade naming the cross
+street (OSM places the signal node on the road; pole side, arm length and head
+count are inferred from mapped width and the photo; the cross-street name is the
+other mapped street at that intersection); and the mapped Woodmont Avenue
+cycletrack carries green conflict-zone paint near crossings (paint extents
+inferred). The photo also shows what is still missing: block-number plates and
+arrows on the blades, more heads per arm, "NO TURN ON RED" and other regulatory
+signs, bollards and planters at the curb, leaf-off/spring trees, the Anthropologie
+corner's distinctive grey bay and parapet, and construction hoardings. This was
+qualitative comparison at a matched viewpoint, not image alignment, photogrammetry
+or a pixel-error measurement. The reference is not shipped, not used as a texture,
+and must never be presented as an achieved render. Earlier passes also used the
+[EPA Bethesda Row case
+study](https://www.epa.gov/smartgrowth/create-walkable-neighborhoods-bethesda-row-bethesda-maryland)
 and architect/lighting-designer project pages as qualitative references only.
 
 ## What is real, inferred, procedural — and what still looks fake

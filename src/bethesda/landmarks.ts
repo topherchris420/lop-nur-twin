@@ -21,6 +21,7 @@ import {
   places,
   roadWays,
   row,
+  signalPoints,
   type Building,
   type Point,
 } from "./model";
@@ -36,6 +37,7 @@ import {
   storefrontBuilding,
 } from "./streetscape";
 import { groundAt } from "./terrain";
+import { signalRigs } from "./signals";
 
 const downtown = places.find((p) => p.name === "Downtown Bethesda")?.point ?? row.point;
 const SUFFIX: Record<string, string> = {
@@ -400,6 +402,34 @@ export function buildLandmarks(
         add(g, streetMaterial);
     });
     count("street blades");
+  }
+
+  // Mast-arm blades name the cross street to approaching traffic, as in the
+  // cited Woodmont/Bethesda Avenue photograph. The cross street is the other
+  // mapped name meeting at the signal's intersection.
+  for (const rig of signalRigs) {
+    const signal = signalPoints[rig.index]!;
+    let cross: string | undefined;
+    for (const [id, list] of atNode) {
+      if (list.length < 2) continue;
+      const w = roadWays.find((w) => w.nodeIds.includes(id));
+      const at = w?.points[w.nodeIds.indexOf(id)];
+      if (!at || distance(at, signal.point) > 18) continue;
+      cross = list.map((s) => s.name).find((n) => n !== rig.spans);
+      if (cross) break;
+    }
+    if (!cross) continue;
+    const uv = streets.cell(bladeText(cross), STREET_BLADE);
+    if (!uv) continue;
+    const at = {
+      x: rig.pole.x + Math.sin(rig.angle) * rig.length * 0.42,
+      z: rig.pole.z + Math.cos(rig.angle) * rig.length * 0.42,
+    };
+    // Long axis along the arm, readable from both directions of travel.
+    const lift = groundAt(rig.pole) - groundAt(at);
+    for (const g of quad(at, 6.42 + lift, 1.9, 0.3, rig.angle - Math.PI / 2, uv, true))
+      add(g, streetMaterial);
+    count("mast-arm blades");
   }
 
   // --- Storefront and building names ----------------------------------------
