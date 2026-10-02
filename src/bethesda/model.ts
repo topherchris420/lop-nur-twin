@@ -139,6 +139,7 @@ export interface Way {
   points: Point[];
   nodeIds: string[];
   width: number;
+  widthEvidence: "width tag" | "lanes × assumed 3.3 m" | "class default";
   crossing: boolean;
   oneWay: number;
   highway: string;
@@ -149,24 +150,39 @@ function ways(kind: string): Way[] {
     .map((f) => {
       const p = f.properties,
         highway = String(p.highway);
-      const supplied = Number(p.width);
+      const supplied = Number(p.width),
+        lanes = Number(p.lanes),
+        oneWay = p.oneway === "yes" || p.oneway === "-1";
       return {
         id: p.osmId + ":" + String(p.part ?? 0),
         name: String(p.name ?? ""),
         points: (f.geometry.coordinates as number[][]).map(local),
         nodeIds: p.nodeIds!,
+        // Mapped width, else mapped lane count at an assumed 3.3 m per lane
+        // plus gutters, else a class default. Divided avenues are mapped as two
+        // one-way carriageways, so a one-way primary default is one carriageway.
         width:
           supplied > 1 && supplied < 40
             ? supplied
             : kind === "path"
               ? 2.4
-              : highway === "primary"
-                ? 18
-                : highway === "secondary"
-                  ? 13
-                  : highway === "service"
-                    ? 5
-                    : 8,
+              : Number.isInteger(lanes) && lanes > 0 && lanes < 9
+                ? lanes * 3.3 + 1.2
+                : highway === "primary"
+                  ? oneWay
+                    ? 11
+                    : 18
+                  : highway === "secondary"
+                    ? 13
+                    : highway === "service"
+                      ? 5
+                      : 8,
+        widthEvidence:
+          supplied > 1 && supplied < 40
+            ? ("width tag" as const)
+            : kind !== "path" && Number.isInteger(lanes) && lanes > 0 && lanes < 9
+              ? ("lanes × assumed 3.3 m" as const)
+              : ("class default" as const),
         crossing: p.footway === "crossing",
         oneWay: p.oneway === "yes" ? 1 : p.oneway === "-1" ? -1 : 0,
         highway,

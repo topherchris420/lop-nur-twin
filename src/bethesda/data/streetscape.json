@@ -1,0 +1,6616 @@
+{
+  "type": "bethesda-streetscape/v1",
+  "bbox": [-77.104, 38.978, -77.089, 38.991],
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "storefronts": [
+    {
+      "osmId": "452652527",
+      "version": 12,
+      "editedAt": "2025-08-08T02:21:08Z",
+      "name": "CVS Pharmacy",
+      "category": "pharmacy",
+      "point": [-77.0947081, 38.9890498]
+    },
+    {
+      "osmId": "452659261",
+      "version": 7,
+      "editedAt": "2024-07-14T12:52:24Z",
+      "name": "7-Eleven",
+      "addr:street": "Wisconsin Avenue",
+      "category": "convenience",
+      "point": [-77.0954033, 38.988783]
+    },
+    {
+      "osmId": "452663672",
+      "version": 3,
+      "editedAt": "2017-10-20T02:46:26Z",
+      "name": "Bethesda Theatre",
+      "category": "theatre",
+      "point": [-77.0945738, 38.9872748]
+    },
+    {
+      "osmId": "474123663",
+      "version": 7,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "The Original Pancake House",
+      "addr:street": "Wisconsin Avenue",
+      "category": "restaurant",
+      "point": [-77.0955539, 38.9866468]
+    },
+    {
+      "osmId": "474123668",
+      "version": 8,
+      "editedAt": "2026-07-08T10:59:30Z",
+      "name": "TD Bank",
+      "addr:street": "Old Georgetown Road",
+      "category": "bank",
+      "point": [-77.0970521, 38.9862027]
+    },
+    {
+      "osmId": "474123673",
+      "version": 10,
+      "editedAt": "2024-06-20T01:42:44Z",
+      "name": "Starbucks",
+      "addr:street": "Norfolk Avenue",
+      "category": "cafe",
+      "point": [-77.0962282, 38.9881328]
+    },
+    {
+      "osmId": "479610894",
+      "version": 5,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Landmark Theatres",
+      "addr:street": "Woodmont Avenue",
+      "category": "cinema",
+      "point": [-77.0951714, 38.9817269]
+    },
+    {
+      "osmId": "479610913",
+      "version": 4,
+      "editedAt": "2021-08-05T14:26:03Z",
+      "name": "Liberty",
+      "category": "fuel",
+      "point": [-77.0991976, 38.9782024]
+    },
+    {
+      "osmId": "485337128",
+      "version": 4,
+      "editedAt": "2024-01-16T03:10:59Z",
+      "name": "Capital One",
+      "category": "bank",
+      "point": [-77.0967839, 38.9909102]
+    },
+    {
+      "osmId": "498679921",
+      "version": 4,
+      "editedAt": "2024-07-20T18:30:37Z",
+      "name": "Imagination Stage",
+      "category": "theatre",
+      "point": [-77.0994567, 38.9896779]
+    },
+    {
+      "osmId": "498679925",
+      "version": 6,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Citibank",
+      "category": "bank",
+      "point": [-77.0953029, 38.9907458]
+    },
+    {
+      "osmId": "498679926",
+      "version": 2,
+      "editedAt": "2014-04-24T00:51:07Z",
+      "name": "Black's Bar and Kitchen",
+      "category": "restaurant",
+      "point": [-77.0962336, 38.9877836]
+    },
+    {
+      "osmId": "498679936",
+      "version": 10,
+      "editedAt": "2025-08-08T02:21:08Z",
+      "name": "CVS Pharmacy",
+      "category": "pharmacy",
+      "point": [-77.098564, 38.9784244]
+    },
+    {
+      "osmId": "512948357",
+      "version": 10,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Simona Cafe",
+      "category": "cafe",
+      "point": [-77.0922319, 38.9847452]
+    },
+    {
+      "osmId": "512967010",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Jean's Deli",
+      "category": "fast_food",
+      "point": [-77.0924519, 38.9825671]
+    },
+    {
+      "osmId": "512979325",
+      "version": 5,
+      "editedAt": "2024-08-13T10:26:47Z",
+      "name": "Round House Theatre",
+      "addr:street": "East-West Highway",
+      "category": "theatre",
+      "point": [-77.0924343, 38.9851278]
+    },
+    {
+      "osmId": "523567347",
+      "version": 3,
+      "editedAt": "2014-04-24T00:44:00Z",
+      "name": "Cornucopia",
+      "category": "convenience",
+      "point": [-77.099927, 38.9903333]
+    },
+    {
+      "osmId": "567264679",
+      "version": 12,
+      "editedAt": "2024-10-11T13:32:26Z",
+      "name": "Apple Store",
+      "addr:street": "Bethesda Avenue",
+      "category": "electronics",
+      "point": [-77.097767, 38.9807455]
+    },
+    {
+      "osmId": "568132310",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Quiznos",
+      "category": "fast_food",
+      "point": [-77.096985, 38.98956]
+    },
+    {
+      "osmId": "568132311",
+      "version": 2,
+      "editedAt": "2010-09-20T22:26:45Z",
+      "name": "Tone on Tone",
+      "category": "antiques",
+      "point": [-77.0965301, 38.98954]
+    },
+    {
+      "osmId": "568132312",
+      "version": 1,
+      "editedAt": "2009-11-21T23:10:43Z",
+      "name": "Harvest Bank of America",
+      "category": "bank",
+      "point": [-77.096513, 38.98946]
+    },
+    {
+      "osmId": "568132326",
+      "version": 5,
+      "editedAt": "2025-07-09T10:32:21Z",
+      "name": "Z Burger",
+      "addr:street": "Fairmont Avenue",
+      "category": "fast_food",
+      "point": [-77.0963992, 38.988872]
+    },
+    {
+      "osmId": "568132356",
+      "version": 3,
+      "editedAt": "2026-05-07T18:05:01Z",
+      "name": "The Corner Slice",
+      "category": "restaurant",
+      "point": [-77.097337, 38.9891865]
+    },
+    {
+      "osmId": "634430872",
+      "version": 5,
+      "editedAt": "2011-06-15T04:41:44Z",
+      "name": "Presidential Bank",
+      "category": "bank",
+      "point": [-77.0923131, 38.9846114]
+    },
+    {
+      "osmId": "667503268",
+      "version": 4,
+      "editedAt": "2025-08-30T15:42:24Z",
+      "name": "Chicken on the Run",
+      "addr:street": "Saint Elmo Avenue",
+      "category": "restaurant",
+      "point": [-77.0983192, 38.988334]
+    },
+    {
+      "osmId": "667512557",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Flanagan's Harp and Fiddle",
+      "category": "bar",
+      "point": [-77.0971547, 38.9901507]
+    },
+    {
+      "osmId": "1091569179",
+      "version": 4,
+      "editedAt": "2023-03-19T22:24:53Z",
+      "name": "Georgetown Cupcake",
+      "addr:street": "Bethesda Avenue",
+      "category": "bakery",
+      "point": [-77.097223, 38.9807509]
+    },
+    {
+      "osmId": "1091595502",
+      "version": 9,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Sweetgreen",
+      "addr:street": "Bethesda Avenue",
+      "category": "fast_food",
+      "point": [-77.0969877, 38.9810619]
+    },
+    {
+      "osmId": "1091598092",
+      "version": 10,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Five Guys",
+      "addr:street": "Bethesda Avenue",
+      "category": "fast_food",
+      "point": [-77.0968957, 38.981065]
+    },
+    {
+      "osmId": "1098256098",
+      "version": 7,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Caddies",
+      "addr:street": "Cordell Avenue",
+      "category": "pub",
+      "point": [-77.098606, 38.988668]
+    },
+    {
+      "osmId": "1322276911",
+      "version": 4,
+      "editedAt": "2022-11-24T19:29:13Z",
+      "name": "J. McLaughlin",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.097592, 38.9810454]
+    },
+    {
+      "osmId": "1322288349",
+      "version": 6,
+      "editedAt": "2023-04-11T18:48:50Z",
+      "name": "Faherty",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0975848, 38.9807293]
+    },
+    {
+      "osmId": "1322289730",
+      "version": 6,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "Lululemon",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0973824, 38.9807406]
+    },
+    {
+      "osmId": "1322291084",
+      "version": 6,
+      "editedAt": "2024-01-16T03:10:59Z",
+      "name": "Bonobos",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0972859, 38.9807443]
+    },
+    {
+      "osmId": "1322292257",
+      "version": 7,
+      "editedAt": "2023-03-19T22:24:53Z",
+      "name": "CAVA",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.0970367, 38.9807544]
+    },
+    {
+      "osmId": "1322295152",
+      "version": 8,
+      "editedAt": "2024-01-16T03:10:59Z",
+      "name": "Williams-Sonoma",
+      "addr:street": "Bethesda Avenue",
+      "category": "houseware",
+      "point": [-77.0969039, 38.9807595]
+    },
+    {
+      "osmId": "1322305633",
+      "version": 8,
+      "editedAt": "2025-08-20T14:08:01Z",
+      "name": "Hair Cuttery",
+      "addr:street": "Bethesda Avenue",
+      "category": "hairdresser",
+      "point": [-77.096642, 38.9807661]
+    },
+    {
+      "osmId": "1322306252",
+      "version": 6,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Ernesta",
+      "addr:street": "Bethesda Avenue",
+      "category": "furniture",
+      "point": [-77.0965665, 38.9807686]
+    },
+    {
+      "osmId": "1322308517",
+      "version": 8,
+      "editedAt": "2025-09-15T15:51:57Z",
+      "name": "Gorjana",
+      "addr:street": "Bethesda Avenue",
+      "category": "jewelry",
+      "point": [-77.096391, 38.9807947]
+    },
+    {
+      "osmId": "1322312888",
+      "version": 4,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "Marine Layer",
+      "category": "clothes",
+      "point": [-77.0960076, 38.9810959]
+    },
+    {
+      "osmId": "1322314033",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Paper Source",
+      "addr:street": "Bethesda Avenue",
+      "category": "stationery",
+      "point": [-77.0961217, 38.9810892]
+    },
+    {
+      "osmId": "1322315363",
+      "version": 8,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Aveda",
+      "addr:street": "Bethesda Avenue",
+      "category": "hairdresser",
+      "point": [-77.0962396, 38.9810828]
+    },
+    {
+      "osmId": "1322316975",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "TTR Sotheby's",
+      "addr:street": "Bethesda Avenue",
+      "category": "office",
+      "point": [-77.0963417, 38.9810773]
+    },
+    {
+      "osmId": "1322320148",
+      "version": 4,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Quartermaine",
+      "addr:street": "Bethesda Avenue",
+      "category": "cafe",
+      "point": [-77.0965054, 38.9810841]
+    },
+    {
+      "osmId": "1322327209",
+      "version": 8,
+      "editedAt": "2025-02-07T10:31:04Z",
+      "name": "Bethesda Bagels",
+      "addr:street": "Bethesda Avenue",
+      "category": "fast_food",
+      "point": [-77.0965823, 38.9810837]
+    },
+    {
+      "osmId": "1322329102",
+      "version": 6,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Reformation",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0967571, 38.9810804]
+    },
+    {
+      "osmId": "1322341916",
+      "version": 4,
+      "editedAt": "2025-08-28T11:24:29Z",
+      "name": "FP Movement",
+      "addr:street": "Woodmont Avenue",
+      "category": "clothes",
+      "point": [-77.0959033, 38.9813586]
+    },
+    {
+      "osmId": "1322345563",
+      "version": 5,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Raku",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0960441, 38.9815302]
+    },
+    {
+      "osmId": "1322354906",
+      "version": 3,
+      "editedAt": "2024-11-11T20:11:19Z",
+      "name": "Foxtrot",
+      "addr:street": "Woodmont Avenue",
+      "category": "cafe",
+      "point": [-77.09618, 38.9817939]
+    },
+    {
+      "osmId": "1322356821",
+      "version": 6,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Matchbox",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0962831, 38.9819938]
+    },
+    {
+      "osmId": "1323051762",
+      "version": 4,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Nike",
+      "addr:street": "Arlington Road",
+      "category": "clothes",
+      "point": [-77.0982493, 38.9810525]
+    },
+    {
+      "osmId": "1323051820",
+      "version": 4,
+      "editedAt": "2024-02-26T01:12:46Z",
+      "name": "Uncle Julio's",
+      "category": "restaurant",
+      "point": [-77.0981384, 38.980706]
+    },
+    {
+      "osmId": "1323147859",
+      "version": 2,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Cannon Upholstery",
+      "addr:street": "Hampden Lane",
+      "category": "upholstery",
+      "point": [-77.0962676, 38.9828825]
+    },
+    {
+      "osmId": "1323149402",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Dunkin'",
+      "addr:street": "Elm Street",
+      "category": "fast_food",
+      "point": [-77.0979103, 38.9821927]
+    },
+    {
+      "osmId": "1323149405",
+      "version": 5,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "PLANTA",
+      "addr:street": "Elm Street",
+      "category": "restaurant",
+      "point": [-77.09675, 38.9820226]
+    },
+    {
+      "osmId": "1323149407",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Yogitopi",
+      "addr:street": "Elm Street",
+      "category": "ice_cream",
+      "point": [-77.0972964, 38.982002]
+    },
+    {
+      "osmId": "1323149408",
+      "version": 5,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Pink Chicken",
+      "addr:street": "Elm Street",
+      "category": "clothes",
+      "point": [-77.0972418, 38.9822173]
+    },
+    {
+      "osmId": "1323149409",
+      "version": 6,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "OVME Bethesda",
+      "addr:street": "Elm Street",
+      "category": "cosmetics",
+      "point": [-77.0970607, 38.9822237]
+    },
+    {
+      "osmId": "1323149410",
+      "version": 3,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Quattro Auto Body",
+      "addr:street": "Elm Street",
+      "category": "car_repair",
+      "point": [-77.0966259, 38.9822363]
+    },
+    {
+      "osmId": "1323149411",
+      "version": 5,
+      "editedAt": "2023-04-26T16:24:28Z",
+      "name": "AT&T",
+      "addr:street": "Elm Street",
+      "category": "mobile_phone",
+      "point": [-77.0980677, 38.9822036]
+    },
+    {
+      "osmId": "1323149412",
+      "version": 5,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Mamma Lucia",
+      "addr:street": "Elm Street",
+      "category": "restaurant",
+      "point": [-77.0969229, 38.9820156]
+    },
+    {
+      "osmId": "1323149413",
+      "version": 9,
+      "editedAt": "2025-11-09T12:04:57Z",
+      "name": "Berries & Bowls",
+      "addr:street": "Elm Street",
+      "category": "restaurant",
+      "point": [-77.0982311, 38.9822009]
+    },
+    {
+      "osmId": "1323149414",
+      "version": 7,
+      "editedAt": "2026-05-07T18:03:26Z",
+      "name": "Teazzi",
+      "addr:street": "Elm Street",
+      "category": "cafe",
+      "point": [-77.0978223, 38.9821981]
+    },
+    {
+      "osmId": "1323149416",
+      "version": 5,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Roll by Goodyear",
+      "addr:street": "Elm Street",
+      "category": "car_repair",
+      "point": [-77.0967926, 38.9822313]
+    },
+    {
+      "osmId": "1323149418",
+      "version": 7,
+      "editedAt": "2025-08-30T14:40:50Z",
+      "name": "Eat Sprout",
+      "addr:street": "Elm Street",
+      "category": "cafe",
+      "point": [-77.0973449, 38.9819989]
+    },
+    {
+      "osmId": "1323149419",
+      "version": 5,
+      "editedAt": "2024-01-16T03:10:59Z",
+      "name": "Wells Fargo",
+      "addr:street": "Elm Street",
+      "category": "bank",
+      "point": [-77.0983211, 38.9821983]
+    },
+    {
+      "osmId": "1323149421",
+      "version": 4,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "The Halal Guys",
+      "addr:street": "Elm Street",
+      "category": "fast_food",
+      "point": [-77.0968771, 38.982231]
+    },
+    {
+      "osmId": "1323149422",
+      "version": 2,
+      "editedAt": "2022-03-09T02:09:07Z",
+      "name": "RnJ Sports",
+      "addr:street": "Elm Street",
+      "category": "sports",
+      "point": [-77.0979945, 38.9822076]
+    },
+    {
+      "osmId": "1323152132",
+      "version": 4,
+      "editedAt": "2023-09-18T07:12:11Z",
+      "name": "Neuhaus",
+      "addr:street": "Bethesda Lane",
+      "category": "chocolate",
+      "point": [-77.0977253, 38.9817644]
+    },
+    {
+      "osmId": "1323152133",
+      "version": 5,
+      "editedAt": "2023-04-11T18:48:50Z",
+      "name": "Maman",
+      "addr:street": "Bethesda Lane",
+      "category": "restaurant",
+      "point": [-77.0979722, 38.9818494]
+    },
+    {
+      "osmId": "1323152134",
+      "version": 2,
+      "editedAt": "2022-11-24T19:16:45Z",
+      "name": "Morley",
+      "addr:street": "Bethesda Lane",
+      "category": "clothes",
+      "point": [-77.097954, 38.9812107]
+    },
+    {
+      "osmId": "1323152136",
+      "version": 5,
+      "editedAt": "2023-04-11T18:48:50Z",
+      "name": "Wylie Grey",
+      "addr:street": "Bethesda Lane",
+      "category": "clothes",
+      "point": [-77.0977274, 38.9818258]
+    },
+    {
+      "osmId": "1323152137",
+      "version": 2,
+      "editedAt": "2022-11-24T19:16:45Z",
+      "name": "Poke Dojo",
+      "addr:street": "Bethesda Lane",
+      "category": "restaurant",
+      "point": [-77.097956, 38.9811415]
+    },
+    {
+      "osmId": "1323152138",
+      "version": 5,
+      "editedAt": "2024-11-11T17:07:30Z",
+      "name": "Serena & Lily",
+      "addr:street": "Bethesda Lane",
+      "category": "furniture",
+      "point": [-77.0976907, 38.9815824]
+    },
+    {
+      "osmId": "1323152140",
+      "version": 2,
+      "editedAt": "2022-11-24T19:16:45Z",
+      "name": "Sassanova",
+      "addr:street": "Bethesda Lane",
+      "category": "clothes",
+      "point": [-77.0979621, 38.9816496]
+    },
+    {
+      "osmId": "1323152144",
+      "version": 4,
+      "editedAt": "2023-12-09T08:36:01Z",
+      "name": "Luke's Lobster",
+      "addr:street": "Bethesda Lane",
+      "category": "restaurant",
+      "point": [-77.0977355, 38.981917]
+    },
+    {
+      "osmId": "1323152145",
+      "version": 2,
+      "editedAt": "2022-11-24T19:16:45Z",
+      "name": "Pampillonia",
+      "addr:street": "Bethesda Lane",
+      "category": "jewelry",
+      "point": [-77.097954, 38.9812564]
+    },
+    {
+      "osmId": "1323152147",
+      "version": 2,
+      "editedAt": "2022-11-24T19:16:45Z",
+      "name": "Simon Pearce",
+      "addr:street": "Bethesda Lane",
+      "category": "clothes",
+      "point": [-77.097956, 38.9815741]
+    },
+    {
+      "osmId": "1325740485",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "PNC Bank",
+      "category": "bank",
+      "point": [-77.090605, 38.983773]
+    },
+    {
+      "osmId": "1325782312",
+      "version": 5,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Crescent Printing Copying",
+      "addr:street": "East West Highway",
+      "category": "copyshop",
+      "point": [-77.0927703, 38.9846552]
+    },
+    {
+      "osmId": "1325785560",
+      "version": 9,
+      "editedAt": "2025-11-10T02:19:53Z",
+      "name": "Andy's Pizza",
+      "addr:street": "East West Highway",
+      "category": "restaurant",
+      "point": [-77.093004, 38.984657]
+    },
+    {
+      "osmId": "1325786339",
+      "version": 6,
+      "editedAt": "2024-01-16T03:10:59Z",
+      "name": "Long & Foster",
+      "addr:street": "East-West Highway",
+      "category": "office",
+      "point": [-77.093363, 38.984578]
+    },
+    {
+      "osmId": "1325788725",
+      "version": 5,
+      "editedAt": "2025-08-27T12:38:57Z",
+      "name": "Morton's The Steakhouse",
+      "category": "restaurant",
+      "point": [-77.0944986, 38.9841098]
+    },
+    {
+      "osmId": "1325789015",
+      "version": 4,
+      "editedAt": "2024-02-03T21:36:43Z",
+      "name": "Monument Bank",
+      "addr:street": "Wisconsin Avenue",
+      "category": "bank",
+      "point": [-77.093603, 38.983828]
+    },
+    {
+      "osmId": "1325789066",
+      "version": 6,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "L.A. Day Spa",
+      "category": "hairdresser",
+      "point": [-77.0938102, 38.9841447]
+    },
+    {
+      "osmId": "2144925476",
+      "version": 3,
+      "editedAt": "2019-02-22T20:35:23Z",
+      "name": "Lilit Cafe",
+      "addr:street": "Old Georgetown Rd",
+      "category": "restaurant",
+      "point": [-77.1007019, 38.9888061]
+    },
+    {
+      "osmId": "2291576907",
+      "version": 5,
+      "editedAt": "2024-01-16T03:11:01Z",
+      "name": "Potbelly",
+      "category": "fast_food",
+      "point": [-77.0955627, 38.9822949]
+    },
+    {
+      "osmId": "2295042815",
+      "version": 4,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Bradley Food and Beverage",
+      "addr:street": "Arlington Road",
+      "category": "convenience",
+      "point": [-77.099121, 38.9785932]
+    },
+    {
+      "osmId": "2358141719",
+      "version": 3,
+      "editedAt": "2025-10-20T16:02:33Z",
+      "name": "California Tortilla",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.0981612, 38.9896453]
+    },
+    {
+      "osmId": "2358153391",
+      "version": 4,
+      "editedAt": "2023-09-05T16:57:45Z",
+      "name": "Barrel & Crow",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.0980432, 38.9897308]
+    },
+    {
+      "osmId": "2358175335",
+      "version": 3,
+      "editedAt": "2023-03-19T22:24:53Z",
+      "name": "Dog Haus",
+      "addr:street": "Woodmont Avenue",
+      "category": "bar",
+      "point": [-77.0964382, 38.9891158]
+    },
+    {
+      "osmId": "2363476231",
+      "version": 2,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Breads Unlimited",
+      "category": "bakery",
+      "point": [-77.0991145, 38.9788563]
+    },
+    {
+      "osmId": "2363476232",
+      "version": 5,
+      "editedAt": "2024-11-12T01:45:35Z",
+      "name": "Strosniders Hardware",
+      "addr:street": "Arlington Road",
+      "category": "doityourself",
+      "point": [-77.0991027, 38.9792591]
+    },
+    {
+      "osmId": "2363476233",
+      "version": 1,
+      "editedAt": "2013-06-27T21:11:28Z",
+      "name": "Aji-Nippon",
+      "category": "restaurant",
+      "point": [-77.0985341, 38.9791882]
+    },
+    {
+      "osmId": "2738332460",
+      "version": 4,
+      "editedAt": "2026-09-16T03:25:23Z",
+      "name": "Tommy Joe's",
+      "addr:street": "Norfolk Avenue",
+      "category": "bar",
+      "point": [-77.0983684, 38.9894146]
+    },
+    {
+      "osmId": "2785499261",
+      "version": 6,
+      "editedAt": "2025-10-20T16:02:33Z",
+      "name": "The UPS Store",
+      "addr:street": "Hampden Lane",
+      "category": "copyshop",
+      "point": [-77.0977158, 38.9825142]
+    },
+    {
+      "osmId": "2785499401",
+      "version": 1,
+      "editedAt": "2014-04-12T14:25:02Z",
+      "name": "The Shoppes of Bethesda",
+      "category": "mall",
+      "point": [-77.0973355, 38.9823042]
+    },
+    {
+      "osmId": "2785499434",
+      "version": 1,
+      "editedAt": "2014-04-12T14:25:03Z",
+      "name": "Super Cleaners USA at Bethesda Row",
+      "category": "dry_cleaning",
+      "point": [-77.096652, 38.9825377]
+    },
+    {
+      "osmId": "2812475004",
+      "version": 7,
+      "editedAt": "2025-12-19T00:03:25Z",
+      "name": "Sala Thai",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.0967539, 38.990547]
+    },
+    {
+      "osmId": "2812477043",
+      "version": 9,
+      "editedAt": "2026-06-03T21:44:18Z",
+      "name": "Chipotle",
+      "addr:street": "Old Georgetown Road",
+      "category": "fast_food",
+      "point": [-77.0961397, 38.9856873]
+    },
+    {
+      "osmId": "3224137825",
+      "version": 3,
+      "editedAt": "2023-03-19T22:37:58Z",
+      "name": "Beer and Wine Store",
+      "category": "alcohol",
+      "point": [-77.095969, 38.9854132]
+    },
+    {
+      "osmId": "3291531680",
+      "version": 7,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "Trader Joe's",
+      "addr:street": "Wisconsin Avenue",
+      "category": "supermarket",
+      "point": [-77.0905786, 38.978214]
+    },
+    {
+      "osmId": "3291532193",
+      "version": 10,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "United States Post Office",
+      "addr:street": "Wisconsin Avenue",
+      "category": "post_office",
+      "point": [-77.0916512, 38.9784352]
+    },
+    {
+      "osmId": "3516258970",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Pines of Rome",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.0985285, 38.9888282]
+    },
+    {
+      "osmId": "3516258971",
+      "version": 5,
+      "editedAt": "2025-04-25T10:05:46Z",
+      "name": "Rock Bottom",
+      "addr:street": "Norfolk Avenue",
+      "category": "pub",
+      "point": [-77.0976716, 38.9890033]
+    },
+    {
+      "osmId": "3616718104",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Tout de Sweet",
+      "category": "cafe",
+      "point": [-77.0960619, 38.9890859]
+    },
+    {
+      "osmId": "3632310649",
+      "version": 2,
+      "editedAt": "2025-04-13T22:37:11Z",
+      "name": "Pizzeria da Marco",
+      "category": "restaurant",
+      "point": [-77.0966958, 38.9902092]
+    },
+    {
+      "osmId": "3944471882",
+      "version": 4,
+      "editedAt": "2026-06-26T22:57:30Z",
+      "name": "Hawkers Asian Street Food",
+      "addr:street": "Bethesda Lane",
+      "category": "restaurant",
+      "point": [-77.0976912, 38.9814021]
+    },
+    {
+      "osmId": "4208482894",
+      "version": 2,
+      "editedAt": "2025-11-09T12:04:57Z",
+      "name": "Besta Pizza",
+      "addr:street": "Chase Avenue",
+      "category": "fast_food",
+      "point": [-77.0946034, 38.9896947]
+    },
+    {
+      "osmId": "4829089515",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Medium Rare",
+      "addr:street": "Fairmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0967105, 38.9882534]
+    },
+    {
+      "osmId": "4829089752",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Ala",
+      "addr:street": "Fairmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0973808, 38.9875516]
+    },
+    {
+      "osmId": "4829739070",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Bistro Provence",
+      "addr:street": "Fairmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0975584, 38.9876824]
+    },
+    {
+      "osmId": "4829739078",
+      "version": 3,
+      "editedAt": "2023-03-19T22:24:53Z",
+      "name": "Woodmont Grill",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0958967, 38.9878922]
+    },
+    {
+      "osmId": "4829739094",
+      "version": 4,
+      "editedAt": "2022-12-04T02:52:57Z",
+      "name": "Tastee Diner",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0958759, 38.9880394]
+    },
+    {
+      "osmId": "4829752366",
+      "version": 2,
+      "editedAt": "2026-03-19T10:58:53Z",
+      "name": "The Organic Butcher of Bethesda",
+      "addr:street": "Old Georgetown Road",
+      "category": "butcher",
+      "point": [-77.1007897, 38.9888578]
+    },
+    {
+      "osmId": "5018928985",
+      "version": 4,
+      "editedAt": "2024-02-26T01:14:34Z",
+      "name": "bluemercury",
+      "addr:street": "Bethesda Lane",
+      "category": "cosmetics",
+      "point": [-77.097684, 38.9810376]
+    },
+    {
+      "osmId": "5075911205",
+      "version": 7,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "True Food Kitchen",
+      "addr:street": "Wisconsin Avenue",
+      "category": "restaurant",
+      "point": [-77.0924486, 38.9801828]
+    },
+    {
+      "osmId": "5079924586",
+      "version": 6,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "Target",
+      "addr:street": "Wisconsin Avenue",
+      "category": "department_store",
+      "point": [-77.0907949, 38.9784041]
+    },
+    {
+      "osmId": "5079924587",
+      "version": 10,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "Starbucks",
+      "addr:street": "Wisconsin Avenue",
+      "category": "cafe",
+      "point": [-77.0908063, 38.9784705]
+    },
+    {
+      "osmId": "5079924588",
+      "version": 8,
+      "editedAt": "2025-08-08T02:21:08Z",
+      "name": "CVS Pharmacy",
+      "category": "pharmacy",
+      "point": [-77.0904674, 38.9784953]
+    },
+    {
+      "osmId": "5301383143",
+      "version": 7,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "FedEx Office",
+      "category": "copyshop",
+      "point": [-77.0921163, 38.9794235]
+    },
+    {
+      "osmId": "5301383144",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Moby Dick House of Kabob",
+      "addr:street": "Wisconsin Ave",
+      "category": "restaurant",
+      "point": [-77.0917323, 38.9797932]
+    },
+    {
+      "osmId": "5301383145",
+      "version": 9,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Silver Diner",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0950137, 38.9805632]
+    },
+    {
+      "osmId": "5301383146",
+      "version": 6,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Pottery Barn",
+      "addr:street": "Bethesda Avenue",
+      "category": "furniture",
+      "point": [-77.0952607, 38.9807689]
+    },
+    {
+      "osmId": "5301398178",
+      "version": 12,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Verizon",
+      "addr:street": "Wisconsin Avenue",
+      "category": "mobile_phone",
+      "point": [-77.0918466, 38.9788858]
+    },
+    {
+      "osmId": "5521511093",
+      "version": 5,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Kazemi Oral Surgery & Dental Implants",
+      "addr:street": "Bethesda Avenue",
+      "category": "dentist",
+      "point": [-77.0934837, 38.9812092]
+    },
+    {
+      "osmId": "5895094223",
+      "version": 6,
+      "editedAt": "2025-12-16T15:21:33Z",
+      "name": "&pizza",
+      "category": "fast_food",
+      "point": [-77.0963213, 38.9857948]
+    },
+    {
+      "osmId": "5953878448",
+      "version": 8,
+      "editedAt": "2026-05-14T23:17:34Z",
+      "name": "Sandy Nails",
+      "addr:street": "Old Georgetown Road",
+      "category": "beauty",
+      "point": [-77.0990728, 38.9878318]
+    },
+    {
+      "osmId": "5985099798",
+      "version": 5,
+      "editedAt": "2022-05-25T21:45:38Z",
+      "name": "Studio Piazza",
+      "addr:street": "Montgomery Lane",
+      "category": "hairdresser",
+      "point": [-77.0948186, 38.9837015]
+    },
+    {
+      "osmId": "6043072685",
+      "version": 3,
+      "editedAt": "2025-11-09T12:04:57Z",
+      "name": "Mon Ami Gabi",
+      "addr:street": "Woodmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0954615, 38.9814586]
+    },
+    {
+      "osmId": "6177074839",
+      "version": 3,
+      "editedAt": "2025-10-20T16:02:33Z",
+      "name": "Boston Consulting Group",
+      "addr:street": "Hampden Lane",
+      "category": "office",
+      "point": [-77.0953216, 38.982543]
+    },
+    {
+      "osmId": "6329806637",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Anthropologie",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0957776, 38.981145]
+    },
+    {
+      "osmId": "6507602900",
+      "version": 3,
+      "editedAt": "2022-05-25T18:28:31Z",
+      "name": "Bethesda Piano Tuning by PianoCraft",
+      "addr:street": "Norfolk Avenue",
+      "category": "musical_instrument",
+      "point": [-77.0983883, 38.9898069]
+    },
+    {
+      "osmId": "6570875360",
+      "version": 3,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Sisters Sandwiches & Such",
+      "addr:street": "East-West Highway",
+      "category": "fast_food",
+      "point": [-77.0920893, 38.984776]
+    },
+    {
+      "osmId": "6572802238",
+      "version": 5,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Q By Peter Chang",
+      "category": "restaurant",
+      "point": [-77.0913673, 38.9847859]
+    },
+    {
+      "osmId": "6573021576",
+      "version": 3,
+      "editedAt": "2024-02-03T21:36:59Z",
+      "name": "Waverly Street Gallery",
+      "category": "gallery",
+      "point": [-77.0927047, 38.9844345]
+    },
+    {
+      "osmId": "6582223751",
+      "version": 3,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Admiral Security Services Talents & Vocational Center",
+      "category": "office",
+      "point": [-77.0918409, 38.9846386]
+    },
+    {
+      "osmId": "6584594520",
+      "version": 3,
+      "editedAt": "2024-01-16T03:11:14Z",
+      "name": "Allstate",
+      "category": "office",
+      "point": [-77.092983, 38.9827839]
+    },
+    {
+      "osmId": "6584594521",
+      "version": 5,
+      "editedAt": "2023-10-27T10:20:37Z",
+      "name": "Shangri-la",
+      "addr:street": "Wisconsin Avenue",
+      "category": "restaurant",
+      "point": [-77.0934249, 38.9832095]
+    },
+    {
+      "osmId": "6584594522",
+      "version": 6,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Charles Schwab",
+      "category": "bank",
+      "point": [-77.0937705, 38.9840575]
+    },
+    {
+      "osmId": "6584594524",
+      "version": 10,
+      "editedAt": "2025-11-09T12:04:57Z",
+      "name": "ZAO Stamina Ramen",
+      "addr:street": "Wisconsin Avenue",
+      "category": "restaurant",
+      "point": [-77.0933909, 38.9831456]
+    },
+    {
+      "osmId": "6584594525",
+      "version": 2,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Remix",
+      "category": "clothes",
+      "point": [-77.0934471, 38.9832713]
+    },
+    {
+      "osmId": "6584594526",
+      "version": 1,
+      "editedAt": "2019-07-02T17:42:45Z",
+      "name": "Bethesda Jewelers",
+      "category": "jewelry",
+      "point": [-77.0930535, 38.9827762]
+    },
+    {
+      "osmId": "6584594527",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "First National Bank",
+      "addr:street": "Wisconsin Avenue",
+      "category": "bank",
+      "point": [-77.0938622, 38.9842654]
+    },
+    {
+      "osmId": "6597152730",
+      "version": 9,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Subway",
+      "addr:street": "Wisconsin Avenue",
+      "category": "fast_food",
+      "point": [-77.0928011, 38.9819586]
+    },
+    {
+      "osmId": "6603463800",
+      "version": 1,
+      "editedAt": "2019-07-10T17:16:46Z",
+      "name": "Phenix Salon Suites",
+      "category": "beauty",
+      "point": [-77.0910696, 38.9842785]
+    },
+    {
+      "osmId": "6606112489",
+      "version": 1,
+      "editedAt": "2019-07-11T17:21:11Z",
+      "name": "Caroll Community Bank",
+      "category": "bank",
+      "point": [-77.092708, 38.9807003]
+    },
+    {
+      "osmId": "6606112490",
+      "version": 4,
+      "editedAt": "2024-01-16T03:11:14Z",
+      "name": "JoS. A. Bank",
+      "category": "clothes",
+      "point": [-77.0927554, 38.9808109]
+    },
+    {
+      "osmId": "6606112493",
+      "version": 6,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Truist",
+      "category": "bank",
+      "point": [-77.0931656, 38.9817039]
+    },
+    {
+      "osmId": "6606112494",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Current Boutique",
+      "category": "clothes",
+      "point": [-77.0931039, 38.981577]
+    },
+    {
+      "osmId": "6610524277",
+      "version": 4,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Bite of Asia",
+      "category": "restaurant",
+      "point": [-77.0944371, 38.9863369]
+    },
+    {
+      "osmId": "6610524278",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "VKB Kitchen & Bath",
+      "category": "office",
+      "point": [-77.0944025, 38.9862421]
+    },
+    {
+      "osmId": "6610524279",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Sachi Nails And Barber",
+      "category": "hairdresser",
+      "point": [-77.0944169, 38.9862944]
+    },
+    {
+      "osmId": "6856244710",
+      "version": 4,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Chopt",
+      "addr:street": "Bethesda Avenue",
+      "category": "fast_food",
+      "point": [-77.0957952, 38.9805292]
+    },
+    {
+      "osmId": "7590609065",
+      "version": 4,
+      "editedAt": "2024-01-16T03:11:17Z",
+      "name": "Joe & The Juice",
+      "addr:street": "Woodmont Avenue",
+      "category": "cafe",
+      "point": [-77.0957273, 38.9818465]
+    },
+    {
+      "osmId": "7590609066",
+      "version": 3,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Fish Taco",
+      "addr:street": "Woodmont Avenue",
+      "category": "fast_food",
+      "point": [-77.0956142, 38.9815898]
+    },
+    {
+      "osmId": "7769809887",
+      "version": 5,
+      "editedAt": "2025-11-09T12:04:57Z",
+      "name": "Bethesda Dental Care",
+      "addr:street": "Pearl Street",
+      "category": "dentist",
+      "point": [-77.090737, 38.98435]
+    },
+    {
+      "osmId": "8952916970",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Gallery B",
+      "addr:street": "Wisconsin Avenue",
+      "category": "gallery",
+      "point": [-77.0954488, 38.9865457]
+    },
+    {
+      "osmId": "8952916971",
+      "version": 1,
+      "editedAt": "2021-07-27T04:49:20Z",
+      "name": "The Goldsmiths",
+      "addr:street": "Wisconsin Avenue",
+      "category": "jewelry",
+      "point": [-77.0959759, 38.9864613]
+    },
+    {
+      "osmId": "8952916972",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Hair by PAABO",
+      "addr:street": "Wisconsin Avenue",
+      "category": "hairdresser",
+      "point": [-77.0957251, 38.9862059]
+    },
+    {
+      "osmId": "8952916975",
+      "version": 1,
+      "editedAt": "2021-07-27T04:49:20Z",
+      "name": "Bethesda Place Management Office",
+      "addr:street": "Wisconsin Avenue",
+      "category": "office",
+      "point": [-77.0959759, 38.9862048]
+    },
+    {
+      "osmId": "8998381126",
+      "version": 3,
+      "editedAt": "2025-12-05T04:29:17Z",
+      "name": "Malech Law",
+      "addr:street": "Woodmont Avenue",
+      "category": "office",
+      "point": [-77.0965154, 38.9893411]
+    },
+    {
+      "osmId": "9053907017",
+      "version": 4,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Virraaj Indian Cuisine",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.09838, 38.9889415]
+    },
+    {
+      "osmId": "9813631985",
+      "version": 8,
+      "editedAt": "2025-03-02T21:10:32Z",
+      "name": "Tatte Bakery & Cafe",
+      "addr:street": "Wisconsin Avenue",
+      "category": "bakery",
+      "point": [-77.0935545, 38.9822709]
+    },
+    {
+      "osmId": "9900656520",
+      "version": 3,
+      "editedAt": "2024-05-13T03:08:19Z",
+      "name": "Papa John's",
+      "addr:street": "47th Street",
+      "category": "fast_food",
+      "point": [-77.0919088, 38.9817382]
+    },
+    {
+      "osmId": "9900677318",
+      "version": 2,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Lance's Beer and Wine",
+      "addr:street": "Miller Avenue",
+      "category": "alcohol",
+      "point": [-77.0930272, 38.9807107]
+    },
+    {
+      "osmId": "9900711918",
+      "version": 4,
+      "editedAt": "2024-02-09T02:12:07Z",
+      "name": "Trader Joe's",
+      "addr:street": "Wisconsin Avenue",
+      "category": "supermarket",
+      "point": [-77.0957571, 38.989994]
+    },
+    {
+      "osmId": "10215235734",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Chevy Chase Acura",
+      "category": "trade",
+      "point": [-77.094785, 38.9880982]
+    },
+    {
+      "osmId": "10215250905",
+      "version": 2,
+      "editedAt": "2023-03-19T22:24:53Z",
+      "name": "European Wax Center",
+      "category": "restaurant",
+      "point": [-77.0968833, 38.9885339]
+    },
+    {
+      "osmId": "10215250906",
+      "version": 2,
+      "editedAt": "2025-05-02T04:38:28Z",
+      "name": "Donburi Dojo",
+      "addr:street": "Norfolk Avenue",
+      "category": "restaurant",
+      "point": [-77.0971305, 38.9886688]
+    },
+    {
+      "osmId": "10215250907",
+      "version": 2,
+      "editedAt": "2025-05-02T04:35:26Z",
+      "name": "Kusshi Bethesda",
+      "addr:street": "Norfolk Avenue",
+      "category": "restaurant",
+      "point": [-77.0972606, 38.9887331]
+    },
+    {
+      "osmId": "10215251766",
+      "version": 2,
+      "editedAt": "2023-03-24T02:06:38Z",
+      "name": "Capital Beer & Wine",
+      "category": "alcohol",
+      "point": [-77.097403, 38.9892086]
+    },
+    {
+      "osmId": "10215319407",
+      "version": 2,
+      "editedAt": "2025-09-15T15:51:57Z",
+      "name": "Framebridge",
+      "addr:street": "Bethesda Avenue",
+      "category": "frame",
+      "point": [-77.0962576, 38.9807987]
+    },
+    {
+      "osmId": "10215347599",
+      "version": 5,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "Vuori",
+      "addr:street": "Bethesda Avenue",
+      "category": "clothes",
+      "point": [-77.0967333, 38.9808168]
+    },
+    {
+      "osmId": "10215347600",
+      "version": 3,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Drybar",
+      "addr:street": "Bethesda Avenue",
+      "category": "hairdresser",
+      "point": [-77.0974626, 38.9807347]
+    },
+    {
+      "osmId": "10215347601",
+      "version": 2,
+      "editedAt": "2023-09-05T16:57:45Z",
+      "name": "Jenny Kayne",
+      "category": "clothes",
+      "point": [-77.0976762, 38.9807198]
+    },
+    {
+      "osmId": "10215347602",
+      "version": 3,
+      "editedAt": "2024-02-26T01:14:34Z",
+      "name": "Allbirds",
+      "category": "shoes",
+      "point": [-77.0976431, 38.9807301]
+    },
+    {
+      "osmId": "10215347603",
+      "version": 2,
+      "editedAt": "2024-02-26T01:14:34Z",
+      "name": "Levain",
+      "addr:street": "Bethesda Avenue",
+      "category": "bakery",
+      "point": [-77.0975397, 38.9807329]
+    },
+    {
+      "osmId": "10215380777",
+      "version": 2,
+      "editedAt": "2023-03-19T22:37:58Z",
+      "name": "Dolcezza",
+      "addr:street": "Bethesda Lane",
+      "category": "ice_cream",
+      "point": [-77.097676, 38.981227]
+    },
+    {
+      "osmId": "10215410145",
+      "version": 2,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "The Shade Store",
+      "addr:street": "Bethesda Lane",
+      "category": "window_blind",
+      "point": [-77.0979609, 38.9813375]
+    },
+    {
+      "osmId": "10215420275",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Ideal Image Bethesda Row",
+      "addr:street": "Elm Street",
+      "category": "beauty",
+      "point": [-77.0974885, 38.981994]
+    },
+    {
+      "osmId": "10215420276",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Heyday Bethesda Row",
+      "addr:street": "Elm Street",
+      "category": "beauty",
+      "point": [-77.0972386, 38.9820057]
+    },
+    {
+      "osmId": "10215420277",
+      "version": 3,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Jeni's Ice Cream",
+      "addr:street": "Elm Street",
+      "category": "ice_cream",
+      "point": [-77.0970189, 38.9820124]
+    },
+    {
+      "osmId": "10215467154",
+      "version": 2,
+      "editedAt": "2023-04-11T18:48:50Z",
+      "name": "Roosters",
+      "addr:street": "Arlington Road",
+      "category": "hairdresser",
+      "point": [-77.0982994, 38.9815625]
+    },
+    {
+      "osmId": "10215467155",
+      "version": 3,
+      "editedAt": "2024-01-17T17:13:56Z",
+      "name": "LensCrafters",
+      "addr:street": "Arlington Road",
+      "category": "optician",
+      "point": [-77.0982503, 38.9818429]
+    },
+    {
+      "osmId": "10556360210",
+      "version": 5,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Schlobohm Dental: Cord H. Schlobohm D.M.D.",
+      "addr:street": "Cordell Avenue",
+      "category": "dentist",
+      "point": [-77.0968493, 38.9903237]
+    },
+    {
+      "osmId": "10556396843",
+      "version": 1,
+      "editedAt": "2023-01-15T09:46:04Z",
+      "name": "Once Again Tech",
+      "addr:street": "Fairmont Avenue",
+      "category": "computer",
+      "point": [-77.0971263, 38.9880537]
+    },
+    {
+      "osmId": "10599295134",
+      "version": 8,
+      "editedAt": "2025-03-21T10:57:41Z",
+      "name": "World of Beer",
+      "addr:street": "Wisconsin Avenue",
+      "category": "pub",
+      "point": [-77.0936554, 38.981212]
+    },
+    {
+      "osmId": "10684548365",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Tikka Masala",
+      "addr:street": "Elm Street",
+      "category": "restaurant",
+      "point": [-77.0975119, 38.9822047]
+    },
+    {
+      "osmId": "10684548366",
+      "version": 3,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Montgomery County Liquor",
+      "addr:street": "Hampden Lane",
+      "category": "alcohol",
+      "point": [-77.0973071, 38.9823532]
+    },
+    {
+      "osmId": "10691225138",
+      "version": 2,
+      "editedAt": "2025-04-24T22:46:07Z",
+      "name": "Jetties",
+      "addr:street": "Fairmont Avenue",
+      "category": "fast_food",
+      "point": [-77.0964558, 38.9888114]
+    },
+    {
+      "osmId": "10771881091",
+      "version": 4,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Passage to India",
+      "addr:street": "Cordell Avenue",
+      "category": "restaurant",
+      "point": [-77.0990809, 38.9885329]
+    },
+    {
+      "osmId": "10844295829",
+      "version": 5,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Warby Parker",
+      "addr:street": "Bethesda Avenue",
+      "category": "optician",
+      "point": [-77.096653, 38.9810814]
+    },
+    {
+      "osmId": "10844295831",
+      "version": 3,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "MyEyeDr.",
+      "addr:street": "Elm Street",
+      "category": "optician",
+      "point": [-77.0969837, 38.9822257]
+    },
+    {
+      "osmId": "10844295833",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Claire de Lune Sleepwear",
+      "addr:street": "Elm Street",
+      "category": "clothes",
+      "point": [-77.0973051, 38.9822162]
+    },
+    {
+      "osmId": "11137616608",
+      "version": 3,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Smoothie King",
+      "addr:street": "Bethesda Avenue",
+      "category": "fast_food",
+      "point": [-77.093825, 38.9808603]
+    },
+    {
+      "osmId": "11137616810",
+      "version": 5,
+      "editedAt": "2025-08-28T14:59:39Z",
+      "name": "Takumi Sushi",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.0996102, 38.9809784]
+    },
+    {
+      "osmId": "11137620205",
+      "version": 7,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Starbucks",
+      "addr:street": "Wisconsin Avenue",
+      "category": "cafe",
+      "point": [-77.0932735, 38.9812522]
+    },
+    {
+      "osmId": "11372159917",
+      "version": 1,
+      "editedAt": "2023-11-23T21:40:22Z",
+      "name": "Bethesda Custom Tailors",
+      "addr:street": "Norfolk Avenue",
+      "category": "tailor",
+      "point": [-77.0986451, 38.9895662]
+    },
+    {
+      "osmId": "11829063213",
+      "version": 1,
+      "editedAt": "2024-04-18T18:59:36Z",
+      "name": "Columbia Care",
+      "addr:street": "Willow Lane",
+      "category": "cannabis",
+      "point": [-77.091976, 38.9816042]
+    },
+    {
+      "osmId": "11923819350",
+      "version": 4,
+      "editedAt": "2024-09-26T14:55:18Z",
+      "name": "Dunkin'",
+      "addr:street": "Old Georgetown Road",
+      "category": "fast_food",
+      "point": [-77.0949945, 38.9847514]
+    },
+    {
+      "osmId": "11923819351",
+      "version": 1,
+      "editedAt": "2024-05-22T01:11:30Z",
+      "name": "Dunkin'",
+      "addr:street": "Cordell Avenue",
+      "category": "fast_food",
+      "point": [-77.0985063, 38.9893165]
+    },
+    {
+      "osmId": "11923819352",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Domino's",
+      "addr:street": "Saint Elmo Avenue",
+      "category": "fast_food",
+      "point": [-77.0970659, 38.9895955]
+    },
+    {
+      "osmId": "11954220751",
+      "version": 4,
+      "editedAt": "2025-05-10T12:43:08Z",
+      "name": "Fully Promoted Bethesda, MD",
+      "addr:street": "Middleton Lane",
+      "category": "office",
+      "point": [-77.0939643, 38.986665]
+    },
+    {
+      "osmId": "12050368603",
+      "version": 6,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Mattress Warehouse",
+      "addr:street": "Wisconsin Avenue",
+      "category": "bed",
+      "point": [-77.0918052, 38.978799]
+    },
+    {
+      "osmId": "12244228433",
+      "version": 1,
+      "editedAt": "2024-10-11T14:09:25Z",
+      "name": "Euro Motorcars",
+      "category": "car",
+      "point": [-77.0986936, 38.9803299]
+    },
+    {
+      "osmId": "12244228434",
+      "version": 2,
+      "editedAt": "2025-11-13T22:25:20Z",
+      "name": "Ourisman Volkswagen",
+      "category": "car",
+      "point": [-77.098159, 38.9797193]
+    },
+    {
+      "osmId": "12244228435",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Volvo Cars of Bethesda",
+      "category": "car",
+      "point": [-77.0982521, 38.9795122]
+    },
+    {
+      "osmId": "12244228436",
+      "version": 2,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "CVS Pharmacy",
+      "category": "chemist",
+      "point": [-77.0983575, 38.9783153]
+    },
+    {
+      "osmId": "12244228437",
+      "version": 4,
+      "editedAt": "2025-08-28T11:24:22Z",
+      "name": "Delhi Spice",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.099394, 38.9809879]
+    },
+    {
+      "osmId": "12247303929",
+      "version": 1,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "M&T Bank",
+      "category": "bank",
+      "point": [-77.0947504, 38.9823282]
+    },
+    {
+      "osmId": "12247303930",
+      "version": 1,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "name": "The Barking Dog",
+      "category": "pub",
+      "point": [-77.0952358, 38.9823022]
+    },
+    {
+      "osmId": "12247303931",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Terrain",
+      "category": "interior_decoration",
+      "point": [-77.0959134, 38.9811038]
+    },
+    {
+      "osmId": "12249142125",
+      "version": 1,
+      "editedAt": "2024-10-13T21:54:40Z",
+      "name": "Dig",
+      "category": "restaurant",
+      "point": [-77.0957963, 38.9822833]
+    },
+    {
+      "osmId": "12249142126",
+      "version": 1,
+      "editedAt": "2024-10-13T21:54:40Z",
+      "name": "Tropical Smoothie King",
+      "category": "fast_food",
+      "point": [-77.0954129, 38.9822938]
+    },
+    {
+      "osmId": "12251576795",
+      "version": 3,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "H&R Block",
+      "category": "office",
+      "point": [-77.0905066, 38.9783453]
+    },
+    {
+      "osmId": "12254691890",
+      "version": 4,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Quick Remodels",
+      "addr:street": "Old Georgetown Road",
+      "category": "kitchen",
+      "point": [-77.0989029, 38.9877428]
+    },
+    {
+      "osmId": "12254763823",
+      "version": 4,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Bethesda Cabinets",
+      "addr:street": "Old Georgetown Road",
+      "category": "kitchen",
+      "point": [-77.0987041, 38.9877578]
+    },
+    {
+      "osmId": "12259464991",
+      "version": 2,
+      "editedAt": "2025-01-23T17:39:30Z",
+      "name": "Hinata Sushi and Market",
+      "addr:street": "Saint Elmo Avenue",
+      "category": "grocery",
+      "point": [-77.0986317, 38.9878202]
+    },
+    {
+      "osmId": "12285999555",
+      "version": 1,
+      "editedAt": "2024-10-24T19:20:14Z",
+      "name": "The Salt Line",
+      "category": "restaurant",
+      "point": [-77.096305, 38.9825447]
+    },
+    {
+      "osmId": "12295269455",
+      "version": 1,
+      "editedAt": "2024-10-29T02:02:51Z",
+      "name": "Industrialist",
+      "category": "office",
+      "point": [-77.0912972, 38.9841887]
+    },
+    {
+      "osmId": "12331322310",
+      "version": 1,
+      "editedAt": "2024-11-11T17:00:52Z",
+      "name": "Johnny Was",
+      "category": "clothes",
+      "point": [-77.0979255, 38.9810456]
+    },
+    {
+      "osmId": "12331353040",
+      "version": 2,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "name": "Urban Country",
+      "addr:street": "Arlington Road",
+      "category": "marketplace",
+      "point": [-77.0982761, 38.9812132]
+    },
+    {
+      "osmId": "12331708109",
+      "version": 1,
+      "editedAt": "2024-11-11T20:11:19Z",
+      "name": "bluemercury",
+      "category": "cosmetics",
+      "point": [-77.096078, 38.9816072]
+    },
+    {
+      "osmId": "12331708110",
+      "version": 2,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Madison Reed",
+      "addr:street": "Woodmont Avenue",
+      "category": "beauty",
+      "point": [-77.0961172, 38.9816657]
+    },
+    {
+      "osmId": "12331986299",
+      "version": 1,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Pottery Barn Kids",
+      "category": "furniture",
+      "point": [-77.0953256, 38.9807749]
+    },
+    {
+      "osmId": "12331986300",
+      "version": 1,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "PBteen",
+      "category": "furniture",
+      "point": [-77.0953354, 38.9806831]
+    },
+    {
+      "osmId": "12332008901",
+      "version": 3,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Citibank",
+      "category": "bank",
+      "point": [-77.0955631, 38.9808022]
+    },
+    {
+      "osmId": "12332008902",
+      "version": 2,
+      "editedAt": "2025-08-28T11:24:27Z",
+      "name": "New Balance",
+      "addr:street": "Arlington Road",
+      "category": "clothes",
+      "point": [-77.0982153, 38.9803827]
+    },
+    {
+      "osmId": "12332008903",
+      "version": 1,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Washington Fine Properties",
+      "category": "office",
+      "point": [-77.098218, 38.9804593]
+    },
+    {
+      "osmId": "12332008905",
+      "version": 1,
+      "editedAt": "2024-11-11T20:23:39Z",
+      "name": "Audi",
+      "category": "car",
+      "point": [-77.098202, 38.9800029]
+    },
+    {
+      "osmId": "12333458358",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Bradley Liberty Automotive Service and Repair",
+      "category": "car_repair",
+      "point": [-77.0993696, 38.9783671]
+    },
+    {
+      "osmId": "12333458359",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Wag N' Wash Natural Pet Food & Grooming",
+      "category": "pet",
+      "point": [-77.0991251, 38.9784748]
+    },
+    {
+      "osmId": "12333458360",
+      "version": 2,
+      "editedAt": "2025-06-11T13:32:15Z",
+      "name": "Walgreens",
+      "addr:street": "Arlington Road",
+      "category": "chemist",
+      "point": [-77.099118, 38.9786667]
+    },
+    {
+      "osmId": "12333458361",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Walgreens",
+      "category": "pharmacy",
+      "point": [-77.0992921, 38.9786743]
+    },
+    {
+      "osmId": "12333458363",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Edith's Pizza",
+      "category": "restaurant",
+      "point": [-77.0991147, 38.9787377]
+    },
+    {
+      "osmId": "12333458364",
+      "version": 2,
+      "editedAt": "2024-11-12T01:41:08Z",
+      "name": "Voorthuis Optician",
+      "category": "optician",
+      "point": [-77.0991196, 38.9788009]
+    },
+    {
+      "osmId": "12333458365",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Bradley Barber Shop",
+      "category": "hairdresser",
+      "point": [-77.0991091, 38.9789206]
+    },
+    {
+      "osmId": "12333458366",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Bradley Party & Variety",
+      "category": "party",
+      "point": [-77.0991069, 38.9790282]
+    },
+    {
+      "osmId": "12333458367",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Editorial Projects in Education, Inc.",
+      "category": "office",
+      "point": [-77.0985245, 38.9790693]
+    },
+    {
+      "osmId": "12333458368",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "FVC Bank",
+      "category": "bank",
+      "point": [-77.0985678, 38.978732]
+    },
+    {
+      "osmId": "12333458371",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "The NOW: Bethesda",
+      "category": "massage",
+      "point": [-77.0985732, 38.9785865]
+    },
+    {
+      "osmId": "12333458374",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Bethesda Chevy Chase Surgery Center",
+      "category": "doctors",
+      "point": [-77.0980505, 38.9786302]
+    },
+    {
+      "osmId": "12333458380",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Radon Installation Contractors LLC",
+      "category": "office",
+      "point": [-77.1005976, 38.9803414]
+    },
+    {
+      "osmId": "12333458392",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "Chevy Chase Pediatric Center",
+      "category": "doctors",
+      "point": [-77.0979369, 38.9785816]
+    },
+    {
+      "osmId": "12333458393",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "name": "RoyaltyStat",
+      "category": "office",
+      "point": [-77.0981098, 38.9785449]
+    },
+    {
+      "osmId": "12342520776",
+      "version": 2,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "name": "Kohler",
+      "category": "bathroom_furnishing",
+      "point": [-77.0966852, 38.9859558]
+    },
+    {
+      "osmId": "12342520777",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Corella",
+      "category": "cafe",
+      "point": [-77.0934977, 38.983547]
+    },
+    {
+      "osmId": "12342520778",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "24 Hour Massage",
+      "category": "massage",
+      "point": [-77.0934596, 38.9833092]
+    },
+    {
+      "osmId": "12342520779",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Stayintouch",
+      "category": "office",
+      "point": [-77.094711, 38.9828805]
+    },
+    {
+      "osmId": "12342520780",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Washington Property Company",
+      "category": "office",
+      "point": [-77.0947367, 38.9829797]
+    },
+    {
+      "osmId": "12342520781",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "SAR",
+      "category": "office",
+      "point": [-77.0946771, 38.9830936]
+    },
+    {
+      "osmId": "12342520782",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Jade Fiducial Washington D.C.",
+      "category": "office",
+      "point": [-77.0946286, 38.9831825]
+    },
+    {
+      "osmId": "12342520783",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "National Insurance of Maryland",
+      "category": "office",
+      "point": [-77.0946408, 38.9832488]
+    },
+    {
+      "osmId": "12342520784",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "AdvisorShares Investments",
+      "category": "bank",
+      "point": [-77.0959186, 38.9832386]
+    },
+    {
+      "osmId": "12342520785",
+      "version": 2,
+      "editedAt": "2024-11-22T14:05:36Z",
+      "name": "BroadOak Capital Partners",
+      "category": "bank",
+      "point": [-77.0957532, 38.9832883]
+    },
+    {
+      "osmId": "12342520786",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Jeremiah Wright, Coldwell Banker Realty",
+      "category": "office",
+      "point": [-77.0953144, 38.9831392]
+    },
+    {
+      "osmId": "12342520787",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "KID Museum",
+      "category": "museum",
+      "point": [-77.0958305, 38.9843123]
+    },
+    {
+      "osmId": "12342520788",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "American Fingerprinting Services",
+      "category": "office",
+      "point": [-77.0958877, 38.9843944]
+    },
+    {
+      "osmId": "12342520789",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "PRN Healthcare",
+      "category": "office",
+      "point": [-77.095807, 38.9844364]
+    },
+    {
+      "osmId": "12342520790",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Mynor and Associates",
+      "category": "office",
+      "point": [-77.0957622, 38.9844356]
+    },
+    {
+      "osmId": "12342520793",
+      "version": 3,
+      "editedAt": "2025-09-26T16:43:27Z",
+      "name": "Aventino Cucina Romana",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.0944518, 38.9811223]
+    },
+    {
+      "osmId": "12342520794",
+      "version": 2,
+      "editedAt": "2025-06-10T13:32:35Z",
+      "name": "Chase",
+      "addr:street": "Bethesda Avenue",
+      "category": "bank",
+      "point": [-77.0947955, 38.9811334]
+    },
+    {
+      "osmId": "12342520795",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Tacombi",
+      "category": "restaurant",
+      "point": [-77.0948097, 38.9815693]
+    },
+    {
+      "osmId": "12342520796",
+      "version": 2,
+      "editedAt": "2025-03-02T21:10:32Z",
+      "name": "One Medical",
+      "category": "clinic",
+      "point": [-77.0948335, 38.9808528]
+    },
+    {
+      "osmId": "12342520797",
+      "version": 1,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "Rice Patties Grill",
+      "category": "restaurant",
+      "point": [-77.093046, 38.9809268]
+    },
+    {
+      "osmId": "12342520799",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Lincoln",
+      "category": "car",
+      "point": [-77.093052, 38.9824841]
+    },
+    {
+      "osmId": "12342537473",
+      "version": 2,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Terrain Plants",
+      "category": "garden_centre",
+      "point": [-77.0958589, 38.9811068]
+    },
+    {
+      "osmId": "12342537477",
+      "version": 1,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Severina Residential",
+      "category": "office",
+      "point": [-77.0968075, 38.9811314]
+    },
+    {
+      "osmId": "12342537478",
+      "version": 1,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Morrison Cosmetic & General Dentistry",
+      "category": "dentist",
+      "point": [-77.096817, 38.9812231]
+    },
+    {
+      "osmId": "12342537479",
+      "version": 1,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Kendra Scott",
+      "category": "jewelry",
+      "point": [-77.0971105, 38.981068]
+    },
+    {
+      "osmId": "12342537480",
+      "version": 1,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Madewell",
+      "category": "clothes",
+      "point": [-77.0972497, 38.9810609]
+    },
+    {
+      "osmId": "12342537481",
+      "version": 1,
+      "editedAt": "2024-11-15T01:55:41Z",
+      "name": "Peloton",
+      "category": "sports",
+      "point": [-77.0967077, 38.9810787]
+    },
+    {
+      "osmId": "12345219894",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Bank of America",
+      "category": "bank",
+      "point": [-77.0914683, 38.9781273]
+    },
+    {
+      "osmId": "12345219898",
+      "version": 1,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "Maki Bar",
+      "category": "restaurant",
+      "point": [-77.0906681, 38.9784719]
+    },
+    {
+      "osmId": "12345219900",
+      "version": 1,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "BCC Dental Care",
+      "category": "dentist",
+      "point": [-77.0906554, 38.9783572]
+    },
+    {
+      "osmId": "12345225601",
+      "version": 1,
+      "editedAt": "2024-11-16T03:54:21Z",
+      "name": "Posh Nails",
+      "category": "beauty",
+      "point": [-77.0906692, 38.9782492]
+    },
+    {
+      "osmId": "12345231205",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Vim & Victor - STJ",
+      "category": "restaurant",
+      "point": [-77.091578, 38.9783554]
+    },
+    {
+      "osmId": "12345317734",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Crystal Energy",
+      "category": "psychic",
+      "point": [-77.0923298, 38.9798364]
+    },
+    {
+      "osmId": "12345317735",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Town Jewelers",
+      "category": "jewelry",
+      "point": [-77.0923085, 38.979797]
+    },
+    {
+      "osmId": "12345317736",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Victor Gallery",
+      "category": "carpet",
+      "point": [-77.0922647, 38.9797157]
+    },
+    {
+      "osmId": "12345317737",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Sinatra's Gentlemen's Barbershop",
+      "category": "hairdresser",
+      "point": [-77.0922896, 38.97976]
+    },
+    {
+      "osmId": "12345317738",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Mattress Firm",
+      "category": "bed",
+      "point": [-77.0921691, 38.9795268]
+    },
+    {
+      "osmId": "12345317739",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Tobacco King and Vape",
+      "category": "e-cigarette",
+      "point": [-77.0922372, 38.9796549]
+    },
+    {
+      "osmId": "12345317740",
+      "version": 1,
+      "editedAt": "2024-11-16T04:50:54Z",
+      "name": "CubeSmart",
+      "category": "storage_rental",
+      "point": [-77.0924764, 38.9792808]
+    },
+    {
+      "osmId": "12345317741",
+      "version": 5,
+      "editedAt": "2025-07-31T23:32:26Z",
+      "name": "Thai Kitchen",
+      "category": "restaurant",
+      "point": [-77.0916873, 38.9796902]
+    },
+    {
+      "osmId": "12345317742",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Beer Wine and Co.",
+      "category": "alcohol",
+      "point": [-77.0917963, 38.9799111]
+    },
+    {
+      "osmId": "12345317743",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Don Pollo of Bethesda",
+      "category": "fast_food",
+      "point": [-77.0916323, 38.9795763]
+    },
+    {
+      "osmId": "12345317744",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Kitchen and Bath Studios",
+      "category": "kitchen",
+      "point": [-77.0915537, 38.9794154]
+    },
+    {
+      "osmId": "12345317745",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Persimmon",
+      "category": "restaurant",
+      "point": [-77.091593, 38.9794876]
+    },
+    {
+      "osmId": "12345317746",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Millers Furs",
+      "category": "fabric",
+      "point": [-77.091416, 38.9799422]
+    },
+    {
+      "osmId": "12507258084",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Teacher Magazine",
+      "category": "office",
+      "point": [-77.0984039, 38.9791418]
+    },
+    {
+      "osmId": "12507258085",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Scott Alford at Prudential",
+      "category": "office",
+      "point": [-77.0971681, 38.981875]
+    },
+    {
+      "osmId": "12507258087",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "The GW Medical Faculty Associates",
+      "category": "doctors",
+      "point": [-77.0969036, 38.9818938]
+    },
+    {
+      "osmId": "12507258088",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "GW Neurology - Bethesda",
+      "category": "doctors",
+      "point": [-77.0968131, 38.9818973]
+    },
+    {
+      "osmId": "12507258089",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Sheetal Sheth",
+      "category": "doctors",
+      "point": [-77.0970939, 38.9818782]
+    },
+    {
+      "osmId": "12507258090",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Wells Fargo Advisors",
+      "category": "office",
+      "point": [-77.098326, 38.9822533]
+    },
+    {
+      "osmId": "12507258091",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Chip City",
+      "category": "bakery",
+      "point": [-77.0977298, 38.9821986]
+    },
+    {
+      "osmId": "12507258094",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Bethesda List Center, Inc",
+      "category": "office",
+      "point": [-77.0977178, 38.9825408]
+    },
+    {
+      "osmId": "12507258095",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Luggage and Leather Depot",
+      "category": "bag",
+      "point": [-77.0977138, 38.9824591]
+    },
+    {
+      "osmId": "12507258096",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Meridian Homes",
+      "category": "office",
+      "point": [-77.0978705, 38.9825366]
+    },
+    {
+      "osmId": "12507258097",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "The Red Bloom",
+      "category": "beauty",
+      "point": [-77.0983399, 38.9823902]
+    },
+    {
+      "osmId": "12507258098",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Bethesda Barbershop & Styling",
+      "category": "hairdresser",
+      "point": [-77.0983415, 38.9824573]
+    },
+    {
+      "osmId": "12507258099",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "HoneyFlower Foods",
+      "category": "health_food",
+      "point": [-77.0977155, 38.9824858]
+    },
+    {
+      "osmId": "12507258100",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Rowan - The Shoppes at Bethesda",
+      "category": "tattoo",
+      "point": [-77.0970174, 38.982362]
+    },
+    {
+      "osmId": "12507270001",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Puree Artisan Juice Bar",
+      "category": "fast_food",
+      "point": [-77.0964811, 38.9822517]
+    },
+    {
+      "osmId": "12507270002",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Auto Glass Experts",
+      "category": "car_repair",
+      "point": [-77.0965611, 38.9822404]
+    },
+    {
+      "osmId": "12507270003",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "CIM Group",
+      "category": "office",
+      "point": [-77.0963407, 38.9817461]
+    },
+    {
+      "osmId": "12507270004",
+      "version": 2,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Clayboy's Shave Ice",
+      "category": "ice_cream",
+      "point": [-77.0958135, 38.9810129]
+    },
+    {
+      "osmId": "12507270005",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "JBG SMITH",
+      "category": "office",
+      "point": [-77.0946417, 38.9812152]
+    },
+    {
+      "osmId": "12507270006",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "AP Pizza Shop",
+      "category": "restaurant",
+      "point": [-77.0945976, 38.981118]
+    },
+    {
+      "osmId": "12507270007",
+      "version": 2,
+      "editedAt": "2025-03-02T21:10:32Z",
+      "name": "CBRE",
+      "category": "office",
+      "point": [-77.0946404, 38.9811772]
+    },
+    {
+      "osmId": "12507270008",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Long & Foster Real Estate, Inc.",
+      "category": "office",
+      "point": [-77.0941981, 38.9811965]
+    },
+    {
+      "osmId": "12507270009",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Compass Group",
+      "category": "office",
+      "point": [-77.0933411, 38.9811877]
+    },
+    {
+      "osmId": "12507270010",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Alana Aschenbach, Realtor",
+      "category": "office",
+      "point": [-77.0938369, 38.9811878]
+    },
+    {
+      "osmId": "12507270011",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "The Buckley Group at COMPASS Real Estate",
+      "category": "office",
+      "point": [-77.0933438, 38.9812005]
+    },
+    {
+      "osmId": "12507270012",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Smile and Company",
+      "category": "dentist",
+      "point": [-77.093296, 38.9814353]
+    },
+    {
+      "osmId": "12507270014",
+      "version": 2,
+      "editedAt": "2025-09-26T14:50:20Z",
+      "name": "Panera Bread",
+      "addr:street": "Wisconsin Avenue",
+      "category": "fast_food",
+      "point": [-77.0925255, 38.9815408]
+    },
+    {
+      "osmId": "12507270015",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Taqueria El Jalapeño AUTÉNTICA COMIDA MEXICANA",
+      "category": "fast_food",
+      "point": [-77.0924642, 38.9811138]
+    },
+    {
+      "osmId": "12507270016",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Parvizian Fine Rugs",
+      "category": "carpet",
+      "point": [-77.0922357, 38.9806915]
+    },
+    {
+      "osmId": "12507270017",
+      "version": 1,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "MetroLogo",
+      "category": "clothes",
+      "point": [-77.0922032, 38.9806311]
+    },
+    {
+      "osmId": "12507270018",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Miller and Long",
+      "category": "office",
+      "point": [-77.091936, 38.980247]
+    },
+    {
+      "osmId": "12530534762",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "Bethesda Fine Art",
+      "addr:street": "Cordell Avenue",
+      "category": "art",
+      "point": [-77.0990185, 38.9885958]
+    },
+    {
+      "osmId": "12530534763",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "La Catrina",
+      "category": "restaurant",
+      "point": [-77.0992071, 38.9884016]
+    },
+    {
+      "osmId": "12646717656",
+      "version": 3,
+      "editedAt": "2025-07-25T00:55:02Z",
+      "name": "KBR Kitchen & Bath",
+      "category": "kitchen",
+      "point": [-77.0920926, 38.9793782]
+    },
+    {
+      "osmId": "12646717658",
+      "version": 4,
+      "editedAt": "2025-07-31T23:32:26Z",
+      "name": "Chevy Chase Valet & Cleaners",
+      "category": "dry_cleaning",
+      "point": [-77.0916718, 38.9796456]
+    },
+    {
+      "osmId": "12753135523",
+      "version": 1,
+      "editedAt": "2025-04-13T22:37:11Z",
+      "name": "Bethesda Chocolates",
+      "category": "chocolate",
+      "point": [-77.096288, 38.9901119]
+    },
+    {
+      "osmId": "12803481701",
+      "version": 1,
+      "editedAt": "2025-05-02T04:22:21Z",
+      "name": "Citizens Bank",
+      "addr:street": "Old Georgetown Road",
+      "category": "bank",
+      "point": [-77.0967723, 38.9864393]
+    },
+    {
+      "osmId": "12803488401",
+      "version": 1,
+      "editedAt": "2025-05-02T04:31:06Z",
+      "name": "Oishii Ramen Cafe",
+      "addr:street": "Fairmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0968653, 38.9883839]
+    },
+    {
+      "osmId": "12803503001",
+      "version": 2,
+      "editedAt": "2025-05-11T12:19:46Z",
+      "name": "Casa Oaxaca Bethesda",
+      "addr:street": "Fairmont Avenue",
+      "category": "restaurant",
+      "point": [-77.0969562, 38.9883001]
+    },
+    {
+      "osmId": "12803516401",
+      "version": 2,
+      "editedAt": "2025-10-20T16:02:33Z",
+      "name": "1 Bethesda Dental Center",
+      "addr:street": "Bethesda Metro Center",
+      "category": "dentist",
+      "point": [-77.0963138, 38.9844606]
+    },
+    {
+      "osmId": "12831691940",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Grace Street Coffee Roasters",
+      "category": "cafe",
+      "point": [-77.0996948, 38.9875665]
+    },
+    {
+      "osmId": "12831691941",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "The ONE Street Company Bethesda",
+      "category": "office",
+      "point": [-77.0997408, 38.9874454]
+    },
+    {
+      "osmId": "12831691943",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Betru Salon",
+      "category": "beauty",
+      "point": [-77.0995945, 38.9876829]
+    },
+    {
+      "osmId": "12831691944",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "FunkyPiece Smoke Shop & Glass Gallery",
+      "category": "tobacco",
+      "point": [-77.0994203, 38.9876899]
+    },
+    {
+      "osmId": "12831691945",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Aden Pizza",
+      "category": "fast_food",
+      "point": [-77.0993607, 38.9876591]
+    },
+    {
+      "osmId": "12831691946",
+      "version": 2,
+      "editedAt": "2025-08-25T18:30:47Z",
+      "name": "Tasty Grills & Catering",
+      "addr:street": "Old Georgetown Road",
+      "category": "restaurant",
+      "point": [-77.0992864, 38.9876144]
+    },
+    {
+      "osmId": "12831691947",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Teas Me Bubble Tea",
+      "category": "cafe",
+      "point": [-77.0993544, 38.9874465]
+    },
+    {
+      "osmId": "12831691948",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Citrine Salon Bethesda",
+      "category": "hairdresser",
+      "point": [-77.0990377, 38.9874625]
+    },
+    {
+      "osmId": "12831691949",
+      "version": 2,
+      "editedAt": "2026-05-14T23:04:40Z",
+      "name": "Guru Groceries and Chaat House",
+      "category": "supermarket",
+      "point": [-77.0991288, 38.987865]
+    },
+    {
+      "osmId": "12831691959",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Prestipino Dental Group",
+      "category": "dentist",
+      "point": [-77.1002835, 38.9881497]
+    },
+    {
+      "osmId": "12831691960",
+      "version": 1,
+      "editedAt": "2025-05-12T18:26:49Z",
+      "name": "Bethesda Custom Framing",
+      "category": "craft",
+      "point": [-77.1005184, 38.9883135]
+    },
+    {
+      "osmId": "12831714324",
+      "version": 2,
+      "editedAt": "2025-06-10T13:30:52Z",
+      "name": "Pisco y Nazca",
+      "addr:street": "Bethesda Metro Center",
+      "category": "restaurant",
+      "point": [-77.0958717, 38.983587]
+    },
+    {
+      "osmId": "12901880201",
+      "version": 1,
+      "editedAt": "2025-06-10T10:37:32Z",
+      "name": "Sandy Spring Bank",
+      "category": "bank",
+      "point": [-77.0946724, 38.9856671]
+    },
+    {
+      "osmId": "12901883901",
+      "version": 2,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Room & Board",
+      "category": "furniture",
+      "point": [-77.0959767, 38.9814331]
+    },
+    {
+      "osmId": "12901947901",
+      "version": 1,
+      "editedAt": "2025-06-10T11:13:52Z",
+      "name": "Blossoms of Bethesda",
+      "category": "florist",
+      "point": [-77.094426, 38.9863005]
+    },
+    {
+      "osmId": "12901980901",
+      "version": 1,
+      "editedAt": "2025-06-10T11:35:55Z",
+      "name": "Mejuri",
+      "category": "jewelry",
+      "point": [-77.0955258, 38.9815105]
+    },
+    {
+      "osmId": "13072363001",
+      "version": 1,
+      "editedAt": "2025-08-15T11:25:13Z",
+      "name": "Lidl",
+      "addr:street": "Old Georgetown Road",
+      "category": "supermarket",
+      "point": [-77.0960656, 38.9860689]
+    },
+    {
+      "osmId": "13095009442",
+      "version": 1,
+      "editedAt": "2025-08-24T19:45:00Z",
+      "name": "Big Planet Comics",
+      "addr:street": "Norfolk Avenue",
+      "category": "books",
+      "point": [-77.0982812, 38.9897119]
+    },
+    {
+      "osmId": "13103520903",
+      "version": 2,
+      "editedAt": "2025-08-28T14:06:07Z",
+      "name": "City Lights of China",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.1000936, 38.9809643]
+    },
+    {
+      "osmId": "13103521202",
+      "version": 1,
+      "editedAt": "2025-08-28T11:24:45Z",
+      "name": "CherCher Ethiopian Cuisine",
+      "addr:street": "Bethesda Avenue",
+      "category": "restaurant",
+      "point": [-77.099274, 38.9809898]
+    },
+    {
+      "osmId": "13103521402",
+      "version": 3,
+      "editedAt": "2025-08-28T14:08:02Z",
+      "name": "Butcher's Alley",
+      "addr:street": "Bethesda Avenue",
+      "category": "butcher",
+      "point": [-77.1003248, 38.9809584]
+    },
+    {
+      "osmId": "13103521403",
+      "version": 2,
+      "editedAt": "2025-08-28T14:06:07Z",
+      "name": "Chevy Chase Glass Company",
+      "addr:street": "Bethesda Avenue",
+      "category": "bathroom_furnishing",
+      "point": [-77.1000235, 38.9809641]
+    },
+    {
+      "osmId": "13103521404",
+      "version": 1,
+      "editedAt": "2025-08-28T11:24:50Z",
+      "name": "Cork 57 Beer & Wine",
+      "addr:street": "Bethesda Avenue",
+      "category": "wine",
+      "point": [-77.0988212, 38.9806884]
+    },
+    {
+      "osmId": "13103521901",
+      "version": 1,
+      "editedAt": "2025-08-28T11:24:31Z",
+      "name": "Pescadeli",
+      "addr:street": "Bethesda Avenue",
+      "category": "deli",
+      "point": [-77.100342, 38.9806315]
+    },
+    {
+      "osmId": "13103523301",
+      "version": 2,
+      "editedAt": "2025-08-28T14:06:07Z",
+      "name": "Smoke Island Bethesda 2",
+      "addr:street": "Bethesda Avenue",
+      "category": "tobacco",
+      "point": [-77.0999512, 38.9809659]
+    },
+    {
+      "osmId": "13103524401",
+      "version": 2,
+      "editedAt": "2025-08-28T14:06:07Z",
+      "name": "Griffin Cycle",
+      "addr:street": "Bethesda Avenue",
+      "category": "bicycle",
+      "point": [-77.0997493, 38.9809773]
+    },
+    {
+      "osmId": "13103524501",
+      "version": 1,
+      "editedAt": "2025-08-28T11:24:48Z",
+      "name": "Fresh Baguette",
+      "addr:street": "Bethesda Avenue",
+      "category": "bakery",
+      "point": [-77.0992227, 38.9809684]
+    },
+    {
+      "osmId": "13103525601",
+      "version": 1,
+      "editedAt": "2025-08-28T11:24:52Z",
+      "name": "Euro Motorcars Appearance Center",
+      "addr:street": "Bethesda Avenue",
+      "category": "car_repair",
+      "point": [-77.0997052, 38.9806504]
+    },
+    {
+      "osmId": "13106385495",
+      "version": 1,
+      "editedAt": "2025-08-29T15:56:10Z",
+      "name": "Paris Baguette",
+      "addr:street": "Fairmont Avenue",
+      "category": "bakery",
+      "point": [-77.0973755, 38.9879087]
+    },
+    {
+      "osmId": "13108860359",
+      "version": 1,
+      "editedAt": "2025-08-30T15:42:24Z",
+      "name": "CoffeeFi Roastery",
+      "addr:street": "Saint Elmo Avenue",
+      "category": "cafe",
+      "point": [-77.0982769, 38.9883834]
+    },
+    {
+      "osmId": "13173640809",
+      "version": 2,
+      "editedAt": "2025-09-26T14:48:08Z",
+      "name": "M&M Appliance",
+      "addr:street": "Wisconsin Avenue",
+      "category": "appliance",
+      "point": [-77.0926749, 38.9816939]
+    },
+    {
+      "osmId": "13173725828",
+      "version": 1,
+      "editedAt": "2025-09-26T15:36:27Z",
+      "name": "Burke & Herbert Bank",
+      "category": "bank",
+      "point": [-77.0959665, 38.9887589]
+    },
+    {
+      "osmId": "13186428656",
+      "version": 1,
+      "editedAt": "2025-10-01T18:18:50Z",
+      "name": "Brothers Sew & Vac",
+      "addr:street": "Saint Elmo Avenue",
+      "category": "vacuum_cleaner",
+      "point": [-77.0969866, 38.9890677]
+    },
+    {
+      "osmId": "13186428657",
+      "version": 1,
+      "editedAt": "2025-10-01T18:18:50Z",
+      "name": "Creative Parties",
+      "addr:street": "Norfolk Avenue",
+      "category": "stationery",
+      "point": [-77.0969048, 38.9888757]
+    },
+    {
+      "osmId": "13347856228",
+      "version": 1,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Anine Bing",
+      "category": "clothes",
+      "point": [-77.0955706, 38.9815474]
+    },
+    {
+      "osmId": "13651054254",
+      "version": 1,
+      "editedAt": "2026-03-16T00:38:41Z",
+      "name": "Fairfax Kitchen and Bath",
+      "category": "kitchen",
+      "point": [-77.093631, 38.9808697]
+    },
+    {
+      "osmId": "13947897349",
+      "version": 1,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Ceremony Coffee",
+      "category": "cafe",
+      "point": [-77.0938119, 38.9844998]
+    },
+    {
+      "osmId": "13947897350",
+      "version": 1,
+      "editedAt": "2026-06-17T15:23:36Z",
+      "name": "Crescent Convenience",
+      "category": "convenience",
+      "point": [-77.0938587, 38.98445]
+    },
+    {
+      "osmId": "13963516881",
+      "version": 1,
+      "editedAt": "2026-06-25T00:24:27Z",
+      "name": "Wonderland Books",
+      "addr:street": "Norfolk Avenue",
+      "category": "books",
+      "point": [-77.0981453, 38.9891508]
+    }
+  ],
+  "monuments": [
+    {
+      "osmId": "485337133",
+      "version": 2,
+      "editedAt": "2015-06-25T05:14:56Z",
+      "kind": "fountain",
+      "point": [-77.096375, 38.9885956]
+    },
+    {
+      "osmId": "485337137",
+      "version": 3,
+      "editedAt": "2024-07-09T01:35:27Z",
+      "kind": "fountain",
+      "point": [-77.0947248, 38.9847616]
+    },
+    {
+      "osmId": "512979315",
+      "version": 3,
+      "editedAt": "2010-12-01T04:27:35Z",
+      "kind": "fountain",
+      "point": [-77.0934903, 38.98503]
+    },
+    {
+      "osmId": "569889527",
+      "version": 2,
+      "editedAt": "2011-02-07T22:58:49Z",
+      "name": "Linda Weiner Memorial",
+      "kind": "memorial",
+      "point": [-77.096503, 38.9799759]
+    },
+    {
+      "osmId": "569889539",
+      "version": 6,
+      "editedAt": "2024-09-26T14:24:47Z",
+      "name": "Beacon",
+      "artist_name": "Mary Ann Mears",
+      "artwork_type": "sculpture",
+      "material": "steel",
+      "kind": "artwork",
+      "point": [-77.094907, 38.9846488]
+    },
+    {
+      "osmId": "1325781748",
+      "version": 3,
+      "editedAt": "2022-10-21T06:27:41Z",
+      "name": "Lyrical Lady",
+      "artist_name": "Mark Kramer",
+      "artwork_type": "sculpture",
+      "material": "steel",
+      "kind": "artwork",
+      "point": [-77.092441, 38.98472]
+    },
+    {
+      "osmId": "2291576903",
+      "version": 2,
+      "editedAt": "2024-10-28T18:27:42Z",
+      "kind": "fountain",
+      "point": [-77.0956877, 38.9811698]
+    },
+    {
+      "osmId": "5384040298",
+      "version": 4,
+      "editedAt": "2025-01-24T22:58:28Z",
+      "name": "Madonna of the Trail",
+      "inscription": "N.S.D.A.R. memorial to 5he pioneer mothers of the covered wagon days.  Over this highway marched the army ofvMajor General Edward Braddock, April 14, 1755 on its way to Fort Duquesne.  The National Old Trails Road.  This the first military road in America",
+      "wikidata": "Q6728419",
+      "wikipedia": "en:Madonna of the Trail",
+      "kind": "monument",
+      "point": [-77.0942101, 38.9839374]
+    },
+    {
+      "osmId": "7620580543",
+      "version": 1,
+      "editedAt": "2020-06-14T21:01:50Z",
+      "kind": "fountain",
+      "point": [-77.0901647, 38.9846152]
+    },
+    {
+      "osmId": "10107563876",
+      "version": 1,
+      "editedAt": "2022-10-17T04:02:45Z",
+      "artist_name": "Zachary Oxman",
+      "artwork_type": "sculpture",
+      "material": "steel",
+      "kind": "artwork",
+      "point": [-77.098518, 38.9857347]
+    },
+    {
+      "osmId": "10107563877",
+      "version": 1,
+      "editedAt": "2022-10-17T04:02:45Z",
+      "name": "Synergy III",
+      "artist_name": "Jeff Chyatte",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.098498, 38.985473]
+    },
+    {
+      "osmId": "10107563878",
+      "version": 1,
+      "editedAt": "2022-10-17T04:02:45Z",
+      "name": "Full-Twist",
+      "artist_name": "Jason Krugman",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.098527, 38.9905393]
+    },
+    {
+      "osmId": "10107563879",
+      "version": 1,
+      "editedAt": "2022-10-17T04:02:45Z",
+      "name": "Begin Twist",
+      "artist_name": "Jason Krugman",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.098745, 38.9906549]
+    },
+    {
+      "osmId": "10107563880",
+      "version": 1,
+      "editedAt": "2022-10-17T04:02:45Z",
+      "name": "Half-Twist",
+      "artist_name": "Jason Krugman",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.0988936, 38.9907866]
+    },
+    {
+      "osmId": "10118106423",
+      "version": 1,
+      "editedAt": "2022-10-21T06:27:41Z",
+      "name": "Bethesda Walkaround",
+      "artist_name": "George Greenamyer",
+      "artwork_type": "sculpture",
+      "material": "steel",
+      "kind": "artwork",
+      "point": [-77.098779, 38.9825674]
+    },
+    {
+      "osmId": "10118106424",
+      "version": 2,
+      "editedAt": "2024-09-26T14:24:47Z",
+      "kind": "fountain",
+      "point": [-77.0951213, 38.9844627]
+    },
+    {
+      "osmId": "10118106426",
+      "version": 1,
+      "editedAt": "2022-10-21T06:27:41Z",
+      "name": "Under One's Breath",
+      "artist_name": "Alma Selimovic",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.0930313, 38.9811789]
+    },
+    {
+      "osmId": "10118106427",
+      "version": 1,
+      "editedAt": "2022-10-21T06:27:41Z",
+      "name": "Crystal Willow",
+      "artist_name": "Rockne Krebs",
+      "artwork_type": "sculpture",
+      "kind": "artwork",
+      "point": [-77.0925946, 38.9814608]
+    },
+    {
+      "osmId": "12333458373",
+      "version": 1,
+      "editedAt": "2024-11-12T01:37:51Z",
+      "kind": "fountain",
+      "point": [-77.0981181, 38.9787309]
+    },
+    {
+      "osmId": "12351317166",
+      "version": 1,
+      "editedAt": "2024-11-18T14:17:32Z",
+      "kind": "fountain",
+      "point": [-77.0954128, 38.9804064]
+    },
+    {
+      "osmId": "12351317168",
+      "version": 1,
+      "editedAt": "2024-11-18T14:17:32Z",
+      "kind": "fountain",
+      "point": [-77.0953928, 38.9802781]
+    }
+  ],
+  "trees": [
+    {
+      "osmId": "10215467332",
+      "version": 1,
+      "editedAt": "2022-11-24T19:31:02Z",
+      "point": [-77.0976051, 38.9809518]
+    },
+    {
+      "osmId": "11717310293",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941414, 38.9836152]
+    },
+    {
+      "osmId": "11717310294",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0942092, 38.983599]
+    },
+    {
+      "osmId": "11717310295",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0940824, 38.9837525]
+    },
+    {
+      "osmId": "11717310296",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941182, 38.9838316]
+    },
+    {
+      "osmId": "11717310297",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941465, 38.9839082]
+    },
+    {
+      "osmId": "11717310302",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0942754, 38.9835873]
+    },
+    {
+      "osmId": "11717310322",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941692, 38.98398]
+    },
+    {
+      "osmId": "11724276249",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0943956, 38.9845463]
+    },
+    {
+      "osmId": "11724276250",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0944182, 38.9846631]
+    },
+    {
+      "osmId": "11724276251",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0944074, 38.9846101]
+    },
+    {
+      "osmId": "11724276252",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0945655, 38.984875]
+    },
+    {
+      "osmId": "11724276253",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.094658, 38.9849336]
+    },
+    {
+      "osmId": "11724276254",
+      "version": 1,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0947388, 38.9849796]
+    },
+    {
+      "osmId": "11847462155",
+      "version": 2,
+      "editedAt": "2024-07-07T20:06:07Z",
+      "point": [-77.0962137, 38.9850565]
+    },
+    {
+      "osmId": "11847462159",
+      "version": 1,
+      "editedAt": "2024-04-25T14:39:55Z",
+      "point": [-77.0962493, 38.9850719]
+    },
+    {
+      "osmId": "11847462160",
+      "version": 1,
+      "editedAt": "2024-04-25T14:39:55Z",
+      "point": [-77.0961909, 38.9850813]
+    },
+    {
+      "osmId": "12251598335",
+      "version": 1,
+      "editedAt": "2024-10-15T00:02:28Z",
+      "point": [-77.0931931, 38.9793383]
+    },
+    {
+      "osmId": "12351321068",
+      "version": 1,
+      "editedAt": "2024-11-18T14:21:27Z",
+      "point": [-77.0990033, 38.9840405]
+    },
+    {
+      "osmId": "12351321069",
+      "version": 1,
+      "editedAt": "2024-11-18T14:21:27Z",
+      "point": [-77.0989613, 38.9840427]
+    },
+    {
+      "osmId": "12351321070",
+      "version": 1,
+      "editedAt": "2024-11-18T14:21:27Z",
+      "point": [-77.098922, 38.9840421]
+    },
+    {
+      "osmId": "12351321071",
+      "version": 1,
+      "editedAt": "2024-11-18T14:21:27Z",
+      "point": [-77.098942, 38.9840594]
+    }
+  ],
+  "lamps": [
+    {
+      "osmId": "9489080765",
+      "version": 1,
+      "editedAt": "2022-02-08T08:44:18Z",
+      "point": [-77.0995287, 38.9909134]
+    },
+    {
+      "osmId": "11717310303",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0942458, 38.9835953]
+    },
+    {
+      "osmId": "11717310319",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941323, 38.9838729]
+    },
+    {
+      "osmId": "11717310327",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0941846, 38.984013]
+    },
+    {
+      "osmId": "11717310332",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0942415, 38.9841527]
+    },
+    {
+      "osmId": "11717310334",
+      "version": 1,
+      "editedAt": "2024-03-11T18:03:54Z",
+      "point": [-77.0943096, 38.9843247]
+    },
+    {
+      "osmId": "11724179641",
+      "version": 1,
+      "editedAt": "2024-03-12T11:27:44Z",
+      "point": [-77.0943943, 38.9846178]
+    },
+    {
+      "osmId": "11724179643",
+      "version": 1,
+      "editedAt": "2024-03-12T11:27:44Z",
+      "point": [-77.094434, 38.9847773]
+    },
+    {
+      "osmId": "11724179646",
+      "version": 1,
+      "editedAt": "2024-03-12T11:27:44Z",
+      "point": [-77.0945201, 38.9848473]
+    },
+    {
+      "osmId": "11724179649",
+      "version": 1,
+      "editedAt": "2024-03-12T11:27:44Z",
+      "point": [-77.0947127, 38.9849613]
+    },
+    {
+      "osmId": "11724179655",
+      "version": 2,
+      "editedAt": "2024-03-12T11:45:43Z",
+      "point": [-77.0950436, 38.9851588]
+    }
+  ],
+  "benches": [
+    {
+      "osmId": "523564816",
+      "version": 1,
+      "editedAt": "2009-10-07T02:11:08Z",
+      "kind": "bench",
+      "point": [-77.1002016, 38.9909653]
+    },
+    {
+      "osmId": "568132380",
+      "version": 2,
+      "editedAt": "2025-04-24T22:46:16Z",
+      "kind": "bench",
+      "point": [-77.0961954, 38.9891865]
+    },
+    {
+      "osmId": "568132387",
+      "version": 2,
+      "editedAt": "2025-04-24T22:46:18Z",
+      "kind": "bench",
+      "point": [-77.096204, 38.9892198]
+    },
+    {
+      "osmId": "572488256",
+      "version": 3,
+      "editedAt": "2012-07-09T17:13:24Z",
+      "kind": "bench",
+      "point": [-77.0968095, 38.9795871]
+    },
+    {
+      "osmId": "4449389889",
+      "version": 1,
+      "editedAt": "2016-10-15T15:57:45Z",
+      "kind": "bench",
+      "point": [-77.0957199, 38.9806599]
+    },
+    {
+      "osmId": "5018916910",
+      "version": 3,
+      "editedAt": "2023-05-17T01:08:40Z",
+      "kind": "bench",
+      "point": [-77.0977606, 38.9807845]
+    },
+    {
+      "osmId": "9685961215",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0958561, 38.9808477]
+    },
+    {
+      "osmId": "9685961216",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0958937, 38.9808003]
+    },
+    {
+      "osmId": "9685995517",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0959012, 38.9808371]
+    },
+    {
+      "osmId": "9685995518",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0958137, 38.980836]
+    },
+    {
+      "osmId": "9685995519",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.095333, 38.9808758]
+    },
+    {
+      "osmId": "9685995520",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0953515, 38.9808767]
+    },
+    {
+      "osmId": "9685995521",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0953873, 38.98088]
+    },
+    {
+      "osmId": "9685995522",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0952938, 38.980874]
+    },
+    {
+      "osmId": "9685995523",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0952753, 38.9808719]
+    },
+    {
+      "osmId": "9685995524",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0953146, 38.9808767]
+    },
+    {
+      "osmId": "9685995525",
+      "version": 1,
+      "editedAt": "2022-04-22T16:05:28Z",
+      "kind": "bench",
+      "point": [-77.0953677, 38.9808806]
+    },
+    {
+      "osmId": "10883881455",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:21Z",
+      "kind": "picnic_table",
+      "point": [-77.0978049, 38.9812728]
+    },
+    {
+      "osmId": "10883881456",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:19Z",
+      "kind": "picnic_table",
+      "point": [-77.0978071, 38.9813087]
+    },
+    {
+      "osmId": "10883881458",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:16Z",
+      "kind": "picnic_table",
+      "point": [-77.0978028, 38.9812377]
+    },
+    {
+      "osmId": "10883881461",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:25Z",
+      "kind": "picnic_table",
+      "point": [-77.097819, 38.9814989]
+    },
+    {
+      "osmId": "10883881463",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:23Z",
+      "kind": "picnic_table",
+      "point": [-77.0978162, 38.9814225]
+    },
+    {
+      "osmId": "10883881467",
+      "version": 3,
+      "editedAt": "2026-07-31T12:28:30Z",
+      "kind": "picnic_table",
+      "point": [-77.0978312, 38.9816793]
+    },
+    {
+      "osmId": "10942144683",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0958665, 38.9814578]
+    },
+    {
+      "osmId": "10942144684",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0958383, 38.9814288]
+    },
+    {
+      "osmId": "10942144685",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959545, 38.981574]
+    },
+    {
+      "osmId": "10942144686",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960598, 38.9817651]
+    },
+    {
+      "osmId": "10942144687",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960113, 38.9816751]
+    },
+    {
+      "osmId": "10942144688",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959885, 38.981622]
+    },
+    {
+      "osmId": "10942144689",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960833, 38.9818323]
+    },
+    {
+      "osmId": "10942144690",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959721, 38.981599]
+    },
+    {
+      "osmId": "10942144691",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959403, 38.9815505]
+    },
+    {
+      "osmId": "10942144692",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959227, 38.9815281]
+    },
+    {
+      "osmId": "10942144693",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0957275, 38.9813208]
+    },
+    {
+      "osmId": "10942144694",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0961078, 38.9818977]
+    },
+    {
+      "osmId": "10942144695",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.096049, 38.9817349]
+    },
+    {
+      "osmId": "10942144696",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960743, 38.9817975]
+    },
+    {
+      "osmId": "10942144697",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959023, 38.9815068]
+    },
+    {
+      "osmId": "10942144698",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0958844, 38.9814832]
+    },
+    {
+      "osmId": "10942144699",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960981, 38.9818655]
+    },
+    {
+      "osmId": "10942144700",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0961241, 38.9819686]
+    },
+    {
+      "osmId": "10942144701",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0958087, 38.9814024]
+    },
+    {
+      "osmId": "10942144702",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0961149, 38.9819311]
+    },
+    {
+      "osmId": "10942144703",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0957565, 38.9813491]
+    },
+    {
+      "osmId": "10942144704",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0959986, 38.9816484]
+    },
+    {
+      "osmId": "10942144905",
+      "version": 1,
+      "editedAt": "2023-05-31T13:21:13Z",
+      "kind": "picnic_table",
+      "point": [-77.0960329, 38.981706]
+    },
+    {
+      "osmId": "10994772148",
+      "version": 2,
+      "editedAt": "2026-07-31T12:28:27Z",
+      "kind": "picnic_table",
+      "point": [-77.097826, 38.9815804]
+    },
+    {
+      "osmId": "12247303941",
+      "version": 1,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "kind": "bench",
+      "point": [-77.0965641, 38.9800175]
+    },
+    {
+      "osmId": "12247303942",
+      "version": 1,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "kind": "bench",
+      "point": [-77.0965794, 38.9799762]
+    },
+    {
+      "osmId": "12247303943",
+      "version": 1,
+      "editedAt": "2024-10-13T00:41:09Z",
+      "kind": "bench",
+      "point": [-77.0965648, 38.9799252]
+    },
+    {
+      "osmId": "12345211083",
+      "version": 2,
+      "editedAt": "2025-04-24T22:48:28Z",
+      "kind": "picnic_table",
+      "point": [-77.0909043, 38.9784119]
+    },
+    {
+      "osmId": "12345211084",
+      "version": 2,
+      "editedAt": "2025-04-24T22:48:26Z",
+      "kind": "picnic_table",
+      "point": [-77.0909249, 38.9784114]
+    },
+    {
+      "osmId": "12345211085",
+      "version": 2,
+      "editedAt": "2025-04-24T22:48:25Z",
+      "kind": "picnic_table",
+      "point": [-77.0909755, 38.9783873]
+    }
+  ],
+  "busStops": [
+    {
+      "osmId": "479580541",
+      "version": 14,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "shelter": "yes",
+      "point": [-77.0954579, 38.9847231]
+    },
+    {
+      "osmId": "879249246",
+      "version": 4,
+      "editedAt": "2024-05-19T23:07:20Z",
+      "name": "196",
+      "shelter": "no",
+      "bench": "no",
+      "point": [-77.0909478, 38.9841923]
+    },
+    {
+      "osmId": "6535789688",
+      "version": 18,
+      "editedAt": "2025-07-15T02:40:32Z",
+      "name": "Bethesda Station",
+      "shelter": "yes",
+      "point": [-77.0950964, 38.9842888]
+    },
+    {
+      "osmId": "6535789689",
+      "version": 17,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "point": [-77.0953433, 38.9842809]
+    },
+    {
+      "osmId": "6535789690",
+      "version": 16,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "shelter": "yes",
+      "point": [-77.0955696, 38.9842737]
+    },
+    {
+      "osmId": "6535789691",
+      "version": 17,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "shelter": "yes",
+      "point": [-77.0951485, 38.9844673]
+    },
+    {
+      "osmId": "6535789692",
+      "version": 17,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "point": [-77.0953708, 38.9844644]
+    },
+    {
+      "osmId": "6535789693",
+      "version": 18,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "shelter": "yes",
+      "point": [-77.095605, 38.9844554]
+    },
+    {
+      "osmId": "9872833616",
+      "version": 3,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "shelter": "yes",
+      "bench": "yes",
+      "point": [-77.098348, 38.9817705]
+    },
+    {
+      "osmId": "11012423566",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0965705, 38.9900219]
+    },
+    {
+      "osmId": "11012423567",
+      "version": 6,
+      "editedAt": "2025-04-24T22:46:43Z",
+      "shelter": "no",
+      "bench": "yes",
+      "point": [-77.0962334, 38.9885112]
+    },
+    {
+      "osmId": "11012423568",
+      "version": 2,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.0970622, 38.9858989]
+    },
+    {
+      "osmId": "11012423569",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0963569, 38.9840639]
+    },
+    {
+      "osmId": "11012423570",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0941039, 38.980248]
+    },
+    {
+      "osmId": "11012423571",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0915126, 38.9784533]
+    },
+    {
+      "osmId": "11012423572",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0926338, 38.9780517]
+    },
+    {
+      "osmId": "11012423573",
+      "version": 1,
+      "editedAt": "2023-06-28T14:21:54Z",
+      "point": [-77.0954005, 38.9784608]
+    },
+    {
+      "osmId": "11012423574",
+      "version": 2,
+      "editedAt": "2025-09-11T21:27:03Z",
+      "point": [-77.0986431, 38.9782978]
+    },
+    {
+      "osmId": "11835849794",
+      "version": 4,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "name": "Montgomery Ln+East Ln",
+      "shelter": "no",
+      "point": [-77.0952319, 38.9834451]
+    },
+    {
+      "osmId": "12968488070",
+      "version": 2,
+      "editedAt": "2025-07-15T02:04:10Z",
+      "name": "Bethesda Station",
+      "point": [-77.0955273, 38.9847217]
+    },
+    {
+      "osmId": "12968488071",
+      "version": 1,
+      "editedAt": "2025-07-02T00:52:53Z",
+      "name": "Old Georgetown Rd+Commerce Ln",
+      "point": [-77.0964569, 38.9861758]
+    },
+    {
+      "osmId": "12968488072",
+      "version": 1,
+      "editedAt": "2025-07-02T00:52:53Z",
+      "name": "Woodmont Av+Cheltenham Dr",
+      "shelter": "no",
+      "point": [-77.0959544, 38.9880066]
+    },
+    {
+      "osmId": "12992097002",
+      "version": 2,
+      "editedAt": "2025-08-27T01:24:08Z",
+      "name": "Wisconsin Av at Commerce Ln",
+      "point": [-77.094747, 38.986177]
+    },
+    {
+      "osmId": "12992097056",
+      "version": 6,
+      "editedAt": "2025-12-21T05:40:52Z",
+      "name": "Wisconsin Av at Waverly St",
+      "point": [-77.093116, 38.982516]
+    },
+    {
+      "osmId": "12992097057",
+      "version": 4,
+      "editedAt": "2025-08-27T01:24:08Z",
+      "name": "Wisconsin Av at Leland St",
+      "point": [-77.092101, 38.98041]
+    },
+    {
+      "osmId": "12992097058",
+      "version": 2,
+      "editedAt": "2025-08-27T01:24:08Z",
+      "name": "Wisconsin Av at Stanford St",
+      "point": [-77.091129, 38.978417]
+    },
+    {
+      "osmId": "12992097067",
+      "version": 3,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "name": "Wisconsin Av+Elm St",
+      "point": [-77.093629, 38.982735]
+    },
+    {
+      "osmId": "12992097069",
+      "version": 4,
+      "editedAt": "2026-08-17T13:33:29Z",
+      "name": "Wisconsin Av at Stanford St",
+      "shelter": "yes",
+      "bench": "yes",
+      "point": [-77.091412, 38.978253]
+    },
+    {
+      "osmId": "12992097070",
+      "version": 3,
+      "editedAt": "2026-08-17T13:32:58Z",
+      "name": "Wisconsin Av at Miller Av",
+      "shelter": "no",
+      "point": [-77.092626, 38.980672]
+    },
+    {
+      "osmId": "12992097388",
+      "version": 3,
+      "editedAt": "2026-09-16T18:51:55Z",
+      "name": "East-West Hwy+Waverly St",
+      "point": [-77.092156, 38.984981]
+    },
+    {
+      "osmId": "12992098367",
+      "version": 3,
+      "editedAt": "2026-09-16T17:46:02Z",
+      "name": "Wisconsin Av+Cheltenham Dr",
+      "shelter": "no",
+      "point": [-77.095053, 38.988864]
+    },
+    {
+      "osmId": "12992098371",
+      "version": 2,
+      "editedAt": "2025-08-27T01:24:08Z",
+      "name": "Wisconsin Av at Cheltenham Dr",
+      "point": [-77.095229, 38.988404]
+    },
+    {
+      "osmId": "12992098387",
+      "version": 4,
+      "editedAt": "2026-09-16T18:51:55Z",
+      "name": "Old Georgetown Rd+Woodmont Av",
+      "point": [-77.096196, 38.986033]
+    },
+    {
+      "osmId": "12992098402",
+      "version": 3,
+      "editedAt": "2026-09-16T18:51:55Z",
+      "name": "Montgomery Av+Waverly St",
+      "point": [-77.091448, 38.983942]
+    },
+    {
+      "osmId": "13137046589",
+      "version": 1,
+      "editedAt": "2025-09-11T21:27:03Z",
+      "point": [-77.0984791, 38.9835186]
+    },
+    {
+      "osmId": "13143277210",
+      "version": 1,
+      "editedAt": "2025-09-14T20:23:08Z",
+      "name": "Arlington Rd & Bradley Blvd",
+      "shelter": "no",
+      "bench": "yes",
+      "point": [-77.0986436, 38.9782692]
+    },
+    {
+      "osmId": "13763818767",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.1031747, 38.9872822]
+    },
+    {
+      "osmId": "13763818768",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.103515, 38.9871825]
+    },
+    {
+      "osmId": "13763818769",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.1012333, 38.9872377]
+    },
+    {
+      "osmId": "13763818770",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.100656, 38.9873459]
+    },
+    {
+      "osmId": "13763818771",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.0991992, 38.987256]
+    },
+    {
+      "osmId": "13763818772",
+      "version": 1,
+      "editedAt": "2026-04-26T14:39:01Z",
+      "point": [-77.0992849, 38.9873931]
+    },
+    {
+      "osmId": "13765490255",
+      "version": 1,
+      "editedAt": "2026-04-27T02:37:09Z",
+      "point": [-77.0974989, 38.9846678]
+    },
+    {
+      "osmId": "13765490256",
+      "version": 4,
+      "editedAt": "2026-07-31T12:48:55Z",
+      "shelter": "yes",
+      "bench": "yes",
+      "point": [-77.0986602, 38.9833315]
+    },
+    {
+      "osmId": "13765490257",
+      "version": 5,
+      "editedAt": "2026-07-31T12:47:47Z",
+      "shelter": "no",
+      "bench": "no",
+      "point": [-77.098581, 38.9822115]
+    },
+    {
+      "osmId": "13765490259",
+      "version": 1,
+      "editedAt": "2026-04-27T02:37:09Z",
+      "point": [-77.0983071, 38.9806852]
+    },
+    {
+      "osmId": "13765490260",
+      "version": 1,
+      "editedAt": "2026-04-27T02:37:09Z",
+      "shelter": "yes",
+      "point": [-77.0985431, 38.9810559]
+    },
+    {
+      "osmId": "13765490261",
+      "version": 2,
+      "editedAt": "2026-09-09T16:26:40Z",
+      "point": [-77.0988212, 38.9783877]
+    },
+    {
+      "osmId": "13765515149",
+      "version": 1,
+      "editedAt": "2026-04-27T02:43:24Z",
+      "point": [-77.0970171, 38.9865261]
+    },
+    {
+      "osmId": "13765515150",
+      "version": 1,
+      "editedAt": "2026-04-27T02:43:24Z",
+      "point": [-77.0981741, 38.9872402]
+    },
+    {
+      "osmId": "13765515151",
+      "version": 1,
+      "editedAt": "2026-04-27T02:43:24Z",
+      "point": [-77.098258, 38.9872907]
+    },
+    {
+      "osmId": "13765515152",
+      "version": 1,
+      "editedAt": "2026-04-27T02:43:24Z",
+      "point": [-77.0982905, 38.9870652]
+    },
+    {
+      "osmId": "13767238249",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.0997603, 38.9881933]
+    },
+    {
+      "osmId": "13767238253",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.1000773, 38.9881424]
+    },
+    {
+      "osmId": "13767238254",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.1020556, 38.9895711]
+    },
+    {
+      "osmId": "13767238255",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.1015475, 38.9890448]
+    },
+    {
+      "osmId": "13767238256",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "shelter": "yes",
+      "point": [-77.1038681, 38.9906828]
+    },
+    {
+      "osmId": "13767238257",
+      "version": 1,
+      "editedAt": "2026-04-27T14:55:54Z",
+      "point": [-77.1031804, 38.9900174]
+    },
+    {
+      "osmId": "14185550848",
+      "version": 1,
+      "editedAt": "2026-09-16T18:22:51Z",
+      "name": "Wisconsin Av+W Virginia Av",
+      "shelter": "no",
+      "point": [-77.0953115, 38.9902117]
+    },
+    {
+      "osmId": "14185550849",
+      "version": 1,
+      "editedAt": "2026-09-16T18:22:51Z",
+      "name": "Wisconsin Av+Cordell Av",
+      "shelter": "no",
+      "point": [-77.0957483, 38.9908075]
+    }
+  ],
+  "bikeshare": [
+    {
+      "osmId": "4731350198",
+      "version": 4,
+      "editedAt": "2026-07-03T16:04:38Z",
+      "name": "Woodmont Ave & Strathmore St",
+      "network": "Capital Bikeshare",
+      "capacity": "11",
+      "point": [-77.0934477, 38.9798507]
+    },
+    {
+      "osmId": "6285397658",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "47th and Elm St",
+      "network": "Capital Bikeshare",
+      "capacity": "15",
+      "point": [-77.0919933, 38.9824638]
+    },
+    {
+      "osmId": "6285397674",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "Cordell and Norfolk Ave",
+      "network": "Capital Bikeshare",
+      "capacity": "11",
+      "point": [-77.0980313, 38.9895478]
+    },
+    {
+      "osmId": "6285398233",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "Norfolk Ave and Fairmont St",
+      "network": "Capital Bikeshare",
+      "capacity": "11",
+      "point": [-77.0965413, 38.9885698]
+    },
+    {
+      "osmId": "6285398236",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "Montgomery Ave and Waverly St",
+      "network": "Capital Bikeshare",
+      "capacity": "11",
+      "point": [-77.0922123, 38.9838458]
+    },
+    {
+      "osmId": "6285398237",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "Bethesda Ave and Arlington Rd",
+      "network": "Capital Bikeshare",
+      "capacity": "19",
+      "point": [-77.0974283, 38.9811108]
+    },
+    {
+      "osmId": "6285398613",
+      "version": 6,
+      "editedAt": "2025-01-24T23:05:04Z",
+      "name": "Bethesda Metro",
+      "network": "Capital Bikeshare",
+      "capacity": "12",
+      "point": [-77.0945393, 38.9846988]
+    },
+    {
+      "osmId": "6285398642",
+      "version": 5,
+      "editedAt": "2023-06-01T10:41:43Z",
+      "name": "Norfolk and Rugby Ave",
+      "network": "Capital Bikeshare",
+      "capacity": "11",
+      "point": [-77.1002413, 38.9906468]
+    }
+  ],
+  "construction": [
+    {
+      "osmId": "24813385",
+      "version": 20,
+      "editedAt": "2022-12-15T02:02:27Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "tunnel": "yes",
+      "layer": "-1",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0947241, 38.9818284],
+        [-77.0935646, 38.9824272],
+        [-77.0934433, 38.9824796],
+        [-77.0933227, 38.9825253],
+        [-77.0932315, 38.9825572],
+        [-77.0931339, 38.9825852],
+        [-77.0929743, 38.9826291],
+        [-77.0912647, 38.9830774]
+      ]
+    },
+    {
+      "osmId": "169758707",
+      "version": 11,
+      "editedAt": "2025-01-16T16:09:52Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "tunnel": "yes",
+      "layer": "-1",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0956354, 38.9809634],
+        [-77.0955481, 38.9810645],
+        [-77.0953378, 38.9812784],
+        [-77.0952879, 38.9813276],
+        [-77.0951945, 38.9814283],
+        [-77.0951195, 38.9815043],
+        [-77.0950247, 38.9815929],
+        [-77.0949305, 38.9816757],
+        [-77.0948341, 38.981747],
+        [-77.0947241, 38.9818284]
+      ]
+    },
+    {
+      "osmId": "736468314",
+      "version": 6,
+      "editedAt": "2024-11-15T02:22:31Z",
+      "name": "PL Construction",
+      "construction": "rail",
+      "landuse": "construction",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0947215, 38.9817577],
+        [-77.0949201, 38.9815994],
+        [-77.0950234, 38.9815176],
+        [-77.0950092, 38.9811152],
+        [-77.0950644, 38.9811322],
+        [-77.0953801, 38.9813206],
+        [-77.095379, 38.981358],
+        [-77.0949773, 38.9817093],
+        [-77.0950169, 38.9817455],
+        [-77.0949489, 38.9817967],
+        [-77.0949827, 38.9818221],
+        [-77.0947651, 38.9820014],
+        [-77.0947292, 38.9819669],
+        [-77.0947287, 38.9819544],
+        [-77.0947215, 38.9817577]
+      ]
+    },
+    {
+      "osmId": "736468316",
+      "version": 7,
+      "editedAt": "2022-12-15T02:02:27Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "tunnel": "yes",
+      "layer": "-1",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.091281, 38.9831251],
+        [-77.0929129, 38.9826934],
+        [-77.0930383, 38.9826587],
+        [-77.0931726, 38.9826216],
+        [-77.0932963, 38.982586],
+        [-77.0934055, 38.9825505],
+        [-77.0935213, 38.9825096],
+        [-77.0936197, 38.9824719],
+        [-77.0937231, 38.9824321],
+        [-77.0938176, 38.98239],
+        [-77.0947276, 38.9819253]
+      ]
+    },
+    {
+      "osmId": "736841628",
+      "version": 13,
+      "editedAt": "2025-04-05T23:47:05Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0912647, 38.9830774],
+        [-77.091115, 38.983113],
+        [-77.0909297, 38.9831581],
+        [-77.0907229, 38.9832163],
+        [-77.0905065, 38.9832755],
+        [-77.0893041, 38.9835876],
+        [-77.089091, 38.9836398]
+      ]
+    },
+    {
+      "osmId": "736841629",
+      "version": 12,
+      "editedAt": "2022-12-15T02:02:27Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0891015, 38.9836807],
+        [-77.0893105, 38.9836282],
+        [-77.0905575, 38.9832992],
+        [-77.09079, 38.9832417],
+        [-77.0909723, 38.9831982],
+        [-77.0911398, 38.9831587],
+        [-77.091281, 38.9831251]
+      ]
+    },
+    {
+      "osmId": "753211460",
+      "version": 7,
+      "editedAt": "2026-09-18T00:59:03Z",
+      "construction": "light_rail",
+      "landuse": "construction",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0896794, 38.9834342],
+        [-77.0904163, 38.9832476],
+        [-77.0911395, 38.9830603],
+        [-77.091248, 38.9830278],
+        [-77.0912647, 38.9830774],
+        [-77.0913082, 38.9832066],
+        [-77.0907382, 38.9833529],
+        [-77.0904824, 38.9834366]
+      ]
+    },
+    {
+      "osmId": "1069111979",
+      "version": 2,
+      "editedAt": "2022-06-13T04:22:18Z",
+      "landuse": "construction",
+      "kind": "site",
+      "part": 0,
+      "coordinates": [
+        [-77.0937937, 38.9829749],
+        [-77.0935618, 38.9825772],
+        [-77.0940782, 38.9823608],
+        [-77.0941358, 38.9824463],
+        [-77.0945297, 38.9822862],
+        [-77.0946453, 38.9822594],
+        [-77.0946761, 38.9826937],
+        [-77.0937937, 38.9829749]
+      ]
+    },
+    {
+      "osmId": "1069131461",
+      "version": 2,
+      "editedAt": "2022-12-15T02:02:27Z",
+      "name": "Purple Line",
+      "railway": "construction",
+      "construction": "light_rail",
+      "kind": "rail",
+      "part": 0,
+      "coordinates": [
+        [-77.0947276, 38.9819253],
+        [-77.0948645, 38.9818058]
+      ]
+    },
+    {
+      "osmId": "1557863165",
+      "version": 1,
+      "editedAt": "2026-09-10T14:06:59Z",
+      "kind": "site",
+      "part": 0,
+      "coordinates": [
+        [-77.0942303, 38.9829694],
+        [-77.0938305, 38.9830988],
+        [-77.0939887, 38.9834447],
+        [-77.0944071, 38.9833904],
+        [-77.0942303, 38.9829694]
+      ]
+    }
+  ],
+  "busRoutes": [
+    {
+      "osmId": "9686405",
+      "version": 37,
+      "editedAt": "2026-04-27T20:45:29Z",
+      "name": "Ride On 36",
+      "ref": "36",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "1324521356",
+          "4514574851",
+          "4514574852",
+          "3669173907",
+          "9203568441",
+          "49311291",
+          "9203568449"
+        ],
+        ["9203568441", "3669173907", "4514574852", "4514574851", "1324521356"],
+        ["49299353", "3669173918", "2363131638"],
+        [
+          "49299353",
+          "3669173920",
+          "2363131644",
+          "3669181656",
+          "49302884",
+          "9738917530",
+          "49302886",
+          "2363131643",
+          "3669181631",
+          "49302888",
+          "49302891",
+          "567264680",
+          "1323152965",
+          "3725042877",
+          "1322948669",
+          "3669181630",
+          "49223891",
+          "3669181626",
+          "12800332611",
+          "2363476882",
+          "12801646462",
+          "3669191109",
+          "49238135",
+          "3669191123",
+          "49222580",
+          "49236096",
+          "3669191539",
+          "3725028738",
+          "3704764824",
+          "3725028732",
+          "3725027652",
+          "9872926229",
+          "49210043",
+          "7998203877",
+          "1494010365",
+          "1494010366",
+          "12831714321",
+          "1323147866",
+          "49210042",
+          "49167707",
+          "10014666869",
+          "12201930151",
+          "13000400010",
+          "12177382930",
+          "49210038",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ],
+        [
+          "12201930150",
+          "11272684732",
+          "13000400012",
+          "6534063468",
+          "12177382937",
+          "12177382935",
+          "12177382936",
+          "12177382938",
+          "6535789694",
+          "6534063466",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789693",
+          "name": "Bethesda Station",
+          "point": [-77.095605, 38.9844554]
+        },
+        {
+          "osmId": "13143277210",
+          "name": "Arlington Rd & Bradley Blvd",
+          "point": [-77.0986436, 38.9782692]
+        }
+      ]
+    },
+    {
+      "osmId": "9686408",
+      "version": 28,
+      "editedAt": "2026-06-30T12:54:11Z",
+      "name": "Ride On 32",
+      "ref": "32",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "49219465",
+          "13377594768",
+          "49266509",
+          "13376695960",
+          "49235438",
+          "13376678695",
+          "3718933172",
+          "49163876",
+          "12831691958",
+          "4071307091",
+          "13314610941",
+          "13314610909",
+          "49311967",
+          "49196677",
+          "13314610944",
+          "4635720219",
+          "49207433",
+          "4829131354",
+          "4630647322",
+          "4829089514",
+          "49228314",
+          "10236598031",
+          "13314943449",
+          "49167698",
+          "13314943447",
+          "49167700",
+          "10236598032",
+          "5472751214",
+          "49167701",
+          "49148610",
+          "49167702",
+          "49167703",
+          "49167705",
+          "10014666868",
+          "49167707",
+          "10014666869",
+          "12201930151",
+          "13000400010",
+          "12177382930",
+          "49210038",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ],
+        [
+          "49167698",
+          "10236598030",
+          "10236598033",
+          "3766088626",
+          "3225478770",
+          "5472751199",
+          "13314903982",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "11272684732",
+          "13000400012",
+          "6534063468",
+          "12177382937",
+          "12177382935",
+          "12177382936",
+          "12177382938",
+          "6535789694",
+          "6534063466",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789692",
+          "name": "Bethesda Station",
+          "point": [-77.0953708, 38.9844644]
+        }
+      ]
+    },
+    {
+      "osmId": "9686410",
+      "version": 28,
+      "editedAt": "2025-08-22T00:17:34Z",
+      "name": "Ride On 30",
+      "ref": "30",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "49219457",
+          "13377505427",
+          "5472750868",
+          "5472750870",
+          "1323162604",
+          "13995196248",
+          "49194472",
+          "13375200625",
+          "13346252098",
+          "13375200626",
+          "13375200627",
+          "13375200628",
+          "13767238251",
+          "13312179169",
+          "49163871",
+          "5472750846",
+          "12831691950",
+          "13314610942",
+          "49196677",
+          "13314610944",
+          "4635720219",
+          "49207433",
+          "4829131354",
+          "4630647322",
+          "4829089514",
+          "49228314",
+          "10236598031",
+          "13314943449",
+          "49167698",
+          "13314943447",
+          "49167700",
+          "10236598032",
+          "5472751214",
+          "49167701",
+          "49148610",
+          "49167702",
+          "49167703",
+          "49167705",
+          "10014666868",
+          "49167707",
+          "10014666869",
+          "12201930151",
+          "13000400010",
+          "12177382930",
+          "49210038",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ],
+        [
+          "49167698",
+          "10236598030",
+          "10236598033",
+          "3766088626",
+          "3225478770",
+          "5472751199",
+          "13314903982",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "11272684732",
+          "13000400012",
+          "6534063468",
+          "12177382937",
+          "12177382935",
+          "12177382936",
+          "12177382938",
+          "6535789694",
+          "6534063466",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789691",
+          "name": "Bethesda Station",
+          "point": [-77.0951485, 38.9844673]
+        }
+      ]
+    },
+    {
+      "osmId": "9686411",
+      "version": 46,
+      "editedAt": "2026-06-30T12:54:11Z",
+      "name": "Ride On 29",
+      "ref": "29",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "12201930150",
+          "11272684732",
+          "13000400012",
+          "6534063468",
+          "12177382937",
+          "12177382935",
+          "12177382936",
+          "12177382938",
+          "6535789694",
+          "6534063466",
+          "6535789695",
+          "1323044048",
+          "10748826182",
+          "12177382933",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666868",
+          "49167705",
+          "49167703",
+          "49167702",
+          "49148610",
+          "49167701",
+          "5472751214",
+          "10236598032",
+          "49167700",
+          "13314943447",
+          "49167698"
+        ],
+        [
+          "12201930150",
+          "12201930149",
+          "49210032",
+          "13000400011",
+          "12187233213",
+          "12187233214",
+          "49210031",
+          "49210029",
+          "49210028",
+          "13314903982",
+          "5472751199",
+          "3225478770",
+          "3766088626",
+          "10236598033",
+          "10236598030",
+          "49167698",
+          "13314943449",
+          "10236598031",
+          "49228314",
+          "4829089514",
+          "4630647322",
+          "4829131354",
+          "49207433",
+          "4635720219",
+          "13314610944",
+          "49196677",
+          "49311967",
+          "13314610909",
+          "13314610941",
+          "4071307091",
+          "12831691958",
+          "49163876",
+          "3718933172",
+          "13376678695",
+          "49235438",
+          "13376695960",
+          "49266509",
+          "13377594768",
+          "49219465"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789692",
+          "name": "Bethesda Station",
+          "point": [-77.0953708, 38.9844644]
+        }
+      ]
+    },
+    {
+      "osmId": "9690320",
+      "version": 65,
+      "editedAt": "2026-06-05T03:19:41Z",
+      "name": "Ride On 47",
+      "ref": "47",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "49219457",
+          "13377505427",
+          "5472750868",
+          "5472750870",
+          "1323162604",
+          "13995196248",
+          "49194472",
+          "13375200625",
+          "13346252098",
+          "13375200626",
+          "13375200627",
+          "13375200628",
+          "13767238251",
+          "13312179169",
+          "49163871",
+          "5472750846",
+          "12831691950",
+          "13314610942",
+          "49196677",
+          "13314610944",
+          "4635720219",
+          "49207433",
+          "4829131354",
+          "4630647322",
+          "4829089514",
+          "49228314",
+          "10236598031",
+          "13314943449",
+          "49167698",
+          "13314943447",
+          "49167700",
+          "10236598032",
+          "5472751214",
+          "49167701",
+          "49148610",
+          "49167702",
+          "49167703",
+          "49167705",
+          "10014666868",
+          "49167707",
+          "10014666869",
+          "12201930151",
+          "13000400010",
+          "12177382930",
+          "49210038",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ],
+        [
+          "49167698",
+          "10236598030",
+          "10236598033",
+          "3766088626",
+          "3225478770",
+          "5472751199",
+          "13314903982",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "11272684732",
+          "13000400012",
+          "6534063468",
+          "12177382937",
+          "12177382935",
+          "12177382936",
+          "12177382938",
+          "6535789694",
+          "6534063466",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789691",
+          "name": "Bethesda Station",
+          "point": [-77.0951485, 38.9844673]
+        }
+      ]
+    },
+    {
+      "osmId": "9695467",
+      "version": 39,
+      "editedAt": "2025-12-02T14:00:06Z",
+      "name": "Bethesda Circulator",
+      "ref": "Circulator",
+      "operator": "Bethesda Urban Partnership",
+      "network": "Bethesda Circulator",
+      "chains": [
+        [
+          "49299338",
+          "12246879412",
+          "49299342",
+          "3720164938",
+          "3720164935",
+          "3720164931",
+          "49299344",
+          "3720164930",
+          "3720164926",
+          "1323029040",
+          "49277558",
+          "49299347",
+          "49226796",
+          "49299350",
+          "9203568433",
+          "9203568431",
+          "9203568453",
+          "3669173908",
+          "4514574853",
+          "4514574850",
+          "710990409",
+          "3712567773",
+          "49299353",
+          "3669173920",
+          "2363131644",
+          "3669181656",
+          "49302884",
+          "9738917530",
+          "49302886",
+          "2363131643",
+          "3669181631",
+          "49302888",
+          "49302891",
+          "567264680",
+          "1323152965",
+          "3725042877",
+          "1322948669",
+          "3669181630",
+          "49223891",
+          "3669181626",
+          "12800332611",
+          "2363476882",
+          "12801646462",
+          "3669191109",
+          "49238135",
+          "3669191123",
+          "49222580",
+          "49236096",
+          "3669191539",
+          "3725028738",
+          "3704764824",
+          "3725028732",
+          "3725027652",
+          "9872926229",
+          "49210043",
+          "7998203877",
+          "1494010365",
+          "1494010366",
+          "12831714321",
+          "1323147866",
+          "49210042",
+          "49167707"
+        ],
+        [
+          "11186491985",
+          "49163247",
+          "10236598019",
+          "2282235383",
+          "13314839851",
+          "3616718105",
+          "3616718110",
+          "49167687",
+          "3616718106",
+          "9873181752",
+          "13329015384",
+          "49167685",
+          "5472751146",
+          "5472751127",
+          "5472751124",
+          "13328582330",
+          "13328582326",
+          "49163867",
+          "13328582324"
+        ],
+        [
+          "10858680713",
+          "5472750880",
+          "5472750794",
+          "49171209",
+          "7998226545",
+          "49219457",
+          "13377505427",
+          "5472750868",
+          "5472750870",
+          "1323162604",
+          "13995196248",
+          "49194472",
+          "13375200625",
+          "13346252098",
+          "13375200626",
+          "13375200627",
+          "13375200628",
+          "13767238251",
+          "13312179169",
+          "49163871",
+          "5472750846",
+          "12831691950",
+          "13314610942",
+          "49196677",
+          "13314610944",
+          "4635720219",
+          "49207433",
+          "4829131354",
+          "4630647322",
+          "4829089514",
+          "49228314",
+          "10236598031",
+          "13314943449",
+          "49167698",
+          "10236598030",
+          "10236598033",
+          "3766088626",
+          "3225478770",
+          "5472751199",
+          "13314903982",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707"
+        ],
+        [
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150"
+        ],
+        [
+          "49167707",
+          "10014666870",
+          "1323147865",
+          "49167708",
+          "13745791708",
+          "11482251322",
+          "49167709",
+          "4630647321",
+          "49167711",
+          "5472751230",
+          "49167713",
+          "10558475453",
+          "5430354985",
+          "1323147857",
+          "5430354987",
+          "49167715",
+          "5430354990",
+          "1323147862",
+          "5430354992",
+          "49167717",
+          "2921241068",
+          "49167719",
+          "10228661390",
+          "1323142532",
+          "49167721",
+          "10228661388",
+          "49167723",
+          "1323142278",
+          "9875341241",
+          "12244193878",
+          "9473711270",
+          "9741038054",
+          "11286549883",
+          "5023303565",
+          "12244193877",
+          "10250068267",
+          "5023303559",
+          "6417640043",
+          "9473711263",
+          "10879441795",
+          "6417640042",
+          "7428047062",
+          "6417640041",
+          "6417640038",
+          "9478748829",
+          "9478748852",
+          "6417640040",
+          "6417640037",
+          "2021401013",
+          "9813298043",
+          "2021401012",
+          "10874409447",
+          "2021401011",
+          "49167734",
+          "6417640036",
+          "49167736",
+          "3700398557",
+          "3734759133",
+          "6417640055",
+          "11372264605",
+          "666946267",
+          "11372264604",
+          "3700399127",
+          "49193042",
+          "5471054679",
+          "5471055223",
+          "12405622575",
+          "49193041",
+          "12251648213"
+        ],
+        [
+          "49167707",
+          "10014666868",
+          "49167705",
+          "49167703",
+          "49167702",
+          "49148610",
+          "49167701",
+          "5472751214",
+          "10236598032",
+          "49167700",
+          "13314943447",
+          "49167698",
+          "10236598036",
+          "8949986933",
+          "49167696",
+          "4829089747",
+          "568117094",
+          "4829089721",
+          "5472751178",
+          "49167694",
+          "4829089502",
+          "4829089722",
+          "5472751181",
+          "568117091",
+          "49167691",
+          "5472751185",
+          "13376570479",
+          "4829089513",
+          "13376610609",
+          "49167688",
+          "4829739098",
+          "2569150887",
+          "11186491985"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "479580541",
+          "name": "Bethesda Station",
+          "point": [-77.0954579, 38.9847231]
+        },
+        { "osmId": "11012423566", "name": "", "point": [-77.0965705, 38.9900219] },
+        { "osmId": "11012423567", "name": "", "point": [-77.0962334, 38.9885112] },
+        { "osmId": "11012423569", "name": "", "point": [-77.0963569, 38.9840639] },
+        { "osmId": "11012423570", "name": "", "point": [-77.0941039, 38.980248] },
+        { "osmId": "11012423571", "name": "", "point": [-77.0915126, 38.9784533] },
+        { "osmId": "11012423572", "name": "", "point": [-77.0926338, 38.9780517] },
+        { "osmId": "11012423573", "name": "", "point": [-77.0954005, 38.9784608] },
+        { "osmId": "11012423574", "name": "", "point": [-77.0986431, 38.9782978] },
+        { "osmId": "9872833616", "name": "", "point": [-77.098348, 38.9817705] }
+      ]
+    },
+    {
+      "osmId": "9695480",
+      "version": 91,
+      "editedAt": "2026-08-24T22:55:54Z",
+      "name": "Ride On 70",
+      "ref": "70",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "6535789695",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "12201930149",
+          "49210032",
+          "13000400011",
+          "12187233213",
+          "12187233214",
+          "49210031",
+          "49210029",
+          "49210028",
+          "13314903982",
+          "5472751199",
+          "3225478770",
+          "3766088626",
+          "10236598033",
+          "10236598030",
+          "49167698"
+        ],
+        [
+          "6535789695",
+          "1323044048",
+          "10748826182",
+          "12177382933",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666868",
+          "49167705",
+          "49167703",
+          "49167702",
+          "49148610",
+          "49167701",
+          "5472751214",
+          "10236598032",
+          "49167700",
+          "13314943447",
+          "49167698"
+        ],
+        [
+          "49167698",
+          "13314943449",
+          "10236598031",
+          "49228314",
+          "4829089514",
+          "4630647322",
+          "4829131354",
+          "49207433",
+          "4635720219",
+          "13314610944",
+          "49196677",
+          "13314610942",
+          "12831691950",
+          "5472750846",
+          "49163871"
+        ],
+        [
+          "10858680713",
+          "5472750880",
+          "5472750794",
+          "49171209",
+          "7998226545",
+          "49219457",
+          "13377505427",
+          "5472750868",
+          "5472750870",
+          "1323162604",
+          "13995196248",
+          "49194472",
+          "13375200625",
+          "13346252098",
+          "13375200626",
+          "13375200627",
+          "13375200628",
+          "13767238251",
+          "13312179169",
+          "49163871"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789693",
+          "name": "Bethesda Station",
+          "point": [-77.095605, 38.9844554]
+        }
+      ]
+    },
+    {
+      "osmId": "19237131",
+      "version": 17,
+      "editedAt": "2026-09-16T18:51:55Z",
+      "name": "WMATA M70 East West Highway-Old Georgetown Road Westbound Line",
+      "ref": "M70",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "9047714540",
+          "4063880151",
+          "49151800",
+          "10907548557",
+          "5472751337",
+          "5472751334",
+          "12500390294",
+          "5472751299",
+          "5472751319",
+          "1014183733",
+          "49267298",
+          "5023291988",
+          "1001600109",
+          "1001600110",
+          "1325961933",
+          "12022233756",
+          "5472751307",
+          "1325961951",
+          "5472751309",
+          "49267301",
+          "5023291990",
+          "49267303",
+          "6582286526",
+          "9694626318",
+          "615961352",
+          "4630647320",
+          "13316950353",
+          "615961353",
+          "13316950360",
+          "642895386",
+          "666946272",
+          "13316950355",
+          "13314903984",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "12201930149",
+          "49210032",
+          "13000400011",
+          "12187233213",
+          "12187233214",
+          "49210031",
+          "49210029",
+          "49210028",
+          "13314903982",
+          "5472751199",
+          "3225478770",
+          "3766088626",
+          "10236598033",
+          "10236598030",
+          "49167698",
+          "10236598036",
+          "8949986933",
+          "49167696",
+          "4829089747",
+          "568117094",
+          "4829089721",
+          "5472751178",
+          "49167694",
+          "4829089502",
+          "4829089722",
+          "5472751181",
+          "568117091",
+          "49167691",
+          "5472751185",
+          "13376570479",
+          "4829089513",
+          "13376610609",
+          "49167688",
+          "4829739098",
+          "2569150887",
+          "11186491985",
+          "49163247",
+          "10014439402",
+          "13314839846",
+          "666946330",
+          "49163244",
+          "13314839844",
+          "5472751170",
+          "49193088",
+          "13329015380",
+          "49193090",
+          "5472751112",
+          "49193093",
+          "11372253934",
+          "49163866"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789688",
+          "name": "Bethesda Station",
+          "point": [-77.0950964, 38.9842888]
+        },
+        {
+          "osmId": "12992098367",
+          "name": "Wisconsin Av+Cheltenham Dr",
+          "point": [-77.095053, 38.988864]
+        },
+        {
+          "osmId": "14185550848",
+          "name": "Wisconsin Av+W Virginia Av",
+          "point": [-77.0953115, 38.9902117]
+        },
+        {
+          "osmId": "12968488072",
+          "name": "Woodmont Av+Cheltenham Dr",
+          "point": [-77.0959544, 38.9880066]
+        },
+        {
+          "osmId": "12992098387",
+          "name": "Old Georgetown Rd+Woodmont Av",
+          "point": [-77.096196, 38.986033]
+        },
+        {
+          "osmId": "12992097388",
+          "name": "East-West Hwy+Waverly St",
+          "point": [-77.092156, 38.984981]
+        }
+      ]
+    },
+    {
+      "osmId": "19237132",
+      "version": 17,
+      "editedAt": "2026-09-16T18:51:55Z",
+      "name": "WMATA M70 East West Highway-Old Georgetown Road Eastbound Line",
+      "ref": "M70",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "666946329",
+          "11372253935",
+          "4934717956",
+          "666946337",
+          "5472751153",
+          "5472751159",
+          "4079283917",
+          "13329015381",
+          "666946338",
+          "666946268",
+          "5472751173",
+          "13314839845",
+          "666946330",
+          "13314839848",
+          "4829739095",
+          "5472751182",
+          "666946340",
+          "10751102900",
+          "8952916968",
+          "5191467668",
+          "8758299307",
+          "8949986973",
+          "666946342",
+          "13316639833",
+          "666946269",
+          "13316639831",
+          "49211751",
+          "49211752",
+          "49211754",
+          "13314903983",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666870",
+          "1323147865",
+          "49167708",
+          "13745791708",
+          "11482251322",
+          "49167709",
+          "4630647321",
+          "49167711",
+          "5472751230",
+          "49167713",
+          "11010920142",
+          "10558475455",
+          "10558475454",
+          "9875322341",
+          "10558475457",
+          "11272780247",
+          "49236090",
+          "11272780252",
+          "666987598",
+          "11170041442",
+          "49236088",
+          "49236087",
+          "5430230558",
+          "1037951709",
+          "49193065",
+          "5023303528",
+          "5472751232",
+          "5472751255",
+          "12249095273",
+          "5430329256",
+          "49318795",
+          "5430230544",
+          "5430329252",
+          "12806533494",
+          "5430230543",
+          "12806533490",
+          "5472751301",
+          "5472751277",
+          "5472751288",
+          "5472751293",
+          "5472751279"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789688",
+          "name": "Bethesda Station",
+          "point": [-77.0950964, 38.9842888]
+        },
+        {
+          "osmId": "11835849794",
+          "name": "Montgomery Ln+East Ln",
+          "point": [-77.0952319, 38.9834451]
+        },
+        {
+          "osmId": "14185550849",
+          "name": "Wisconsin Av+Cordell Av",
+          "point": [-77.0957483, 38.9908075]
+        },
+        {
+          "osmId": "12992098371",
+          "name": "Wisconsin Av at Cheltenham Dr",
+          "point": [-77.095229, 38.988404]
+        }
+      ]
+    },
+    {
+      "osmId": "19283219",
+      "version": 16,
+      "editedAt": "2026-05-05T03:04:52Z",
+      "name": "WMATA D96 Massachusetts Avenue-Bethesda Northbound Line",
+      "ref": "D96",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "2131554416",
+          "12251648217",
+          "2131554487",
+          "12405622574",
+          "2131554412",
+          "11372264603",
+          "49193046",
+          "11372264598",
+          "49156880",
+          "5023303549",
+          "49193050",
+          "5023303542",
+          "9473711279",
+          "1241536590",
+          "12247303949",
+          "49193051",
+          "11208505283",
+          "13879126109",
+          "49193058",
+          "13879126145",
+          "49193061",
+          "5472751258",
+          "5430230551",
+          "10994704227",
+          "49193065",
+          "5430230547",
+          "49193067",
+          "49193070",
+          "49193073",
+          "1037951723",
+          "13316950362",
+          "642895386",
+          "666946272",
+          "13316950355",
+          "13314903984",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "12992097058",
+          "name": "Wisconsin Av at Stanford St",
+          "point": [-77.091129, 38.978417]
+        },
+        {
+          "osmId": "12992097057",
+          "name": "Wisconsin Av at Leland St",
+          "point": [-77.092101, 38.98041]
+        },
+        {
+          "osmId": "12992097056",
+          "name": "Wisconsin Av at Waverly St",
+          "point": [-77.093116, 38.982516]
+        },
+        {
+          "osmId": "6535789690",
+          "name": "Bethesda Station",
+          "point": [-77.0955696, 38.9842737]
+        }
+      ]
+    },
+    {
+      "osmId": "19283220",
+      "version": 18,
+      "editedAt": "2026-06-11T18:26:03Z",
+      "name": "WMATA D96 Massachusetts Avenue-Bethesda Southbound Line",
+      "ref": "D96",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666870",
+          "1323147865",
+          "49167708",
+          "13745791708",
+          "11482251322",
+          "49167709",
+          "4630647321",
+          "49167711",
+          "5472751230",
+          "49167713",
+          "11010920142",
+          "10558475455",
+          "10558475454",
+          "9875322341",
+          "10558475457",
+          "11272780247",
+          "49236090",
+          "11272780252",
+          "666987598",
+          "11170041442",
+          "49236088",
+          "49236087",
+          "5430230558",
+          "1037951709",
+          "10994704228",
+          "666987510",
+          "11170041444",
+          "666946263",
+          "13879126146",
+          "666946264",
+          "13879126110",
+          "11208505284",
+          "710990619",
+          "12247303950",
+          "666946352",
+          "9692166143",
+          "5472751240",
+          "3773764160",
+          "9473711280",
+          "5023303543",
+          "666946265",
+          "5023303550",
+          "666946266",
+          "11372264599",
+          "666946267",
+          "11372264604",
+          "3700399127",
+          "49193042",
+          "5471054679",
+          "5471055223",
+          "12405622575",
+          "49193041",
+          "12251648213"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789690",
+          "name": "Bethesda Station",
+          "point": [-77.0955696, 38.9842737]
+        },
+        {
+          "osmId": "11835849794",
+          "name": "Montgomery Ln+East Ln",
+          "point": [-77.0952319, 38.9834451]
+        },
+        {
+          "osmId": "12992097067",
+          "name": "Wisconsin Av+Elm St",
+          "point": [-77.093629, 38.982735]
+        },
+        {
+          "osmId": "12992097070",
+          "name": "Wisconsin Av at Miller Av",
+          "point": [-77.092626, 38.980672]
+        },
+        {
+          "osmId": "12992097069",
+          "name": "Wisconsin Av at Stanford St",
+          "point": [-77.091412, 38.978253]
+        }
+      ]
+    },
+    {
+      "osmId": "19308404",
+      "version": 17,
+      "editedAt": "2026-08-30T17:11:36Z",
+      "name": "WMATA M22 Bethesda-Olney Northbound Line",
+      "ref": "M22",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666870",
+          "1323147865",
+          "49167708",
+          "13745791708",
+          "11482251322",
+          "49167709",
+          "4630647321",
+          "49167711",
+          "5472751230",
+          "49167713",
+          "11010920142",
+          "10558475455",
+          "10558475454",
+          "9875322341",
+          "10558475457",
+          "11272780247",
+          "49236090",
+          "11272780252",
+          "666987598",
+          "11170041442",
+          "49236088",
+          "49236087",
+          "5430230558",
+          "1037951709",
+          "49193065",
+          "5023303528",
+          "5472751232",
+          "5472751255",
+          "12249095273",
+          "5430329256",
+          "49318795",
+          "5430230544",
+          "5430329252",
+          "12806533494",
+          "5430230543",
+          "12806533490",
+          "5472751301",
+          "5472751277",
+          "5472751288",
+          "5472751293",
+          "5472751279"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789689",
+          "name": "Bethesda Station",
+          "point": [-77.0953433, 38.9842809]
+        },
+        {
+          "osmId": "11835849794",
+          "name": "Montgomery Ln+East Ln",
+          "point": [-77.0952319, 38.9834451]
+        },
+        {
+          "osmId": "12992098402",
+          "name": "Montgomery Av+Waverly St",
+          "point": [-77.091448, 38.983942]
+        }
+      ]
+    },
+    {
+      "osmId": "19308405",
+      "version": 11,
+      "editedAt": "2026-09-09T02:35:37Z",
+      "name": "WMATA M22 Bethesda-Olney Southbound Line",
+      "ref": "M22",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "9047714540",
+          "4063880151",
+          "49151800",
+          "10907548557",
+          "5472751337",
+          "5472751334",
+          "12500390294",
+          "5472751299",
+          "5472751319",
+          "1014183733",
+          "49267298",
+          "5023291988",
+          "1001600109",
+          "1001600110",
+          "1325961933",
+          "12022233756",
+          "5472751307",
+          "1325961951",
+          "5472751309",
+          "49267301",
+          "5023291990",
+          "49267303",
+          "6582286526",
+          "9694626318",
+          "615961352",
+          "4630647320",
+          "13316950353",
+          "615961353",
+          "13316950360",
+          "642895386",
+          "666946272",
+          "13316950355",
+          "13314903984",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789689",
+          "name": "Bethesda Station",
+          "point": [-77.0953433, 38.9842809]
+        },
+        {
+          "osmId": "12992097388",
+          "name": "East-West Hwy+Waverly St",
+          "point": [-77.092156, 38.984981]
+        }
+      ]
+    },
+    {
+      "osmId": "19312359",
+      "version": 5,
+      "editedAt": "2026-03-16T13:26:11Z",
+      "name": "Ride On 34 Southbound",
+      "ref": "34",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "10858680713",
+          "5472750880",
+          "5472750794",
+          "49171209",
+          "7998226545",
+          "49219457",
+          "13377505427",
+          "5472750868",
+          "5472750870",
+          "1323162604",
+          "13995196248",
+          "49194472",
+          "13375200625",
+          "13346252098",
+          "13375200626",
+          "13375200627",
+          "13375200628",
+          "13767238251",
+          "13312179169",
+          "49163871",
+          "5472750846",
+          "12831691950",
+          "13314610942",
+          "49196677",
+          "13314610944",
+          "4635720219",
+          "49207433",
+          "4829131354",
+          "4630647322",
+          "4829089514",
+          "49228314",
+          "10236598031",
+          "13314943449",
+          "49167698",
+          "13314943447",
+          "49167700",
+          "10236598032",
+          "5472751214",
+          "49167701",
+          "49148610",
+          "49167702",
+          "49167703",
+          "49167705",
+          "10014666868",
+          "49167707",
+          "10014666869",
+          "12201930151",
+          "13000400010",
+          "12177382930",
+          "49210038",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "12968488070",
+          "name": "Bethesda Station",
+          "point": [-77.0955273, 38.9847217]
+        }
+      ]
+    },
+    {
+      "osmId": "19312360",
+      "version": 5,
+      "editedAt": "2026-08-30T17:11:36Z",
+      "name": "Ride On 34 Northbound",
+      "ref": "34",
+      "operator": "Montgomery County Department of Transportation",
+      "network": "Ride On",
+      "chains": [
+        [
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "12201930149",
+          "49210032",
+          "13000400011",
+          "12187233213",
+          "12187233214",
+          "49210031",
+          "49210029",
+          "49210028",
+          "13314903982",
+          "5472751199",
+          "3225478770",
+          "3766088626",
+          "10236598033",
+          "10236598030",
+          "49167698",
+          "13314943449",
+          "10236598031",
+          "49228314",
+          "4829089514",
+          "4630647322",
+          "4829131354",
+          "49207433",
+          "4635720219",
+          "13314610944",
+          "49196677",
+          "13314610942",
+          "12831691950",
+          "5472750846",
+          "49163871",
+          "13312179169",
+          "13767238251",
+          "13375200628",
+          "13375200627",
+          "13375200626",
+          "13346252098",
+          "13375200625",
+          "49194472",
+          "13995196248",
+          "1323162604",
+          "5472750870",
+          "5472750868",
+          "13377505427",
+          "49219457",
+          "7998226545",
+          "49171209",
+          "5472750794",
+          "5472750880",
+          "10858680713"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "12968488070",
+          "name": "Bethesda Station",
+          "point": [-77.0955273, 38.9847217]
+        }
+      ]
+    },
+    {
+      "osmId": "19984706",
+      "version": 4,
+      "editedAt": "2026-05-05T03:04:52Z",
+      "name": "WMATA D96 Massachusetts Avenue-Bethesda Northbound Short Line",
+      "ref": "D96",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "2131554416",
+          "12251648217",
+          "2131554487",
+          "12405622574",
+          "2131554412",
+          "11372264603",
+          "49193046",
+          "11372264598",
+          "49156880",
+          "5023303549",
+          "49193050",
+          "5023303542",
+          "9473711279",
+          "1241536590",
+          "12247303949",
+          "49193051",
+          "11208505283",
+          "13879126109",
+          "49193058",
+          "13879126145",
+          "49193061",
+          "5472751258",
+          "5430230551",
+          "10994704227",
+          "49193065",
+          "5430230547",
+          "49193067",
+          "49193070",
+          "49193073",
+          "1037951723",
+          "13316950362",
+          "642895386",
+          "666946272",
+          "13316950355",
+          "13314903984",
+          "49210028",
+          "49210029",
+          "49210031",
+          "12187233214",
+          "12187233213",
+          "13000400011",
+          "49210032",
+          "12201930149",
+          "12201930150",
+          "12177382933",
+          "10748826182",
+          "1323044048",
+          "6535789695"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "12992097058",
+          "name": "Wisconsin Av at Stanford St",
+          "point": [-77.091129, 38.978417]
+        },
+        {
+          "osmId": "12992097057",
+          "name": "Wisconsin Av at Leland St",
+          "point": [-77.092101, 38.98041]
+        },
+        {
+          "osmId": "12992097056",
+          "name": "Wisconsin Av at Waverly St",
+          "point": [-77.093116, 38.982516]
+        },
+        {
+          "osmId": "6535789690",
+          "name": "Bethesda Station",
+          "point": [-77.0955696, 38.9842737]
+        }
+      ]
+    },
+    {
+      "osmId": "19984707",
+      "version": 5,
+      "editedAt": "2026-06-11T18:26:03Z",
+      "name": "WMATA D96 Massachusetts Avenue-Bethesda Southbound Short Line",
+      "ref": "D96",
+      "operator": "Washington Metropolitan Area Transit Authority",
+      "network": "WMATA Metrobus",
+      "colour": "#C8102E",
+      "chains": [
+        [
+          "6535789695",
+          "12153983802",
+          "12170303969",
+          "12153983903",
+          "12201994504",
+          "12201994505",
+          "12153983905",
+          "12153983803",
+          "12153983804",
+          "12177382939",
+          "12153983805",
+          "12153983906",
+          "12194810929",
+          "12177382940",
+          "6534063466",
+          "6535789694",
+          "12177382938",
+          "12177382936",
+          "12177382935",
+          "12177382937",
+          "6534063468",
+          "13000400012",
+          "11272684732",
+          "12201930150",
+          "49210038",
+          "12177382930",
+          "13000400010",
+          "12201930151",
+          "10014666869",
+          "49167707",
+          "10014666870",
+          "1323147865",
+          "49167708",
+          "13745791708",
+          "11482251322",
+          "49167709",
+          "4630647321",
+          "49167711",
+          "5472751230",
+          "49167713",
+          "11010920142",
+          "10558475455",
+          "10558475454",
+          "9875322341",
+          "10558475457",
+          "11272780247",
+          "49236090",
+          "11272780252",
+          "666987598",
+          "11170041442",
+          "49236088",
+          "49236087",
+          "5430230558",
+          "1037951709",
+          "10994704228",
+          "666987510",
+          "11170041444",
+          "666946263",
+          "13879126146",
+          "666946264",
+          "13879126110",
+          "11208505284",
+          "710990619",
+          "12247303950",
+          "666946352",
+          "9692166143",
+          "5472751240",
+          "3773764160",
+          "9473711280",
+          "5023303543",
+          "666946265",
+          "5023303550",
+          "666946266",
+          "11372264599",
+          "666946267",
+          "11372264604",
+          "3700399127",
+          "49193042",
+          "5471054679",
+          "5471055223",
+          "12405622575",
+          "49193041",
+          "12251648213"
+        ]
+      ],
+      "stops": [
+        {
+          "osmId": "6535789690",
+          "name": "Bethesda Station",
+          "point": [-77.0955696, 38.9842737]
+        },
+        {
+          "osmId": "11835849794",
+          "name": "Montgomery Ln+East Ln",
+          "point": [-77.0952319, 38.9834451]
+        },
+        {
+          "osmId": "12992097067",
+          "name": "Wisconsin Av+Elm St",
+          "point": [-77.093629, 38.982735]
+        },
+        {
+          "osmId": "12992097070",
+          "name": "Wisconsin Av at Miller Av",
+          "point": [-77.092626, 38.980672]
+        },
+        {
+          "osmId": "12992097069",
+          "name": "Wisconsin Av at Stanford St",
+          "point": [-77.091412, 38.978253]
+        }
+      ]
+    }
+  ],
+  "buildingAttributes": [
+    { "osmId": "87218959", "version": 9, "roof:shape": "flat" },
+    { "osmId": "87218989", "version": 5, "roof:shape": "flat" },
+    {
+      "osmId": "117437089",
+      "version": 3,
+      "building:material": "cement_block",
+      "roof:shape": "flat"
+    },
+    { "osmId": "117437121", "version": 4, "roof:shape": "flat" },
+    { "osmId": "117439408", "version": 8, "roof:shape": "flat" },
+    { "osmId": "117439412", "version": 6, "roof:shape": "flat" },
+    { "osmId": "117439418", "version": 6, "roof:shape": "flat" },
+    { "osmId": "117439426", "version": 5, "roof:shape": "flat" },
+    { "osmId": "117443486", "version": 4, "roof:shape": "hipped" },
+    { "osmId": "117443488", "version": 4, "roof:shape": "flat" },
+    { "osmId": "117443493", "version": 7, "roof:shape": "flat" },
+    { "osmId": "117446590", "version": 4, "roof:shape": "flat" },
+    { "osmId": "117591968", "version": 7, "roof:shape": "flat" },
+    { "osmId": "117595349", "version": 3, "roof:shape": "flat" },
+    { "osmId": "117595354", "version": 4, "roof:shape": "flat" },
+    { "osmId": "117595379", "version": 4, "roof:shape": "flat" },
+    { "osmId": "335430667", "version": 3, "roof:shape": "flat" },
+    { "osmId": "533708070", "version": 4, "roof:shape": "flat" },
+    { "osmId": "533708072", "version": 13, "roof:shape": "flat" },
+    { "osmId": "533708076", "version": 6, "roof:shape": "flat" },
+    { "osmId": "701153225", "version": 3, "roof:shape": "flat" },
+    { "osmId": "946079531", "version": 4, "roof:shape": "flat" },
+    { "osmId": "946079532", "version": 6, "roof:shape": "flat" },
+    { "osmId": "1194283406", "version": 5, "roof:shape": "flat" },
+    {
+      "osmId": "1329062244",
+      "version": 2,
+      "building:material": "concrete/glass",
+      "roof:shape": "flat"
+    }
+  ]
+}

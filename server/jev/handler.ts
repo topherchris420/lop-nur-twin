@@ -253,7 +253,12 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
     }
     const envelope = payload as Record<string, unknown>;
     const cityObservation = envelope["observation"] as { schema?: unknown } | undefined;
-    if (cityObservation?.schema === "bethesda-observation/v1") {
+    // Every city schema revision goes to the city handler, which accepts only
+    // the current one; an old client gets a city error, not a Blacksite one.
+    if (
+      typeof cityObservation?.schema === "string" &&
+      cityObservation.schema.startsWith("bethesda-observation/")
+    ) {
       return cityHandle(
         new Request(request.url, {
           method: "POST",

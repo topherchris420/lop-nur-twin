@@ -27,14 +27,22 @@ export interface Edge {
   crossing: boolean;
   signal: boolean;
   inferred: boolean;
+  /** The OSM way name this edge was built from ("" when unnamed or inferred). */
+  name: string;
 }
 export interface Network {
   nodes: Map<string, Node>;
   edges: Edge[];
   routeCache: Map<string, Map<string, number>>;
+  incoming: Map<string, number[]>;
 }
 function make(ways: Way[], walking: boolean): Network {
-  const net: Network = { nodes: new Map(), edges: [], routeCache: new Map() };
+  const net: Network = {
+    nodes: new Map(),
+    edges: [],
+    routeCache: new Map(),
+    incoming: new Map(),
+  };
   const edge = (a: Node, b: Node, w: Way, inferred = false) => {
     const length = distance(a, b);
     if (length < 0.1) return;
@@ -50,6 +58,7 @@ function make(ways: Way[], walking: boolean): Network {
         (walking && crossings.some((p) => distance(p.point, lerp(a, b, 0.5)) < 3)),
       signal: signalPoints.some((p) => distance(p.point, b) < 13),
       inferred,
+      name: inferred ? "" : w.name,
     };
     net.edges.push(e);
     a.out.push(e.id);
@@ -91,6 +100,7 @@ function make(ways: Way[], walking: boolean): Network {
           points: [],
           nodeIds: [],
           width: 2.4,
+          widthEvidence: "class default",
           crossing: false,
           oneWay: 0,
           highway: "footway",
@@ -106,6 +116,8 @@ function make(ways: Way[], walking: boolean): Network {
         !n.out.some((i) => net.edges[i]!.crossing);
     }
   }
+  for (const e of net.edges)
+    net.incoming.set(e.to, [...(net.incoming.get(e.to) ?? []), e.id]);
   return net;
 }
 export const roads = make(roadWays, false),
@@ -136,28 +148,35 @@ export function position(net: Network, e: Edge, progress: number, lane = 0): Poi
   );
   return { x: p.x + Math.cos(e.heading) * lane, z: p.z - Math.sin(e.heading) * lane };
 }
+/**
+ * The first edge of a shortest-hop route from `from` to `target`, avoiding
+ * `closed` edges. `version` names the closure set so cached trees are never
+ * reused across a different set of closures.
+ */
 export function nextToward(
   net: Network,
   from: string,
   target: string,
+  closed?: ReadonlySet<number>,
+  version = 0,
 ): number | undefined {
-  let map = net.routeCache.get(target);
+  const key = closed?.size ? `${version}:${target}` : target;
+  let map = net.routeCache.get(key);
   if (!map) {
     map = new Map();
-    const reverse = new Map<string, Edge[]>();
-    for (const e of net.edges) reverse.set(e.to, [...(reverse.get(e.to) ?? []), e]);
     const queue = [target],
       seen = new Set(queue);
     for (let i = 0; i < queue.length; i++)
-      for (const e of reverse.get(queue[i]!) ?? []) {
-        if (seen.has(e.from)) continue;
+      for (const id of net.incoming.get(queue[i]!) ?? []) {
+        const e = net.edges[id]!;
+        if (seen.has(e.from) || closed?.has(id)) continue;
         seen.add(e.from);
         queue.push(e.from);
         map.set(e.from, e.id);
       }
-    if (net.routeCache.size >= 64)
+    if (net.routeCache.size >= 256)
       net.routeCache.delete(net.routeCache.keys().next().value!);
-    net.routeCache.set(target, map);
+    net.routeCache.set(key, map);
   }
   return map.get(from);
 }

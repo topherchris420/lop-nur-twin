@@ -1,0 +1,31 @@
+{
+  "schema": "bethesda-streetscape-source/v1",
+  "acquiredAt": "2026-10-02T20:50:15.299203+00:00",
+  "importedAt": "2026-10-02T20:53:24.866344+00:00",
+  "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-77.104,38.978,-77.089,38.991",
+  "bbox": [-77.104, 38.978, -77.089, 38.991],
+  "license": "ODbL-1.0",
+  "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "attribution": "© OpenStreetMap contributors",
+  "rawSha256": "43c031a36c887b2a49f1d1c5eb97bf745d28af07931122fdd912c429177effc1",
+  "snapshotSha256": "f0abdd90246856ef55bb84284c96acdc929beacd75e087e32060ddc64ce13e07",
+  "counts": {
+    "storefronts": 370,
+    "monuments": 21,
+    "trees": 22,
+    "lamps": 11,
+    "benches": 53,
+    "busStops": 60,
+    "bikeshare": 8,
+    "construction": 10,
+    "busRoutes": 17,
+    "buildingAttributes": 25
+  },
+  "notes": [
+    "Presentation and transit layer only; the pedestrian/road graph is osm.json.",
+    "Separate acquisition from osm.json: a later download, so features may postdate it.",
+    "Storefront names are OSM name tags rendered as plain text; no logos, trade dress, contact details or opening hours.",
+    "Building attributes join to osm.json only where the OSM ID and version both match.",
+    "Bus routes are ordered OSM way members cut to the bounding box; gaps are never bridged."
+  ]
+}

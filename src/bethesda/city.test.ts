@@ -19,7 +19,7 @@ import {
   row,
   distance,
 } from "./model";
-import { CitySimulation, PROFILES } from "./simulation";
+import { CitySimulation, PROFILES, type Trace } from "./simulation";
 import { CityDecisionBroker } from "./jev";
 import { parseScenario } from "./scenarios";
 import { resolvesBethesda } from "./discovery";
@@ -28,6 +28,7 @@ const config = {
   seed: 393977,
   pedestrians: 30,
   vehicles: 10,
+  buses: 2,
   statisticalPopulation: 120,
 };
 const requests = [
@@ -114,7 +115,7 @@ describe("bounded events and decisions", () => {
     s.accept(o, p);
     expect(s.decisions.at(-1)?.source).toBe("fallback");
     s.accept(s.observe(0, 2), null, "unavailable");
-    expect(s.decisions.at(-1)?.reason).toBe("unavailable");
+    expect(s.decisions.at(-1)?.reason).toMatch(/^unavailable → /);
   });
   it("bounds population, validates human choices and enforces red signals", () => {
     expect(() => new CitySimulation({ ...config, pedestrians: 641 })).toThrow();
@@ -190,6 +191,7 @@ describe("replay and outage", () => {
     await b.poll();
     expect(fetcher).toHaveBeenCalledOnce();
     expect(b.fallbacks).toBe(1);
+    expect(b.status).toBe("FALLBACK · UNAVAILABLE");
     expect(s.decisions.at(-1)?.source).toBe("fallback");
     advance(s, 30);
     expect(s.tick).toBe(30);
@@ -209,7 +211,7 @@ describe("replay and outage", () => {
       const pending = b.poll();
       await vi.advanceTimersByTimeAsync(1201);
       await pending;
-      expect(b.status).toContain("timeout");
+      expect(b.status).toBe("FALLBACK · TIMEOUT");
       expect(b.fallbacks).toBe(1);
       b.dispose();
     } finally {
@@ -217,7 +219,7 @@ describe("replay and outage", () => {
     }
   });
   it("keeps the vocabulary complete and finite", () =>
-    expect(new Set(ACTIONS).size).toBe(14));
+    expect(new Set(ACTIONS).size).toBe(16));
 });
 
 describe("public-path arrival", () => {
@@ -241,13 +243,15 @@ describe("public-path arrival", () => {
     expect(distance(sim.player, before)).toBeGreaterThan(0.29);
     expect(CitySimulation.replay(sim.export()).player).toEqual(sim.player);
   });
-  it("preserves v1 replay's historical starting position", () => {
-    const legacy = new CitySimulation(config);
-    legacy.player = { ...row.point };
-    advance(legacy, 12);
-    const trace = { ...legacy.export(), schema: "bethesda-replay/v1" as const };
-    const restored = CitySimulation.replay(trace);
-    expect(restored.stateHash()).toBe(legacy.stateHash());
-    expect(CitySimulation.replay(restored.export()).stateHash()).toBe(legacy.stateHash());
+  it("refuses traces from earlier simulator revisions with an explanation", () => {
+    const sim = new CitySimulation(config);
+    advance(sim, 12);
+    for (const schema of ["bethesda-replay/v1", "bethesda-replay/v2"])
+      expect(() =>
+        CitySimulation.replay({ ...sim.export(), schema } as unknown as Trace),
+      ).toThrow(/earlier city simulator/);
+    expect(() =>
+      CitySimulation.replay({ ...sim.export(), simVersion: "x" } as unknown as Trace),
+    ).toThrow();
   });
 });

@@ -4,6 +4,8 @@ import source from "../src/bethesda/data/source.json" with { type: "json" };
 import raw from "../src/bethesda/data/osm.json" with { type: "json" };
 import terrain from "../src/bethesda/data/terrain.json" with { type: "json" };
 import terrainSource from "../src/bethesda/data/terrain-source.json" with { type: "json" };
+import streetscape from "../src/bethesda/data/streetscape.json" with { type: "json" };
+import streetscapeSource from "../src/bethesda/data/streetscape-source.json" with { type: "json" };
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -57,6 +59,42 @@ if (
   !terrainSource.licenseText.includes("You can copy, modify, distribute")
 )
   fail("invalid terrain, crop bounds or redistribution terms");
+const streetscapeBytes = readFileSync(
+  new URL("../src/bethesda/data/streetscape.json", import.meta.url),
+);
+if (
+  createHash("sha256").update(streetscapeBytes).digest("hex") !==
+  streetscapeSource.snapshotSha256
+)
+  fail("streetscape checksum differs from acquisition manifest");
+if (
+  streetscape.license !== "ODbL-1.0" ||
+  streetscapeSource.license !== streetscape.license ||
+  streetscape.bbox.some((v, i) => v !== raw.bbox[i])
+)
+  fail("streetscape license or bounds differ");
+let streetscapeFeatures = 0;
+for (const [key, n] of Object.entries(streetscapeSource.counts)) {
+  const group = (streetscape as unknown as Record<string, unknown[]>)[key];
+  if (!Array.isArray(group) || group.length !== n)
+    fail("streetscape count differs: " + key);
+  for (const item of group as Record<string, unknown>[]) {
+    if (typeof item.osmId !== "string" || !/^\d+$/.test(item.osmId))
+      fail("streetscape source id missing");
+    // Contact and identity fields must never be copied into the derivative.
+    for (const k of Object.keys(item))
+      if (/phone|email|website|opening_hours|user|uid|contact/.test(k))
+        fail("streetscape copies a disallowed field: " + k);
+    for (const c of ["point", "coordinates"]) if (c in item) coordinates(item[c]);
+    streetscapeFeatures++;
+  }
+}
+const snapshotVersions = new Map(
+  raw.features.map((f) => [f.properties.osmId, f.properties.version] as const),
+);
+for (const a of streetscape.buildingAttributes)
+  if (snapshotVersions.get(a.osmId) !== a.version)
+    fail("building attribute joined across OSM versions: " + a.osmId);
 console.log(
-  `[validate:bethesda] ${raw.features.length} real OSM features and 4225 real DTM samples; bounds, license and checksums verified`,
+  `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified`,
 );
