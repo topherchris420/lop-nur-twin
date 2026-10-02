@@ -32,7 +32,48 @@ class Boundary extends Component<
     );
   }
 }
+/** The site the twin normally resolves, and where the anomaly lands. */
+const FROM = { lat: 40.77252, lon: 89.28122 };
+const TO = { lat: 38.9847, lon: -77.0947 };
+const GLYPHS = "0123456789·°/#";
+function format(lat: number, lon: number) {
+  return `${Math.abs(lat).toFixed(5)}° ${lat >= 0 ? "N" : "S"} · ${Math.abs(lon).toFixed(5)}° ${lon >= 0 ? "E" : "W"}`;
+}
+/**
+ * The telemetry drifts from Lop Nur's coordinates into Bethesda's, decaying
+ * glitches and all, then settles. Reduced motion shows the settled card.
+ */
 function Resolution() {
+  const reduce =
+    typeof matchMedia === "function" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [t, setT] = useState(reduce ? 1 : 0);
+  useEffect(() => {
+    if (reduce) return;
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / 1100);
+      setT(p);
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [reduce]);
+  const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const text = format(
+    FROM.lat + (TO.lat - FROM.lat) * e,
+    FROM.lon + (TO.lon - FROM.lon) * e,
+  );
+  const noisy = [...text]
+    .map((c, i) =>
+      t < 1 &&
+      /[0-9]/.test(c) &&
+      (Math.sin(i * 12.9898 + t * 78.233) * 43758.5453) % 1 > 0.55 + t * 0.45
+        ? GLYPHS[(i + Math.floor(t * 40)) % GLYPHS.length]
+        : c,
+    )
+    .join("");
   return (
     <div
       role="status"
@@ -40,12 +81,21 @@ function Resolution() {
     >
       <div>
         <p className="text-xs tracking-[.32em]">ANOMALOUS LOCATION RESOLUTION</p>
-        <p className="mt-6 text-4xl tracking-[.2em]">39° N · 77° W</p>
-        <p className="mt-5 text-sm tracking-[.5em]">BETHESDA</p>
+        <p className="mt-6 text-sm tracking-[.18em] opacity-70" aria-hidden="true">
+          {noisy}
+        </p>
+        <p className="mt-4 text-4xl tracking-[.2em]" style={{ opacity: 0.25 + 0.75 * t }}>
+          39° N · 77° W
+        </p>
+        <p className="mt-5 text-sm tracking-[.5em]" style={{ opacity: t }}>
+          BETHESDA
+        </p>
       </div>
     </div>
   );
 }
+/** Other hidden entrances (the site index) ask the gate to resolve. */
+export const ANOMALY_EVENT = "lop-nur:anomalous-resolution";
 export function AnomalyGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<"dormant" | "resolver" | "transition" | "city">(
       "dormant",
@@ -69,6 +119,11 @@ export function AnomalyGate({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [phase]);
+  useEffect(() => {
+    const resolve = () => setPhase((p) => (p === "city" ? p : "transition"));
+    window.addEventListener(ANOMALY_EVENT, resolve);
+    return () => window.removeEventListener(ANOMALY_EVENT, resolve);
+  }, []);
   useEffect(() => {
     if (phase === "resolver") ref.current?.focus();
     if (phase !== "transition") return;

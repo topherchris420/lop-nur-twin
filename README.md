@@ -197,7 +197,8 @@ _Survey mode reveals the downtown layout and courtyard blocks. Both screenshots 
 <summary><strong>Find Bethesda · discovery spoiler</strong></summary>
 
 From the twin at `/`, press **backtick** (the key below Escape on a US keyboard).
-Enter `38.9847,-77.0947` or `resolve bethesda`, then submit.
+Enter `38.9847,-77.0947` or `resolve bethesda`, then submit. Or open the **Site
+Index** (`I`) and type Bethesda's coordinates into its search.
 
 The anomaly transition unmounts the desert and loads the city. Bethesda has no
 separate public route or main-menu mode button, and ordinary twin visits do not
@@ -210,23 +211,34 @@ offers orbit controls; **Pedestrian seat** follows an actor and lets you choose
 from its permitted actions. Free walking is exploration, not a human-versus-model
 comparison seat. Touch supports surveying; walking currently needs a keyboard.
 
-Inside the city, open **~ telemetry** or press backtick to introduce a scenario:
+Inside the city, open **~ telemetry** or press backtick to introduce a scenario.
+A deterministic rule compiler (not a language model) turns the request into
+typed events at real places — any mapped street, intersection, named building,
+park, monument or storefront — and shows the compiled event before the world
+reacts through generic effects (closures, hazards, attractions, shelter, dark
+signals, dispatch):
 
-| Try                                                        | What the simulation introduces                                         |
-| :--------------------------------------------------------- | :--------------------------------------------------------------------- |
-| `Fire near Bethesda Row.`                                  | A local hazard, illustrative responders and changes to nearby movement |
-| `A thunderstorm suddenly rolls through downtown Bethesda.` | Rain, slower traffic and shelter-seeking                               |
-| `The Metro station closes unexpectedly.`                   | Nearby pedestrians leaving the area                                    |
-| `A parade starts on Wisconsin Avenue.`                     | A local road closure and gathering spectators                          |
-| `A strange unidentified object appears above Bethesda.`    | An overhead object and curious onlookers                               |
+| Try                                                        | What emerges                                                                   |
+| :--------------------------------------------------------- | :----------------------------------------------------------------------------- |
+| `Fire near Bethesda Row.`                                  | Responders from the mapped rescue squad, perimeter posts, detours, watchers    |
+| `A thunderstorm suddenly rolls through downtown Bethesda.` | Rain, lightning, wet streets, slower traffic and shelter-seeking               |
+| `The Metro station closes unexpectedly.`                   | Commuters waiting or re-routing to real bus stops                              |
+| `A parade starts on Wisconsin Avenue.`                     | A moving procession and rolling closure along the mapped avenue                |
+| `A strange unidentified object appears above Bethesda.`    | An overhead object, onlookers recording, a police response                     |
+| `Car crash at Woodmont and Bethesda Ave`                   | A closure at the real intersection, an ambulance, queues and detours           |
+| `Power outage downtown for 5 minutes`                      | Dark signals and all-way stops                                                 |
+| `Flash flood near the Farm Women's Market`                 | Streets below a water level on the real bare-earth DTM close; people move away |
 
-These are five bounded command families, parsed by rules. They are not arbitrary
-AI-generated scenarios. The parade does not include a complete moving procession,
-and emergency behaviour is not an evacuation or public-safety model.
+Twelve families in all, with intensity and duration modifiers. Places outside
+the extract are refused, not relocated. None of this is a fire, weather,
+flooding, crowd or public-safety model.
 
 **Real geography, explicit approximation.** The bundled OpenStreetMap derivative
 contains 1,166 building footprints, mapped roads and walking paths, parks,
-crossings and Metro entrances across roughly 1.3 × 1.4 km. A 65 × 65 crop of
+crossings and Metro entrances across roughly 1.3 × 1.4 km. A separate
+streetscape layer adds 370 storefront names, the Madonna of the Trail and public
+art, bus stops and 17 bus routes (the Bethesda Circulator, Ride On and WMATA),
+and the Purple Line works; buses drive those routes. A 65 × 65 crop of
 Montgomery Planning's bare-earth elevation data provides broad slopes.
 Façades, many heights, street furniture, people and traffic behaviour are
 inferred or procedural. Terrain samples do not resolve curbs and stairs; there
@@ -350,5 +362,6 @@ contributors**, distributed under ODbL 1.0; and **© Montgomery County Planning
 Department, MNCPPC**, for the elevation crop under the publisher's attribution
 terms. See the [geographic data license](src/bethesda/data/LICENSE.md),
 [OSM source register](src/bethesda/data/source.json) and
-[terrain source register](src/bethesda/data/terrain-source.json). Reference
+[terrain source register](src/bethesda/data/terrain-source.json) and
+[streetscape source register](src/bethesda/data/streetscape-source.json). Reference
 photographs are not bundled imagery or achieved renders.

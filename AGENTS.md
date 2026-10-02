@@ -423,6 +423,46 @@ do not read a single seed as a result.
    experiments against the existing seats. A remote brain needs an offline test
    double before it needs a live run.
 
+## The Bethesda anomaly (`src/bethesda/`)
+
+A hidden second environment, lazily loaded from `src/components/AnomalyGate.tsx`
+(backtick resolver, or Bethesda's coordinates typed into the Site Index). Read
+`docs/BETHESDA_ANOMALY.md` before changing it. It must stay removable: outside
+`src/bethesda/`, only the gate, the Site Index row, `server/jev/city.ts` (with
+its test and the city branch of `server/jev/handler.ts`),
+`scripts/validate-bethesda.ts` and the `build`/
+`test:bethesda`/`verify:bethesda` scripts reference it.
+
+- **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
+  pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
+  bus stops and routes, construction and building attributes. Each has a source
+  manifest with real retrieval times and byte hashes, an importer under
+  `scripts/`, and checks in `scripts/validate-bethesda.ts`. Never hand-edit
+  either file, and never type a timestamp: use the download's real time.
+- **Events declare effects; agents react to effects.** `scenarios.ts` compiles
+  text into a typed `Scenario` and `EVENT_EFFECTS` says what it does (avoid,
+  attract, closures, shelter, slowdown, dark signals, Metro closure, dispatch).
+  Agent rules in `simulation.ts` read effects, never event names. A new family
+  is a vocabulary line and an effects row, not a script.
+- **Places come only from the gazetteer.** Every alias resolves to a mapped
+  feature. Unknown places are refused, never relocated to a default.
+- **One gate for every chooser.** Humans, Jev and the rules all pass
+  `legalActions` and are recorded through `apply`. `contract.ts` is shared with
+  the server; changing an observation field or action means bumping
+  `CITY_SCHEMA` and updating `server/jev/city.ts` and its test. Actions are
+  offered by mechanics, never by tactics.
+- **Anything that changes outcomes is a recorded command or part of the
+  config**, including the full-rate LOD focus. A behaviour change bumps
+  `SIM_VERSION`/`REPLAY_SCHEMA`; older traces are refused with an explanation,
+  never replayed against different rules.
+- **Presentation never writes simulation state.** `Actors.tsx`,
+  `EventVisuals.tsx`, `landmarks.ts` and `signals.ts` read the simulator; the
+  dev-only `window.__bethesda` handle exists for captures and is stripped from
+  production.
+- **Claims stay derived.** `evidence.ts` classifies massing with Lop Nur's four
+  classes from height provenance; the field notes print the computed tally.
+  Do not write a fidelity sentence the tally does not support.
+
 ## Verifying changes
 
 ```sh
@@ -465,6 +505,8 @@ test the artifact that actually ships — including its security headers:
 
 ```sh
 bun run a11y                  # axe-core on every route (+ /evaluation with a run open) + CSP
+bun run verify:bethesda       # the hidden city end to end (both entrances, scenarios,
+                              # outage fallback, replay, a11y, CSP, WebGL failure)
 bun run routes                # 70 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```

@@ -7,14 +7,29 @@ const o: Observation = {
   tick: 0,
   agentId: 0,
   kind: "pedestrian",
+  role: "walker",
+  persona: "shopper",
   hazard: "fire",
   hazardDistance: 80,
+  insidePerimeter: false,
+  attraction: "fire",
+  attractionDistance: 80,
+  sheltering: false,
   trafficNearby: false,
+  emergencyApproaching: false,
   crossing: false,
   safeToCross: true,
+  signalDark: false,
   blocked: false,
+  routeClosed: false,
   atPortal: false,
   atGathering: false,
+  atBusStop: false,
+  busBoarding: false,
+  atMetro: false,
+  metroOpen: true,
+  assigned: false,
+  crowd: 1,
   candidates: ["wait", "watch"],
 };
 function request(observation: unknown = o) {
@@ -81,6 +96,33 @@ describe("city decision endpoint", () => {
         ),
     });
     expect((await handle(request(), { clientKey: "test" })).status).toBe(502);
+  });
+  it("routes an outdated city schema to the city handler and rejects it there", async () => {
+    const handle = createJevDecisionHandler({
+      apiKey: "offline-test",
+      fetchImpl: vi.fn(),
+    });
+    const response = await handle(request({ ...o, schema: "bethesda-observation/v1" }), {
+      clientKey: "test",
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe("invalid city observation");
+  });
+  it("asks about the agent's situation with closed fields only", async () => {
+    let question: Record<string, unknown> = {};
+    const handle = createJevDecisionHandler({
+      apiKey: "offline-test",
+      fetchImpl: async (_url, init) => {
+        question = JSON.parse(String(init?.body));
+        return new Response("{}", { status: 500 });
+      },
+    });
+    await handle(request(), { clientKey: "test" });
+    const state = question.state as Record<string, unknown>;
+    expect(state.role).toBe("walker");
+    expect(state.people_stopped_nearby).toBe("a few");
+    expect(Object.keys(state)).not.toContain("agentId");
+    expect(JSON.stringify(question)).not.toMatch(/x"|z"|coordinates|latitude/);
   });
   it("preserves the original endpoint cross-origin and body-size gates", async () => {
     const handle = createJevDecisionHandler({

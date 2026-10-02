@@ -130,7 +130,11 @@ try {
     await waitFor(() => document.querySelector("#city-event").value === "");
     check(
       "scenario: " + event,
-      await page.evaluate(() => document.body.innerText.includes("Event injected:")),
+      await page.evaluate(
+        () =>
+          document.body.innerText.includes("Event injected:") &&
+          document.body.innerText.includes("structured event"),
+      ),
     );
   }
   await click("Close");
@@ -171,7 +175,9 @@ try {
   check(
     "native fetch reaches mocked outage",
     providerCalls > 0 &&
-      parsed.decisions.some((d) => d.source === "fallback" && d.reason === "unavailable"),
+      parsed.decisions.some(
+        (d) => d.source === "fallback" && d.reason.startsWith("unavailable"),
+      ),
     `requests=${providerCalls}`,
   );
   check(
@@ -191,7 +197,7 @@ try {
     await page.$('input[type="file"]')
   ).uploadFile("shots/bethesda/invalid-replay.json");
   await waitFor(() =>
-    document.body.innerText.includes("Unsupported or oversized replay"),
+    document.body.innerText.includes("Unsupported, mismatched or oversized replay"),
   );
   check(
     "invalid replay preserves a running city",
@@ -232,6 +238,18 @@ try {
   await click("Return to the desert");
   await waitFor(() => document.title.startsWith("Lop Nur"));
   check("return restores Lop Nur", !(await page.$('[data-bethesda="active"]')));
+  // The second hidden entrance: Bethesda's coordinates typed into the twin's
+  // own site index resolve to an anomalous row rather than a structure.
+  await page.keyboard.press("KeyI");
+  await page.waitForSelector("#site-index-search");
+  await page.focus("#site-index-search");
+  await page.keyboard.sendCharacter("38.9847, -77.0947");
+  await waitFor(() => document.body.innerText.includes("UNRESOLVED FEATURE"));
+  await click("UNRESOLVED FEATURE · 39° N 77° W · outside this site");
+  await page.waitForSelector('[data-bethesda="active"]', { timeout: 60000 });
+  check("site index coordinates also resolve Bethesda", true);
+  await click("Return to the desert");
+  await waitFor(() => document.title.startsWith("Lop Nur"));
   check("no page errors", errors.length === 0, errors.join("\n"));
   check(
     "no external map or assets requested",
@@ -270,7 +288,7 @@ try {
   check(
     "WebGL failure preserves city rules and scenario controls",
     await page.evaluate(() =>
-      document.body.innerText.includes("Event injected: Fire near Bethesda Row"),
+      document.body.innerText.includes("Event injected: Fire · Bethesda Row"),
     ),
   );
   await writeFile("shots/bethesda/browser-checks.json", JSON.stringify(checks, null, 2));

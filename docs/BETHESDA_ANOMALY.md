@@ -1,66 +1,93 @@
 # The Bethesda anomaly
 
-Bethesda is an ordinary counterpoint to the desert: sidewalks, shops, routines
-and public life inside a geographically anchored experiment. It is an explorable
-procedural reconstruction, **not hyper-realism or a surveyed city twin**.
-
-The city is a separate simulator using the existing seeded random utilities,
-canonical trace hashing and bounded decision architecture. It does not reuse
-Blacksite's combat physics or claim identical mechanics across the two places.
-The human pedestrian seat and Jev use the same city action gate; a free walking
-camera is an explorer, not a human-versus-model comparison subject.
+Bethesda is an ordinary counterpoint to the desert: sidewalks, shops, buses,
+routines and public life inside a geographically anchored experiment. It is an
+explorable reconstruction built from real open geographic data and procedural
+detail, **not hyper-realism and not a surveyed city twin**. Its purpose is to
+show that the project's machinery — evidence classes, a decision gate between
+proposals and authoritative state, seeded determinism, replayable traces — is
+not about Lop Nur.
 
 ## Discovery (spoiler)
 
-From the analytical twin at `/`, press **backtick** (the `~` key below Escape),
-enter `38.9847,-77.0947`, then submit. Coordinates inside the bundled bounding box
-also work, as does the secret command `resolve bethesda`.
+There is no button. Two hidden entrances, both in the analytical twin at `/`:
 
-A 1.4 second **ANOMALOUS LOCATION RESOLUTION · 39° N · 77° W · BETHESDA** transition
-unmounts the desert and lazily loads the city. The rounded transition coordinates
-are atmospheric; the parser uses the actual bounding box. Ordinary visits do
-not request the city or its geographic data. No main-interface mode button or
-public Bethesda route is added. **Return to the desert** remounts Lop Nur.
+1. Press **backtick** (the key below Escape), enter `38.9847,-77.0947` (any
+   coordinate inside the bundled bounding box works, as does `resolve bethesda`)
+   and submit.
+2. Open the **Site Index** (`I`) and type Bethesda's coordinates into its search.
+   The index, which normally lists Lop Nur structures, shows an
+   `UNRESOLVED FEATURE · 39° N 77° W · outside this site` row. Selecting it
+   resolves the anomaly.
 
-Arrival now begins on mapped public pavement near the Bethesda Lane entrance,
-outside building footprints and the enclosed courtyard. Use WASD / Shift to walk or choose **Survey** for orbit controls. Drag to look;
-double-click requests pointer lock and Escape releases it. **Pedestrian seat**
-follows actor 0 and offers its currently permitted actions. Named viewpoints
-return to survey mode. Touch supports surveying; walking currently needs a
-keyboard. Field notes, map, scenarios, simulation and replay remain available
-when WebGL fails.
+The transition reads **ANOMALOUS LOCATION RESOLUTION**: the telemetry drifts from
+Lop Nur's 40.77252° N · 89.28122° E into 38.98470° N · 77.09470° W, glitching as
+it goes, then settles on **39° N · 77° W · BETHESDA** and lazily loads the city.
+Reduced-motion users see the settled card. Ordinary visits never request the
+city or its data. **Return to the desert** remounts Lop Nur.
+
+Arrival is on mapped public pavement near the Bethesda Lane entrance. WASD /
+Shift walks; **Survey** orbits; **Pedestrian seat** puts you in agent 0's shoes
+with only its legal actions. Click any building for a dossier. **Evidence view**
+replaces detailing with massing tinted by evidence class. Field notes, the map,
+scenarios, simulation and replay keep working when WebGL fails.
 
 ## Scenario telemetry
 
-Backtick inside the city, or its small `~ telemetry` control, opens the command
-interface. The supported natural-language families are:
+Backtick inside the city (or `~ telemetry`) opens the console. Requests are
+compiled — by a deterministic rule compiler, **not a language model** — into
+typed, bounded events, and the compiled JSON is shown before the world reacts.
 
-- `Fire near Bethesda Row.`
-- `A thunderstorm suddenly rolls through downtown Bethesda.`
-- `The Metro station closes unexpectedly.`
-- `A parade starts on Wisconsin Avenue.`
-- `A strange unidentified object appears above Bethesda.`
+- **Families (12):** fire, thunderstorm, Metro closure, parade/procession,
+  unidentified object, vehicle crash, power outage, gas leak, rally/march,
+  street festival, road closure, flash flood. Up to three per sentence
+  ("A thunderstorm and a power outage hit Bethesda").
+- **Places** come from a gazetteer built only from the data: every named
+  street (and unambiguous short forms), intersections ("Woodmont and Bethesda
+  Ave" resolves to the node both streets share), named buildings, parks,
+  monuments, the Metro, the Purple Line works, trails and storefront names
+  ("fire at Tastee Diner"). A single-word name needs a preposition ("a giant
+  fire" is intensity, "fire at Giant" is a place). A place that is not in the
+  extract is **refused**, not relocated ("Fire in Paris" fails).
+- **Modifiers:** intensity (small / default / huge…) and duration ("for 5
+  minutes", capped at 10 simulated minutes). Unstated places use documented
+  defaults, labelled "default location" in the compiled output.
+- Limits: 240 characters, eight simultaneous events, closed schema validated on
+  injection and again on replay.
 
-This is a bounded rule parser, not a general language model. It recognizes these
-families and locations and creates a typed event. Unsupported requests fail
-visibly. Input is limited to 240 characters, eight simultaneous events, and
-bounded locations/radii/lifetimes. Fires last four simulated minutes, storms
-three, and the other events two.
+An event never scripts a response. It declares generic **effects** —
+an area to avoid, something to look at, closed road and sidewalk edges, a
+reason to shelter, a speed factor, dark signals, a Metro service closure, units
+to dispatch — and agents' ordinary rules respond to effects, not to event
+names. What emerges, for example from a fire:
 
-Fire dispatches three illustrative responders from the road near the mapped
-Bethesda–Chevy Chase Rescue Squad. Responders follow directed road edges;
-ordinary traffic pulls toward the curb, cars stop at closures, and walkers may
-leave, watch, record or continue according to seeded individual traits. The
-perimeter ring shows the radius used by the closure rules. Fire is a localized
-hazard, not a fire-spread, casualty, staffing or evacuation-safety model.
+- engines/ambulance from the mapped Bethesda–Chevy Chase Rescue Squad and a
+  police unit drive real road edges (civil traffic pulls over), then **stage**;
+  police stage at **perimeter posts** — the road nodes where open roads enter
+  the closure — and barricades appear there;
+- cars meet closed edges, queue, then **detour** (U-turn where the road is
+  two-way, routing around closures) so side streets load up;
+- pedestrians inside the perimeter leave; cautious ones leave from farther
+  out; curious ones watch or record; a crowd draws more watchers; others carry
+  on; nobody stops in a crosswalk;
+- statistical district cohorts shift between outdoors, sheltering, watching and
+  evacuated.
 
-Storms darken the view, add local rain, slow traffic and encourage shelter. Metro
-closure makes nearby pedestrians leave. A parade produces a local road closure
-and spectator gathering; **there is no complete moving parade procession**.
-An overhead object attracts some onlookers. Recording is an abstract pedestrian
-state; there are no articulated phone props. No cinematic response is played.
+Other families reuse the same machinery: a **parade** is a moving closure along
+~650 m of the mapped street with marching blocks and floats, police at its closure
+posts and spectators; a **power outage** turns signals in its radius dark and every
+approach into an all-way stop; a **flash flood** fills the real bare-earth DTM
+to a level 0.5–1.4 m above the lowest road node near the place and closes the
+road and sidewalk edges under it (a bathtub model, no hydrology); a **Metro
+closure** closes the service, not the place — commuters at the entrance wait or
+re-route to bus stops; a **storm** sends people to shelter, slows traffic, wets
+the asphalt and flashes lightning; the **object** draws onlookers from 260 m and
+gets a police response. None of these are physical models of fire, weather,
+crowds or flooding.
 
 ## Real geography and licensing
+
+### Roads, buildings, paths and terrain
 
 The source register is `src/bethesda/data/source.json`. Its actual acquisition
 URL, retrieval timestamp, raw XML hash and distributed snapshot hash come from
@@ -152,199 +179,224 @@ changed vertical units/permission, and writes JSON only. The small source TIFF
 is an acquisition intermediate, not a shipped binary asset. No countywide raster
 or paid service is required. Build validation checks both geographic checksums.
 
-## What looks convincing and what looks fake
+### Streetscape and transit layer
 
-The non-grid street relationships, Wisconsin / Woodmont / Bethesda avenues,
-Old Georgetown Road, Bethesda Lane, Metro area, parks, large commercial
-footprints and surrounding houses are anchored to real geometry. Their spatial
-relationships are the strongest part of the model, especially from above.
+A second OSM derivative, `src/bethesda/data/streetscape.json`, was downloaded on
+2026-10-02 from the same bounding box (URL, retrieval time, raw and snapshot
+hashes and counts in `streetscape-source.json`) and imported by
+`scripts/import-bethesda-streetscape.py`. It is kept separate so refreshing it
+never changes the road/building snapshot. It contains:
 
-A public reference was inspected: G. Edward Johnson's
-[Woodmont Avenue / Bethesda Avenue intersection, 30 March 2025](https://commons.wikimedia.org/wiki/File:Bethesda_downtown_intersection_2025-03-30_11-38-17.jpg),
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). It shows detailed brick
-storefronts, mature trees, poles, signals and material variation. The procedural
-view now has dimensional window reveals, sills, storefront glazing, cornices,
-awnings, brick paving and street furniture around Row. The design vocabulary is
-informed by the reference; individual façades and furnishing positions remain
-illustrative. The [EPA Bethesda Row case study](https://www.epa.gov/smartgrowth/create-walkable-neighborhoods-bethesda-row-bethesda-maryland)
-also describes the brick sidewalks, street trees and continuous shopfronts; its
-case study dates to 2006/2011 and is not a current tenant or condition survey. This was qualitative comparison, not photogrammetry,
-image alignment, a survey or a pixel-error measurement. The reference image is
-not shipped and must never be presented as an achieved render.
+| Data                                                                | Count            | Used for                                                             |
+| ------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| Named storefront / amenity nodes (`name` + shop/amenity/office)     | 370              | façade name panels, gazetteer, dossier tenants, shopper destinations |
+| Monuments, memorials, public artworks, fountains                    | 21               | Madonna of the Trail, 10 artworks, 11 fountains, gazetteer           |
+| Bus stops (with `shelter` tags)                                     | 60               | stop poles and shelters, commuter destinations, bus dwell points     |
+| Bus route relations (Bethesda Circulator, Ride On, WMATA)           | 17               | ordered node chains the simulated buses drive                        |
+| Purple Line construction ways and construction sites                | 10               | fencing on surface portions (tunnel portions are skipped)            |
+| Mapped trees, street lamps, benches/picnic tables, bike-share docks | 22 / 11 / 53 / 8 | placed at their mapped points, in addition to procedural planting    |
+| Building colour/material/roof tags joined by OSM ID **and version** | 25               | building dossier                                                     |
 
-The [project architect's Bethesda Lane photograph](https://www.tortigallas.com/portfolio/upstairs-at-bethesda-row)
-was also inspected: reddish brick, pale contrasting frontage, large ground-floor
-glazing, shallow dark rails, planters and overhead fixtures. The architect describes
-several facade themes. The model now varies local facade modules, windows, blinds
-and Juliet rails; it still does not copy any individual shopfront. The
-[lighting designer documents catenary ring lights along Bethesda Lane](https://www.thelightingpractice.com/project/bethesda-row/).
-Their signature concept is represented procedurally; dimensions, spans and placement
-are inferred, not measured. These copyrighted project photographs are reference only,
-not redistributed assets or textures. The photograph's historical fixtures/tenants
-are not assumed to be current.
+Contact details, opening hours, websites and mapper identities are not copied;
+the build fails if such a field appears. Storefront names are OSM `name` tags
+drawn as plain text in generic typefaces; no logos, trade dress or liveries are
+reproduced. Bus routes are cut at the box: when a route's chain has a gap, the
+bus paths across it on the road graph and that link is counted as inferred
+(Circulator: 24 of 242 waypoint links). Non-loop routes leave the extract and a
+new trip enters at the route start. This layer is ODbL 1.0 like `osm.json`;
+Field notes can download it.
 
-Façades repeat generated window bays. Most heights, roof profiles, awnings,
-trees, furniture and sign placements/styles are inferred. Cars now have rounded
-bodies with wheel openings, sloping glazing, roof panels, mirrors, trim, lamps and cylindrical tires/rims,
-with sedan/SUV proportions. Emergency vehicles are a generic enlarged variant,
-not a faithful Bethesda apparatus. Nearby civilians have articulated arms/legs,
-shoes, hair, basic faces, clothing variation, bags and a phone-recording pose;
-they are still visibly procedural, without realistic skin, fabric or facial animation.
-There are no faithful
-interiors, Metro escalators, surveyed curb ramps, tree surveys, faithfully measured
-landmark frontages or full traffic-signal assemblies. Curbs, lamp globes and
-slatted benches are illustrative. Untagged retail heights now use a conservative
-8–11 m typology estimate instead of arbitrary office-like heights; these are
-not measurements. Bethesda Lane uses an inferred 8 m paved width. Some paths are disconnected or
-intersect footprint geometry, so walkers may wait or reverse. The Bethesda Lane
-complex has a mapped overhead layer, but this model does not yet reconstruct
-the ground-floor passages through its ends; those boundaries remain solid. These are visible
-limitations, not hidden fidelity claims.
+Road widths now come from mapped `lanes` tags (lanes × an assumed 3.3 m plus
+gutters) on 122 fragments; the other 354 keep class defaults. Divided avenues are
+mapped as two one-way carriageways, so a one-way primary default is now one
+carriageway (11 m) rather than a whole avenue (18 m); previously each of
+Wisconsin Avenue's two carriageways was drawn 18 m wide.
 
-A further realism pass needs measured building heights, finer terrain/grading,
-local photographic review, manual landmark/storefront and passage modeling,
-faithful materials/roof profiles and higher-quality civilian anatomy. The added
-detail and real broad terrain slopes improve depth cues; they do not establish
-photorealism.
+## Reference comparison
+
+One public reference was compared at the same corner: G. Edward Johnson's
+[Woodmont Avenue / Bethesda Avenue intersection, 30 March
+2025](https://commons.wikimedia.org/wiki/File:Bethesda_downtown_intersection_2025-03-30_11-38-17.jpg)
+([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). It changed three
+things in this revision: street blades now use the county's "Av" abbreviation
+("Bethesda Av"); signals hang from mast arms reaching most of the way across the
+carriageway from a curbside pole, with three heads and a blade naming the cross
+street (OSM places the signal node on the road; pole side, arm length and head
+count are inferred from mapped width and the photo; the cross-street name is the
+other mapped street at that intersection); and the mapped Woodmont Avenue
+cycletrack carries green conflict-zone paint near crossings (paint extents
+inferred). The photo also shows what is still missing: block-number plates and
+arrows on the blades, more heads per arm, "NO TURN ON RED" and other regulatory
+signs, bollards and planters at the curb, leaf-off/spring trees, the Anthropologie
+corner's distinctive grey bay and parapet, and construction hoardings. This was
+qualitative comparison at a matched viewpoint, not image alignment, photogrammetry
+or a pixel-error measurement. The reference is not shipped, not used as a texture,
+and must never be presented as an achieved render. Earlier passes also used the
+[EPA Bethesda Row case
+study](https://www.epa.gov/smartgrowth/create-walkable-neighborhoods-bethesda-row-bethesda-maryland)
+and architect/lighting-designer project pages as qualitative references only.
+
+## What is real, inferred, procedural — and what still looks fake
+
+**Genuinely derived from real Bethesda data**
+
+- Every building footprint (1,166, including two courtyard multipolygons), road,
+  path, crossing, signal location, park, Metro entrance and elevator, and the
+  rescue station: OSM.
+- Street names on the blade signs and the intersections they stand at; road
+  widths where lane counts are mapped (122 fragments); one-way topology.
+- 40 building heights (community height tags) and 33 level counts.
+- 370 storefront names and where they are; 21 monuments, artworks and fountains
+  including the Madonna of the Trail (OSM, with its Wikidata ID); 60 bus stops;
+  17 bus route relations including the Bethesda Circulator; the Purple Line
+  construction alignment; 22 trees, 11 lamps, 53 benches/tables, 8 bike docks.
+- Ground elevation everywhere (Montgomery Planning bare-earth LiDAR DTM, coarse
+  crop), and therefore which streets flood first.
+
+**Inferred** (from real data plus a stated assumption)
+
+- 33 heights from levels × 3.3 m; widths from lanes × 3.3 m; which façade edge a
+  storefront's name goes on; blade-sign corners; signal mast-arm side and
+  length; the Metro canopy's orientation; bus links across route gaps; police
+  staging at the extract edge (no police station is mapped inside it).
+
+**Procedural / illustrative**
+
+- 1,093 building heights (typology guesses), every façade, window, cornice,
+  roof and colour; sign typography and colours; sculpture forms (each artwork is
+  a generic steel form at its mapped point; the Madonna is simplified massing,
+  not a likeness); most trees, furniture and lamps; cars, buses, emergency
+  apparatus and people; all behaviour, demand, schedules, signal timing, the
+  population numbers and the district cohorts.
+
+**What looks convincing**
+
+- The street plan and its relationships, especially from Survey and on the
+  minimap; Bethesda Row / Bethesda Lane's brick-and-storefront rhythm; walking
+  Bethesda Avenue past real shop names (Georgetown Cupcake, Sweetgreen, CAVA,
+  Anthropologie…); street blades naming real corners; Circulator and Ride On
+  buses on their real streets; the Madonna of the Trail standing where she
+  stands; the Metro entrance where it is; the Purple Line still under
+  construction.
+
+**What still looks fake**
+
+- Generic façades that repeat (most named buildings look nothing like
+  themselves: the Hyatt, Marriott HQ, Bethesda Metro Center, the Farm Women's
+  Market); flat roofs everywhere; too-uniform foliage; capsule-and-sphere
+  people and parade marchers; box-bodied buses and apparatus; flame cones and
+  sphere smoke; a flat water sheet; signage that is text on panels rather than
+  real signs; empty interiors; no night, no seasons; software-rendered captures
+  run at 0–2 fps here, so motion has not been judged on a real GPU.
+
+**What would still require manual artistic work**
+
+- Landmark façades and roofs (Hyatt, Marriott HQ, Metro Center plaza and bus
+  bays, Farm Women's Market, Bethesda Theatre marquee, Post Office, Row corner
+  buildings); measured heights for the ~1,100 untagged buildings; a curated
+  street-tree survey; real signal, sign and furniture families; the Metro
+  escalator well; better civilian anatomy and animation; a local's walk-through
+  to list what is wrong.
 
 ## Simulation and performance
 
-Simulation has no renderer imports. It advances fixed 0.1 s ticks on its own
-timer, including when WebGL is unavailable. Randomness comes from the shared
-`mulberry32` generator. Rendering changes cannot write agent state.
+The simulation (`simulation.ts`) has no renderer imports and runs fixed 0.1 s
+ticks on its own timer, including without WebGL. All randomness is the shared
+`mulberry32`. A uniform spatial index made ticks roughly 9× cheaper (≈1 ms for
+360 pedestrians, 70 cars and 14 buses in Node on this container).
 
-The conservative initial profiles are 120 pedestrians / 28 cars on up to four
-reported CPU cores, or 320 / 65 otherwise. Three responders are additional. The
-simulator supports a bounded 640 / 110 profile for explicit experiments.
-Half of initial pedestrians are sampled near Bethesda Row / Metro to make the
-public corridors active; that distribution is illustrative, not measured.
-Statistical district cohorts add 900 / 1,800 / 2,800 synthetic occupants and
-update sheltering/watching counts at 1 Hz. **These are illustrative aggregate
-occupants, not individually modeled distant citizens or census estimates.**
-Active individual agents retain full fixed-step updates even when not drawn;
-there is no automatic promotion/demotion between cohorts and individual actors.
+- **Population** is chosen once from reported hardware and recorded in the
+  trace: 140 / 32 / 6 buses on ≤ 4 cores, 360 / 70 / 14 otherwise, 640 / 110 /
+  20 on ≥ 12 cores with ≥ 8 GB. Eight responders (three engines, two
+  ambulances at the rescue station, three police at the extract's edge) are
+  additional.
+- **Simulation levels of detail:** agents within the _focus radius_
+  (280 / 420 / 650 m by profile) of the viewer, or near any event, plus all
+  responders and buses, update every tick; others update every fourth tick with
+  a 4× step; districts are stock-flow cohorts (900–2,800 illustrative occupants)
+  updated at 1 Hz. The focus is a **recorded command**, so a camera- or
+  hardware-driven budget never makes replay nondeterministic. Individuals never
+  convert into cohort members or back.
+- **Routines:** pedestrians carry a seeded persona (commuter, shopper, resident,
+  worker, visitor) that picks destinations from real places — the Metro, bus
+  stops, storefronts, offices, homes, monuments, parks. They enter buildings,
+  take the Metro (out of view, then re-emerge), wait at stops and board buses
+  (re-appearing at another stop), linger, and cross on signals. These schedules
+  are illustrative, not measured demand.
+- **Traffic:** one-way topology, illustrative 50 s signal cycles, crosswalk
+  yielding, headway, intersection reservation, emergency yielding, closures,
+  detours, all-way stops under outages, curb dwells, bus stop dwells. There is
+  no calibrated demand, lane changing, continuous vehicle physics or citywide
+  congestion forecast.
+- **Rendering** culls static tiles by distance, instances people and vehicles,
+  drops pixel ratio and shadows under sustained low frame rate, and offers
+  auto / detail / economy. Static streetscape text is two canvas atlases (1024² for
+  street blades, 2048² for names), merged into tiled draws. No frame-rate target is claimed.
 
-Static geometry is merged in spatial tiles with distance/frustum culling and
-matching fog ranges (shorter in economy); people and vehicles are instanced. Rendering culls
-distant actors, lowers pixel ratio and disables shadows under sustained low
-frame rate. Weak hardware starts without shadows. **Visuals: auto → detail → economy**
-cycles the render preference. Auto retains adaptive degradation; detail keeps
-block-scale 2048 px shadows and at most 1.5 pixel ratio, while economy disables
-shadows. Local procedural sky reflections require no downloaded HDRI. These
-are artistic daylight conditions, not a measured timestamp/sun position. Population is selected at
-startup from hardware, not continually resized; this preserves experiment
-identity. Browser background throttling or overload can slow simulated time
-relative to wall time. There is no hardware-independent frame-rate guarantee.
-
-Renderer tone mapping uses the shared owner in
-`src/components/scene/Atmosphere.tsx`. Lop Nur keeps its existing postprocessing
-switch and 1.05 exposure; Bethesda requests renderer AgX at exposure 1 and restores
-the prior transform on unmount. Its local sky and lighting remain separate.
-
-Civilian gait uses measured displacement, a distance-driven planted/swing foot
-trajectory and the existing Blacksite clamped two-bone IK solver. Feet sample the
-same terrain as the actor. Stops stop the gait even when an action still names
-walking. Close-range anatomy/IK/faces and rims simplify with distance; instancing
-keeps the civilian population from creating hundreds of draw calls. Rendering
-interpolates positions over at most one tick; this is presentation, never authoritative
-world state. Missed render frames can change cosmetic gait phase, not experiment
-results. Vehicles tilt with the sampled road grade and sit on the same illustrative
-pavement lifts as the static street surfaces. Fire, smoke and rain remain simplified
-visual effects, not physical fluid or weather simulation. Browser captures do not
-prove photorealistic motion or a hardware FPS target.
-
-Road movement respects one-way topology, illustrative signal cycles, pedestrian
-crossings, headway, basic intersection reservations and emergency yielding.
-Parking is an abstract curb dwell; building entry hides the actor at an inferred
-portal for a dwell period, without an interior. Public gatherings are short
-social stops. Short sidewalk connectors of at most six metres are inferred.
-There is no calibrated traffic demand, complete lane-changing model, continuous
-vehicle physics, citywide congestion forecast or real population schedule.
+Tone mapping uses the shared owner in `src/components/scene/Atmosphere.tsx`.
 
 ## Jev's actual authority
 
-Jev is off by default. The toggle uses the existing server-only TypeSafe
-configuration and `/api/jev/decision`, with a separate closed city schema.
-It samples nearby event participants every 2.5 seconds, permits one request
-in flight, has a 1.2 second browser deadline, and stops at 120 requests/session.
-Ordinary deterministic routines continue while a proposal is pending.
+Jev is **off by default**. With the toggle on, the existing server-only TypeSafe
+configuration answers `/api/jev/decision` using a separate, closed city schema
+(`bethesda-observation/v2`).
 
-`observation → permitted actions → Jev proposal → deterministic validation → simulation`
+`observation → legal actions → Jev proposal → deterministic validation → simulation`
 
-Jev chooses one offered action: for example, wait, watch, record, leave, shelter,
-enter, drive, stop or pull over. It does not choose coordinates, speeds, traffic
-signals, actors, events, camera state or direct world mutations. The server
-constructs the question from bounded fields and enums and validates the returned
-model ID, option coverage, probability sum, confidence and selected action.
-The simulator checks current legal actions and rejects proposals over 15 ticks
-old. Emergency agents can receive a dispatch fact about an active fire; this
-is explicitly not a claim of seeing the fire from across the city.
-
-Unavailable, timed-out, malformed, illegal or stale replies produce a recorded
-fallback. Routing, traffic safety, speed, collisions, dispatch mechanics and
-district updates always run in deterministic code. The existing Blacksite
-vocabulary and credential entry points are preserved. Provider accounting is
-unknown (`null`); it is not fabricated. **No live Jev Bethesda run is claimed.**
-Tests use offline responses and never spend model credit.
+- **What Jev sees:** the agent's role and persona, the nearest hazard and
+  attraction (kind and distance only), whether it is inside a perimeter, storm
+  shelter advice, traffic nearby, an approaching emergency vehicle, crossing
+  state and safety, dark signals, blocked or closed route ahead, whether it is
+  at a building portal, gathering place, bus stop (with a bus boarding) or Metro
+  entrance and whether the Metro is open, assignment, and a crowd bucket.
+  No coordinates, IDs of other agents or world state.
+- **What Jev chooses:** one action from the offered set (e.g. continue, wait,
+  watch, record, leave, shelter, enter, gather, cross, board; or drive, detour,
+  stop, pull over, park, respond). Actions are offered by mechanics only.
+- **What Jev never controls:** routes, destinations, speeds, signals, closures,
+  dispatch, other agents, events, the camera or any world state. The broker
+  samples agents involved in events (or, with nothing happening, a pedestrian
+  at a choice point), one request in flight, every 2.5 s, 1.2 s deadline,
+  120 requests per session.
+- **Fallback:** unavailable, timed out, malformed, illegal or stale (> 15 ticks)
+  answers are recorded as `fallback` with the reason and the rule that took
+  over, and the deterministic rule selector decides. Labels follow Blacksite's:
+  `LIVE JEV` only after a validated answer, otherwise `FALLBACK · TIMEOUT /
+UNAVAILABLE / ERROR / STALE OR INVALID`. Provider usage is `null`, never
+  invented.
+- **Without Jev** everything runs on the rules. No live Jev Bethesda run is
+  claimed in this repository; tests use offline doubles and never spend credit.
 
 ## Replay and verification
 
-Exports include data hash, schema, seed/profile, tick-stamped scenario inputs,
-human choices, explorer movement, remote proposals/failures, observations,
-selected actions, source labels, before/after state and the outcome tick for each
-decision. Checkpoints are recorded every 100 ticks. Re-import regenerates the
-simulation and verifies checkpoint hashes, the decision history and final state.
-It yields periodically to keep the UI responsive and never calls a model.
+Traces (`bethesda-replay/v3`) carry the simulator version and the hashes of the
+OSM snapshot, the DTM crop and the streetscape/transit layer, the config, and
+every tick-stamped command: scenarios, Jev proposals and failures, human seat
+choices, explorer movement and LOD focus changes. They also carry every
+decision with its observation, proposal, source, reason, before/after state and
+outcome tick; checkpoints every 100 ticks; and the final hash. Re-import
+regenerates the run and verifies checkpoints, decisions and final state.
 
-New recordings use `bethesda-replay/v2` for the corrected public-path spawn and
-include the elevation snapshot hash. A stated, mismatching terrain hash is rejected.
-Older traces without that optional field still verify their planar simulation
-state and retain the omission on re-export; they do not claim their original
-flat-ground presentation has been reproduced.
-The loader understands v1 starting-position semantics when the data hash matches.
-The courtyard import changes the snapshot hash: recordings made against the
-previous snapshot require that revision of the project and are intentionally
-rejected here, rather than replayed against different collision geometry.
-
-Replay reproduces authoritative simulation state, not render timing or identical
-pixels. Hashes are integrity checks, not signatures proving trace authorship.
-The recorder caps 30,000 input commands and 60,000 decisions. Export refuses an
-incomplete trace when a cap is reached; reset begins a new experiment. Replay
-also caps 18,000 ticks and 32 MB input. The decision cap can be reached well before
-the tick cap at dense profiles. Export traces before leaving or reloading.
+Routine rules decisions that merely re-affirm the open decision extend its
+outcome window instead of adding a record (the HUD shows how many were folded),
+so the decision log holds transitions: a 3,200-tick run with four events went
+from 43,092 records to 4,018 and a 3.7 MB trace. Traces from v1/v2 are refused
+with an explanation — the simulator changed — rather than replayed against
+different rules. Replay reproduces authoritative state, not pixels.
 
 ```sh
-npm run test:bethesda
+npm run test:bethesda     # city, effects, presentation and server tests
 npm run test:run
-npm run test:evidence
-npm run format:check
-npm run lint
-npm run build
-npm run verify:bethesda
+npm run build             # includes validate:bethesda (both OSM layers, DTM)
+npm run verify:bethesda   # browser: discovery (both entrances), scenarios,
+                          # outage fallback, walking, replay, a11y, CSP, return
 node tools/bethesda-look.mjs
 ```
 
-The browser check uses the production artifact and security headers. It checks
-lazy discovery, all five scenarios, a mocked provider outage through native
-fetch, walking, trace export/re-import, provenance, accessibility and return to
-Lop Nur. Its 960 × 640 viewport and public Economy preference bound software-GPU
-raster cost; WebGL and the full simulation remain active. DOM/timer conditions
-use bounded interval polling rather than waiting for animation frames. It writes
-local captures/checks under the Git-ignored `shots/bethesda/`; CI uploads these
-and the error/HUD/provider-request diagnostics if a browser check fails.
-Set `PUPPETEER_EXECUTABLE_PATH` when using an existing Chromium installation.
-The same check is included in CI. The look-development capture script records
-arrival, street, turned street and survey views in auto/detail modes, plus
-console/network evidence, under `shots/bethesda/look/`. It operates real controls
-and never requests Jev. Software-rendered Chromium captures establish visual
-output and errors, not a laptop/GPU performance benchmark. Existing analytical/evidence/Blacksite tests
-remain required; the city does not replace them.
-
 ## What still requires the owner
 
-Merge/deploy the feature branch to put the secret on production. For live Jev,
-retain the existing TypeSafe server configuration and intentionally enable its
-city toggle. No other credential is required. A local recognizability review and
-manual artistic work remain necessary to approach the requested hyper-realism.
-Exploration, the five supported scenario families and rules-only replay require
-no model or paid service.
+- Merge and deploy the branch to put the anomaly on production.
+- For live Jev, keep the existing TypeSafe server configuration and switch the
+  city toggle on; nothing else needs a credential.
+- A local's recognisability review, and the manual landmark and height work
+  listed above, to move from "recognisable plan" toward "recognisable place".

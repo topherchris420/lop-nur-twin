@@ -1,22 +1,41 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { CityScene, type ViewControl } from "./Scene";
-import { CitySimulation, PROFILES, type Trace } from "./simulation";
+import { CitySimulation, FOCUS_RADII, PROFILES, type Trace } from "./simulation";
 import { CityDecisionBroker } from "./jev";
-import { parseScenario } from "./scenarios";
+import { compileScenario, LABELS, type Compiled } from "./scenarios";
 import {
   buildings,
   arrival,
   bounds,
+  distance,
   geographic,
   landmarks,
   roadWays,
   SOURCE,
   type Point,
 } from "./model";
+import { roads } from "./network";
 import snapshot from "./data/osm.json" with { type: "json" };
 import terrainSnapshot from "./data/terrain.json" with { type: "json" };
+import streetscapeSnapshot from "./data/streetscape.json" with { type: "json" };
 import { TERRAIN_SOURCE } from "./terrain";
+import {
+  STREETSCAPE_SOURCE,
+  busRoutes,
+  monuments,
+  storefronts,
+  busStops,
+  construction,
+} from "./streetscape";
+import {
+  dossier,
+  evidenceTally,
+  EVIDENCE_CLASSIFICATION_META,
+  EVIDENCE_TINT,
+  type EvidenceClassification,
+} from "./evidence";
 import { safeExternalHref, EXTERNAL_LINK_PROPS } from "../lib/safeUrl";
+
 function save(name: string, value: unknown) {
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(value)], { type: "application/json" }),
@@ -27,9 +46,20 @@ function save(name: string, value: unknown) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+/**
+ * Population is chosen once, from reported hardware, and recorded in the
+ * trace's config; the full-rate focus radius scales with it. Neither changes
+ * mid-experiment except through recorded commands.
+ */
+function profileIndex() {
+  const cores = navigator.hardwareConcurrency || 2;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
+  return cores <= 4 ? 0 : cores >= 12 && memory >= 8 ? 2 : 1;
+}
 function world(sim?: CitySimulation) {
-  const low = (navigator.hardwareConcurrency || 2) <= 4;
-  const city = sim ?? new CitySimulation(PROFILES[low ? 0 : 1]);
+  const index = profileIndex();
+  const city = sim ?? new CitySimulation(PROFILES[index]);
+  if (!sim) city.setFocus(arrival, FOCUS_RADII[index]);
   const view: ViewControl = {
     mode: "walk",
     target: { ...arrival },
@@ -37,11 +67,13 @@ function world(sim?: CitySimulation) {
     yaw: -Math.PI / 2,
     pitch: 0,
     keys: new Set(),
-    tier: low ? 0 : 1,
+    tier: index === 0 ? 0 : 1,
     quality: "auto",
     fps: 0,
     ready: false,
     failed: false,
+    evidence: false,
+    selected: null,
   };
   return { sim: city, broker: new CityDecisionBroker(city), view };
 }
@@ -92,22 +124,41 @@ function MiniMap({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         r.points.forEach((v, i) => (i === 0 ? c.moveTo(...p(v)) : c.lineTo(...p(v))));
         c.stroke();
       }
+      c.strokeStyle = "#e0694a";
+      c.lineWidth = 2;
+      for (const id of sim.closedRoads) {
+        const e = roads.edges[id]!;
+        c.beginPath();
+        c.moveTo(...p(roads.nodes.get(e.from)!));
+        c.lineTo(...p(roads.nodes.get(e.to)!));
+        c.stroke();
+      }
       for (const a of sim.agents) {
         if (a.inside) continue;
         c.fillStyle =
           a.kind === "emergency"
             ? "#f1b86d"
-            : a.kind === "pedestrian"
-              ? "#9ab69b"
-              : "#d4c8a4";
-        c.fillRect(...p(a.point), 1.5, 1.5);
+            : a.kind === "bus"
+              ? "#8fc0e8"
+              : a.kind === "pedestrian"
+                ? "#9ab69b"
+                : "#d4c8a4";
+        const s = a.kind === "pedestrian" ? 1.5 : 2.4;
+        c.fillRect(...p(a.point), s, s);
       }
       for (const e of sim.events) {
         c.strokeStyle = e.kind === "fire" ? "#e7a56c" : "#9bcacc";
+        c.lineWidth = 1;
         c.beginPath();
-        c.arc(...p(e.point), e.radius * scale, 0, Math.PI * 2);
+        c.arc(...p(e.at), Math.min(90, e.radius * scale), 0, Math.PI * 2);
         c.stroke();
       }
+      c.strokeStyle = "rgba(232,241,223,.25)";
+      c.setLineDash([2, 3]);
+      c.beginPath();
+      c.arc(...p(sim.focus), sim.focusRadius * scale, 0, Math.PI * 2);
+      c.stroke();
+      c.setLineDash([]);
       c.fillStyle = "#e8f1df";
       c.beginPath();
       c.arc(...p(view.target), 3, 0, Math.PI * 2);
@@ -125,7 +176,7 @@ function MiniMap({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       width={196}
       height={196}
       className="h-28 w-28 sm:h-44 sm:w-44"
-      aria-label="Bethesda map with real footprints and simulated agents"
+      aria-label="Bethesda map with real footprints, closures and simulated agents"
     />
   );
 }
@@ -133,7 +184,21 @@ const panel =
   "rounded border border-teal-100/20 bg-[#10272e]/95 p-3 text-slate-100 shadow-xl";
 const button =
   "rounded border border-teal-100/25 px-3 py-2 text-xs hover:bg-teal-100/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200";
+const CLASSES: EvidenceClassification[] = [
+  "observed",
+  "reported",
+  "interpreted",
+  "illustrative",
+];
+function Glyph({ c }: { c: EvidenceClassification }) {
+  return (
+    <span aria-hidden="true" style={{ color: EVIDENCE_TINT[c] }}>
+      {EVIDENCE_CLASSIFICATION_META[c].glyph}
+    </span>
+  );
+}
 function Notes() {
+  const tally = evidenceTally();
   return (
     <div className="max-h-[65vh] max-w-2xl overflow-auto text-sm leading-relaxed">
       <p className="mb-4">
@@ -149,11 +214,15 @@ function Notes() {
             <th className="p-2 align-top">Real data</th>
             <td className="p-2">
               {SOURCE.counts.building} OSM building footprints, {SOURCE.counts.road} road
-              fragments, {SOURCE.counts.path} walking/cycling ways, {SOURCE.counts.park}{" "}
-              green spaces, 2 Metro entrances, signals and crossing points. Metres, north
-              up; WGS84 source coordinates. Montgomery Planning bare-earth LiDAR DTM:
-              4,225 samples over the same crop, roughly 20 × 22 metres apart, interpolated
-              for vertical placement.
+              fragments (lane tags set widths where mapped), {SOURCE.counts.path}{" "}
+              walking/cycling ways, {SOURCE.counts.park} green spaces, 2 Metro entrances,
+              signals and crossing points. A separate streetscape layer adds{" "}
+              {storefronts.length} named storefronts, {monuments.length} monuments,
+              artworks and fountains (including the Madonna of the Trail),{" "}
+              {busStops.length} bus stops, {busRoutes.length} bus routes (Bethesda
+              Circulator, Ride On, WMATA) and {construction.length} Purple Line
+              construction ways. Montgomery Planning bare-earth LiDAR DTM: 4,225 samples
+              over the same crop, roughly 20 × 22 metres apart.
             </td>
           </tr>
           <tr>
@@ -161,19 +230,20 @@ function Notes() {
             <td className="p-2">
               Most building heights inferred. Community height tags exist for{" "}
               {buildings.filter((b) => b.heightEvidence === "height tag").length}{" "}
-              footprints. Level tags use an assumed 3.3 metres per floor. Terrain is a
-              coarse crop of real bare earth, with simplified building foundations; it
-              does not resolve curbs, steps or underpasses. No surveyed interiors. Two OSM
-              multipolygon buildings include their mapped courtyards.
+              footprints; level tags use an assumed 3.3 metres per floor. Terrain is a
+              coarse crop of real bare earth; it does not resolve curbs, steps or
+              underpasses. Bus routes follow mapped route ways; gaps outside the box are
+              bridged by shortest road paths. Sign placement on façades, blade-sign
+              corners and the Metro canopy shape are inferred.
             </td>
           </tr>
           <tr>
             <th className="p-2 align-top">Procedural</th>
             <td className="p-2">
-              Façades, roofs, trees, signs, furniture, cars and people. Row storefront
-              frames, awnings, paving, curbs and lamps are illustrative detailing, not
-              surveyed placements. Signals, routes, crowds and emergency response are
-              illustrative behavior, not measured Bethesda traffic.
+              Façades, roofs, trees, sign typography, sculpture forms, furniture, cars,
+              buses and people. Storefront names are OSM name tags drawn as plain text; no
+              logos or liveries are reproduced. Signals, routes, crowds, events and
+              emergency response are illustrative behaviour, not measured Bethesda.
             </td>
           </tr>
           <tr>
@@ -186,9 +256,10 @@ function Notes() {
           <tr>
             <th className="p-2 align-top">Source</th>
             <td className="p-2">
-              Retrieved {SOURCE.acquiredAt.slice(0, 10)} from OpenStreetMap. This date is
-              retrieval, not a survey date. © OpenStreetMap contributors · ODbL 1.0. The
-              derivative database is downloadable below. Terrain retrieved{" "}
+              Retrieved {SOURCE.acquiredAt.slice(0, 10)} (roads and buildings) and{" "}
+              {STREETSCAPE_SOURCE.acquiredAt.slice(0, 10)} (streetscape) from
+              OpenStreetMap. These are retrieval dates, not survey dates. © OpenStreetMap
+              contributors · ODbL 1.0. Terrain retrieved{" "}
               {TERRAIN_SOURCE.acquiredAt.slice(0, 10)}: © Montgomery County Planning
               Department, MNCPPC. Redistribution permitted with attribution; provided
               without warranties.
@@ -196,13 +267,30 @@ function Notes() {
           </tr>
         </tbody>
       </table>
+      <h2 className="mt-5 font-mono text-xs tracking-widest text-teal-100">
+        THE SAME INSTRUMENT
+      </h2>
+      <p className="mt-2">
+        The building massing here is classified with the desert&apos;s own four evidence
+        classes. In Bethesda:{" "}
+        {CLASSES.map(
+          (c) => `${tally[c]} ${EVIDENCE_CLASSIFICATION_META[c].label.toLowerCase()}`,
+        ).join(" · ")}
+        . Every footprint is <em>reported</em> (someone mapped it), so the suburb&apos;s
+        uncertainty lives in the third dimension: only{" "}
+        {buildings.filter((b) => b.heightEvidence === "height tag").length} heights are
+        published. The desert&apos;s uncertainty is identity: most of its structures are{" "}
+        <em>interpreted</em>. Same instrument, different blind spot. Agents here pass the
+        same kind of gate as Blacksite&apos;s player seat: an observation, the legal
+        actions, a proposal from a human, Jev or the rules, deterministic validation, then
+        the simulation. Seeded generators, canonical hashes and the TypeSafe endpoint are
+        shared code.
+      </p>
       <p className="mt-4">
-        Recognizable street relationships and the Bethesda Lane courtyard are the
-        strongest features. Facades, foliage, civilian models and emergency vehicles still
-        look procedural. An architect's Bethesda Lane photograph informed material themes
-        and shallow rails; the ring-light concept comes from the lighting designer.
-        Locations and dimensions of that detailing remain illustrative. Reference photos
-        are not shipped textures or achieved renders.
+        Recognizable street relationships, storefront names, the Bethesda Lane courtyard,
+        the Metro entrance and the Madonna of the Trail are the strongest features.
+        Façades, foliage, civilian models and vehicles still look procedural. Reference
+        photos are not shipped textures or achieved renders.
       </p>
       <div className="mt-4 flex flex-wrap gap-4">
         <button
@@ -211,6 +299,15 @@ function Notes() {
           onClick={() => save("bethesda-osm-derivative.geojson", snapshot)}
         >
           Download geographic database
+        </button>
+        <button
+          type="button"
+          className="underline"
+          onClick={() =>
+            save("bethesda-streetscape-derivative.json", streetscapeSnapshot)
+          }
+        >
+          Download streetscape database
         </button>
         <button
           type="button"
@@ -246,18 +343,117 @@ function Notes() {
     </div>
   );
 }
+function Dossier({ id, onClose }: { id: string; onClose: () => void }) {
+  const b = buildings.find((x) => x.id === id);
+  if (!b) return null;
+  const d = dossier(b);
+  return (
+    <section
+      aria-label="Building dossier"
+      className={"absolute top-32 right-4 z-20 w-[min(380px,calc(100vw-32px))] " + panel}
+    >
+      <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">DOSSIER</p>
+      <h2 className="mt-1 text-base">{d.title}</h2>
+      <dl className="mt-2 space-y-1 text-[11px]">
+        {d.rows.map((r) => (
+          <div key={r.label} className="grid grid-cols-[96px_1fr] gap-2">
+            <dt className="text-slate-300">{r.label}</dt>
+            <dd>
+              {r.class ? (
+                <>
+                  <Glyph c={r.class} />{" "}
+                  <span className="sr-only">
+                    {EVIDENCE_CLASSIFICATION_META[r.class].label}:{" "}
+                  </span>
+                </>
+              ) : null}
+              {r.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="mt-3 flex gap-3 text-[11px]">
+        <a
+          href={safeExternalHref(d.osmUrl)}
+          {...EXTERNAL_LINK_PROPS}
+          className="underline"
+        >
+          View on OpenStreetMap
+        </a>
+        <button type="button" className="underline" onClick={onClose}>
+          Close dossier
+        </button>
+      </div>
+    </section>
+  );
+}
+function Pulse({ sim }: { sim: CitySimulation }) {
+  const count = (f: (a: CitySimulation["agents"][number]) => boolean) =>
+    sim.agents.filter(f).length;
+  const people = (action: string) =>
+    count((a) => a.kind === "pedestrian" && !a.inside && a.action === action);
+  const cohorts = sim.districts.reduce(
+    (s, d) => ({
+      sheltering: s.sheltering + d.sheltering,
+      watching: s.watching + d.watching,
+      evacuated: s.evacuated + d.evacuated,
+    }),
+    { sheltering: 0, watching: 0, evacuated: 0 },
+  );
+  return (
+    <div className="mt-2 font-mono text-[10px] text-slate-300" aria-label="City pulse">
+      {sim.events.length ? (
+        <ul className="mb-1 text-teal-100">
+          {sim.events.map((e) => (
+            <li key={e.id}>
+              ● {e.label} ·{" "}
+              {Math.max(0, Math.ceil((e.startTick + e.durationTicks - sim.tick) / 600))}{" "}
+              min left
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      watching {people("watch")} · recording {people("record")} · leaving{" "}
+      {people("leave")} · sheltering {people("shelter")} · indoors/riding{" "}
+      {count((a) => a.inside)} · staged responders{" "}
+      {count((a) => a.kind === "emergency" && !!a.assignment && a.action === "park")} ·
+      detouring {count((a) => a.action === "detour" || a.action === "stop")} · closed
+      edges {sim.closedRoads.size}
+      <br />
+      statistical cohorts: sheltering {cohorts.sheltering} · watching {cohorts.watching} ·
+      evacuated {cohorts.evacuated} · full-rate radius {sim.focusRadius} m
+    </div>
+  );
+}
+const EXAMPLES = [
+  "Fire near Bethesda Row.",
+  "A thunderstorm suddenly rolls through downtown Bethesda.",
+  "The Metro station closes unexpectedly.",
+  "A parade starts on Wisconsin Avenue.",
+  "A strange unidentified object appears above Bethesda.",
+  "Car crash at Woodmont and Bethesda Ave",
+  "Power outage downtown for 5 minutes",
+  "Close Elm Street",
+  "Flash flood near the Farm Women's Market",
+];
 export default function Bethesda({ onReturn }: { onReturn: () => void }) {
   const [w, setWorld] = useState(() => world()),
     [version, refresh] = useState(0),
     [notes, setNotes] = useState(false),
     [command, setCommand] = useState(false),
     [text, setText] = useState(""),
+    [compiled, setCompiled] = useState<Compiled | null>(null),
+    [selected, setSelected] = useState<string | null>(null),
     [message, setMessage] = useState(
       "The telemetry has resolved into somewhere ordinary.",
     ),
     [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const { sim, broker, view } = w;
+  view.onSelect = setSelected;
+  // Dev-only handle for look-development captures, like `window.__twinStore`.
+  // Stripped from production builds; nothing in the app reads it.
+  if (import.meta.env.DEV) Object.assign(window, { __bethesda: { sim, view } });
   useEffect(() => {
     const previous = document.title;
     document.title = "Bethesda anomaly — Lop Nur Twin";
@@ -280,6 +476,16 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
             ((x * Math.cos(view.yaw) + z * Math.sin(view.yaw)) * speed) / norm,
             ((-x * Math.sin(view.yaw) + z * Math.cos(view.yaw)) * speed) / norm,
           );
+      }
+      // The full-rate focus follows the viewer, but only as a recorded command.
+      if (sim.tick % 10 === 0) {
+        const focus =
+          view.mode === "walk"
+            ? sim.player
+            : view.mode === "seat"
+              ? sim.agents[0]!.point
+              : view.target;
+        if (distance(focus, sim.focus) > 40) sim.setFocus(focus);
       }
       sim.step();
     }, 100);
@@ -348,6 +554,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
       setBusy(false);
     }
   };
+  const tally = evidenceTally();
   return (
     <main
       data-bethesda="active"
@@ -390,10 +597,40 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
           © OpenStreetMap contributors · ODbL
         </a>
       </aside>
+      {view.evidence ? (
+        <aside
+          aria-label="Evidence legend"
+          className={"absolute top-36 left-4 w-60 text-[11px] " + panel}
+        >
+          <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
+            EVIDENCE VIEW · BUILDING MASSING
+          </p>
+          <ul className="mt-2 space-y-1">
+            {CLASSES.map((c) => (
+              <li key={c}>
+                <Glyph c={c} /> {EVIDENCE_CLASSIFICATION_META[c].label} · {tally[c]}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-slate-300">
+            Footprints are reported by OSM; the class shown is the weaker of footprint and
+            height. Click a building for its dossier.
+          </p>
+        </aside>
+      ) : null}
+      {selected ? (
+        <Dossier
+          id={selected}
+          onClose={() => {
+            view.selected = null;
+            setSelected(null);
+          }}
+        />
+      ) : null}
       <section
         aria-label="City controls"
         className={
-          "absolute right-4 bottom-4 max-h-[47vh] w-[min(610px,calc(100vw-32px))] overflow-auto sm:w-[min(610px,calc(100vw-250px))] " +
+          "absolute right-4 bottom-4 max-h-[47vh] w-[min(640px,calc(100vw-32px))] overflow-auto sm:w-[min(640px,calc(100vw-250px))] " +
           panel
         }
       >
@@ -435,11 +672,21 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
           >
             {broker.enabled ? "Jev on" : "Jev off"}
           </button>
+          <button
+            className={button}
+            aria-pressed={view.evidence}
+            onClick={() => {
+              view.evidence = !view.evidence;
+              render();
+            }}
+          >
+            Evidence view
+          </button>
         </div>
         {view.mode === "walk" ? (
           <p className="mt-2 text-xs text-slate-300">
             WASD · Shift to move faster · drag to look · double-click for mouse lock ·
-            Escape releases
+            Escape releases · click a building for its dossier
           </p>
         ) : null}
         {view.mode === "seat" ? (
@@ -489,12 +736,15 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
             </button>
           ))}
         </div>
+        <Pulse sim={sim} />
         <p className="mt-2 font-mono text-[10px] text-slate-300">
           {sim.config.pedestrians} individual pedestrians · {sim.config.vehicles} cars ·{" "}
-          {sim.config.statisticalPopulation} statistical occupants
+          {sim.config.buses} buses · {sim.config.statisticalPopulation} statistical
+          occupants
           <br />
           tick {sim.tick} · {view.fps} fps · render tier {view.tier} · {broker.status} ·
-          accepted {broker.accepted} / fallback {broker.fallbacks}
+          accepted {broker.accepted} / fallback {broker.fallbacks} · decisions{" "}
+          {sim.decisions.length} (+{sim.reaffirmed} folded)
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100">
           <button
@@ -525,6 +775,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
             className="underline"
             onClick={() => {
               setWorld(world());
+              setSelected(null);
               setMessage("New seeded experiment.");
             }}
           >
@@ -550,21 +801,29 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
         <section
           aria-label="Scenario telemetry"
           className={
-            "absolute top-1/3 left-1/2 z-30 w-[min(520px,calc(100vw-32px))] -translate-x-1/2 " +
+            "absolute top-1/4 left-1/2 z-30 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 " +
             panel
           }
         >
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              const event = parseScenario(text);
-              if (!event)
-                setMessage(
-                  "Unresolved event. Use one of the five supported event families and places.",
-                );
-              else if (!sim.inject(event)) setMessage("Event limit reached (8).");
+              const result = compileScenario(text);
+              setCompiled(result);
+              if (result.error) {
+                setMessage("Unresolved event. " + result.error);
+                return;
+              }
+              const injected = result.events.filter((s) => sim.inject(s));
+              if (!injected.length) setMessage("Event limit reached (8).");
               else {
-                setMessage("Event injected: " + event.label);
+                setMessage(
+                  "Event injected: " +
+                    injected.map((s) => s.label).join(" + ") +
+                    (injected.length < result.events.length
+                      ? " (limit reached for the rest)"
+                      : ""),
+                );
                 setText("");
               }
             }}
@@ -588,9 +847,53 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               }}
             />
             <p className="my-3 text-xs text-slate-300">
-              Fire near Bethesda Row · downtown thunderstorm · Metro closure · Wisconsin
-              Avenue parade · unidentified object above Bethesda
+              Describe an event and a real place in the extract: a street, an intersection
+              (“Woodmont and Bethesda Ave”), a named building, park, storefront or
+              monument. Families: {Object.values(LABELS).join(" · ").toLowerCase()}.
             </p>
+            <div className="mb-3 flex flex-wrap gap-2 text-[11px]">
+              {EXAMPLES.map((x) => (
+                <button
+                  key={x}
+                  type="button"
+                  className="underline"
+                  onClick={() => setText(x)}
+                >
+                  {x}
+                </button>
+              ))}
+            </div>
+            {compiled ? (
+              <details className="mb-3 text-[11px]" open={!!compiled.error}>
+                <summary className="cursor-pointer text-teal-100">
+                  {compiled.error
+                    ? "Not compiled"
+                    : `Compiled ${compiled.events.length} structured event(s)`}
+                </summary>
+                {compiled.error ? (
+                  <p className="mt-1">{compiled.error}</p>
+                ) : (
+                  <>
+                    <ul className="mt-1 list-disc pl-5">
+                      {compiled.notes.map((n) => (
+                        <li key={n}>{n}</li>
+                      ))}
+                    </ul>
+                    <pre className="mt-2 max-h-40 overflow-auto rounded bg-black/30 p-2 font-mono text-[10px]">
+                      {JSON.stringify(
+                        compiled.events.map((e) => ({
+                          ...e,
+                          point: { x: Math.round(e.point.x), z: Math.round(e.point.z) },
+                          route: e.route ? `${e.route.length} road nodes` : undefined,
+                        })),
+                        null,
+                        1,
+                      )}
+                    </pre>
+                  </>
+                )}
+              </details>
+            ) : null}
             <div className="flex gap-2">
               <button className={button} type="submit">
                 Inject event

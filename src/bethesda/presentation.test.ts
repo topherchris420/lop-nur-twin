@@ -12,6 +12,7 @@ import {
 } from "./terrain";
 import { cityFoot, type FootTarget } from "./locomotion";
 import { CitySimulation } from "./simulation";
+import { TRANSIT_VERSION } from "./streetscape";
 
 describe("real Bethesda bare-earth elevation", () => {
   const dx = (grid.bbox[2]! - grid.bbox[0]!) / grid.width,
@@ -73,21 +74,20 @@ describe("civilian presentation", () => {
     cityFoot(0.9, 1, false, a);
     expect(a).toEqual({ y: 0.08, z: 0, planted: true });
   });
-  it("records elevation provenance while preserving older planar replay state", () => {
+  it("records elevation and transit provenance and rejects mismatches", () => {
     const sim = new CitySimulation({
       seed: 393977,
       pedestrians: 3,
       vehicles: 1,
+      buses: 1,
       statisticalPopulation: 10,
     });
     for (let i = 0; i < 15; i++) sim.step();
     const trace = sim.export();
     expect(trace.terrainVersion).toBe(TERRAIN_VERSION);
+    expect(trace.transitVersion).toBe(TRANSIT_VERSION);
     expect(CitySimulation.replay(trace).stateHash()).toBe(trace.finalHash);
     expect(() => CitySimulation.replay({ ...trace, terrainVersion: "wrong" })).toThrow();
-    delete trace.terrainVersion;
-    const legacy = CitySimulation.replay(trace);
-    expect(legacy.stateHash()).toBe(trace.finalHash);
-    expect(legacy.export().terrainVersion).toBeUndefined();
+    expect(() => CitySimulation.replay({ ...trace, transitVersion: "wrong" })).toThrow();
   });
 });

@@ -26,3 +26,16 @@ permission text, service/item URLs, request, retrieval date and byte hashes are 
 Terms: https://www.arcgis.com/sharing/rest/content/items/0379353eb80b4207b979656bd9eadff9?f=json
 
 Source: https://montgomeryplanning.org/tools/gis-and-mapping/elevation-data/
+
+## Streetscape and transit layer
+
+`streetscape.json` is a second extracted and modified OpenStreetMap database for the
+same bounding box, also © OpenStreetMap contributors and licensed under ODbL 1.0. It
+was downloaded later than `osm.json` (see `streetscape-source.json` for the actual
+URL, retrieval time, byte hashes and counts), so a feature in it may postdate the
+road/building snapshot. It contains storefront name tags, mapped public art,
+monuments and fountains, trees, lamps, benches, bus stops, ordered bus-route node
+chains, Purple Line construction ways and building colour/material tags whose OSM
+version matches `osm.json`. Contact details, opening hours, websites and mapper
+identities are not copied. Storefront names are OSM `name` tags rendered as plain
+text; no logos, trade dress or photographs are included.
