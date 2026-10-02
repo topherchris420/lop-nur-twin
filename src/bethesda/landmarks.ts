@@ -509,6 +509,8 @@ export function buildLandmarks(
         b,
         s.name,
         s.point,
+        // The plain frieze above the storefront cornice: below it, mullions,
+        // sill trims and awnings would cross the text.
         b.height < 9 ? Math.min(3.9, b.height - 1) : 4.03,
         0.42,
         style,
