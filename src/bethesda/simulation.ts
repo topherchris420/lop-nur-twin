@@ -1115,8 +1115,10 @@ export class CitySimulation {
       outcomeTick: this.tick,
     });
   }
-  private advanceWaypoint(a: Agent, steps = 1) {
+  /** Returns true when the trip ended and the next one entered at the route start. */
+  private advanceWaypoint(a: Agent, steps = 1): boolean {
     const route = busRoutes[a.route]!;
+    let entered = false;
     a.waypoint += steps;
     if (a.waypoint >= route.waypoints.length) {
       if (route.loop) a.waypoint %= route.waypoints.length;
@@ -1131,9 +1133,12 @@ export class CitySimulation {
         a.progress = 0;
         a.point = position(roads, e, 0, a.lane);
         a.waypoint = 1;
+        a.hold = 0;
+        entered = true;
       }
     }
     a.goal = route.waypoints[a.waypoint]!;
+    return entered;
   }
   private decide(a: Agent, o: Observation): Action {
     const [candidate, reason] = this.rule(a, o);
@@ -1379,7 +1384,8 @@ export class CitySimulation {
       if (a.kind === "bus" && n.id === a.goal) {
         const route = busRoutes[a.route]!,
           stop = route.stopAt.has(a.waypoint);
-        this.advanceWaypoint(a);
+        // A new trip has entered at the route start: nothing more this tick.
+        if (this.advanceWaypoint(a)) return;
         if (stop) {
           a.progress = e.length;
           const o = this.observe(a.id);
@@ -1399,7 +1405,7 @@ export class CitySimulation {
         : undefined;
       if (next === undefined && a.kind === "bus") {
         for (let k = 0; k < 6 && next === undefined; k++) {
-          this.advanceWaypoint(a);
+          if (this.advanceWaypoint(a)) return;
           next = nextToward(net, n.id, a.goal, closed, this.closureVersion);
         }
       }

@@ -310,3 +310,26 @@ describe("presentation claims stay derived", () => {
     expect(bladeText("Elm Street")).toBe("Elm St");
   });
 });
+
+describe("bus trips", () => {
+  it("re-enters at the route start when a trip leaves the extract", () => {
+    const s = new CitySimulation({ ...config, pedestrians: 1, vehicles: 0, buses: 17 });
+    const bus = s.agents.find((a) => a.kind === "bus" && !busRoutes[a.route]!.loop)!;
+    const route = busRoutes[bus.route]!;
+    const last = route.waypoints.length - 1;
+    const into = roads.edges[roads.incoming.get(route.waypoints[last]!)![0]!]!;
+    Object.assign(bus, {
+      edge: into.id,
+      progress: into.length - 0.1,
+      waypoint: last,
+      goal: route.waypoints[last],
+      action: "drive",
+      until: 99999,
+    });
+    bus.point = position(roads, into, bus.progress, bus.lane);
+    s.step();
+    expect(bus.waypoint).toBe(1);
+    expect(roads.edges[bus.edge]!.from).toBe(route.waypoints[0]);
+    expect(bus.progress).toBe(0);
+  });
+});
