@@ -15,6 +15,7 @@ import {
 } from "./model";
 import { type CitySimulation } from "./simulation";
 import { Actors } from "./Actors";
+import { signalRigs } from "./signals";
 import { EventVisuals } from "./EventVisuals";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evidence";
@@ -84,29 +85,32 @@ function Signals({ sim }: { sim: CitySimulation }) {
   );
   useFrame(() => {
     if (!mesh.current) return;
-    signalPoints.forEach((p, i) => {
-      dummy.position.set(p.point.x, groundAt(p.point) + 5, p.point.z);
-      dummy.scale.set(0.35, 0.9, 0.3);
-      dummy.updateMatrix();
-      mesh.current!.setMatrixAt(i, dummy.matrix);
-      mesh.current!.setColorAt(
-        i,
-        color.set(
-          sim.signalDark(p.point)
-            ? "#161818"
-            : edges[i] && green(sim.tick, edges[i])
-              ? "#559c78"
-              : "#c65239",
-        ),
-      );
-    });
+    let n = 0;
+    for (const rig of signalRigs) {
+      const p = signalPoints[rig.index]!,
+        i = rig.index;
+      const lit = sim.signalDark(p.point)
+        ? "#161818"
+        : edges[i] && green(sim.tick, edges[i])
+          ? "#4fbf86"
+          : "#e04a33";
+      for (const h of rig.heads) {
+        // The lit lens, on the face of the housing hung from the mast arm.
+        dummy.position.set(h.x, groundAt(rig.pole) + 5.55, h.z);
+        dummy.rotation.set(0, rig.angle, 0);
+        dummy.scale.set(0.42, 0.3, 0.42);
+        dummy.updateMatrix();
+        mesh.current.setMatrixAt(n, dummy.matrix);
+        mesh.current.setColorAt(n++, color.set(lit));
+      }
+    }
     mesh.current.instanceMatrix.needsUpdate = true;
     if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
   });
   return (
     <instancedMesh
       ref={mesh}
-      args={[undefined, undefined, signalPoints.length]}
+      args={[undefined, undefined, signalRigs.reduce((s, r) => s + r.heads.length, 0)]}
       frustumCulled={false}
     >
       <boxGeometry />

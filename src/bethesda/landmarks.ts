@@ -39,7 +39,8 @@ import { groundAt } from "./terrain";
 
 const downtown = places.find((p) => p.name === "Downtown Bethesda")?.point ?? row.point;
 const SUFFIX: Record<string, string> = {
-  Avenue: "Ave",
+  // Montgomery County blades abbreviate Avenue as "Av" ("Bethesda Av").
+  Avenue: "Av",
   Street: "St",
   Road: "Rd",
   Lane: "Ln",

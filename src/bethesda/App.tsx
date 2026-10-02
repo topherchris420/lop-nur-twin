@@ -276,11 +276,14 @@ function Notes() {
         {CLASSES.map(
           (c) => `${tally[c]} ${EVIDENCE_CLASSIFICATION_META[c].label.toLowerCase()}`,
         ).join(" · ")}
-        . The suburb is mostly <em>reported</em> because it is observable; the desert is
-        mostly <em>interpreted</em> because it is not. Agents here pass the same kind of
-        gate as Blacksite&apos;s player seat: an observation, the legal actions, a
-        proposal from a human, Jev or the rules, deterministic validation, then the
-        simulation. Seeded generators, canonical hashes and the TypeSafe endpoint are
+        . Every footprint is <em>reported</em> (someone mapped it), so the suburb&apos;s
+        uncertainty lives in the third dimension: only{" "}
+        {buildings.filter((b) => b.heightEvidence === "height tag").length} heights are
+        published. The desert&apos;s uncertainty is identity: most of its structures are{" "}
+        <em>interpreted</em>. Same instrument, different blind spot. Agents here pass the
+        same kind of gate as Blacksite&apos;s player seat: an observation, the legal
+        actions, a proposal from a human, Jev or the rules, deterministic validation, then
+        the simulation. Seeded generators, canonical hashes and the TypeSafe endpoint are
         shared code.
       </p>
       <p className="mt-4">

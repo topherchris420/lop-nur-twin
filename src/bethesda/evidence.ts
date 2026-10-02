@@ -4,8 +4,10 @@
  * The four classes and their wording are Lop Nur's (`src/lib/evidence.ts`);
  * only the rule that assigns them is local, and it is derived from the data,
  * never hand-written per building. That is the quiet point of the anomaly:
- * the same evidence discipline that leaves the desert mostly *interpreted*
- * finds the suburb mostly *reported* — because the suburb is observable.
+ * the same discipline finds a different blind spot. Every Bethesda footprint is
+ * *reported* (someone mapped it) but almost no height is, so most massing is
+ * *illustrative*; most of the desert's structures are *interpreted* — the
+ * uncertainty there is what a thing is, not how tall.
  *
  *   footprint geometry  reported     OSM contributors published it; this project
  *                                    did not observe it in a cited scene.

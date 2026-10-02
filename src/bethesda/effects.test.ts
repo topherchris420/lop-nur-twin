@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { validateObservation } from "./contract";
-import { buildings, distance } from "./model";
+import { buildingAt, buildings, distance } from "./model";
+import { evidenceTally } from "./evidence";
+import { signalRigs } from "./signals";
+import { bladeText } from "./landmarks";
 import { green, nextToward, position, roads, sidewalks } from "./network";
 import {
   compileScenario,
@@ -281,4 +284,29 @@ describe("levels of detail, records and the provider boundary", () => {
     };
     expect(run()).toBe(run());
   }, 30000);
+});
+
+describe("presentation claims stay derived", () => {
+  it("classifies massing from height provenance, never by hand", () => {
+    const t = evidenceTally();
+    expect(t.observed).toBe(0);
+    expect(t.reported).toBe(
+      buildings.filter((b) => b.heightEvidence === "height tag").length,
+    );
+    expect(t.illustrative).toBe(
+      buildings.filter((b) => b.heightEvidence === "inferred").length,
+    );
+    expect(t.reported + t.interpreted + t.illustrative).toBe(buildings.length);
+  });
+  it("hangs every signal from a corner pole outside the footprints", () => {
+    expect(signalRigs.length).toBeGreaterThan(40);
+    for (const r of signalRigs) {
+      expect(buildingAt(r.pole)).toBeUndefined();
+      expect(r.heads).toHaveLength(2);
+    }
+  });
+  it("abbreviates blade names the way the county does", () => {
+    expect(bladeText("Bethesda Avenue")).toBe("Bethesda Av");
+    expect(bladeText("Elm Street")).toBe("Elm St");
+  });
 });

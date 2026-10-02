@@ -25,6 +25,7 @@ import {
 } from "./model";
 import { groundAt } from "./terrain";
 import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
+import { signalRigs } from "./signals";
 function texture(style: "brick" | "stone" | "glass") {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -71,6 +72,7 @@ export function createCityGeometry() {
     new THREE.MeshStandardMaterial({ color, roughness });
   const ground = material("#929984"),
     asphalt = Object.assign(surfaceMaterial("asphalt"), { name: "bethesda-asphalt" }),
+    cyclePaint = material("#3f9a57", 0.75),
     concrete = material("#b1ada0"),
     paint = material("#e4dfc2"),
     grass = material("#647c55"),
@@ -210,7 +212,25 @@ export function createCityGeometry() {
         const close = distance(lerp(a, b, 0.5), row.point) < 225;
         const width = w.name === "Bethesda Lane" ? 8 : w.width;
         strip(a, b, width + 0.18, 0.13, concrete);
-        strip(a, b, width - 0.14, 0.17, close ? detail.paving : concrete);
+        if (/Cycletrack/.test(w.name)) {
+          // Mapped separated bike lanes: dark pavement, with the green
+          // conflict-zone paint seen in the cited photograph where they meet
+          // crossings and signals. Paint extents are inferred.
+          const d = distance(a, b);
+          for (let t = 0; t < d; t += 3) {
+            const p = lerp(a, b, Math.min(1, (t + 1.5) / d)),
+              near = [...crossings, ...signalPoints].some(
+                (c) => distance(c.point, p) < 14,
+              );
+            strip(
+              lerp(a, b, t / d),
+              lerp(a, b, Math.min(1, (t + 3) / d)),
+              width - 0.14,
+              0.17,
+              near ? cyclePaint : asphalt,
+            );
+          }
+        } else strip(a, b, width - 0.14, 0.17, close ? detail.paving : concrete);
       }
   for (const p of crossings) {
     let best: { a: Point; b: Point; width: number } | undefined,
@@ -378,11 +398,22 @@ export function createCityGeometry() {
   }
   detailStreet({ add, box }, detail);
   const landmarks = buildLandmarks({ add, box }, detail, createLandmarkMaterials());
-  for (const p of signalPoints) {
-    box(p.point, 3.5, 0.13, 7, 0.13, metal);
-    box(p.point, 0.25, 0.28, 0.5, 0.28, metal);
-    box(p.point, 5, 0.48, 1.15, 0.38, detail.dark);
+  // Corner poles and mast arms over the carriageway (see signals.ts).
+  const signalYellow = material("#c4a335", 0.6);
+  for (const rig of signalRigs) {
+    buildingBase = groundAt(rig.pole);
+    box(rig.pole, 3.1, 0.24, 6.2, 0.24, metal);
+    const mid = {
+      x: rig.pole.x + Math.sin(rig.angle) * rig.length * 0.5,
+      z: rig.pole.z + Math.cos(rig.angle) * rig.length * 0.5,
+    };
+    box(mid, 6.05, 0.12, 0.12, rig.length, metal, rig.angle);
+    for (const h of rig.heads) {
+      box(h, 5.55, 0.62, 1.2, 0.32, signalYellow, rig.angle);
+      box(h, 5.55, 0.42, 1.0, 0.36, detail.dark, rig.angle);
+    }
   }
+  buildingBase = null;
   for (const p of parks) {
     const v = p.ring[0]!;
     box(v, 0.65, 2, 0.2, 0.5, trunk);
@@ -395,6 +426,7 @@ export function createCityGeometry() {
     const mesh = new THREE.Mesh(g, m);
     mesh.castShadow = ![
       asphalt,
+      cyclePaint,
       concrete,
       paint,
       grass,
