@@ -8,6 +8,8 @@ import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
 import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { resolvesBethesda } from "@/bethesda/discovery";
+import { ANOMALY_EVENT } from "@/components/AnomalyGate";
 
 /** Searchable outliner of every modeled structure. Toggled with `I`. */
 export function SiteIndex() {
@@ -98,6 +100,16 @@ export function SiteIndex() {
         </div>
       </CardHeader>
       <CardContent className="overflow-y-auto">
+        {resolvesBethesda(query) ? (
+          // Not a structure in this model. The index says so, and offers it anyway.
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(ANOMALY_EVENT))}
+            className="hover:bg-accent mb-3 w-full cursor-pointer rounded px-2 py-1.5 text-left font-mono text-[10px] tracking-[0.16em]"
+          >
+            UNRESOLVED FEATURE · 39° N 77° W · outside this site
+          </button>
+        ) : null}
         {groups.length > 0 ? (
           groups.map(([label, defs]) => (
             <div key={label} className="mb-3 last:mb-0">

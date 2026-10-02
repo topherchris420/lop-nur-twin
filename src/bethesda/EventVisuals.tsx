@@ -37,6 +37,7 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
   const { camera } = useThree();
   const slots = useRef<(THREE.Group | null)[]>([]);
   const marchers = useRef<THREE.InstancedMesh>(null),
+    heads = useRef<THREE.InstancedMesh>(null),
     floats = useRef<THREE.InstancedMesh>(null),
     barricades = useRef<THREE.InstancedMesh>(null),
     tents = useRef<THREE.InstancedMesh>(null),
@@ -147,6 +148,12 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
             dummy.scale.set(0.42, 0.85, 0.32);
             dummy.updateMatrix();
             marchers.current.setMatrixAt(marching, dummy.matrix);
+            if (heads.current) {
+              dummy.position.y += 1.05;
+              dummy.scale.setScalar(0.22);
+              dummy.updateMatrix();
+              heads.current.setMatrixAt(marching, dummy.matrix);
+            }
             marchers.current.setColorAt(
               marching++,
               color.set(uniforms[Math.floor(row / 6) % uniforms.length]!),
@@ -155,8 +162,11 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
         }
       }
     }
+    if (import.meta.env.DEV)
+      Object.assign(window, { __eventVisuals: { marching, floatCount, tentCount } });
     for (const [mesh, n] of [
       [marchers.current, marching],
+      [heads.current, marching],
       [floats.current, floatCount],
       [tents.current, tentCount],
     ] as const) {
@@ -255,11 +265,11 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
           <mesh name="flood" rotation={[-Math.PI / 2, 0, 0]}>
             <circleGeometry args={[1, 64]} />
             <meshStandardMaterial
-              color="#5f6f62"
-              roughness={0.06}
-              metalness={0.1}
+              color="#4b5243"
+              roughness={0.04}
+              metalness={0.2}
               transparent
-              opacity={0.86}
+              opacity={0.93}
               envMapIntensity={1.4}
             />
           </mesh>
@@ -292,6 +302,14 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
       >
         <capsuleGeometry args={[0.5, 1, 3, 8]} />
         <meshStandardMaterial roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh
+        ref={heads}
+        args={[undefined, undefined, MARCHERS]}
+        frustumCulled={false}
+      >
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color="#a9806a" roughness={0.8} />
       </instancedMesh>
       <instancedMesh
         ref={floats}
