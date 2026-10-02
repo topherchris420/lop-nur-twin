@@ -185,6 +185,14 @@ traffic, parks and people going about their routines. It is an explorable
 procedural reconstruction of downtown Bethesda, Maryland, with a separate
 simulation beneath it.
 
+![Street-level Bethesda: procedural shopfronts, brick sidewalks, trees and pedestrians](docs/screenshots/bethesda-street.png)
+
+_Street-level exploration in the running application. Buildings and street detail are procedural; mapped geography anchors the scene._
+
+![Bethesda in Survey mode: mapped downtown streets, building footprints and courtyard blocks](docs/screenshots/bethesda-survey.png)
+
+_Survey mode reveals the downtown layout and courtyard blocks. Both screenshots show the actual application with its interface and map attribution visible._
+
 <details>
 <summary><strong>Find Bethesda · discovery spoiler</strong></summary>
 
