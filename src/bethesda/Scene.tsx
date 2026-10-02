@@ -5,9 +5,19 @@ import * as THREE from "three";
 import { createCityGeometry } from "./geometry";
 import { CityAtmosphere } from "./Atmosphere";
 import { roads, green } from "./network";
-import { bounds, distance, signalPoints, type Point } from "./model";
+import {
+  bounds,
+  buildingAt,
+  buildings,
+  distance,
+  signalPoints,
+  type Point,
+} from "./model";
 import { type CitySimulation } from "./simulation";
 import { Actors } from "./Actors";
+import { EventVisuals } from "./EventVisuals";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evidence";
 import { groundAt, minimumGround } from "./terrain";
 export interface ViewControl {
   mode: "orbit" | "walk" | "seat";
@@ -21,9 +31,18 @@ export interface ViewControl {
   fps: number;
   ready: boolean;
   failed: boolean;
+  /** Evidence view: massing tinted by evidence class instead of detailing. */
+  evidence: boolean;
+  selected: string | null;
+  onSelect?: (id: string | null) => void;
+  /** What the streetscape builder actually placed, for the field notes. */
+  placed?: Record<string, number>;
+  samples?: Record<string, Point>;
 }
 function StaticCity({ view }: { view: ViewControl }) {
   const built = useMemo(createCityGeometry, []);
+  view.placed = built.placed;
+  view.samples = built.samples;
   const { camera } = useThree();
   const tiles = useMemo(
     () =>
@@ -44,9 +63,10 @@ function StaticCity({ view }: { view: ViewControl }) {
     const range = view.tier === 0 ? 600 : 1200;
     for (const tile of tiles)
       tile.mesh.visible =
+        (!view.evidence || tile.mesh.userData.ground === true) &&
         Math.hypot(tile.center.x - camera.position.x, tile.center.z - camera.position.z) -
           tile.radius <
-        range;
+          range;
   });
   useEffect(() => () => built.dispose(), [built]);
   return <primitive object={built.group} />;
@@ -71,7 +91,13 @@ function Signals({ sim }: { sim: CitySimulation }) {
       mesh.current!.setMatrixAt(i, dummy.matrix);
       mesh.current!.setColorAt(
         i,
-        color.set(edges[i] && green(sim.tick, edges[i]) ? "#559c78" : "#c65239"),
+        color.set(
+          sim.signalDark(p.point)
+            ? "#161818"
+            : edges[i] && green(sim.tick, edges[i])
+              ? "#559c78"
+              : "#c65239",
+        ),
       );
     });
     mesh.current.instanceMatrix.needsUpdate = true;
@@ -88,90 +114,77 @@ function Signals({ sim }: { sim: CitySimulation }) {
     </instancedMesh>
   );
 }
-function Events({ sim }: { sim: CitySimulation }) {
-  const { camera } = useThree();
-  const fire = useRef<THREE.Group>(null),
-    object = useRef<THREE.Mesh>(null),
-    rain = useRef<THREE.Points>(null),
-    perimeter = useRef<THREE.Mesh>(null);
-  const geometry = useMemo(() => {
-    const g = new THREE.BufferGeometry(),
-      data = new Float32Array(900);
-    for (let i = 0; i < 300; i++) {
-      data[i * 3] = ((i * 47) % 130) - 65;
-      data[i * 3 + 1] = i % 30;
-      data[i * 3 + 2] = ((i * 31) % 130) - 65;
-    }
-    g.setAttribute("position", new THREE.BufferAttribute(data, 3));
-    return g;
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
+/** Simple massing per evidence class, built only when the view is first used. */
+function EvidenceCity({ view }: { view: ViewControl }) {
+  const group = useRef<THREE.Group>(null);
+  const outline = useRef<THREE.LineSegments>(null);
+  const built = useRef<{ meshes: THREE.Mesh[]; selected: string | null } | null>(null);
   useFrame(() => {
-    const f = sim.events.find((e) => e.kind === "fire"),
-      u = sim.events.find((e) => e.kind === "object"),
-      storm = sim.events.some((e) => e.kind === "storm");
-    if (fire.current) {
-      fire.current.visible = !!f;
-      if (f) {
-        fire.current.position.set(f.point.x, groundAt(f.point), f.point.z);
-        fire.current.scale.setScalar(1 + Math.sin(sim.tick * 0.3) * 0.03);
+    if (!group.current) return;
+    group.current.visible = view.evidence;
+    if (view.evidence && !built.current) {
+      const parts = new Map<EvidenceClassification, THREE.BufferGeometry[]>();
+      for (const b of buildings) {
+        const shape = new THREE.Shape(b.ring.map((p) => new THREE.Vector2(p.x, -p.z)));
+        for (const hole of b.holes)
+          shape.holes.push(new THREE.Path(hole.map((p) => new THREE.Vector2(p.x, -p.z))));
+        const g = new THREE.ExtrudeGeometry(shape, {
+          depth: b.height,
+          bevelEnabled: false,
+        });
+        g.rotateX(-Math.PI / 2);
+        g.translate(0, groundAt(b.center), 0);
+        const c = buildingClass(b);
+        parts.set(c, [...(parts.get(c) ?? []), g]);
       }
-    }
-    if (perimeter.current) {
-      perimeter.current.visible = !!f;
-      if (f) {
-        perimeter.current.position.set(f.point.x, groundAt(f.point) + 0.22, f.point.z);
-        perimeter.current.scale.setScalar(f.radius);
-      }
-    }
-    if (object.current) {
-      object.current.visible = !!u;
-      if (u) {
-        object.current.position.set(
-          u.point.x,
-          groundAt(u.point) + 90 + Math.sin(sim.tick * 0.01) * 3,
-          u.point.z,
+      const meshes: THREE.Mesh[] = [];
+      for (const [c, list] of parts) {
+        const merged = mergeGeometries(list, false);
+        list.forEach((g) => g.dispose());
+        if (!merged) continue;
+        const mesh = new THREE.Mesh(
+          merged,
+          new THREE.MeshStandardMaterial({ color: EVIDENCE_TINT[c], roughness: 0.9 }),
         );
-        object.current.rotation.y = sim.tick * 0.006;
+        mesh.castShadow = mesh.receiveShadow = true;
+        meshes.push(mesh);
+        group.current.add(mesh);
       }
+      built.current = { meshes, selected: null };
     }
-    if (rain.current) {
-      rain.current.visible = storm;
-      rain.current.position.set(
-        camera.position.x,
-        camera.position.y - 5,
-        camera.position.z,
-      );
-      const a = geometry.getAttribute("position");
-      for (let i = 0; i < 300; i++) a.setY(i, 30 - ((sim.tick * 0.7 + i) % 30));
-      a.needsUpdate = true;
+    if (outline.current && built.current?.selected !== view.selected) {
+      if (built.current) built.current.selected = view.selected;
+      outline.current.geometry.dispose();
+      const b = buildings.find((x) => x.id === view.selected);
+      if (b) {
+        const shape = new THREE.Shape(b.ring.map((p) => new THREE.Vector2(p.x, -p.z)));
+        const solid = new THREE.ExtrudeGeometry(shape, {
+          depth: b.height + 0.3,
+          bevelEnabled: false,
+        });
+        solid.rotateX(-Math.PI / 2);
+        solid.translate(0, groundAt(b.center) - 0.1, 0);
+        outline.current.geometry = new THREE.EdgesGeometry(solid, 20);
+        solid.dispose();
+      } else outline.current.geometry = new THREE.BufferGeometry();
     }
   });
+  useEffect(
+    () => () => {
+      for (const m of built.current?.meshes ?? []) {
+        m.geometry.dispose();
+        (m.material as THREE.Material).dispose();
+      }
+    },
+    [],
+  );
   return (
     <>
-      <group ref={fire} visible={false}>
-        <mesh position={[0, 3, 0]}>
-          <coneGeometry args={[3.8, 7, 9]} />
-          <meshBasicMaterial color="#d87935" transparent opacity={0.85} />
-        </mesh>
-        {[0, 1, 2, 3].map((i) => (
-          <mesh key={i} position={[i * 1.5, 9 + i * 6, i * 0.8]}>
-            <sphereGeometry args={[4 + i, 10, 8]} />
-            <meshStandardMaterial color="#525753" transparent opacity={0.5 - i * 0.06} />
-          </mesh>
-        ))}
-      </group>
-      <mesh ref={perimeter} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
-        <ringGeometry args={[0.97, 1, 64]} />
-        <meshBasicMaterial color="#d2a55b" side={THREE.DoubleSide} />
-      </mesh>
-      <mesh ref={object} scale={[10, 2.6, 10]} visible={false}>
-        <sphereGeometry args={[1, 32, 12]} />
-        <meshStandardMaterial color="#8b9d9e" metalness={0.9} roughness={0.25} />
-      </mesh>
-      <points ref={rain} geometry={geometry} visible={false}>
-        <pointsMaterial color="#b9d4df" size={0.15} transparent opacity={0.6} />
-      </points>
+      <group ref={group} visible={false} />
+      <lineSegments ref={outline} frustumCulled={false}>
+        <bufferGeometry />
+        <lineBasicMaterial color="#f3d36b" />
+      </lineSegments>
     </>
   );
 }
@@ -199,9 +212,42 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       dragging = true;
       canvas.setPointerCapture(e.pointerId);
     };
-    const up = () => {
-      dragging = false;
+    let press: { x: number; y: number } | null = null;
+    const raycaster = new THREE.Raycaster(),
+      ndc = new THREE.Vector2();
+    const select = (e: PointerEvent) => {
+      if (!press || Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) return;
+      if (document.pointerLockElement === canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      ndc.set(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+      raycaster.setFromCamera(ndc, camera);
+      const hit = raycaster
+        .intersectObjects(scene.children, true)
+        .find(
+          (h) =>
+            h.object instanceof THREE.Mesh &&
+            h.object.visible &&
+            !(h.object instanceof THREE.InstancedMesh),
+        );
+      if (!hit) return;
+      // Nudge through the surface: a facade hit lies on the footprint boundary.
+      const d = raycaster.ray.direction;
+      const b = buildingAt({ x: hit.point.x + d.x * 0.4, z: hit.point.z + d.z * 0.4 });
+      view.selected = b?.id ?? null;
+      view.onSelect?.(view.selected);
     };
+    const up = (e: PointerEvent) => {
+      dragging = false;
+      select(e);
+      press = null;
+    };
+    const press0 = (e: PointerEvent) => {
+      press = { x: e.clientX, y: e.clientY };
+    };
+    canvas.addEventListener("pointerdown", press0);
     const move = (e: PointerEvent) => {
       if (view.mode !== "orbit" && (dragging || document.pointerLockElement === canvas)) {
         view.yaw -= e.movementX * 0.002;
@@ -217,11 +263,12 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     canvas.addEventListener("dblclick", lock);
     return () => {
       canvas.removeEventListener("pointerdown", down);
+      canvas.removeEventListener("pointerdown", press0);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("dblclick", lock);
     };
-  }, [gl, view]);
+  }, [gl, view, camera, scene]);
   useFrame((_, dt) => {
     if (quality.current !== view.quality) {
       quality.current = view.quality;
@@ -326,7 +373,8 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       <StaticCity view={view} />
       <Actors sim={sim} view={view} />
       <Signals sim={sim} />
-      <Events sim={sim} />
+      <EventVisuals sim={sim} />
+      <EvidenceCity view={view} />
       <Camera sim={sim} view={view} />
     </Canvas>
   );

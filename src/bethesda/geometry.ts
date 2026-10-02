@@ -16,16 +16,15 @@ import {
   crossings,
   distance,
   lerp,
-  metro,
   parks,
   pathWays,
-  places,
   roadWays,
   row,
   signalPoints,
   type Point,
 } from "./model";
 import { groundAt } from "./terrain";
+import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
 function texture(style: "brick" | "stone" | "glass") {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -58,25 +57,6 @@ function texture(style: "brick" | "stone" | "glass") {
   map.anisotropy = 4;
   return map;
 }
-function sign(text: string, bg = "#244b4b") {
-  const c = document.createElement("canvas");
-  c.width = 512;
-  c.height = 128;
-  const x = c.getContext("2d")!;
-  x.fillStyle = bg;
-  x.fillRect(0, 0, 512, 128);
-  x.strokeStyle = "#c9d9cd";
-  x.lineWidth = 3;
-  x.strokeRect(5, 5, 502, 118);
-  x.fillStyle = "#f4f0df";
-  x.font = "bold 30px sans-serif";
-  x.textAlign = "center";
-  x.textBaseline = "middle";
-  x.fillText(text.slice(0, 38), 256, 64, 482);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
 export function createCityGeometry() {
   const group = new THREE.Group();
   let buildingBase: number | null = null;
@@ -90,7 +70,7 @@ export function createCityGeometry() {
   const material = (color: string, roughness = 1) =>
     new THREE.MeshStandardMaterial({ color, roughness });
   const ground = material("#929984"),
-    asphalt = surfaceMaterial("asphalt"),
+    asphalt = Object.assign(surfaceMaterial("asphalt"), { name: "bethesda-asphalt" }),
     concrete = material("#b1ada0"),
     paint = material("#e4dfc2"),
     grass = material("#647c55"),
@@ -397,6 +377,7 @@ export function createCityGeometry() {
     }
   }
   detailStreet({ add, box }, detail);
+  const landmarks = buildLandmarks({ add, box }, detail, createLandmarkMaterials());
   for (const p of signalPoints) {
     box(p.point, 3.5, 0.13, 7, 0.13, metal);
     box(p.point, 0.25, 0.28, 0.5, 0.28, metal);
@@ -407,7 +388,6 @@ export function createCityGeometry() {
     box(v, 0.65, 2, 0.2, 0.5, trunk);
     box({ x: v.x, z: v.z + 0.2 }, 1.05, 2, 0.7, 0.1, trunk);
   }
-  box(metro.point, 1.6, 0.7, 3.2, 0.7, metal);
   for (const { material: m, parts: list } of buckets.values()) {
     const g = mergeGeometries(list, false);
     list.forEach((x) => x.dispose());
@@ -422,36 +402,16 @@ export function createCityGeometry() {
       detail.soil,
       ground,
     ].includes(m as THREE.MeshStandardMaterial);
+    // Ground surfaces stay visible in the evidence view; everything else is
+    // replaced by massing tinted by its evidence class.
+    mesh.userData.ground = !mesh.castShadow;
     mesh.receiveShadow = true;
-    group.add(mesh);
-  }
-  const named = new Set<string>();
-  for (const w of roadWays) {
-    if (!w.name || named.has(w.name)) continue;
-    named.add(w.name);
-    const p = w.points[0]!,
-      mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(3.5, 0.85),
-        new THREE.MeshStandardMaterial({ map: sign(w.name), side: THREE.DoubleSide }),
-      );
-    mesh.position.set(p.x, groundAt(p) + 3, p.z);
-    group.add(mesh);
-  }
-  for (const p of places.filter(
-    (p) => p.kind === "metro" || /Row|Theatre/.test(p.name),
-  )) {
-    const mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(5, 1.25),
-      new THREE.MeshStandardMaterial({
-        map: sign(p.kind === "metro" ? "M · BETHESDA" : p.name, "#3d4742"),
-        side: THREE.DoubleSide,
-      }),
-    );
-    mesh.position.set(p.point.x, groundAt(p.point) + 4, p.point.z);
     group.add(mesh);
   }
   return {
     group,
+    placed: landmarks.placed,
+    samples: landmarks.samples,
     dispose() {
       group.traverse((o) => {
         if (o instanceof THREE.Mesh) {

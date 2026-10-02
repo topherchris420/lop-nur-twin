@@ -93,7 +93,8 @@ function carBodyGeometry() {
   g.translate(0.87, -0.61, 0);
   return g;
 }
-function createActors() {
+function createActors(vehicles: number) {
+  const V = Math.max(1, vehicles);
   const group = new THREE.Group();
   const shirt = new THREE.MeshStandardMaterial({ roughness: 0.94 });
   const skin = new THREE.MeshStandardMaterial({ roughness: 0.82 });
@@ -139,20 +140,22 @@ function createActors() {
     shoe: new THREE.InstancedMesh(box, dark, 1280),
     bag: new THREE.InstancedMesh(box, shirt, 640),
     phone: new THREE.InstancedMesh(box, dark, 640),
-    car: new THREE.InstancedMesh(car, paint, 113),
-    cabin: new THREE.InstancedMesh(cabin, glass, 113),
-    roof: new THREE.InstancedMesh(box, paint, 113),
-    trim: new THREE.InstancedMesh(box, chrome, 113 * 14),
-    wheel: new THREE.InstancedMesh(tire, dark, 452),
-    rim: new THREE.InstancedMesh(rim, chrome, 452),
-    lamp: new THREE.InstancedMesh(box, lamp, 226),
-    tail: new THREE.InstancedMesh(box, tail, 226),
-    beacon: new THREE.InstancedMesh(box, new THREE.MeshBasicMaterial(), 3),
+    car: new THREE.InstancedMesh(car, paint, V),
+    cabin: new THREE.InstancedMesh(cabin, glass, V),
+    roof: new THREE.InstancedMesh(box, paint, V),
+    trim: new THREE.InstancedMesh(box, chrome, V * 14),
+    wheel: new THREE.InstancedMesh(tire, dark, V * 4),
+    rim: new THREE.InstancedMesh(rim, chrome, V * 4),
+    lamp: new THREE.InstancedMesh(box, lamp, V * 2),
+    tail: new THREE.InstancedMesh(box, tail, V * 2),
+    beacon: new THREE.InstancedMesh(box, new THREE.MeshBasicMaterial(), V),
+    heavy: new THREE.InstancedMesh(box, paint, V),
+    band: new THREE.InstancedMesh(box, glass, V),
   };
   for (const [name, mesh] of Object.entries(meshes)) {
     mesh.count = 0;
     mesh.frustumCulled = false;
-    mesh.castShadow = ["torso", "car", "roof", "pants"].includes(name);
+    mesh.castShadow = ["torso", "car", "roof", "pants", "heavy"].includes(name);
     mesh.receiveShadow = true;
     group.add(mesh);
   }
@@ -171,7 +174,10 @@ function createActors() {
 type Part = keyof ReturnType<typeof createActors>["meshes"];
 
 export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
-  const built = useMemo(createActors, []);
+  const built = useMemo(
+    () => createActors(sim.agents.filter((a) => a.kind !== "pedestrian").length),
+    [sim],
+  );
   // Per-renderer state, separate from authoritative agents and experiment hashes.
   const motions = useMemo(
     () =>
@@ -539,12 +545,56 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
             0.13,
             clothes[(a.color + 2) % clothes.length],
           );
+      } else if (a.kind === "bus" || a.role === "engine" || a.role === "ambulance") {
+        // Box-bodied vehicles: generic transit bus, engine and ambulance
+        // proportions. Liveries are not reproduced.
+        const L = a.kind === "bus" ? 12 : a.role === "engine" ? 10 : 6.6,
+          H = a.kind === "bus" ? 3.1 : a.role === "engine" ? 3.2 : 2.8,
+          tint =
+            a.kind === "bus" ? "#d6d7d0" : a.role === "engine" ? "#a3271e" : "#ece8de";
+        local("heavy", 0, 0.42 + H / 2, 0, 2.5, H - 0.42, L, tint);
+        local(
+          "band",
+          0,
+          0.42 + H * 0.66,
+          a.kind === "bus" ? 0 : L * 0.36,
+          2.54,
+          H * 0.3,
+          a.kind === "bus" ? L * 0.92 : L * 0.22,
+        );
+        if (a.role === "ambulance")
+          local("trim", 0, 1.3, 0, 2.53, 0.22, L * 0.98, "#b8332a");
+        if (a.role === "engine")
+          local("trim", 0, H + 0.48, -0.6, 0.8, 0.12, L * 0.7, "#c9cbc6");
+        for (const side of [-1, 1]) {
+          for (const end of [-1, 1]) {
+            local("wheel", side * 1.08, 0.48, end * (L / 2 - 1.7), 1.45, 1.45, 1.45);
+            if (distance(a.point, eye) < 80)
+              local("rim", side * 1.1, 0.48, end * (L / 2 - 1.7), 1.45, 1.45, 1.45);
+          }
+          local("lamp", side * 0.9, 0.9, L / 2 + 0.01, 0.4, 0.2, 0.06);
+          local("tail", side * 0.95, 1.0, -L / 2 - 0.01, 0.3, 0.3, 0.06);
+        }
+        if (
+          a.kind === "emergency" &&
+          (a.action === "respond" || (a.assignment && a.action === "park"))
+        )
+          local(
+            "beacon",
+            0,
+            H + 0.12,
+            L * 0.38,
+            1.6,
+            0.16,
+            0.3,
+            sim.tick % 8 < 4 ? "#d7503b" : "#5680ff",
+          );
       } else {
         const emergency = a.kind === "emergency",
-          tall = emergency ? 1.65 : variation.suv ? 1.22 : 1,
-          length = emergency ? 1.35 : variation.suv ? 1.06 : 1,
-          width = emergency ? 1.2 : 1,
-          tint = emergency ? "#953b30" : carColors[a.color]!;
+          tall = variation.suv && !emergency ? 1.22 : 1,
+          length = variation.suv && !emergency ? 1.06 : 1,
+          width = 1,
+          tint = emergency ? "#1f2832" : carColors[a.color]!;
         local("car", 0, 0.61 * tall, 0, width, tall, length, tint);
         local("cabin", 0, 0.93 * tall, -0.08, width, tall, length);
         local(
@@ -606,7 +656,10 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
         local("trim", 0, 0.51 * tall, 2.25 * length, 1.45 * width, 0.05, 0.045);
         local("trim", 0, 0.54 * tall, -2.25 * length, 1.45 * width, 0.04, 0.045);
         local("trim", 0, 0.7 * tall, 2.25 * length, 0.58, 0.16, 0.045);
-        if (emergency && a.action === "respond")
+        if (
+          emergency &&
+          (a.action === "respond" || (a.assignment && a.action === "park"))
+        )
           local(
             "beacon",
             0,

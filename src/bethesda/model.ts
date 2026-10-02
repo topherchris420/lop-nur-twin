@@ -64,6 +64,10 @@ export interface Building {
   heightEvidence: "height tag" | "levels × assumed 3.3 m" | "inferred";
   type: string;
   name: string;
+  osmType: "way" | "relation";
+  version: number;
+  editedAt: string;
+  levels: number | null;
 }
 export const buildings: Building[] = features
   .filter((f) => f.properties.kind === "building")
@@ -101,6 +105,10 @@ export const buildings: Building[] = features
             : "inferred",
       type,
       name: String(p.name ?? ""),
+      osmType: p.osmType === "relation" ? ("relation" as const) : ("way" as const),
+      version: Number(p.version),
+      editedAt: String(p.editedAt ?? ""),
+      levels: levels > 0 && levels < 60 ? levels : null,
     };
   });
 // Spatial buckets keep collision queries bounded as the map grows.

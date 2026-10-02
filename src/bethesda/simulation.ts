@@ -51,7 +51,6 @@ import {
   validateProposal,
   type Action,
   type AgentKind,
-  type CrowdLevel,
   type Observation,
   type Persona,
   type Role,
@@ -854,13 +853,7 @@ export class CitySimulation {
       atMetro,
       metroOpen: this.metroOpen(),
       assigned: emergency && a.assignment > 0,
-      crowd: (crowdCount === 0
-        ? 0
-        : crowdCount < 4
-          ? 1
-          : crowdCount < 12
-            ? 2
-            : 3),
+      crowd: crowdCount === 0 ? 0 : crowdCount < 4 ? 1 : crowdCount < 12 ? 2 : 3,
     };
     return { ...partial, candidates: legalActions(partial) };
   }

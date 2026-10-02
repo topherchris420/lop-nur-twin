@@ -58,17 +58,33 @@ export function CityAtmosphere({
       pmrem.dispose();
     };
   }, [gl, scene]);
+  const asphalt = useRef<THREE.MeshStandardMaterial | null>(null);
   useFrame(() => {
     const storm = sim.events.some((e) => e.kind === "storm");
+    // Wet pavement reads as lower roughness; restored when the storm ends.
+    if (!asphalt.current)
+      scene.traverse((o) => {
+        if (
+          o instanceof THREE.Mesh &&
+          (o.material as THREE.Material).name === "bethesda-asphalt"
+        )
+          asphalt.current = o.material as THREE.MeshStandardMaterial;
+      });
+    if (asphalt.current) {
+      asphalt.current.userData.dry ??= asphalt.current.roughness;
+      asphalt.current.roughness = storm ? 0.28 : (asphalt.current.userData.dry as number);
+    }
+    // Illustrative lightning: a deterministic flash pattern keyed to the tick.
+    const flash = storm && sim.tick % 173 < 2 && Math.floor(sim.tick / 173) % 3 === 0;
     if (scene.background instanceof THREE.Color)
-      scene.background.set(storm ? "#727f85" : "#bacbd4");
+      scene.background.set(flash ? "#c9d3e6" : storm ? "#727f85" : "#bacbd4");
     scene.environmentIntensity = storm ? 0.32 : 0.55;
     if (scene.fog instanceof THREE.Fog) {
       scene.fog.color.set(storm ? "#727f85" : "#bacbd4");
       scene.fog.near = view.tier === 0 ? 180 : 280;
       scene.fog.far = view.tier === 0 ? 550 : 1150;
     }
-    if (fill.current) fill.current.intensity = storm ? 0.7 : 0.85;
+    if (fill.current) fill.current.intensity = flash ? 2.6 : storm ? 0.7 : 0.85;
     if (!sun.current) return;
     sun.current.intensity = storm ? 0.7 : 3.2;
     // Shadow texels cover the viewed block, not the entire 1.4 km city.
