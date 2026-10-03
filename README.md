@@ -181,10 +181,10 @@ unique rounds, so their accuracy percentages are omitted. See the
 [full benchmark account](docs/JEV_BLACKSITE.md#benchmark-methodology-and-results)
 and [place-clearance experiment](docs/benchmarks/2026-09-30/README.md).
 
-## The Bethesda anomaly
+## Enjoy a normal walk in Bethesda
 
 Bethesda is the ordinary counterpoint to the desert: shopfronts, sidewalks,
-traffic, parks and people going about their routines. It is an explorable
+traffic, parks and people going about their routines. It's an explorable
 procedural reconstruction of downtown Bethesda, Maryland, with a separate
 simulation beneath it.
 
