@@ -578,6 +578,7 @@ bun run shots                 # regenerate the README screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
 node tools/frames.mjs --out shots/before   # the canonical frame set
+node tools/lookdev.mjs --list               # per-subject shot sets + the ab gate
 ```
 
 The analytical side has its own two, and both need the **preview** server
@@ -617,6 +618,22 @@ Two of these exist because a screenshot could not answer the question:
   went in circles for a while because every review looked at a different
   frame, and a shot into the sun disagrees with a shot away from it about
   almost everything.
+- `tools/lookdev.mjs` is the same idea per subject — `viewmodel`,
+  `characters`, `vfx`, `terrain`, `props`, `structures`, `sky` — plus `ab`,
+  nine frames that between them cover every subject. **`ab` is the gate for
+  any visual change:** capture it from the untouched code, capture it again
+  after, and pass `--compare <before>`; it prints, per frame, the share of
+  pixels that changed, the mean difference, the exposure statistics and the
+  draw calls. A change ships when the frames it was meant to touch are better
+  and the frames it was not meant to touch did not move. It can fire, aim,
+  reload and inspect (it stands in for the pointer lock a headless browser
+  never grants), it waits in rendered frames rather than milliseconds — under
+  software WebGL a frame takes seconds, and a millisecond sleep in
+  `frames.mjs` once photographed the first composited frame after load and
+  reported a black spawn that no player ever saw — and it queues renders
+  machine-wide, so parallel agents can capture without starving the CPU.
+  `--serve <worktree>` captures another checkout without a dev server of
+  its own; `--check gait|smoke|engagement` runs those the same way.
 
 `tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
 region, pushes lethal damage through the real queue and checks the kill is

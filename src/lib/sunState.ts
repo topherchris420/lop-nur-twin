@@ -16,10 +16,17 @@ export interface SunState {
   dayFactor: number;
   /** Current intensity of the sun's directional light. */
   intensity: number;
+  /**
+   * Unit vector from the ground toward the moon. Constant; it lives here so
+   * the world's moonlight and the first-person weapon's night key are the same
+   * light and cannot drift apart.
+   */
+  readonly moonDirection: THREE.Vector3;
 }
 
 export const sunState: SunState = {
   direction: new THREE.Vector3(0, 1, 0),
   dayFactor: 1,
   intensity: 0,
+  moonDirection: new THREE.Vector3(-900, 950, 500).normalize(),
 };

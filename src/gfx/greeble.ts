@@ -212,7 +212,11 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
   // fade the whole grid out once a plate is smaller than a couple of pixels,
   // otherwise the seams shimmer at distance
   float hsFade = 1.0 - smoothstep(0.22, 0.6, max(hsFw.x, hsFw.y));
-  hsLine *= hsFade;
+  // panel joints stop at a window: a near-mirror roughness here can only be
+  // glazing (facade maps carry absolute roughness), and a seam drawn straight
+  // across the glass read as tape on the window
+  float hsGlazing = 1.0 - smoothstep(0.07, 0.16, roughnessFactor);
+  hsLine *= hsFade * (1.0 - hsGlazing);
   float hsSeam = max(hsLine.x, hsLine.y);
 
   // --- per-plate PBR variation -------------------------------------
