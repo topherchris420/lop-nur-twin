@@ -633,7 +633,7 @@ Two of these exist because a screenshot could not answer the question:
   reported a black spawn that no player ever saw — and it queues renders
   machine-wide, so parallel agents can capture without starving the CPU.
   `--serve <worktree>` captures another checkout without a dev server of
-  its own; `--exec` runs `gait`/`smoke`/`engagement` the same way.
+  its own; `--check gait|smoke|engagement` runs those the same way.
 
 `tools/smoke.mjs` fires a ray at a bot and asserts it resolves to a named body
 region, pushes lethal damage through the real queue and checks the kill is

@@ -34,7 +34,8 @@
 
 import puppeteer from "puppeteer";
 import { spawn, spawnSync, execFileSync } from "node:child_process";
-import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import {
   openSync,
@@ -42,7 +43,6 @@ import {
   readFileSync,
   writeFileSync,
   unlinkSync,
-  existsSync,
   mkdirSync,
 } from "node:fs";
 
@@ -53,8 +53,43 @@ function arg(name, fallback) {
 const flag = (name) => process.argv.includes(`--${name}`);
 
 let origin = arg("origin", "http://localhost:5173");
-const serveDir = arg("serve", null);
-const execCmd = arg("exec", null);
+const serveArg = arg("serve", null);
+const checkName = arg("check", null);
+
+/**
+ * The repo's own headless checks, by name. `--check` runs one of these and
+ * nothing else: no free-form command reaches a process or a shell.
+ */
+const CHECKS = {
+  gait: "tools/gait.mjs",
+  smoke: "tools/smoke.mjs",
+  engagement: "tools/engagement.mjs",
+};
+if (checkName !== null && !Object.hasOwn(CHECKS, checkName)) {
+  console.error(`--check must be one of: ${Object.keys(CHECKS).join(", ")}`);
+  process.exit(2);
+}
+
+/**
+ * `--serve` must name a checkout of this project: a directory whose
+ * package.json is this package. Anything else is refused before any process
+ * is started in it.
+ */
+function resolveWorktree(dir) {
+  const root = resolve(dir);
+  let name = null;
+  try {
+    name = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).name;
+  } catch {
+    name = null;
+  }
+  if (name !== "desert-airfield-twin") {
+    console.error(`--serve ${dir}: not a checkout of this project`);
+    process.exit(2);
+  }
+  return root;
+}
+const serveDir = serveArg === null ? null : resolveWorktree(serveArg);
 const outDir = arg("out", "shots/lookdev");
 const quality = arg("quality", "3");
 const compareDir = arg("compare", null);
@@ -829,8 +864,14 @@ const waitDir = arg("wait", null);
 if (waitDir) {
   const limit = Date.now() + Number(arg("timeout", 540)) * 1000;
   while (Date.now() < limit) {
-    if (existsSync(`${waitDir}/.done`)) {
-      console.log(readFileSync(`${waitDir}/.done`, "utf8"));
+    let summary = null;
+    try {
+      summary = readFileSync(join(waitDir, ".done"), "utf8");
+    } catch {
+      summary = null;
+    }
+    if (summary !== null) {
+      console.log(summary);
       process.exit(0);
     }
     await sleep(2000);
@@ -840,7 +881,7 @@ if (waitDir) {
 }
 
 let shots = [];
-if (execCmd || flag("recompare")) shots = [];
+if (checkName !== null || flag("recompare")) shots = [];
 else if (inline) shots = JSON.parse(inline);
 else if (setName === "all")
   shots = Object.entries(SETS).flatMap(([n, list]) =>
@@ -874,7 +915,11 @@ if (flag("recompare")) {
 
 /* ---------------------------------------------------- render slots */
 
-const SLOT_DIR = `${tmpdir()}/lookdev-slots`;
+// Next to the tool, not in the shared temp directory: every capture runs this
+// one file, so the lock directory is machine-wide without being world-writable.
+const SLOT_DIR = fileURLToPath(
+  new URL("../node_modules/.cache/lookdev-slots", import.meta.url),
+);
 const SLOTS = Math.max(1, Number(arg("slots", 2)));
 let heldSlot = null;
 let heldIndex = -1;
@@ -963,21 +1008,30 @@ if (serveDir) {
   const port = 5300 + heldIndex;
   // Whatever an earlier, killed run left on this slot's port.
   try {
-    execFileSync("bash", ["-c", `fuser -k ${port}/tcp >/dev/null 2>&1 || true`]);
+    execFileSync("fuser", ["-k", `${port}/tcp`], { stdio: "ignore" });
   } catch {
     // Nothing listening.
   }
   try {
-    execFileSync("node", ["scripts/run-ts.mjs", "scripts/generate-manifest.ts"], {
-      cwd: serveDir,
-      stdio: "ignore",
-    });
+    execFileSync(
+      process.execPath,
+      ["scripts/run-ts.mjs", "scripts/generate-manifest.ts"],
+      {
+        cwd: serveDir,
+        stdio: "ignore",
+      },
+    );
   } catch {
     // The page renders without the manifest; it only feeds a panel.
   }
   server = spawn(
-    `${serveDir}/node_modules/.bin/vite`,
-    ["--port", String(port), "--strictPort"],
+    process.execPath,
+    [
+      join(serveDir, "node_modules", "vite", "bin", "vite.js"),
+      "--port",
+      String(port),
+      "--strictPort",
+    ],
     {
       cwd: serveDir,
       detached: true,
@@ -1003,13 +1057,13 @@ if (serveDir) {
 }
 
 /**
- * `--exec "<cmd>"`: run another check (gait, smoke, engagement) inside the
- * slot against the served worktree, with `{origin}` replaced by its address.
+ * `--check <name>`: run one of the repo's headless checks inside the slot
+ * against the served worktree (or this checkout), passing it the origin.
  */
-if (execCmd) {
-  const cmd = execCmd.replaceAll("{origin}", origin);
-  console.log(`exec: ${cmd}`);
-  const run = spawnSync("bash", ["-c", cmd], {
+if (checkName !== null) {
+  const script = CHECKS[checkName];
+  console.log(`check: node ${script} ${origin}`);
+  const run = spawnSync(process.execPath, [script, origin], {
     cwd: serveDir ?? process.cwd(),
     stdio: ["ignore", "pipe", "pipe"],
     encoding: "utf8",
@@ -1018,7 +1072,7 @@ if (execCmd) {
   const output = `${run.stdout ?? ""}${run.stderr ?? ""}`;
   process.stdout.write(output);
   releaseSlot();
-  await writeFile(`${outDir}/.done`, `${output}\nexit ${run.status}\n`);
+  await writeFile(join(outDir, ".done"), `${output}\nexit ${run.status}\n`);
   process.exit(run.status ?? 1);
 }
 
