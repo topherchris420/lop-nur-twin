@@ -367,6 +367,19 @@ UNAVAILABLE / ERROR / STALE OR INVALID`. Provider usage is `null`, never
 - **Without Jev** everything runs on the rules. No live Jev Bethesda run is
   claimed in this repository; tests use offline doubles and never spend credit.
 
+## The R.A.I.N. Lab
+
+Somewhere in the city is an unmarked door to a research lab where R.A.I.N.'s
+four perspectives (`topherchris420/james_library`) investigate questions and
+their hypotheses become matched experiments on this simulator — never on the
+city you are walking through, and never without a person's authorization of
+the exact definition. The lab is fictional, its pictures are not evidence, and
+its results describe the simulator, not Bethesda. It is OFFLINE unless a
+R.A.I.N. backend is configured on the server, its DEMO is labelled as a
+recording, and the city never waits on it. Discovery, the protocol, LIVE
+configuration and every boundary are in
+[the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
+
 ## Replay and verification
 
 Traces (`bethesda-replay/v3`) carry the simulator version and the hashes of the
@@ -385,11 +398,12 @@ with an explanation — the simulator changed — rather than replayed against
 different rules. Replay reproduces authoritative state, not pixels.
 
 ```sh
-npm run test:bethesda     # city, effects, presentation and server tests
+npm run test:bethesda     # city, effects, presentation, lab and server tests
 npm run test:run
 npm run build             # includes validate:bethesda (both OSM layers, DTM)
 npm run verify:bethesda   # browser: discovery (both entrances), scenarios,
                           # outage fallback, walking, replay, a11y, CSP, return
+npm run verify:rain-lab   # browser: the hidden lab (see RAIN_LAB_BETHESDA.md)
 node tools/bethesda-look.mjs
 ```
 

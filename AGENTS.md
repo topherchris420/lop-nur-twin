@@ -431,7 +431,13 @@ A hidden second environment, lazily loaded from `src/components/AnomalyGate.tsx`
 `src/bethesda/`, only the gate, the Site Index row, `server/jev/city.ts` (with
 its test and the city branch of `server/jev/handler.ts`),
 `scripts/validate-bethesda.ts` and the `build`/
-`test:bethesda`/`verify:bethesda` scripts reference it.
+`test:bethesda`/`verify:bethesda` scripts reference it. The R.A.I.N. Lab inside
+it adds `server/rain/` and `api/rain/` (with `rainApi` in `vite.config.ts` and
+their functions in `vercel.json`), `tools/rain-bridge/`, `tools/rain-lab.mjs`,
+`tools/rain-conformance.mjs`, `scripts/export-rain-demo.py`, the `RAIN_` lines
+of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
+`src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
+scripts.
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
   pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
@@ -462,6 +468,54 @@ its test and the city branch of `server/jev/handler.ts`),
 - **Claims stay derived.** `evidence.ts` classifies massing with Lop Nur's four
   classes from height provenance; the field notes print the computed tally.
   Do not write a fidelity sentence the tally does not support.
+
+### The R.A.I.N. Lab (`src/bethesda/rain/`)
+
+A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives
+(`topherchris420/james_library`) meet and their hypotheses become experiments.
+Read `docs/RAIN_LAB_BETHESDA.md` before changing it. The rule the directory
+exists to keep: **models propose; host code validates; the simulator determines
+world state; recorded observations become evidence.**
+
+- **The lab holds the live city read-only.** Only `runner.ts` and `replay.ts`
+  call a simulator's mutating methods, and only on simulators they built.
+  `authority.test.ts` scans every lab module for `step`, `inject`, `accept`,
+  `humanAction`, `movePlayer`, `setFocus` and writes to `paused`, and fails on
+  any other caller. A new observation goes in `tools.ts` as a read; there is
+  never a tool that acts.
+- **No words are written here.** A meeting is a validated R.A.I.N. record —
+  LIVE from `/api/rain/meeting` or the DEMO recording — staged through
+  R.A.I.N.'s neutral events. Do not add a line a perspective says.
+- **R.A.I.N. chooses; the host writes.** R.A.I.N. picks among `OPTIONS` in
+  `session.ts`; the proposal is built from the option. A proposal is a closed
+  `rain-bethesda-experiment/v1` object with ids from the vocabulary in
+  `contracts.ts` — never a coordinate, command, code, URL or path. The scenario
+  is compiled by the city's own compiler (`compileFor`) and must land on the
+  expected mapped place. A hand-written proposal is a person's
+  (`proposeByHand`): it may not claim R.A.I.N.'s or the DEMO's authorship.
+- **Nothing runs without a human authorization bound to the digest.** The
+  record is a local operator attestation with `identity_verified: false`; do
+  not describe it as identity, and do not add a path to `runExperiment` that
+  skips `preflight`.
+- **LIVE never falls back to DEMO.** `client.ts` must not import the recording
+  (a test asserts it). A failure is a typed failure shown as such.
+- **The DEMO recording is re-recorded, never edited.**
+  `scripts/export-rain-demo.py` writes it and its manifest with the real time
+  and hashes; `scripts/validate-bethesda.ts` fails when they disagree.
+- **The backend's address and token are server environment.** Only
+  `api/rain/_config.ts` and `vite.config.ts` read `RAIN_BACKEND_URL`,
+  `RAIN_BACKEND_TOKEN` and `RAIN_TIMEOUT_MS`; never `VITE_`-prefixed.
+  `contracts.ts` and `validation.ts` are shared with `server/rain/` and import
+  siblings as `./x.js`.
+- **Records are evidence only through replay.** Every ending is a sealed
+  `bethesda-rain-experiment-record/v1`; `verifyRecord` re-simulates it. A change
+  to the record, the protocol or the simulator's behaviour bumps its schema or
+  `SIM_VERSION`, and older records fail verification with a reason.
+- **R.A.I.N. judges its own criteria.** A submission carries measurements and
+  no status or verdict; `bun run rain:conformance` runs james_library's own
+  validators, evaluator and registry over the lab's output.
+- **Unknown stays unknown.** A commit, model or token count nobody reported is
+  `null`; the submission refuses to invent the producing commit.
 
 ## Verifying changes
 
@@ -507,6 +561,10 @@ test the artifact that actually ships — including its security headers:
 bun run a11y                  # axe-core on every route (+ /evaluation with a run open) + CSP
 bun run verify:bethesda       # the hidden city end to end (both entrances, scenarios,
                               # outage fallback, replay, a11y, CSP, WebGL failure)
+bun run verify:rain-lab       # the hidden lab end to end on its own preview: OFFLINE,
+                              # DEMO, authorization, run, replay, tampered import,
+                              # outings, tools, a11y, CSP, no WebGL; LIVE through the
+                              # bridge when RAIN_LIBRARY_PATH names a james_library
 bun run routes                # 70 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```

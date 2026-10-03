@@ -6,20 +6,21 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 
 ## Build settings
 
-| Setting                        | Value                                                                                         |
-| :----------------------------- | :-------------------------------------------------------------------------------------------- |
-| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                 |
-| Build command                  | `npm run build`                                                                               |
-| Output directory               | `dist`                                                                                        |
-| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                     |
-| Framework preset               | Vite                                                                                          |
-| Environment variables required | none for the site; see below for `/play?brain=jev`                                            |
-| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat (both optional) |
+| Setting                        | Value                                                                                                                                                       |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                               |
+| Build command                  | `npm run build`                                                                                                                                             |
+| Output directory               | `dist`                                                                                                                                                      |
+| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                                   |
+| Framework preset               | Vite                                                                                                                                                        |
+| Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                                     |
+| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat, `RAIN_BACKEND_TOKEN` for a R.A.I.N. backend that requires one (all optional) |
 
-`npm run build` is five steps, in this order:
+`npm run build` is six steps, in this order:
 
 ```text
 node scripts/run-ts.mjs scripts/validate-data.ts       # data + evidence gate
+node scripts/run-ts.mjs scripts/validate-bethesda.ts   # Bethesda data + the lab's DEMO recording
 node scripts/run-ts.mjs scripts/generate-manifest.ts   # public/model-manifest.json
 vite build                                             # → dist/
 tsc --noEmit                                           # strict typecheck
@@ -58,10 +59,12 @@ If your platform pins an older Node, either raise it or install Bun and run
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
    describe a build the visitor is not looking at; `/api/*` is `no-store`.
-4. **Two functions** — `api/jev/decision.ts`, the server side of
-   `/play?brain=jev`, capped at 10 seconds; and `api/llm/decision.ts`, the
+4. **Seven functions** — `api/jev/decision.ts`, the server side of
+   `/play?brain=jev`, capped at 10 seconds; `api/llm/decision.ts`, the
    server side of `/play?brain=llm`, capped at 30 seconds because a
-   conventional LLM answers in seconds and may be retried within its deadline.
+   conventional LLM answers in seconds and may be retried within its deadline;
+   and the R.A.I.N. Lab's five `api/rain/*` routes — `status` (10 s),
+   `meeting` (60 s), and `proposal`, `preregister` and `submission` (30 s each).
 
 ### The Jev decision endpoint
 
@@ -97,6 +100,27 @@ variables are in `.env.example`. Never `VITE_`-prefixed. Check with
 model and never the key. Without configuration it answers 503 and the game
 shows LLM UNAVAILABLE. Its rate limits are the Jev endpoint's, per instance; add
 a Firewall rule for `/api/llm/decision` too if it is enabled in production.
+
+### The R.A.I.N. Lab route
+
+Optional, and OFFLINE unless configured: the lab inside Bethesda is explorable,
+its DEMO replays a labelled recording, and nothing is sent anywhere. To connect
+it to a R.A.I.N. backend (the reference bridge in `tools/rain-bridge/` beside a
+james_library checkout, or anything else that speaks `rain-bethesda/v1`), set:
+
+| Variable             | Type      | Environments        | Value                                                    |
+| :------------------- | :-------- | :------------------ | :------------------------------------------------------- |
+| `RAIN_BACKEND_URL`   | Plain     | Production, Preview | the backend's base URL; `https` (http only on loopback)  |
+| `RAIN_BACKEND_TOKEN` | Sensitive | Production, Preview | the bearer token the backend requires, if any (optional) |
+| `RAIN_TIMEOUT_MS`    | Plain     | all                 | per request, 1000–55000; default 20000 (optional)        |
+
+Never `VITE_`-prefixed. Redeploy, then check
+`curl -s https://<deployment>/api/rain/status`, which reports whether a backend
+is configured and reachable and R.A.I.N.'s identity — never the address or the
+token. A deployed site cannot reach a bridge on a laptop's loopback: a hosted
+backend needs its own `https` address. Rate limits are per instance, as for the
+decision endpoints. Everything else is in
+[`docs/RAIN_LAB_BETHESDA.md`](RAIN_LAB_BETHESDA.md).
 
 ### Redeploying after these changes
 

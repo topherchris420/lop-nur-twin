@@ -3,8 +3,9 @@
 **System:** Lop Nur Twin — a static, client-side web
 application serving a public-source geospatial reconstruction, an evidence
 ledger, an accessible analysis view, and an illustrative first-person
-simulation, plus one optional serverless function that lets the TypeSafe Jev
-model control the simulation's player (T12).
+simulation, plus optional serverless functions: the decision endpoints that let
+a model control the simulation's player (T12), and the route that connects the
+Bethesda R.A.I.N. Lab to a research backend (T13).
 
 **Method:** assets → trust boundaries → actors → threats → mitigations →
 residual risk. Written to be argued with. If a mitigation below is not visible
@@ -30,8 +31,9 @@ on. It is listed first.
 | **Project reputation**                                                                               | An OSINT artifact that is caught overstating its evidence is worthless afterwards.                                                               | The whole repository                                              |
 
 Explicitly **not** assets, because they do not exist: user accounts, personal
-data, credentials, API keys, session tokens, non-public information of any
-kind.
+data, session tokens, non-public information of any kind. The only credentials
+are server-side and optional: the model providers' keys and the R.A.I.N.
+backend's token (T12, T13).
 
 ## 2. Trust boundaries
 
@@ -88,6 +90,10 @@ The boundaries that matter:
 5. **Browser → the Jev function → TypeSafe.** Opt-in, same-origin. The function
    holds the TypeSafe credential; the browser sends only a bounded observation,
    and the function decides what TypeSafe is asked (T12).
+6. **Browser → the R.A.I.N. route → a R.A.I.N. backend.** Off unless the
+   deployment configures it; same-origin. The function holds the backend's
+   address and token, composes every upstream request itself and validates
+   every answer before the browser validates it again (T13).
 
 ## 3. Threat actors
 
@@ -264,6 +270,58 @@ cold start; a caller spreading requests across addresses and instances is slowed
 not stopped. Durable limits need the host's firewall or a shared store. The
 observation is game state, not personal data, and nothing is persisted.
 
+### T13 — The R.A.I.N. Lab route and its experiments
+
+`/api/rain/*` connects the lab hidden in Bethesda to a backend speaking
+`rain-bethesda/v1` — by default the reference bridge in `tools/rain-bridge/`
+beside a james_library checkout. See `docs/RAIN_LAB_BETHESDA.md`.
+
+**Threats.** (a) The backend's address or token leaks into the bundle, a
+response or a log. (b) The route becomes an open proxy: the browser chooses the
+host, path, headers or body. (c) A hostile or compromised backend returns
+script, invisible or bidirectional characters, an enormous payload, a forged
+identity, or an answer to a different request. (d) A proposal changes the live
+city, or an experiment runs without a person's approval. (e) Recorded or
+fabricated content is presented as LIVE, or a record claims a provenance it
+does not have. (f) A tampered record passes as verified. (g) A caller exhausts
+the backend or the browser with requests or experiment size.
+
+**Mitigations.** (a) Only `api/rain/_config.ts` and the Vite middleware read
+`RAIN_BACKEND_URL`, `RAIN_BACKEND_TOKEN` and `RAIN_TIMEOUT_MS`; the secret
+boundary test and the build's scan cover their names and the token's value; the
+token is sent upstream as a bearer token and nowhere else. (b) The backend comes
+from server environment only, must be `https` (or `http` on a loopback host),
+and may carry no credentials, query or fragment; each route has a fixed
+upstream path; requests must be same-origin, closed-field JSON under a per-route
+cap, and the server writes every upstream body. (c) Answers are read with a byte
+cap and validated by the shared validators on the server and again in the
+browser: bound to the request that asked, the four perspectives
+only, quotes consistent with their audit, control, bidirectional and zero-width
+characters refused, text rendered as text and never as HTML, no link followed.
+(d) A proposal is a closed object of vocabulary ids compiled by the city's own
+scenario compiler; it cannot carry a coordinate, command, code, URL or path. A
+run needs an authorization record bound to the definition's SHA-256 and runs on
+simulators the runner builds; `authority.test.ts` fails if any other lab module
+calls a simulator's mutating methods. (e) The R.A.I.N. client cannot import the
+DEMO recording, a failure is shown as a failure, DEMO is labelled
+`PRERECORDED`, a hand-written proposal cannot claim R.A.I.N.'s authorship, and
+provenance a source did not report is `null`. (f) A record is sealed by a
+SHA-256 and verified by re-simulating every arm from its commands; an import
+with a wrong digest is refused, and a re-sealed edit fails replay. (g)
+Experiments are bounded (at most five seeds and 36,000 simulated ticks); per
+session, minimum intervals and caps per operation (12 meetings per 120-minute
+session); a per-client token bucket, two upstream requests in flight per
+instance, and a 1–55 s timeout.
+
+**Residual risk.** Quote verification is the backend's: the browser checks that
+a meeting's citation audit is consistent, but it does not hold R.A.I.N.'s corpus,
+so a hostile backend could mark an invented quote verified. The lab shows such
+text as R.A.I.N.'s interpretation, never as an observation, and the Systems Room
+names the backend's commit. The research question is free text the person
+typed, sent to the operator's own backend; it should not contain personal data.
+The bridge is a reference for a trusted machine, with a bearer token as its
+only authentication. Rate limits are per instance, as in T12.
+
 ### T8 — Denial of service
 
 **Mitigations.** The application is static: capacity is the host's. The heaviest
@@ -276,10 +334,15 @@ unusable — which is one of the reasons `/analysis` exists.
 
 ### T9 — Browser storage
 
-**Mitigations.** The application writes to `localStorage` in exactly one place:
-the bookmark store (`src/lib/bookmarks.ts`), under a single versioned key. It
-holds saved view settings and whatever short note the user typed. Nothing else
-touches `localStorage`, `sessionStorage`, IndexedDB or cookies, and there is no
+**Mitigations.** The application writes to `localStorage` in three places,
+each under a single versioned key: the bookmark store (`src/lib/bookmarks.ts`),
+which holds saved view settings and whatever short note the user typed; the
+last Blacksite trace (`src/game/pilot/traceStorage.ts`), a convenience copy of
+a downloadable file; and the Bethesda R.A.I.N. Lab's registry
+(`src/bethesda/rain/store.ts`), the 24 most recent experiment records with
+their question, hypothesis, operator role label and measurements. Records read
+back are dropped unless their digest matches. Nothing else touches
+`localStorage`, `sessionStorage`, IndexedDB or cookies, and there is no
 tracking, no analytics and no fingerprinting.
 
 Two boundaries keep that contained. A bookmark never leaves the browser except
@@ -326,7 +389,7 @@ build; same-origin `script-src` is the current compensating control.
 
 - Hardening the viewer's browser, operating system or extensions.
 - Availability guarantees, rate limiting and capacity — properties of the host,
-  except the Jev endpoint's own limits (T12).
+  except the decision endpoints' own limits (T12) and the R.A.I.N. route's (T13).
 - Correctness disputes about the model's content: those are issues and pull
   requests, and the project treats them as the desired outcome.
 - Anything requiring physical access to a viewer's machine.
@@ -342,5 +405,6 @@ build; same-origin `script-src` is the current compensating control.
 3. Maintainers review data changes for sourcing as carefully as code changes
    for correctness.
 4. CI is not granted repository secrets or write permissions. The TypeSafe key
-   lives only in the host's environment; nothing in CI calls TypeSafe.
+   and the R.A.I.N. backend's token live only in the host's environment; nothing
+   in CI calls TypeSafe or a R.A.I.N. backend.
 5. No non-public information is ever added to this system or a fork of it.
