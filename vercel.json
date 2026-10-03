@@ -14,6 +14,12 @@
     "api/rain/meeting.ts": {
       "maxDuration": 60
     },
+    "api/rain/meeting-status.ts": {
+      "maxDuration": 10
+    },
+    "api/rain/meeting-cancel.ts": {
+      "maxDuration": 10
+    },
     "api/rain/proposal.ts": {
       "maxDuration": 30
     },

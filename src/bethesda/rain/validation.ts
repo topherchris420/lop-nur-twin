@@ -23,19 +23,27 @@ import {
   PERSPECTIVES,
   PROPOSAL_ORIGINS,
   RAIN_BETHESDA_SCHEMA,
+  RAIN_DECISION_ENGINES,
   RAIN_DECISION_SCHEMA,
+  RAIN_ESCALATION_REASONS,
   RAIN_EXPERIMENT_ID,
+  RAIN_PROVIDER_ERRORS,
   RAIN_REPOSITORY,
   RAIN_RUN_ID,
+  RAIN_SESSION_ARTIFACT_SCHEMA,
   SCENARIO_IDS,
   SCENARIO_LOCATIONS,
   SHA256,
   CRITERIA_RULE,
   type Admission,
   type CriterionResult,
+  type DecisionAttempt,
   type Evaluation,
   type ExperimentProposal,
+  type MeetingFailed,
+  type MeetingPending,
   type MeetingRecord,
+  type SourceArtifact,
   type Preregistration,
   type ProposalChoice,
   type Quote,
@@ -177,8 +185,11 @@ class Reader {
   }
 }
 
-/** The model-id shape the city's Jev proposals already use. */
-const MODEL_ID = /^[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,95}$/;
+/**
+ * The model-id shape the city's Jev proposals already use — Ollama's
+ * `qwen2.5:7b`, LM Studio's `publisher/model` — and never a URL.
+ */
+const MODEL_ID = /^(?!.*:\/\/)[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,95}$/;
 /** Corpus-relative, no traversal, no scheme: a path is shown, never followed. */
 const SOURCE_PATH =
   /^(?![/\\])(?!.*(?:^|[/\\])\.\.(?:[/\\]|$))(?![A-Za-z][A-Za-z0-9+.-]*:)[^\0]+$/;
@@ -230,6 +241,7 @@ function turn(r: Reader, v: unknown, path: string): Turn {
     "quotes",
     "coda",
     "unverified",
+    "generation",
   ]);
   const empty: Turn = {
     index: 1,
@@ -240,6 +252,7 @@ function turn(r: Reader, v: unknown, path: string): Turn {
     quotes: [],
     coda: "",
     unverified: 0,
+    generation: "scripted",
   };
   if (!o) return empty;
   return {
@@ -253,6 +266,21 @@ function turn(r: Reader, v: unknown, path: string): Turn {
       .map((q, i) => quote(r, q, `${path}.quotes[${i}]`)),
     coda: r.text(o.coda, path + ".coda", LIMITS.turnText),
     unverified: r.integer(o.unverified, path + ".unverified", 0, 100),
+    generation: r.oneOf(o.generation, path + ".generation", GENERATIONS),
+  };
+}
+
+function sourceArtifact(r: Reader, v: unknown, path: string): SourceArtifact {
+  const o = r.object(v, path, ["schema", "session_id", "status", "sha256"]);
+  if (o && o.schema !== RAIN_SESSION_ARTIFACT_SCHEMA)
+    r.fail(path + ".schema", "not R.A.I.N.'s session artifact");
+  return {
+    schema: RAIN_SESSION_ARTIFACT_SCHEMA,
+    session_id: r.pattern(o?.session_id, path + ".session_id", /^[A-Za-z0-9_-]{4,64}$/),
+    // R.A.I.N. finalizes a meeting it ran to its end as "completed"; a
+    // founder who stopped it makes it "interrupted". Nothing else is a result.
+    status: r.oneOf(o?.status, path + ".status", ["completed", "interrupted"] as const),
+    sha256: r.pattern(o?.sha256, path + ".sha256", SHA256),
   };
 }
 
@@ -286,6 +314,7 @@ export function validateMeeting(
     "suggestions",
     "rain",
     "produced_at",
+    "source_artifact",
   ]);
   if (!o) return r.done(null as never);
   if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
@@ -296,12 +325,16 @@ export function validateMeeting(
     r.fail("model", "a model-generated meeting must name its model");
   if (generation === "scripted" && model !== null)
     r.fail("model", "a scripted meeting cannot name a model");
-  const verdict = r.object(o.verdict, "verdict", [
-    "agreed",
-    "contested",
-    "next_move",
-    "read_next",
-  ]);
+  // The offline engine always grades its corpus and states where the room
+  // stands; a model meeting computes neither, and must not pretend to.
+  const analysed = generation === "scripted";
+  for (const k of ["grounding", "matched_terms", "missing_terms", "verdict"] as const)
+    if (analysed && o[k] === null)
+      r.fail(k, "an offline-engine meeting always carries it");
+  const verdict =
+    o.verdict === null
+      ? null
+      : r.object(o.verdict, "verdict", ["agreed", "contested", "next_move", "read_next"]);
   const audit = r.object(o.audit, "audit", [
     "checked",
     "verified",
@@ -317,18 +350,36 @@ export function validateMeeting(
     generation,
     engine: r.text(o.engine, "engine", 120, 1),
     model,
-    grounding: r.oneOf(o.grounding, "grounding", ["strong", "partial", "none"] as const),
-    matched_terms: terms(r, o.matched_terms, "matched_terms", LIMITS.terms),
-    missing_terms: terms(r, o.missing_terms, "missing_terms", LIMITS.terms),
+    grounding:
+      o.grounding === null
+        ? null
+        : r.oneOf(o.grounding, "grounding", ["strong", "partial", "none"] as const),
+    matched_terms:
+      o.matched_terms === null
+        ? null
+        : terms(r, o.matched_terms, "matched_terms", LIMITS.terms),
+    missing_terms:
+      o.missing_terms === null
+        ? null
+        : terms(r, o.missing_terms, "missing_terms", LIMITS.terms),
     turns: r
       .array(o.turns, "turns", LIMITS.turns)
       .map((t, i) => turn(r, t, `turns[${i}]`)),
-    verdict: {
-      agreed: r.text(verdict?.agreed, "verdict.agreed", LIMITS.turnText),
-      contested: r.text(verdict?.contested, "verdict.contested", LIMITS.turnText),
-      next_move: r.text(verdict?.next_move, "verdict.next_move", LIMITS.turnText),
-      read_next: terms(r, verdict?.read_next, "verdict.read_next", LIMITS.readNext, 320),
-    },
+    verdict:
+      o.verdict === null
+        ? null
+        : {
+            agreed: r.text(verdict?.agreed, "verdict.agreed", LIMITS.turnText),
+            contested: r.text(verdict?.contested, "verdict.contested", LIMITS.turnText),
+            next_move: r.text(verdict?.next_move, "verdict.next_move", LIMITS.turnText),
+            read_next: terms(
+              r,
+              verdict?.read_next,
+              "verdict.read_next",
+              LIMITS.readNext,
+              320,
+            ),
+          },
     audit: {
       checked: r.integer(audit?.checked, "audit.checked", 0, 1000),
       verified: r.integer(audit?.verified, "audit.verified", 0, 1000),
@@ -338,8 +389,21 @@ export function validateMeeting(
     suggestions: terms(r, o.suggestions, "suggestions", LIMITS.suggestions, 300),
     rain: revision(r, o.rain, "rain"),
     produced_at: r.timestamp(o.produced_at, "produced_at"),
+    source_artifact:
+      o.source_artifact === null
+        ? null
+        : sourceArtifact(r, o.source_artifact, "source_artifact"),
   };
   if (!record.turns.length) r.fail("turns", "a meeting has at least one turn");
+  // Who wrote what is part of the record, and has to add up.
+  if (analysed && record.turns.some((t) => t.generation !== "scripted"))
+    r.fail("turns", "an offline-engine meeting has no model-written turn");
+  if (analysed && record.source_artifact !== null)
+    r.fail("source_artifact", "the offline engine keeps no session artifact");
+  if (generation === "model" && !record.turns.some((t) => t.generation === "model"))
+    r.fail("turns", "a model meeting has at least one model-written turn");
+  if (generation === "model" && record.source_artifact === null)
+    r.fail("source_artifact", "a model meeting names R.A.I.N.'s own record of it");
   record.turns.forEach((t, i) => {
     if (t.index !== i + 1) r.fail(`turns[${i}].index`, "turns are numbered in order");
   });
@@ -371,6 +435,7 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
     "meeting_generation",
     "model",
     "bounded_decision",
+    "remote_decisions",
     "registry",
   ]);
   if (!o) return r.done(null as never);
@@ -399,6 +464,7 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
     meeting_generation: generation,
     model,
     bounded_decision: r.text(o.bounded_decision, "bounded_decision", 32, 1),
+    remote_decisions: r.boolean(o.remote_decisions, "remote_decisions"),
     registry: {
       available: r.boolean(registry?.available, "registry.available"),
       scratch: r.boolean(registry?.scratch, "registry.scratch"),
@@ -456,12 +522,173 @@ export function validateProposalChoice(
       reason:
         d?.reason === null || d?.reason === undefined
           ? null
-          : r.text(d.reason, "decision.reason", 64, 1),
+          : r.oneOf(d.reason, "decision.reason", RAIN_ESCALATION_REASONS),
       envelope_hash: r.pattern(d?.envelope_hash, "decision.envelope_hash", SHA256),
-      attempts: r.integer(d?.attempts, "decision.attempts", 0, 16),
+      attempts: r
+        .array(d?.attempts, "decision.attempts", LIMITS.attempts)
+        .map((a, i) => attempt(r, a, `decision.attempts[${i}]`, expected.optionIds)),
       latency_ms: r.number(d?.latency_ms, "decision.latency_ms", 0, 600_000),
     },
   });
+}
+
+/**
+ * One engine R.A.I.N. consulted. What it chose and the probabilities it gave
+ * are kept exactly as returned — over the options offered and nothing else —
+ * even when R.A.I.N. did not act on them.
+ */
+function attempt(
+  r: Reader,
+  v: unknown,
+  path: string,
+  optionIds: readonly string[],
+): DecisionAttempt {
+  const o = r.object(v, path, [
+    "engine",
+    "model",
+    "selected",
+    "probabilities",
+    "confidence",
+    "reason",
+    "error_code",
+    "latency_ms",
+  ]);
+  const selected =
+    o?.selected === null || o?.selected === undefined
+      ? null
+      : r.text(o.selected, path + ".selected", 64, 1);
+  if (selected !== null && !optionIds.includes(selected))
+    r.fail(path + ".selected", "is not one of the options offered");
+  const seen = new Set<string>();
+  const probabilities = r
+    .array(o?.probabilities, path + ".probabilities", optionIds.length)
+    .map((pair, i): [string, number] => {
+      const at = `${path}.probabilities[${i}]`;
+      if (!Array.isArray(pair) || pair.length !== 2) {
+        r.fail(at, "expected [option, probability]");
+        return ["", 0];
+      }
+      const id = r.text(pair[0], at + "[0]", 64, 1);
+      if (!optionIds.includes(id))
+        r.fail(at + "[0]", "is not one of the options offered");
+      if (seen.has(id)) r.fail(at + "[0]", "repeats an option");
+      seen.add(id);
+      return [id, r.number(pair[1], at + "[1]", 0, 1)];
+    });
+  return {
+    engine: r.oneOf(o?.engine, path + ".engine", RAIN_DECISION_ENGINES),
+    model:
+      o?.model === null || o?.model === undefined
+        ? null
+        : r.pattern(o.model, path + ".model", MODEL_ID),
+    selected,
+    probabilities,
+    confidence:
+      o?.confidence === null || o?.confidence === undefined
+        ? null
+        : r.number(o.confidence, path + ".confidence", 0, 1),
+    reason:
+      o?.reason === null || o?.reason === undefined
+        ? null
+        : r.oneOf(o.reason, path + ".reason", RAIN_ESCALATION_REASONS),
+    error_code:
+      o?.error_code === null || o?.error_code === undefined
+        ? null
+        : r.oneOf(o.error_code, path + ".error_code", RAIN_PROVIDER_ERRORS),
+    latency_ms: r.number(o?.latency_ms, path + ".latency_ms", 0, 600_000),
+  };
+}
+
+/** A model meeting R.A.I.N. is still running, bound to the request that started it. */
+export function validateMeetingPending(
+  v: unknown,
+  expected: { requestId: string; question: string },
+): Checked<MeetingPending> {
+  const r = new Reader("meeting-pending");
+  const o = r.object(v, "", [
+    "schema",
+    "kind",
+    "request_id",
+    "job_id",
+    "question",
+    "model",
+    "started_at",
+    "elapsed_s",
+    "turns_started",
+    "turns_planned",
+  ]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "meeting-pending") r.fail("kind", "not a pending meeting");
+  const pending: MeetingPending = {
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "meeting-pending",
+    request_id: r.pattern(o.request_id, "request_id", HEX32),
+    job_id: r.pattern(o.job_id, "job_id", HEX32),
+    question: r.text(o.question, "question", LIMITS.question, 1),
+    model: r.pattern(o.model, "model", MODEL_ID),
+    started_at: r.timestamp(o.started_at, "started_at"),
+    elapsed_s: r.number(o.elapsed_s, "elapsed_s", 0, LIMITS.meetingJobMinutes * 60 * 2),
+    turns_started: r.integer(o.turns_started, "turns_started", 0, LIMITS.turns),
+    turns_planned: r.integer(o.turns_planned, "turns_planned", 1, LIMITS.turns),
+  };
+  if (pending.request_id !== expected.requestId)
+    r.fail("request_id", "answers a different request (stale or mismatched)");
+  if (pending.question !== expected.question)
+    r.fail("question", "answers a different question");
+  return r.done(pending);
+}
+
+/** A model meeting that ended without a record. The reason is shown, never a substitute. */
+export function validateMeetingFailed(
+  v: unknown,
+  expected: { requestId: string; jobId: string },
+): Checked<MeetingFailed> {
+  const r = new Reader("meeting-failed");
+  const o = r.object(v, "", ["schema", "kind", "request_id", "job_id", "reason"]);
+  if (!o) return r.done(null as never);
+  if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
+  if (o.kind !== "meeting-failed") r.fail("kind", "not a failed meeting");
+  const failed: MeetingFailed = {
+    schema: RAIN_BETHESDA_SCHEMA,
+    kind: "meeting-failed",
+    request_id: r.pattern(o.request_id, "request_id", HEX32),
+    job_id: r.pattern(o.job_id, "job_id", HEX32),
+    reason: r.text(o.reason, "reason", 300, 1),
+  };
+  if (failed.request_id !== expected.requestId)
+    r.fail("request_id", "answers a different request (stale or mismatched)");
+  if (failed.job_id !== expected.jobId) r.fail("job_id", "answers a different job");
+  return r.done(failed);
+}
+
+export type MeetingAnswer = MeetingRecord | MeetingPending | MeetingFailed;
+/**
+ * Whatever a meeting request or a status check returned: the meeting, a
+ * pending job, or a failure — each validated against what was asked. A
+ * failure can only answer a job the caller already holds.
+ */
+export function validateMeetingAnswer(
+  v: unknown,
+  expected: { requestId: string; question: string; jobId?: string },
+): Checked<MeetingAnswer> {
+  const kind = isObject(v) ? v.kind : undefined;
+  if (kind === "meeting") return validateMeeting(v, expected);
+  if (kind === "meeting-pending") {
+    const p = validateMeetingPending(v, expected);
+    if (p.ok && expected.jobId && p.value.job_id !== expected.jobId)
+      return { ok: false, errors: ["meeting-pending.job_id: answers a different job"] };
+    return p;
+  }
+  if (kind === "meeting-failed" && expected.jobId)
+    return validateMeetingFailed(v, {
+      requestId: expected.requestId,
+      jobId: expected.jobId,
+    });
+  return {
+    ok: false,
+    errors: ["meeting: not a meeting, a pending meeting or a failure"],
+  };
 }
 
 export function validatePreregistration(

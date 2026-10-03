@@ -72,8 +72,12 @@ describe("meeting validation fails closed", () => {
   });
   it.each([
     [
+      "the retired v1 schema",
+      (m: Record<string, unknown>) => (m.schema = "rain-bethesda/v1"),
+    ],
+    [
       "an unknown schema",
-      (m: Record<string, unknown>) => (m.schema = "rain-bethesda/v2"),
+      (m: Record<string, unknown>) => (m.schema = "rain-bethesda/v9"),
     ],
     ["a missing schema", (m: Record<string, unknown>) => delete m.schema],
     ["an unknown field", (m: Record<string, unknown>) => (m.injected = "<img src=x>")],
@@ -151,7 +155,7 @@ describe("meeting validation fails closed", () => {
 
 describe("other R.A.I.N. answers fail closed", () => {
   const identity = {
-    schema: "rain-bethesda/v1",
+    schema: "rain-bethesda/v2",
     kind: "identity",
     bridge: { name: "rain-bethesda-bridge", version: "1" },
     rain: {
@@ -164,6 +168,7 @@ describe("other R.A.I.N. answers fail closed", () => {
     meeting_generation: "scripted",
     model: null,
     bounded_decision: "off",
+    remote_decisions: false,
     registry: { available: true, scratch: true },
   };
   it("identity: closed, consistent about models, from the right repository", () => {
@@ -175,7 +180,7 @@ describe("other R.A.I.N. answers fail closed", () => {
     expect(validateIdentity({ ...identity, shell: "rm -rf /" }).ok).toBe(false);
   });
   const choice = (selected: string | null, extra: Record<string, unknown> = {}) => ({
-    schema: "rain-bethesda/v1",
+    schema: "rain-bethesda/v2",
     kind: "proposal-choice",
     request_id: "a".repeat(32),
     decision: {
@@ -185,7 +190,7 @@ describe("other R.A.I.N. answers fail closed", () => {
       selected,
       reason: selected ? null : "DISABLED",
       envelope_hash: "e".repeat(64),
-      attempts: 0,
+      attempts: [],
       latency_ms: 0.6,
       ...extra,
     },
@@ -206,7 +211,7 @@ describe("other R.A.I.N. answers fail closed", () => {
     ).toBe(false);
   });
   const admission = (status: string, verdict: string, evaluation: unknown) => ({
-    schema: "rain-bethesda/v1",
+    schema: "rain-bethesda/v2",
     kind: "admission",
     request_id: "a".repeat(32),
     run_id: "V3D-EXP-0005-RUN-0001",
@@ -249,7 +254,7 @@ describe("other R.A.I.N. answers fail closed", () => {
   });
   it("a pre-registration must carry a R.A.I.N. experiment id for this request", () => {
     const p = {
-      schema: "rain-bethesda/v1",
+      schema: "rain-bethesda/v2",
       kind: "preregistration",
       request_id: "a".repeat(32),
       experiment_id: "V3D-EXP-0005",

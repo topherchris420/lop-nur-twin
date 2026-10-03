@@ -484,8 +484,32 @@ world state; recorded observations become evidence.**
   any other caller. A new observation goes in `tools.ts` as a read; there is
   never a tool that acts.
 - **No words are written here.** A meeting is a validated R.A.I.N. record —
-  LIVE from `/api/rain/meeting` or the DEMO recording — staged through
+  LIVE from `/api/rain/meeting` (a model meeting arrives later, through
+  `/api/rain/meeting-status`) or the DEMO recording — staged through
   R.A.I.N.'s neutral events. Do not add a line a perspective says.
+- **Say who wrote every word.** A meeting and each turn carry `generation`
+  (`scripted` or `model`). A model meeting names its model and R.A.I.N.'s
+  `rain-session-artifact/v1` by SHA-256, and has no grade and no verdict,
+  because R.A.I.N.'s model meeting computes neither; a line R.A.I.N.'s code
+  adds — its closing line, its placeholder for an unusable answer — is
+  `scripted` even there (`fixed_lines` reads them from R.A.I.N.'s script, and
+  `bun run rain:bridge` checks they are still there). Never fill in the offline engine's analysis
+  for a model meeting, and never label a model's turn as scripted or the
+  reverse — `validateMeeting` refuses both.
+- **R.A.I.N.'s meeting script runs unchanged, as a process, from a copy.** The
+  bridge `git archive`s the checkout's commit into a temporary directory, runs
+  `rain_lab_meeting_chat_version.py` there with a fixed argument list (the
+  question is one argument), a stdin nobody writes, decision routing off and no
+  TypeSafe key or bridge token in its environment, and removes the copy.
+  Nothing from a request but the question reaches that argument list, and
+  nothing a model writes is ever run.
+- **An answer R.A.I.N. did not act on is shown, never used.**
+  `decision.attempts` keeps every engine R.A.I.N. consulted, with its
+  probabilities as returned. A person may adopt a handed-back pick
+  (`adoptSuggestion`: origin `human`, no `rain_decision`); the lab never opens
+  a R.A.I.N. proposal R.A.I.N. did not make. Whether Jev may be asked is
+  R.A.I.N.'s own `RAIN_DECISION_REMOTE_ALLOWED`, read by R.A.I.N.'s parser in
+  the bridge — never a lab setting, and never on by default.
 - **R.A.I.N. chooses; the host writes.** R.A.I.N. picks among `OPTIONS` in
   `session.ts`; the proposal is built from the option. A proposal is a closed
   `rain-bethesda-experiment/v1` object with ids from the vocabulary in

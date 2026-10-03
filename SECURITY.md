@@ -76,7 +76,12 @@ any kind.
   the browser choose the upstream host, path, headers or any field beyond the
   declared ones; that gets an unvalidated or oversized answer past the server;
   or that lets the lab change the live city, run an experiment without an
-  authorization bound to its definition, or present DEMO content as LIVE.
+  authorization bound to its definition, or present DEMO content as LIVE. In
+  the reference bridge: anything that lets a request or a model's output reach
+  the model meeting's command line, files or environment beyond the question,
+  that runs something a model wrote, that writes into the james_library
+  checkout, or that sends the question to a remote decision engine without
+  `RAIN_DECISION_REMOTE_ALLOWED=true`.
 
 ## What is out of scope
 
@@ -182,7 +187,10 @@ State these plainly to anyone evaluating this project:
   typed (at most 500 characters, with control and bidirectional characters
   refused) and, for an experiment the person authorized, its definition and
   measurements; the server forwards them to the configured backend only. The
-  browser never talks to a model provider or to R.A.I.N. directly.
+  browser never talks to a model provider or to R.A.I.N. directly. What the
+  backend does next is its operator's configuration: the reference bridge may
+  give the question to a local model through R.A.I.N.'s own meeting, and, only
+  with `RAIN_DECISION_REMOTE_ALLOWED=true`, to TypeSafe.
 - **This system is not accredited.** It is not FedRAMP authorized, not CMMC
   certified, not government-certified, and not approved for classified
   information or Controlled Unclassified Information. Do not place non-public

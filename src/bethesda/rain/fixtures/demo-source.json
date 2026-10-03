@@ -1,6 +1,6 @@
 {
   "schema": "rain-bethesda-demo-source/v1",
-  "recordedAt": "2026-10-02T23:35:25.404Z",
+  "recordedAt": "2026-10-03T03:45:03.337Z",
   "recorder": "scripts/export-rain-demo.py (tools/rain-bridge/rain_bethesda_bridge.py meeting_record)",
   "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
   "generation": "scripted",
@@ -14,8 +14,8 @@
     "sha256": "9b2ea4210d127b9aa19de5d33a27caec79449ee7d157ae8c0989399dc0b71177"
   },
   "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
-  "meetingId": "rain-offline-ec5ee2eeb2764e5c5811",
-  "snapshotSha256": "77214eb0086d7e291583441b0d00eea2de5403bd962512a614fe21a0f9261469",
+  "meetingId": "rain-offline-93ae4b5195a5761ea843",
+  "snapshotSha256": "97c7ee221d2742091504e4a6389abdd2e56fe0e3cb29c6ee84ffb7c6bc11699a",
   "license": "james_library is MIT-licensed (Vers3Dynamics). Quotes are verbatim spans of its papers/ corpus, kept with their source path, line and character offsets.",
   "notes": [
     "Prerecorded: DEMO replays this one meeting and runs no process.",

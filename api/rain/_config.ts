@@ -4,7 +4,7 @@ import { createRainHandler } from "../../server/rain/handler.js";
 /**
  * The R.A.I.N. backend's configuration, read on the server only.
  *
- * `RAIN_BACKEND_URL` names a backend that speaks `rain-bethesda/v1` (for
+ * `RAIN_BACKEND_URL` names a backend that speaks `rain-bethesda/v2` (for
  * example `tools/rain-bridge/rain_bethesda_bridge.py` beside a james_library
  * checkout); `RAIN_BACKEND_TOKEN` is an optional bearer token for it. Neither
  * is `VITE_`-prefixed, so Vite never inlines them, and the handler sends the

@@ -8,8 +8,14 @@
  * its own rules took it.
  */
 import type { CitySimulation } from "../simulation";
-import { LIMITS, RECORD_SCHEMA, type MeetingRecord, type RuntimeMode } from "./contracts";
-import { RainClient, hex, type RuntimeStatus } from "./client";
+import {
+  LIMITS,
+  RECORD_SCHEMA,
+  type DecisionAttempt,
+  type MeetingRecord,
+  type RuntimeMode,
+} from "./contracts";
+import { RainClient, hex, type MeetingProgress, type RuntimeStatus } from "./client";
 import { demoMeeting, demoProposalInput } from "./demo";
 import {
   approve,
@@ -42,6 +48,30 @@ import {
 import { runTool, type ToolResult } from "./tools";
 import type { LocationId, Perspective } from "./contracts";
 
+export interface Handoff {
+  at: string;
+  decisionId: string;
+  question: string;
+  destination: string;
+  reason: string | null;
+  attempts: DecisionAttempt[];
+}
+/** How the lab names R.A.I.N.'s engines: `typesafe` is TypeSafe's Jev. */
+export const engineName = (engine: DecisionAttempt["engine"]) =>
+  engine === "typesafe" ? "Jev" : "Laya";
+/**
+ * What an engine chose in a handed-off decision, if it chose an experiment:
+ * the last attempt with a selection that is one of the host's experiment
+ * options. "No experiment" is not a suggestion.
+ */
+export function suggestion(h: Handoff) {
+  const a = [...h.attempts]
+    .reverse()
+    .find((x) => x.selected !== null && x.selected !== ESCALATE);
+  if (!a || a.selected === null) return null;
+  const p = a.probabilities.find(([id]) => id === a.selected)?.[1] ?? null;
+  return { engine: a.engine, model: a.model, selected: a.selected, p, reason: a.reason };
+}
 export interface MeetingState {
   record: MeetingRecord;
   source: "LIVE" | "DEMO";
@@ -161,8 +191,16 @@ export class LabStore {
   records: ExperimentRecord[] = [];
   verifications: Record<string, Verification | "running"> = {};
   registryNote = "";
-  /** R.A.I.N. answers that proposed nothing, kept visible. */
-  handoffs: { at: string; destination: string; reason: string | null }[] = [];
+  /**
+   * R.A.I.N. answers that proposed nothing, kept visible — with every engine
+   * R.A.I.N. consulted on the way, and what each chose, as it returned them.
+   */
+  handoffs: Handoff[] = [];
+  /** A model meeting R.A.I.N. is running: progress, never words. */
+  meetingProgress: MeetingProgress | null = null;
+  /** How often a running model meeting is checked on. */
+  pollMs = 3000;
+  private askAbort: AbortController | null = null;
   /** Perspectives walking the city, and what the simulator observed for them. */
   outings: Outing[] = [];
   avatarObservations: AvatarObservation[] = [];
@@ -254,8 +292,22 @@ export class LabStore {
     this.asking = true;
     this.note = "Asking R.A.I.N.… nothing is shown until a validated answer arrives.";
     this.emit();
-    const r = await this.client.meeting(question);
+    const stop = new AbortController();
+    this.askAbort = stop;
+    const r = await this.client.meeting(question, {
+      signal: stop.signal,
+      pollMs: this.pollMs,
+      onProgress: (p) => {
+        this.meetingProgress = p;
+        const minutes = Math.floor(p.elapsedS / 60),
+          seconds = Math.round(p.elapsedS % 60);
+        this.note = `R.A.I.N.'s meeting is running on ${p.model}: ${p.turnsStarted} of ${p.turnsPlanned} turns started, ${minutes ? `${minutes} min ` : ""}${seconds} s so far. Its words arrive, checked, when it ends; nothing is shown before.`;
+        this.emit();
+      },
+    });
     this.asking = false;
+    this.askAbort = null;
+    this.meetingProgress = null;
     if (!r.ok) {
       this.note =
         `LIVE request failed: ${r.failure} — ${r.detail}. Nothing is shown in its place.` +
@@ -266,6 +318,10 @@ export class LabStore {
       return;
     }
     this.startMeeting(r.value, "LIVE");
+  }
+  /** Stop the meeting being waited on. R.A.I.N. is asked to stop it; nothing is kept. */
+  stopAsking() {
+    this.askAbort?.abort();
   }
   playDemo() {
     const d = demoMeeting();
@@ -338,6 +394,19 @@ export class LabStore {
       "Loaded the DEMO's scripted proposal. It was written by hand for the demo; no model or R.A.I.N. process produced it.";
     this.emit();
   }
+  /**
+   * Propose, as a person, the option an engine chose in a handed-off decision.
+   * The proposal is the person's (origin "human"); R.A.I.N. made no proposal,
+   * and the handoff it recorded stays beside it.
+   */
+  adoptSuggestion(decisionId: string) {
+    const h = this.handoffs.find((x) => x.decisionId === decisionId);
+    const pick = h ? suggestion(h) : null;
+    if (!h || !pick) return;
+    this.proposeOption(pick.selected, h.question);
+    this.proposalNote = `You proposed ${pick.selected}, which ${engineName(pick.engine)} chose and R.A.I.N. handed back (decision ${h.decisionId.slice(0, 8)}…). The proposal is yours; it needs validation and your approval.`;
+    this.emit();
+  }
   proposeOption(optionId: string, question: string) {
     const p = proposalFrom(optionId, {
       question,
@@ -392,11 +461,21 @@ export class LabStore {
     }
     const d = r.value.decision;
     if (d.destination !== "proposal" || !d.selected || d.selected === ESCALATE) {
-      this.handoffs = [
-        { at: new Date().toISOString(), destination: d.destination, reason: d.reason },
-        ...this.handoffs,
-      ].slice(0, 20);
-      this.proposalNote = `R.A.I.N. made no proposal (${d.destination}${d.reason ? " · " + d.reason : ""}). A person may choose an experiment instead.`;
+      const handoff: Handoff = {
+        at: new Date().toISOString(),
+        decisionId: d.decision_id,
+        question,
+        destination: d.destination,
+        reason: d.reason,
+        attempts: d.attempts,
+      };
+      this.handoffs = [handoff, ...this.handoffs].slice(0, 20);
+      const pick = suggestion(handoff);
+      this.proposalNote =
+        `R.A.I.N. made no proposal (${d.destination}${d.reason ? " · " + d.reason : ""}).` +
+        (pick
+          ? ` It consulted ${engineName(pick.engine)}${pick.model ? ` (${pick.model})` : ""}, which chose ${pick.selected}${pick.p !== null ? ` at ${pick.p}` : ""}; R.A.I.N. did not act on that answer (${pick.reason ?? "not acted on"}). You may propose it yourself.`
+          : " A person may choose an experiment instead.");
       this.emit();
       return;
     }
@@ -756,6 +835,7 @@ export class LabStore {
 
   /** Leaving Bethesda ends a run in progress, and the record says so. */
   dispose() {
+    this.askAbort?.abort();
     if (this.revealTimer) clearInterval(this.revealTimer);
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     this.presenceTimer = null;

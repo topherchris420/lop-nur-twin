@@ -112,6 +112,11 @@ jobs:
       - name: Prove the evidence validator still rejects bad records
         run: bun run test:evidence
 
+      # The R.A.I.N. Lab's reference bridge, on synthetic R.A.I.N. records:
+      # standard-library Python, no james_library checkout, no model.
+      - name: R.A.I.N. bridge unit tests (no backend, no model)
+        run: bun run rain:bridge
+
       # `bun run build` runs the offline data validator, regenerates the release
       # manifest, bundles, and finishes with a strict `tsc --noEmit`. It is the
       # single integration gate — the steps above are the ones it does not cover,

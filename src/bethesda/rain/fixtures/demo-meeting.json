@@ -1,8 +1,8 @@
 {
-  "schema": "rain-bethesda/v1",
+  "schema": "rain-bethesda/v2",
   "kind": "meeting",
-  "request_id": "8bab17f4d927aef9a6e759c75d95ee96",
-  "meeting_id": "rain-offline-ec5ee2eeb2764e5c5811",
+  "request_id": "c63663db230cd7811000d315684a17f1",
+  "meeting_id": "rain-offline-93ae4b5195a5761ea843",
   "generation": "scripted",
   "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
   "model": null,
@@ -35,7 +35,8 @@
         }
       ],
       "coda": "No number attached, so I'm logging it as a claim, not a result. Let's see if it survives this room.",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 2,
@@ -45,7 +46,8 @@
       "lead": "I went looking for anything I could build or measure against: a sensor, a dataset, a number with units. Nothing in the retrieved passages qualifies.",
       "quotes": [],
       "coda": "That's a gap, not a green light. I won't sign off on a mechanism nobody can instrument.",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 3,
@@ -72,7 +74,8 @@
         }
       ],
       "coda": "Same structure, two framings. If it's real, one test should light up in both places, and that's the connection I'd chase.",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 4,
@@ -91,7 +94,8 @@
         }
       ],
       "coda": "And 57% of what James retrieved comes from a single paper, Dynamic Resonance Rooting. Until something outside this library reproduces James's anchor, this is a well-instrumented hypothesis, not a result.",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 5,
@@ -101,7 +105,8 @@
       "lead": "Fair, Elena. But 'phase' holding up in two separate framings is exactly what's worth testing, not dismissing.",
       "quotes": [],
       "coda": "",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 6,
@@ -111,7 +116,8 @@
       "lead": "Then give me one measurement that could come out the other way. Otherwise we're just admiring the shape.",
       "quotes": [],
       "coda": "",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     },
     {
       "index": 7,
@@ -121,7 +127,8 @@
       "lead": "Here's where I land. Nothing we pulled proposes a test that could fail, so designing one is the next move, before anyone acts on anything.",
       "quotes": [],
       "coda": "",
-      "unverified": 0
+      "unverified": 0,
+      "generation": "scripted"
     }
   ],
   "verdict": {
@@ -146,5 +153,6 @@
     "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
     "dirty": false
   },
-  "produced_at": "2026-10-02T23:35:25.404Z"
+  "produced_at": "2026-10-03T03:45:03.337Z",
+  "source_artifact": null
 }

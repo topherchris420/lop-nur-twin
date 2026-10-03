@@ -273,8 +273,10 @@ observation is game state, not personal data, and nothing is persisted.
 ### T13 — The R.A.I.N. Lab route and its experiments
 
 `/api/rain/*` connects the lab hidden in Bethesda to a backend speaking
-`rain-bethesda/v1` — by default the reference bridge in `tools/rain-bridge/`
-beside a james_library checkout. See `docs/RAIN_LAB_BETHESDA.md`.
+`rain-bethesda/v2` — by default the reference bridge in `tools/rain-bridge/`
+beside a james_library checkout, which may run R.A.I.N.'s own model meeting
+against a local model and may let R.A.I.N.'s router consult Jev. See
+`docs/RAIN_LAB_BETHESDA.md`.
 
 **Threats.** (a) The backend's address or token leaks into the bundle, a
 response or a log. (b) The route becomes an open proxy: the browser chooses the
@@ -284,7 +286,14 @@ identity, or an answer to a different request. (d) A proposal changes the live
 city, or an experiment runs without a person's approval. (e) Recorded or
 fabricated content is presented as LIVE, or a record claims a provenance it
 does not have. (f) A tampered record passes as verified. (g) A caller exhausts
-the backend or the browser with requests or experiment size.
+the backend or the browser with requests or experiment size. (h) A model's
+words are passed off as scripted or a script's as a model's, or a grade or
+verdict is invented for a model meeting. (i) A request steers the meeting
+process — its arguments, its files, its environment — or something a model
+writes is run; the meeting writes into the james_library checkout; the
+meeting process inherits a credential. (j) An engine's answer R.A.I.N. did not
+act on becomes a R.A.I.N. proposal, or the question leaves the machine for a
+remote engine nobody allowed.
 
 **Mitigations.** (a) Only `api/rain/_config.ts` and the Vite middleware read
 `RAIN_BACKEND_URL`, `RAIN_BACKEND_TOKEN` and `RAIN_TIMEOUT_MS`; the secret
@@ -310,8 +319,22 @@ SHA-256 and verified by re-simulating every arm from its commands; an import
 with a wrong digest is refused, and a re-sealed edit fails replay. (g)
 Experiments are bounded (at most five seeds and 36,000 simulated ticks); per
 session, minimum intervals and caps per operation (12 meetings per 120-minute
-session); a per-client token bucket, two upstream requests in flight per
-instance, and a 1–55 s timeout.
+session, a job checked at most every 2 s); a per-client token bucket, two
+upstream requests in flight per instance, a 1–55 s timeout (8 s for a job
+check or a stop), at most 60 minutes waiting on one meeting, and one model
+meeting at a time per bridge. (h) A meeting and each turn say who wrote it
+(`generation`); a model meeting must name its model and R.A.I.N.'s session
+artifact by SHA-256 and may carry no grade or verdict, and a scripted meeting
+may carry no model turn — the shared validator refuses either relabelling.
+(i) The bridge runs R.A.I.N.'s meeting script from a `git archive` copy of the
+commit with a fixed argument list (the question is one argument and a model id
+must be a name, never a URL), a stdin nobody writes, decision routing off, and
+neither the TypeSafe key nor the bridge token in its environment; job ids are
+128-bit and bound to their request; the copy is removed afterwards. Nothing a
+model writes is executed. (j) Every attempt is kept as R.A.I.N. returned it and
+shown as not acted on; only a person can adopt a handed-back pick, as their
+own proposal; Jev is consulted only when the bridge's operator sets R.A.I.N.'s
+`RAIN_DECISION_REMOTE_ALLOWED=true`, read by R.A.I.N.'s own parser.
 
 **Residual risk.** Quote verification is the backend's: the browser checks that
 a meeting's citation audit is consistent, but it does not hold R.A.I.N.'s corpus,
@@ -319,8 +342,14 @@ so a hostile backend could mark an invented quote verified. The lab shows such
 text as R.A.I.N.'s interpretation, never as an observation, and the Systems Room
 names the backend's commit. The research question is free text the person
 typed, sent to the operator's own backend; it should not contain personal data.
-The bridge is a reference for a trusted machine, with a bearer token as its
-only authentication. Rate limits are per instance, as in T12.
+With a model meeting the backend also sends it, with corpus excerpts, to the
+model endpoint R.A.I.N. is configured for — local unless R.A.I.N.'s privacy
+rule allows otherwise — and with Jev allowed, to TypeSafe. A model's prose may
+be wrong, persuasive or off-topic; the lab labels it INTERPRETATION and nothing
+more. R.A.I.N.'s meeting script is code from the checkout the operator chose,
+run with that operator's privileges. The bridge is a reference for a trusted
+machine, with a bearer token as its only authentication. Rate limits are per
+instance, as in T12.
 
 ### T8 — Denial of service
 

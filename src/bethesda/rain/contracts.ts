@@ -1,5 +1,5 @@
 /**
- * `rain-bethesda/v1` — the narrow, versioned protocol between this repository's
+ * `rain-bethesda/v2` — the narrow, versioned protocol between this repository's
  * Bethesda simulation and the R.A.I.N. research runtime in
  * `topherchris420/james_library`.
  *
@@ -19,9 +19,16 @@
  * Every message that crosses the boundary has a closed shape. Unknown fields,
  * unknown schemas, oversized payloads and stale or mismatched requests are
  * rejected in `validation.ts`; nothing is repaired or guessed.
+ *
+ * v2 (this): R.A.I.N.'s model-written meetings run as jobs (`meeting-pending`,
+ * then `meeting-status` until a `meeting` or `meeting-failed`), the offline
+ * engine's own analysis fields are null where a model meeting computes none,
+ * every turn says who wrote it, and a bounded decision carries R.A.I.N.'s
+ * attempts — what each engine chose, with its probabilities — even when R.A.I.N.
+ * acted on none of them. v1 had none of these and is refused.
  */
 
-export const RAIN_BETHESDA_SCHEMA = "rain-bethesda/v1" as const;
+export const RAIN_BETHESDA_SCHEMA = "rain-bethesda/v2" as const;
 export const EXPERIMENT_PROPOSAL_SCHEMA = "rain-bethesda-experiment/v1" as const;
 export const DEFINITION_SCHEMA = "bethesda-experiment-definition/v1" as const;
 export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as const;
@@ -41,6 +48,46 @@ export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
 /** R.A.I.N.'s pre-registration contract (contracts/experiments/experiment.schema.json). */
 export const RAIN_DEFINITION_SCHEMA = "rain-experiment/v1" as const;
 export const RAIN_DECISION_SCHEMA = "rain-bounded-decision/v1" as const;
+/** R.A.I.N.'s own record of a model meeting (james_library/utilities/session_artifact.py). */
+export const RAIN_SESSION_ARTIFACT_SCHEMA = "rain-session-artifact/v1" as const;
+/**
+ * R.A.I.N.'s escalation reasons (james_library/judgment/routing.py). A
+ * decision's reason, and each attempt's, is one of these or null.
+ */
+export const RAIN_ESCALATION_REASONS = [
+  "LOW_CONFIDENCE",
+  "MARGIN_TOO_SMALL",
+  "MODEL_UNAVAILABLE",
+  "INVALID_OUTPUT",
+  "OUT_OF_DISTRIBUTION",
+  "POLICY_REQUIRES_REVIEW",
+  "EVIDENCE_REQUIRED",
+  "HIGH_CONSEQUENCE",
+  "ENGINE_DISAGREEMENT",
+  "TIMEOUT",
+  "INSUFFICIENT_CALIBRATION",
+  "VALIDATION_FAILED",
+  "DISABLED",
+  "SENSITIVE_INPUT",
+] as const;
+/** The engines R.A.I.N.'s router can consult. `typesafe` is Jev. */
+export const RAIN_DECISION_ENGINES = ["laya", "typesafe"] as const;
+/** R.A.I.N.'s provider error codes for a failed attempt (routing.py's safe set). */
+export const RAIN_PROVIDER_ERRORS = [
+  "provider_not_configured",
+  "provider_timeout",
+  "provider_transport_error",
+  "provider_authentication_error",
+  "provider_rate_limited",
+  "provider_overloaded",
+  "provider_http_error",
+  "provider_response_too_large",
+  "provider_malformed_response",
+  "provider_input_too_large",
+  "provider_runtime_unsupported",
+  "state_contains_secret",
+  "provider_internal_error",
+] as const;
 export const RAIN_REPOSITORY = "topherchris420/james_library" as const;
 export const LAB_REPOSITORY = "topherchris420/lop-nur-twin" as const;
 
@@ -76,27 +123,34 @@ export type Generation = (typeof GENERATIONS)[number];
 export const LIMITS = {
   question: 500,
   hypothesis: 1000,
-  turns: 24,
-  quotesPerTurn: 6,
-  turnText: 2400,
+  /** R.A.I.N.'s default model meeting is 25 turns and its closing line. */
+  turns: 32,
+  quotesPerTurn: 12,
+  turnText: 4000,
   quoteText: 800,
   terms: 32,
   readNext: 12,
   suggestions: 8,
   sourcePath: 300,
   /** Bytes, measured on the UTF-8 encoding. */
-  meetingResponse: 256 * 1024,
+  meetingResponse: 512 * 1024,
+  meetingJobResponse: 4 * 1024,
   identityResponse: 8 * 1024,
   proposalResponse: 16 * 1024,
   preregistrationResponse: 16 * 1024,
   admissionResponse: 96 * 1024,
   meetingRequest: 4 * 1024,
+  meetingJobRequest: 1024,
   proposalRequest: 16 * 1024,
   preregisterRequest: 64 * 1024,
   submissionRequest: 256 * 1024,
   /** A research session: meetings, then it must be restarted. */
   meetingsPerSession: 12,
   sessionMinutes: 120,
+  /** How long the lab waits for one model meeting before giving up on it. */
+  meetingJobMinutes: 60,
+  /** Engines one bounded decision may report (R.A.I.N.'s cascade has two). */
+  attempts: 4,
   /** A R.A.I.N. proposal older than this is stale and is never approved. */
   proposalTtlMs: 15 * 60 * 1000,
   /** Experiment records kept in the in-browser registry. */
@@ -280,6 +334,12 @@ export interface Turn {
   coda: string;
   /** Quoted spans R.A.I.N. could not verify. */
   unverified: number;
+  /**
+   * Who wrote these words. The offline engine's turns, and the fixed lines
+   * R.A.I.N.'s code adds to a model meeting (its closing line), are
+   * `scripted`; what the meeting's model wrote is `model`.
+   */
+  generation: Generation;
 }
 export interface Verdict {
   agreed: string;
@@ -310,15 +370,49 @@ export interface MeetingRecord {
   engine: string;
   /** Only when `generation` is `model`. */
   model: string | null;
-  grounding: "strong" | "partial" | "none";
-  matched_terms: string[];
-  missing_terms: string[];
+  /**
+   * The offline engine's own analysis: how well the corpus covers the
+   * question, and where the room stands. R.A.I.N.'s model meeting computes
+   * none of it, so a model meeting carries null here — never a filled-in guess.
+   */
+  grounding: "strong" | "partial" | "none" | null;
+  matched_terms: string[] | null;
+  missing_terms: string[] | null;
   turns: Turn[];
-  verdict: Verdict;
+  verdict: Verdict | null;
   audit: CitationAudit;
   suggestions: string[];
   rain: RainRevision;
   produced_at: string;
+  /** R.A.I.N.'s own record of a model meeting, by its id and the SHA-256 of the file. */
+  source_artifact: SourceArtifact | null;
+}
+export interface SourceArtifact {
+  schema: typeof RAIN_SESSION_ARTIFACT_SCHEMA;
+  session_id: string;
+  status: string;
+  sha256: string;
+}
+/** A model meeting R.A.I.N. is still holding. Its words arrive only when it ends. */
+export interface MeetingPending {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "meeting-pending";
+  request_id: string;
+  job_id: string;
+  question: string;
+  model: string;
+  started_at: string;
+  elapsed_s: number;
+  /** Turns R.A.I.N. has started, as its console reports them: progress, not evidence. */
+  turns_started: number;
+  turns_planned: number;
+}
+export interface MeetingFailed {
+  schema: typeof RAIN_BETHESDA_SCHEMA;
+  kind: "meeting-failed";
+  request_id: string;
+  job_id: string;
+  reason: string;
 }
 export interface RainIdentity {
   schema: typeof RAIN_BETHESDA_SCHEMA;
@@ -331,6 +425,11 @@ export interface RainIdentity {
   model: string | null;
   /** RAIN_DECISION_MODE as R.A.I.N. reports it; "off" proposes nothing. */
   bounded_decision: string;
+  /**
+   * RAIN_DECISION_REMOTE_ALLOWED: whether R.A.I.N. may send a decision's
+   * question to a remote engine (Jev). Off, Jev is never asked.
+   */
+  remote_decisions: boolean;
   registry: { available: boolean; scratch: boolean };
 }
 /** One of the host's own experiment options, offered to R.A.I.N.'s router. */
@@ -349,9 +448,22 @@ export interface ProposalChoice {
     selected: string | null;
     reason: string | null;
     envelope_hash: string;
-    attempts: number;
+    /** Every engine R.A.I.N. consulted, including ones whose answer it did not act on. */
+    attempts: DecisionAttempt[];
     latency_ms: number;
   };
+}
+export interface DecisionAttempt {
+  engine: (typeof RAIN_DECISION_ENGINES)[number];
+  model: string | null;
+  selected: string | null;
+  /** As the engine returned them, by option id. Never filled in. */
+  probabilities: [string, number][];
+  confidence: number | null;
+  /** Why R.A.I.N. did not act on this attempt; null when it would have. */
+  reason: (typeof RAIN_ESCALATION_REASONS)[number] | null;
+  error_code: (typeof RAIN_PROVIDER_ERRORS)[number] | null;
+  latency_ms: number;
 }
 export interface Preregistration {
   schema: typeof RAIN_BETHESDA_SCHEMA;

@@ -327,7 +327,7 @@ function EvidenceTable({ store }: { store: LabStore }) {
       slab.position.copy(p);
       g.add(slab);
     }
-    if (m.revealed >= m.record.turns.length && m.record.verdict.contested) {
+    if (m.revealed >= m.record.turns.length && m.record.verdict?.contested) {
       // Contested: two branches leave one point and never rejoin.
       const root = new THREE.Vector3(TABLE.center.x + 1.6, y + 0.01, TABLE.center.z);
       for (const side of [-1, 1]) {

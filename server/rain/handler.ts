@@ -11,7 +11,8 @@ import {
   utf8Length,
   validateAdmission,
   validateIdentity,
-  validateMeeting,
+  validateMeetingAnswer,
+  validateMeetingFailed,
   validatePreregistration,
   validateProposalChoice,
   type Checked,
@@ -38,8 +39,12 @@ import { RateLimiter } from "../jev/rateLimit.js";
  * the server. It is not a proxy: the browser cannot choose the upstream path,
  * headers or body beyond the declared fields.
  *
- *   GET  /api/rain/status       configured? reachable? R.A.I.N.'s identity
- *   POST /api/rain/meeting      one Research Panel meeting
+ *   GET  /api/rain/status          configured? reachable? R.A.I.N.'s identity
+ *   POST /api/rain/meeting         one Research Panel meeting, or a model
+ *                                  meeting's job (`meeting-pending`)
+ *   POST /api/rain/meeting-status  that job: still pending, the meeting, or why
+ *                                  it failed
+ *   POST /api/rain/meeting-cancel  stop that job
  *   POST /api/rain/proposal     R.A.I.N.'s bounded choice among host options
  *   POST /api/rain/preregister  register an experiment draft with R.A.I.N.
  *   POST /api/rain/submission   report a run; R.A.I.N. evaluates it
@@ -59,10 +64,20 @@ export interface RainServerConfig {
   now?: () => number;
 }
 
-const OPS = ["status", "meeting", "proposal", "preregister", "submission"] as const;
+const OPS = [
+  "status",
+  "meeting",
+  "meeting-status",
+  "meeting-cancel",
+  "proposal",
+  "preregister",
+  "submission",
+] as const;
 type Op = (typeof OPS)[number];
 const REQUEST_BYTES: Record<Exclude<Op, "status">, number> = {
   meeting: LIMITS.meetingRequest,
+  "meeting-status": LIMITS.meetingRequest,
+  "meeting-cancel": LIMITS.meetingJobRequest,
   proposal: LIMITS.proposalRequest,
   preregister: LIMITS.preregisterRequest,
   submission: LIMITS.submissionRequest,
@@ -70,6 +85,8 @@ const REQUEST_BYTES: Record<Exclude<Op, "status">, number> = {
 const RESPONSE_BYTES: Record<Op, number> = {
   status: LIMITS.identityResponse,
   meeting: LIMITS.meetingResponse,
+  "meeting-status": LIMITS.meetingResponse,
+  "meeting-cancel": LIMITS.meetingJobResponse,
   proposal: LIMITS.proposalResponse,
   preregister: LIMITS.preregistrationResponse,
   submission: LIMITS.admissionResponse,
@@ -77,12 +94,26 @@ const RESPONSE_BYTES: Record<Op, number> = {
 /** Minimum interval between one session's requests, per operation. */
 const SESSION_INTERVAL_MS: Record<Exclude<Op, "status">, number> = {
   meeting: 15_000,
+  "meeting-status": 2_000,
+  "meeting-cancel": 1_000,
   proposal: 5_000,
   preregister: 2_000,
   submission: 2_000,
 };
+/**
+ * Checking on a job or stopping one is quick at the backend, and its function
+ * is capped at 10 s (`vercel.json`): the wait ends first, so the lab is told
+ * TIMEOUT rather than the platform cutting the answer off.
+ */
+const UPSTREAM_CAP_MS: Partial<Record<Op, number>> = {
+  "meeting-status": 8_000,
+  "meeting-cancel": 8_000,
+};
 const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   meeting: LIMITS.meetingsPerSession,
+  // A session lasts at most sessionMinutes; at one check every two seconds.
+  "meeting-status": (LIMITS.sessionMinutes * 60) / 2,
+  "meeting-cancel": LIMITS.meetingsPerSession,
   proposal: 24,
   preregister: 24,
   submission: 24,
@@ -183,7 +214,7 @@ export function createRainHandler(config: RainServerConfig) {
       if (body !== undefined) headers["Content-Type"] = "application/json";
       if (token) headers["Authorization"] = `Bearer ${token}`;
       const response = await fetchImpl(
-        `${base}/rain-bethesda/v1/${op === "status" ? "identity" : op}`,
+        `${base}/rain-bethesda/v2/${op === "status" ? "identity" : op}`,
         {
           method: body === undefined ? "GET" : "POST",
           headers,
@@ -308,7 +339,49 @@ export function createRainHandler(config: RainServerConfig) {
           request_id: requestId,
           question,
         },
-        check: (a) => validateMeeting(a, { requestId, question }),
+        // The offline engine answers at once; a model meeting answers with a
+        // job to check on. Either way the answer is bound to this request.
+        check: (a) => {
+          const answer = validateMeetingAnswer(a, { requestId, question });
+          return answer.ok && answer.value.kind === "meeting-failed"
+            ? { ok: false, errors: ["meeting: a failure answers a job, not a request"] }
+            : answer;
+        },
+      };
+    }
+    if (op === "meeting-status" || op === "meeting-cancel") {
+      // A job id is a 128-bit capability, returned only to the client that
+      // started the meeting. It is checked here with the request it belongs
+      // to, so a status answer is validated against that request's question.
+      const fields =
+        op === "meeting-status"
+          ? "job_id,question,request_id,session"
+          : "job_id,request_id,session";
+      if (Object.keys(v).sort().join() !== fields) return "unexpected fields";
+      const jobId = v.job_id;
+      if (typeof jobId !== "string" || !HEX32.test(jobId)) return "invalid job id";
+      if (op === "meeting-cancel")
+        return {
+          body: {
+            schema: RAIN_BETHESDA_SCHEMA,
+            kind: "meeting-cancel-request",
+            request_id: requestId,
+            job_id: jobId,
+          },
+          check: (a) => validateMeetingFailed(a, { requestId, jobId }),
+        };
+      if (typeof v.question !== "string" || unsafeText(v.question))
+        return "invalid question";
+      const question = normalizeQuestion(v.question);
+      if (!question || question.length > LIMITS.question) return "invalid question";
+      return {
+        body: {
+          schema: RAIN_BETHESDA_SCHEMA,
+          kind: "meeting-status-request",
+          request_id: requestId,
+          job_id: jobId,
+        },
+        check: (a) => validateMeetingAnswer(a, { requestId, question, jobId }),
       };
     }
     if (op === "proposal") {
@@ -434,7 +507,11 @@ export function createRainHandler(config: RainServerConfig) {
     if (refused) return error(429, refused);
     if (!limiter.admitUpstream().ok) return error(429, "busy");
     try {
-      const answer = await upstream(op, planned.body, timeout);
+      const answer = await upstream(
+        op,
+        planned.body,
+        Math.min(timeout, UPSTREAM_CAP_MS[op] ?? timeout),
+      );
       if (!answer.ok) return error(answer.status, answer.code);
       const checked = planned.check(answer.value);
       if (!checked.ok)

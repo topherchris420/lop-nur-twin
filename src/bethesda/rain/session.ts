@@ -59,9 +59,12 @@ export function currentSpeaker(
 
 /**
  * Disagreement stays branched: the turns that answer a challenge are kept as
- * their own branch, never merged into the verdict's agreement.
+ * their own branch, never merged into the verdict's agreement. A meeting
+ * without a verdict (R.A.I.N.'s model meeting states none) has no branches:
+ * the lab does not infer where the room stands.
  */
 export function branches(m: MeetingRecord) {
+  if (!m.verdict) return null;
   const challenge = m.turns.filter((t) =>
     /counter|pushback|objection|challenge/i.test(t.move),
   );

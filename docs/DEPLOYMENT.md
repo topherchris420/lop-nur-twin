@@ -59,12 +59,14 @@ If your platform pins an older Node, either raise it or install Bun and run
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
    describe a build the visitor is not looking at; `/api/*` is `no-store`.
-4. **Seven functions** — `api/jev/decision.ts`, the server side of
+4. **Nine functions** — `api/jev/decision.ts`, the server side of
    `/play?brain=jev`, capped at 10 seconds; `api/llm/decision.ts`, the
    server side of `/play?brain=llm`, capped at 30 seconds because a
    conventional LLM answers in seconds and may be retried within its deadline;
-   and the R.A.I.N. Lab's five `api/rain/*` routes — `status` (10 s),
-   `meeting` (60 s), and `proposal`, `preregister` and `submission` (30 s each).
+   and the R.A.I.N. Lab's seven `api/rain/*` routes — `status` (10 s),
+   `meeting` (60 s), `meeting-status` and `meeting-cancel` (10 s each; a model
+   meeting is a job the lab checks on, so no function waits for it), and
+   `proposal`, `preregister` and `submission` (30 s each).
 
 ### The Jev decision endpoint
 
@@ -106,7 +108,7 @@ a Firewall rule for `/api/llm/decision` too if it is enabled in production.
 Optional, and OFFLINE unless configured: the lab inside Bethesda is explorable,
 its DEMO replays a labelled recording, and nothing is sent anywhere. To connect
 it to a R.A.I.N. backend (the reference bridge in `tools/rain-bridge/` beside a
-james_library checkout, or anything else that speaks `rain-bethesda/v1`), set:
+james_library checkout, or anything else that speaks `rain-bethesda/v2`), set:
 
 | Variable             | Type      | Environments        | Value                                                    |
 | :------------------- | :-------- | :------------------ | :------------------------------------------------------- |

@@ -14,7 +14,7 @@ const meeting = JSON.parse(
 ) as Record<string, unknown>;
 const QUESTION = meeting.question as string;
 const identity = {
-  schema: "rain-bethesda/v1",
+  schema: "rain-bethesda/v2",
   kind: "identity",
   bridge: { name: "rain-bethesda-bridge", version: "1" },
   rain: {
@@ -27,6 +27,7 @@ const identity = {
   meeting_generation: "scripted",
   model: null,
   bounded_decision: "off",
+  remote_decisions: false,
   registry: { available: true, scratch: true },
 };
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
@@ -126,9 +127,9 @@ describe("R.A.I.N. route boundary", () => {
     const record = (await response.json()) as { question: string };
     expect(record.question).toBe(QUESTION);
     expect(sent).toEqual({
-      url: "http://127.0.0.1:8790/rain-bethesda/v1/meeting",
+      url: "http://127.0.0.1:8790/rain-bethesda/v2/meeting",
       body: {
-        schema: "rain-bethesda/v1",
+        schema: "rain-bethesda/v2",
         kind: "meeting-request",
         request_id: REQUEST,
         question: QUESTION,
@@ -229,7 +230,7 @@ describe("R.A.I.N. route boundary", () => {
       { id: "ESCALATE_TO_HUMAN", description: "None of these tests the question." },
     ];
     const choice = (selected: string | null) => ({
-      schema: "rain-bethesda/v1",
+      schema: "rain-bethesda/v2",
       kind: "proposal-choice",
       request_id: REQUEST,
       decision: {
@@ -239,7 +240,7 @@ describe("R.A.I.N. route boundary", () => {
         selected,
         reason: selected ? null : "DISABLED",
         envelope_hash: "e".repeat(64),
-        attempts: 0,
+        attempts: [],
         latency_ms: 0.6,
       },
     });
@@ -273,5 +274,186 @@ describe("R.A.I.N. route boundary", () => {
     );
     expect(response.status).toBe(400);
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe("R.A.I.N. model meetings through the route", () => {
+  const JOB = "9".repeat(32);
+  const live = (fetchImpl: typeof fetch, now?: () => number) =>
+    createRainHandler({
+      backendUrl: "http://127.0.0.1:8790",
+      token: undefined,
+      fetchImpl,
+      now,
+    });
+  const pending = (extra: Record<string, unknown> = {}) => ({
+    schema: "rain-bethesda/v2",
+    kind: "meeting-pending",
+    request_id: REQUEST,
+    job_id: JOB,
+    question: QUESTION,
+    model: "qwen2.5:7b",
+    started_at: "2026-10-03T03:43:59.086Z",
+    elapsed_s: 4,
+    turns_started: 1,
+    turns_planned: 25,
+    ...extra,
+  });
+  const modelMeeting = () => {
+    const m = structuredClone(meeting) as Record<string, unknown> & {
+      turns: Record<string, unknown>[];
+    };
+    m.request_id = REQUEST;
+    m.generation = "model";
+    m.model = "qwen2.5:7b";
+    m.engine = "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting";
+    m.grounding = m.matched_terms = m.missing_terms = m.verdict = null;
+    m.turns.forEach((t) => (t.generation = "model"));
+    m.source_artifact = {
+      schema: "rain-session-artifact/v1",
+      session_id: "3298be35",
+      status: "completed",
+      sha256: "d".repeat(64),
+    };
+    return m;
+  };
+  const status = (extra: Record<string, unknown> = {}) => ({
+    session: SESSION,
+    request_id: REQUEST,
+    job_id: JOB,
+    question: QUESTION,
+    ...extra,
+  });
+  it("answers a meeting request with its job, then the meeting, each bound to the request", async () => {
+    const sent: { url: string; body: unknown }[] = [];
+    const answers = [pending(), modelMeeting()];
+    const handle = live(
+      vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+        sent.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+        return reply(answers.shift());
+      }),
+    );
+    const started = await handle(post("meeting", meetingRequest()), meta);
+    expect(started.status).toBe(200);
+    expect(await started.json()).toMatchObject({ kind: "meeting-pending", job_id: JOB });
+    const done = await handle(post("meeting-status", status()), meta);
+    expect(done.status).toBe(200);
+    expect(await done.json()).toMatchObject({ kind: "meeting", generation: "model" });
+    // Upstream hears the request and the job, nothing the browser added.
+    expect(sent[1]).toEqual({
+      url: "http://127.0.0.1:8790/rain-bethesda/v2/meeting-status",
+      body: {
+        schema: "rain-bethesda/v2",
+        kind: "meeting-status-request",
+        request_id: REQUEST,
+        job_id: JOB,
+      },
+    });
+  });
+  it.each<[string, unknown]>([
+    [
+      "a failure in answer to a new request",
+      {
+        schema: "rain-bethesda/v2",
+        kind: "meeting-failed",
+        request_id: REQUEST,
+        job_id: JOB,
+        reason: "x",
+      },
+    ],
+    ["a pending job for another request", pending({ request_id: "b".repeat(32) })],
+    ["a pending job for another question", pending({ question: "Is it raining?" })],
+  ])("refuses %s", async (_what, answer) => {
+    const handle = live(vi.fn(async () => reply(answer)));
+    expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(502);
+  });
+  it.each<[string, unknown]>([
+    ["a pending answer for another job", pending({ job_id: "8".repeat(32) })],
+    ["a meeting for another question", { ...modelMeeting(), question: "Is it raining?" }],
+    [
+      "a meeting with an invented verdict",
+      {
+        ...modelMeeting(),
+        verdict: { agreed: "", contested: "", next_move: "", read_next: [] },
+        generation: "scripted",
+        model: null,
+      },
+    ],
+  ])("refuses, on a status check, %s", async (_what, answer) => {
+    const handle = live(vi.fn(async () => reply(answer)));
+    expect((await handle(post("meeting-status", status()), meta)).status).toBe(502);
+  });
+  it("keeps status checks closed and paced", async () => {
+    let t = 1_000_000;
+    const fetchImpl = vi.fn(async () => reply(pending()));
+    const handle = live(fetchImpl, () => t);
+    for (const bad of [
+      status({ extra: 1 }),
+      status({ job_id: "../../etc" }),
+      { session: SESSION, request_id: REQUEST, job_id: JOB },
+      status({ question: "a\u202eb" }),
+    ])
+      expect((await handle(post("meeting-status", bad), meta)).status).toBe(400);
+    expect((await handle(post("meeting-status", status()), meta)).status).toBe(200);
+    expect((await handle(post("meeting-status", status()), meta)).status).toBe(429);
+    t += 2_500;
+    expect((await handle(post("meeting-status", status()), meta)).status).toBe(200);
+  });
+  it("forwards a stop and accepts only that job's failure", async () => {
+    const sent: unknown[] = [];
+    const stopped = {
+      schema: "rain-bethesda/v2",
+      kind: "meeting-failed",
+      request_id: REQUEST,
+      job_id: JOB,
+      reason: "stopped at the lab's request",
+    };
+    const handle = live(
+      vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+        sent.push(JSON.parse(String(init?.body)));
+        return reply(stopped);
+      }),
+    );
+    const cancel = { session: SESSION, request_id: REQUEST, job_id: JOB };
+    const response = await handle(post("meeting-cancel", cancel), meta);
+    expect(response.status).toBe(200);
+    expect(sent[0]).toEqual({
+      schema: "rain-bethesda/v2",
+      kind: "meeting-cancel-request",
+      request_id: REQUEST,
+      job_id: JOB,
+    });
+    const other = live(vi.fn(async () => reply({ ...stopped, job_id: "8".repeat(32) })));
+    expect((await other(post("meeting-cancel", cancel), meta)).status).toBe(502);
+  });
+  it("gives up on a hung job check or stop before its 10 s function limit", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const handle = createRainHandler({
+        backendUrl: "http://127.0.0.1:8790",
+        token: undefined,
+        timeoutMs: 55_000,
+        fetchImpl: (_u: unknown, init?: RequestInit) =>
+          new Promise((_, reject) =>
+            init?.signal?.addEventListener("abort", () => reject(new Error("aborted"))),
+          ),
+      });
+      for (const [op, body] of [
+        ["meeting-status", status()],
+        ["meeting-cancel", { session: SESSION, request_id: REQUEST, job_id: JOB }],
+      ] as const) {
+        let settled = false;
+        const answer = handle(post(op, body), meta).then((r) => {
+          settled = true;
+          return r;
+        });
+        await vi.advanceTimersByTimeAsync(7_999);
+        expect(settled, op).toBe(false);
+        await vi.advanceTimersByTimeAsync(1);
+        expect((await answer).status, op).toBe(504);
+      }
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

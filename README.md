@@ -264,7 +264,9 @@ run needs a person's authorization of the exact definition, runs on separate
 simulators rather than the city you are in, and is recorded so it can be
 re-simulated without contacting anything. Its results describe the simulator,
 not Bethesda. It is OFFLINE until a R.A.I.N. backend is configured, and its DEMO
-is labelled as a recording.
+is labelled as a recording. Through R.A.I.N.'s reference bridge a meeting comes
+from R.A.I.N.'s scripted offline engine or from a local model R.A.I.N. runs,
+such as Qwen, and every turn says which wrote it.
 
 Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
 scenario limits, model authority and replay compatibility, and the

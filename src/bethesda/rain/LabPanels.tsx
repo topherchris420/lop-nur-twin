@@ -7,6 +7,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   CRITERIA_RULE,
+  DEFINITION_SCHEMA,
   EXPERIMENT_BOUNDS,
   LIMITS,
   LOCATION_LABELS,
@@ -14,13 +15,16 @@ import {
   METRIC_IDS,
   METRIC_LABELS,
   PERSPECTIVES,
+  RAIN_BETHESDA_SCHEMA,
   SCENARIO_IDS,
   SCENARIO_LABELS,
   SCENARIO_LOCATIONS,
   SOUL_FILES,
+  WORLD_OBSERVATION_SCHEMA,
   type LocationId,
   type MetricId,
   type ScenarioId,
+  type Verdict,
 } from "./contracts";
 import { protocolOf } from "./experiments";
 import { STATE_LABELS } from "./lifecycle";
@@ -31,7 +35,7 @@ import { admissionBundle, runArtifactName } from "./submission";
 import { runArtifactText, type ExperimentRecord } from "./record";
 import { armTrace } from "./replay";
 import { CONFIRMATION_LENGTH } from "./authorization";
-import type { LabStore } from "./store";
+import { engineName, suggestion, type LabStore } from "./store";
 import { TOOL_NAMES, SENSOR, REGION_RADIUS, type ToolName } from "./tools";
 import { positionAt } from "./presence";
 import { LOCATION_IDS, type Perspective } from "./contracts";
@@ -120,6 +124,7 @@ export function RuntimeLine({ store }: { store: LabStore }) {
           ? "reasoning text is scripted; no model runs"
           : `model ${id.model}`}{" "}
         · bounded proposals: {id.bounded_decision}
+        {id.remote_decisions ? " · remote engines allowed" : ""}
       </p>
     );
   return (
@@ -184,6 +189,51 @@ export function ThresholdPanel({
 }
 
 // ---------------------------------------------------------------------------
+function MeetingVerdict({
+  verdict,
+  split,
+  onBay,
+}: {
+  verdict: Verdict;
+  split: ReturnType<typeof branches>;
+  onBay: () => void;
+}) {
+  return (
+    <>
+      <Section title="WHERE THE ROOM STANDS">
+        <p>
+          <strong>Agreed:</strong> {verdict.agreed}
+        </p>
+        <p className="mt-1 border-l-2 border-amber-200/60 pl-2">
+          <strong>Contested</strong> (kept apart, not merged): {verdict.contested}
+          {split?.challengers.length ? (
+            <span className={quiet}>
+              {" "}
+              Challenges from {split.challengers.join(" and ")} in turns{" "}
+              {split.turns.join(", ")}.
+            </span>
+          ) : null}
+        </p>
+        <p className={quiet + " mt-1"}>
+          Agreement among the perspectives is not validation, and a disagreement is not
+          resolved by being outvoted.
+        </p>
+      </Section>
+      <Section title="NEXT INVESTIGATION">
+        <div className="rounded border border-[#0B5D63] p-2">
+          <p>{verdict.next_move}</p>
+          <button className={button + " mt-2"} onClick={onBay}>
+            Turn it into a Bethesda experiment →
+          </button>
+        </div>
+        {verdict.read_next.length ? (
+          <p className={quiet + " mt-1"}>Read next: {verdict.read_next.join(" · ")}</p>
+        ) : null}
+      </Section>
+    </>
+  );
+}
+
 export function ResearchPanel({
   store,
   go,
@@ -235,6 +285,11 @@ export function ResearchPanel({
           >
             {store.asking ? "Asking…" : "Ask R.A.I.N."}
           </button>
+          {store.meetingProgress ? (
+            <button className={button} type="button" onClick={() => store.stopAsking()}>
+              Stop the meeting
+            </button>
+          ) : null}
           <button className={button} type="button" onClick={() => store.playDemo()}>
             Replay the recorded meeting (DEMO)
           </button>
@@ -266,11 +321,27 @@ export function ResearchPanel({
           <p className="mt-2 text-xs">
             <strong>Question:</strong> {record.question}
           </p>
-          <p className={quiet}>
-            Grounding: {record.grounding}. The corpus covers{" "}
-            {record.matched_terms.join(", ") || "none of the question's terms"}; it is
-            silent on {record.missing_terms.join(", ") || "nothing"}.
-          </p>
+          {record.grounding !== null &&
+          record.matched_terms !== null &&
+          record.missing_terms !== null ? (
+            <p className={quiet}>
+              Grounding: {record.grounding}. The corpus covers{" "}
+              {record.matched_terms.join(", ") || "none of the question's terms"}; it is
+              silent on {record.missing_terms.join(", ") || "nothing"}.
+            </p>
+          ) : (
+            <p className={quiet}>
+              R.A.I.N.'s model meeting does not grade how well the corpus covers the
+              question; each quote below is checked on its own.
+            </p>
+          )}
+          {record.source_artifact ? (
+            <p className={quiet}>
+              R.A.I.N.'s own record: session {record.source_artifact.session_id} ·{" "}
+              {record.source_artifact.schema} · {record.source_artifact.status} · SHA-256{" "}
+              {short(record.source_artifact.sha256, 16)}
+            </p>
+          ) : null}
           <ol className="mt-2 space-y-2" aria-label="Meeting turns">
             {shown.map((t) => {
               const grounded = t.quotes.some((q) => q.verified);
@@ -286,7 +357,11 @@ export function ResearchPanel({
                       · {t.role} · {t.move}
                     </span>{" "}
                     <Badge c="INTERPRETATION" />
-                    {!grounded ? (
+                    {record.generation === "model" && t.generation === "scripted" ? (
+                      <span className="ml-1 font-mono text-[9px] tracking-widest text-amber-200">
+                        A FIXED LINE IN R.A.I.N.'S CODE · NOT THE MODEL
+                      </span>
+                    ) : !grounded ? (
                       <span className="ml-1 font-mono text-[9px] tracking-widest text-amber-200">
                         UNGROUNDED · NO VERIFIED SPAN
                       </span>
@@ -305,6 +380,13 @@ export function ResearchPanel({
                       </footer>
                     </blockquote>
                   ))}
+                  {t.unverified ? (
+                    <p className={quiet + " mt-1"}>
+                      ✕ {t.unverified} quotation{t.unverified === 1 ? "" : "s"} in this
+                      turn did not verify against R.A.I.N.'s corpus and{" "}
+                      {t.unverified === 1 ? "is" : "are"} not shown as a source.
+                    </p>
+                  ) : null}
                   {t.coda ? (
                     <p className="mt-1 text-xs leading-relaxed">{t.coda}</p>
                   ) : null}
@@ -318,39 +400,24 @@ export function ResearchPanel({
             </button>
           ) : (
             <>
-              <Section title="WHERE THE ROOM STANDS">
-                <p>
-                  <strong>Agreed:</strong> {record.verdict.agreed}
-                </p>
-                <p className="mt-1 border-l-2 border-amber-200/60 pl-2">
-                  <strong>Contested</strong> (kept apart, not merged):{" "}
-                  {record.verdict.contested}
-                  {split?.challengers.length ? (
-                    <span className={quiet}>
-                      {" "}
-                      Challenges from {split.challengers.join(" and ")} in turns{" "}
-                      {split.turns.join(", ")}.
-                    </span>
-                  ) : null}
-                </p>
-                <p className={quiet + " mt-1"}>
-                  Agreement among the perspectives is not validation, and a disagreement
-                  is not resolved by being outvoted.
-                </p>
-              </Section>
-              <Section title="NEXT INVESTIGATION">
-                <div className="rounded border border-[#0B5D63] p-2">
-                  <p>{record.verdict.next_move}</p>
-                  <button className={button + " mt-2"} onClick={() => go("bay")}>
-                    Turn it into a Bethesda experiment →
-                  </button>
-                </div>
-                {record.verdict.read_next.length ? (
-                  <p className={quiet + " mt-1"}>
-                    Read next: {record.verdict.read_next.join(" · ")}
+              {record.verdict === null ? (
+                <Section title="WHERE THE ROOM STANDS">
+                  <p>
+                    R.A.I.N.'s model meeting records no verdict, so the lab states none:
+                    the turns above are the record. Agreement among the perspectives would
+                    not be validation in any case.
                   </p>
-                ) : null}
-              </Section>
+                  <button className={button + " mt-2"} onClick={() => go("bay")}>
+                    Turn a question into a Bethesda experiment →
+                  </button>
+                </Section>
+              ) : (
+                <MeetingVerdict
+                  verdict={record.verdict}
+                  split={split}
+                  onBay={() => go("bay")}
+                />
+              )}
               <Section title="CITATION AUDIT">
                 <Badge c="VALIDATED CHECK" /> {record.audit.verified} of{" "}
                 {record.audit.checked} quotes verified verbatim over{" "}
@@ -817,6 +884,85 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
   );
 }
 
+const WHY_NOT: Partial<Record<string, string>> = {
+  INSUFFICIENT_CALIBRATION:
+    "R.A.I.N. acts on an engine's answer only once that engine has been calibrated on this kind of decision, and it has not been",
+  POLICY_REQUIRES_REVIEW:
+    "the question may not leave this machine, so the remote engine was not asked (RAIN_DECISION_REMOTE_ALLOWED is off)",
+  DISABLED: "R.A.I.N.'s decision mode is off",
+  LOW_CONFIDENCE: "the answer's confidence was below the calibrated threshold",
+  MARGIN_TOO_SMALL: "the top two options were too close to call",
+};
+/** The last decision R.A.I.N. handed back, with every engine it consulted, as returned. */
+function HandedBack({ store }: { store: LabStore }) {
+  const h = store.handoffs[0];
+  if (!h) return null;
+  const pick = suggestion(h);
+  return (
+    <Section title="R.A.I.N. HANDED THE CHOICE BACK">
+      <p>
+        R.A.I.N.'s router made no proposal: {h.destination}
+        {h.reason ? ` · ${h.reason}` : ""}{" "}
+        <span className={quiet}>(decision {h.decisionId.slice(0, 8)}…)</span>
+      </p>
+      {h.attempts.length ? (
+        <ul className="mt-1 space-y-1">
+          {h.attempts.map((a, i) => {
+            const asked =
+              a.model !== null || a.probabilities.length > 0 || !!a.error_code;
+            const shown = [...a.probabilities].sort((x, y) => y[1] - x[1]);
+            const named = shown.filter(([, v]) => v > 0);
+            return (
+              <li key={i} className="rounded border border-teal-100/10 p-1">
+                <Badge c="INTERPRETATION" /> {engineName(a.engine)}
+                {a.model ? ` · ${a.model}` : ""}:{" "}
+                {!asked
+                  ? "not asked"
+                  : a.selected
+                    ? `chose ${a.selected}`
+                    : a.error_code
+                      ? `did not answer (${a.error_code})`
+                      : "chose nothing"}
+                {named.length ? (
+                  <span className={quiet}>
+                    {" "}
+                    · probabilities as returned:{" "}
+                    {named.map(([id, v]) => `${id} ${v}`).join(" · ")}
+                    {shown.length > named.length ? " · the rest 0" : ""}
+                  </span>
+                ) : null}
+                {a.confidence !== null ? (
+                  <span className={quiet}> · confidence {a.confidence}</span>
+                ) : null}
+                {a.reason ? (
+                  <span className="text-amber-200">
+                    {" "}
+                    · NOT ACTED ON — {a.reason}
+                    {WHY_NOT[a.reason] ? `: ${WHY_NOT[a.reason]}` : ""}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className={quiet}>
+          No engine was consulted
+          {h.reason && WHY_NOT[h.reason] ? `: ${WHY_NOT[h.reason]}` : ""}.
+        </p>
+      )}
+      {pick ? (
+        <button
+          className={button + " mt-2"}
+          onClick={() => store.adoptSuggestion(h.decisionId)}
+        >
+          Propose {pick.selected} as my own
+        </button>
+      ) : null}
+    </Section>
+  );
+}
+
 export function ExperimentBay({ store }: { store: LabStore }) {
   const question = store.meeting?.record.question ?? "";
   const [option, setOption] = useState(OPTIONS[0]!.id);
@@ -882,6 +1028,7 @@ export function ExperimentBay({ store }: { store: LabStore }) {
       <p role="status" aria-live="polite" className="mt-2 text-[11px] text-teal-100">
         {store.proposalNote}
       </p>
+      <HandedBack store={store} />
       {store.cases.length > 1 ? (
         <div className="mt-2 flex flex-wrap gap-1" aria-label="Cases">
           {store.cases.map((c) => (
@@ -1302,12 +1449,18 @@ export function ObservationRoom({ store }: { store: LabStore }) {
         </p>
         {store.handoffs.length ? (
           <ul className="mt-1 list-disc pl-5">
-            {store.handoffs.slice(0, 5).map((h) => (
-              <li key={h.at}>
-                {h.at}: {h.destination}
-                {h.reason ? ` · ${h.reason}` : ""}
-              </li>
-            ))}
+            {store.handoffs.slice(0, 5).map((h) => {
+              const pick = suggestion(h);
+              return (
+                <li key={h.decisionId}>
+                  {h.at}: {h.destination}
+                  {h.reason ? ` · ${h.reason}` : ""}
+                  {pick
+                    ? ` · ${engineName(pick.engine)} chose ${pick.selected}, not acted on`
+                    : ""}
+                </li>
+              );
+            })}
           </ul>
         ) : null}
       </Section>
@@ -1665,6 +1818,12 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             </li>
             <li>Bounded proposals: {id.bounded_decision}</li>
             <li>
+              Remote decision engines (Jev):{" "}
+              {id.remote_decisions
+                ? "allowed — a decision's question is sent to TypeSafe"
+                : "not allowed — no question leaves this machine"}
+            </li>
+            <li>
               Registry:{" "}
               {id.registry.available
                 ? id.registry.scratch
@@ -1689,8 +1848,8 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             {lab.dirty === null ? "" : lab.dirty ? ", uncommitted changes" : ", clean"})
           </li>
           <li>
-            Contracts: rain-bethesda/v1 · bethesda-world-observation/v1 ·
-            bethesda-experiment-definition/v1 · {CRITERIA_RULE}
+            Contracts: {RAIN_BETHESDA_SCHEMA} · {WORLD_OBSERVATION_SCHEMA} ·{" "}
+            {DEFINITION_SCHEMA} · {CRITERIA_RULE}
           </li>
           <li>
             Simulator {SIM_VERSION} · map {short(DATA_VERSION, 16)} · terrain{" "}
