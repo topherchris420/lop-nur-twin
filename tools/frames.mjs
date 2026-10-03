@@ -125,12 +125,32 @@ async function waitForScene(timeoutMs = 60000) {
       .catch(() => false);
     if (ready) {
       // A few more frames so exposure and any temporal pass have converged.
-      await sleep(1500);
+      await waitFrames(3);
       return true;
     }
     await sleep(500);
   }
   throw new Error(`scene never became ready at ${url}`);
+}
+
+/**
+ * Wait for rendered frames, not milliseconds.
+ *
+ * This used to sleep 1.5 s after the scene reported ready and 0.9 s after each
+ * camera move. Under software WebGL a frame takes several seconds, so neither
+ * sleep spanned a single frame: the first view photographed the very first
+ * composited frame after load and came back pure black, which was reported as
+ * a black spawn for weeks. Counting frames is right on any machine.
+ */
+async function waitFrames(n) {
+  const read = () =>
+    page.evaluate(() => globalThis.__combat?.game.frame ?? -1).catch(() => -1);
+  const start = await read();
+  const limit = Date.now() + 60000 + n * 45000;
+  while (Date.now() < limit) {
+    if ((await read()) >= start + n) return;
+    await sleep(250);
+  }
 }
 
 await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -159,7 +179,7 @@ for (const view of VIEWS) {
   }, view);
 
   // Let the camera settle and any temporal effect converge.
-  await sleep(900);
+  await waitFrames(3);
   const path = `${outDir}/${view.id}.png`;
   const buffer = await page.screenshot({ path });
 

@@ -57,6 +57,7 @@ const serveDir = arg("serve", null);
 const execCmd = arg("exec", null);
 const outDir = arg("out", "shots/lookdev");
 const quality = arg("quality", "3");
+const compareDir = arg("compare", null);
 const setName = arg("set", null);
 const only = arg("only", null);
 const inline = arg("shots", null);
@@ -78,6 +79,62 @@ const HANGAR = [960, 1300];
 /* ------------------------------------------------------------------ */
 
 const SETS = {
+  /**
+   * The regression gate: one frame per subject, the whole look in nine
+   * pictures. Capture it before a change and again after, then run the second
+   * capture with --compare <before-dir>. A change ships only if every frame it
+   * touches got better and none it does not touch moved.
+   */
+  ab: [
+    {
+      id: "spawn",
+      note: "default spawn: rifle, hangar, sky, apron",
+      setup: "await ld.place(null, null, null, -0.02)",
+    },
+    {
+      id: "desert",
+      note: "open lakebed to the horizon, clouds",
+      setup: `await ld.place(${DESERT}, 20, -0.06)`,
+    },
+    {
+      id: "apron",
+      note: "apron: fuel tank, pavement, cover, sun behind",
+      setup: `await ld.place(${APRON}, 45, -0.12)`,
+    },
+    {
+      id: "into-sun",
+      note: "same spot into the sun",
+      setup: `await ld.place(${APRON}, 225, -0.05)`,
+    },
+    {
+      id: "hangar",
+      note: "hangar wall at close range",
+      setup: `await ld.place(${HANGAR}, 80, 0.02)`,
+    },
+    {
+      id: "ground",
+      note: "ground underfoot",
+      setup: `await ld.place(${APRON}, 45, -0.55)`,
+    },
+    {
+      id: "rifle-raking",
+      note: "rifle receiver under raking sun",
+      setup: `await ld.place(${APRON}, 20, -0.08)`,
+    },
+    {
+      id: "sky",
+      note: "sky above the horizon, away from the sun",
+      setup: `await ld.place(${DESERT}, 300, 0.22)`,
+    },
+    {
+      id: "night",
+      note: "night over the lakebed",
+      setup: `ld.night(true); await ld.place(${DESERT}, 300, 0.04)`,
+      frames: 5,
+      after: [{ eval: "ld.night(false)" }],
+    },
+  ],
+
   /**
    * The rifle and the hands holding it: the most-seen object in the game.
    * Order matters: inspect-b continues inspect-a's animation, and the last
@@ -789,6 +846,20 @@ if (only) {
   shots = shots.filter((s) => keep.has(s.id));
 }
 
+/**
+ * `--recompare`: rerun the comparison for an existing capture in --out
+ * against --compare, without rendering anything.
+ */
+if (flag("recompare")) {
+  if (!compareDir) {
+    console.error("--recompare needs --compare <before-dir> and --out <after-dir>");
+    process.exit(2);
+  }
+  const existing = JSON.parse(readFileSync(`${outDir}/manifest.json`, "utf8"));
+  await compareRuns(existing.shots, "");
+  process.exit(0);
+}
+
 /* ---------------------------------------------------- render slots */
 
 const SLOT_DIR = `${tmpdir()}/lookdev-slots`;
@@ -1108,7 +1179,12 @@ const manifest = [];
 const started = Date.now();
 const lines = [];
 
-for (const shot of shots) {
+// A fresh dev server optimises its dependencies on the first page load and
+// then forces one full reload, which destroys the page mid-shot. A shot that
+// dies to a navigation is retried once on a freshly loaded page.
+const retried = new Set();
+for (let si = 0; si < shots.length; si += 1) {
+  const shot = shots[si];
   const t0 = Date.now();
   try {
     await ensurePage(shot);
@@ -1147,6 +1223,16 @@ for (const shot of shots) {
     lines.push(line);
     console.log(line);
   } catch (error) {
+    currentUrl = null;
+    if (
+      /context was destroyed|navigation|Target closed/i.test(String(error)) &&
+      !retried.has(si)
+    ) {
+      retried.add(si);
+      console.log(`${shot.id.padEnd(20)} page reloaded mid-shot; retrying`);
+      si -= 1;
+      continue;
+    }
     const line = `${shot.id.padEnd(20)} FAILED: ${String(error).slice(0, 300)}`;
     lines.push(line);
     console.log(line);
@@ -1169,4 +1255,90 @@ if (errors.length) console.log(`\n${errors.length} page error(s); first: ${error
 console.log(
   `\n${manifest.length} shots in ${Math.round((Date.now() - started) / 1000)}s -> ${outDir}`,
 );
-await writeFile(`${outDir}/.done`, summary);
+if (!compareDir) await writeFile(`${outDir}/.done`, summary);
+
+/**
+ * `--compare <dir>`: how far each frame moved from an earlier capture of the
+ * same set. Statistics first (exposure, clipping, crush), then the mean
+ * absolute pixel difference, which is the number that says whether a change
+ * reached a frame it was not meant to touch.
+ */
+if (compareDir) await compareRuns(manifest, summary);
+
+async function compareRuns(manifest, summary) {
+  let before = null;
+  try {
+    before = JSON.parse(readFileSync(`${compareDir}/manifest.json`, "utf8"));
+  } catch {
+    console.log(`\nno manifest in ${compareDir}; nothing to compare`);
+    await writeFile(`${outDir}/.done`, summary);
+  }
+  if (before) {
+    const probe = await puppeteer.launch({ headless: "shell", args: ["--no-sandbox"] });
+    const p2 = await probe.newPage();
+    const lines2 = [`\nagainst ${compareDir}:`];
+    for (const now of manifest) {
+      const then = before.shots.find((x) => x.id === now.id);
+      if (!then || now.error || then.error) continue;
+      const a = readFileSync(`${compareDir}/${now.id}.png`).toString("base64");
+      const b = readFileSync(`${outDir}/${now.id}.png`).toString("base64");
+      const diff = await p2.evaluate(
+        async (aUrl, bUrl) => {
+          const load = (src) =>
+            new Promise((resolve, reject) => {
+              const im = new Image();
+              im.onload = () => resolve(im);
+              im.onerror = reject;
+              im.src = src;
+            });
+          const [ia, ib] = await Promise.all([load(aUrl), load(bUrl)]);
+          const w = Math.min(ia.width, ib.width);
+          const h = Math.min(ia.height, ib.height);
+          const pixels = (im) => {
+            const c = document.createElement("canvas");
+            c.width = w;
+            c.height = h;
+            const ctx = c.getContext("2d");
+            ctx.drawImage(im, 0, 0, w, h);
+            return ctx.getImageData(0, 0, w, h).data;
+          };
+          const da = pixels(ia);
+          const db = pixels(ib);
+          let sum = 0;
+          let changed = 0;
+          let n = 0;
+          for (let i = 0; i < da.length; i += 4) {
+            const d =
+              (Math.abs(da[i] - db[i]) +
+                Math.abs(da[i + 1] - db[i + 1]) +
+                Math.abs(da[i + 2] - db[i + 2])) /
+              3;
+            sum += d;
+            if (d > 12) changed += 1;
+            n += 1;
+          }
+          return {
+            mad: +(sum / n).toFixed(2),
+            changedPct: +((changed / n) * 100).toFixed(1),
+          };
+        },
+        `data:image/png;base64,${a}`,
+        `data:image/png;base64,${b}`,
+      );
+      const moved = ["luma", "clippedPct", "crushedPct", "saturation"]
+        .filter(
+          (k) => Math.abs(now[k] - then[k]) > Math.max(0.0005, Math.abs(then[k]) * 0.02),
+        )
+        .map((k) => `${k} ${then[k]} -> ${now[k]}`);
+      lines2.push(
+        `  ${now.id.padEnd(16)} pixels changed ${String(diff.changedPct).padStart(5)}%  mean diff ${String(diff.mad).padStart(5)}  ` +
+          `draws ${then.draws ?? "-"} -> ${now.draws ?? "-"}  ${moved.join(", ") || "stats steady"}`,
+      );
+    }
+    await probe.close();
+    const text = lines2.join("\n");
+    console.log(text);
+    await writeFile(`${outDir}/compare.txt`, `${text}\n`);
+    await writeFile(`${outDir}/.done`, `${summary}${text}\n`);
+  }
+}

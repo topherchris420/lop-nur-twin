@@ -129,7 +129,20 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
   applyPreset(m.pvcPipe, "machined", { seed: 113, plateScale: 1.6, rivets: false });
 
   // welded plate: tanks and radomes
-  applyPreset(m.tankSteel, "plated", { seed: 127 });
+  // Real shell courses are ~2.4 m plates nine or ten metres long, butt-welded
+  // and painted over, so the seams barely show. The generic plated preset's
+  // 3.4 x 1.7 m staggered cells with dark seams read as masonry blocks.
+  applyPreset(m.tankSteel, "plated", {
+    seed: 127,
+    plateScale: 9.2,
+    plateAspect: 0.26,
+    seamWidth: 0.018,
+    seamDarken: 0.9,
+    seamRelief: 0.35,
+    plateAlbedo: 0.05,
+    streaks: 0.5,
+    rust: 0.22,
+  });
   applyPreset(m.radomeWhite, "plated", {
     seed: 131,
     plateScale: 2.2,
@@ -255,10 +268,13 @@ function useSharedMaterials(): SharedMaterials {
         roughness: 0.35,
         flatShading: true,
       }),
+      // Storage tanks are painted, and paint is a dielectric: at metalness
+      // 0.55 the beige albedo became a tinted half-mirror. Pale paint also
+      // keeps the product cool, which is why real tanks are near-white.
       tankSteel: new THREE.MeshStandardMaterial({
-        color: "#c9c4b6",
-        roughness: 0.45,
-        metalness: 0.55,
+        color: "#d4d1c7",
+        roughness: 0.55,
+        metalness: 0.08,
       }),
       beacon: new THREE.MeshStandardMaterial({
         color: "#ff4136",
@@ -1182,10 +1198,11 @@ function FuelTank({ def, m }: BuilderProps) {
       <mesh material={m.tankSteel} castShadow position={[0, h, 0]} scale={[1, 0.25, 1]}>
         <sphereGeometry args={[r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
+      {/* wind girders, painted with the shell */}
       {[0.25, 0.55, 0.85].map((f) => (
         <mesh
           key={f}
-          material={m.metalDark}
+          material={m.tankSteel}
           position={[0, h * f, 0]}
           rotation={[Math.PI / 2, 0, 0]}
         >

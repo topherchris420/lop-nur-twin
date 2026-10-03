@@ -364,13 +364,21 @@ export function getWeaponMaterials(): WeaponMaterials {
   const steelNormal = makeMicroNormal(0x51ee1, 2);
   const scratchNormal = makeMicroScratchNormal(0x42f7c);
   const brushedNormal = makeBrushedMetalNormal(0x81da3);
-  const receiverNormal = makeMicroNormal(0x2ecee, 3);
+  // Bead-blast grain under hard anodising is sub-millimetre: a 3 px blur at
+  // this repeat read as hammered, peened metal, and every bump caught a sky
+  // glint. One pixel of blur and a light hand keep it a matte, even finish.
+  const receiverNormal = makeMicroNormal(0x2ecee, 1);
   const polymerNormal = makeMicroNormal(0x9017, 4);
   const stipple = makeStippleNormal(0x9217);
   const steelRough = makeRoughnessVariation(0x77aa, 0.6, 0.22);
-  const receiverRough = makeRoughnessVariation(0x31bc, 0.52, 0.18);
+  const receiverRough = makeRoughnessVariation(0x31bc, 0.52, 0.08);
   const polymerRough = makeRoughnessVariation(0x5c10, 0.58, 0.2);
 
+  // three.js *multiplies* `roughness` by the roughness map's green channel,
+  // and these maps already encode absolute roughness around their base. Every
+  // mapped material below therefore sets `roughness: 1`, so the value that
+  // renders is the map's. Authored as 0.5 x a 0.52 map, the receiver rendered
+  // at 0.26, glossy enough to turn every micro-bump into a speckle of sky.
   const repeat = (t: THREE.Texture, n: number): THREE.Texture => {
     t.repeat.set(n, n);
     return t;
@@ -387,7 +395,7 @@ export function getWeaponMaterials(): WeaponMaterials {
     name: "weapon-steel-metal",
     color: 0x55565a,
     metalness: 0.34,
-    roughness: 0.62,
+    roughness: 1,
     normalMap: repeat(scratchNormal, 6),
     normalScale: new THREE.Vector2(0.35, 0.35),
     roughnessMap: repeat(steelRough, 4),
@@ -401,9 +409,9 @@ export function getWeaponMaterials(): WeaponMaterials {
     name: "weapon-receiver-metal",
     color: 0x4a4946,
     metalness: 0.32,
-    roughness: 0.5,
-    normalMap: repeat(receiverNormal, 5),
-    normalScale: new THREE.Vector2(0.22, 0.22),
+    roughness: 1,
+    normalMap: repeat(receiverNormal, 6),
+    normalScale: new THREE.Vector2(0.12, 0.12),
     roughnessMap: repeat(receiverRough, 3),
     envMapIntensity: 0.3,
   });
@@ -442,7 +450,7 @@ export function getWeaponMaterials(): WeaponMaterials {
     name: "weapon-polymer",
     color: 0x3b3c3e,
     metalness: 0,
-    roughness: 0.56,
+    roughness: 1,
     normalMap: repeat(polymerNormal, 4),
     normalScale: new THREE.Vector2(0.42, 0.42),
     roughnessMap: repeat(polymerRough, 3),
