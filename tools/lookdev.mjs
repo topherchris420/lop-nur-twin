@@ -536,9 +536,18 @@ function installPageHelpers() {
   const combat = () => globalThis.__combat;
   let subject = null;
 
+  // A frame clock that works on every route: the combat handle counts
+  // simulation frames, and everywhere else the browser's own animation frames
+  // stand in for the renderer's (r3f draws once per rAF).
+  let rafFrames = 0;
+  const tick = () => {
+    rafFrames += 1;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
   function frame() {
     const h = combat();
-    return h ? h.game.frame : -1;
+    return h ? h.game.frame : rafFrames;
   }
 
   function setFov(deg) {
@@ -779,8 +788,11 @@ function installPageHelpers() {
     ];
     const [tx, tz] = compound(20, 40);
     const [cx, cz] = compound(420, 520);
+    // Reduced motion makes the rig snap instead of animating, so the frame is
+    // the same every run however slowly it renders. A 9 s wall-clock wait for
+    // the 1.5 s flight used to land mid-flight on a loaded machine.
+    globalThis.__twinStore.setState({ reducedMotion: true });
     globalThis.__twinStore.getState().requestFlyTo([cx, 250, cz], [tx, 0, tz]);
-    await sleep(9000);
   }
 
   globalThis.__ld = {
@@ -828,7 +840,7 @@ if (waitDir) {
 }
 
 let shots = [];
-if (execCmd) shots = [];
+if (execCmd || flag("recompare")) shots = [];
 else if (inline) shots = JSON.parse(inline);
 else if (setName === "all")
   shots = Object.entries(SETS).flatMap(([n, list]) =>
@@ -1047,8 +1059,7 @@ async function waitReady(route) {
       }, route)
       .catch(() => false);
     if (ready) {
-      if (route === "twin") await sleep(12000);
-      else await waitFrames(3);
+      await waitFrames(route === "twin" ? 6 : 3);
       return;
     }
     await sleep(500);
