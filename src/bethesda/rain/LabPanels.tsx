@@ -4,7 +4,7 @@
  * every capability, every number and every label. Text that came from R.A.I.N.
  * or a proposal is rendered as text — never as HTML, never as a link.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   CRITERIA_RULE,
   EXPERIMENT_BOUNDS,
@@ -78,9 +78,12 @@ export function Badge({ c }: { c: Category }) {
   );
 }
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId();
   return (
-    <section className="mt-3">
-      <h3 className={label}>{title}</h3>
+    <section className="mt-3" aria-labelledby={id}>
+      <h3 id={id} className={label}>
+        {title}
+      </h3>
       <div className="mt-1 text-xs leading-relaxed">{children}</div>
     </section>
   );
@@ -455,7 +458,7 @@ function ProposalForm({ store, question }: { store: LabStore; question: string }
       className="grid grid-cols-2 gap-2 text-[11px]"
       onSubmit={(e) => {
         e.preventDefault();
-        store.proposeRaw({
+        store.proposeByHand({
           schema: "rain-bethesda-experiment/v1",
           proposal_id: `human-form-${Date.now().toString(36)}`,
           origin: "human",

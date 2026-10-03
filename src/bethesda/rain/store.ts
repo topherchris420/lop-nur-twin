@@ -257,7 +257,11 @@ export class LabStore {
     const r = await this.client.meeting(question);
     this.asking = false;
     if (!r.ok) {
-      this.note = `LIVE request failed: ${r.failure} — ${r.detail}. Nothing is shown in its place.`;
+      this.note =
+        `LIVE request failed: ${r.failure} — ${r.detail}. Nothing is shown in its place.` +
+        (this.meeting
+          ? ` The meeting below is the earlier ${this.meeting.source} one, for the question it names.`
+          : "");
       this.emit();
       return;
     }
@@ -347,7 +351,21 @@ export class LabStore {
       "You proposed this experiment. It now needs validation and your approval.";
     this.emit();
   }
-  proposeRaw(raw: unknown) {
+  /**
+   * A person's own proposal, from the Bay's form. It is theirs: it may not
+   * claim to be R.A.I.N.'s or the DEMO's, so a record can never name a
+   * R.A.I.N. decision that R.A.I.N. did not make. R.A.I.N.'s proposals come
+   * only from `askRainForProposal`, the fixture only from `proposeDemo`.
+   */
+  proposeByHand(raw: unknown) {
+    const claims =
+      raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+    if (claims && (claims.origin !== "human" || claims.rain_decision != null)) {
+      this.proposalNote =
+        'A proposal written here is a person\'s: its origin must be "human" and it can claim no R.A.I.N. decision. Nothing was proposed.';
+      this.emit();
+      return;
+    }
     const c = this.open(raw, this.origin());
     this.proposalNote =
       c.lifecycle.state === "REJECTED"

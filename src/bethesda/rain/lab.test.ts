@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import meeting from "./fixtures/demo-meeting.json" with { type: "json" };
+import proposal from "./fixtures/demo-proposal.json" with { type: "json" };
 import {
   arrival,
   buildingAt,
@@ -226,6 +227,36 @@ describe("OFFLINE, DEMO and LIVE", () => {
     await s.checkRuntime();
     // A reachable backend without a valid identity is not LIVE.
     expect(s.mode()).toBe("OFFLINE");
+  });
+});
+
+describe("authorship", () => {
+  it("a proposal written by hand cannot claim to be R.A.I.N.'s or the DEMO's", () => {
+    const s = store(vi.fn());
+    const base = { ...structuredClone(proposal), origin: "human", rain_decision: null };
+    for (const claim of [
+      {
+        origin: "rain",
+        rain_decision: {
+          decision_id: "f01bc094-730a-47b7",
+          envelope_hash: "e".repeat(64),
+        },
+      },
+      { origin: "fixture" },
+      {
+        rain_decision: {
+          decision_id: "f01bc094-730a-47b7",
+          envelope_hash: "e".repeat(64),
+        },
+      },
+    ]) {
+      s.proposeByHand({ ...base, ...claim });
+      expect(s.cases).toHaveLength(0);
+      expect(s.proposalNote).toMatch(/person's/);
+    }
+    s.proposeByHand(base);
+    expect(s.cases).toHaveLength(1);
+    expect(s.cases[0]!.validated?.proposal.origin).toBe("human");
   });
 });
 
