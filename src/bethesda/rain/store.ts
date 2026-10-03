@@ -86,6 +86,8 @@ export interface RunState {
 }
 const STORAGE_KEY = "lop-nur:rain-lab:registry/v1";
 const STORED_RECORDS = 24;
+/** Imports awaiting or failing replay; a quarantine is not a second registry. */
+const QUARANTINED = 8;
 const REVEAL_MS = 2600;
 
 const reducedMotion = () =>
@@ -189,6 +191,13 @@ export class LabStore {
   focusCase: string | null = null;
   run: RunState | null = null;
   records: ExperimentRecord[] = [];
+  /**
+   * Imported records, held apart until replay re-simulates every arm. A digest
+   * only shows a record was not changed after it was sealed, and anyone can
+   * seal one: until replay passes, an import is not in the registry, the
+   * Evidence Library or the tools, and one that fails stays here. Never stored.
+   */
+  quarantine: ExperimentRecord[] = [];
   verifications: Record<string, Verification | "running"> = {};
   registryNote = "";
   /**
@@ -688,36 +697,62 @@ export class LabStore {
       this.emit();
       return;
     }
-    this.addRecord(r);
-    this.registryNote = `Imported ${r.run_id}. Its digest matches; verify it to re-simulate every arm.`;
+    // An import never shadows or replaces what the registry holds.
+    const held = this.records.find((x) => x.run_id === r.run_id);
+    if (held) {
+      this.registryNote =
+        held.record_sha256 === r.record_sha256
+          ? `${r.run_id} is already in the registry; nothing changed.`
+          : `The registry already holds a different record numbered ${r.run_id}; nothing was imported.`;
+      this.emit();
+      return;
+    }
+    if (this.verifications[r.run_id] === "running") {
+      this.registryNote = `A record numbered ${r.run_id} is being verified; nothing was imported. Try again when it finishes.`;
+      this.emit();
+      return;
+    }
+    this.quarantine = [r, ...this.quarantine.filter((x) => x.run_id !== r.run_id)].slice(
+      0,
+      QUARANTINED,
+    );
+    this.registryNote = `Imported ${r.run_id}. It is quarantined — not in the registry and not evidence — until replay re-simulates every arm.`;
     this.emit();
     this.verify(r.run_id);
   }
+  /** Drop an import that has not joined the registry. */
+  discardImport(runId: string) {
+    if (this.verifications[runId] === "running") return;
+    this.quarantine = this.quarantine.filter((x) => x.run_id !== runId);
+    this.registryNote = `Discarded the imported ${runId}.`;
+    this.emit();
+  }
   verify(runId: string) {
-    const record = this.records.find((r) => r.run_id === runId);
+    const record =
+      this.records.find((r) => r.run_id === runId) ??
+      this.quarantine.find((r) => r.run_id === runId);
     if (!record || this.verifications[runId] === "running") return;
     this.verifications = { ...this.verifications, [runId]: "running" };
     this.emit();
-    startJob(
-      { type: "verify", record },
-      {
-        kind: "verify",
-        done: (v) => {
-          this.verifications = { ...this.verifications, [runId]: v };
-          this.emit();
-        },
-      },
-      (error) => {
-        this.verifications = {
-          ...this.verifications,
-          [runId]: {
-            ok: false,
-            checks: [{ id: "worker", ok: false, detail: error.message }],
-          },
-        };
-        this.emit();
-      },
+    const settle = (v: Verification) => {
+      this.verifications = { ...this.verifications, [runId]: v };
+      this.admitImport(record, v);
+      this.emit();
+    };
+    startJob({ type: "verify", record }, { kind: "verify", done: settle }, (error) =>
+      settle({ ok: false, checks: [{ id: "worker", ok: false, detail: error.message }] }),
     );
+  }
+  /** A quarantined import joins the registry only once replay has verified it. */
+  private admitImport(record: ExperimentRecord, v: Verification) {
+    if (!this.quarantine.includes(record)) return;
+    if (!v.ok) {
+      this.registryNote = `${record.run_id} failed verification by replay and stays quarantined: it is not evidence.`;
+      return;
+    }
+    this.quarantine = this.quarantine.filter((x) => x !== record);
+    this.addRecord(record);
+    this.registryNote = `${record.run_id} was verified by replay — every arm re-simulated identically — and joined the registry.`;
   }
   reproduce(runId: string) {
     const source = this.records.find((r) => r.run_id === runId);

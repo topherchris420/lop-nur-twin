@@ -20,6 +20,14 @@ export type WorkerRequest =
 const post = (message: unknown) => (self as unknown as Worker).postMessage(message);
 
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
+  // A dedicated worker hears only the page that created it, and such a message
+  // carries no origin (HTML: a worker's messages are MessagePort messages). One
+  // that names an origin is not that page's: it is refused, out loud, so a run
+  // fails visibly instead of waiting on a worker that will not answer.
+  if (event.origin !== "") {
+    post({ type: "error", name: "Refused", message: "a message the page did not send" });
+    return;
+  }
   const msg = event.data;
   try {
     if (msg.type === "run") {

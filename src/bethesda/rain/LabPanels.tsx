@@ -1725,6 +1725,75 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
     </div>
   );
 }
+/** What an unverified import says about itself, which may not even be readable. */
+function claims(q: ExperimentRecord) {
+  try {
+    return outcomeText(q);
+  } catch {
+    return "an outcome the lab cannot read";
+  }
+}
+/** Imported records awaiting replay, or that failed it: shown, never evidence. */
+function Quarantine({ store }: { store: LabStore }) {
+  if (!store.quarantine.length) return null;
+  return (
+    <Section title="QUARANTINED IMPORTS">
+      <p className={quiet}>
+        A record's digest shows only that it was not changed after it was sealed, and
+        anyone can seal one. An import is not in the registry, the Evidence Library or the
+        tools until replay re-simulates every arm and matches.
+      </p>
+      <ul className="mt-1 space-y-1">
+        {store.quarantine.map((q) => {
+          const v = store.verifications[q.run_id];
+          return (
+            <li key={q.run_id} className="rounded border border-amber-200/30 p-1">
+              <p>
+                {q.run_id} <span className={quiet}>· claims {claims(q)}</span>
+              </p>
+              <p className={v && v !== "running" && !v.ok ? "text-amber-100" : quiet}>
+                {v === "running"
+                  ? "Re-simulating every arm from its recorded commands…"
+                  : v && !v.ok
+                    ? "Verification FAILED: the record does not match what the simulator does. It stays quarantined."
+                    : "Not verified yet."}
+              </p>
+              {v && v !== "running" && !v.ok ? (
+                <ul className="mt-1">
+                  {v.checks
+                    .filter((k) => !k.ok)
+                    .slice(0, 8)
+                    .map((k) => (
+                      <li key={k.id}>
+                        ✕ {k.id}: <span className={quiet}>{k.detail}</span>
+                      </li>
+                    ))}
+                </ul>
+              ) : null}
+              <div className="mt-1 flex flex-wrap gap-2">
+                <button
+                  className={button}
+                  disabled={v === "running"}
+                  onClick={() => store.verify(q.run_id)}
+                >
+                  Verify by replay (no model)
+                </button>
+                <button
+                  className={button}
+                  disabled={v === "running"}
+                  onClick={() => store.discardImport(q.run_id)}
+                >
+                  Discard the import
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </Section>
+  );
+}
+
 export function RegistryArchive({ store }: { store: LabStore }) {
   const [selected, setSelected] = useState<string | null>(null);
   const counts = (s: string) => store.records.filter((r) => r.outcome.state === s).length;
@@ -1757,6 +1826,7 @@ export function RegistryArchive({ store }: { store: LabStore }) {
           }}
         />
       </label>
+      <Quarantine store={store} />
       {store.records.length ? (
         <ul className="mt-2 space-y-1">
           {store.records.map((x) => (

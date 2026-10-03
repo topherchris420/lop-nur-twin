@@ -819,7 +819,8 @@ try {
         identity.meeting_engine ===
           "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting" &&
         identity.remote_decisions === jevLive,
-      JSON.stringify({ ...identity, corpus: undefined }),
+      // What the bridge answered is in its log; the report keeps no backend data.
+      `expected a model meeting on stand-in-model, remote decisions ${jevLive}; see ${OUT}/bridge-model.log`,
     );
     const modelOrigin = preview(MODEL.port, {
       ...unconfigured(),

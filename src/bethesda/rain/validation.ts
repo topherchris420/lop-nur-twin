@@ -331,6 +331,11 @@ export function validateMeeting(
   for (const k of ["grounding", "matched_terms", "missing_terms", "verdict"] as const)
     if (analysed && o[k] === null)
       r.fail(k, "an offline-engine meeting always carries it");
+    else if (!analysed && o[k] !== null)
+      r.fail(
+        k,
+        "R.A.I.N.'s model meeting computes no such analysis, so it cannot carry one",
+      );
   const verdict =
     o.verdict === null
       ? null

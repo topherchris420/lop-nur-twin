@@ -316,7 +316,11 @@ DEMO recording, a failure is shown as a failure, DEMO is labelled
 `PRERECORDED`, a hand-written proposal cannot claim R.A.I.N.'s authorship, and
 provenance a source did not report is `null`. (f) A record is sealed by a
 SHA-256 and verified by re-simulating every arm from its commands; an import
-with a wrong digest is refused, and a re-sealed edit fails replay. (g)
+with a wrong digest is refused, and one with a matching digest is quarantined —
+kept out of the registry, the Evidence Library and the tools — until replay
+passes, so a re-sealed edit that fails replay never becomes evidence. The
+experiment worker refuses any message that names an origin: a dedicated
+worker's own page sends none. (g)
 Experiments are bounded (at most five seeds and 36,000 simulated ticks); per
 session, minimum intervals and caps per operation (12 meetings per 120-minute
 session, a job checked at most every 2 s); a per-client token bucket, two

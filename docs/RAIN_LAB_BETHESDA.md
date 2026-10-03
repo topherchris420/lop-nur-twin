@@ -569,8 +569,12 @@ sealed by a SHA-256 over the rest.
   every observation and the outcome — so it never contacts R.A.I.N. or a
   model.
 - **Export record** and **Import a record** move a record between browsers. An
-  import whose digest does not match is refused; a re-sealed edit is caught by
-  replay.
+  import whose digest does not match is refused. One whose digest matches is
+  still only a claim — anyone can seal a record — so it is quarantined: it is
+  not in the registry, the Evidence Library or the tools until replay
+  re-simulates every arm and matches. A re-sealed edit fails replay and stays
+  quarantined until it is discarded, and an import never replaces a record the
+  registry already holds.
 - **Export arm as a city replay** writes a standard `bethesda-replay/v3` trace
   that the city's own replay verifier accepts.
 - **Reproduce** re-validates the same proposal and, once authorized again, runs
@@ -608,6 +612,7 @@ fetched.
 | no authorization, or one for another digest                                                                                             | refuses to run                                                        |
 | a run that throws or is cancelled                                                                                                       | records FAILED, not evaluated                                         |
 | a record from another simulator version, or one that does not replay                                                                    | verification fails and says which check                               |
+| an imported record, until replay verifies it                                                                                            | keeps it quarantined: not in the registry, the evidence or the tools  |
 | an avatar outside the observation region                                                                                                | records the refusal; nothing is observed                              |
 
 Whatever R.A.I.N. does, Bethesda keeps working: the city never waits on the lab,

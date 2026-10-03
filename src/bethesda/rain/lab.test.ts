@@ -17,7 +17,11 @@ import { compileScenario } from "../scenarios";
 import { LAB_BUILDING_ID, LAB_DOOR, OPEN_RADIUS, nearDoor, resolvesLab } from "./site";
 import { ROOMS, ROOM_IDS, SPAWN, moveInLab, roomAt } from "./labLayout";
 import { LabStore } from "./store";
-import { neutralEvents } from "./session";
+import { evidenceItems, neutralEvents } from "./session";
+import { approve, begin, complete, openCase } from "./cases";
+import { runToCompletion } from "./runner";
+import { seal, type ExperimentRecord } from "./record";
+import type { Verification } from "./replay";
 
 const city = () => {
   const sim = new CitySimulation({
@@ -472,4 +476,87 @@ describe("LIVE: a model meeting, and a choice R.A.I.N. hands back", () => {
     expect(s.cases).toHaveLength(0);
     expect(s.proposalNote).toMatch(/A person may choose an experiment instead/);
   });
+});
+
+describe("an imported record is not evidence until replay passes", () => {
+  // A real, small run of the DEMO proposal, and a copy edited and re-sealed:
+  // its digest matches, because anyone can seal a record.
+  const genuine = (() => {
+    const c = openCase(
+      {
+        ...structuredClone(proposal),
+        seeds: [101],
+        warmup_ticks: 100,
+        observation_window_ticks: 300,
+      },
+      {
+        id: "case",
+        now: new Date(),
+        origin: { rain: null, rainSource: "unavailable", model: null },
+      },
+    );
+    const v = c.validated!;
+    approve(c, {
+      operator: "R.A.I.N.Operator",
+      typedPrefix: v.definitionSha256.slice(0, 8),
+      reviewed: true,
+      now: new Date(),
+    });
+    begin(c, new Date());
+    const started = new Date();
+    const result = runToCompletion(
+      v.definition,
+      v.definitionSha256,
+      v.experimentId,
+      c.authorization,
+    );
+    return complete(c, result, { started, finished: new Date() });
+  })();
+  const forged = (() => {
+    const copy = structuredClone(genuine);
+    copy.run!.arms[0]!.final_hash = "0".repeat(16);
+    const { record_sha256: _stale, ...body } = copy;
+    return seal(body);
+  })();
+  const settled = async (s: LabStore, runId: string) => {
+    await vi.waitFor(
+      () => {
+        const v = s.verifications[runId];
+        if (!v || v === "running") throw new Error("still verifying");
+      },
+      { timeout: 60_000, interval: 20 },
+    );
+    return s.verifications[runId] as Verification;
+  };
+  it("keeps a re-sealed edit quarantined: out of the registry, the evidence and storage", async () => {
+    const s = store(vi.fn());
+    s.importRecord(JSON.stringify(forged));
+    expect(s.records).toEqual([]);
+    expect(s.quarantine.map((r) => r.run_id)).toEqual([forged.run_id]);
+    expect((await settled(s, forged.run_id)).ok).toBe(false);
+    expect(s.records).toEqual([]);
+    expect(s.quarantine).toHaveLength(1);
+    expect(s.registryNote).toMatch(/failed verification by replay and stays quarantined/);
+    expect(evidenceItems(null, s.records)).toEqual([]);
+    s.discardImport(forged.run_id);
+    expect(s.quarantine).toEqual([]);
+  }, 90_000);
+  it("admits a genuine record once replay re-simulates every arm", async () => {
+    const s = store(vi.fn());
+    s.importRecord(JSON.stringify(genuine));
+    expect(s.records).toEqual([]);
+    expect((await settled(s, genuine.run_id)).ok).toBe(true);
+    expect(s.quarantine).toEqual([]);
+    expect(s.records.map((r: ExperimentRecord) => r.run_id)).toEqual([genuine.run_id]);
+    expect(
+      evidenceItems(null, s.records).some((i) => i.category === "SIMULATION RESULT"),
+    ).toBe(true);
+    s.importRecord(JSON.stringify(genuine));
+    expect(s.registryNote).toMatch(/already in the registry/);
+    // A different record under a number the registry holds is not imported at all.
+    s.importRecord(JSON.stringify(forged));
+    expect(s.registryNote).toMatch(/already holds a different record/);
+    expect(s.quarantine).toEqual([]);
+    expect(s.records.map((r) => r.record_sha256)).toEqual([genuine.record_sha256]);
+  }, 90_000);
 });

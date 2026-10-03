@@ -532,9 +532,12 @@ world state; recorded observations become evidence.**
   `contracts.ts` and `validation.ts` are shared with `server/rain/` and import
   siblings as `./x.js`.
 - **Records are evidence only through replay.** Every ending is a sealed
-  `bethesda-rain-experiment-record/v1`; `verifyRecord` re-simulates it. A change
-  to the record, the protocol or the simulator's behaviour bumps its schema or
-  `SIM_VERSION`, and older records fail verification with a reason.
+  `bethesda-rain-experiment-record/v1`; `verifyRecord` re-simulates it. A digest
+  is not a signature: an imported record stays in the store's `quarantine` —
+  out of `records`, the Evidence Library and the tools — until `verifyRecord`
+  passes. A change to the record, the protocol or the simulator's behaviour
+  bumps its schema or `SIM_VERSION`, and older records fail verification with a
+  reason.
 - **R.A.I.N. judges its own criteria.** A submission carries measurements and
   no status or verdict; `bun run rain:conformance` runs james_library's own
   validators, evaluator and registry over the lab's output.
