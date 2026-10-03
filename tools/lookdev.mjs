@@ -15,6 +15,23 @@
  *   node tools/lookdev.mjs --set sky --only horizon,into-sun
  *   node tools/lookdev.mjs --shots '[{"id":"x","setup":"await ld.place(1290,1350,45,-0.1)"}]'
  *
+ * The regression gate for any visual change, run against two checkouts:
+ *
+ *   node tools/lookdev.mjs --set ab --serve ../before --out shots/ab-before
+ *   node tools/lookdev.mjs --set ab --serve . --out shots/ab-after --compare shots/ab-before
+ *   node tools/lookdev.mjs --recompare --compare shots/ab-before --out shots/ab-after
+ *
+ * `--serve <checkout>` starts that checkout's dev server inside a render slot
+ * (it needs its own `bun install`). Renders are serialised machine-wide
+ * (`--slots`, default 2), because software WebGL already uses every core for
+ * one frame. Long runs go to the background and are waited on in bounded
+ * steps, matched by a tag so an older run's marker is never taken for this
+ * one; a run with a failed shot exits non-zero:
+ *
+ *   node tools/lookdev.mjs --set sky --serve . --out shots/sky --tag s1 &
+ *   node tools/lookdev.mjs --wait shots/sky --tag s1 --timeout 540
+ *   node tools/lookdev.mjs --serve ../other --check gait|smoke|engagement --out shots/gait
+ *
  * A shot is data: `route` ("play" or "twin"), extra URL `params`, an in-page
  * `setup` (the body of an async function receiving the `ld` helpers below),
  * puppeteer-side `actions` (mouse buttons, keys, frame waits), an optional
