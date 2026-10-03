@@ -87,9 +87,23 @@ export class ViewmodelStage {
   }
 
   /** Point the key light along the world sun and match its colour. */
-  setSun(direction: THREE.Vector3, color: THREE.Color, intensity: number): void {
+  setSun(
+    direction: THREE.Vector3,
+    color: THREE.Color,
+    intensity: number,
+    dayFactor = 1,
+  ): void {
     this.key.position.copy(direction).multiplyScalar(3);
     this.key.color.copy(color);
+    // The weapon pass has its own lights, so it has to fall off with the
+    // world's or the rifle stays daylit against a moonlit apron -- under the
+    // night grade's higher exposure it rendered brighter than at noon. Matching
+    // the world's ratios exactly (moon ~0.09 of the sun, sky fill a few
+    // percent) was judged too dark to read in a blind comparison: a shooter
+    // keeps its weapon legible. So the falloff stops well short of physical.
+    const night = 1 - THREE.MathUtils.clamp(dayFactor, 0, 1);
+    const keyScale = 1 - night * 0.65;
+    const fillScale = 1 - night * 0.55;
     // The combat grade sits near exposure 0.64. A key under 1 leaves a
     // gunmetal receiver on the wrong side of AgX's toe, which is how the
     // rifle became a black cutout against the sand. `direction` is already
@@ -97,13 +111,13 @@ export class ViewmodelStage {
     // lens the same key has to climb or the rifle stays a silhouette inside
     // the glare.
     const sunAhead = Math.max(0, -direction.z);
-    this.key.intensity = 1.15 + intensity * 1.35 * (1 + sunAhead * 1.6);
+    this.key.intensity = (1.15 + intensity * 1.35 * (1 + sunAhead * 1.6)) * keyScale;
     // Full sun stays under half a unit. Higher than that and the sand bounce
     // lifts the whole rifle off the key and the parkerising goes grey.
-    this.fill.intensity = 0.22 + intensity * 0.26;
-    this.rim.intensity = 0.28 + intensity * 0.22;
-    this.bounce.intensity = 0.04 + intensity * 0.14;
-    this.shoulder.intensity = 0.14 + intensity * 0.3;
+    this.fill.intensity = (0.22 + intensity * 0.26) * fillScale;
+    this.rim.intensity = (0.28 + intensity * 0.22) * fillScale;
+    this.bounce.intensity = (0.04 + intensity * 0.14) * fillScale;
+    this.shoulder.intensity = (0.14 + intensity * 0.3) * fillScale;
   }
 
   setEnvironment(texture: THREE.Texture | null): void {

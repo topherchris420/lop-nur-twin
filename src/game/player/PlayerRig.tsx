@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGameStore } from "../core/gameStore";
-import { useTwinStore } from "@/lib/store";
 import { readFlag } from "@/lib/params";
 import { game, eyePosition } from "../core/gameState";
 import {
@@ -22,7 +21,7 @@ import type { FxManager } from "../fx/combatFx";
 import { applyNearMissSuppression } from "../core/combat";
 import { ViewmodelStage } from "./viewmodelStage";
 import { isCoarsePointer } from "@/lib/touchInput";
-import { sunElevationRad, SUN } from "../render/environment";
+import { sunState } from "@/lib/sunState";
 import { getPostExposure } from "../render/screenEffects";
 import { bindViewmodelStage, viewmodelPassActive } from "../render/viewmodelPass";
 import { pilot } from "../pilot/pilot";
@@ -71,6 +70,8 @@ const _quat = new THREE.Quaternion();
 const _probeEnd = new THREE.Vector3();
 const _sunDir = new THREE.Vector3();
 const _sunColor = new THREE.Color();
+const SUN_COLOR = new THREE.Color(0xfff1da);
+const MOON_COLOR = new THREE.Color(0x9fb4d8);
 const _invQuat = new THREE.Quaternion();
 const _shimmer = new THREE.Vector3();
 
@@ -656,17 +657,18 @@ export function PlayerRig({
     // is no composite pass.
     const size = _state.size;
     stage.setAspect(size.width / Math.max(1, size.height));
-    const dayFactor = useTwinStore.getState().night ? 0 : 1;
-    const elevation = sunElevationRad(dayFactor);
-    const azimuth = THREE.MathUtils.degToRad(SUN.azimuthDeg);
-    _sunDir.set(
-      Math.sin(azimuth) * Math.cos(elevation),
-      Math.sin(elevation),
-      -Math.cos(azimuth) * Math.cos(elevation),
-    );
+    // The same eased sun the world is lit by (Atmosphere publishes it), and by
+    // night the same moon: the raw toggle used to aim the weapon's key at a
+    // sun 26 degrees below the horizon, lighting the rifle from underneath.
+    const dayFactor = sunState.dayFactor;
+    _sunDir
+      .copy(sunState.direction)
+      .multiplyScalar(dayFactor)
+      .addScaledVector(sunState.moonDirection, 1 - dayFactor)
+      .normalize();
     _sunDir.applyQuaternion(_invQuat.copy(_state.camera.quaternion).invert());
-    _sunColor.setHex(dayFactor > 0.5 ? 0xfff1da : 0x9fb4d8);
-    stage.setSun(_sunDir, _sunColor, Math.max(0.08, Math.sin(elevation)));
+    _sunColor.lerpColors(MOON_COLOR, SUN_COLOR, dayFactor);
+    stage.setSun(_sunDir, _sunColor, Math.max(0.08, sunState.direction.y), dayFactor);
 
     /* --------------------------------------------------------- state */
     game.cameraPosition.copy(camera.position);

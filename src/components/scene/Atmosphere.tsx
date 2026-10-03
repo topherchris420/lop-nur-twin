@@ -16,6 +16,8 @@ const SUN_DISTANCE = 1800;
 const SHADOW_FOCUS = new THREE.Vector3(1018, 0, 1410);
 const FOG_DENSITY_DAY = 0.0003;
 const SUN_AZIMUTH_DEG = 112;
+/** Where the moon's directional light sits; its direction is `sunState.moonDirection`. */
+const MOON_POSITION = sunState.moonDirection.clone().multiplyScalar(1400).toArray();
 
 const DAY = {
   fogColor: new THREE.Color("#d8c29b"),
@@ -238,7 +240,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
       />
       <directionalLight
         ref={moonRef}
-        position={[-900, 950, 500]}
+        position={MOON_POSITION}
         color="#9db4d8"
         intensity={0}
       />
@@ -307,9 +309,37 @@ function CloudShadows() {
   );
 }
 
+const DUST_DAY = new THREE.Color("#d8c393");
+const DUST_NIGHT = new THREE.Color("#222a36");
+
+/**
+ * A soft round mote. Points drawn without a map are hard-edged squares,
+ * which is what floated over the horizon in every frame.
+ */
+function makeDustMoteTexture(): THREE.CanvasTexture {
+  const S = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas context unavailable");
+  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.45, "rgba(255,255,255,0.4)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 /** Thin drifting dust field hugging the ground. */
 function DustLayer() {
   const pointsRef = useRef<THREE.Points>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
+  const mote = useMemo(makeDustMoteTexture, []);
+  useEffect(() => () => mote.dispose(), [mote]);
   const qualityTier = useTwinStore((state) => state.qualityTier);
   const environmentMonth = useTwinStore((state) => state.environmentMonth);
   const reducedMotion = useTwinStore((state) => state.reducedMotion);
@@ -338,7 +368,16 @@ function DustLayer() {
   const driftX = -Math.sin(windFrom) * climate.windSpeedMps;
   const driftZ = Math.cos(windFrom) * climate.windSpeedMps;
 
+  const baseOpacity = 0.05 + dustFactor * 0.14;
   useFrame(({ clock }) => {
+    // Dust is lit by whatever lights the plain: sunlit tan by day, and by
+    // night nearly invisible. A fixed colour glowed tan against the stars.
+    const material = materialRef.current;
+    if (material) {
+      const day = sunState.dayFactor;
+      material.color.lerpColors(DUST_NIGHT, DUST_DAY, day);
+      material.opacity = baseOpacity * (0.35 + 0.65 * day);
+    }
     if (reducedMotion) return;
     const points = pointsRef.current;
     if (!points) return;
@@ -366,11 +405,13 @@ function DustLayer() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
+        ref={materialRef}
+        map={mote}
         size={2.4}
         sizeAttenuation
-        color="#d8c393"
+        color={DUST_DAY}
         transparent
-        opacity={0.05 + dustFactor * 0.14}
+        opacity={baseOpacity}
         depthWrite={false}
       />
     </points>
