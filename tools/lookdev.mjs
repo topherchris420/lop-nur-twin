@@ -69,6 +69,12 @@ if (checkName !== null && !Object.hasOwn(CHECKS, checkName)) {
   console.error(`--check must be one of: ${Object.keys(CHECKS).join(", ")}`);
   process.exit(2);
 }
+// A check is always handed the origin this tool served itself, never one from
+// the command line.
+if (checkName !== null && serveArg === null) {
+  console.error("--check needs --serve <worktree>");
+  process.exit(2);
+}
 
 /**
  * `--serve` must name a checkout of this project: a directory whose
@@ -1026,12 +1032,9 @@ if (serveDir) {
   }
   server = spawn(
     process.execPath,
-    [
-      join(serveDir, "node_modules", "vite", "bin", "vite.js"),
-      "--port",
-      String(port),
-      "--strictPort",
-    ],
+    // A constant script path, resolved against the worktree through `cwd`:
+    // nothing from the command line ends up in the argument vector.
+    ["node_modules/vite/bin/vite.js", "--port", String(port), "--strictPort"],
     {
       cwd: serveDir,
       detached: true,
@@ -1064,7 +1067,7 @@ if (checkName !== null) {
   const script = CHECKS[checkName];
   console.log(`check: node ${script} ${origin}`);
   const run = spawnSync(process.execPath, [script, origin], {
-    cwd: serveDir ?? process.cwd(),
+    cwd: serveDir,
     stdio: ["ignore", "pipe", "pipe"],
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
