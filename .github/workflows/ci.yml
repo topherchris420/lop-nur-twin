@@ -112,6 +112,11 @@ jobs:
       - name: Prove the evidence validator still rejects bad records
         run: bun run test:evidence
 
+      # The R.A.I.N. Lab's reference bridge, on synthetic R.A.I.N. records:
+      # standard-library Python, no james_library checkout, no model.
+      - name: R.A.I.N. bridge unit tests (no backend, no model)
+        run: bun run rain:bridge
+
       # `bun run build` runs the offline data validator, regenerates the release
       # manifest, bundles, and finishes with a strict `tsc --noEmit`. It is the
       # single integration gate — the steps above are the ones it does not cover,
@@ -206,6 +211,12 @@ jobs:
       - name: Hidden Bethesda city checks (no API calls)
         run: bun run verify:bethesda http://localhost:4173
 
+      # The R.A.I.N. Lab inside the city: OFFLINE (this preview has no backend),
+      # the labelled DEMO, authorization, a matched run, replay, tampered
+      # imports, outings, tools, a11y, CSP and the no-WebGL path.
+      - name: Hidden R.A.I.N. Lab checks (no backend, no API calls)
+        run: bun run verify:rain-lab http://localhost:4173
+
       - name: Upload server logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -218,6 +229,8 @@ jobs:
             shots/bethesda/browser-failure.json
             shots/bethesda/survey.png
             shots/bethesda/walk-storm.png
+            shots/rain-lab/browser-checks.json
+            shots/rain-lab/browser-failure.json
           if-no-files-found: ignore
 
   secrets:

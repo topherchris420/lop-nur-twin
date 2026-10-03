@@ -1,0 +1,18 @@
+{
+  "schema": "rain-bethesda-experiment/v1",
+  "proposal_id": "demo-metro-dispersion",
+  "origin": "fixture",
+  "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
+  "hypothesis": "In the Bethesda simulator, closing the Metro disperses the people near its entrance: two simulated minutes after the closure, the pedestrians who were within 150 m of the entrance when it closed are on average at least 10 m farther from it than in the matched no-closure control, in every seed.",
+  "scenario": "metro_closure",
+  "location": "bethesda_metro",
+  "primary_metric": "cohort_mean_distance_m",
+  "expected_direction": "increase",
+  "minimum_effect": 10,
+  "comparison": "matched_seed_control",
+  "seeds": [101, 202, 303],
+  "warmup_ticks": 300,
+  "observation_window_ticks": 1200,
+  "rain_decision": null,
+  "meeting_id": "rain-offline-93ae4b5195a5761ea843"
+}

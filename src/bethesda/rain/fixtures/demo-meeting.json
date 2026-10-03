@@ -1,0 +1,158 @@
+{
+  "schema": "rain-bethesda/v2",
+  "kind": "meeting",
+  "request_id": "c63663db230cd7811000d315684a17f1",
+  "meeting_id": "rain-offline-93ae4b5195a5761ea843",
+  "generation": "scripted",
+  "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
+  "model": null,
+  "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
+  "grounding": "partial",
+  "matched_terms": ["coordinated", "behavior", "local", "responses"],
+  "missing_terms": [
+    "evidence",
+    "distinguish",
+    "crowd",
+    "coincidental",
+    "metro",
+    "closure"
+  ],
+  "turns": [
+    {
+      "index": 1,
+      "speaker": "James",
+      "role": "Lead Scientist",
+      "move": "frame",
+      "lead": "I pulled 7 passages from 3 papers that speak to 'coordinated', 'behavior', 'local' and 'responses'. Nothing in the library touches 'evidence', 'distinguish' and 'crowd', so I'm scoping to what it covers. The most concrete line is in Dynamic Resonance Rooting:",
+      "quotes": [
+        {
+          "source": "Dynamic Resonance Rooting.md",
+          "line": 230,
+          "span_start": 12529,
+          "span_end": 12679,
+          "text": "For AI and multi-agent systems, DRR offers a way to monitor oscillatory behavior, coordination loops, or delayed responses in high-dimensional traces.",
+          "verified": true
+        }
+      ],
+      "coda": "No number attached, so I'm logging it as a claim, not a result. Let's see if it survives this room.",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 2,
+      "speaker": "Jasmine",
+      "role": "Hardware Architect",
+      "move": "reality check",
+      "lead": "I went looking for anything I could build or measure against: a sensor, a dataset, a number with units. Nothing in the retrieved passages qualifies.",
+      "quotes": [],
+      "coda": "That's a gap, not a green light. I won't sign off on a mechanism nobody can instrument.",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 3,
+      "speaker": "Luca",
+      "role": "Field Topographer",
+      "move": "connection",
+      "lead": "Look at the shape of this. Reality Built on a Finite Set of Geometric Instructions and Dynamic Resonance Rooting both reach for 'phase', from different directions:",
+      "quotes": [
+        {
+          "source": "Reality Built on a Finite Set of Geometric Instructions.md",
+          "line": 80,
+          "span_start": 4781,
+          "span_end": 4882,
+          "text": "Phase Accumulation: Complex phase evolves according to local “energy” (eigenvalue of local geometry).",
+          "verified": true
+        },
+        {
+          "source": "Dynamic Resonance Rooting.md",
+          "line": 125,
+          "span_start": 7698,
+          "span_end": 7852,
+          "text": "Its value is that it exposes what is being rewarded: concentrated spectral power, persistence over windows, coherent phase behavior, and stable amplitude.",
+          "verified": true
+        }
+      ],
+      "coda": "Same structure, two framings. If it's real, one test should light up in both places, and that's the connection I'd chase.",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 4,
+      "speaker": "Elena",
+      "role": "Quantum Information Theorist",
+      "move": "counter-argument",
+      "lead": "Before anyone gets attached: the best objection is already written down, in Resonant Intelligence:",
+      "quotes": [
+        {
+          "source": "Resonant Intelligence.md",
+          "line": 793,
+          "span_start": 33614,
+          "span_end": 33776,
+          "text": "Navigability does not establish the accuracy of every reconstructed feature; imagery dates, coordinates, and reconstruction uncertainty remain part of the ledger.",
+          "verified": true
+        }
+      ],
+      "coda": "And 57% of what James retrieved comes from a single paper, Dynamic Resonance Rooting. Until something outside this library reproduces James's anchor, this is a well-instrumented hypothesis, not a result.",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 5,
+      "speaker": "Luca",
+      "role": "Field Topographer",
+      "move": "pushback",
+      "lead": "Fair, Elena. But 'phase' holding up in two separate framings is exactly what's worth testing, not dismissing.",
+      "quotes": [],
+      "coda": "",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 6,
+      "speaker": "Jasmine",
+      "role": "Hardware Architect",
+      "move": "pushback",
+      "lead": "Then give me one measurement that could come out the other way. Otherwise we're just admiring the shape.",
+      "quotes": [],
+      "coda": "",
+      "unverified": 0,
+      "generation": "scripted"
+    },
+    {
+      "index": 7,
+      "speaker": "James",
+      "role": "Lead Scientist",
+      "move": "next move",
+      "lead": "Here's where I land. Nothing we pulled proposes a test that could fail, so designing one is the next move, before anyone acts on anything.",
+      "quotes": [],
+      "coda": "",
+      "unverified": 0,
+      "generation": "scripted"
+    }
+  ],
+  "verdict": {
+    "agreed": "The library speaks to this directly: 3 papers cover 'coordinated', 'behavior', 'local' and 'responses', led by Dynamic Resonance Rooting. It is silent on 'evidence', 'distinguish' and 'crowd'.",
+    "contested": "Luca reads the shared 'phase' in Reality Built on a Finite Set of Geometric Instructions and Dynamic Resonance Rooting as real structure; Elena reads it as unreplicated until an outside source reproduces it.",
+    "next_move": "Write one falsifiable prediction for this question and the measurement that would refute it.",
+    "read_next": [
+      "Dynamic Resonance Rooting.md:230",
+      "Resonant Intelligence.md:793",
+      "Reality Built on a Finite Set of Geometric Instructions.md:80"
+    ]
+  },
+  "audit": {
+    "checked": 4,
+    "verified": 4,
+    "corpus_files": 17,
+    "corpus_sha256": "9b2ea4210d127b9aa19de5d33a27caec79449ee7d157ae8c0989399dc0b71177"
+  },
+  "suggestions": [],
+  "rain": {
+    "repository": "topherchris420/james_library",
+    "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
+    "dirty": false
+  },
+  "produced_at": "2026-10-03T03:45:03.337Z",
+  "source_artifact": null
+}

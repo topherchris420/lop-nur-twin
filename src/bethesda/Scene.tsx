@@ -17,6 +17,9 @@ import { type CitySimulation } from "./simulation";
 import { Actors } from "./Actors";
 import { signalRigs } from "./signals";
 import { EventVisuals } from "./EventVisuals";
+import { LabDoor } from "./LabDoor";
+import { CityPresence } from "./rain/CityPresence";
+import type { PresenceMark } from "./rain/presence";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evidence";
 import { groundAt, minimumGround } from "./terrain";
@@ -39,7 +42,10 @@ export interface ViewControl {
   /** What the streetscape builder actually placed, for the field notes. */
   placed?: Record<string, number>;
   samples?: Record<string, Point>;
+  /** The lab's perspectives on outings, if the lab has been opened. Drawn only. */
+  presence?: () => readonly PresenceMark[];
 }
+const NO_MARKS: readonly PresenceMark[] = [];
 function StaticCity({ view }: { view: ViewControl }) {
   const built = useMemo(createCityGeometry, []);
   view.placed = built.placed;
@@ -356,7 +362,10 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       }}
       onCreated={({ gl }) => {
         gl.domElement.addEventListener("webglcontextlost", () => {
-          view.failed = true;
+          // R3F releases the context itself half a second after the canvas
+          // unmounts (entering the R.A.I.N. Lab does that); only a loss while
+          // the canvas is still on the page means rendering failed.
+          if (gl.domElement.isConnected) view.failed = true;
         });
       }}
     >
@@ -379,6 +388,8 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       <Signals sim={sim} />
       <EventVisuals sim={sim} />
       <EvidenceCity view={view} />
+      <LabDoor />
+      <CityPresence read={() => view.presence?.() ?? NO_MARKS} />
       <Camera sim={sim} view={view} />
     </Canvas>
   );

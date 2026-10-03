@@ -6,6 +6,11 @@ import terrain from "../src/bethesda/data/terrain.json" with { type: "json" };
 import terrainSource from "../src/bethesda/data/terrain-source.json" with { type: "json" };
 import streetscape from "../src/bethesda/data/streetscape.json" with { type: "json" };
 import streetscapeSource from "../src/bethesda/data/streetscape-source.json" with { type: "json" };
+import demoSource from "../src/bethesda/rain/fixtures/demo-source.json" with { type: "json" };
+import demoMeeting from "../src/bethesda/rain/fixtures/demo-meeting.json" with { type: "json" };
+import demoProposal from "../src/bethesda/rain/fixtures/demo-proposal.json" with { type: "json" };
+import { validateMeeting } from "../src/bethesda/rain/validation.ts";
+import { validateExperiment } from "../src/bethesda/rain/experiments.ts";
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -95,6 +100,36 @@ const snapshotVersions = new Map(
 for (const a of streetscape.buildingAttributes)
   if (snapshotVersions.get(a.osmId) !== a.version)
     fail("building attribute joined across OSM versions: " + a.osmId);
+// The R.A.I.N. Lab's DEMO recording: byte-identical to its manifest, a valid
+// scripted meeting from a named, clean james_library commit, and a fixture
+// proposal that passes the host's ordinary validation.
+const demoBytes = readFileSync(
+  new URL("../src/bethesda/rain/fixtures/demo-meeting.json", import.meta.url),
+);
+if (createHash("sha256").update(demoBytes).digest("hex") !== demoSource.snapshotSha256)
+  fail(
+    "R.A.I.N. demo recording differs from its manifest; re-record it, never hand-edit it",
+  );
+const recorded = validateMeeting(demoMeeting);
+if (!recorded.ok)
+  fail("R.A.I.N. demo recording is invalid: " + recorded.errors.join("; "));
+if (
+  !/^[0-9a-f]{40}$/.test(demoSource.rain.commit ?? "") ||
+  demoSource.rain.dirty !== false ||
+  demoMeeting.rain.commit !== demoSource.rain.commit ||
+  demoMeeting.meeting_id !== demoSource.meetingId ||
+  demoMeeting.generation !== "scripted" ||
+  demoMeeting.model !== null ||
+  Number.isNaN(Date.parse(demoSource.recordedAt))
+)
+  fail("R.A.I.N. demo recording and manifest disagree, or the recording claims a model");
+const demoExperiment = validateExperiment(demoProposal);
+if (
+  !demoExperiment.ok ||
+  demoProposal.origin !== "fixture" ||
+  demoProposal.rain_decision !== null
+)
+  fail("R.A.I.N. demo proposal must be a valid fixture that claims no R.A.I.N. decision");
 console.log(
-  `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified`,
+  `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified; R.A.I.N. demo recording ${demoSource.meetingId} at james_library ${demoSource.rain.commit.slice(0, 12)} verified`,
 );

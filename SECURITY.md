@@ -71,6 +71,17 @@ any kind.
   response or a log; that makes either endpoint forward text the browser chose
   to a model (it must only send the server's own question); or that bypasses
   their validation or rate limits.
+- The R.A.I.N. Lab's route (`/api/rain/*`): anything that exposes the backend's
+  address or token, gets either into the bundle, a response or a log; that lets
+  the browser choose the upstream host, path, headers or any field beyond the
+  declared ones; that gets an unvalidated or oversized answer past the server;
+  or that lets the lab change the live city, run an experiment without an
+  authorization bound to its definition, or present DEMO content as LIVE. In
+  the reference bridge: anything that lets a request or a model's output reach
+  the model meeting's command line, files or environment beyond the question,
+  that runs something a model wrote, that writes into the james_library
+  checkout, or that sends the question to a remote decision engine without
+  `RAIN_DECISION_REMOTE_ALLOWED=true`.
 
 ## What is out of scope
 
@@ -121,8 +132,10 @@ any kind.
   `tools/jev-secret-scan.mjs`, which fails if the built bundle contains its name,
   a TypeSafe-shaped key, or its value. `/play?brain=llm` works the same way
   through `api/llm/decision.ts` and `LLM_API_KEY`, under the same test and scan
-  (which also looks for Anthropic- and OpenAI-shaped keys). There is no
-  authentication.
+  (which also looks for Anthropic- and OpenAI-shaped keys). The R.A.I.N. Lab's
+  optional backend is configured by `RAIN_BACKEND_URL` and `RAIN_BACKEND_TOKEN`,
+  read only by `api/rain/_config.ts` and the Vite middleware, under the same
+  test and scan. There is no authentication.
 - Anything placed in a frontend build is public. Never add a credential to
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite
   inlines `VITE_`-prefixed values into the bundle, where any visitor can read
@@ -165,11 +178,19 @@ State these plainly to anyone evaluating this project:
   ADS-B feed. It is off by default; without it the application makes no
   cross-origin request at all. Remove `https://api.adsb.lol` from the
   Content-Security-Policy to forbid it entirely.
-- **Two opt-in server-side calls exist**: choosing Jev or the LLM on `/play`
+- **Three opt-in server-side calls exist**: choosing Jev or the LLM on `/play`
   makes the page post a bounded game observation (numbers and fixed
   vocabularies — no free text, no identity) to this deployment's own
   `/api/jev/decision` or `/api/llm/decision`, which asks the model a question
-  the server writes. The browser never talks to a model provider.
+  the server writes. And when a deployment configures a R.A.I.N. backend, the
+  hidden lab in Bethesda posts to `/api/rain/*` the research question a person
+  typed (at most 500 characters, with control and bidirectional characters
+  refused) and, for an experiment the person authorized, its definition and
+  measurements; the server forwards them to the configured backend only. The
+  browser never talks to a model provider or to R.A.I.N. directly. What the
+  backend does next is its operator's configuration: the reference bridge may
+  give the question to a local model through R.A.I.N.'s own meeting, and, only
+  with `RAIN_DECISION_REMOTE_ALLOWED=true`, to TypeSafe.
 - **This system is not accredited.** It is not FedRAMP authorized, not CMMC
   certified, not government-certified, and not approved for classified
   information or Controlled Unclassified Information. Do not place non-public

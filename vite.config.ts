@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { fileURLToPath, URL } from "node:url";
+import { execFileSync } from "node:child_process";
 // `.js` like every import in the server chain, which @vercel/node runs with its
 // specifiers as written. Vite's `configLoader: "native"` cannot load it yet.
 import {
@@ -11,6 +12,8 @@ import {
   createJevDecisionHandler,
 } from "./server/jev/handler.js";
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
+import { createRainHandler } from "./server/rain/handler.js";
+import { LIMITS } from "./src/bethesda/rain/contracts.js";
 
 /**
  * The response headers the deployed site is expected to serve.
@@ -71,6 +74,35 @@ const BUILD_COMMIT = (
   ""
 ).slice(0, 7);
 
+/**
+ * The full revision for R.A.I.N. Lab provenance records. The CI environment's
+ * commit when it reports one (dirty state unknown, so `null`); otherwise the
+ * checkout's own `git rev-parse HEAD` with whether tracked files differ from
+ * it. Without git, unknown — recorded as such, never guessed.
+ */
+function labRevision(): {
+  commit: string | null;
+  dirty: boolean | null;
+  source: "ci" | "git" | "unknown";
+} {
+  const ci = process.env["VERCEL_GIT_COMMIT_SHA"] ?? process.env["GITHUB_SHA"] ?? "";
+  if (/^[0-9a-f]{40}$/.test(ci)) return { commit: ci, dirty: null, source: "ci" };
+  try {
+    const git = (args: string[]) =>
+      execFileSync("git", args, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 5000,
+      }).trim();
+    const commit = git(["rev-parse", "HEAD"]);
+    if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("no commit");
+    const dirty = git(["status", "--porcelain", "--untracked-files=no"]).length > 0;
+    return { commit, dirty, source: "git" };
+  } catch {
+    return { commit: null, dirty: null, source: "unknown" };
+  }
+}
+
 const JEV_DECISION_PATH = "/api/jev/decision";
 
 /**
@@ -115,15 +147,40 @@ function llmDecisionApi(env: Record<string, string>): Plugin {
   return decisionApi("blacksite-llm-decision-api", LLM_DECISION_PATH, handle);
 }
 
+/**
+ * Serves `/api/rain/*` — the R.A.I.N. Lab's only route to a research backend —
+ * from `vite` and `vite preview`, with the handler the Vercel functions use.
+ * `RAIN_BACKEND_URL` and `RAIN_BACKEND_TOKEN` come from the shell or
+ * `.env.local` through `loadEnv` with the `RAIN_` prefix and go only to that
+ * handler: never into `define`, never `VITE_`-prefixed. Unset, the lab is
+ * OFFLINE and says so.
+ */
+function rainApi(env: Record<string, string>): Plugin {
+  const handle = createRainHandler({
+    backendUrl: env["RAIN_BACKEND_URL"],
+    token: env["RAIN_BACKEND_TOKEN"],
+    timeoutMs: env["RAIN_TIMEOUT_MS"],
+  });
+  return decisionApi(
+    "bethesda-rain-api",
+    (path) => path.startsWith("/api/rain/"),
+    handle,
+    LIMITS.submissionRequest,
+  );
+}
+
 /** Mount one decision handler at one path on the dev and preview servers. */
 function decisionApi(
   name: string,
-  mountPath: string,
+  mountPath: string | ((path: string) => boolean),
   handle: (request: Request, meta: { clientKey: string }) => Promise<Response>,
+  maxBodyBytes = MAX_BODY_BYTES,
 ): Plugin {
+  const matches =
+    typeof mountPath === "string" ? (path: string) => path === mountPath : mountPath;
   const middleware: Connect.NextHandleFunction = (req, res, next) => {
-    const path = (req.url ?? "").split("?")[0];
-    if (path !== mountPath) {
+    const path = (req.url ?? "").split("?")[0] ?? "";
+    if (!matches(path)) {
       next();
       return;
     }
@@ -131,7 +188,7 @@ function decisionApi(
     let size = 0;
     req.on("data", (chunk: Buffer) => {
       // Keep one byte past the limit so the handler can report 413 itself.
-      if (size > MAX_BODY_BYTES) return;
+      if (size > maxBodyBytes) return;
       chunks.push(chunk);
       size += chunk.length;
     });
@@ -142,7 +199,7 @@ function decisionApi(
         else if (Array.isArray(value)) headers.set(key, value.join(", "));
       }
       const method = req.method ?? "GET";
-      const body = Buffer.concat(chunks).subarray(0, MAX_BODY_BYTES + 1);
+      const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
       const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, {
         method,
         headers,
@@ -174,7 +231,10 @@ function decisionApi(
 }
 
 export default defineConfig(({ mode }) => ({
-  define: { __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT) },
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
+    __LAB_REVISION__: JSON.stringify(labRevision()),
+  },
   preview: { headers: SECURITY_HEADERS },
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
@@ -182,6 +242,7 @@ export default defineConfig(({ mode }) => ({
     tailwindcss(),
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
     llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
+    rainApi(loadEnv(mode, process.cwd(), "RAIN_")),
   ],
   resolve: {
     alias: {
