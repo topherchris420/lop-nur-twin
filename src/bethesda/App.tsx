@@ -45,6 +45,7 @@ import {
 import { safeExternalHref, EXTERNAL_LINK_PROPS } from "../lib/safeUrl";
 import { LAB_DOOR, nearDoor, resolvesLab } from "./rain/site";
 import type { LabStore } from "./rain/store";
+import { EMBODIMENT } from "./rain/embodiment";
 
 /** The R.A.I.N. Lab loads only when its door is opened. */
 const LabApp = lazy(() => import("./rain/LabApp"));
@@ -190,6 +191,14 @@ function MiniMap({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         c.lineWidth = 1;
         c.beginPath();
         c.arc(...p(e.at), Math.min(90, e.radius * scale), 0, Math.PI * 2);
+        c.stroke();
+      }
+      // The lab's perspectives on outings: drawn where they walk, never counted.
+      for (const m of view.presence?.() ?? []) {
+        c.strokeStyle = EMBODIMENT[m.who].body;
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.arc(...p(m), 3.5, 0, Math.PI * 2);
         c.stroke();
       }
       c.strokeStyle = "rgba(232,241,223,.25)";
@@ -527,6 +536,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     setMessage("Back in Bethesda. The city kept its own time while you were inside.");
   };
   view.onSelect = setSelected;
+  view.presence = () => (labHolder.current as LabStore | null)?.presenceSnapshot() ?? [];
   // Dev-only handle for look-development captures, like `window.__twinStore`.
   // Stripped from production builds; nothing in the app reads it.
   if (import.meta.env.DEV) Object.assign(window, { __bethesda: { sim, view } });
@@ -619,6 +629,8 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
   }, [command]);
   // Leaving Bethesda ends the lab's work; an unfinished run is recorded as such.
   useEffect(() => () => (labHolder.current as LabStore | null)?.dispose(), []);
+  // A replay replaces the city; the lab's store follows it (and ends any outing).
+  useEffect(() => (labHolder.current as LabStore | null)?.attach(sim), [sim]);
   const render = () => refresh((n) => n + 1),
     geo = geographic(view.target);
   const replay = async (file: File | undefined) => {

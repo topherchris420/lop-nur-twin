@@ -24,6 +24,7 @@ import {
   type ScenarioId,
 } from "./contracts";
 import type { ExperimentRecord } from "./record";
+import type { AvatarObservation } from "./presence";
 
 export type NeutralEvent =
   | { type: "conversation_started"; conversation_id: string; participants: string[] }
@@ -251,8 +252,21 @@ export interface EvidenceItem {
 export function evidenceItems(
   meeting: MeetingRecord | null,
   records: readonly ExperimentRecord[],
+  avatar: readonly AvatarObservation[] = [],
 ): EvidenceItem[] {
   const items: EvidenceItem[] = [];
+  for (const o of avatar)
+    items.push({
+      id: `avatar:${o.who}:${o.tick}`,
+      category: "OBSERVATION",
+      title: `${o.place} · tick ${o.tick} · requested by ${o.who}`,
+      body: Object.entries(o.packet.metrics)
+        .filter(([, v]) => v !== null)
+        .map(([k, v]) => `${k} ${v}`)
+        .join(" · "),
+      provenance: `${o.note} World ${o.packet.world_hash} · map ${o.packet.data_hash.slice(0, 12)}…`,
+      grounded: null,
+    });
   if (meeting) {
     for (const t of meeting.turns) {
       items.push({

@@ -46,8 +46,10 @@
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
-    "test:bethesda": "vitest run src/bethesda server/jev/city.test.ts",
-    "verify:bethesda": "node tools/bethesda.mjs"
+    "test:bethesda": "vitest run src/bethesda server/jev/city.test.ts server/rain",
+    "verify:bethesda": "node tools/bethesda.mjs",
+    "rain:conformance": "node tools/rain-conformance.mjs",
+    "rain:demo": "python3 scripts/export-rain-demo.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

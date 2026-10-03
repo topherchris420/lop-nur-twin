@@ -181,10 +181,10 @@ describe("R.A.I.N. route boundary", () => {
       backendUrl: "http://127.0.0.1:8790",
       token: undefined,
       timeoutMs: 1000,
-      fetchImpl: ((_u: unknown, init?: RequestInit) =>
+      fetchImpl: (_u: unknown, init?: RequestInit) =>
         new Promise((_, reject) =>
           init?.signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-        )),
+        ),
     });
     const response = await handle(post("meeting", meetingRequest()), meta);
     expect(response.status).toBe(504);
@@ -196,7 +196,7 @@ describe("R.A.I.N. route boundary", () => {
       handle(post("meeting", { ...meetingRequest(), extra: 1 }), meta),
       handle(post("meeting", { ...meetingRequest(), session: "nope" }), meta),
       handle(post("meeting", { ...meetingRequest(), question: "x".repeat(501) }), meta),
-      handle(post("meeting", { ...meetingRequest(), question: "a‮b" }), meta),
+      handle(post("meeting", { ...meetingRequest(), question: "a\u202eb" }), meta),
       handle(post("meeting", "x".repeat(LIMITS.meetingRequest + 10)), meta),
       handle(post("meeting", meetingRequest(), { Origin: "https://evil.example" }), meta),
       handle(post("shell", meetingRequest()), meta),

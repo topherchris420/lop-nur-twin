@@ -32,6 +32,9 @@ import { runArtifactText, type ExperimentRecord } from "./record";
 import { armTrace } from "./replay";
 import { CONFIRMATION_LENGTH } from "./authorization";
 import type { LabStore } from "./store";
+import { TOOL_NAMES, SENSOR, REGION_RADIUS, type ToolName } from "./tools";
+import { positionAt } from "./presence";
+import { LOCATION_IDS, type Perspective } from "./contracts";
 import type { ExperimentCase } from "./cases";
 import { DATA_VERSION } from "../model";
 import { TERRAIN_VERSION } from "../terrain";
@@ -371,7 +374,12 @@ export function ResearchPanel({
 export function EvidenceLibrary({ store }: { store: LabStore }) {
   const [only, setOnly] = useState<Category | null>(null);
   const items = useMemo(
-    () => evidenceItems(store.meeting?.record ?? null, store.records.slice(0, 6)),
+    () =>
+      evidenceItems(
+        store.meeting?.record ?? null,
+        store.records.slice(0, 6),
+        store.avatarObservations.slice(0, 8),
+      ),
     // The store's version is the dependency: records and meeting change through it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.version],
@@ -953,6 +961,242 @@ function Chart({ store }: { store: LabStore }) {
     </figure>
   );
 }
+function Presence({ store }: { store: LabStore }) {
+  const [who, setWho] = useState<Perspective>("Luca");
+  const [place, setPlace] = useState<LocationId>("bethesda_row");
+  const field = "rounded border border-teal-100/25 bg-[#0d2328] p-1 text-xs";
+  return (
+    <Section title="PERSPECTIVES IN THE CITY">
+      <p className={quiet}>
+        An avatar walks the mapped sidewalks from the lab's door to a place and back. It
+        is not a simulation agent, and where it stands is a place to look, not a thing
+        that was seen: only inside the place's {REGION_RADIUS} m observation region does
+        the simulator record an observation, from its own state, with the avatar named as
+        the one who asked.
+      </p>
+      <div className="mt-2 flex flex-wrap items-end gap-2 text-[11px]">
+        <label>
+          Perspective
+          <select
+            className={field + " block"}
+            value={who}
+            onChange={(e) => setWho(e.target.value as Perspective)}
+          >
+            {PERSPECTIVES.map((p) => (
+              <option key={p}>{p}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Place
+          <select
+            className={field + " block"}
+            value={place}
+            onChange={(e) => setPlace(e.target.value as LocationId)}
+          >
+            {LOCATION_IDS.map((l) => (
+              <option key={l} value={l}>
+                {LOCATION_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className={button} onClick={() => store.sendOuting(who, place)}>
+          Send to observe
+        </button>
+      </div>
+      <p role="status" aria-live="polite" className="mt-1 text-[11px] text-teal-100">
+        {store.presenceNote}
+      </p>
+      {store.outings.length ? (
+        <ul className="mt-1 list-disc pl-5">
+          {store.outings.slice(0, 6).map((o) => (
+            <li key={o.id}>
+              {o.who} → {LOCATION_LABELS[o.location]}:{" "}
+              {positionAt(o, store.sim.tick).phase} · {Math.round(o.length)} m each way
+              {o.refused ? ` · refused: ${o.refused}` : ""}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {store.avatarObservations.length ? (
+        <>
+          <ul className="mt-1 space-y-1">
+            {store.avatarObservations.slice(0, 4).map((o) => (
+              <li
+                key={`${o.who}${o.tick}`}
+                className="rounded border border-teal-100/10 p-1"
+              >
+                <Badge c="OBSERVATION" /> {o.place} at tick {o.tick} (asked by {o.who}):{" "}
+                {Object.entries(o.packet.metrics)
+                  .filter(([, v]) => v !== null)
+                  .map(([k, v]) => `${k} ${v}`)
+                  .join(" · ")}
+                <span className={quiet}> · world {o.packet.world_hash}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            className={button + " mt-1"}
+            onClick={() =>
+              download(
+                "bethesda-avatar-observations.json",
+                JSON.stringify(store.avatarObservations, null, 1),
+              )
+            }
+          >
+            Export observations
+          </button>
+        </>
+      ) : null}
+    </Section>
+  );
+}
+function Tools({ store }: { store: LabStore }) {
+  const [tool, setTool] = useState<ToolName>("observe_nearby_actors");
+  const [place, setPlace] = useState<LocationId>("bethesda_metro");
+  const [other, setOther] = useState<LocationId>("bethesda_row");
+  const [radius, setRadius] = useState(String(SENSOR.default));
+  const [run, setRun] = useState("");
+  const [arm, setArm] = useState("");
+  const [tick, setTick] = useState("400");
+  const field = "rounded border border-teal-100/25 bg-[#0d2328] p-1 text-xs";
+  const record =
+    store.records.find((r) => r.run_id === run) ?? store.records.find((r) => r.run);
+  const located = !tool.startsWith("request_") && tool !== "measure_distance";
+  const request = () => {
+    if (tool === "measure_distance") return { tool, from: place, to: other };
+    if (tool === "request_metric_snapshot")
+      return {
+        tool,
+        run_id: record?.run_id ?? "",
+        arm_id: arm || record?.run?.arms[0]?.id || "",
+        tick: Number(tick),
+      };
+    if (tool === "request_replay_segment")
+      return {
+        tool,
+        run_id: record?.run_id ?? "",
+        arm_id: arm || record?.run?.arms[0]?.id || "",
+        from_tick: 0,
+        to_tick: Number(tick),
+      };
+    if (tool === "inspect_current_event") return { tool, location: place };
+    return { tool, location: place, radius_m: Number(radius) };
+  };
+  const last = store.toolResults[0];
+  return (
+    <Section title="BOUNDED OBSERVATION TOOLS">
+      <p className={quiet}>
+        Read-only inspections, typed and bounded: counts and kinds, never another agent's
+        id or position. There is no tool that acts.
+      </p>
+      <div className="mt-2 flex flex-wrap items-end gap-2 text-[11px]">
+        <label>
+          Tool
+          <select
+            className={field + " block"}
+            value={tool}
+            onChange={(e) => setTool(e.target.value as ToolName)}
+          >
+            {TOOL_NAMES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        {tool.startsWith("request_") ? (
+          <>
+            <label>
+              Run
+              <select
+                className={field + " block"}
+                value={record?.run_id ?? ""}
+                onChange={(e) => setRun(e.target.value)}
+              >
+                {store.records
+                  .filter((r) => r.run)
+                  .map((r) => (
+                    <option key={r.run_id}>{r.run_id}</option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              Arm
+              <select
+                className={field + " block"}
+                value={arm}
+                onChange={(e) => setArm(e.target.value)}
+              >
+                {(record?.run?.arms ?? []).map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.arm} · seed {a.seed}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {tool === "request_metric_snapshot" ? "Tick" : "Up to tick"}
+              <input
+                className={field + " block w-20"}
+                value={tick}
+                onChange={(e) => setTick(e.target.value)}
+              />
+            </label>
+          </>
+        ) : (
+          <label>
+            {tool === "measure_distance" ? "From" : "Place"}
+            <select
+              className={field + " block"}
+              value={place}
+              onChange={(e) => setPlace(e.target.value as LocationId)}
+            >
+              {LOCATION_IDS.map((l) => (
+                <option key={l} value={l}>
+                  {LOCATION_LABELS[l]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {tool === "measure_distance" ? (
+          <label>
+            To
+            <select
+              className={field + " block"}
+              value={other}
+              onChange={(e) => setOther(e.target.value as LocationId)}
+            >
+              {LOCATION_IDS.map((l) => (
+                <option key={l} value={l}>
+                  {LOCATION_LABELS[l]}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {located && tool !== "inspect_current_event" ? (
+          <label>
+            Radius ({SENSOR.min}–{SENSOR.max} m)
+            <input
+              className={field + " block w-16"}
+              value={radius}
+              onChange={(e) => setRadius(e.target.value)}
+            />
+          </label>
+        ) : null}
+        <button className={button} onClick={() => store.inspect(request())}>
+          Inspect
+        </button>
+      </div>
+      {last ? (
+        <pre className="mt-2 max-h-48 overflow-auto rounded bg-black/30 p-2 font-mono text-[10px]">
+          {JSON.stringify(last, null, 1)}
+        </pre>
+      ) : null}
+    </Section>
+  );
+}
 export function ObservationRoom({ store }: { store: LabStore }) {
   const run = store.run;
   const sim = store.sim;
@@ -1044,6 +1288,8 @@ export function ObservationRoom({ store }: { store: LabStore }) {
           </ul>
         ) : null}
       </Section>
+      <Presence store={store} />
+      <Tools store={store} />
       <Section title="REFUSED AND REJECTED">
         <p>
           Proposals rejected by deterministic validation or declined: {rejected.length}.

@@ -39,6 +39,7 @@ import {
   type Vec,
 } from "./labLayout";
 import { currentSpeaker } from "./session";
+import { EMBODIMENT } from "./embodiment";
 import type { LabStore } from "./store";
 
 export interface LabNav {
@@ -52,16 +53,6 @@ export interface LabNav {
 }
 
 const TEAL = "#0B5D63";
-/** R.A.I.N.'s own embodiment: godot_client LOOKS and themes/lab/theme.json. */
-const EMBODIMENT: Record<
-  Perspective,
-  { body: string; accent: string; hair: string; skin: string }
-> = {
-  James: { body: "#6EA5E8", accent: "#355B88", hair: "#2A3D59", skin: "#6EA5E8" },
-  Jasmine: { body: "#D88B5F", accent: "#8D5235", hair: "#231713", skin: "#8a5a3f" },
-  Luca: { body: "#4FB1A8", accent: "#276A63", hair: "#1F4944", skin: "#F0CFAC" },
-  Elena: { body: "#8F85DA", accent: "#524B8E", hair: "#2D2959", skin: "#F0CFAC" },
-};
 
 function textTexture(text: string, width = 512, height = 96, size = 40) {
   const canvas = document.createElement("canvas");
@@ -614,6 +605,21 @@ function ObservationWall({ store }: { store: LabStore }) {
       );
       c.stroke();
     }
+    // Perspectives out in the city, in their own colours.
+    c.lineWidth = 2;
+    for (const m of store.presenceSnapshot()) {
+      c.strokeStyle = EMBODIMENT[m.who].body;
+      c.beginPath();
+      c.arc(
+        6 + (m.x - bounds.min.x) * s,
+        6 + (m.z - bounds.min.z) * s,
+        5,
+        0,
+        Math.PI * 2,
+      );
+      c.stroke();
+    }
+    c.lineWidth = 1;
     texture.needsUpdate = true;
   });
   return (
@@ -771,9 +777,12 @@ function Perspectives({ store }: { store: LabStore }) {
       m?.record ?? null,
       m && m.revealed < m.record.turns.length ? m.revealed : -1,
     );
+    const away = store.presenceSnapshot();
     for (const who of PERSPECTIVES) {
       const g = refs.current[who];
       if (!g) continue;
+      // A perspective on an outing is in the city, not at its station.
+      g.visible = !away.some((a) => a.who === who);
       const target = meeting ? SEATS[who] : STATIONS[who].at;
       const p = (pos.current[who] ??= new THREE.Vector3(
         STATIONS[who].at.x,
@@ -804,7 +813,7 @@ function Perspectives({ store }: { store: LabStore }) {
       });
       const halo = halos.current[who];
       if (halo) {
-        halo.visible = speaker === who;
+        halo.visible = speaker === who && g.visible;
         halo.position.set(p.x, 0.02, p.z);
       }
     }

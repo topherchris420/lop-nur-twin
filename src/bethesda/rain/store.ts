@@ -30,6 +30,17 @@ import { recordDigestOK, type ExperimentRecord } from "./record";
 import { rainDefinitionDraft, rainSubmission } from "./submission";
 import { ROOMS, type RoomId } from "./labLayout";
 import type { WorkerRequest } from "./experimentWorker";
+import {
+  MAX_OUTINGS,
+  observeIfArrived,
+  planOuting,
+  positionAt,
+  type AvatarObservation,
+  type Outing,
+  type PresenceMark,
+} from "./presence";
+import { runTool, type ToolResult } from "./tools";
+import type { LocationId, Perspective } from "./contracts";
 
 export interface MeetingState {
   record: MeetingRecord;
@@ -152,6 +163,15 @@ export class LabStore {
   registryNote = "";
   /** R.A.I.N. answers that proposed nothing, kept visible. */
   handoffs: { at: string; destination: string; reason: string | null }[] = [];
+  /** Perspectives walking the city, and what the simulator observed for them. */
+  outings: Outing[] = [];
+  avatarObservations: AvatarObservation[] = [];
+  presenceNote = "";
+  /** Direct, read-only tool inspections from the Observation Room. */
+  toolResults: ToolResult[] = [];
+  private presenceTimer: ReturnType<typeof setInterval> | null = null;
+  private snapshot: { tick: number; outings: Outing[]; marks: PresenceMark[] } | null =
+    null;
   private revealTimer: ReturnType<typeof setInterval> | null = null;
   private cancelRun: (() => void) | null = null;
 
@@ -164,6 +184,16 @@ export class LabStore {
   attach(sim: CitySimulation) {
     if (sim === this.sim) return;
     this.sim = sim;
+    // An outing walks one city's clock. A replaced city ends it; what the
+    // simulator observed before then is kept, with the world hash it names.
+    if (this.outings.length) {
+      this.outings = [];
+      this.presenceNote =
+        "The city was replaced, so the walks in it ended. Observations made before then are kept.";
+    }
+    if (this.presenceTimer) clearInterval(this.presenceTimer);
+    this.presenceTimer = null;
+    this.snapshot = null;
     this.emit();
   }
   subscribe = (fn: () => void) => {
@@ -627,9 +657,90 @@ export class LabStore {
     }
   }
 
+  // --- Presence in the city ------------------------------------------------------------
+  sendOuting(who: Perspective, location: LocationId) {
+    const active = this.outings.filter(
+      (o) => positionAt(o, this.sim.tick).phase !== "done",
+    );
+    if (active.length >= MAX_OUTINGS) {
+      this.presenceNote = `At most ${MAX_OUTINGS} perspectives walk the city at once.`;
+      this.emit();
+      return;
+    }
+    if (active.some((o) => o.who === who)) {
+      this.presenceNote = `${who} is already out.`;
+      this.emit();
+      return;
+    }
+    const planned = planOuting(who, location, this.sim.tick, hex(6));
+    if ("error" in planned) {
+      this.presenceNote = planned.error;
+      this.emit();
+      return;
+    }
+    this.outings = [planned, ...this.outings].slice(0, 12);
+    this.presenceNote = `${who} is walking ${Math.round(planned.length)} m of mapped sidewalk. Nothing is observed until the avatar is inside the place's observation region, and then only by the simulator.`;
+    if (!this.presenceTimer)
+      this.presenceTimer = setInterval(() => this.tickPresence(), 500);
+    this.emit();
+  }
+  private tickPresence() {
+    let changed = false;
+    for (const o of this.outings) {
+      const had = o.refused;
+      const seen = observeIfArrived(o, this.sim, this.records);
+      if (seen) {
+        this.avatarObservations = [seen, ...this.avatarObservations].slice(0, 40);
+        this.presenceNote = `${seen.who} at ${seen.place}: the simulator recorded an observation at tick ${seen.tick}.`;
+        changed = true;
+      } else if (o.refused && !had) {
+        this.presenceNote = `${o.who}: ${o.refused}.`;
+        changed = true;
+      }
+    }
+    if (this.outings.every((o) => positionAt(o, this.sim.tick).phase === "done")) {
+      if (this.presenceTimer) clearInterval(this.presenceTimer);
+      this.presenceTimer = null;
+      changed = true;
+    }
+    // Positions are drawn from the city tick; panels refresh at most twice a second.
+    if (changed || this.outings.length) this.emit();
+  }
+  /**
+   * Where the avatars on outings are, for drawing — read every frame by the
+   * city and the lab's wall, so it is computed once per city tick. It is a
+   * drawing, not evidence of anything.
+   */
+  presenceSnapshot(): readonly PresenceMark[] {
+    const tick = this.sim.tick;
+    if (this.snapshot?.tick === tick && this.snapshot.outings === this.outings)
+      return this.snapshot.marks;
+    const marks: PresenceMark[] = [];
+    for (const o of this.outings) {
+      const at = positionAt(o, tick);
+      if (at.phase !== "done")
+        marks.push({ who: o.who, x: at.point.x, z: at.point.z, phase: at.phase });
+    }
+    this.snapshot = { tick, outings: this.outings, marks };
+    return marks;
+  }
+  /** One read-only inspection through the bounded tools. */
+  inspect(request: unknown) {
+    const result = runTool(request, {
+      sim: this.sim,
+      records: this.records,
+      observer: null,
+    });
+    this.toolResults = [result, ...this.toolResults].slice(0, 12);
+    this.emit();
+    return result;
+  }
+
   /** Leaving Bethesda ends a run in progress, and the record says so. */
   dispose() {
     if (this.revealTimer) clearInterval(this.revealTimer);
+    if (this.presenceTimer) clearInterval(this.presenceTimer);
+    this.presenceTimer = null;
     const c = this.caseById(this.run?.caseId ?? null);
     if (c && this.cancelRun) {
       this.cancelRun();
