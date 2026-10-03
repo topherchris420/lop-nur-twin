@@ -117,7 +117,7 @@ describe("R.A.I.N. route boundary", () => {
       };
       return reply({ ...meeting, request_id: REQUEST });
     });
-    const handle = live(fetchImpl as unknown as typeof fetch, "bridge-secret-token");
+    const handle = live(fetchImpl, "bridge-secret-token");
     const response = await handle(
       post("meeting", meetingRequest(`  ${QUESTION}  `)),
       meta,
@@ -184,7 +184,7 @@ describe("R.A.I.N. route boundary", () => {
       fetchImpl: ((_u: unknown, init?: RequestInit) =>
         new Promise((_, reject) =>
           init?.signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-        )) as typeof fetch,
+        )),
     });
     const response = await handle(post("meeting", meetingRequest()), meta);
     expect(response.status).toBe(504);

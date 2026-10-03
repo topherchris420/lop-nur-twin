@@ -63,7 +63,8 @@ REQUEST_LIMITS = {"meeting": 4 * 1024, "proposal": 16 * 1024, "preregister": 64 
 HEX32 = re.compile(r"^[0-9a-f]{32}$")
 OPTION_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
 EXPERIMENT_ID = re.compile(r"^V3D-EXP-[0-9]{4,}$")
-UNSAFE_TEXT = re.compile("[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f‪-‮⁦-⁩]")
+UNSAFE_TEXT = re.compile(  # escapes only: the source never contains what it bans
+    r"[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u0085\u200b\u200e\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]")
 ENGINE = "james_library.launcher.offline_meeting.build_offline_meeting"
 #: Fields `experiment create --from` accepts; the registry assigns the rest.
 DRAFT_FIELDS = {"title", "question", "hypothesis", "rationale", "subsystem", "created_by",
