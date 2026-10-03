@@ -20,9 +20,9 @@ The simulation decides its consequences.
 
 | Experience               | What you can do                                                                                                | What it establishes                                                                           |
 | :----------------------- | :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
-| **The analytical twin**  | Inspect structures, trace sources, measure the site, export data and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
-| **Blacksite**            | Play the airfield yourself or give the same seat to Jev, a compatible LLM, a script or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
-| **The Bethesda anomaly** | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
+| **The analytical twin**  | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
+| **Blacksite**            | Play the airfield yourself or give the same seat to Jev, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
+| **Where is The Lab?** | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
 
 Blacksite shares the twin's geometry and cannot write to its evidence ledger.
 Bethesda has its own geography and simulation; it does not share Blacksite's combat
@@ -47,7 +47,7 @@ Open [localhost:5173](http://localhost:5173) for the twin, or
 [localhost:5173/play](http://localhost:5173/play) for Blacksite. Bun users can run
 `bun install` and `bun run dev`.
 
-Exploration, human play, scripted policies and Bethesda's rules-only simulation
+Exploration, human play, scripted policies, and Bethesda's rules-only simulation
 need no model credentials. To connect a model, copy [`.env.example`](.env.example)
 to `.env.local`, configure the server-side provider, then restart the dev server:
 
@@ -73,9 +73,9 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 
 ![A structure dossier showing evidence classification, sources and measured extents](docs/screenshot-dossier.png)
 
-- **Claims carry a status:** observed, reported, interpreted or illustrative.
+- **Claims carry a status:** observed, reported, interpreted, or illustrative.
   The ledger is derived from the layout and source register. Build validation
-  rejects unsupported classifications, missing citations and wording that
+  rejects unsupported classifications, missing citations, and wording that
   presents interpretation as verification.
 - **Unknown stays unknown.** Missing uncertainty is “not stated,” never zero.
   Site-event, evidence-publication and model-entry dates remain separate.
