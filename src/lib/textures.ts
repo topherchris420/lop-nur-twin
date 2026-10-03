@@ -386,6 +386,12 @@ export interface FacadeOptions {
 export interface FacadeTextures {
   map: THREE.CanvasTexture;
   emissive: THREE.CanvasTexture;
+  /**
+   * Absolute roughness in the green channel, laid out like `map`: a matte
+   * wall, satin frames, near-mirror glass. Use with `roughness: 1`, because
+   * three multiplies the material value by the map.
+   */
+  roughness: THREE.CanvasTexture;
 }
 
 /**
@@ -428,33 +434,106 @@ export function makeFacadeTextures(opts: FacadeOptions): FacadeTextures {
   glowCtx.fillStyle = "#000000";
   glowCtx.fillRect(0, 0, S, S);
 
+  // Roughness, laid out like the albedo: the wall is matte render or panel.
+  const roughCtx = makeCanvas(S, S);
+  roughCtx.fillStyle = "rgb(224,224,224)";
+  roughCtx.fillRect(0, 0, S, S);
+
+  // A window used to be a dark gradient painted flat into the wall, which is
+  // why every facade read as stripes. Each one now has the parts that make a
+  // window read at range: a reveal in shadow under the head, an aluminium
+  // frame with mullion and transom, a sill that catches the sun, and glass
+  // that reflects the sky (via the roughness map) over an interior that
+  // varies — blinds part-drawn, curtains, or a dark room.
   for (const band of bands) {
     const y0 = band.top * S;
     const bh = band.height * S;
     const cell = S / band.cols;
     const winW = cell * 0.58;
+    const frame = Math.max(2, Math.round(winW * 0.06));
     for (let c = 0; c < band.cols; c++) {
       const x0 = c * cell + (cell - winW) / 2;
-      // frame
-      ctx.fillStyle = "#57544c";
-      ctx.fillRect(x0 - 2, y0 - 2, winW + 4, bh + 4);
-      // glass, slightly varied
-      const g = ctx.createLinearGradient(0, y0, 0, y0 + bh);
-      g.addColorStop(0, "#3a4750");
-      g.addColorStop(1, "#232b31");
-      ctx.fillStyle = g;
-      ctx.fillRect(x0, y0, winW, bh);
-      ctx.fillStyle = "rgba(255,255,255,0.18)";
-      ctx.fillRect(x0, y0, winW, bh * 0.18);
+      const interior = rand();
+      const blindDrop = 0.15 + rand() * 0.7;
 
-      if (rand() < litRatio) {
-        glowCtx.fillStyle = `rgba(255, ${170 + Math.floor(rand() * 50)}, 94, ${0.75 + rand() * 0.25})`;
-        glowCtx.fillRect(x0, y0, winW, bh);
+      // Reveal: the opening is set back from the wall face, so its head and
+      // one jamb sit in shadow.
+      ctx.fillStyle = "#3a3832";
+      ctx.fillRect(x0 - 3, y0 - 4, winW + 6, bh + 4);
+      // Sill: a projecting ledge, lighter than the wall, with a drip shadow.
+      ctx.fillStyle = "#d9d3c4";
+      ctx.fillRect(x0 - 6, y0 + bh, winW + 12, 3);
+      ctx.fillStyle = "rgba(40,36,30,0.35)";
+      ctx.fillRect(x0 - 6, y0 + bh + 3, winW + 12, 2);
+
+      // Frame.
+      ctx.fillStyle = "#6e6d68";
+      ctx.fillRect(x0, y0, winW, bh);
+
+      // Panes: two lights side by side, a transom across the top third.
+      const transom = bh > winW * 0.9 ? y0 + bh * 0.3 : -1;
+      const paneX = [x0 + frame, x0 + winW / 2 + frame / 2];
+      const paneW = winW / 2 - frame * 1.5;
+      const rows =
+        transom > 0
+          ? [
+              [y0 + frame, transom - frame / 2 - (y0 + frame)],
+              [transom + frame / 2, y0 + bh - frame - (transom + frame / 2)],
+            ]
+          : [[y0 + frame, bh - frame * 2]];
+      for (const [py, ph] of rows) {
+        for (const px of paneX) {
+          if (ph === undefined || py === undefined) continue;
+          // The interior seen through glass; the sky reflection itself comes
+          // from the environment map now that the glass is glossy.
+          const g = ctx.createLinearGradient(0, py, 0, py + ph);
+          g.addColorStop(0, "#26313a");
+          g.addColorStop(1, "#141a1f");
+          ctx.fillStyle = g;
+          ctx.fillRect(px, py, paneW, ph);
+          if (interior < 0.4) {
+            // Venetian blinds lowered part-way: pale slats.
+            const drop = ph * blindDrop;
+            ctx.fillStyle = "#a9a59a";
+            ctx.fillRect(px, py, paneW, drop);
+            ctx.fillStyle = "rgba(60,58,52,0.55)";
+            for (let y = py + 2; y < py + drop; y += 3) ctx.fillRect(px, y, paneW, 1);
+          } else if (interior < 0.55) {
+            // Curtains drawn: soft, warm, folded.
+            ctx.fillStyle = "#7d6d58";
+            ctx.fillRect(px, py, paneW, ph);
+            // Soft folds, wide and faint: hard thin stripes read as a roller
+            // shutter and shimmer at range.
+            ctx.fillStyle = "rgba(30,24,18,0.14)";
+            for (let x = px + 3; x < px + paneW; x += 6) ctx.fillRect(x, py, 2.5, ph);
+          }
+          roughCtx.fillStyle = "rgb(14,14,14)";
+          roughCtx.fillRect(px, py, paneW, ph);
+
+          const lit = rand() < litRatio;
+          if (lit) {
+            const warm = 170 + Math.floor(rand() * 50);
+            const shaded = interior < 0.55 ? 0.55 : 1;
+            glowCtx.fillStyle = `rgba(255, ${warm}, 94, ${(0.75 + rand() * 0.25) * shaded})`;
+            glowCtx.fillRect(px, py, paneW, ph);
+          }
+        }
       }
+      // Frames are satin powder-coat.
+      roughCtx.fillStyle = "rgb(120,120,120)";
+      roughCtx.fillRect(x0, y0, winW, frame);
+      roughCtx.fillRect(x0, y0 + bh - frame, winW, frame);
+      roughCtx.fillRect(x0, y0, frame, bh);
+      roughCtx.fillRect(x0 + winW - frame, y0, frame, bh);
+      roughCtx.fillRect(x0 + winW / 2 - frame / 2, y0, frame, bh);
     }
   }
 
-  return { map: toTexture(ctx), emissive: toTexture(glowCtx) };
+  return {
+    map: toTexture(ctx),
+    emissive: toTexture(glowCtx),
+    roughness: toTexture(roughCtx, false),
+  };
 }
 
 /** White ribbed / seamed panel skin for the big hangar roof and shelters. */

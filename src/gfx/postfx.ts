@@ -682,10 +682,15 @@ uniform sampler2D inputBuffer;
 uniform vec2 texelSize;
 uniform float threshold;
 uniform float knee;
+uniform float isolation;
 varying vec2 vUv;
 
+float peak(vec3 c) {
+  return max(max(c.r, c.g), c.b);
+}
+
 vec3 prefilter(vec3 c) {
-  float brightness = max(max(c.r, c.g), c.b);
+  float brightness = peak(c);
   float soft = clamp(brightness - threshold + knee, 0.0, 2.0 * knee);
   soft = soft * soft / (4.0 * knee + 1e-5);
   float contribution = max(soft, brightness - threshold) / max(brightness, 1e-5);
@@ -694,13 +699,29 @@ vec3 prefilter(vec3 c) {
 
 void main() {
   vec3 sum = vec3(0.0);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2(-1.0, -1.0)).rgb);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2( 1.0, -1.0)).rgb);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2(-1.0,  1.0)).rgb);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2( 1.0,  1.0)).rgb);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2( 0.0, -2.0)).rgb);
-  sum += prefilter(texture2D(inputBuffer, vUv + texelSize * vec2( 0.0,  2.0)).rgb);
-  gl_FragColor = vec4(sum / 6.0, 1.0);
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2(-1.0, -1.0)).rgb;
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2( 1.0, -1.0)).rgb;
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2(-1.0,  1.0)).rgb;
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2( 1.0,  1.0)).rgb;
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2( 0.0, -2.0)).rgb;
+  sum += texture2D(inputBuffer, vUv + texelSize * vec2( 0.0,  2.0)).rgb;
+  vec3 c = sum / 6.0;
+
+  // Only light brighter than everything around it streaks. A lens smears
+  // point sources -- the sun disc, a glint, a lamp -- into lines; an extended
+  // bright area such as the sky beside the sun was being smeared along every
+  // row it touches, which drew a hard horizontal veil across the rifle exactly
+  // where the horizon hid behind it. The brightest of eight samples on a ring
+  // cancels anything wider than the ring, edges included.
+  float ring = 0.0;
+  for (int i = 0; i < 8; i++) {
+    float a = float(i) * 0.78539816;
+    vec2 o = vec2(cos(a), sin(a)) * isolation;
+    ring = max(ring, peak(texture2D(inputBuffer, vUv + texelSize * o).rgb));
+  }
+  float b = peak(c);
+  vec3 isolated = c * clamp((b - ring) / max(b, 1e-5), 0.0, 1.0);
+  gl_FragColor = vec4(prefilter(isolated), 1.0);
 }
 `;
 
@@ -761,6 +782,11 @@ export interface AnamorphicStreaksOptions {
   tint?: THREE.ColorRepresentation;
   iterations?: number;
   resolutionScale?: number;
+  /**
+   * Radius, in source pixels, of the ring a highlight must outshine to
+   * streak. Anything wider than this is an area, not a point, and does not.
+   */
+  isolation?: number;
 }
 
 export class AnamorphicStreaksPass extends Pass {
@@ -779,6 +805,7 @@ export class AnamorphicStreaksPass extends Pass {
     tint = "#8fb8ff",
     iterations = 4,
     resolutionScale = 4,
+    isolation = 12,
   }: AnamorphicStreaksOptions = {}) {
     super("AnamorphicStreaksPass");
 
@@ -804,6 +831,7 @@ export class AnamorphicStreaksPass extends Pass {
       texelSize: { value: new THREE.Vector2() },
       threshold: { value: threshold },
       knee: { value: knee },
+      isolation: { value: isolation },
     });
 
     this.blurMaterial = fullscreenMaterial(STREAK_BLUR_FRAGMENT, {

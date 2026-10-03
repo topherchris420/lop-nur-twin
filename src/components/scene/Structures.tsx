@@ -57,13 +57,16 @@ function facadeMaterial(
   base: string,
   bands: Parameters<typeof makeFacadeTextures>[0]["bands"],
 ): THREE.MeshStandardMaterial {
-  const { map, emissive } = makeFacadeTextures({ seed, base, bands });
+  const { map, emissive, roughness } = makeFacadeTextures({ seed, base, bands });
+  // The roughness map carries absolute values (matte wall, glossy glass), and
+  // three multiplies it by this factor, so the factor is 1.
   return new THREE.MeshStandardMaterial({
     map,
     emissiveMap: emissive,
     emissive: new THREE.Color("#ffffff"),
     emissiveIntensity: 0,
-    roughness: 0.85,
+    roughnessMap: roughness,
+    roughness: 1,
   });
 }
 
@@ -131,15 +134,16 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
   // welded plate: tanks and radomes
   // Real shell courses are ~2.4 m plates nine or ten metres long, butt-welded
   // and painted over, so the seams barely show. The generic plated preset's
-  // 3.4 x 1.7 m staggered cells with dark seams read as masonry blocks.
+  // 3.4 x 1.7 m staggered cells with dark seams read as masonry blocks, and
+  // even darker-than-paint welds drew a tile grid from the twin's aerial view.
   applyPreset(m.tankSteel, "plated", {
     seed: 127,
     plateScale: 9.2,
     plateAspect: 0.26,
-    seamWidth: 0.018,
-    seamDarken: 0.9,
-    seamRelief: 0.35,
-    plateAlbedo: 0.05,
+    seamWidth: 0.015,
+    seamDarken: 0.95,
+    seamRelief: 0.25,
+    plateAlbedo: 0.03,
     streaks: 0.5,
     rust: 0.22,
   });
