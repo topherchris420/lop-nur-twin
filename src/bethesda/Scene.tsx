@@ -17,6 +17,7 @@ import { type CitySimulation } from "./simulation";
 import { Actors } from "./Actors";
 import { signalRigs } from "./signals";
 import { EventVisuals } from "./EventVisuals";
+import { LabDoor } from "./LabDoor";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evidence";
 import { groundAt, minimumGround } from "./terrain";
@@ -379,6 +380,7 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       <Signals sim={sim} />
       <EventVisuals sim={sim} />
       <EvidenceCity view={view} />
+      <LabDoor />
       <Camera sim={sim} view={view} />
     </Canvas>
   );

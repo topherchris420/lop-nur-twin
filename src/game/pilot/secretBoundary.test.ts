@@ -33,7 +33,7 @@ const read = (path: string): string => readFileSync(path, "utf8");
 describe("credential boundary", () => {
   it("no browser module mentions a key or a VITE_ copy of one", () => {
     const offenders = browserFiles.filter((path) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE|LLM_API_KEY|VITE_LLM_|import\.meta\.env\.LLM_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE|LLM_API_KEY|VITE_LLM_|import\.meta\.env\.LLM_|RAIN_BACKEND_TOKEN|RAIN_BACKEND_URL|VITE_RAIN_|import\.meta\.env\.RAIN_/.test(
         read(path),
       ),
     );
@@ -81,6 +81,20 @@ describe("credential boundary", () => {
     expect(readers).toEqual(["api/llm/decision.ts", "vite.config.ts"]);
   });
 
+  it("the R.A.I.N. backend settings are read only by their server-side entry points", () => {
+    const readers = [...walk(join(ROOT, "server")), ...walk(join(ROOT, "api"))]
+      .concat([join(ROOT, "vite.config.ts")])
+      .filter((path) => !/\.test\.ts$/.test(path))
+      .filter((path) =>
+        /(?:process\.env|env)\[\s*["']RAIN_BACKEND_(?:TOKEN|URL)["']\s*\]|process\.env\.RAIN_BACKEND_/.test(
+          read(path),
+        ),
+      )
+      .map((path) => relative(ROOT, path))
+      .sort();
+    expect(readers).toEqual(["api/rain/_config.ts", "vite.config.ts"]);
+  });
+
   it("the SDK that talks to a provider is imported only on the server", () => {
     const offenders = browserFiles.filter((path) =>
       /@anthropic-ai\/sdk/.test(read(path)),
@@ -94,5 +108,7 @@ describe("credential boundary", () => {
     expect(line).toBe("TYPESAFE_API_KEY=");
     const llm = example.split("\n").find((l) => l.startsWith("LLM_API_KEY="));
     expect(llm).toBe("LLM_API_KEY=");
+    for (const name of ["RAIN_BACKEND_URL", "RAIN_BACKEND_TOKEN"])
+      expect(example.split("\n").find((l) => l.startsWith(name + "="))).toBe(name + "=");
   });
 });

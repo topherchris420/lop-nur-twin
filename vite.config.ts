@@ -12,6 +12,8 @@ import {
   createJevDecisionHandler,
 } from "./server/jev/handler.js";
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
+import { createRainHandler } from "./server/rain/handler.js";
+import { LIMITS } from "./src/bethesda/rain/contracts.js";
 
 /**
  * The response headers the deployed site is expected to serve.
@@ -145,15 +147,40 @@ function llmDecisionApi(env: Record<string, string>): Plugin {
   return decisionApi("blacksite-llm-decision-api", LLM_DECISION_PATH, handle);
 }
 
+/**
+ * Serves `/api/rain/*` — the R.A.I.N. Lab's only route to a research backend —
+ * from `vite` and `vite preview`, with the handler the Vercel functions use.
+ * `RAIN_BACKEND_URL` and `RAIN_BACKEND_TOKEN` come from the shell or
+ * `.env.local` through `loadEnv` with the `RAIN_` prefix and go only to that
+ * handler: never into `define`, never `VITE_`-prefixed. Unset, the lab is
+ * OFFLINE and says so.
+ */
+function rainApi(env: Record<string, string>): Plugin {
+  const handle = createRainHandler({
+    backendUrl: env["RAIN_BACKEND_URL"],
+    token: env["RAIN_BACKEND_TOKEN"],
+    timeoutMs: env["RAIN_TIMEOUT_MS"],
+  });
+  return decisionApi(
+    "bethesda-rain-api",
+    (path) => path.startsWith("/api/rain/"),
+    handle,
+    LIMITS.submissionRequest,
+  );
+}
+
 /** Mount one decision handler at one path on the dev and preview servers. */
 function decisionApi(
   name: string,
-  mountPath: string,
+  mountPath: string | ((path: string) => boolean),
   handle: (request: Request, meta: { clientKey: string }) => Promise<Response>,
+  maxBodyBytes = MAX_BODY_BYTES,
 ): Plugin {
+  const matches =
+    typeof mountPath === "string" ? (path: string) => path === mountPath : mountPath;
   const middleware: Connect.NextHandleFunction = (req, res, next) => {
-    const path = (req.url ?? "").split("?")[0];
-    if (path !== mountPath) {
+    const path = (req.url ?? "").split("?")[0] ?? "";
+    if (!matches(path)) {
       next();
       return;
     }
@@ -161,7 +188,7 @@ function decisionApi(
     let size = 0;
     req.on("data", (chunk: Buffer) => {
       // Keep one byte past the limit so the handler can report 413 itself.
-      if (size > MAX_BODY_BYTES) return;
+      if (size > maxBodyBytes) return;
       chunks.push(chunk);
       size += chunk.length;
     });
@@ -172,7 +199,7 @@ function decisionApi(
         else if (Array.isArray(value)) headers.set(key, value.join(", "));
       }
       const method = req.method ?? "GET";
-      const body = Buffer.concat(chunks).subarray(0, MAX_BODY_BYTES + 1);
+      const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
       const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, {
         method,
         headers,
@@ -215,6 +242,7 @@ export default defineConfig(({ mode }) => ({
     tailwindcss(),
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
     llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
+    rainApi(loadEnv(mode, process.cwd(), "RAIN_")),
   ],
   resolve: {
     alias: {

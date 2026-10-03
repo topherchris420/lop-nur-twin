@@ -7,6 +7,21 @@
     },
     "api/llm/decision.ts": {
       "maxDuration": 30
+    },
+    "api/rain/status.ts": {
+      "maxDuration": 10
+    },
+    "api/rain/meeting.ts": {
+      "maxDuration": 60
+    },
+    "api/rain/proposal.ts": {
+      "maxDuration": 30
+    },
+    "api/rain/preregister.ts": {
+      "maxDuration": 30
+    },
+    "api/rain/submission.ts": {
+      "maxDuration": 30
     }
   },
   "headers": [

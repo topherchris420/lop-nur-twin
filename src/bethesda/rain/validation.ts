@@ -51,12 +51,18 @@ const isObject = (v: unknown): v is Json =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
 /**
- * Control characters other than newline and tab, and the bidirectional
- * overrides that let text read differently from what it contains. Research
- * prose has no use for either, so their presence rejects the message.
+ * Control characters other than newline and tab, the bidirectional overrides
+ * and marks that let text read differently from what it contains, and the
+ * invisible separators two runtimes disagree about splitting on. Research
+ * prose has no use for any of them, so their presence rejects the message.
+ * Written as escapes: the source must never contain the characters it bans.
  */
-// eslint-disable-next-line no-control-regex
-const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f‪-‮⁦-⁩]/;
+const UNSAFE_TEXT =
+  // eslint-disable-next-line no-control-regex
+  /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u0085\u200b\u200e\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]/;
+export const unsafeText = (s: string) => UNSAFE_TEXT.test(s);
+/** Whitespace collapsed exactly as the bridge collapses it (`" ".join(q.split())`). */
+export const normalizeQuestion = (s: string) => s.split(/\s+/).filter(Boolean).join(" ");
 
 /** UTF-8 byte length without allocating the encoding. */
 export function utf8Length(text: string): number {

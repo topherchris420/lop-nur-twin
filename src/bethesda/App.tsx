@@ -1,4 +1,12 @@
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { CityScene, type ViewControl } from "./Scene";
 import { CitySimulation, FOCUS_RADII, PROFILES, type Trace } from "./simulation";
 import { CityDecisionBroker } from "./jev";
@@ -35,6 +43,37 @@ import {
   type EvidenceClassification,
 } from "./evidence";
 import { safeExternalHref, EXTERNAL_LINK_PROPS } from "../lib/safeUrl";
+import { LAB_DOOR, nearDoor, resolvesLab } from "./rain/site";
+import type { LabStore } from "./rain/store";
+
+/** The R.A.I.N. Lab loads only when its door is opened. */
+const LabApp = lazy(() => import("./rain/LabApp"));
+class LabBoundary extends Component<
+  { children: ReactNode; onExit: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? (
+      <div
+        role="status"
+        className="absolute inset-0 grid place-items-center text-teal-100"
+      >
+        <div>
+          <p>The door does not open. The city is unaffected.</p>
+          <button className="mt-4 underline" onClick={this.props.onExit}>
+            Return to Bethesda
+          </button>
+        </div>
+      </div>
+    ) : (
+      this.props.children
+    );
+  }
+}
 
 function save(name: string, value: unknown) {
   const url = URL.createObjectURL(
@@ -450,6 +489,43 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const { sim, broker, view } = w;
+  // The lab: whether you are inside, and the store that outlives each visit.
+  const [inside, setInside] = useState(false),
+    [nearLab, setNearLab] = useState(false);
+  const insideRef = useRef(false),
+    nearRef = useRef(false),
+    labHolder = useRef<unknown>(null);
+  const entered = useRef<{ by: "door" | "coordinates"; mode: ViewControl["mode"] }>({
+    by: "door",
+    mode: "walk",
+  });
+  const enterLab = (by: "door" | "coordinates" = "door") => {
+    entered.current = { by, mode: view.mode };
+    view.keys.clear();
+    insideRef.current = true;
+    nearRef.current = false;
+    setNearLab(false);
+    setCommand(false);
+    setInside(true);
+  };
+  const openLab = useRef(enterLab);
+  openLab.current = enterLab;
+  const exitLab = () => {
+    insideRef.current = false;
+    view.keys.clear();
+    if (entered.current.by === "door") {
+      // Step out facing away from the door.
+      view.mode = "walk";
+      if (LAB_DOOR) view.yaw = LAB_DOOR.facing + Math.PI;
+      view.pitch = 0;
+    } else {
+      // Entered by its coordinates: the city view is where you left it.
+      view.mode = entered.current.mode;
+      view.relocate = view.mode === "orbit";
+    }
+    setInside(false);
+    setMessage("Back in Bethesda. The city kept its own time while you were inside.");
+  };
   view.onSelect = setSelected;
   // Dev-only handle for look-development captures, like `window.__twinStore`.
   // Stripped from production builds; nothing in the app reads it.
@@ -460,8 +536,14 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     broker.start();
     const heartbeat = setInterval(() => refresh((n) => n + 1), 1000);
     const timer = setInterval(() => {
+      // The door is only ever found on foot, and only shown up close.
+      const near = view.mode === "walk" && !insideRef.current && nearDoor(sim.player);
+      if (near !== nearRef.current) {
+        nearRef.current = near;
+        setNearLab(near);
+      }
       if (sim.paused) return;
-      if (view.mode === "walk") {
+      if (view.mode === "walk" && !insideRef.current) {
         let x = 0,
           z = 0;
         const k = view.keys,
@@ -506,9 +588,15 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
         )
       )
         return;
+      // Inside the lab its own controls apply; the city takes no keys.
+      if (insideRef.current) return;
       if (e.code === "Backquote") {
         e.preventDefault();
         setCommand((v) => !v);
+      }
+      if (e.code === "KeyE" && nearRef.current) {
+        e.preventDefault();
+        openLab.current("door");
       }
       if (["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft"].includes(e.code)) {
         if (view.mode !== "orbit") e.preventDefault();
@@ -529,6 +617,8 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
   useEffect(() => {
     if (command) input.current?.focus();
   }, [command]);
+  // Leaving Bethesda ends the lab's work; an unfinished run is recorded as such.
+  useEffect(() => () => (labHolder.current as LabStore | null)?.dispose(), []);
   const render = () => refresh((n) => n + 1),
     geo = geographic(view.target);
   const replay = async (file: File | undefined) => {
@@ -558,353 +648,403 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
   return (
     <main
       data-bethesda="active"
+      data-indoors={inside ? "rain-lab" : undefined}
       data-status-refresh={version}
       className="relative h-full w-full overflow-hidden bg-[#111f22] text-slate-100"
     >
-      <RenderBoundary>
-        <CityScene sim={sim} view={view} />
-      </RenderBoundary>
-      <header className={"absolute top-4 left-4 max-w-[68vw] " + panel}>
-        <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
-          ANOMALOUS LOCATION RESOLUTION
-        </p>
-        <h1 className="mt-1 text-xl tracking-wide">Bethesda, Maryland</h1>
-        <p className="mt-1 font-mono text-[10px]">
-          {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
-        </p>
-        <p className="mt-2 text-[11px] text-slate-300">
-          Real map / terrain · inferred buildings · simulated behavior
-        </p>
-      </header>
-      <nav
-        aria-label="Environment"
-        className="absolute top-4 right-4 flex flex-col gap-2 sm:flex-row"
-      >
-        <button className={panel + " text-xs"} onClick={() => setNotes(!notes)}>
-          {notes ? "Close field notes" : "Field notes"}
-        </button>
-        <button className={panel + " text-xs"} onClick={onReturn}>
-          Return to the desert
-        </button>
-      </nav>
-      <aside className={"absolute bottom-4 left-4 " + panel}>
-        <MiniMap sim={sim} view={view} />
-        <a
-          href={safeExternalHref("https://www.openstreetmap.org/copyright")}
-          {...EXTERNAL_LINK_PROPS}
-          className="mt-2 block text-[10px] text-teal-100 underline"
-        >
-          © OpenStreetMap contributors · ODbL
-        </a>
-      </aside>
-      {view.evidence ? (
-        <aside
-          aria-label="Evidence legend"
-          className={"absolute top-36 left-4 w-60 text-[11px] " + panel}
-        >
-          <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
-            EVIDENCE VIEW · BUILDING MASSING
-          </p>
-          <ul className="mt-2 space-y-1">
-            {CLASSES.map((c) => (
-              <li key={c}>
-                <Glyph c={c} /> {EVIDENCE_CLASSIFICATION_META[c].label} · {tally[c]}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-slate-300">
-            Footprints are reported by OSM; the class shown is the weaker of footprint and
-            height. Click a building for its dossier.
-          </p>
-        </aside>
-      ) : null}
-      {selected ? (
-        <Dossier
-          id={selected}
-          onClose={() => {
-            view.selected = null;
-            setSelected(null);
-          }}
-        />
-      ) : null}
-      <section
-        aria-label="City controls"
-        className={
-          "absolute right-4 bottom-4 max-h-[47vh] w-[min(640px,calc(100vw-32px))] overflow-auto sm:w-[min(640px,calc(100vw-250px))] " +
-          panel
-        }
-      >
-        <p role="status" className="mb-2 text-xs text-teal-100">
-          {message}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {(["orbit", "walk", "seat"] as const).map((mode, i) => (
-            <button
-              key={mode}
-              className={button}
-              aria-pressed={view.mode === mode}
-              onClick={() => {
-                view.mode = mode;
-                view.relocate = mode === "orbit";
-                view.keys.clear();
-                render();
-              }}
-            >
-              {["Survey", "Walk", "Pedestrian seat"][i]}
+      {inside ? (
+        <LabBoundary onExit={exitLab}>
+          <Suspense
+            fallback={
+              <p
+                role="status"
+                className="absolute top-1/3 w-full text-center text-teal-100"
+              >
+                The door opens…
+              </p>
+            }
+          >
+            <LabApp sim={sim} holder={labHolder} onExit={exitLab} />
+          </Suspense>
+        </LabBoundary>
+      ) : (
+        <>
+          <RenderBoundary>
+            <CityScene sim={sim} view={view} />
+          </RenderBoundary>
+          <header className={"absolute top-4 left-4 max-w-[68vw] " + panel}>
+            <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
+              ANOMALOUS LOCATION RESOLUTION
+            </p>
+            <h1 className="mt-1 text-xl tracking-wide">Bethesda, Maryland</h1>
+            <p className="mt-1 font-mono text-[10px]">
+              {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
+            </p>
+            <p className="mt-2 text-[11px] text-slate-300">
+              Real map / terrain · inferred buildings · simulated behavior
+            </p>
+          </header>
+          <nav
+            aria-label="Environment"
+            className="absolute top-4 right-4 flex flex-col gap-2 sm:flex-row"
+          >
+            <button className={panel + " text-xs"} onClick={() => setNotes(!notes)}>
+              {notes ? "Close field notes" : "Field notes"}
             </button>
-          ))}
-          <button
-            className={button}
-            onClick={() => {
-              sim.paused = !sim.paused;
-              render();
-            }}
+            <button className={panel + " text-xs"} onClick={onReturn}>
+              Return to the desert
+            </button>
+          </nav>
+          <aside className={"absolute bottom-4 left-4 " + panel}>
+            <MiniMap sim={sim} view={view} />
+            <a
+              href={safeExternalHref("https://www.openstreetmap.org/copyright")}
+              {...EXTERNAL_LINK_PROPS}
+              className="mt-2 block text-[10px] text-teal-100 underline"
+            >
+              © OpenStreetMap contributors · ODbL
+            </a>
+          </aside>
+          {view.evidence ? (
+            <aside
+              aria-label="Evidence legend"
+              className={"absolute top-36 left-4 w-60 text-[11px] " + panel}
+            >
+              <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
+                EVIDENCE VIEW · BUILDING MASSING
+              </p>
+              <ul className="mt-2 space-y-1">
+                {CLASSES.map((c) => (
+                  <li key={c}>
+                    <Glyph c={c} /> {EVIDENCE_CLASSIFICATION_META[c].label} · {tally[c]}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-slate-300">
+                Footprints are reported by OSM; the class shown is the weaker of footprint
+                and height. Click a building for its dossier.
+              </p>
+            </aside>
+          ) : null}
+          {selected ? (
+            <Dossier
+              id={selected}
+              onClose={() => {
+                view.selected = null;
+                setSelected(null);
+              }}
+            />
+          ) : null}
+          <section
+            aria-label="City controls"
+            className={
+              "absolute right-4 bottom-4 max-h-[47vh] w-[min(640px,calc(100vw-32px))] overflow-auto sm:w-[min(640px,calc(100vw-250px))] " +
+              panel
+            }
           >
-            {sim.paused ? "Resume" : "Pause"}
-          </button>
-          <button
-            className={button}
-            aria-pressed={broker.enabled}
-            onClick={() => {
-              broker.enabled = !broker.enabled;
-              render();
-            }}
-          >
-            {broker.enabled ? "Jev on" : "Jev off"}
-          </button>
-          <button
-            className={button}
-            aria-pressed={view.evidence}
-            onClick={() => {
-              view.evidence = !view.evidence;
-              render();
-            }}
-          >
-            Evidence view
-          </button>
-        </div>
-        {view.mode === "walk" ? (
-          <p className="mt-2 text-xs text-slate-300">
-            WASD · Shift to move faster · drag to look · double-click for mouse lock ·
-            Escape releases · click a building for its dossier
-          </p>
-        ) : null}
-        {view.mode === "seat" ? (
-          <div className="mt-2 flex flex-wrap gap-1" aria-label="Permitted human actions">
-            {sim.observe(0).candidates.map((a) => (
+            <p role="status" className="mb-2 text-xs text-teal-100">
+              {message}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(["orbit", "walk", "seat"] as const).map((mode, i) => (
+                <button
+                  key={mode}
+                  className={button}
+                  aria-pressed={view.mode === mode}
+                  onClick={() => {
+                    view.mode = mode;
+                    view.relocate = mode === "orbit";
+                    view.keys.clear();
+                    render();
+                  }}
+                >
+                  {["Survey", "Walk", "Pedestrian seat"][i]}
+                </button>
+              ))}
               <button
-                key={a}
                 className={button}
                 onClick={() => {
-                  sim.humanAction(a);
-                  setMessage("Human choice validated through the city action gate.");
+                  sim.paused = !sim.paused;
+                  render();
                 }}
               >
-                {a.replaceAll("_", " ")}
+                {sim.paused ? "Resume" : "Pause"}
               </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="mt-2 flex flex-wrap gap-3">
-          <button
-            className="text-[11px] text-slate-300 underline"
-            title="Auto reduces visual cost on slow hardware. Detail keeps reflections and block-scale shadows. Economy disables shadows."
-            onClick={() => {
-              view.quality =
-                view.quality === "auto"
-                  ? "detail"
-                  : view.quality === "detail"
-                    ? "economy"
-                    : "auto";
-              render();
-            }}
-          >
-            Visuals: {view.quality}
-          </button>
-          {landmarks.map((p) => (
-            <button
-              key={p.name}
-              className="text-[11px] text-slate-300 underline"
-              onClick={() => {
-                view.target = { ...p.point };
-                view.mode = "orbit";
-                view.relocate = true;
-                render();
-              }}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-        <Pulse sim={sim} />
-        <p className="mt-2 font-mono text-[10px] text-slate-300">
-          {sim.config.pedestrians} individual pedestrians · {sim.config.vehicles} cars ·{" "}
-          {sim.config.buses} buses · {sim.config.statisticalPopulation} statistical
-          occupants
-          <br />
-          tick {sim.tick} · {view.fps} fps · render tier {view.tier} · {broker.status} ·
-          accepted {broker.accepted} / fallback {broker.fallbacks} · decisions{" "}
-          {sim.decisions.length} (+{sim.reaffirmed} folded)
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100">
-          <button
-            className="underline"
-            onClick={() => {
-              try {
-                save("bethesda-replay.json", sim.export());
-                setMessage("Replay exported.");
-              } catch (e) {
-                setMessage(String(e));
-              }
-            }}
-          >
-            Export replay
-          </button>
-          <label className="cursor-pointer underline">
-            {busy ? "Verifying…" : "Verify replay"}
-            <input
-              aria-label="Verify replay file"
-              type="file"
-              accept=".json,application/json"
-              className="sr-only"
-              disabled={busy}
-              onChange={(e) => void replay(e.target.files?.[0])}
-            />
-          </label>
-          <button
-            className="underline"
-            onClick={() => {
-              setWorld(world());
-              setSelected(null);
-              setMessage("New seeded experiment.");
-            }}
-          >
-            Reset city
-          </button>
-          <button className="underline" onClick={() => setCommand(true)}>
-            ~ telemetry
-          </button>
-        </div>
-      </section>
-      {notes ? (
-        <section
-          aria-label="Geographic field notes"
-          className={"absolute top-32 left-4 z-20 max-w-[calc(100vw-32px)] " + panel}
-        >
-          <Notes />
-          <button className={button + " mt-4"} onClick={() => setNotes(false)}>
-            Close field notes
-          </button>
-        </section>
-      ) : null}
-      {command ? (
-        <section
-          aria-label="Scenario telemetry"
-          className={
-            "absolute top-1/4 left-1/2 z-30 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 " +
-            panel
-          }
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const result = compileScenario(text);
-              setCompiled(result);
-              if (result.error) {
-                setMessage("Unresolved event. " + result.error);
-                return;
-              }
-              const injected = result.events.filter((s) => sim.inject(s));
-              if (!injected.length) setMessage("Event limit reached (8).");
-              else {
-                setMessage(
-                  "Event injected: " +
-                    injected.map((s) => s.label).join(" + ") +
-                    (injected.length < result.events.length
-                      ? " (limit reached for the rest)"
-                      : ""),
-                );
-                setText("");
-              }
-            }}
-          >
-            <label
-              htmlFor="city-event"
-              className="font-mono text-xs tracking-widest text-teal-100"
-            >
-              SCENARIO TELEMETRY
-            </label>
-            <input
-              ref={input}
-              id="city-event"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              maxLength={240}
-              placeholder="Fire near Bethesda Row."
-              className="mt-3 w-full rounded border border-teal-100/25 bg-transparent p-3 text-sm"
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setCommand(false);
-              }}
-            />
-            <p className="my-3 text-xs text-slate-300">
-              Describe an event and a real place in the extract: a street, an intersection
-              (“Woodmont and Bethesda Ave”), a named building, park, storefront or
-              monument. Families: {Object.values(LABELS).join(" · ").toLowerCase()}.
-            </p>
-            <div className="mb-3 flex flex-wrap gap-2 text-[11px]">
-              {EXAMPLES.map((x) => (
+              <button
+                className={button}
+                aria-pressed={broker.enabled}
+                onClick={() => {
+                  broker.enabled = !broker.enabled;
+                  render();
+                }}
+              >
+                {broker.enabled ? "Jev on" : "Jev off"}
+              </button>
+              <button
+                className={button}
+                aria-pressed={view.evidence}
+                onClick={() => {
+                  view.evidence = !view.evidence;
+                  render();
+                }}
+              >
+                Evidence view
+              </button>
+            </div>
+            {view.mode === "walk" ? (
+              <p className="mt-2 text-xs text-slate-300">
+                WASD · Shift to move faster · drag to look · double-click for mouse lock ·
+                Escape releases · click a building for its dossier
+              </p>
+            ) : null}
+            {view.mode === "seat" ? (
+              <div
+                className="mt-2 flex flex-wrap gap-1"
+                aria-label="Permitted human actions"
+              >
+                {sim.observe(0).candidates.map((a) => (
+                  <button
+                    key={a}
+                    className={button}
+                    onClick={() => {
+                      sim.humanAction(a);
+                      setMessage("Human choice validated through the city action gate.");
+                    }}
+                  >
+                    {a.replaceAll("_", " ")}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-3">
+              <button
+                className="text-[11px] text-slate-300 underline"
+                title="Auto reduces visual cost on slow hardware. Detail keeps reflections and block-scale shadows. Economy disables shadows."
+                onClick={() => {
+                  view.quality =
+                    view.quality === "auto"
+                      ? "detail"
+                      : view.quality === "detail"
+                        ? "economy"
+                        : "auto";
+                  render();
+                }}
+              >
+                Visuals: {view.quality}
+              </button>
+              {landmarks.map((p) => (
                 <button
-                  key={x}
-                  type="button"
-                  className="underline"
-                  onClick={() => setText(x)}
+                  key={p.name}
+                  className="text-[11px] text-slate-300 underline"
+                  onClick={() => {
+                    view.target = { ...p.point };
+                    view.mode = "orbit";
+                    view.relocate = true;
+                    render();
+                  }}
                 >
-                  {x}
+                  {p.name}
                 </button>
               ))}
             </div>
-            {compiled ? (
-              <details className="mb-3 text-[11px]" open={!!compiled.error}>
-                <summary className="cursor-pointer text-teal-100">
-                  {compiled.error
-                    ? "Not compiled"
-                    : `Compiled ${compiled.events.length} structured event(s)`}
-                </summary>
-                {compiled.error ? (
-                  <p className="mt-1">{compiled.error}</p>
-                ) : (
-                  <>
-                    <ul className="mt-1 list-disc pl-5">
-                      {compiled.notes.map((n) => (
-                        <li key={n}>{n}</li>
-                      ))}
-                    </ul>
-                    <pre className="mt-2 max-h-40 overflow-auto rounded bg-black/30 p-2 font-mono text-[10px]">
-                      {JSON.stringify(
-                        compiled.events.map((e) => ({
-                          ...e,
-                          point: { x: Math.round(e.point.x), z: Math.round(e.point.z) },
-                          route: e.route ? `${e.route.length} road nodes` : undefined,
-                        })),
-                        null,
-                        1,
-                      )}
-                    </pre>
-                  </>
-                )}
-              </details>
-            ) : null}
-            <div className="flex gap-2">
-              <button className={button} type="submit">
-                Inject event
+            <Pulse sim={sim} />
+            <p className="mt-2 font-mono text-[10px] text-slate-300">
+              {sim.config.pedestrians} individual pedestrians · {sim.config.vehicles} cars
+              · {sim.config.buses} buses · {sim.config.statisticalPopulation} statistical
+              occupants
+              <br />
+              tick {sim.tick} · {view.fps} fps · render tier {view.tier} · {broker.status}{" "}
+              · accepted {broker.accepted} / fallback {broker.fallbacks} · decisions{" "}
+              {sim.decisions.length} (+{sim.reaffirmed} folded)
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100">
+              <button
+                className="underline"
+                onClick={() => {
+                  try {
+                    save("bethesda-replay.json", sim.export());
+                    setMessage("Replay exported.");
+                  } catch (e) {
+                    setMessage(String(e));
+                  }
+                }}
+              >
+                Export replay
               </button>
-              <button className={button} type="button" onClick={() => setCommand(false)}>
-                Close
+              <label className="cursor-pointer underline">
+                {busy ? "Verifying…" : "Verify replay"}
+                <input
+                  aria-label="Verify replay file"
+                  type="file"
+                  accept=".json,application/json"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => void replay(e.target.files?.[0])}
+                />
+              </label>
+              <button
+                className="underline"
+                onClick={() => {
+                  setWorld(world());
+                  setSelected(null);
+                  setMessage("New seeded experiment.");
+                }}
+              >
+                Reset city
+              </button>
+              <button className="underline" onClick={() => setCommand(true)}>
+                ~ telemetry
               </button>
             </div>
-          </form>
-        </section>
-      ) : null}
+          </section>
+          {notes ? (
+            <section
+              aria-label="Geographic field notes"
+              className={"absolute top-32 left-4 z-20 max-w-[calc(100vw-32px)] " + panel}
+            >
+              <Notes />
+              <button className={button + " mt-4"} onClick={() => setNotes(false)}>
+                Close field notes
+              </button>
+            </section>
+          ) : null}
+          {command ? (
+            <section
+              aria-label="Scenario telemetry"
+              className={
+                "absolute top-1/4 left-1/2 z-30 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 " +
+                panel
+              }
+            >
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (resolvesLab(text)) {
+                    setText("");
+                    enterLab("coordinates");
+                    return;
+                  }
+                  const result = compileScenario(text);
+                  setCompiled(result);
+                  if (result.error) {
+                    setMessage("Unresolved event. " + result.error);
+                    return;
+                  }
+                  const injected = result.events.filter((s) => sim.inject(s));
+                  if (!injected.length) setMessage("Event limit reached (8).");
+                  else {
+                    setMessage(
+                      "Event injected: " +
+                        injected.map((s) => s.label).join(" + ") +
+                        (injected.length < result.events.length
+                          ? " (limit reached for the rest)"
+                          : ""),
+                    );
+                    setText("");
+                  }
+                }}
+              >
+                <label
+                  htmlFor="city-event"
+                  className="font-mono text-xs tracking-widest text-teal-100"
+                >
+                  SCENARIO TELEMETRY
+                </label>
+                <input
+                  ref={input}
+                  id="city-event"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  maxLength={240}
+                  placeholder="Fire near Bethesda Row."
+                  className="mt-3 w-full rounded border border-teal-100/25 bg-transparent p-3 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setCommand(false);
+                  }}
+                />
+                <p className="my-3 text-xs text-slate-300">
+                  Describe an event and a real place in the extract: a street, an
+                  intersection (“Woodmont and Bethesda Ave”), a named building, park,
+                  storefront or monument. Families:{" "}
+                  {Object.values(LABELS).join(" · ").toLowerCase()}.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2 text-[11px]">
+                  {EXAMPLES.map((x) => (
+                    <button
+                      key={x}
+                      type="button"
+                      className="underline"
+                      onClick={() => setText(x)}
+                    >
+                      {x}
+                    </button>
+                  ))}
+                </div>
+                {compiled ? (
+                  <details className="mb-3 text-[11px]" open={!!compiled.error}>
+                    <summary className="cursor-pointer text-teal-100">
+                      {compiled.error
+                        ? "Not compiled"
+                        : `Compiled ${compiled.events.length} structured event(s)`}
+                    </summary>
+                    {compiled.error ? (
+                      <p className="mt-1">{compiled.error}</p>
+                    ) : (
+                      <>
+                        <ul className="mt-1 list-disc pl-5">
+                          {compiled.notes.map((n) => (
+                            <li key={n}>{n}</li>
+                          ))}
+                        </ul>
+                        <pre className="mt-2 max-h-40 overflow-auto rounded bg-black/30 p-2 font-mono text-[10px]">
+                          {JSON.stringify(
+                            compiled.events.map((e) => ({
+                              ...e,
+                              point: {
+                                x: Math.round(e.point.x),
+                                z: Math.round(e.point.z),
+                              },
+                              route: e.route ? `${e.route.length} road nodes` : undefined,
+                            })),
+                            null,
+                            1,
+                          )}
+                        </pre>
+                      </>
+                    )}
+                  </details>
+                ) : null}
+                <div className="flex gap-2">
+                  <button className={button} type="submit">
+                    Inject event
+                  </button>
+                  <button
+                    className={button}
+                    type="button"
+                    onClick={() => setCommand(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            </section>
+          ) : null}
+          {nearLab ? (
+            <div
+              role="status"
+              className={
+                "absolute bottom-[50vh] left-1/2 z-20 -translate-x-1/2 text-center text-xs " +
+                panel
+              }
+            >
+              <p>An unmarked door, a little unlike the others.</p>
+              <button className={button + " mt-2"} onClick={() => enterLab("door")}>
+                Open it (E)
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
     </main>
   );
 }
