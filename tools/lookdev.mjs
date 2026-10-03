@@ -35,16 +35,9 @@
 import puppeteer from "puppeteer";
 import { spawn, spawnSync, execFileSync } from "node:child_process";
 import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, rm } from "node:fs/promises";
-import {
-  openSync,
-  closeSync,
-  readFileSync,
-  writeFileSync,
-  unlinkSync,
-  mkdirSync,
-} from "node:fs";
+import { readFileSync } from "node:fs";
+import { createServer } from "node:net";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -55,6 +48,12 @@ const flag = (name) => process.argv.includes(`--${name}`);
 let origin = arg("origin", "http://localhost:5173");
 const serveArg = arg("serve", null);
 const checkName = arg("check", null);
+/**
+ * `--tag <id>`: stamp this run's completion marker, so `--wait --tag <id>`
+ * cannot mistake a previous run's marker in the same directory for this one.
+ */
+const runTag = arg("tag", null);
+const doneText = (body) => (runTag === null ? body : `tag: ${runTag}\n${body}`);
 
 /**
  * The repo's own headless checks, by name. `--check` runs one of these and
@@ -91,6 +90,16 @@ function resolveWorktree(dir) {
   }
   if (name !== "desert-airfield-twin") {
     console.error(`--serve ${dir}: not a checkout of this project`);
+    process.exit(2);
+  }
+  // Its own dependencies, not borrowed ones: the served code imports the
+  // versions in its own lockfile, which a worktree does not get from git.
+  try {
+    readFileSync(join(root, "node_modules", "vite", "package.json"));
+  } catch {
+    console.error(
+      `--serve ${dir}: no dependencies installed; run \`bun install\` there first`,
+    );
     process.exit(2);
   }
   return root;
@@ -876,9 +885,9 @@ if (waitDir) {
     } catch {
       summary = null;
     }
-    if (summary !== null) {
+    if (summary !== null && (runTag === null || summary.startsWith(`tag: ${runTag}\n`))) {
       console.log(summary);
-      process.exit(0);
+      process.exit(/^FAILED|\bFAILED:/m.test(summary) ? 1 : 0);
     }
     await sleep(2000);
   }
@@ -891,7 +900,10 @@ if (checkName !== null || flag("recompare")) shots = [];
 else if (inline) shots = JSON.parse(inline);
 else if (setName === "all")
   shots = Object.entries(SETS).flatMap(([n, list]) =>
-    list.map((x) => ({ ...x, id: `${n}-${x.id}` })),
+    // Each set starts on a freshly loaded match: sets leave state behind on
+    // purpose (the viewmodel set ends on the sidearm), and the next must not
+    // inherit it.
+    list.map((x, i) => ({ ...x, id: `${n}-${x.id}`, fresh: i === 0 })),
   );
 else if (setName && SETS[setName]) shots = SETS[setName];
 else {
@@ -921,46 +933,38 @@ if (flag("recompare")) {
 
 /* ---------------------------------------------------- render slots */
 
-// Next to the tool, not in the shared temp directory: every capture runs this
-// one file, so the lock directory is machine-wide without being world-writable.
-const SLOT_DIR = fileURLToPath(
-  new URL("../node_modules/.cache/lookdev-slots", import.meta.url),
-);
-const SLOTS = Math.max(1, Number(arg("slots", 2)));
-let heldSlot = null;
+/**
+ * A render slot is a listening socket on a fixed localhost port. Binding is
+ * atomic, and the operating system releases the port the moment its process
+ * dies, however it dies, so there is nothing stale to detect or steal. The
+ * lock files this replaced had to read a dead owner's pid and then delete the
+ * file by path, and two waiting captures could interleave there and both
+ * render in one slot.
+ */
+const SLOT_PORT_BASE = 5390;
+const SLOTS = Math.max(1, Math.min(8, Number(arg("slots", 2))));
+let slotHolder = null;
 let heldIndex = -1;
 let server = null;
 
-function pidAlive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
+function listenOn(port) {
+  return new Promise((resolveListen) => {
+    const holder = createServer();
+    holder.once("error", () => resolveListen(null));
+    holder.listen(port, "127.0.0.1", () => resolveListen(holder));
+  });
 }
 
 async function acquireSlot() {
-  mkdirSync(SLOT_DIR, { recursive: true });
   let announced = false;
   for (;;) {
     for (let i = 0; i < SLOTS; i += 1) {
-      const path = `${SLOT_DIR}/slot-${i}.lock`;
-      try {
-        const fd = openSync(path, "wx");
-        writeFileSync(fd, String(process.pid));
-        closeSync(fd);
-        heldSlot = path;
+      const holder = await listenOn(SLOT_PORT_BASE + i);
+      if (holder) {
+        holder.unref();
+        slotHolder = holder;
         heldIndex = i;
         return;
-      } catch {
-        // Taken: steal it if its owner is gone.
-        try {
-          const owner = Number(readFileSync(path, "utf8"));
-          if (!owner || !pidAlive(owner)) unlinkSync(path);
-        } catch {
-          // Raced with its release; try again next pass.
-        }
       }
     }
     if (!announced) {
@@ -973,13 +977,9 @@ async function acquireSlot() {
 
 function releaseSlot() {
   stopServer();
-  if (!heldSlot) return;
-  try {
-    if (Number(readFileSync(heldSlot, "utf8")) === process.pid) unlinkSync(heldSlot);
-  } catch {
-    // Already gone.
-  }
-  heldSlot = null;
+  if (!slotHolder) return;
+  slotHolder.close();
+  slotHolder = null;
 }
 process.on("exit", releaseSlot);
 for (const sig of ["SIGINT", "SIGTERM"]) {
@@ -1075,7 +1075,7 @@ if (checkName !== null) {
   const output = `${run.stdout ?? ""}${run.stderr ?? ""}`;
   process.stdout.write(output);
   releaseSlot();
-  await writeFile(join(outDir, ".done"), `${output}\nexit ${run.status}\n`);
+  await writeFile(join(outDir, ".done"), doneText(`${output}\nexit ${run.status}\n`));
   process.exit(run.status ?? 1);
 }
 
@@ -1142,7 +1142,7 @@ async function waitFrames(n) {
 async function ensurePage(shot) {
   const url = urlFor(shot);
   const live = await page.evaluate(() => !!globalThis.__ld?.frame).catch(() => false);
-  if (url === currentUrl && live) return;
+  if (url === currentUrl && live && !shot.fresh) return;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
   currentUrl = url;
   await waitReady(shot.route === "twin" ? "twin" : "play");
@@ -1323,7 +1323,7 @@ if (errors.length) console.log(`\n${errors.length} page error(s); first: ${error
 console.log(
   `\n${manifest.length} shots in ${Math.round((Date.now() - started) / 1000)}s -> ${outDir}`,
 );
-if (!compareDir) await writeFile(`${outDir}/.done`, summary);
+if (!compareDir) await writeFile(`${outDir}/.done`, doneText(summary));
 
 /**
  * `--compare <dir>`: how far each frame moved from an earlier capture of the
@@ -1332,6 +1332,8 @@ if (!compareDir) await writeFile(`${outDir}/.done`, summary);
  * reached a frame it was not meant to touch.
  */
 if (compareDir) await compareRuns(manifest, summary);
+// A run with a failed shot is a failed run, for scripts and for --wait.
+if (manifest.some((m) => m.error)) process.exitCode = 1;
 
 async function compareRuns(manifest, summary) {
   let before = null;
@@ -1339,7 +1341,7 @@ async function compareRuns(manifest, summary) {
     before = JSON.parse(readFileSync(`${compareDir}/manifest.json`, "utf8"));
   } catch {
     console.log(`\nno manifest in ${compareDir}; nothing to compare`);
-    await writeFile(`${outDir}/.done`, summary);
+    await writeFile(`${outDir}/.done`, doneText(summary));
   }
   if (before) {
     const probe = await puppeteer.launch({ headless: "shell", args: ["--no-sandbox"] });
@@ -1407,6 +1409,6 @@ async function compareRuns(manifest, summary) {
     const text = lines2.join("\n");
     console.log(text);
     await writeFile(`${outDir}/compare.txt`, `${text}\n`);
-    await writeFile(`${outDir}/.done`, `${summary}${text}\n`);
+    await writeFile(`${outDir}/.done`, doneText(`${summary}${text}\n`));
   }
 }
