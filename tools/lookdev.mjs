@@ -33,6 +33,7 @@
  */
 
 import puppeteer from "puppeteer";
+import { spawn, spawnSync, execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import {
@@ -51,14 +52,16 @@ function arg(name, fallback) {
 }
 const flag = (name) => process.argv.includes(`--${name}`);
 
-const origin = arg("origin", "http://localhost:5173");
+let origin = arg("origin", "http://localhost:5173");
+const serveDir = arg("serve", null);
+const execCmd = arg("exec", null);
 const outDir = arg("out", "shots/lookdev");
 const quality = arg("quality", "3");
 const setName = arg("set", null);
 const only = arg("only", null);
 const inline = arg("shots", null);
-const width = Number(arg("width", 1600));
-const height = Number(arg("height", 900));
+const width = Number(arg("width", 1280));
+const height = Number(arg("height", 720));
 
 /* ------------------------------------------------------------------ */
 /* Known places                                                        */
@@ -75,66 +78,72 @@ const HANGAR = [960, 1300];
 /* ------------------------------------------------------------------ */
 
 const SETS = {
-  /** The rifle and the hands holding it: the most-seen object in the game. */
+  /**
+   * The rifle and the hands holding it: the most-seen object in the game.
+   * Order matters: inspect-b continues inspect-a's animation, and the last
+   * two leave the weapon mid-reload and then on the sidearm, so nothing has
+   * to wait for an animation to finish.
+   */
   viewmodel: [
     {
       id: "hip-sunlit",
       note: "rifle at the hip, sun over the shoulder, sky and apron behind",
       setup: `await ld.place(${APRON}, 300, -0.04)`,
-      frames: 6,
     },
     {
       id: "hip-side-light",
       note: "rifle at the hip, sun raking across the receiver",
       setup: `await ld.place(${APRON}, 20, -0.08)`,
-      frames: 6,
     },
     {
       id: "ads",
       note: "aimed down the sights: optic, reticle, rear of the receiver",
       setup: `await ld.place(${APRON}, 300, -0.02)`,
-      actions: [{ mouse: "right", down: true }, { frames: 14 }],
-      after: [{ mouse: "right", down: false }],
-    },
-    {
-      id: "inspect-a",
-      note: "inspect animation, early: the left side of the weapon",
-      setup: `await ld.place(${APRON}, 300, -0.04)`,
-      actions: [{ key: "KeyI" }, { frames: 14 }],
-    },
-    {
-      id: "inspect-b",
-      note: "inspect animation, later: the right side / ejection port",
-      setup: `await ld.place(${APRON}, 300, -0.04)`,
-      actions: [{ key: "KeyI" }, { frames: 34 }],
+      actions: [{ mouse: "right", down: true }, { frames: 12 }],
+      frames: 1,
+      after: [{ mouse: "right", down: false }, { frames: 6 }],
     },
     {
       id: "firing",
       note: "mid-burst: muzzle flash, smoke, ejected brass, recoil",
       setup: `await ld.place(${APRON}, 300, -0.03)`,
       actions: [{ mouse: "left", down: true }, { frames: 3 }],
-      after: [{ mouse: "left", down: false }, { frames: 8 }],
+      frames: 0,
+      after: [{ mouse: "left", down: false }, { frames: 4 }],
     },
     {
-      id: "reload",
-      note: "mid-reload: magazine out, support hand",
+      id: "inspect-a",
+      note: "inspect animation, early: the left side of the weapon",
       setup: `await ld.place(${APRON}, 300, -0.04)`,
-      actions: [{ key: "KeyR" }, { frames: 18 }],
-      after: [{ frames: 60 }],
+      actions: [{ key: "KeyI" }, { frames: 12 }],
+      frames: 0,
     },
     {
-      id: "sidearm",
-      note: "the secondary weapon at the hip",
+      id: "inspect-b",
+      note: "inspect animation, later (continues inspect-a): the other side",
       setup: `await ld.place(${APRON}, 300, -0.04)`,
-      actions: [{ key: "Digit2" }, { frames: 24 }],
-      after: [{ key: "Digit1" }, { frames: 24 }],
+      frames: 16,
     },
     {
       id: "night-hip",
       note: "rifle at night",
       setup: `ld.night(true); await ld.place(${APRON}, 300, -0.04)`,
-      frames: 8,
-      after: [{ eval: "ld.night(false)" }, { frames: 4 }],
+      frames: 5,
+      after: [{ eval: "ld.night(false)" }],
+    },
+    {
+      id: "reload",
+      note: "mid-reload: magazine out, support hand",
+      setup: `await ld.place(${APRON}, 300, -0.04)`,
+      actions: [{ key: "KeyR" }, { frames: 14 }],
+      frames: 0,
+    },
+    {
+      id: "sidearm",
+      note: "the secondary weapon at the hip",
+      setup: `await ld.place(${APRON}, 300, -0.04)`,
+      actions: [{ key: "Digit2" }, { frames: 18 }],
+      frames: 0,
     },
   ],
 
@@ -762,7 +771,8 @@ if (waitDir) {
 }
 
 let shots = [];
-if (inline) shots = JSON.parse(inline);
+if (execCmd) shots = [];
+else if (inline) shots = JSON.parse(inline);
 else if (setName === "all")
   shots = Object.entries(SETS).flatMap(([n, list]) =>
     list.map((x) => ({ ...x, id: `${n}-${x.id}` })),
@@ -784,6 +794,8 @@ if (only) {
 const SLOT_DIR = `${tmpdir()}/lookdev-slots`;
 const SLOTS = Math.max(1, Number(arg("slots", 2)));
 let heldSlot = null;
+let heldIndex = -1;
+let server = null;
 
 function pidAlive(pid) {
   try {
@@ -805,6 +817,7 @@ async function acquireSlot() {
         writeFileSync(fd, String(process.pid));
         closeSync(fd);
         heldSlot = path;
+        heldIndex = i;
         return;
       } catch {
         // Taken: steal it if its owner is gone.
@@ -825,6 +838,7 @@ async function acquireSlot() {
 }
 
 function releaseSlot() {
+  stopServer();
   if (!heldSlot) return;
   try {
     if (Number(readFileSync(heldSlot, "utf8")) === process.pid) unlinkSync(heldSlot);
@@ -844,6 +858,86 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
 await mkdir(outDir, { recursive: true });
 await rm(`${outDir}/.done`, { force: true });
 await acquireSlot();
+
+/**
+ * `--serve <worktree>`: start that checkout's dev server inside the render
+ * slot and stop it afterwards. An idle vite server holds most of a gigabyte,
+ * so keeping one up per worktree runs the machine out of memory; a server per
+ * slot bounds it. The port is derived from the slot, so concurrent runs can
+ * never collide.
+ */
+function stopServer() {
+  if (!server) return;
+  try {
+    process.kill(-server.pid, "SIGTERM");
+  } catch {
+    // Already gone.
+  }
+  server = null;
+}
+
+if (serveDir) {
+  const port = 5300 + heldIndex;
+  // Whatever an earlier, killed run left on this slot's port.
+  try {
+    execFileSync("bash", ["-c", `fuser -k ${port}/tcp >/dev/null 2>&1 || true`]);
+  } catch {
+    // Nothing listening.
+  }
+  try {
+    execFileSync("node", ["scripts/run-ts.mjs", "scripts/generate-manifest.ts"], {
+      cwd: serveDir,
+      stdio: "ignore",
+    });
+  } catch {
+    // The page renders without the manifest; it only feeds a panel.
+  }
+  server = spawn(
+    `${serveDir}/node_modules/.bin/vite`,
+    ["--port", String(port), "--strictPort"],
+    {
+      cwd: serveDir,
+      detached: true,
+      stdio: "ignore",
+    },
+  );
+  origin = `http://localhost:${port}`;
+  let up = false;
+  for (let i = 0; i < 120 && !up; i += 1) {
+    try {
+      const res = await fetch(origin);
+      up = res.ok;
+    } catch {
+      await sleep(500);
+    }
+  }
+  if (!up) {
+    console.error(`dev server for ${serveDir} never came up on ${port}`);
+    releaseSlot();
+    process.exit(1);
+  }
+  console.log(`serving ${serveDir} on ${origin}`);
+}
+
+/**
+ * `--exec "<cmd>"`: run another check (gait, smoke, engagement) inside the
+ * slot against the served worktree, with `{origin}` replaced by its address.
+ */
+if (execCmd) {
+  const cmd = execCmd.replaceAll("{origin}", origin);
+  console.log(`exec: ${cmd}`);
+  const run = spawnSync("bash", ["-c", cmd], {
+    cwd: serveDir ?? process.cwd(),
+    stdio: ["ignore", "pipe", "pipe"],
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const output = `${run.stdout ?? ""}${run.stderr ?? ""}`;
+  process.stdout.write(output);
+  releaseSlot();
+  await writeFile(`${outDir}/.done`, `${output}\nexit ${run.status}\n`);
+  process.exit(run.status ?? 1);
+}
 
 const browser = await puppeteer.launch({
   headless: "shell",
@@ -1021,7 +1115,7 @@ for (const shot of shots) {
     if (shot.setup)
       await page.evaluate(`(async (ld) => { ${shot.setup} })(globalThis.__ld)`);
     await runActions(shot.actions);
-    await waitFrames(shot.frames ?? 3);
+    if ((shot.frames ?? 3) > 0) await waitFrames(shot.frames ?? 3);
     if (shot.pin) {
       await page.evaluate(`(async (ld) => { ${shot.pin} })(globalThis.__ld)`);
       await waitFrames(1);
