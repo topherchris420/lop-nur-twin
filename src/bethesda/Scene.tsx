@@ -362,7 +362,10 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       }}
       onCreated={({ gl }) => {
         gl.domElement.addEventListener("webglcontextlost", () => {
-          view.failed = true;
+          // R3F releases the context itself half a second after the canvas
+          // unmounts (entering the R.A.I.N. Lab does that); only a loss while
+          // the canvas is still on the page means rendering failed.
+          if (gl.domElement.isConnected) view.failed = true;
         });
       }}
     >

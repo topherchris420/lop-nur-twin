@@ -482,6 +482,14 @@ try {
     "leaving returns to the same Bethesda",
     (await a.text()).includes("The city kept its own time while you were inside"),
   );
+  // The lab's canvas released its WebGL context on the way out, as R3F does
+  // half a second after an unmount; the city's must not take that for a loss.
+  await delay(1500);
+  check(
+    "the city's 3D view is back, not replaced by the WebGL fallback",
+    !(await a.text()).includes("3D rendering is unavailable") &&
+      (await a.page.$$('[data-bethesda="active"] canvas')).length >= 2,
+  );
   // The second entrance: the door's own coordinates, typed into the console.
   await enterLab(a, "38.98025, -77.09627");
   await a.click("Registry / Archive");
@@ -491,6 +499,12 @@ try {
   );
   await a.click("Return to Bethesda");
   await a.page.waitForSelector('[data-bethesda="active"]:not([data-indoors])');
+  await delay(1500);
+  check(
+    "a second visit leaves the 3D view intact too",
+    !(await a.text()).includes("3D rendering is unavailable") &&
+      (await a.page.$$('[data-bethesda="active"] canvas')).length >= 2,
+  );
   check("no page errors", a.log.errors.length === 0, a.log.errors.join("\n"));
   check(
     "no CSP violations",
