@@ -18,11 +18,11 @@ The simulation decides its consequences.
 
 ![The reconstructed runway and south hangar compound](docs/screenshot-overview.png)
 
-| Experience               | What you can do                                                                                                | What it establishes                                                                           |
-| :----------------------- | :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
-| **The analytical twin**  | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
-| **Blacksite**            | Play the airfield yourself or give the same seat to Jev, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
-| **Where is The Lab?** | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
+| Experience              | What you can do                                                                                                 | What it establishes                                                                           |
+| :---------------------- | :-------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
+| **Blacksite**           | Play the airfield yourself or give the same seat to Jev, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
+| **Where is The Lab?**   | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                 | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
 
 Blacksite shares the twin's geometry and cannot write to its evidence ledger.
 Bethesda has its own geography and simulation; it does not share Blacksite's combat
