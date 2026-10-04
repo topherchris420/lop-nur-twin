@@ -18,6 +18,15 @@ The simulation decides its consequences.
 
 ![The reconstructed runway and south hangar compound](docs/screenshot-overview.png)
 
+### 30-second walkthrough
+
+The project is also presented as a short visual walkthrough: a public-source reconstruction of the Lop Nur airfield, the analytical evidence layer, structure dossiers, and **Blacksite**, the playable decision environment. The sequence moves from **reconstruction → evidence → provenance → play**, making the central idea visible before you open the application.
+
+**Explore the live twin:** [lop-nur-twin.vercel.app](https://lop-nur-twin.vercel.app/) · **Play Blacksite:** [lop-nur-twin.vercel.app/play](https://lop-nur-twin.vercel.app/play)
+
+> **Explore the evidence. Take the controls. Follow the anomaly.**
+
+
 | Experience              | What you can do                                                                                                 | What it establishes                                                                           |
 | :---------------------- | :-------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
 | **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
