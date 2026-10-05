@@ -1285,6 +1285,29 @@ controller executed every aim: these numbers describe Glide's choices and that
 controller together, on two seeds. They are not a comparison with Jev, which
 would need a matched experiment on the same seeds.
 
+### Jev and Glide on the same seeds (2026-10-05)
+
+That matched experiment followed: `tools/experiments/glide-jev-comparison.json`,
+declared and committed before it ran, with Jev, Glide and a random floor on
+the same two seeds and settings. The full account, every episode and the
+compressed decision records are in
+[`docs/benchmarks/2026-10-05/`](benchmarks/2026-10-05/README.md).
+
+| Arm    | Kills / deaths | Rounds / hits | Decisions | Round trip p50 / p95 | Answers that met a changed world | Time in a sight line |
+| :----- | :------------- | :------------ | --------: | :------------------- | :------------------------------- | -------------------: |
+| Jev    | 5 / 0          | 7 / 5         |       501 | 197 / 266 ms         | 1.4%                             |                31.3% |
+| Glide  | 5 / 0          | 17 / 10       |       115 | 830 / 3,137 ms       | 20.0%                            |                53.9% |
+| random | 0 / 1          | 75 / 0        |       508 | 11 / 35 ms           | 0%                               |                87.9% |
+
+The declared prediction — Jev's kills per minute at least Glide's on each
+seed — failed: Glide out-killed Jev four to two on seed 43, and the arms tied
+at five kills overall. Glide decided a quarter as often and a fifth of its
+answers met a changed world, as predicted, without costing it kills. The two
+played differently: Jev declined to fire in 98% of decisions and moved more;
+Glide never used the movement axis, moved only by places, fired more and took
+damage where Jev took none. Two one-minute seeds under mercy rules and the
+precision controller is exploratory, not a ranking.
+
 ## The evaluation harness
 
 Everything above measures a brain's play. [`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)
