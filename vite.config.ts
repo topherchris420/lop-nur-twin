@@ -12,6 +12,7 @@ import {
   createJevDecisionHandler,
 } from "./server/jev/handler.js";
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
+import { createGlideDecisionHandler } from "./server/glide/handler.js";
 import { createRainHandler } from "./server/rain/handler.js";
 import { LIMITS } from "./src/bethesda/rain/contracts.js";
 
@@ -121,6 +122,22 @@ function jevDecisionApi(env: Record<string, string>): Plugin {
     model: env["TYPESAFE_MODEL"],
   });
   return decisionApi("blacksite-jev-decision-api", JEV_DECISION_PATH, handle);
+}
+
+const GLIDE_DECISION_PATH = "/api/glide/decision";
+
+/**
+ * Serves `/api/glide/decision` — Fastino's Glide — the same way: the handler
+ * the Vercel function exports, configured from `FASTINO_`-prefixed variables
+ * in the shell or `.env.local`. `FASTINO_API_KEY` goes to that handler and
+ * nowhere else — never into `define`, never `VITE_`-prefixed.
+ */
+function glideDecisionApi(env: Record<string, string>): Plugin {
+  const handle = createGlideDecisionHandler({
+    apiKey: env["FASTINO_API_KEY"],
+    model: env["FASTINO_MODEL"],
+  });
+  return decisionApi("blacksite-glide-decision-api", GLIDE_DECISION_PATH, handle);
 }
 
 const LLM_DECISION_PATH = "/api/llm/decision";
@@ -241,6 +258,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
+    glideDecisionApi(loadEnv(mode, process.cwd(), "FASTINO_")),
     llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
     rainApi(loadEnv(mode, process.cwd(), "RAIN_")),
   ],

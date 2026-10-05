@@ -27,7 +27,7 @@ import type { JevObservation, LegalActions, PlaceKind } from "../pilot/observati
 export const DECISION_RECORD_VERSION = "blacksite-decision/v1";
 
 export type RecordSource =
-  "jev" | "llm" | "random" | "script" | "replay" | "fallback-random";
+  "jev" | "glide" | "llm" | "random" | "script" | "replay" | "fallback-random";
 
 /**
  * Where a confidence number came from. They are different claims and are

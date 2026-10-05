@@ -1,0 +1,128 @@
+{
+  "file": "tools/experiments/glide-jev-direct.json",
+  "fileHash": "047e9f0f9b78df33",
+  "hash": "24e6b8f6401f2c55",
+  "overrides": [],
+  "raw": {
+    "schema": "blacksite-experiment/v1",
+    "id": "glide-jev-direct-v1",
+    "question": "Without the aiming controller, when each model turns the view itself in fixed steps, how do Jev (TypeSafe) and Glide (Fastino) compare in kills, survival and accuracy?",
+    "hypothesis": "Jev out-kills Glide when each has to aim for itself. Under direct control the crosshair moves only when the brain decides, and in the smoke test Jev decided about four times as often as Glide (a 197 ms median round trip against 830 ms), so Jev can correct its aim more often between shots. The prediction fails if Glide's mean kills per minute over the ten seeds is at least Jev's.",
+    "independentVariable": "brain",
+    "primaryMetric": "kills_per_minute",
+    "secondaryMetrics": [
+      "deaths_per_minute",
+      "accuracy",
+      "exposure_fraction",
+      "damage_taken_per_minute",
+      "distance_m",
+      "decisions_per_minute",
+      "decision_latency_ms",
+      "world_changed_rate",
+      "stale_rejection_rate",
+      "success_rate",
+      "harmful_rate"
+    ],
+    "decisionType": "engage-disengage/v1",
+    "outcomeWindowS": 5,
+    "seeds": {
+      "preset": "dev",
+      "base": 42
+    },
+    "duration": 120,
+    "mode": "tdm",
+    "seat": "even",
+    "arms": [
+      {
+        "id": "jev",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "id": "glide",
+        "brain": "glide",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "id": "random",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random"
+    ],
+    "calibrationField": "probability",
+    "notes": "The same seeds, length, seat rules and places navigation as glide-jev-even-v1, with only the control interface changed: the brain chooses view rotations in fixed steps and the trigger itself, and no local controller aims for it. Comparing each model across the two experiments separates its choices from the aiming controller's work. Under direct control engage-disengage/v1 counts any fire choice as ENGAGE. Glide's direct-control questions were its slowest in the first probe (3.6-5.7 s on the test fixture, though a 0.8 s median in live play), and its 8 s limits apply. The jev arm needs JEV_LIVE_TEST=1 and the glide arm FASTINO_LIVE_TEST=1; without the flag an arm is PENDING."
+  },
+  "spec": {
+    "schema": "blacksite-experiment/v1",
+    "id": "glide-jev-direct-v1",
+    "question": "Without the aiming controller, when each model turns the view itself in fixed steps, how do Jev (TypeSafe) and Glide (Fastino) compare in kills, survival and accuracy?",
+    "hypothesis": "Jev out-kills Glide when each has to aim for itself. Under direct control the crosshair moves only when the brain decides, and in the smoke test Jev decided about four times as often as Glide (a 197 ms median round trip against 830 ms), so Jev can correct its aim more often between shots. The prediction fails if Glide's mean kills per minute over the ten seeds is at least Jev's.",
+    "independentVariable": "brain",
+    "primaryMetric": "kills_per_minute",
+    "secondaryMetrics": [
+      "deaths_per_minute",
+      "accuracy",
+      "exposure_fraction",
+      "damage_taken_per_minute",
+      "distance_m",
+      "decisions_per_minute",
+      "decision_latency_ms",
+      "world_changed_rate",
+      "stale_rejection_rate",
+      "success_rate",
+      "harmful_rate"
+    ],
+    "decisionType": "engage-disengage/v1",
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51
+    ],
+    "seedPreset": "dev",
+    "duration": 120,
+    "mode": "tdm",
+    "arms": [
+      {
+        "seat": "even",
+        "id": "jev",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "glide",
+        "brain": "glide",
+        "control": "direct",
+        "navigation": "places"
+      },
+      {
+        "seat": "even",
+        "id": "random",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random"
+    ],
+    "calibrationField": "probability",
+    "contributionFactors": [],
+    "notes": "The same seeds, length, seat rules and places navigation as glide-jev-even-v1, with only the control interface changed: the brain chooses view rotations in fixed steps and the trigger itself, and no local controller aims for it. Comparing each model across the two experiments separates its choices from the aiming controller's work. Under direct control engage-disengage/v1 counts any fire choice as ENGAGE. Glide's direct-control questions were its slowest in the first probe (3.6-5.7 s on the test fixture, though a 0.8 s median in live play), and its 8 s limits apply. The jev arm needs JEV_LIVE_TEST=1 and the glide arm FASTINO_LIVE_TEST=1; without the flag an arm is PENDING."
+  }
+}

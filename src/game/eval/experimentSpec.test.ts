@@ -182,6 +182,23 @@ describe("paid calls are opt-in", () => {
   it("lets the offline test double run without a flag", () => {
     expect(liveGate([arms[2]!], {})).toEqual([]);
   });
+
+  it("gates Glide on its own flag, not Jev's", () => {
+    const glide = [{ id: "g", brain: "glide" as const, control: "precision" as const }];
+    expect(liveGate(glide, { JEV_LIVE_TEST: "1" })).toEqual([
+      "arm g calls a paid glide API; set FASTINO_LIVE_TEST=1 to confirm",
+    ]);
+    expect(liveGate(glide, { FASTINO_LIVE_TEST: "1" })).toEqual([]);
+  });
+
+  it("never injects latency into Glide: its latency is real", () => {
+    const parsed = parseExperiment({
+      ...valid,
+      arms: [{ id: "g", brain: "glide", control: "precision", latencyMs: 250 }],
+    });
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.errors.join(" ")).toMatch(/latency is real/);
+  });
 });
 
 describe("the committed experiment files", () => {

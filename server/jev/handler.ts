@@ -12,11 +12,15 @@ import {
   type DecisionErrorBody,
   type DecisionErrorCode,
   type JevDecision,
+  type SystemOneSource,
 } from "../../src/game/pilot/decision.js";
 import { validateObservation } from "../../src/game/pilot/observation.js";
-import { JEV_CAPABILITIES } from "../../src/game/pilot/capabilities.js";
+import {
+  JEV_CAPABILITIES,
+  type Capabilities,
+} from "../../src/game/pilot/capabilities.js";
 import { canonicalHash } from "../../src/game/pilot/hash.js";
-import { buildSystemOneRequest } from "./question.js";
+import { buildSystemOneRequest, type InstructionsEnvelope } from "./question.js";
 import { DEFAULT_RATE_LIMITS, RateLimiter } from "./rateLimit.js";
 
 /**
@@ -39,6 +43,12 @@ import { DEFAULT_RATE_LIMITS, RateLimiter } from "./rateLimit.js";
  * The API key is read from the environment by the caller and passed in. It is
  * sent to TypeSafe in the `Authorization` header and nowhere else: it is never
  * logged, never echoed, and never part of an error.
+ *
+ * The same handler serves any provider that speaks the SystemOne Choice
+ * protocol: `createSystemOneDecisionHandler` takes the upstream's description
+ * (`SystemOneUpstream`), and Fastino's Glide (`server/glide/handler.ts`) is
+ * the second one. Everything above holds for it unchanged — only the address,
+ * the credential, the model rules and the instructions envelope differ.
  */
 
 export const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
@@ -46,6 +56,50 @@ export const DEFAULT_MODEL = "jev-latest";
 export const MAX_BODY_BYTES = 8192;
 
 export const SESSION_ID = /^[a-f0-9]{16,64}$/;
+
+/**
+ * A provider of the SystemOne Choice protocol, as the handler needs to know it.
+ * Nothing here is a secret: the key is configuration, passed separately.
+ */
+export interface SystemOneUpstream {
+  /** The decision's `source`, and what the browser checks it against. */
+  source: SystemOneSource;
+  /** The provider's name, as error messages print it. */
+  name: string;
+  /** The `service` the status endpoint reports. */
+  service: string;
+  /** The provider's SystemOne URL. */
+  endpoint: string;
+  /** The model asked for when none is configured, or the configured one is malformed. */
+  defaultModel: string;
+  /** Whether a configured model id is well-formed for this provider. */
+  isRequestModel: (value: string) => boolean;
+  /** The environment variable the 503 names. Its name only — never a value. */
+  keyVariable: string;
+  /** How this provider takes a question's instructions. */
+  instructions: InstructionsEnvelope;
+  /** The interfaces the question builder speaks for this provider's brain. */
+  capabilities: Capabilities;
+  /** How long the upstream call may take, unless the config overrides it. */
+  timeoutMs: number;
+  /** The structured log's event name for a failed decision. */
+  logEvent: string;
+}
+
+/** TypeSafe, serving Jev at `/api/jev/decision`. */
+export const TYPESAFE_UPSTREAM: SystemOneUpstream = {
+  source: "typesafe",
+  name: "TypeSafe",
+  service: "blacksite-jev",
+  endpoint: TYPESAFE_ENDPOINT,
+  defaultModel: DEFAULT_MODEL,
+  isRequestModel: isModelId,
+  keyVariable: "TYPESAFE_API_KEY",
+  instructions: "parts",
+  capabilities: JEV_CAPABILITIES,
+  timeoutMs: UPSTREAM_TIMEOUT_MS,
+  logEvent: "jev_decision_error",
+};
 
 export interface JevServerConfig {
   /** The `TYPESAFE_API_KEY` value, read by the entry point. Absent means 503. */
@@ -71,10 +125,16 @@ export type JevDecisionHandler = (
   meta: RequestMeta,
 ) => Promise<Response>;
 
-/** The model to ask: a well-formed `TYPESAFE_MODEL`, or `jev-latest`. */
-export function resolveModel(value: string | undefined): string {
+/**
+ * The model to ask: a well-formed configured id (`TYPESAFE_MODEL` for Jev), or
+ * the upstream's default (`jev-latest`).
+ */
+export function resolveModel(
+  value: string | undefined,
+  upstream: SystemOneUpstream = TYPESAFE_UPSTREAM,
+): string {
   const trimmed = value?.trim();
-  return trimmed && isModelId(trimmed) ? trimmed : DEFAULT_MODEL;
+  return trimmed && upstream.isRequestModel(trimmed) ? trimmed : upstream.defaultModel;
 }
 
 const JSON_HEADERS = {
@@ -163,14 +223,34 @@ export function retryAfterHeader(value: string | null): number | null {
   return Math.min(60_000, Math.round(seconds * 1000));
 }
 
+/**
+ * Jev's endpoint: the SystemOne handler for TypeSafe, which also takes the
+ * Bethesda anomaly's city observations (`city.ts`).
+ */
 export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHandler {
-  const cityHandle = createCityDecisionHandler(config);
+  return createSystemOneDecisionHandler(TYPESAFE_UPSTREAM, config, {
+    city: createCityDecisionHandler(config),
+  });
+}
+
+/**
+ * One SystemOne decision endpoint. `options.city`, Jev's only, takes every
+ * request whose observation is a city one; without it a city observation is
+ * refused as an invalid Blacksite observation.
+ */
+export function createSystemOneDecisionHandler(
+  upstream: SystemOneUpstream,
+  config: JevServerConfig,
+  options: { city?: JevDecisionHandler } = {},
+): JevDecisionHandler {
+  const cityHandle = options.city ?? null;
   const fetchImpl = config.fetchImpl ?? fetch;
   const limiter = config.limiter ?? new RateLimiter(DEFAULT_RATE_LIMITS);
   const now = config.now ?? (() => Date.now());
-  const endpoint = config.endpoint ?? TYPESAFE_ENDPOINT;
-  const timeoutMs = config.timeoutMs ?? UPSTREAM_TIMEOUT_MS;
-  const model = resolveModel(config.model);
+  const endpoint = config.endpoint ?? upstream.endpoint;
+  const timeoutMs = config.timeoutMs ?? upstream.timeoutMs;
+  const model = resolveModel(config.model, upstream);
+  const name = upstream.name;
   const apiKey = config.apiKey?.trim() || undefined;
   const log =
     config.log ??
@@ -179,14 +259,14 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
   const status = (): Response =>
     json(200, {
       schemaVersion: DECISION_SCHEMA_VERSION,
-      service: "blacksite-jev",
+      service: upstream.service,
       configured: apiKey !== undefined,
       model,
       actionContract: ACTION_CONTRACT_VERSION,
       observationSchema: OBSERVATION_SCHEMA_VERSION,
       // What this adapter can take: the interfaces its question builder
       // speaks. The seat negotiates against it; see capabilities.ts.
-      capabilities: JEV_CAPABILITIES,
+      capabilities: upstream.capabilities,
       limits: {
         maxBodyBytes: MAX_BODY_BYTES,
         minIntervalMs: DEFAULT_RATE_LIMITS.sessionMinIntervalMs,
@@ -226,7 +306,11 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       });
     }
     if (apiKey === undefined) {
-      return errorResponse(503, "not_configured", "TYPESAFE_API_KEY is not configured.");
+      return errorResponse(
+        503,
+        "not_configured",
+        `${upstream.keyVariable} is not configured.`,
+      );
     }
 
     let text: string | null;
@@ -256,6 +340,7 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
     // Every city schema revision goes to the city handler, which accepts only
     // the current one; an old client gets a city error, not a Blacksite one.
     if (
+      cityHandle !== null &&
       typeof cityObservation?.schema === "string" &&
       cityObservation.schema.startsWith("bethesda-observation/")
     ) {
@@ -309,16 +394,16 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       });
     }
 
-    const question = buildSystemOneRequest(observation, model);
+    const question = buildSystemOneRequest(observation, model, upstream.instructions);
     const body = JSON.stringify(question);
     // Identifies exactly what was asked without storing it in the trace.
     const questionHash = canonicalHash(question);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const started = now();
-    let upstream: Response;
+    let upstreamResponse: Response;
     try {
-      upstream = await fetchImpl(endpoint, {
+      upstreamResponse = await fetchImpl(endpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -333,59 +418,60 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
       limiter.release();
       const timedOut = controller.signal.aborted;
       log({
-        event: "jev_decision_error",
+        event: upstream.logEvent,
         code: timedOut ? "upstream_timeout" : "upstream_error",
         sequence,
       });
       return timedOut
-        ? errorResponse(504, "upstream_timeout", "TypeSafe did not answer in time.", {
+        ? errorResponse(504, "upstream_timeout", `${name} did not answer in time.`, {
             sequence,
           })
-        : errorResponse(502, "upstream_error", "TypeSafe could not be reached.", {
+        : errorResponse(502, "upstream_error", `${name} could not be reached.`, {
             sequence,
           });
     }
 
     let answer: unknown;
     try {
-      if (!upstream.ok) {
-        // The body is TypeSafe's, not ours to relay; only the status is used.
-        await upstream.body?.cancel();
+      if (!upstreamResponse.ok) {
+        // The body is the provider's, not ours to relay; only the status is used.
+        await upstreamResponse.body?.cancel();
         const code: DecisionErrorCode =
-          upstream.status === 401 || upstream.status === 403
+          upstreamResponse.status === 401 || upstreamResponse.status === 403
             ? "upstream_auth"
-            : upstream.status === 429 || upstream.status === 529
+            : upstreamResponse.status === 429 || upstreamResponse.status === 529
               ? "upstream_rate_limited"
-              : upstream.status === 422
+              : upstreamResponse.status === 422
                 ? "upstream_invalid"
                 : "upstream_error";
         log({
-          event: "jev_decision_error",
+          event: upstream.logEvent,
           code,
-          upstreamStatus: upstream.status,
+          upstreamStatus: upstreamResponse.status,
           sequence,
         });
         if (code === "upstream_rate_limited") {
-          return errorResponse(429, code, "TypeSafe is rate limiting this deployment.", {
+          return errorResponse(429, code, `${name} is rate limiting this deployment.`, {
             sequence,
-            retryAfterMs: retryAfterHeader(upstream.headers.get("retry-after")) ?? 1000,
+            retryAfterMs:
+              retryAfterHeader(upstreamResponse.headers.get("retry-after")) ?? 1000,
           });
         }
         return errorResponse(
           502,
           code,
           code === "upstream_auth"
-            ? "TypeSafe rejected the server's credentials."
+            ? `${name} rejected the server's credentials.`
             : code === "upstream_invalid"
-              ? "TypeSafe rejected the question."
-              : `TypeSafe returned HTTP ${upstream.status}.`,
+              ? `${name} rejected the question.`
+              : `${name} returned HTTP ${upstreamResponse.status}.`,
           { sequence },
         );
       }
-      answer = await upstream.json();
+      answer = await upstreamResponse.json();
     } catch {
-      log({ event: "jev_decision_error", code: "upstream_invalid", sequence });
-      return errorResponse(502, "upstream_invalid", "TypeSafe returned malformed JSON.", {
+      log({ event: upstream.logEvent, code: "upstream_invalid", sequence });
+      return errorResponse(502, "upstream_invalid", `${name} returned malformed JSON.`, {
         sequence,
       });
     } finally {
@@ -401,11 +487,11 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
     };
     const answers = reply?.answers;
     if (!isModelId(reply?.model) || typeof answers !== "object" || answers === null) {
-      log({ event: "jev_decision_error", code: "upstream_invalid", sequence });
+      log({ event: upstream.logEvent, code: "upstream_invalid", sequence });
       return errorResponse(
         502,
         "upstream_invalid",
-        "TypeSafe's reply is missing fields.",
+        `${name}'s reply is missing fields.`,
         {
           sequence,
         },
@@ -413,11 +499,11 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
     }
     const parsedAxes = parseAllAxes(answers, observation.legal);
     if (!parsedAxes.ok) {
-      log({ event: "jev_decision_error", code: "upstream_invalid", sequence });
+      log({ event: upstream.logEvent, code: "upstream_invalid", sequence });
       return errorResponse(
         502,
         "upstream_invalid",
-        `TypeSafe's answer failed validation: ${parsedAxes.error}.`,
+        `${name}'s answer failed validation: ${parsedAxes.error}.`,
         { sequence },
       );
     }
@@ -428,7 +514,7 @@ export function createJevDecisionHandler(config: JevServerConfig): JevDecisionHa
     const decision: JevDecision = {
       schemaVersion: DECISION_SCHEMA_VERSION,
       sequence,
-      source: "typesafe",
+      source: upstream.source,
       model: reply.model,
       frame: frameOf(axes, observation.legal),
       axes,

@@ -210,7 +210,12 @@ function loadArm(dir, entry) {
         id: saved?.brain?.id ?? e.brainDescriptor?.id ?? entry.arm.brain,
         kind: entry.arm.brain,
         provider:
-          saved?.brain?.provider ?? (entry.arm.brain === "jev" ? "typesafe" : "local"),
+          saved?.brain?.provider ??
+          (entry.arm.brain === "jev"
+            ? "typesafe"
+            : entry.arm.brain === "glide"
+              ? "fastino"
+              : "local"),
         testDouble: e.testDouble === true || armReport.testDouble === true,
       },
       interface: Object.fromEntries(

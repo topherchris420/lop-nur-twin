@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  GLIDE_CAPABILITIES,
   HOST_CAPABILITIES,
   JEV_CAPABILITIES,
   LOCAL_POLICY_CAPABILITIES,
@@ -110,5 +111,32 @@ describe("the delayed provider", () => {
     controller.abort();
     const result = await pending;
     expect(result.ok).toBe(false);
+  });
+});
+
+describe("Glide's declared limits", () => {
+  it("are granted within the host's caps, and recorded with its results", () => {
+    const glide = negotiate(GLIDE_CAPABILITIES, {
+      control: "direct",
+      navigation: "steps",
+      intervalMs: null,
+    });
+    expect(glide).toMatchObject({
+      inference: "remote",
+      intervalMs: 200,
+      requestTimeoutMs: 8_000,
+      maxDecisionAgeMs: 8_000,
+      notes: [],
+    });
+    // Longer than Jev's, which keep the contract's defaults.
+    const jev = negotiate(JEV_CAPABILITIES, {
+      control: "direct",
+      navigation: "steps",
+      intervalMs: null,
+    });
+    expect(glide.maxDecisionAgeMs).toBeGreaterThan(jev.maxDecisionAgeMs);
+    expect(glide.requestTimeoutMs).toBeLessThanOrEqual(
+      HOST_CAPABILITIES.requestTimeoutMs!,
+    );
   });
 });

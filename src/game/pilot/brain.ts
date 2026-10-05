@@ -32,10 +32,10 @@ import type {
  */
 
 export interface BrainDescriptor {
-  /** Stable id for reports: `jev`, `llm`, `random`, `script:marksman`, `replay`. */
+  /** Stable id for reports: `jev`, `glide`, `llm`, `random`, `script:marksman`, `replay`. */
   id: string;
-  kind: "jev" | "llm" | "random" | "script" | "replay";
-  /** Who serves the decision: `typesafe`, the LLM provider name, or `local`. */
+  kind: "jev" | "glide" | "llm" | "random" | "script" | "replay";
+  /** Who serves the decision: `typesafe`, `fastino`, the LLM provider name, or `local`. */
   provider: string;
   /** The configured model alias, when known before the first answer. */
   model: string | null;
@@ -67,7 +67,7 @@ export function localAccounting(): ProviderAccounting {
 }
 
 /**
- * TypeSafe's answers as confidence records: the probability it gave the
+ * SystemOne answers (TypeSafe's or Fastino's) as confidence records: the probability it gave the
  * option chosen, and its separate confidence figure, per asked axis. An axis
  * that was not asked has no entry — nothing is invented for it.
  */

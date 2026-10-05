@@ -195,6 +195,13 @@ jobs:
       - name: Player-brain checks (no API calls)
         run: bun run jev
 
+      # Fastino's Glide in the seat against a fake endpoint in the test
+      # browser: the LIVE GLIDE label, its 8 s answer limits, refusal of a
+      # TypeSafe-sourced answer, the outage state and takeover. No key, no
+      # Fastino call; every answer must come from the test double.
+      - name: Glide seat checks (no API calls)
+        run: bun run glide
+
       - name: Start the preview server with production security headers
         run: |
           bun run preview --port 4173 > /tmp/preview-server.log 2>&1 &

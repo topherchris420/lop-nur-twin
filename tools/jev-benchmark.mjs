@@ -5,6 +5,7 @@
  *   node tools/jev-benchmark.mjs --brain random --control direct [--episodes 3] [--seconds 90]
  *   node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
  *   JEV_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain jev --control precision --episodes 3
+ *   FASTINO_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain glide --control precision --episodes 3
  *   LLM_LIVE_TEST=1 node tools/jev-benchmark.mjs --brain llm --control precision --seeds 42,43,44
  *
  * `--seeds 42,43,50` runs exactly those seeds; otherwise `--seed` and
@@ -93,8 +94,8 @@ const out = option(
   `shots/jev-benchmark-${brain}${brain === "script" ? `-${policy}` : ""}-${control}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 
-if (!["random", "jev", "llm", "script"].includes(brain)) {
-  console.error("--brain must be random, script, jev or llm");
+if (!["random", "jev", "glide", "llm", "script"].includes(brain)) {
+  console.error("--brain must be random, script, jev, glide or llm");
   process.exit(2);
 }
 if (seeds.some((s) => !Number.isInteger(s) || s < 0)) {
@@ -111,6 +112,13 @@ if (brain === "jev" && process.env.JEV_LIVE_TEST !== "1") {
   console.error(
     "benchmark:jev calls the real TypeSafe API and spends credit.\n" +
       "Set JEV_LIVE_TEST=1 to confirm, and start the dev server with TYPESAFE_API_KEY set.",
+  );
+  process.exit(2);
+}
+if (brain === "glide" && process.env.FASTINO_LIVE_TEST !== "1") {
+  console.error(
+    "--brain glide calls the real Fastino API and spends credit.\n" +
+      "Set FASTINO_LIVE_TEST=1 to confirm, and start the dev server with FASTINO_API_KEY set.",
   );
   process.exit(2);
 }
@@ -150,8 +158,8 @@ if (brain === "llm") {
   service = status;
 }
 
-if (brain === "jev") {
-  const status = await fetch(`${origin}/api/jev/decision`)
+if (brain === "jev" || brain === "glide") {
+  const status = await fetch(`${origin}/api/${brain}/decision`)
     .then((r) => r.json())
     .catch(() => null);
   if (!status?.configured) {
@@ -446,7 +454,7 @@ try {
   );
   if (a.serverLatency.count > 0) {
     console.log(
-      `  latency (server → TypeSafe) mean ${fmt(a.serverLatency.meanMs, 0)} ms · p50 ${fmt(a.serverLatency.p50Ms, 0)} ms · p95 ${fmt(a.serverLatency.p95Ms, 0)} ms`,
+      `  latency (server → ${{ jev: "TypeSafe", glide: "Fastino" }[brain] ?? "provider"}) mean ${fmt(a.serverLatency.meanMs, 0)} ms · p50 ${fmt(a.serverLatency.p50Ms, 0)} ms · p95 ${fmt(a.serverLatency.p95Ms, 0)} ms`,
     );
   }
   if (a.models.length > 0) console.log(`  models ${a.models.join(", ")}`);

@@ -1,0 +1,2197 @@
+{
+  "schema": "blacksite-evaluation/v1",
+  "generatedAt": "2026-10-05T21:05:16.491Z",
+  "status": "complete",
+  "experiment": {
+    "id": "glide-jev-comparison-v1",
+    "question": "Asked the same question from the same observation, with the same options, controllers and scoring, how do Jev (TypeSafe) and Glide (Fastino) differ in what they choose, how often they decide, and what the seat achieves?",
+    "hypothesis": "Glide answers several times more slowly than Jev (a median near 0.9 s live, against Jev's 130-260 ms), so it decides less often and more of its answers meet a changed world. We predict Jev's kills per minute is at least Glide's on each seed; the prediction fails if Glide out-kills Jev on either seed.",
+    "independentVariable": "brain",
+    "primaryMetric": {
+      "id": "kills_per_minute",
+      "label": "Kills per minute",
+      "unit": "/min",
+      "description": "Eliminations credited to the seat per minute of match time."
+    },
+    "secondaryMetrics": [
+      "deaths_per_minute",
+      "accuracy",
+      "decisions_per_minute",
+      "decision_latency_ms",
+      "world_changed_rate",
+      "stale_rejection_rate",
+      "exposure_fraction",
+      "distance_m",
+      "damage_taken_per_minute"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43
+    ],
+    "seedPreset": null,
+    "durationS": 60,
+    "mode": "tdm",
+    "definitionHash": "f16d1ec31051870b",
+    "definition": {
+      "schema": "blacksite-experiment/v1",
+      "id": "glide-jev-comparison-v1",
+      "question": "Asked the same question from the same observation, with the same options, controllers and scoring, how do Jev (TypeSafe) and Glide (Fastino) differ in what they choose, how often they decide, and what the seat achieves?",
+      "hypothesis": "Glide answers several times more slowly than Jev (a median near 0.9 s live, against Jev's 130-260 ms), so it decides less often and more of its answers meet a changed world. We predict Jev's kills per minute is at least Glide's on each seed; the prediction fails if Glide out-kills Jev on either seed.",
+      "independentVariable": "brain",
+      "primaryMetric": "kills_per_minute",
+      "secondaryMetrics": [
+        "deaths_per_minute",
+        "accuracy",
+        "decisions_per_minute",
+        "decision_latency_ms",
+        "world_changed_rate",
+        "stale_rejection_rate",
+        "exposure_fraction",
+        "distance_m",
+        "damage_taken_per_minute"
+      ],
+      "decisionType": null,
+      "outcomeWindowS": 5,
+      "seeds": [
+        42,
+        43
+      ],
+      "seedPreset": null,
+      "duration": 60,
+      "mode": "tdm",
+      "arms": [
+        {
+          "seat": "mercy",
+          "id": "jev",
+          "brain": "jev",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "mercy",
+          "id": "glide",
+          "brain": "glide",
+          "control": "precision",
+          "navigation": "places"
+        },
+        {
+          "seat": "mercy",
+          "id": "random",
+          "brain": "random",
+          "control": "precision",
+          "navigation": "places"
+        }
+      ],
+      "controls": [
+        "random"
+      ],
+      "calibrationField": "probability",
+      "contributionFactors": [],
+      "notes": "The seeds, length and interface repeat the first Glide benchmark of 2026-10-05 (seeds 42 and 43, 60 s, precision control, places navigation, mercy seat rules), so Jev is measured on the same seeds. Two seeds is a small sample: same-seed runs differ because frame pacing is not deterministic, so every episode is reported and no single seed is read as a result. Stated differences: both brains are asked the same SystemOne question built by questionParts(); Fastino takes the instructions as one string, so the context and question are joined. Glide's loop limits are 8 s (timeout and maximum answer age) against Jev's 2.2 s and 1.5 s, and the server abandons a Fastino call at 7.5 s against TypeSafe's 1.8 s. Both report a probability for every option. The jev arm spends TypeSafe credit (JEV_LIVE_TEST=1) and the glide arm Fastino credit (FASTINO_LIVE_TEST=1); without the flag an arm is recorded as PENDING."
+    }
+  },
+  "environment": {
+    "gitCommit": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755",
+    "gitDirty": false,
+    "servedBuilds": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755",
+    "node": "v22.22.0",
+    "platform": "linux",
+    "cpus": 4,
+    "rendering": "stubbed (matrices only; see tools/jev-harness.mjs)",
+    "actionContract": "blacksite-jev-actions/v3",
+    "observationSchema": "blacksite-jev-observation/v4",
+    "decisionSchema": "blacksite-jev-decision/v3",
+    "llmDecisionSchema": "blacksite-llm-decision/v1",
+    "decisionRecordSchema": "blacksite-decision/v1",
+    "traceSchema": "blacksite-jev-trace/v3",
+    "experimentSchema": "blacksite-experiment/v1",
+    "evaluationSchema": "blacksite-evaluation/v1"
+  },
+  "provenance": {
+    "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z",
+    "startedAt": "2026-10-05T20:55:55.229Z",
+    "finishedAt": "2026-10-05T21:04:33.740Z",
+    "definitionFile": "tools/experiments/glide-jev-comparison.json",
+    "definitionFileHash": "26d64289662d0482",
+    "overrides": [
+      "none"
+    ],
+    "liveFlagsSet": [
+      "JEV_LIVE_TEST",
+      "FASTINO_LIVE_TEST"
+    ],
+    "pricingFile": "config/pricing.json",
+    "pricingHash": "055f71c0fea9918a",
+    "evaluatedAt": "2026-10-05T21:05:16.490Z",
+    "evaluatedAtCommit": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755"
+  },
+  "arms": [
+    {
+      "id": "jev",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "jev",
+        "kind": "jev",
+        "provider": "typesafe",
+        "models": [
+          "jev-1.13.0"
+        ],
+        "policy": null,
+        "confidenceSources": [
+          "provider-probability"
+        ],
+        "testDouble": false,
+        "parameters": {
+          "service": "blacksite-jev",
+          "model": "jev-latest",
+          "actionContract": "blacksite-jev-actions/v3",
+          "observationSchema": "blacksite-jev-observation/v4",
+          "limits": {
+            "maxBodyBytes": 8192,
+            "minIntervalMs": 150,
+            "upstreamTimeoutMs": 1800
+          }
+        }
+      },
+      "config": {
+        "seat": "mercy",
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=jev&jevControl=precision&jevNav=places&seat=mercy",
+        "origin": "http://localhost:5173",
+        "build": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755"
+      },
+      "episodes": [
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-jev-s42",
+          "seed": 42,
+          "simSeconds": 60.04690000000013,
+          "wallSeconds": 60.169,
+          "lagged": false,
+          "decisions": 254,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 2.9967086150378144,
+            "deaths_per_minute": 0,
+            "accuracy": 0.75,
+            "decisions_per_minute": 253.72132940653492,
+            "decision_latency_ms": 191.55118110236214,
+            "world_changed_rate": 0.011811023622047244,
+            "stale_rejection_rate": 0.07086614173228346,
+            "exposure_fraction": 0.33651685580274054,
+            "distance_m": 119.84594643980279,
+            "damage_taken_per_minute": 0,
+            "damage_dealt_per_minute": 297.36567917784544
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "remote",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "jev.json",
+            "decisions": "jev.seed42.eval.json.gz",
+            "trace": "jev.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-jev-s43",
+          "seed": 43,
+          "simSeconds": 60.25749999999943,
+          "wallSeconds": 60.472,
+          "lagged": false,
+          "decisions": 247,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 1.9909048828601519,
+            "deaths_per_minute": 0,
+            "accuracy": 0.6666666666666666,
+            "decisions_per_minute": 245.8767530332288,
+            "decision_latency_ms": 205.38016194331985,
+            "world_changed_rate": 0.016194331983805668,
+            "stale_rejection_rate": 0.11740890688259109,
+            "exposure_fraction": 0.290043232590012,
+            "distance_m": 165.68389713461113,
+            "damage_taken_per_minute": 0,
+            "damage_dealt_per_minute": 257.79548125876516
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "remote",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "jev.json",
+            "decisions": "jev.seed43.eval.json.gz",
+            "trace": "jev.seed43.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "kills_per_minute": {
+          "n": 2,
+          "mean": 2.493806748948983,
+          "median": 2.493806748948983,
+          "sd": 0.7112106395655633,
+          "min": 1.9909048828601519,
+          "max": 2.9967086150378144,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 2,
+          "mean": 0.7083333333333333,
+          "median": 0.7083333333333333,
+          "sd": 0.05892556509887899,
+          "min": 0.6666666666666666,
+          "max": 0.75,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 2,
+          "mean": 249.79904121988187,
+          "median": 249.79904121988187,
+          "sd": 5.546953149100535,
+          "min": 245.8767530332288,
+          "max": 253.72132940653492,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decision_latency_ms": {
+          "n": 2,
+          "mean": 198.46567152284098,
+          "median": 198.46567152284098,
+          "sd": 9.778566129540042,
+          "min": 191.55118110236214,
+          "max": 205.38016194331985,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "world_changed_rate": {
+          "n": 2,
+          "mean": 0.014002677802926456,
+          "median": 0.014002677802926456,
+          "sd": 0.003099467066631078,
+          "min": 0.011811023622047244,
+          "max": 0.016194331983805668,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "stale_rejection_rate": {
+          "n": 2,
+          "mean": 0.09413752430743727,
+          "median": 0.09413752430743727,
+          "sd": 0.03291070485295544,
+          "min": 0.07086614173228346,
+          "max": 0.11740890688259109,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 2,
+          "mean": 0.3132800441963763,
+          "median": 0.3132800441963763,
+          "sd": 0.03286181412002888,
+          "min": 0.290043232590012,
+          "max": 0.33651685580274054,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 2,
+          "mean": 142.76492178720696,
+          "median": 142.76492178720696,
+          "sd": 32.41232577199359,
+          "min": 119.84594643980279,
+          "max": 165.68389713461113,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 2,
+          "mean": 277.5805802183053,
+          "median": 277.5805802183053,
+          "sd": 27.98035528147547,
+          "min": 257.79548125876516,
+          "max": 297.36567917784544,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 501,
+        "decisions": 501,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": 0,
+        "wallLatencyMs": {
+          "n": 501,
+          "mean": 198.36906187624757,
+          "median": 195.7,
+          "sd": 40.05093982565408,
+          "min": 127.7,
+          "max": 435.1,
+          "p90": 242.3,
+          "p95": 264.9,
+          "p99": 327.4,
+          "ci95": {
+            "lo": 194.85335872609025,
+            "hi": 201.8847650264049,
+            "method": "95% t interval, n=501"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            39,
+            231,
+            223,
+            8,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 501,
+          "mean": 153.98203592814372,
+          "median": 146,
+          "sd": 30.837925945930653,
+          "min": 120,
+          "max": 400,
+          "p90": 189,
+          "p95": 208,
+          "p99": 267,
+          "ci95": {
+            "lo": 151.27505841739423,
+            "hi": 156.6890134388932,
+            "method": "95% t interval, n=501"
+          },
+          "notes": []
+        },
+        "requestBytes": {
+          "total": 1086041,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": 689143,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": 1699023,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": 202045,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 501,
+          "bases": [
+            "price for jev- is not configured (null)"
+          ]
+        },
+        "decisionsPerMinute": 249.8661728083105,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 5
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 454,
+        "executedIllegal": 0,
+        "rejectedStale": 47,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 7,
+        "worldChangeKinds": {
+          "enemy_left_view": 4,
+          "target_gone": 4,
+          "weapon_state": 6,
+          "enemy_appeared": 1
+        },
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 501,
+          "mean": 202.5249500998004,
+          "median": 200,
+          "sd": 41.21764035273618,
+          "min": 129,
+          "max": 439,
+          "p90": 254,
+          "p95": 272,
+          "p99": 334,
+          "ci95": {
+            "lo": 198.9068330553323,
+            "hi": 206.1430671442685,
+            "method": "95% t interval, n=501"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 46,
+          "mean": 0.24199999999999988,
+          "median": 0.232999999999997,
+          "sd": 0.05818132575549163,
+          "min": 0.1490000000000009,
+          "max": 0.48299999999999876,
+          "p90": 0.28600000000000136,
+          "p95": 0.3240000000000052,
+          "p99": null,
+          "ci95": {
+            "lo": 0.22472316587911487,
+            "hi": 0.25927683412088487,
+            "method": "95% t interval, n=46"
+          },
+          "notes": [
+            "p99 needs n >= 100"
+          ]
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 447,
+            "worldChangedRate": 0.011185682326621925,
+            "illegalRate": 0.087248322147651
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 54,
+            "worldChangedRate": 0.037037037037037035,
+            "illegalRate": 0.14814814814814814
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "glide",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "models": [
+          "glide"
+        ],
+        "policy": null,
+        "confidenceSources": [
+          "provider-probability"
+        ],
+        "testDouble": false,
+        "parameters": {
+          "service": "blacksite-glide",
+          "model": "fastino/glide",
+          "actionContract": "blacksite-jev-actions/v3",
+          "observationSchema": "blacksite-jev-observation/v4",
+          "limits": {
+            "maxBodyBytes": 8192,
+            "minIntervalMs": 150,
+            "upstreamTimeoutMs": 7500
+          }
+        }
+      },
+      "config": {
+        "seat": "mercy",
+        "id": "glide",
+        "brain": "glide",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=glide&jevControl=precision&jevNav=places&seat=mercy",
+        "origin": "http://localhost:5173",
+        "build": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755"
+      },
+      "episodes": [
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-glide-s42",
+          "seed": 42,
+          "simSeconds": 60.232999999999905,
+          "wallSeconds": 60.347,
+          "lagged": false,
+          "decisions": 57,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 0.9958456638390244,
+            "deaths_per_minute": 0,
+            "accuracy": 1,
+            "decisions_per_minute": 56.76320283882439,
+            "decision_latency_ms": 1027.1719298245612,
+            "world_changed_rate": 0.14035087719298245,
+            "stale_rejection_rate": 0.08771929824561403,
+            "exposure_fraction": 0.500736530939281,
+            "distance_m": 42.88541182748394,
+            "damage_taken_per_minute": 52.25011541444223,
+            "damage_dealt_per_minute": 159.69971382747278
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "remote",
+            "requestTimeoutMs": 8000,
+            "maxDecisionAgeMs": 8000,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "glide.json",
+            "decisions": "glide.seed42.eval.json.gz",
+            "trace": "glide.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-glide-s43",
+          "seed": 43,
+          "simSeconds": 60.122699999999355,
+          "wallSeconds": 60.206,
+          "lagged": false,
+          "decisions": 58,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 3.989534122152947,
+            "deaths_per_minute": 0,
+            "accuracy": 0.5,
+            "decisions_per_minute": 57.84824477121773,
+            "decision_latency_ms": 1009.3448275862069,
+            "world_changed_rate": 0.25862068965517243,
+            "stale_rejection_rate": 0.2413793103448276,
+            "exposure_fraction": 0.5762737791789256,
+            "distance_m": 68.9681745702942,
+            "damage_taken_per_minute": 25.069643341536054,
+            "damage_dealt_per_minute": 554.7942301097575
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "remote",
+            "requestTimeoutMs": 8000,
+            "maxDecisionAgeMs": 8000,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "glide.json",
+            "decisions": "glide.seed43.eval.json.gz",
+            "trace": "glide.seed43.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "kills_per_minute": {
+          "n": 2,
+          "mean": 2.4926898929959855,
+          "median": 2.4926898929959855,
+          "sd": 2.1168574096336754,
+          "min": 0.9958456638390244,
+          "max": 3.989534122152947,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 2,
+          "mean": 0.75,
+          "median": 0.75,
+          "sd": 0.3535533905932738,
+          "min": 0.5,
+          "max": 1,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 2,
+          "mean": 57.30572380502106,
+          "median": 57.30572380502106,
+          "sd": 0.7672405082670847,
+          "min": 56.76320283882439,
+          "max": 57.84824477121773,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decision_latency_ms": {
+          "n": 2,
+          "mean": 1018.2583787053841,
+          "median": 1018.2583787053841,
+          "sd": 12.605664881646216,
+          "min": 1009.3448275862069,
+          "max": 1027.1719298245612,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "world_changed_rate": {
+          "n": 2,
+          "mean": 0.19948578342407744,
+          "median": 0.19948578342407744,
+          "sd": 0.08362938640167579,
+          "min": 0.14035087719298245,
+          "max": 0.25862068965517243,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "stale_rejection_rate": {
+          "n": 2,
+          "mean": 0.1645493042952208,
+          "median": 0.1645493042952208,
+          "sd": 0.10865403655256085,
+          "min": 0.08771929824561403,
+          "max": 0.2413793103448276,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 2,
+          "mean": 0.5385051550591033,
+          "median": 0.5385051550591033,
+          "sd": 0.053412900462424286,
+          "min": 0.500736530939281,
+          "max": 0.5762737791789256,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 2,
+          "mean": 55.92679319888907,
+          "median": 55.92679319888907,
+          "sd": 18.443298407520963,
+          "min": 42.88541182748394,
+          "max": 68.9681745702942,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 2,
+          "mean": 38.65987937798914,
+          "median": 38.65987937798914,
+          "sd": 19.21949611860353,
+          "min": 25.069643341536054,
+          "max": 52.25011541444223,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 2,
+          "mean": 357.2469719686151,
+          "median": 357.2469719686151,
+          "sd": 279.37401167282235,
+          "min": 159.69971382747278,
+          "max": 554.7942301097575,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 115,
+        "decisions": 115,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": 0,
+        "wallLatencyMs": {
+          "n": 115,
+          "mean": 1018.1808695652173,
+          "median": 830.4,
+          "sd": 640.0449174061793,
+          "min": 618.2,
+          "max": 3253.4,
+          "p90": 1162.7,
+          "p95": 3137.2,
+          "p99": 3238.7,
+          "ci95": {
+            "lo": 899.9427411113762,
+            "hi": 1136.4189980190586,
+            "method": "95% t interval, n=115"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            35,
+            55,
+            16,
+            0,
+            1,
+            8,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 115,
+          "mean": 979.9739130434782,
+          "median": 797,
+          "sd": 629.8079414973666,
+          "min": 592,
+          "max": 3179,
+          "p90": 1106,
+          "p95": 3086,
+          "p99": 3171,
+          "ci95": {
+            "lo": 863.6269032276699,
+            "hi": 1096.3209228592864,
+            "method": "95% t interval, n=115"
+          },
+          "notes": []
+        },
+        "requestBytes": {
+          "total": 238926,
+          "unknownCalls": 0
+        },
+        "responseBytes": {
+          "total": 235049,
+          "unknownCalls": 0
+        },
+        "inputTokens": {
+          "total": 586527,
+          "unknownCalls": 0
+        },
+        "outputTokens": {
+          "total": 4601,
+          "unknownCalls": 0
+        },
+        "cost": {
+          "totalUsd": null,
+          "knownUsd": 0,
+          "unknownCalls": 115,
+          "bases": [
+            "no price configured for fastino/glide"
+          ]
+        },
+        "decisionsPerMinute": 57.330064134893846,
+        "costPerMinuteUsd": null,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 5
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 96,
+        "executedIllegal": 0,
+        "rejectedStale": 19,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 23,
+        "worldChangeKinds": {
+          "weapon_state": 10,
+          "health_dropped": 3,
+          "enemy_appeared": 7,
+          "enemy_left_view": 8,
+          "target_gone": 7
+        },
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 115,
+          "mean": 1023.104347826087,
+          "median": 833,
+          "sd": 640.2182244992174,
+          "min": 622,
+          "max": 3256,
+          "p90": 1166,
+          "p95": 3146,
+          "p99": 3243,
+          "ci95": {
+            "lo": 904.8342036405818,
+            "hi": 1141.374492011592,
+            "method": "95% t interval, n=115"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 19,
+          "mean": 1.9048947368421052,
+          "median": 1.1159999999999997,
+          "sd": 1.3855788559594402,
+          "min": 0.7000000000000011,
+          "max": 5.526,
+          "p90": 4.440999999999999,
+          "p95": null,
+          "p99": null,
+          "ci95": {
+            "lo": 1.2370423240935464,
+            "hi": 2.572747149590664,
+            "method": "95% t interval, n=19"
+          },
+          "notes": [
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 89,
+            "worldChangedRate": 0.1348314606741573,
+            "illegalRate": 0.06741573033707865
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 26,
+            "worldChangedRate": 0.4230769230769231,
+            "illegalRate": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "random",
+      "status": "complete",
+      "pendingReason": null,
+      "brain": {
+        "id": "random",
+        "kind": "random",
+        "provider": "local",
+        "models": [],
+        "policy": null,
+        "confidenceSources": [
+          "none"
+        ],
+        "testDouble": false,
+        "parameters": null
+      },
+      "config": {
+        "seat": "mercy",
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places",
+        "query": "brain=random&jevControl=precision&jevNav=places&seat=mercy",
+        "origin": "http://localhost:5173",
+        "build": "e097b1fbc005f5e664cd43af8bb106d4b6b3f755"
+      },
+      "episodes": [
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-random-s42",
+          "seed": 42,
+          "simSeconds": 60.26350000000158,
+          "wallSeconds": 60.644,
+          "lagged": false,
+          "decisions": 265,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 0,
+            "deaths_per_minute": 0,
+            "accuracy": 0,
+            "decisions_per_minute": 263.7603264656046,
+            "decision_latency_ms": 14.203018867924527,
+            "world_changed_rate": 0,
+            "stale_rejection_rate": 0,
+            "exposure_fraction": 0.8819653958106863,
+            "distance_m": 161.1689137411952,
+            "damage_taken_per_minute": 0,
+            "damage_dealt_per_minute": 0
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random.json",
+            "decisions": "random.seed42.eval.json.gz",
+            "trace": "random.seed42.trace.jsonl.gz"
+          }
+        },
+        {
+          "runId": "glide-jev-comparison-v1-2026-10-05T20-55-55-227Z-random-s43",
+          "seed": 43,
+          "simSeconds": 60.20159999999861,
+          "wallSeconds": 60.287,
+          "lagged": false,
+          "decisions": 243,
+          "failures": 0,
+          "metrics": {
+            "kills_per_minute": 0,
+            "deaths_per_minute": 0.9963847838758507,
+            "accuracy": 0,
+            "decisions_per_minute": 241.12511769795586,
+            "decision_latency_ms": 11.472016460905362,
+            "world_changed_rate": 0,
+            "stale_rejection_rate": 0,
+            "exposure_fraction": 0.8750760781358761,
+            "distance_m": 122.12253981088521,
+            "damage_taken_per_minute": 131.11578542038063,
+            "damage_dealt_per_minute": 0
+          },
+          "interface": {
+            "observationFormat": "structured-v4",
+            "control": "precision",
+            "navigation": "places",
+            "intervalMs": 200,
+            "inference": "local",
+            "requestTimeoutMs": 2200,
+            "maxDecisionAgeMs": 1500,
+            "stale": "strict",
+            "motor": "standard",
+            "outcomeWindowS": 5
+          },
+          "artifacts": {
+            "report": "random.json",
+            "decisions": "random.seed43.eval.json.gz",
+            "trace": "random.seed43.trace.jsonl.gz"
+          }
+        }
+      ],
+      "aggregate": {
+        "kills_per_minute": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "deaths_per_minute": {
+          "n": 2,
+          "mean": 0.49819239193792536,
+          "median": 0.49819239193792536,
+          "sd": 0.7045504373497066,
+          "min": 0,
+          "max": 0.9963847838758507,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "accuracy": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decisions_per_minute": {
+          "n": 2,
+          "mean": 252.44272208178023,
+          "median": 252.44272208178023,
+          "sd": 16.005509613177605,
+          "min": 241.12511769795586,
+          "max": 263.7603264656046,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "decision_latency_ms": {
+          "n": 2,
+          "mean": 12.837517664414944,
+          "median": 12.837517664414944,
+          "sd": 1.9311103214400356,
+          "min": 11.472016460905362,
+          "max": 14.203018867924527,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "world_changed_rate": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "stale_rejection_rate": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "exposure_fraction": {
+          "n": 2,
+          "mean": 0.8785207369732813,
+          "median": 0.8785207369732813,
+          "sd": 0.004871483245606679,
+          "min": 0.8750760781358761,
+          "max": 0.8819653958106863,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "distance_m": {
+          "n": 2,
+          "mean": 141.64572677604022,
+          "median": 141.64572677604022,
+          "sd": 27.609955786867825,
+          "min": 122.12253981088521,
+          "max": 161.1689137411952,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_taken_per_minute": {
+          "n": 2,
+          "mean": 65.55789271019032,
+          "median": 65.55789271019032,
+          "sd": 92.7128609913514,
+          "min": 0,
+          "max": 131.11578542038063,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        },
+        "damage_dealt_per_minute": {
+          "n": 2,
+          "mean": 0,
+          "median": 0,
+          "sd": 0,
+          "min": 0,
+          "max": 0,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": [
+            "no interval below n = 3",
+            "p90 needs n >= 10",
+            "p95 needs n >= 20",
+            "p99 needs n >= 100"
+          ]
+        }
+      },
+      "decisionMetrics": null,
+      "calibration": {
+        "available": false,
+        "reason": "the experiment declares no decision type to score against"
+      },
+      "ledger": {
+        "calls": 508,
+        "decisions": 508,
+        "failures": 0,
+        "timeouts": 0,
+        "retries": null,
+        "wallLatencyMs": {
+          "n": 508,
+          "mean": 12.896653543307096,
+          "median": 11.1,
+          "sd": 11.50501342662373,
+          "min": 0.3,
+          "max": 50.2,
+          "p90": 27.9,
+          "p95": 34.8,
+          "p99": 44.6,
+          "ci95": {
+            "lo": 11.893750442060465,
+            "hi": 13.899556644553726,
+            "method": "95% t interval, n=508"
+          },
+          "notes": []
+        },
+        "wallLatencyHistogram": {
+          "edgesMs": [
+            0,
+            5,
+            10,
+            25,
+            50,
+            100,
+            150,
+            200,
+            300,
+            500,
+            750,
+            1000,
+            1500,
+            2000,
+            3000,
+            5000,
+            10000
+          ],
+          "counts": [
+            166,
+            60,
+            201,
+            80,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "providerLatencyMs": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "requestBytes": {
+          "total": null,
+          "unknownCalls": 508
+        },
+        "responseBytes": {
+          "total": null,
+          "unknownCalls": 508
+        },
+        "inputTokens": {
+          "total": null,
+          "unknownCalls": 508
+        },
+        "outputTokens": {
+          "total": null,
+          "unknownCalls": 508
+        },
+        "cost": {
+          "totalUsd": 0,
+          "knownUsd": 0,
+          "unknownCalls": 0,
+          "bases": [
+            "local inference"
+          ]
+        },
+        "decisionsPerMinute": 253.01933921110722,
+        "costPerMinuteUsd": 0,
+        "costPerObjectiveUsd": null,
+        "objective": {
+          "label": "eliminations (the mode's scoring event)",
+          "count": 0
+        },
+        "costPerUsefulDecisionUsd": null,
+        "usefulDecisions": null
+      },
+      "validation": {
+        "executed": 508,
+        "executedIllegal": 0,
+        "rejectedStale": 0,
+        "superseded": 0,
+        "notExecuted": 0,
+        "worldChanged": 0,
+        "worldChangeKinds": {},
+        "failures": {},
+        "staleAnswers": 0,
+        "ageAtExecutionMs": {
+          "n": 508,
+          "mean": 15.326771653543307,
+          "median": 14,
+          "sd": 11.533824359254043,
+          "min": 1,
+          "max": 52,
+          "p90": 30,
+          "p95": 37,
+          "p99": 49,
+          "ci95": {
+            "lo": 14.321357075550559,
+            "hi": 16.332186231536056,
+            "method": "95% t interval, n=508"
+          },
+          "notes": []
+        },
+        "recoveryAfterRejectionS": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "sd": null,
+          "min": null,
+          "max": null,
+          "p90": null,
+          "p95": null,
+          "p99": null,
+          "ci95": null,
+          "notes": []
+        },
+        "byLatency": [
+          {
+            "bucket": "<100 ms",
+            "n": 508,
+            "worldChangedRate": 0,
+            "illegalRate": 0
+          },
+          {
+            "bucket": "100–250 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "250–500 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "500–1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          },
+          {
+            "bucket": "≥1000 ms",
+            "n": 0,
+            "worldChangedRate": null,
+            "illegalRate": null
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "metric": "kills_per_minute",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          2.9967086150378144,
+          1.9909048828601519
+        ],
+        "n": 2,
+        "meanDifference": 2.493806748948983,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "kills_per_minute",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.9958456638390244,
+          3.989534122152947
+        ],
+        "n": 2,
+        "meanDifference": 2.4926898929959855,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0,
+          -0.9963847838758507
+        ],
+        "n": 2,
+        "meanDifference": -0.49819239193792536,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "deaths_per_minute",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0,
+          -0.9963847838758507
+        ],
+        "n": 2,
+        "meanDifference": -0.49819239193792536,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.75,
+          0.6666666666666666
+        ],
+        "n": 2,
+        "meanDifference": 0.7083333333333333,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "accuracy",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          1,
+          0.5
+        ],
+        "n": 2,
+        "meanDifference": 0.75,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "decisions_per_minute",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -10.038997059069658,
+          4.751635335272937
+        ],
+        "n": 2,
+        "meanDifference": -2.6436808618983605,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "decisions_per_minute",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -206.9971236267802,
+          -183.27687292673812
+        ],
+        "n": 2,
+        "meanDifference": -195.13699827675916,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "decision_latency_ms",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          177.3481622344376,
+          193.90814548241448
+        ],
+        "n": 2,
+        "meanDifference": 185.62815385842606,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "decision_latency_ms",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          1012.9689109566366,
+          997.8728111253015
+        ],
+        "n": 2,
+        "meanDifference": 1005.420861040969,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "world_changed_rate",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.011811023622047244,
+          0.016194331983805668
+        ],
+        "n": 2,
+        "meanDifference": 0.014002677802926456,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "world_changed_rate",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.14035087719298245,
+          0.25862068965517243
+        ],
+        "n": 2,
+        "meanDifference": 0.19948578342407744,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "stale_rejection_rate",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.07086614173228346,
+          0.11740890688259109
+        ],
+        "n": 2,
+        "meanDifference": 0.09413752430743727,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "stale_rejection_rate",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0.08771929824561403,
+          0.2413793103448276
+        ],
+        "n": 2,
+        "meanDifference": 0.1645493042952208,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "exposure_fraction",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -0.5454485400079458,
+          -0.585032845545864
+        ],
+        "n": 2,
+        "meanDifference": -0.5652406927769049,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "exposure_fraction",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -0.3812288648714053,
+          -0.29880229895695043
+        ],
+        "n": 2,
+        "meanDifference": -0.34001558191417786,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "distance_m",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -41.322967301392424,
+          43.561357323725915
+        ],
+        "n": 2,
+        "meanDifference": 1.1191950111667452,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "distance_m",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          -118.28350191371126,
+          -53.15436524059102
+        ],
+        "n": 2,
+        "meanDifference": -85.71893357715115,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_taken_per_minute",
+      "reference": "random",
+      "arm": "jev",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          0,
+          -131.11578542038063
+        ],
+        "n": 2,
+        "meanDifference": -65.55789271019032,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    },
+    {
+      "metric": "damage_taken_per_minute",
+      "reference": "random",
+      "arm": "glide",
+      "difference": {
+        "seeds": [
+          42,
+          43
+        ],
+        "differences": [
+          52.25011541444223,
+          -106.04614207884458
+        ],
+        "n": 2,
+        "meanDifference": -26.898013332201177,
+        "ci95": null,
+        "caveat": "Paired by seed, not by trajectory: the same seed starts the same match, but frame pacing is not deterministic and the worlds diverge within seconds."
+      }
+    }
+  ],
+  "sweeps": [],
+  "contribution": null,
+  "warnings": [
+    {
+      "id": "insufficient-seeds",
+      "severity": "info",
+      "arm": null,
+      "message": "2 seeds per arm. Treat every difference as exploratory; use a 10-seed development set or a 30-seed evaluation set before claiming one.",
+      "evidence": {
+        "seeds": 2
+      },
+      "possibleCauses": [
+        "a quick check, by design"
+      ],
+      "suggestedRun": "set \"seeds\": { \"preset\": \"dev\" } or { \"preset\": \"eval\" }"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "jev",
+      "message": "jev chose weapon=NO_FIRE in 97.6% of 501 decisions where the weapon axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "weapon",
+        "action": "NO_FIRE",
+        "share": 0.9760479041916168,
+        "n": 501
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "option-position-bias",
+      "severity": "warning",
+      "arm": "jev",
+      "message": "jev chose slot 0 of the go axis in 100.0% of 57 decisions with two or more slots offered; a position-blind chooser would pick it 38.2% of the time.",
+      "evidence": {
+        "axis": "go",
+        "firstShare": 1,
+        "expectedShare": 0.3815789473684211,
+        "n": 57
+      },
+      "possibleCauses": [
+        "model preference for what slot 0 is (nearest cover, nearest enemy)",
+        "option-order bias: preference for the first option shown",
+        "an environment where the first-listed option really is best",
+        "controller dominance: the choice matters little either way"
+      ],
+      "suggestedRun": "npm run experiment:shuffle-options"
+    },
+    {
+      "id": "cost-unknown",
+      "severity": "info",
+      "arm": "jev",
+      "message": "jev calls a paid model but its cost is unknown: no price for it in the pricing configuration, or token counts were not reported.",
+      "evidence": {},
+      "possibleCauses": [
+        "config/pricing.json has no sourced price for this model"
+      ],
+      "suggestedRun": "fill config/pricing.json with a cited price and re-run the evaluation (no new episodes needed)"
+    },
+    {
+      "id": "action-concentration",
+      "severity": "warning",
+      "arm": "glide",
+      "message": "glide chose move=HOLD in 100.0% of 115 decisions where the move axis offered a choice (threshold 95%).",
+      "evidence": {
+        "axis": "move",
+        "action": "HOLD",
+        "share": 1,
+        "n": 115
+      },
+      "possibleCauses": [
+        "a policy that does one thing (true of scripted policies)",
+        "the other options are never worth choosing in this environment",
+        "the model ignores the axis"
+      ],
+      "suggestedRun": null
+    },
+    {
+      "id": "cost-unknown",
+      "severity": "info",
+      "arm": "glide",
+      "message": "glide calls a paid model but its cost is unknown: no price for it in the pricing configuration, or token counts were not reported.",
+      "evidence": {},
+      "possibleCauses": [
+        "config/pricing.json has no sourced price for this model"
+      ],
+      "suggestedRun": "fill config/pricing.json with a cited price and re-run the evaluation (no new episodes needed)"
+    },
+    {
+      "id": "low-opponent-hit-rate",
+      "severity": "warning",
+      "arm": "random",
+      "message": "Enemies fired 264 rounds while holding a sight line to random's seat and hit it 5 times (1.9%, threshold 2%).",
+      "evidence": {
+        "roundsInSight": 264,
+        "hitsOnSeat": 5
+      },
+      "possibleCauses": [
+        "bot aim is tuned for another range than the seat fights at",
+        "rounds counted were aimed at someone else in the same line (the proxy over-counts)"
+      ],
+      "suggestedRun": "rerun with \"seat\": \"even\" and compare"
+    }
+  ],
+  "artifacts": {
+    "definition": "definition.json",
+    "arms": {
+      "jev": [
+        "jev.json",
+        "jev.seed42.eval.json.gz",
+        "jev.seed42.trace.jsonl.gz",
+        "jev.json",
+        "jev.seed43.eval.json.gz",
+        "jev.seed43.trace.jsonl.gz"
+      ],
+      "glide": [
+        "glide.json",
+        "glide.seed42.eval.json.gz",
+        "glide.seed42.trace.jsonl.gz",
+        "glide.json",
+        "glide.seed43.eval.json.gz",
+        "glide.seed43.trace.jsonl.gz"
+      ],
+      "random": [
+        "random.json",
+        "random.seed42.eval.json.gz",
+        "random.seed42.trace.jsonl.gz",
+        "random.json",
+        "random.seed43.eval.json.gz",
+        "random.seed43.trace.jsonl.gz"
+      ]
+    }
+  },
+  "notes": [
+    "Episodes are the unit of every interval. Episodes on the same seed start the same match but diverge: frame pacing is not deterministic.",
+    "Decision-level pools overlap in time; their n overstates independent evidence."
+  ]
+}

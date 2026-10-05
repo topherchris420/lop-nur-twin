@@ -1,0 +1,60 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "glide-jev-even-v1",
+  "question": "Over ten seeds with no seat assistance, how do Jev (TypeSafe) and Glide (Fastino) compare in survival, kills and when they choose to fight, and is either one's play just the scripted marksman's strategy?",
+  "hypothesis": "Glide dies more often than Jev. In the two-seed smoke test (glide-jev-comparison-v1, mercy rules) Glide spent 54% of its time in an enemy's sight line against Jev's 31%, held still on every movement choice and decided a quarter as often; without the mercy rules that exposure should cost lives. The prediction fails if Glide's mean deaths per minute over the ten seeds is no higher than Jev's.",
+  "independentVariable": "brain",
+  "primaryMetric": "deaths_per_minute",
+  "secondaryMetrics": [
+    "kills_per_minute",
+    "exposure_fraction",
+    "accuracy",
+    "damage_taken_per_minute",
+    "distance_m",
+    "decisions_per_minute",
+    "decision_latency_ms",
+    "world_changed_rate",
+    "stale_rejection_rate",
+    "success_rate",
+    "harmful_rate"
+  ],
+  "decisionType": "engage-disengage/v1",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "dev",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "glide",
+      "brain": "glide",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "marksman",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": ["random"],
+  "calibrationField": "probability",
+  "notes": "The follow-up the smoke test called for: the 10-seed development preset (seeds 42-51), 120 s episodes and even seat rules, so the seat takes and deals damage exactly as a bot does. The marksman is the hand-written hold-still-and-shoot policy; if Glide matches it, Glide's result is a finding about the game, not the model. Engage-disengage outcomes are scored offline by engage-disengage/v1, and calibration uses each model's provider probability for its weapon choice: TypeSafe's and Fastino's are both distributions over the offered options, reported separately and never pooled, and they are probabilities of a choice, not of an outcome. Stated differences: the same SystemOne question for both, with Fastino's instructions joined into one string; Glide's loop limits are 8 s against Jev's 2.2 s and 1.5 s. The jev arm needs JEV_LIVE_TEST=1 and the glide arm FASTINO_LIVE_TEST=1; without the flag an arm is PENDING."
+}

@@ -9,8 +9,9 @@ import { describe, expect, it } from "vitest";
  * Vite middleware, both server-side — and passed to `server/jev/handler.ts`.
  * Browser code must not read it, must not ask for a `VITE_`-prefixed copy
  * (Vite would inline that into the bundle), and must not import server code.
- * `tools/jev-secret-scan.mjs` checks the built bundle as well; this catches the
- * mistake before a build.
+ * Fastino's key for Glide (`api/glide/decision.ts`) and the LLM key follow the
+ * same rule. `tools/jev-secret-scan.mjs` checks the built bundle as well; this
+ * catches the mistake before a build.
  */
 
 const ROOT = join(__dirname, "..", "..", "..");
@@ -33,7 +34,7 @@ const read = (path: string): string => readFileSync(path, "utf8");
 describe("credential boundary", () => {
   it("no browser module mentions a key or a VITE_ copy of one", () => {
     const offenders = browserFiles.filter((path) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE|LLM_API_KEY|VITE_LLM_|import\.meta\.env\.LLM_|RAIN_BACKEND_TOKEN|RAIN_BACKEND_URL|VITE_RAIN_|import\.meta\.env\.RAIN_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|import\.meta\.env\.TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|import\.meta\.env\.FASTINO|LLM_API_KEY|VITE_LLM_|import\.meta\.env\.LLM_|RAIN_BACKEND_TOKEN|RAIN_BACKEND_URL|VITE_RAIN_|import\.meta\.env\.RAIN_/.test(
         read(path),
       ),
     );
@@ -65,6 +66,20 @@ describe("credential boundary", () => {
       .map((path) => relative(ROOT, path))
       .sort();
     expect(readers).toEqual(["api/jev/decision.ts", "vite.config.ts"]);
+  });
+
+  it("the Fastino key is read only by Glide's server-side entry points", () => {
+    const readers = [...walk(join(ROOT, "server")), ...walk(join(ROOT, "api"))]
+      .concat([join(ROOT, "vite.config.ts")])
+      .filter((path) => !/\.test\.ts$/.test(path))
+      .filter((path) =>
+        /(?:process\.env|env)\[\s*["']FASTINO_API_KEY["']\s*\]|process\.env\.FASTINO_API_KEY/.test(
+          read(path),
+        ),
+      )
+      .map((path) => relative(ROOT, path))
+      .sort();
+    expect(readers).toEqual(["api/glide/decision.ts", "vite.config.ts"]);
   });
 
   it("the LLM key is read only by its server-side entry points", () => {
@@ -108,6 +123,8 @@ describe("credential boundary", () => {
     expect(line).toBe("TYPESAFE_API_KEY=");
     const llm = example.split("\n").find((l) => l.startsWith("LLM_API_KEY="));
     expect(llm).toBe("LLM_API_KEY=");
+    const fastino = example.split("\n").find((l) => l.startsWith("FASTINO_API_KEY="));
+    expect(fastino).toBe("FASTINO_API_KEY=");
     for (const name of ["RAIN_BACKEND_URL", "RAIN_BACKEND_TOKEN"])
       expect(example.split("\n").find((l) => l.startsWith(name + "="))).toBe(name + "=");
   });

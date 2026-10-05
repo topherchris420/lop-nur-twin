@@ -45,6 +45,7 @@ import { ActionExecutor, type FrameEndReason } from "./executor";
 import {
   DecisionLoop,
   type AcceptedDecision,
+  type DecisionProvider,
   type FailureKind,
   type LoopClock,
   type LoopEvent,
@@ -57,6 +58,9 @@ import { PlaceNavigator, type NavSense, type NavTelemetry } from "./navigator";
 import type { FoundPlace } from "./places";
 import {
   DelayedProvider,
+  GLIDE_DECISION_ENDPOINT,
+  GlideHttpProvider,
+  JEV_DECISION_ENDPOINT,
   JevHttpProvider,
   LLM_DECISION_ENDPOINT,
   LlmHttpProvider,
@@ -83,6 +87,7 @@ import {
 } from "./recorder";
 import { ScriptedProvider, type ScriptPolicy } from "./policies";
 import {
+  GLIDE_CAPABILITIES,
   JEV_CAPABILITIES,
   LLM_CAPABILITIES,
   LOCAL_POLICY_CAPABILITIES,
@@ -122,9 +127,64 @@ export type PilotStatus =
   | "PAUSED"
   | "MATCH_COMPLETE";
 
-/** Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer. */
+/**
+ * Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer, and
+ * LIVE GLIDE only ever a Fastino one.
+ */
 export type ControlLabel =
-  "HUMAN" | "LIVE JEV" | "LIVE LLM" | "RANDOM" | "SCRIPTED" | "REPLAY" | "FALLBACK";
+  | "HUMAN"
+  | "LIVE JEV"
+  | "LIVE GLIDE"
+  | "LIVE LLM"
+  | "RANDOM"
+  | "SCRIPTED"
+  | "REPLAY"
+  | "FALLBACK";
+
+/** The brains answered by a model behind this deployment's own endpoints. */
+type RemoteBrain = "jev" | "glide" | "llm";
+
+/**
+ * What the seat needs to know about each remote brain. A new remote brain is
+ * a row here and a provider class, not a branch at every place that asks.
+ */
+const REMOTE_BRAINS: Record<
+  RemoteBrain,
+  {
+    endpoint: string;
+    capabilities: Capabilities;
+    label: ControlLabel;
+    provider: (session: string) => DecisionProvider;
+    /** Whether `?fallback=random` may stand in while it is down. */
+    fallback: boolean;
+  }
+> = {
+  jev: {
+    endpoint: JEV_DECISION_ENDPOINT,
+    capabilities: JEV_CAPABILITIES,
+    label: "LIVE JEV",
+    provider: (session) => new JevHttpProvider(session),
+    fallback: true,
+  },
+  glide: {
+    endpoint: GLIDE_DECISION_ENDPOINT,
+    capabilities: GLIDE_CAPABILITIES,
+    label: "LIVE GLIDE",
+    provider: (session) => new GlideHttpProvider(session),
+    fallback: true,
+  },
+  llm: {
+    endpoint: LLM_DECISION_ENDPOINT,
+    capabilities: LLM_CAPABILITIES,
+    label: "LIVE LLM",
+    provider: (session) => new LlmHttpProvider(session),
+    fallback: false,
+  },
+};
+
+function isRemoteBrain(brain: string): brain is RemoteBrain {
+  return brain === "jev" || brain === "glide" || brain === "llm";
+}
 
 export interface PilotTelemetry {
   brain: BrainKind;
@@ -578,18 +638,15 @@ class Pilot {
     // not depend on it; which axes are asked, how often, and which local
     // controllers execute do.
     const local = brain === "random" || brain === "script";
-    const capabilities: Capabilities =
-      brain === "jev"
-        ? JEV_CAPABILITIES
-        : brain === "llm"
-          ? LLM_CAPABILITIES
-          : brain === "replay" && options.trace
-            ? {
-                ...LOCAL_POLICY_CAPABILITIES,
-                control: [options.trace.header.control],
-                navigation: [options.trace.header.navigation],
-              }
-            : LOCAL_POLICY_CAPABILITIES;
+    const capabilities: Capabilities = isRemoteBrain(brain)
+      ? REMOTE_BRAINS[brain].capabilities
+      : brain === "replay" && options.trace
+        ? {
+            ...LOCAL_POLICY_CAPABILITIES,
+            control: [options.trace.header.control],
+            navigation: [options.trace.header.navigation],
+          }
+        : LOCAL_POLICY_CAPABILITIES;
     const negotiated =
       brain === "human"
         ? null
@@ -640,14 +697,11 @@ class Pilot {
         this.failure = { kind: "invalid", detail: "No compatible trace is loaded." };
       }
     } else {
-      const inner =
-        brain === "jev"
-          ? new JevHttpProvider(this.session)
-          : brain === "llm"
-            ? new LlmHttpProvider(this.session)
-            : brain === "script"
-              ? new ScriptedProvider(options.policy)
-              : new RandomProvider(options.seed);
+      const inner = isRemoteBrain(brain)
+        ? REMOTE_BRAINS[brain].provider(this.session)
+        : brain === "script"
+          ? new ScriptedProvider(options.policy)
+          : new RandomProvider(options.seed);
       // Latency is injected only into local brains: a remote model's is real.
       const primary =
         local && this.options.latencyMs > 0
@@ -655,7 +709,9 @@ class Pilot {
           : inner;
       this.descriptor = inner.descriptor ?? null;
       const fallback =
-        brain === "jev" && options.fallback === "random"
+        isRemoteBrain(brain) &&
+        REMOTE_BRAINS[brain].fallback &&
+        options.fallback === "random"
           ? new RandomProvider((options.seed ^ 0x9e3779b9) >>> 0)
           : null;
       this.loop = new DecisionLoop({
@@ -681,7 +737,7 @@ class Pilot {
     }
     this.beginEpisode();
     this.startTimer();
-    if (brain === "jev" || brain === "llm") this.checkService(brain);
+    if (isRemoteBrain(brain)) this.checkService(brain);
   }
 
   /**
@@ -722,10 +778,10 @@ class Pilot {
     this.navigator.reset();
   }
 
-  private checkService(brain: "jev" | "llm"): void {
+  private checkService(brain: RemoteBrain): void {
     const controller = new AbortController();
     this.probe = controller;
-    const endpoint = brain === "llm" ? LLM_DECISION_ENDPOINT : undefined;
+    const endpoint = REMOTE_BRAINS[brain].endpoint;
     void probeJevService(endpoint, controller.signal).then((status) => {
       if (this.probe !== controller) return;
       this.telemetry.service = status;
@@ -1021,7 +1077,7 @@ class Pilot {
     source: DecisionSource,
   ): DecisionRecord | null {
     if (this.evalRecords.length >= MAX_EVAL_RECORDS) return null;
-    const local = decision.provider !== "jev" && decision.provider !== "llm";
+    const local = !isRemoteBrain(decision.provider);
     const accounting = decision.accounting ?? {
       ...localAccounting(),
       provider: local || decision.fallback ? "local" : "unknown",
@@ -1868,8 +1924,8 @@ class Pilot {
               ? "REPLAY"
               : this.fallbackActive || executing?.source === "fallback-random"
                 ? "FALLBACK"
-                : this.brain === "llm"
-                  ? "LIVE LLM"
+                : isRemoteBrain(this.brain)
+                  ? REMOTE_BRAINS[this.brain].label
                   : "LIVE JEV";
     t.status = this.status();
   }
@@ -1891,10 +1947,7 @@ class Pilot {
     }
     if (this.executor.current) return "EXECUTING";
     if (this.loop?.inFlight) return "DECIDING";
-    if (
-      (this.brain === "jev" || this.brain === "llm") &&
-      this.metrics.counters.accepted === 0
-    )
+    if (isRemoteBrain(this.brain) && this.metrics.counters.accepted === 0)
       return "CONNECTING";
     return "OBSERVING";
   }

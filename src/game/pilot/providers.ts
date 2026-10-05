@@ -1,6 +1,6 @@
 import { mulberry32 } from "@/lib/noise";
 import type { ControlFrame, ControlMode, NavigationMode } from "./contract";
-import { readDecisionError, validateDecision } from "./decision";
+import { readDecisionError, validateDecision, type SystemOneSource } from "./decision";
 import { validateLlmDecision } from "./llmDecision";
 import { validateObservation, type LegalActions } from "./observation";
 import {
@@ -10,6 +10,7 @@ import {
   type BrainDescriptor,
 } from "./brain";
 import {
+  GLIDE_CAPABILITIES,
   JEV_CAPABILITIES,
   LLM_CAPABILITIES,
   LOCAL_POLICY_CAPABILITIES,
@@ -32,6 +33,7 @@ import type {
  */
 
 export const JEV_DECISION_ENDPOINT = "/api/jev/decision";
+export const GLIDE_DECISION_ENDPOINT = "/api/glide/decision";
 export const LLM_DECISION_ENDPOINT = "/api/llm/decision";
 
 type Posted =
@@ -144,22 +146,21 @@ async function postObservation(
 const boundFetch = (fetchImpl?: typeof fetch): typeof fetch =>
   fetchImpl ?? ((input, init) => fetch(input, init));
 
-/** The live TypeSafe Jev brain, through this deployment's own server. */
-export class JevHttpProvider implements DecisionProvider {
-  readonly kind = "jev" as const;
-  readonly descriptor: BrainDescriptor = {
-    id: "jev",
-    kind: "jev",
-    provider: "typesafe",
-    model: null,
-    capabilities: JEV_CAPABILITIES,
-    confidence: "provider-probability",
-  };
+/**
+ * A brain served over the SystemOne Choice protocol, through this deployment's
+ * own server: Jev from TypeSafe, Glide from Fastino. Both answers have the
+ * same shape and are checked the same way, and each must name the provider
+ * its endpoint speaks for — a Glide answer is never accepted as Jev's.
+ */
+abstract class SystemOneHttpProvider implements DecisionProvider {
+  abstract readonly kind: "jev" | "glide";
+  abstract readonly descriptor: BrainDescriptor;
+  protected abstract readonly source: SystemOneSource;
   private readonly fetchImpl: typeof fetch;
 
   constructor(
     private readonly session: string,
-    private readonly endpoint: string = JEV_DECISION_ENDPOINT,
+    private readonly endpoint: string,
     fetchImpl?: typeof fetch,
   ) {
     this.fetchImpl = boundFetch(fetchImpl);
@@ -177,6 +178,7 @@ export class JevHttpProvider implements DecisionProvider {
     const validated = validateDecision(posted.body, {
       sequence,
       legal: observation.legal,
+      source: this.source,
     });
     if (!validated.ok) {
       return {
@@ -197,7 +199,7 @@ export class JevHttpProvider implements DecisionProvider {
         usage: decision.usage,
         confidence: confidenceFromAxes(decision.axes),
         accounting: {
-          provider: "typesafe",
+          provider: decision.source,
           model: decision.model,
           providerLatencyMs: decision.latencyMs,
           requestBytes: posted.requestBytes,
@@ -205,13 +207,62 @@ export class JevHttpProvider implements DecisionProvider {
           inputTokens: decision.usage?.inputTokens ?? null,
           outputTokens: decision.usage?.outputTokens ?? null,
           reportedCostUsd: null,
-          // The Jev handler makes one upstream attempt and never retries.
+          // The SystemOne handler makes one upstream attempt and never retries.
           retries: 0,
           traceId: null,
           questionHash: decision.questionHash ?? null,
         },
       },
     };
+  }
+}
+
+/** The live TypeSafe Jev brain, through this deployment's own server. */
+export class JevHttpProvider extends SystemOneHttpProvider {
+  readonly kind = "jev" as const;
+  protected readonly source = "typesafe" as const;
+  readonly descriptor: BrainDescriptor = {
+    id: "jev",
+    kind: "jev",
+    provider: "typesafe",
+    model: null,
+    capabilities: JEV_CAPABILITIES,
+    confidence: "provider-probability",
+  };
+
+  constructor(
+    session: string,
+    endpoint: string = JEV_DECISION_ENDPOINT,
+    fetchImpl?: typeof fetch,
+  ) {
+    super(session, endpoint, fetchImpl);
+  }
+}
+
+/**
+ * Fastino's Glide, through this deployment's own server
+ * (`server/glide/handler.ts`). It is asked Jev's question in Fastino's
+ * envelope, and returns Fastino's own probabilities and confidence per axis —
+ * provider probabilities, exactly as Jev's are, and labelled as Fastino's.
+ */
+export class GlideHttpProvider extends SystemOneHttpProvider {
+  readonly kind = "glide" as const;
+  protected readonly source = "fastino" as const;
+  readonly descriptor: BrainDescriptor = {
+    id: "glide",
+    kind: "glide",
+    provider: "fastino",
+    model: null,
+    capabilities: GLIDE_CAPABILITIES,
+    confidence: "provider-probability",
+  };
+
+  constructor(
+    session: string,
+    endpoint: string = GLIDE_DECISION_ENDPOINT,
+    fetchImpl?: typeof fetch,
+  ) {
+    super(session, endpoint, fetchImpl);
   }
 }
 

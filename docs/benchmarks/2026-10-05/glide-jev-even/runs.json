@@ -1,0 +1,75 @@
+{
+  "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z",
+  "startedAt": "2026-10-05T21:16:22.738Z",
+  "finishedAt": "2026-10-05T22:55:48.207Z",
+  "git": {
+    "commit": "f8f7cce1e5aff4f026afc946a913bcd16bd1059a",
+    "dirty": false
+  },
+  "node": "v22.22.0",
+  "platform": "linux",
+  "cpus": 4,
+  "liveFlagsSet": [
+    "JEV_LIVE_TEST",
+    "FASTINO_LIVE_TEST"
+  ],
+  "arms": [
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=jev&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5174",
+      "build": "unknown (served by http://localhost:5174)",
+      "report": "jev.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "glide",
+        "brain": "glide",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=glide&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5174",
+      "build": "unknown (served by http://localhost:5174)",
+      "report": "glide.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "marksman",
+        "brain": "script",
+        "control": "precision",
+        "policy": "marksman",
+        "navigation": "places"
+      },
+      "query": "brain=script&jevControl=precision&policy=marksman&jevNav=places&seat=even",
+      "origin": "http://localhost:5174",
+      "build": "unknown (served by http://localhost:5174)",
+      "report": "marksman.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      },
+      "query": "brain=random&jevControl=precision&jevNav=places&seat=even",
+      "origin": "http://localhost:5174",
+      "build": "unknown (served by http://localhost:5174)",
+      "report": "random.json",
+      "pending": null
+    }
+  ]
+}

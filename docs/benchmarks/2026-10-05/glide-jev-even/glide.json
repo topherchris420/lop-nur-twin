@@ -1,0 +1,4062 @@
+{
+  "tool": "tools/jev-benchmark.mjs",
+  "brain": "glide",
+  "policy": null,
+  "testDouble": false,
+  "service": {
+    "schemaVersion": "blacksite-jev-decision/v3",
+    "service": "blacksite-glide",
+    "configured": true,
+    "model": "fastino/glide",
+    "actionContract": "blacksite-jev-actions/v3",
+    "observationSchema": "blacksite-jev-observation/v4",
+    "capabilities": {
+      "control": [
+        "precision",
+        "direct"
+      ],
+      "navigation": [
+        "places",
+        "steps"
+      ],
+      "minIntervalMs": 200,
+      "inference": "remote",
+      "memory": false,
+      "vision": false,
+      "observations": [
+        "structured-v4"
+      ],
+      "requestTimeoutMs": 8000,
+      "maxDecisionAgeMs": 8000
+    },
+    "limits": {
+      "maxBodyBytes": 8192,
+      "minIntervalMs": 150,
+      "upstreamTimeoutMs": 7500
+    }
+  },
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "query": "jevNav=places&seat=even&outcomeWindow=5",
+  "control": "precision",
+  "controlNote": "The brain chose movement, weapon use, a target slot and an aim region about five times a second; a deterministic local controller executed the aiming and trigger discipline at frame rate. Results describe the brain and that controller together.",
+  "mode": "tdm",
+  "origin": "http://localhost:5174",
+  "startedAt": "2026-10-05T22:06:10.930Z",
+  "episodesRequested": 10,
+  "secondsPerEpisode": 120,
+  "rendering": "stubbed (matrices only; see jev-harness.mjs)",
+  "aggregate": {
+    "brain": "glide",
+    "control": "precision",
+    "profile": "n/a",
+    "navigation": "places",
+    "interval": "200 ms",
+    "seat": "even",
+    "episodes": 10,
+    "simSeconds": 1201.7662999999895,
+    "kills": 37,
+    "deaths": 10,
+    "killDeathRatio": 3.7,
+    "shotsFired": 131,
+    "hits": 109,
+    "accuracy": 0.8320610687022901,
+    "damageDealt": 5284.531045341031,
+    "damageTaken": 2130.7307638883735,
+    "meanSurvivalS": 57.59315999999948,
+    "distanceM": 1119.5933246839684,
+    "decisions": {
+      "requested": 976,
+      "accepted": 960,
+      "fallback": 0,
+      "timeouts": 6,
+      "stale": 0,
+      "duplicates": 0,
+      "invalid": 0,
+      "errors": 0,
+      "rateLimited": 0,
+      "unavailable": 0,
+      "aborted": 10,
+      "refused": 0,
+      "worldChanged": 196,
+      "rejectedStale": 176,
+      "executedIllegal": 0
+    },
+    "actions": {
+      "move": {
+        "HOLD": 849,
+        "FORWARD": 29,
+        "BACK": 1,
+        "STRAFE_LEFT": 5,
+        "STRAFE_RIGHT": 2,
+        "FORWARD_LEFT": 1,
+        "FORWARD_RIGHT": 2,
+        "SPRINT_FORWARD": 70,
+        "JUMP": 0,
+        "CROUCH": 1,
+        "PRONE": 0,
+        "STAND": 0
+      },
+      "turn": {
+        "NO_TURN": 767,
+        "TURN_LEFT_FINE": 3,
+        "TURN_RIGHT_FINE": 8,
+        "TURN_LEFT_SMALL": 38,
+        "TURN_RIGHT_SMALL": 19,
+        "TURN_LEFT_MEDIUM": 32,
+        "TURN_RIGHT_MEDIUM": 32,
+        "TURN_LEFT_LARGE": 41,
+        "TURN_RIGHT_LARGE": 17,
+        "TURN_AROUND": 3
+      },
+      "tilt": {
+        "NO_TILT": 945,
+        "LOOK_UP_FINE": 0,
+        "LOOK_DOWN_FINE": 6,
+        "LOOK_UP_SMALL": 0,
+        "LOOK_DOWN_SMALL": 2,
+        "LOOK_UP_MEDIUM": 0,
+        "LOOK_DOWN_MEDIUM": 7
+      },
+      "weapon": {
+        "NO_FIRE": 797,
+        "FIRE": 0,
+        "ADS": 16,
+        "ADS_FIRE": 145,
+        "RELOAD": 2,
+        "SWAP_WEAPON": 0
+      },
+      "target": {
+        "NONE": 773,
+        "TARGET_0": 168,
+        "TARGET_1": 13,
+        "TARGET_2": 4,
+        "TARGET_3": 2
+      },
+      "aim": {
+        "CENTER_MASS": 950,
+        "UPPER_CHEST": 0,
+        "HEAD": 10
+      },
+      "go": {
+        "NONE": 511,
+        "CONTINUE": 271,
+        "PLACE_0": 165,
+        "PLACE_1": 13,
+        "PLACE_2": 0,
+        "PLACE_3": 0
+      }
+    },
+    "latency": {
+      "count": 963,
+      "meanMs": 1113.686708203541,
+      "p50Ms": 809.5,
+      "p95Ms": 3315.2000000001863,
+      "maxMs": 6578.399999999441
+    },
+    "serverLatency": {
+      "count": 963,
+      "meanMs": 1056.6251298026998,
+      "p50Ms": 748,
+      "p95Ms": 3235,
+      "maxMs": 6552
+    },
+    "models": [
+      "glide"
+    ],
+    "shooting": {
+      "headshots": 11,
+      "upperChestHits": 101,
+      "shotsPerKill": 3.5405405405405403,
+      "damagePerShot": 40.33993164382466,
+      "shotErrorDeg": {
+        "count": 126,
+        "mean": 0.1488511523841462,
+        "p50": 0.1380477059021725,
+        "p95": 0.2677136540030418
+      },
+      "aimErrorDeg": {
+        "count": 3259,
+        "mean": 2.0385296290703048,
+        "p50": 0.8518477262807573,
+        "p95": 8.429882439738444
+      },
+      "engagementRangeM": {
+        "count": 126,
+        "mean": 93.78091540389416,
+        "p50": 95.44174829657999,
+        "p95": 117.0850262524344
+      },
+      "adsFraction": 0.0145611041311039
+    },
+    "motor": {
+      "trackingErrorDeg": {
+        "count": 2522,
+        "mean": 0.06456458946509416,
+        "p50": 0.035088597415319916,
+        "p95": 0.24676544868370356
+      },
+      "acquisitionS": {
+        "count": 83,
+        "mean": 0.22358554216869195,
+        "p50": 0.24899999999999523,
+        "p95": 0.39900000000000446
+      },
+      "timeToFirstHitS": {
+        "count": 60,
+        "mean": 0.36400666666661086,
+        "p50": 0.26850000000000307,
+        "p95": 1.0930999999996658
+      },
+      "targetsBound": 87,
+      "targetSwitches": 6,
+      "targetLosses": 12,
+      "releases": {
+        "timeout": 30,
+        "eliminated": 39,
+        "lost_sight": 12,
+        "switched": 6
+      },
+      "triggerOpportunities": 1110,
+      "gateSuppressed": 983,
+      "gateSuppressedFraction": 0.8855855855855855,
+      "recoilCompensationDeg": {
+        "count": 127,
+        "mean": 0.2670897043814267,
+        "p50": 0.26577518103286163,
+        "p95": 0.2774584799598445
+      },
+      "executionLatencyMs": {
+        "count": 784,
+        "mean": 5.098086734691977,
+        "p50": 2.3999999994412065,
+        "p95": 25.399999999441206
+      }
+    },
+    "fallbackSeconds": 0,
+    "places": {
+      "chosen": 172,
+      "byKind": {
+        "cover": 137,
+        "advance": 35
+      },
+      "releases": {
+        "arrived": 147,
+        "replaced": 9,
+        "cleared": 5,
+        "timeout": 9
+      },
+      "travelS": {
+        "count": 170,
+        "mean": 1.2137835294117498,
+        "p50": 0.9529999999999887,
+        "p95": 3.474600000000663
+      }
+    },
+    "debrief": {
+      "aliveSeconds": 1151.9319999999907,
+      "exposedSeconds": 512.6705999999886,
+      "exposedFraction": 0.44505283297971815,
+      "longestExposedS": 36.338199999998324,
+      "seeingSeconds": 296.16489999999385,
+      "deaths": {
+        "total": 10,
+        "onOpenGround": 7,
+        "unseen": 2,
+        "seen_not_engaged": 7,
+        "engaged": 1,
+        "other": 0
+      },
+      "kills": {
+        "total": 37,
+        "meanSightToKillS": 16.470627027026854,
+        "unseenVictims": 0
+      },
+      "recentDeaths": [
+        {
+          "time": 37.279299999999864,
+          "killer": "HOLT",
+          "cls": "seen_not_engaged",
+          "rangeM": 103.87700301169691,
+          "seenForS": 22.257,
+          "exposedToKillerS": 26.97530000000076,
+          "openGround": true,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 76.88359999999861,
+          "killer": "VOSS",
+          "cls": "seen_not_engaged",
+          "rangeM": 49.45247635805663,
+          "seenForS": 5.359699999999255,
+          "exposedToKillerS": 7.652699999999257,
+          "openGround": false,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 95.04700000000079,
+          "killer": "VOSS",
+          "cls": "seen_not_engaged",
+          "rangeM": 108.95969284462899,
+          "seenForS": 6.15360000000056,
+          "exposedToKillerS": 5.244800000000747,
+          "openGround": false,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 27.795200000001092,
+          "killer": "NAKATA",
+          "cls": "seen_not_engaged",
+          "rangeM": 110.50009371840244,
+          "seenForS": 7.304300000000743,
+          "exposedToKillerS": 11.539100000000563,
+          "openGround": true,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 53.90909999999851,
+          "killer": "VOSS",
+          "cls": "engaged",
+          "rangeM": 17.641368644567432,
+          "seenForS": 11.519699999999261,
+          "exposedToKillerS": 11.378200000000195,
+          "openGround": false,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 95.74409999999742,
+          "killer": "VOSS",
+          "cls": "seen_not_engaged",
+          "rangeM": 26.159728133095136,
+          "seenForS": 0.8252000000001862,
+          "exposedToKillerS": 0.8252000000001862,
+          "openGround": true,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 13.126000000000001,
+          "killer": "AMARO",
+          "cls": "unseen",
+          "rangeM": 125.98578154363646,
+          "seenForS": 0,
+          "exposedToKillerS": 6.8383000000007454,
+          "openGround": true,
+          "place": "North-East Apron"
+        },
+        {
+          "time": 41.79799999999996,
+          "killer": "HOLT",
+          "cls": "seen_not_engaged",
+          "rangeM": 16.365144878296203,
+          "seenForS": 3.165400000001304,
+          "exposedToKillerS": 3.165400000001304,
+          "openGround": true,
+          "place": "Main Apron"
+        }
+      ]
+    }
+  },
+  "blueBotBaseline": {
+    "note": "The player's own bot teammates in the same matches. Not a controlled comparison; see the header of this file.",
+    "kills": 81,
+    "deaths": 109,
+    "dealt": 13239.949945973362,
+    "taken": 17339.1242139142,
+    "hits": 195,
+    "shots": 2299,
+    "botSeconds": 6007.10699999995,
+    "accuracy": 0.08481948673336233,
+    "killsPerBotMinute": 0.8090416901180619,
+    "deathsPerBotMinute": 1.0887104225045525
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s42",
+      "seed": 42,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed42.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed42.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.00700000000133,
+      "wallSeconds": 120.511,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.04120000000057,
+        "wallSeconds": 120.52730000000075,
+        "kills": 3,
+        "deaths": 0,
+        "shotsFired": 9,
+        "hits": 7,
+        "accuracy": 0.7777777777777778,
+        "damageDealt": 340.64367539608884,
+        "damageTaken": 84.63016240132373,
+        "lifeSeconds": [
+          120.04120000000057
+        ],
+        "meanSurvivalS": 120.04120000000057,
+        "distanceM": 87.94055355039937,
+        "decisions": {
+          "requested": 71,
+          "accepted": 65,
+          "fallback": 0,
+          "timeouts": 6,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 0,
+          "refused": 0,
+          "worldChanged": 14,
+          "rejectedStale": 14,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 65,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 55,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 0,
+            "TURN_LEFT_SMALL": 2,
+            "TURN_RIGHT_SMALL": 3,
+            "TURN_LEFT_MEDIUM": 3,
+            "TURN_RIGHT_MEDIUM": 0,
+            "TURN_LEFT_LARGE": 2,
+            "TURN_RIGHT_LARGE": 0,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 65,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 0,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 0
+          },
+          "weapon": {
+            "NO_FIRE": 53,
+            "FIRE": 0,
+            "ADS": 0,
+            "ADS_FIRE": 12,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 52,
+            "TARGET_0": 11,
+            "TARGET_1": 2,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 65,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 23,
+            "CONTINUE": 24,
+            "PLACE_0": 17,
+            "PLACE_1": 1,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 65,
+          "meanMs": 1109.0200000000402,
+          "p50Ms": 955.5999999996275,
+          "p95Ms": 2899.100000000559,
+          "maxMs": 4825
+        },
+        "serverLatency": {
+          "count": 65,
+          "meanMs": 1045,
+          "p50Ms": 890,
+          "p95Ms": 2828,
+          "maxMs": 4740
+        },
+        "confidence": {
+          "move": {
+            "count": 65,
+            "meanMs": 0.5034025489740325,
+            "p50Ms": 0.5300727167569543,
+            "p95Ms": 0.7275855232872256,
+            "maxMs": 0.8523494895833563
+          },
+          "turn": {
+            "count": 65,
+            "meanMs": 0.49223059687483833,
+            "p50Ms": 0.5173053942313586,
+            "p95Ms": 0.9079777498790811,
+            "maxMs": 0.9295608139150259
+          },
+          "tilt": {
+            "count": 65,
+            "meanMs": 0.925293939241265,
+            "p50Ms": 0.9406853301455335,
+            "p95Ms": 0.9755022786078572,
+            "maxMs": 0.9812954540262341
+          },
+          "weapon": {
+            "count": 65,
+            "meanMs": 0.6747656849515096,
+            "p50Ms": 0.7241730291575994,
+            "p95Ms": 0.9177113964921595,
+            "maxMs": 0.9807795778075618
+          },
+          "target": {
+            "count": 14,
+            "meanMs": 0.6571450011128678,
+            "p50Ms": 0.7039055964187333,
+            "p95Ms": 0.925346233075798,
+            "maxMs": 0.925346233075798
+          },
+          "aim": {
+            "count": 14,
+            "meanMs": 0.49363990014608505,
+            "p50Ms": 0.4849184586717722,
+            "p95Ms": 0.6583458352120328,
+            "maxMs": 0.6583458352120328
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 1,
+          "upperChestHits": 7,
+          "shotsPerKill": 3,
+          "damagePerShot": 37.84929726623209,
+          "shotErrorDeg": {
+            "count": 9,
+            "mean": 0.17415962203965835,
+            "p50": 0.17241454141359938,
+            "p95": 0.3243142836358482
+          },
+          "aimErrorDeg": {
+            "count": 278,
+            "mean": 3.9109395912227933,
+            "p50": 2.990307777265477,
+            "p95": 9.662932851811371
+          },
+          "engagementRangeM": {
+            "count": 9,
+            "mean": 79.70352903414033,
+            "p50": 76.92354600101274,
+            "p95": 102.26099022876656
+          },
+          "adsFraction": 0.010185669586768949
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 93,
+            "mean": 0.09607956658511597,
+            "p50": 0.05833723264464164,
+            "p95": 0.2990162683455628
+          },
+          "acquisitionS": {
+            "count": 5,
+            "mean": 0.22918000000007482,
+            "p50": 0.25980000000073744,
+            "p95": 0.3925000000000054
+          },
+          "timeToFirstHitS": {
+            "count": 4,
+            "mean": 0.2524750000000928,
+            "p50": 0.23639999999944195,
+            "p95": 0.2844000000003746
+          },
+          "targetsBound": 6,
+          "targetSwitches": 0,
+          "targetLosses": 1,
+          "releases": {
+            "timeout": 2,
+            "eliminated": 3,
+            "lost_sight": 1
+          },
+          "triggerOpportunities": 79,
+          "gateSuppressed": 70,
+          "gateSuppressedFraction": 0.8860759493670886,
+          "recoilCompensationDeg": {
+            "count": 9,
+            "mean": 0.2662875951061527,
+            "p50": 0.26577518103286163,
+            "p95": 0.2774584799598445
+          },
+          "executionLatencyMs": {
+            "count": 51,
+            "mean": 7.386274509789312,
+            "p50": 2.599999999627471,
+            "p95": 38.59999999962747
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 18,
+          "byKind": {
+            "cover": 17,
+            "advance": 1
+          },
+          "releases": {
+            "arrived": 18
+          },
+          "travelS": {
+            "count": 18,
+            "mean": 1.095649999999956,
+            "p50": 0.9364999999999526,
+            "p95": 3.5058999999994427
+          }
+        },
+        "opponent": {
+          "roundsInSight": 91,
+          "hitsOnSeat": 2
+        },
+        "debrief": {
+          "aliveSeconds": 120.04120000000106,
+          "exposedSeconds": 45.55089999999941,
+          "exposedFraction": 0.3794605518771806,
+          "longestExposedS": 17.233299999999808,
+          "seeingSeconds": 36.86059999999964,
+          "deaths": {
+            "total": 0,
+            "onOpenGround": 0,
+            "unseen": 0,
+            "seen_not_engaged": 0,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 3,
+            "meanSightToKillS": 24.77176666666652,
+            "unseenVictims": 0
+          },
+          "recentDeaths": []
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 7,
+        "deaths": 8,
+        "dealt": 1030.0089576372047,
+        "taken": 1244.847566139664,
+        "hits": 17,
+        "shots": 178,
+        "lastRound": "11:122.68940000000077"
+      },
+      "score": {
+        "own": 10,
+        "enemy": 8
+      },
+      "lastError": "timeout: upstream_timeout: Fastino did not answer in time.",
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0041997550142796,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 2,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s43",
+      "seed": 43,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed43.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed43.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.20899999999699,
+      "wallSeconds": 120.586,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.2292999999969,
+        "wallSeconds": 120.58720000000018,
+        "kills": 0,
+        "deaths": 1,
+        "shotsFired": 3,
+        "hits": 2,
+        "accuracy": 0.6666666666666666,
+        "damageDealt": 82.66978851962233,
+        "damageTaken": 126.80441483980508,
+        "lifeSeconds": [
+          11.81739999999945,
+          103.43189999999754
+        ],
+        "meanSurvivalS": 57.624649999998496,
+        "distanceM": 95.08234628964043,
+        "decisions": {
+          "requested": 86,
+          "accepted": 85,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 10,
+          "rejectedStale": 17,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 84,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 1,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 55,
+            "TURN_LEFT_FINE": 1,
+            "TURN_RIGHT_FINE": 4,
+            "TURN_LEFT_SMALL": 7,
+            "TURN_RIGHT_SMALL": 1,
+            "TURN_LEFT_MEDIUM": 3,
+            "TURN_RIGHT_MEDIUM": 6,
+            "TURN_LEFT_LARGE": 5,
+            "TURN_RIGHT_LARGE": 1,
+            "TURN_AROUND": 2
+          },
+          "tilt": {
+            "NO_TILT": 84,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 0,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 1
+          },
+          "weapon": {
+            "NO_FIRE": 81,
+            "FIRE": 0,
+            "ADS": 0,
+            "ADS_FIRE": 4,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 81,
+            "TARGET_0": 4,
+            "TARGET_1": 0,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 85,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 29,
+            "CONTINUE": 35,
+            "PLACE_0": 20,
+            "PLACE_1": 1,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 85,
+          "meanMs": 1312.3282352940782,
+          "p50Ms": 786.5,
+          "p95Ms": 3251,
+          "maxMs": 6578.399999999441
+        },
+        "serverLatency": {
+          "count": 85,
+          "meanMs": 1253.8588235294117,
+          "p50Ms": 722,
+          "p95Ms": 3213,
+          "maxMs": 6552
+        },
+        "confidence": {
+          "move": {
+            "count": 85,
+            "meanMs": 0.48850175298909965,
+            "p50Ms": 0.4748311171791689,
+            "p95Ms": 0.7071657112602762,
+            "maxMs": 0.8185189330050306
+          },
+          "turn": {
+            "count": 85,
+            "meanMs": 0.3983349030993524,
+            "p50Ms": 0.37619431701875883,
+            "p95Ms": 0.7305869905761282,
+            "maxMs": 0.9272130785971492
+          },
+          "tilt": {
+            "count": 85,
+            "meanMs": 0.8045148350429997,
+            "p50Ms": 0.8903477514815512,
+            "p95Ms": 0.9724462445682184,
+            "maxMs": 0.984182983156098
+          },
+          "weapon": {
+            "count": 85,
+            "meanMs": 0.7093591109473151,
+            "p50Ms": 0.7743239363605088,
+            "p95Ms": 0.8869273216115181,
+            "maxMs": 0.9780649283006652
+          },
+          "target": {
+            "count": 5,
+            "meanMs": 0.6676757858012909,
+            "p50Ms": 0.7481544703297354,
+            "p95Ms": 0.9051482637426362,
+            "maxMs": 0.9051482637426362
+          },
+          "aim": {
+            "count": 5,
+            "meanMs": 0.4665716892964119,
+            "p50Ms": 0.4477356525935545,
+            "p95Ms": 0.5607438722334427,
+            "maxMs": 0.5607438722334427
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 0,
+          "upperChestHits": 1,
+          "shotsPerKill": null,
+          "damagePerShot": 27.556596173207442,
+          "shotErrorDeg": {
+            "count": 3,
+            "mean": 0.21133006705020088,
+            "p50": 0.1084153852364999,
+            "p95": 0.4737605725925324
+          },
+          "aimErrorDeg": {
+            "count": 88,
+            "mean": 0.92374092824819,
+            "p50": 0.6657811728261148,
+            "p95": 1.465874660971499
+          },
+          "engagementRangeM": {
+            "count": 3,
+            "mean": 90.45169760522258,
+            "p50": 115.15963381264456,
+            "p95": 116.08556966169489
+          },
+          "adsFraction": 0.003106309539399181
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 28,
+            "mean": 0.2071549413118132,
+            "p50": 0.16094843084789281,
+            "p95": 0.4083447629057361
+          },
+          "acquisitionS": {
+            "count": 2,
+            "mean": 0.2506499999999079,
+            "p50": 0.1707999999998151,
+            "p95": 0.3305000000000007
+          },
+          "timeToFirstHitS": {
+            "count": 2,
+            "mean": 0.2949500000001879,
+            "p50": 0.24220000000018782,
+            "p95": 0.34770000000018797
+          },
+          "targetsBound": 2,
+          "targetSwitches": 0,
+          "targetLosses": 2,
+          "releases": {
+            "lost_sight": 2
+          },
+          "triggerOpportunities": 32,
+          "gateSuppressed": 29,
+          "gateSuppressedFraction": 0.90625,
+          "recoilCompensationDeg": {
+            "count": 3,
+            "mean": 0.2659013550760237,
+            "p50": 0.26577518103286163,
+            "p95": 0.2700060739777976
+          },
+          "executionLatencyMs": {
+            "count": 68,
+            "mean": 4.038235294194344,
+            "p50": 2,
+            "p95": 13.300000000745058
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 21,
+          "byKind": {
+            "cover": 18,
+            "advance": 3
+          },
+          "releases": {
+            "arrived": 20,
+            "replaced": 1
+          },
+          "travelS": {
+            "count": 21,
+            "mean": 1.081871428571287,
+            "p50": 1.0717999999997971,
+            "p95": 1.4351000000005634
+          }
+        },
+        "opponent": {
+          "roundsInSight": 63,
+          "hitsOnSeat": 1
+        },
+        "debrief": {
+          "aliveSeconds": 115.29099999999708,
+          "exposedSeconds": 25.984899999997566,
+          "exposedFraction": 0.22538532929715435,
+          "longestExposedS": 11.75239999999943,
+          "seeingSeconds": 7.693099999999627,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 1,
+            "unseen": 1,
+            "seen_not_engaged": 0,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 0,
+            "meanSightToKillS": null,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 14.849899999999462,
+              "killer": "SOLIS",
+              "cls": "unseen",
+              "rangeM": 96.97016912634736,
+              "seenForS": 0,
+              "exposedToKillerS": 6.810400000000372,
+              "openGround": true,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 6,
+        "deaths": 13,
+        "dealt": 1206.1639291826127,
+        "taken": 1922.126210362899,
+        "hits": 20,
+        "shots": 163,
+        "lastRound": "9:113.10839999999654"
+      },
+      "score": {
+        "own": 6,
+        "enemy": 14
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.003136204443952,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 3,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s44",
+      "seed": 44,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed44.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed44.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.25859999999672,
+      "wallSeconds": 120.81,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.30789999999648,
+        "wallSeconds": 120.82810000000056,
+        "kills": 3,
+        "deaths": 1,
+        "shotsFired": 9,
+        "hits": 9,
+        "accuracy": 1,
+        "damageDealt": 544.9400398298924,
+        "damageTaken": 218.59744439551787,
+        "lifeSeconds": [
+          55.76659999999681,
+          59.55339999999934
+        ],
+        "meanSurvivalS": 57.65999999999808,
+        "distanceM": 198.4079163592955,
+        "decisions": {
+          "requested": 115,
+          "accepted": 114,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 19,
+          "rejectedStale": 11,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 45,
+            "FORWARD": 4,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 64,
+            "JUMP": 0,
+            "CROUCH": 1,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 101,
+            "TURN_LEFT_FINE": 1,
+            "TURN_RIGHT_FINE": 1,
+            "TURN_LEFT_SMALL": 3,
+            "TURN_RIGHT_SMALL": 1,
+            "TURN_LEFT_MEDIUM": 0,
+            "TURN_RIGHT_MEDIUM": 3,
+            "TURN_LEFT_LARGE": 4,
+            "TURN_RIGHT_LARGE": 0,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 113,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 0
+          },
+          "weapon": {
+            "NO_FIRE": 100,
+            "FIRE": 0,
+            "ADS": 2,
+            "ADS_FIRE": 12,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 98,
+            "TARGET_0": 16,
+            "TARGET_1": 0,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 114,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 95,
+            "CONTINUE": 10,
+            "PLACE_0": 8,
+            "PLACE_1": 1,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 114,
+          "meanMs": 975.4666666666438,
+          "p50Ms": 815.9000000003725,
+          "p95Ms": 2993.7999999998137,
+          "maxMs": 3489.9000000003725
+        },
+        "serverLatency": {
+          "count": 114,
+          "meanMs": 920.8333333333334,
+          "p50Ms": 759,
+          "p95Ms": 2931,
+          "maxMs": 3420
+        },
+        "confidence": {
+          "move": {
+            "count": 114,
+            "meanMs": 0.45500681682445415,
+            "p50Ms": 0.43079302464298447,
+            "p95Ms": 0.788407699985698,
+            "maxMs": 0.8553591120833026
+          },
+          "turn": {
+            "count": 114,
+            "meanMs": 0.7761929319419829,
+            "p50Ms": 0.9193309954202039,
+            "p95Ms": 0.9677749363539387,
+            "maxMs": 0.9714785893813418
+          },
+          "tilt": {
+            "count": 114,
+            "meanMs": 0.9166932773510053,
+            "p50Ms": 0.9711627852240484,
+            "p95Ms": 0.9739283620439512,
+            "maxMs": 0.9798643474978592
+          },
+          "weapon": {
+            "count": 114,
+            "meanMs": 0.7955848809063499,
+            "p50Ms": 0.8991589145564883,
+            "p95Ms": 0.9093490738345975,
+            "maxMs": 0.9718904632108268
+          },
+          "target": {
+            "count": 17,
+            "meanMs": 0.6516595662647904,
+            "p50Ms": 0.7193274938290108,
+            "p95Ms": 0.9253462204926709,
+            "maxMs": 0.9253462204926709
+          },
+          "aim": {
+            "count": 17,
+            "meanMs": 0.4415785073342933,
+            "p50Ms": 0.4667660793052561,
+            "p95Ms": 0.5541247408768335,
+            "maxMs": 0.5541247408768335
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 1,
+          "upperChestHits": 15,
+          "shotsPerKill": 3,
+          "damagePerShot": 60.54889331443249,
+          "shotErrorDeg": {
+            "count": 8,
+            "mean": 0.16147047907345988,
+            "p50": 0.09985424064971304,
+            "p95": 0.40582210523308654
+          },
+          "aimErrorDeg": {
+            "count": 464,
+            "mean": 3.159349677901792,
+            "p50": 1.743784883808463,
+            "p95": 9.466034529800748
+          },
+          "engagementRangeM": {
+            "count": 8,
+            "mean": 83.02148461595394,
+            "p50": 90.18127814135212,
+            "p95": 108.19299972076738
+          },
+          "adsFraction": 0.00992802636139225
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 110,
+            "mean": 0.0849184187513692,
+            "p50": 0.04647211651365503,
+            "p95": 0.30803195123811505
+          },
+          "acquisitionS": {
+            "count": 7,
+            "mean": 0.216399999999839,
+            "p50": 0.2720999999996181,
+            "p95": 0.33229999999981175
+          },
+          "timeToFirstHitS": {
+            "count": 6,
+            "mean": 0.2698999999999043,
+            "p50": 0.2334999999999985,
+            "p95": 0.33929999999980964
+          },
+          "targetsBound": 8,
+          "targetSwitches": 0,
+          "targetLosses": 2,
+          "releases": {
+            "eliminated": 4,
+            "timeout": 2,
+            "lost_sight": 2
+          },
+          "triggerOpportunities": 79,
+          "gateSuppressed": 70,
+          "gateSuppressedFraction": 0.8860759493670886,
+          "recoilCompensationDeg": {
+            "count": 9,
+            "mean": 0.26539902534852305,
+            "p50": 0.26496813284324466,
+            "p95": 0.27550331564934816
+          },
+          "executionLatencyMs": {
+            "count": 103,
+            "mean": 4.168932038838569,
+            "p50": 1.7999999998137355,
+            "p95": 16.699999999254942
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 7,
+          "byKind": {
+            "cover": 6,
+            "advance": 1
+          },
+          "releases": {
+            "arrived": 6,
+            "cleared": 1
+          },
+          "travelS": {
+            "count": 7,
+            "mean": 1.1135857142853935,
+            "p50": 0.9405999999996268,
+            "p95": 2.1455999999996536
+          }
+        },
+        "opponent": {
+          "roundsInSight": 83,
+          "hitsOnSeat": 4
+        },
+        "debrief": {
+          "aliveSeconds": 115.29599999999621,
+          "exposedSeconds": 41.150599999996864,
+          "exposedFraction": 0.35691264224256014,
+          "longestExposedS": 23.8288999999985,
+          "seeingSeconds": 28.841099999996867,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 1,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 3,
+            "meanSightToKillS": 4.75276666666629,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 58.79749999999718,
+              "killer": "SOLIS",
+              "cls": "seen_not_engaged",
+              "rangeM": 34.66808374592701,
+              "seenForS": 6.067399999999441,
+              "exposedToKillerS": 5.97989999999944,
+              "openGround": true,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 9,
+        "deaths": 9,
+        "dealt": 1278.612148391057,
+        "taken": 1452.2498726763804,
+        "hits": 20,
+        "shots": 256,
+        "lastRound": "9:110.41739999999733"
+      },
+      "score": {
+        "own": 12,
+        "enemy": 10
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.004585119068435,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 4,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s45",
+      "seed": 45,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed45.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed45.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.05980000000056,
+      "wallSeconds": 120.431,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.10780000000062,
+        "wallSeconds": 120.44669999999925,
+        "kills": 3,
+        "deaths": 1,
+        "shotsFired": 10,
+        "hits": 10,
+        "accuracy": 1,
+        "damageDealt": 533.0500822927909,
+        "damageTaken": 166.36737802039934,
+        "lifeSeconds": [
+          34.250199999999246,
+          80.86320000000111
+        ],
+        "meanSurvivalS": 57.55670000000018,
+        "distanceM": 137.42658001134595,
+        "decisions": {
+          "requested": 104,
+          "accepted": 103,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 7,
+          "rejectedStale": 22,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 103,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 79,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 1,
+            "TURN_LEFT_SMALL": 2,
+            "TURN_RIGHT_SMALL": 5,
+            "TURN_LEFT_MEDIUM": 6,
+            "TURN_RIGHT_MEDIUM": 0,
+            "TURN_LEFT_LARGE": 10,
+            "TURN_RIGHT_LARGE": 0,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 102,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 0,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 1
+          },
+          "weapon": {
+            "NO_FIRE": 92,
+            "FIRE": 0,
+            "ADS": 1,
+            "ADS_FIRE": 10,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 91,
+            "TARGET_0": 9,
+            "TARGET_1": 1,
+            "TARGET_2": 2,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 103,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 27,
+            "CONTINUE": 46,
+            "PLACE_0": 30,
+            "PLACE_1": 0,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 103,
+          "meanMs": 1062.6854368932184,
+          "p50Ms": 786.4000000003725,
+          "p95Ms": 3262.7999999998137,
+          "maxMs": 3678.5999999996275
+        },
+        "serverLatency": {
+          "count": 103,
+          "meanMs": 1004.9223300970874,
+          "p50Ms": 726,
+          "p95Ms": 3181,
+          "maxMs": 3615
+        },
+        "confidence": {
+          "move": {
+            "count": 103,
+            "meanMs": 0.522981000130875,
+            "p50Ms": 0.5565763541087319,
+            "p95Ms": 0.7220872617058094,
+            "maxMs": 0.8288591269335671
+          },
+          "turn": {
+            "count": 103,
+            "meanMs": 0.4931725425439118,
+            "p50Ms": 0.5019291388393946,
+            "p95Ms": 0.9116251433145214,
+            "maxMs": 0.9367289942958549
+          },
+          "tilt": {
+            "count": 103,
+            "meanMs": 0.7502820526387932,
+            "p50Ms": 0.7273672027520723,
+            "p95Ms": 0.9755022786078572,
+            "maxMs": 0.9784886100770518
+          },
+          "weapon": {
+            "count": 103,
+            "meanMs": 0.7224919885528862,
+            "p50Ms": 0.7797065835159611,
+            "p95Ms": 0.8926247086813601,
+            "maxMs": 0.9342143433241553
+          },
+          "target": {
+            "count": 12,
+            "meanMs": 0.5361945881405724,
+            "p50Ms": 0.4779820212729898,
+            "p95Ms": 0.8736325762581664,
+            "maxMs": 0.8736325762581664
+          },
+          "aim": {
+            "count": 12,
+            "meanMs": 0.5374707380102051,
+            "p50Ms": 0.5498443568439244,
+            "p95Ms": 0.6290989594484219,
+            "maxMs": 0.6290989594484219
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 2,
+          "upperChestHits": 6,
+          "shotsPerKill": 3.3333333333333335,
+          "damagePerShot": 53.30500822927909,
+          "shotErrorDeg": {
+            "count": 10,
+            "mean": 0.22114600325771688,
+            "p50": 0.16241933678688938,
+            "p95": 0.6981002511613267
+          },
+          "aimErrorDeg": {
+            "count": 259,
+            "mean": 1.3461429696186036,
+            "p50": 1.3874906443553656,
+            "p95": 3.0767444658092105
+          },
+          "engagementRangeM": {
+            "count": 10,
+            "mean": 80.34920363651939,
+            "p50": 92.56804901693098,
+            "p95": 101.89573451763414
+          },
+          "adsFraction": 0.010937041213265048
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 153,
+            "mean": 0.10208392453183471,
+            "p50": 0.06313167714790399,
+            "p95": 0.3198165534223306
+          },
+          "acquisitionS": {
+            "count": 6,
+            "mean": 0.24518333333358022,
+            "p50": 0.279400000000372,
+            "p95": 0.3544000000003713
+          },
+          "timeToFirstHitS": {
+            "count": 5,
+            "mean": 0.2893400000000376,
+            "p50": 0.2942000000001883,
+            "p95": 0.3512999999998101
+          },
+          "targetsBound": 6,
+          "targetSwitches": 1,
+          "targetLosses": 0,
+          "releases": {
+            "timeout": 2,
+            "eliminated": 3,
+            "switched": 1
+          },
+          "triggerOpportunities": 78,
+          "gateSuppressed": 68,
+          "gateSuppressedFraction": 0.8717948717948718,
+          "recoilCompensationDeg": {
+            "count": 10,
+            "mean": 0.2670667588101434,
+            "p50": 0.26577518103286163,
+            "p95": 0.27617093273106774
+          },
+          "executionLatencyMs": {
+            "count": 81,
+            "mean": 4.160493827114503,
+            "p50": 2.099999999627471,
+            "p95": 18
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 30,
+          "byKind": {
+            "cover": 20,
+            "advance": 10
+          },
+          "releases": {
+            "arrived": 25,
+            "timeout": 2,
+            "replaced": 3
+          },
+          "travelS": {
+            "count": 30,
+            "mean": 1.130786666666718,
+            "p50": 0.9464000000003381,
+            "p95": 2.4684000000003756
+          }
+        },
+        "opponent": {
+          "roundsInSight": 207,
+          "hitsOnSeat": 5
+        },
+        "debrief": {
+          "aliveSeconds": 115.08570000000024,
+          "exposedSeconds": 41.33709999999959,
+          "exposedFraction": 0.35918537229212233,
+          "longestExposedS": 34.21069999999924,
+          "seeingSeconds": 22.787699999999255,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 1,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 3,
+            "meanSightToKillS": 18.216833333333682,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 37.279299999999864,
+              "killer": "HOLT",
+              "cls": "seen_not_engaged",
+              "rangeM": 103.87700301169691,
+              "seenForS": 22.257,
+              "exposedToKillerS": 26.97530000000076,
+              "openGround": true,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 17,
+        "deaths": 11,
+        "dealt": 2328.26854455315,
+        "taken": 1675.317284930267,
+        "hits": 32,
+        "shots": 329,
+        "lastRound": "11:122.04900000000171"
+      },
+      "score": {
+        "own": 20,
+        "enemy": 12
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0030917925900211,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 5,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s46",
+      "seed": 46,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed46.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed46.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.1495999999995,
+      "wallSeconds": 120.669,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.19109999999954,
+        "wallSeconds": 120.685,
+        "kills": 4,
+        "deaths": 1,
+        "shotsFired": 16,
+        "hits": 14,
+        "accuracy": 0.875,
+        "damageDealt": 526.9520569915934,
+        "damageTaken": 252,
+        "lifeSeconds": [
+          73.84459999999957,
+          41.34959999999962
+        ],
+        "meanSurvivalS": 57.5970999999996,
+        "distanceM": 103.80023446357866,
+        "decisions": {
+          "requested": 92,
+          "accepted": 91,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 17,
+          "rejectedStale": 20,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 86,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 5,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 72,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 0,
+            "TURN_LEFT_SMALL": 2,
+            "TURN_RIGHT_SMALL": 1,
+            "TURN_LEFT_MEDIUM": 4,
+            "TURN_RIGHT_MEDIUM": 4,
+            "TURN_LEFT_LARGE": 4,
+            "TURN_RIGHT_LARGE": 4,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 89,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 1
+          },
+          "weapon": {
+            "NO_FIRE": 73,
+            "FIRE": 0,
+            "ADS": 0,
+            "ADS_FIRE": 18,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 70,
+            "TARGET_0": 21,
+            "TARGET_1": 0,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 91,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 45,
+            "CONTINUE": 24,
+            "PLACE_0": 20,
+            "PLACE_1": 2,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 91,
+          "meanMs": 1221.4065934066446,
+          "p50Ms": 876.4000000003725,
+          "p95Ms": 3637.5,
+          "maxMs": 3893.7999999998137
+        },
+        "serverLatency": {
+          "count": 91,
+          "meanMs": 1157.2087912087911,
+          "p50Ms": 805,
+          "p95Ms": 3553,
+          "maxMs": 3827
+        },
+        "confidence": {
+          "move": {
+            "count": 91,
+            "meanMs": 0.518590129116312,
+            "p50Ms": 0.5479218571503925,
+            "p95Ms": 0.797767092742713,
+            "maxMs": 0.8398597662617617
+          },
+          "turn": {
+            "count": 91,
+            "meanMs": 0.603281904182969,
+            "p50Ms": 0.6401174506392056,
+            "p95Ms": 0.9385315853092278,
+            "maxMs": 0.9754578838925348
+          },
+          "tilt": {
+            "count": 91,
+            "meanMs": 0.8425787524858778,
+            "p50Ms": 0.9190427480876248,
+            "p95Ms": 0.9737905180520917,
+            "maxMs": 0.9790319849135145
+          },
+          "weapon": {
+            "count": 91,
+            "meanMs": 0.5158667883051254,
+            "p50Ms": 0.49289098723710084,
+            "p95Ms": 0.8936957984041575,
+            "maxMs": 0.9374159854826544
+          },
+          "target": {
+            "count": 21,
+            "meanMs": 0.7451858707850357,
+            "p50Ms": 0.8392850590519918,
+            "p95Ms": 0.9546028297032163,
+            "maxMs": 0.9632800389727629
+          },
+          "aim": {
+            "count": 21,
+            "meanMs": 0.5187200471532434,
+            "p50Ms": 0.5105169702156057,
+            "p95Ms": 0.647208949651475,
+            "maxMs": 0.6734960161226313
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 0,
+          "upperChestHits": 7,
+          "shotsPerKill": 4,
+          "damagePerShot": 32.93450356197459,
+          "shotErrorDeg": {
+            "count": 16,
+            "mean": 0.1600466500637198,
+            "p50": 0.1807992448399921,
+            "p95": 0.24957102022038388
+          },
+          "aimErrorDeg": {
+            "count": 255,
+            "mean": 1.7686716357474048,
+            "p50": 0.3941338529587389,
+            "p95": 5.3487148004827425
+          },
+          "engagementRangeM": {
+            "count": 16,
+            "mean": 102.57243347339912,
+            "p50": 105.12894884239627,
+            "p95": 115.65419184292827
+          },
+          "adsFraction": 0.015006831941168945
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 276,
+            "mean": 0.07114415600220728,
+            "p50": 0.03477704922254429,
+            "p95": 0.26130562443689204
+          },
+          "acquisitionS": {
+            "count": 8,
+            "mean": 0.2046625000002109,
+            "p50": 0.14650000000000318,
+            "p95": 0.39900000000000446
+          },
+          "timeToFirstHitS": {
+            "count": 7,
+            "mean": 0.4385571428570663,
+            "p50": 0.2451000000005621,
+            "p95": 1.3409000000003743
+          },
+          "targetsBound": 8,
+          "targetSwitches": 0,
+          "targetLosses": 0,
+          "releases": {
+            "timeout": 3,
+            "eliminated": 5
+          },
+          "triggerOpportunities": 137,
+          "gateSuppressed": 121,
+          "gateSuppressedFraction": 0.8832116788321168,
+          "recoilCompensationDeg": {
+            "count": 16,
+            "mean": 0.2662382543455045,
+            "p50": 0.26577518103286163,
+            "p95": 0.2762186196657301
+          },
+          "executionLatencyMs": {
+            "count": 71,
+            "mean": 6.480281690135598,
+            "p50": 3,
+            "p95": 28.600000000558794
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 20,
+          "byKind": {
+            "cover": 15,
+            "advance": 5
+          },
+          "releases": {
+            "arrived": 16,
+            "replaced": 2,
+            "timeout": 2
+          },
+          "travelS": {
+            "count": 20,
+            "mean": 1.1005800000000767,
+            "p50": 0.9310999999996525,
+            "p95": 1.6569999999999823
+          }
+        },
+        "opponent": {
+          "roundsInSight": 58,
+          "hitsOnSeat": 1
+        },
+        "debrief": {
+          "aliveSeconds": 115.17789999999937,
+          "exposedSeconds": 61.56620000000019,
+          "exposedFraction": 0.5345313640898169,
+          "longestExposedS": 30.678900000000368,
+          "seeingSeconds": 28.51949999999904,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 0,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 4,
+            "meanSightToKillS": 5.763949999999725,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 76.88359999999861,
+              "killer": "VOSS",
+              "cls": "seen_not_engaged",
+              "rangeM": 49.45247635805663,
+              "seenForS": 5.359699999999255,
+              "exposedToKillerS": 7.652699999999257,
+              "openGround": false,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 6,
+        "deaths": 14,
+        "dealt": 1217.0239926194686,
+        "taken": 2137.470066019103,
+        "hits": 19,
+        "shots": 295,
+        "lastRound": "5:121.4983999999984"
+      },
+      "score": {
+        "own": 10,
+        "enemy": 15
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0043229440630723,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 6,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s47",
+      "seed": 47,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed47.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed47.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.1705000000006,
+      "wallSeconds": 120.809,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.21060000000028,
+        "wallSeconds": 120.82329999999982,
+        "kills": 8,
+        "deaths": 1,
+        "shotsFired": 28,
+        "hits": 19,
+        "accuracy": 0.6785714285714286,
+        "damageDealt": 976.0320725425291,
+        "damageTaken": 170.09622404135374,
+        "lifeSeconds": [
+          92.00700000000086,
+          23.21470000000019
+        ],
+        "meanSurvivalS": 57.610850000000525,
+        "distanceM": 105.10083604236956,
+        "decisions": {
+          "requested": 109,
+          "accepted": 108,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 39,
+          "rejectedStale": 23,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 107,
+            "FORWARD": 1,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 90,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 1,
+            "TURN_LEFT_SMALL": 0,
+            "TURN_RIGHT_SMALL": 1,
+            "TURN_LEFT_MEDIUM": 6,
+            "TURN_RIGHT_MEDIUM": 5,
+            "TURN_LEFT_LARGE": 3,
+            "TURN_RIGHT_LARGE": 2,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 105,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 2,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 0
+          },
+          "weapon": {
+            "NO_FIRE": 73,
+            "FIRE": 0,
+            "ADS": 2,
+            "ADS_FIRE": 32,
+            "RELOAD": 1,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 71,
+            "TARGET_0": 33,
+            "TARGET_1": 1,
+            "TARGET_2": 1,
+            "TARGET_3": 2
+          },
+          "aim": {
+            "CENTER_MASS": 106,
+            "UPPER_CHEST": 0,
+            "HEAD": 2
+          },
+          "go": {
+            "NONE": 61,
+            "CONTINUE": 28,
+            "PLACE_0": 18,
+            "PLACE_1": 1,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 108,
+          "meanMs": 1043.8694444444652,
+          "p50Ms": 828.5999999996275,
+          "p95Ms": 3128.4000000003725,
+          "maxMs": 4135.799999999814
+        },
+        "serverLatency": {
+          "count": 108,
+          "meanMs": 982.1944444444445,
+          "p50Ms": 752,
+          "p95Ms": 3077,
+          "maxMs": 4050
+        },
+        "confidence": {
+          "move": {
+            "count": 108,
+            "meanMs": 0.5111417456933554,
+            "p50Ms": 0.5607927514520998,
+            "p95Ms": 0.7962599670170442,
+            "maxMs": 0.8412106290550854
+          },
+          "turn": {
+            "count": 108,
+            "meanMs": 0.5955395663962398,
+            "p50Ms": 0.6111982232811786,
+            "p95Ms": 0.9168369539944178,
+            "maxMs": 0.9353484575411034
+          },
+          "tilt": {
+            "count": 108,
+            "meanMs": 0.8352719750127711,
+            "p50Ms": 0.925815953660151,
+            "p95Ms": 0.973954252979428,
+            "maxMs": 0.9832460698680809
+          },
+          "weapon": {
+            "count": 108,
+            "meanMs": 0.5778652852435331,
+            "p50Ms": 0.6167278233388888,
+            "p95Ms": 0.8894668596734451,
+            "maxMs": 0.9375696466767673
+          },
+          "target": {
+            "count": 39,
+            "meanMs": 0.600336623944545,
+            "p50Ms": 0.6207519562743005,
+            "p95Ms": 0.9413755416771604,
+            "maxMs": 0.9419035317998331
+          },
+          "aim": {
+            "count": 39,
+            "meanMs": 0.49433548619527573,
+            "p50Ms": 0.5105169513070633,
+            "p95Ms": 0.6016738315176087,
+            "maxMs": 0.6565331285540091
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 3,
+          "upperChestHits": 21,
+          "shotsPerKill": 3.5,
+          "damagePerShot": 34.858288305090326,
+          "shotErrorDeg": {
+            "count": 24,
+            "mean": 0.1047353000189356,
+            "p50": 0.10112188069868572,
+            "p95": 0.22466914926743534
+          },
+          "aimErrorDeg": {
+            "count": 517,
+            "mean": 2.187368735995616,
+            "p50": 0.675797145952478,
+            "p95": 8.941274493639458
+          },
+          "engagementRangeM": {
+            "count": 24,
+            "mean": 100.20858032873639,
+            "p50": 99.6557968803023,
+            "p95": 138.6301087069414
+          },
+          "adsFraction": 0.03433381038465131
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 527,
+            "mean": 0.06144950510017631,
+            "p50": 0.0399799703894912,
+            "p95": 0.18552882382967067
+          },
+          "acquisitionS": {
+            "count": 18,
+            "mean": 0.26049444444456804,
+            "p50": 0.26040000000037367,
+            "p95": 0.466500000000007
+          },
+          "timeToFirstHitS": {
+            "count": 11,
+            "mean": 0.42947272727257285,
+            "p50": 0.2857000000001797,
+            "p95": 1.0930999999996658
+          },
+          "targetsBound": 18,
+          "targetSwitches": 0,
+          "targetLosses": 3,
+          "releases": {
+            "eliminated": 8,
+            "timeout": 7,
+            "lost_sight": 3
+          },
+          "triggerOpportunities": 252,
+          "gateSuppressed": 228,
+          "gateSuppressedFraction": 0.9047619047619048,
+          "recoilCompensationDeg": {
+            "count": 24,
+            "mean": 0.26842118038097496,
+            "p50": 0.2663188120849921,
+            "p95": 0.2786029663850784
+          },
+          "executionLatencyMs": {
+            "count": 85,
+            "mean": 6.035294117636102,
+            "p50": 2.6000000005587935,
+            "p95": 28.399999999441206
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 18,
+          "byKind": {
+            "cover": 16,
+            "advance": 2
+          },
+          "releases": {
+            "arrived": 15,
+            "timeout": 1,
+            "replaced": 1
+          },
+          "travelS": {
+            "count": 17,
+            "mean": 1.446370588235228,
+            "p50": 1.0662000000001655,
+            "p95": 4.848100000000585
+          }
+        },
+        "opponent": {
+          "roundsInSight": 177,
+          "hitsOnSeat": 3
+        },
+        "debrief": {
+          "aliveSeconds": 115.24380000000075,
+          "exposedSeconds": 81.75550000000084,
+          "exposedFraction": 0.7094134348225267,
+          "longestExposedS": 30.39309999999964,
+          "seeingSeconds": 47.968300000000696,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 0,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 8,
+            "meanSightToKillS": 19.497225000000064,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 95.04700000000079,
+              "killer": "VOSS",
+              "cls": "seen_not_engaged",
+              "rangeM": 108.95969284462899,
+              "seenForS": 6.15360000000056,
+              "exposedToKillerS": 5.244800000000747,
+              "openGround": false,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 5,
+        "deaths": 15,
+        "dealt": 939.7844634792621,
+        "taken": 2485.3879179518603,
+        "hits": 9,
+        "shots": 196,
+        "lastRound": "11:115.43600000000063"
+      },
+      "score": {
+        "own": 13,
+        "enemy": 16
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0053132840422516,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 7,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s48",
+      "seed": 48,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed48.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed48.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.14470000000023,
+      "wallSeconds": 120.425,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.16090000000035,
+        "wallSeconds": 120.42870000000019,
+        "kills": 1,
+        "deaths": 1,
+        "shotsFired": 3,
+        "hits": 3,
+        "accuracy": 1,
+        "damageDealt": 111.85046213904425,
+        "damageTaken": 165.39544542395595,
+        "lifeSeconds": [
+          24.77350000000092,
+          90.40459999999939
+        ],
+        "meanSurvivalS": 57.58905000000016,
+        "distanceM": 95.4332735152543,
+        "decisions": {
+          "requested": 106,
+          "accepted": 105,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 1,
+          "refused": 0,
+          "worldChanged": 5,
+          "rejectedStale": 16,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 104,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 1,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 86,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 0,
+            "TURN_LEFT_SMALL": 1,
+            "TURN_RIGHT_SMALL": 0,
+            "TURN_LEFT_MEDIUM": 1,
+            "TURN_RIGHT_MEDIUM": 10,
+            "TURN_LEFT_LARGE": 2,
+            "TURN_RIGHT_LARGE": 5,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 104,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 0,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 1
+          },
+          "weapon": {
+            "NO_FIRE": 101,
+            "FIRE": 0,
+            "ADS": 1,
+            "ADS_FIRE": 3,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 100,
+            "TARGET_0": 5,
+            "TARGET_1": 0,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 105,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 51,
+            "CONTINUE": 35,
+            "PLACE_0": 17,
+            "PLACE_1": 2,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 105,
+          "meanMs": 1068.524761904723,
+          "p50Ms": 759.6999999992549,
+          "p95Ms": 3279.7000000001863,
+          "maxMs": 3813.9000000003725
+        },
+        "serverLatency": {
+          "count": 105,
+          "meanMs": 1022.552380952381,
+          "p50Ms": 713,
+          "p95Ms": 3252,
+          "maxMs": 3737
+        },
+        "confidence": {
+          "move": {
+            "count": 105,
+            "meanMs": 0.4796184436123767,
+            "p50Ms": 0.5242140746404927,
+            "p95Ms": 0.7083348464585881,
+            "maxMs": 0.7886791850348177
+          },
+          "turn": {
+            "count": 105,
+            "meanMs": 0.4930229235797834,
+            "p50Ms": 0.45782576615536036,
+            "p95Ms": 0.9046587178958523,
+            "maxMs": 0.9354790197615249
+          },
+          "tilt": {
+            "count": 105,
+            "meanMs": 0.7637892475721274,
+            "p50Ms": 0.7242336211843434,
+            "p95Ms": 0.9721785623682837,
+            "maxMs": 0.9790292725298394
+          },
+          "weapon": {
+            "count": 105,
+            "meanMs": 0.8031100792923989,
+            "p50Ms": 0.8484057501867229,
+            "p95Ms": 0.8934456183773472,
+            "maxMs": 0.9370529383719621
+          },
+          "target": {
+            "count": 5,
+            "meanMs": 0.7561929977628321,
+            "p50Ms": 0.8640496778858788,
+            "p95Ms": 0.9345251627932063,
+            "maxMs": 0.9345251627932063
+          },
+          "aim": {
+            "count": 5,
+            "meanMs": 0.4957946603525959,
+            "p50Ms": 0.4902168838943899,
+            "p95Ms": 0.589270740058015,
+            "maxMs": 0.589270740058015
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 0,
+          "upperChestHits": 2,
+          "shotsPerKill": 3,
+          "damagePerShot": 37.28348737968142,
+          "shotErrorDeg": {
+            "count": 3,
+            "mean": 0.16260195437159275,
+            "p50": 0.15155148679774724,
+            "p95": 0.262428214201258
+          },
+          "aimErrorDeg": {
+            "count": 30,
+            "mean": 0.3711102675713055,
+            "p50": 0.12277311100650773,
+            "p95": 1.7660741920687877
+          },
+          "engagementRangeM": {
+            "count": 3,
+            "mean": 98.15237182317996,
+            "p50": 98.16056725610464,
+            "p95": 98.17763532891036
+          },
+          "adsFraction": 0.0038957058677211954
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 74,
+            "mean": 0.048896247513606314,
+            "p50": 0.035035112226814484,
+            "p95": 0.13091796025211302
+          },
+          "acquisitionS": {
+            "count": 3,
+            "mean": 0.1355333333332105,
+            "p50": 0,
+            "p95": 0.4065999999996315
+          },
+          "timeToFirstHitS": {
+            "count": 2,
+            "mean": 0.22729999999981665,
+            "p50": 0.22309999999962926,
+            "p95": 0.23150000000000404
+          },
+          "targetsBound": 3,
+          "targetSwitches": 0,
+          "targetLosses": 0,
+          "releases": {
+            "timeout": 2,
+            "eliminated": 1
+          },
+          "triggerOpportunities": 17,
+          "gateSuppressed": 14,
+          "gateSuppressedFraction": 0.8235294117647058,
+          "recoilCompensationDeg": {
+            "count": 3,
+            "mean": 0.2636901614245641,
+            "p50": 0.2619228102174119,
+            "p95": 0.2672248638388685
+          },
+          "executionLatencyMs": {
+            "count": 89,
+            "mean": 3.2876404494130878,
+            "p50": 1.8999999994412065,
+            "p95": 14
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 19,
+          "byKind": {
+            "advance": 5,
+            "cover": 14
+          },
+          "releases": {
+            "timeout": 1,
+            "replaced": 2,
+            "arrived": 16
+          },
+          "travelS": {
+            "count": 19,
+            "mean": 1.227715789473961,
+            "p50": 0.9534000000003857,
+            "p95": 3.474600000000663
+          }
+        },
+        "opponent": {
+          "roundsInSight": 122,
+          "hitsOnSeat": 3
+        },
+        "debrief": {
+          "aliveSeconds": 115.21230000000078,
+          "exposedSeconds": 45.86350000000094,
+          "exposedFraction": 0.3980781565857172,
+          "longestExposedS": 18.672200000001112,
+          "seeingSeconds": 8.504600000000561,
+          "deaths": {
+            "total": 1,
+            "onOpenGround": 1,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 1,
+            "meanSightToKillS": 7.651499999999999,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 27.795200000001092,
+              "killer": "NAKATA",
+              "cls": "seen_not_engaged",
+              "rangeM": 110.50009371840244,
+              "seenForS": 7.304300000000743,
+              "exposedToKillerS": 11.539100000000563,
+              "openGround": true,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 8,
+        "deaths": 10,
+        "dealt": 1301.3438947424863,
+        "taken": 1937.72060586758,
+        "hits": 17,
+        "shots": 178,
+        "lastRound": "3:116.05340000000143"
+      },
+      "score": {
+        "own": 9,
+        "enemy": 11
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0023330200999276,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 8,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s49",
+      "seed": 49,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed49.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed49.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.0425999999976,
+      "wallSeconds": 120.327,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.09579999999798,
+        "wallSeconds": 120.34210000000056,
+        "kills": 7,
+        "deaths": 0,
+        "shotsFired": 28,
+        "hits": 22,
+        "accuracy": 0.7857142857142857,
+        "damageDealt": 1091.8263973027467,
+        "damageTaken": 246.02196640450305,
+        "lifeSeconds": [
+          120.09579999999798
+        ],
+        "meanSurvivalS": 120.09579999999798,
+        "distanceM": 58.809137075811606,
+        "decisions": {
+          "requested": 95,
+          "accepted": 95,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 0,
+          "refused": 0,
+          "worldChanged": 46,
+          "rejectedStale": 16,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 74,
+            "FORWARD": 18,
+            "BACK": 0,
+            "STRAFE_LEFT": 1,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 2,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 73,
+            "TURN_LEFT_FINE": 1,
+            "TURN_RIGHT_FINE": 1,
+            "TURN_LEFT_SMALL": 7,
+            "TURN_RIGHT_SMALL": 3,
+            "TURN_LEFT_MEDIUM": 2,
+            "TURN_RIGHT_MEDIUM": 2,
+            "TURN_LEFT_LARGE": 3,
+            "TURN_RIGHT_LARGE": 3,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 94,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 0
+          },
+          "weapon": {
+            "NO_FIRE": 63,
+            "FIRE": 0,
+            "ADS": 4,
+            "ADS_FIRE": 27,
+            "RELOAD": 1,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 54,
+            "TARGET_0": 38,
+            "TARGET_1": 3,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 87,
+            "UPPER_CHEST": 0,
+            "HEAD": 8
+          },
+          "go": {
+            "NONE": 87,
+            "CONTINUE": 3,
+            "PLACE_0": 5,
+            "PLACE_1": 0,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 95,
+          "meanMs": 1235.2273684210586,
+          "p50Ms": 835.3999999994412,
+          "p95Ms": 3442.5,
+          "maxMs": 3879.899999999441
+        },
+        "serverLatency": {
+          "count": 95,
+          "meanMs": 1176.7578947368422,
+          "p50Ms": 775,
+          "p95Ms": 3376,
+          "maxMs": 3793
+        },
+        "confidence": {
+          "move": {
+            "count": 95,
+            "meanMs": 0.49827164666765456,
+            "p50Ms": 0.4812651662202797,
+            "p95Ms": 0.8278906589187439,
+            "maxMs": 0.8605822383946387
+          },
+          "turn": {
+            "count": 95,
+            "meanMs": 0.5951607994286154,
+            "p50Ms": 0.6802324998906332,
+            "p95Ms": 0.92977183549687,
+            "maxMs": 0.9707215250642585
+          },
+          "tilt": {
+            "count": 95,
+            "meanMs": 0.8577296345349469,
+            "p50Ms": 0.9485257763023404,
+            "p95Ms": 0.9765647703354262,
+            "maxMs": 0.982155891991536
+          },
+          "weapon": {
+            "count": 95,
+            "meanMs": 0.6109139328288294,
+            "p50Ms": 0.651837398738836,
+            "p95Ms": 0.9144026481604565,
+            "maxMs": 0.94058770894902
+          },
+          "target": {
+            "count": 41,
+            "meanMs": 0.6222860840463124,
+            "p50Ms": 0.6812192509638586,
+            "p95Ms": 0.9448294357462769,
+            "maxMs": 0.9617007214004871
+          },
+          "aim": {
+            "count": 41,
+            "meanMs": 0.43619118276649926,
+            "p50Ms": 0.42845475576820685,
+            "p95Ms": 0.5908314630731917,
+            "maxMs": 0.6087709998237748
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 2,
+          "upperChestHits": 23,
+          "shotsPerKill": 4,
+          "damagePerShot": 38.993799903669526,
+          "shotErrorDeg": {
+            "count": 28,
+            "mean": 0.14349107366342848,
+            "p50": 0.11225515679211324,
+            "p95": 0.2600834058646498
+          },
+          "aimErrorDeg": {
+            "count": 880,
+            "mean": 1.5956242121920194,
+            "p50": 0.7754885385620622,
+            "p95": 5.182983853300135
+          },
+          "engagementRangeM": {
+            "count": 28,
+            "mean": 96.59395595684802,
+            "p50": 97.27267232066453,
+            "p95": 115.8657901479721
+          },
+          "adsFraction": 0.02631149465676923
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 665,
+            "mean": 0.05220279428212866,
+            "p50": 0.02870095950016528,
+            "p95": 0.19027017484387573
+          },
+          "acquisitionS": {
+            "count": 13,
+            "mean": 0.21390000000001308,
+            "p50": 0.2267999999998267,
+            "p95": 0.424200000000198
+          },
+          "timeToFirstHitS": {
+            "count": 10,
+            "mean": 0.4595500000000026,
+            "p50": 0.2807000000001665,
+            "p95": 1.1712000000002263
+          },
+          "targetsBound": 14,
+          "targetSwitches": 2,
+          "targetLosses": 2,
+          "releases": {
+            "eliminated": 7,
+            "lost_sight": 2,
+            "timeout": 3,
+            "switched": 2
+          },
+          "triggerOpportunities": 225,
+          "gateSuppressed": 197,
+          "gateSuppressedFraction": 0.8755555555555555,
+          "recoilCompensationDeg": {
+            "count": 28,
+            "mean": 0.2678773701905517,
+            "p50": 0.26577518103286163,
+            "p95": 0.2792705834667979
+          },
+          "executionLatencyMs": {
+            "count": 79,
+            "mean": 7.0151898734318685,
+            "p50": 3.5,
+            "p95": 23.600000000558794
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 5,
+          "byKind": {
+            "cover": 4,
+            "advance": 1
+          },
+          "releases": {
+            "cleared": 2,
+            "arrived": 3
+          },
+          "travelS": {
+            "count": 5,
+            "mean": 0.8783199999995361,
+            "p50": 0.9305999999996004,
+            "p95": 0.944100000000546
+          }
+        },
+        "opponent": {
+          "roundsInSight": 200,
+          "hitsOnSeat": 9
+        },
+        "debrief": {
+          "aliveSeconds": 120.09829999999803,
+          "exposedSeconds": 90.92439999999308,
+          "exposedFraction": 0.7570831560479588,
+          "longestExposedS": 36.338199999998324,
+          "seeingSeconds": 64.1382999999961,
+          "deaths": {
+            "total": 0,
+            "onOpenGround": 0,
+            "unseen": 0,
+            "seen_not_engaged": 0,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 7,
+            "meanSightToKillS": 31.514471428571085,
+            "unseenVictims": 0
+          },
+          "recentDeaths": []
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 12,
+        "deaths": 7,
+        "dealt": 2125.449633711525,
+        "taken": 1166.5356826759744,
+        "hits": 23,
+        "shots": 245,
+        "lastRound": "9:104.333699999998"
+      },
+      "score": {
+        "own": 19,
+        "enemy": 7
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0023691589485932,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 9,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s50",
+      "seed": 50,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed50.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed50.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.15889999999723,
+      "wallSeconds": 120.608,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.2009999999977,
+        "wallSeconds": 120.62140000000038,
+        "kills": 6,
+        "deaths": 2,
+        "shotsFired": 21,
+        "hits": 19,
+        "accuracy": 0.9047619047619048,
+        "damageDealt": 856.7376842955723,
+        "damageTaken": 331.8907639894381,
+        "lifeSeconds": [
+          50.88009999999851,
+          36.84109999999868,
+          22.488900000000346
+        ],
+        "meanSurvivalS": 36.73669999999918,
+        "distanceM": 113.51120969400321,
+        "decisions": {
+          "requested": 101,
+          "accepted": 99,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 2,
+          "refused": 0,
+          "worldChanged": 30,
+          "rejectedStale": 19,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 98,
+            "FORWARD": 0,
+            "BACK": 0,
+            "STRAFE_LEFT": 0,
+            "STRAFE_RIGHT": 0,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 1,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 88,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 0,
+            "TURN_LEFT_SMALL": 0,
+            "TURN_RIGHT_SMALL": 2,
+            "TURN_LEFT_MEDIUM": 2,
+            "TURN_RIGHT_MEDIUM": 0,
+            "TURN_LEFT_LARGE": 7,
+            "TURN_RIGHT_LARGE": 0,
+            "TURN_AROUND": 0
+          },
+          "tilt": {
+            "NO_TILT": 96,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 2
+          },
+          "weapon": {
+            "NO_FIRE": 72,
+            "FIRE": 0,
+            "ADS": 5,
+            "ADS_FIRE": 22,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 69,
+            "TARGET_0": 23,
+            "TARGET_1": 6,
+            "TARGET_2": 1,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 99,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 54,
+            "CONTINUE": 30,
+            "PLACE_0": 12,
+            "PLACE_1": 3,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 99,
+          "meanMs": 1070.379797979766,
+          "p50Ms": 804,
+          "p95Ms": 3052.7999999998137,
+          "maxMs": 4144.5
+        },
+        "serverLatency": {
+          "count": 99,
+          "meanMs": 1011.4040404040404,
+          "p50Ms": 732,
+          "p95Ms": 3006,
+          "maxMs": 4063
+        },
+        "confidence": {
+          "move": {
+            "count": 99,
+            "meanMs": 0.5220927817349227,
+            "p50Ms": 0.5092308956680274,
+            "p95Ms": 0.7901630244996002,
+            "maxMs": 0.8449328009290659
+          },
+          "turn": {
+            "count": 99,
+            "meanMs": 0.6128688421621481,
+            "p50Ms": 0.668243145991399,
+            "p95Ms": 0.8992048882507901,
+            "maxMs": 0.9081948721097378
+          },
+          "tilt": {
+            "count": 99,
+            "meanMs": 0.8023922504490537,
+            "p50Ms": 0.8321748405455606,
+            "p95Ms": 0.9744449557702118,
+            "maxMs": 0.980008689399395
+          },
+          "weapon": {
+            "count": 99,
+            "meanMs": 0.481455584389356,
+            "p50Ms": 0.4637727226436851,
+            "p95Ms": 0.8924567577065894,
+            "maxMs": 0.8994266202292549
+          },
+          "target": {
+            "count": 31,
+            "meanMs": 0.4740566082661058,
+            "p50Ms": 0.5114868858267928,
+            "p95Ms": 0.8695780158548376,
+            "maxMs": 0.8977495643832785
+          },
+          "aim": {
+            "count": 31,
+            "meanMs": 0.5263488333648572,
+            "p50Ms": 0.5482467829963397,
+            "p95Ms": 0.6955203761682068,
+            "maxMs": 0.6977404714741944
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 2,
+          "upperChestHits": 12,
+          "shotsPerKill": 3.5,
+          "damagePerShot": 40.797032585503445,
+          "shotErrorDeg": {
+            "count": 21,
+            "mean": 0.14010582088789156,
+            "p50": 0.15396367302171868,
+            "p95": 0.24490176776760073
+          },
+          "aimErrorDeg": {
+            "count": 428,
+            "mean": 1.3977806575106462,
+            "p50": 0.232740209344037,
+            "p95": 6.945970191577057
+          },
+          "engagementRangeM": {
+            "count": 21,
+            "mean": 96.9702814876587,
+            "p50": 94.59692258149833,
+            "p95": 117.08505543791838
+          },
+          "adsFraction": 0.02792756743706596
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 535,
+            "mean": 0.05392684646965923,
+            "p50": 0.027112752253465332,
+            "p95": 0.17700430285318003
+          },
+          "acquisitionS": {
+            "count": 19,
+            "mean": 0.20148947368405123,
+            "p50": 0.1909999999999954,
+            "p95": 0.4646999999992403
+          },
+          "timeToFirstHitS": {
+            "count": 11,
+            "mean": 0.26313636363627746,
+            "p50": 0.2465000000000046,
+            "p95": 0.3437000000001724
+          },
+          "targetsBound": 20,
+          "targetSwitches": 3,
+          "targetLosses": 2,
+          "releases": {
+            "switched": 3,
+            "eliminated": 6,
+            "timeout": 9,
+            "lost_sight": 2
+          },
+          "triggerOpportunities": 185,
+          "gateSuppressed": 164,
+          "gateSuppressedFraction": 0.8864864864864865,
+          "recoilCompensationDeg": {
+            "count": 21,
+            "mean": 0.2674014996413565,
+            "p50": 0.26577518103286163,
+            "p95": 0.2803673829578136
+          },
+          "executionLatencyMs": {
+            "count": 80,
+            "mean": 5.9275000000139695,
+            "p50": 3,
+            "p95": 27.09999999962747
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 15,
+          "byKind": {
+            "cover": 12,
+            "advance": 3
+          },
+          "releases": {
+            "arrived": 11,
+            "cleared": 1,
+            "timeout": 3
+          },
+          "travelS": {
+            "count": 15,
+            "mean": 1.6428000000000031,
+            "p50": 1.0822000000011514,
+            "p95": 4.740299999997923
+          }
+        },
+        "opponent": {
+          "roundsInSight": 178,
+          "hitsOnSeat": 5
+        },
+        "debrief": {
+          "aliveSeconds": 110.24639999999752,
+          "exposedSeconds": 46.01000000000001,
+          "exposedFraction": 0.4173378903982447,
+          "longestExposedS": 15.101599999999628,
+          "seeingSeconds": 38.02970000000115,
+          "deaths": {
+            "total": 2,
+            "onOpenGround": 1,
+            "unseen": 0,
+            "seen_not_engaged": 1,
+            "engaged": 1,
+            "other": 0
+          },
+          "kills": {
+            "total": 6,
+            "meanSightToKillS": 8.450849999999598,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 53.90909999999851,
+              "killer": "VOSS",
+              "cls": "engaged",
+              "rangeM": 17.641368644567432,
+              "seenForS": 11.519699999999261,
+              "exposedToKillerS": 11.378200000000195,
+              "openGround": false,
+              "place": "North-East Apron"
+            },
+            {
+              "time": 95.74409999999742,
+              "killer": "VOSS",
+              "cls": "seen_not_engaged",
+              "rangeM": 26.159728133095136,
+              "seenForS": 0.8252000000001862,
+              "exposedToKillerS": 0.8252000000001862,
+              "openGround": true,
+              "place": "North-East Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 5,
+        "deaths": 13,
+        "dealt": 726.1260386152721,
+        "taken": 1827.5408125527588,
+        "hits": 15,
+        "shots": 275,
+        "lastRound": "9:80.66129999999764"
+      },
+      "score": {
+        "own": 11,
+        "enemy": 15
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0037375508597597,
+        "lagged": false
+      }
+    },
+    {
+      "episode": 10,
+      "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z-glide-s51",
+      "seed": 51,
+      "artifacts": {
+        "decisions": "shots/experiments/glide-jev-even/glide.seed51.eval.json",
+        "trace": "shots/experiments/glide-jev-even/glide.seed51.trace.jsonl"
+      },
+      "brainDescriptor": {
+        "id": "glide",
+        "kind": "glide",
+        "provider": "fastino",
+        "model": null,
+        "capabilities": {
+          "control": [
+            "precision",
+            "direct"
+          ],
+          "navigation": [
+            "places",
+            "steps"
+          ],
+          "minIntervalMs": 200,
+          "inference": "remote",
+          "memory": false,
+          "vision": false,
+          "observations": [
+            "structured-v4"
+          ],
+          "requestTimeoutMs": 8000,
+          "maxDecisionAgeMs": 8000
+        },
+        "confidence": "provider-probability"
+      },
+      "testDouble": false,
+      "interface": {
+        "observationFormat": "structured-v4",
+        "control": "precision",
+        "navigation": "places",
+        "intervalMs": 200,
+        "inference": "remote",
+        "requestTimeoutMs": 8000,
+        "maxDecisionAgeMs": 8000,
+        "notes": [],
+        "stale": "strict",
+        "motor": "standard",
+        "outcomeWindowS": 5
+      },
+      "simSecondsRequested": 120,
+      "simSeconds": 120.2206999999992,
+      "wallSeconds": 120.38,
+      "metrics": {
+        "brain": "glide",
+        "control": "precision",
+        "profile": "n/a",
+        "navigation": "places",
+        "intervalMs": 200,
+        "injectedLatencyMs": 0,
+        "seat": "even",
+        "simSeconds": 120.22069999999914,
+        "wallSeconds": 120.38220000000018,
+        "kills": 2,
+        "deaths": 2,
+        "shotsFired": 4,
+        "hits": 4,
+        "accuracy": 1,
+        "damageDealt": 219.8287860311505,
+        "damageTaken": 368.9269643720767,
+        "lifeSeconds": [
+          10.10470000000019,
+          23.67540000000035,
+          76.45929999999886
+        ],
+        "meanSurvivalS": 36.74646666666647,
+        "distanceM": 124.0812376822698,
+        "decisions": {
+          "requested": 97,
+          "accepted": 95,
+          "fallback": 0,
+          "timeouts": 0,
+          "stale": 0,
+          "duplicates": 0,
+          "invalid": 0,
+          "errors": 0,
+          "rateLimited": 0,
+          "unavailable": 0,
+          "aborted": 2,
+          "refused": 0,
+          "worldChanged": 9,
+          "rejectedStale": 18,
+          "executedIllegal": 0
+        },
+        "actions": {
+          "move": {
+            "HOLD": 83,
+            "FORWARD": 6,
+            "BACK": 1,
+            "STRAFE_LEFT": 4,
+            "STRAFE_RIGHT": 1,
+            "FORWARD_LEFT": 0,
+            "FORWARD_RIGHT": 0,
+            "SPRINT_FORWARD": 0,
+            "JUMP": 0,
+            "CROUCH": 0,
+            "PRONE": 0,
+            "STAND": 0
+          },
+          "turn": {
+            "NO_TURN": 68,
+            "TURN_LEFT_FINE": 0,
+            "TURN_RIGHT_FINE": 0,
+            "TURN_LEFT_SMALL": 14,
+            "TURN_RIGHT_SMALL": 2,
+            "TURN_LEFT_MEDIUM": 5,
+            "TURN_RIGHT_MEDIUM": 2,
+            "TURN_LEFT_LARGE": 1,
+            "TURN_RIGHT_LARGE": 2,
+            "TURN_AROUND": 1
+          },
+          "tilt": {
+            "NO_TILT": 93,
+            "LOOK_UP_FINE": 0,
+            "LOOK_DOWN_FINE": 1,
+            "LOOK_UP_SMALL": 0,
+            "LOOK_DOWN_SMALL": 0,
+            "LOOK_UP_MEDIUM": 0,
+            "LOOK_DOWN_MEDIUM": 1
+          },
+          "weapon": {
+            "NO_FIRE": 89,
+            "FIRE": 0,
+            "ADS": 1,
+            "ADS_FIRE": 5,
+            "RELOAD": 0,
+            "SWAP_WEAPON": 0
+          },
+          "target": {
+            "NONE": 87,
+            "TARGET_0": 8,
+            "TARGET_1": 0,
+            "TARGET_2": 0,
+            "TARGET_3": 0
+          },
+          "aim": {
+            "CENTER_MASS": 95,
+            "UPPER_CHEST": 0,
+            "HEAD": 0
+          },
+          "go": {
+            "NONE": 39,
+            "CONTINUE": 36,
+            "PLACE_0": 18,
+            "PLACE_1": 2,
+            "PLACE_2": 0,
+            "PLACE_3": 0
+          }
+        },
+        "latency": {
+          "count": 95,
+          "meanMs": 1120.8315789474862,
+          "p50Ms": 773.8999999994412,
+          "p95Ms": 3512.7000000001863,
+          "maxMs": 4585.4000000003725
+        },
+        "serverLatency": {
+          "count": 95,
+          "meanMs": 1070.6105263157895,
+          "p50Ms": 714,
+          "p95Ms": 3487,
+          "maxMs": 4519
+        },
+        "confidence": {
+          "move": {
+            "count": 95,
+            "meanMs": 0.40720776253706054,
+            "p50Ms": 0.41159476380072985,
+            "p95Ms": 0.7054545816886402,
+            "maxMs": 0.7789618472998273
+          },
+          "turn": {
+            "count": 95,
+            "meanMs": 0.4858693737390643,
+            "p50Ms": 0.42936112866448295,
+            "p95Ms": 0.9096560420827617,
+            "maxMs": 0.9353344409801975
+          },
+          "tilt": {
+            "count": 95,
+            "meanMs": 0.8676802440060929,
+            "p50Ms": 0.94542386637672,
+            "p95Ms": 0.9715983125743424,
+            "maxMs": 0.9765864729443064
+          },
+          "weapon": {
+            "count": 95,
+            "meanMs": 0.7931955942142125,
+            "p50Ms": 0.8569257003349319,
+            "p95Ms": 0.9341156543138871,
+            "maxMs": 0.9918597234734046
+          },
+          "target": {
+            "count": 8,
+            "meanMs": 0.5250772443383478,
+            "p50Ms": 0.4556230145868736,
+            "p95Ms": 0.9158245519786479,
+            "maxMs": 0.9158245519786479
+          },
+          "aim": {
+            "count": 8,
+            "meanMs": 0.5366186338399962,
+            "p50Ms": 0.5313009648232292,
+            "p95Ms": 0.6441719169400419,
+            "maxMs": 0.6441719169400419
+          },
+          "go": {
+            "count": 0,
+            "meanMs": null,
+            "p50Ms": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "models": [
+          "glide"
+        ],
+        "shooting": {
+          "headshots": 0,
+          "upperChestHits": 7,
+          "shotsPerKill": 2,
+          "damagePerShot": 54.95719650778763,
+          "shotErrorDeg": {
+            "count": 4,
+            "mean": 0.1321056924798935,
+            "p50": 0.12393911053269226,
+            "p95": 0.14786072544356374
+          },
+          "aimErrorDeg": {
+            "count": 60,
+            "mean": 1.083912227011974,
+            "p50": 1.10543042446903,
+            "p95": 2.09689229698972
+          },
+          "engagementRangeM": {
+            "count": 4,
+            "mean": 69.60397912718287,
+            "p50": 57.85951233848026,
+            "p95": 81.54841176381441
+          },
+          "adsFraction": 0.0037790481443080253
+        },
+        "motor": {
+          "trackingErrorDeg": {
+            "count": 61,
+            "mean": 0.06446836797552574,
+            "p50": 0.01728224366390867,
+            "p95": 0.21948609338138353
+          },
+          "acquisitionS": {
+            "count": 2,
+            "mean": 0.2913500000001008,
+            "p50": 0.19770000000018229,
+            "p95": 0.3850000000000193
+          },
+          "timeToFirstHitS": {
+            "count": 2,
+            "mean": 0.7178999999999078,
+            "p50": 0.23149999999998272,
+            "p95": 1.204299999999833
+          },
+          "targetsBound": 2,
+          "targetSwitches": 0,
+          "targetLosses": 0,
+          "releases": {
+            "eliminated": 2
+          },
+          "triggerOpportunities": 26,
+          "gateSuppressed": 22,
+          "gateSuppressedFraction": 0.8461538461538461,
+          "recoilCompensationDeg": {
+            "count": 4,
+            "mean": 0.2644631195676204,
+            "p50": 0.26350186639391227,
+            "p95": 0.26665262062629597
+          },
+          "executionLatencyMs": {
+            "count": 77,
+            "mean": 3.7025974025804693,
+            "p50": 2,
+            "p95": 16
+          }
+        },
+        "fallbackSeconds": 0,
+        "places": {
+          "chosen": 19,
+          "byKind": {
+            "cover": 15,
+            "advance": 4
+          },
+          "releases": {
+            "arrived": 17,
+            "cleared": 1
+          },
+          "travelS": {
+            "count": 18,
+            "mean": 1.2901888888888056,
+            "p50": 0.9521999999992516,
+            "p95": 4.688500000000076
+          }
+        },
+        "opponent": {
+          "roundsInSight": 55,
+          "hitsOnSeat": 5
+        },
+        "debrief": {
+          "aliveSeconds": 110.23939999999946,
+          "exposedSeconds": 32.52750000000002,
+          "exposedFraction": 0.2950623824150002,
+          "longestExposedS": 9.26980000000075,
+          "seeingSeconds": 12.822000000000932,
+          "deaths": {
+            "total": 2,
+            "onOpenGround": 2,
+            "unseen": 1,
+            "seen_not_engaged": 1,
+            "engaged": 0,
+            "other": 0
+          },
+          "kills": {
+            "total": 2,
+            "meanSightToKillS": 4.098799999999784,
+            "unseenVictims": 0
+          },
+          "recentDeaths": [
+            {
+              "time": 13.126000000000001,
+              "killer": "AMARO",
+              "cls": "unseen",
+              "rangeM": 125.98578154363646,
+              "seenForS": 0,
+              "exposedToKillerS": 6.8383000000007454,
+              "openGround": true,
+              "place": "North-East Apron"
+            },
+            {
+              "time": 41.79799999999996,
+              "killer": "HOLT",
+              "cls": "seen_not_engaged",
+              "rangeM": 16.365144878296203,
+              "seenForS": 3.165400000001304,
+              "exposedToKillerS": 3.165400000001304,
+              "openGround": true,
+              "place": "Main Apron"
+            }
+          ]
+        }
+      },
+      "botBaseline": {
+        "bots": 5,
+        "kills": 6,
+        "deaths": 9,
+        "dealt": 1087.1683430413257,
+        "taken": 1489.9281947377128,
+        "hits": 23,
+        "shots": 184,
+        "lastRound": "7:119.56579999999889"
+      },
+      "score": {
+        "own": 8,
+        "enemy": 11
+      },
+      "lastError": null,
+      "pageErrors": [],
+      "pacing": {
+        "wallPerSimSecond": 1.0013250629883272,
+        "lagged": false
+      }
+    }
+  ]
+}

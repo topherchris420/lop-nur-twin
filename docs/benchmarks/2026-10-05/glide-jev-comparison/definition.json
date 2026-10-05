@@ -1,0 +1,114 @@
+{
+  "file": "tools/experiments/glide-jev-comparison.json",
+  "fileHash": "26d64289662d0482",
+  "hash": "f16d1ec31051870b",
+  "overrides": [],
+  "raw": {
+    "schema": "blacksite-experiment/v1",
+    "id": "glide-jev-comparison-v1",
+    "question": "Asked the same question from the same observation, with the same options, controllers and scoring, how do Jev (TypeSafe) and Glide (Fastino) differ in what they choose, how often they decide, and what the seat achieves?",
+    "hypothesis": "Glide answers several times more slowly than Jev (a median near 0.9 s live, against Jev's 130-260 ms), so it decides less often and more of its answers meet a changed world. We predict Jev's kills per minute is at least Glide's on each seed; the prediction fails if Glide out-kills Jev on either seed.",
+    "independentVariable": "brain",
+    "primaryMetric": "kills_per_minute",
+    "secondaryMetrics": [
+      "deaths_per_minute",
+      "accuracy",
+      "decisions_per_minute",
+      "decision_latency_ms",
+      "world_changed_rate",
+      "stale_rejection_rate",
+      "exposure_fraction",
+      "distance_m",
+      "damage_taken_per_minute"
+    ],
+    "decisionType": null,
+    "seeds": [
+      42,
+      43
+    ],
+    "duration": 60,
+    "mode": "tdm",
+    "seat": "mercy",
+    "arms": [
+      {
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "id": "glide",
+        "brain": "glide",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random"
+    ],
+    "notes": "The seeds, length and interface repeat the first Glide benchmark of 2026-10-05 (seeds 42 and 43, 60 s, precision control, places navigation, mercy seat rules), so Jev is measured on the same seeds. Two seeds is a small sample: same-seed runs differ because frame pacing is not deterministic, so every episode is reported and no single seed is read as a result. Stated differences: both brains are asked the same SystemOne question built by questionParts(); Fastino takes the instructions as one string, so the context and question are joined. Glide's loop limits are 8 s (timeout and maximum answer age) against Jev's 2.2 s and 1.5 s, and the server abandons a Fastino call at 7.5 s against TypeSafe's 1.8 s. Both report a probability for every option. The jev arm spends TypeSafe credit (JEV_LIVE_TEST=1) and the glide arm Fastino credit (FASTINO_LIVE_TEST=1); without the flag an arm is recorded as PENDING."
+  },
+  "spec": {
+    "schema": "blacksite-experiment/v1",
+    "id": "glide-jev-comparison-v1",
+    "question": "Asked the same question from the same observation, with the same options, controllers and scoring, how do Jev (TypeSafe) and Glide (Fastino) differ in what they choose, how often they decide, and what the seat achieves?",
+    "hypothesis": "Glide answers several times more slowly than Jev (a median near 0.9 s live, against Jev's 130-260 ms), so it decides less often and more of its answers meet a changed world. We predict Jev's kills per minute is at least Glide's on each seed; the prediction fails if Glide out-kills Jev on either seed.",
+    "independentVariable": "brain",
+    "primaryMetric": "kills_per_minute",
+    "secondaryMetrics": [
+      "deaths_per_minute",
+      "accuracy",
+      "decisions_per_minute",
+      "decision_latency_ms",
+      "world_changed_rate",
+      "stale_rejection_rate",
+      "exposure_fraction",
+      "distance_m",
+      "damage_taken_per_minute"
+    ],
+    "decisionType": null,
+    "outcomeWindowS": 5,
+    "seeds": [
+      42,
+      43
+    ],
+    "seedPreset": null,
+    "duration": 60,
+    "mode": "tdm",
+    "arms": [
+      {
+        "seat": "mercy",
+        "id": "jev",
+        "brain": "jev",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "seat": "mercy",
+        "id": "glide",
+        "brain": "glide",
+        "control": "precision",
+        "navigation": "places"
+      },
+      {
+        "seat": "mercy",
+        "id": "random",
+        "brain": "random",
+        "control": "precision",
+        "navigation": "places"
+      }
+    ],
+    "controls": [
+      "random"
+    ],
+    "calibrationField": "probability",
+    "contributionFactors": [],
+    "notes": "The seeds, length and interface repeat the first Glide benchmark of 2026-10-05 (seeds 42 and 43, 60 s, precision control, places navigation, mercy seat rules), so Jev is measured on the same seeds. Two seeds is a small sample: same-seed runs differ because frame pacing is not deterministic, so every episode is reported and no single seed is read as a result. Stated differences: both brains are asked the same SystemOne question built by questionParts(); Fastino takes the instructions as one string, so the context and question are joined. Glide's loop limits are 8 s (timeout and maximum answer age) against Jev's 2.2 s and 1.5 s, and the server abandons a Fastino call at 7.5 s against TypeSafe's 1.8 s. Both report a probability for every option. The jev arm spends TypeSafe credit (JEV_LIVE_TEST=1) and the glide arm Fastino credit (FASTINO_LIVE_TEST=1); without the flag an arm is recorded as PENDING."
+  }
+}
