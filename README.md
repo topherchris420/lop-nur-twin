@@ -26,7 +26,6 @@ The project is also presented as a short visual walkthrough: a public-source rec
 
 > **Explore the evidence. Take the controls. Follow the anomaly.**
 
-
 | Experience              | What you can do                                                                                                 | What it establishes                                                                           |
 | :---------------------- | :-------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
 | **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
