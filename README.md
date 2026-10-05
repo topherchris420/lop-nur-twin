@@ -192,23 +192,35 @@ unique rounds, so their accuracy percentages are omitted. See the
 [full benchmark account](docs/JEV_BLACKSITE.md#benchmark-methodology-and-results)
 and [place-clearance experiment](docs/benchmarks/2026-09-30/README.md).
 
-### Two live models, same seeds
+### Two live models, ten seeds
 
-Fastino's Glide answers the same question Jev does, so the two can share a
-matched experiment. The prediction, declared before the run, was that Jev's
-faster answers would win on kills on each seed. It failed.
+Fastino's Glide answers the same question Jev does, so the two can share
+matched experiments. Each was declared before it ran, on ten two-minute seeds
+with no seat assistance.
 
-| 5 Oct 2026 · seeds 42–43 · 2 × 60 seconds | Kills / deaths | Decisions | Median round trip | Answers that met a changed world |
-| :---------------------------------------- | -------------: | --------: | ----------------: | -------------------------------: |
-| Jev (TypeSafe), precision control         |          5 / 0 |       501 |            197 ms |                             1.4% |
-| Glide (Fastino), precision control        |          5 / 0 |       115 |            830 ms |                            20.0% |
-| Seeded random policy                      |          0 / 1 |       508 |             11 ms |                               0% |
+| 5 Oct 2026 · seeds 42–51 · 10 × 120 s · even rules | Kills / deaths | Decisions | Median round trip | Metres moved |
+| :------------------------------------------------- | -------------: | --------: | ----------------: | -----------: |
+| Jev (TypeSafe), precision controller               |         28 / 4 |     4,744 |            208 ms |        3,080 |
+| Glide (Fastino), precision controller              |        37 / 10 |       960 |            810 ms |        1,120 |
+| Scripted marksman, precision controller            |        267 / 0 |     5,303 |             19 ms |            0 |
+| Jev, aiming for itself                             |          1 / 8 |     4,656 |            212 ms |        3,008 |
+| Glide, aiming for itself                           |         1 / 13 |       758 |            791 ms |          598 |
 
-Glide decided a quarter as often and tied on kills, winning one seed four to
-two. The models played differently. Jev rarely fired and moved more; Glide
-held still, fired more and spent more time in enemy sight lines. Two short
-seeds are a smoke test, not a ranking: see the
-[full account](docs/benchmarks/2026-10-05/README.md).
+**Glide died more, as predicted.** With the precision controller, Glide's
+deaths per minute exceeded Jev's by 0.30 (95% interval 0.12 to 0.48). It spent
+more time in enemy sight lines and moved a third as far. Kills did not
+separate.
+
+**Without the controller, neither model could fight.** Each scored one kill in
+twenty minutes, no better than a random policy. That prediction, that Jev's
+faster decisions would let it out-aim Glide, failed. A precision result is the
+model's choice of whom to fight plus the controller's aim.
+
+**The hand-written marksman beat both by a wide margin while never moving.**
+The game still rewards standing still at range. Ten seeds are exploratory,
+not a ranking. The [full account](docs/benchmarks/2026-10-05/README.md) has
+every episode, the paired differences, calibration, and the two-seed smoke test
+that came first.
 
 ## Enjoy a normal walk in Bethesda
 

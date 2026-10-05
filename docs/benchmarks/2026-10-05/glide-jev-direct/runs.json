@@ -1,0 +1,60 @@
+{
+  "runId": "glide-jev-direct-v1-2026-10-05T21-22-03-521Z",
+  "startedAt": "2026-10-05T21:22:03.523Z",
+  "finishedAt": "2026-10-05T22:37:21.031Z",
+  "git": {
+    "commit": "f8f7cce1e5aff4f026afc946a913bcd16bd1059a",
+    "dirty": false
+  },
+  "node": "v22.22.0",
+  "platform": "linux",
+  "cpus": 4,
+  "liveFlagsSet": [
+    "JEV_LIVE_TEST",
+    "FASTINO_LIVE_TEST"
+  ],
+  "arms": [
+    {
+      "arm": {
+        "seat": "even",
+        "id": "jev",
+        "brain": "jev",
+        "control": "direct",
+        "navigation": "places"
+      },
+      "query": "brain=jev&jevControl=direct&jevNav=places&seat=even",
+      "origin": "http://localhost:5175",
+      "build": "unknown (served by http://localhost:5175)",
+      "report": "jev.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "glide",
+        "brain": "glide",
+        "control": "direct",
+        "navigation": "places"
+      },
+      "query": "brain=glide&jevControl=direct&jevNav=places&seat=even",
+      "origin": "http://localhost:5175",
+      "build": "unknown (served by http://localhost:5175)",
+      "report": "glide.json",
+      "pending": null
+    },
+    {
+      "arm": {
+        "seat": "even",
+        "id": "random",
+        "brain": "random",
+        "control": "direct",
+        "navigation": "places"
+      },
+      "query": "brain=random&jevControl=direct&jevNav=places&seat=even",
+      "origin": "http://localhost:5175",
+      "build": "unknown (served by http://localhost:5175)",
+      "report": "random.json",
+      "pending": null
+    }
+  ]
+}

@@ -1308,6 +1308,45 @@ Glide never used the movement axis, moved only by places, fired more and took
 damage where Jev took none. Two one-minute seeds under mercy rules and the
 precision controller is exploratory, not a ranking.
 
+### Ten seeds, even rules (2026-10-05)
+
+Two follow-ups, declared and committed before they ran, used the 10-seed
+development preset (seeds 42–51), 120 s episodes and even seat rules:
+`glide-jev-even.json` with the precision controller and the scripted marksman
+as a strategy check, and `glide-jev-direct.json` with each model aiming for
+itself. Every episode, the paired differences and the calibration tables are
+in [`docs/benchmarks/2026-10-05/`](benchmarks/2026-10-05/README.md).
+
+| Arm (20 min of match each) | Kills / deaths | Rounds / hits | Decisions | Round trip p50 | Time in a sight line | Engage-disengage success |
+| :------------------------- | :------------- | :------------ | --------: | -------------: | -------------------: | :----------------------- |
+| Jev, precision             | 28 / 4         | 129 / 58      |     4,744 |         208 ms |                24.2% | 57.8% (n=225)            |
+| Glide, precision           | 37 / 10        | 131 / 109     |       960 |         810 ms |                44.3% | 78.5% (n=107)            |
+| Marksman script, precision | 267 / 0        | 1,292 / 609   |     5,303 |          19 ms |                44.8% | 98.0% (n=1,282)          |
+| Random, precision          | 2 / 14         | 555 / 15      |     5,023 |          16 ms |                48.4% | 14.8% (n=985)            |
+| Jev, direct                | 1 / 8          | 107 / 2       |     4,656 |         212 ms |                27.8% | 3.0% (n=542)             |
+| Glide, direct              | 1 / 13         | 438 / 5       |       758 |         791 ms |                67.1% | 6.6% (n=366)             |
+| Random, direct             | 0 / 10         | 552 / 0       |     5,090 |          16 ms |                48.0% | 0.0% (n=254)             |
+
+- **Even rules, precision: the prediction held.** Glide's deaths per minute
+  exceeded Jev's by 0.30, with a paired 95% interval of 0.12 to 0.48, higher on
+  7 of 10 seeds. Kills did not separate (interval −0.87 to +1.77 a minute).
+- **Direct control: the prediction failed.** It said Jev's faster decisions
+  would out-aim Glide. Each scored one kill, and neither is distinguishable
+  from random. The aiming controller does nearly all of the shooting, so a
+  precision result is the model's choice of whom to fight plus the
+  controller's aim.
+- **The marksman is neither model, and beats both.** It never moved and never
+  died, and the evaluation's stationary-dominance warning fires even under
+  even rules. The game still rewards holding still at range.
+- **Calibration.** Each model's probability for its weapon choice predicted
+  engage-disengage success no better than the base rate (Brier 0.339 for Jev
+  against 0.244, 0.202 for Glide against 0.169). These are probabilities of a
+  choice, not forecasts of a fight.
+
+The two experiments ran concurrently from a frozen checkout, each against its
+own dev server; no episode lagged (the slowest took 1.9% more wall time than
+match time).
+
 ## The evaluation harness
 
 Everything above measures a brain's play. [`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)
