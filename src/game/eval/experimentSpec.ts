@@ -18,8 +18,11 @@ import { metricDefinition } from "./metricRegistry.js";
 
 export const EXPERIMENT_SCHEMA = "blacksite-experiment/v1";
 
-export const BRAINS = ["jev", "llm", "random", "script"] as const;
+export const BRAINS = ["jev", "glide", "llm", "random", "script"] as const;
 export type ExperimentBrain = (typeof BRAINS)[number];
+
+/** Brains answered by a remote model: their latency is real and never altered. */
+export const REMOTE_BRAINS: readonly ExperimentBrain[] = ["jev", "glide", "llm"];
 
 export const POLICIES = ["marksman", "skirmisher"] as const;
 
@@ -204,7 +207,12 @@ function parseArm(value: unknown, path: string, errors: string[]): ArmSpec | nul
     errors.push(`${path}.policy: only script arms take a policy`);
   const latencyMs = intIn(value["latencyMs"], 0, 1500, `${path}.latencyMs`, errors);
   const cadenceMs = intIn(value["cadenceMs"], 50, 2000, `${path}.cadenceMs`, errors);
-  if ((brain === "jev" || brain === "llm") && latencyMs !== undefined && latencyMs > 0) {
+  if (
+    brain !== undefined &&
+    REMOTE_BRAINS.includes(brain) &&
+    latencyMs !== undefined &&
+    latencyMs > 0
+  ) {
     errors.push(
       `${path}.latencyMs: a remote model's latency is real and is never altered`,
     );
@@ -310,7 +318,7 @@ function expandSweep(sweep: unknown, arms: ArmSpec[], errors: string[]): ArmSpec
   }
   const out: ArmSpec[] = [];
   for (const arm of arms) {
-    if (param === "latencyMs" && (arm.brain === "jev" || arm.brain === "llm")) {
+    if (param === "latencyMs" && REMOTE_BRAINS.includes(arm.brain)) {
       errors.push(`sweep: arm ${arm.id} is a remote model; its latency cannot be swept`);
       continue;
     }
@@ -503,6 +511,7 @@ export function experimentHash(spec: ExperimentSpec): string {
 /** Environment flags each kind of arm needs before it may spend money. */
 export const LIVE_FLAGS: Readonly<Record<string, string>> = {
   jev: "JEV_LIVE_TEST",
+  glide: "FASTINO_LIVE_TEST",
   llm: "LLM_LIVE_TEST",
 };
 

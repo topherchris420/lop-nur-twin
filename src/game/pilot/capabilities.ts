@@ -117,6 +117,34 @@ export const LLM_CAPABILITIES: Capabilities = {
   maxDecisionAgeMs: 12_000,
 };
 
+/**
+ * Fastino's Glide behind `/api/glide/decision`. It speaks the same SystemOne
+ * Choice protocol as Jev and is asked the same question for every interface,
+ * so it is offered the same ones, with one request in flight.
+ *
+ * Its answers are slower than Jev's, and how much slower depends on the
+ * question. Measured on 2026-10-05 from a cloud container: the test fixture's
+ * questions took 0.69–1.0 s under precision control and 3.6–5.7 s under
+ * direct (five requests each; Fastino reported 902 output tokens for every
+ * direct answer and 6 for every precision one). In live play the same day
+ * (45 s per control) the server measured a median of 0.8–0.9 s, a 95th
+ * percentile of 3.0–3.3 s and a maximum of 5.3 s. Under the contract's 1.5 s
+ * age limit a large share of those answers could never act, so it declares
+ * 8 s — a stated difference between seats, like the LLM's 12 s. The server
+ * gives up on Fastino at 7.5 s, before the browser does.
+ */
+export const GLIDE_CAPABILITIES: Capabilities = {
+  control: ["precision", "direct"],
+  navigation: ["places", "steps"],
+  minIntervalMs: MIN_DECISION_INTERVAL_MS,
+  inference: "remote",
+  memory: false,
+  vision: false,
+  observations: ["structured-v4"],
+  requestTimeoutMs: 8_000,
+  maxDecisionAgeMs: 8_000,
+};
+
 /** The seeded random policy and the scripted policies run in the page. */
 export const LOCAL_POLICY_CAPABILITIES: Capabilities = {
   control: ["precision", "direct"],

@@ -6,6 +6,8 @@ import { useGameStore, type BrainKind } from "../core/gameStore";
 import { AXES, type Axis } from "../pilot/contract";
 import { pilot, type ControlLabel, type PilotStatus } from "../pilot/pilot";
 import {
+  GLIDE_DECISION_ENDPOINT,
+  JEV_DECISION_ENDPOINT,
   LLM_DECISION_ENDPOINT,
   probeJevService,
   type JevServiceStatus,
@@ -17,8 +19,9 @@ import { parseTrace } from "../pilot/recorder";
  * The pilot's status panel and the controls that go with it.
  *
  * `JevHud` sits above the ammo readout while a brain has the player, and says
- * three things plainly: who is in control (LIVE JEV, FALLBACK, RANDOM or
- * REPLAY — only a TypeSafe answer is ever labelled LIVE JEV), what it is doing,
+ * three things plainly: who is in control (LIVE JEV, LIVE GLIDE, FALLBACK,
+ * RANDOM or REPLAY — only a TypeSafe answer is ever labelled LIVE JEV, and only
+ * a Fastino answer LIVE GLIDE), what it is doing,
  * and how to take the controls back. It repaints from the pilot's telemetry
  * singleton on its own ~8 Hz timer; nothing on the frame loop touches React.
  *
@@ -28,12 +31,20 @@ import { parseTrace } from "../pilot/recorder";
 
 const LABEL_COLOR: Record<ControlLabel, string> = {
   "LIVE JEV": "#4da3ff",
+  "LIVE GLIDE": "#9ec5ff",
   "LIVE LLM": "#7fd4c1",
   FALLBACK: "#ffb648",
   RANDOM: "#cbd5e1",
   SCRIPTED: "#b5c99a",
   REPLAY: "#c4a1ff",
   HUMAN: "#e2e8f0",
+};
+
+/** The brains a decision service answers for: its endpoint and its name. */
+const SERVICES: Partial<Record<BrainKind, { endpoint: string; name: string }>> = {
+  jev: { endpoint: JEV_DECISION_ENDPOINT, name: "Jev" },
+  glide: { endpoint: GLIDE_DECISION_ENDPOINT, name: "Glide" },
+  llm: { endpoint: LLM_DECISION_ENDPOINT, name: "LLM" },
 };
 
 const STATUS_ALERT: ReadonlySet<PilotStatus> = new Set([
@@ -116,11 +127,9 @@ export function JevHud() {
       if (labelRef.current) {
         // Nothing is live while the service cannot answer; say so plainly.
         labelRef.current.textContent =
-          t.label === "LIVE JEV" && t.status === "UNAVAILABLE"
-            ? "JEV UNAVAILABLE"
-            : t.label === "LIVE LLM" && t.status === "UNAVAILABLE"
-              ? "LLM UNAVAILABLE"
-              : t.label;
+          t.label.startsWith("LIVE ") && t.status === "UNAVAILABLE"
+            ? `${t.label.slice("LIVE ".length)} UNAVAILABLE`
+            : t.label;
         labelRef.current.style.color =
           t.status === "UNAVAILABLE" ? "#ff8a80" : LABEL_COLOR[t.label];
       }
@@ -254,13 +263,15 @@ export function JevHud() {
       <p className="mt-0.5 truncate text-[9px] tracking-[0.1em] text-slate-400 normal-case">
         {brain === "jev"
           ? "Jev chooses · local controller executes · Blacksite decides"
-          : brain === "llm"
-            ? "LLM chooses · local controller executes · Blacksite decides"
-            : brain === "random"
-              ? "Seeded random policy · same controls, same timing"
-              : brain === "script"
-                ? "Hand-written reference policy · same observation, same controls"
-                : "Recorded controls played back · not live"}
+          : brain === "glide"
+            ? "Glide chooses · local controller executes · Blacksite decides"
+            : brain === "llm"
+              ? "LLM chooses · local controller executes · Blacksite decides"
+              : brain === "random"
+                ? "Seeded random policy · same controls, same timing"
+                : brain === "script"
+                  ? "Hand-written reference policy · same observation, same controls"
+                  : "Recorded controls played back · not live"}
       </p>
       <div className="pointer-events-auto mt-1.5 flex gap-2">
         <button
@@ -292,6 +303,7 @@ export function JevHud() {
 const CHOICES: { id: BrainKind; name: string }[] = [
   { id: "human", name: "Human" },
   { id: "jev", name: "Jev" },
+  { id: "glide", name: "Glide" },
   { id: "llm", name: "LLM" },
   { id: "random", name: "Random" },
   { id: "script", name: "Scripted" },
@@ -356,11 +368,11 @@ export function PlayerControlSelector() {
   const [traceError, setTraceError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (brain !== "jev" && brain !== "llm") return undefined;
+    const served = SERVICES[brain];
+    if (!served) return undefined;
     setService(null);
     const controller = new AbortController();
-    const endpoint = brain === "llm" ? LLM_DECISION_ENDPOINT : undefined;
-    void probeJevService(endpoint, controller.signal).then((status) => {
+    void probeJevService(served.endpoint, controller.signal).then((status) => {
       if (!controller.signal.aborted) setService(status);
     });
     return () => controller.abort();
@@ -508,6 +520,8 @@ export function PlayerControlSelector() {
           (control === "precision"
             ? `Jev chooses ${navigation === "places" ? "where to go among the places it is shown" : "how to move"}, which visible enemy to engage and where on it; deterministic local controllers execute the aim, the trigger discipline${navigation === "places" ? " and the walk" : ""} at frame rate. Blacksite still decides every hit. Press H to take control.`
             : "Jev turns the view itself in fixed steps, the original interface. Blacksite still controls the world: physics, hits, damage and scoring. Press H in the match to take control.")}
+        {brain === "glide" &&
+          "Fastino's Glide is asked Jev's question, word for word, from the same observation and chooses among the same options, with its own probability for every option; the same local controllers execute it. Its answers take longer than Jev's, so it is allowed up to 8 seconds where Jev has 1.5. Press H to take control."}
         {brain === "llm" &&
           "A conventional language model, configured on the server, is asked the same question from the same observation Jev is, and chooses among the same options; the same local controllers execute it. Its confidence, if any, is a number it wrote, not a probability. Press H to take control."}
         {brain === "random" &&
@@ -515,7 +529,7 @@ export function PlayerControlSelector() {
         {brain === "replay" &&
           "Plays back a recorded trace through the same controls. Not a live model."}
       </p>
-      {(brain === "jev" || brain === "llm") && (
+      {SERVICES[brain] && (
         <p
           className={cn(
             "mt-2 font-mono text-[10px] tracking-[0.14em] uppercase",
@@ -529,8 +543,8 @@ export function PlayerControlSelector() {
           {service === null
             ? "Checking the decision service…"
             : service.available
-              ? `${brain === "llm" ? "LLM" : "Jev"} ready · ${service.model ?? "model unknown"}`
-              : `${brain === "llm" ? "LLM" : "Jev"} unavailable — ${service.detail}`}
+              ? `${SERVICES[brain]?.name} ready · ${service.model ?? "model unknown"}`
+              : `${SERVICES[brain]?.name} unavailable — ${service.detail}`}
         </p>
       )}
       {brain === "replay" && (

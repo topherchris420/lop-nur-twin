@@ -5,6 +5,9 @@
     "api/jev/decision.ts": {
       "maxDuration": 10
     },
+    "api/glide/decision.ts": {
+      "maxDuration": 10
+    },
     "api/llm/decision.ts": {
       "maxDuration": 30
     },

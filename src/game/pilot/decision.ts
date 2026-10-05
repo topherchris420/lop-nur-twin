@@ -45,12 +45,21 @@ export type DecisionAxes = {
   go: AxisDecision<"go"> | null;
 };
 
+/**
+ * Who answered a SystemOne question. TypeSafe serves Jev at `/api/jev/decision`;
+ * Fastino serves Glide at `/api/glide/decision`. Both speak the same Choice
+ * protocol, so one decision shape carries either — and the source says which,
+ * so an answer from one is never accepted, or labelled, as the other's.
+ */
+export const SYSTEMONE_SOURCES = ["typesafe", "fastino"] as const;
+export type SystemOneSource = (typeof SYSTEMONE_SOURCES)[number];
+
 export interface JevDecision {
   schemaVersion: typeof DECISION_SCHEMA_VERSION;
   sequence: number;
-  /** Where the answer came from. The only value the server ever sends. */
-  source: "typesafe";
-  /** The versioned model id TypeSafe reports, e.g. `jev-1.13.0`. */
+  /** Where the answer came from: the provider whose endpoint was asked. */
+  source: SystemOneSource;
+  /** The model id the provider reports, e.g. `jev-1.13.0` or `glide`. */
   model: string;
   frame: ControlFrame;
   axes: DecisionAxes;
@@ -247,14 +256,16 @@ export function frameOf(axes: DecisionAxes, legal: LegalActions): ControlFrame {
 }
 
 /**
- * Validate a decision response from `/api/jev/decision` before it can reach the
- * input layer: right schema, right sequence, only offered controls, and real
- * probabilities for every axis.
+ * Validate a decision response from `/api/jev/decision` or `/api/glide/decision`
+ * before it can reach the input layer: right schema, right sequence, the
+ * provider that endpoint speaks for, only offered controls, and real
+ * probabilities for every axis. `source` defaults to TypeSafe, Jev's provider.
  */
 export function validateDecision(
   value: unknown,
-  expected: { sequence: number; legal: LegalActions },
+  expected: { sequence: number; legal: LegalActions; source?: SystemOneSource },
 ): Validated<JevDecision> {
+  const source = expected.source ?? "typesafe";
   if (!isRecord(value)) return { ok: false, error: "decision is not an object" };
   if (value["schemaVersion"] !== DECISION_SCHEMA_VERSION) {
     return { ok: false, error: "unsupported decision schema" };
@@ -262,8 +273,14 @@ export function validateDecision(
   if (value["sequence"] !== expected.sequence) {
     return { ok: false, error: "sequence does not match the observation" };
   }
-  if (value["source"] !== "typesafe")
-    return { ok: false, error: "unknown decision source" };
+  if (value["source"] !== source) {
+    return {
+      ok: false,
+      error: (SYSTEMONE_SOURCES as readonly unknown[]).includes(value["source"])
+        ? `decision from ${String(value["source"])}, expected ${source}`
+        : "unknown decision source",
+    };
+  }
   if (!isModelId(value["model"]))
     return { ok: false, error: "model id missing or malformed" };
   const latency = value["latencyMs"];
@@ -307,7 +324,7 @@ export function validateDecision(
     value: {
       schemaVersion: DECISION_SCHEMA_VERSION,
       sequence: expected.sequence,
-      source: "typesafe",
+      source,
       model: value["model"],
       frame,
       axes,

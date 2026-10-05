@@ -23,14 +23,17 @@ import { STALE_POLICIES, type StalePolicy } from "../pilot/staleness";
 /**
  * Who controls the player. `human` is the keyboard and mouse; the others are
  * brains that drive the same input through `src/game/pilot/` — the TypeSafe
- * Jev model, a conventional LLM behind `/api/llm/decision`, a seeded random
- * baseline, a scripted policy, or a recorded trace played back.
+ * Jev model, Fastino's Glide behind `/api/glide/decision`, a conventional LLM
+ * behind `/api/llm/decision`, a seeded random baseline, a scripted policy, or
+ * a recorded trace played back.
  */
-export type BrainKind = "human" | "jev" | "llm" | "random" | "script" | "replay";
+export type BrainKind =
+  "human" | "jev" | "glide" | "llm" | "random" | "script" | "replay";
 
 export const BRAIN_KINDS: readonly BrainKind[] = [
   "human",
   "jev",
+  "glide",
   "llm",
   "random",
   "script",
@@ -258,7 +261,7 @@ function initialMode(): GameModeId {
 }
 
 /**
- * `?brain=human|jev|llm|random|script|replay` picks who controls the player; anything else
+ * `?brain=human|jev|glide|llm|random|script|replay` picks who controls the player; anything else
  * — including a missing parameter — is the human, exactly as before. It never
  * changes `?autoplay`, which still only decides whether the menus are skipped.
  */

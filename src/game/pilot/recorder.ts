@@ -33,14 +33,14 @@ export const MAX_TRACE_RECORDS = 5000;
 export const MAX_TRACE_EVENTS = 2000;
 
 export type DecisionSource =
-  "jev" | "llm" | "random" | "script" | "replay" | "fallback-random";
+  "jev" | "glide" | "llm" | "random" | "script" | "replay" | "fallback-random";
 
 export interface TraceHeader {
   type: "header";
   traceVersion: typeof TRACE_VERSION;
   actionContract: typeof ACTION_CONTRACT_VERSION;
   observationSchema: typeof OBSERVATION_SCHEMA_VERSION;
-  brain: "jev" | "llm" | "random" | "script" | "replay";
+  brain: "jev" | "glide" | "llm" | "random" | "script" | "replay";
   /** The scripted policy, for a `script` trace; null otherwise. */
   policy: string | null;
   seed: number;

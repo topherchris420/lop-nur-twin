@@ -13,7 +13,9 @@
  *  - the actual key, when `TYPESAFE_API_KEY` is set in this environment — as it
  *    is on a Vercel build. The value is compared, never printed.
  *
- * The same rules cover the LLM endpoint's `LLM_API_KEY`: its name, a
+ * The same rules cover the Glide endpoint's `FASTINO_API_KEY`: its name, a
+ * `VITE_FASTINO…` copy, a Fastino-shaped key (`fast_sk_…`) and the configured
+ * value. And the LLM endpoint's `LLM_API_KEY`: its name, a
  * `VITE_LLM…` copy, key shapes of the providers it supports (`sk-ant-…`,
  * `sk-…`), and the configured value — and the R.A.I.N. Lab's
  * `RAIN_BACKEND_TOKEN`: its name, a `VITE_RAIN…` copy and the configured value.
@@ -37,11 +39,15 @@ const patterns = [
   {
     name: "credential variable name",
     test: (text) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|LLM_API_KEY|VITE_LLM_|RAIN_BACKEND_TOKEN|VITE_RAIN_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|RAIN_BACKEND_TOKEN|VITE_RAIN_/.test(
         text,
       ),
   },
   { name: "TypeSafe-shaped key", test: (text) => /apikey_[A-Za-z0-9_]{24,}/.test(text) },
+  {
+    name: "Fastino-shaped key",
+    test: (text) => /fast_sk_[A-Za-z0-9_-]{24,}/.test(text),
+  },
   {
     name: "Anthropic-shaped key",
     test: (text) => /sk-ant-[A-Za-z0-9_-]{20,}/.test(text),
@@ -52,7 +58,12 @@ const patterns = [
   },
 ];
 const configured = [];
-for (const variable of ["TYPESAFE_API_KEY", "LLM_API_KEY", "RAIN_BACKEND_TOKEN"]) {
+for (const variable of [
+  "TYPESAFE_API_KEY",
+  "FASTINO_API_KEY",
+  "LLM_API_KEY",
+  "RAIN_BACKEND_TOKEN",
+]) {
   const value = (process.env[variable] ?? "").trim();
   if (value.length < 12) continue;
   configured.push(variable);

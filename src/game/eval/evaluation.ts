@@ -11,7 +11,7 @@ import {
   type Factor,
   type FactorArm,
 } from "./contribution.js";
-import type { ArmSpec, ExperimentSpec } from "./experimentSpec.js";
+import { REMOTE_BRAINS, type ArmSpec, type ExperimentSpec } from "./experimentSpec.js";
 import { buildLedger, ledgerCalls, type Ledger } from "./ledger.js";
 import {
   METRICS,
@@ -437,9 +437,11 @@ function brainMeta(run: ArmRun): BrainMeta {
       first?.provider ??
       (run.arm.brain === "jev"
         ? "typesafe"
-        : run.arm.brain === "llm"
-          ? "unknown"
-          : "local"),
+        : run.arm.brain === "glide"
+          ? "fastino"
+          : run.arm.brain === "llm"
+            ? "unknown"
+            : "local"),
     models: [
       ...new Set(
         records.map((r) => r.accounting.model).filter((m): m is string => m !== null),
@@ -708,7 +710,7 @@ export function buildEvaluation(input: BuildInput): Evaluation {
       decisions: run.episodes.flatMap((e) => e.decisions),
       primary: primaryBySeed(arm, spec.primaryMetric),
       costUnknown:
-        (arm.config.brain === "jev" || arm.config.brain === "llm") &&
+        REMOTE_BRAINS.includes(arm.config.brain) &&
         !arm.brain.testDouble &&
         arm.ledger.cost.totalUsd === null,
     };

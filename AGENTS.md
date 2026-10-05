@@ -238,7 +238,7 @@ Three things that will bite anyone extending this:
 
 ## The player seat (`src/game/pilot/`)
 
-`/play?brain=human|jev|random|script|replay` chooses who drives the player. The rule
+`/play?brain=human|jev|glide|llm|random|script|replay` chooses who drives the player. The rule
 the whole directory exists to keep is in `docs/JEV_BLACKSITE.md`: a brain
 _chooses_ controls; Blacksite decides what they do. Read that document before
 changing anything here.
@@ -319,6 +319,7 @@ changing anything here.
   builds, typechecks and then fails at runtime with `ERR_MODULE_NOT_FOUND`.
 - **The keys never reach the browser.** Only `api/jev/decision.ts` and the
   dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`; only
+  `api/glide/decision.ts` and the same middleware read `FASTINO_API_KEY`; only
   `api/llm/decision.ts` and the same middleware read `LLM_API_KEY`; there is
   never a `VITE_`-prefixed copy, and `@anthropic-ai/sdk` is imported under
   `server/` only. `secretBoundary.test.ts` fails if any other file reads a key
@@ -333,7 +334,12 @@ changing anything here.
   the APIs genuinely differ (parallel per-axis questions against one
   completion, probabilities against a written confidence, 1.5 s against 12 s
   answer age) the difference is declared in `capabilities.ts` and stated in the
-  docs — never quietly compensated.
+  docs — never quietly compensated. Glide (Fastino) speaks Jev's SystemOne
+  protocol, so `server/glide/handler.ts` is Jev's handler pointed at Fastino
+  (`createSystemOneDecisionHandler`); `server/glide/handler.test.ts` fails if
+  its state, options or words drift from Jev's. Fastino takes the instructions
+  as one string, so the context and question are joined — the envelope differs,
+  the words do not.
 - **Every decision leaves a record, and unknown stays null.** A brain returns
   `accounting` (`brain.ts`) and, if it states one, a `confidence` with its
   source (`provider-probability`, `verbalized`); the seat turns that into a
@@ -354,10 +360,13 @@ changing anything here.
   and a date; the committed file prices nothing. `pricing.test.ts` fails on a
   dollar-per-token figure anywhere in the source.
 - **Labels are claims.** LIVE JEV is shown only while the controls in effect
-  came from a validated TypeSafe answer; anything the fallback issues is
-  labelled FALLBACK, and a failure shows the status TIMEOUT, UNAVAILABLE or
-  ERROR rather than a substitute. Probabilities and confidence are displayed as
-  TypeSafe returned them, and the random brain has none — never fill them in.
+  came from a validated TypeSafe answer, and LIVE GLIDE only from a validated
+  Fastino one — each endpoint's answers name their provider, and the browser
+  refuses one provider's answer on the other's endpoint; anything the fallback
+  issues is labelled FALLBACK, and a failure shows the status TIMEOUT,
+  UNAVAILABLE or ERROR rather than a substitute. Probabilities and confidence
+  are displayed as the provider returned them, and the random brain has none —
+  never fill them in.
 - **No network on the frame loop.** Decisions are requested from a 50 ms timer
   in `pilot.ts`, at most one in flight, with monotonic sequence numbers; a late
   or superseded answer is dropped, not applied. `useFrame` only executes the
@@ -372,8 +381,9 @@ changing anything here.
   added after navigation loses the race to the first request — and asserts
   the only model it saw was the test double. `bun run llm` runs the real LLM
   endpoint against `tools/fake-llm.mjs` on its own dev server. Anything that
-  spends credit (`jev:live`, `benchmark:jev`, a Jev or LLM experiment arm)
-  refuses to start without `JEV_LIVE_TEST=1` or `LLM_LIVE_TEST=1`; the
+  spends credit (`jev:live`, `benchmark:jev`, `glide:live`, `benchmark:glide`,
+  a Jev, Glide or LLM experiment arm) refuses to start without
+  `JEV_LIVE_TEST=1`, `FASTINO_LIVE_TEST=1` or `LLM_LIVE_TEST=1`; the
   experiment runner records unflagged live arms as PENDING and fills in
   nothing for them.
 
@@ -572,6 +582,7 @@ bun run engagement            # 13 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
 bun run jev                   # the player seat, places included; no API calls
+bun run glide                 # the Glide seat against an in-browser fake; no API calls
 bun run llm                   # the LLM seat against the offline test double
 bun run test:eval             # evaluation core, seat and server unit tests
 bun run shots                 # regenerate the README screenshots

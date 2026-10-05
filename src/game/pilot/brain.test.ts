@@ -3,7 +3,12 @@ import { confidenceFromAxes } from "./brain";
 import { DECISION_SCHEMA_VERSION } from "./contract";
 import { parseAllAxes } from "./decision";
 import { LLM_DECISION_SCHEMA, parseLlmAnswers, validateLlmDecision } from "./llmDecision";
-import { JevHttpProvider, LlmHttpProvider, RandomProvider } from "./providers";
+import {
+  GlideHttpProvider,
+  JevHttpProvider,
+  LlmHttpProvider,
+  RandomProvider,
+} from "./providers";
 import { ScriptedProvider } from "./policies";
 import { fakeAnswers, makeObservation } from "./testing/fixtures";
 import type { DecisionProvider } from "./loop";
@@ -80,6 +85,7 @@ const serve = (body: unknown, status = 200) =>
 describe("every brain describes itself", () => {
   const brains: DecisionProvider[] = [
     new JevHttpProvider("0123456789abcdef", "/x", serve({})),
+    new GlideHttpProvider("0123456789abcdef", "/x", serve({})),
     new LlmHttpProvider("0123456789abcdef", "/x", serve({})),
     new RandomProvider(1),
     new ScriptedProvider("marksman"),
@@ -87,6 +93,7 @@ describe("every brain describes itself", () => {
   it("with an id, a provider, capabilities and a confidence source", () => {
     expect(brains.map((b) => [b.descriptor?.id, b.descriptor?.confidence])).toEqual([
       ["jev", "provider-probability"],
+      ["glide", "provider-probability"],
       ["llm", "verbalized"],
       ["random", "none"],
       ["script:marksman", "none"],
@@ -123,6 +130,45 @@ describe("decision accounting", () => {
       probability: 0.7,
       confidence: 0.62,
     });
+  });
+
+  it("records Glide's decision as Fastino's, with Fastino's own probabilities", async () => {
+    const result = await new GlideHttpProvider(
+      "0123456789abcdef",
+      "/x",
+      serve({ ...jevBody(), source: "fastino", model: "glide", latencyMs: 820 }),
+    ).decide(request());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.decision.model).toBe("glide");
+    expect(result.decision.accounting).toMatchObject({
+      provider: "fastino",
+      model: "glide",
+      providerLatencyMs: 820,
+      retries: 0,
+      reportedCostUsd: null,
+    });
+    expect(result.decision.confidence!.source).toBe("provider-probability");
+    expect(result.decision.confidence!.perAxis.move).toEqual({
+      probability: 0.7,
+      confidence: 0.62,
+    });
+  });
+
+  it("never takes one provider's answer for the other's", async () => {
+    const glide = await new GlideHttpProvider(
+      "0123456789abcdef",
+      "/x",
+      serve(jevBody()),
+    ).decide(request());
+    expect(!glide.ok && glide.failure).toBe("invalid");
+    expect(!glide.ok && glide.detail).toBe("decision from typesafe, expected fastino");
+    const jev = await new JevHttpProvider(
+      "0123456789abcdef",
+      "/x",
+      serve({ ...jevBody(), source: "fastino", model: "glide" }),
+    ).decide(request());
+    expect(!jev.ok && jev.detail).toBe("decision from fastino, expected typesafe");
   });
 
   it("keeps unknown tokens unknown", async () => {

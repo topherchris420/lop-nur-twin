@@ -35,7 +35,7 @@ import {
  * does, and the state explains what the player can see.
  */
 
-export interface SystemOneRequest {
+export interface SystemOneRequest<E extends InstructionsEnvelope = "parts"> {
   model: string;
   state: Record<string, unknown>;
   questions: Partial<
@@ -43,11 +43,24 @@ export interface SystemOneRequest {
       Axis,
       {
         type: "choice";
-        instructions: { context: string; question: string };
+        instructions: E extends "text" ? string : { context: string; question: string };
         criteria: Record<string, string>;
       }
     >
   >;
+}
+
+/**
+ * How a provider's SystemOne endpoint takes a question's instructions.
+ * TypeSafe accepts the context and the question as separate fields (`parts`);
+ * Fastino's accepts one string and refuses an object with a 422 (`text`). The
+ * words are the same either way: `text` is the context, a blank line, then the
+ * question — the envelope differs, the question does not.
+ */
+export type InstructionsEnvelope = "parts" | "text";
+
+export function joinInstructions(context: string, question: string): string {
+  return `${context}\n\n${question}`;
 }
 
 const MODE_NAMES: Record<JevObservation["match"]["mode"], string> = {
@@ -485,21 +498,39 @@ export function questionParts(obs: JevObservation): QuestionParts {
   return { context: context(obs), state: renderState(obs), questions };
 }
 
-/** The complete TypeSafe request for one decision. The server owns every word. */
+/**
+ * The complete SystemOne request for one decision — TypeSafe's for Jev, or
+ * Fastino's for Glide with `envelope: "text"`. The server owns every word.
+ */
 export function buildSystemOneRequest(
   obs: JevObservation,
   model: string,
-): SystemOneRequest {
+): SystemOneRequest<"parts">;
+export function buildSystemOneRequest<E extends InstructionsEnvelope>(
+  obs: JevObservation,
+  model: string,
+  envelope: E,
+): SystemOneRequest<E>;
+export function buildSystemOneRequest(
+  obs: JevObservation,
+  model: string,
+  envelope: InstructionsEnvelope = "parts",
+): SystemOneRequest<InstructionsEnvelope> {
   const parts = questionParts(obs);
-  const question = (axis: Axis): SystemOneRequest["questions"][Axis] => ({
+  const question = (
+    axis: Axis,
+  ): SystemOneRequest<InstructionsEnvelope>["questions"][Axis] => ({
     type: "choice",
-    instructions: { context: parts.context, question: parts.questions[axis]!.question },
+    instructions:
+      envelope === "text"
+        ? joinInstructions(parts.context, parts.questions[axis]!.question)
+        : { context: parts.context, question: parts.questions[axis]!.question },
     criteria: parts.questions[axis]!.options,
   });
   // Every asked axis goes in one request: TypeSafe evaluates them in parallel
   // against the same state, so six questions cost barely more time than one.
   // An axis with a single legal option is not a question and is not sent.
-  const questions: SystemOneRequest["questions"] = {};
+  const questions: SystemOneRequest<InstructionsEnvelope>["questions"] = {};
   for (const axis of askedAxes(obs.legal)) questions[axis] = question(axis);
   return { model, state: parts.state, questions };
 }

@@ -31,7 +31,7 @@ import type { DecisionConfidence } from "../eval/records";
  * fallback can never be mistaken for the primary.
  */
 
-export type ProviderKind = "jev" | "llm" | "random" | "script";
+export type ProviderKind = "jev" | "glide" | "llm" | "random" | "script";
 
 export type FailureKind =
   | "timeout"

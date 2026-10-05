@@ -54,6 +54,7 @@ see [The analytical boundary](#the-analytical-boundary).
 - [Tuning the interface](#tuning-the-interface)
 - [Benchmark methodology and results](#benchmark-methodology-and-results)
 - [A conventional LLM in the seat](#a-conventional-llm-in-the-seat)
+- [Fastino's Glide in the seat](#fastinos-glide-in-the-seat)
 - [The evaluation harness](#the-evaluation-harness)
 - [Security](#security)
 - [The analytical boundary](#the-analytical-boundary)
@@ -1200,6 +1201,90 @@ do the same here?" can be asked on matched seeds.
 No live LLM run has been made in this repository yet; the comparison
 experiment (`tools/experiments/llm-comparison.json`) is declared and pending.
 
+## Fastino's Glide in the seat
+
+`/play?brain=glide`, `server/glide/handler.ts`, `api/glide/decision.ts`.
+Fastino serves the SystemOne Choice protocol TypeSafe does — a state, a set of
+Choice questions asked in parallel, and per question a choice, a confidence and
+a probability for every option — with its `fastino/glide` model. So Glide is
+not a third integration but Jev's, pointed at another provider.
+
+- **The same handler, the same words.** `createSystemOneDecisionHandler` in
+  `server/jev/handler.ts` serves both endpoints; Glide's differs only in the
+  `SystemOneUpstream` it is given (`FASTINO_UPSTREAM`). Body limits, the
+  same-origin rule, rate limits, the server-built question and the answer
+  validation are the same code. `server/glide/handler.test.ts` fails if
+  Glide's state, questions, options or words drift from Jev's.
+- **One envelope difference.** Fastino takes a question's `instructions` as a
+  single string and answers an object with a 422, so the context and the
+  question are joined with a blank line (`joinInstructions`). Jev still gets
+  them as separate fields.
+- **Its own credential, model and source.** `FASTINO_API_KEY` is read only by
+  `api/glide/decision.ts` and the Vite middleware; `secretBoundary.test.ts`
+  and the build-output scan cover it, including Fastino's `fast_sk_` key shape.
+  `FASTINO_MODEL` defaults to `fastino/glide` and also takes a fine-tuned
+  model's training-job UUID. Every answer carries `source: "fastino"` and the
+  model Fastino reports running (`glide`); the browser refuses a Fastino answer
+  as Jev's and a TypeSafe answer as Glide's, and the HUD labels it LIVE GLIDE.
+  Its probabilities are recorded as `provider-probability`, Fastino's own.
+- **Stated difference: time.** Glide answers more slowly than Jev, and how
+  much more depends on the question. `GLIDE_CAPABILITIES` declares 8 s to
+  answer and 8 s of maximum answer age, against Jev's 2.2 s and 1.5 s; the
+  server abandons the Fastino call at 7.5 s. The negotiated limits are
+  recorded with every result, and every late answer is still revalidated at
+  execution. `?fallback=random` works for Glide as it does for Jev.
+- **Cost unknown.** Fastino's model list prices other models but not Glide,
+  and `config/pricing.json` prices nothing, so a Glide run's cost is reported
+  as unknown. The token counts Fastino returns are recorded.
+- **Offline first.** `bun run glide` plays `/play?brain=glide` against a fake
+  endpoint inside the test browser: the label, execution, the negotiated
+  limits, decision records, refusal of a TypeSafe-sourced answer, the
+  unavailable state, takeover, the menu, and the answer-age contrast (an
+  answer three seconds late acts under Glide and times out under Jev). Live
+  runs need `FASTINO_LIVE_TEST=1`: `bun run glide:live` (`-- --control
+direct` for the original interface) and `bun run benchmark:glide`.
+
+### First live runs (2026-10-05)
+
+One dev server in a cloud container, the real Fastino endpoint, seed 42, 45 s
+of match time per control, `bun run glide:live`. Latency is the server's
+measurement of the Fastino call.
+
+| Control   | Accepted / requested | Timeouts | Latency p50 | p95     | max     | Kills | Deaths | Rounds | Hits |
+| :-------- | :------------------- | :------- | :---------- | :------ | :------ | :---- | :----- | :----- | :--- |
+| precision | 23 / 26              | 2        | 911 ms      | 3048 ms | 3343 ms | 3     | 0      | 10     | 7    |
+| direct    | 22 / 25              | 2        | 790 ms      | 3277 ms | 5251 ms | 0     | 0      | 15     | 0    |
+
+Every plumbing check passed in both runs: Fastino answered, reported `glide`,
+the HUD said LIVE GLIDE, every record carried Fastino's probabilities, the
+browser sent only `{ session, observation }`, no request or response carried a
+credential, and takeover released every control. Under precision control Glide
+held position in 21 of 23 decisions and chose the enemy nearest the crosshair
+(`TARGET_0`) in 12, no target in 11, always at centre mass; under direct
+control it held position in all 22 and turned in steps without a hit. One seed
+and 45 s per control is a smoke test of the integration, not a result about
+the model.
+
+The same day, `bun run benchmark:glide -- --seeds 42,43 --seconds 60` ran two
+60 s episodes under precision control with places navigation, the defaults:
+
+| Measure             | Value                                                   |
+| :------------------ | :------------------------------------------------------ |
+| decisions           | 60 accepted of 66 requested; 0 stale, 0 invalid         |
+| upstream timeouts   | 6, each the server abandoning Fastino at 7.5 s          |
+| round trip          | p50 971 ms, p95 3252 ms                                 |
+| server → Fastino    | p50 930 ms, p95 3189 ms                                 |
+| kills / deaths      | 9 / 0 (2 and 7 by seed)                                 |
+| rounds / hits       | 22 / 17                                                 |
+| choices             | `HOLD` 58 of 60; `TARGET_0` 30, `NONE` 27, `TARGET_1` 3 |
+| tokens per decision | about 3,000 in and 4 out, as Fastino reported them      |
+| cost                | unknown: no price is configured                         |
+
+The seat fought under the default mercy rules, and the precision motor
+controller executed every aim: these numbers describe Glide's choices and that
+controller together, on two seeds. They are not a comparison with Jev, which
+would need a matched experiment on the same seeds.
+
 ## The evaluation harness
 
 Everything above measures a brain's play. [`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)
@@ -1276,6 +1361,8 @@ spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 | `bun run replay:jev -- trace.jsonl`                                 | no             | replays a recorded control stream                                                                                                                                                                                |
 | `bun run scan:secrets`                                              | no             | the build-output credential scan                                                                                                                                                                                 |
 | `bun run llm`                                                       | no             | the LLM seat end to end against the offline test double                                                                                                                                                          |
+| `bun run glide`                                                     | no             | the Glide seat against an in-browser fake: label, execution, negotiated limits, records, wrong-provider refusal, outage, takeover, menu                                                                          |
+| `FASTINO_LIVE_TEST=1 bun run glide:live` / `benchmark:glide`        | Fastino        | live Glide decisions, model, labels, probabilities, request shape, credential absence, takeover / benchmark episodes                                                                                             |
 | `node tools/experiment.mjs tools/experiments/<x>.json`              | only flagged   | a declared experiment and its evaluation; Jev and LLM arms run only with `JEV_LIVE_TEST=1` / `LLM_LIVE_TEST=1`, and are PENDING otherwise                                                                        |
 
 ## Limitations
@@ -1387,6 +1474,7 @@ These are the boundaries of the experiment as it now stands, not failures.
 | `src/routes/evaluation.tsx`, `src/game/eval/ui/`              | the `/evaluation` page                                                    |
 | `config/pricing.json`                                         | the only place a model price may live (none is set)                       |
 | `tools/experiment.mjs`, `tools/fake-llm.mjs`, `tools/llm.mjs` | experiments and evaluations; the offline LLM test double                  |
+| `server/glide/`, `api/glide/decision.ts`, `tools/glide.mjs`   | Glide: Fastino's SystemOne endpoint, its function and browser checks      |
 
 The shared modules (now also `hitGeometry.ts` and `characters/hitboxSpecs.ts`)
 import each other as `./x.js`: the Vercel function runs as
