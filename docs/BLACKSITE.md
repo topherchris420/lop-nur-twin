@@ -98,6 +98,7 @@ weapons, collision and damage cannot tell who is playing.
 | :-------- | :--------------------------------------------------------------------------------------------------------- |
 | `human`   | Keyboard and mouse. The default, and what any other value means.                                           |
 | `jev`     | The TypeSafe Jev model, through the server-side `/api/jev/decision` endpoint. Labelled LIVE JEV.           |
+| `glide`   | Fastino's Glide, asked Jev's question through `/api/glide/decision`. Labelled LIVE GLIDE.                  |
 | `random`  | A seeded random policy over the same controls and timing (`&seed=<int>`). Labelled RANDOM.                 |
 | `script`  | A hand-written reference policy (`&policy=marksman\|skirmisher`), same observation and controls. SCRIPTED. |
 | `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live.         |
@@ -108,7 +109,7 @@ spawns — so a person can play the match a model just played, or hand theirs to
 one. `?jevNav=places|steps` chooses how a brain moves (see below);
 `?cadence=<ms>` and `?latency=<ms>` set a local brain's decision interval and
 answer delay for experiments. `?fallback=random` lets the random policy
-stand in, labelled FALLBACK, while Jev cannot answer. `?record=1` keeps the last
+stand in, labelled FALLBACK, while Jev or Glide cannot answer. `?record=1` keeps the last
 trace in local storage when a match ends. `?autoplay` keeps its meaning: it only
 skips the menus. Press **H** during a match to take control back immediately.
 

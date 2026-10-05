@@ -26,11 +26,11 @@ The project is also presented as a short visual walkthrough: a public-source rec
 
 > **Explore the evidence. Take the controls. Follow the anomaly.**
 
-| Experience              | What you can do                                                                                                 | What it establishes                                                                           |
-| :---------------------- | :-------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
-| **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                        | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
-| **Blacksite**           | Play the airfield yourself or give the same seat to Jev, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
-| **Where is The Lab?**   | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                 | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
+| Experience              | What you can do                                                                                                        | What it establishes                                                                           |
+| :---------------------- | :--------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                               | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
+| **Blacksite**           | Play the airfield yourself or give the same seat to Jev, Glide, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
+| **Where is The Lab?**   | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                        | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
 
 Blacksite shares the twin's geometry and cannot write to its evidence ledger.
 Bethesda has its own geography and simulation; it does not share Blacksite's combat
@@ -62,6 +62,7 @@ to `.env.local`, configure the server-side provider, then restart the dev server
 | Model              | Configuration                                                                                | Entry point                                          |
 | :----------------- | :------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
 | **TypeSafe Jev**   | `TYPESAFE_API_KEY`; optional `TYPESAFE_MODEL`                                                | `/play?brain=jev`, or enable **Jev** inside Bethesda |
+| **Fastino Glide**  | `FASTINO_API_KEY`; optional `FASTINO_MODEL` (default `fastino/glide`)                        | `/play?brain=glide`                                  |
 | **Compatible LLM** | `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`; `LLM_BASE_URL` for an OpenAI-compatible endpoint | `/play?brain=llm`                                    |
 
 The R.A.I.N. Lab inside Bethesda reaches a R.A.I.N. backend the same way:
@@ -129,6 +130,7 @@ flowchart LR
 | :------- | :---------------------------------------------- | :------------------------------------------------------------------- |
 | Human    | `?brain=human`                                  | Keyboard and mouse                                                   |
 | Jev      | `?brain=jev`                                    | TypeSafe decisions through a server-built question                   |
+| Glide    | `?brain=glide`                                  | Fastino decisions, asked Jev's question word for word                |
 | LLM      | `?brain=llm`                                    | A configured language model answering from the same question content |
 | Scripted | `?brain=script&policy=marksman` or `skirmisher` | Legible reference strategies                                         |
 | Random   | `?brain=random`                                 | Seeded choices among legal controls                                  |
@@ -151,8 +153,9 @@ straight-route checks. The search is local, not general pathfinding, and “hidd
 does not mean safe from unseen enemies.
 
 Shared perception rules constrain enemy information, but humans see pixels and
-hear sounds while models receive structured observations. Jev and the LLM also
-have different response formats and timing limits. Those differences belong in
+hear sounds while models receive structured observations. Jev, Glide and the
+LLM also have different response formats and timing limits: Glide may answer up
+to 8 seconds late where Jev has 1.5, and the LLM 12. Those differences belong in
 the result, alongside the controller, navigation mode and seat rules.
 `?seat=even` removes the default seat assistance for comparisons.
 
@@ -310,8 +313,9 @@ node tools/jev-benchmark.mjs --brain script --policy marksman --control precisio
 ```
 
 Read saved evaluations at [`/evaluation`](https://lop-nur-twin.vercel.app/evaluation).
-Automated live Jev runs require `JEV_LIVE_TEST=1`; live LLM runs require
-`LLM_LIVE_TEST=1` in the runner's environment, plus server credentials.
+Automated live Jev runs require `JEV_LIVE_TEST=1`; live Glide runs require
+`FASTINO_LIVE_TEST=1`; live LLM runs require `LLM_LIVE_TEST=1` in the runner's
+environment, plus server credentials.
 Unflagged live experiment arms remain pending.
 
 Same seeds pair initial conditions, not identical Blacksite trajectories:
@@ -355,7 +359,7 @@ src/game/pilot/   Observations, decisions, controllers, navigation and debrief
 src/game/eval/    Experiment definitions, outcome contracts and evaluation
 src/bethesda/    City geography, terrain, simulation, scenarios and replay
 src/bethesda/rain/  The R.A.I.N. Lab: protocol, experiments, records and rooms
-server/, api/    Server-side Jev, LLM and R.A.I.N. endpoints
+server/, api/    Server-side Jev, Glide, LLM and R.A.I.N. endpoints
 tools/           Browser checks, experiments, benchmarks and diagnostics
 docs/            Methods, limitations, guides and archived evidence
 ```
@@ -369,7 +373,7 @@ need matched experiments that show what changed.
 | Start here                                                                                                                             | For                                              |
 | :------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
 | [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                          | Playing, mechanics and navigation                |
-| [Jev, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                                 | Providers, controllers, traces and benchmarks    |
+| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                          | Providers, controllers, traces and benchmarks    |
 | [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support—and how it can mislead |
 | [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay  |
 | [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md)                                                                                          | Meetings, experiments, authorization and replay  |

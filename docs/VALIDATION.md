@@ -166,6 +166,9 @@ node tools/jev-benchmark.mjs --brain script --policy marksman --control precisio
 node tools/experiment.mjs tools/experiments/exposure.json   # a declared experiment + its evaluation
 node tools/kill-anatomy.mjs --policy marksman               # what each victim was doing
 bun run llm                         # the LLM seat end to end, against the offline test double
+bun run glide                       # the Glide seat against an in-browser fake (25 checks)
+FASTINO_LIVE_TEST=1 bun run glide:live        # Glide against the real Fastino API
+FASTINO_LIVE_TEST=1 bun run benchmark:glide   # Glide, precision control
 bun run test:eval                   # unit: evaluation core, seat, both endpoints
 ```
 
