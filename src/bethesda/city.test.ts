@@ -22,6 +22,7 @@ import {
 import {
   CitySimulation,
   PROFILES,
+  REPLAY_LIMITS,
   REPLAY_SCHEMA,
   SIM_VERSION,
   type Trace,
@@ -225,6 +226,28 @@ describe("replay and outage", () => {
         commands: [{ tick: -1, type: "human", action: "wait" }],
       }),
     ).toThrow();
+  });
+  it("says how much replay is left, and refuses an export exactly when it is gone", () => {
+    const s = new CitySimulation(config);
+    advance(s, 100);
+    expect(s.replayRoom()).toEqual({
+      exportable: true,
+      ticks: REPLAY_LIMITS.ticks - 100,
+      commands: REPLAY_LIMITS.commands - s.commands.length,
+      decisions: REPLAY_LIMITS.decisions - s.decisions.length,
+    });
+    expect(() => s.export()).not.toThrow();
+    // Stepping to the end would take minutes; the counts are what is under test.
+    const late = new CitySimulation(config);
+    late.tick = REPLAY_LIMITS.ticks;
+    expect(late.replayRoom()).toMatchObject({ exportable: true, ticks: 0 });
+    late.tick += 1;
+    expect(late.replayRoom()).toMatchObject({ exportable: false, ticks: 0 });
+    expect(() => late.export()).toThrow(/Recording limit reached/);
+    const full = new CitySimulation(config);
+    full.recordingComplete = false;
+    expect(full.replayRoom().exportable).toBe(false);
+    expect(() => full.export()).toThrow(/Recording limit reached/);
   });
   it("records a provider outage and continues rules without a model", async () => {
     const s = new CitySimulation(config);

@@ -342,7 +342,10 @@ becomes evidence. The experiment worker refuses any message that names an
 origin: a dedicated worker's own page sends none. (g) Experiments are bounded
 (at most five seeds and 36,000 simulated ticks); per session, minimum intervals
 and caps per operation (12 meetings per 120-minute session, a job checked at
-most every 2 s); a per-client token bucket, a 25 s cap on any runtime call, at
+most every 2 s), and because the browser mints session ids, three sessions'
+worth per client address in the same window however many ids it presents,
+tracked in bounded maps that forget the least recently used entry rather than
+everything at once; a per-client token bucket, a 25 s cap on any runtime call, at
 most 60 minutes waiting on one meeting, one model meeting at a time per server
 process, and a scratch registry capped at 1,000 experiments. (h) A meeting and
 each turn say who wrote it (`generation`); a model meeting must name its model

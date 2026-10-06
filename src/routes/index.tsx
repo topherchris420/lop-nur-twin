@@ -76,21 +76,29 @@ function TwinView() {
     if (at !== null) flyToPoint(at[0], at[1]);
   }, []);
 
+  // Without a 3D view its fallback covers the page, pointing to the routes
+  // that work without one; the HUD would only be controls hidden behind it.
+  const sceneUnavailable = useTwinStore((state) => state.sceneUnavailable);
+
   return (
     <div className="relative h-full w-full select-none">
       <Scene />
-      <TouchControls />
-      <OrbitJoystick />
-      <TimelineControl />
-      <Hud />
-      <TopBar />
-      <Minimap />
-      <Dossier />
-      <SiteIndex />
-      <ResearchPanel />
-      <EvidenceLegend />
-      <HelpOverlay />
-      <CinematicCaption />
+      {!sceneUnavailable && (
+        <>
+          <TouchControls />
+          <OrbitJoystick />
+          <TimelineControl />
+          <Hud />
+          <TopBar />
+          <Minimap />
+          <Dossier />
+          <SiteIndex />
+          <ResearchPanel />
+          <EvidenceLegend />
+          <HelpOverlay />
+          <CinematicCaption />
+        </>
+      )}
       <IntroOverlay />
     </div>
   );

@@ -18,6 +18,8 @@
  *    never contacts the third party;
  *  - the keyboard path through the accessible view, which no screenshot and no
  *    axe rule can confirm actually works;
+ *  - a browser without WebGL, where the 3D routes' fallbacks must be all that
+ *    focus can reach — a control hidden behind a fallback is still a Tab stop;
  *  - evidence filtering, the one interactive control on `/analysis`;
  *  - reduced motion, which must reach the store rather than only the stylesheet;
  *  - a narrow viewport, where a wide table can silently push the page sideways.
@@ -59,10 +61,21 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /** Opens a page, collecting page errors, and returns both. */
 async function open(
   url,
-  { settle = 2500, viewport, reducedMotion = false, onRequest } = {},
+  { settle = 2500, viewport, reducedMotion = false, onRequest, webgl = true } = {},
 ) {
   const page = await browser.newPage();
   await page.setViewport(viewport ?? { width: 1440, height: 900 });
+  if (!webgl) {
+    // A browser that cannot start WebGL, as the app's own probe sees it.
+    await page.evaluateOnNewDocument(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+        if (type === "webgl" || type === "webgl2" || type === "experimental-webgl")
+          return null;
+        return original.call(this, type, ...args);
+      };
+    });
+  }
   if (onRequest) {
     await page.setRequestInterception(true);
     page.on("request", onRequest);
@@ -742,6 +755,57 @@ if (devOrigin !== "-") {
   console.log(
     "\n=== ?year=, ?compare=, ?night=, ?uncertainty=, ?at= (dev build) === skipped",
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* 11. Without WebGL, focus reaches only what can be seen              */
+/* ------------------------------------------------------------------ */
+
+console.log("\n=== without WebGL ===");
+for (const [path, ways] of [
+  ["/", ["/analysis", "/compare"]],
+  ["/play", ["/evaluation", "/analysis"]],
+]) {
+  const { page, errors } = await open(`${previewOrigin}${path}`, {
+    settle: 3000,
+    webgl: false,
+  });
+  const stops = [];
+  for (let index = 0; index < 10; index += 1) {
+    await page.keyboard.press("Tab");
+    const stop = await page.evaluate(() => {
+      const active = document.activeElement;
+      if (!active || active === document.body) return null;
+      // The first line box: a wrapped link's bounding box can centre on the gap.
+      const box = active.getClientRects()[0];
+      const hit = box
+        ? document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+        : null;
+      return {
+        label: `${active.tagName}:${(active.textContent ?? "").trim().slice(0, 30)}`,
+        href: active.getAttribute("href"),
+        seen: hit !== null && active.contains(hit),
+      };
+    });
+    if (stop) stops.push(stop);
+  }
+  const hidden = stops.filter((stop) => !stop.seen);
+  check(
+    `${path} without WebGL: every Tab stop can be seen`,
+    stops.length > 0 && hidden.length === 0,
+    hidden.length > 0 ? `hidden: ${hidden[0].label}` : `${stops.length} stops`,
+  );
+  check(
+    `${path} without WebGL: Tab reaches ${ways.join(" and ")}`,
+    ways.every((way) => stops.some((stop) => stop.href === way)),
+    [...new Set(stops.map((stop) => stop.href))].join(" "),
+  );
+  check(
+    `${path} without WebGL: no page errors`,
+    errors.length === 0,
+    errors[0] ?? "clean",
+  );
+  await page.close();
 }
 
 await browser.close();

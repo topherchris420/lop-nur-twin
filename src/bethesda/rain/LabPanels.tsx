@@ -1968,7 +1968,9 @@ export function SystemsRoom({ store }: { store: LabStore }) {
       </Section>
       <Section title="LIMITS">
         {LIMITS.meetingsPerSession} meetings per session · sessions end after{" "}
-        {LIMITS.sessionMinutes} minutes · questions ≤ {LIMITS.question} characters · up to{" "}
+        {LIMITS.sessionMinutes} minutes ·{" "}
+        {LIMITS.meetingsPerSession * LIMITS.sessionsPerAddress} meetings per network
+        address in that time · questions ≤ {LIMITS.question} characters · up to{" "}
         {EXPERIMENT_BOUNDS.maxSeeds} seeds and {EXPERIMENT_BOUNDS.maxTotalTicks} simulated
         ticks per experiment · R.A.I.N. proposals expire after{" "}
         {LIMITS.proposalTtlMs / 60000} minutes unapproved.

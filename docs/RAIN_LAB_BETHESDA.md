@@ -633,7 +633,12 @@ files are server-side.
   call may take more than 25 s. Per session: one meeting every 15 s, at most 12
   meetings in a 120-minute session, a job checked at most every 2 s and waited
   on for at most 60 minutes; proposals every 5 s, pre-registrations and
-  submissions every 2 s, 24 each. Per client, a bucket of 12 requests refilling
+  submissions every 2 s, 24 each. Session ids are the browser's to mint, so a
+  network address gets three sessions' worth of each operation per 120 minutes
+  (36 meetings), however many ids it presents; people behind one address share
+  that. Only a request the runtime is asked to answer counts against a session
+  or an address, and a full tracker forgets expired entries, then the least
+  recently used, one at a time. Per client, a bucket of 12 requests refilling
   one every two seconds; per server instance, at most two runtime calls in
   flight.
 - **Nothing a model writes is followed or executed.** No model-supplied URL is

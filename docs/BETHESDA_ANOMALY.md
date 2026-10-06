@@ -402,6 +402,13 @@ decision with its observation, proposal, source, reason, before/after state and
 outcome tick; checkpoints every 100 ticks; and the final hash. Re-import
 regenerates the run and verifies checkpoints, decisions and final state.
 
+One trace holds at most 18,000 ticks (30 minutes of city time), 30,000
+commands and 60,000 decisions (`REPLAY_LIMITS`). Past any of them the recording
+is incomplete and would not verify, so export is refused. The panel beside
+**Export replay** counts down the city time left, adds a count once one comes
+within a tenth of its limit, and once the recording is full disables export and
+says to reset the city.
+
 Routine rules decisions that merely re-affirm the open decision extend its
 outcome window instead of adding a record (the HUD shows how many were folded),
 so the decision log holds transitions: a 3,200-tick run with four events went

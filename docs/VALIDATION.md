@@ -114,7 +114,8 @@ bun run build && bun run preview &
 bun run a11y     # axe-core on every route + CSP violations
 bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
                  # keyboard order, filtering, mobile reflow, reduced motion,
-                 # what state parameters set, ?liveTraffic= staying opt-in
+                 # what state parameters set, ?liveTraffic= staying opt-in,
+                 # focus without WebGL
 ```
 
 `bun run a11y` gates `/analysis`, `/compare` and `/evaluation` on serious and
@@ -136,7 +137,10 @@ dates computed by `src/lib/temporal.ts`, so they move with the ledger. And it
 proves `?liveTraffic=` stays opt-in: `?liveTraffic=1` must make the ADS-B
 request (answered locally with an empty sky, so the suite never contacts the
 third party), and `yes`, `TRUE`, `1e309`, a script, an empty value and a
-duplicated parameter must make none.
+duplicated parameter must make none. Finally it opens `/` and `/play` in a
+browser that cannot start WebGL and walks the Tab order: every stop must be
+something on screen, and the walk must reach the routes the fallback names. The
+twin's controls once stayed in the Tab order behind its fallback, invisible.
 
 The route suite has proved real bugs into existence: a manifest fetch whose
 effect aborted its own request and left the panel reading "Reading the

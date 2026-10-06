@@ -326,16 +326,17 @@ changing anything here.
   `server/` import siblings
   as `./x.js` and never through the `@/` alias — an extensionless import
   builds, typechecks and then fails at runtime with `ERR_MODULE_NOT_FOUND`.
-- **The keys never reach the browser.** Only `api/jev/decision.ts` and the
-  dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`; only
-  `api/glide/decision.ts` and the same middleware read `FASTINO_API_KEY`; only
-  `api/llm/decision.ts` and the same middleware read `LLM_API_KEY`; there is
-  never a `VITE_`-prefixed copy, and `@anthropic-ai/sdk` is imported under
+- **The keys never reach the browser.** Only `api/jev/decision.ts`,
+  `api/rain/_config.ts` (for the R.A.I.N. Lab's optional bounded decisions, see
+  below) and the dev middleware in `vite.config.ts` read `TYPESAFE_API_KEY`;
+  only `api/glide/decision.ts` and the same middleware read `FASTINO_API_KEY`;
+  only `api/llm/decision.ts` and the same middleware read `LLM_API_KEY`; there
+  is never a `VITE_`-prefixed copy, and `@anthropic-ai/sdk` is imported under
   `server/` only. `secretBoundary.test.ts` fails if any other file reads a key
   or browser code mentions one, and `bun run build` ends with
-  `tools/jev-secret-scan.mjs` over `dist/`. Neither endpoint is a prompt
-  proxy: the browser sends a validated observation, and the server writes the
-  question.
+  `tools/jev-secret-scan.mjs` over `dist/`. None of the three decision
+  endpoints is a prompt proxy: the browser sends a validated observation, and
+  the server writes the question.
 - **Jev and the LLM are asked the same question.** Both are built from
   `questionParts()` in `server/jev/question.ts`; `server/llm/handler.test.ts`
   fails if the state, questions or option descriptions diverge. Change the
@@ -651,10 +652,10 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 106 checks: deep links, refreshes, hostile
+bun run routes                # 112 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,
-                              # filtering, mobile
+                              # filtering, mobile, focus without WebGL
 ```
 
 `tools/routes.mjs` is where a URL-parameter regression shows up: it throws

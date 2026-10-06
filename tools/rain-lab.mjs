@@ -255,7 +255,12 @@ async function open(context, { webgl = true } = {}) {
 
 async function enterBethesda(s, origin) {
   await s.page.goto(origin + "/?quality=1", { waitUntil: "domcontentloaded" });
-  await s.waitFor(() => document.body.innerText.includes("EVIDENCE TIMELINE"));
+  // The twin is up: its HUD, or without WebGL the fallback that stands in for it.
+  await s.waitFor(
+    () =>
+      document.body.innerText.includes("EVIDENCE TIMELINE") ||
+      document.body.innerText.includes("could not start WebGL"),
+  );
   await s.page.keyboard.press("Backquote");
   await s.page.waitForSelector("#anomaly-coordinate");
   await s.page.focus("#anomaly-coordinate");

@@ -89,9 +89,10 @@ any kind.
 - Denial of service by loading the 3D scene on constrained hardware, or by
   requesting a large number of pages. The site is static; capacity is the
   host's concern. The exceptions are the decision endpoints, which spend API
-  credit: their in-memory limits are documented as per-instance brakes, not a
-  wall, so exceeding them by spreading requests across many addresses or
-  instances is a known limitation (see `docs/JEV_BLACKSITE.md`), not a finding.
+  credit, and the R.A.I.N. Lab's route: their in-memory limits are documented
+  as per-instance brakes, not a wall, so exceeding them by spreading requests
+  across many addresses or instances is a known limitation (see
+  `docs/JEV_BLACKSITE.md` and `docs/RAIN_LAB_BETHESDA.md`), not a finding.
 - Disagreements about the _content_ of the model — a wrong footprint, a
   questionable interpretation, a stale source. Those are correctness issues:
   open a normal issue or a pull request. They are the point of the project.

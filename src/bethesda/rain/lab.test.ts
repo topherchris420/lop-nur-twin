@@ -176,44 +176,53 @@ describe("OFFLINE, DEMO and LIVE", () => {
     expect(s.note).toMatch(/PRERECORDED/);
     expect(s.note).toMatch(/not sent/);
   });
-  it("LIVE: a failed request shows the failure, never the recording in its place", async () => {
-    const identity = {
-      schema: "rain-bethesda/v2",
-      kind: "identity",
-      runtime: { name: "lop-nur-twin-rain", version: "1" },
-      rain: {
-        repository: "topherchris420/lop-nur-twin",
-        commit: "9".repeat(40),
-        dirty: false,
-      },
-      corpus: { files: 17, sha256: "a".repeat(64) },
-      meeting_engine: "rain.meeting.offline.buildOfflineMeeting",
-      meeting_generation: "scripted",
-      model: null,
-      bounded_decision: "off",
-      remote_decisions: false,
-      registry: { available: true, scratch: true },
-    };
-    const fetchImpl = vi.fn(async (url: string | URL | Request) =>
-      String(url).endsWith("/status")
-        ? respond(200, {
-            schema: "rain-bethesda/v2",
-            kind: "status",
-            configured: true,
-            reachable: true,
-            identity,
-            failure: null,
-          })
-        : respond(504, { error: "timeout" }),
-    );
-    const s = store(fetchImpl);
-    await s.checkRuntime();
-    expect(s.mode()).toBe("LIVE");
-    await s.ask(meeting.question);
-    expect(s.meeting).toBeNull();
-    expect(s.note).toMatch(/LIVE request failed: TIMEOUT/);
-    expect(s.note).toMatch(/Nothing is shown in its place/);
-  });
+  it.each([
+    [504, "timeout", "TIMEOUT"],
+    [429, "rate limited", "RATE LIMITED"],
+    [429, "session limit reached", "SESSION LIMIT"],
+    // New session ids do not lift a cap on the address, so waiting a moment is no answer either.
+    [429, "address limit reached", "SESSION LIMIT"],
+  ])(
+    "LIVE: a failed request (%i %s) shows %s, never the recording in its place",
+    async (status, error, failure) => {
+      const identity = {
+        schema: "rain-bethesda/v2",
+        kind: "identity",
+        runtime: { name: "lop-nur-twin-rain", version: "1" },
+        rain: {
+          repository: "topherchris420/lop-nur-twin",
+          commit: "9".repeat(40),
+          dirty: false,
+        },
+        corpus: { files: 17, sha256: "a".repeat(64) },
+        meeting_engine: "rain.meeting.offline.buildOfflineMeeting",
+        meeting_generation: "scripted",
+        model: null,
+        bounded_decision: "off",
+        remote_decisions: false,
+        registry: { available: true, scratch: true },
+      };
+      const fetchImpl = vi.fn(async (url: string | URL | Request) =>
+        String(url).endsWith("/status")
+          ? respond(200, {
+              schema: "rain-bethesda/v2",
+              kind: "status",
+              configured: true,
+              reachable: true,
+              identity,
+              failure: null,
+            })
+          : respond(status, { error }),
+      );
+      const s = store(fetchImpl);
+      await s.checkRuntime();
+      expect(s.mode()).toBe("LIVE");
+      await s.ask(meeting.question);
+      expect(s.meeting).toBeNull();
+      expect(s.note).toContain(`LIVE request failed: ${failure} — ${error}.`);
+      expect(s.note).toMatch(/Nothing is shown in its place/);
+    },
+  );
   it("LIVE: an answer that fails validation is refused, not shown", async () => {
     let call = 0;
     const fetchImpl = vi.fn(async () =>

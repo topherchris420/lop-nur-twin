@@ -168,6 +168,20 @@ try {
       return original.call(this, blob);
     };
   });
+  check(
+    "export says how much replay is left before it runs out",
+    await page.evaluate(() => {
+      const note = document.getElementById("replay-room")?.textContent ?? "";
+      const button = [...document.querySelectorAll("button")].find(
+        (b) => b.textContent.trim() === "Export replay",
+      );
+      return (
+        /^\d+:\d\d of city time left to record/.test(note) &&
+        button?.getAttribute("aria-describedby") === "replay-room" &&
+        !button.disabled
+      );
+    }),
+  );
   await click("Export replay");
   await waitFor(() => typeof globalThis.__cityExport === "string");
   const trace = await page.evaluate(() => globalThis.__cityExport),

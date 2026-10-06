@@ -131,16 +131,22 @@ describe("R.A.I.N. route boundary", () => {
   });
   it("paces sessions and caps meetings per session", async () => {
     let t = 0;
-    const handle = local(() => t);
+    // The route paces and caps; the offline engine is the test above's.
+    const handle = createRainHandler({
+      runtime: stub({ meeting: () => ({ ...demoMeeting, request_id: REQUEST }) }),
+      now: () => t,
+    });
     expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(200);
-    expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(429);
-    let last = 0;
+    const paced = await handle(post("meeting", meetingRequest()), meta);
+    expect(paced.status).toBe(429);
+    expect(await paced.json()).toMatchObject({ error: "rate limited" });
+    let last: Response | undefined;
     for (let i = 0; i < LIMITS.meetingsPerSession + 2; i++) {
       t += 60_000;
-      last = (await handle(post("meeting", meetingRequest()), { clientKey: `c${i}` }))
-        .status;
+      last = await handle(post("meeting", meetingRequest()), { clientKey: `c${i}` });
     }
-    expect(last).toBe(429);
+    expect(last!.status).toBe(429);
+    expect(await last!.json()).toMatchObject({ error: "session limit reached" });
   });
   it("answers a proposal with R.A.I.N.'s decision: DISABLED when routing is off", async () => {
     const handle = local();
@@ -395,6 +401,58 @@ describe("R.A.I.N. model meetings through the route", () => {
       }),
     });
     expect((await other(post("meeting-cancel", cancel), meta)).status).toBe(502);
+  });
+  it("counts an address across every session id it presents", async () => {
+    let t = 0;
+    const handle = createRainHandler({
+      runtime: stub({ meeting: () => pending() }),
+      now: () => t,
+    });
+    const fromAddress = LIMITS.meetingsPerSession * LIMITS.sessionsPerAddress;
+    const ask = (i: number, clientKey = "one address") =>
+      handle(
+        post("meeting", {
+          ...meetingRequest(),
+          session: i.toString(16).padStart(32, "0"),
+        }),
+        { clientKey },
+      );
+    // A fresh session id for every meeting, and time enough to refill the bucket.
+    for (let i = 0; i < fromAddress; i++) {
+      t += 20_000;
+      expect((await ask(i)).status, `meeting ${i + 1}`).toBe(200);
+    }
+    t += 20_000;
+    const capped = await ask(fromAddress);
+    expect(capped.status).toBe(429);
+    expect(await capped.json()).toMatchObject({ error: "address limit reached" });
+    // Another address has its own allowance, and the window closes.
+    expect((await ask(fromAddress + 1, "another address")).status).toBe(200);
+    t += LIMITS.sessionMinutes * 60_000;
+    expect((await ask(fromAddress + 2)).status).toBe(200);
+  });
+  it("counts only what the runtime was asked: a busy refusal is no meeting", async () => {
+    const held: ((answer: unknown) => void)[] = [];
+    const handle = createRainHandler({
+      runtime: stub({
+        meeting: () =>
+          held.length < 2 ? new Promise((resolve) => held.push(resolve)) : pending(),
+      }),
+      now: () => 0,
+    });
+    const ask = (session: string, clientKey: string) =>
+      handle(post("meeting", { ...meetingRequest(), session }), { clientKey });
+    const first = ask("1".repeat(32), "a");
+    const second = ask("2".repeat(32), "b");
+    const busy = await ask("3".repeat(32), "c");
+    expect(busy.status).toBe(429);
+    expect(await busy.json()).toMatchObject({ error: "busy" });
+    expect(held).toHaveLength(2);
+    for (const resolve of held) resolve(pending());
+    expect((await first).status).toBe(200);
+    expect((await second).status).toBe(200);
+    // Neither paced nor counted: the refused request never reached the runtime.
+    expect((await ask("3".repeat(32), "c")).status).toBe(200);
   });
   it("gives up on a runtime call that never answers, and never leaks an exception", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });

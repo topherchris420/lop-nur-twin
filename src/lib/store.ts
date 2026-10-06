@@ -99,6 +99,10 @@ interface TwinState {
   /** flips true once the scene has rendered its first frame */
   ready: boolean;
   setReady: () => void;
+
+  /** true while the 3D view could not start, or crashed, and its fallback shows */
+  sceneUnavailable: boolean;
+  setSceneUnavailable: (unavailable: boolean) => void;
 }
 
 /**
@@ -249,6 +253,9 @@ export const useTwinStore = create<TwinState>()((set) => ({
 
   ready: false,
   setReady: () => set((s) => (s.ready ? s : { ready: true })),
+
+  sceneUnavailable: false,
+  setSceneUnavailable: (sceneUnavailable) => set({ sceneUnavailable }),
 }));
 
 /**

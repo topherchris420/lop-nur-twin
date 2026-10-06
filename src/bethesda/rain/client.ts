@@ -133,7 +133,7 @@ export class RainClient {
             : response.status === 504
               ? "TIMEOUT"
               : response.status === 429
-                ? code === "session limit reached"
+                ? code === "session limit reached" || code === "address limit reached"
                   ? "SESSION LIMIT"
                   : "RATE LIMITED"
                 : response.status === 422

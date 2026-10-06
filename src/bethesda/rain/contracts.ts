@@ -139,6 +139,11 @@ export const LIMITS = {
   /** A research session: meetings, then it must be restarted. */
   meetingsPerSession: 12,
   sessionMinutes: 120,
+  /**
+   * The browser mints session ids, so the server also counts by network
+   * address: this many sessions' worth of each operation per `sessionMinutes`.
+   */
+  sessionsPerAddress: 3,
   /** How long the lab waits for one model meeting before giving up on it. */
   meetingJobMinutes: 60,
   /** Engines one bounded decision may report (R.A.I.N.'s cascade has two). */

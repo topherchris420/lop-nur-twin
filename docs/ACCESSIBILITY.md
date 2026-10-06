@@ -49,7 +49,10 @@ be operable:
   moves immediate, disables adaptive quality promotion, and the global CSS rule
   neutralises animations and transitions.
 - If WebGL is unavailable, a `role="alert"` message explains why instead of
-  showing a black screen.
+  showing a black screen, and links to `/analysis` and `/compare`. The HUD is
+  not rendered behind it: its controls would be hidden under the message yet
+  still in the Tab order. `tools/routes.mjs` walks the Tab order without WebGL
+  and fails on any stop that cannot be seen.
 - `/play` carries its disclaimer and its return link as DOM elements outside
   the game canvas, so they are readable by assistive technology.
 

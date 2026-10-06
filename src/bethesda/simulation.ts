@@ -74,6 +74,18 @@ import { TERRAIN_VERSION, groundAt } from "./terrain";
 export const DT = 0.1;
 export const SIM_VERSION = "bethesda-city/4";
 export const REPLAY_SCHEMA = "bethesda-replay/v4";
+/**
+ * What one replay holds: 30 minutes of city time at `DT`, and the commands,
+ * decisions and checkpoints recorded in it. Past any of them the recording is
+ * incomplete and `export` refuses it, because a replay that stops short of what
+ * happened would verify a different city.
+ */
+export const REPLAY_LIMITS = {
+  ticks: 18000,
+  commands: 30000,
+  decisions: 60000,
+  checkpoints: 180,
+} as const;
 
 /**
  * What the simulator did with a choice it was offered. An agent indoors is not
@@ -565,7 +577,7 @@ export class CitySimulation {
     return a.kind === "pedestrian" ? sidewalks : roads;
   }
   private append(c: Command) {
-    if (this.commands.length >= 30000) {
+    if (this.commands.length >= REPLAY_LIMITS.commands) {
       this.recordingComplete = false;
       return;
     }
@@ -1107,7 +1119,7 @@ export class CitySimulation {
       if (MOVING.has(action)) this.pickGoal(a);
     }
     if (reaffirm) return;
-    if (this.decisions.length >= 60000) {
+    if (this.decisions.length >= REPLAY_LIMITS.decisions) {
       this.recordingComplete = false;
       return;
     }
@@ -1311,7 +1323,7 @@ export class CitySimulation {
       this.move(a, scale);
     }
     if (this.tick % 10 === 0) this.updateDistricts();
-    if (this.tick % 100 === 0 && this.checkpoints.length < 180)
+    if (this.tick % 100 === 0 && this.checkpoints.length < REPLAY_LIMITS.checkpoints)
       this.checkpoints.push({ tick: this.tick, hash: this.stateHash() });
   }
   private move(a: Agent, scale: number) {
@@ -1521,8 +1533,25 @@ export class CitySimulation {
       districts: this.districts,
     });
   }
+  /**
+   * How much of a replay is left. `exportable` is whether `export` would
+   * succeed now; the rest count down to `REPLAY_LIMITS`.
+   */
+  replayRoom(): {
+    exportable: boolean;
+    ticks: number;
+    commands: number;
+    decisions: number;
+  } {
+    return {
+      exportable: this.recordingComplete && this.tick <= REPLAY_LIMITS.ticks,
+      ticks: Math.max(0, REPLAY_LIMITS.ticks - this.tick),
+      commands: Math.max(0, REPLAY_LIMITS.commands - this.commands.length),
+      decisions: Math.max(0, REPLAY_LIMITS.decisions - this.decisions.length),
+    };
+  }
   export(): Trace {
-    if (!this.recordingComplete || this.tick > 18000)
+    if (!this.replayRoom().exportable)
       throw new Error("Recording limit reached. Reset to start a complete experiment.");
     for (const a of this.agents) this.finish(a);
     return {
@@ -1564,13 +1593,13 @@ export class CitySimulation {
       !configOK(v.config) ||
       !Number.isInteger(v.tick) ||
       v.tick < 0 ||
-      v.tick > 18000 ||
+      v.tick > REPLAY_LIMITS.ticks ||
       !Array.isArray(v.commands) ||
-      v.commands.length > 30000 ||
+      v.commands.length > REPLAY_LIMITS.commands ||
       !Array.isArray(v.decisions) ||
-      v.decisions.length > 60000 ||
+      v.decisions.length > REPLAY_LIMITS.decisions ||
       !Array.isArray(v.checkpoints) ||
-      v.checkpoints.length > 180
+      v.checkpoints.length > REPLAY_LIMITS.checkpoints
     )
       throw new Error("Unsupported, mismatched or oversized replay");
     const steps = CitySimulation.execute(v.config, v.commands, v.tick);
@@ -1607,9 +1636,9 @@ export class CitySimulation {
       !configOK(config) ||
       !Number.isInteger(finalTick) ||
       finalTick < 0 ||
-      finalTick > 18000 ||
+      finalTick > REPLAY_LIMITS.ticks ||
       !Array.isArray(commands) ||
-      commands.length > 30000
+      commands.length > REPLAY_LIMITS.commands
     )
       throw new Error("Unsupported, mismatched or oversized replay");
     const sim = new CitySimulation(config);

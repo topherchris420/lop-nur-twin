@@ -27,17 +27,19 @@ import {
   type RequestMeta,
 } from "../jev/handler.js";
 import { RateLimiter } from "../jev/rateLimit.js";
+import { UsageLedger } from "./usage.js";
 
 /**
  * `/api/rain/*` — the only route between the browser and the R.A.I.N. research
  * runtime, which runs in this process (`src/rain/runtime.ts`).
  *
  * The browser sends small, same-origin, closed JSON bodies; this handler
- * checks every field, paces and caps each session, calls the runtime, and
- * validates the runtime's answer with the same shared validators the browser
- * applies again — so a malformed, oversized or mismatched answer never leaves
- * the server even if the runtime had a bug. It is not a proxy: nothing the
- * browser sends chooses a path, a file, a model or a command.
+ * checks every field, paces and caps each session and each client address,
+ * calls the runtime, and validates the runtime's answer with the same shared
+ * validators the browser applies again — so a malformed, oversized or
+ * mismatched answer never leaves the server even if the runtime had a bug. It
+ * is not a proxy: nothing the browser sends chooses a path, a file, a model or
+ * a command.
  *
  *   GET  /api/rain/status          switched on? the runtime's identity
  *   POST /api/rain/meeting         one Research Panel meeting, or a model
@@ -96,6 +98,7 @@ const SESSION_INTERVAL_MS: Record<Exclude<Op, "status">, number> = {
   preregister: 2_000,
   submission: 2_000,
 };
+/** What one research session may do in its `sessionMinutes`. */
 const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   meeting: LIMITS.meetingsPerSession,
   // A session lasts at most sessionMinutes; at one check every two seconds.
@@ -105,6 +108,14 @@ const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   preregister: 24,
   submission: 24,
 };
+/**
+ * Session ids are the browser's to mint, so a session's caps bound a research
+ * session, not a caller. A client address also gets `sessionsPerAddress`
+ * sessions' worth of each operation per window, however many ids it presents.
+ */
+const SESSION_WINDOW_MS = LIMITS.sessionMinutes * 60_000;
+/** Keys each ledger tracks; a full one forgets closed windows, then the least recent. */
+const TRACKED_KEYS = 5000;
 /** A proposal may wait on a remote engine; everything else answers at once. */
 const OPERATION_TIMEOUT_MS = 25_000;
 
@@ -124,8 +135,8 @@ export function createRainHandler(config: RainServerConfig) {
     },
     now,
   );
-  const sessionLast = new Map<string, number>();
-  const sessionCount = new Map<string, number>();
+  const sessions = new UsageLedger(SESSION_WINDOW_MS, TRACKED_KEYS);
+  const addresses = new UsageLedger(SESSION_WINDOW_MS, TRACKED_KEYS);
   let identity: { at: number; body: unknown } | null = null;
 
   async function status(): Promise<Response> {
@@ -163,22 +174,26 @@ export function createRainHandler(config: RainServerConfig) {
     });
   }
 
-  /** Session pacing and caps; the client bucket and global budget come first. */
+  /**
+   * The client's bucket, then the session's pacing and cap, then the address's
+   * cap. Nothing is counted against a session or an address here: only a
+   * request the runtime is asked to answer is (`count`).
+   */
   function admit(op: Exclude<Op, "status">, session: string, client: string) {
     if (!limiter.admitClient(client).ok) return "rate limited";
-    const key = `${op}:${session}`;
-    const last = sessionLast.get(key);
-    if (last !== undefined && now() - last < SESSION_INTERVAL_MS[op])
-      return "rate limited";
-    const count = sessionCount.get(key) ?? 0;
-    if (count >= SESSION_CAPS[op]) return "session limit reached";
-    if (sessionLast.size > 5000) {
-      sessionLast.clear();
-      sessionCount.clear();
-    }
-    sessionLast.set(key, now());
-    sessionCount.set(key, count + 1);
+    const t = now();
+    const used = sessions.get(`${op}:${session}`, t);
+    if (used && t - used.last < SESSION_INTERVAL_MS[op]) return "rate limited";
+    if ((used?.count ?? 0) >= SESSION_CAPS[op]) return "session limit reached";
+    const fromAddress = addresses.get(`${op}:${client}`, t)?.count ?? 0;
+    if (fromAddress >= SESSION_CAPS[op] * LIMITS.sessionsPerAddress)
+      return "address limit reached";
     return null;
+  }
+  function count(op: Exclude<Op, "status">, session: string, client: string) {
+    const t = now();
+    sessions.record(`${op}:${session}`, t);
+    addresses.record(`${op}:${client}`, t);
   }
 
   type Runtime = Extract<RuntimeConfiguration, { mode: "local" }>["runtime"];
@@ -342,6 +357,7 @@ export function createRainHandler(config: RainServerConfig) {
     const refused = admit(op, v.session, meta.clientKey);
     if (refused) return error(429, refused);
     if (!limiter.admitUpstream().ok) return error(429, "busy");
+    count(op, v.session, meta.clientKey);
     try {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const answer = await Promise.race([

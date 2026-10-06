@@ -10,8 +10,10 @@ import {
 import { CityScene, type ViewControl } from "./Scene";
 import {
   CitySimulation,
+  DT,
   FOCUS_RADII,
   PROFILES,
+  REPLAY_LIMITS,
   type ChoiceOutcome,
   type Trace,
 } from "./simulation";
@@ -96,6 +98,27 @@ function describeChoice(asked: Action, outcome: ChoiceOutcome): string {
     case "rejected":
       return `"${said}" was refused.`;
   }
+}
+
+/**
+ * What is left of the replay: city time always, and a count only once it is
+ * within a tenth of its limit. Past any limit the replay could not verify, so
+ * export is refused and the way out is said.
+ */
+function replayNote(room: ReturnType<CitySimulation["replayRoom"]>): string {
+  if (!room.exportable)
+    return "Recording full: a longer replay would not verify. Reset the city to record a complete one.";
+  const seconds = Math.floor(room.ticks * DT);
+  const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const near = (
+    [
+      ["decisions", room.decisions, REPLAY_LIMITS.decisions],
+      ["commands", room.commands, REPLAY_LIMITS.commands],
+    ] as const
+  )
+    .filter(([, left, limit]) => left < limit / 10)
+    .map(([name, left]) => ` · ${left.toLocaleString("en-US")} ${name} left`);
+  return `${time} of city time left to record${near.join("")}`;
 }
 
 function save(name: string, value: unknown) {
@@ -685,6 +708,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     }
   };
   const tally = evidenceTally();
+  const room = sim.replayRoom();
   return (
     <main
       data-bethesda="active"
@@ -911,7 +935,9 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100">
               <button
-                className="underline"
+                className="underline disabled:no-underline disabled:opacity-60"
+                disabled={!room.exportable}
+                aria-describedby="replay-room"
                 onClick={() => {
                   try {
                     save("bethesda-replay.json", sim.export());
@@ -923,6 +949,12 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               >
                 Export replay
               </button>
+              <span
+                id="replay-room"
+                className={room.exportable ? "text-slate-300" : "text-amber-200"}
+              >
+                {replayNote(room)}
+              </span>
               <label className="cursor-pointer underline">
                 {busy ? "Verifying…" : "Verify replay"}
                 <input

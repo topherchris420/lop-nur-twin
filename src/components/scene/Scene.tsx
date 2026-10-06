@@ -36,7 +36,14 @@ function ReadySignal() {
 
 function WebGLFallback() {
   const setReady = useTwinStore((state) => state.setReady);
-  useEffect(setReady, [setReady]);
+  const setSceneUnavailable = useTwinStore((state) => state.setSceneUnavailable);
+  useEffect(() => {
+    setReady();
+    // The HUD drives a view that is not there, and would sit behind this panel
+    // still taking focus; `TwinView` leaves it out while the flag is set.
+    setSceneUnavailable(true);
+    return () => setSceneUnavailable(false);
+  }, [setReady, setSceneUnavailable]);
 
   return (
     <div
