@@ -44,6 +44,7 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
 
 # Its own config lives here; replace the default site with ours.
 COPY --chown=101:101 deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=101:101 deploy/security-headers.conf /etc/nginx/snippets/lop-nur-security-headers.conf
 COPY --from=build --chown=101:101 /app/dist /usr/share/nginx/html
 
 USER 101

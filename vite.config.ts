@@ -20,10 +20,12 @@ import { LIMITS } from "./src/bethesda/rain/contracts.js";
 /**
  * The response headers the deployed site is expected to serve.
  *
- * They live here as well as in `vercel.json` and `deploy/nginx.conf` so
- * `vite preview` reproduces the deployed security posture locally — which is
- * the only way a CSP gets tested before it breaks production. `tools/a11y.mjs`
- * runs against the preview server and fails on a CSP violation.
+ * They live here as well as in `vercel.json` and `deploy/security-headers.conf`
+ * (included by `deploy/nginx.conf`) so `vite preview` reproduces the deployed
+ * security posture locally — which is the only way a CSP gets tested before it
+ * breaks production. `tools/a11y.mjs` runs against the preview server and fails
+ * on a CSP violation; `src/lib/deployHeaders.test.ts` holds the container's
+ * copy to `vercel.json`'s.
  *
  * Content-Security-Policy notes, since each relaxation is a decision:
  *
