@@ -183,6 +183,11 @@ the policy.
   not name a real structure, so a bad link renders the normal page.
 - Parsing never throws: a malformed parameter degrades to the default instead
   of a blank page.
+- `tools/routes.mjs` throws hostile values at every documented parameter, reads
+  the store to check what the state parameters actually set, and proves the
+  one third-party switch, `?liveTraffic=`, makes its request for `1` or `true`
+  and for nothing else (answering it locally, so the check itself never
+  contacts the third party).
 
 **Residual risk.** Developer parameters (`?stage=`, `?ao=`, `?novm=`) remain
 public. They change rendering only, and are bounded.

@@ -113,7 +113,8 @@ the artifact that actually ships — including its security headers.
 bun run build && bun run preview &
 bun run a11y     # axe-core on every route + CSP violations
 bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
-                 # keyboard order, filtering, mobile reflow, reduced motion
+                 # keyboard order, filtering, mobile reflow, reduced motion,
+                 # what state parameters set, ?liveTraffic= staying opt-in
 ```
 
 `bun run a11y` gates `/analysis`, `/compare` and `/evaluation` on serious and
@@ -125,9 +126,22 @@ cannot inspect one.
 `tools/routes.mjs` is where a URL-parameter regression shows up. It throws
 `?quality=1e309`, `?at=1e308,-1e308`, `?snapshot=2025-02-30`,
 `?evidence=not-a-mode`, `?structure=<script>…` and a 500-character id at the app
-and asserts it renders normally with no page errors. It once proved a real bug
-into existence: a manifest fetch whose effect aborted its own request and left
-the panel reading "Reading the manifest…" forever.
+and asserts it renders normally with no page errors. For the parameters whose
+job is state rather than rendering it goes further, on the dev build where the
+store is exposed: hostile `?year=`, `?compare=`, `?night=`, `?uncertainty=` and
+`?at=` values must leave the defaults, out-of-range ones must clamp to the
+timeline's ends and the site's edge, an invalid `?snapshot=` must fall through
+to `?year=`, and `?at=` must frame after `?structure=` — with the expected
+dates computed by `src/lib/temporal.ts`, so they move with the ledger. And it
+proves `?liveTraffic=` stays opt-in: `?liveTraffic=1` must make the ADS-B
+request (answered locally with an empty sky, so the suite never contacts the
+third party), and `yes`, `TRUE`, `1e309`, a script, an empty value and a
+duplicated parameter must make none.
+
+The route suite has proved real bugs into existence: a manifest fetch whose
+effect aborted its own request and left the panel reading "Reading the
+manifest…" forever, and a shared bookmark link whose `?at=` camera target the
+twin never read.
 
 The route gate also loads canonical spatial-query links and checks keyboard
 order, proximity ordering, result announcements, export availability, empty and

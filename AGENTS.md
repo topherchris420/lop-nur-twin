@@ -651,13 +651,19 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 71 checks: deep links, refreshes, hostile
-                              # parameters, keyboard order, filtering, mobile
+bun run routes                # 106 checks: deep links, refreshes, hostile
+                              # parameters and what the state ones set,
+                              # ?liveTraffic= staying opt-in, keyboard order,
+                              # filtering, mobile
 ```
 
 `tools/routes.mjs` is where a URL-parameter regression shows up: it throws
 `?quality=1e309`, `?at=1e308,-1e308`, `?structure=<script>…` and a 500-character
-id at the app and asserts it renders normally with no page errors. It also
+id at the app and asserts it renders normally with no page errors; on the dev
+build it reads the store to assert what `?year=`, `?compare=`, `?night=`,
+`?uncertainty=` and `?at=` actually set, and it answers `?liveTraffic=`
+locally to prove that only the documented values make the third-party
+request. Its expected timeline dates come from `src/lib/temporal.ts` itself. It also
 proved a real bug into existence once — a manifest fetch whose effect aborted
 its own request and left the panel reading "Reading the manifest…" forever.
 

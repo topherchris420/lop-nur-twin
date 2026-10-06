@@ -44,29 +44,30 @@ motion, makes camera jumps immediate, and disables adaptive promotion.
 Every one of these is validated: a malformed value falls back to a default
 rather than being coerced, an out-of-range number clamps, and a date that does
 not exist on the calendar (`2025-02-30`) is rejected rather than rolled forward.
-`tools/routes.mjs` throws hostile values at most of them on every run (not yet
-`?year=`, `?compare=`, `?night=` or `?liveTraffic=`).
+`tools/routes.mjs` throws hostile values at every one of them on every run,
+checks what the state ones actually set, and proves that no value but `1` or
+`true` makes `?liveTraffic=` contact the third party.
 
-| Parameter              | Effect                                                                |
-| :--------------------- | :-------------------------------------------------------------------- |
-| `?quality=0..3`        | Pins a quality tier and disables the adaptive ladder.                 |
-| `?month=1..12`         | Selects the initial climatology month. June by default.               |
-| `?evidence=<mode>`     | `observed`, `reported`, `interpretation` or `full-simulation`.        |
-| `?snapshot=YYYY-MM-DD` | Sets the evidence timeline to a date the temporal ledger holds.       |
-| `?year=<year>`         | Legacy: maps an old year-slider link to the matching timeline date.   |
-| `?compare=YYYY-MM-DD`  | Second date for a change comparison.                                  |
-| `?uncertainty=1`       | Draws spatial uncertainty envelopes (quality tier 2 and above).       |
-| `?night=1`             | Starts at night.                                                      |
-| `?structure=<id>`      | Opens that dossier on `/`, or highlights that row on `/analysis`.     |
-| `?at=<x>,<z>`          | Places the camera target, in local metres, clamped to the site.       |
-| `?look=<deg>`          | Opening heading, wrapped into `[0, 360)`.                             |
-| `?liveTraffic=1`       | Opt-in only. The single third-party request the application can make. |
+| Parameter              | Effect                                                                                |
+| :--------------------- | :------------------------------------------------------------------------------------ |
+| `?quality=0..3`        | Pins a quality tier and disables the adaptive ladder.                                 |
+| `?month=1..12`         | Selects the initial climatology month. June by default.                               |
+| `?evidence=<mode>`     | `observed`, `reported`, `interpretation` or `full-simulation`.                        |
+| `?snapshot=YYYY-MM-DD` | Sets the evidence timeline to a date the temporal ledger holds.                       |
+| `?year=<year>`         | Legacy: maps an old year-slider link to the matching timeline date.                   |
+| `?compare=YYYY-MM-DD`  | Second date for a change comparison.                                                  |
+| `?uncertainty=1`       | Draws spatial uncertainty envelopes (quality tier 2 and above).                       |
+| `?night=1`             | Starts at night.                                                                      |
+| `?structure=<id>`      | Opens that dossier on `/`, or highlights that row on `/analysis`.                     |
+| `?at=<x>,<z>`          | Frames the camera on that point, in local metres, clamped to the site.                |
+| `?liveTraffic=1`       | Opt-in only (`1` or `true`). The single third-party request the application can make. |
 
 A **shareable bookmark link** is built from this set and nothing else. The
 analyst note, the tags and the measurement path are never placed in a URL — see
 [`docs/THREAT_MODEL.md`](THREAT_MODEL.md).
 
-Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?near=`, for the
+Blacksite has its own parameters (`?autoplay=1`, `?mode=`, `?at=` and `?look=`
+for the opening spawn and heading, `?near=`, for the
 player brains `?brain=` (`human`, `jev`, `glide`, `llm`, `random`, `script`, `replay`), `?policy=`, `?jevControl=`, `?jevNav=`, `?placeOrder=`,
 `?targetOrder=`, `?seat=`, `?seed=`, `?fallback=`, `?trace=`, `?record=`; for
 evaluations `?stale=strict|observe`, `?motor=standard|degraded` and

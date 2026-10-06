@@ -17,7 +17,8 @@ import { OrbitJoystick } from "@/components/hud/OrbitJoystick";
 import { TimelineControl } from "@/components/hud/TimelineControl";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import { STRUCTURES, getStructure } from "@/lib/layout";
-import { flyToStructure } from "@/lib/flyTo";
+import { flyToPoint, flyToStructure } from "@/lib/flyTo";
+import { readSitePointParam } from "@/lib/params";
 import { useTwinStore } from "@/lib/store";
 
 interface TwinSearch {
@@ -65,6 +66,15 @@ function TwinView() {
     select(def.id);
     flyToStructure(def);
   }, [structure, select]);
+
+  // `?at=<x>,<z>` is the camera target a shared bookmark link carries, in
+  // local metres and clamped to the site. Read once, after `?structure=`, so a
+  // link naming both opens the dossier and then frames the saved view — the
+  // order an in-app bookmark applies them in.
+  useEffect(() => {
+    const at = readSitePointParam("at");
+    if (at !== null) flyToPoint(at[0], at[1]);
+  }, []);
 
   return (
     <div className="relative h-full w-full select-none">
