@@ -1,12 +1,12 @@
 {
   "schema": "rain-bethesda-demo-source/v1",
-  "recordedAt": "2026-10-03T03:45:03.337Z",
-  "recorder": "scripts/export-rain-demo.py (tools/rain-bridge/rain_bethesda_bridge.py meeting_record)",
-  "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
+  "recordedAt": "2026-10-06T01:51:14.826Z",
+  "recorder": "scripts/export-rain-demo.ts (src/rain/meeting/offline.ts buildOfflineMeeting; src/rain/meeting/record.ts offlineMeetingRecord)",
+  "engine": "rain.meeting.offline.buildOfflineMeeting",
   "generation": "scripted",
   "rain": {
-    "repository": "topherchris420/james_library",
-    "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
+    "repository": "topherchris420/lop-nur-twin",
+    "commit": "8c06ac3840098572a4b997c19d19cff78c96c25f",
     "dirty": false
   },
   "corpus": {
@@ -15,11 +15,26 @@
   },
   "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
   "meetingId": "rain-offline-93ae4b5195a5761ea843",
-  "snapshotSha256": "97c7ee221d2742091504e4a6389abdd2e56fe0e3cb29c6ee84ffb7c6bc11699a",
-  "license": "james_library is MIT-licensed (Vers3Dynamics). Quotes are verbatim spans of its papers/ corpus, kept with their source path, line and character offsets.",
+  "snapshotSha256": "cd01967826cb6121e06d76ec9a2aaadcc60e93b6d9c5a04b719d354e8a82f6db",
+  "license": "The corpus is MIT-licensed james_library material bundled in src/rain/data (see its LICENSE.md and source.json). Quotes are verbatim spans of its papers, kept with their source path, line and character offsets.",
+  "lineage": {
+    "note": "First recorded from R.A.I.N.'s own offline engine in james_library through the reference bridge, before the research runtime was consolidated into this repository. The meeting id is a hash of the meeting's content, so the unchanged id is the evidence that this repository's engine reproduces that meeting word for word.",
+    "firstRecording": {
+      "recordedAt": "2026-10-03T03:45:03.337Z",
+      "recorder": "scripts/export-rain-demo.py (tools/rain-bridge/rain_bethesda_bridge.py meeting_record)",
+      "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
+      "rain": {
+        "repository": "topherchris420/james_library",
+        "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
+        "dirty": false
+      },
+      "meetingId": "rain-offline-93ae4b5195a5761ea843"
+    },
+    "sameMeetingAsFirstRecording": true
+  },
   "notes": [
     "Prerecorded: DEMO replays this one meeting and runs no process.",
-    "Scripted: the offline engine's reasoning text is scripted; its evidence is retrieved and every quote was re-verified with james_library's citation_corpus.verify_quote.",
+    "Scripted: the offline engine's reasoning text is scripted; its evidence is retrieved and every quote was re-verified with the runtime's verifyQuote (src/rain/corpus.ts).",
     "The experiment proposal shipped beside it (demo-proposal.json) was written by hand for the demo. No model and no R.A.I.N. process produced it."
   ]
 }

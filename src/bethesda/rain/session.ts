@@ -295,7 +295,7 @@ export function evidenceItems(
           title: `${q.source}:${q.line}`,
           body: q.text,
           provenance: q.verified
-            ? `verified verbatim at characters ${q.span_start}–${q.span_end} by citation_corpus.verify_quote; corpus ${meeting.audit.corpus_sha256.slice(0, 12)}… (${meeting.audit.corpus_files} files) at james_library ${meeting.rain.commit?.slice(0, 12) ?? "unknown"}`
+            ? `verified verbatim at characters ${q.span_start}–${q.span_end} by the runtime's verifyQuote; corpus ${meeting.audit.corpus_sha256.slice(0, 12)}… (${meeting.audit.corpus_files} files) at ${meeting.rain.repository} ${meeting.rain.commit?.slice(0, 12) ?? "unknown"}`
             : "NOT VERIFIED: the span was not found in the corpus",
           grounded: q.verified,
         }),
@@ -309,7 +309,7 @@ export function evidenceItems(
       title: "Citation audit",
       body: `${meeting.audit.verified} of ${meeting.audit.checked} quotes verified verbatim${unverified ? `; ${unverified} more quotation${unverified === 1 ? "" : "s"} did not verify and ${unverified === 1 ? "is" : "are"} not shown as a source` : ""}. A citation audit, not validated claims: a verified quote occurs in a source; it does not show the source is right or supports the conclusion.`,
       provenance: model
-        ? "R.A.I.N.'s citation check in its model meeting, every quote re-verified by the bridge with verify_quote, re-checked against the record by the lab"
+        ? "R.A.I.N.'s citation check in its model meeting, every quote re-verified by the runtime with verifyQuote, re-checked against the record by the lab"
         : "R.A.I.N. offline engine audit, re-checked against the record by the lab",
       grounded: meeting.audit.checked === meeting.audit.verified && unverified === 0,
     });

@@ -1,21 +1,31 @@
 import { clientKeyFrom } from "../../server/jev/handler.js";
 import { createRainHandler } from "../../server/rain/handler.js";
+import { configureRuntime } from "../../src/rain/runtime.js";
 
 /**
- * The R.A.I.N. backend's configuration, read on the server only.
+ * The R.A.I.N. research runtime's configuration, read on the server only.
  *
- * `RAIN_BACKEND_URL` names a backend that speaks `rain-bethesda/v2` (for
- * example `tools/rain-bridge/rain_bethesda_bridge.py` beside a james_library
- * checkout); `RAIN_BACKEND_TOKEN` is an optional bearer token for it. Neither
- * is `VITE_`-prefixed, so Vite never inlines them, and the handler sends the
- * token upstream only. Unset, every route answers "not configured" and the lab
- * runs OFFLINE. Vercel does not deploy underscore-prefixed files as functions;
- * the route files beside this one import it.
+ * The `RAIN_*` settings (`RAIN_RUNTIME`, the meeting engine, the model
+ * endpoint, decision routing, the registry directory) are read here from the
+ * environment and handed to the runtime; the two credentials it can use —
+ * `TYPESAFE_API_KEY` for Jev as a decision engine and `RAIN_LLM_API_KEY` for a
+ * model server that wants a bearer token — are read here by name and passed
+ * by value, so no module under `src/` names them. Nothing is `VITE_`-prefixed,
+ * so Vite never inlines anything. With `RAIN_RUNTIME=off` every route answers
+ * "not configured" and the lab runs OFFLINE. Vercel does not deploy
+ * underscore-prefixed files as functions; the route files beside this one
+ * import it.
  */
 const handle = createRainHandler({
-  backendUrl: process.env["RAIN_BACKEND_URL"],
-  token: process.env["RAIN_BACKEND_TOKEN"],
-  timeoutMs: process.env["RAIN_TIMEOUT_MS"],
+  runtime: configureRuntime({
+    env: process.env,
+    secrets: {
+      typesafeApiKey: process.env["TYPESAFE_API_KEY"],
+      typesafeModel: process.env["TYPESAFE_MODEL"],
+      modelApiKey: process.env["RAIN_LLM_API_KEY"],
+    },
+    cwd: process.cwd(),
+  }),
 });
 
 export const rainRoute = {

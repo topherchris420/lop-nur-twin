@@ -1,0 +1,8 @@
+# Fingerprints of findings reviewed and found not to be credentials. Each line
+# names one commit, file, rule and line, so nothing else in those files is
+# hidden. Comments and this format are Gitleaks' own.
+#
+# A test fixture in the TypeSafe provider's tests ("fixture-key-0123456789abcdef"),
+# replaced in the next commit by a low-entropy value; this entry covers the
+# commit that introduced it, which stays in history.
+8c06ac3840098572a4b997c19d19cff78c96c25f:src/rain/judgment/typesafe.test.ts:generic-api-key:7

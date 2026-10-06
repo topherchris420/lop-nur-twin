@@ -1,7 +1,7 @@
 /**
  * Fail-closed validation for everything that crosses the R.A.I.N. boundary.
  *
- * Shared by the browser and the server, which validates every upstream answer
+ * Shared by the browser and the server, which validates every runtime answer
  * before the browser sees it; the browser validates again before anything is
  * displayed. Each validator returns the value only when every field is present,
  * typed, bounded and drawn from its vocabulary, and the object has no field
@@ -28,13 +28,15 @@ import {
   RAIN_ESCALATION_REASONS,
   RAIN_EXPERIMENT_ID,
   RAIN_PROVIDER_ERRORS,
-  RAIN_REPOSITORY,
+  REPOSITORY,
   RAIN_RUN_ID,
   RAIN_SESSION_ARTIFACT_SCHEMA,
   SCENARIO_IDS,
   SCENARIO_LOCATIONS,
   SHA256,
   CRITERIA_RULE,
+  MODEL_ID,
+  UNSAFE_TEXT,
   type Admission,
   type CriterionResult,
   type DecisionAttempt,
@@ -58,18 +60,8 @@ type Json = Record<string, unknown>;
 const isObject = (v: unknown): v is Json =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-/**
- * Control characters other than newline and tab, the bidirectional overrides
- * and marks that let text read differently from what it contains, and the
- * invisible separators two runtimes disagree about splitting on. Research
- * prose has no use for any of them, so their presence rejects the message.
- * Written as escapes: the source must never contain the characters it bans.
- */
-const UNSAFE_TEXT =
-  // eslint-disable-next-line no-control-regex
-  /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u0085\u200b\u200e\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]/;
 export const unsafeText = (s: string) => UNSAFE_TEXT.test(s);
-/** Whitespace collapsed exactly as the bridge collapses it (`" ".join(q.split())`). */
+/** Whitespace collapsed exactly as the runtime collapses it (Python's `" ".join(q.split())`). */
 export const normalizeQuestion = (s: string) => s.split(/\s+/).filter(Boolean).join(" ");
 
 /** UTF-8 byte length without allocating the encoding. */
@@ -185,23 +177,17 @@ class Reader {
   }
 }
 
-/**
- * The model-id shape the city's Jev proposals already use — Ollama's
- * `qwen2.5:7b`, LM Studio's `publisher/model` — and never a URL.
- */
-const MODEL_ID = /^(?!.*:\/\/)[a-zA-Z0-9][a-zA-Z0-9._/:-]{0,95}$/;
 /** Corpus-relative, no traversal, no scheme: a path is shown, never followed. */
 const SOURCE_PATH =
   /^(?![/\\])(?!.*(?:^|[/\\])\.\.(?:[/\\]|$))(?![A-Za-z][A-Za-z0-9+.-]*:)[^\0]+$/;
 
 function revision(r: Reader, v: unknown, path: string): RainRevision {
   const o = r.object(v, path, ["repository", "commit", "dirty"]);
-  if (!o) return { repository: RAIN_REPOSITORY, commit: null, dirty: null };
-  if (o.repository !== RAIN_REPOSITORY)
-    r.fail(path + ".repository", "unexpected repository");
+  if (!o) return { repository: "", commit: null, dirty: null };
+  const repository = r.pattern(o.repository, path + ".repository", REPOSITORY);
   const commit = o.commit === null ? null : r.pattern(o.commit, path + ".commit", COMMIT);
   const dirty = o.dirty === null ? null : r.boolean(o.dirty, path + ".dirty");
-  return { repository: RAIN_REPOSITORY, commit, dirty };
+  return { repository, commit, dirty };
 }
 
 function quote(r: Reader, v: unknown, path: string): Quote {
@@ -433,7 +419,7 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
   const o = r.object(v, "", [
     "schema",
     "kind",
-    "bridge",
+    "runtime",
     "rain",
     "corpus",
     "meeting_engine",
@@ -446,7 +432,7 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
   if (!o) return r.done(null as never);
   if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
   if (o.kind !== "identity") r.fail("kind", "not an identity");
-  const bridge = r.object(o.bridge, "bridge", ["name", "version"]);
+  const runtime = r.object(o.runtime, "runtime", ["name", "version"]);
   const corpus = r.object(o.corpus, "corpus", ["files", "sha256"]);
   const registry = r.object(o.registry, "registry", ["available", "scratch"]);
   const generation = r.oneOf(o.meeting_generation, "meeting_generation", GENERATIONS);
@@ -456,9 +442,9 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
   return r.done({
     schema: RAIN_BETHESDA_SCHEMA,
     kind: "identity",
-    bridge: {
-      name: r.text(bridge?.name, "bridge.name", 64, 1),
-      version: r.text(bridge?.version, "bridge.version", 32, 1),
+    runtime: {
+      name: r.text(runtime?.name, "runtime.name", 64, 1),
+      version: r.text(runtime?.version, "runtime.version", 32, 1),
     },
     rain: revision(r, o.rain, "rain"),
     corpus: {

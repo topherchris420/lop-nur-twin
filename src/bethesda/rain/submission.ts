@@ -1,19 +1,19 @@
 /**
  * Returning measurements to R.A.I.N., in R.A.I.N.'s own contracts.
  *
- * james_library registers experiments that run in other repositories as
- * `runner: {kind: "external"}` and admits their runs as
- * `rain-experiment-submission/v1` documents (EXPERIMENTS.md, "Connect another
- * repository"). A submission deliberately has no status or verdict: R.A.I.N.'s
- * host evaluates its pre-registered criteria itself, and its run record is
- * R.A.I.N.'s result. This module writes:
+ * R.A.I.N.'s experiment registry (`src/rain/experiments/`) registers
+ * experiments that run outside it as `runner: {kind: "external"}` and admits
+ * their runs as `rain-experiment-submission/v1` documents. A submission
+ * deliberately has no status or verdict: the registry evaluates its
+ * pre-registered criteria itself, and its run record is R.A.I.N.'s result.
+ * This module writes:
  *
  *   - the pre-registration draft — the fields `experiment create --from`
  *     accepts (R.A.I.N. assigns the id, version and creation time);
  *   - the submission for one recorded run, referencing the run artifact by
  *     SHA-256 (R.A.I.N. never fetches it);
- *   - an admission bundle holding both, for `tools/rain-bridge/admit.py`
- *     when no live bridge was available.
+ *   - an admission bundle holding both, for `tools/rain-admit.mjs` when the
+ *     runtime was OFFLINE during the run.
  *
  * It refuses rather than fabricates: R.A.I.N.'s submission contract requires
  * the producing commit, so a build that does not know its own revision cannot
@@ -306,7 +306,7 @@ export function rainSubmission(
   return { ok: true, value: submission };
 }
 
-/** Draft plus submission template, for admitting a run without a live bridge. */
+/** Draft plus submission template, for admitting a run recorded while OFFLINE (`bun run rain:admit`). */
 export function admissionBundle(record: ExperimentRecord, createdBy: string) {
   if (!record.definition || !record.definition_sha256 || !record.experiment_id)
     return {
@@ -322,7 +322,7 @@ export function admissionBundle(record: ExperimentRecord, createdBy: string) {
     ok: true as const,
     value: {
       schema: ADMISSION_BUNDLE_SCHEMA,
-      note: "Admit with: python tools/rain-bridge/admit.py <this file> --library <james_library checkout> --registry <registry directory>. The helper registers the draft (R.A.I.N. assigns the id), sets that id in the submission and records it; R.A.I.N. evaluates the criteria.",
+      note: "Admit with: node tools/rain-admit.mjs <this file> --registry <registry directory>. The helper registers the draft (the registry assigns the id), sets that id in the submission and records it; the registry evaluates the criteria.",
       draft: rainDefinitionDraft(
         record.definition,
         record.experiment_id,

@@ -14,6 +14,7 @@ import {
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
 import { createGlideDecisionHandler } from "./server/glide/handler.js";
 import { createRainHandler } from "./server/rain/handler.js";
+import { configureRuntime } from "./src/rain/runtime.js";
 import { LIMITS } from "./src/bethesda/rain/contracts.js";
 
 /**
@@ -165,18 +166,27 @@ function llmDecisionApi(env: Record<string, string>): Plugin {
 }
 
 /**
- * Serves `/api/rain/*` — the R.A.I.N. Lab's only route to a research backend —
- * from `vite` and `vite preview`, with the handler the Vercel functions use.
- * `RAIN_BACKEND_URL` and `RAIN_BACKEND_TOKEN` come from the shell or
- * `.env.local` through `loadEnv` with the `RAIN_` prefix and go only to that
- * handler: never into `define`, never `VITE_`-prefixed. Unset, the lab is
+ * Serves `/api/rain/*` — the R.A.I.N. Lab's route to the research runtime that
+ * runs in this process — from `vite` and `vite preview`, with the handler the
+ * Vercel functions use. The `RAIN_*` settings come from the shell or
+ * `.env.local` through `loadEnv` with the `RAIN_` prefix; the two credentials
+ * the runtime can use, `TYPESAFE_API_KEY` (Jev as a decision engine) and
+ * `RAIN_LLM_API_KEY` (a model server's bearer token), are read here by name
+ * and passed by value, so no module under `src/` names them: never into
+ * `define`, never `VITE_`-prefixed. With `RAIN_RUNTIME=off` the lab is
  * OFFLINE and says so.
  */
-function rainApi(env: Record<string, string>): Plugin {
+function rainApi(env: Record<string, string>, typesafe: Record<string, string>): Plugin {
   const handle = createRainHandler({
-    backendUrl: env["RAIN_BACKEND_URL"],
-    token: env["RAIN_BACKEND_TOKEN"],
-    timeoutMs: env["RAIN_TIMEOUT_MS"],
+    runtime: configureRuntime({
+      env: { ...env, VERCEL: process.env["VERCEL"] },
+      secrets: {
+        typesafeApiKey: typesafe["TYPESAFE_API_KEY"],
+        typesafeModel: typesafe["TYPESAFE_MODEL"],
+        modelApiKey: env["RAIN_LLM_API_KEY"],
+      },
+      cwd: process.cwd(),
+    }),
   });
   return decisionApi(
     "bethesda-rain-api",
@@ -260,7 +270,10 @@ export default defineConfig(({ mode }) => ({
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
     glideDecisionApi(loadEnv(mode, process.cwd(), "FASTINO_")),
     llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
-    rainApi(loadEnv(mode, process.cwd(), "RAIN_")),
+    rainApi(
+      loadEnv(mode, process.cwd(), "RAIN_"),
+      loadEnv(mode, process.cwd(), "TYPESAFE_"),
+    ),
   ],
   resolve: {
     alias: {

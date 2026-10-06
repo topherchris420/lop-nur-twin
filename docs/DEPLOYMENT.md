@@ -6,15 +6,15 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 
 ## Build settings
 
-| Setting                        | Value                                                                                                                                                       |
-| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                               |
-| Build command                  | `npm run build`                                                                                                                                             |
-| Output directory               | `dist`                                                                                                                                                      |
-| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                                   |
-| Framework preset               | Vite                                                                                                                                                        |
-| Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                                     |
-| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat, `RAIN_BACKEND_TOKEN` for a R.A.I.N. backend that requires one (all optional) |
+| Setting                        | Value                                                                                                                                                 |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                         |
+| Build command                  | `npm run build`                                                                                                                                       |
+| Output directory               | `dist`                                                                                                                                                |
+| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                             |
+| Framework preset               | Vite                                                                                                                                                  |
+| Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                               |
+| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat, `RAIN_LLM_API_KEY` for a model server that requires one (all optional) |
 
 `npm run build` is six steps, in this order:
 
@@ -105,23 +105,28 @@ a Firewall rule for `/api/llm/decision` too if it is enabled in production.
 
 ### The R.A.I.N. Lab route
 
-Optional, and OFFLINE unless configured: the lab inside Bethesda is explorable,
-its DEMO replays a labelled recording, and nothing is sent anywhere. To connect
-it to a R.A.I.N. backend (the reference bridge in `tools/rain-bridge/` beside a
-james_library checkout, or anything else that speaks `rain-bethesda/v2`), set:
+The lab inside Bethesda needs no configuration. Its research runtime
+(`src/rain/`) runs inside the seven `api/rain/*` functions: LIVE with the
+scripted offline meeting engine, a scratch experiment registry per function
+instance, and R.A.I.N.'s bounded choice switched off (it answers DISABLED).
+The DEMO replays a labelled recording and nothing is sent anywhere. The
+`RAIN_*` settings in `.env.example` change that; the two that matter for a
+deployment:
 
-| Variable             | Type      | Environments        | Value                                                    |
-| :------------------- | :-------- | :------------------ | :------------------------------------------------------- |
-| `RAIN_BACKEND_URL`   | Plain     | Production, Preview | the backend's base URL; `https` (http only on loopback)  |
-| `RAIN_BACKEND_TOKEN` | Sensitive | Production, Preview | the bearer token the backend requires, if any (optional) |
-| `RAIN_TIMEOUT_MS`    | Plain     | all                 | per request, 1000–55000; default 20000 (optional)        |
+| Variable             | Type  | Environments        | Value                                                                                   |
+| :------------------- | :---- | :------------------ | :-------------------------------------------------------------------------------------- |
+| `RAIN_RUNTIME`       | Plain | all                 | `local` (default) or `off`, which makes the lab OFFLINE and say so                      |
+| `RAIN_DECISION_MODE` | Plain | Production, Preview | `off` (default) or `jev`: lets R.A.I.N.'s router ask TypeSafe (with `TYPESAFE_API_KEY`) |
 
-Never `VITE_`-prefixed. Redeploy, then check
-`curl -s https://<deployment>/api/rain/status`, which reports whether a backend
-is configured and reachable and R.A.I.N.'s identity — never the address or the
-token. A deployed site cannot reach a bridge on a laptop's loopback: a hosted
-backend needs its own `https` address. Rate limits are per instance, as for the
-decision endpoints. Everything else is in
+`RAIN_DECISION_MODE=jev` also needs `RAIN_DECISION_REMOTE_ALLOWED=true` before a
+question leaves the machine. Model meetings (`RAIN_MEETING_ENGINE=model`) need one
+long-lived server process that can reach the model server, so the runtime
+refuses them in a function deployment; they are for `bun run preview` on a
+machine beside the model (see the lab guide). Never `VITE_`-prefix any of
+these. Redeploy, then check `curl -s https://<deployment>/api/rain/status`,
+which reports whether the runtime is on and its identity — the engine, the
+commit, the corpus fingerprint, the decision mode — never a key. Rate limits
+are per instance, as for the decision endpoints. Everything else is in
 [`docs/RAIN_LAB_BETHESDA.md`](RAIN_LAB_BETHESDA.md).
 
 ### Redeploying after these changes
@@ -191,6 +196,10 @@ Properties:
   BusyBox.
 - **Non-root.** Runs as uid 101 and listens on 8080. No capability beyond
   reading static files is required.
+- **Static only.** The image serves `dist/` and none of the `api/*` functions,
+  so `/play?brain=jev`, `/play?brain=glide`, `/play?brain=llm` and the
+  R.A.I.N. Lab's research runtime are unavailable in it: the lab inside
+  Bethesda says `RUNTIME OFFLINE` (its DEMO and local experiments still work).
 - **No embedded secrets.** The build takes no credential and the image contains
   none; `.dockerignore` keeps `.env*`, keys and local state out of the build
   context entirely. The image has no Jev endpoint either: `/api/*` answers 404

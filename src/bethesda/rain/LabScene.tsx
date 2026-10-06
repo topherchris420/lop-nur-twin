@@ -10,7 +10,7 @@
  * measured or sent anywhere.
  *
  * The four perspectives are embodied from R.A.I.N.'s own client
- * (james_library godot_client: `agent_avatar.gd` LOOKS and the lab theme's
+ * (R.A.I.N.'s Godot client in topherchris420/james_library: `agent_avatar.gd` LOOKS and the lab theme's
  * colours), as low-poly figures. Staging follows R.A.I.N.'s neutral event
  * vocabulary: the speaker of the current `agent_utterance` is lit and the
  * others turn to them. Nothing animates confidence or agreement.

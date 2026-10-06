@@ -49,12 +49,13 @@
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
-    "test:bethesda": "vitest run src/bethesda server/jev/city.test.ts server/rain",
+    "test:bethesda": "vitest run src/bethesda src/rain server/jev/city.test.ts server/rain",
     "verify:bethesda": "node tools/bethesda.mjs",
     "verify:rain-lab": "node tools/rain-lab.mjs",
-    "rain:bridge": "python3 tools/rain-bridge/test_bridge.py",
     "rain:conformance": "node tools/rain-conformance.mjs",
-    "rain:demo": "python3 scripts/export-rain-demo.py"
+    "rain:demo": "node scripts/run-ts.mjs scripts/export-rain-demo.ts",
+    "rain:admit": "node tools/rain-admit.mjs",
+    "rain:stand-in": "node tools/stand-in-model.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
@@ -100,5 +101,9 @@
     "typescript-eslint": "^8.47.2",
     "vite": "^8.1.5",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "seroval": "^1.6.8",
+    "seroval-plugins": "^1.6.8"
   }
 }

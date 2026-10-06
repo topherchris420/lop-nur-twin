@@ -17,6 +17,8 @@ import {
   validateProposalChoice,
   type Checked,
 } from "../../src/bethesda/rain/validation.js";
+import { Refused } from "../../src/rain/errors.js";
+import { DRAFT_FIELDS, type RuntimeConfiguration } from "../../src/rain/runtime.js";
 import {
   isSameOrigin,
   json,
@@ -27,40 +29,34 @@ import {
 import { RateLimiter } from "../jev/rateLimit.js";
 
 /**
- * `/api/rain/*` — the only route between the browser and a R.A.I.N. backend.
+ * `/api/rain/*` — the only route between the browser and the R.A.I.N. research
+ * runtime, which runs in this process (`src/rain/runtime.ts`).
  *
- * The backend address and its optional bearer token are server environment
- * (`RAIN_BACKEND_URL`, `RAIN_BACKEND_TOKEN`), read by the entry points and
- * passed in; neither ever reaches the browser, a response or a log. The
- * browser sends small, same-origin, closed JSON bodies; this handler composes
- * the upstream request itself, bounds the time and bytes of the answer, and
- * validates the answer with the same shared validators the browser applies
- * again — so a malformed, oversized, stale or mismatched answer never leaves
- * the server. It is not a proxy: the browser cannot choose the upstream path,
- * headers or body beyond the declared fields.
+ * The browser sends small, same-origin, closed JSON bodies; this handler
+ * checks every field, paces and caps each session, calls the runtime, and
+ * validates the runtime's answer with the same shared validators the browser
+ * applies again — so a malformed, oversized or mismatched answer never leaves
+ * the server even if the runtime had a bug. It is not a proxy: nothing the
+ * browser sends chooses a path, a file, a model or a command.
  *
- *   GET  /api/rain/status          configured? reachable? R.A.I.N.'s identity
+ *   GET  /api/rain/status          switched on? the runtime's identity
  *   POST /api/rain/meeting         one Research Panel meeting, or a model
  *                                  meeting's job (`meeting-pending`)
  *   POST /api/rain/meeting-status  that job: still pending, the meeting, or why
  *                                  it failed
  *   POST /api/rain/meeting-cancel  stop that job
- *   POST /api/rain/proposal     R.A.I.N.'s bounded choice among host options
- *   POST /api/rain/preregister  register an experiment draft with R.A.I.N.
- *   POST /api/rain/submission   report a run; R.A.I.N. evaluates it
+ *   POST /api/rain/proposal        R.A.I.N.'s bounded choice among host options
+ *   POST /api/rain/preregister     register an experiment draft
+ *   POST /api/rain/submission      report a run; the registry evaluates it
  *
- * Without a valid `RAIN_BACKEND_URL` every route answers "not configured" and
- * the lab runs OFFLINE. Nothing here ever substitutes demo content.
+ * With `RAIN_RUNTIME=off`, or a runtime that could not be configured, every
+ * route answers "not configured" and the lab runs OFFLINE. Nothing here ever
+ * substitutes demo content.
  */
 
 export interface RainServerConfig {
-  /** `RAIN_BACKEND_URL`: https, or http on a loopback host. */
-  backendUrl: string | undefined;
-  /** `RAIN_BACKEND_TOKEN`: sent upstream as a bearer token and nowhere else. */
-  token: string | undefined;
-  /** `RAIN_TIMEOUT_MS`, clamped to [1000, 55000]. */
-  timeoutMs?: string | number | undefined;
-  fetchImpl?: typeof fetch;
+  /** The configured runtime, from `configureRuntime`; resolved once and kept. */
+  runtime: RuntimeConfiguration | Promise<RuntimeConfiguration>;
   now?: () => number;
 }
 
@@ -100,15 +96,6 @@ const SESSION_INTERVAL_MS: Record<Exclude<Op, "status">, number> = {
   preregister: 2_000,
   submission: 2_000,
 };
-/**
- * Checking on a job or stopping one is quick at the backend, and its function
- * is capped at 10 s (`vercel.json`): the wait ends first, so the lab is told
- * TIMEOUT rather than the platform cutting the answer off.
- */
-const UPSTREAM_CAP_MS: Partial<Record<Op, number>> = {
-  "meeting-status": 8_000,
-  "meeting-cancel": 8_000,
-};
 const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   meeting: LIMITS.meetingsPerSession,
   // A session lasts at most sessionMinutes; at one check every two seconds.
@@ -118,75 +105,15 @@ const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   preregister: 24,
   submission: 24,
 };
-const DRAFT_FIELDS = [
-  "title",
-  "question",
-  "hypothesis",
-  "rationale",
-  "subsystem",
-  "created_by",
-  "evidence_class",
-  "runner",
-  "seed",
-  "parameters",
-  "procedure",
-  "variables",
-  "metrics",
-  "criteria",
-  "dependencies",
-  "data_policy",
-  "limitations",
-];
-
-/** A usable backend base URL, or null. Credentials, queries and fragments are refused. */
-export function resolveBackend(value: string | undefined): string | null {
-  const raw = value?.trim();
-  if (!raw) return null;
-  let url: URL;
-  try {
-    url = new URL(raw);
-  } catch {
-    return null;
-  }
-  const loopback = ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname);
-  if (url.protocol !== "https:" && !(url.protocol === "http:" && loopback)) return null;
-  if (url.username || url.password || url.search || url.hash) return null;
-  return url.origin + url.pathname.replace(/\/+$/, "");
-}
+/** A proposal may wait on a remote engine; everything else answers at once. */
+const OPERATION_TIMEOUT_MS = 25_000;
 
 const error = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   json(status, { schema: RAIN_BETHESDA_SCHEMA, kind: "error", error: code, ...extra });
 
-async function readLimited(response: Response, limit: number): Promise<string | null> {
-  const reader = response.body?.getReader();
-  if (!reader) return "";
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > limit) {
-      await reader.cancel();
-      return null;
-    }
-    chunks.push(value);
-  }
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const c of chunks) {
-    out.set(c, offset);
-    offset += c.byteLength;
-  }
-  return new TextDecoder().decode(out);
-}
-
 export function createRainHandler(config: RainServerConfig) {
-  const base = resolveBackend(config.backendUrl);
-  const token = config.token?.trim() || null;
-  const fetchImpl = config.fetchImpl ?? fetch;
+  const configured = Promise.resolve(config.runtime);
   const now = config.now ?? (() => Date.now());
-  const timeout = Math.max(1000, Math.min(55_000, Number(config.timeoutMs) || 20_000));
   const limiter = new RateLimiter(
     {
       perClient: { capacity: 12, refillPerSecond: 0.5 },
@@ -201,86 +128,20 @@ export function createRainHandler(config: RainServerConfig) {
   const sessionCount = new Map<string, number>();
   let identity: { at: number; body: unknown } | null = null;
 
-  /** One upstream call: fixed path, server-composed body, bounded time and bytes. */
-  async function upstream(
-    op: Op,
-    body: unknown,
-    ms: number,
-  ): Promise<{ ok: true; value: unknown } | { ok: false; status: number; code: string }> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    try {
-      const headers: Record<string, string> = { Accept: "application/json" };
-      if (body !== undefined) headers["Content-Type"] = "application/json";
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      const response = await fetchImpl(
-        `${base}/rain-bethesda/v2/${op === "status" ? "identity" : op}`,
-        {
-          method: body === undefined ? "GET" : "POST",
-          headers,
-          body: body === undefined ? undefined : JSON.stringify(body),
-          signal: controller.signal,
-          redirect: "error",
-        },
-      );
-      const text = await readLimited(response, RESPONSE_BYTES[op]);
-      if (text === null)
-        return { ok: false, status: 502, code: "upstream answer too large" };
-      if (!response.ok) {
-        // A R.A.I.N. refusal (422) carries R.A.I.N.'s reason; pass it on only
-        // as bounded, plain text. Anything else is a generic failure.
-        if (response.status === 422) {
-          try {
-            const reason = (JSON.parse(text) as { error?: unknown }).error;
-            if (typeof reason === "string" && reason.length <= 400 && !unsafeText(reason))
-              return { ok: false, status: 422, code: reason };
-          } catch {
-            /* fall through */
-          }
-          return { ok: false, status: 422, code: "refused by R.A.I.N." };
-        }
-        return {
-          ok: false,
-          status: response.status === 401 ? 502 : 503,
-          code: response.status === 401 ? "backend rejected credentials" : "unavailable",
-        };
-      }
-      try {
-        return { ok: true, value: JSON.parse(text) as unknown };
-      } catch {
-        return { ok: false, status: 502, code: "invalid upstream answer" };
-      }
-    } catch {
-      return controller.signal.aborted
-        ? { ok: false, status: 504, code: "timeout" }
-        : { ok: false, status: 503, code: "unavailable" };
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
   async function status(): Promise<Response> {
-    if (!base)
+    const c = await configured;
+    if (c.mode !== "local")
       return json(200, {
         schema: RAIN_BETHESDA_SCHEMA,
         kind: "status",
         configured: false,
         reachable: null,
         identity: null,
-        failure: config.backendUrl?.trim() ? "misconfigured" : null,
+        // The reason names a setting, never a value; the browser shows it as text.
+        failure: c.mode === "misconfigured" ? `misconfigured: ${c.reason}` : null,
       });
     if (!identity || now() - identity.at > 30_000) {
-      const answer = await upstream("status", undefined, Math.min(timeout, 4000));
-      if (!answer.ok)
-        return json(200, {
-          schema: RAIN_BETHESDA_SCHEMA,
-          kind: "status",
-          configured: true,
-          reachable: false,
-          identity: null,
-          failure: answer.code,
-        });
-      const checked = validateIdentity(answer.value);
+      const checked = validateIdentity(c.runtime.identity());
       if (!checked.ok)
         return json(200, {
           schema: RAIN_BETHESDA_SCHEMA,
@@ -320,7 +181,12 @@ export function createRainHandler(config: RainServerConfig) {
     return null;
   }
 
-  type Plan = { body: unknown; check: (v: unknown) => Checked<unknown> };
+  type Runtime = Extract<RuntimeConfiguration, { mode: "local" }>["runtime"];
+  type Plan = {
+    run: (runtime: Runtime) => Promise<unknown> | unknown;
+    check: (v: unknown) => Checked<unknown>;
+  };
+  /** Check a request's closed fields and plan the runtime call and the answer's check. */
   function plan(op: Exclude<Op, "status">, v: Record<string, unknown>): Plan | string {
     const requestId = v.request_id;
     if (typeof requestId !== "string" || !HEX32.test(requestId))
@@ -333,12 +199,7 @@ export function createRainHandler(config: RainServerConfig) {
       const question = normalizeQuestion(v.question);
       if (!question || question.length > LIMITS.question) return "invalid question";
       return {
-        body: {
-          schema: RAIN_BETHESDA_SCHEMA,
-          kind: "meeting-request",
-          request_id: requestId,
-          question,
-        },
+        run: (runtime) => runtime.meeting(question, requestId),
         // The offline engine answers at once; a model meeting answers with a
         // job to check on. Either way the answer is bound to this request.
         check: (a) => {
@@ -362,12 +223,7 @@ export function createRainHandler(config: RainServerConfig) {
       if (typeof jobId !== "string" || !HEX32.test(jobId)) return "invalid job id";
       if (op === "meeting-cancel")
         return {
-          body: {
-            schema: RAIN_BETHESDA_SCHEMA,
-            kind: "meeting-cancel-request",
-            request_id: requestId,
-            job_id: jobId,
-          },
+          run: (runtime) => runtime.meetingCancel(jobId, requestId),
           check: (a) => validateMeetingFailed(a, { requestId, jobId }),
         };
       if (typeof v.question !== "string" || unsafeText(v.question))
@@ -375,12 +231,7 @@ export function createRainHandler(config: RainServerConfig) {
       const question = normalizeQuestion(v.question);
       if (!question || question.length > LIMITS.question) return "invalid question";
       return {
-        body: {
-          schema: RAIN_BETHESDA_SCHEMA,
-          kind: "meeting-status-request",
-          request_id: requestId,
-          job_id: jobId,
-        },
+        run: (runtime) => runtime.meetingStatus(jobId, requestId),
         check: (a) => validateMeetingAnswer(a, { requestId, question, jobId }),
       };
     }
@@ -409,16 +260,11 @@ export function createRainHandler(config: RainServerConfig) {
         )
       )
         return "invalid options";
-      const optionIds = (options as { id: string }[]).map((o) => o.id);
+      const offered = options as { id: string; description: string }[];
+      const optionIds = offered.map((o) => o.id);
       if (new Set(optionIds).size !== optionIds.length) return "invalid options";
       return {
-        body: {
-          schema: RAIN_BETHESDA_SCHEMA,
-          kind: "proposal-request",
-          request_id: requestId,
-          question,
-          options,
-        },
+        run: (runtime) => runtime.proposal(question, offered, requestId),
         check: (a) => validateProposalChoice(a, { requestId, optionIds }),
       };
     }
@@ -436,12 +282,7 @@ export function createRainHandler(config: RainServerConfig) {
       )
         return "invalid draft";
       return {
-        body: {
-          schema: RAIN_BETHESDA_SCHEMA,
-          kind: "preregister-request",
-          request_id: requestId,
-          draft,
-        },
+        run: (runtime) => runtime.preregister(draft, requestId),
         check: (a) => validatePreregistration(a, { requestId }),
       };
     }
@@ -458,20 +299,14 @@ export function createRainHandler(config: RainServerConfig) {
       submission.schema_version !== RAIN_SUBMISSION_SCHEMA ||
       submission.experiment_id !== experimentId ||
       submission.evidence_class !== "simulated" ||
-      // R.A.I.N. evaluates; a submission that brings its own verdict is refused.
+      // The registry evaluates; a submission that brings its own verdict is refused.
       "status" in submission ||
       "verdict" in submission ||
       "hypothesis_verdict" in submission
     )
       return "invalid submission";
     return {
-      body: {
-        schema: RAIN_BETHESDA_SCHEMA,
-        kind: "submission-request",
-        request_id: requestId,
-        experiment_id: experimentId,
-        submission,
-      },
+      run: (runtime) => runtime.submission(experimentId, submission, requestId),
       check: (a) => validateAdmission(a, { requestId, experimentId }),
     };
   }
@@ -502,25 +337,35 @@ export function createRainHandler(config: RainServerConfig) {
       return error(400, "invalid session");
     const planned = plan(op, v);
     if (typeof planned === "string") return error(400, planned);
-    if (!base) return error(503, "not configured");
+    const c = await configured;
+    if (c.mode !== "local") return error(503, "not configured");
     const refused = admit(op, v.session, meta.clientKey);
     if (refused) return error(429, refused);
     if (!limiter.admitUpstream().ok) return error(429, "busy");
     try {
-      const answer = await upstream(
-        op,
-        planned.body,
-        Math.min(timeout, UPSTREAM_CAP_MS[op] ?? timeout),
-      );
-      if (!answer.ok) return error(answer.status, answer.code);
-      const checked = planned.check(answer.value);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const answer = await Promise.race([
+        Promise.resolve().then(() => planned.run(c.runtime)),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Refused(504, "timeout")),
+            OPERATION_TIMEOUT_MS,
+          );
+        }),
+      ]).finally(() => clearTimeout(timer));
+      const checked = planned.check(answer);
       if (!checked.ok)
-        return error(502, "invalid upstream answer", {
+        return error(502, "invalid runtime answer", {
           reasons: checked.errors.slice(0, 5),
         });
       if (utf8Length(JSON.stringify(checked.value)) > RESPONSE_BYTES[op])
-        return error(502, "upstream answer too large");
+        return error(502, "runtime answer too large");
       return json(200, checked.value);
+    } catch (e) {
+      // A refusal carries a reason that is safe to show; anything else is a
+      // generic failure, never a stack or a value from the environment.
+      if (e instanceof Refused) return error(e.status, e.code.slice(0, 400));
+      return error(500, "runtime error");
     } finally {
       limiter.release();
     }

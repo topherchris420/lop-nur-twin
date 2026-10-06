@@ -19,10 +19,11 @@ import {
   type ExperimentProposal,
   type Preregistration,
   type RainRunStatus,
+  type RainCompletedStatus,
   type RainVerdict,
   type Evaluation,
 } from "./contracts";
-import { canonicalJson, sha256, sha256Json } from "./sha256";
+import { canonicalJson, sha256, sha256Json } from "../../rain/sha256";
 import type { Authorization } from "./authorization";
 import type { CheckResult, ExperimentDefinition } from "./experiments";
 import type { LifecycleState, Transition } from "./lifecycle";
@@ -37,7 +38,7 @@ export interface RunSection {
   measurements: Record<string, number | null>;
   series: Record<string, number[]>;
   evaluation: Evaluation;
-  status: Exclude<RainRunStatus, "error">;
+  status: RainCompletedStatus;
   verdict: RainVerdict;
 }
 export interface Outcome {

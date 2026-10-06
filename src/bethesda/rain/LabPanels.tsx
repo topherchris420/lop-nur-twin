@@ -117,8 +117,8 @@ export function RuntimeLine({ store }: { store: LabStore }) {
   if (store.mode() === "LIVE" && id)
     return (
       <p className={quiet}>
-        Runtime: <strong className="text-teal-100">LIVE</strong> · {id.meeting_engine} at
-        james_library {short(id.rain.commit)}
+        Runtime: <strong className="text-teal-100">LIVE</strong> · {id.meeting_engine} at{" "}
+        {id.rain.repository} {short(id.rain.commit)}
         {id.rain.dirty ? " (uncommitted changes)" : ""} ·{" "}
         {id.meeting_generation === "scripted"
           ? "reasoning text is scripted; no model runs"
@@ -132,11 +132,11 @@ export function RuntimeLine({ store }: { store: LabStore }) {
       Runtime: <strong className="text-amber-100">OFFLINE</strong> ·{" "}
       {store.runtime.error ??
         (s?.configured === false
-          ? s.failure === "misconfigured"
-            ? "the server's R.A.I.N. backend setting is invalid"
-            : "no R.A.I.N. backend is configured for this site"
+          ? s.failure
+            ? `the research runtime could not start on this site's server (${s.failure})`
+            : "the research runtime is switched off on this site's server"
           : s?.failure
-            ? `the configured backend did not answer (${s.failure})`
+            ? `the research runtime did not answer (${s.failure})`
             : "not yet checked")}
       . The lab is explorable; nothing is generated.
     </p>
@@ -163,9 +163,7 @@ export function ThresholdPanel({
       <blockquote className="mt-3 border-l-2 border-[#0B5D63] pl-3 text-xs italic">
         Inference is not evidence. Evidence is not permission. Confidence is not
         authority.
-        <footer className="mt-1 not-italic text-slate-400">
-          — R.A.I.N. Lab, james_library
-        </footer>
+        <footer className="mt-1 not-italic text-slate-400">— R.A.I.N. Lab</footer>
       </blockquote>
       <Section title="ROOMS">
         <ul className="space-y-1">
@@ -315,7 +313,7 @@ export function ResearchPanel({
             )}
           </p>
           <p className={quiet + " mt-1"}>
-            {record.meeting_id} · {record.engine} · james_library{" "}
+            {record.meeting_id} · {record.engine} · {record.rain.repository}{" "}
             {short(record.rain.commit)} · produced {record.produced_at}
           </p>
           <p className="mt-2 text-xs">
@@ -431,9 +429,10 @@ export function ResearchPanel({
         </div>
       ) : (
         <p className={quiet + " mt-2"}>
-          The four perspectives are defined in james_library (
-          {PERSPECTIVES.map((p) => SOUL_FILES[p]).join(", ")}). Their roles and words
-          arrive in R.A.I.N.'s records; this lab writes neither.
+          The four perspectives are defined by their SOUL files (
+          {PERSPECTIVES.map((p) => SOUL_FILES[p]).join(", ")}), bundled with the research
+          runtime. Their roles and words arrive in R.A.I.N.'s records; this lab writes
+          neither.
         </p>
       )}
     </div>
@@ -1592,9 +1591,9 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
           : p.lop_nur_twin_dirty
             ? ", uncommitted changes"
             : ", clean"}
-        ) · james_library {p.james_library_commit ?? "unknown"} ({p.james_library_source})
-        · {p.rain_contract} · {p.bethesda_contract} · {p.sim_version} · map{" "}
-        {short(p.bethesda_map_sha256)} · streetscape {short(p.streetscape_sha256)} ·
+        ) · R.A.I.N. runtime {p.rain_repository ?? "unknown"} {p.rain_commit ?? "unknown"}{" "}
+        ({p.rain_source}) · {p.rain_contract} · {p.bethesda_contract} · {p.sim_version} ·
+        map {short(p.bethesda_map_sha256)} · streetscape {short(p.streetscape_sha256)} ·
         terrain {short(p.terrain_sha256)} · provider {p.provider ?? "none"} · model{" "}
         {p.model ?? "none"} · recorded {p.recorded_at}
       </Section>
@@ -1869,10 +1868,11 @@ export function SystemsRoom({ store }: { store: LabStore }) {
         {id ? (
           <ul>
             <li>
-              Bridge: {id.bridge.name} {id.bridge.version}
+              Runtime: {id.runtime.name} {id.runtime.version}, in this site's server
+              process
             </li>
             <li>
-              james_library {id.rain.commit ?? "unknown"} ·{" "}
+              {id.rain.repository} {id.rain.commit ?? "unknown"} ·{" "}
               {id.rain.dirty === null
                 ? "state unknown"
                 : id.rain.dirty
@@ -1904,14 +1904,14 @@ export function SystemsRoom({ store }: { store: LabStore }) {
           </ul>
         ) : (
           <p>
-            Not connected. LIVE needs a R.A.I.N. backend configured on this site's server
-            — for example the bridge in tools/rain-bridge running beside a james_library
-            checkout. See docs/RAIN_LAB_BETHESDA.md, “Configure LIVE”. DEMO needs nothing:
-            it replays one recording.
+            Not connected. The research runtime runs inside this site's server; it is
+            switched off (RAIN_RUNTIME=off) or could not start. See
+            docs/RAIN_LAB_BETHESDA.md, “Running LIVE”. DEMO needs nothing: it replays one
+            recording.
           </p>
         )}
       </Section>
-      <Section title="PROVENANCE BRIDGE">
+      <Section title="REVISIONS AND VERSIONS">
         <ul>
           <li>
             lop-nur-twin {lab.commit ?? "unknown"} ({lab.source}
@@ -1930,8 +1930,8 @@ export function SystemsRoom({ store }: { store: LabStore }) {
       <Section title="BOUNDARIES">
         <ul className="list-disc pl-4">
           <li>
-            The browser talks to this site only; the backend address and token stay on the
-            server.
+            The browser talks to this site only; the research runtime and its settings
+            live on the server.
           </li>
           <li>
             Every R.A.I.N. answer is validated twice, closed-shape and size-bounded; stale
@@ -1950,7 +1950,7 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             opened or followed.
           </li>
           <li>
-            Questions go to the configured backend only when you press Ask; DEMO sends
+            Questions go to the research runtime only when you press Ask; DEMO sends
             nothing.
           </li>
           <li>Records stay in this browser unless you export them.</li>

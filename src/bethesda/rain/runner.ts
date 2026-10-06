@@ -26,8 +26,8 @@ import {
   type Region,
   type WorldObservation,
 } from "./observations";
-import { evaluate } from "./evaluate";
-import type { Evaluation, RainRunStatus, RainVerdict } from "./contracts";
+import { evaluate } from "../../rain/experiments/evaluate";
+import type { Evaluation, RainCompletedStatus, RainVerdict } from "./contracts";
 
 export type ArmName = "control" | "treatment";
 export interface ArmRecord {
@@ -62,7 +62,7 @@ export interface RunResult {
   per_seed: SeedResult[];
   measurements: Record<string, number | null>;
   series: Record<string, number[]>;
-  status: Exclude<RainRunStatus, "error">;
+  status: RainCompletedStatus;
   verdict: RainVerdict;
   evaluation: Evaluation;
 }

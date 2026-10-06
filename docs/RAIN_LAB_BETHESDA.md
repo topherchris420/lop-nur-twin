@@ -1,22 +1,28 @@
 # The R.A.I.N. Lab in Bethesda
 
-Behind an unmarked door in the Bethesda anomaly is a research lab where the
-four perspectives of [R.A.I.N.](https://github.com/topherchris420/james_library)
-(`topherchris420/james_library`) investigate questions about the city, and where
-their hypotheses become experiments that the Bethesda simulator runs. It is a
-spatial interface to R.A.I.N.'s real workflow, not a chatbot and not a scripted
-scene:
+Behind an unmarked door in the Bethesda anomaly is a research lab where the four
+perspectives of R.A.I.N. — James, Jasmine, Luca and Elena — investigate
+questions about the city, and where their hypotheses become experiments that
+the Bethesda simulator runs. The R.A.I.N. Lab is an integrated research
+environment embedded inside the Bethesda digital twin. Its research runtime,
+experiment registry, evidence layer and simulation interface live in this
+repository; this is the lab's canonical home. It is a spatial interface to a
+real workflow, not a chatbot and not a scripted scene:
 
 ```text
 human question → R.A.I.N. meeting → evidence and constraints → experiment proposal
 → deterministic validation → human authorization → Bethesda simulator (matched runs)
-→ recorded observations → deterministic evaluation → R.A.I.N.'s own record
+→ recorded observations → deterministic evaluation → the registry's own record
 → provenance-preserving, replayable record
 ```
 
 **Models propose; host code validates; the simulator determines world state;
 recorded observations become evidence.** Every arrow in that line is code in
-this repository or in james_library, and each side keeps its own authority.
+this repository, and each side keeps its own authority.
+
+The runtime was ported from R.A.I.N.'s own code in
+`topherchris420/james_library`; [the migration note](RAIN_MIGRATION.md) says
+what was incorporated, what was left behind and against which commit.
 
 ## Read this first
 
@@ -35,8 +41,8 @@ this repository or in james_library, and each side keeps its own authority.
 - **Simulated results do not establish real Bethesda behaviour.** The
   simulator is rule-based. A result says what _these rules_ do on _these
   seeds_ — not what real people near the real Metro would do.
-- **Experiments remain simulations.** Every run reported to R.A.I.N. is
-  labelled `evidence_class: "simulated"`, and R.A.I.N.'s own run record says so
+- **Experiments remain simulations.** Every run reported to the registry is
+  labelled `evidence_class: "simulated"`, and the registry's run record says so
   in its words: "Simulated data: this characterizes the simulator and analysis
   pipeline, not a physical system."
 
@@ -56,301 +62,265 @@ The lab is inside Bethesda, so first find Bethesda (see
    itself; the lab opens only from inside the city. The phrase is not a
    scenario: the city's compiler produces no event from it.
 
-The lab's code (`LabApp`, about 53 kB gzipped) loads the first time the door
-opens. Nothing contacts a R.A.I.N. backend before then. Leave by the door
-behind the threshold (E) or **Return to Bethesda**.
+The lab's code (`LabApp`) loads the first time the door opens. Nothing contacts
+the research runtime before then. Leave by the door behind the threshold (E) or
+**Return to Bethesda**.
 
-## The boundary between the repositories
+## Architecture
 
-Nothing is copied from james_library and none of its logic is reimplemented.
-The lab speaks a small versioned protocol, `rain-bethesda/v2`, to a backend; the
-reference backend is a standard-library Python bridge that _imports_
-james_library and calls its own code, or runs its own meeting script:
+The lab in the browser speaks a small versioned protocol, `rain-bethesda/v2`,
+to its own site's `/api/rain/*` route. The route calls the research runtime in
+the same server process; the runtime holds the corpus, the meeting engines,
+R.A.I.N.'s decision router and the experiment registry, and reaches outside
+the machine only when the operator configures a model server or allows Jev:
 
 ```text
-browser: src/bethesda/rain/*      same-origin JSON, closed fields, bounded
-   │                                         ▼
-   │                         /api/rain/*  (server/rain/handler.ts)
-   │                           RAIN_BACKEND_URL, optional RAIN_BACKEND_TOKEN
-   │                                         ▼
-   │                 tools/rain-bridge/rain_bethesda_bridge.py   (loopback)
-   │                    ▼  imports                         ▼  runs, from a copy
-   │      james_library: offline meeting engine,    rain_lab_meeting_chat_version.py
-   │      citation corpus, decision router (Jev       ▼  OpenAI-compatible, local
-   │      only if allowed), registry and runner     a local model server (Qwen in
-   │                                                LM Studio or Ollama)
-   ▼
+browser: src/bethesda/rain/*       same-origin JSON, closed fields, bounded
+   │                                          ▼
+   │                          /api/rain/*  (server/rain/handler.ts)
+   │                                          ▼
+   │                   src/rain/runtime.ts — the research runtime, in-process
+   │        ┌──────────────────┬───────────────────┬─────────────────┬──────────────┐
+   │   corpus.ts + data/   meeting/offline.ts   meeting/model.ts   judgment/     experiments/
+   │   17 papers, hashed   scripted engine      OpenAI-compatible  bounded       registry,
+   │   quote verification  (the DEMO's)         local model server choice (Jev   evaluation,
+   │                                            ▲ only when        only if       admission
+   │                                            │ configured       allowed)
+   ▼                                   Ollama, LM Studio, llama.cpp …
 Bethesda simulator (src/bethesda/simulation.ts), in the browser
 ```
 
-| From R.A.I.N. (used, not copied)                                          | Where it is used                                                         |
-| :------------------------------------------------------------------------ | :----------------------------------------------------------------------- |
-| `launcher.offline_meeting.build_offline_meeting` — the four perspectives  | the Research Panel's scripted meetings (LIVE), and the DEMO recording    |
-| `rain_lab_meeting_chat_version.py` (`RainLabOrchestrator.run_meeting`)    | model meetings (LIVE, `--meeting-engine model`), unchanged, as a process |
-| its `rain-session-artifact/v1` and declared team                          | a model meeting's turns, roles and record, named by SHA-256              |
-| `citation_corpus.verify_quote`                                            | every quote is re-verified by the bridge before it is returned           |
-| `judgment.config.create_decision_router().decide`                         | R.A.I.N.'s bounded choice among the host's experiment options            |
-| `experiments.registry.Registry.create`                                    | pre-registration: R.A.I.N. assigns `V3D-EXP-NNNN`                        |
-| `experiments.runner.record_submission`                                    | R.A.I.N. evaluates a reported run against its own criteria               |
-| `rain-experiment/v1`, `rain-experiment-submission/v1`, `rain-criteria/v1` | the drafts and submissions the lab exports, and its local evaluator      |
-| the Godot client's neutral events and embodiment palette                  | how a meeting is staged; how the four look (colours only)                |
+| Runtime module                                                               | What the lab gets from it                                                                                       |
+| :--------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `src/rain/corpus.ts`, `src/rain/data/`                                       | the evidence corpus (17 papers, each hashed, fingerprint `9b2ea421…`) and whole-quote verification with spans   |
+| `src/rain/meeting/offline.ts`                                                | the scripted four-perspective meeting (LIVE by default, and the DEMO recording)                                 |
+| `src/rain/meeting/model.ts`, `jobs.ts`, `artifact.ts`, `record.ts`           | model meetings as jobs, their `rain-session-artifact/v1`, and the lab's record of them, every quote re-verified |
+| `src/rain/judgment/`                                                         | R.A.I.N.'s bounded choice among the host's experiment options (`rain-bounded-decision/v1`)                      |
+| `src/rain/experiments/`                                                      | pre-registration (`V3D-EXP-NNNN`), `rain-criteria/v1` evaluation, admission of reported runs, verification      |
+| `src/rain/protocol.ts`, `meeting/perspectives.ts`, `experiments/evaluate.ts` | the pure parts the browser bundle shares with the server: schema names, limits, the team, the evaluator         |
 
-`rain-criteria/v1` is evaluated in the browser as well, so an OFFLINE run has a
-verdict; `bun run rain:conformance` runs james_library's own validators,
-evaluator and registry over the lab's output and fails if they disagree.
-
-What stays on this side: the scenario vocabulary and its compilation through the
-city's own scenario compiler, validation, authorization, the simulator, every
-measurement, replay, and the records. What stays on R.A.I.N.'s side: the
-perspectives, their reasoning and evidence, its decision router, its registry
-and its evaluation of submitted runs.
+What stays on the lab's side: the scenario vocabulary and its compilation
+through the city's own scenario compiler, validation, authorization, the
+simulator, every measurement, replay, and the records. What stays the
+runtime's: the perspectives, their reasoning and evidence, the decision router,
+the registry and its evaluation of submitted runs.
 
 ## Three modes, labelled
 
-| Mode        | When                                                                                | What runs                                                                                     | What it says                                                                           |
-| :---------- | :---------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| **OFFLINE** | no backend configured, or the configured one does not answer                        | nothing is generated; every room is explorable; local experiments still run on the simulator  | `RUNTIME OFFLINE` and why (not configured, misconfigured, unreachable)                 |
-| **DEMO**    | you choose **Replay the recorded meeting (DEMO)**                                   | one recorded meeting is replayed; no process runs and your question is sent nowhere           | `PRERECORDED · DEMO` and `SCRIPTED · NO MODEL RAN`                                     |
-| **LIVE**    | `/api/rain/status` reports a configured, reachable backend whose identity validates | meetings, proposals, pre-registration and submissions go to R.A.I.N. through the site's route | `RUNTIME LIVE`, R.A.I.N.'s engine and commit, and whether a model or a script answered |
+| Mode        | When                                                                              | What runs                                                                                        | What it says                                                                                   |
+| :---------- | :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| **OFFLINE** | `RAIN_RUNTIME=off` on the server, or a runtime that could not start               | nothing is generated; every room is explorable; local experiments still run on the simulator     | `RUNTIME OFFLINE` and why (switched off, or the setting that stopped it)                       |
+| **DEMO**    | you choose **Replay the recorded meeting (DEMO)**                                 | one recorded meeting is replayed; no process runs and your question is sent nowhere              | `PRERECORDED · DEMO` and `SCRIPTED · NO MODEL RAN`                                             |
+| **LIVE**    | the default: `/api/rain/status` reports the runtime on and its identity validates | meetings, proposals, pre-registration and submissions go to the runtime through the site's route | `RUNTIME LIVE`, the engine, this repository's commit, and whether a model or a script answered |
 
 LIVE never falls back to DEMO. A failed LIVE request shows its failure —
 `NOT CONFIGURED`, `UNAVAILABLE`, `TIMEOUT`, `RATE LIMITED`, `SESSION LIMIT`,
 `REFUSED`, `INVALID ANSWER`, `FAILED`, `CANCELLED` or `ERROR` — and nothing in
 its place; the browser's R.A.I.N. client cannot import the recording (a test
-asserts it). The DEMO recording (`src/bethesda/rain/fixtures/demo-meeting.json`)
-was made by `scripts/export-rain-demo.py` from the bridge at james_library
-`9c8811e343d21b8c143055f9cf549abdefa862f1`, and re-recorded the same way when
-the protocol moved to `rain-bethesda/v2`. Its manifest (`demo-source.json`)
-records the recording's real time, its SHA-256, the commit and the corpus
-fingerprint; `validate:bethesda` checks the file byte-for-byte against that
-SHA-256 and that the two agree on the commit and the meeting and that no model
-ran, and the LIVE browser check asserts that the bridge at that commit returns
-the same meeting. The experiment proposal shipped
-beside it (`demo-proposal.json`) was written by hand, is labelled `origin:
-fixture`, and claims no R.A.I.N. decision.
+asserts it).
 
-The bridge serves one of R.A.I.N.'s two meeting engines, and every meeting says
-which wrote it — the meeting as a whole and each turn (`generation`):
+The DEMO recording (`src/bethesda/rain/fixtures/demo-meeting.json`) is made by
+`scripts/export-rain-demo.ts` (`bun run rain:demo`) from the runtime's offline
+engine at a clean, committed revision of this repository. Its manifest
+(`demo-source.json`) records the recording's real time, its SHA-256, the commit,
+the corpus fingerprint and the recording's lineage: it was first recorded from
+R.A.I.N.'s own engine in `james_library`, and the meeting id — a hash of the
+meeting's content — is unchanged, which is how the recording proves that this
+engine produces the same meeting word for word. `validate:bethesda` checks the
+file byte-for-byte against the manifest, and `offline.test.ts` and the LIVE
+browser check assert that the engine still returns that meeting for that
+question. The experiment proposal shipped beside it (`demo-proposal.json`) was
+written by hand, is labelled `origin: fixture`, and claims no R.A.I.N. decision.
 
-- **R.A.I.N.'s offline engine** (the default): its reasoning text is scripted,
-  its evidence is retrieved, and every quote is verified. It is labelled
+The runtime serves one of two meeting engines, and every meeting says which
+wrote it — the meeting as a whole and each turn (`generation`):
+
+- **The offline engine** (the default): its reasoning text is scripted, its
+  evidence is retrieved, and every quote is verified. It is labelled
   `SCRIPTED · NO MODEL RAN`, and it grades the corpus's coverage of the
   question and states where the room stands.
-- **R.A.I.N.'s model meeting** (`--meeting-engine model`): the four
-  perspectives are a local model R.A.I.N. runs — Qwen, say — through R.A.I.N.'s
-  own meeting script. It is labelled `MODEL · <the model R.A.I.N. recorded>`;
-  see [Model meetings](#model-meetings-qwen-or-another-local-model).
+- **A model meeting** (`RAIN_MEETING_ENGINE=model`): the four perspectives are
+  a local model — Qwen, say — answering from their SOUL files and the corpus
+  through R.A.I.N.'s meeting procedure. It is labelled
+  `MODEL · <the model the runtime recorded>`; see
+  [Model meetings](#model-meetings-qwen-or-another-local-model).
 
-A backend that reports a model is labelled with that model's name, and only
-then; a meeting that claims a model but carries no record from R.A.I.N. of
-running it is refused.
+A runtime that reports a model is labelled with that model's name, and only
+then; a meeting that claims a model but carries no session artifact of running
+it is refused.
 
 ## Running LIVE
 
-1. Check out james_library beside this repository.
-2. Start the bridge from this repository:
+Nothing needs to be installed or configured. `bun run dev` and
+`bun run preview` serve the lab LIVE with the offline engine, a scratch
+experiment registry and R.A.I.N.'s bounded choice switched off (it answers
+DISABLED); so does a Vercel deployment. The settings, all server-side and all
+optional, are in `.env.example`:
 
-   ```sh
-   python3 tools/rain-bridge/rain_bethesda_bridge.py --library ../james_library
-   ```
+| Variable                        | Meaning                                                                                                |
+| :------------------------------ | :----------------------------------------------------------------------------------------------------- |
+| `RAIN_RUNTIME`                  | `local` (default) or `off`: off makes the lab OFFLINE, and say so                                      |
+| `RAIN_MEETING_ENGINE`           | `offline` (default) or `model`                                                                         |
+| `RAIN_LLM_BASE_URL`             | model only: an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` (Ollama)                  |
+| `RAIN_LLM_MODEL`                | model only: the model to run, exactly as the server lists it (`qwen2.5:7b`, `qwen2.5-7b-instruct`)     |
+| `RAIN_LLM_API_KEY`              | optional bearer token the model server requires                                                        |
+| `RAIN_LM_TIMEOUT`               | seconds per model answer, 30–3600 (default 300)                                                        |
+| `RAIN_MEETING_TURNS`            | 1–30 (default 25; the last 15 are the wrap-up)                                                         |
+| `RAIN_MEETING_TIMEOUT_MIN`      | minutes before an unfinished meeting is stopped, 5–60 (default 45)                                     |
+| `RAIN_MEETING_RECURSION`        | `true` (default) or `false`: the critique-and-revise pass per turn                                     |
+| `RAIN_MEETING_PRIVACY`          | `local` (default) or `hybrid`: local refuses a model server that is not on this machine or its network |
+| `RAIN_MEETING_ARCHIVE_DIR`      | optional directory that keeps each meeting's `rain-session-artifact/v1`                                |
+| `RAIN_DECISION_MODE`            | `off` (default) or `jev`: whether R.A.I.N.'s router may choose among the host's experiment options     |
+| `RAIN_DECISION_REMOTE_ALLOWED`  | `true` or `false` (default): whether a question may leave the machine for TypeSafe                     |
+| `RAIN_DECISION_CALIBRATION`     | optional path to a `rain-decision-calibration/v1` file                                                 |
+| `RAIN_DECISION_MINIMUM_SAMPLES` | calibration samples a profile needs (default 100)                                                      |
+| `RAIN_DECISION_TIMEOUT`         | seconds per decision (default 30)                                                                      |
+| `RAIN_REGISTRY_DIR`             | optional directory for the experiment registry; unset, a scratch directory discarded with the process  |
 
-   It listens on `127.0.0.1:8790` and refuses a non-loopback address without
-   `--allow-remote`. It writes to a fresh scratch registry unless `--registry`
-   names one. To require a bearer token, set `RAIN_BRIDGE_TOKEN` in the bridge's
-   environment (never a flag; never logged). R.A.I.N.'s decision router reads
-   `RAIN_DECISION_MODE` from the bridge's environment itself; unset or `off`
-   (its default), it proposes no experiments and the lab says so. For model
-   meetings and for Jev, see the two sections below.
+A malformed setting does not degrade the runtime: it refuses to start, the
+lab says `RUNTIME OFFLINE` and names the setting (never its value), and
+`/api/rain/status` reports `misconfigured: <setting>`. On Vercel, set the
+variables in the project's environment (`RAIN_LLM_API_KEY` and
+`TYPESAFE_API_KEY` as **Sensitive**) and redeploy; the seven `api/rain/*`
+functions are declared in `vercel.json`. Model meetings need one long-lived
+server process and are refused in a function deployment. Never prefix any of
+these with `VITE_`.
 
-3. Give the site's server the address (and the token, if any). For `bun run
-dev` or `bun run preview`, put them in `.env.local` or the shell:
-
-   | Variable             | Meaning                                                                              |
-   | :------------------- | :----------------------------------------------------------------------------------- |
-   | `RAIN_BACKEND_URL`   | `https://…`, or `http://` only on a loopback host; no credentials, query or fragment |
-   | `RAIN_BACKEND_TOKEN` | optional; the bridge's `RAIN_BRIDGE_TOKEN`; sent upstream as a bearer token only     |
-   | `RAIN_TIMEOUT_MS`    | optional; per request, clamped to 1000–55000 (default 20000)                         |
-
-   On Vercel, set them in the project's environment variables (`RAIN_BACKEND_TOKEN`
-   as **Sensitive**) and redeploy; the seven `api/rain/*` functions are declared
-   in `vercel.json`. Never prefix any of them with `VITE_`.
-
-4. Open the lab. The **Systems Room** shows what is connected: R.A.I.N.'s
-   repository, commit and dirty state, the corpus fingerprint, the meeting
-   engine, whether a model runs and which, the decision mode, whether a remote
-   engine may be asked, and the registry.
-
-A remote backend needs `https`; the bridge is a reference implementation for a
-trusted machine and has no authentication beyond the optional token.
+The **Systems Room** shows what is connected: the runtime's name, this
+repository and its commit, the corpus fingerprint, the meeting engine, whether
+a model runs and which, the decision mode, whether a remote engine may be
+asked, and the registry.
 
 ## Model meetings (Qwen or another local model)
 
-R.A.I.N. holds a model meeting with its own script,
-`rain_lab_meeting_chat_version.py`, against an OpenAI-compatible model server —
-Ollama, LM Studio, llama.cpp's server, vLLM. The bridge runs that script
-unchanged and turns R.A.I.N.'s record of the meeting into the lab's:
+The runtime holds a model meeting against an OpenAI-compatible model server —
+Ollama, LM Studio, llama.cpp's server, vLLM — following R.A.I.N.'s meeting
+procedure (`src/rain/meeting/model.ts`): each perspective's SOUL file plus the
+meeting rules as its system prompt, the paper corpus as its research database,
+a director instruction per turn, an optional critique-and-revise pass, and the
+repairs R.A.I.N. applies to truncated or garbled answers.
 
 ```sh
-RAIN_LLM_BASE_URL=http://127.0.0.1:11434/v1 RAIN_LLM_MODEL=qwen2.5:7b \
-  ../james_library/.venv/bin/python tools/rain-bridge/rain_bethesda_bridge.py \
-  --library ../james_library --meeting-engine model
+RAIN_MEETING_ENGINE=model RAIN_LLM_BASE_URL=http://127.0.0.1:11434/v1 \
+  RAIN_LLM_MODEL=qwen2.5:7b bun run preview
 ```
 
-The Python that runs the bridge (or the one `--meeting-python` names) needs
-james_library's requirements — the `.venv` R.A.I.N.'s installer creates has
-them — and the bridge checks before it starts. `RAIN_LLM_BASE_URL` and
-`RAIN_LLM_MODEL` are R.A.I.N.'s own settings, read by R.A.I.N.'s own code — so
-is `[rig.meeting]` in its config — and the model is named exactly as the
-server lists it. The bridge
-starts only if R.A.I.N.'s meeting-privacy rule (`[rig]` privacy, default
-`hybrid`) allows that endpoint; under `local` it refuses a non-local one.
-
-| Flag                     | Meaning                                                                                         |
-| :----------------------- | :---------------------------------------------------------------------------------------------- |
-| `--meeting-engine model` | hold R.A.I.N.'s model meeting instead of its offline engine                                     |
-| `--meeting-python PATH`  | the Python with james_library's requirements (default: the bridge's own)                        |
-| `--meeting-turns N`      | R.A.I.N.'s `--max-turns`, 1–30 (default 25, R.A.I.N.'s own; its last 15 are R.A.I.N.'s wrap-up) |
-| `--meeting-timeout MIN`  | stop a meeting that has not finished after this many minutes, 5–60 (45)                         |
-| `--meeting-no-recursion` | R.A.I.N.'s `--no-recursive-intellect`: no critique-and-revise pass per turn                     |
+The model is named exactly as the server lists it. The runtime starts only if
+the privacy rule allows the endpoint: under `local` (the default) it refuses one
+that is not loopback or private-network, and an Ollama `:cloud` model.
 
 What happens when you ask:
 
-1. The bridge copies the checkout's commit with `git archive` into a
-   temporary directory, so R.A.I.N.'s meeting writes its log and its session
-   artifact there and the checkout itself is never written. The copy is
-   removed when the meeting ends.
-2. It runs the script with a fixed argument list — the question is one
-   argument — and `--no-web`, no speech, no visual events, R.A.I.N.'s decision
-   routing off, no TypeSafe key and no bridge token in its environment. Nobody
-   types into it, so no founder intervenes. Nothing a model writes is run.
-3. The lab gets a job (`meeting-pending`) and checks on it every three seconds
+1. The runtime tests the connection with a five-token completion, three
+   attempts, and refuses the meeting if nothing answers.
+2. The lab gets a job (`meeting-pending`) and checks on it every three seconds
    through `/api/rain/meeting-status`: it shows how many turns have started —
-   read from R.A.I.N.'s console, as progress, never as evidence — and none of
-   the meeting's words. **Stop the meeting** asks R.A.I.N. to stop it
-   (`meeting-cancel`); the lab then says `CANCELLED` and shows nothing in its
-   place. One meeting runs at a time.
-4. When R.A.I.N. writes its `rain-session-artifact/v1`, the bridge reads the
-   turns from it, takes each perspective's role from the team R.A.I.N.'s script
-   declares (read with `ast`, never executed), re-verifies every quote R.A.I.N.'s
-   citation check accepted with `verify_quote` against the corpus of the same
-   commit, and names R.A.I.N.'s record by session id and SHA-256.
+   progress, never evidence — and none of the meeting's words. **Stop the
+   meeting** asks the runtime to stop it (`meeting-cancel`); the lab then says
+   `CANCELLED` and shows nothing in its place. One meeting runs at a time.
+3. Each turn is one completion (three with recursion: the turn, a critique, a
+   revision), with the stagnation monitor watching for a dead end and inserting
+   a bounded recovery instruction — evidence, then an alternative, then the
+   final summary — and a wrap-up instruction for the last turns. A model that
+   stops answering ends the meeting early; it is still recorded as completed,
+   and the record says where it stopped.
+4. The runtime writes its `rain-session-artifact/v1` (and keeps a copy in
+   `RAIN_MEETING_ARCHIVE_DIR`, if set), re-verifies every quotation against the
+   corpus with the same `verifyQuote` the offline engine uses, and names the
+   artifact by session id and SHA-256 in the lab's record.
 
 What the lab shows, and what it does not:
 
-- `MODEL · qwen2.5:7b` (whatever R.A.I.N. recorded), and the model's turns as
-  the model's words. A line R.A.I.N.'s code adds itself — its closing
+- `MODEL · qwen2.5:7b` (whatever the runtime recorded), and the model's turns
+  as the model's words. A line the runtime's code adds itself — the closing
   "Meeting adjourned. Great discussion everyone!", or the placeholder it puts
   in a turn when the model's answers were unusable ("[Luca is processing... Let
   me gather my thoughts on this topic.]") — is marked
-  `A FIXED LINE IN R.A.I.N.'S CODE · NOT THE MODEL`. The bridge finds these in
-  R.A.I.N.'s script by reading it with `ast`.
-- If the model stops answering, R.A.I.N. ends the meeting early and still calls
-  it completed; the bridge reads that from R.A.I.N.'s console and says, on the
-  last turn, where the meeting stopped. If the model never answered, the
-  meeting fails with the reason.
-- No grade of the corpus's coverage and no "where the room stands": R.A.I.N.'s
-  model meeting computes neither, so the lab states neither. A model meeting
-  that arrives with a verdict, or without R.A.I.N.'s record, is refused.
+  `A FIXED LINE IN R.A.I.N.'S CODE · NOT THE MODEL`.
+- No grade of the corpus's coverage and no "where the room stands": a model
+  meeting computes neither, so the lab states neither. A model meeting that
+  arrives with a verdict, or without its session artifact, is refused.
 - Every verified quote with its file, line and character span. A quotation
   that did not verify is not shown as a source; the turn says how many did
   not, and a turn with none verified is marked `UNGROUNDED`.
 - A turn over 4,000 characters is shortened and says so; invisible control
   characters are removed and counted. The lab never repairs anything else.
 
-A model meeting takes minutes, not seconds: by default R.A.I.N. makes three
-model calls a turn — the turn, its own critique of it and a revision — so a
-25-turn meeting is about 75 calls, and `--meeting-no-recursion` makes it 25.
-R.A.I.N. waits 300 s for each answer; on a slow, CPU-only machine raise its
-`RAIN_LM_TIMEOUT` in the bridge's environment, which the meeting inherits. Load
-the model with a 16,384-token context window (see the Windows steps below). The meeting's words are a model's: they are
-INTERPRETATION, never evidence.
+A model meeting takes minutes, not seconds: by default the runtime makes three
+model calls a turn, so a 25-turn meeting is about 75 calls, and
+`RAIN_MEETING_RECURSION=false` makes it 25. It waits `RAIN_LM_TIMEOUT` (300 s)
+for each answer; raise it on a slow, CPU-only machine. Load the model with a
+16,384-token context window: each turn's prompt carries the SOUL file and the
+paper excerpts — 6,050 to 7,099 tokens over the first four turns when
+R.A.I.N.'s script held a meeting on the DEMO question with a Qwen, and the
+runtime sends the same souls and excerpts — before up to 320 tokens for the
+answer, and a 2,048- or 4,096-token window either refuses it or silently drops
+its beginning, where the papers are. The meeting's words are a model's: they
+are INTERPRETATION, never evidence.
 
 ### On a Windows desktop
 
-The bridge and R.A.I.N. both run on Windows. In PowerShell, from
-`lop-nur-twin`, with james_library checked out beside it:
+In PowerShell, from `lop-nur-twin`:
 
-1. **Find the model.** In LM Studio, the **My Models** tab lists the Qwen
-   you downloaded; in Ollama, `ollama list` does. (Explorer's search for
-   "qwen" in your home folder finds the files, usually under
-   `.lmstudio\models` or `.ollama\models` — you do not point anything at them.)
-2. **Serve it.** LM Studio: **Developer** tab → load the Qwen model → **Start
+1. **Find the model.** In LM Studio, the **My Models** tab lists the Qwen you
+   downloaded; in Ollama, `ollama list` does.
+2. **Serve it.** LM Studio: **Developer** tab → load the model → **Start
    Server** (or `lms server start`); it listens on `http://127.0.0.1:1234/v1`,
    and the model's name is the identifier LM Studio shows, for example
    `qwen2.5-7b-instruct`. Ollama: it serves on `http://127.0.0.1:11434/v1` while
    it runs (`ollama serve` if it is not), and the name is the tag `ollama list`
    shows, for example `qwen2.5:7b`. Check with
    `curl.exe http://127.0.0.1:1234/v1/models` (or `:11434`).
-3. **Give it a 16,384-token context.** Each turn's prompt carries R.A.I.N.'s
-   paper excerpts — 6,050 to 7,099 tokens over the first four turns when a
-   Qwen held a meeting on the DEMO question here, before up to 320 for the
-   answer — and a 2,048- or 4,096-token window, the usual defaults, either
-   refuses it or silently drops its beginning, where the papers are.
-   LM Studio: set **Context Length** when you load the model (or
-   `lms load <model> --context-length 16384`). Ollama: set the user
-   environment variable `OLLAMA_CONTEXT_LENGTH` to `16384`, then quit and
-   reopen Ollama. A bare `.gguf` file found elsewhere can be imported into
-   LM Studio (`lms import <file>`) or served by llama.cpp
+3. **Give it a 16,384-token context.** LM Studio: set **Context Length** when
+   you load the model (or `lms load <model> --context-length 16384`). Ollama:
+   set the user environment variable `OLLAMA_CONTEXT_LENGTH` to `16384`, then
+   quit and reopen Ollama. A bare `.gguf` file can be imported into LM Studio
+   (`lms import <file>`) or served by llama.cpp
    (`llama-server -m <file> -c 16384`, on `http://127.0.0.1:8080/v1`).
-4. **Use R.A.I.N.'s Python.** If you installed R.A.I.N. with its one-click
-   `INSTALL_RAIN.cmd`, it is `..\james_library\.venv\Scripts\python.exe` and
-   already has what the meeting needs. Otherwise set it up the way R.A.I.N.'s
-   README does (Python 3.12, with [uv](https://docs.astral.sh/uv/)):
+4. **Serve the site with the model configured:**
 
    ```powershell
-   cd ..\james_library
-   uv venv .venv --python 3.12
-   uv pip sync --python .venv\Scripts\python.exe requirements-dev-pinned.txt
-   cd ..\lop-nur-twin
-   ```
-
-5. **Start the bridge** with that Python:
-
-   ```powershell
+   bun run build
+   $env:RAIN_MEETING_ENGINE = "model"
    $env:RAIN_LLM_BASE_URL = "http://127.0.0.1:1234/v1"   # Ollama: http://127.0.0.1:11434/v1
    $env:RAIN_LLM_MODEL = "qwen2.5-7b-instruct"           # exactly as the server lists it
-   ..\james_library\.venv\Scripts\python tools\rain-bridge\rain_bethesda_bridge.py `
-     --library ..\james_library --meeting-engine model
+   bun run preview
    ```
 
-6. **Point the site at it** — in another PowerShell, `bun run build`, then
-   `$env:RAIN_BACKEND_URL = "http://127.0.0.1:8790"; bun run preview` — open
-   `http://localhost:4173`, find Bethesda and the lab
+5. Open `http://localhost:4173`, find Bethesda and the lab
    ([Discovery](#discovery-spoiler)), and ask a question in the Research Panel.
    The runtime line should read `LIVE` and name your model.
 
-R.A.I.N.'s meeting runs without a console window of its own, so a key pressed
-in the bridge's window never reaches it. A deployed site cannot reach a bridge
-on a desktop's loopback; this is for running the site on the same machine.
-
 ## Jev: letting R.A.I.N. ask a remote engine
 
-R.A.I.N.'s decision router can consult Jev (TypeSafe) when R.A.I.N. is asked
-to choose an experiment. Nothing in the lab turns this on: it is R.A.I.N.'s own
-configuration, in the bridge's environment, and it sends the research question
-and the host's option descriptions to TypeSafe.
+R.A.I.N.'s decision router can consult Jev (TypeSafe) when R.A.I.N. is asked to
+choose an experiment. Nothing in the lab turns this on: it is the server's
+configuration, and it sends the research question and the host's option
+descriptions to TypeSafe.
 
 ```sh
-RAIN_DECISION_MODE=jev RAIN_DECISION_REMOTE_ALLOWED=true TYPESAFE_API_KEY=… \
-  ../james_library/.venv/bin/python tools/rain-bridge/rain_bethesda_bridge.py \
-  --library ../james_library
+RAIN_DECISION_MODE=jev RAIN_DECISION_REMOTE_ALLOWED=true TYPESAFE_API_KEY=… bun run preview
 ```
 
-`RAIN_DECISION_REMOTE_ALLOWED` is read by R.A.I.N.'s own parser — `true` or
-`false`, anything else stops the bridge — and without it R.A.I.N. does not
-send the question anywhere (`POLICY_REQUIRES_REVIEW`; the lab shows Jev as
-"not asked"). The key stays in the bridge's environment: the lab's server and
-browser never see it, and R.A.I.N.'s meeting process is started without it.
+`RAIN_DECISION_REMOTE_ALLOWED` must be `true` or `false` — anything else stops
+the runtime — and without it the router does not send the question anywhere
+(`POLICY_REQUIRES_REVIEW`; the lab shows Jev as "not asked"). The key stays in
+the server's environment and reaches the runtime by value: the browser never
+sees it, and no module under `src/rain/` names it. The `laya` and `cascade`
+modes name R.A.I.N.'s local checkpoint and its Python worker, which this
+runtime does not carry; they are refused by name rather than mapped to
+something else.
 
 R.A.I.N. acts on an engine's answer only once that engine is calibrated for this
 kind of decision — a profile in `RAIN_DECISION_CALIBRATION` for the same engine,
 model, decision class and options, with at least
-`RAIN_DECISION_MINIMUM_SAMPLES` samples (100 by default). Until then it hands the
-choice back (`INSUFFICIENT_CALIBRATION`) and proposes nothing, and the lab does
-not pretend otherwise. **R.A.I.N. HANDED THE CHOICE BACK** in the Experiment
-Bay lists every engine R.A.I.N. consulted with what it returned — its model,
-its choice, its probabilities and confidence exactly as returned — marked
-`NOT ACTED ON` with R.A.I.N.'s reason. If an engine chose a supported
+`RAIN_DECISION_MINIMUM_SAMPLES` samples (100 by default) and a Wilson lower
+bound at the target accuracy on both fit and held-out data. Until then it hands
+the choice back (`INSUFFICIENT_CALIBRATION`) and proposes nothing, and the lab
+does not pretend otherwise. **R.A.I.N. HANDED THE CHOICE BACK** in the
+Experiment Bay lists every engine the router consulted with what it returned —
+its model, its choice, its probabilities and confidence exactly as returned —
+marked `NOT ACTED ON` with the router's reason. If an engine chose a supported
 experiment, **Propose X1 as my own** lets a person propose it: the proposal's
 origin is then `human`, it claims no R.A.I.N. decision, and it needs the same
 validation and authorization as any other. Jev's probabilities are not
@@ -366,7 +336,7 @@ calibrated, and the lab never presents one as R.A.I.N.'s confidence.
 | Experiment Bay     | Turn a supported hypothesis into a Bethesda experiment.                    | proposals, their deterministic checks, the protocol, authorization, and any choice R.A.I.N. handed back with what each engine returned                                                                                               |
 | Observation Room   | Watch the simulator run: arms, ticks, cohorts and what was refused.        | the run in progress, the live city, the perspectives' outings, the observation tools, and every refusal                                                                                                                              |
 | Registry / Archive | Replay, reproduce, or inspect prior results — failures included.           | every record — supported, not supported, inconclusive, failed, rejected — with replay, export and reproduction                                                                                                                       |
-| Systems Room       | See what the lab is connected to, and what it is not.                      | the runtime, the provenance bridge, the boundaries and the limits                                                                                                                                                                    |
+| Systems Room       | See what the lab is connected to, and what it is not.                      | the runtime, the provenance, the boundaries and the limits                                                                                                                                                                           |
 
 Walk with WASD or the arrows (Shift hurries), drag or use mouse lock to look,
 or use the room buttons, which every capability also lives behind. Without
@@ -374,19 +344,20 @@ WebGL the rooms are panels, and every capability stays available.
 
 ## The four perspectives
 
-James, Jasmine, Luca and Elena are embodied in R.A.I.N.'s own colours (its
-Godot client's avatar looks and lab theme); the figures themselves are this
-lab's. **None of their words are written here.** A
-meeting is a validated R.A.I.N. meeting record — LIVE from the backend, or the
-DEMO recording — and the lab stages it through R.A.I.N.'s neutral event
-vocabulary (`conversation_started`, `agent_utterance`, `conversation_ended`),
-word for word. In the offline engine's meetings the words are R.A.I.N.'s
-script; in a model meeting they are the model's, except the lines R.A.I.N.'s
-code adds itself, which say so. The speaker is highlighted while their turn is shown. Turns
-without a verified span say `UNGROUNDED · NO VERIFIED SPAN`; quotes show their
-source file, line and character span and whether they were verified verbatim.
-Where the record shows the perspectives disagreeing, the panel keeps the
-positions as separate branches. Confidence is never animated, and agreement
+James, Jasmine, Luca and Elena are embodied in R.A.I.N.'s own colours (taken
+from its Godot client's avatar looks and lab theme when the runtime was
+consolidated here); the figures themselves are this lab's. **None of their
+words are written in the lab.** A meeting is a validated R.A.I.N. meeting
+record — LIVE from the runtime, or the DEMO recording — and the lab stages it
+through R.A.I.N.'s neutral event vocabulary (`conversation_started`,
+`agent_utterance`, `conversation_ended`), word for word. In the offline
+engine's meetings the words are R.A.I.N.'s script, ported word for word; in a
+model meeting they are the model's, except the lines the runtime's code adds
+itself, which say so. The speaker is highlighted while their turn is shown.
+Turns without a verified span say `UNGROUNDED · NO VERIFIED SPAN`; quotes show
+their source file, line and character span and whether they were verified
+verbatim. Where the record shows the perspectives disagreeing, the panel keeps
+the positions as separate branches. Confidence is never animated, and agreement
 among the four is described as agreement, never as validation.
 
 ## What counts as evidence
@@ -396,8 +367,8 @@ same way everywhere in the lab:
 
 | Kind                  | What it is                                                                                                             |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------- |
-| **SOURCE**            | a verbatim span of R.A.I.N.'s corpus, re-verified by `verify_quote`, with file, line and characters                    |
-| **INTERPRETATION**    | a perspective's reasoning about the sources: scripted in R.A.I.N.'s offline engine, a named model's in a model meeting |
+| **SOURCE**            | a verbatim span of the R.A.I.N. corpus, re-verified by the runtime's `verifyQuote`, with file, line and characters     |
+| **INTERPRETATION**    | a perspective's reasoning about the sources: scripted in the offline engine, a named model's in a model meeting        |
 | **HYPOTHESIS**        | a claim a proposal commits to testing                                                                                  |
 | **OBSERVATION**       | a `bethesda-world-observation/v1` packet the simulator computed from its own state, with tick, state hash and map hash |
 | **SIMULATION RESULT** | the measurements of a completed matched run                                                                            |
@@ -405,9 +376,9 @@ same way everywhere in the lab:
 
 Never evidence: where an avatar stands, anything rendered, the interior, a
 perspective's confidence, an engine's probabilities, a model's prose, and the
-four agreeing. An observation packet can be
-recomputed from the simulator at the tick it names, and `verifyObservation`
-fails if a count, the tick or the state hash does not match.
+four agreeing. An observation packet can be recomputed from the simulator at
+the tick it names, and `verifyObservation` fails if a count, the tick or the
+state hash does not match.
 
 ## Experiments
 
@@ -468,9 +439,9 @@ result is a **local operator authorization record**
 (`bethesda-experiment-authorization/v1`): a hashed attestation by this browser
 under a role label (`R.A.I.N.Operator` by default; at most 64 letters, digits,
 dots, underscores and hyphens, so no spaces and no e-mail address), with
-`identity_verified: false`. It is not authenticated identity and
-not a signature. Any change to the definition voids it, and the runner refuses
-to start without a record that matches.
+`identity_verified: false`. It is not authenticated identity and not a
+signature. Any change to the definition voids it, and the runner refuses to
+start without a record that matches.
 
 ### Matched runs
 
@@ -495,9 +466,9 @@ command added anywhere fails verification.
 `PROPOSED → VALIDATED → AWAITING HUMAN APPROVAL → AUTHORIZED → RUNNING →
 COMPLETED | INCONCLUSIVE | FAILED`, or `REJECTED` (failed validation, declined,
 or expired). Transitions are checked; approval cannot be skipped. Endings map
-onto R.A.I.N.'s statuses:
+onto the registry's statuses:
 
-| Lab ending                           | R.A.I.N. status | Meaning                                                    |
+| Lab ending                           | Registry status | Meaning                                                    |
 | :----------------------------------- | :-------------- | :--------------------------------------------------------- |
 | COMPLETED · hypothesis SUPPORTED     | `passed`        | the criteria held                                          |
 | COMPLETED · hypothesis NOT SUPPORTED | `failed`        | a failure criterion triggered                              |
@@ -509,20 +480,29 @@ The shipped DEMO proposal predicts that closing the Metro disperses the people
 near its entrance by at least 10 m. The simulator says the opposite: the
 cohort ends 28.66 m _closer_ on average (−30.68 to −25.09 across the three
 seeds), because commuters wait at the closed entrance and onlookers gather. It
-is recorded as **COMPLETED · NOT SUPPORTED**, and R.A.I.N.'s registry records
-the same.
+is recorded as **COMPLETED · NOT SUPPORTED**, and the registry records the
+same.
 
-### Reporting back to R.A.I.N.
+### Reporting back to the registry
 
 In LIVE, **Pre-register with R.A.I.N., run, and report the measurements**
-registers the lab's `rain-experiment/v1` draft with R.A.I.N.'s registry before
-the run, then submits a `rain-experiment-submission/v1` with the measurements
-and the run artifact's SHA-256 — and **no status or verdict**; R.A.I.N.
-evaluates its own pre-registered criteria and returns its own run record, which
-the lab keeps beside its own. The submission names the commit that produced the
-run and refuses to invent one: a build without a known commit cannot report.
-Offline, **Export R.A.I.N. admission bundle** writes the same draft and
-submission for `tools/rain-bridge/admit.py` to admit later.
+registers the lab's `rain-experiment/v1` draft with the runtime's registry
+before the run (it assigns `V3D-EXP-NNNN` from a never-reused ledger), then
+submits a `rain-experiment-submission/v1` with the measurements and the run
+artifact's SHA-256 — and **no status or verdict**; the registry evaluates its
+own pre-registered criteria and returns its own run record, which the lab keeps
+beside its own. The submission names the commit that produced the run and
+refuses to invent one: a build without a known commit cannot report. Offline,
+**Export R.A.I.N. admission bundle** writes the same draft and submission for
+`bun run rain:admit -- <bundle> --registry <dir>` to admit later.
+
+The registry is a scratch directory discarded with the server process unless
+`RAIN_REGISTRY_DIR` names one; a scratch registry holds at most 1,000
+experiments. A configured registry is the operator's: `registry.json` is its
+allocation ledger, each `V3D-EXP-NNNN/experiment.json` is written once, and
+each run is a `runs/RUN-NNNN/result.json` that is never overwritten.
+`src/rain/experiments/verify.ts` re-derives every evaluation, statistic and
+digest from what is stored and reports any edit.
 
 ## Observation tools and the perspectives in the city
 
@@ -552,11 +532,11 @@ a world is a validated, authorized experiment, on its own simulators.
 
 ## Registry, replay and reproduction
 
-Every ending lands in the registry, failures and refusals included, and the most
-recent 24 records are kept in this browser's storage. A record
-(`bethesda-rain-experiment-record/v1`) holds the proposal, the validation, the
+Every ending lands in the lab's registry, failures and refusals included, and
+the most recent 24 records are kept in this browser's storage. A record
+(`bethesda-rain-experiment-record/v2`) holds the proposal, the validation, the
 definition and its digest, the authorization, the lifecycle, the run, the
-outcome, R.A.I.N.'s pre-registration and record if any, and the provenance,
+outcome, the runtime's pre-registration and record if any, and the provenance,
 sealed by a SHA-256 over the rest.
 
 - **Verify by replay (no model)** re-executes every arm's recorded commands
@@ -566,7 +546,7 @@ sealed by a SHA-256 over the rest.
   definition, the authorization, the lifecycle, the evaluation and the outcome.
   Everything it needs is in the record — the proposal, the definition, the
   approval, the commands the simulators accepted, any input that was refused,
-  every observation and the outcome — so it never contacts R.A.I.N. or a
+  every observation and the outcome — so it never contacts the runtime or a
   model.
 - **Export record** and **Import a record** move a record between browsers. An
   import whose digest does not match is refused. One whose digest matches is
@@ -583,27 +563,27 @@ sealed by a SHA-256 over the rest.
 
 ## Provenance
 
-Every record carries both repositories and their commits — james_library's from
-R.A.I.N.'s identity (or from the DEMO recording, labelled as such), this
-repository's from the build — with their dirty state and where each came from;
-the protocol, observation, definition and replay schema versions; the simulator
-version; the map, streetscape and terrain SHA-256; the provider and model; the
-seeds; and the time it was recorded. **Unknown stays unknown**: a value nobody
-reported is `null` or "unknown", never estimated. A build without git records
-its own commit as unknown. There is no source hash for anything that was not
-fetched.
+Every record carries the R.A.I.N. runtime's revision — this repository's commit
+from the runtime's identity (`rain_source: "live-identity"`), or the DEMO
+recording's (`"demo-recording"`), labelled as such — and this repository's
+commit from the build, with their dirty state; the protocol, observation,
+definition and replay schema versions; the simulator version; the map,
+streetscape and terrain SHA-256; the provider and model; the seeds; and the time
+it was recorded. **Unknown stays unknown**: a value nobody reported is `null`
+or "unknown", never estimated. A build without git records its own commit as
+unknown. There is no source hash for anything that was not fetched.
 
 ## Failing closed
 
 | When                                                                                                                                    | The lab                                                               |
 | :-------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| no backend, a misconfigured address, or an unreachable backend                                                                          | says OFFLINE and why; nothing is generated                            |
+| `RAIN_RUNTIME=off`, or a runtime that could not start                                                                                   | says OFFLINE and names the setting; nothing is generated              |
 | a timeout, a rate limit, a session limit or a server error                                                                              | shows that failure and nothing in its place                           |
 | an answer that is malformed, oversized, for another request, from an unknown speaker, or whose citation audit disagrees with its quotes | refuses it as INVALID ANSWER (on the server and again in the browser) |
 | a quote that does not verify                                                                                                            | shows it as NOT verified and the turn as UNGROUNDED                   |
-| a model meeting that claims a verdict or a grade, has no turn from the model, or carries no record from R.A.I.N. of running it          | refuses it as INVALID ANSWER                                          |
-| a model meeting R.A.I.N. could not hold: no model server, a model it does not have, its privacy rule, a crash or the time limit         | shows FAILED with the bridge's reason; nothing in its place           |
-| a meeting stopped from the lab                                                                                                          | stops R.A.I.N.'s process, shows CANCELLED, keeps nothing              |
+| a model meeting that claims a verdict or a grade, has no turn from the model, or carries no session artifact of running it              | refuses it as INVALID ANSWER                                          |
+| a model meeting the runtime could not hold: no model server, a model it does not have, the privacy rule, a crash or the time limit      | shows FAILED with the runtime's reason; nothing in its place          |
+| a meeting stopped from the lab                                                                                                          | stops it in the runtime, shows CANCELLED, keeps nothing               |
 | a second meeting while one runs                                                                                                         | refuses it; one meeting runs at a time                                |
 | R.A.I.N. chooses an option it was not offered                                                                                           | refuses the choice                                                    |
 | an engine answered and R.A.I.N. did not act on it                                                                                       | shows the answer as returned and NOT ACTED ON; proposes nothing       |
@@ -615,8 +595,8 @@ fetched.
 | an imported record, until replay verifies it                                                                                            | keeps it quarantined: not in the registry, the evidence or the tools  |
 | an avatar outside the observation region                                                                                                | records the refusal; nothing is observed                              |
 
-Whatever R.A.I.N. does, Bethesda keeps working: the city never waits on the lab,
-and the lab never writes to the city.
+Whatever the runtime does, Bethesda keeps working: the city never waits on the
+lab, and the lab never writes to the city.
 
 ## Performance
 
@@ -624,106 +604,116 @@ The lab is lazily loaded. Inside it, the city's rendering is unmounted while its
 simulation keeps its fixed 10 Hz timer, so experiments and outings are never
 paused because you are indoors. Matched runs execute in a Web Worker. The wall
 map redraws once a second and the avatars' positions are computed once per city
-tick.
+tick. The runtime answers an offline meeting in well under a second; the
+browser bundle carries none of the runtime's data — the corpus and the SOUL
+files are server-side.
 
 ## Privacy and security
 
 - **The browser talks only to its own site.** `/api/rain/*` is the only route to
-  a backend; the Content-Security-Policy allows no other origin. The backend
-  address and token are read only by `api/rain/_config.ts` and the Vite dev
-  middleware, never `VITE_`-prefixed; `secretBoundary.test.ts` fails if any
-  other file reads them or browser code names them, and the build's secret scan
-  fails if `dist/` contains the token's name or value.
+  the runtime; the Content-Security-Policy allows no other origin. The model
+  server's token (`RAIN_LLM_API_KEY`) and the TypeSafe key are read only by
+  `api/rain/_config.ts` and the Vite dev middleware and handed to the runtime
+  by value, never `VITE_`-prefixed; nothing under `src/rain/` names a credential
+  or reads the process environment; `secretBoundary.test.ts` fails if any of
+  that changes, and the build's secret scan fails if `dist/` contains a key's
+  name or value.
 - **The route is not a proxy.** The browser sends small same-origin JSON bodies
-  with closed fields and a session id; the server composes every upstream
-  request itself. Request bodies are capped (4 KiB for a question, 1 KiB to
-  stop a meeting, 256 KiB for a submission), answers are capped (512 KiB for a
-  meeting or a job's status, 4 KiB for a stop) and re-validated. Per session: one meeting every
-  15 s, at most 12 meetings in a 120-minute session, a job checked at most every
-  2 s and waited on for at most 60 minutes; proposals every 5 s,
-  pre-registrations and submissions every 2 s, 24 each. Per client, a bucket of
-  12 requests refilling one every two seconds; per server instance, at most two
-  upstream requests in flight.
-- **Nothing a model writes is followed or executed.** No R.A.I.N.-supplied URL
-  is linked or fetched, no path is opened, no code is run, no shell is invoked.
-  The bridge's subprocesses are `git` and, for model meetings, R.A.I.N.'s own
-  meeting script, each with a fixed argument list; the question is passed as
-  one argument, and a model's words only ever come back as text. A model id
-  must be a name, never a URL. Text is rendered as text — never as HTML —
-  after control, bidirectional and zero-width characters are refused.
+  with closed fields and a session id; the runtime composes every outbound
+  request itself. Request bodies are capped (4 KiB for a question, 1 KiB to stop
+  a meeting, 256 KiB for a submission), answers are capped (512 KiB for a
+  meeting or a job's status, 4 KiB for a stop) and re-validated, and no runtime
+  call may take more than 25 s. Per session: one meeting every 15 s, at most 12
+  meetings in a 120-minute session, a job checked at most every 2 s and waited
+  on for at most 60 minutes; proposals every 5 s, pre-registrations and
+  submissions every 2 s, 24 each. Per client, a bucket of 12 requests refilling
+  one every two seconds; per server instance, at most two runtime calls in
+  flight.
+- **Nothing a model writes is followed or executed.** No model-supplied URL is
+  linked or fetched, no path is opened, no code is run, no shell is invoked.
+  The runtime starts no subprocess but `git`, for its own revision; a model's
+  words only ever come back as text through `fetch`, and a model id must be a
+  name, never a URL. Text is rendered as text — never as HTML — after control,
+  bidirectional and zero-width characters are refused.
 - **What leaves the browser.** In LIVE, your question and the experiment
-  drafts and measurements go to the backend you configured. In OFFLINE and
-  DEMO, nothing does. Records stay in this browser until you export them. The
+  drafts and measurements go to this site's server. In OFFLINE and DEMO,
+  nothing does. Records stay in this browser until you export them. The
   operator role label is the only thing you type into an authorization; it
   takes no spaces or e-mail addresses — use a role, not a name.
-- **What leaves the bridge's machine** is R.A.I.N.'s configuration, not the
-  lab's. A model meeting sends the question and corpus excerpts to the model
-  endpoint R.A.I.N. is configured for — on loopback, for a desktop Qwen — and
-  R.A.I.N.'s privacy rule decides whether a remote one is allowed. With
-  `RAIN_DECISION_REMOTE_ALLOWED=true`, R.A.I.N. sends the question and the
-  option descriptions to TypeSafe. Without it, nothing goes to Jev.
+- **What leaves the server** is the operator's configuration, not the lab's.
+  By default, nothing: the offline engine, the router and the registry run
+  in-process. A model meeting sends the question and corpus excerpts to the
+  configured model server — on loopback or a private network under the default
+  `local` privacy, anywhere under `hybrid`. With `RAIN_DECISION_MODE=jev` and
+  `RAIN_DECISION_REMOTE_ALLOWED=true`, the router sends the question and the
+  option descriptions to TypeSafe. Without them, nothing goes to Jev.
 
 ## Limitations
 
-- The tests exercise R.A.I.N.'s model meeting against a stand-in server
-  (`tools/rain-bridge/stand_in_model.py`) that copies a sentence from the
-  corpus and claims nothing. Nothing here measures how well any real model
-  reasons, and no model meeting is graded.
-- One meeting with a real model was run by hand, not in CI: Qwen2.5-0.5B-Instruct
-  (Q4_K_M, llama.cpp's server on two CPU threads, 16,384-token context), four
-  turns without recursion, in about nine minutes. The lab accepted it; none of
+- The tests exercise model meetings against a stand-in server
+  (`tools/stand-in-model.mjs`) that copies a sentence from the corpus and
+  claims nothing. Nothing here measures how well any real model reasons, and
+  no model meeting is graded.
+- Before the consolidation, one meeting with a real model was run by hand
+  through R.A.I.N.'s own script, not in CI: Qwen2.5-0.5B-Instruct (Q4_K_M,
+  llama.cpp's server on two CPU threads, 16,384-token context), four turns
+  without recursion, in about nine minutes; the lab accepted it, and none of
   the seven quotations the model offered verified, so every one of its turns
-  is marked `UNGROUNDED`.
-- R.A.I.N.'s model meeting records no verdict, so a model meeting has none in
-  the lab either; the offline engine's meetings keep theirs.
-- With `RAIN_DECISION_MODE` off — the bridge's default — R.A.I.N. proposes
-  nothing, and experiments start from the DEMO fixture or a person. With Jev
-  and no calibration profile, R.A.I.N. hands every choice back.
+  was marked `UNGROUNDED`. No real-model meeting has yet been run through the
+  consolidated runtime; its model meetings are tested against the stand-in.
+- A model meeting records no verdict, so a model meeting has none in the lab
+  either; the offline engine's meetings keep theirs.
+- With `RAIN_DECISION_MODE` off — the default — R.A.I.N. proposes nothing, and
+  experiments start from the DEMO fixture or a person. With Jev and no
+  calibration profile, R.A.I.N. hands every choice back.
 - The vocabulary is small on purpose: eight scenarios, six places, seven
   metrics. Adding one is a contract change, not a configuration.
-- Rate limits are per server instance and reset on a cold start.
+- Rate limits and the scratch registry are per server instance and reset on a
+  cold start.
 - The authorization record attests to an action in a browser, not to a person.
 
 ## Verifying
 
 ```sh
-bun run test:bethesda       # includes the lab: contracts, experiments, authority,
-                            # runs and replay, the door, OFFLINE/DEMO/LIVE, tools,
-                            # outings, and the /api/rain route
-bun run rain:bridge         # the bridge's own logic on synthetic R.A.I.N. records;
-                            # with RAIN_LIBRARY_PATH, also what it reads from R.A.I.N.'s script
-bun run build               # validate:bethesda checks the DEMO recording
-bun run verify:rain-lab     # tools/rain-lab.mjs on its own preview of dist/: discovery,
-                            # OFFLINE, DEMO, authorization, run, replay, tampered import,
-                            # a fresh browser, outings, tools, axe in every room, CSP,
-                            # no WebGL
-RAIN_LIBRARY_PATH=../james_library bun run verify:rain-lab   # adds LIVE through the bridge
-RAIN_LIBRARY_PATH=../james_library RAIN_PYTHON=../james_library/.venv/bin/python \
-  bun run verify:rain-lab   # adds R.A.I.N.'s model meeting against the stand-in model
-JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… RAIN_LIBRARY_PATH=… RAIN_PYTHON=… \
-  bun run verify:rain-lab   # also lets R.A.I.N. ask Jev once: one paid TypeSafe call
-RAIN_LIBRARY_PATH=../james_library bun run rain:conformance  # james_library judges the output
+bun run test:bethesda       # the lab and its runtime: contracts, experiments, authority,
+                            # runs and replay, the door, OFFLINE/DEMO/LIVE, tools, outings;
+                            # the corpus, the offline engine (DEMO reproduction), records,
+                            # model meetings on a stand-in, jobs, routing, calibration,
+                            # TypeSafe, config, the registry, privacy, the runtime, the route
+bun run rain:conformance    # the lab's drafts and submissions through the runtime's
+                            # validators, evaluator and registry
+bun run build               # validate:bethesda checks the bundled corpus and the DEMO recording
+bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFFLINE,
+                            # DEMO, authorization, run, replay, tampered import, a fresh
+                            # browser, outings, tools, axe in every room, CSP, no WebGL;
+                            # LIVE against the in-process runtime; a model meeting against
+                            # the stand-in model server
+JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… bun run verify:rain-lab   # also lets R.A.I.N. ask Jev once:
+                                                            # one paid TypeSafe call
 ```
 
 `tools/rain-lab.mjs` serves the build that ships, with its security headers; it
-needs `bun run build` first and no `RAIN_BACKEND_URL` in `.env.local`. Without
-`JEV_LIVE_TEST=1` it never lets a bridge ask Jev, and it removes the TypeSafe
-key from every bridge's environment.
+needs `bun run build` first and owns its three previews. Without
+`JEV_LIVE_TEST=1` it never lets the runtime ask Jev, and it removes the TypeSafe
+key from every preview's environment.
 
 ## Changing it
 
-- `src/bethesda/rain/contracts.ts` is shared with the server; changing a wire
-  type, a field or a limit means bumping `RAIN_BETHESDA_SCHEMA` and updating the
-  bridge, `server/rain/handler.ts` and their tests together. `rain-bethesda/v1`
-  is retired: the route asks only for `/rain-bethesda/v2/…`, and an answer in
-  any other schema is refused.
-- R.A.I.N.'s meeting script runs unchanged. If R.A.I.N. changes its session
-  artifact, its console's turn line or its fixed lines, the bridge's reading of
-  them changes with it — never the other way round.
-- Never hand-edit the DEMO recording. Re-record it with
-  `python3 scripts/export-rain-demo.py --library ../james_library` (also
-  `bun run rain:demo -- --library …`), which writes the manifest with the real
-  time and hashes.
+- `src/bethesda/rain/contracts.ts` and `src/rain/protocol.ts` are shared with
+  the server; changing a wire type, a field or a limit means bumping
+  `RAIN_BETHESDA_SCHEMA` and updating `src/rain/runtime.ts`,
+  `server/rain/handler.ts` and their tests together. `rain-bethesda/v1` is
+  retired; an answer in any other schema is refused.
+- The offline engine's words are R.A.I.N.'s script. `offline.test.ts` fails
+  if the engine stops reproducing the DEMO recording; a deliberate change to
+  the engine or the corpus means re-recording the DEMO with
+  `bun run rain:demo -- --allow-new-meeting`, and saying so in the manifest's
+  lineage.
+- Never hand-edit the DEMO recording or the bundled corpus. Re-record with
+  `bun run rain:demo` from a clean, committed checkout; re-import the corpus
+  with `node scripts/run-ts.mjs scripts/import-rain-source.ts --from <checkout>`
+  from a clean checkout of the source repository. Both write their manifests
+  with the real time and hashes.
 - A new scenario, place or metric goes into the vocabulary, its compiled
   sentence and its expected place in `experiments.ts`, and the options in
   `session.ts`; the tests enumerate every pair.

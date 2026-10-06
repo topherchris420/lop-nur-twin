@@ -71,17 +71,17 @@ any kind.
   response or a log; that makes either endpoint forward text the browser chose
   to a model (it must only send the server's own question); or that bypasses
   their validation or rate limits.
-- The R.A.I.N. Lab's route (`/api/rain/*`): anything that exposes the backend's
-  address or token, gets either into the bundle, a response or a log; that lets
-  the browser choose the upstream host, path, headers or any field beyond the
-  declared ones; that gets an unvalidated or oversized answer past the server;
-  or that lets the lab change the live city, run an experiment without an
-  authorization bound to its definition, or present DEMO content as LIVE. In
-  the reference bridge: anything that lets a request or a model's output reach
-  the model meeting's command line, files or environment beyond the question,
-  that runs something a model wrote, that writes into the james_library
-  checkout, or that sends the question to a remote decision engine without
-  `RAIN_DECISION_REMOTE_ALLOWED=true`.
+- The R.A.I.N. Lab's route (`/api/rain/*`) and the research runtime behind it
+  (`src/rain/`): anything that exposes the model server's token or the TypeSafe
+  key, gets either into the bundle, a response or a log; that lets the browser
+  choose a model endpoint, a path, a file or any field beyond the declared ones;
+  that gets an unvalidated or oversized answer past the server; or that lets the
+  lab change the live city, run an experiment without an authorization bound to
+  its definition, or present DEMO content as LIVE. In the runtime: anything that
+  runs something a model wrote, that lets a model's output or a request reach a
+  subprocess, a path or the environment, that lets a model meeting leave the
+  machine under `RAIN_MEETING_PRIVACY=local`, or that sends the question to a
+  remote decision engine without `RAIN_DECISION_REMOTE_ALLOWED=true`.
 
 ## What is out of scope
 
@@ -133,9 +133,12 @@ any kind.
   a TypeSafe-shaped key, or its value. `/play?brain=llm` works the same way
   through `api/llm/decision.ts` and `LLM_API_KEY`, under the same test and scan
   (which also looks for Anthropic- and OpenAI-shaped keys). The R.A.I.N. Lab's
-  optional backend is configured by `RAIN_BACKEND_URL` and `RAIN_BACKEND_TOKEN`,
-  read only by `api/rain/_config.ts` and the Vite middleware, under the same
-  test and scan. There is no authentication.
+  research runtime needs no credential; its two optional ones — the bearer
+  token of a local model server (`RAIN_LLM_API_KEY`) and the TypeSafe key, when
+  R.A.I.N.'s router may ask Jev — are read only by `api/rain/_config.ts` and the
+  Vite middleware and passed to the runtime by value, under the same test and
+  scan; `src/rain/` itself names no credential and reads no environment. There
+  is no authentication.
 - Anything placed in a frontend build is public. Never add a credential to
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite
   inlines `VITE_`-prefixed values into the bundle, where any visitor can read
@@ -182,15 +185,17 @@ State these plainly to anyone evaluating this project:
   makes the page post a bounded game observation (numbers and fixed
   vocabularies — no free text, no identity) to this deployment's own
   `/api/jev/decision` or `/api/llm/decision`, which asks the model a question
-  the server writes. And when a deployment configures a R.A.I.N. backend, the
-  hidden lab in Bethesda posts to `/api/rain/*` the research question a person
-  typed (at most 500 characters, with control and bidirectional characters
-  refused) and, for an experiment the person authorized, its definition and
-  measurements; the server forwards them to the configured backend only. The
-  browser never talks to a model provider or to R.A.I.N. directly. What the
-  backend does next is its operator's configuration: the reference bridge may
-  give the question to a local model through R.A.I.N.'s own meeting, and, only
-  with `RAIN_DECISION_REMOTE_ALLOWED=true`, to TypeSafe.
+  the server writes. And the hidden lab in Bethesda posts to `/api/rain/*` the
+  research question a person typed (at most 500 characters, with control and
+  bidirectional characters refused) and, for an experiment the person
+  authorized, its definition and measurements; the research runtime answers
+  them in the same server process and sends nothing anywhere by default. The
+  browser never talks to a model provider or to a remote engine directly. What
+  the runtime does next is the operator's configuration: with
+  `RAIN_MEETING_ENGINE=model` it gives the question and corpus excerpts to the
+  configured model server (local, unless `RAIN_MEETING_PRIVACY=hybrid`), and
+  only with `RAIN_DECISION_MODE=jev` and `RAIN_DECISION_REMOTE_ALLOWED=true`
+  does it send the question and option descriptions to TypeSafe.
 - **This system is not accredited.** It is not FedRAMP authorized, not CMMC
   certified, not government-certified, and not approved for classified
   information or Controlled Unclassified Information. Do not place non-public

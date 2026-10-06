@@ -37,6 +37,6 @@ shots/
 # Scratch worktrees for parallel agents; each is its own checkout.
 .claude/worktrees/
 
-# Python bytecode from the R.A.I.N. bridge and importers.
+# Python bytecode from the data importers under scripts/.
 __pycache__/
 *.pyc

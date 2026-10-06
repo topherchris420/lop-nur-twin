@@ -370,15 +370,15 @@ UNAVAILABLE / ERROR / STALE OR INVALID`. Provider usage is `null`, never
 ## The R.A.I.N. Lab
 
 Somewhere in the city is an unmarked door to a research lab where R.A.I.N.'s
-four perspectives (`topherchris420/james_library`) investigate questions and
-their hypotheses become matched experiments on this simulator — never on the
-city you are walking through, and never without a person's authorization of
-the exact definition. The lab is fictional, its pictures are not evidence, and
-its results describe the simulator, not Bethesda. It is OFFLINE unless a
-R.A.I.N. backend is configured on the server, its DEMO is labelled as a
-recording, and the city never waits on it. Discovery, the protocol, LIVE
-configuration and every boundary are in
-[the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
+four perspectives investigate questions and their hypotheses become matched
+experiments on this simulator — never on the city you are walking through, and
+never without a person's authorization of the exact definition. The lab's
+research runtime lives in this repository (`src/rain/`) and runs inside the
+site's own server. The lab is fictional, its pictures are not evidence, and
+its results describe the simulator, not Bethesda. Its DEMO is labelled as a
+recording, it is OFFLINE only when the server switches the runtime off, and
+the city never waits on it. Discovery, the protocol, LIVE configuration and
+every boundary are in [the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
 
 ## Replay and verification
 

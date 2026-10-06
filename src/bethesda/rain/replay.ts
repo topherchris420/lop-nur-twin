@@ -36,7 +36,7 @@ import {
   type ArmRecord,
 } from "./runner";
 import { recordDigestOK, type ExperimentRecord } from "./record";
-import { canonicalJson } from "./sha256";
+import { canonicalJson } from "../../rain/sha256";
 import { Lifecycle, terminalFor } from "./lifecycle";
 
 export interface VerificationCheck {

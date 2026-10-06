@@ -19,7 +19,7 @@ import {
 import { validateExperiment, type CheckResult, type Validated } from "./experiments";
 import { authorize, type Authorization } from "./authorization";
 import { Lifecycle, terminalFor } from "./lifecycle";
-import { provenance, type Provenance } from "./provenance";
+import { provenance, type RainSource } from "./provenance";
 import {
   reproductionReport,
   seal,
@@ -34,7 +34,7 @@ import { preflight, type RunResult } from "./runner";
 export interface Origin {
   /** Where the R.A.I.N. revision in this case's provenance comes from. */
   rain: RainRevision | null;
-  rainSource: Provenance["james_library_source"];
+  rainSource: RainSource;
   /** A model that produced the proposal, if any. Never filled in. */
   model: string | null;
 }

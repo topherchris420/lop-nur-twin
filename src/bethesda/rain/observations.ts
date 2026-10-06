@@ -18,7 +18,7 @@ import {
   type LocationId,
   type MetricId,
 } from "./contracts";
-import { canonicalJson } from "./sha256";
+import { canonicalJson } from "../../rain/sha256";
 
 export type Arm = "control" | "treatment" | "live";
 export interface Region {

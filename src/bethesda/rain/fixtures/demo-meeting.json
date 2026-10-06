@@ -1,10 +1,10 @@
 {
   "schema": "rain-bethesda/v2",
   "kind": "meeting",
-  "request_id": "c63663db230cd7811000d315684a17f1",
+  "request_id": "481af01125a58b75df6428b9afd1594c",
   "meeting_id": "rain-offline-93ae4b5195a5761ea843",
   "generation": "scripted",
-  "engine": "james_library.launcher.offline_meeting.build_offline_meeting",
+  "engine": "rain.meeting.offline.buildOfflineMeeting",
   "model": null,
   "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
   "grounding": "partial",
@@ -149,10 +149,10 @@
   },
   "suggestions": [],
   "rain": {
-    "repository": "topherchris420/james_library",
-    "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
+    "repository": "topherchris420/lop-nur-twin",
+    "commit": "8c06ac3840098572a4b997c19d19cff78c96c25f",
     "dirty": false
   },
-  "produced_at": "2026-10-03T03:45:03.337Z",
+  "produced_at": "2026-10-06T01:51:14.826Z",
   "source_artifact": null
 }

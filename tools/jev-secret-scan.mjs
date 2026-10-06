@@ -17,8 +17,9 @@
  * `VITE_FASTINO…` copy, a Fastino-shaped key (`fast_sk_…`) and the configured
  * value. And the LLM endpoint's `LLM_API_KEY`: its name, a
  * `VITE_LLM…` copy, key shapes of the providers it supports (`sk-ant-…`,
- * `sk-…`), and the configured value — and the R.A.I.N. Lab's
- * `RAIN_BACKEND_TOKEN`: its name, a `VITE_RAIN…` copy and the configured value.
+ * `sk-…`), and the configured value — and the R.A.I.N. runtime's
+ * `RAIN_LLM_API_KEY` (a model server's bearer token): its name, a `VITE_RAIN…`
+ * copy and the configured value.
  *
  *   node tools/jev-secret-scan.mjs            # scans dist/
  *   node tools/jev-secret-scan.mjs path/to/output
@@ -39,7 +40,7 @@ const patterns = [
   {
     name: "credential variable name",
     test: (text) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|RAIN_BACKEND_TOKEN|VITE_RAIN_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|VITE_RAIN_/.test(
         text,
       ),
   },
@@ -62,7 +63,7 @@ for (const variable of [
   "TYPESAFE_API_KEY",
   "FASTINO_API_KEY",
   "LLM_API_KEY",
-  "RAIN_BACKEND_TOKEN",
+  "RAIN_LLM_API_KEY",
 ]) {
   const value = (process.env[variable] ?? "").trim();
   if (value.length < 12) continue;

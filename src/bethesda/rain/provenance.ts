@@ -1,11 +1,14 @@
 /**
- * Both sides' revision identity, recorded with every session and experiment.
+ * Revision identity, recorded with every session and experiment.
  *
- * Unknown is recorded as `null` with the reason in `*_source`, never guessed:
- * a local build that cannot read git records no commit; an OFFLINE session
- * records no james_library revision. The lop-nur-twin revision is baked in at
- * build time (`vite.config.ts`, `__LAB_REVISION__`): from the CI environment
- * when it says, otherwise from the checkout's own `git` with its dirty state.
+ * Two revisions, because they can differ: the lab build the browser is
+ * running (baked in at build time by `vite.config.ts`, `__LAB_REVISION__`:
+ * from the CI environment when it says, otherwise from the checkout's own
+ * `git` with its dirty state) and the R.A.I.N. runtime that answered — the
+ * server's, from its identity; or the engine that made the DEMO recording,
+ * from the recording. Unknown is recorded as `null` with the reason in
+ * `*_source`, never guessed: a local build that cannot read git records no
+ * commit; an OFFLINE session records no runtime revision.
  */
 import { DATA_VERSION } from "../model";
 import { REPLAY_SCHEMA, SIM_VERSION } from "../simulation";
@@ -14,6 +17,7 @@ import { TRANSIT_VERSION } from "../streetscape";
 import {
   COMMIT,
   DEFINITION_SCHEMA,
+  LAB_REPOSITORY,
   RAIN_BETHESDA_SCHEMA,
   WORLD_OBSERVATION_SCHEMA,
   type RainRevision,
@@ -38,13 +42,15 @@ export function labRevision(): LabRevision {
   return { commit: null, dirty: null, source: "unknown" };
 }
 
+export type RainSource = "live-identity" | "demo-recording" | "unavailable";
 export interface Provenance {
-  james_library_repository: "topherchris420/james_library";
-  james_library_commit: string | null;
-  james_library_dirty: boolean | null;
+  /** The repository and revision of the R.A.I.N. runtime that answered, or of the DEMO's engine. */
+  rain_repository: string | null;
+  rain_commit: string | null;
+  rain_dirty: boolean | null;
   /** Where the R.A.I.N. revision came from. */
-  james_library_source: "live-identity" | "demo-recording" | "unavailable";
-  lop_nur_twin_repository: "topherchris420/lop-nur-twin";
+  rain_source: RainSource;
+  lop_nur_twin_repository: typeof LAB_REPOSITORY;
   lop_nur_twin_commit: string | null;
   lop_nur_twin_dirty: boolean | null;
   lop_nur_twin_source: LabRevision["source"];
@@ -65,18 +71,18 @@ export interface Provenance {
 
 export function provenance(input: {
   rain: RainRevision | null;
-  rainSource: Provenance["james_library_source"];
+  rainSource: RainSource;
   model: string | null;
   seeds: number[];
   now: Date;
 }): Provenance {
   const lab = labRevision();
   return {
-    james_library_repository: "topherchris420/james_library",
-    james_library_commit: input.rain?.commit ?? null,
-    james_library_dirty: input.rain?.dirty ?? null,
-    james_library_source: input.rain ? input.rainSource : "unavailable",
-    lop_nur_twin_repository: "topherchris420/lop-nur-twin",
+    rain_repository: input.rain?.repository ?? null,
+    rain_commit: input.rain?.commit ?? null,
+    rain_dirty: input.rain?.dirty ?? null,
+    rain_source: input.rain ? input.rainSource : "unavailable",
+    lop_nur_twin_repository: LAB_REPOSITORY,
     lop_nur_twin_commit: lab.commit,
     lop_nur_twin_dirty: lab.dirty,
     lop_nur_twin_source: lab.source,

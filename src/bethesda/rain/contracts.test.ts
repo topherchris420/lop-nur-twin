@@ -13,7 +13,7 @@ import {
   validatePreregistration,
   validateProposalChoice,
 } from "./validation";
-import { canonicalJson, sha256, sha256Bytes, sha256Json } from "./sha256";
+import { canonicalJson, sha256, sha256Bytes, sha256Json } from "../../rain/sha256";
 import { demoMeeting, demoProposal } from "./demo";
 
 const clone = <T>(v: T): T => structuredClone(v);
@@ -157,14 +157,14 @@ describe("other R.A.I.N. answers fail closed", () => {
   const identity = {
     schema: "rain-bethesda/v2",
     kind: "identity",
-    bridge: { name: "rain-bethesda-bridge", version: "1" },
+    runtime: { name: "lop-nur-twin-rain", version: "1" },
     rain: {
-      repository: "topherchris420/james_library",
+      repository: "topherchris420/lop-nur-twin",
       commit: "9".repeat(40),
       dirty: false,
     },
     corpus: { files: 17, sha256: "a".repeat(64) },
-    meeting_engine: "james_library.launcher.offline_meeting.build_offline_meeting",
+    meeting_engine: "rain.meeting.offline.buildOfflineMeeting",
     meeting_generation: "scripted",
     model: null,
     bounded_decision: "off",
@@ -176,6 +176,12 @@ describe("other R.A.I.N. answers fail closed", () => {
     expect(validateIdentity({ ...identity, model: "m" }).ok).toBe(false);
     expect(
       validateIdentity({ ...identity, rain: { ...identity.rain, repository: "x/y" } }).ok,
+    ).toBe(true);
+    expect(
+      validateIdentity({
+        ...identity,
+        rain: { ...identity.rain, repository: "not a repo" },
+      }).ok,
     ).toBe(false);
     expect(validateIdentity({ ...identity, shell: "rm -rf /" }).ok).toBe(false);
   });

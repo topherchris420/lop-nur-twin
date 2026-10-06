@@ -1,9 +1,10 @@
 import type { Perspective } from "./contracts";
 
 /**
- * How the four perspectives look: R.A.I.N.'s own embodiment, from
- * james_library's Godot client (`scripts/agent_avatar.gd` LOOKS for skin and
- * hair, `themes/lab/theme.json` for clothing). Presentation only — it changes
+ * How the four perspectives look: R.A.I.N.'s own embodiment, taken from its
+ * Godot client in topherchris420/james_library (`scripts/agent_avatar.gd`
+ * LOOKS for skin and hair, `themes/lab/theme.json` for clothing) when the
+ * runtime was consolidated here. Presentation only — it changes
  * nothing about who they are or what they say. Light enough for the city
  * bundle, which draws them on outings.
  */
