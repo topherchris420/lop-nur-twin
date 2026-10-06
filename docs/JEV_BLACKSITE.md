@@ -116,7 +116,7 @@ JevObservation — numbers and enums only, versioned, validated locally
 Server (server/jev/handler.ts) ─ validates, rate-limits, builds the question itself
       │  POST https://api.typesafe.ai/v1/systemone  (Authorization: Bearer TYPESAFE_API_KEY)
       ▼
-TypeSafe Jev — four Choice questions answered in parallel
+TypeSafe Jev — one Choice question per real choice (four to seven), in parallel
       │
       ▼
 Server validates every answer ─ offered options only, real probabilities
@@ -161,10 +161,12 @@ is one **control frame**: exactly one action per axis — `move`, `turn`, `tilt`
 [Places](#places-the-feets-precision-control)); v2 traces are refused.
 
 **An axis with a single legal option is not a choice, and is not asked.** In
-direct control `target` is always `NONE` and `aim` always `CENTER_MASS`, so the
-server sends TypeSafe exactly the original four questions and the decision
-carries `null` for the other two — no probability or confidence is invented
-for them. In precision control, with `n` enemies listed, `target` offers `NONE`
+direct control `target` is always `NONE` and `aim` always `CENTER_MASS`, so
+neither is asked and the decision carries `null` for both — no probability or
+confidence is invented for them. `go` is asked only under places navigation,
+while a place is listed or a travel is under way, and is `null` otherwise. So a
+decision asks four to seven questions: the four core axes always, plus `target`
+and `aim` with an enemy in view under precision control, plus `go`. In precision control, with `n` enemies listed, `target` offers `NONE`
 and `TARGET_0` … `TARGET_{n-1}` and `aim` all three regions; with nobody in
 view both collapse to one option and are not asked. A slot names an entry of the
 observation the decision was made from. The browser keeps the slot → entity map
@@ -196,8 +198,10 @@ sprinting.`
 **Legal actions** (`legalActionsFor` in `observation.ts`) filter by mechanics,
 never by tactics: no fire on an empty or reloading weapon, no reload of a full
 magazine, no fire or aim while sprinting or climbing, no stance change to the
-current stance, no jump in the air, no tilt past 80°. Every axis always keeps at
-least two options.
+current stance, no jump in the air, no tilt past 80°. The four core axes
+(`move`, `turn`, `tilt`, `weapon`) always keep at least two options; `target`,
+`aim` and `go` collapse to one when there is nothing to choose, and are then not
+asked.
 
 ## The observation
 
@@ -614,7 +618,8 @@ not. Benchmarks before this date ran without the check.
 4. **Builds the question itself**: the state rendering, the instructions and the
    option descriptions all come from server code and the versioned contract. The
    browser cannot choose what is asked, so the endpoint is not a prompt proxy.
-5. Asks TypeSafe four Choice questions in one request, with a 1.8 s timeout.
+5. Asks TypeSafe one Choice question per axis that offers a real choice — four
+   to seven — in one request, with a 1.8 s timeout.
 6. Validates each answer: an offered option, a probability for every offered
    option and no others, each in [0, 1], summing to 1 within rounding, the choice
    the most probable, confidence in [0, 1]. Anything else is a 502.
@@ -689,8 +694,9 @@ curl -s https://<deployment>/api/jev/decision   # {"configured":true,"model":"je
 ```
 
 **Container image.** The nginx image serves static files only; it has no
-function and no credential. `/api/*` answers 404 in the endpoint's own error
-shape, and `/play?brain=jev` shows JEV UNAVAILABLE.
+function and no credential. The decision endpoints answer 404 in their error
+shape, so `/play?brain=jev` shows JEV UNAVAILABLE (and Glide and the LLM the
+same), and `/api/rain/*` answers as a runtime switched off.
 
 ## Human takeover
 
@@ -744,8 +750,13 @@ WEAPON NO_FIRE          P .91 CONF .82
 LATENCY 220 MS · TICK 27 · JEV-1.13.0
 TARGET 59 M -6° · HP 100 · AMMO 5/210
 Jev chooses · Blacksite decides what happens
-[ Take control · H ]  [ Save trace ]  [ Save decisions ]
+[ Take control · H ]  [ Save trace ]
 ```
+
+That frame was captured from an earlier build. Today the panel also draws the
+motor line and the ACC · HITS · K/D line described above (and, under places
+navigation, a GO row), offers **Save decisions** beside **Save trace**, and its
+last line reads "Jev chooses · local controller executes · Blacksite decides".
 
 Each axis shows the choice, its probability and TypeSafe's confidence, then up
 to three candidates as TypeSafe ranked them; a long top three wraps between
@@ -754,18 +765,22 @@ two were legal: a reload was in progress, which rules out firing, aiming and
 reloading.
 
 **Labels** say who is in control: **LIVE JEV** only while TypeSafe's answers are
-executing; **LIVE LLM** only while a conventional LLM's are (see
-[A conventional LLM in the seat](#a-conventional-llm-in-the-seat)); **FALLBACK**
-from the first fallback frame until Jev answers again; **RANDOM**; **SCRIPTED**;
-**REPLAY**; and **JEV UNAVAILABLE** / **LLM UNAVAILABLE** when the service cannot
-answer.
-Probabilities and confidence are shown only when TypeSafe supplied them — the
-random brain shows "uniform over legal options", and nothing is ever filled in.
+executing; **LIVE GLIDE** only while Fastino's are; **LIVE LLM** only while a
+conventional LLM's are (see
+[A conventional LLM in the seat](#a-conventional-llm-in-the-seat));
+**FALLBACK** from the first fallback frame until the remote brain answers
+again; **HUMAN**; **RANDOM**; **SCRIPTED**; **REPLAY**; and **JEV UNAVAILABLE**
+/ **GLIDE UNAVAILABLE** / **LLM UNAVAILABLE** when the service cannot answer.
+Probabilities and confidence are shown only when the provider supplied them
+(TypeSafe and Fastino state probabilities; an LLM's confidence is a number it
+wrote) — the random brain shows "uniform over legal options", a replay none,
+and nothing is ever filled in.
 
 **Statuses**: OFF, CONNECTING, OBSERVING, DECIDING, EXECUTING, TIMEOUT,
 UNAVAILABLE, ERROR, DEAD, RESPAWNING, PAUSED, MATCH_COMPLETE.
 
-The menu's **Player control** selector (Human / Jev / Random / Replay) explains
+The menu's **Player control** selector (Human / Jev / Glide / LLM / Random /
+Scripted / Replay) explains
 each choice and probes the service before a match: "Jev ready · jev-latest" or
 "Jev unavailable — …".
 
@@ -775,9 +790,10 @@ each choice and probes the service before a match: "Jev ready · jev-latest" or
 legal options, the same cadence limits and the same executor. Under direct
 control it draws exactly four numbers per decision from `mulberry32(seed)` — one
 per axis, as it always has, so a seed's frames are unchanged
-(`engagement.test.ts` re-derives them from the stream); under precision control
-it draws six, adding a target slot and an aim region, and its engagements then
-run through the same motor controller. It picks uniformly among the legal
+(`engagement.test.ts` re-derives them from the stream); precision control adds
+two draws, a target slot and an aim region, whose engagements then run through
+the same motor controller, and places navigation adds one, the destination,
+last. It picks uniformly among the legal
 options, so the same seed and the same options give the same frames: `bun run jev` runs seed 42 twice and compares every frame
 decided from identical options (63 of 63 matched in the run recorded here). It answers in under a millisecond, so it decides about as often as the
 200 ms cap allows; Jev decides about as often as its latency allows.
@@ -793,8 +809,9 @@ options, frame, TypeSafe's probabilities and confidence (or `null`), model
 version, round-trip and server latency, action start, expiry and end (simulation
 seconds), end reason, outcome (rounds fired, hit, kill, damage taken, movement
 blocked), player state after, match id and seed; plus events — timeouts, stale
-and invalid answers, deaths, respawns, takeovers. **Save trace** downloads it;
-`?record=1` also keeps the last trace in local storage at the end of a match. No
+and invalid answers, deaths, respawns, takeovers. **Save trace** downloads it
+and keeps a copy of the last trace in local storage; `?record=1` also keeps it
+there at the end of a match. No
 trace can contain the credential: it never reaches the browser.
 
 **Save decisions** downloads the episode's decision records
@@ -1191,7 +1208,10 @@ do the same here?" can be asked on matched seeds.
   `LLM_BASE_URL`, `LLM_EFFORT`, `LLM_CONFIDENCE` (`verbalized` or `none`),
   timeouts, retries and a token cap — see `.env.example`. Server-side
   refusal fallbacks to another model are deliberately not enabled: a different
-  model silently answering part of an arm would confound it.
+  model silently answering part of an arm would confound it. Each answer
+  (`blacksite-llm-decision/v2`) carries `requestedModel`, what the server asked
+  for, and `model`, what the provider says served it — `null` when the provider
+  did not say, never filled in from configuration.
 - **Every answer is validated** against the options offered. Malformed output
   is `upstream_invalid` and is not retried (resampling until valid would hide
   the failure); a refusal is `upstream_refused`; rate limits, overload, 5xx and
@@ -1382,14 +1402,22 @@ explains how the harness turns that into evidence a reader can check; in short:
   episode, aggregates with intervals, paired differences by seed, calibration,
   the computational ledger, staleness, latency sweeps, matched-ablation
   contrasts and benchmark warnings; readable at `/evaluation`.
+- **Shadow agreement** (`blacksite-shadow/v1`, `src/game/eval/shadow.ts`,
+  `node tools/experiment.mjs --shadow <run dir>`): each recorded observation
+  shown, in order, to the scripted reference policies, with per-axis agreement
+  against the exact agreement of a uniform chooser; episodes are the unit, and
+  fallback and replayed frames are set aside. Agreement on identical inputs —
+  not a counterfactual outcome and not a skill score (see
+  [Same observations, other minds](EVALUATION_PHILOSOPHY.md#same-observations-other-minds)).
 - **New seat parameters** for experiments: `?stale=strict|observe`,
   `?motor=standard|degraded` (a slower, shakier, later hand for controller
   ablations), `?targetOrder=nearest|shuffled`, `?outcomeWindow=<s>`.
 
 ## Security
 
-- The key is read in exactly two places, both server-side: `api/jev/decision.ts`
-  and the Vite middleware. `src/game/pilot/secretBoundary.test.ts` fails if
+- The key is read in exactly three places, all server-side:
+  `api/jev/decision.ts`, `api/rain/_config.ts` (for the R.A.I.N. Lab's optional
+  bounded decisions) and the Vite middleware. `src/game/pilot/secretBoundary.test.ts` fails if
   browser code mentions or reads it, imports server code, or if another file
   starts reading it.
 - `bun run build` ends with `tools/jev-secret-scan.mjs`, which fails the build if
@@ -1417,15 +1445,20 @@ simulation — not operational data") is unchanged and stays outside the HUD.
 
 ## Live and mock
 
-The running application has no mock mode. A decision on screen is either
-TypeSafe's (LIVE JEV) or visibly labelled as something else (FALLBACK, RANDOM,
+The running application has no mock mode. A decision on screen is either a
+validated answer from the provider its label names (LIVE JEV, LIVE GLIDE, LIVE
+LLM) or visibly labelled as something else (HUMAN, FALLBACK, RANDOM, SCRIPTED,
 REPLAY).
 
-The test double exists only in tests: `src/game/pilot/testing/fixtures.ts`
-(imported by `*.test.ts` only) and a fake endpoint that `tools/jev.mjs` installs
-by request interception inside its own test browser. The offline browser suite
-asserts that no decision in it came from TypeSafe. Nothing in ordinary CI
-spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
+Test doubles exist only in tests: `src/game/pilot/testing/fixtures.ts` and
+`src/game/eval/testing/fixtures.ts` (imported by `*.test.ts` only); a fake
+endpoint that `tools/jev.mjs` installs by request interception inside its own
+test browser, and the in-browser fake in `tools/glide.mjs`; and
+`tools/fake-llm.mjs`, which `bun run llm` and experiment arms marked `fakeLlm`
+run on a dev server of their own. The offline suites assert that no decision in
+them came from a real provider. Nothing in ordinary CI spends API credit; live
+runs require `JEV_LIVE_TEST=1`, `FASTINO_LIVE_TEST=1` or `LLM_LIVE_TEST=1` and a
+configured key.
 
 | Command                                                             | Calls TypeSafe | What it checks                                                                                                                                                                                                   |
 | :------------------------------------------------------------------ | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1439,7 +1472,8 @@ spends API credit; live runs require `JEV_LIVE_TEST=1` and a configured key.
 | `bun run llm`                                                       | no             | the LLM seat end to end against the offline test double                                                                                                                                                          |
 | `bun run glide`                                                     | no             | the Glide seat against an in-browser fake: label, execution, negotiated limits, records, wrong-provider refusal, outage, takeover, menu                                                                          |
 | `FASTINO_LIVE_TEST=1 bun run glide:live` / `benchmark:glide`        | Fastino        | live Glide decisions, model, labels, probabilities, request shape, credential absence, takeover / benchmark episodes                                                                                             |
-| `node tools/experiment.mjs tools/experiments/<x>.json`              | only flagged   | a declared experiment and its evaluation; Jev and LLM arms run only with `JEV_LIVE_TEST=1` / `LLM_LIVE_TEST=1`, and are PENDING otherwise                                                                        |
+| `node tools/experiment.mjs tools/experiments/<x>.json`              | only flagged   | a declared experiment and its evaluation; Jev, Glide and LLM arms run only with `JEV_LIVE_TEST=1` / `FASTINO_LIVE_TEST=1` / `LLM_LIVE_TEST=1`, and are PENDING otherwise                                         |
+| `node tools/experiment.mjs --shadow <run dir>`                      | no             | same observations, other minds: a run's recorded observations shown to the scripted policies, per-axis agreement against exact chance                                                                            |
 
 ## Limitations
 
@@ -1472,7 +1506,8 @@ These are the boundaries of the experiment as it now stands, not failures.
   so (TIMEOUT, UNAVAILABLE, ERROR), the controller lets go within a second, and
   the player idles — or, with `?fallback=random`, a labelled FALLBACK acts.
 - **API cost.** Every decision is a TypeSafe request — about 270 a minute in
-  play, six questions each under precision control. Nothing in ordinary CI
+  play, with up to seven questions each under precision control and places
+  navigation (the default). Nothing in ordinary CI
   spends credit; benchmarks and live checks require `JEV_LIVE_TEST=1`.
 - **Rate limits are per instance** (see [The server boundary](#the-server-boundary)),
   and the TypeSafe account's own limit (1,200 requests per minute at the time of

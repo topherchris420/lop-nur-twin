@@ -81,13 +81,13 @@ story, and the numbers, are in
 | `R` · `1`/`2` · `B` | Reload · swap weapon · cycle fire mode                                    |
 | `Q` / `E`           | Lean left / right (moves the camera; rounds leave from the un-leaned eye) |
 | `Tab` · `Esc`       | Scoreboard · pause and release the mouse                                  |
-| `H`                 | Take control back from Jev, random or replay                              |
+| `H`                 | Take control back from whichever brain holds the seat                     |
 
 `/play?autoplay=1` skips the menus. `?quality=0..3` pins a quality tier,
 `?at=<x>,<z>` and `?look=<deg>` place and aim the opening spawn, and
 `?mode=tdm|ffa|domination|hardpoint|gunfight` picks the ruleset.
 
-## Player control: human, Jev, random, replay
+## Player control: one seat, many minds
 
 The player does not have to be a person. **Player control** on the main and
 pause menus — or `?brain=` — puts a different brain in the seat, and every brain
@@ -99,6 +99,7 @@ weapons, collision and damage cannot tell who is playing.
 | `human`   | Keyboard and mouse. The default, and what any other value means.                                           |
 | `jev`     | The TypeSafe Jev model, through the server-side `/api/jev/decision` endpoint. Labelled LIVE JEV.           |
 | `glide`   | Fastino's Glide, asked Jev's question through `/api/glide/decision`. Labelled LIVE GLIDE.                  |
+| `llm`     | A configured language model, asked the same question content through `/api/llm/decision`. LIVE LLM.        |
 | `random`  | A seeded random policy over the same controls and timing (`&seed=<int>`). Labelled RANDOM.                 |
 | `script`  | A hand-written reference policy (`&policy=marksman\|skirmisher`), same observation and controls. SCRIPTED. |
 | `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live.         |

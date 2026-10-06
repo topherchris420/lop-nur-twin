@@ -37,8 +37,10 @@ Bethesda has its own geography and simulation; it does not share Blacksite's com
 physics.
 
 [Quick start](#quick-start) · [The twin](#the-analytical-twin) ·
-[Blacksite](#blacksite-one-seat-many-minds) · [Bethesda](#the-bethesda-anomaly) ·
-[Experiments](#measure-it-yourself) · [Documentation](#documentation)
+[Blacksite](#blacksite-one-seat-many-minds) ·
+[Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
+[Experiments](#measure-it-yourself) · [Status](#what-is-built) ·
+[Documentation](#documentation)
 
 ## Quick start
 
@@ -86,8 +88,18 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 
 - **Claims carry a status:** observed, reported, interpreted, or illustrative.
   The ledger is derived from the layout and source register. Build validation
-  rejects unsupported classifications, missing citations, and wording that
-  presents interpretation as verification.
+  rejects unsupported classifications, missing citations, a source dated before
+  the observation it attests, and wording that presents interpretation as
+  verification.
+- **Every claim can be inspected.** The claim inspector — in the dossier, and
+  inline at `/analysis?structure=<id>` — says what the evidence establishes,
+  what is inferred, what is unknown, which sources support it and which only
+  describe a method, and when it became knowable.
+- **Time is evidence time.** The evidence timeline steps through the dates the
+  evidence changed. At each one the scene draws solid only what was publicly
+  established by then, outlines what the model places but no public evidence
+  yet supported, and hides the rest. A claim is knowable no earlier than its
+  evidence.
 - **Unknown stays unknown.** Missing uncertainty is “not stated,” never zero.
   Site-event, evidence-publication and model-entry dates remain separate.
 - **Measurements have a frame.** Distances and bearings use EPSG:32645, with
@@ -118,15 +130,25 @@ directly or invent a result.
 
 ```mermaid
 flowchart LR
-  World["World and bounded perception"] --> Human["Human"]
-  World --> Brain["Model or policy"]
-  Brain --> Controls["Validated choices and local controllers"]
+  World["World state"] --> Perception["Bounded perception"]
+  Perception --> Human["Human"]
+  Perception --> Brain["Model or policy"]
+  Brain --> Gate["Host gate: legal options, staleness"]
+  Gate --> Controls["Local controllers"]
   Human --> Input["InputState"]
   Controls --> Input
   Input --> Rules["Movement, collision, weapons and damage"]
   Rules --> World
-  Rules --> Record["Traces, debrief and offline evaluation"]
+  Gate --> Record["Decision records and traces"]
+  Rules --> Record
+  Record --> Offline["Offline evaluation"]
 ```
+
+Observation, decision, validated input, environment transition, consequence,
+trace: a brain proposes, the host refuses any option the observation did not
+offer or that has gone stale, and the same rules a keyboard meets decide what
+happens. Every decision is recorded with the observation it was made from;
+**Save decisions** exports an episode's records.
 
 | Seat     | URL setting                                     | Role                                                                 |
 | :------- | :---------------------------------------------- | :------------------------------------------------------------------- |
@@ -224,6 +246,17 @@ not a ranking. The [full account](docs/benchmarks/2026-10-05/README.md) has
 every episode, the paired differences, calibration, and the two-seed smoke test
 that came first.
 
+**Same observations, other minds.** Matched seeds diverge within seconds, but
+every decision record keeps the observation it was made from, so the recorded
+observations can be shown to the scripted policies and compared choice by
+choice, against the exact agreement a uniform chooser would reach. The random
+seat sits at chance on every axis, as a control should. In the even-rules run,
+where the aim point was a real choice, Glide chose centre mass in 95% of those
+decisions; the marksman chose the head in 98% of its own, and Jev in 64%. This is agreement on
+identical inputs, not a counterfactual outcome and not a skill score
+([method](docs/EVALUATION_PHILOSOPHY.md#same-observations-other-minds),
+[tables](docs/benchmarks/2026-10-05/README.md#same-observations-other-minds)).
+
 ## Enjoy a normal walk in Bethesda
 
 Bethesda is the ordinary counterpoint to the desert: shopfronts, sidewalks,
@@ -292,7 +325,9 @@ are no surveyed interiors or claims of photorealism. Field notes expose sources,
 limitations and downloads of the geographic data.
 
 **Bounded decisions, verifiable replay.** Humans in the pedestrian seat and
-optional Jev proposals pass through the city's permitted-action gate.
+optional Jev proposals pass through the city's permitted-action gate, which
+says what it did with each choice; an agent indoors takes no choice from
+anyone.
 Deterministic code retains routing, collisions, traffic and event mechanics.
 Jev is off by default; no live Jev Bethesda result is claimed. Export a replay
 before leaving, then re-import it to verify checkpoints, decision history and
@@ -344,6 +379,9 @@ node tools/experiment.mjs --compare before/evaluation.json after/evaluation.json
 
 # Run a single reference policy
 node tools/jev-benchmark.mjs --brain script --policy marksman --control precision
+
+# Show a run's recorded observations to the scripted policies (no match, no model)
+node tools/experiment.mjs --shadow docs/benchmarks/2026-10-05/glide-jev-even
 ```
 
 Read saved evaluations at [`/evaluation`](https://lop-nur-twin.vercel.app/evaluation).
@@ -362,6 +400,21 @@ actual Lop Nur site.
 Read [evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md) before interpreting
 a comparison, and [the seat and harness guide](docs/JEV_BLACKSITE.md) to reproduce
 or extend one.
+
+## What is built
+
+| Part                                                                                                | Status                                     | Notes                                                                                         |
+| :-------------------------------------------------------------------------------------------------- | :----------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                            | Build-gated by the evidence validator; both front doors gated by accessibility checks         |
+| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Browser suites for gameplay, engagement and gait                                              |
+| Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental** | Need server credentials; ten-seed runs are exploratory, not rankings                          |
+| Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                            | Offline; a result describes this build on the machine that ran it                             |
+| Bethesda city simulation, scenarios and replay                                                      | **Implemented**                            | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model               |
+| Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                               |
+| R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, pre-registration and submission do not close across functions (documented)         |
+| R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                          |
+| Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/` |
+| Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                               |
 
 ## Development and validation
 

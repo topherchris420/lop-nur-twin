@@ -44,8 +44,8 @@ motion, makes camera jumps immediate, and disables adaptive promotion.
 Every one of these is validated: a malformed value falls back to a default
 rather than being coerced, an out-of-range number clamps, and a date that does
 not exist on the calendar (`2025-02-30`) is rejected rather than rolled forward.
-`tools/routes.mjs` throws hostile versions of all of them at the app on every
-run.
+`tools/routes.mjs` throws hostile values at most of them on every run (not yet
+`?year=`, `?compare=`, `?night=` or `?liveTraffic=`).
 
 | Parameter              | Effect                                                                |
 | :--------------------- | :-------------------------------------------------------------------- |
@@ -72,5 +72,7 @@ player brains `?brain=` (`human`, `jev`, `glide`, `llm`, `random`, `script`, `re
 evaluations `?stale=strict|observe`, `?motor=standard|degraded` and
 `?outcomeWindow=`; for experiments with local brains `?cadence=` and
 `?latency=`; for a human `?playerProfile=` and `?eliteRecoil=`);
-they are listed in [`docs/BLACKSITE.md`](BLACKSITE.md). In Blacksite, `H` takes
+they are described in [`docs/BLACKSITE.md`](BLACKSITE.md) and, for the seat
+and evaluation parameters, [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md); `?near=`
+overrides the world camera's near plane for capture experiments. In Blacksite, `H` takes
 control back from a brain; the `H` above is the twin's help overlay.

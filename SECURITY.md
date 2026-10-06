@@ -2,10 +2,11 @@
 
 Lop Nur Twin is an unclassified, public-source
 research prototype that runs in a browser. It holds no user accounts, no
-personal data and no non-public information. It has one optional server-side
-component — the Jev decision endpoint behind `/play?brain=jev` — and that holds
-the project's only credential, a TypeSafe API key kept in the host's environment
-and never in the repository or the bundle. That shapes
+personal data and no non-public information. Its optional server-side
+components — the decision endpoints behind `/play?brain=jev`, `glide` and
+`llm`, and the R.A.I.N. Lab's route inside Bethesda — hold the project's only
+credentials, provider keys kept in the host's environment and never in the
+repository or the bundle. That shapes
 everything below: the realistic risks here are supply-chain compromise of the
 build, a cross-site scripting bug in a citation, and — the one specific to this
 project — a viewer mistaking modeled interpretation for verified intelligence.
@@ -66,11 +67,11 @@ any kind.
 - Bugs in the build, validation or manifest pipeline that let unvalidated data
   or an incorrect hash ship as if it had passed.
 - Deployment configuration that weakens the shipped security headers.
-- The decision endpoints (`/api/jev/decision`, `/api/llm/decision`): anything
-  that exposes the TypeSafe or LLM credential, gets it into the bundle, a
-  response or a log; that makes either endpoint forward text the browser chose
-  to a model (it must only send the server's own question); or that bypasses
-  their validation or rate limits.
+- The decision endpoints (`/api/jev/decision`, `/api/glide/decision`,
+  `/api/llm/decision`): anything that exposes the TypeSafe, Fastino or LLM
+  credential, gets it into the bundle, a response or a log; that makes an
+  endpoint forward text the browser chose to a model (it must only send the
+  server's own question); or that bypasses their validation or rate limits.
 - The R.A.I.N. Lab's route (`/api/rain/*`) and the research runtime behind it
   (`src/rain/`): anything that exposes the model server's token or the TypeSafe
   key, gets either into the bundle, a response or a log; that lets the browser
@@ -87,8 +88,8 @@ any kind.
 
 - Denial of service by loading the 3D scene on constrained hardware, or by
   requesting a large number of pages. The site is static; capacity is the
-  host's concern. The one exception is the Jev endpoint, which spends API
-  credit: its in-memory limits are documented as per-instance brakes, not a
+  host's concern. The exceptions are the decision endpoints, which spend API
+  credit: their in-memory limits are documented as per-instance brakes, not a
   wall, so exceeding them by spreading requests across many addresses or
   instances is a known limitation (see `docs/JEV_BLACKSITE.md`), not a finding.
 - Disagreements about the _content_ of the model — a wrong footprint, a
@@ -126,13 +127,15 @@ any kind.
   optional feature does: `/play?brain=jev` calls TypeSafe through
   `api/jev/decision.ts`, which reads `TYPESAFE_API_KEY` from the host's
   environment (a Vercel _Sensitive_ variable in production; `.env.local`, which
-  is git-ignored, in development). Only `api/jev/decision.ts` and the Vite
-  middleware read it; `src/game/pilot/secretBoundary.test.ts` fails if browser
+  is git-ignored, in development). Only `api/jev/decision.ts`,
+  `api/rain/_config.ts` (below) and the Vite middleware read it;
+  `src/game/pilot/secretBoundary.test.ts` fails if browser
   code mentions or reads it, and `bun run build` ends with
   `tools/jev-secret-scan.mjs`, which fails if the built bundle contains its name,
-  a TypeSafe-shaped key, or its value. `/play?brain=llm` works the same way
-  through `api/llm/decision.ts` and `LLM_API_KEY`, under the same test and scan
-  (which also looks for Anthropic- and OpenAI-shaped keys). The R.A.I.N. Lab's
+  a TypeSafe-shaped key, or its value. `/play?brain=glide` and
+  `/play?brain=llm` work the same way through `api/glide/decision.ts` with
+  `FASTINO_API_KEY` and `api/llm/decision.ts` with `LLM_API_KEY`, under the same
+  test and scan (which also looks for Anthropic- and OpenAI-shaped keys). The R.A.I.N. Lab's
   research runtime needs no credential; its two optional ones — the bearer
   token of a local model server (`RAIN_LLM_API_KEY`) and the TypeSafe key, when
   R.A.I.N.'s router may ask Jev — are read only by `api/rain/_config.ts` and the
@@ -143,12 +146,15 @@ any kind.
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite
   inlines `VITE_`-prefixed values into the bundle, where any visitor can read
   them.
-- CI references no user-defined repository secret. The one token it uses is
-  `secrets.GITHUB_TOKEN`, minted per run and scoped read-only by each job's
-  `permissions` block, because Gitleaks needs it to read a pull request —
-  and GitHub issues a read-only token to fork pull requests regardless. No
-  pull-request workflow is granted write permissions, so a malicious pull
-  request cannot exfiltrate anything by editing a workflow.
+- No workflow that runs pull-request code references a user-defined repository
+  secret. The one token those use is `secrets.GITHUB_TOKEN`, minted per run and
+  scoped read-only by each job's `permissions` block, because Gitleaks needs it
+  to read a pull request — and GitHub issues a read-only token to fork pull
+  requests regardless. No pull-request workflow is granted write permissions,
+  so a malicious pull request cannot exfiltrate anything by editing a workflow.
+  The deployment workflow (`deploy-production.yml`) does read the Vercel token
+  and project ids; it runs only on a push to `main` or by hand, never on a pull
+  request.
 - Gitleaks scans full history on every run, so a credential committed by
   mistake is caught rather than quietly living in the log. The configuration
   is `.gitleaks.toml`, which extends the default ruleset.
@@ -181,11 +187,11 @@ State these plainly to anyone evaluating this project:
   ADS-B feed. It is off by default; without it the application makes no
   cross-origin request at all. Remove `https://api.adsb.lol` from the
   Content-Security-Policy to forbid it entirely.
-- **Three opt-in server-side calls exist**: choosing Jev or the LLM on `/play`
-  makes the page post a bounded game observation (numbers and fixed
+- **Four opt-in server-side calls exist**: choosing Jev, Glide or the LLM on
+  `/play` makes the page post a bounded game observation (numbers and fixed
   vocabularies — no free text, no identity) to this deployment's own
-  `/api/jev/decision` or `/api/llm/decision`, which asks the model a question
-  the server writes. And the hidden lab in Bethesda posts to `/api/rain/*` the
+  `/api/jev/decision`, `/api/glide/decision` or `/api/llm/decision`, which asks
+  the model a question the server writes. And the hidden lab in Bethesda posts to `/api/rain/*` the
   research question a person typed (at most 500 characters, with control and
   bidirectional characters refused) and, for an experiment the person
   authorized, its definition and measurements; the research runtime answers

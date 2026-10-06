@@ -23,9 +23,10 @@ import {
  * The TypeSafe question, built on the server from a validated observation.
  *
  * Nothing the browser sends is forwarded as text. The observation is numbers and
- * enums; this module turns them into the state and the four Choice questions
- * Jev answers — one per control axis, asked together so they run in parallel —
- * and the option descriptions come from the versioned action contract.
+ * enums; this module turns them into the state and the Choice questions Jev
+ * answers — one per control axis that offers a real choice, four to seven,
+ * asked together so they run in parallel — and the option descriptions come
+ * from the versioned action contract.
  *
  * TypeSafe's own guidance shapes the rendering: Jev reads semantic
  * descriptions better than raw numbers, so the arithmetic is done here. An
@@ -528,7 +529,7 @@ export function buildSystemOneRequest(
     criteria: parts.questions[axis]!.options,
   });
   // Every asked axis goes in one request: TypeSafe evaluates them in parallel
-  // against the same state, so six questions cost barely more time than one.
+  // against the same state, so seven questions cost barely more time than one.
   // An axis with a single legal option is not a question and is not sent.
   const questions: SystemOneRequest<InstructionsEnvelope>["questions"] = {};
   for (const axis of askedAxes(obs.legal)) questions[axis] = question(axis);

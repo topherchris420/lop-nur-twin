@@ -33,8 +33,9 @@
   // rejects and what the release manifest hashes, so they are production code
   // that happens to run at build time rather than in a browser.
   //
-  // `server/` and `api/` hold the one server-side feature, the Jev decision
-  // endpoint. They are strict-checked like everything else; the API key they
-  // read is server-only by construction (see docs/JEV_BLACKSITE.md).
+  // `server/` and `api/` hold the optional server side: the Jev, Glide and LLM
+  // decision endpoints and the R.A.I.N. Lab's routes. They are strict-checked
+  // like everything else; the provider keys they read are server-only by
+  // construction (see docs/SYSTEM_ARCHITECTURE.md and docs/JEV_BLACKSITE.md).
   "include": ["src", "scripts", "server", "api", "vite.config.ts", "vitest.config.ts"]
 }

@@ -676,7 +676,12 @@ files are server-side.
 - The vocabulary is small on purpose: eight scenarios, six places, seven
   metrics. Adding one is a contract change, not a configuration.
 - Rate limits and the scratch registry are per server instance and reset on a
-  cold start.
+  cold start. On Vercel each `api/rain/*` route is a separate function with
+  instances of its own, so with a scratch registry a submission can reach an
+  instance that never saw its pre-registration and is refused as not
+  registered. One process (`bun run dev`, `bun run preview`) closes the loop; a
+  function deployment needs a registry directory its functions share, which
+  Vercel does not provide.
 - The authorization record attests to an action in a browser, not to a person.
 
 ## Verifying

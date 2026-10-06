@@ -45,7 +45,7 @@ flowchart TB
     manifest["generate-manifest<br/>SHA-256 over canonical JSON"]
   end
 
-  subgraph ci["CI — semi-trusted, no secrets"]
+  subgraph ci["CI — semi-trusted, no secrets on PR code"]
     build["npm ci · build · typecheck"]
     scan["CodeQL · Gitleaks · Trivy<br/>bun audit · SBOM"]
   end
@@ -80,16 +80,20 @@ The boundaries that matter:
 
 1. **Authoring → build.** Data becomes a release only by passing validation.
    The validator is the gate, so a weakened validator is a weakened boundary.
-2. **CI → host.** CI runs without repository secrets and cannot write to the
-   repository. Pull-request code therefore cannot obtain anything to steal.
+2. **CI → host.** The checks that run pull-request code have no repository
+   secrets and cannot write to the repository, so pull-request code cannot
+   obtain anything to steal. One workflow, `deploy-production.yml`, holds the
+   Vercel deployment token; it runs only on a push to `main` or by hand, never
+   on a pull request.
 3. **Host → browser.** Everything past this line is public and attacker-visible.
    No control on the browser side protects data; controls there protect the
    _viewer_.
 4. **Browser → third parties.** Only two paths cross it: a link the viewer
    clicks, and one opt-in feed that is off by default.
-5. **Browser → the Jev function → TypeSafe.** Opt-in, same-origin. The function
-   holds the TypeSafe credential; the browser sends only a bounded observation,
-   and the function decides what TypeSafe is asked (T12).
+5. **Browser → a decision function → its provider.** Opt-in, same-origin. The
+   Jev, Glide and LLM functions each hold one provider credential; the browser
+   sends only a bounded observation, and the function decides what the
+   provider is asked (T12).
 6. **Browser → the R.A.I.N. route → the research runtime.** Same-origin; the
    runtime runs inside the function. It holds the model server's address and
    token and the TypeSafe key, if any, composes every outbound request itself
@@ -185,9 +189,9 @@ public. They change rendering only, and are bounded.
 
 ### T4 — Route manipulation and deep links
 
-**Mitigations.** Unknown paths render a styled not-found view with links to the
-two real views (`src/routes/__root.tsx`). SPA fallback is configured so
-`/play` and `/analysis` load when opened directly and survive a refresh, while
+**Mitigations.** Unknown paths render a styled not-found view with links to
+every real view (`src/routes/__root.tsx`). SPA fallback is configured so every
+route loads when opened directly and survives a refresh, while
 real files are still served as themselves. `frame-ancestors 'none'` stops the
 app being framed by another site.
 
@@ -213,7 +217,9 @@ would be picked up. Digest pinning is recommended before any agency pilot
 the CodeQL job (`security-events: write`), secret scanning and dependency
 review (`pull-requests: read`) raise it, and none runs pull-request code with
 those permissions in a way that can write to the repository. **No user-defined
-repository secret is referenced anywhere in either workflow.** One token is:
+repository secret is referenced by any workflow that runs pull-request code.**
+The deployment workflow (`deploy-production.yml`) references the Vercel token
+and project ids, and runs only on a push to `main` or by hand. One token is:
 `secrets.GITHUB_TOKEN`, which GitHub mints per run and scopes by the job's
 `permissions` block — the secret-scanning job needs it because Gitleaks reads
 the pull request through the API. It is read-only there, and GitHub issues a
@@ -236,10 +242,13 @@ code defect — and it is why no source content hash is fabricated.
 
 ### T12 — The decision endpoints
 
-`/api/jev/decision` and `/api/llm/decision` are the server-side components,
-and the only places a credential exists. They share one boundary: the
-threats and mitigations below apply to both, with `LLM_API_KEY` in place of the
-TypeSafe key for the second. The LLM endpoint adds three: its provider base URL
+`/api/jev/decision`, `/api/glide/decision` and `/api/llm/decision` are the
+decision seats' server side; with the R.A.I.N. route (T13) they are the only
+places a credential exists. They share one boundary: the threats and
+mitigations below apply to all three, with `FASTINO_API_KEY` or `LLM_API_KEY`
+in place of the TypeSafe key. Glide speaks Jev's protocol through the same
+handler (`createSystemOneDecisionHandler`), with a 7.5 s upstream timeout in
+place of Jev's 1.8 s. The LLM endpoint adds three: its provider base URL
 is operator configuration and must be `https` (or `http` to localhost), so a
 misconfiguration cannot send the key over plain HTTP to a remote host; its
 answers are validated against the offered options exactly as Jev's are, and a
@@ -251,8 +260,10 @@ a trace. (b) The endpoint becomes a general prompt proxy that forwards whatever
 a caller sends. (c) A caller exhausts the account's credit or rate limit. (d) A
 model answer is treated as authority over game state.
 
-**Mitigations.** (a) The key is read only by `api/jev/decision.ts` and the Vite
-middleware; a unit test fails if browser code mentions or reads it; the build
+**Mitigations.** (a) Each key is read only by its entry point under `api/` and
+the Vite middleware (the TypeSafe key also by `api/rain/_config.ts`, for the
+lab's optional bounded decisions); a unit test fails if any other file reads a
+key or browser code mentions one; the build
 fails if `dist/` contains its name, a key-shaped string or its value; the
 handler never echoes upstream bodies or error messages, and its tests assert no
 response, header or log line carries the key. (b) The request must be a
@@ -360,7 +371,9 @@ T12.
 **Mitigations.** The application is static: capacity is the host's. The heaviest
 cost is client-side, and the adaptive quality ladder sheds work automatically;
 `?quality=0..3` pins a tier. `client_max_body_size 1k` in the container config
-means the server accepts no meaningful request body.
+means the server accepts no meaningful request body; its `/api/` stubs raise
+the cap only so a POST reaches their fixed "not configured" answer, and never
+read the body.
 
 **Residual risk.** A viewer on old hardware may still find the 3D scene
 unusable — which is one of the reasons `/analysis` exists.
@@ -374,7 +387,10 @@ last Blacksite trace (`src/game/pilot/traceStorage.ts`), a convenience copy of
 a downloadable file; and the Bethesda R.A.I.N. Lab's registry
 (`src/bethesda/rain/store.ts`), the 24 most recent experiment records with
 their question, hypothesis, operator role label and measurements. Records read
-back are dropped unless their digest matches. Nothing else touches
+back are dropped unless their digest matches — and a digest anyone can
+recompute proves nothing about origin, so a stored record waits in the lab's
+quarantine until replay re-simulates it, exactly like an import, and is not
+evidence until then. Nothing else touches
 `localStorage`, `sessionStorage`, IndexedDB or cookies, and there is no
 tracking, no analytics and no fingerprinting.
 
@@ -437,7 +453,9 @@ build; same-origin `script-src` is the current compensating control.
 2. Everything in the repository and the bundle is public by design.
 3. Maintainers review data changes for sourcing as carefully as code changes
    for correctness.
-4. CI is not granted repository secrets or write permissions. The TypeSafe key
+4. CI jobs that run pull-request code are granted no repository secrets and no
+   write permissions; only the deployment workflow, which never runs on a pull
+   request, holds the Vercel token. The TypeSafe key
    and the R.A.I.N. runtime's model-server token live only in the host's
    environment; nothing in CI calls TypeSafe or a model server — the lab's
    model-meeting checks run against a stand-in on loopback.

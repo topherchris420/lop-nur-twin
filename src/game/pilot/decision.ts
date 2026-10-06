@@ -31,9 +31,9 @@ export interface AxisDecision<A extends Axis> {
 }
 
 /**
- * One answer per axis that was asked. `target` and `aim` are null when they
- * were not asked — a single legal option is not a choice, and no probability
- * or confidence is ever invented for it.
+ * One answer per axis that was asked. `target`, `aim` and `go` are null when
+ * they were not asked — a single legal option is not a choice, and no
+ * probability or confidence is ever invented for it.
  */
 export type DecisionAxes = {
   move: AxisDecision<"move">;

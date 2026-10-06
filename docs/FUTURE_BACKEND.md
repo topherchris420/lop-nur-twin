@@ -2,14 +2,18 @@
 
 Everything analytical in this repository today runs in a browser from static
 files. That is a deliberate choice: it makes a release reproducible, keeps the
-whole data surface auditable, and means there is no server to compromise.
+whole data surface auditable, and means there is no server holding the model to
+compromise.
 
-The single server-side component is outside the analytical model and optional:
-`api/jev/decision.ts`, a stateless Vercel Function that lets the TypeSafe Jev
-model choose the player's controls in the illustrative simulation
-(`/play?brain=jev`). It holds one credential, stores nothing, serves no model
-data, and the site works without it — see
-[`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). Nothing below builds on it.
+The server-side components that do exist are outside the analytical model and
+optional: three stateless decision endpoints (`api/jev`, `api/glide`,
+`api/llm`) that let a remote model choose the player's controls in the
+illustrative simulation, each holding one provider credential and storing
+nothing; and the R.A.I.N. Lab's seven `api/rain/*` routes, which run its
+research runtime in process with a scratch experiment registry. None serves
+model data, and the site works without them — see
+[`docs/SYSTEM_ARCHITECTURE.md`](SYSTEM_ARCHITECTURE.md). Nothing below builds on
+them.
 
 This document describes what an authenticated, server-backed deployment would
 look like **if an agency pilot required one** — and is explicit about what is
@@ -32,9 +36,11 @@ in the "recommended" section exists in this repository. In particular:
 | Build-gating evidence validation + negative tests                           | **Implemented**                                              | `src/lib/evidenceValidation.ts`, `scripts/test-evidence-validation.ts` |
 | Reproducible release manifest with SHA-256 hashes                           | **Implemented**                                              | `scripts/generate-manifest.ts`                                         |
 | Accessible non-3D analytical view                                           | **Implemented**                                              | `src/routes/analysis.tsx`                                              |
-| Security headers and CSP, verified against the real build                   | **Implemented**                                              | `vite.config.ts`, `vercel.json`, `deploy/nginx.conf`                   |
+| Security headers and CSP, verified against the real build                   | **Implemented**                                              | `vite.config.ts`, `vercel.json`, `deploy/security-headers.conf`        |
 | CI: build, tests, CodeQL, Gitleaks, Trivy, SBOM, dependency review          | **Implemented**                                              | `.github/workflows/`                                                   |
 | Container deployment (non-root nginx, SPA fallback, health path)            | **Implemented**                                              | `Dockerfile`, `deploy/nginx.conf`                                      |
+| Optional model seats for the simulation (Jev, Glide, LLM)                   | **Implemented** — outside the analytical model               | `api/*/decision.ts`, `server/`                                         |
+| R.A.I.N. research runtime route                                             | **Implemented**; a registry its functions share is not built | `api/rain/`, `server/rain/`, `src/rain/`                               |
 | Evidence record schema shaped for a future API (`sourceHash`, `supersedes`) | **Scaffolded** — fields exist, deliberately unpopulated      | `src/lib/evidence.ts`                                                  |
 | Machine-readable release identity for a future registry                     | **Scaffolded** — manifest is the artifact an API would serve | `public/model-manifest.json`                                           |
 | PostGIS, object storage, evidence API, OIDC, RBAC, audit log, IaC           | **Recommended only — not built**                             | this document                                                          |
@@ -170,8 +176,9 @@ of it is a programme.
 ## Kubernetes
 
 **Not needed, and not recommended today.** The current deployment is a static
-bundle behind a CDN or a single nginx container — a Kubernetes control plane
-would add operational surface and no capability.
+bundle behind a CDN with ten stateless optional functions, or a single nginx
+container — a Kubernetes control plane would add operational surface and no
+capability.
 
 It becomes reasonable if and when the backend above exists: several services,
 horizontal scaling, rolling deploys, and an agency platform that already runs

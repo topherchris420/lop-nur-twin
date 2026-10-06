@@ -19,14 +19,14 @@ import { parseTrace } from "../pilot/recorder";
  * The pilot's status panel and the controls that go with it.
  *
  * `JevHud` sits above the ammo readout while a brain has the player, and says
- * three things plainly: who is in control (LIVE JEV, LIVE GLIDE, FALLBACK,
- * RANDOM or REPLAY — only a TypeSafe answer is ever labelled LIVE JEV, and only
- * a Fastino answer LIVE GLIDE), what it is doing,
+ * three things plainly: who is in control (LIVE JEV, LIVE GLIDE, LIVE LLM,
+ * FALLBACK, RANDOM, SCRIPTED or REPLAY — only a TypeSafe answer is ever
+ * labelled LIVE JEV, and only a Fastino answer LIVE GLIDE), what it is doing,
  * and how to take the controls back. It repaints from the pilot's telemetry
  * singleton on its own ~8 Hz timer; nothing on the frame loop touches React.
  *
- * `PlayerControlSelector` is the HUMAN / JEV / RANDOM / REPLAY choice on the
- * main and pause menus.
+ * `PlayerControlSelector` is the Human / Jev / Glide / LLM / Random / Scripted
+ * / Replay choice on the main and pause menus.
  */
 
 const LABEL_COLOR: Record<ControlLabel, string> = {

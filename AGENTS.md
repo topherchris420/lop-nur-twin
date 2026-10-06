@@ -651,7 +651,7 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 70 checks: deep links, refreshes, hostile
+bun run routes                # 71 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```
 

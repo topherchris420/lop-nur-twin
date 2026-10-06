@@ -3,7 +3,8 @@
  * Flat ESLint config.
  *
  * `bun run build` already runs `tsc --noEmit` in strict mode over every file in
- * `src/` and `scripts/`, so the type system carries most of the weight. What is
+ * `src/`, `scripts/`, `server/` and `api/` (and the two configs), so the type
+ * system carries most of the weight. What is
  * configured here is the set of checks the compiler does not make, chosen so
  * that every rule that fires marks a real defect in *this* code.
  *
@@ -57,8 +58,8 @@ export default tseslint.config(
   /* Application and build-script sources.                             */
   /* ---------------------------------------------------------------- */
   {
-    // `server/` and `api/` are the Jev decision endpoint: server-side code
-    // held to the same rules as the application it serves.
+    // `server/` and `api/` are the decision endpoints and the R.A.I.N. Lab's
+    // routes: server-side code held to the same rules as the application.
     files: [
       "src/**/*.{ts,tsx}",
       "scripts/**/*.ts",

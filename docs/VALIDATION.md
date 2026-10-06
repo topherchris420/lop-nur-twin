@@ -7,11 +7,14 @@ when to run them.
 ## The gate
 
 `bun run build` is the authoritative integration gate. It runs the offline data
-validator, regenerates the release manifest, produces the production bundle,
-runs a strict `tsc --noEmit` over every file in `src/`, `scripts/`, `server/` and
-`api/` — no `any`, unused locals are errors, no exclusions — and finishes with
-`tools/jev-secret-scan.mjs`, which fails the build if `dist/` contains the
-TypeSafe credential's name, anything shaped like a TypeSafe key, or the
+validator, then Bethesda's (`scripts/validate-bethesda.ts`: the city's data,
+the R.A.I.N. corpus and the DEMO recording, each against its hashes),
+regenerates the release manifest, produces the production bundle, runs a strict
+`tsc --noEmit` over every file in `src/`, `scripts/`, `server/` and `api/` — no
+`any`, unused locals are errors, no exclusions — and finishes with
+`tools/jev-secret-scan.mjs`, which fails the build if `dist/` contains the name
+of any provider credential (`TYPESAFE_API_KEY`, `FASTINO_API_KEY`,
+`LLM_API_KEY`, `RAIN_LLM_API_KEY`), anything shaped like one of their keys, or a
 configured key's value when it is present in the build environment.
 
 `bun run check` composes the full quality gate:
@@ -21,7 +24,7 @@ bun run format:check   # Prettier
 bun run lint           # ESLint
 bun run test:run       # Vitest
 bun run test:evidence  # the validator's own negative tests
-bun run build          # validate → manifest → bundle → strict typecheck → secret scan
+bun run build          # validate (twin, Bethesda) → manifest → bundle → strict typecheck → secret scan
 ```
 
 Nothing in that list re-runs a build operation the build already performs.
@@ -169,7 +172,7 @@ bun run llm                         # the LLM seat end to end, against the offli
 bun run glide                       # the Glide seat against an in-browser fake (25 checks)
 FASTINO_LIVE_TEST=1 bun run glide:live        # Glide against the real Fastino API
 FASTINO_LIVE_TEST=1 bun run benchmark:glide   # Glide, precision control
-bun run test:eval                   # unit: evaluation core, seat, both endpoints
+bun run test:eval                   # unit: evaluation core, seat, server handlers (Jev, Glide, LLM, R.A.I.N.)
 ```
 
 ### The evaluation harness
@@ -195,8 +198,12 @@ leaves (13 checks).
 `tools/experiment.mjs` runs several seat configurations — brain, policy,
 control, navigation, cadence, injected latency, staleness policy, motor
 profile, option order — on the same seeds through `jev-benchmark.mjs`, then
-builds a `blacksite-evaluation/v1` from the saved artifacts alone, and
-`--compare` diffs two evaluations. An experiment file in `tools/experiments/`
+builds a `blacksite-evaluation/v1` from the saved artifacts alone;
+`--compare` diffs two evaluations, `--evaluate <dir>` re-scores saved
+artifacts, `--archive <run> <dir>` copies a run with its decision records for
+citation, and `--shadow <dir>` shows a run's recorded observations to the
+scripted policies (`shadow.json`, `shadow.md`) without playing a match or
+calling a model. An experiment file in `tools/experiments/`
 declares its question, hypothesis, primary metric and outcome contract before
 it runs, and a malformed one is refused (see
 [`EVALUATION_PHILOSOPHY.md`](EVALUATION_PHILOSOPHY.md)). `--origin` points every
@@ -291,8 +298,11 @@ transitive dependency moved.
 `on.push.branches` takes a literal list and the `github` context is not
 available in an `on:` block, so "the default branch" is not expressible as an
 event filter — and a hard-coded branch name silently stops matching after a
-rename. Both workflows therefore subscribe broadly and gate every job on
-`github.event.repository.default_branch`, resolved at run time.
+rename. The CI and CodeQL workflows therefore subscribe broadly and gate every
+job on `github.event.repository.default_branch`, resolved at run time. The third,
+`deploy-production.yml`, is the exception: it names `main`, runs only on a push
+there or by hand, never on a pull request, and is the only workflow that reads
+repository secrets (the Vercel token and ids it deploys with).
 
 The gate fails open for anything that is not a branch push. Pull requests,
 `workflow_dispatch` and CodeQL's weekly `schedule` always run; only a push to a

@@ -408,10 +408,11 @@ export async function probeJevService(
  *
  * In direct control it draws four numbers per decision — one per axis —
  * whatever the state, exactly as it always has, so a seed's frames are
- * unchanged. In precision control it draws six: the same four, then the target
- * slot and the aim region. Either way a given seed consumes the stream
- * identically, and it picks uniformly among the *legal* options it was offered. Same observation, same options,
- * same seed: same sequence of frames. It receives exactly the observation Jev
+ * unchanged. Precision control adds two draws, the target slot and the aim
+ * region; places navigation adds one, the destination, last. Either way a
+ * given seed consumes the stream identically, and it picks uniformly among the
+ * *legal* options it was offered. Same observation, same options, same seed:
+ * same sequence of frames. It receives exactly the observation Jev
  * does and uses only its legal lists; it reports no probabilities, because it
  * has none worth reporting beyond "uniform".
  */

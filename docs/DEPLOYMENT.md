@@ -6,15 +6,15 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 
 ## Build settings
 
-| Setting                        | Value                                                                                                                                                 |
-| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                         |
-| Build command                  | `npm run build`                                                                                                                                       |
-| Output directory               | `dist`                                                                                                                                                |
-| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                             |
-| Framework preset               | Vite                                                                                                                                                  |
-| Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                               |
-| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `LLM_API_KEY` for the LLM seat, `RAIN_LLM_API_KEY` for a model server that requires one (all optional) |
+| Setting                        | Value                                                                                                                                                                              |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                                                      |
+| Build command                  | `npm run build`                                                                                                                                                                    |
+| Output directory               | `dist`                                                                                                                                                                             |
+| Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                                                          |
+| Framework preset               | Vite                                                                                                                                                                               |
+| Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                                                            |
+| Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `FASTINO_API_KEY` for Glide, `LLM_API_KEY` for the LLM seat, `RAIN_LLM_API_KEY` for a model server that requires one (all optional) |
 
 `npm run build` is six steps, in this order:
 
@@ -59,11 +59,11 @@ If your platform pins an older Node, either raise it or install Bun and run
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
    describe a build the visitor is not looking at; `/api/*` is `no-store`.
-4. **Nine functions** — `api/jev/decision.ts`, the server side of
-   `/play?brain=jev`, capped at 10 seconds; `api/llm/decision.ts`, the
-   server side of `/play?brain=llm`, capped at 30 seconds because a
-   conventional LLM answers in seconds and may be retried within its deadline;
-   and the R.A.I.N. Lab's seven `api/rain/*` routes — `status` (10 s),
+4. **Ten functions** — `api/jev/decision.ts` and `api/glide/decision.ts`, the
+   server sides of `/play?brain=jev` and `?brain=glide`, capped at 10 seconds
+   each; `api/llm/decision.ts`, the server side of `/play?brain=llm`, capped at
+   30 seconds because a conventional LLM answers in seconds and may be retried
+   within its deadline; and the R.A.I.N. Lab's seven `api/rain/*` routes — `status` (10 s),
    `meeting` (60 s), `meeting-status` and `meeting-cancel` (10 s each; a model
    meeting is a job the lab checks on, so no function waits for it), and
    `proposal`, `preregister` and `submission` (30 s each).
@@ -91,6 +91,17 @@ The endpoint's rate limits are in memory per function instance; for durable
 limits add a rate-limit rule for `/api/jev/decision` in the project's Firewall.
 Everything else — the boundary, the limits, local development — is in
 [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md).
+
+### The Glide decision endpoint
+
+Optional, and off unless configured. Set `FASTINO_API_KEY` (type
+**Sensitive**) and, optionally, `FASTINO_MODEL` (default `fastino/glide`, or a
+fine-tuned model's training-job id). Never `VITE_`-prefixed. Check with
+`curl -s https://<deployment>/api/glide/decision`, which reports whether it is
+configured, the model and its limits, never the key. Without the key it answers
+503 and the game shows GLIDE UNAVAILABLE. Its rate limits are per instance, as
+for Jev; add a Firewall rule for `/api/glide/decision` if it is enabled in
+production.
 
 ### The LLM decision endpoint
 
@@ -126,7 +137,14 @@ machine beside the model (see the lab guide). Never `VITE_`-prefix any of
 these. Redeploy, then check `curl -s https://<deployment>/api/rain/status`,
 which reports whether the runtime is on and its identity — the engine, the
 commit, the corpus fingerprint, the decision mode — never a key. Rate limits
-are per instance, as for the decision endpoints. Everything else is in
+are per instance, as for the decision endpoints.
+
+One limit is architectural: with a scratch registry, each `api/rain/*`
+function keeps its own, so a submission can reach an instance that never saw
+its pre-registration and is refused as not registered. A function deployment
+has no registry directory its functions share; meetings, proposals and local
+experiments are unaffected, and one process (`bun run preview`) closes the
+pre-registration loop. Everything else is in
 [`docs/RAIN_LAB_BETHESDA.md`](RAIN_LAB_BETHESDA.md).
 
 ### Redeploying after these changes
@@ -188,7 +206,7 @@ open http://localhost:8080/analysis
 
 Properties:
 
-- **Multi-stage.** A `node:22.22-alpine` builder runs the same
+- **Multi-stage.** A `node:26.5-alpine` builder runs the same
   validate → manifest → build → typecheck pipeline as CI; the runtime stage
   copies only `dist/`.
 - **Minimal runtime.** `nginxinc/nginx-unprivileged:1.29-alpine` — no Node, no
@@ -202,8 +220,10 @@ Properties:
   Bethesda says `RUNTIME OFFLINE` (its DEMO and local experiments still work).
 - **No embedded secrets.** The build takes no credential and the image contains
   none; `.dockerignore` keeps `.env*`, keys and local state out of the build
-  context entirely. The image has no Jev endpoint either: `/api/*` answers 404
-  in the endpoint's error shape, and `/play?brain=jev` shows JEV UNAVAILABLE.
+  context entirely. The image has no endpoints either, and answers each family
+  the way its client reads absence: the decision endpoints answer 404 in their
+  error shape (`/play?brain=jev|glide|llm` shows UNAVAILABLE), and
+  `/api/rain/*` answers as a runtime switched off (the lab says OFFLINE).
 - **`--ignore-scripts` on install**, so no dependency postinstall executes
   during an image build. Puppeteer's browser download is skipped: it is a test
   dependency and has no place in a production image.
@@ -211,7 +231,13 @@ Properties:
   still served as themselves.
 - **Health path** at `/healthz`, returning `ok` with no application state
   touched. Also wired as a Docker `HEALTHCHECK`.
-- **Security headers** identical to the Vercel deployment.
+- **Security headers** identical to the Vercel deployment's except HSTS (see
+  below), from `deploy/security-headers.conf`. `nginx.conf` includes the file
+  at server level and again in every location that sets a header of its own,
+  because nginx drops every inherited `add_header` in such a location — which
+  is how an earlier version served the app shell with no CSP.
+  `src/lib/deployHeaders.test.ts` fails if a location forgets it or a value
+  drifts from `vercel.json`.
 
 ### Reproducible image
 
@@ -261,7 +287,7 @@ deployment is not that commit.
 ```sh
 npm run build
 npm run preview &        # http://localhost:4173, with the deployed headers
-npm run a11y             # axe-core + CSP violations across /, /play, /analysis
+npm run a11y             # axe-core + CSP violations on every route
 ```
 
 `vite.config.ts` sets the same headers on the preview server, so a
