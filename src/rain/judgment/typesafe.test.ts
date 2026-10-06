@@ -4,7 +4,8 @@ import { request } from "./fixtures.js";
 import { TypeSafeJudgmentProvider, parseResponse } from "./typesafe.js";
 
 /** The remote engine's adapter: what leaves, what comes back, and what is refused. */
-const KEY = "fixture-key-0123456789abcdef";
+// Low entropy on purpose: a secret scanner must not mistake the fixture for a key.
+const KEY = "fixture-key-" + "x".repeat(24);
 const questions = questionsOf(request());
 const state = {
   canonicalText: "A bounded step remains unfinished.",
