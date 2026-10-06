@@ -734,13 +734,24 @@ try {
     );
     await c.click("Export record");
     const liveRecord = JSON.parse(await c.saved("bethesda-rain-record-"));
+    // The proposal was the DEMO's, so the record keeps the recording's revision as
+    // the R.A.I.N. provenance it followed; the runtime's own pre-registration and
+    // record sit beside it, from the server this site runs.
     check(
-      "LIVE: the record's provenance is the runtime's identity, not the recording's",
-      liveRecord.provenance.rain_source === "live-identity" &&
-        liveRecord.provenance.rain_repository === "topherchris420/lop-nur-twin" &&
-        liveRecord.provenance.rain_commit === identity.rain.commit &&
-        liveRecord.rain_preregistration?.experiment_id === "V3D-EXP-0001",
-      JSON.stringify(liveRecord.provenance),
+      "LIVE: a run of the DEMO's proposal keeps the recording's provenance, with the runtime's pre-registration beside it",
+      liveRecord.provenance.rain_source === "demo-recording" &&
+        liveRecord.provenance.rain_commit === demoMeeting.rain.commit &&
+        liveRecord.provenance.rain_repository === demoMeeting.rain.repository &&
+        liveRecord.rain_preregistration?.experiment_id === "V3D-EXP-0001" &&
+        liveRecord.rain_admission !== null &&
+        liveRecord.rain_admission !== undefined,
+      JSON.stringify({
+        provenance: liveRecord.provenance,
+        preregistration: liveRecord.rain_preregistration ?? null,
+        admission: liveRecord.rain_admission
+          ? Object.keys(liveRecord.rain_admission)
+          : null,
+      }).slice(0, 600),
     );
     await c.axe("registry with R.A.I.N.'s own record");
     // The server stops answering. The lab must say so and show nothing new.

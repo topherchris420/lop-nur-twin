@@ -39,6 +39,8 @@ const INVENTED =
  * line breaks as spaces and still matches the paper exactly. */
 function sentences(prompt) {
   const found = [];
+  // Each message on its own: the last excerpt ends with the message that holds
+  // it, never with the transcript or the director's instruction that follow.
   for (const paper of prompt.matchAll(PAPER)) {
     const flat = paper[2].split(/\s+/).filter(Boolean).join(" ");
     for (const m of flat.matchAll(SENTENCE))
@@ -48,11 +50,12 @@ function sentences(prompt) {
 }
 
 function reply(messages, maxTokens) {
-  const text = messages
-    .map((m) => (m && typeof m === "object" ? String(m.content ?? "") : ""))
-    .join("\n");
+  const contents = messages.map((m) =>
+    m && typeof m === "object" ? String(m.content ?? "") : "",
+  );
+  const text = contents.join("\n");
   if (maxTokens <= 8) return "ok";
-  let pool = sentences(text);
+  let pool = contents.flatMap((content) => sentences(content));
   if (!pool.length) pool = [...text.matchAll(EARLIER)].map((m) => m[1]).slice(0, 1);
   if (!pool.length)
     return (
