@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { validateObservation } from "./contract";
+import { readFileSync } from "node:fs";
+import { EVENT_KINDS, validateObservation } from "./contract";
 import { buildingAt, buildings, distance } from "./model";
 import { evidenceTally } from "./evidence";
 import { signalRigs } from "./signals";
@@ -331,5 +332,26 @@ describe("bus trips", () => {
     expect(bus.waypoint).toBe(1);
     expect(roads.edges[bus.edge]!.from).toBe(route.waypoints[0]);
     expect(bus.progress).toBe(0);
+  });
+});
+
+describe("events declare effects; agents read effects", () => {
+  it("keeps every event name out of the agent rules", () => {
+    // Two literals that are not event names: `"flood"` is also a road-closure
+    // mode, which is an effect, and `"object"` is also a JavaScript type.
+    const rules = ["./simulation.ts", "./locomotion.ts"].map((file) =>
+      readFileSync(new URL(file, import.meta.url), "utf8")
+        .replace(/closesRoads\s*[!=]==\s*"flood"/g, "")
+        .replace(/typeof\s+[\w.?[\]]+\s*[!=]==\s*"object"/g, ""),
+    );
+    for (const kind of EVENT_KINDS)
+      for (const source of rules) expect(source.includes(`"${kind}"`), kind).toBe(false);
+  });
+  it("declares the crowd effects the rules used to infer from names", () => {
+    const gathering = EVENT_KINDS.filter((k) => EVENT_EFFECTS[k].gathers);
+    expect(gathering).toEqual(["parade", "rally", "festival"]);
+    const narrowed = EVENT_KINDS.filter((k) => EVENT_EFFECTS[k].roadRadius !== 1);
+    expect(narrowed).toEqual(["rally", "festival"]);
+    for (const k of narrowed) expect(EVENT_EFFECTS[k].roadRadius).toBe(0.8);
   });
 });

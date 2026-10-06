@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import proposal from "./fixtures/demo-proposal.json" with { type: "json" };
-import { CitySimulation } from "../simulation";
+import { CitySimulation, REPLAY_SCHEMA } from "../simulation";
 import { approve, begin, complete, openCase, type Origin } from "./cases";
 import { evaluate } from "../../rain/experiments/evaluate";
 import { cohortAt, observeWorld, verifyObservation } from "./observations";
@@ -205,7 +205,7 @@ describe("replay", () => {
   });
   it("exports each arm as a standard city replay that the city's verifier accepts", () => {
     const trace = armTrace(record.run!.arms[1]!);
-    expect(trace.schema).toBe("bethesda-replay/v3");
+    expect(trace.schema).toBe(REPLAY_SCHEMA);
     expect(() => CitySimulation.replay(trace)).not.toThrow();
   });
   it.each<[string, (r: ExperimentRecord) => void]>([
@@ -237,7 +237,7 @@ describe("replay", () => {
     expect(v.checks.find((c) => c.id === "digest")?.ok).toBe(false);
   });
   it("refuses something that is not a record", () => {
-    expect(verifyRecordSync({ schema: "bethesda-replay/v3" }).ok).toBe(false);
+    expect(verifyRecordSync({ schema: REPLAY_SCHEMA }).ok).toBe(false);
     expect(verifyRecordSync(null).ok).toBe(false);
   });
 });

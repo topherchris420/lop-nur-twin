@@ -8,8 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import { CityScene, type ViewControl } from "./Scene";
-import { CitySimulation, FOCUS_RADII, PROFILES, type Trace } from "./simulation";
+import {
+  CitySimulation,
+  FOCUS_RADII,
+  PROFILES,
+  type ChoiceOutcome,
+  type Trace,
+} from "./simulation";
 import { CityDecisionBroker } from "./jev";
+import type { Action } from "./contract";
 import { compileScenario, LABELS, type Compiled } from "./scenarios";
 import {
   buildings,
@@ -76,6 +83,21 @@ class LabBoundary extends Component<
   }
 }
 
+/** What the action gate did with the seat's choice, in words that match it. */
+function describeChoice(asked: Action, outcome: ChoiceOutcome): string {
+  const said = asked.replaceAll("_", " ");
+  switch (outcome.kind) {
+    case "applied":
+      return `"${said}" passed the city action gate and was applied.`;
+    case "replaced":
+      return `"${said}" is not permitted here now; the pedestrian waits.`;
+    case "indoors":
+      return `The pedestrian is indoors until tick ${outcome.until}; nothing was applied.`;
+    case "rejected":
+      return `"${said}" was refused.`;
+  }
+}
+
 function save(name: string, value: unknown) {
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(value)], { type: "application/json" }),
@@ -96,7 +118,13 @@ function profileIndex() {
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
   return cores <= 4 ? 0 : cores >= 12 && memory >= 8 ? 2 : 1;
 }
-function world(sim?: CitySimulation) {
+/** A city rebuilt from a verified trace says so for as long as it is on screen. */
+interface ReplayOrigin {
+  file: string;
+  /** The last tick the trace recorded, and the last one its hashes verify. */
+  tick: number;
+}
+function world(sim?: CitySimulation, replayOf: ReplayOrigin | null = null) {
   const index = profileIndex();
   const city = sim ?? new CitySimulation(PROFILES[index]);
   if (!sim) city.setFocus(arrival, FOCUS_RADII[index]);
@@ -115,7 +143,7 @@ function world(sim?: CitySimulation) {
     evidence: false,
     selected: null,
   };
-  return { sim: city, broker: new CityDecisionBroker(city), view };
+  return { sim: city, broker: new CityDecisionBroker(city), view, replayOf };
 }
 class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -497,7 +525,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     ),
     [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const { sim, broker, view } = w;
+  const { sim, broker, view, replayOf } = w;
   // The lab: whether you are inside, and the store that outlives each visit.
   const [inside, setInside] = useState(false),
     [nearLab, setNearLab] = useState(false);
@@ -647,7 +675,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
         JSON.parse(await file.text()) as Trace,
       );
       restored.paused = true;
-      setWorld(world(restored));
+      setWorld(world(restored, { file: file.name.slice(0, 80), tick: restored.tick }));
       setMessage("Replay verified: checkpoints, decisions and final state match.");
     } catch (e) {
       sim.paused = previouslyPaused;
@@ -754,6 +782,14 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               panel
             }
           >
+            {replayOf ? (
+              <p className="mb-2 font-mono text-[10px] tracking-[.12em] text-amber-200">
+                REPLAY · {replayOf.file} · verified to tick {replayOf.tick}
+                {sim.tick > replayOf.tick
+                  ? ` · running on since then: ticks after ${replayOf.tick} are new, not the recording`
+                  : " · paused at its last recorded tick"}
+              </p>
+            ) : null}
             <p role="status" className="mb-2 text-xs text-teal-100">
               {message}
             </p>
@@ -810,23 +846,27 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               </p>
             ) : null}
             {view.mode === "seat" ? (
-              <div
-                className="mt-2 flex flex-wrap gap-1"
-                aria-label="Permitted human actions"
-              >
-                {sim.observe(0).candidates.map((a) => (
-                  <button
-                    key={a}
-                    className={button}
-                    onClick={() => {
-                      sim.humanAction(a);
-                      setMessage("Human choice validated through the city action gate.");
-                    }}
-                  >
-                    {a.replaceAll("_", " ")}
-                  </button>
-                ))}
-              </div>
+              sim.agents[0]!.inside ? (
+                <p className="mt-2 text-xs text-slate-300">
+                  The pedestrian is indoors until tick {sim.agents[0]!.until}; there is
+                  nothing to choose until they come out.
+                </p>
+              ) : (
+                <div
+                  className="mt-2 flex flex-wrap gap-1"
+                  aria-label="Permitted human actions"
+                >
+                  {sim.observe(0).candidates.map((a) => (
+                    <button
+                      key={a}
+                      className={button}
+                      onClick={() => setMessage(describeChoice(a, sim.humanAction(a)))}
+                    >
+                      {a.replaceAll("_", " ")}
+                    </button>
+                  ))}
+                </div>
+              )
             ) : null}
             <div className="mt-2 flex flex-wrap gap-3">
               <button
@@ -899,7 +939,9 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
                 onClick={() => {
                   setWorld(world());
                   setSelected(null);
-                  setMessage("New seeded experiment.");
+                  setMessage(
+                    `City reset to tick 0 with the same seed (${PROFILES[profileIndex()]!.seed}): the same city, from the start.`,
+                  );
                 }}
               >
                 Reset city

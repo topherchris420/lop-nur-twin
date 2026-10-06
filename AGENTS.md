@@ -468,14 +468,18 @@ scripts.
   either file, and never type a timestamp: use the download's real time.
 - **Events declare effects; agents react to effects.** `scenarios.ts` compiles
   text into a typed `Scenario` and `EVENT_EFFECTS` says what it does (avoid,
-  attract, closures, shelter, slowdown, dark signals, Metro closure, dispatch).
-  Agent rules in `simulation.ts` read effects, never event names. A new family
-  is a vocabulary line and an effects row, not a script.
+  attract, closures and how far a road closure reaches, a crowd to join,
+  shelter, slowdown, dark signals, Metro closure, dispatch). Agent rules in
+  `simulation.ts` and `locomotion.ts` read effects, never event names, and
+  `effects.test.ts` fails on a name in them. A new family is a vocabulary line
+  and an effects row, not a script.
 - **Places come only from the gazetteer.** Every alias resolves to a mapped
   feature. Unknown places are refused, never relocated to a default.
 - **One gate for every chooser.** Humans, Jev and the rules all pass
-  `legalActions` and are recorded through `apply`. `contract.ts` is shared with
-  the server; changing an observation field or action means bumping
+  `legalActions` and are recorded through `apply`, and `accept`/`humanAction`
+  return what the gate did (`ChoiceOutcome`) so no label has to guess. An agent
+  indoors takes no choice from anyone until it comes out. `contract.ts` is
+  shared with the server; changing an observation field or action means bumping
   `CITY_SCHEMA` and updating `server/jev/city.ts` and its test. Actions are
   offered by mechanics, never by tactics.
 - **Anything that changes outcomes is a recorded command or part of the

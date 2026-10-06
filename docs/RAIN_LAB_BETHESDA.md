@@ -555,7 +555,14 @@ sealed by a SHA-256 over the rest.
   re-simulates every arm and matches. A re-sealed edit fails replay and stays
   quarantined until it is discarded, and an import never replaces a record the
   registry already holds.
-- **Export arm as a city replay** writes a standard `bethesda-replay/v3` trace
+- **Records kept in this browser** are held the same way when you come back.
+  Storage is writable by anything on the site's origin, and a record sealed
+  under another revision of the simulator no longer describes this one, so each
+  stored record waits in the quarantine, labelled _kept in this browser_, until
+  replay re-verifies it — one at a time, so a visit does not start a worker per
+  record. A stored record that fails stays held and stays stored until you
+  discard it; nothing is deleted on your behalf.
+- **Export arm as a city replay** writes a standard `bethesda-replay/v4` trace
   that the city's own replay verifier accepts.
 - **Reproduce** re-validates the same proposal and, once authorized again, runs
   it fresh and compares the outcome, every measurement and every arm's final
@@ -592,7 +599,7 @@ unknown. There is no source hash for anything that was not fetched.
 | no authorization, or one for another digest                                                                                             | refuses to run                                                        |
 | a run that throws or is cancelled                                                                                                       | records FAILED, not evaluated                                         |
 | a record from another simulator version, or one that does not replay                                                                    | verification fails and says which check                               |
-| an imported record, until replay verifies it                                                                                            | keeps it quarantined: not in the registry, the evidence or the tools  |
+| an imported record, or one kept in this browser, until replay verifies it                                                               | keeps it quarantined: not in the registry, the evidence or the tools  |
 | an avatar outside the observation region                                                                                                | records the refusal; nothing is observed                              |
 
 Whatever the runtime does, Bethesda keeps working: the city never waits on the

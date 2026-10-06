@@ -1732,15 +1732,16 @@ function claims(q: ExperimentRecord) {
     return "an outcome the lab cannot read";
   }
 }
-/** Imported records awaiting replay, or that failed it: shown, never evidence. */
+/** Held records awaiting replay, or that failed it: shown, never evidence. */
 function Quarantine({ store }: { store: LabStore }) {
   if (!store.quarantine.length) return null;
   return (
-    <Section title="QUARANTINED IMPORTS">
+    <Section title="QUARANTINED RECORDS">
       <p className={quiet}>
         A record's digest shows only that it was not changed after it was sealed, and
-        anyone can seal one. An import is not in the registry, the Evidence Library or the
-        tools until replay re-simulates every arm and matches.
+        anyone can seal one or edit this browser's storage. An import, or a record kept
+        from an earlier visit, is not in the registry, the Evidence Library or the tools
+        until replay re-simulates every arm and matches.
       </p>
       <ul className="mt-1 space-y-1">
         {store.quarantine.map((q) => {
@@ -1748,7 +1749,14 @@ function Quarantine({ store }: { store: LabStore }) {
           return (
             <li key={q.run_id} className="rounded border border-amber-200/30 p-1">
               <p>
-                {q.run_id} <span className={quiet}>· claims {claims(q)}</span>
+                {q.run_id}{" "}
+                <span className={quiet}>
+                  ·{" "}
+                  {store.heldFrom(q.run_id) === "storage"
+                    ? "kept in this browser"
+                    : "imported"}{" "}
+                  · claims {claims(q)}
+                </span>
               </p>
               <p className={v && v !== "running" && !v.ok ? "text-amber-100" : quiet}>
                 {v === "running"
@@ -1782,7 +1790,9 @@ function Quarantine({ store }: { store: LabStore }) {
                   disabled={v === "running"}
                   onClick={() => store.discardImport(q.run_id)}
                 >
-                  Discard the import
+                  {store.heldFrom(q.run_id) === "storage"
+                    ? "Discard from this browser"
+                    : "Discard the import"}
                 </button>
               </div>
             </li>

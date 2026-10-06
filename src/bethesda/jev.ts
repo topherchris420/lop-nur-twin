@@ -11,12 +11,14 @@ export type BrokerStatus =
   | "FALLBACK · UNAVAILABLE"
   | "FALLBACK · ERROR"
   | "FALLBACK · STALE OR INVALID"
+  | "FALLBACK · AGENT INDOORS"
   | "BUDGET COMPLETE · RULES";
 
 /**
  * No authority: the broker can only submit a proposal to the simulator, which
  * re-observes the agent, re-checks legality and staleness, and falls back to
- * its own rules for anything that does not pass.
+ * its own rules for anything that does not pass. An answer that arrives after
+ * its agent went indoors applies to nothing.
  */
 export class CityDecisionBroker {
   enabled = false;
@@ -106,9 +108,9 @@ export class CityDecisionBroker {
       this.controller = null;
     }
     if (this.disposed || !this.enabled) return;
-    this.sim.accept(observation, proposal, failure);
+    const outcome = this.sim.accept(observation, proposal, failure);
     this.lastFailure = failure;
-    if (this.sim.decisions.at(-1)?.source === "jev") {
+    if (outcome.kind === "applied") {
       this.accepted++;
       this.status = "LIVE JEV";
     } else {
@@ -120,7 +122,9 @@ export class CityDecisionBroker {
             ? "FALLBACK · UNAVAILABLE"
             : failure
               ? "FALLBACK · ERROR"
-              : "FALLBACK · STALE OR INVALID";
+              : outcome.kind === "indoors"
+                ? "FALLBACK · AGENT INDOORS"
+                : "FALLBACK · STALE OR INVALID";
     }
   }
   start() {

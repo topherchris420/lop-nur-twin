@@ -7,7 +7,7 @@
  * simulators in a worker — so leaving the lab finds Bethesda exactly where
  * its own rules took it.
  */
-import type { CitySimulation } from "../simulation";
+import { SIM_VERSION, type CitySimulation } from "../simulation";
 import {
   LIMITS,
   RECORD_SCHEMA,
@@ -195,9 +195,18 @@ export class LabStore {
    * Imported records, held apart until replay re-simulates every arm. A digest
    * only shows a record was not changed after it was sealed, and anyone can
    * seal one: until replay passes, an import is not in the registry, the
-   * Evidence Library or the tools, and one that fails stays here. Never stored.
+   * Evidence Library or the tools, and one that fails stays here. An import is
+   * never stored.
+   *
+   * Records this browser kept from earlier visits wait here too. Storage is
+   * writable by anything on this origin, and a record sealed under another
+   * revision of the simulator no longer describes this one, so a stored copy
+   * re-joins the registry only when replay passes again; until then it stays
+   * stored, so a visit cannot lose it.
    */
   quarantine: ExperimentRecord[] = [];
+  /** Run ids in the quarantine that came from this browser's storage, not an import. */
+  private readonly restored = new Set<string>();
   verifications: Record<string, Verification | "running"> = {};
   registryNote = "";
   /**
@@ -225,7 +234,24 @@ export class LabStore {
   constructor(sim: CitySimulation, fetchImpl?: typeof fetch) {
     this.sim = sim;
     this.client = new RainClient(fetchImpl);
-    this.records = this.loadRecords();
+    const stored = this.loadRecords();
+    if (stored.length) {
+      this.quarantine = stored;
+      for (const r of stored) this.restored.add(r.run_id);
+      this.registryNote = `${stored.length} record${stored.length === 1 ? "" : "s"} kept in this browser ${stored.length === 1 ? "is" : "are"} held until replay re-verifies ${stored.length === 1 ? "it" : "them"}, one at a time; a stored copy is not evidence until it re-simulates.`;
+      this.verifyNextRestored();
+    }
+  }
+  /** Whether a held record came from this browser's storage rather than an import. */
+  heldFrom(runId: string): "storage" | "import" {
+    return this.restored.has(runId) ? "storage" : "import";
+  }
+  /** Stored records are re-verified one at a time, so a visit does not start a worker per record. */
+  private verifyNextRestored() {
+    const next = this.quarantine.find(
+      (r) => this.restored.has(r.run_id) && this.verifications[r.run_id] === undefined,
+    );
+    if (next) this.verify(next.run_id);
   }
 
   attach(sim: CitySimulation) {
@@ -692,8 +718,7 @@ export class LabStore {
     }
     const r = parsed as ExperimentRecord;
     if (!r || r.schema !== RECORD_SCHEMA || !recordDigestOK(r)) {
-      this.registryNote =
-        "Not a bethesda-rain-experiment-record/v1 record, or its digest does not match; nothing was imported.";
+      this.registryNote = `Not a ${RECORD_SCHEMA} record, or its digest does not match; nothing was imported.`;
       this.emit();
       return;
     }
@@ -720,11 +745,14 @@ export class LabStore {
     this.emit();
     this.verify(r.run_id);
   }
-  /** Drop an import that has not joined the registry. */
+  /** Drop a held record that has not joined the registry (and, if it was stored, its stored copy). */
   discardImport(runId: string) {
     if (this.verifications[runId] === "running") return;
     this.quarantine = this.quarantine.filter((x) => x.run_id !== runId);
-    this.registryNote = `Discarded the imported ${runId}.`;
+    if (this.restored.delete(runId)) {
+      this.saveRecords();
+      this.registryNote = `Discarded ${runId} from this browser.`;
+    } else this.registryNote = `Discarded the imported ${runId}.`;
     this.emit();
   }
   verify(runId: string) {
@@ -738,19 +766,32 @@ export class LabStore {
       this.verifications = { ...this.verifications, [runId]: v };
       this.admitImport(record, v);
       this.emit();
+      this.verifyNextRestored();
     };
     startJob({ type: "verify", record }, { kind: "verify", done: settle }, (error) =>
       settle({ ok: false, checks: [{ id: "worker", ok: false, detail: error.message }] }),
     );
   }
-  /** A quarantined import joins the registry only once replay has verified it. */
+  /** A held record joins the registry only once replay has verified it. */
   private admitImport(record: ExperimentRecord, v: Verification) {
     if (!this.quarantine.includes(record)) return;
+    const stored = this.restored.has(record.run_id);
     if (!v.ok) {
-      this.registryNote = `${record.run_id} failed verification by replay and stays quarantined: it is not evidence.`;
+      this.registryNote = stored
+        ? `${record.run_id}, kept in this browser, does not re-simulate identically under this simulator (${SIM_VERSION}) and stays held: it is not evidence here. It was recorded by another revision or changed in storage; replay it with the revision that recorded it, or discard it.`
+        : `${record.run_id} failed verification by replay and stays quarantined: it is not evidence.`;
       return;
     }
     this.quarantine = this.quarantine.filter((x) => x !== record);
+    if (stored) {
+      this.restored.delete(record.run_id);
+      // Stored newest first and verified in that order: appending keeps the
+      // stored order, after anything run during this visit.
+      this.records = [...this.records, record].slice(0, LIMITS.registryEntries);
+      this.saveRecords();
+      this.registryNote = `${record.run_id}, kept in this browser, re-simulated identically and is back in the registry.`;
+      return;
+    }
     this.addRecord(record);
     this.registryNote = `${record.run_id} was verified by replay — every arm re-simulated identically — and joined the registry.`;
   }
@@ -767,21 +808,32 @@ export class LabStore {
       if (!raw) return [];
       const list = JSON.parse(raw) as unknown;
       if (!Array.isArray(list)) return [];
-      return list.filter(
-        (r): r is ExperimentRecord =>
-          !!r &&
-          (r as ExperimentRecord).schema === RECORD_SCHEMA &&
-          recordDigestOK(r as ExperimentRecord),
-      );
+      const seen = new Set<string>();
+      return list.filter((r): r is ExperimentRecord => {
+        const record = r as ExperimentRecord | null;
+        if (
+          !record ||
+          record.schema !== RECORD_SCHEMA ||
+          typeof record.run_id !== "string" ||
+          seen.has(record.run_id) ||
+          !recordDigestOK(record)
+        )
+          return false;
+        seen.add(record.run_id);
+        return true;
+      });
     } catch {
       return [];
     }
   }
   private saveRecords() {
+    // Stored records still waiting for replay stay stored: a visit that ends
+    // before they re-verify must not lose them.
+    const waiting = this.quarantine.filter((r) => this.restored.has(r.run_id));
     try {
       globalThis.localStorage?.setItem(
         STORAGE_KEY,
-        JSON.stringify(this.records.slice(0, STORED_RECORDS)),
+        JSON.stringify([...this.records, ...waiting].slice(0, STORED_RECORDS)),
       );
     } catch {
       this.registryNote =

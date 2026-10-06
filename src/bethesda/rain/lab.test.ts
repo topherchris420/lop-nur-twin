@@ -559,4 +559,49 @@ describe("an imported record is not evidence until replay passes", () => {
     expect(s.quarantine).toEqual([]);
     expect(s.records.map((r) => r.record_sha256)).toEqual([genuine.record_sha256]);
   }, 90_000);
+  /** A browser's storage, holding what an earlier visit kept. */
+  const kept = (records: unknown[]) => {
+    const items = new Map([["lop-nur:rain-lab:registry/v1", JSON.stringify(records)]]);
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => void items.set(k, v),
+      removeItem: (k: string) => void items.delete(k),
+    });
+    return () =>
+      (
+        JSON.parse(
+          items.get("lop-nur:rain-lab:registry/v1") ?? "[]",
+        ) as ExperimentRecord[]
+      ).map((r) => r.run_id);
+  };
+  it("holds what this browser kept until replay re-verifies it, and never loses it", async () => {
+    // A copy edited in storage and re-sealed, under a number of its own.
+    const edited = (() => {
+      const copy = structuredClone(forged);
+      copy.run_id = `${genuine.run_id.slice(0, -4)}zzzz`;
+      const { record_sha256: _stale, ...body } = copy;
+      return seal(body);
+    })();
+    const stored = kept([genuine, edited, genuine]);
+    try {
+      const s = store(vi.fn());
+      // Nothing is evidence on arrival; a duplicate is kept once.
+      expect(s.records).toEqual([]);
+      expect(s.quarantine.map((r) => r.run_id)).toEqual([genuine.run_id, edited.run_id]);
+      expect(s.heldFrom(genuine.run_id)).toBe("storage");
+      expect(evidenceItems(null, s.records)).toEqual([]);
+      expect((await settled(s, genuine.run_id)).ok).toBe(true);
+      expect(s.records.map((r) => r.run_id)).toEqual([genuine.run_id]);
+      // Saving the registry keeps the copy still waiting for replay.
+      expect(stored()).toEqual([genuine.run_id, edited.run_id]);
+      expect((await settled(s, edited.run_id)).ok).toBe(false);
+      expect(s.quarantine.map((r) => r.run_id)).toEqual([edited.run_id]);
+      expect(s.registryNote).toMatch(/kept in this browser, does not re-simulate/);
+      expect(stored()).toEqual([genuine.run_id, edited.run_id]);
+      s.discardImport(edited.run_id);
+      expect(stored()).toEqual([genuine.run_id]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }, 120_000);
 });

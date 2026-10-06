@@ -28,7 +28,10 @@ city or its data. **Return to the desert** remounts Lop Nur.
 
 Arrival is on mapped public pavement near the Bethesda Lane entrance. WASD /
 Shift walks; **Survey** orbits; **Pedestrian seat** puts you in agent 0's shoes
-with only its legal actions. Click any building for a dossier. **Evidence view**
+with only its legal actions, and says what the gate did with each choice:
+applied, replaced by a wait because it was no longer permitted, or refused
+because the pedestrian is indoors (no actions are offered until they come out).
+Click any building for a dossier. **Evidence view**
 replaces detailing with massing tinted by evidence class. Field notes, the map,
 scenarios, simulation and replay keep working when WebGL fails.
 
@@ -55,11 +58,13 @@ typed, bounded events, and the compiled JSON is shown before the world reacts.
 - Limits: 240 characters, eight simultaneous events, closed schema validated on
   injection and again on replay.
 
-An event never scripts a response. It declares generic **effects** —
-an area to avoid, something to look at, closed road and sidewalk edges, a
-reason to shelter, a speed factor, dark signals, a Metro service closure, units
-to dispatch — and agents' ordinary rules respond to effects, not to event
-names. What emerges, for example from a fire:
+An event never scripts a response. It declares generic **effects** in
+`EVENT_EFFECTS` — an area to avoid, something to look at, closed road and
+sidewalk edges (and how much of its radius the road closure covers), a crowd to
+join rather than watch from afar, a reason to shelter, a speed factor, dark
+signals, a Metro service closure, units to dispatch — and agents' ordinary rules
+respond to effects, not to event names. A test reads the agent rules and fails
+on any event name in them. What emerges, for example from a fire:
 
 - engines/ambulance from the mapped Bethesda–Chevy Chase Rescue Squad and a
   police unit drive real road edges (civil traffic pulls over), then **stage**;
@@ -362,8 +367,13 @@ configuration answers `/api/jev/decision` using a separate, closed city schema
   answers are recorded as `fallback` with the reason and the rule that took
   over, and the deterministic rule selector decides. Labels follow Blacksite's:
   `LIVE JEV` only after a validated answer, otherwise `FALLBACK · TIMEOUT /
-UNAVAILABLE / ERROR / STALE OR INVALID`. Provider usage is `null`, never
-  invented.
+UNAVAILABLE / ERROR / STALE OR INVALID / AGENT INDOORS`. Provider usage is
+  `null`, never invented.
+- **One gate for every chooser.** An agent indoors is not choosing: the rules
+  do not decide for it until it comes out, so neither can Jev or the person in
+  the pedestrian seat. An answer or a click that arrives while the agent is
+  inside is recorded as a command — a replay meets the same gate — and applied
+  to nothing.
 - **Without Jev** everything runs on the rules. No live Jev Bethesda run is
   claimed in this repository; tests use offline doubles and never spend credit.
 
@@ -376,14 +386,16 @@ never without a person's authorization of the exact definition. The lab's
 research runtime lives in this repository (`src/rain/`) and runs inside the
 site's own server. The lab is fictional, its pictures are not evidence, and
 its results describe the simulator, not Bethesda. Its DEMO is labelled as a
-recording, it is OFFLINE only when the server switches the runtime off, and
-the city never waits on it. Discovery, the protocol, LIVE configuration and
-every boundary are in [the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
+recording, it is OFFLINE only when the server switches the runtime off or the
+runtime could not start, and the city never waits on it. Discovery, the
+protocol, LIVE configuration and every boundary are in
+[the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
 
 ## Replay and verification
 
-Traces (`bethesda-replay/v3`) carry the simulator version and the hashes of the
-OSM snapshot, the DTM crop and the streetscape/transit layer, the config, and
+Traces (`bethesda-replay/v4`, simulator `bethesda-city/4`) carry the simulator
+version and the hashes of the OSM snapshot, the DTM crop and the
+streetscape/transit layer, the config, and
 every tick-stamped command: scenarios, Jev proposals and failures, human seat
 choices, explorer movement and LOD focus changes. They also carry every
 decision with its observation, proposal, source, reason, before/after state and
@@ -393,9 +405,14 @@ regenerates the run and verifies checkpoints, decisions and final state.
 Routine rules decisions that merely re-affirm the open decision extend its
 outcome window instead of adding a record (the HUD shows how many were folded),
 so the decision log holds transitions: a 3,200-tick run with four events went
-from 43,092 records to 4,018 and a 3.7 MB trace. Traces from v1/v2 are refused
-with an explanation — the simulator changed — rather than replayed against
-different rules. Replay reproduces authoritative state, not pixels.
+from 43,092 records to 4,018 and a 3.7 MB trace. Traces recorded by another
+revision of the simulator (`bethesda-replay/v1`–`v3`, or another
+`bethesda-city/N`) are refused with an explanation rather than replayed against
+different rules; v4 began when indoor agents stopped taking choices. Replay
+reproduces authoritative state, not pixels. A verified replay replaces the city,
+paused at its last recorded tick, and stays badged `REPLAY` with the file and
+that tick; once resumed, the badge says the ticks after it are new, not the
+recording.
 
 ```sh
 npm run test:bethesda     # city, effects, presentation, lab and server tests

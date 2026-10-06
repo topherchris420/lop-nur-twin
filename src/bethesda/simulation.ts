@@ -72,8 +72,20 @@ import {
 import { TERRAIN_VERSION, groundAt } from "./terrain";
 
 export const DT = 0.1;
-export const SIM_VERSION = "bethesda-city/3";
-export const REPLAY_SCHEMA = "bethesda-replay/v3";
+export const SIM_VERSION = "bethesda-city/4";
+export const REPLAY_SCHEMA = "bethesda-replay/v4";
+
+/**
+ * What the simulator did with a choice it was offered. An agent indoors is not
+ * choosing: the rules do not decide for it until it comes out, so neither a
+ * model's answer nor a person's click applies to it — the choice is recorded
+ * as a command, for replay, and nothing else happens.
+ */
+export type ChoiceOutcome =
+  | { kind: "applied"; action: Action }
+  | { kind: "replaced"; action: Action; reason: string }
+  | { kind: "indoors"; until: number }
+  | { kind: "rejected" };
 export interface Config {
   seed: number;
   pedestrians: number;
@@ -628,7 +640,7 @@ export class CitySimulation {
     for (const e of this.events) {
       const fx = EVENT_EFFECTS[e.kind];
       if (fx.closesRoads === "radius") {
-        const r = e.radius * (e.kind === "rally" || e.kind === "festival" ? 0.8 : 1);
+        const r = e.radius * fx.roadRadius;
         roadMid.forEach((m, i) => distance(m, e.at) < r && closedRoads.add(i));
       } else if (fx.closesRoads === "street") {
         roads.edges.forEach((edge, i) => {
@@ -901,10 +913,7 @@ export class CitySimulation {
       return ["leave", `${o.hazard}: cautious`];
     if (o.attraction) {
       const draw = a.curiosity - o.attractionDistance! / 450;
-      const social =
-        o.attraction === "parade" ||
-        o.attraction === "festival" ||
-        o.attraction === "rally";
+      const social = EVENT_EFFECTS[o.attraction].gathers;
       if (social && draw > 0.25)
         return o.atGathering || o.atBusStop
           ? ["gather", `${o.attraction}: joins crowd`]
@@ -1157,47 +1166,64 @@ export class CitySimulation {
     );
     return action;
   }
-  accept(observation: Observation, proposal: unknown, failure: string | null = null) {
-    if (!validateObservation(observation) || !this.agents[observation.agentId]) return;
+  /**
+   * A model's proposal for one agent. The simulator re-observes the agent and
+   * re-checks legality and staleness; anything that does not pass is replaced
+   * by the rules, with the reason recorded.
+   */
+  accept(
+    observation: Observation,
+    proposal: unknown,
+    failure: string | null = null,
+  ): ChoiceOutcome {
+    if (!validateObservation(observation) || !this.agents[observation.agentId])
+      return { kind: "rejected" };
     this.append({ type: "decision", tick: this.tick, observation, proposal, failure });
-    const a = this.agents[observation.agentId]!,
-      now = this.observe(a.id, observation.sequence);
+    const a = this.agents[observation.agentId]!;
+    if (a.inside) return { kind: "indoors", until: a.until };
+    const now = this.observe(a.id, observation.sequence);
     const valid =
       !failure &&
-      !a.inside &&
       observation.tick <= this.tick &&
       this.tick - observation.tick <= 15 &&
       validateProposal(proposal, observation) &&
       now.candidates.includes(proposal.action);
     const [fallback, why] = this.rule(a, now);
     const choice = valid ? proposal.action : fallback;
+    const action = now.candidates.includes(choice)
+      ? choice
+      : a.kind === "pedestrian"
+        ? "wait"
+        : "stop";
+    const reason = failure ?? "stale or invalid";
     this.apply(
       a,
       now,
-      now.candidates.includes(choice)
-        ? choice
-        : a.kind === "pedestrian"
-          ? "wait"
-          : "stop",
+      action,
       valid ? "jev" : "fallback",
       proposal,
-      valid
-        ? "validated"
-        : `${failure ?? (a.inside ? "agent indoors" : "stale or invalid")} → ${why}`,
+      valid ? "validated" : `${reason} → ${why}`,
     );
+    return valid ? { kind: "applied", action } : { kind: "replaced", action, reason };
   }
-  humanAction(action: Action) {
+  /** The pedestrian seat's choice, through the same gate as every other chooser. */
+  humanAction(action: Action): ChoiceOutcome {
     this.append({ type: "human", tick: this.tick, action });
-    const a = this.agents[0]!,
-      o = this.observe(0);
+    const a = this.agents[0]!;
+    if (a.inside) return { kind: "indoors", until: a.until };
+    const o = this.observe(0),
+      permitted = o.candidates.includes(action);
     this.apply(
       a,
       o,
-      o.candidates.includes(action) ? action : "wait",
+      permitted ? action : "wait",
       "human",
       action,
-      o.candidates.includes(action) ? "validated" : "not permitted",
+      permitted ? "validated" : "not permitted",
     );
+    return permitted
+      ? { kind: "applied", action }
+      : { kind: "replaced", action: "wait", reason: "not permitted" };
   }
   movePlayer(dx: number, dz: number) {
     if (!Number.isFinite(dx) || !Number.isFinite(dz) || Math.hypot(dx, dz) > 1.2) return;
@@ -1515,9 +1541,18 @@ export class CitySimulation {
   }
   static *replaySteps(v: Trace): Generator<number, CitySimulation> {
     const schema = (v as { schema?: unknown } | null)?.schema;
-    if (schema === "bethesda-replay/v1" || schema === "bethesda-replay/v2")
+    const simVersion = (v as { simVersion?: unknown } | null)?.simVersion;
+    if (
+      (typeof schema === "string" &&
+        /^bethesda-replay\/v\d+$/.test(schema) &&
+        schema !== REPLAY_SCHEMA) ||
+      (schema === REPLAY_SCHEMA &&
+        typeof simVersion === "string" &&
+        /^bethesda-city\/\d+$/.test(simVersion) &&
+        simVersion !== SIM_VERSION)
+    )
       throw new Error(
-        `This trace (${schema}) was recorded by an earlier city simulator. Replay it with the project revision that recorded it.`,
+        `This trace (${String(schema)}, ${String(simVersion)}) was recorded by another revision of the city simulator (this one is ${SIM_VERSION}). Replay it with the project revision that recorded it.`,
       );
     if (
       !v ||

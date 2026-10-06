@@ -19,7 +19,13 @@ import {
   row,
   distance,
 } from "./model";
-import { CitySimulation, PROFILES, type Trace } from "./simulation";
+import {
+  CitySimulation,
+  PROFILES,
+  REPLAY_SCHEMA,
+  SIM_VERSION,
+  type Trace,
+} from "./simulation";
 import { CityDecisionBroker } from "./jev";
 import { parseScenario } from "./scenarios";
 import { resolvesBethesda } from "./discovery";
@@ -116,6 +122,44 @@ describe("bounded events and decisions", () => {
     expect(s.decisions.at(-1)?.source).toBe("fallback");
     s.accept(s.observe(0, 2), null, "unavailable");
     expect(s.decisions.at(-1)?.reason).toMatch(/^unavailable → /);
+  });
+  it("lets nobody choose for an agent indoors: not a person, not a model", () => {
+    const s = new CitySimulation(config);
+    advance(s, 5);
+    const o = s.observe(0, 1),
+      p = proposal(s),
+      a = s.agents[0]!;
+    a.inside = true;
+    a.until = s.tick + 300;
+    const { action, until } = a,
+      decisions = s.decisions.length;
+    expect(s.humanAction(o.candidates[0]!)).toEqual({ kind: "indoors", until });
+    expect(s.accept(o, p)).toEqual({ kind: "indoors", until });
+    expect(s.accept(o, null, "timeout")).toEqual({ kind: "indoors", until });
+    // Nothing applied: still inside, still dwelling, no decision recorded...
+    expect(a).toMatchObject({ inside: true, until, action });
+    expect(s.decisions).toHaveLength(decisions);
+    // ...but every offer is a recorded command, so a replay meets the same gate.
+    expect(s.export().commands.filter((c) => c.type !== "focus")).toHaveLength(3);
+  });
+  it("says what the gate did with a choice outdoors", () => {
+    const s = new CitySimulation(config),
+      o = s.observe(0, 1);
+    expect(s.humanAction(o.candidates[0]!)).toEqual({
+      kind: "applied",
+      action: o.candidates[0],
+    });
+    expect(s.humanAction("respond")).toEqual({
+      kind: "replaced",
+      action: "wait",
+      reason: "not permitted",
+    });
+    const later = s.observe(0, 2);
+    advance(s, 16);
+    expect(s.accept(later, { ...proposal(s), sequence: 2 })).toMatchObject({
+      kind: "replaced",
+      reason: "stale or invalid",
+    });
   });
   it("bounds population, validates human choices and enforces red signals", () => {
     expect(() => new CitySimulation({ ...config, pedestrians: 641 })).toThrow();
@@ -243,13 +287,25 @@ describe("public-path arrival", () => {
     expect(distance(sim.player, before)).toBeGreaterThan(0.29);
     expect(CitySimulation.replay(sim.export()).player).toEqual(sim.player);
   });
-  it("refuses traces from earlier simulator revisions with an explanation", () => {
+  it("refuses traces from other simulator revisions with an explanation", () => {
     const sim = new CitySimulation(config);
     advance(sim, 12);
-    for (const schema of ["bethesda-replay/v1", "bethesda-replay/v2"])
+    expect(REPLAY_SCHEMA).toBe("bethesda-replay/v4");
+    for (const schema of [
+      "bethesda-replay/v1",
+      "bethesda-replay/v2",
+      "bethesda-replay/v3",
+    ])
       expect(() =>
         CitySimulation.replay({ ...sim.export(), schema } as unknown as Trace),
-      ).toThrow(/earlier city simulator/);
+      ).toThrow(/another revision of the city simulator/);
+    expect(SIM_VERSION).toBe("bethesda-city/4");
+    expect(() =>
+      CitySimulation.replay({
+        ...sim.export(),
+        simVersion: "bethesda-city/3",
+      } as unknown as Trace),
+    ).toThrow(/another revision of the city simulator/);
     expect(() =>
       CitySimulation.replay({ ...sim.export(), simVersion: "x" } as unknown as Trace),
     ).toThrow();

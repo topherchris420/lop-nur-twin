@@ -61,8 +61,15 @@ export interface Effects {
   /** Agents may look at it from up to this many metres beyond its radius. */
   attract: number;
   closesRoads: "radius" | "street" | "flood" | "procession" | null;
+  /** Fraction of the radius whose roads close, under a `radius` closure. */
+  roadRadius: number;
   /** Fraction of the radius whose sidewalks close. */
   closesWalks: number;
+  /**
+   * Agents drawn to it join a crowd — gathering, or watching as spectators —
+   * rather than recording it or watching from a distance.
+   */
+  gathers: boolean;
   shelter: boolean;
   slowdown: number;
   signalsDark: boolean;
@@ -75,7 +82,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 1.6,
     attract: 140,
     closesRoads: "radius",
+    roadRadius: 1,
     closesWalks: 0.8,
+    gathers: false,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -87,7 +96,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 0,
     closesRoads: null,
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: true,
     slowdown: 0.65,
     signalsDark: false,
@@ -98,7 +109,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 40,
     closesRoads: null,
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -109,7 +122,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 70,
     closesRoads: "procession",
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: true,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -120,7 +135,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 260,
     closesRoads: null,
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: false,
     slowdown: 0.85,
     signalsDark: false,
@@ -131,7 +148,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 1.2,
     attract: 70,
     closesRoads: "radius",
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -142,7 +161,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 0,
     closesRoads: null,
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: false,
     slowdown: 0.9,
     signalsDark: true,
@@ -153,7 +174,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 1.5,
     attract: 30,
     closesRoads: "radius",
+    roadRadius: 1,
     closesWalks: 1,
+    gathers: false,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -164,7 +187,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 90,
     closesRoads: "radius",
+    roadRadius: 0.8,
     closesWalks: 0,
+    gathers: true,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -175,7 +200,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 110,
     closesRoads: "radius",
+    roadRadius: 0.8,
     closesWalks: 0,
+    gathers: true,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -186,7 +213,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 0,
     attract: 0,
     closesRoads: "street",
+    roadRadius: 1,
     closesWalks: 0,
+    gathers: false,
     shelter: false,
     slowdown: 1,
     signalsDark: false,
@@ -197,7 +226,9 @@ export const EVENT_EFFECTS: Record<EventKind, Effects> = {
     avoid: 1,
     attract: 60,
     closesRoads: "flood",
+    roadRadius: 1,
     closesWalks: 1,
+    gathers: false,
     shelter: false,
     slowdown: 0.8,
     signalsDark: false,
