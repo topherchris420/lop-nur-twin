@@ -19,7 +19,7 @@ import {
   hashCorpusDocuments,
   isCorpusPath,
 } from "../src/rain/corpus.ts";
-import { REPOSITORY } from "../src/rain/protocol.ts";
+import { OFFLINE_ENGINE, REPOSITORY } from "../src/rain/protocol.ts";
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -162,9 +162,9 @@ if (
 )
   fail("R.A.I.N. SOUL files differ from their import manifest");
 // The R.A.I.N. Lab's DEMO recording: byte-identical to its manifest, a valid
-// scripted meeting from a named, clean commit of the engine that recorded it,
-// over the bundled corpus, and a fixture proposal that passes the host's
-// ordinary validation.
+// scripted meeting from the runtime's offline engine at a named, clean commit
+// of this repository, over the bundled corpus, and a fixture proposal that
+// passes the host's ordinary validation.
 const demoBytes = readFileSync(
   new URL("../src/bethesda/rain/fixtures/demo-meeting.json", import.meta.url),
 );
@@ -179,9 +179,12 @@ if (
   !/^[0-9a-f]{40}$/.test(demoSource.rain.commit ?? "") ||
   demoSource.rain.dirty !== false ||
   !REPOSITORY.test(demoSource.rain.repository) ||
+  // The recording is this repository's engine's, at a commit of this repository.
+  demoSource.rain.repository !== "topherchris420/lop-nur-twin" ||
   demoMeeting.rain.repository !== demoSource.rain.repository ||
   demoMeeting.rain.commit !== demoSource.rain.commit ||
-  demoMeeting.engine !== demoSource.engine ||
+  demoMeeting.engine !== OFFLINE_ENGINE ||
+  demoSource.engine !== OFFLINE_ENGINE ||
   demoMeeting.meeting_id !== demoSource.meetingId ||
   demoMeeting.question !== demoSource.question ||
   demoMeeting.generation !== "scripted" ||
