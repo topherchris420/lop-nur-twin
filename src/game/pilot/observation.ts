@@ -345,6 +345,17 @@ export function legalActionsFor(
 }
 
 /** Axes with a real choice in them. A single legal option is not asked. */
+/**
+ * Every axis of a frame is one of the options the observation offered. The
+ * decision loop checks this itself when it accepts an answer: a provider that
+ * validates its own output is a courtesy, and the host does not rely on it.
+ */
+export function isLegalFrame(frame: ControlFrame, legal: LegalActions): boolean {
+  return AXES.every((axis) =>
+    (legal[axis] as readonly string[]).includes(frame[axis] as string),
+  );
+}
+
 export function askedAxes(legal: LegalActions): Axis[] {
   return AXES.filter((axis) => legal[axis].length >= 2);
 }

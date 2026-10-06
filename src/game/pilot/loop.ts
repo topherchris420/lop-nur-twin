@@ -5,7 +5,7 @@ import {
   type ControlFrame,
 } from "./contract";
 import type { DecisionAxes } from "./decision";
-import type { JevObservation } from "./observation";
+import { isLegalFrame, type JevObservation } from "./observation";
 import type { BrainDescriptor, ProviderAccounting } from "./brain";
 import type { DecisionConfidence } from "../eval/records";
 
@@ -284,7 +284,20 @@ export class DecisionLoop {
     );
   }
 
-  private settle(flight: Flight, result: ProviderResult, context: LoopContext): void {
+  private settle(flight: Flight, answer: ProviderResult, context: LoopContext): void {
+    // The host checks every answer against the options it offered. Providers
+    // validate their own output too, but that is a courtesy: a frame naming an
+    // option this observation did not offer is an invalid answer here, whoever
+    // produced it, and it never reaches the rig.
+    const result: ProviderResult =
+      answer.ok && !isLegalFrame(answer.decision.frame, flight.observation.legal)
+        ? {
+            ok: false,
+            failure: "invalid",
+            detail: "the frame names an option the observation did not offer",
+            retryAfterMs: null,
+          }
+        : answer;
     if (flight.settled) {
       this.onEvent({ kind: "duplicate", sequence: flight.sequence });
       return;
@@ -378,6 +391,7 @@ export class DecisionLoop {
       .decide({ sequence, observation, signal: controller.signal })
       .then((result) => {
         if (!result.ok || this.stopped || this.flight) return;
+        if (!isLegalFrame(result.decision.frame, observation.legal)) return;
         if (lifeId !== context.lifeId || sequence <= this.lastAccepted) return;
         this.lastAccepted = sequence;
         const now = this.clock.now();

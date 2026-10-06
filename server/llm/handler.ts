@@ -451,16 +451,24 @@ export function createLlmDecisionHandler(config: LlmServerConfig): LlmDecisionHa
         },
       );
     }
-    const servedModel = isModelId(result.model) ? result.model : resolved.model;
+    // The served model is what the provider says served the answer. When it
+    // says nothing, that is unknown — not the model this server asked for.
+    const servedModel = isModelId(result.model) ? result.model : null;
+    // Asked for a confidence and wrote none is "none", not "verbalized".
+    const wroteConfidence = Object.values(answers.value.answers).some(
+      (answer) => answer?.confidence !== null && answer?.confidence !== undefined,
+    );
     const decision: LlmDecision = {
       schemaVersion: LLM_DECISION_SCHEMA,
       sequence,
       source: "llm",
       provider: adapter.provider,
       model: servedModel,
+      requestedModel: resolved.model,
       frame: answers.value.frame,
       answers: answers.value.answers,
-      confidenceSource: resolved.confidence,
+      confidenceSource:
+        resolved.confidence === "verbalized" && wroteConfidence ? "verbalized" : "none",
       latencyMs,
       usage:
         result.inputTokens !== null && result.outputTokens !== null

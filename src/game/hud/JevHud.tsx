@@ -76,19 +76,43 @@ function fmtP(value: number): string {
   return value >= 0.995 ? "1.00" : value.toFixed(2).replace(/^0/, "");
 }
 
-function downloadTrace(): void {
-  const text = pilot.exportTrace();
-  if (!text) return;
-  storeTraceLocally(text);
-  const blob = new Blob([text], { type: "application/x-ndjson" });
+function download(text: string, type: string, name: string): void {
+  const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `blacksite-jev-trace-${Date.now().toString(36)}.jsonl`;
+  link.download = name;
   document.body.appendChild(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadTrace(): void {
+  const text = pilot.exportTrace();
+  if (!text) return;
+  storeTraceLocally(text);
+  download(
+    text,
+    "application/x-ndjson",
+    `blacksite-jev-trace-${Date.now().toString(36)}.jsonl`,
+  );
+}
+
+/**
+ * This episode's decision records — the full observation, the options
+ * offered, the choice, its confidence as stated, latency, validation and the
+ * outcome window — in the file `/evaluation` opens. The trace replays
+ * controls; these explain them.
+ */
+function downloadDecisions(): void {
+  const records = pilot.evaluationRecords();
+  if (records.decisions.length === 0 && records.failures.length === 0) return;
+  download(
+    JSON.stringify(records),
+    "application/json",
+    `blacksite-decisions-${records.episodeId}.eval.json`,
+  );
 }
 
 export function JevHud() {
@@ -162,12 +186,18 @@ export function JevHud() {
                     ? "uniform over legal options"
                     : t.brain === "script"
                       ? "rule-based, no probabilities"
-                      : "no probabilities recorded",
+                      : t.brain === "replay"
+                        ? "replayed control — no decision is made"
+                        : "no probabilities recorded",
                 ]
               : [];
         const unasked = engagement && t.frame !== null && t.axes !== null && !answer;
+        // P is the probability of the option that was chosen, as the provider
+        // returned it — not the top-ranked option's, which validation lets sit
+        // slightly above the choice — and a dash when none was returned.
+        const chosen = answer?.probabilities.find(([option]) => option === choice)?.[1];
         const [head, detail] = row.children as unknown as [HTMLElement, HTMLElement];
-        head.textContent = `${AXIS_NAMES[axis].padEnd(7)}${choice.padEnd(17)}${answer ? `P ${fmtP(answer.probabilities[0]?.[1] ?? 0)} CONF ${fmtP(answer.confidence)}` : unasked ? "NOT ASKED" : ""}`;
+        head.textContent = `${AXIS_NAMES[axis].padEnd(7)}${choice.padEnd(17)}${answer ? `P ${chosen === undefined ? "—" : fmtP(chosen)} CONF ${fmtP(answer.confidence)}` : unasked ? "NOT ASKED" : ""}`;
         // One element per candidate, so a long top three wraps between
         // candidates instead of cutting the third one off.
         const key = top.join("\n");
@@ -203,7 +233,13 @@ export function JevHud() {
       }
       if (metaRef.current) {
         const latency = t.latencyMs === null ? "—" : `${Math.round(t.latencyMs)} ms`;
-        const source = t.model ?? (t.brain === "random" ? `seed ${t.seed}` : "—");
+        const source =
+          t.model ??
+          (t.brain === "random"
+            ? `seed ${t.seed}`
+            : t.brain === "replay"
+              ? "recorded controls"
+              : "—");
         metaRef.current.textContent = `LATENCY ${latency} · TICK ${t.executingSequence ?? t.sequence} · ${source}`;
       }
       if (targetRef.current) {
@@ -289,6 +325,15 @@ export function JevHud() {
             className="bg-white/[0.08] px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-slate-200 hover:bg-white/[0.15] focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
           >
             Save trace
+          </button>
+        )}
+        {brain !== "replay" && (
+          <button
+            type="button"
+            onClick={downloadDecisions}
+            className="bg-white/[0.08] px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-slate-200 hover:bg-white/[0.15] focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
+          >
+            Save decisions
           </button>
         )}
       </div>

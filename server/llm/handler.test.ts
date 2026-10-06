@@ -248,6 +248,20 @@ describe("openai-compatible adapter", () => {
     );
   });
 
+  it("records the served model as unknown when the provider reports none", async () => {
+    const { call } = setup({}, () =>
+      openAiReply(JSON.stringify(firstOptions()), { model: undefined }),
+    );
+    const response = await call(post(decide));
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body["model"]).toBeNull();
+    expect(typeof body["requestedModel"]).toBe("string");
+    expect(validateLlmDecision(body, { sequence: 9, legal: observation.legal }).ok).toBe(
+      true,
+    );
+  });
+
   it("does not forward anything the browser sent except through the validated observation", async () => {
     const { call, up } = setup({}, () => openAiReply("{}"));
     const response = await call(

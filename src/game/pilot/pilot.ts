@@ -74,6 +74,7 @@ import { revalidate, type StalePolicy } from "./staleness";
 import { OutcomeTracker } from "./outcomes";
 import {
   DECISION_RECORD_VERSION,
+  EPISODE_DECISIONS_SCHEMA,
   contextOf,
   type DecisionRecord,
   type FailureRecord,
@@ -1707,6 +1708,12 @@ class Pilot {
     this.metrics.onFrame(due.frame);
     const record = this.recorder.record({
       ...due,
+      // A replayed frame is a control, not a decision. The probabilities and
+      // the model belong to the original observation, which the replayed world
+      // does not reproduce, so a replay record carries null for both — the
+      // recorder's contract — rather than presenting them as this run's.
+      axes: null,
+      model: null,
       timestamp: new Date().toISOString(),
       source: "replay",
       latencyMs: null,
@@ -1719,7 +1726,7 @@ class Pilot {
       playerAfter: null,
       matchId: this.matchId,
     });
-    this.telemetry.model = due.model;
+    this.telemetry.model = null;
     const sequence = this.lastExecutedSequence + 1;
     if (
       (this.options.control === "precision" && due.frame.target !== "NONE") ||
@@ -1742,7 +1749,7 @@ class Pilot {
       sequence,
       frame: due.frame,
       source: "replay",
-      axes: due.axes,
+      axes: null,
       record,
       receivedAt: performance.now(),
       // A replayed frame is not a decision: no observation to revalidate
@@ -1859,6 +1866,7 @@ class Pilot {
    * closed — the match goes on.
    */
   evaluationRecords(): {
+    schema: typeof EPISODE_DECISIONS_SCHEMA;
     episodeId: string;
     brain: BrainDescriptor | null;
     stale: StalePolicy;
@@ -1881,6 +1889,7 @@ class Pilot {
       return copy;
     });
     return {
+      schema: EPISODE_DECISIONS_SCHEMA,
       episodeId: this.matchId,
       brain: this.descriptor,
       stale: this.options.stale,

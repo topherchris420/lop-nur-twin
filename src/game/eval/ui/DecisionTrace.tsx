@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { AXES } from "../../pilot/contract";
 import type { DecisionTypeContract } from "../outcomeContracts";
-import type { DecisionRecord, FailureRecord } from "../records";
+import {
+  EPISODE_DECISIONS_SCHEMA,
+  type AxisConfidence,
+  type DecisionRecord,
+  type FailureRecord,
+} from "../records";
 import { VIZ, formatValue } from "./charts";
 import { ScrollRegion } from "./ScrollRegion";
 
@@ -29,7 +34,14 @@ export async function readRecordsFile(file: File): Promise<EpisodeRecords> {
         file.stream().pipeThrough(new DecompressionStream("gzip")),
       ).text()
     : await file.text();
-  const value = JSON.parse(text) as Partial<EpisodeRecords>;
+  const value = JSON.parse(text) as Partial<EpisodeRecords> & { schema?: unknown };
+  // Archived episodes predate the schema id; anything that names one must
+  // name this one.
+  if (value.schema !== undefined && value.schema !== EPISODE_DECISIONS_SCHEMA) {
+    throw new Error(
+      `unsupported decision-records schema: ${String(value.schema).slice(0, 60)}`,
+    );
+  }
   if (!Array.isArray(value.decisions) || !Array.isArray(value.failures)) {
     throw new Error(
       "not an episode's decision records (expected decisions and failures)",
@@ -120,6 +132,22 @@ function ExposureTimeline({
         ))}
     </svg>
   );
+}
+
+/** The confidence cell, one label per figure, "none" when nothing was reported. */
+function describeConfidence(
+  source: DecisionRecord["confidence"]["source"],
+  conf: AxisConfidence | undefined,
+): string {
+  if (source === "none" || conf === undefined) return "none";
+  const parts: string[] = [];
+  if (conf.probability !== null) parts.push(`p ${formatValue(conf.probability, 2)}`);
+  if (conf.confidence !== null) {
+    parts.push(
+      `${source === "verbalized" ? "said" : "conf"} ${formatValue(conf.confidence, 2)}`,
+    );
+  }
+  return parts.length === 0 ? "none reported" : parts.join(" · ");
 }
 
 export function DecisionTrace({
@@ -215,9 +243,11 @@ export function DecisionTrace({
                   </td>
                   <td className="max-w-[18rem] px-2 py-1 break-words">{changed}</td>
                   <td className="px-2 py-1">
-                    {r.confidence.source === "none" || !conf
-                      ? "none"
-                      : `${r.confidence.source === "verbalized" ? "said " : "p "}${formatValue(conf.probability ?? conf.confidence, 2)}`}
+                    {/* Each figure under its own name: a probability is "p", a
+                        provider's confidence figure is "conf", and a model's
+                        own stated confidence is "said". A confidence is never
+                        printed as a probability. */}
+                    {describeConfidence(r.confidence.source, conf)}
                   </td>
                   <td className="px-2 py-1">
                     {formatValue(r.accounting.wallLatencyMs, 0)} ms

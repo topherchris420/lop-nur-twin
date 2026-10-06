@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SCRIPT_POLICIES, ScriptedProvider, isLegalFrame } from "./policies";
+import { SCRIPT_POLICIES, ScriptedProvider } from "./policies";
 import { makeObservation } from "./testing/fixtures";
-import { legalActionsFor } from "./observation";
+import { isLegalFrame, legalActionsFor } from "./observation";
 import { mulberry32 } from "@/lib/noise";
 
 describe("scripted reference policies", () => {

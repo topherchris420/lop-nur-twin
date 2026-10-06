@@ -192,6 +192,15 @@ function loadArm(dir, entry) {
   const episodes = armReport.episodes.map((e) => {
     const decisionsFile = readArtifact(dir, e.artifacts?.decisions ?? null);
     const saved = decisionsFile ? JSON.parse(decisionsFile.text) : null;
+    // Archives written before the schema id carry none; any other id is refused.
+    if (
+      saved?.schema !== undefined &&
+      saved.schema !== records.EPISODE_DECISIONS_SCHEMA
+    ) {
+      throw new Error(
+        `${e.artifacts.decisions}: unsupported decision-records schema ${saved.schema}`,
+      );
+    }
     const traceName = e.artifacts?.trace
       ? ([basename(e.artifacts.trace), `${basename(e.artifacts.trace)}.gz`].find((n) =>
           existsSync(join(dir, n)),

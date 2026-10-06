@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
@@ -21,28 +21,18 @@ import { WeaponRuntime } from "../weapons/runtime";
 const ROOT = join(__dirname, "..", "..", "..");
 const read = (path: string): string => readFileSync(join(ROOT, path), "utf8");
 
-/** Everything between a brain's choice and the `InputState`. */
+/**
+ * Everything between a brain's choice and the `InputState`: every source file
+ * in the player-seat directory, read from disk rather than listed by hand — a
+ * hand-kept list had already missed four files — plus the human aim assist.
+ * A new control file is covered the moment it exists.
+ */
+const PILOT_DIR = "src/game/pilot";
 const CONTROL_LAYER = [
-  "src/game/pilot/contract.ts",
-  "src/game/pilot/observation.ts",
-  "src/game/pilot/decision.ts",
-  "src/game/pilot/perception.ts",
-  "src/game/pilot/executor.ts",
-  "src/game/pilot/motor.ts",
-  "src/game/pilot/hitGeometry.ts",
-  "src/game/pilot/loop.ts",
-  "src/game/pilot/providers.ts",
-  "src/game/pilot/pilot.ts",
-  "src/game/pilot/recorder.ts",
-  "src/game/pilot/metrics.ts",
-  "src/game/pilot/navigator.ts",
-  "src/game/pilot/places.ts",
-  "src/game/pilot/policies.ts",
-  "src/game/pilot/debrief.ts",
-  "src/game/pilot/brain.ts",
-  "src/game/pilot/llmDecision.ts",
-  "src/game/pilot/staleness.ts",
-  "src/game/pilot/outcomes.ts",
+  ...readdirSync(join(ROOT, PILOT_DIR))
+    .filter((name) => /\.(ts|tsx)$/.test(name) && !/\.test\.(ts|tsx)$/.test(name))
+    .sort()
+    .map((name) => `${PILOT_DIR}/${name}`),
   "src/game/player/eliteAssist.ts",
 ];
 
@@ -99,9 +89,23 @@ describe("no control-layer code decides an outcome", () => {
     expect(samples).toHaveLength(FORBIDDEN.length);
   });
 
-  it("imports nothing from the damage resolver", () => {
+  it("takes nothing from the damage resolver but its read-only observer tap", () => {
+    // The host subscribes to applied-damage reports to count outcomes; that
+    // tap, and types, are the only things control-layer code may import from
+    // the resolver. Anything else there decides an outcome.
+    const IMPORT = /import\s+(type\s+)?\{([^}]*)\}\s*from\s*["']\.\.\/core\/combat["']/g;
     for (const file of CONTROL_LAYER) {
-      expect(read(file)).not.toMatch(/from\s+["']\.\.\/core\/combat["']/);
+      const source = read(file);
+      expect(source, file).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+["']\.\.\/core\/combat["']/);
+      for (const match of source.matchAll(IMPORT)) {
+        const typeOnly = match[1] !== undefined;
+        const names = (match[2] ?? "")
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0 && !name.startsWith("type "));
+        if (typeOnly) continue;
+        expect(names, file).toEqual(names.filter((name) => name === "damageObservers"));
+      }
     }
   });
 });

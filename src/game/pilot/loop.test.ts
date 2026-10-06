@@ -131,6 +131,33 @@ describe("decision loop", () => {
     expect(accepted[0]!.fallback).toBe(false);
   });
 
+  it("refuses a frame naming an option the observation did not offer", async () => {
+    // The host does not rely on a provider validating itself: an answer outside
+    // the offered options is an invalid answer, and it never reaches the rig.
+    loop.tick(context);
+    const offered = provider.pending[0]!.request.observation.legal;
+    expect(offered.target).not.toContain("TARGET_3");
+    provider.pending[0]!.resolve({
+      ok: true,
+      decision: {
+        frame: { ...IDLE_FRAME, target: "TARGET_3" },
+        axes: null,
+        model: "jev-1.13.0",
+        serverLatencyMs: 90,
+        usage: null,
+      },
+    });
+    await flush();
+    expect(accepted).toHaveLength(0);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        kind: "failure",
+        failure: "invalid",
+        detail: "the frame names an option the observation did not offer",
+      }),
+    );
+  });
+
   it("rejects a stale answer for an abandoned request (out-of-order arrival)", async () => {
     loop.tick(context);
     const first = provider.pending[0]!;

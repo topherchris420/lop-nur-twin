@@ -9,7 +9,7 @@ import {
   type TurnAction,
   type WeaponAction,
 } from "./contract";
-import type { JevObservation, LegalActions, PlaceKind } from "./observation";
+import type { JevObservation, PlaceKind } from "./observation";
 import type { DecisionProvider, DecisionRequest, ProviderResult } from "./loop";
 import { localAccounting, type BrainDescriptor } from "./brain";
 import { LOCAL_POLICY_CAPABILITIES } from "./capabilities";
@@ -267,19 +267,6 @@ function skirmisher(obs: JevObservation, memory: PolicyMemory): ControlFrame {
 const POLICIES: Readonly<
   Record<ScriptPolicy, (obs: JevObservation, memory: PolicyMemory) => ControlFrame>
 > = { marksman, skirmisher };
-
-/** Every axis of a frame is one of the options the observation made legal. */
-export function isLegalFrame(frame: ControlFrame, legal: LegalActions): boolean {
-  return (
-    has(legal.move, frame.move) &&
-    has(legal.turn, frame.turn) &&
-    has(legal.tilt, frame.tilt) &&
-    has(legal.weapon, frame.weapon) &&
-    has(legal.target, frame.target) &&
-    has(legal.aim, frame.aim) &&
-    has(legal.go, frame.go)
-  );
-}
 
 export class ScriptedProvider implements DecisionProvider {
   readonly kind = "script" as const;

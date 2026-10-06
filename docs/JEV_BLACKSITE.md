@@ -744,7 +744,7 @@ WEAPON NO_FIRE          P .91 CONF .82
 LATENCY 220 MS · TICK 27 · JEV-1.13.0
 TARGET 59 M -6° · HP 100 · AMMO 5/210
 Jev chooses · Blacksite decides what happens
-[ Take control · H ]  [ Save trace ]
+[ Take control · H ]  [ Save trace ]  [ Save decisions ]
 ```
 
 Each axis shows the choice, its probability and TypeSafe's confidence, then up
@@ -797,13 +797,27 @@ and invalid answers, deaths, respawns, takeovers. **Save trace** downloads it;
 `?record=1` also keeps the last trace in local storage at the end of a match. No
 trace can contain the credential: it never reaches the browser.
 
+**Save decisions** downloads the episode's decision records
+(`blacksite-episode-decisions/v1`): for every decision the full observation, the
+options offered, the choice, its confidence as the brain stated it, latency,
+validation and the outcome window. It is the file `/evaluation` opens. The
+trace replays controls; the decision records explain them. Archives written
+before the schema id existed carry none and are still read; a file naming any
+other schema is refused.
+
+The decision loop itself refuses an answer whose frame names an option the
+observation did not offer, whoever produced it, as an `invalid` failure.
+Providers validate their own output as well; the host does not rely on it.
+
 <a id="replay"></a>**Replay** (`/play?brain=replay&trace=last`, the menu's
 **Load trace**, or `bun run replay:jev -- trace.jsonl`) re-issues each recorded
 frame at its recorded simulation time through the same executor, with no model
 call, labelled REPLAY. Traces with another trace, contract or observation
 version, or with a control this build does not know, are refused. What a replay
 reproduces is the **control stream**: `replay:jev` checked 84 of 84 frames of a
-recorded run executed in order. Traces are now `blacksite-jev-trace/v3`; the
+recorded run executed in order. A replay record carries no probabilities and no
+model: they belonged to the original observation, which the replayed world does
+not reproduce, so the HUD shows "replayed control — no decision is made". Traces are now `blacksite-jev-trace/v3`; the
 header records the control mode and a replay runs under the mode it was
 recorded with. A replayed `TARGET_n` names the enemy in that slot of the view at
 replay time — the control stream replays, the world does not. What it does not reproduce is the world — frame

@@ -67,6 +67,7 @@ const llmBody = (overrides: Record<string, unknown> = {}) => {
     source: "llm",
     provider: "openai-compatible",
     model: "test-double-1",
+    requestedModel: "test-double-1",
     frame: parsed.value.frame,
     answers,
     confidenceSource: "verbalized",
@@ -179,6 +180,36 @@ describe("decision accounting", () => {
     ).decide(request());
     expect(result.ok && result.decision.accounting!.inputTokens).toBeNull();
     expect(result.ok && result.decision.accounting!.outputTokens).toBeNull();
+  });
+
+  it("keeps an unreported served model unknown instead of filling in the request", async () => {
+    const result = await new LlmHttpProvider(
+      "0123456789abcdef",
+      "/x",
+      serve(llmBody({ model: null, requestedModel: "configured-alias" })),
+    ).decide(request());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.decision.model).toBeNull();
+    expect(result.decision.accounting!.model).toBeNull();
+  });
+
+  it("refuses an answer that claims a verbalized confidence but wrote none", () => {
+    const body = llmBody();
+    const silent = {
+      ...body,
+      answers: Object.fromEntries(
+        Object.entries(body.answers).map(([axis, answer]) => [
+          axis,
+          { ...answer, confidence: null },
+        ]),
+      ),
+    };
+    const validated = validateLlmDecision(silent, {
+      sequence: 5,
+      legal: observation.legal,
+    });
+    expect(validated.ok).toBe(false);
   });
 
   it("records an LLM's verbalized confidence as verbalized, with no probability", async () => {

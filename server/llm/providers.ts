@@ -30,8 +30,12 @@ export type AdapterResult =
   | {
       ok: true;
       text: string;
-      /** The model the provider says answered — which can differ from the one asked. */
-      model: string;
+      /**
+       * The model the provider says answered — which can differ from the one
+       * asked — or null when the reply names none. Never the requested model
+       * filled in: that would make a substitution behind an alias invisible.
+       */
+      model: string | null;
       inputTokens: number | null;
       outputTokens: number | null;
       traceId: string | null;
@@ -313,7 +317,7 @@ export class OpenAiCompatibleAdapter implements LlmAdapter {
     return {
       ok: true,
       text: typeof choice?.message?.content === "string" ? choice.message.content : "",
-      model: typeof reply.model === "string" ? reply.model : model,
+      model: typeof reply.model === "string" ? reply.model : null,
       inputTokens: intOrNull(reply.usage?.prompt_tokens),
       outputTokens: intOrNull(reply.usage?.completion_tokens),
       traceId: typeof reply.id === "string" ? reply.id.slice(0, 128) : null,

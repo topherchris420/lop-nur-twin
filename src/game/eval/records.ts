@@ -26,6 +26,14 @@ import type { JevObservation, LegalActions, PlaceKind } from "../pilot/observati
 
 export const DECISION_RECORD_VERSION = "blacksite-decision/v1";
 
+/**
+ * The file one episode's decision records travel in: the seat's descriptor and
+ * policies, its `blacksite-decision/v1` records and its failures. Archives
+ * written before this id existed carry no `schema` field and are still read;
+ * a file naming any other schema is refused rather than guessed at.
+ */
+export const EPISODE_DECISIONS_SCHEMA = "blacksite-episode-decisions/v1";
+
 export type RecordSource =
   "jev" | "glide" | "llm" | "random" | "script" | "replay" | "fallback-random";
 

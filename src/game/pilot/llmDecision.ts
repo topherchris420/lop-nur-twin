@@ -4,9 +4,16 @@ import { askedAxes, type LegalActions, type Validated } from "./observation.js";
 
 /**
  * The decision a conventional LLM returns through `/api/llm/decision`:
- * `blacksite-llm-decision/v1`. Shared by the server, which builds it from the
+ * `blacksite-llm-decision/v2`. Shared by the server, which builds it from the
  * provider's answer, and the browser, which validates it again before anything
  * executes.
+ *
+ * Version 2 stopped turning unknowns into knowns. `model` is the model the
+ * provider *reports* having served, and null when it reports none — version 1
+ * filled the configured model in, so a substitution behind an alias could
+ * never show. What the server asked for travels separately as
+ * `requestedModel`. And `confidenceSource` is `verbalized` only when the model
+ * actually wrote a number; asked for one and wrote none is `none`.
  *
  * It differs from Jev's decision in one respect that matters for evaluation,
  * and the difference is carried rather than hidden: an LLM has no distribution
@@ -16,7 +23,7 @@ import { askedAxes, type LegalActions, type Validated } from "./observation.js";
  * asked, or does not answer with one, the confidence is null — not 1, not 1/k.
  */
 
-export const LLM_DECISION_SCHEMA = "blacksite-llm-decision/v1";
+export const LLM_DECISION_SCHEMA = "blacksite-llm-decision/v2";
 
 export const LLM_PROVIDERS = ["anthropic", "openai-compatible"] as const;
 export type LlmProviderName = (typeof LLM_PROVIDERS)[number];
@@ -32,7 +39,10 @@ export interface LlmDecision {
   sequence: number;
   source: "llm";
   provider: LlmProviderName;
-  model: string;
+  /** The model the provider reported serving; null when it reported none. */
+  model: string | null;
+  /** The model the server asked for — configuration, not a claim about the answer. */
+  requestedModel: string;
   frame: ControlFrame;
   /** One answer per asked axis; unasked axes are absent. */
   answers: Partial<Record<Axis, LlmAxisAnswer>>;
@@ -114,8 +124,12 @@ export function validateLlmDecision(
   if (!(LLM_PROVIDERS as readonly unknown[]).includes(provider)) {
     return { ok: false, error: "unknown provider" };
   }
-  if (!isModelId(value["model"]))
-    return { ok: false, error: "model id missing or malformed" };
+  const model = value["model"];
+  if (model !== null && !isModelId(model))
+    return { ok: false, error: "served model id malformed" };
+  const requestedModel = value["requestedModel"];
+  if (!isModelId(requestedModel))
+    return { ok: false, error: "requested model id missing or malformed" };
   const latency = value["latencyMs"];
   if (typeof latency !== "number" || !Number.isFinite(latency) || latency < 0) {
     return { ok: false, error: "latency missing or malformed" };
@@ -151,6 +165,9 @@ export function validateLlmDecision(
   if (source === "none" && anyConfidence) {
     return { ok: false, error: "confidence given but the source says none" };
   }
+  if (source === "verbalized" && !anyConfidence) {
+    return { ok: false, error: "confidence source is verbalized but no number was written" };
+  }
   let usage: LlmDecision["usage"] = null;
   const u = value["usage"];
   if (isRecord(u)) {
@@ -173,7 +190,8 @@ export function validateLlmDecision(
       sequence: expected.sequence,
       source: "llm",
       provider: provider as LlmProviderName,
-      model: value["model"],
+      model,
+      requestedModel,
       frame: parsed.value.frame,
       answers: parsed.value.answers,
       confidenceSource: source,
