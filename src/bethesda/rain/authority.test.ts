@@ -187,7 +187,6 @@ describe("authority, by construction", () => {
       "observations.ts",
       "replay.ts",
       "runner.ts",
-      "evaluate.ts",
       "experiments.ts",
       "tools.ts",
       "presence.ts",
@@ -201,6 +200,17 @@ describe("authority, by construction", () => {
   it("the R.A.I.N. client cannot reach the DEMO recording", () => {
     expect(read("client.ts")).not.toMatch(/demo|fixtures/);
   });
+  it("the lab imports the runtime's pure contracts only, never its server side or its corpus", () => {
+    for (const f of files.filter((f) => /\.tsx?$/.test(f) && !f.endsWith(".test.ts"))) {
+      const imports = [...read(f).matchAll(/from\s+"([^"]*\/rain\/[^"]*)"/g)].map(
+        (m) => m[1]!,
+      );
+      for (const spec of imports)
+        expect(spec, `${f} imports ${spec}`).toMatch(
+          /\/rain\/(protocol|experiments\/evaluate|judgment\/routing|judgment\/(contracts|calibration|sensitive)|meeting\/perspectives|sha256|text|corpus)(\.js)?$/,
+        );
+    }
+  });
   it("text from R.A.I.N. is never rendered as HTML or followed as a link", () => {
     for (const f of files.filter((f) => f.endsWith(".tsx")))
       expect(read(f), f).not.toMatch(/dangerouslySetInnerHTML|<a\s|href=|window\.open/);
@@ -212,9 +222,12 @@ describe("authority, by construction", () => {
     ];
     expect(all.filter((f) => unsafeText(read(f)))).toEqual([]);
     for (const [where, pattern] of [
-      ["../../../tools/rain-bridge/", /\.py$/],
       ["../../../server/rain/", /\.ts$/],
       ["../../../api/rain/", /\.ts$/],
+      ["../../../src/rain/", /\.ts$/],
+      ["../../../src/rain/meeting/", /\.ts$/],
+      ["../../../src/rain/judgment/", /\.ts$/],
+      ["../../../src/rain/experiments/", /\.ts$/],
     ] as const) {
       const folder = new URL(where, import.meta.url).pathname;
       expect(

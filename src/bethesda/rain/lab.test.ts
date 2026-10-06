@@ -180,14 +180,14 @@ describe("OFFLINE, DEMO and LIVE", () => {
     const identity = {
       schema: "rain-bethesda/v2",
       kind: "identity",
-      bridge: { name: "rain-bethesda-bridge", version: "1" },
+      runtime: { name: "lop-nur-twin-rain", version: "1" },
       rain: {
-        repository: "topherchris420/james_library",
+        repository: "topherchris420/lop-nur-twin",
         commit: "9".repeat(40),
         dirty: false,
       },
       corpus: { files: 17, sha256: "a".repeat(64) },
-      meeting_engine: "james_library.launcher.offline_meeting.build_offline_meeting",
+      meeting_engine: "rain.meeting.offline.buildOfflineMeeting",
       meeting_generation: "scripted",
       model: null,
       bounded_decision: "off",
@@ -287,14 +287,14 @@ describe("LIVE: a model meeting, and a choice R.A.I.N. hands back", () => {
   const modelIdentity = {
     schema: "rain-bethesda/v2",
     kind: "identity",
-    bridge: { name: "rain-bethesda-bridge", version: "2" },
+    runtime: { name: "lop-nur-twin-rain", version: "1" },
     rain: {
-      repository: "topherchris420/james_library",
+      repository: "topherchris420/lop-nur-twin",
       commit: "9".repeat(40),
       dirty: false,
     },
     corpus: { files: 17, sha256: "a".repeat(64) },
-    meeting_engine: "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting",
+    meeting_engine: "rain.meeting.model.holdMeeting",
     meeting_generation: "model",
     model: "qwen2.5:7b",
     bounded_decision: "jev",
@@ -321,7 +321,7 @@ describe("LIVE: a model meeting, and a choice R.A.I.N. hands back", () => {
     m.request_id = requestId;
     m.generation = "model";
     m.model = "qwen2.5:7b";
-    m.engine = "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting";
+    m.engine = "rain.meeting.model.holdMeeting";
     m.grounding = m.matched_terms = m.missing_terms = m.verdict = null;
     m.turns.forEach((t) => (t.generation = "model"));
     m.source_artifact = {

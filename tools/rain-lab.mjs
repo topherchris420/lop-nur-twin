@@ -3,45 +3,40 @@
  * The R.A.I.N. Lab, end to end, against the artifact that ships.
  *
  * Serves `vite preview` (security headers included) and drives the hidden lab
- * in a headless browser. It must stay unloaded and unmentioned until found;
- * open by its phrase and by its coordinates; say OFFLINE when nothing is
- * configured and send nothing else; label its DEMO as a recording; refuse a
- * wrong authorization; run a matched experiment in a worker while Bethesda
- * keeps its own time; verify that experiment by replay without contacting
- * anything; refuse a tampered record; re-verify an exported record in a fresh
- * browser; walk a perspective to a place and record what the simulator saw;
- * pass axe in every room; and keep every room usable without WebGL.
+ * in a headless browser, on three previews of its own:
  *
- * With RAIN_LIBRARY_PATH set to a james_library checkout it also starts the
- * reference bridge on loopback, serves a second preview configured for it and
- * runs LIVE: the bridge's identity, a meeting from R.A.I.N.'s own engine, a
- * pre-registered experiment reported back to R.A.I.N.'s registry, and a
- * bridge that stops answering — which must show the failure, never the DEMO.
- * No model is called there: the bridge's meeting engine is R.A.I.N.'s
- * offline engine, and nothing reaches past loopback.
- *
- * With RAIN_PYTHON also set, to a Python with james_library's requirements
- * installed, it runs R.A.I.N.'s own model meeting (unchanged, from a copy of
- * the checkout) against `tools/rain-bridge/stand_in_model.py`: a test double
- * on loopback that quotes the corpus and claims nothing. The lab must show
- * progress and no words while it runs, then the model's turns labelled as the
- * model's, R.A.I.N.'s fixed closing line as R.A.I.N.'s, no invented grade or
- * verdict, a stop that stops it, and an untouched checkout.
+ * - **OFFLINE** (`RAIN_RUNTIME=off`): the lab must stay unloaded and
+ *   unmentioned until found; open by its phrase and by its coordinates; say
+ *   OFFLINE and send nothing else; label its DEMO as a recording; refuse a
+ *   wrong authorization; run a matched experiment in a worker while Bethesda
+ *   keeps its own time; verify that experiment by replay without contacting
+ *   anything; refuse a tampered record; re-verify an exported record in a
+ *   fresh browser; walk a perspective to a place and record what the
+ *   simulator saw; pass axe in every room; keep every room usable without
+ *   WebGL.
+ * - **LIVE** (nothing configured): the research runtime runs inside the
+ *   site's server process. The lab must show the runtime's identity, hold a
+ *   meeting from the offline engine through the site's route, pre-register
+ *   an experiment and report it to the runtime's registry, and, when the
+ *   server stops answering, show the failure — never the DEMO.
+ * - **MODEL** (`RAIN_MEETING_ENGINE=model`): a model meeting against
+ *   `tools/stand-in-model.mjs`, a test double on loopback that quotes the
+ *   corpus and claims nothing. The lab must show progress and no words while
+ *   it runs, then the model's turns labelled as the model's, the runtime's
+ *   fixed closing line as the runtime's, no invented grade or verdict, and a
+ *   stop that stops it.
  *
  * Jev is a paid remote engine and is never consulted unless JEV_LIVE_TEST=1
- * (with TYPESAFE_API_KEY): then that bridge also allows R.A.I.N.'s router to
+ * (with TYPESAFE_API_KEY): then the MODEL preview also lets R.A.I.N.'s router
  * ask Jev (RAIN_DECISION_MODE=jev, RAIN_DECISION_REMOTE_ALLOWED=true) and one
- * decision is requested — one TypeSafe call, made by the bridge, never by the
+ * decision is requested — one TypeSafe call, made by the server, never by the
  * browser. Jev's answer is shown as returned; R.A.I.N. decides what to do with it.
  *
  *   bun run build && node tools/rain-lab.mjs
- *   node tools/rain-lab.mjs http://localhost:4173     # an already-running preview
- *   RAIN_LIBRARY_PATH=../james_library node tools/rain-lab.mjs
- *   RAIN_LIBRARY_PATH=../james_library RAIN_PYTHON=../james_library/.venv/bin/python \
- *     node tools/rain-lab.mjs
+ *   JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… node tools/rain-lab.mjs
  */
 import puppeteer from "puppeteer";
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { openSync, readdirSync, rmSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -58,11 +53,8 @@ const demoMeeting = JSON.parse(
 );
 const OUT = "shots/rain-lab";
 const OFFLINE = { port: 4185 },
-  LIVE = { port: 4186, bridge: 8797 },
-  MODEL = { port: 4187, bridge: 8798, standIn: 8799 };
-const library = process.env.RAIN_LIBRARY_PATH;
-/** A Python with james_library's requirements, for R.A.I.N.'s model meeting. */
-const rainPython = process.env.RAIN_PYTHON;
+  LIVE = { port: 4186 },
+  MODEL = { port: 4187, standIn: 4189 };
 /** Jev spends credit: it is consulted only when this is set, and then once. */
 const jevLive = process.env.JEV_LIVE_TEST === "1";
 const children = [];
@@ -72,11 +64,11 @@ const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"} ${name}${detail ? " " + detail : ""}`);
 };
 
-/** Environment without any R.A.I.N. setting, so the OFFLINE preview is unconfigured. */
+/** Environment without any R.A.I.N. setting, so each preview is configured here and only here. */
 const unconfigured = () =>
   Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("RAIN_")));
-/** A bridge's environment: R.A.I.N.'s settings as given, and no TypeSafe key unless Jev may be asked. */
-const bridgeEnv = (settings = {}) => {
+/** A preview's environment: the runtime's settings as given, and no TypeSafe key unless Jev may be asked. */
+const previewEnv = (settings = {}) => {
   const env = { ...unconfigured(), ...settings };
   if (env.RAIN_DECISION_REMOTE_ALLOWED !== "true") delete env.TYPESAFE_API_KEY;
   return env;
@@ -86,19 +78,11 @@ const logTo = (name) => {
   const fd = openSync(`${OUT}/${name}.log`, "w");
   return ["ignore", fd, fd];
 };
-/** Copies the bridge made of the checkout for model meetings and has not removed. */
-const meetingCopies = () =>
-  readdirSync(tmpdir()).filter((n) => n.startsWith("rain-bethesda-meeting-"));
-/** The scratch registries this run's bridges create, removed when it ends. */
+/** The scratch registries this run's runtimes create, removed when it ends. */
 const scratchRegistries = () =>
-  readdirSync(tmpdir()).filter((n) => n.startsWith("rain-bethesda-registry-"));
+  readdirSync(tmpdir()).filter((n) => n.startsWith("rain-registry-"));
 const registriesBefore = new Set(scratchRegistries());
-const checkoutState = (root) =>
-  execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], {
-    cwd: root,
-    encoding: "utf8",
-  });
-function preview(port, env) {
+function preview(name, port, env) {
   const child = spawn(
     process.execPath,
     [
@@ -110,10 +94,10 @@ function preview(port, env) {
       String(port),
       "--strictPort",
     ],
-    { stdio: "ignore", env },
+    { stdio: logTo(`preview-${name}`), env },
   );
   children.push(child);
-  return `http://127.0.0.1:${port}`;
+  return { origin: `http://127.0.0.1:${port}`, child };
 }
 async function listening(url) {
   for (let i = 0; i < 200; i++) {
@@ -126,6 +110,7 @@ async function listening(url) {
   }
   throw new Error(`nothing answered at ${url}`);
 }
+const status = async (origin) => (await fetch(origin + "/api/rain/status")).json();
 
 const isRain = (u) => {
   try {
@@ -305,18 +290,30 @@ async function authorize(s) {
   const prefix = await s.control("", "First 8 characters", "input");
   return { sha, prefix };
 }
+async function ask(s, question) {
+  await s.click("Research Panel");
+  await s.page.waitForSelector("#rain-question");
+  await s.page.focus("#rain-question");
+  await s.page.keyboard.sendCharacter(question);
+  await s.click("Ask R.A.I.N.");
+}
 
 let browser;
 try {
   await mkdir(OUT, { recursive: true });
-  // An origin on the command line is used as is; otherwise this owns a preview.
-  const origin = process.argv[2] ?? preview(OFFLINE.port, unconfigured());
+  const { origin } = preview(
+    "offline",
+    OFFLINE.port,
+    previewEnv({ RAIN_RUNTIME: "off" }),
+  );
   await listening(origin);
-  const status = await (await fetch(origin + "/api/rain/status")).json();
-  if (status.configured)
-    throw new Error(
-      "the OFFLINE preview has a R.A.I.N. backend configured (.env.local?); unset RAIN_BACKEND_URL",
-    );
+  {
+    const s = await status(origin);
+    if (s.configured !== false || s.failure !== null)
+      throw new Error(
+        "the OFFLINE preview did not switch its runtime off: " + JSON.stringify(s),
+      );
+  }
   browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--enable-unsafe-swiftshader", "--use-gl=angle"],
@@ -352,7 +349,9 @@ try {
   check(
     "OFFLINE: the runtime is checked through the site's own route, once, and says so",
     (await a.text()).includes("RUNTIME OFFLINE") &&
-      (await a.text()).includes("no R.A.I.N. backend is configured for this site") &&
+      (await a.text()).includes(
+        "the research runtime is switched off on this site's server",
+      ) &&
       JSON.stringify(a.rain()) === JSON.stringify(["/api/rain/status"]),
     JSON.stringify(a.rain()),
   );
@@ -496,16 +495,17 @@ try {
   const record = JSON.parse(recordText);
   check(
     "the exported record carries its definition, authorization, arms, outcome and provenance",
-    record.schema === "bethesda-rain-experiment-record/v1" &&
+    record.schema === "bethesda-rain-experiment-record/v2" &&
       /^[0-9a-f]{64}$/.test(record.record_sha256) &&
       record.authorization?.identity_verified === false &&
       record.run?.arms?.length === 6 &&
       record.outcome?.state === "COMPLETED" &&
       "lop_nur_twin_commit" in record.provenance &&
-      // The run followed the DEMO meeting: R.A.I.N.'s revision is the one the
+      // The run followed the DEMO meeting: the R.A.I.N. revision is the one the
       // recording names, and the record says that is where it came from.
-      record.provenance.james_library_commit === demoMeeting.rain.commit &&
-      record.provenance.james_library_source === "demo-recording" &&
+      record.provenance.rain_commit === demoMeeting.rain.commit &&
+      record.provenance.rain_repository === demoMeeting.rain.repository &&
+      record.provenance.rain_source === "demo-recording" &&
       record.provenance.model === null,
     JSON.stringify(record.provenance),
   );
@@ -521,6 +521,10 @@ try {
     (await a.text()).includes("its digest does not match; nothing was imported"),
   );
   await a.click("Systems Room");
+  check(
+    "the Systems Room says the runtime is in this site's server, and switched off here",
+    (await a.text()).includes("RAIN_RUNTIME=off"),
+  );
   await a.axe("systems room");
   await a.click("Return to Bethesda");
   await a.page.waitForSelector('[data-bethesda="active"]:not([data-indoors])');
@@ -647,45 +651,38 @@ try {
   await b.page.close();
   await fresh.close();
 
-  // --- LIVE, against R.A.I.N.'s own engine through the reference bridge ------------------
-  if (!library) {
-    console.log("SKIP LIVE: set RAIN_LIBRARY_PATH to a james_library checkout");
-  } else {
-    const bridge = spawn(
-      "python3",
-      [
-        "tools/rain-bridge/rain_bethesda_bridge.py",
-        "--library",
-        library,
-        "--port",
-        String(LIVE.bridge),
-      ],
-      { stdio: logTo("bridge-offline"), env: bridgeEnv() },
+  // --- LIVE, against the research runtime in the site's own server ------------------------
+  {
+    const live = preview("live", LIVE.port, previewEnv());
+    await listening(live.origin);
+    const s = await status(live.origin);
+    check(
+      "LIVE: with nothing configured the runtime is on, offline engine, no decisions, no remote engine",
+      s.configured === true &&
+        s.identity?.runtime?.name === "lop-nur-twin-rain" &&
+        s.identity?.rain?.repository === "topherchris420/lop-nur-twin" &&
+        /^[0-9a-f]{40}$/.test(s.identity?.rain?.commit ?? "") &&
+        s.identity?.meeting_engine === "rain.meeting.offline.buildOfflineMeeting" &&
+        s.identity?.meeting_generation === "scripted" &&
+        s.identity?.model === null &&
+        s.identity?.bounded_decision === "off" &&
+        s.identity?.remote_decisions === false &&
+        s.identity?.corpus?.files > 0,
+      JSON.stringify(s).slice(0, 400),
     );
-    children.push(bridge);
-    await listening(`http://127.0.0.1:${LIVE.bridge}/rain-bethesda/v2/identity`);
-    const identity = await (
-      await fetch(`http://127.0.0.1:${LIVE.bridge}/rain-bethesda/v2/identity`)
-    ).json();
-    const liveOrigin = preview(LIVE.port, {
-      ...unconfigured(),
-      RAIN_BACKEND_URL: `http://127.0.0.1:${LIVE.bridge}`,
-    });
-    await listening(liveOrigin);
+    const identity = s.identity;
     const context = await browser.createBrowserContext();
     const c = await open(context);
-    await enterBethesda(c, liveOrigin);
+    await enterBethesda(c, live.origin);
     await enterLab(c);
     check(
-      "LIVE: the runtime names R.A.I.N.'s engine and commit",
+      "LIVE: the runtime names this repository and its commit",
       (await c.text()).includes("RUNTIME LIVE") &&
-        (await c.text()).includes(identity.rain.commit.slice(0, 12)),
+        (await c.text()).includes("topherchris420/lop-nur-twin") &&
+        (await c.text()).includes(identity.rain.commit.slice(0, 7)),
     );
-    await c.click("Research Panel");
-    await c.page.waitForSelector("#rain-question");
-    await c.page.focus("#rain-question");
-    await c.page.keyboard.sendCharacter(demoMeeting.question);
-    await c.click("Ask R.A.I.N.");
+    await c.axe("threshold, LIVE");
+    await ask(c, demoMeeting.question);
     await c.waitFor(
       () => document.body.innerText.includes("R.A.I.N.'s offline engine answered"),
       90000,
@@ -693,15 +690,14 @@ try {
     {
       const t = await c.text();
       check(
-        "LIVE: R.A.I.N.'s engine answers through the site's route, scripted and labelled",
+        "LIVE: the offline engine answers through the site's route, scripted and labelled",
         t.includes("SCRIPTED · NO MODEL RAN") &&
           !t.includes("PRERECORDED · DEMO") &&
           c.rain().filter((p) => p === "/api/rain/meeting").length === 1,
       );
       check(
-        "LIVE: the DEMO is that same meeting, recorded",
-        identity.rain.commit !== demoMeeting.rain.commit ||
-          t.includes(demoMeeting.meeting_id),
+        "LIVE: the DEMO question gives the DEMO meeting, word for word, by id",
+        t.includes(demoMeeting.meeting_id),
       );
     }
     const { sha: liveSha, prefix: livePrefix } = await authorize(c);
@@ -730,13 +726,25 @@ try {
       60000,
     );
     check(
-      "LIVE: R.A.I.N. pre-registers the experiment and records its own evaluation",
+      "LIVE: the runtime pre-registers the experiment and records its own evaluation",
       c.rain().filter((p) => p === "/api/rain/preregister").length === 1 &&
-        c.rain().filter((p) => p === "/api/rain/submission").length === 1,
+        c.rain().filter((p) => p === "/api/rain/submission").length === 1 &&
+        (await c.text()).includes("V3D-EXP-0001"),
       JSON.stringify(c.rain()),
     );
-    // The bridge stops answering. The lab must say so and show nothing new.
-    bridge.kill();
+    await c.click("Export record");
+    const liveRecord = JSON.parse(await c.saved("bethesda-rain-record-"));
+    check(
+      "LIVE: the record's provenance is the runtime's identity, not the recording's",
+      liveRecord.provenance.rain_source === "live-identity" &&
+        liveRecord.provenance.rain_repository === "topherchris420/lop-nur-twin" &&
+        liveRecord.provenance.rain_commit === identity.rain.commit &&
+        liveRecord.rain_preregistration?.experiment_id === "V3D-EXP-0001",
+      JSON.stringify(liveRecord.provenance),
+    );
+    await c.axe("registry with R.A.I.N.'s own record");
+    // The server stops answering. The lab must say so and show nothing new.
+    live.child.kill();
     await delay(15500);
     await c.click("Research Panel");
     await c.click("Ask R.A.I.N.");
@@ -744,7 +752,7 @@ try {
     {
       const t = await c.text();
       check(
-        "LIVE: an unreachable backend is shown as a failure, never replaced by the DEMO",
+        "LIVE: a server that stops answering is shown as a failure, never replaced by the DEMO",
         /LIVE request failed: (UNAVAILABLE|TIMEOUT|ERROR)/.test(t) &&
           !t.includes("PRERECORDED · DEMO"),
       );
@@ -757,91 +765,66 @@ try {
     check(
       "LIVE: the browser talks only to its own site",
       c.log.requests.every(
-        (r) => r.startsWith(liveOrigin) || r.startsWith("data:") || r.startsWith("blob:"),
+        (r) =>
+          r.startsWith(live.origin) || r.startsWith("data:") || r.startsWith("blob:"),
       ),
     );
     await context.close();
   }
 
-  // --- LIVE, R.A.I.N.'s model meeting, against a stand-in model server --------------------
-  if (!library || !rainPython) {
-    console.log(
-      "SKIP LIVE model meeting: set RAIN_LIBRARY_PATH and RAIN_PYTHON (a Python with james_library's requirements)",
-    );
-  } else {
-    const before = checkoutState(library),
-      copies = meetingCopies();
+  // --- LIVE, a model meeting against the stand-in model server ----------------------------
+  {
     const standIn = spawn(
-      rainPython,
-      ["tools/rain-bridge/stand_in_model.py", "--port", String(MODEL.standIn)],
+      process.execPath,
+      [
+        "tools/stand-in-model.mjs",
+        "--port",
+        String(MODEL.standIn),
+        // Slow enough for the lab to show a meeting in progress, and to stop one.
+        "--delay-ms",
+        "1500",
+      ],
       { stdio: logTo("stand-in-model"), env: unconfigured() },
     );
     children.push(standIn);
     await listening(`http://127.0.0.1:${MODEL.standIn}/v1/models`);
-    const bridge = spawn(
-      rainPython,
-      [
-        "tools/rain-bridge/rain_bethesda_bridge.py",
-        "--library",
-        library,
-        "--port",
-        String(MODEL.bridge),
-        "--meeting-engine",
-        "model",
-        "--meeting-python",
-        rainPython,
-        "--meeting-turns",
-        "4",
-        "--meeting-timeout",
-        "5",
-        "--meeting-no-recursion",
-      ],
-      {
-        stdio: logTo("bridge-model"),
-        env: bridgeEnv({
-          RAIN_LLM_BASE_URL: `http://127.0.0.1:${MODEL.standIn}/v1`,
-          RAIN_LLM_MODEL: "stand-in-model",
-          ...(jevLive
-            ? { RAIN_DECISION_MODE: "jev", RAIN_DECISION_REMOTE_ALLOWED: "true" }
-            : {}),
-        }),
-      },
+    const model = preview(
+      "model",
+      MODEL.port,
+      previewEnv({
+        RAIN_MEETING_ENGINE: "model",
+        RAIN_LLM_BASE_URL: `http://127.0.0.1:${MODEL.standIn}/v1`,
+        RAIN_LLM_MODEL: "stand-in-model",
+        RAIN_MEETING_TURNS: "4",
+        RAIN_MEETING_TIMEOUT_MIN: "5",
+        RAIN_MEETING_RECURSION: "false",
+        ...(jevLive
+          ? { RAIN_DECISION_MODE: "jev", RAIN_DECISION_REMOTE_ALLOWED: "true" }
+          : {}),
+      }),
     );
-    children.push(bridge);
-    await listening(`http://127.0.0.1:${MODEL.bridge}/rain-bethesda/v2/identity`);
-    const identity = await (
-      await fetch(`http://127.0.0.1:${MODEL.bridge}/rain-bethesda/v2/identity`)
-    ).json();
+    await listening(model.origin);
+    const s = await status(model.origin);
     check(
-      "LIVE model: the bridge runs R.A.I.N.'s own model meeting, on the stand-in",
-      identity.meeting_generation === "model" &&
-        identity.model === "stand-in-model" &&
-        identity.meeting_engine ===
-          "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting" &&
-        identity.remote_decisions === jevLive,
-      // What the bridge answered is in its log; the report keeps no backend data.
-      `expected a model meeting on stand-in-model, remote decisions ${jevLive}; see ${OUT}/bridge-model.log`,
+      "LIVE model: the runtime holds model meetings on the stand-in",
+      s.configured === true &&
+        s.identity?.meeting_generation === "model" &&
+        s.identity?.model === "stand-in-model" &&
+        s.identity?.meeting_engine === "rain.meeting.model.holdMeeting" &&
+        s.identity?.remote_decisions === jevLive,
+      `expected a model meeting on stand-in-model, remote decisions ${jevLive}; got ${JSON.stringify(s).slice(0, 300)}`,
     );
-    const modelOrigin = preview(MODEL.port, {
-      ...unconfigured(),
-      RAIN_BACKEND_URL: `http://127.0.0.1:${MODEL.bridge}`,
-    });
-    await listening(modelOrigin);
     const context = await browser.createBrowserContext();
     const d = await open(context);
-    await enterBethesda(d, modelOrigin);
+    await enterBethesda(d, model.origin);
     await enterLab(d);
     check(
-      "LIVE model: the runtime names the model R.A.I.N. runs",
+      "LIVE model: the runtime names the model it runs",
       (await d.text()).includes("RUNTIME LIVE") &&
         (await d.text()).includes("model stand-in-model"),
     );
-    await d.click("Research Panel");
-    await d.page.waitForSelector("#rain-question");
-    await d.page.focus("#rain-question");
-    await d.page.keyboard.sendCharacter(demoMeeting.question);
     const askedAt = Date.now();
-    await d.click("Ask R.A.I.N.");
+    await ask(d, demoMeeting.question);
     await d.waitFor(
       () =>
         document.body.innerText.includes(
@@ -876,7 +859,7 @@ try {
         () => document.querySelector('[aria-label="Meeting turns"]')?.innerText ?? "",
       );
       check(
-        "LIVE model: the meeting is the model's, and names R.A.I.N.'s own record of it",
+        "LIVE model: the meeting is the model's, and names the runtime's own record of it",
         t.includes("MODEL · stand-in-model") &&
           !t.includes("SCRIPTED · NO MODEL RAN") &&
           !t.includes("PRERECORDED · DEMO") &&
@@ -904,7 +887,7 @@ try {
           !invented,
       );
       check(
-        "LIVE model: R.A.I.N.'s fixed closing line is marked as its code's, not the model's",
+        "LIVE model: the runtime's fixed closing line is marked as its code's, not the model's",
         turns.includes("A FIXED LINE IN R.A.I.N.'S CODE · NOT THE MODEL") &&
           turns.includes("Meeting adjourned."),
       );
@@ -922,7 +905,7 @@ try {
     }
     await d.axe("research panel with a model meeting");
 
-    // Stopping: R.A.I.N. is asked to stop, and nothing takes the meeting's place.
+    // Stopping: the runtime is asked to stop, and nothing takes the meeting's place.
     await delay(Math.max(0, askedAt + 15500 - Date.now()));
     await d.click("Ask R.A.I.N.");
     await d.waitFor(
@@ -934,7 +917,7 @@ try {
     {
       const t = await d.text();
       check(
-        "LIVE model: a stopped meeting is stopped at R.A.I.N., and shown as stopped",
+        "LIVE model: a stopped meeting is stopped in the runtime, and shown as stopped",
         t.includes("LIVE request failed: CANCELLED") &&
           t.includes("The meeting below is the earlier LIVE one") &&
           d.rain().filter((p) => p === "/api/rain/meeting-cancel").length === 1,
@@ -952,7 +935,7 @@ try {
       await d.click("Ask R.A.I.N. to choose an experiment");
       await d.waitFor(
         () =>
-          /R\.A\.I\.N\. made no proposal|R\.A\.I\.N\.'s router chose option|proposal request failed/.test(
+          /R\.A\.I\.N\.('s router)? made no proposal|R\.A\.I\.N\.'s router chose option|proposal request failed/.test(
             document.body.innerText,
           ),
         120000,
@@ -960,7 +943,7 @@ try {
       const t = await d.text();
       const handed = t.includes("R.A.I.N. HANDED THE CHOICE BACK");
       const proposed = /R\.A\.I\.N\.'s router chose option X\d+/.test(t);
-      const at = Math.max(0, t.indexOf("R.A.I.N. made no proposal"));
+      const at = Math.max(0, t.indexOf("made no proposal"));
       check(
         "LIVE Jev: R.A.I.N. consulted Jev through its own router and the lab kept what it said",
         (handed && /Jev · jev-[\w.-]+: (chose|chose nothing)/.test(t)) || proposed,
@@ -989,7 +972,7 @@ try {
             : "NOTE LIVE Jev: R.A.I.N. acted on Jev's answer (a calibration profile exists)",
         );
       check(
-        "LIVE Jev: one decision, asked by the bridge; the browser never reached TypeSafe",
+        "LIVE Jev: one decision, asked by the server; the browser never reached TypeSafe",
         d.rain().filter((p) => p === "/api/rain/proposal").length === 1 &&
           d.log.requests.every((r) => !/typesafe/i.test(r)),
       );
@@ -1007,18 +990,10 @@ try {
       "LIVE model: the browser talks only to its own site",
       d.log.requests.every(
         (r) =>
-          r.startsWith(modelOrigin) || r.startsWith("data:") || r.startsWith("blob:"),
+          r.startsWith(model.origin) || r.startsWith("data:") || r.startsWith("blob:"),
       ),
     );
     await context.close();
-    // The stopped meeting's copy goes once R.A.I.N.'s process has exited.
-    for (let i = 0; i < 100 && meetingCopies().length > copies.length; i++)
-      await delay(100);
-    check(
-      "LIVE model: R.A.I.N.'s checkout is never written, and each meeting's copy is removed",
-      checkoutState(library) === before && meetingCopies().length <= copies.length,
-      JSON.stringify(meetingCopies()),
-    );
   }
   await writeFile(`${OUT}/browser-checks.json`, JSON.stringify(checks, null, 2));
   if (checks.some((c) => !c.ok)) process.exitCode = 1;
@@ -1036,6 +1011,7 @@ try {
   await browser?.close();
   for (const child of children) child.kill();
   await delay(500);
+  // Each LIVE runtime wrote a scratch registry; nothing of this run is left behind.
   for (const name of scratchRegistries())
     if (!registriesBefore.has(name))
       rmSync(join(tmpdir(), name), { recursive: true, force: true });

@@ -65,9 +65,11 @@ to `.env.local`, configure the server-side provider, then restart the dev server
 | **Fastino Glide**  | `FASTINO_API_KEY`; optional `FASTINO_MODEL` (default `fastino/glide`)                        | `/play?brain=glide`                                  |
 | **Compatible LLM** | `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`; `LLM_BASE_URL` for an OpenAI-compatible endpoint | `/play?brain=llm`                                    |
 
-The R.A.I.N. Lab inside Bethesda reaches a R.A.I.N. backend the same way:
-`RAIN_BACKEND_URL` and an optional `RAIN_BACKEND_TOKEN`, on the server only (see
-the [lab guide](docs/RAIN_LAB_BETHESDA.md#running-live)). The LLM adapter
+The R.A.I.N. Lab inside Bethesda needs no configuration: its research runtime
+runs inside this repository's own server process (`/api/rain/*`). A local model
+for its meetings and the TypeSafe engine for its bounded decisions are server-side
+settings too, `RAIN_*` in `.env.example` (see the
+[lab guide](docs/RAIN_LAB_BETHESDA.md#running-live)). The LLM adapter
 supports Anthropic and OpenAI-compatible providers. Keys stay on
 the server; never prefix them with `VITE_`. Enabling a live model can spend API
 credit. Automated live runs require a separate opt-in; offline checks use test
@@ -297,17 +299,19 @@ before leaving, then re-import it to verify checkpoints, decision history and
 final simulation state without calling a model. This verifies state, not identical
 rendered pixels.
 
-**A lab behind a door.** Somewhere in the city is the R.A.I.N. Lab, where the
-four perspectives of [R.A.I.N.](https://github.com/topherchris420/james_library)
+**A lab behind a door.** Somewhere in the city is the R.A.I.N. Lab, an
+integrated research environment where the four perspectives of R.A.I.N.
 investigate questions and their hypotheses become matched experiments on the
-simulator. Its interior is fictional and its pictures are not evidence; every
-run needs a person's authorization of the exact definition, runs on separate
-simulators rather than the city you are in, and is recorded so it can be
-re-simulated without contacting anything. Its results describe the simulator,
-not Bethesda. It is OFFLINE until a R.A.I.N. backend is configured, and its DEMO
-is labelled as a recording. Through R.A.I.N.'s reference bridge a meeting comes
-from R.A.I.N.'s scripted offline engine or from a local model R.A.I.N. runs,
-such as Qwen, and every turn says which wrote it.
+simulator. Its research runtime, experiment registry, evidence layer and
+simulation interface live in this repository (`src/rain/`, `src/bethesda/rain/`);
+this is the lab's canonical home. Its interior is fictional and its pictures
+are not evidence; every run needs a person's authorization of the exact
+definition, runs on separate simulators rather than the city you are in, and is
+recorded so it can be re-simulated without contacting anything. Its results
+describe the simulator, not Bethesda. Its DEMO is labelled as a recording; LIVE,
+a meeting comes from the runtime's scripted offline engine or, when a local
+model server is configured, from a model meeting such as Qwen's, and every turn
+says which wrote it.
 
 Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
 scenario limits, model authority and replay compatibility, and the
@@ -389,6 +393,7 @@ src/game/pilot/   Observations, decisions, controllers, navigation and debrief
 src/game/eval/    Experiment definitions, outcome contracts and evaluation
 src/bethesda/    City geography, terrain, simulation, scenarios and replay
 src/bethesda/rain/  The R.A.I.N. Lab: protocol, experiments, records and rooms
+src/rain/        The R.A.I.N. research runtime: corpus, meetings, decisions, registry
 server/, api/    Server-side Jev, Glide, LLM and R.A.I.N. endpoints
 tools/           Browser checks, experiments, benchmarks and diagnostics
 docs/            Methods, limitations, guides and archived evidence
@@ -406,7 +411,7 @@ need matched experiments that show what changed.
 | [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                          | Providers, controllers, traces and benchmarks    |
 | [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support—and how it can mislead |
 | [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay  |
-| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md)                                                                                          | Meetings, experiments, authorization and replay  |
+| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay  |
 | [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits              |
 | [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions       |
 | [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md)                                                         | Implementation and checks                        |

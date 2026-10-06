@@ -4,8 +4,8 @@
 application serving a public-source geospatial reconstruction, an evidence
 ledger, an accessible analysis view, and an illustrative first-person
 simulation, plus optional serverless functions: the decision endpoints that let
-a model control the simulation's player (T12), and the route that connects the
-Bethesda R.A.I.N. Lab to a research backend (T13).
+a model control the simulation's player (T12), and the route behind which the
+Bethesda R.A.I.N. Lab's research runtime runs (T13).
 
 **Method:** assets → trust boundaries → actors → threats → mitigations →
 residual risk. Written to be argued with. If a mitigation below is not visible
@@ -33,7 +33,7 @@ on. It is listed first.
 Explicitly **not** assets, because they do not exist: user accounts, personal
 data, session tokens, non-public information of any kind. The only credentials
 are server-side and optional: the model providers' keys and the R.A.I.N.
-backend's token (T12, T13).
+runtime's model-server token (T12, T13).
 
 ## 2. Trust boundaries
 
@@ -90,10 +90,10 @@ The boundaries that matter:
 5. **Browser → the Jev function → TypeSafe.** Opt-in, same-origin. The function
    holds the TypeSafe credential; the browser sends only a bounded observation,
    and the function decides what TypeSafe is asked (T12).
-6. **Browser → the R.A.I.N. route → a R.A.I.N. backend.** Off unless the
-   deployment configures it; same-origin. The function holds the backend's
-   address and token, composes every upstream request itself and validates
-   every answer before the browser validates it again (T13).
+6. **Browser → the R.A.I.N. route → the research runtime.** Same-origin; the
+   runtime runs inside the function. It holds the model server's address and
+   token and the TypeSafe key, if any, composes every outbound request itself
+   and validates every answer before the browser validates it again (T13).
 
 ## 3. Threat actors
 
@@ -272,88 +272,88 @@ observation is game state, not personal data, and nothing is persisted.
 
 ### T13 — The R.A.I.N. Lab route and its experiments
 
-`/api/rain/*` connects the lab hidden in Bethesda to a backend speaking
-`rain-bethesda/v2` — by default the reference bridge in `tools/rain-bridge/`
-beside a james_library checkout, which may run R.A.I.N.'s own model meeting
-against a local model and may let R.A.I.N.'s router consult Jev. See
-`docs/RAIN_LAB_BETHESDA.md`.
+`/api/rain/*` is the lab's only route to its research runtime, which runs in
+the same server process (`src/rain/`): the offline meeting engine, model
+meetings against an OpenAI-compatible server when the operator configures one,
+R.A.I.N.'s bounded decision router (Jev only when the operator allows it), and
+the experiment registry that pre-registers and admits the lab's runs. See
+`docs/RAIN_LAB_BETHESDA.md` and `docs/RAIN_MIGRATION.md`.
 
-**Threats.** (a) The backend's address or token leaks into the bundle, a
-response or a log. (b) The route becomes an open proxy: the browser chooses the
-host, path, headers or body. (c) A hostile or compromised backend returns
-script, invisible or bidirectional characters, an enormous payload, a forged
-identity, or an answer to a different request. (d) A proposal changes the live
-city, or an experiment runs without a person's approval. (e) Recorded or
-fabricated content is presented as LIVE, or a record claims a provenance it
-does not have. (f) A tampered record passes as verified. (g) A caller exhausts
-the backend or the browser with requests or experiment size. (h) A model's
-words are passed off as scripted or a script's as a model's, or a grade or
-verdict is invented for a model meeting. (i) A request steers the meeting
-process — its arguments, its files, its environment — or something a model
-writes is run; the meeting writes into the james_library checkout; the
-meeting process inherits a credential. (j) An engine's answer R.A.I.N. did not
+**Threats.** (a) The model server's token or the TypeSafe key leaks into the
+bundle, a response or a log. (b) The route becomes an open proxy: the browser
+chooses a model endpoint, a path, a file or the body of an outbound request.
+(c) A hostile or compromised model server returns script, invisible or
+bidirectional characters, an enormous payload, a forged identity, or an answer
+to a different request. (d) A proposal changes the live city, or an experiment
+runs without a person's approval. (e) Recorded or fabricated content is
+presented as LIVE, or a record claims a provenance it does not have. (f) A
+tampered record passes as verified. (g) A caller exhausts the runtime or the
+browser with requests, meetings or experiment size. (h) A model's words are
+passed off as scripted or a script's as a model's, or a grade or verdict is
+invented for a model meeting. (i) A request or something a model writes reaches
+a subprocess, a path or the environment, or is executed; a model meeting leaves
+the machine under a local privacy rule. (j) An engine's answer R.A.I.N. did not
 act on becomes a R.A.I.N. proposal, or the question leaves the machine for a
 remote engine nobody allowed.
 
 **Mitigations.** (a) Only `api/rain/_config.ts` and the Vite middleware read
-`RAIN_BACKEND_URL`, `RAIN_BACKEND_TOKEN` and `RAIN_TIMEOUT_MS`; the secret
-boundary test and the build's scan cover their names and the token's value; the
-token is sent upstream as a bearer token and nowhere else. (b) The backend comes
-from server environment only, must be `https` (or `http` on a loopback host),
-and may carry no credentials, query or fragment; each route has a fixed
-upstream path; requests must be same-origin, closed-field JSON under a per-route
-cap, and the server writes every upstream body. (c) Answers are read with a byte
-cap and validated by the shared validators on the server and again in the
-browser: bound to the request that asked, the four perspectives
-only, quotes consistent with their audit, control, bidirectional and zero-width
-characters refused, text rendered as text and never as HTML, no link followed.
-(d) A proposal is a closed object of vocabulary ids compiled by the city's own
-scenario compiler; it cannot carry a coordinate, command, code, URL or path. A
-run needs an authorization record bound to the definition's SHA-256 and runs on
-simulators the runner builds; `authority.test.ts` fails if any other lab module
-calls a simulator's mutating methods. (e) The R.A.I.N. client cannot import the
-DEMO recording, a failure is shown as a failure, DEMO is labelled
-`PRERECORDED`, a hand-written proposal cannot claim R.A.I.N.'s authorship, and
-provenance a source did not report is `null`. (f) A record is sealed by a
-SHA-256 and verified by re-simulating every arm from its commands; an import
-with a wrong digest is refused, and one with a matching digest is quarantined —
-kept out of the registry, the Evidence Library and the tools — until replay
-passes, so a re-sealed edit that fails replay never becomes evidence. The
-experiment worker refuses any message that names an origin: a dedicated
-worker's own page sends none. (g)
-Experiments are bounded (at most five seeds and 36,000 simulated ticks); per
-session, minimum intervals and caps per operation (12 meetings per 120-minute
-session, a job checked at most every 2 s); a per-client token bucket, two
-upstream requests in flight per instance, a 1–55 s timeout (8 s for a job
-check or a stop), at most 60 minutes waiting on one meeting, and one model
-meeting at a time per bridge. (h) A meeting and each turn say who wrote it
-(`generation`); a model meeting must name its model and R.A.I.N.'s session
-artifact by SHA-256 and may carry no grade or verdict, and a scripted meeting
-may carry no model turn — the shared validator refuses either relabelling.
-(i) The bridge runs R.A.I.N.'s meeting script from a `git archive` copy of the
-commit with a fixed argument list (the question is one argument and a model id
-must be a name, never a URL), a stdin nobody writes, decision routing off, and
-neither the TypeSafe key nor the bridge token in its environment; job ids are
-128-bit and bound to their request; the copy is removed afterwards. Nothing a
-model writes is executed. (j) Every attempt is kept as R.A.I.N. returned it and
-shown as not acted on; only a person can adopt a handed-back pick, as their
-own proposal; Jev is consulted only when the bridge's operator sets R.A.I.N.'s
-`RAIN_DECISION_REMOTE_ALLOWED=true`, read by R.A.I.N.'s own parser.
+`RAIN_LLM_API_KEY` and `TYPESAFE_API_KEY`; both are passed to the runtime by
+value, `src/rain/` names no credential and reads no environment itself (a test
+asserts it), the secret boundary test and the build's scan cover the names and
+values, and a bearer token is sent to the configured model server and nowhere
+else. (b) The model endpoint comes from server environment only (`http(s)`, no
+credentials), the runtime composes every outbound body, and requests from the
+browser must be same-origin, closed-field JSON under a per-route cap; nothing in
+a request names a path, URL, module, command or code. (c) Model output is
+bounded (one completion at a time, a read timeout, a size cap), re-verified
+quote by quote against the bundled corpus, cleaned of control, bidirectional
+and zero-width characters, and validated by the shared validators on the server
+and again in the browser: bound to the request that asked, the four
+perspectives only, quotes consistent with their audit, text rendered as text and
+never as HTML, no link followed. (d) A proposal is a closed object of vocabulary
+ids compiled by the city's own scenario compiler; it cannot carry a coordinate,
+command, code, URL or path. A run needs an authorization record bound to the
+definition's SHA-256 and runs on simulators the runner builds;
+`authority.test.ts` fails if any other lab module calls a simulator's mutating
+methods. (e) The R.A.I.N. client cannot import the DEMO recording, a failure is
+shown as a failure, DEMO is labelled `PRERECORDED`, a hand-written proposal
+cannot claim R.A.I.N.'s authorship, and provenance a source did not report is
+`null`. (f) A record is sealed by a SHA-256 and verified by re-simulating every
+arm from its commands; an import with a wrong digest is refused, and one with a
+matching digest is quarantined — kept out of the registry, the Evidence Library
+and the tools — until replay passes, so a re-sealed edit that fails replay never
+becomes evidence. The experiment worker refuses any message that names an
+origin: a dedicated worker's own page sends none. (g) Experiments are bounded
+(at most five seeds and 36,000 simulated ticks); per session, minimum intervals
+and caps per operation (12 meetings per 120-minute session, a job checked at
+most every 2 s); a per-client token bucket, a 25 s cap on any runtime call, at
+most 60 minutes waiting on one meeting, one model meeting at a time per server
+process, and a scratch registry capped at 1,000 experiments. (h) A meeting and
+each turn say who wrote it (`generation`); a model meeting must name its model
+and the runtime's session artifact by SHA-256 and may carry no grade or verdict,
+and a scripted meeting may carry no model turn — the shared validator refuses
+either relabelling. (i) The runtime starts no subprocess but `git`, for its own
+revision; a model's words only ever come back as text through `fetch`, a model
+id must be a name and never a URL, job ids are 128-bit and bound to their
+request, and under `RAIN_MEETING_PRIVACY=local` (the default) an endpoint that
+is not loopback or private-network, or an Ollama `:cloud` model, is refused
+before the runtime starts. (j) Every attempt is kept as R.A.I.N.'s router
+returned it and shown as not acted on; only a person can adopt a handed-back
+pick, as their own proposal; Jev is consulted only when the operator sets
+`RAIN_DECISION_MODE=jev` and `RAIN_DECISION_REMOTE_ALLOWED=true`, and acted on
+only with a calibration profile the operator supplies.
 
-**Residual risk.** Quote verification is the backend's: the browser checks that
-a meeting's citation audit is consistent, but it does not hold R.A.I.N.'s corpus,
-so a hostile backend could mark an invented quote verified. The lab shows such
-text as R.A.I.N.'s interpretation, never as an observation, and the Systems Room
-names the backend's commit. The research question is free text the person
-typed, sent to the operator's own backend; it should not contain personal data.
-With a model meeting the backend also sends it, with corpus excerpts, to the
-model endpoint R.A.I.N. is configured for — local unless R.A.I.N.'s privacy
-rule allows otherwise — and with Jev allowed, to TypeSafe. A model's prose may
-be wrong, persuasive or off-topic; the lab labels it INTERPRETATION and nothing
-more. R.A.I.N.'s meeting script is code from the checkout the operator chose,
-run with that operator's privileges. The bridge is a reference for a trusted
-machine, with a bearer token as its only authentication. Rate limits are per
-instance, as in T12.
+**Residual risk.** Quote verification is the runtime's, against the corpus
+bundled in `src/rain/data`; the browser checks that a meeting's citation audit
+is consistent but does not hold the corpus. The research question is free text
+the person typed; it should not contain personal data, and with a model
+meeting it goes, with corpus excerpts, to the model server the operator
+configured — local unless the operator chose `hybrid` — and with Jev allowed,
+to TypeSafe. A model's prose may be wrong, persuasive or off-topic; the lab
+labels it INTERPRETATION and nothing more. A model meeting runs with the
+server's privileges and against a server the operator chose, so the operator is
+trusting that server's answers to be text. Rate limits are per instance, as in
+T12.
 
 ### T8 — Denial of service
 
@@ -438,6 +438,7 @@ build; same-origin `script-src` is the current compensating control.
 3. Maintainers review data changes for sourcing as carefully as code changes
    for correctness.
 4. CI is not granted repository secrets or write permissions. The TypeSafe key
-   and the R.A.I.N. backend's token live only in the host's environment; nothing
-   in CI calls TypeSafe or a R.A.I.N. backend.
+   and the R.A.I.N. runtime's model-server token live only in the host's
+   environment; nothing in CI calls TypeSafe or a model server — the lab's
+   model-meeting checks run against a stand-in on loopback.
 5. No non-public information is ever added to this system or a fork of it.

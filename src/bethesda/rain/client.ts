@@ -1,7 +1,7 @@
 /**
  * The browser's only R.A.I.N. client. It talks to this site's `/api/rain/*`
- * routes and nothing else — the CSP allows no other origin, and the backend
- * address and token live on the server.
+ * routes and nothing else — the CSP allows no other origin, and the research
+ * runtime, with any model-server address or key, lives on the server.
  *
  * Every answer is validated again here with the shared validators, bound to
  * the request that asked for it, and bounded in size and time. A failure is a
@@ -138,7 +138,9 @@ export class RainClient {
                   : "RATE LIMITED"
                 : response.status === 422
                   ? "REFUSED"
-                  : response.status === 502 && code.startsWith("invalid upstream")
+                  : response.status === 502 &&
+                      (code.startsWith("invalid runtime") ||
+                        code.startsWith("runtime answer too large"))
                     ? "INVALID ANSWER"
                     : response.status === 503 || response.status === 502
                       ? "UNAVAILABLE"

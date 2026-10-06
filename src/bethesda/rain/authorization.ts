@@ -15,7 +15,7 @@
  * in the record itself (`attestation`, `identity_verified`).
  */
 import { AUTHORIZATION_SCHEMA, OPERATOR, SHA256 } from "./contracts";
-import { sha256Json } from "./sha256";
+import { sha256Json } from "../../rain/sha256";
 import type { Checked } from "./validation";
 
 export const CONFIRMATION_LENGTH = 8;

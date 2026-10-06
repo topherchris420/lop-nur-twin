@@ -1,9 +1,9 @@
 /**
  * DEMO: one prerecorded R.A.I.N. meeting, and a proposal written by hand.
  *
- * The meeting was recorded by `scripts/export-rain-demo.py`, which ran
- * james_library's offline engine through the bridge's own `meeting_record` at
- * the commit in `fixtures/demo-source.json`. It is validated here with the
+ * The meeting was recorded by `scripts/export-rain-demo.ts`, which ran the
+ * runtime's offline engine (`src/rain/meeting/offline.ts`) at the commit in
+ * `fixtures/demo-source.json`. It is validated here with the
  * validator every LIVE answer passes; if the recording or its manifest is
  * damaged, DEMO is unavailable rather than shown. It is always labelled
  * PRERECORDED, and its words are labelled SCRIPTED because the engine's are.

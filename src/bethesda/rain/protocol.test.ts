@@ -25,7 +25,7 @@ function modelMeeting(): Json {
   const m = clone(meeting) as unknown as Json & { turns: Json[] };
   m.generation = "model";
   m.model = "qwen2.5:7b";
-  m.engine = "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting";
+  m.engine = "rain.meeting.model.holdMeeting";
   m.grounding = null;
   m.matched_terms = null;
   m.missing_terms = null;

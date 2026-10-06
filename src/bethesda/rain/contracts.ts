@@ -1,16 +1,17 @@
 /**
  * `rain-bethesda/v2` — the narrow, versioned protocol between this repository's
- * Bethesda simulation and the R.A.I.N. research runtime in
- * `topherchris420/james_library`.
+ * Bethesda simulation and its R.A.I.N. research runtime (`src/rain/`), which
+ * serves it from the same process behind `/api/rain/*`.
  *
- * Shared with the server (`server/rain/`), so it imports nothing and is
- * imported as `./contracts.js`. It holds vocabularies and wire types only:
- * no map, no simulator, no renderer.
+ * Shared with the server (`server/rain/`), so it is imported as
+ * `./contracts.js` and imports only the runtime's pure protocol modules. It
+ * holds vocabularies and wire types only: no map, no simulator, no renderer,
+ * no corpus and no engine.
  *
  * Who owns what is the point of the whole directory:
  *
  *   R.A.I.N.  the four perspectives, retrieval, quote verification, the
- *             meeting, bounded proposals, pre-registration and the R.A.I.N.
+ *             meeting, bounded proposals, pre-registration and the registry's
  *             run record (its own evaluation and interpretation).
  *   Bethesda  the world: scenarios, simulation ticks, world observations,
  *             matched runs, replay and deterministic world validation.
@@ -20,15 +21,56 @@
  * unknown schemas, oversized payloads and stale or mismatched requests are
  * rejected in `validation.ts`; nothing is repaired or guessed.
  *
- * v2 (this): R.A.I.N.'s model-written meetings run as jobs (`meeting-pending`,
- * then `meeting-status` until a `meeting` or `meeting-failed`), the offline
+ * v2: model-written meetings run as jobs (`meeting-pending`, then
+ * `meeting-status` until a `meeting` or `meeting-failed`), the offline
  * engine's own analysis fields are null where a model meeting computes none,
  * every turn says who wrote it, and a bounded decision carries R.A.I.N.'s
- * attempts — what each engine chose, with its probabilities — even when R.A.I.N.
- * acted on none of them. v1 had none of these and is refused.
+ * attempts — what each engine chose, with its probabilities — even when
+ * R.A.I.N. acted on none of them. v1 had none of these and is refused. The
+ * identity names the runtime that answers (before the consolidation of the
+ * runtime into this repository it named a bridge process) and the repository
+ * whose revision it reports.
  */
+import {
+  CRITERIA_RULE,
+  type CompletedStatus,
+  type CriterionResult,
+  type Evaluation,
+  type RunStatus,
+  type Verdict as RunVerdict,
+} from "../../rain/experiments/evaluate.js";
+import {
+  DECISION_SCHEMA,
+  ESCALATION_REASONS,
+  PROVIDER_ERRORS,
+} from "../../rain/judgment/routing.js";
+import {
+  PERSPECTIVES,
+  SOUL_FILES,
+  type Perspective,
+} from "../../rain/meeting/perspectives.js";
+import {
+  MODEL_ID,
+  RAIN_BETHESDA_SCHEMA,
+  RAIN_SESSION_ARTIFACT_SCHEMA,
+  REPOSITORY,
+  TURN_LIMITS,
+  UNSAFE_TEXT,
+} from "../../rain/protocol.js";
 
-export const RAIN_BETHESDA_SCHEMA = "rain-bethesda/v2" as const;
+export {
+  CRITERIA_RULE,
+  MODEL_ID,
+  PERSPECTIVES,
+  RAIN_BETHESDA_SCHEMA,
+  RAIN_SESSION_ARTIFACT_SCHEMA,
+  REPOSITORY,
+  SOUL_FILES,
+  UNSAFE_TEXT,
+  type CriterionResult,
+  type Evaluation,
+  type Perspective,
+};
 export const EXPERIMENT_PROPOSAL_SCHEMA = "rain-bethesda-experiment/v1" as const;
 export const DEFINITION_SCHEMA = "bethesda-experiment-definition/v1" as const;
 export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as const;
@@ -39,77 +81,36 @@ export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as co
  * observation is the simulator's account of its own state, not an agent's view.
  */
 export const WORLD_OBSERVATION_SCHEMA = "bethesda-world-observation/v1" as const;
-export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v1" as const;
-export const SESSION_SCHEMA = "rain-bethesda-session/v1" as const;
-/** The published R.A.I.N. criteria rule (james_library/experiments/evaluate.py). */
-export const CRITERIA_RULE = "rain-criteria/v1" as const;
-/** R.A.I.N.'s external-run contract (contracts/experiments/submission.schema.json). */
-export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
-/** R.A.I.N.'s pre-registration contract (contracts/experiments/experiment.schema.json). */
-export const RAIN_DEFINITION_SCHEMA = "rain-experiment/v1" as const;
-export const RAIN_DECISION_SCHEMA = "rain-bounded-decision/v1" as const;
-/** R.A.I.N.'s own record of a model meeting (james_library/utilities/session_artifact.py). */
-export const RAIN_SESSION_ARTIFACT_SCHEMA = "rain-session-artifact/v1" as const;
 /**
- * R.A.I.N.'s escalation reasons (james_library/judgment/routing.py). A
- * decision's reason, and each attempt's, is one of these or null.
+ * v2: the record's provenance names the R.A.I.N. runtime's repository and
+ * revision in its own fields (`rain_*`); v1 named the bridge's james_library
+ * checkout and is refused.
  */
-export const RAIN_ESCALATION_REASONS = [
-  "LOW_CONFIDENCE",
-  "MARGIN_TOO_SMALL",
-  "MODEL_UNAVAILABLE",
-  "INVALID_OUTPUT",
-  "OUT_OF_DISTRIBUTION",
-  "POLICY_REQUIRES_REVIEW",
-  "EVIDENCE_REQUIRED",
-  "HIGH_CONSEQUENCE",
-  "ENGINE_DISAGREEMENT",
-  "TIMEOUT",
-  "INSUFFICIENT_CALIBRATION",
-  "VALIDATION_FAILED",
-  "DISABLED",
-  "SENSITIVE_INPUT",
-] as const;
+export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v2" as const;
+export const SESSION_SCHEMA = "rain-bethesda-session/v1" as const;
+/** R.A.I.N.'s external-run contract (`src/rain/experiments/schemas/submission.schema.json`). */
+export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
+/** R.A.I.N.'s pre-registration contract (`src/rain/experiments/schemas/experiment.schema.json`). */
+export const RAIN_DEFINITION_SCHEMA = "rain-experiment/v1" as const;
+export const RAIN_DECISION_SCHEMA = DECISION_SCHEMA;
+/**
+ * R.A.I.N.'s escalation reasons (`src/rain/judgment/routing.ts`). A decision's
+ * reason, and each attempt's, is one of these or null.
+ */
+export const RAIN_ESCALATION_REASONS = ESCALATION_REASONS;
 /** The engines R.A.I.N.'s router can consult. `typesafe` is Jev. */
 export const RAIN_DECISION_ENGINES = ["laya", "typesafe"] as const;
-/** R.A.I.N.'s provider error codes for a failed attempt (routing.py's safe set). */
-export const RAIN_PROVIDER_ERRORS = [
-  "provider_not_configured",
-  "provider_timeout",
-  "provider_transport_error",
-  "provider_authentication_error",
-  "provider_rate_limited",
-  "provider_overloaded",
-  "provider_http_error",
-  "provider_response_too_large",
-  "provider_malformed_response",
-  "provider_input_too_large",
-  "provider_runtime_unsupported",
-  "state_contains_secret",
-  "provider_internal_error",
-] as const;
-export const RAIN_REPOSITORY = "topherchris420/james_library" as const;
+/** R.A.I.N.'s provider error codes for a failed attempt. */
+export const RAIN_PROVIDER_ERRORS = PROVIDER_ERRORS;
+/** Where the runtime's corpus and perspectives were imported from (`src/rain/data/source.json`). */
+export const RAIN_ORIGIN_REPOSITORY = "topherchris420/james_library" as const;
 export const LAB_REPOSITORY = "topherchris420/lop-nur-twin" as const;
 
 /**
- * The four perspectives, by name only. Their roles, constraints and words are
- * defined in james_library (the SOUL files) and arrive in R.A.I.N.'s records;
- * this repository never writes them.
- */
-export const PERSPECTIVES = ["James", "Jasmine", "Luca", "Elena"] as const;
-export type Perspective = (typeof PERSPECTIVES)[number];
-export const SOUL_FILES: Record<Perspective, string> = {
-  James: "JAMES_SOUL.md",
-  Jasmine: "JASMINE_SOUL.md",
-  Luca: "LUCA_SOUL.md",
-  Elena: "ELENA_SOUL.md",
-};
-
-/**
- * OFFLINE: no R.A.I.N. runtime is reachable. Nothing is produced.
- * DEMO:    a bundled recording of a real R.A.I.N. offline-engine meeting,
- *          labelled prerecorded; no process runs.
- * LIVE:    an explicitly configured backend answered, and validated.
+ * OFFLINE: the research runtime is switched off or could not start. Nothing is produced.
+ * DEMO:    a bundled recording of a real offline-engine meeting, labelled
+ *          prerecorded; no process runs.
+ * LIVE:    the runtime answered through this site's route, and validated.
  */
 export type RuntimeMode = "OFFLINE" | "DEMO" | "LIVE";
 
@@ -123,11 +124,7 @@ export type Generation = (typeof GENERATIONS)[number];
 export const LIMITS = {
   question: 500,
   hypothesis: 1000,
-  /** R.A.I.N.'s default model meeting is 25 turns and its closing line. */
-  turns: 32,
-  quotesPerTurn: 12,
-  turnText: 4000,
-  quoteText: 800,
+  ...TURN_LIMITS,
   terms: 32,
   readNext: 12,
   suggestions: 8,
@@ -320,7 +317,7 @@ export interface Quote {
   span_start: number;
   span_end: number;
   text: string;
-  /** R.A.I.N.'s `verify_quote` result when the record was produced. */
+  /** R.A.I.N.'s `verifyQuote` result when the record was produced. */
   verified: boolean;
 }
 export interface Turn {
@@ -353,9 +350,13 @@ export interface CitationAudit {
   corpus_files: number;
   corpus_sha256: string;
 }
+/**
+ * The revision of the code that produced a record: the runtime's repository
+ * (`owner/name`) and its commit, or null when unknown. The DEMO recording was
+ * made by the engine at a named commit; a LIVE meeting names the runtime's.
+ */
 export interface RainRevision {
-  repository: typeof RAIN_REPOSITORY;
-  /** `git rev-parse HEAD` of the james_library checkout, or null when unknown. */
+  repository: string;
   commit: string | null;
   dirty: boolean | null;
 }
@@ -403,7 +404,7 @@ export interface MeetingPending {
   model: string;
   started_at: string;
   elapsed_s: number;
-  /** Turns R.A.I.N. has started, as its console reports them: progress, not evidence. */
+  /** Turns R.A.I.N. has started: progress, not evidence. */
   turns_started: number;
   turns_planned: number;
 }
@@ -417,13 +418,14 @@ export interface MeetingFailed {
 export interface RainIdentity {
   schema: typeof RAIN_BETHESDA_SCHEMA;
   kind: "identity";
-  bridge: { name: string; version: string };
+  /** The runtime answering: its name and version. */
+  runtime: { name: string; version: string };
   rain: RainRevision;
   corpus: { files: number; sha256: string };
   meeting_engine: string;
   meeting_generation: Generation;
   model: string | null;
-  /** RAIN_DECISION_MODE as R.A.I.N. reports it; "off" proposes nothing. */
+  /** RAIN_DECISION_MODE as the runtime reports it; "off" proposes nothing. */
   bounded_decision: string;
   /**
    * RAIN_DECISION_REMOTE_ALLOWED: whether R.A.I.N. may send a decision's
@@ -475,24 +477,9 @@ export interface Preregistration {
   created_at: string;
   registry: "scratch" | "configured";
 }
-export interface CriterionResult {
-  id: string;
-  metric: string;
-  op: ">=" | ">" | "<=" | "<";
-  value: number;
-  observed: number | null;
-  holds: boolean | null;
-}
-export interface Evaluation {
-  rule: typeof CRITERIA_RULE;
-  guards: CriterionResult[];
-  success: CriterionResult[];
-  failure: CriterionResult[];
-  summary: string;
-}
-export type RainRunStatus = "passed" | "failed" | "inconclusive" | "error";
-export type RainVerdict =
-  "supported" | "not_supported" | "insufficient_evidence" | "not_evaluated";
+export type RainRunStatus = Exclude<RunStatus, "running">;
+export type RainCompletedStatus = CompletedStatus;
+export type RainVerdict = RunVerdict;
 export interface Admission {
   schema: typeof RAIN_BETHESDA_SCHEMA;
   kind: "admission";

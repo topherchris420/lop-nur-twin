@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import proposal from "./fixtures/demo-proposal.json" with { type: "json" };
 import { CitySimulation } from "../simulation";
 import { approve, begin, complete, openCase, type Origin } from "./cases";
-import { evaluate } from "./evaluate";
+import { evaluate } from "../../rain/experiments/evaluate";
 import { cohortAt, observeWorld, verifyObservation } from "./observations";
 import { regionOf, runToCompletion, type RunResult } from "./runner";
 import { armTrace, verifyRecordSync } from "./replay";

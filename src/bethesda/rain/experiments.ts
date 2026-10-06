@@ -44,7 +44,7 @@ import {
   type ScenarioId,
 } from "./contracts";
 import { validateProposalShape, type Checked } from "./validation";
-import { canonicalJson, sha256Json } from "./sha256";
+import { canonicalJson, sha256Json } from "../../rain/sha256";
 
 /** Fixed telemetry per supported pair; compiled, never interpolated from input. */
 const PHRASE: Record<LocationId, string> = {

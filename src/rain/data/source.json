@@ -1,0 +1,49 @@
+{
+  "schema": "rain-source/v1",
+  "repository": "topherchris420/james_library",
+  "repositoryUrl": "https://github.com/topherchris420/james_library",
+  "commit": "9c8811e343d21b8c143055f9cf549abdefa862f1",
+  "commitDate": "2026-09-29T00:01:54-04:00",
+  "importedAt": "2026-10-06T00:20:57.630Z",
+  "importer": "scripts/import-rain-source.ts",
+  "license": "MIT",
+  "licenseSha256": "d11b91e8f9a1e9f47e4cc60f52f8430c331966693fd1a7253b2f06a33f2a9ec4",
+  "attribution": "Copyright (c) 2026 Vers3Dynamics",
+  "corpus": {
+    "directory": "papers",
+    "rules": "top-level .md and .txt files; names starting with _ and product-surface names (README, SOUL, LOG, MEETING, START_HERE, CONTRIBUTING, SECURITY, ARCHITECTURE, LICENSE) excluded; docs/ and assets/ never evidence",
+    "files": 17,
+    "fingerprintSha256": "9b2ea4210d127b9aa19de5d33a27caec79449ee7d157ae8c0989399dc0b71177",
+    "snapshotSha256": "c7482e71b6adf72f90c41fdba8dda2fcb9bc507a225ed1023e44f885aa4610a7"
+  },
+  "perspectives": {
+    "files": [
+      {
+        "name": "James",
+        "file": "JAMES_SOUL.md",
+        "sha256": "433bbaa11d3b70a9e10cb91a8efa9b73fcd92230fcfb893a05f901319e927be1"
+      },
+      {
+        "name": "Jasmine",
+        "file": "JASMINE_SOUL.md",
+        "sha256": "b7d5325b2847e751cf4e0b589b6b6303bcfef36473c4d24cc19230b7db8a8fa7"
+      },
+      {
+        "name": "Luca",
+        "file": "LUCA_SOUL.md",
+        "sha256": "9209c93711eb8398b91f9816d5072f33e24b61b64ffadab1e112787be1a20e66"
+      },
+      {
+        "name": "Elena",
+        "file": "ELENA_SOUL.md",
+        "sha256": "0d84c94e2adfe13fce5d88913d5f91fedbbdf21464ebc3dbeb71e5ce4b83ba1d"
+      }
+    ],
+    "snapshotSha256": "8784acd9cd78dbcb5da981e706d3558e6b0db72a6542a3b399a5320edfba0f39"
+  },
+  "notes": [
+    "The corpus is the evidence R.A.I.N.'s offline engine quotes and the text a model meeting's quotations are verified against; each paper's text is stored in full so quotes carry their file, line and character span.",
+    "The SOUL files are the four perspectives' identities and constraints, used as the system prompt of a model meeting and shown nowhere else.",
+    "Nothing here is fetched at build or run time. Re-import with scripts/import-rain-source.ts from a clean checkout to update."
+  ]
+}

@@ -442,10 +442,12 @@ A hidden second environment, lazily loaded from `src/components/AnomalyGate.tsx`
 its test and the city branch of `server/jev/handler.ts`),
 `scripts/validate-bethesda.ts` and the `build`/
 `test:bethesda`/`verify:bethesda` scripts reference it. The R.A.I.N. Lab inside
-it adds `server/rain/` and `api/rain/` (with `rainApi` in `vite.config.ts` and
-their functions in `vercel.json`), `tools/rain-bridge/`, `tools/rain-lab.mjs`,
-`tools/rain-conformance.mjs`, `scripts/export-rain-demo.py`, the `RAIN_` lines
-of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
+it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
+(with `rainApi` in `vite.config.ts` and their functions in `vercel.json`),
+`tools/rain-lab.mjs`, `tools/rain-conformance.mjs`, `tools/rain-admit.mjs`,
+`tools/stand-in-model.mjs`, `scripts/export-rain-demo.ts`,
+`scripts/import-rain-source.ts`, the `RAIN_` lines of `.env.example`, the
+R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
 scripts.
 
@@ -479,12 +481,17 @@ scripts.
   classes from height provenance; the field notes print the computed tally.
   Do not write a fidelity sentence the tally does not support.
 
-### The R.A.I.N. Lab (`src/bethesda/rain/`)
+### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
-A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives
-(`topherchris420/james_library`) meet and their hypotheses become experiments.
-Read `docs/RAIN_LAB_BETHESDA.md` before changing it. The rule the directory
-exists to keep: **models propose; host code validates; the simulator determines
+A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet
+and their hypotheses become experiments. Its research runtime lives in
+`src/rain/` — the citation corpus and the bundled papers (`data/`), the offline
+meeting engine and model meetings (`meeting/`), the bounded decision router
+(`judgment/`) and the experiment registry (`experiments/`) — and is served
+in-process by `server/rain/handler.ts`. It was ported from
+`topherchris420/james_library` (see `docs/RAIN_MIGRATION.md`); read
+`docs/RAIN_LAB_BETHESDA.md` before changing either directory. The rule they
+exist to keep: **models propose; host code validates; the simulator determines
 world state; recorded observations become evidence.**
 
 - **The lab holds the live city read-only.** Only `runner.ts` and `replay.ts`
@@ -493,33 +500,45 @@ world state; recorded observations become evidence.**
   `humanAction`, `movePlayer`, `setFocus` and writes to `paused`, and fails on
   any other caller. A new observation goes in `tools.ts` as a read; there is
   never a tool that acts.
+- **The browser bundle takes only the runtime's pure modules.** The lab may
+  import `src/rain/protocol.ts`, `experiments/evaluate.ts`,
+  `judgment/routing.ts` (and its `contracts`, `calibration`, `sensitive`),
+  `meeting/perspectives.ts`, `sha256.ts`, `text.ts` and `corpus.ts`;
+  `authority.test.ts` fails on anything else. The corpus data, the SOUL files,
+  the offline engine, model meetings, the registry and the runtime itself are
+  server-side and reach the browser only as validated `rain-bethesda/v2`
+  answers.
 - **No words are written here.** A meeting is a validated R.A.I.N. record —
   LIVE from `/api/rain/meeting` (a model meeting arrives later, through
   `/api/rain/meeting-status`) or the DEMO recording — staged through
-  R.A.I.N.'s neutral events. Do not add a line a perspective says.
+  R.A.I.N.'s neutral events. Do not add a line a perspective says. The offline
+  engine's text is R.A.I.N.'s script, ported word for word: `offline.test.ts`
+  asserts the engine reproduces the DEMO recording, which R.A.I.N.'s own
+  engine made, by id and by every word.
 - **Say who wrote every word.** A meeting and each turn carry `generation`
-  (`scripted` or `model`). A model meeting names its model and R.A.I.N.'s
+  (`scripted` or `model`). A model meeting names its model and the runtime's
   `rain-session-artifact/v1` by SHA-256, and has no grade and no verdict,
-  because R.A.I.N.'s model meeting computes neither; a line R.A.I.N.'s code
-  adds — its closing line, its placeholder for an unusable answer — is
-  `scripted` even there (`fixed_lines` reads them from R.A.I.N.'s script, and
-  `bun run rain:bridge` checks they are still there). Never fill in the offline engine's analysis
-  for a model meeting, and never label a model's turn as scripted or the
-  reverse — `validateMeeting` refuses both.
-- **R.A.I.N.'s meeting script runs unchanged, as a process, from a copy.** The
-  bridge `git archive`s the checkout's commit into a temporary directory, runs
-  `rain_lab_meeting_chat_version.py` there with a fixed argument list (the
-  question is one argument), a stdin nobody writes, decision routing off and no
-  TypeSafe key or bridge token in its environment, and removes the copy.
-  Nothing from a request but the question reaches that argument list, and
-  nothing a model writes is ever run.
+  because the model meeting computes neither; a line the runtime's code adds —
+  the closing line, the placeholder for an unusable answer
+  (`meeting/perspectives.ts`) — is `scripted` even there. Never fill in the
+  offline engine's analysis for a model meeting, and never label a model's turn
+  as scripted or the reverse — `validateMeeting` refuses both.
+- **A model's words only ever come back as text.** `meeting/model.ts` talks
+  to an OpenAI-compatible server through `fetch` and nothing else; the runtime
+  starts no subprocess but `git`, for its own revision. Nothing from a request
+  but the question reaches a prompt, and nothing a model writes is ever run,
+  opened, fetched or linked. Under `RAIN_MEETING_PRIVACY=local` (the default)
+  `meeting/privacy.ts` refuses an endpoint that is not loopback or
+  private-network before the runtime starts.
 - **An answer R.A.I.N. did not act on is shown, never used.**
-  `decision.attempts` keeps every engine R.A.I.N. consulted, with its
+  `decision.attempts` keeps every engine the router consulted, with its
   probabilities as returned. A person may adopt a handed-back pick
   (`adoptSuggestion`: origin `human`, no `rain_decision`); the lab never opens
   a R.A.I.N. proposal R.A.I.N. did not make. Whether Jev may be asked is
-  R.A.I.N.'s own `RAIN_DECISION_REMOTE_ALLOWED`, read by R.A.I.N.'s parser in
-  the bridge — never a lab setting, and never on by default.
+  `RAIN_DECISION_MODE=jev` with `RAIN_DECISION_REMOTE_ALLOWED=true` in the
+  server's environment — never a lab setting, never on by default, and never
+  a path for the browser; `laya` and `cascade` are refused because the runtime
+  carries no local checkpoint.
 - **R.A.I.N. chooses; the host writes.** R.A.I.N. picks among `OPTIONS` in
   `session.ts`; the proposal is built from the option. A proposal is a closed
   `rain-bethesda-experiment/v1` object with ids from the vocabulary in
@@ -534,23 +553,35 @@ world state; recorded observations become evidence.**
 - **LIVE never falls back to DEMO.** `client.ts` must not import the recording
   (a test asserts it). A failure is a typed failure shown as such.
 - **The DEMO recording is re-recorded, never edited.**
-  `scripts/export-rain-demo.py` writes it and its manifest with the real time
-  and hashes; `scripts/validate-bethesda.ts` fails when they disagree.
-- **The backend's address and token are server environment.** Only
-  `api/rain/_config.ts` and `vite.config.ts` read `RAIN_BACKEND_URL`,
-  `RAIN_BACKEND_TOKEN` and `RAIN_TIMEOUT_MS`; never `VITE_`-prefixed.
-  `contracts.ts` and `validation.ts` are shared with `server/rain/` and import
-  siblings as `./x.js`.
+  `scripts/export-rain-demo.ts` (`bun run rain:demo`) writes it and its
+  manifest with the real time and hashes from a clean, committed checkout, and
+  refuses a recording whose meeting id differs from the first recording's;
+  `scripts/validate-bethesda.ts` fails when they disagree.
+- **The corpus is imported, never edited.** `src/rain/data/` is written by
+  `scripts/import-rain-source.ts` from a clean checkout of the source
+  repository, with per-file hashes, the corpus fingerprint and the real import
+  time in `source.json`; `validate-bethesda.ts` checks every hash. The same
+  discovery rules (`corpus.ts`) decide what counts as a paper on import and at
+  run time.
+- **Secrets reach the runtime by value.** Only `api/rain/_config.ts` and
+  `vite.config.ts` read `RAIN_LLM_API_KEY` (and, for Jev, `TYPESAFE_API_KEY`);
+  nothing under `src/rain/` names a credential or reads the process
+  environment, and `secretBoundary.test.ts` fails if that changes. Never
+  `VITE_`-prefixed. The runtime, `contracts.ts` and `validation.ts` are shared
+  with `server/rain/` and import siblings as `./x.js`.
+- **The registry judges its own criteria.** A submission carries measurements
+  and no status or verdict; `experiments/runner.ts` evaluates the
+  pre-registered criteria, and `bun run rain:conformance` runs the lab's
+  output through the runtime's validators, evaluator and registry and fails if
+  they disagree. `experiments/evaluate.ts` is the one `rain-criteria/v1`
+  implementation, used by the browser and the registry alike.
 - **Records are evidence only through replay.** Every ending is a sealed
-  `bethesda-rain-experiment-record/v1`; `verifyRecord` re-simulates it. A digest
+  `bethesda-rain-experiment-record/v2`; `verifyRecord` re-simulates it. A digest
   is not a signature: an imported record stays in the store's `quarantine` —
   out of `records`, the Evidence Library and the tools — until `verifyRecord`
   passes. A change to the record, the protocol or the simulator's behaviour
   bumps its schema or `SIM_VERSION`, and older records fail verification with a
   reason.
-- **R.A.I.N. judges its own criteria.** A submission carries measurements and
-  no status or verdict; `bun run rain:conformance` runs james_library's own
-  validators, evaluator and registry over the lab's output.
 - **Unknown stays unknown.** A commit, model or token count nobody reported is
   `null`; the submission refuses to invent the producing commit.
 
@@ -600,10 +631,13 @@ test the artifact that actually ships — including its security headers:
 bun run a11y                  # axe-core on every route (+ /evaluation with a run open) + CSP
 bun run verify:bethesda       # the hidden city end to end (both entrances, scenarios,
                               # outage fallback, replay, a11y, CSP, WebGL failure)
-bun run verify:rain-lab       # the hidden lab end to end on its own preview: OFFLINE,
-                              # DEMO, authorization, run, replay, tampered import,
-                              # outings, tools, a11y, CSP, no WebGL; LIVE through the
-                              # bridge when RAIN_LIBRARY_PATH names a james_library
+bun run verify:rain-lab       # the hidden lab end to end on three previews of its own:
+                              # OFFLINE (RAIN_RUNTIME=off), DEMO, authorization, run,
+                              # replay, tampered import, outings, tools, a11y, CSP, no
+                              # WebGL; LIVE against the in-process runtime; a model
+                              # meeting against tools/stand-in-model.mjs
+bun run rain:conformance      # the lab's drafts and submissions through the runtime's
+                              # validators, evaluator and registry
 bun run routes                # 70 checks: deep links, refreshes, hostile
                               # parameters, keyboard order, filtering, mobile
 ```

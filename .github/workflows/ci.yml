@@ -112,10 +112,11 @@ jobs:
       - name: Prove the evidence validator still rejects bad records
         run: bun run test:evidence
 
-      # The R.A.I.N. Lab's reference bridge, on synthetic R.A.I.N. records:
-      # standard-library Python, no james_library checkout, no model.
-      - name: R.A.I.N. bridge unit tests (no backend, no model)
-        run: bun run rain:bridge
+      # The R.A.I.N. Lab against the research runtime's own registry: real lab
+      # experiments in-process, their drafts and submissions through the
+      # runtime's validators, evaluator and registry. No model, no network.
+      - name: R.A.I.N. Lab conformance with the research runtime (no model)
+        run: bun run rain:conformance
 
       # `bun run build` runs the offline data validator, regenerates the release
       # manifest, bundles, and finishes with a strict `tsc --noEmit`. It is the
@@ -218,11 +219,15 @@ jobs:
       - name: Hidden Bethesda city checks (no API calls)
         run: bun run verify:bethesda http://localhost:4173
 
-      # The R.A.I.N. Lab inside the city: OFFLINE (this preview has no backend),
-      # the labelled DEMO, authorization, a matched run, replay, tampered
-      # imports, outings, tools, a11y, CSP and the no-WebGL path.
-      - name: Hidden R.A.I.N. Lab checks (no backend, no API calls)
-        run: bun run verify:rain-lab http://localhost:4173
+      # The R.A.I.N. Lab inside the city, on previews of its own: OFFLINE
+      # (RAIN_RUNTIME=off), the labelled DEMO, authorization, a matched run,
+      # replay, tampered imports, outings, tools, a11y, CSP and the no-WebGL
+      # path; LIVE against the in-process research runtime (offline engine,
+      # pre-registration, submission, a server that stops answering); and a
+      # model meeting against the stand-in model server on loopback. No real
+      # model and no remote engine: Jev is consulted only with JEV_LIVE_TEST=1.
+      - name: Hidden R.A.I.N. Lab checks (no API calls)
+        run: bun run verify:rain-lab
 
       - name: Upload server logs on failure
         if: failure()

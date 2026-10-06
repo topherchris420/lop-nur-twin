@@ -1,35 +1,30 @@
-import { describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { createRainHandler, resolveBackend } from "./handler";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterAll, describe, expect, it, vi } from "vitest";
+import { createRainHandler } from "./handler";
 import { LIMITS } from "../../src/bethesda/rain/contracts";
+import demoMeeting from "../../src/bethesda/rain/fixtures/demo-meeting.json" with { type: "json" };
+import {
+  configureRuntime,
+  type RuntimeApi,
+  type RuntimeConfiguration,
+} from "../../src/rain/runtime";
 
 const ORIGIN = "https://lab.example.test";
 const SESSION = "c".repeat(32);
 const REQUEST = "a".repeat(32);
-const meeting = JSON.parse(
-  readFileSync(
-    new URL("../../src/bethesda/rain/fixtures/demo-meeting.json", import.meta.url),
-    "utf8",
-  ),
-) as Record<string, unknown>;
-const QUESTION = meeting.question as string;
-const identity = {
-  schema: "rain-bethesda/v2",
-  kind: "identity",
-  bridge: { name: "rain-bethesda-bridge", version: "1" },
-  rain: {
-    repository: "topherchris420/james_library",
-    commit: "9c8811e343d21b8c143055f9cf549abdefa862f1",
-    dirty: false,
-  },
-  corpus: { files: 17, sha256: "9".repeat(64) },
-  meeting_engine: "james_library.launcher.offline_meeting.build_offline_meeting",
-  meeting_generation: "scripted",
-  model: null,
-  bounded_decision: "off",
-  remote_decisions: false,
-  registry: { available: true, scratch: true },
+const QUESTION = demoMeeting.question;
+const scratch: string[] = [];
+const scratchDir = () => {
+  const dir = mkdtempSync(join(tmpdir(), "rain-handler-test-"));
+  scratch.push(dir);
+  return dir;
 };
+afterAll(() => {
+  for (const dir of scratch) rmSync(dir, { recursive: true, force: true });
+});
+
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
   new Request(`${ORIGIN}/api/rain/${path}`, {
     method: "POST",
@@ -38,161 +33,90 @@ const post = (path: string, body: unknown, headers: Record<string, string> = {})
   });
 const get = (path: string) =>
   new Request(`${ORIGIN}/api/rain/${path}`, { headers: { Origin: ORIGIN } });
-const reply = (body: unknown, status = 200) =>
-  new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
 const meta = { clientKey: "test" };
 const meetingRequest = (question = QUESTION) => ({
   session: SESSION,
   request_id: REQUEST,
   question,
 });
+/** The real runtime, offline engine, scratch registry, no decision engine, no git. */
+const local = (now?: () => number) =>
+  createRainHandler({
+    runtime: configureRuntime({
+      env: { RAIN_DECISION_MODE: "off" },
+      scratchDir,
+      cwd: "/",
+    }),
+    now,
+  });
 
 describe("R.A.I.N. route configuration", () => {
-  it("accepts https or loopback http only, never credentials or queries", () => {
-    expect(resolveBackend("https://rain.example.test/base/")).toBe(
-      "https://rain.example.test/base",
-    );
-    expect(resolveBackend("http://127.0.0.1:8790")).toBe("http://127.0.0.1:8790");
-    for (const bad of [
-      "http://rain.example.test",
-      "https://user:pass@rain.example.test",
-      "https://rain.example.test/?key=1",
-      "ftp://127.0.0.1",
-      "javascript:alert(1)",
-      "",
-      undefined,
-    ])
-      expect(resolveBackend(bad)).toBeNull();
-  });
-  it("is OFFLINE without a backend and never substitutes content", async () => {
-    const fetchImpl = vi.fn();
+  it("is OFFLINE with the runtime switched off and never substitutes content", async () => {
     const handle = createRainHandler({
-      backendUrl: undefined,
-      token: undefined,
-      fetchImpl,
+      runtime: configureRuntime({ env: { RAIN_RUNTIME: "off" } }),
     });
     const status = await (await handle(get("status"), meta)).json();
-    expect(status).toMatchObject({ configured: false, reachable: null, identity: null });
+    expect(status).toMatchObject({
+      configured: false,
+      reachable: null,
+      identity: null,
+      failure: null,
+    });
     const response = await handle(post("meeting", meetingRequest()), meta);
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({ error: "not configured" });
-    expect(fetchImpl).not.toHaveBeenCalled();
   });
-  it("reports a misconfigured address without echoing it", async () => {
+  it("reports a misconfigured runtime by the setting's name, never its value", async () => {
     const handle = createRainHandler({
-      backendUrl: "http://internal.example.test:9000",
-      token: undefined,
+      runtime: configureRuntime({
+        env: {
+          RAIN_MEETING_ENGINE: "model",
+          RAIN_LLM_MODEL: "http://evil.example/model",
+        },
+        scratchDir,
+      }),
     });
     const text = await (await handle(get("status"), meta)).text();
-    expect(JSON.parse(text)).toMatchObject({
-      configured: false,
-      failure: "misconfigured",
-    });
-    expect(text).not.toContain("internal.example.test");
+    expect(JSON.parse(text)).toMatchObject({ configured: false });
+    expect(JSON.parse(text).failure).toMatch(/^misconfigured: RAIN_LLM_MODEL/);
+    expect(text).not.toContain("evil.example");
+  });
+  it("answers LIVE with the runtime's validated identity and caches it", async () => {
+    const handle = local();
+    const first = (await (await handle(get("status"), meta)).json()) as {
+      identity: {
+        runtime: { name: string };
+        corpus: { files: number };
+        meeting_generation: string;
+      };
+    };
+    expect(first).toMatchObject({ configured: true, reachable: true, failure: null });
+    expect(first.identity.runtime.name).toBe("lop-nur-twin-rain");
+    expect(first.identity.corpus.files).toBe(17);
+    expect(first.identity.meeting_generation).toBe("scripted");
   });
 });
 
 describe("R.A.I.N. route boundary", () => {
-  const live = (fetchImpl: typeof fetch, token?: string) =>
-    createRainHandler({ backendUrl: "http://127.0.0.1:8790", token, fetchImpl });
-  it("validates identity and caches it", async () => {
-    const fetchImpl = vi.fn(async () => reply(identity));
-    const handle = live(fetchImpl);
-    const first = await (await handle(get("status"), meta)).json();
-    expect(first).toMatchObject({ configured: true, reachable: true, failure: null });
-    await handle(get("status"), meta);
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
-    const bad = live(vi.fn(async () => reply({ ...identity, extra: true })));
-    expect(await (await bad(get("status"), meta)).json()).toMatchObject({
-      identity: null,
-      failure: "invalid identity",
-    });
-  });
-  it("forwards a server-composed meeting request and returns the validated record", async () => {
-    let sent: { url: string; body: unknown; auth: string | null } | null = null;
-    const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      sent = {
-        url: String(url),
-        body: JSON.parse(String(init?.body)),
-        auth: new Headers(init?.headers).get("authorization"),
-      };
-      return reply({ ...meeting, request_id: REQUEST });
-    });
-    const handle = live(fetchImpl, "bridge-secret-token");
+  it("holds an offline meeting in-process and returns the validated record", async () => {
+    const handle = local();
     const response = await handle(
       post("meeting", meetingRequest(`  ${QUESTION}  `)),
       meta,
     );
     expect(response.status).toBe(200);
-    const record = (await response.json()) as { question: string };
-    expect(record.question).toBe(QUESTION);
-    expect(sent).toEqual({
-      url: "http://127.0.0.1:8790/rain-bethesda/v2/meeting",
-      body: {
-        schema: "rain-bethesda/v2",
-        kind: "meeting-request",
-        request_id: REQUEST,
-        question: QUESTION,
-      },
-      auth: "Bearer bridge-secret-token",
-    });
-  });
-  it("never returns the token, even in errors", async () => {
-    const handle = live(
-      vi.fn(async () => reply("boom", 500)),
-      "bridge-secret-token",
-    );
-    const text = await (await handle(post("meeting", meetingRequest()), meta)).text();
-    expect(text).not.toContain("bridge-secret-token");
-  });
-  it.each([
-    [
-      "an unknown schema",
-      { ...meeting, request_id: REQUEST, schema: "rain-bethesda/v9" },
-    ],
-    ["an extra field", { ...meeting, request_id: REQUEST, injected: "<script>" }],
-    ["a stale request id", { ...meeting, request_id: "b".repeat(32) }],
-    [
-      "a different question",
-      { ...meeting, request_id: REQUEST, question: "Something else?" },
-    ],
-    [
-      "a scripted meeting claiming a model",
-      { ...meeting, request_id: REQUEST, model: "gpt-x" },
-    ],
-    ["not JSON", "{not json"],
-  ])("rejects an upstream answer with %s", async (_label, body) => {
-    const handle = live(vi.fn(async () => reply(body)));
-    const response = await handle(post("meeting", meetingRequest()), meta);
-    expect(response.status).toBe(502);
-  });
-  it("rejects an oversized upstream answer", async () => {
-    const huge = {
-      ...meeting,
-      request_id: REQUEST,
-      padding: "x".repeat(LIMITS.meetingResponse),
+    const record = (await response.json()) as {
+      question: string;
+      meeting_id: string;
+      generation: string;
     };
-    const handle = live(vi.fn(async () => reply(huge)));
-    const response = await handle(post("meeting", meetingRequest()), meta);
-    expect(response.status).toBe(502);
-    expect(await response.json()).toMatchObject({ error: "upstream answer too large" });
+    expect(record.question).toBe(QUESTION);
+    expect(record.generation).toBe("scripted");
+    // The same question over the same corpus is the DEMO's meeting, exactly.
+    expect(record.meeting_id).toBe(demoMeeting.meeting_id);
   });
-  it("maps a hung backend to a timeout", async () => {
-    const handle = createRainHandler({
-      backendUrl: "http://127.0.0.1:8790",
-      token: undefined,
-      timeoutMs: 1000,
-      fetchImpl: (_u: unknown, init?: RequestInit) =>
-        new Promise((_, reject) =>
-          init?.signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-        ),
-    });
-    const response = await handle(post("meeting", meetingRequest()), meta);
-    expect(response.status).toBe(504);
-  });
-  it("refuses malformed, oversized, cross-site and unknown requests before any upstream call", async () => {
-    const fetchImpl = vi.fn(async () => reply(meeting));
-    const handle = live(fetchImpl);
+  it("refuses malformed, oversized, cross-site and unknown requests before the runtime is asked", async () => {
+    const handle = local();
     const statuses = await Promise.all([
       handle(post("meeting", { ...meetingRequest(), extra: 1 }), meta),
       handle(post("meeting", { ...meetingRequest(), session: "nope" }), meta),
@@ -204,16 +128,10 @@ describe("R.A.I.N. route boundary", () => {
       handle(post("../jev/decision", meetingRequest()), meta),
     ]).then((rs) => rs.map((r) => r.status));
     expect(statuses).toEqual([400, 400, 400, 400, 413, 403, 404, 404]);
-    expect(fetchImpl).not.toHaveBeenCalled();
   });
   it("paces sessions and caps meetings per session", async () => {
     let t = 0;
-    const handle = createRainHandler({
-      backendUrl: "http://127.0.0.1:8790",
-      token: undefined,
-      now: () => t,
-      fetchImpl: vi.fn(async () => reply({ ...meeting, request_id: REQUEST })),
-    });
+    const handle = local(() => t);
     expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(200);
     expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(429);
     let last = 0;
@@ -224,39 +142,33 @@ describe("R.A.I.N. route boundary", () => {
     }
     expect(last).toBe(429);
   });
-  it("binds a proposal choice to the options offered", async () => {
+  it("answers a proposal with R.A.I.N.'s decision: DISABLED when routing is off", async () => {
+    const handle = local();
     const options = [
       { id: "X1", description: "Metro closure at the Bethesda Metro" },
       { id: "ESCALATE_TO_HUMAN", description: "None of these tests the question." },
     ];
-    const choice = (selected: string | null) => ({
-      schema: "rain-bethesda/v2",
-      kind: "proposal-choice",
-      request_id: REQUEST,
-      decision: {
-        schema_version: "rain-bounded-decision/v1",
-        decision_id: "f01bc094-730a-47b7-8433-efb129e1270a",
-        destination: selected ? "proposal" : "rain",
-        selected,
-        reason: selected ? null : "DISABLED",
-        envelope_hash: "e".repeat(64),
-        attempts: [],
-        latency_ms: 0.6,
-      },
+    const response = await handle(
+      post("proposal", {
+        session: SESSION,
+        request_id: REQUEST,
+        question: QUESTION,
+        options,
+      }),
+      meta,
+    );
+    expect(response.status).toBe(200);
+    const choice = (await response.json()) as {
+      decision: { destination: string; selected: null; reason: string };
+    };
+    expect(choice.decision).toMatchObject({
+      destination: "rain",
+      selected: null,
+      reason: "DISABLED",
     });
-    const body = { session: SESSION, request_id: REQUEST, question: QUESTION, options };
-    for (const [selected, status] of [
-      [null, 200],
-      ["X1", 200],
-      ["X9", 502],
-    ] as const) {
-      const handle = live(vi.fn(async () => reply(choice(selected))));
-      expect((await handle(post("proposal", body), meta)).status).toBe(status);
-    }
   });
   it("refuses a submission that brings its own verdict", async () => {
-    const fetchImpl = vi.fn();
-    const handle = live(fetchImpl);
+    const handle = local();
     const submission = {
       schema_version: "rain-experiment-submission/v1",
       experiment_id: "V3D-EXP-0005",
@@ -273,19 +185,68 @@ describe("R.A.I.N. route boundary", () => {
       meta,
     );
     expect(response.status).toBe(400);
-    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+  it("passes a registry refusal on as a bounded reason", async () => {
+    const handle = local();
+    const draft = Object.fromEntries(
+      [
+        "title",
+        "question",
+        "hypothesis",
+        "rationale",
+        "subsystem",
+        "created_by",
+        "evidence_class",
+        "runner",
+        "seed",
+        "parameters",
+        "procedure",
+        "variables",
+        "metrics",
+        "criteria",
+        "dependencies",
+        "data_policy",
+        "limitations",
+      ].map((k) => [
+        k,
+        k === "evidence_class"
+          ? "simulated"
+          : k === "runner"
+            ? { kind: "external" }
+            : "x",
+      ]),
+    );
+    const response = await handle(
+      post("preregister", { session: SESSION, request_id: REQUEST, draft }),
+      meta,
+    );
+    expect(response.status).toBe(422);
+    expect(((await response.json()) as { error: string }).error).toMatch(
+      /^R\.A\.I\.N\. refused the definition/,
+    );
   });
 });
 
+/** A runtime standing in for one that holds model meetings, answering what the test says. */
+function stub(answers: Partial<RuntimeApi>): RuntimeConfiguration {
+  const refuse = () => {
+    throw new Error("unexpected call");
+  };
+  const runtime: RuntimeApi = {
+    identity: refuse,
+    meeting: refuse,
+    meetingStatus: refuse,
+    meetingCancel: refuse,
+    proposal: refuse,
+    preregister: refuse,
+    submission: refuse,
+    ...answers,
+  };
+  return { mode: "local", runtime };
+}
+
 describe("R.A.I.N. model meetings through the route", () => {
   const JOB = "9".repeat(32);
-  const live = (fetchImpl: typeof fetch, now?: () => number) =>
-    createRainHandler({
-      backendUrl: "http://127.0.0.1:8790",
-      token: undefined,
-      fetchImpl,
-      now,
-    });
   const pending = (extra: Record<string, unknown> = {}) => ({
     schema: "rain-bethesda/v2",
     kind: "meeting-pending",
@@ -300,13 +261,13 @@ describe("R.A.I.N. model meetings through the route", () => {
     ...extra,
   });
   const modelMeeting = () => {
-    const m = structuredClone(meeting) as Record<string, unknown> & {
+    const m = structuredClone(demoMeeting) as Record<string, unknown> & {
       turns: Record<string, unknown>[];
     };
     m.request_id = REQUEST;
     m.generation = "model";
     m.model = "qwen2.5:7b";
-    m.engine = "rain_lab_meeting_chat_version.RainLabOrchestrator.run_meeting";
+    m.engine = "rain.meeting.model.holdMeeting";
     m.grounding = m.matched_terms = m.missing_terms = m.verdict = null;
     m.turns.forEach((t) => (t.generation = "model"));
     m.source_artifact = {
@@ -325,30 +286,30 @@ describe("R.A.I.N. model meetings through the route", () => {
     ...extra,
   });
   it("answers a meeting request with its job, then the meeting, each bound to the request", async () => {
-    const sent: { url: string; body: unknown }[] = [];
-    const answers = [pending(), modelMeeting()];
-    const handle = live(
-      vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-        sent.push({ url: String(url), body: JSON.parse(String(init?.body)) });
-        return reply(answers.shift());
+    const calls: unknown[] = [];
+    const handle = createRainHandler({
+      runtime: stub({
+        meeting: (question, requestId) => {
+          calls.push(["meeting", question, requestId]);
+          return pending();
+        },
+        meetingStatus: (jobId, requestId) => {
+          calls.push(["status", jobId, requestId]);
+          return modelMeeting();
+        },
       }),
-    );
+    });
     const started = await handle(post("meeting", meetingRequest()), meta);
     expect(started.status).toBe(200);
     expect(await started.json()).toMatchObject({ kind: "meeting-pending", job_id: JOB });
     const done = await handle(post("meeting-status", status()), meta);
     expect(done.status).toBe(200);
     expect(await done.json()).toMatchObject({ kind: "meeting", generation: "model" });
-    // Upstream hears the request and the job, nothing the browser added.
-    expect(sent[1]).toEqual({
-      url: "http://127.0.0.1:8790/rain-bethesda/v2/meeting-status",
-      body: {
-        schema: "rain-bethesda/v2",
-        kind: "meeting-status-request",
-        request_id: REQUEST,
-        job_id: JOB,
-      },
-    });
+    // The runtime hears the request and the job, nothing the browser added.
+    expect(calls).toEqual([
+      ["meeting", QUESTION, REQUEST],
+      ["status", JOB, REQUEST],
+    ]);
   });
   it.each<[string, unknown]>([
     [
@@ -364,8 +325,12 @@ describe("R.A.I.N. model meetings through the route", () => {
     ["a pending job for another request", pending({ request_id: "b".repeat(32) })],
     ["a pending job for another question", pending({ question: "Is it raining?" })],
   ])("refuses %s", async (_what, answer) => {
-    const handle = live(vi.fn(async () => reply(answer)));
-    expect((await handle(post("meeting", meetingRequest()), meta)).status).toBe(502);
+    const handle = createRainHandler({
+      runtime: stub({ meeting: () => answer }),
+    });
+    const response = await handle(post("meeting", meetingRequest()), meta);
+    expect(response.status).toBe(502);
+    expect(await response.json()).toMatchObject({ error: "invalid runtime answer" });
   });
   it.each<[string, unknown]>([
     ["a pending answer for another job", pending({ job_id: "8".repeat(32) })],
@@ -380,13 +345,17 @@ describe("R.A.I.N. model meetings through the route", () => {
       },
     ],
   ])("refuses, on a status check, %s", async (_what, answer) => {
-    const handle = live(vi.fn(async () => reply(answer)));
+    const handle = createRainHandler({
+      runtime: stub({ meetingStatus: () => answer }),
+    });
     expect((await handle(post("meeting-status", status()), meta)).status).toBe(502);
   });
   it("keeps status checks closed and paced", async () => {
     let t = 1_000_000;
-    const fetchImpl = vi.fn(async () => reply(pending()));
-    const handle = live(fetchImpl, () => t);
+    const handle = createRainHandler({
+      runtime: stub({ meetingStatus: () => pending() }),
+      now: () => t,
+    });
     for (const bad of [
       status({ extra: 1 }),
       status({ job_id: "../../etc" }),
@@ -400,7 +369,6 @@ describe("R.A.I.N. model meetings through the route", () => {
     expect((await handle(post("meeting-status", status()), meta)).status).toBe(200);
   });
   it("forwards a stop and accepts only that job's failure", async () => {
-    const sent: unknown[] = [];
     const stopped = {
       schema: "rain-bethesda/v2",
       kind: "meeting-failed",
@@ -408,52 +376,59 @@ describe("R.A.I.N. model meetings through the route", () => {
       job_id: JOB,
       reason: "stopped at the lab's request",
     };
-    const handle = live(
-      vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
-        sent.push(JSON.parse(String(init?.body)));
-        return reply(stopped);
+    const calls: unknown[] = [];
+    const handle = createRainHandler({
+      runtime: stub({
+        meetingCancel: (jobId, requestId) => {
+          calls.push([jobId, requestId]);
+          return stopped;
+        },
       }),
-    );
+    });
     const cancel = { session: SESSION, request_id: REQUEST, job_id: JOB };
     const response = await handle(post("meeting-cancel", cancel), meta);
     expect(response.status).toBe(200);
-    expect(sent[0]).toEqual({
-      schema: "rain-bethesda/v2",
-      kind: "meeting-cancel-request",
-      request_id: REQUEST,
-      job_id: JOB,
+    expect(calls).toEqual([[JOB, REQUEST]]);
+    const other = createRainHandler({
+      runtime: stub({
+        meetingCancel: () => ({ ...stopped, job_id: "8".repeat(32) }),
+      }),
     });
-    const other = live(vi.fn(async () => reply({ ...stopped, job_id: "8".repeat(32) })));
     expect((await other(post("meeting-cancel", cancel), meta)).status).toBe(502);
   });
-  it("gives up on a hung job check or stop before its 10 s function limit", async () => {
+  it("gives up on a runtime call that never answers, and never leaks an exception", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
-      const handle = createRainHandler({
-        backendUrl: "http://127.0.0.1:8790",
-        token: undefined,
-        timeoutMs: 55_000,
-        fetchImpl: (_u: unknown, init?: RequestInit) =>
-          new Promise((_, reject) =>
-            init?.signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-          ),
+      const hung = createRainHandler({
+        runtime: stub({ proposal: () => new Promise(() => {}) }),
       });
-      for (const [op, body] of [
-        ["meeting-status", status()],
-        ["meeting-cancel", { session: SESSION, request_id: REQUEST, job_id: JOB }],
-      ] as const) {
-        let settled = false;
-        const answer = handle(post(op, body), meta).then((r) => {
-          settled = true;
-          return r;
-        });
-        await vi.advanceTimersByTimeAsync(7_999);
-        expect(settled, op).toBe(false);
-        await vi.advanceTimersByTimeAsync(1);
-        expect((await answer).status, op).toBe(504);
-      }
+      const options = [
+        { id: "X1", description: "a" },
+        { id: "ESCALATE_TO_HUMAN", description: "b" },
+      ];
+      const answer = hung(
+        post("proposal", {
+          session: SESSION,
+          request_id: REQUEST,
+          question: QUESTION,
+          options,
+        }),
+        meta,
+      );
+      await vi.advanceTimersByTimeAsync(25_001);
+      expect((await answer).status).toBe(504);
     } finally {
       vi.useRealTimers();
     }
+    const throwing = createRainHandler({
+      runtime: stub({
+        meeting: () => {
+          throw new Error("secret detail /home/user/key");
+        },
+      }),
+    });
+    const response = await throwing(post("meeting", meetingRequest()), meta);
+    expect(response.status).toBe(500);
+    expect(await response.text()).not.toContain("secret detail");
   });
 });
