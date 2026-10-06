@@ -1,5 +1,5 @@
 /**
- * `bethesda-rain-experiment-record/v1`: one experiment, everything it took.
+ * The experiment record (`RECORD_SCHEMA`): one experiment, everything it took.
  *
  * A record keeps what was proposed, which deterministic checks ran and how
  * they came out, what a human approved, what actually ran (every arm's

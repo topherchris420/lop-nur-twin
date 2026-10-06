@@ -66,7 +66,7 @@ export function TimelineControl() {
 
   return (
     <section
-      className="timeline-panel hud-panel pointer-events-auto absolute bottom-4 left-1/2 z-20 w-80 max-w-[calc(100vw-2rem)] -translate-x-1/2 px-3 py-2 font-mono"
+      className="timeline-panel hud-panel pointer-events-auto px-3 py-2 font-mono"
       aria-labelledby="timeline-heading"
     >
       <div className="flex items-end justify-between gap-3">

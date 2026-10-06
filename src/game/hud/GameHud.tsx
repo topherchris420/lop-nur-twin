@@ -29,7 +29,7 @@ function Scrim({ children }: { children: React.ReactNode }) {
   return (
     // `/play` hides the OS cursor for the crosshair; the menus need it back,
     // and a Scrim is only ever mounted on a screen where nothing is being aimed.
-    <div className="absolute inset-0 z-30 flex cursor-auto items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(6,7,9,0.72),rgba(4,5,7,0.94))] backdrop-blur-[6px]">
+    <div className="absolute inset-0 z-30 flex cursor-auto items-center-safe justify-center overflow-y-auto py-12 bg-[radial-gradient(ellipse_at_center,rgba(6,7,9,0.72),rgba(4,5,7,0.94))] backdrop-blur-[6px]">
       {children}
     </div>
   );

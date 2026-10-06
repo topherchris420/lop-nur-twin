@@ -1,22 +1,29 @@
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { Move } from "lucide-react";
 import { useTwinStore } from "@/lib/store";
-import { touchInput } from "@/lib/touchInput";
+import { isCoarsePointer, touchInput } from "@/lib/touchInput";
 
 const RADIUS = 46; // px of thumb travel = full deflection
 
 /**
- * Pan-stick for the free-fly orbit camera. Orbit mode already rotates
- * with mouse drag and zooms with scroll, but gliding the view across the
- * airfield with keyboard or a joystick helps desktop users navigate faster.
+ * Pan-stick for the free-fly orbit camera on touch devices. One finger
+ * rotates and a pinch zooms, but nothing else on a phone glides the view
+ * across the airfield; a mouse has drag, scroll and the arrow keys instead,
+ * so a pointer device does not get the stick (it sat under the evidence
+ * legend there, which owns the same corner).
  *
  * Like the first-person controls, deflection is written straight into the
  * `touchInput` singleton and consumed by `OrbitRig` in `useFrame`; the thumb
- * moves via a ref, so this never re-renders while you drive. Available on
- * all devices in orbit mode.
+ * moves via a ref, so this never re-renders while you drive.
  */
 export function OrbitJoystick() {
   const mode = useTwinStore((s) => s.cameraMode);
+  const coarse = useMemo(isCoarsePointer, []);
 
   const activeId = useRef<number | null>(null);
   const center = useRef({ x: 0, y: 0 });
@@ -31,7 +38,7 @@ export function OrbitJoystick() {
     };
   }, []);
 
-  if (mode !== "orbit") return null;
+  if (mode !== "orbit" || !coarse) return null;
 
   const setThumb = (dx: number, dy: number) => {
     if (thumbRef.current) {
@@ -71,7 +78,7 @@ export function OrbitJoystick() {
   };
 
   return (
-    <div className="pointer-events-none absolute right-6 bottom-6 flex flex-col items-center gap-1.5">
+    <div className="pointer-events-none flex flex-col items-center gap-1.5">
       <div
         ref={baseRef}
         onPointerDown={onPointerDown}

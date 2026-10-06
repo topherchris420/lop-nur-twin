@@ -262,8 +262,21 @@ try {
   await click("UNRESOLVED FEATURE · 39° N 77° W · outside this site");
   await page.waitForSelector('[data-bethesda="active"]', { timeout: 60000 });
   check("site index coordinates also resolve Bethesda", true);
-  await click("Return to the desert");
+  // The city holds a history entry: Back returns to the twin, not off the site.
+  await page.evaluate(() => history.back());
   await waitFor(() => document.title.startsWith("Lop Nur"));
+  check(
+    "the browser's Back returns from the city to the twin",
+    !(await page.$('[data-bethesda="active"]')) &&
+      (await page.evaluate(() => location.origin)) === new URL(origin).origin,
+  );
+  await page.evaluate(() => history.forward());
+  await delay(1000);
+  check(
+    "Forward does not reopen the city",
+    !(await page.$('[data-bethesda="active"]')) &&
+      (await page.evaluate(() => document.title.startsWith("Lop Nur"))),
+  );
   check("no page errors", errors.length === 0, errors.join("\n"));
   check(
     "no external map or assets requested",
@@ -304,6 +317,31 @@ try {
     await page.evaluate(() =>
       document.body.innerText.includes("Event injected: Fire · Bethesda Row"),
     ),
+  );
+  // Without a frame loop the position readout must still follow the walker.
+  await click("Close");
+  await click("Walk");
+  const position = () =>
+    page.evaluate(
+      () => /\d+\.\d{5}° N · \d+\.\d{5}° W/.exec(document.body.innerText)?.[0],
+    );
+  const from = await position();
+  const walkTick = await readTick();
+  await page.keyboard.down("KeyW");
+  try {
+    await waitFor(
+      (tick) => Number(/tick (\d+)/.exec(document.body.innerText)?.[1]) >= tick + 5,
+      walkTick,
+    );
+  } finally {
+    await page.keyboard.up("KeyW");
+  }
+  await delay(1200);
+  const to = await position();
+  check(
+    "without WebGL, walking moves the position readout",
+    !!from && !!to && from !== to,
+    `${from} → ${to}`,
   );
   await writeFile("shots/bethesda/browser-checks.json", JSON.stringify(checks, null, 2));
   if (checks.some((c) => !c.ok)) process.exitCode = 1;

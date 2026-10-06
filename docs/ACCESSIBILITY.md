@@ -45,6 +45,15 @@ be operable:
 - Keyboard shortcuts cover every mode: `1`/`2`/`3` cameras, `N` day-night,
   `I` site index, `R` research, `M` measure, `H` help, `Esc` to close.
 - The evidence legend is a labelled `<section>` with a real disclosure button.
+- The bottom panels (site map, mode hints, timeline, touch pan-stick, legend)
+  share one grid that reflows by width, so no panel covers another at any
+  screen size, and an opened legend scrolls inside the screen rather than off
+  it. Phone-width screens and touch devices start with the legend folded;
+  opened on a phone it is a sheet over the bottom of the view. `tools/routes.mjs`
+  measures the panel boxes on a phone, a phone held sideways, a tablet, a narrow
+  window and a 1280 × 720 laptop and fails on any overlap.
+- The Bethesda anomaly and its lab each hold a history entry, so the browser's
+  Back leaves them for the place they were opened from.
 - `prefers-reduced-motion: reduce` freezes automatic scene motion, makes camera
   moves immediate, disables adaptive quality promotion, and the global CSS rule
   neutralises animations and transitions.

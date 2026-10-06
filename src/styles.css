@@ -118,16 +118,147 @@ body {
   }
 }
 
+/*
+ * The bottom of the twin's HUD: the site map, the mode hints, the evidence
+ * timeline, the touch pan-stick and the evidence legend share one grid, so no
+ * screen size can lay one over another. The map grows in measure mode, the
+ * timeline when a date is picked and the legend when it is opened; positioned
+ * one by one at fixed offsets they collided on every screen narrower than a
+ * desktop, and a legend opened on a 720 px laptop ran off the top of the page.
+ *
+ * The dock lets clicks through to the scene; the panels in it take them.
+ */
+.hud-dock {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  gap: 0.5rem;
+  align-items: end;
+  padding: 0.5rem;
+  pointer-events: none;
+  /* Phones: the timeline across the width, the map and the legend under it. */
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "center center"
+    "map side";
+}
+
+.hud-dock-map {
+  grid-area: map;
+  justify-self: start;
+}
+
+.hud-dock-center {
+  grid-area: center;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-dock-side {
+  grid-area: side;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
 .timeline-panel {
-  width: min(18rem, calc(100vw - 2rem));
+  width: 100%;
   isolation: isolate;
 }
 
+.evidence-legend {
+  width: 100%;
+  max-height: calc(100dvh - 5.5rem);
+  overflow-y: auto;
+}
+
+/* Opened on a phone, the legend is a sheet over the dock until it is hidden. */
 @media (max-width: 639px) {
+  .evidence-legend[data-open] {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    z-index: 30;
+    width: auto;
+    max-height: calc(100dvh - 4.5rem);
+  }
+}
+
+/* Tablets: the timeline over the map, the legend beside both. */
+@media (min-width: 640px) {
+  .hud-dock {
+    padding: 1rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "center side"
+      "map side";
+  }
+
+  /* Sized by the timeline, so a long hint wraps instead of widening the column. */
+  .hud-dock-center {
+    max-width: min(18rem, calc(100vw - 2rem));
+    align-items: flex-start;
+  }
+
+  .timeline-panel {
+    width: min(18rem, calc(100vw - 2rem));
+  }
+
+  .evidence-legend {
+    width: min(19rem, calc(100vw - 2rem));
+  }
+}
+
+/* Wide screens, and phones held sideways: one row, the timeline centred. */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 420px) {
+  .hud-dock {
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: "map center side";
+  }
+
+  /* What the map (16rem) and the legend (19rem) leave, with the gaps. */
+  .hud-dock-center {
+    max-width: calc(100vw - 38rem);
+    align-items: center;
+  }
+
+  .hud-dock-side {
+    justify-self: end;
+  }
+}
+
+/* The pan-stick sits over the legend on touch screens; leave it the room. */
+@media (pointer: coarse) {
+  .evidence-legend {
+    max-height: calc(100dvh - 14.5rem);
+  }
+}
+
+/* A touch tablet's dossier stops above the pan-stick as well as the legend. */
+@media (pointer: coarse) and (min-width: 640px) {
+  .dossier-panel {
+    max-height: calc(100dvh - 18.5rem);
+  }
+}
+
+/* The title would run under the camera controls on anything narrower. */
+@media (max-width: 1299px) {
   .site-title {
     display: none;
   }
+}
 
+@media (max-width: 639px) {
   .topbar-controls {
     top: 0.5rem;
     right: 0.5rem;
@@ -153,22 +284,16 @@ body {
     overflow-x: hidden;
   }
 
-  .evidence-legend {
-    top: 4rem;
-    right: 0.5rem;
-    bottom: auto;
-    max-height: 55dvh;
-    overflow-y: auto;
-  }
-
   .timeline-panel {
-    bottom: 0.5rem;
-    width: min(12rem, calc(100vw - 1rem));
     padding: 0.45rem 0.65rem;
   }
 }
 
 @media (max-height: 420px) and (orientation: landscape) {
+  .hud-dock {
+    padding: 0.5rem;
+  }
+
   .telemetry-panel {
     top: 0.5rem;
     left: 0.5rem;
@@ -190,18 +315,16 @@ body {
     padding-top: 0.25rem;
   }
 
-  .minimap-panel {
-    bottom: 0.5rem;
-    left: 0.5rem;
-  }
-
   .minimap-canvas {
     width: 7rem;
   }
 
   .timeline-panel {
-    bottom: 0.5rem;
     width: 11rem;
+  }
+
+  .hud-dock-center {
+    max-width: calc(100vw - 29rem);
   }
 }
 

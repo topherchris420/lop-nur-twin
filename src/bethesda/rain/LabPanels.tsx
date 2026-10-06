@@ -43,7 +43,7 @@ import type { ExperimentCase } from "./cases";
 import { DATA_VERSION } from "../model";
 import { TERRAIN_VERSION } from "../terrain";
 import { TRANSIT_VERSION } from "../streetscape";
-import { SIM_VERSION } from "../simulation";
+import { REPLAY_SCHEMA, SIM_VERSION } from "../simulation";
 
 export const panel =
   "rounded border border-teal-100/20 bg-[#0d2328]/95 p-3 text-slate-100 shadow-xl";
@@ -1717,7 +1717,7 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
                 );
             }}
           >
-            Export arm as a city replay (bethesda-replay/v3)
+            Export arm as a city replay ({REPLAY_SCHEMA})
           </button>
         </div>
       ) : null}

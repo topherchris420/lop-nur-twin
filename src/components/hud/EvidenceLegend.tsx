@@ -7,7 +7,6 @@ import { PRIMARY_CRS, evidenceClassificationCounts } from "@/lib/evidence";
 import { SITE_PROFILE } from "@/lib/siteData";
 import { isCoarsePointer } from "@/lib/touchInput";
 import { useTwinStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
 
 /**
  * The standing evidence legend.
@@ -18,18 +17,23 @@ import { cn } from "@/lib/utils";
  * which coordinate system the numbers are in, and the standing statement that
  * none of it is operational data.
  *
- * It collapses to its header on touch devices, where the orbit joystick owns
- * the same corner, and the full legend also lives in the research panel and on
- * `/analysis` so the information is never only in one place.
+ * It starts folded to its header on touch devices, where the orbit pan-stick
+ * sits above it, and on phone-width screens, where opened it is a sheet over
+ * the bottom of the view. The full legend also lives in the research panel and
+ * on `/analysis`, so the information is never only in one place.
  */
+function startsOpen(): boolean {
+  return !isCoarsePointer() && !window.matchMedia?.("(max-width: 639px)").matches;
+}
+
 export function EvidenceLegend() {
-  const [open, setOpen] = useState(() => !isCoarsePointer());
+  const [open, setOpen] = useState(startsOpen);
   // The legend and the dossier share the right-hand column. Opening a dossier
   // folds the legend to its header so the claim being read is not painted over;
   // closing it brings the legend back. The legend can still be reopened by hand.
   const dossierOpen = useTwinStore((state) => state.selectedId !== null);
   useEffect(() => {
-    setOpen(!dossierOpen && !isCoarsePointer());
+    setOpen(!dossierOpen && startsOpen());
   }, [dossierOpen]);
   const toggleResearch = useTwinStore((state) => state.toggleResearch);
   const evidenceMode = useTwinStore((state) => state.evidenceMode);
@@ -43,10 +47,8 @@ export function EvidenceLegend() {
   return (
     <section
       aria-labelledby="evidence-legend-heading"
-      className={cn(
-        "evidence-legend hud-panel absolute right-4 bottom-4 z-10 w-[19rem] max-w-[calc(100vw-2rem)] p-3",
-        "max-sm:right-2 max-sm:bottom-2 max-sm:w-[calc(100vw-1rem)]",
-      )}
+      data-open={open ? "" : undefined}
+      className="evidence-legend hud-panel pointer-events-auto p-3"
     >
       <div className="flex items-start justify-between gap-2">
         <div>

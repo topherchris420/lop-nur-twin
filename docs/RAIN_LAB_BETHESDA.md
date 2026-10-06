@@ -63,8 +63,9 @@ The lab is inside Bethesda, so first find Bethesda (see
    scenario: the city's compiler produces no event from it.
 
 The lab's code (`LabApp`) loads the first time the door opens. Nothing contacts
-the research runtime before then. Leave by the door behind the threshold (E) or
-**Return to Bethesda**.
+the research runtime before then. Leave by the door behind the threshold (E),
+**Return to Bethesda** or the browser's Back, which steps out of the lab into the
+same city run.
 
 ## Architecture
 

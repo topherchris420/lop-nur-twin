@@ -15,6 +15,7 @@ import { AdaptiveQualityManager } from "./AdaptiveQuality";
 import { getQualityProfile } from "@/lib/quality";
 import { readFlag } from "@/lib/params";
 import { canCreateWebGLContext } from "@/lib/webgl";
+import { isChunkLoadError, reloadPage, STALE_BUILD_NOTICE } from "@/lib/staleBuild";
 
 const Effects = lazy(() => import("./Effects"));
 
@@ -34,7 +35,7 @@ function ReadySignal() {
   return null;
 }
 
-function WebGLFallback() {
+function WebGLFallback({ stale = false }: { stale?: boolean }) {
   const setReady = useTwinStore((state) => state.setReady);
   const setSceneUnavailable = useTwinStore((state) => state.setSceneUnavailable);
   useEffect(() => {
@@ -51,10 +52,19 @@ function WebGLFallback() {
       className="absolute inset-0 z-30 grid place-items-center bg-[#1c1b18] p-6 text-center text-sm text-[#e8e4d8]"
     >
       <div className="max-w-md space-y-3 leading-relaxed">
-        <p>
-          This browser could not start WebGL, so the 3D view is unavailable. Hardware
-          acceleration or a WebGL-capable browser is required for it.
-        </p>
+        {stale ? (
+          <p>
+            The 3D view stopped. {STALE_BUILD_NOTICE}{" "}
+            <button type="button" className="underline" onClick={reloadPage}>
+              Reload
+            </button>
+          </p>
+        ) : (
+          <p>
+            This browser could not start WebGL, so the 3D view is unavailable. Hardware
+            acceleration or a WebGL-capable browser is required for it.
+          </p>
+        )}
         <p>
           The model itself does not need it: every structure, claim, source, date and
           uncertainty is in the{" "}
@@ -72,15 +82,24 @@ function WebGLFallback() {
   );
 }
 
-class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
+class SceneErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: false | "stale" | "error" }
+> {
+  state: { failed: false | "stale" | "error" } = { failed: false };
 
-  static getDerivedStateFromError() {
-    return { failed: true };
+  static getDerivedStateFromError(error: unknown) {
+    // A lazy chunk (the cinematic camera, the post stack) that a deploy renamed
+    // is not a WebGL failure, and the fallback must not say it is.
+    return { failed: isChunkLoadError(error) ? "stale" : "error" };
   }
 
   render() {
-    return this.state.failed ? <WebGLFallback /> : this.props.children;
+    return this.state.failed ? (
+      <WebGLFallback stale={this.state.failed === "stale"} />
+    ) : (
+      this.props.children
+    );
   }
 }
 

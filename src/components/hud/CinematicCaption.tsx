@@ -37,7 +37,7 @@ export function CinematicCaption() {
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-500"
+      className="pointer-events-none opacity-0 transition-opacity duration-500"
     >
       <div className="hud-panel flex items-center gap-3 px-4 py-2">
         <span className="relative flex h-2 w-2">

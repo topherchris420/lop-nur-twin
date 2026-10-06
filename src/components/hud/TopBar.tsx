@@ -123,18 +123,17 @@ export function TopBar() {
           <CircleHelp />
         </Button>
       </div>
-      <ModeHint />
     </>
   );
 }
 
-/** Center-screen hint for the pointer-lock and cinematic modes. */
-function ModeHint() {
+/** The hint for the pointer-lock, touch and cinematic modes, above the timeline. */
+export function ModeHint() {
   const cameraMode = useTwinStore((s) => s.cameraMode);
   const pointerLocked = useTwinStore((s) => s.pointerLocked);
   const coarse = useMemo(isCoarsePointer, []);
   // the orbit touch hint is onboarding-only — show it briefly, then get out of
-  // the way of the pan-stick it sits above (which self-labels "PAN").
+  // the way (the pan-stick labels itself "PAN").
   const [orbitHintDone, setOrbitHintDone] = useState(false);
   useEffect(() => {
     setOrbitHintDone(false);
@@ -159,7 +158,7 @@ function ModeHint() {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2",
+        "pointer-events-none max-w-full text-center",
         "hud-panel px-4 py-2 font-mono text-xs",
       )}
     >

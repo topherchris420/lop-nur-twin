@@ -134,7 +134,7 @@ export function* replayArm(
   return errors.map((e) => `${recorded.id}: ${e}`);
 }
 
-/** The standard `bethesda-replay/v3` trace of one arm, for the city's own verifier. */
+/** The city's standard replay trace (`REPLAY_SCHEMA`) of one arm, for its own verifier. */
 export function armTrace(recorded: ArmRecord): Trace {
   const steps = CitySimulation.execute(recorded.config, recorded.commands, recorded.tick);
   for (;;) {
@@ -151,7 +151,7 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
   };
   const r = raw as ExperimentRecord | null;
   if (!r || typeof r !== "object" || r.schema !== RECORD_SCHEMA) {
-    check("schema", false, "not a bethesda-rain-experiment-record/v1 record");
+    check("schema", false, `not a ${RECORD_SCHEMA} record`);
     return { ok: false, checks };
   }
   check("digest", recordDigestOK(r), "record matches its SHA-256");

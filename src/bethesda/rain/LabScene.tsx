@@ -953,7 +953,7 @@ export function LabScene({ store, nav }: { store: LabStore; nav: LabNav }) {
   }, []);
   if (!supported || nav.failed)
     return (
-      <p role="status" className="absolute top-24 left-5 max-w-sm text-sm text-teal-100">
+      <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
         3D rendering is unavailable. Every room and every capability remains available in
         the panels.
       </p>

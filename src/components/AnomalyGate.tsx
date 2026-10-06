@@ -8,23 +8,40 @@ import {
   type ReactNode,
 } from "react";
 import { resolvesBethesda } from "../bethesda/discovery";
+import { isChunkLoadError, reloadPage, STALE_BUILD_NOTICE } from "@/lib/staleBuild";
+import { closeLayer, forgetLayers, onLayersChange, pushLayer } from "@/lib/historyLayers";
 const Bethesda = lazy(() => import("../bethesda/App"));
 class Boundary extends Component<
   { children: ReactNode; onReturn: () => void },
-  { failed: boolean }
+  { failed: false | "stale" | "error" }
 > {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
+  state: { failed: false | "stale" | "error" } = { failed: false };
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: isChunkLoadError(error) ? "stale" : "error" };
   }
   render() {
     return this.state.failed ? (
-      <div className="absolute inset-0 z-50 grid place-items-center bg-[#071012] text-teal-100">
-        <div>
+      <div
+        role="alert"
+        className="absolute inset-0 z-50 grid place-items-center bg-[#071012] p-6 text-center text-teal-100"
+      >
+        <div className="max-w-md">
           <p>Location could not resolve.</p>
-          <button className="mt-4 underline" onClick={this.props.onReturn}>
-            Return to Lop Nur
-          </button>
+          {this.state.failed === "stale" ? (
+            <p className="mt-3 text-sm text-teal-100/80">
+              {STALE_BUILD_NOTICE} The location is resolved again from the twin.
+            </p>
+          ) : null}
+          <div className="mt-4 flex justify-center gap-6">
+            {this.state.failed === "stale" ? (
+              <button className="underline" onClick={reloadPage}>
+                Reload
+              </button>
+            ) : null}
+            <button className="underline" onClick={this.props.onReturn}>
+              Return to Lop Nur
+            </button>
+          </div>
         </div>
       </div>
     ) : (
@@ -96,6 +113,8 @@ function Resolution() {
 }
 /** Other hidden entrances (the site index) ask the gate to resolve. */
 export const ANOMALY_EVENT = "lop-nur:anomalous-resolution";
+/** The history layer the city occupies (see `historyLayers.ts`). */
+const LAYER = "anomaly";
 export function AnomalyGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<"dormant" | "resolver" | "transition" | "city">(
       "dormant",
@@ -119,8 +138,34 @@ export function AnomalyGate({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [phase]);
+  // The city takes a history entry, so Back returns to the twin rather than
+  // leaving the site; "Return to the desert" goes back through the same entry.
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const enter = useRef(() => {
+    if (phaseRef.current === "transition" || phaseRef.current === "city") return;
+    setError("");
+    pushLayer(LAYER);
+    setPhase("transition");
+  });
+  const leave = useRef(() => {
+    if (closeLayer(LAYER)) return;
+    setPhase("dormant");
+    setText("");
+  });
   useEffect(() => {
-    const resolve = () => setPhase((p) => (p === "city" ? p : "transition"));
+    // An entry left over from before a reload opens nothing.
+    forgetLayers(() => false);
+    return onLayersChange((layers) => {
+      const open = phaseRef.current === "transition" || phaseRef.current === "city";
+      if (open && !layers.includes(LAYER)) {
+        setPhase("dormant");
+        setText("");
+      } else if (!open) forgetLayers(() => false);
+    });
+  }, []);
+  useEffect(() => {
+    const resolve = () => enter.current();
     window.addEventListener(ANOMALY_EVENT, resolve);
     return () => window.removeEventListener(ANOMALY_EVENT, resolve);
   }, []);
@@ -133,14 +178,9 @@ export function AnomalyGate({ children }: { children: ReactNode }) {
   if (phase === "transition") return <Resolution />;
   if (phase === "city")
     return (
-      <Boundary onReturn={() => setPhase("dormant")}>
+      <Boundary onReturn={() => leave.current()}>
         <Suspense fallback={<Resolution />}>
-          <Bethesda
-            onReturn={() => {
-              setPhase("dormant");
-              setText("");
-            }}
-          />
+          <Bethesda onReturn={() => leave.current()} />
         </Suspense>
       </Boundary>
     );
@@ -152,10 +192,8 @@ export function AnomalyGate({ children }: { children: ReactNode }) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (resolvesBethesda(text)) {
-                setError("");
-                setPhase("transition");
-              } else setError("UNRESOLVED · latitude, longitude");
+              if (resolvesBethesda(text)) enter.current();
+              else setError("UNRESOLVED · latitude, longitude");
             }}
           >
             <label htmlFor="anomaly-coordinate" className="tracking-[.2em]">

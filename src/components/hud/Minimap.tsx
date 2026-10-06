@@ -500,7 +500,7 @@ export function Minimap() {
   if (hidden) return null;
 
   return (
-    <div className="minimap-panel hud-panel absolute bottom-4 left-4 max-w-[calc(100vw-2rem)] p-1.5">
+    <div className="minimap-panel hud-panel pointer-events-auto max-w-[calc(100vw-2rem)] p-1.5">
       <div className="mb-1 flex items-center justify-between gap-2 pl-1">
         <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em]">
           {measureMode ? "MEASURE" : "SITE MAP"}

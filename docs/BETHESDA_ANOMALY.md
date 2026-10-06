@@ -24,7 +24,14 @@ The transition reads **ANOMALOUS LOCATION RESOLUTION**: the telemetry drifts fro
 Lop Nur's 40.77252° N · 89.28122° E into 38.98470° N · 77.09470° W, glitching as
 it goes, then settles on **39° N · 77° W · BETHESDA** and lazily loads the city.
 Reduced-motion users see the settled card. Ordinary visits never request the
-city or its data. **Return to the desert** remounts Lop Nur.
+city or its data. **Return to the desert** remounts Lop Nur, and so does the
+browser's Back: the city takes a history entry on the same URL while it is open
+(`src/lib/historyLayers.ts`), and the lab one above it, so Back steps out of the
+lab, then out of the city, and never off the site. Nothing opens from history —
+a reload or a Forward lands on the twin — because the city has no URL of its
+own and a fresh one would not be the run that was left. A page opened before a
+deploy cannot load the city's renamed chunk; it says so and offers a reload
+instead of failing silently (`src/lib/staleBuild.ts`).
 
 Arrival is on mapped public pavement near the Bethesda Lane entrance. WASD /
 Shift walks; **Survey** orbits; **Pedestrian seat** puts you in agent 0's shoes

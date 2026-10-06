@@ -46,12 +46,20 @@ If your platform pins an older Node, either raise it or install Bun and run
 
 `vercel.json` in the repository root configures four things:
 
-1. **SPA rewrites** — `/((?!api/).*)` → `/index.html`. Vercel checks the
-   filesystem _before_ applying rewrites, so real files (`/assets/*`,
+1. **SPA rewrites** — `/((?!api/|assets/).*)` → `/index.html`. Vercel checks
+   the filesystem _before_ applying rewrites, so real files (`/assets/*`,
    `/model-manifest.json`) are served as themselves and only unmatched paths
    fall through to the app shell. This is what makes `/play` and `/analysis`
    work when opened directly and survive a refresh. `/api/` is excluded
    explicitly, so a mistyped API path is a 404 rather than the app shell.
+   `/assets/` is excluded for the same reason, and it matters more: every
+   deploy renames every chunk, so a tab opened before a deploy asks for files
+   the site no longer has. Served the app shell instead — as `text/html`,
+   under the year-long immutable header below — a lazy chunk (Bethesda, the
+   R.A.I.N. Lab, the cinematic camera) fails as a MIME error and the browser
+   keeps the wrong answer. A 404 fails cleanly, and the page says the site has
+   been updated and offers a reload (`src/lib/staleBuild.ts`); routes reload
+   once on their own (TanStack Router's lazy route loader).
 2. **Security headers** on every response: Content-Security-Policy,
    `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`,
    `Cross-Origin-Opener-Policy`, `Permissions-Policy` and
@@ -230,7 +238,8 @@ Properties:
   during an image build. Puppeteer's browser download is skipped: it is a test
   dependency and has no place in a production image.
 - **SPA fallback** via `try_files $uri $uri/ /index.html`, with real files
-  still served as themselves.
+  still served as themselves. `/assets/` has its own location ending in
+  `=404`, so a chunk a stale tab asks for is a 404, never the app shell.
 - **Health path** at `/healthz`, returning `ok` with no application state
   touched. Also wired as a Docker `HEALTHCHECK`.
 - **Security headers** identical to the Vercel deployment's except HSTS (see

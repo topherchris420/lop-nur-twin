@@ -525,6 +525,102 @@ for (const [path, settle] of [
 }
 
 /* ------------------------------------------------------------------ */
+/* 7b. The twin's HUD panels never cover one another                    */
+/* ------------------------------------------------------------------ */
+
+// The bottom panels share one grid (`.hud-dock`); before it, the timeline sat
+// on the site map and the pan-stick on every phone, the legend on the
+// telemetry, and an opened legend ran off the top of a 720 px laptop. Measure
+// the boxes rather than look at a frame: a covered control still renders.
+console.log("\n=== HUD layout across screens ===");
+for (const view of [
+  { name: "phone", width: 390, height: 844, touch: true },
+  { name: "phone held sideways", width: 844, height: 390, touch: true },
+  { name: "tablet", width: 768, height: 1024, touch: true },
+  { name: "narrow window", width: 600, height: 800, touch: false },
+  { name: "laptop", width: 1280, height: 720, touch: false },
+]) {
+  const { page } = await open(`${previewOrigin}/`, {
+    settle: 6000,
+    viewport: {
+      width: view.width,
+      height: view.height,
+      isMobile: view.touch,
+      hasTouch: view.touch,
+    },
+  });
+  const layout = await page.evaluate(() => {
+    const box = (name, el) => {
+      const r = el?.getBoundingClientRect();
+      return r && r.width > 0 && r.height > 0
+        ? { name, l: r.left, t: r.top, r: r.right, b: r.bottom }
+        : null;
+    };
+    const stick = [...document.querySelectorAll("span")].find(
+      (s) => s.textContent === "pan",
+    )?.parentElement;
+    const boxes = [
+      box("top bar", document.querySelector(".topbar-controls")),
+      box("title", document.querySelector(".site-title")),
+      box("telemetry", document.querySelector(".telemetry-panel")),
+      box("legend", document.querySelector(".evidence-legend")),
+      box("timeline", document.querySelector(".timeline-panel")),
+      box("site map", document.querySelector(".minimap-panel")),
+      box("pan-stick", stick),
+    ].filter(Boolean);
+    const overlaps = [];
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i],
+          b = boxes[j];
+        if (
+          Math.min(a.r, b.r) - Math.max(a.l, b.l) > 1 &&
+          Math.min(a.b, b.b) - Math.max(a.t, b.t) > 1
+        )
+          overlaps.push(`${a.name} × ${b.name}`);
+      }
+    const outside = boxes
+      .filter((p) => p.l < 0 || p.t < 0 || p.r > innerWidth + 1 || p.b > innerHeight + 1)
+      .map((p) => p.name);
+    return { overlaps, outside, stick: !!stick };
+  });
+  check(
+    `${view.name}: no HUD panel covers another`,
+    layout.overlaps.length === 0 && layout.outside.length === 0,
+    [...layout.overlaps, ...layout.outside.map((n) => `${n} off screen`)].join(", ") ||
+      "clear",
+  );
+  check(
+    `${view.name}: the pan-stick is ${view.touch ? "offered" : "left out"}`,
+    layout.stick === view.touch,
+  );
+  const opened = await page.evaluate(async () => {
+    const legend = document.querySelector(".evidence-legend");
+    const toggle = legend.querySelector("button[aria-controls=evidence-legend-body]");
+    if (toggle.getAttribute("aria-expanded") === "false") toggle.click();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const r = legend.getBoundingClientRect(),
+      bar = document.querySelector(".topbar-controls").getBoundingClientRect();
+    return {
+      inside:
+        r.top >= 0 &&
+        r.bottom <= innerHeight + 1 &&
+        r.left >= 0 &&
+        r.right <= innerWidth + 1,
+      underBar:
+        Math.min(r.right, bar.right) - Math.max(r.left, bar.left) > 1 &&
+        Math.min(r.bottom, bar.bottom) - Math.max(r.top, bar.top) > 1,
+    };
+  });
+  check(
+    `${view.name}: the opened legend stays on screen and clear of the top bar`,
+    opened.inside && !opened.underBar,
+    JSON.stringify(opened),
+  );
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
 /* 8. Reduced motion reaches the application state (dev build only)     */
 /* ------------------------------------------------------------------ */
 

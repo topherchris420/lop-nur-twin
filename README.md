@@ -281,7 +281,8 @@ Index** (`I`) and type Bethesda's coordinates into its search.
 
 The anomaly transition unmounts the desert and loads the city. Bethesda has no
 separate public route or main-menu mode button, and ordinary twin visits do not
-load its geographic data. **Return to the desert** takes you back.
+load its geographic data. **Return to the desert** — or the browser's Back —
+takes you back.
 
 </details>
 

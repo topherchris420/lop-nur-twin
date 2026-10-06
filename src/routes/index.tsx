@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Scene } from "@/components/scene/Scene";
 import { Hud } from "@/components/hud/Hud";
-import { TopBar } from "@/components/hud/TopBar";
+import { ModeHint, TopBar } from "@/components/hud/TopBar";
 import { Minimap } from "@/components/hud/Minimap";
 import { Dossier } from "@/components/hud/Dossier";
 import { SiteIndex } from "@/components/hud/SiteIndex";
@@ -86,17 +86,27 @@ function TwinView() {
       {!sceneUnavailable && (
         <>
           <TouchControls />
-          <OrbitJoystick />
-          <TimelineControl />
           <Hud />
           <TopBar />
-          <Minimap />
+          {/* One grid for everything along the bottom edge (see `.hud-dock`). */}
+          <div className="hud-dock">
+            <div className="hud-dock-map">
+              <Minimap />
+            </div>
+            <div className="hud-dock-center">
+              <CinematicCaption />
+              <ModeHint />
+              <TimelineControl />
+            </div>
+            <div className="hud-dock-side">
+              <OrbitJoystick />
+              <EvidenceLegend />
+            </div>
+          </div>
           <Dossier />
           <SiteIndex />
           <ResearchPanel />
-          <EvidenceLegend />
           <HelpOverlay />
-          <CinematicCaption />
         </>
       )}
       <IntroOverlay />

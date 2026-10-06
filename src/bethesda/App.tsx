@@ -52,31 +52,53 @@ import {
   type EvidenceClassification,
 } from "./evidence";
 import { safeExternalHref, EXTERNAL_LINK_PROPS } from "../lib/safeUrl";
+import { isChunkLoadError, reloadPage, STALE_BUILD_NOTICE } from "../lib/staleBuild";
+import {
+  closeLayer,
+  forgetLayers,
+  onLayersChange,
+  pushLayer,
+} from "../lib/historyLayers";
 import { LAB_DOOR, nearDoor, resolvesLab } from "./rain/site";
 import type { LabStore } from "./rain/store";
 import { EMBODIMENT } from "./rain/embodiment";
 
 /** The R.A.I.N. Lab loads only when its door is opened. */
 const LabApp = lazy(() => import("./rain/LabApp"));
+/** The lab's history layer, above the city's (see `historyLayers.ts`). */
+const LAB_LAYER = "rain-lab";
 class LabBoundary extends Component<
   { children: ReactNode; onExit: () => void },
-  { failed: boolean }
+  { failed: false | "stale" | "error" }
 > {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
+  state: { failed: false | "stale" | "error" } = { failed: false };
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: isChunkLoadError(error) ? "stale" : "error" };
   }
   render() {
     return this.state.failed ? (
       <div
         role="status"
-        className="absolute inset-0 grid place-items-center text-teal-100"
+        className="absolute inset-0 grid place-items-center p-6 text-center text-teal-100"
       >
-        <div>
+        <div className="max-w-md">
           <p>The door does not open. The city is unaffected.</p>
-          <button className="mt-4 underline" onClick={this.props.onExit}>
-            Return to Bethesda
-          </button>
+          {this.state.failed === "stale" ? (
+            <p className="mt-3 text-sm text-teal-100/80">
+              {STALE_BUILD_NOTICE} Reloading starts over at Lop Nur; this city run is not
+              kept.
+            </p>
+          ) : null}
+          <div className="mt-4 flex justify-center gap-6">
+            <button className="underline" onClick={this.props.onExit}>
+              Return to Bethesda
+            </button>
+            {this.state.failed === "stale" ? (
+              <button className="underline" onClick={reloadPage}>
+                Reload
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     ) : (
@@ -559,7 +581,10 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     by: "door",
     mode: "walk",
   });
+  // The lab takes a history entry above the city's, so Back steps out of it.
   const enterLab = (by: "door" | "coordinates" = "door") => {
+    if (insideRef.current) return;
+    pushLayer(LAB_LAYER);
     entered.current = { by, mode: view.mode };
     view.keys.clear();
     insideRef.current = true;
@@ -571,6 +596,9 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
   const openLab = useRef(enterLab);
   openLab.current = enterLab;
   const exitLab = () => {
+    if (!closeLayer(LAB_LAYER)) leaveLab();
+  };
+  const leaveLab = () => {
     insideRef.current = false;
     view.keys.clear();
     if (entered.current.by === "door") {
@@ -586,6 +614,16 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     setInside(false);
     setMessage("Back in Bethesda. The city kept its own time while you were inside.");
   };
+  const leaveLabRef = useRef(leaveLab);
+  leaveLabRef.current = leaveLab;
+  useEffect(
+    () =>
+      onLayersChange((layers) => {
+        if (!insideRef.current) forgetLayers((name) => name !== LAB_LAYER);
+        else if (!layers.includes(LAB_LAYER)) leaveLabRef.current();
+      }),
+    [],
+  );
   view.onSelect = setSelected;
   view.presence = () => (labHolder.current as LabStore | null)?.presenceSnapshot() ?? [];
   // Dev-only handle for look-development captures, like `window.__twinStore`.
@@ -603,6 +641,10 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
         nearRef.current = near;
         setNearLab(near);
       }
+      // The position readout must not depend on the 3D frame loop: without
+      // WebGL nothing else copies the walker (or the seated pedestrian) into it.
+      if (view.mode !== "orbit")
+        view.target = { ...(view.mode === "seat" ? sim.agents[0]!.point : sim.player) };
       if (sim.paused) return;
       if (view.mode === "walk" && !insideRef.current) {
         let x = 0,

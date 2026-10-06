@@ -65,6 +65,13 @@ Guidance for coding agents (and humans) working on this repo.
   document is absent, and prints as "not stated" — never as zero, a dash or an
   omitted row. The three dates (site event, evidence publication, model entry)
   are separate fields and separate columns, always.
+- **The twin's bottom edge is one grid.** The site map, mode hints, timeline,
+  touch pan-stick and evidence legend sit in `.hud-dock` (`src/routes/index.tsx`,
+  `src/styles.css`), which reflows by width. A new panel along the bottom goes
+  in a dock cell, never at an `absolute bottom-*` offset of its own: panels
+  placed one by one collided on every screen narrower than a desktop.
+  `bun run routes` measures the boxes at five screen sizes and fails on an
+  overlap.
 - **No React state on the frame loop.** Per-frame data flows through mutable
   singletons (`src/lib/telemetry.ts`) or refs mutated in `useFrame`. React
   state (zustand) is only for discrete events: mode switches, selection,
@@ -663,10 +670,11 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 112 checks: deep links, refreshes, hostile
+bun run routes                # 127 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,
-                              # filtering, mobile, focus without WebGL
+                              # filtering, mobile, focus without WebGL, and
+                              # HUD panels that never cover one another
 ```
 
 `tools/routes.mjs` is where a URL-parameter regression shows up: it throws

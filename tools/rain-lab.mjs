@@ -552,8 +552,15 @@ try {
     "the door's coordinates open the lab, and its records outlive the visit",
     (await a.text()).includes("COMPLETED · hypothesis NOT SUPPORTED"),
   );
-  await a.click("Return to Bethesda");
+  // The lab holds a history entry above the city's: Back steps out of the lab,
+  // not out of the site.
+  await a.page.evaluate(() => history.back());
   await a.page.waitForSelector('[data-bethesda="active"]:not([data-indoors])');
+  check(
+    "the browser's Back steps out of the lab into the same city",
+    (await a.text()).includes("The city kept its own time while you were inside") &&
+      (await a.page.evaluate(() => location.origin)) === new URL(origin).origin,
+  );
   await delay(1500);
   check(
     "a second visit leaves the 3D view intact too",
