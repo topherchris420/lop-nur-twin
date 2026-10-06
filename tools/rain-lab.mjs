@@ -841,8 +841,12 @@ try {
       (await d.text()).includes("RUNTIME LIVE") &&
         (await d.text()).includes("model stand-in-model"),
     );
-    const askedAt = Date.now();
     await ask(d, demoMeeting.question);
+    // The route paces one session's meetings 15 s apart, from when a request
+    // arrives. Time the next ask from after this one was sent, not from before
+    // the panel was opened and the question typed: on a slow runner that took
+    // long enough for the second ask to be refused as paced.
+    const askedAt = Date.now();
     await d.waitFor(
       () =>
         document.body.innerText.includes(
@@ -1019,9 +1023,21 @@ try {
   await writeFile(`${OUT}/browser-checks.json`, JSON.stringify(checks, null, 2)).catch(
     () => {},
   );
+  // What each open page said when the suite stopped: a stack alone cannot
+  // tell a refused request from a slow one.
+  const pages = [];
+  for (const page of (await browser?.pages().catch(() => [])) ?? [])
+    pages.push(
+      await page
+        .evaluate(() => ({
+          url: location.href,
+          text: document.body.innerText.slice(0, 20000),
+        }))
+        .catch((e) => ({ error: String(e) })),
+    );
   await writeFile(
     `${OUT}/browser-failure.json`,
-    JSON.stringify({ error: String(error?.stack ?? error) }, null, 2),
+    JSON.stringify({ error: String(error?.stack ?? error), pages }, null, 2),
   ).catch(() => {});
   console.error(error);
   process.exitCode = 1;
