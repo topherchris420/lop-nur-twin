@@ -146,9 +146,11 @@ discrete events only: mode switches, selection, month changes, toggles.
 rejects. A raw `new URLSearchParams(...).get()` in a component is a regression.
 External links go through `safeExternalHref()` and carry `EXTERNAL_LINK_PROPS`.
 
-**One filter predicate.** Timeline year and evidence mode compose in
-`src/lib/sceneVisibility.ts`. A component asking "should I draw this?" calls
-`useSubjectFilter()`; it does not compare classifications itself.
+**One filter predicate.** The evidence-timeline date and the evidence mode
+compose in `src/lib/drawState.ts` into solid, outline or hidden; the hooks in
+`src/lib/sceneVisibility.ts` hand it to React. A component asking "should I
+draw this?" calls `useSubjectFilter()` or `useSubjectDrawState()`; it does not
+compare classifications or dates itself.
 
 **Game mechanics touch nothing analytical.** Evidence classification, confidence,
 temporal events, uncertainty, model manifests, bookmarks and spatial conclusions

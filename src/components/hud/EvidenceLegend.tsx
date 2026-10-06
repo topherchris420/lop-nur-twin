@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Table2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
@@ -24,6 +24,13 @@ import { cn } from "@/lib/utils";
  */
 export function EvidenceLegend() {
   const [open, setOpen] = useState(() => !isCoarsePointer());
+  // The legend and the dossier share the right-hand column. Opening a dossier
+  // folds the legend to its header so the claim being read is not painted over;
+  // closing it brings the legend back. The legend can still be reopened by hand.
+  const dossierOpen = useTwinStore((state) => state.selectedId !== null);
+  useEffect(() => {
+    setOpen(!dossierOpen && !isCoarsePointer());
+  }, [dossierOpen]);
   const toggleResearch = useTwinStore((state) => state.toggleResearch);
   const evidenceMode = useTwinStore((state) => state.evidenceMode);
   const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);

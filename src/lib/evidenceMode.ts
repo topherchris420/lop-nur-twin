@@ -36,6 +36,7 @@
 import {
   EVIDENCE_CLASSIFICATION_META,
   getEvidenceForSubject,
+  isRecordKnowableAt,
   strongestClassification,
   type EvidenceClassification,
 } from "./evidence";
@@ -175,6 +176,27 @@ export function effectiveClassification(
     (measurementId) => getEvidenceForSubject(measurementId),
   );
   return strongestClassification([...own, ...measurements]);
+}
+
+/**
+ * The classification a subject would have been filtered on at a past date: the
+ * strongest class among its own records and its measurements' records that
+ * were knowable then (see `recordKnowability`). Undefined when nothing about it
+ * was knowable yet. The runway is the case this exists for: reported by a 2021
+ * article, but observed only once the 2025 scene it was measured from was
+ * public — so in observed-only mode it is not drawn solid in 2021.
+ */
+export function effectiveClassificationAt(
+  subjectId: string,
+  date: string,
+): EvidenceClassification | undefined {
+  const own = getEvidenceForSubject(subjectId);
+  const measurements = (MEASUREMENTS_BY_GEOMETRY.get(subjectId) ?? []).flatMap(
+    (measurementId) => getEvidenceForSubject(measurementId),
+  );
+  return strongestClassification(
+    [...own, ...measurements].filter((record) => isRecordKnowableAt(record, date)),
+  );
 }
 
 /**

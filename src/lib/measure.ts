@@ -4,16 +4,11 @@ import {
   RUNWAYS,
   RUNWAY_CENTER,
   STRUCTURES,
-  isVisibleAtTimelineYear,
   type SegmentDef,
-  type TemporalDef,
 } from "./layout";
 import { SITE_PROFILE } from "./siteData";
-import {
-  DEFAULT_EVIDENCE_MODE,
-  isSubjectVisible,
-  type EvidenceMode,
-} from "./evidenceMode";
+import { DEFAULT_EVIDENCE_MODE, type EvidenceMode } from "./evidenceMode";
+import { isSubjectDrawn } from "./drawState";
 import { localToProjected } from "./geospatial";
 
 /**
@@ -41,12 +36,12 @@ export interface SnapTarget {
   z: number;
   label: string;
   /**
-   * The backing layout record, so snapping respects the same timeline and
-   * evidence-mode filters the scene draws with. A ruler that locks onto a
-   * building the current mode is withholding would produce a measurement the
-   * viewer cannot see the endpoints of.
+   * The backing layout record, so snapping respects the same evidence-timeline
+   * and evidence-mode filters the scene draws with. A ruler that locks onto a
+   * building the scene is not drawing would produce a measurement the viewer
+   * cannot see the endpoints of.
    */
-  source: TemporalDef & { id: string };
+  source: { id: string };
 }
 
 const CARDINALS = [
@@ -127,9 +122,10 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
 })();
 
 /**
- * Nearest snap target to a local point, within `maxDistM`, respecting the
- * active timeline year and the active evidence mode. Returns null when nothing
- * currently drawn is close enough.
+ * Nearest snap target to a local point, within `maxDistM`, among the targets
+ * the scene draws solid at the evidence-timeline date (null for now) in the
+ * active evidence mode. Returns null when nothing drawn is close enough —
+ * an outlined ghost is not something to measure from.
  *
  * `evidenceMode` defaults to the full simulation so a caller that has no mode
  * in hand — a test, a script — gets every modeled vertex.
@@ -138,14 +134,13 @@ export function snapWorldPoint(
   x: number,
   z: number,
   maxDistM: number,
-  year: number,
+  snapshotDate: string | null,
   evidenceMode: EvidenceMode = DEFAULT_EVIDENCE_MODE,
 ): SnapTarget | null {
   let best: SnapTarget | null = null;
   let bestDistSq = maxDistM * maxDistM;
   for (const target of SNAP_TARGETS) {
-    if (!isVisibleAtTimelineYear(target.source, year)) continue;
-    if (!isSubjectVisible(target.source.id, evidenceMode)) continue;
+    if (!isSubjectDrawn(target.source, snapshotDate, evidenceMode)) continue;
     const distSq = (target.x - x) ** 2 + (target.z - z) ** 2;
     if (distSq <= bestDistSq) {
       bestDistSq = distSq;

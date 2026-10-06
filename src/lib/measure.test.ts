@@ -19,7 +19,6 @@ import {
   RUNWAYS,
   RUNWAY_CENTER,
   SITE_SIZE,
-  TIMELINE_BOUNDS,
   segmentLength,
 } from "./layout";
 import { SITE_PROFILE } from "./siteData";
@@ -152,21 +151,27 @@ describe("formatting", () => {
 });
 
 describe("snapWorldPoint", () => {
-  const year = TIMELINE_BOUNDS.maxYear;
+  /** Now: the model's current state. */
+  const now = null;
 
   it("locks onto the nearest modeled vertex inside the radius", () => {
-    const snap = snapWorldPoint(RUNWAY_CENTER[0] + 5, RUNWAY_CENTER[1] + 5, 50, year);
+    const snap = snapWorldPoint(RUNWAY_CENTER[0] + 5, RUNWAY_CENTER[1] + 5, 50, now);
     expect(snap?.label).toBe("Runway center");
   });
 
   it("returns null when nothing modeled is close enough", () => {
-    expect(snapWorldPoint(SITE_SIZE * 10, SITE_SIZE * 10, 50, year)).toBeNull();
+    expect(snapWorldPoint(SITE_SIZE * 10, SITE_SIZE * 10, 50, now)).toBeNull();
   });
 
-  it("respects the timeline year", () => {
-    // Every dated record is 2021 or later, so nothing dated is visible in 1990
-    // and the runway centre cannot be snapped to.
-    expect(snapWorldPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1], 50, 1990)).toBeNull();
+  it("respects the evidence timeline", () => {
+    // The runway is first publicly established by the June 2021 report, so in
+    // the 2015 snapshot it is an outline, and outlines are not measured from.
+    expect(
+      snapWorldPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1], 50, "2015-07-24"),
+    ).toBeNull();
+    expect(
+      snapWorldPoint(RUNWAY_CENTER[0], RUNWAY_CENTER[1], 50, "2021-06-30")?.label,
+    ).toBe("Runway center");
   });
 
   it("respects the evidence mode", () => {
@@ -180,7 +185,7 @@ describe("snapWorldPoint", () => {
       structureTarget!.x,
       structureTarget!.z,
       50,
-      year,
+      now,
       "observed",
     );
     expect(observed).toBeNull();
@@ -188,7 +193,7 @@ describe("snapWorldPoint", () => {
       structureTarget!.x,
       structureTarget!.z,
       50,
-      year,
+      now,
       "full-simulation",
     );
     expect(full?.label).toBe("Main assembly hangar");

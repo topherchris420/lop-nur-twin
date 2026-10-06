@@ -507,11 +507,6 @@ export function getObservedYear(item: TemporalDef): number | undefined {
   return year;
 }
 
-export function isVisibleAtTimelineYear(item: TemporalDef, year: number): boolean {
-  const observedYear = getObservedYear(item);
-  return observedYear === undefined || year >= observedYear;
-}
-
 const TEMPORAL_LAYOUT_RECORDS: readonly TemporalDef[] = [
   ...ALL_SEGMENTS,
   ...APRONS,
@@ -523,6 +518,12 @@ const DATED_LAYOUT_RECORDS = TEMPORAL_LAYOUT_RECORDS.filter(
 const DATED_LAYOUT_YEARS = DATED_LAYOUT_RECORDS.map((record) => getObservedYear(record)!);
 const TIMELINE_FALLBACK_YEAR = 2025;
 
+/**
+ * The calendar years the dated layout records span. The scene no longer draws
+ * by year — it draws by evidence-timeline date (`drawState.ts`) — but the
+ * release manifest publishes this span, and links made when the timeline was a
+ * year slider (`?year=`) are mapped through it.
+ */
 export const TIMELINE_BOUNDS: Readonly<{ minYear: number; maxYear: number }> =
   Object.freeze({
     minYear:
@@ -534,14 +535,6 @@ export const TIMELINE_BOUNDS: Readonly<{ minYear: number; maxYear: number }> =
         ? Math.max(...DATED_LAYOUT_YEARS)
         : TIMELINE_FALLBACK_YEAR,
   });
-
-export function getVisibleDatedAdditionCount(year: number): number {
-  let count = 0;
-  for (const record of DATED_LAYOUT_RECORDS) {
-    if (isVisibleAtTimelineYear(record, year)) count += 1;
-  }
-  return count;
-}
 
 // prettier-ignore
 export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
@@ -559,69 +552,7 @@ export const STRUCTURE_TYPE_LABELS: Record<StructureType, string> = {
   tower: "Control Tower", "hangar-monolith": "Hangars", "shelter-row": "Hangars", quonset: "Hangars", warehouse: "Storage", hq: "Support Buildings", barracks: "Support Buildings", support: "Support Buildings", "compound-walled": "Walled Yards", guardhouse: "Support Buildings", radome: "Sensors", "fuel-tank": "Fuel Farm", "solar-array": "Power & Utilities", "water-tower": "Power & Utilities", "comms-shelter": "Sensors", "transformer-yard": "Power & Utilities", "guard-tower": "Security", "covered-walkway": "Support Buildings", "sewage-treatment": "Power & Utilities", "aircraft-delta": "Aircraft", "aircraft-fighter": "Aircraft", "aircraft-j36": "Aircraft", "aircraft-jxds": "Aircraft",
 };
 
-export interface AircraftAnalysisProfile {
-  label: string;
-  scenarioRadiusM: number;
-  radarRangeM: number;
-  radarFovDeg: number;
-  altitudeM?: number;
-  disclaimer: string;
-}
-
 export const CIRCUIT_AIRCRAFT_ID = "circuit-aircraft-demonstrator";
-
-const NOTIONAL_ANALYSIS_DISCLAIMER =
-  "Illustrative local scenario geometry only; not operational data or a verified aircraft-performance claim.";
-
-export const AIRCRAFT_ANALYSIS_PROFILES = {
-  "aircraft-delta": {
-    label: "Tailless demonstrator",
-    scenarioRadiusM: 900,
-    radarRangeM: 600,
-    radarFovDeg: 75,
-    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
-  },
-  "aircraft-fighter": {
-    label: "Fighter demonstrator",
-    scenarioRadiusM: 800,
-    radarRangeM: 550,
-    radarFovDeg: 65,
-    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
-  },
-  "aircraft-j36": {
-    label: "J-36 (reported) — notional scenario",
-    scenarioRadiusM: 1_200,
-    radarRangeM: 800,
-    radarFovDeg: 70,
-    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
-  },
-  "aircraft-jxds": {
-    label: "J-XDS (reported) — notional scenario",
-    scenarioRadiusM: 1_000,
-    radarRangeM: 700,
-    radarFovDeg: 80,
-    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
-  },
-  [CIRCUIT_AIRCRAFT_ID]: {
-    label: "Resident circuit demonstrator",
-    scenarioRadiusM: 1_400,
-    radarRangeM: 900,
-    radarFovDeg: 85,
-    altitudeM: 80,
-    disclaimer: NOTIONAL_ANALYSIS_DISCLAIMER,
-  },
-} as const satisfies Readonly<Record<string, AircraftAnalysisProfile>>;
-
-export function getAircraftAnalysisProfile(
-  id: string,
-): AircraftAnalysisProfile | undefined {
-  if (id === CIRCUIT_AIRCRAFT_ID) return AIRCRAFT_ANALYSIS_PROFILES[CIRCUIT_AIRCRAFT_ID];
-  const structure = getStructure(id);
-  if (!structure || !isAircraft(structure.type)) return undefined;
-  return AIRCRAFT_ANALYSIS_PROFILES[
-    structure.type as keyof typeof AIRCRAFT_ANALYSIS_PROFILES
-  ];
-}
 
 /* ------------------------------------------------------------------ */
 /* Dynamic props (animated scene dressing — see LivingScene.tsx).       */

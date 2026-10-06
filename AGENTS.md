@@ -46,12 +46,21 @@ Guidance for coding agents (and humans) working on this repo.
   analytical _capability_ needs a semantic representation there, not only a
   control in the HUD. `bun run a11y` gates both routes on serious/critical axe
   violations.
-- **Evidence mode and timeline compose in one predicate.** `src/lib/
-sceneVisibility.ts` owns it; a component asking "should I draw this?" calls
-  `useSubjectFilter()` rather than comparing classifications itself. The
-  timeline filter was copy-pasted into four components once already, and a
-  second filter beside it would have been four chances to disagree about what
-  exists.
+- **Evidence mode and the evidence timeline compose in one predicate.**
+  `src/lib/drawState.ts` owns it and answers solid, outline or hidden;
+  `src/lib/sceneVisibility.ts` wraps it in hooks. A component asking "should I
+  draw this?" calls `useSubjectFilter()` or `useSubjectDrawState()` rather than
+  comparing classifications or dates itself. The timeline filter was
+  copy-pasted into four components once already, and a second filter beside it
+  would have been four chances to disagree about what exists.
+- **A claim is knowable no earlier than its evidence.** `recordKnowability()` in
+  `src/lib/evidence.ts` is the one place that decides from when a claim could
+  have been made: the later of its source's publication and the observation it
+  rests on. A source published before the observation it would attest fails
+  `validate:data`; a sensor handbook or other method reference goes in
+  `methodSourceIds`, never in `sourceIds`. At a past timeline date the scene
+  draws solid only what was publicly established then, and outlines the rest —
+  an outline is absence of evidence, never evidence of absence.
 - **Unknown stays unknown.** An uncertainty figure the project does not
   document is absent, and prints as "not stated" — never as zero, a dash or an
   omitted row. The three dates (site event, evidence publication, model entry)

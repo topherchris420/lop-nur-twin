@@ -10,16 +10,15 @@ import {
   STRUCTURES,
   WINDSOCK_ENTITY_ID,
   WINDSOCK_POS,
-  isVisibleAtTimelineYear,
   type StructureType,
 } from "@/lib/layout";
 import { terrainHeight } from "@/lib/terrain";
 import { useTwinStore } from "@/lib/store";
+import { useSceneDressingVisible, useSubjectFilter } from "@/lib/sceneVisibility";
 import { getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
 import { createCircuitCurve } from "@/lib/flightPath";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
-import { sceneProjection } from "@/lib/sceneProjection";
 
 /**
  * Everything on the site that *moves*: a resident demonstrator flying the
@@ -32,16 +31,17 @@ export function LivingScene() {
   const night = useTwinStore((s) => s.night);
   const qualityTier = useTwinStore((s) => s.qualityTier);
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
-  const evidenceMode = useTwinStore((s) => s.evidenceMode);
+  const dressingVisible = useSceneDressingVisible();
   const animate = !reducedMotion;
   const profile = getQualityProfile(qualityTier);
 
   // Every prop in here is classified illustrative in the ledger: a procedural
   // aircraft that represents no sortie, a radar that asserts no coverage,
   // patrol vehicles that were never observed. They belong to the full
-  // simulation and to nothing weaker, so the whole subtree unmounts below it
-  // rather than each prop testing the mode for itself.
-  if (evidenceMode !== "full-simulation") return null;
+  // simulation, in the present, and to nothing weaker — the shared predicate
+  // says so once, and the whole subtree unmounts below it rather than each
+  // prop testing the mode for itself.
+  if (!dressingVisible) return null;
 
   return (
     <group name="living-scene">
@@ -78,13 +78,6 @@ function CircuitAircraft({ animate }: { animate: boolean }) {
   const tanAhead = useMemo(() => new THREE.Vector3(), []);
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
 
-  useEffect(
-    () => () => {
-      sceneProjection.circuitAircraftActive = false;
-    },
-    [],
-  );
-
   useFrame(({ clock }, delta) => {
     const root = rootRef.current;
     if (!root) return;
@@ -92,10 +85,6 @@ function CircuitAircraft({ animate }: { animate: boolean }) {
     curve.getPointAt(tt, pos);
     curve.getTangentAt(tt, tan);
     curve.getTangentAt((tt + 0.01) % 1, tanAhead);
-
-    sceneProjection.circuitAircraftActive = true;
-    sceneProjection.circuitAircraftPosition.copy(pos);
-    sceneProjection.circuitAircraftHeadingRad = Math.atan2(-tan.x, -tan.z);
 
     root.position.copy(pos);
     lookTarget.copy(pos).add(tan);
@@ -620,7 +609,7 @@ const BEACON_TOP: Partial<Record<StructureType, number>> = {
 };
 
 function ObstructionBeacons({ night, animate }: { night: boolean; animate: boolean }) {
-  const activeTimelineYear = useTwinStore((state) => state.activeTimelineYear);
+  const isDrawn = useSubjectFilter();
   const beacons = useMemo(() => {
     return STRUCTURES.flatMap((sdef) => {
       const factor = BEACON_TOP[sdef.type];
@@ -673,7 +662,7 @@ function ObstructionBeacons({ night, animate }: { night: boolean; animate: boole
           position={b.pos}
           material={mats[i]}
           userData={{ entityId: b.id }}
-          visible={isVisibleAtTimelineYear(b, activeTimelineYear)}
+          visible={isDrawn(b)}
         >
           <sphereGeometry args={[0.5, 8, 8]} />
         </mesh>

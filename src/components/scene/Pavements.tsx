@@ -10,7 +10,6 @@ import {
   segmentAngle,
   segmentCenter,
   segmentLength,
-  isVisibleAtTimelineYear,
   type SegmentDef,
 } from "@/lib/layout";
 import { makeApronTexture, makeDirtTexture, makePavementTexture } from "@/lib/textures";
@@ -82,11 +81,6 @@ function useGroundMaterial(
 
   useEffect(() => () => material.dispose(), [material]);
   return material;
-}
-
-function isFilletVisible(id: string, year: number): boolean {
-  const source = id === "apron-fillet" ? TAXIWAYS[1] : TAXIWAYS[0];
-  return source !== undefined && isVisibleAtTimelineYear(source, year);
 }
 
 function useSegmentTransform(seg: SegmentDef, index: number) {
@@ -282,7 +276,6 @@ function FilletMesh({
 }
 
 export function Pavements() {
-  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
   const isDrawn = useSubjectFilter();
   const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
   useEffect(() => () => apronTexture.dispose(), [apronTexture]);
@@ -335,7 +328,7 @@ export function Pavements() {
             radius={radius}
             axis={segmentAxis(seg)}
             texture={apronTexture}
-            visible={isFilletVisible(id, activeTimelineYear) && isDrawn(seg)}
+            visible={isDrawn(seg)}
             entityId={seg.id}
           />
         ) : null,

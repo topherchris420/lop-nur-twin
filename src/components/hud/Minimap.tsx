@@ -38,7 +38,7 @@ import {
 import { flyToPoint } from "@/lib/flyTo";
 import { getUncertaintyForSubject } from "@/lib/evidence";
 import { type EvidenceMode } from "@/lib/evidenceMode";
-import { isSubjectDrawn } from "@/lib/sceneVisibility";
+import { subjectDrawState } from "@/lib/sceneVisibility";
 import { type UncertaintyLevel } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
@@ -54,6 +54,8 @@ const DPR = 2;
 const SNAP_LOGICAL_PX = 12;
 const SNAP_DIST_M = SNAP_LOGICAL_PX / SCALE;
 const MEASURE_COLOR = "#ff5ecb";
+/** The scene's ghost colour: in today's model, not established at the timeline date. */
+const GHOST_COLOR = "rgba(169, 191, 211, 0.75)";
 
 function toMap(x: number, z: number): [number, number] {
   return [(x + WORLD / 2) * SCALE, (z + WORLD / 2) * SCALE];
@@ -89,12 +91,13 @@ const IDENTIFICATION_DASH: Record<UncertaintyLevel, readonly number[]> = {
 };
 
 function buildStaticLayer(
-  activeTimelineYear: number,
+  snapshotDate: string | null,
   evidenceMode: EvidenceMode,
   showUncertainty: boolean,
 ): HTMLCanvasElement {
-  const isDrawn = (subject: { id: string; observedDate?: string }) =>
-    isSubjectDrawn(subject, activeTimelineYear, evidenceMode);
+  const stateOf = (subject: { id: string }) =>
+    subjectDrawState(subject.id, snapshotDate, evidenceMode);
+  const isDrawn = (subject: { id: string }) => stateOf(subject) === "solid";
 
   const canvas = document.createElement("canvas");
   canvas.width = SIZE * DPR;
@@ -122,6 +125,20 @@ function buildStaticLayer(
 
   const drawSegments = (segments: SegmentDef[]) => {
     for (const seg of segments) {
+      if (stateOf(seg) === "ghost") {
+        // A ghost is a hairline in the ghost colour, never the pavement colour.
+        ctx.strokeStyle = GHOST_COLOR;
+        ctx.lineWidth = 0.75;
+        ctx.setLineDash([1.5, 2]);
+        const [gx1, gy1] = toMap(seg.from[0], seg.from[1]);
+        const [gx2, gy2] = toMap(seg.to[0], seg.to[1]);
+        ctx.beginPath();
+        ctx.moveTo(gx1, gy1);
+        ctx.lineTo(gx2, gy2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        continue;
+      }
       if (!isDrawn(seg)) continue;
       const style = SEGMENT_STYLE[seg.kind];
       ctx.strokeStyle = style.color;
@@ -142,23 +159,43 @@ function buildStaticLayer(
   drawSegments(RUNWAYS);
 
   for (const apron of APRONS) {
-    if (!isDrawn(apron)) continue;
+    const state = stateOf(apron);
+    if (state === "hidden") continue;
     const [ax, ay] = toMap(apron.center[0], apron.center[1]);
     ctx.save();
     ctx.translate(ax, ay);
     ctx.rotate(apron.rotation);
-    ctx.fillStyle = "#a8a294";
-    ctx.fillRect(
+    const rect = [
       -(apron.size[0] * SCALE) / 2,
       -(apron.size[1] * SCALE) / 2,
       apron.size[0] * SCALE,
       apron.size[1] * SCALE,
-    );
+    ] as const;
+    if (state === "ghost") {
+      ctx.strokeStyle = GHOST_COLOR;
+      ctx.lineWidth = 0.75;
+      ctx.setLineDash([1.5, 2]);
+      ctx.strokeRect(...rect);
+      ctx.setLineDash([]);
+    } else {
+      ctx.fillStyle = "#a8a294";
+      ctx.fillRect(...rect);
+    }
     ctx.restore();
   }
 
   for (const s of STRUCTURES) {
-    if (!isDrawn(s)) continue;
+    const state = stateOf(s);
+    if (state === "ghost") {
+      const [gx, gy] = toMap(s.position[0], s.position[1]);
+      ctx.strokeStyle = GHOST_COLOR;
+      ctx.lineWidth = 0.75;
+      ctx.setLineDash([1, 1.5]);
+      ctx.strokeRect(gx - 2.5, gy - 2.5, 5, 5);
+      ctx.setLineDash([]);
+      continue;
+    }
+    if (state !== "solid") continue;
     const [sx, sy] = toMap(s.position[0], s.position[1]);
     const identification = getUncertaintyForSubject(s.id)?.identification ?? "unknown";
     if (isAircraft(s.type)) {
@@ -251,7 +288,8 @@ function drawMeasurement(
   points: readonly MeasurePoint[],
   measureMode: boolean,
   hover: { mx: number; my: number } | null,
-  year: number,
+  snapshotDate: string | null,
+  evidenceMode: EvidenceMode,
 ): void {
   const mapped = points.map((point) => toMap(point.x, point.z));
 
@@ -272,7 +310,7 @@ function drawMeasurement(
   // live preview from the last point to the (snapped) cursor
   if (measureMode && hover) {
     const [wx, wz] = fromMap(hover.mx, hover.my);
-    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, year);
+    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, snapshotDate, evidenceMode);
     const [hx, hy] = toMap(snap ? snap.x : wx, snap ? snap.z : wz);
     const last = mapped[mapped.length - 1];
     if (last) {
@@ -332,7 +370,7 @@ export function Minimap() {
   // On phones the minimap sits exactly where the movement thumb-stick lives, so
   // hide it in first-person mode on touch devices to free the bottom-left.
   const cameraMode = useTwinStore((s) => s.cameraMode);
-  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const snapshotDate = useTwinStore((s) => s.snapshotDate);
   const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const showUncertainty = useTwinStore((s) => s.showUncertainty);
   const measureMode = useTwinStore((s) => s.measureMode);
@@ -342,8 +380,8 @@ export function Minimap() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hoverRef = useRef<{ mx: number; my: number } | null>(null);
   const staticLayer = useMemo(
-    () => buildStaticLayer(activeTimelineYear, evidenceMode, showUncertainty),
-    [activeTimelineYear, evidenceMode, showUncertainty],
+    () => buildStaticLayer(snapshotDate, evidenceMode, showUncertainty),
+    [snapshotDate, evidenceMode, showUncertainty],
   );
 
   useEffect(() => {
@@ -368,7 +406,7 @@ export function Minimap() {
 
       // selected structure highlight
       const def = state.selectedId ? getStructure(state.selectedId) : undefined;
-      if (def && isSubjectDrawn(def, activeTimelineYear, evidenceMode)) {
+      if (def && subjectDrawState(def.id, snapshotDate, evidenceMode) !== "hidden") {
         const [sx, sy] = toMap(def.position[0], def.position[1]);
         ctx.strokeStyle = "#ffb64d";
         ctx.lineWidth = 1.5;
@@ -382,7 +420,8 @@ export function Minimap() {
         state.measurePoints,
         state.measureMode,
         state.measureMode ? hoverRef.current : null,
-        activeTimelineYear,
+        snapshotDate,
+        evidenceMode,
       );
 
       // camera marker with heading wedge
@@ -410,7 +449,7 @@ export function Minimap() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [staticLayer, hidden, activeTimelineYear, evidenceMode]);
+  }, [staticLayer, hidden, snapshotDate, evidenceMode]);
 
   const pointToWorld = (
     event: ReactMouseEvent<HTMLCanvasElement> | ReactPointerEvent<HTMLCanvasElement>,
@@ -424,7 +463,7 @@ export function Minimap() {
   const addPoint = (wx: number, wz: number) => {
     // Snapping follows the same filter as the drawing: a measurement must not
     // lock onto a vertex the active mode is withholding from the map.
-    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, activeTimelineYear, evidenceMode);
+    const snap = snapWorldPoint(wx, wz, SNAP_DIST_M, snapshotDate, evidenceMode);
     useTwinStore
       .getState()
       .addMeasurePoint(

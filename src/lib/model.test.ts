@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { canonicalJson, canonicalize } from "./canonicalJson";
 import { QUALITY_PROFILES, getQualityProfile } from "./quality";
-import {
-  TIMELINE_BOUNDS,
-  getObservedYear,
-  getVisibleDatedAdditionCount,
-  isVisibleAtTimelineYear,
-} from "./layout";
+import { STRUCTURES, TIMELINE_BOUNDS, getObservedYear } from "./layout";
 import { CLIMATE_MONTHS, climateDustFactor, getClimateMonth } from "./siteData";
-import { isSubjectDrawn } from "./sceneVisibility";
+import { isSceneDressingVisible, isSubjectDrawn, subjectDrawState } from "./drawState";
+import { earliestKnowableDate } from "./evidence";
+import { TEMPORAL_SNAPSHOT_DATES } from "./temporal";
 
 describe("canonical JSON", () => {
   it("sorts object keys recursively, so key order cannot move a hash", () => {
@@ -68,7 +65,6 @@ describe("quality tiers", () => {
       expect(higher.dustParticles).toBeGreaterThanOrEqual(lower.dustParticles);
       expect(higher.dprMax).toBeGreaterThanOrEqual(lower.dprMax);
       expect(higher.patrolVehicleCount).toBeGreaterThanOrEqual(lower.patrolVehicleCount);
-      expect(higher.overlayRefreshHz).toBeGreaterThanOrEqual(lower.overlayRefreshHz);
     }
   });
 
@@ -105,46 +101,82 @@ describe("timeline visibility", () => {
     expect(getObservedYear({})).toBeUndefined();
   });
 
-  it("keeps undated records visible at every year", () => {
-    // An undated record has an unknown construction date. Hiding it before some
-    // year would assert history nobody has.
-    expect(isVisibleAtTimelineYear({}, 1900)).toBe(true);
-    expect(isVisibleAtTimelineYear({}, 2100)).toBe(true);
-  });
-
-  it("shows a dated record from its own year onward", () => {
-    const dated = { observedDate: "2025-09-13" };
-    expect(isVisibleAtTimelineYear(dated, 2024)).toBe(false);
-    expect(isVisibleAtTimelineYear(dated, 2025)).toBe(true);
-    expect(isVisibleAtTimelineYear(dated, 2026)).toBe(true);
-  });
-
   it("derives its bounds from the dated records themselves", () => {
     expect(TIMELINE_BOUNDS.minYear).toBeLessThanOrEqual(TIMELINE_BOUNDS.maxYear);
-    expect(getVisibleDatedAdditionCount(TIMELINE_BOUNDS.minYear - 1)).toBe(0);
-    expect(getVisibleDatedAdditionCount(TIMELINE_BOUNDS.maxYear)).toBeGreaterThan(0);
-  });
-
-  it("counts more additions as the year advances", () => {
-    let previous = 0;
-    for (let year = TIMELINE_BOUNDS.minYear; year <= TIMELINE_BOUNDS.maxYear; year += 1) {
-      const count = getVisibleDatedAdditionCount(year);
-      expect(count).toBeGreaterThanOrEqual(previous);
-      previous = count;
-    }
+    const years = STRUCTURES.map((structure) => getObservedYear(structure)).filter(
+      (year): year is number => year !== undefined,
+    );
+    expect(Math.max(...years)).toBeLessThanOrEqual(TIMELINE_BOUNDS.maxYear);
+    expect(Math.min(...years)).toBeGreaterThanOrEqual(TIMELINE_BOUNDS.minYear);
   });
 });
 
 describe("isSubjectDrawn", () => {
-  it("requires both the timeline and the evidence mode to admit a subject", () => {
-    const runway = { id: "rwy-05-23", observedDate: "2021-06-30" };
-    expect(isSubjectDrawn(runway, 2025, "observed")).toBe(true);
-    // Dated 2021, so the year filter hides it in 2020 whatever the mode says.
-    expect(isSubjectDrawn(runway, 2020, "observed")).toBe(false);
-    // Admitted by the year, withheld by the mode.
+  it("requires both the evidence timeline and the evidence mode to admit a subject", () => {
+    const runway = { id: "rwy-05-23" };
+    // Now: the measured runway is observed, so even observed-only mode draws it.
+    expect(isSubjectDrawn(runway, null, "observed")).toBe(true);
+    // In 2021 it was reported, not yet observed: the scene it was measured from
+    // is a 2025 scene, so observed-only mode does not draw it solid then.
+    expect(isSubjectDrawn(runway, "2021-06-30", "observed")).toBe(false);
+    expect(isSubjectDrawn(runway, "2021-06-30", "reported")).toBe(true);
+    // Before the 2021 report nothing public establishes it.
+    expect(isSubjectDrawn(runway, "2021-01-01", "full-simulation")).toBe(false);
+    // Admitted by the timeline, withheld by the mode.
     const hangar = { id: "hangar-main" };
-    expect(isSubjectDrawn(hangar, 2025, "reported")).toBe(false);
-    expect(isSubjectDrawn(hangar, 2025, "interpretation")).toBe(true);
+    expect(isSubjectDrawn(hangar, null, "reported")).toBe(false);
+    expect(isSubjectDrawn(hangar, null, "interpretation")).toBe(true);
+  });
+});
+
+describe("subjectDrawState", () => {
+  it("outlines what today's model holds but was not publicly established then", () => {
+    // Interpreted from the 2025-09-28 scene: a ghost before it, solid from it.
+    expect(subjectDrawState("hangar-main", "2025-09-13", "full-simulation")).toBe(
+      "ghost",
+    );
+    expect(subjectDrawState("hangar-main", "2025-09-28", "full-simulation")).toBe(
+      "solid",
+    );
+    // Established by a 2025-09-13 image, identified in print on 2025-11-04.
+    expect(
+      subjectDrawState("west-fighter-shelters", "2025-09-28", "full-simulation"),
+    ).toBe("ghost");
+    expect(
+      subjectDrawState("west-fighter-shelters", "2025-11-04", "full-simulation"),
+    ).toBe("solid");
+    // Illustrative content is never established at any date, so it is a ghost
+    // in every past snapshot and solid only in the present.
+    expect(subjectDrawState("solar-field", "2026-06-12", "full-simulation")).toBe(
+      "ghost",
+    );
+    expect(subjectDrawState("solar-field", null, "full-simulation")).toBe("solid");
+  });
+
+  it("hides, rather than outlines, what the evidence mode withholds", () => {
+    expect(subjectDrawState("solar-field", "2026-06-12", "interpretation")).toBe(
+      "hidden",
+    );
+    expect(subjectDrawState("hangar-main", "2025-09-13", "reported")).toBe("hidden");
+  });
+
+  it("never draws a subject solid before evidence for it was public", () => {
+    for (const date of TEMPORAL_SNAPSHOT_DATES) {
+      for (const structure of STRUCTURES) {
+        if (subjectDrawState(structure.id, date, "full-simulation") !== "solid") continue;
+        const earliest = earliestKnowableDate(structure.id);
+        expect(
+          earliest !== undefined && earliest <= date,
+          `${structure.id}@${date}`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("leaves scene dressing out of every past date", () => {
+    expect(isSceneDressingVisible(null, "full-simulation")).toBe(true);
+    expect(isSceneDressingVisible("2026-06-12", "full-simulation")).toBe(false);
+    expect(isSceneDressingVisible(null, "interpretation")).toBe(false);
   });
 });
 

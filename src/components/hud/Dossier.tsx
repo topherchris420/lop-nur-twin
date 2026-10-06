@@ -1,56 +1,55 @@
-import { ExternalLink, Navigation, Table2, X } from "lucide-react";
+import { useMemo } from "react";
+import { Navigation, Table2, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  STRUCTURE_TYPE_LABELS,
-  getStructure,
-  isVisibleAtTimelineYear,
-} from "@/lib/layout";
+import { getStructure } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
 import { SITE_PROFILE } from "@/lib/siteData";
-import {
-  EVIDENCE_CLASSIFICATION_META,
-  PRIMARY_CRS,
-  getEvidenceForSubject,
-  getUncertaintyForSubject,
-  strongestClassification,
-} from "@/lib/evidence";
+import { PRIMARY_CRS } from "@/lib/evidence";
+import { inspectClaim } from "@/lib/claims";
 import { temporalEventsForSubject } from "@/lib/temporal";
-import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
-import {
-  ConfidenceValue,
-  EvidenceBadge,
-  ProvenanceFooter,
-} from "@/components/evidence/EvidenceUi";
-import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
-import { isSubjectVisible } from "@/lib/evidenceMode";
+import { EvidenceBadge, ProvenanceFooter } from "@/components/evidence/EvidenceUi";
+import { ClaimInspector } from "@/components/evidence/ClaimInspector";
+import { subjectDrawState } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 
 function localAxis(value: number, positive: string, negative: string): string {
   return `${Math.abs(value).toFixed(0)} m ${value >= 0 ? positive : negative}`;
 }
 
+/**
+ * The structure dossier: the claim inspector for whatever is selected.
+ *
+ * It answers the reviewer's questions in order — what this is, how much is
+ * known, when, and what supports it — from `inspectClaim`, the same derivation
+ * `/analysis` renders. At a past evidence-timeline date it opens with what
+ * could be said on that date, and it stays open for an outlined ghost, because
+ * "why is this only an outline?" is exactly the question worth answering.
+ */
 export function Dossier() {
   const selectedId = useTwinStore((s) => s.selectedId);
   const select = useTwinStore((s) => s.select);
   const showIndex = useTwinStore((s) => s.showIndex);
   const showResearch = useTwinStore((s) => s.showResearch);
-  const activeTimelineYear = useTwinStore((s) => s.activeTimelineYear);
+  const snapshotDate = useTwinStore((s) => s.snapshotDate);
   const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const def = selectedId ? getStructure(selectedId) : undefined;
+  const claim = useMemo(
+    () => (def === undefined ? undefined : inspectClaim(def.id, snapshotDate)),
+    [def, snapshotDate],
+  );
+  const events = useMemo(
+    () => (def === undefined ? [] : temporalEventsForSubject(def.id)),
+    [def],
+  );
+
   if (
     !def ||
-    !isVisibleAtTimelineYear(def, activeTimelineYear) ||
-    !isSubjectVisible(def.id, evidenceMode) ||
+    !claim ||
+    subjectDrawState(def.id, snapshotDate, evidenceMode) === "hidden" ||
     showIndex ||
     showResearch
   ) {
@@ -59,23 +58,25 @@ export function Dossier() {
 
   const [w, h, d] = def.size;
   const localPosition = `${localAxis(def.position[0], "E", "W")} / ${localAxis(-def.position[1], "N", "S")}`;
-  const records = getEvidenceForSubject(def.id);
-  const classification = strongestClassification(records) ?? def.evidence.status;
-  const uncertainty = getUncertaintyForSubject(def.id);
-  const temporalEvents = temporalEventsForSubject(def.id);
 
   return (
-    <Card className="hud-side-panel absolute top-16 right-4 z-10 w-80 select-text">
+    <Card
+      className="hud-side-panel dossier-panel absolute top-16 right-4 z-10 w-80 select-text"
+      role="region"
+      aria-label={`Claim inspector: ${def.name}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div>
             <CardTitle>{def.name}</CardTitle>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge variant="secondary">{STRUCTURE_TYPE_LABELS[def.type]}</Badge>
-              <EvidenceBadge classification={classification} />
+              {claim.typeLabel === undefined ? null : (
+                <Badge variant="secondary">{claim.typeLabel}</Badge>
+              )}
+              <EvidenceBadge classification={claim.classification} />
             </div>
             <p className="text-muted-foreground mt-1.5 text-[10px] leading-relaxed">
-              {EVIDENCE_CLASSIFICATION_META[classification].statement}
+              {claim.statement}
             </p>
           </div>
           <Button
@@ -89,15 +90,13 @@ export function Dossier() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <CardDescription>{def.description}</CardDescription>
+        <ClaimInspector claim={claim} events={events} idPrefix="dossier" />
         <Separator />
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-xs">
-          <dt className="text-muted-foreground">Dimensions</dt>
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[10px]">
+          <dt className="text-muted-foreground">Modeled size</dt>
           <dd className="text-right">
             {w} x {d} x {h} m
           </dd>
-          <dt className="text-muted-foreground">Model basis</dt>
-          <dd className="text-right">{def.modelBasis}</dd>
           <dt className="text-muted-foreground">Local position</dt>
           <dd className="text-right">{localPosition}</dd>
           <dt className="text-muted-foreground">Site datum</dt>
@@ -107,91 +106,6 @@ export function Dossier() {
           <dt className="text-muted-foreground">Coordinate system</dt>
           <dd className="text-right">{PRIMARY_CRS}</dd>
         </dl>
-        <Separator />
-        <div>
-          <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
-            Uncertainty
-          </div>
-          <UncertaintyPanel
-            envelope={uncertainty}
-            events={temporalEvents}
-            className="mt-2"
-          />
-        </div>
-        <Separator />
-        <div>
-          <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
-            Evidence record{records.length === 1 ? "" : "s"} ({records.length})
-          </div>
-          {/*
-            One block per record in the shared ledger, rather than the old
-            single free-text note: a reviewer can see which specific source
-            supports which claim, how confident the project is in it, when the
-            source was published and when it was last consulted.
-          */}
-          <ul className="mt-2 space-y-2.5">
-            {records.map((record) => {
-              const href = safeExternalHref(record.sourceUrl);
-              return (
-                <li key={record.id} className="border-border border-l-2 pl-2.5">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <EvidenceBadge classification={record.classification} />
-                    <ConfidenceValue
-                      confidence={record.confidence}
-                      className="text-muted-foreground text-[10px]"
-                    />
-                  </div>
-                  <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
-                    {record.claim}
-                  </p>
-                  <p className="mt-1 text-[10px] leading-relaxed">
-                    {href === undefined ? (
-                      <span className="text-muted-foreground">{record.sourceTitle}</span>
-                    ) : (
-                      <a
-                        href={href}
-                        {...EXTERNAL_LINK_PROPS}
-                        className="text-primary inline-flex items-start gap-1 hover:underline"
-                      >
-                        {record.sourceTitle}
-                        <ExternalLink
-                          className="mt-0.5 size-3 shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="sr-only">(opens in a new tab)</span>
-                      </a>
-                    )}
-                  </p>
-                  <p className="text-muted-foreground mt-0.5 font-mono text-[10px]">
-                    {record.sourcePublisher ?? "publisher unknown"} · published{" "}
-                    {record.sourceDate ?? "unknown"} · accessed{" "}
-                    {record.accessedAt ?? "unknown"}
-                  </p>
-                  {record.measurementUncertaintyM !== undefined ||
-                  record.sourceResolutionM !== undefined ? (
-                    <p className="text-muted-foreground mt-0.5 font-mono text-[10px]">
-                      {record.measurementUncertaintyM !== undefined
-                        ? `uncertainty ±${record.measurementUncertaintyM} m`
-                        : null}
-                      {record.measurementUncertaintyM !== undefined &&
-                      record.sourceResolutionM !== undefined
-                        ? " · "
-                        : null}
-                      {record.sourceResolutionM !== undefined
-                        ? `source resolution ${record.sourceResolutionM} m`
-                        : null}
-                    </p>
-                  ) : null}
-                  {record.analystNotes ? (
-                    <p className="text-muted-foreground mt-1 text-[10px] leading-relaxed">
-                      {record.analystNotes}
-                    </p>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
         <Button className="w-full" onClick={() => flyToStructure(def)}>
           <Navigation />
           Fly to structure

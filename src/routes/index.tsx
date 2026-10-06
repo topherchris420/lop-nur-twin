@@ -15,7 +15,6 @@ import { IntroOverlay } from "@/components/hud/IntroOverlay";
 import { TouchControls } from "@/components/hud/TouchControls";
 import { OrbitJoystick } from "@/components/hud/OrbitJoystick";
 import { TimelineControl } from "@/components/hud/TimelineControl";
-import { InterceptionOverlay } from "@/components/hud/InterceptionOverlay";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import { STRUCTURES, getStructure } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
@@ -70,7 +69,6 @@ function TwinView() {
   return (
     <div className="relative h-full w-full select-none">
       <Scene />
-      <InterceptionOverlay />
       <TouchControls />
       <OrbitJoystick />
       <TimelineControl />

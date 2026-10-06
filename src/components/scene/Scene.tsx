@@ -4,13 +4,13 @@ import { useTwinStore } from "@/lib/store";
 import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
+import { EvidenceGhosts } from "./EvidenceGhosts";
 import { LivingScene } from "./LivingScene";
 import { UncertaintyLayer } from "./UncertaintyLayer";
 import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
-import { ProjectionBridge } from "./ProjectionBridge";
 import { getQualityProfile } from "@/lib/quality";
 import { readFlag } from "@/lib/params";
 
@@ -111,6 +111,7 @@ export function Scene() {
           <Terrain />
           <Pavements />
           <Structures />
+          <EvidenceGhosts />
           <UncertaintyLayer />
           <LivingScene />
           {/* The upstream feed currently omits browser CORS headers. Keep the
@@ -119,7 +120,6 @@ export function Scene() {
               CORS-capable deployments or a same-origin proxy. */}
           {liveTrafficRequested ? <LiveTraffic /> : null}
           <CameraRigs />
-          <ProjectionBridge />
           <AdaptiveQualityManager />
           <ReadySignal />
           {postEnabled && (

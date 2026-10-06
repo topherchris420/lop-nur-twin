@@ -260,8 +260,7 @@ export function BookmarkPanel({
                 </div>
                 <p className={cn("text-muted-foreground mt-0.5 font-mono", text)}>
                   {EVIDENCE_MODE_META[bookmark.view.evidenceMode].shortLabel} ·{" "}
-                  {bookmark.view.timelineYear} ·{" "}
-                  {bookmark.view.snapshotDate ?? "current state"}
+                  {bookmark.view.snapshotDate ?? "now"}
                   {bookmark.view.comparisonDate === null
                     ? ""
                     : ` vs ${bookmark.view.comparisonDate}`}{" "}

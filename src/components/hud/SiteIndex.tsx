@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STRUCTURES, STRUCTURE_TYPE_LABELS, type StructureDef } from "@/lib/layout";
 import { flyToStructure } from "@/lib/flyTo";
 import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
-import { useSubjectFilter } from "@/lib/sceneVisibility";
+import { useSubjectDrawState } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { resolvesBethesda } from "@/bethesda/discovery";
@@ -19,12 +19,16 @@ export function SiteIndex() {
   const select = useTwinStore((s) => s.select);
   const [query, setQuery] = useState("");
   const evidenceMode = useTwinStore((s) => s.evidenceMode);
-  // Same predicate the scene draws with: the index lists what is on screen.
-  const isDrawn = useSubjectFilter();
+  const snapshotDate = useTwinStore((s) => s.snapshotDate);
+  // Same predicate the scene draws with: the index lists what is on screen,
+  // solid or outlined, and says which.
+  const drawState = useSubjectDrawState();
 
   const groups = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
-    const visibleStructures = STRUCTURES.filter(isDrawn);
+    const visibleStructures = STRUCTURES.filter(
+      (structure) => drawState(structure.id) !== "hidden",
+    );
     const filtered = normalized
       ? visibleStructures.filter((structure) => {
           const searchable = [
@@ -56,7 +60,7 @@ export function SiteIndex() {
             [...structures].sort((left, right) => left.name.localeCompare(right.name)),
           ] as const,
       );
-  }, [query, isDrawn]);
+  }, [query, drawState]);
 
   if (!showIndex) return null;
 
@@ -110,7 +114,7 @@ export function SiteIndex() {
             UNRESOLVED FEATURE · 39° N 77° W · outside this site
           </button>
         ) : null}
-        {groups.length > 0 ? (
+        {groups.length > 0 || resolvesBethesda(query) ? (
           groups.map(([label, defs]) => (
             <div key={label} className="mb-3 last:mb-0">
               <div className="text-muted-foreground mb-1 text-[10px] font-semibold tracking-[0.18em] uppercase">
@@ -128,6 +132,11 @@ export function SiteIndex() {
                       )}
                     >
                       {def.name}
+                      {drawState(def.id) === "ghost" ? (
+                        <span className="text-muted-foreground block text-[10px]">
+                          outline — not publicly established on {snapshotDate}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 ))}

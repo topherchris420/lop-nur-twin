@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Crosshair, Download, ExternalLink, GitCompare, Globe2 } from "lucide-react";
 import {
@@ -42,11 +42,14 @@ import {
   deriveSnapshot,
   temporalEventsForSubject,
   snapshotEstablishedCount,
+  snapshotPubliclyEstablishedCount,
   temporalCoverageGaps,
 } from "@/lib/temporal";
 import { formatUncertainty } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
 import { SpatialQueryPanel } from "@/components/evidence/SpatialQueryPanel";
+import { ClaimInspector } from "@/components/evidence/ClaimInspector";
+import { inspectClaim } from "@/lib/claims";
 import {
   parseBooleanValue,
   parseBoundedFloatValue,
@@ -238,7 +241,6 @@ function AnalysisView() {
     const state = useTwinStore.getState();
     return {
       cameraMode: state.cameraMode,
-      timelineYear: state.activeTimelineYear,
       snapshotDate: state.snapshotDate,
       comparisonDate: state.comparisonDate,
       evidenceMode: state.evidenceMode,
@@ -489,6 +491,15 @@ function AnalysisView() {
             describes happened; and the date a change entered this model is a fact about
             this repository, which it does not currently record.
           </p>
+          <p className="text-muted-foreground mt-2 max-w-4xl text-sm leading-relaxed">
+            The snapshot date is the evidence timeline the 3D twin draws with, from the
+            same store. A subject is{" "}
+            <strong className="text-foreground">publicly established</strong> on a date
+            only when it existed by then <em>and</em> the evidence that says so had been
+            published by then &mdash; what someone reading public sources that day could
+            have drawn. The scene draws those solid and outlines everything else the model
+            holds today: absence of evidence, not evidence of absence.
+          </p>
 
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
@@ -501,7 +512,7 @@ function AnalysisView() {
                 onChange={(event) => setSnapshotDate(event.target.value || null)}
                 className="border-input bg-secondary/60 focus-visible:ring-ring mt-1 block h-9 rounded-md border px-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
               >
-                <option value="">current state</option>
+                <option value="">now (the model&rsquo;s current state)</option>
                 {TEMPORAL_SNAPSHOT_DATES.map((date) => (
                   <option key={date} value={date}>
                     {date}
@@ -533,7 +544,7 @@ function AnalysisView() {
           <p role="status" className="mt-3 text-sm">
             {snapshot === null
               ? "Reading the model's current state. Choose a date to see what was established and what evidence had been published by then."
-              : `${snapshotEstablishedCount(snapshot)} of ${snapshot.subjects.length} modeled subjects were established by ${snapshot.date}; ${snapshot.publishedSourceIds.length} of ${PUBLIC_SOURCES.length} sources were public.`}
+              : `${snapshotPubliclyEstablishedCount(snapshot)} of ${snapshot.subjects.length} modeled subjects were publicly established on ${snapshot.date} (${snapshotEstablishedCount(snapshot)} established in hindsight); ${snapshot.publishedSourceIds.length} of ${PUBLIC_SOURCES.length} sources were public.`}
           </p>
 
           {snapshot === null ? null : (
@@ -557,7 +568,10 @@ function AnalysisView() {
                       Established by
                     </th>
                     <th scope="col" className="px-2 py-2 font-semibold">
-                      Evidence published by then
+                      Publicly established then
+                    </th>
+                    <th scope="col" className="px-2 py-2 font-semibold">
+                      Evidence knowable by then
                     </th>
                     <th scope="col" className="px-2 py-2 font-semibold">
                       Sources public by then
@@ -582,8 +596,15 @@ function AnalysisView() {
                         {subject.establishedBy ?? "no date recorded"}
                       </td>
                       <td className="px-2 py-2">
+                        {subject.publiclyEstablished
+                          ? "yes — drawn solid"
+                          : subject.presence === "established"
+                            ? "no — hindsight only; evidence not yet public"
+                            : "no — drawn as an outline"}
+                      </td>
+                      <td className="px-2 py-2">
                         {subject.evidenceClass === undefined ? (
-                          "none published yet"
+                          "none knowable yet"
                         ) : (
                           <EvidenceBadge classification={subject.evidenceClass} />
                         )}
@@ -910,7 +931,7 @@ function AnalysisView() {
                     Analyst notes
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
-                    3D dossier
+                    Inspect
                   </th>
                 </tr>
               </thead>
@@ -930,121 +951,179 @@ function AnalysisView() {
                   const [width, height, depth] = structure.size;
                   const isSelected = highlighted === structure.id;
 
+                  const claim = isSelected
+                    ? inspectClaim(structure.id, snapshotDate)
+                    : undefined;
+
                   return (
-                    <tr
-                      key={structure.id}
-                      id={`row-${structure.id}`}
-                      className={
-                        isSelected
-                          ? "border-border bg-accent/40 border-b align-top"
-                          : "border-border border-b align-top"
-                      }
-                    >
-                      <th scope="row" className="px-2 py-3 text-left font-medium">
-                        {structure.name}
-                        {isSelected ? (
-                          <span className="text-primary block text-[10px] font-normal">
-                            ← opened from the 3D dossier
+                    <Fragment key={structure.id}>
+                      <tr
+                        id={`row-${structure.id}`}
+                        className={
+                          isSelected
+                            ? "border-border bg-accent/40 border-b align-top"
+                            : "border-border border-b align-top"
+                        }
+                      >
+                        <th scope="row" className="px-2 py-3 text-left font-medium">
+                          {structure.name}
+                          {isSelected ? (
+                            <span className="text-primary block text-[10px] font-normal">
+                              ← opened from the 3D dossier
+                            </span>
+                          ) : null}
+                          {isAircraft(structure.type) ? (
+                            <span className="text-muted-foreground block text-[10px] font-normal">
+                              Aircraft — identification follows cited reporting and is not
+                              official
+                            </span>
+                          ) : null}
+                        </th>
+                        <td className="px-2 py-3 font-mono">{structure.id}</td>
+                        <td className="px-2 py-3">
+                          {STRUCTURE_TYPE_LABELS[structure.type]}
+                        </td>
+                        <td className="px-2 py-3">
+                          <EvidenceBadge classification={classification} />
+                          <span className="text-muted-foreground mt-1 block text-[10px]">
+                            {EVIDENCE_CLASSIFICATION_META[classification].statement}
                           </span>
-                        ) : null}
-                        {isAircraft(structure.type) ? (
-                          <span className="text-muted-foreground block text-[10px] font-normal">
-                            Aircraft — identification follows cited reporting and is not
-                            official
+                        </td>
+                        <td className="px-2 py-3">
+                          <ConfidenceValue confidence={structureConfidence(structure)} />
+                        </td>
+                        <td className="px-2 py-3 font-mono whitespace-nowrap">
+                          {grid.easting.toFixed(0)} E<br />
+                          {grid.northing.toFixed(0)} N
+                          <span className="text-muted-foreground block text-[10px]">
+                            approximate coordinate
                           </span>
-                        ) : null}
-                      </th>
-                      <td className="px-2 py-3 font-mono">{structure.id}</td>
-                      <td className="px-2 py-3">
-                        {STRUCTURE_TYPE_LABELS[structure.type]}
-                      </td>
-                      <td className="px-2 py-3">
-                        <EvidenceBadge classification={classification} />
-                        <span className="text-muted-foreground mt-1 block text-[10px]">
-                          {EVIDENCE_CLASSIFICATION_META[classification].statement}
-                        </span>
-                      </td>
-                      <td className="px-2 py-3">
-                        <ConfidenceValue confidence={structureConfidence(structure)} />
-                      </td>
-                      <td className="px-2 py-3 font-mono whitespace-nowrap">
-                        {grid.easting.toFixed(0)} E<br />
-                        {grid.northing.toFixed(0)} N
-                        <span className="text-muted-foreground block text-[10px]">
-                          approximate coordinate
-                        </span>
-                      </td>
-                      <td className="px-2 py-3 font-mono whitespace-nowrap">
-                        {width} × {depth} × {height} m
-                        <span className="text-muted-foreground block text-[10px]">
-                          modeled geometry
-                        </span>
-                      </td>
-                      <td className="px-2 py-3">
-                        {envelope === undefined
-                          ? "no envelope recorded"
-                          : formatUncertainty(envelope)}
-                        {envelope === undefined ? null : (
-                          <details className="mt-1">
-                            <summary className="focus-visible:ring-ring cursor-pointer text-[10px] focus-visible:ring-2 focus-visible:outline-none">
-                              Full uncertainty and temporal record
-                            </summary>
-                            <UncertaintyPanel
-                              envelope={envelope}
-                              events={events}
-                              className="mt-1.5"
-                            />
-                          </details>
-                        )}
-                      </td>
-                      <td className="px-2 py-3">
-                        <ul className="space-y-1">
-                          {records.map((record) => {
-                            const href = safeExternalHref(record.sourceUrl);
-                            return (
-                              <li key={record.id}>
-                                {href === undefined ? (
-                                  <span>{record.sourceTitle}</span>
-                                ) : (
-                                  <a
-                                    href={href}
-                                    {...EXTERNAL_LINK_PROPS}
-                                    className="text-primary focus-visible:ring-ring inline-flex items-start gap-1 underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                                  >
-                                    {record.sourceTitle}
-                                    <ExternalLink
-                                      className="mt-0.5 size-3 shrink-0"
-                                      aria-hidden="true"
-                                    />
-                                    <span className="sr-only">(opens in a new tab)</span>
-                                  </a>
-                                )}
-                                <span className="text-muted-foreground block text-[10px]">
-                                  {record.sourcePublisher ?? "publisher unknown"} ·
-                                  published {record.sourceDate ?? "unknown"} · accessed{" "}
-                                  {record.accessedAt ?? "unknown"}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </td>
-                      <td className="text-muted-foreground max-w-[26rem] px-2 py-3 leading-relaxed">
-                        {notes.length > 0
-                          ? notes.join(" ")
-                          : "No additional analyst note."}
-                      </td>
-                      <td className="px-2 py-3">
-                        <Link
-                          to="/"
-                          search={{ structure: structure.id }}
-                          className="border-border hover:bg-accent focus-visible:ring-ring inline-block rounded border px-2 py-1 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
+                        </td>
+                        <td className="px-2 py-3 font-mono whitespace-nowrap">
+                          {width} × {depth} × {height} m
+                          <span className="text-muted-foreground block text-[10px]">
+                            modeled geometry
+                          </span>
+                        </td>
+                        <td className="px-2 py-3">
+                          {envelope === undefined
+                            ? "no envelope recorded"
+                            : formatUncertainty(envelope)}
+                          {envelope === undefined ? null : (
+                            <details className="mt-1">
+                              <summary className="focus-visible:ring-ring cursor-pointer text-[10px] focus-visible:ring-2 focus-visible:outline-none">
+                                Full uncertainty and temporal record
+                              </summary>
+                              <UncertaintyPanel
+                                envelope={envelope}
+                                events={events}
+                                className="mt-1.5"
+                              />
+                            </details>
+                          )}
+                        </td>
+                        <td className="px-2 py-3">
+                          <ul className="space-y-1">
+                            {records.map((record) => {
+                              const href = safeExternalHref(record.sourceUrl);
+                              return (
+                                <li key={record.id}>
+                                  {href === undefined ? (
+                                    <span>{record.sourceTitle}</span>
+                                  ) : (
+                                    <a
+                                      href={href}
+                                      {...EXTERNAL_LINK_PROPS}
+                                      className="text-primary focus-visible:ring-ring inline-flex items-start gap-1 underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                                    >
+                                      {record.sourceTitle}
+                                      <ExternalLink
+                                        className="mt-0.5 size-3 shrink-0"
+                                        aria-hidden="true"
+                                      />
+                                      <span className="sr-only">
+                                        (opens in a new tab)
+                                      </span>
+                                    </a>
+                                  )}
+                                  <span className="text-muted-foreground block text-[10px]">
+                                    {record.sourcePublisher ?? "publisher unknown"} ·
+                                    published {record.sourceDate ?? "unknown"} · accessed{" "}
+                                    {record.accessedAt ?? "unknown"}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </td>
+                        <td className="text-muted-foreground max-w-[26rem] px-2 py-3 leading-relaxed">
+                          {notes.length > 0
+                            ? notes.join(" ")
+                            : "No additional analyst note."}
+                        </td>
+                        <td className="space-y-1.5 px-2 py-3">
+                          <Link
+                            to="/"
+                            search={{ structure: structure.id }}
+                            className="border-border hover:bg-accent focus-visible:ring-ring block rounded border px-2 py-1 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
+                          >
+                            Open in 3D
+                            <span className="sr-only"> — {structure.name} dossier</span>
+                          </Link>
+                          {isSelected ? null : (
+                            <Link
+                              to="/analysis"
+                              search={(previous) => ({
+                                ...previous,
+                                structure: structure.id,
+                              })}
+                              replace
+                              className="border-border hover:bg-accent focus-visible:ring-ring block rounded border px-2 py-1 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
+                            >
+                              Inspect claim
+                              <span className="sr-only"> — {structure.name}</span>
+                            </Link>
+                          )}
+                        </td>
+                      </tr>
+                      {claim === undefined ? null : (
+                        <tr
+                          id={`claim-${structure.id}`}
+                          className="border-border bg-accent/20 border-b"
                         >
-                          Open in 3D
-                          <span className="sr-only"> — {structure.name} dossier</span>
-                        </Link>
-                      </td>
-                    </tr>
+                          <td colSpan={11} className="px-4 py-4">
+                            <section
+                              aria-labelledby="analysis-claim-heading"
+                              className="max-w-4xl"
+                            >
+                              <h3
+                                id="analysis-claim-heading"
+                                className="text-base font-semibold"
+                              >
+                                Claim inspector: {structure.name}
+                              </h3>
+                              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                                The same answers the 3D dossier gives, from the same
+                                derivation
+                                {snapshotDate === null
+                                  ? ""
+                                  : `, read at the evidence-timeline date ${snapshotDate}`}
+                                .
+                              </p>
+                              <div className="mt-3">
+                                <ClaimInspector
+                                  claim={claim}
+                                  events={events}
+                                  density="comfortable"
+                                  headingLevel={4}
+                                  idPrefix="analysis-claim"
+                                />
+                              </div>
+                            </section>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

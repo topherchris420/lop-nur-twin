@@ -9,9 +9,6 @@ export interface QualityProfile {
   animateCircuit: boolean;
   patrolVehicleCount: number;
   patrolHeadlightLights: boolean;
-  overlayRefreshHz: number;
-  overlayRangeSamples: number;
-  overlayRadarSamples: number;
   /**
    * Edge length of the close-range ground detail maps, or 0 to skip them
    * entirely. Two maps are built per surface family (concrete and desert) and
@@ -44,9 +41,6 @@ export const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
     animateCircuit: false,
     patrolVehicleCount: 1,
     patrolHeadlightLights: false,
-    overlayRefreshHz: 10,
-    overlayRangeSamples: 24,
-    overlayRadarSamples: 12,
     groundDetailSize: 0,
     groundDetailRange: 0,
     groundDetailRich: false,
@@ -60,9 +54,6 @@ export const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
     animateCircuit: true,
     patrolVehicleCount: 1,
     patrolHeadlightLights: false,
-    overlayRefreshHz: 15,
-    overlayRangeSamples: 32,
-    overlayRadarSamples: 16,
     groundDetailSize: 256,
     groundDetailRange: 85,
     groundDetailRich: false,
@@ -76,9 +67,6 @@ export const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
     animateCircuit: true,
     patrolVehicleCount: 2,
     patrolHeadlightLights: false,
-    overlayRefreshHz: 24,
-    overlayRangeSamples: 48,
-    overlayRadarSamples: 24,
     groundDetailSize: 256,
     groundDetailRange: 130,
     groundDetailRich: true,
@@ -92,9 +80,6 @@ export const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
     animateCircuit: true,
     patrolVehicleCount: 3,
     patrolHeadlightLights: true,
-    overlayRefreshHz: 30,
-    overlayRangeSamples: 64,
-    overlayRadarSamples: 32,
     groundDetailSize: 512,
     groundDetailRange: 170,
     groundDetailRich: true,

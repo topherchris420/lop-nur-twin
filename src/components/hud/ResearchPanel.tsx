@@ -78,7 +78,6 @@ export function ResearchPanel() {
     const state = useTwinStore.getState();
     return {
       cameraMode: state.cameraMode,
-      timelineYear: state.activeTimelineYear,
       snapshotDate: state.snapshotDate,
       comparisonDate: state.comparisonDate,
       evidenceMode: state.evidenceMode,
@@ -100,7 +99,6 @@ export function ResearchPanel() {
     const state = useTwinStore.getState();
     const { view } = bookmark;
     state.setEvidenceMode(view.evidenceMode);
-    state.setActiveTimelineYear(view.timelineYear);
     state.setSnapshotDate(view.snapshotDate);
     state.setComparisonDate(view.comparisonDate);
     state.setEnvironmentMonth(view.environmentMonth);

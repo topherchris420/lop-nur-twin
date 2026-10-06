@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BOOKMARK_SCHEMA_VERSION,
   BOOKMARK_STORAGE_KEY,
+  LEGACY_BOOKMARK_STORAGE_KEYS,
   MAX_IMPORT_LENGTH,
   MAX_NAME_LENGTH,
   MAX_NOTE_LENGTH,
@@ -21,7 +22,6 @@ import {
   type Bookmark,
   type BookmarkView,
 } from "./bookmarks";
-import { TIMELINE_BOUNDS } from "./layout";
 
 const HASH_A = `sha256:${"a".repeat(64)}`;
 const HASH_B = `sha256:${"b".repeat(64)}`;
@@ -30,7 +30,6 @@ function view(overrides: Partial<BookmarkView> = {}): BookmarkView {
   return {
     cameraMode: "orbit",
     cameraTarget: [1018, 30, 1410],
-    timelineYear: 2025,
     snapshotDate: "2025-09-28",
     comparisonDate: null,
     evidenceMode: "reported",
@@ -159,12 +158,28 @@ describe("migrateBookmark", () => {
     expect(migrateBookmark("a string")).toBeNull();
   });
 
-  it("clamps a hostile timeline year into the modeled bounds", () => {
-    const migrated = migrateBookmark({
-      ...bookmark(),
-      view: { ...view(), timelineYear: 1e308 },
-    });
-    expect(migrated?.view.timelineYear).toBe(TIMELINE_BOUNDS.maxYear);
+  it("maps a version-2 timeline year to the evidence-timeline date it meant", () => {
+    const v2 = (timelineYear: number) =>
+      migrateBookmark({
+        ...bookmark(),
+        schemaVersion: 2,
+        view: { ...view(), snapshotDate: null, timelineYear },
+      });
+    // The last modeled year meant "everything drawn", which is now.
+    expect(v2(1e308)?.view.snapshotDate).toBeNull();
+    expect(v2(2025)?.view.snapshotDate).toBeNull();
+    // An earlier year is the last ledger date on or before its end, clamped
+    // into the modeled bounds exactly as the year slider clamped it.
+    expect(v2(2021)?.view.snapshotDate).toBe("2021-06-30");
+    expect(v2(-5)?.view.snapshotDate).toBe("2021-06-30");
+    // A stored date wins over the year.
+    expect(
+      migrateBookmark({
+        ...bookmark(),
+        schemaVersion: 2,
+        view: { ...view(), snapshotDate: "2025-11-04", timelineYear: 2021 },
+      })?.view.snapshotDate,
+    ).toBe("2025-11-04");
   });
 
   it("rejects a malformed snapshot date rather than storing it", () => {
@@ -292,6 +307,23 @@ describe("storage", () => {
     expect(loadBookmarks(memoryStore())).toEqual([]);
   });
 
+  it("reads and migrates bookmarks a previous version stored under its own key", () => {
+    const store = memoryStore();
+    const legacy = {
+      ...bookmark(),
+      schemaVersion: 2,
+      view: { ...view(), snapshotDate: null, timelineYear: 2021 },
+    };
+    store.setItem(
+      LEGACY_BOOKMARK_STORAGE_KEYS[0],
+      JSON.stringify({ schemaVersion: 2, bookmarks: [legacy] }),
+    );
+    const loaded = loadBookmarks(store);
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]?.schemaVersion).toBe(BOOKMARK_SCHEMA_VERSION);
+    expect(loaded[0]?.view.snapshotDate).toBe("2021-06-30");
+  });
+
   it("returns an empty list rather than throwing on corrupt storage", () => {
     const store = memoryStore();
     store.setItem(BOOKMARK_STORAGE_KEY, "{{{ not json");
@@ -364,7 +396,7 @@ describe("shareable links", () => {
     expect(params["snapshot"]).toBe("2025-09-28");
     expect(params["structure"]).toBe("hangar-main");
     expect(params["uncertainty"]).toBe("1");
-    expect(params["year"]).toBe("2025");
+    expect(params["year"]).toBeUndefined();
     expect(params["month"]).toBe("6");
     expect(params["at"]).toBe("1018,1410");
   });

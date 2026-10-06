@@ -72,6 +72,12 @@ body {
   width: min(24rem, calc(100vw - 2rem));
 }
 
+/* The dossier stops above the evidence legend's folded header, which stays in
+   the same column so the evidence mode is one click away while reading. */
+.dossier-panel {
+  max-height: calc(100dvh - 9.5rem);
+}
+
 .site-index-panel {
   width: min(16rem, calc(100vw - 2rem));
 }

@@ -27,13 +27,12 @@
  *   same discipline: reject before clamp, bound everything, never throw.
  */
 
-import { TIMELINE_BOUNDS } from "./layout";
 import {
   DEFAULT_EVIDENCE_MODE,
   parseEvidenceMode,
   type EvidenceMode,
 } from "./evidenceMode";
-import { isIsoDate } from "./temporal";
+import { isIsoDate, snapshotDateForYear } from "./temporal";
 import type { MeasurePoint } from "./measure";
 import type { CameraMode, QualityTier } from "./store";
 
@@ -41,10 +40,22 @@ import type { CameraMode, QualityTier } from "./store";
 /* Schema                                                              */
 /* ------------------------------------------------------------------ */
 
-export const BOOKMARK_SCHEMA_VERSION = 2;
+/**
+ * Version 3 dropped `timelineYear`: the scene's time is the evidence-timeline
+ * date (`snapshotDate`), and a year slider no longer exists to restore. A
+ * version-2 view's year is mapped to the timeline date it corresponds to.
+ */
+export const BOOKMARK_SCHEMA_VERSION = 3;
 
 /** Where the bookmarks live. The version is in the key as well as the payload. */
-export const BOOKMARK_STORAGE_KEY = "lop-nur-twin.bookmarks.v2";
+export const BOOKMARK_STORAGE_KEY = "lop-nur-twin.bookmarks.v3";
+
+/**
+ * Keys earlier versions wrote. Read once when the current key is empty and
+ * migrated forward, so upgrading the site never loses a saved view; the old
+ * key is left untouched for an older build that might still read it.
+ */
+export const LEGACY_BOOKMARK_STORAGE_KEYS = ["lop-nur-twin.bookmarks.v2"] as const;
 
 /** Longest analyst note kept. Long enough for a paragraph, short enough to bound the store. */
 export const MAX_NOTE_LENGTH = 600;
@@ -60,7 +71,7 @@ export interface BookmarkView {
   /** Camera position in local metres, when the view was captured from the 3D route. */
   cameraPosition?: [number, number, number];
   cameraTarget?: [number, number, number];
-  timelineYear: number;
+  /** The evidence-timeline date, or null for now. */
   snapshotDate: string | null;
   comparisonDate: string | null;
   evidenceMode: EvidenceMode;
@@ -167,7 +178,15 @@ function readView(value: unknown): BookmarkView {
     : "orbit";
   const cameraPosition = readVector(source["cameraPosition"]);
   const cameraTarget = readVector(source["cameraTarget"]);
-  const snapshotDate = source["snapshotDate"];
+  const storedSnapshot = source["snapshotDate"];
+  const legacyYear = source["timelineYear"];
+  // A version-2 view held a year as well as an optional date; the date wins,
+  // and a year alone maps to the timeline date it corresponds to.
+  const snapshotDate = isIsoDate(storedSnapshot)
+    ? storedSnapshot
+    : typeof legacyYear === "number" && Number.isFinite(legacyYear)
+      ? snapshotDateForYear(legacyYear)
+      : null;
   const comparisonDate = source["comparisonDate"];
   const selectedId = source["selectedId"];
   const qualityTier = source["qualityTier"];
@@ -176,15 +195,7 @@ function readView(value: unknown): BookmarkView {
     cameraMode,
     ...(cameraPosition === undefined ? {} : { cameraPosition }),
     ...(cameraTarget === undefined ? {} : { cameraTarget }),
-    timelineYear: Math.round(
-      clampNumber(
-        source["timelineYear"],
-        TIMELINE_BOUNDS.minYear,
-        TIMELINE_BOUNDS.maxYear,
-        TIMELINE_BOUNDS.maxYear,
-      ),
-    ),
-    snapshotDate: isIsoDate(snapshotDate) ? snapshotDate : null,
+    snapshotDate,
     comparisonDate: isIsoDate(comparisonDate) ? comparisonDate : null,
     evidenceMode: parseEvidenceMode(source["evidenceMode"]) ?? DEFAULT_EVIDENCE_MODE,
     selectedId:
@@ -337,13 +348,19 @@ export function defaultStore(): BookmarkStore {
 }
 
 export function loadBookmarks(store: BookmarkStore): readonly Bookmark[] {
-  let raw: string | null;
+  let raw: string | null = null;
   try {
     raw = store.getItem(BOOKMARK_STORAGE_KEY);
+    for (const legacyKey of LEGACY_BOOKMARK_STORAGE_KEYS) {
+      if (raw !== null) break;
+      raw = store.getItem(legacyKey);
+    }
   } catch {
     return [];
   }
   if (raw === null) return [];
+  // Every record passes through `migrateBookmark`, so a legacy collection
+  // arrives at the current version.
   return parseBookmarkCollection(raw).bookmarks;
 }
 
@@ -568,7 +585,6 @@ export function shareableSearchParams(bookmark: Bookmark): Record<string, string
   const { view } = bookmark;
   const params: Record<string, string> = {
     evidence: view.evidenceMode,
-    year: String(view.timelineYear),
     month: String(view.environmentMonth + 1),
   };
   if (view.snapshotDate !== null) params["snapshot"] = view.snapshotDate;

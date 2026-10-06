@@ -407,6 +407,18 @@ console.log("\n=== deep links between the two views ===");
     ),
   );
   check("/analysis?structure=… highlights the row", marked, "row-hangar-main");
+  // The highlighted row opens the same claim inspector the 3D dossier shows,
+  // so the route that works without WebGL answers the same questions.
+  const inspector = await page.evaluate(
+    () => document.querySelector("#claim-hangar-main")?.textContent ?? "",
+  );
+  check(
+    "/analysis?structure=… opens the claim inspector beneath the row",
+    /How much is known/.test(inspector) &&
+      /The evidence establishes/.test(inspector) &&
+      /Entered this model/.test(inspector),
+    inspector.slice(0, 80) || "no inspector",
+  );
   await page.close();
 }
 {
@@ -416,7 +428,9 @@ console.log("\n=== deep links between the two views ===");
   const dossierText = await page.evaluate(() => document.body.innerText);
   check(
     "/?structure=… opens that dossier",
-    dossierText.includes("Main assembly hangar") && /evidence record/i.test(dossierText),
+    dossierText.includes("Main assembly hangar") &&
+      /How much is known/i.test(dossierText) &&
+      /What supports it/i.test(dossierText),
     "dossier visible",
   );
   check(

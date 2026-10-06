@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { TIMELINE_BOUNDS, getStructure, isVisibleAtTimelineYear } from "./layout";
+import { TIMELINE_BOUNDS } from "./layout";
 import {
   DEFAULT_EVIDENCE_MODE,
   EVIDENCE_MODES,
   isSubjectVisible,
   type EvidenceMode,
 } from "./evidenceMode";
-import { TEMPORAL_SNAPSHOT_DATES, isIsoDate } from "./temporal";
+import { TEMPORAL_SNAPSHOT_DATES, isIsoDate, snapshotDateForYear } from "./temporal";
 import type { MeasurePoint } from "./measure";
 import { readEnumParam, readFlag, readIntParam, readIsoDateParam } from "./params";
 
@@ -31,9 +31,6 @@ interface TwinState {
   night: boolean;
   toggleNight: () => void;
 
-  activeTimelineYear: number;
-  setActiveTimelineYear: (year: number) => void;
-
   /**
    * Which evidence classifications the scene, the minimap, the index and the
    * dossier are allowed to draw. Every consumer asks
@@ -43,9 +40,11 @@ interface TwinState {
   setEvidenceMode: (mode: EvidenceMode) => void;
 
   /**
-   * Snapshot date for the temporal view, or null for "the model's current
-   * state". Kept separate from `activeTimelineYear`, which is the existing
-   * year-granularity scene filter and keeps working unchanged.
+   * The evidence-timeline date, or null for "now" — the model's current state.
+   * It is the scene's only notion of time: at a past date the scene, minimap,
+   * index and ruler draw what was publicly established by then and outline the
+   * rest (`sceneVisibility.ts`). Only dates the temporal ledger holds are
+   * accepted.
    */
   snapshotDate: string | null;
   setSnapshotDate: (date: string | null) => void;
@@ -152,15 +151,6 @@ function normalizeMonth(month: number): number {
   return ((Math.round(month) % 12) + 12) % 12;
 }
 
-/**
- * `?year=` pins the construction-timeline year. Out-of-range values clamp to the
- * modeled bounds rather than being trusted, same as every other parameter.
- */
-function initialTimelineYear(): number {
-  const year = readIntParam("year", TIMELINE_BOUNDS.minYear, TIMELINE_BOUNDS.maxYear);
-  return year ?? TIMELINE_BOUNDS.maxYear;
-}
-
 /** `?evidence=observed|reported|interpretation|full-simulation`. */
 function initialEvidenceMode(): EvidenceMode {
   return readEnumParam("evidence", EVIDENCE_MODES) ?? DEFAULT_EVIDENCE_MODE;
@@ -168,23 +158,19 @@ function initialEvidenceMode(): EvidenceMode {
 
 /**
  * `?snapshot=YYYY-MM-DD`. Only a date the ledger can actually be snapshotted at
- * is accepted; anything else falls back to null, meaning "current state".
+ * is accepted; anything else falls back to null, meaning "now". A legacy
+ * `?year=` is honoured when no snapshot is given.
  */
 function initialSnapshotDate(): string | null {
-  return normalizeSnapshotDate(readIsoDateParam("snapshot"));
+  const snapshot = normalizeSnapshotDate(readIsoDateParam("snapshot"));
+  if (snapshot !== null) return snapshot;
+  const year = readIntParam("year", TIMELINE_BOUNDS.minYear, TIMELINE_BOUNDS.maxYear);
+  return year === null ? null : snapshotDateForYear(year);
 }
 
 function normalizeSnapshotDate(date: string | null): string | null {
   if (date === null || !isIsoDate(date)) return null;
   return TEMPORAL_SNAPSHOT_DATES.includes(date) ? date : null;
-}
-
-function normalizeTimelineYear(year: number): number {
-  if (!Number.isFinite(year)) return TIMELINE_BOUNDS.maxYear;
-  return Math.min(
-    TIMELINE_BOUNDS.maxYear,
-    Math.max(TIMELINE_BOUNDS.minYear, Math.round(year)),
-  );
 }
 
 export const useTwinStore = create<TwinState>()((set) => ({
@@ -193,23 +179,6 @@ export const useTwinStore = create<TwinState>()((set) => ({
 
   night: readFlag("night"),
   toggleNight: () => set((s) => ({ night: !s.night })),
-
-  activeTimelineYear: initialTimelineYear(),
-  setActiveTimelineYear: (year) =>
-    set((state) => {
-      const activeTimelineYear = normalizeTimelineYear(year);
-      const selectedStructure = state.selectedId
-        ? getStructure(state.selectedId)
-        : undefined;
-      return {
-        activeTimelineYear,
-        selectedId:
-          selectedStructure &&
-          !isVisibleAtTimelineYear(selectedStructure, activeTimelineYear)
-            ? null
-            : state.selectedId,
-      };
-    }),
 
   evidenceMode: initialEvidenceMode(),
   setEvidenceMode: (evidenceMode) =>

@@ -51,9 +51,9 @@ run.
 | :--------------------- | :-------------------------------------------------------------------- |
 | `?quality=0..3`        | Pins a quality tier and disables the adaptive ladder.                 |
 | `?month=1..12`         | Selects the initial climatology month. June by default.               |
-| `?year=<year>`         | Sets the construction-timeline year, clamped to the modeled bounds.   |
 | `?evidence=<mode>`     | `observed`, `reported`, `interpretation` or `full-simulation`.        |
-| `?snapshot=YYYY-MM-DD` | Reads the model at a date the temporal ledger can be snapshotted at.  |
+| `?snapshot=YYYY-MM-DD` | Sets the evidence timeline to a date the temporal ledger holds.       |
+| `?year=<year>`         | Legacy: maps an old year-slider link to the matching timeline date.   |
 | `?compare=YYYY-MM-DD`  | Second date for a change comparison.                                  |
 | `?uncertainty=1`       | Draws spatial uncertainty envelopes (quality tier 2 and above).       |
 | `?night=1`             | Starts at night.                                                      |

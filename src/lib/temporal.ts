@@ -33,6 +33,7 @@ import {
   APRONS,
   SITE_SUBJECT_ID,
   STRUCTURES,
+  TIMELINE_BOUNDS,
   isAircraft,
   type ApronDef,
   type SegmentDef,
@@ -779,3 +780,69 @@ export function snapshotEstablishedCount(snapshot: TemporalSnapshot): number {
 
 /** The confidence scale is shared, so a snapshot readout cannot invent its own. */
 export const SNAPSHOT_CONFIDENCE_SCALE = CONFIDENCE_SCALE;
+
+/* ------------------------------------------------------------------ */
+/* Timeline stops                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * What the ledger records on one timeline date, so the interface can say why
+ * the picture changed there rather than just that it did. Both lists are
+ * read straight off the ledger: a source whose publication date this is, and a
+ * subject whose observation bound this is. Neither is a construction event.
+ */
+export interface TimelineStop {
+  date: string;
+  /** Sources first public on this date. */
+  publishedSourceIds: readonly string[];
+  /** Subjects first seen in imagery on this date (they existed *by* it). */
+  firstSeenSubjectIds: readonly string[];
+}
+
+export const TIMELINE_STOPS: readonly TimelineStop[] = Object.freeze(
+  TEMPORAL_SNAPSHOT_DATES.map((date): TimelineStop => ({
+    date,
+    publishedSourceIds: TEMPORAL_LEDGER.filter(
+      (event) => event.category === "evidence-publication" && event.latestDate === date,
+    ).flatMap((event) => event.sourceIds),
+    firstSeenSubjectIds: [
+      ...new Set(
+        TEMPORAL_LEDGER.filter(
+          (event) => event.scope === "real-site-claim" && event.latestDate === date,
+        ).map((event) => event.subjectId),
+      ),
+    ].sort(),
+  })),
+);
+
+/** Count of subjects publicly established by the snapshot date. */
+export function snapshotPubliclyEstablishedCount(snapshot: TemporalSnapshot): number {
+  return snapshot.subjects.filter((subject) => subject.publiclyEstablished).length;
+}
+
+/** Subjects that can ever be publicly established: everything with a site claim. */
+export const DATED_SUBJECT_COUNT = new Set(
+  TEMPORAL_LEDGER.filter((event) => event.scope === "real-site-claim").map(
+    (event) => event.subjectId,
+  ),
+).size;
+
+/**
+ * The evidence-timeline stop a calendar year maps to, for links and bookmarks
+ * made when the timeline was a year slider. The last modeled year meant
+ * "everything drawn", which is now; an earlier year is the last ledger date on
+ * or before its end. Out-of-range years clamp to the modeled bounds first,
+ * exactly as the slider did.
+ */
+export function snapshotDateForYear(year: number): string | null {
+  if (!Number.isFinite(year)) return null;
+  const clamped = Math.min(
+    TIMELINE_BOUNDS.maxYear,
+    Math.max(TIMELINE_BOUNDS.minYear, Math.round(year)),
+  );
+  if (clamped >= TIMELINE_BOUNDS.maxYear) return null;
+  const end = `${String(clamped).padStart(4, "0")}-12-31`;
+  let best: string | null = null;
+  for (const date of TEMPORAL_SNAPSHOT_DATES) if (date <= end) best = date;
+  return best ?? TEMPORAL_SNAPSHOT_DATES[0] ?? null;
+}

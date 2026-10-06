@@ -1,13 +1,20 @@
 # The temporal model
 
-The twin has had a timeline since early on: a year slider that hides anything
-whose `observedDate` is later than the selected year. It is useful, and it is
-also the whole extent of the model's sense of time — and it quietly conflates
-three different dates.
+The twin's time axis is the **evidence timeline**: one control whose stops are
+the dates the temporal ledger holds — a source becoming public, a feature first
+seen in imagery — and at each of which the scene draws what someone reading
+public sources that day could have drawn.
 
-`src/lib/temporal.ts` keeps them apart. This is the document that says which is
-which, because getting them confused is not a cosmetic problem: it is how a
-publication date becomes a construction date in a reader's head.
+It replaced a year slider labelled "construction timeline", which was wrong in
+two ways. Its dates were when things were first _seen_, never when they were
+built. And it drew twenty-three buildings in 2021 that no cited evidence placed
+anywhere before a September 2025 scene, because they had simply been left
+undated.
+
+`src/lib/temporal.ts` keeps three different dates apart. This is the document
+that says which is which, because getting them confused is not a cosmetic
+problem: it is how a publication date becomes a construction date in a reader's
+head.
 
 ## Three dates, never merged
 
@@ -107,13 +114,28 @@ deliberately does not merge them:
   An illustrative solar field has no appearance date because it has never
   appeared anywhere, and treating that as "not there yet" would assert history
   nobody has.
-- **Available evidence** — the records whose citing source was _published_ on or
-  before the date, and the classification and confidence that follows from that
-  subset.
+- **Available evidence** — the records whose claim was _knowable_ on or before
+  the date, and the classification and confidence that follows from that subset.
+  A record is knowable from the later of its source's publication and the
+  observation it rests on (`recordKnowability()` in `evidence.ts`, the only
+  place that decides it). A source cannot attest what had not yet been observed,
+  and the validator rejects a record that tries.
+- **Publicly established** — both at once: established by the date, on evidence
+  knowable by the date. This is what an analyst standing on that date could have
+  drawn, and it is what the scene draws solid.
 
-A hangar can be established by a September 2025 scene while the reporting that
+A hangar can be established by a September 2025 image while the reporting that
 identifies it was not published until November. An analyst standing in October
-could not have written the November sentence, and the snapshot reflects that.
+could not have written the November sentence, and the snapshot reflects that:
+the hangar is _established_ on 2025-09-28 in hindsight, and _publicly
+established_ only from 2025-11-04.
+
+Two bugs made the snapshot claim knowledge before it existed, and both are now
+rejected by the validator. The 2025 build-out cited the June 2021 NPR report, so
+in the 2021 snapshot it read as publicly reported four years before it was first
+seen. And twenty-three buildings cited the 2015 Sentinel-2 User Handbook as a
+second source, so in 2015 they read as interpreted from a sensor manual. The
+handbook is now a method reference on the uncertainty envelope, not a record.
 
 Snapshot dates come from the ledger itself — `TEMPORAL_SNAPSHOT_DATES` is every
 distinct date across all events, ascending. It is derived, not listed, so adding
@@ -142,22 +164,32 @@ comparison is checkable.
   table, the complete event ledger with the three dates in three separate
   columns, and the coverage-gap list. This is the representation that works
   without WebGL.
-- **The 3D timeline panel** carries the year slider unchanged, plus the two date
-  pickers and a one-line summary, with the full comparison a link away.
-- **The dossier** carries a subject's own events, each printing its estimated
-  site date, its publication date and its model-entry date on separate labelled
-  lines.
+- **The 3D evidence timeline** (`TimelineControl.tsx`) scrubs the ledger's dates,
+  with "now" — the model's current state — at the end. It says what happened on
+  each date (sources published, features first seen) and how many dated claims
+  were publicly established. The scene, the minimap, the site index and the
+  measurement ruler all read one three-valued predicate (`drawState.ts`):
+  **solid** when publicly established, **outline** when today's model holds it
+  but the evidence of that date does not establish it, **hidden** when the
+  evidence mode withholds it. Illustrative content is an outline at every past
+  date — it has never been established anywhere — and animated scene dressing
+  is left out of past dates entirely.
+- **The claim inspector** (the dossier, and the highlighted row on `/analysis`)
+  opens with what could be said on the timeline date, and prints the site date,
+  the publication date, the knowable-from date and the model-entry date on
+  separate labelled lines.
 
 ## What this model does not do
 
 - **It does not infer undocumented historical states.** There is no
   interpolation between dates and no assumption that an undated feature existed
   at any particular time.
-- **It does not render a ghosted earlier state in 3D.** The comparison is
-  rendered semantically, and a spatial ghost is deferred — see the README's
-  limitations. The information is complete on `/analysis`; only its spatial
-  rendering is absent.
-- **It does not treat the year slider and the snapshot date as the same
-  control.** The slider filters the scene at year granularity and is unchanged.
-  The snapshot reads the ledger at day granularity. They answer different
-  questions and are kept separate in the store.
+- **It does not read an outline as absence.** An outline means the model
+  contains this today and the public evidence of that date does not establish
+  it. It never means the thing was not there. The interface says so wherever an
+  outline appears.
+- **It does not animate between dates.** There is no interpolation and no
+  growth sequence; each stop is a snapshot of what the evidence supported then.
+- **It does not record when a claim entered this model.** That is a fact about
+  this repository, which has never kept per-subject history; the inspector
+  prints "not recorded by this repository" rather than the current version.

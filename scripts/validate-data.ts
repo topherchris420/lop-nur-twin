@@ -1,5 +1,4 @@
 import {
-  AIRCRAFT_ANALYSIS_PROFILES,
   ALL_SEGMENTS,
   APRONS,
   CIRCUIT_AIRCRAFT_ID,
@@ -27,10 +26,7 @@ import {
   WINDSOCK_POS,
   WINDSOCK_ENTITY_ID,
   getObservedYear,
-  getVisibleDatedAdditionCount,
-  isVisibleAtTimelineYear,
   segmentLength,
-  type AircraftAnalysisProfile,
 } from "../src/lib/layout";
 import {
   CLIMATE_MONTHS,
@@ -44,7 +40,10 @@ import {
   KNOWN_LIMITATIONS,
   PRIMARY_CRS,
   SUPPORTED_COORDINATE_REFERENCE_SYSTEMS,
+  earliestKnowableDate,
 } from "../src/lib/evidence";
+import { subjectDrawState } from "../src/lib/drawState";
+import { TEMPORAL_SNAPSHOT_DATES, deriveSnapshot } from "../src/lib/temporal";
 import { validateEvidenceLedger } from "../src/lib/evidenceValidation";
 import { QUALITY_PROFILES } from "../src/lib/quality";
 import {
@@ -346,29 +345,36 @@ if (datedLayoutYears.length > 0) {
     TIMELINE_BOUNDS.maxYear === Math.max(...datedLayoutYears),
     "Timeline maximum year must equal the latest dated layout record",
   );
-  check(
-    getVisibleDatedAdditionCount(TIMELINE_BOUNDS.maxYear) === datedLayoutYears.length,
-    "Latest timeline year must expose every dated layout addition",
-  );
-  check(
-    getVisibleDatedAdditionCount(TIMELINE_BOUNDS.minYear - 1) === 0,
-    "A year before the timeline must expose no dated additions",
-  );
 }
 check(
   getObservedYear({ observedDate: "2025-09-13" }) === 2025,
   "getObservedYear must parse the leading ISO year",
 );
 check(getObservedYear({}) === undefined, "getObservedYear must preserve unknown dates");
-check(
-  isVisibleAtTimelineYear({}, TIMELINE_BOUNDS.minYear - 100),
-  "Undated layout records must remain visible at every timeline year",
-);
-check(
-  !isVisibleAtTimelineYear({ observedDate: "2025-09-13" }, 2024) &&
-    isVisibleAtTimelineYear({ observedDate: "2025-09-13" }, 2025),
-  "Dated layout records must become visible in their observed year",
-);
+
+// The evidence timeline. At every ledger date the scene draws solid only what
+// was established by then on evidence public by then; these are the two
+// properties that make that true of the data rather than of one screenshot.
+const lastSnapshotDate = TEMPORAL_SNAPSHOT_DATES[TEMPORAL_SNAPSHOT_DATES.length - 1];
+for (const date of TEMPORAL_SNAPSHOT_DATES) {
+  for (const item of [...ALL_SEGMENTS, ...APRONS, ...STRUCTURES]) {
+    if (subjectDrawState(item.id, date, "full-simulation") !== "solid") continue;
+    const earliest = earliestKnowableDate(item.id);
+    check(
+      earliest !== undefined && earliest <= date,
+      `"${item.id}" is drawn solid at ${date}, before any evidence for it was public (${earliest ?? "none"})`,
+    );
+  }
+}
+if (lastSnapshotDate !== undefined) {
+  for (const subject of deriveSnapshot(lastSnapshotDate).subjects) {
+    if (subject.presence === "undated") continue;
+    check(
+      subject.publiclyEstablished,
+      `Dated subject "${subject.subjectId}" is still not publicly established at the last ledger date ${lastSnapshotDate}`,
+    );
+  }
+}
 
 const catalogIds = new Map<string, string>();
 for (const [catalog, items] of [
@@ -484,15 +490,6 @@ for (const tier of [0, 1, 2, 3] as const) {
     typeof profile.patrolHeadlightLights === "boolean",
     `Quality tier ${tier} patrol headlight-light flag must be boolean`,
   );
-  checkPositive(`Quality tier ${tier} overlay refresh`, [profile.overlayRefreshHz]);
-  check(
-    Number.isInteger(profile.overlayRangeSamples) && profile.overlayRangeSamples >= 3,
-    `Quality tier ${tier} overlay range samples must be an integer of at least 3`,
-  );
-  check(
-    Number.isInteger(profile.overlayRadarSamples) && profile.overlayRadarSamples >= 2,
-    `Quality tier ${tier} overlay radar samples must be an integer of at least 2`,
-  );
   if (tier > 0) {
     const previous = QUALITY_PROFILES[(tier - 1) as 0 | 1 | 2];
     check(
@@ -510,18 +507,6 @@ for (const tier of [0, 1, 2, 3] as const) {
     check(
       profile.patrolVehicleCount >= previous.patrolVehicleCount,
       `Quality tier ${tier} patrol count must not decrease`,
-    );
-    check(
-      profile.overlayRefreshHz >= previous.overlayRefreshHz,
-      `Quality tier ${tier} overlay refresh must not decrease`,
-    );
-    check(
-      profile.overlayRangeSamples >= previous.overlayRangeSamples,
-      `Quality tier ${tier} overlay range samples must not decrease`,
-    );
-    check(
-      profile.overlayRadarSamples >= previous.overlayRadarSamples,
-      `Quality tier ${tier} overlay radar samples must not decrease`,
     );
     check(
       !previous.patrolHeadlightLights || profile.patrolHeadlightLights,
@@ -577,41 +562,6 @@ check(
   "Perimeter patrol route must have positive total length",
 );
 
-// Widened for the same reason as the source register: `altitudeM` is set on
-// one profile only, and the literal union hides it from the others.
-const aircraftAnalysisProfiles: Readonly<Record<string, AircraftAnalysisProfile>> =
-  AIRCRAFT_ANALYSIS_PROFILES;
-for (const [id, profile] of Object.entries(aircraftAnalysisProfiles)) {
-  check(
-    profile.label.trim().length > 0,
-    `Aircraft analysis profile '${id}' must have a label`,
-  );
-  checkPositive(`Aircraft analysis profile '${id}' ranges`, [
-    profile.scenarioRadiusM,
-    profile.radarRangeM,
-  ]);
-  check(
-    profile.scenarioRadiusM <= SITE_SIZE && profile.radarRangeM <= SITE_SIZE,
-    `Aircraft analysis profile '${id}' ranges must remain within the modeled site scale`,
-  );
-  check(
-    isFiniteNumber(profile.radarFovDeg) &&
-      profile.radarFovDeg > 0 &&
-      profile.radarFovDeg <= 360,
-    `Aircraft analysis profile '${id}' radar FOV must be in (0, 360]`,
-  );
-  if (profile.altitudeM !== undefined) {
-    check(
-      isFiniteNumber(profile.altitudeM) && profile.altitudeM >= 0,
-      `Aircraft analysis profile '${id}' altitude must be finite and non-negative`,
-    );
-  }
-  check(
-    /(illustrative|notional|hypothetical)/i.test(profile.disclaimer) &&
-      /not operational/i.test(profile.disclaimer),
-    `Aircraft analysis profile '${id}' disclaimer must mark values as illustrative/notional and not operational`,
-  );
-}
 checkPoint("Radar position", RADAR_POS, [0, 1]);
 checkPoint("Windsock position", WINDSOCK_POS, [0, 1]);
 
@@ -667,12 +617,7 @@ if (runway) {
     Math.abs(measuredBearing - SITE_PROFILE.runway.modeledGridBearingDeg) <= 0.5,
     `Measured runway bearing ${measuredBearing.toFixed(2)} degrees must match the documented ${SITE_PROFILE.runway.modeledGridBearingDeg}`,
   );
-  const snappedThreshold = snapWorldPoint(
-    runway.from[0],
-    runway.from[1],
-    5,
-    TIMELINE_BOUNDS.maxYear,
-  );
+  const snappedThreshold = snapWorldPoint(runway.from[0], runway.from[1], 5, null);
   check(
     snappedThreshold !== null &&
       Math.abs(snappedThreshold.x - runway.from[0]) <= 1e-6 &&
