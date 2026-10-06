@@ -29,6 +29,7 @@ ledger.
 - [Late answers fail closed](#late-answers-fail-closed)
 - [Cost is unknown until someone knows it](#cost-is-unknown-until-someone-knows-it)
 - [Contribution, not decomposition](#contribution-not-decomposition)
+- [Same observations, other minds](#same-observations-other-minds)
 - [How much evidence a run is](#how-much-evidence-a-run-is)
 - [Ways this benchmark can fool us](#ways-this-benchmark-can-fool-us)
 - [What it does not establish](#what-it-does-not-establish)
@@ -193,6 +194,41 @@ It deliberately does not print "the model contributed 62%". Effects here
 interact — the aiming controller is worth far more to a brain that engages
 than to one that hides — so shares of a total do not add up, and a
 decomposition would be a number the design cannot support.
+
+## Same observations, other minds
+
+A matched seed pairs the start of a match and nothing after it: frame pacing is
+not deterministic, and after the first decision no two seats ever see the same
+thing again. So outcome comparisons are always between different situations.
+
+The decision records allow a sharper comparison. Each holds the exact
+observation a choice was made from, and the scripted reference policies are
+pure functions of an observation and two counters. `src/game/eval/shadow.ts`
+shows an arm's observations, in order, to the marksman and the skirmisher, and
+counts on how many decisions, axis by axis, the arm chose what the reference
+would have chosen. `node tools/experiment.mjs --shadow <run dir>` writes
+`shadow.json` and `shadow.md` from a run's archived records without playing a
+match or calling a model, and `/evaluation` shows them; opening a single
+episode's records there computes the same table for that episode.
+
+Four rules keep it honest:
+
+- **Chance is exact, not simulated.** On an axis offering _k_ options, a uniform
+  chooser agrees with any fixed choice with probability 1/_k_; every cell prints
+  that baseline beside the agreement. An axis offering one option is not a
+  choice and is left out of both.
+- **The random arm is the control and the reference arm is the ceiling.** Random
+  must sit at chance on every axis; a policy shown its own observations shows
+  how close to 100% the instrument can get, and why not exactly.
+- **The episode is the unit.** Decisions within an episode are correlated, so
+  rates are averaged per episode and never pooled into a falsely precise figure.
+- **It is agreement, not a counterfactual and not a score.** The reference acted
+  on nothing — had it held the seat, its own choices would have changed every
+  later observation — and agreeing with a hand-written rule is good only where
+  the rule is. Agreement does not say why two choosers agree.
+
+The first use is in the
+[5 October record](benchmarks/2026-10-05/README.md#same-observations-other-minds).
 
 ## How much evidence a run is
 

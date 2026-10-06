@@ -1,0 +1,849 @@
+{
+  "schema": "blacksite-shadow/v1",
+  "run": "glide-jev-even",
+  "runId": "glide-jev-even-v1-2026-10-05T21-16-22-737Z",
+  "gitCommit": "f8f7cce1e5aff4f026afc946a913bcd16bd1059a",
+  "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is.",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "references": [
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "marksman",
+          "episodes": 10,
+          "compared": 4745,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.6283773247850338,
+              "chance": 0.09090909090909136,
+              "lift": 0.5374682338759426,
+              "liftInterval": {
+                "lo": 0.4784639883524578,
+                "hi": 0.5964724793994274,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.2660078857742045,
+              "chance": 0.10000000000000087,
+              "lift": 0.1660078857742037,
+              "liftInterval": {
+                "lo": 0.08851996714876505,
+                "hi": 0.24349580439964236,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.6004039871255873,
+              "chance": 0.1428571428571439,
+              "lift": 0.4575468442684434,
+              "liftInterval": {
+                "lo": 0.2895016523902725,
+                "hi": 0.6255920361466143,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.8449422864668037,
+              "chance": 0.18540423399645473,
+              "lift": 0.6595380524703489,
+              "liftInterval": {
+                "lo": 0.4942734473056217,
+                "hi": 0.8248026576350761,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 301,
+              "agreement": 0.7039215874930005,
+              "chance": 0.45586647510989337,
+              "lift": 0.24805511238310712,
+              "liftInterval": {
+                "lo": 0.028865844656807776,
+                "hi": 0.4672443801094065,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 301,
+              "agreement": 0.6503989180581985,
+              "chance": 0.3333333333333334,
+              "lift": 0.317065584724865,
+              "liftInterval": {
+                "lo": 0.16797861285160254,
+                "hi": 0.4661525565981275,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 3291,
+              "agreement": 0.021933015945769095,
+              "chance": 0.2582997122780494,
+              "lift": -0.23636669633228022,
+              "liftInterval": {
+                "lo": -0.25325924177962283,
+                "hi": -0.2194741508849376,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        },
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "skirmisher",
+          "episodes": 10,
+          "compared": 4745,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.6283773247850338,
+              "chance": 0.09090909090909136,
+              "lift": 0.5374682338759426,
+              "liftInterval": {
+                "lo": 0.4784639883524578,
+                "hi": 0.5964724793994274,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.2660078857742045,
+              "chance": 0.10000000000000087,
+              "lift": 0.1660078857742037,
+              "liftInterval": {
+                "lo": 0.08851996714876505,
+                "hi": 0.24349580439964236,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.6004039871255873,
+              "chance": 0.1428571428571439,
+              "lift": 0.4575468442684434,
+              "liftInterval": {
+                "lo": 0.2895016523902725,
+                "hi": 0.6255920361466143,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 4745,
+              "agreement": 0.8449422864668037,
+              "chance": 0.18540423399645473,
+              "lift": 0.6595380524703489,
+              "liftInterval": {
+                "lo": 0.4942734473056217,
+                "hi": 0.8248026576350761,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 301,
+              "agreement": 0.7039215874930005,
+              "chance": 0.45586647510989337,
+              "lift": 0.24805511238310712,
+              "liftInterval": {
+                "lo": 0.028865844656807776,
+                "hi": 0.4672443801094065,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 301,
+              "agreement": 0.6503989180581985,
+              "chance": 0.3333333333333334,
+              "lift": 0.317065584724865,
+              "liftInterval": {
+                "lo": 0.16797861285160254,
+                "hi": 0.4661525565981275,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 3291,
+              "agreement": 0.8188353789270716,
+              "chance": 0.2582997122780494,
+              "lift": 0.5605356666490223,
+              "liftInterval": {
+                "lo": 0.5454986507667307,
+                "hi": 0.575572682531314,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        }
+      ]
+    },
+    {
+      "id": "glide",
+      "brain": "glide",
+      "references": [
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "marksman",
+          "episodes": 10,
+          "compared": 962,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.8948939315920066,
+              "chance": 0.09090909090909095,
+              "lift": 0.8039848406829158,
+              "liftInterval": {
+                "lo": 0.6673821699716495,
+                "hi": 0.9405875113941821,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.5598697197584659,
+              "chance": 0.09999999999999983,
+              "lift": 0.45986971975846613,
+              "liftInterval": {
+                "lo": 0.3501357864465766,
+                "hi": 0.5696036530703557,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.6043857808424312,
+              "chance": 0.14285714285714274,
+              "lift": 0.46152863798528854,
+              "liftInterval": {
+                "lo": 0.23555538978068205,
+                "hi": 0.687501886189895,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.8276422244643804,
+              "chance": 0.18087175058231558,
+              "lift": 0.6467704738820647,
+              "liftInterval": {
+                "lo": 0.4817247648211045,
+                "hi": 0.8118161829430248,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 193,
+              "agreement": 0.8615817303136227,
+              "chance": 0.37215104688408474,
+              "lift": 0.489430683429538,
+              "liftInterval": {
+                "lo": 0.3908839155340475,
+                "hi": 0.5879774513250284,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 193,
+              "agreement": 0.024640400250156347,
+              "chance": 0.33333333333333337,
+              "lift": -0.308692933083177,
+              "liftInterval": {
+                "lo": -0.35306436374316585,
+                "hi": -0.2643215024231882,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 527,
+              "agreement": 0.1875093833173349,
+              "chance": 0.28000632812289983,
+              "lift": -0.09249694480556495,
+              "liftInterval": {
+                "lo": -0.23167588460177005,
+                "hi": 0.04668199499064016,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        },
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "skirmisher",
+          "episodes": 10,
+          "compared": 962,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.8948939315920066,
+              "chance": 0.09090909090909095,
+              "lift": 0.8039848406829158,
+              "liftInterval": {
+                "lo": 0.6673821699716495,
+                "hi": 0.9405875113941821,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.5598697197584659,
+              "chance": 0.09999999999999983,
+              "lift": 0.45986971975846613,
+              "liftInterval": {
+                "lo": 0.3501357864465766,
+                "hi": 0.5696036530703557,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.6043857808424312,
+              "chance": 0.14285714285714274,
+              "lift": 0.46152863798528854,
+              "liftInterval": {
+                "lo": 0.23555538978068205,
+                "hi": 0.687501886189895,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 962,
+              "agreement": 0.8276422244643804,
+              "chance": 0.18087175058231558,
+              "lift": 0.6467704738820647,
+              "liftInterval": {
+                "lo": 0.4817247648211045,
+                "hi": 0.8118161829430248,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 193,
+              "agreement": 0.8615817303136227,
+              "chance": 0.37215104688408474,
+              "lift": 0.489430683429538,
+              "liftInterval": {
+                "lo": 0.3908839155340475,
+                "hi": 0.5879774513250284,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 193,
+              "agreement": 0.024640400250156347,
+              "chance": 0.33333333333333337,
+              "lift": -0.308692933083177,
+              "liftInterval": {
+                "lo": -0.35306436374316585,
+                "hi": -0.2643215024231882,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 527,
+              "agreement": 0.587421184321021,
+              "chance": 0.28000632812289983,
+              "lift": 0.30741485619812126,
+              "liftInterval": {
+                "lo": 0.18580506904069688,
+                "hi": 0.42902464335554563,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        }
+      ]
+    },
+    {
+      "id": "marksman",
+      "brain": "script",
+      "references": [
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "marksman",
+          "episodes": 10,
+          "compared": 5304,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.09090909090909159,
+              "lift": 0.9090909090909085,
+              "liftInterval": {
+                "lo": 0.9090909090909084,
+                "hi": 0.9090909090909086,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 0.9736024689835598,
+              "chance": 0.1000000000000009,
+              "lift": 0.8736024689835592,
+              "liftInterval": {
+                "lo": 0.8697342600110194,
+                "hi": 0.877470677956099,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.14285714285714332,
+              "lift": 0.8571428571428565,
+              "liftInterval": {
+                "lo": 0.8571428571428564,
+                "hi": 0.8571428571428567,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.20567325439324313,
+              "lift": 0.7943267456067569,
+              "liftInterval": {
+                "lo": 0.7886633459045245,
+                "hi": 0.7999901453089893,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 1326,
+              "agreement": 1,
+              "chance": 0.4505446584856749,
+              "lift": 0.5494553415143252,
+              "liftInterval": {
+                "lo": 0.5341908587586242,
+                "hi": 0.5647198242700262,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 1326,
+              "agreement": 1,
+              "chance": 0.3333333333333336,
+              "lift": 0.6666666666666665,
+              "liftInterval": {
+                "lo": 0.6666666666666662,
+                "hi": 0.6666666666666669,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 2453,
+              "agreement": 1,
+              "chance": 0.2573202317800993,
+              "lift": 0.7426797682199007,
+              "liftInterval": {
+                "lo": 0.7377255736260211,
+                "hi": 0.7476339628137803,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        },
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "skirmisher",
+          "episodes": 10,
+          "compared": 5304,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.09090909090909159,
+              "lift": 0.9090909090909085,
+              "liftInterval": {
+                "lo": 0.9090909090909084,
+                "hi": 0.9090909090909086,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 0.9736024689835598,
+              "chance": 0.1000000000000009,
+              "lift": 0.8736024689835592,
+              "liftInterval": {
+                "lo": 0.8697342600110194,
+                "hi": 0.877470677956099,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.14285714285714332,
+              "lift": 0.8571428571428565,
+              "liftInterval": {
+                "lo": 0.8571428571428564,
+                "hi": 0.8571428571428567,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 5304,
+              "agreement": 1,
+              "chance": 0.20567325439324313,
+              "lift": 0.7943267456067569,
+              "liftInterval": {
+                "lo": 0.7886633459045245,
+                "hi": 0.7999901453089893,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 10,
+              "choices": 1326,
+              "agreement": 1,
+              "chance": 0.4505446584856749,
+              "lift": 0.5494553415143252,
+              "liftInterval": {
+                "lo": 0.5341908587586242,
+                "hi": 0.5647198242700262,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 10,
+              "choices": 1326,
+              "agreement": 1,
+              "chance": 0.3333333333333336,
+              "lift": 0.6666666666666665,
+              "liftInterval": {
+                "lo": 0.6666666666666662,
+                "hi": 0.6666666666666669,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 2453,
+              "agreement": 0.0400812275561458,
+              "chance": 0.2573202317800993,
+              "lift": -0.21723900422395345,
+              "liftInterval": {
+                "lo": -0.24542669812270645,
+                "hi": -0.18905131032520045,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        }
+      ]
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "references": [
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "marksman",
+          "episodes": 10,
+          "compared": 5024,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.09843357912426048,
+              "chance": 0.09387132617119733,
+              "lift": 0.004562252953063187,
+              "liftInterval": {
+                "lo": -0.005548570849858853,
+                "hi": 0.014673076755985226,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.09994794318174885,
+              "chance": 0.1000000000000009,
+              "lift": -0.00005205681825202202,
+              "liftInterval": {
+                "lo": -0.009150564272625493,
+                "hi": 0.00904645063612145,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.15316836304270082,
+              "chance": 0.1433412671516992,
+              "lift": 0.009827095891001631,
+              "liftInterval": {
+                "lo": -0.001617795523235037,
+                "hi": 0.0212719873052383,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.29745878027516814,
+              "chance": 0.2936103198019394,
+              "lift": 0.003848460473228804,
+              "liftInterval": {
+                "lo": -0.006851676848940904,
+                "hi": 0.01454859779539851,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 9,
+              "choices": 1008,
+              "agreement": 0.3534364548310971,
+              "chance": 0.3384225657689732,
+              "lift": 0.015013889062123805,
+              "liftInterval": {
+                "lo": -0.02564613367564472,
+                "hi": 0.055673911799892326,
+                "method": "95% t interval, n=9"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 9,
+              "choices": 1008,
+              "agreement": 0.2972067513932026,
+              "chance": 0.3333333333333337,
+              "lift": -0.0361265819401311,
+              "liftInterval": {
+                "lo": -0.10002881544251567,
+                "hi": 0.027775651562253464,
+                "method": "95% t interval, n=9"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 2911,
+              "agreement": 0.22997788365075938,
+              "chance": 0.23835136052904132,
+              "lift": -0.008373476878281941,
+              "liftInterval": {
+                "lo": -0.027210958478720584,
+                "hi": 0.010464004722156701,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        },
+        {
+          "schema": "blacksite-shadow/v1",
+          "reference": "skirmisher",
+          "episodes": 10,
+          "compared": 5024,
+          "setAside": 0,
+          "skipped": 0,
+          "axes": [
+            {
+              "axis": "move",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.09843357912426048,
+              "chance": 0.09387132617119733,
+              "lift": 0.004562252953063187,
+              "liftInterval": {
+                "lo": -0.005548570849858853,
+                "hi": 0.014673076755985226,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "turn",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.09994794318174885,
+              "chance": 0.1000000000000009,
+              "lift": -0.00005205681825202202,
+              "liftInterval": {
+                "lo": -0.009150564272625493,
+                "hi": 0.00904645063612145,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "tilt",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.15316836304270082,
+              "chance": 0.1433412671516992,
+              "lift": 0.009827095891001631,
+              "liftInterval": {
+                "lo": -0.001617795523235037,
+                "hi": 0.0212719873052383,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "weapon",
+              "episodes": 10,
+              "choices": 5024,
+              "agreement": 0.29745878027516814,
+              "chance": 0.2936103198019394,
+              "lift": 0.003848460473228804,
+              "liftInterval": {
+                "lo": -0.006851676848940904,
+                "hi": 0.01454859779539851,
+                "method": "95% t interval, n=10"
+              }
+            },
+            {
+              "axis": "target",
+              "episodes": 9,
+              "choices": 1008,
+              "agreement": 0.3534364548310971,
+              "chance": 0.3384225657689732,
+              "lift": 0.015013889062123805,
+              "liftInterval": {
+                "lo": -0.02564613367564472,
+                "hi": 0.055673911799892326,
+                "method": "95% t interval, n=9"
+              }
+            },
+            {
+              "axis": "aim",
+              "episodes": 9,
+              "choices": 1008,
+              "agreement": 0.2972067513932026,
+              "chance": 0.3333333333333337,
+              "lift": -0.0361265819401311,
+              "liftInterval": {
+                "lo": -0.10002881544251567,
+                "hi": 0.027775651562253464,
+                "method": "95% t interval, n=9"
+              }
+            },
+            {
+              "axis": "go",
+              "episodes": 10,
+              "choices": 2911,
+              "agreement": 0.25360376027096904,
+              "chance": 0.23835136052904132,
+              "lift": 0.015252399741927705,
+              "liftInterval": {
+                "lo": -0.007996217855708655,
+                "hi": 0.03850101733956406,
+                "method": "95% t interval, n=10"
+              }
+            }
+          ],
+          "caveat": "Agreement on identical observations, not a counterfactual outcome and not a skill score: the reference acted on nothing, and agreeing with a hand-written rule is good only where the rule is."
+        }
+      ]
+    }
+  ]
+}

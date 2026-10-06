@@ -9,6 +9,7 @@
  *   LLM_LIVE_TEST=1 node tools/experiment.mjs tools/experiments/llm-comparison.json
  *   node tools/experiment.mjs --evaluate shots/experiments/<run>      # re-score saved artifacts
  *   node tools/experiment.mjs --compare a/evaluation.json b/evaluation.json
+ *   node tools/experiment.mjs --shadow docs/benchmarks/<date>/<run>   # same observations, other minds
  *
  * An experiment file (`blacksite-experiment/v1`, see
  * `src/game/eval/experimentSpec.ts`) states its question, hypothesis, primary
@@ -66,6 +67,7 @@ const contract = await import("../src/game/pilot/contract.ts");
 const records = await import("../src/game/eval/records.ts");
 const llm = await import("../src/game/pilot/llmDecision.ts");
 const recorder = await import("../src/game/pilot/recorder.ts");
+const shadowLib = await import("../src/game/eval/shadow.ts");
 
 function option(name, fallback) {
   const index = process.argv.indexOf(`--${name}`);
@@ -537,7 +539,81 @@ function archive(source, destination) {
   evaluate(destination);
 }
 
+/**
+ * Same observations, other minds: show every arm's recorded observations, in
+ * order, to the scripted reference policies, and report per-axis agreement
+ * with what the arm chose against the exact agreement of a uniform chooser.
+ * Reads the run's own decision records; runs nothing and calls nothing. Writes
+ * shadow.json (blacksite-shadow/v1) and shadow.md beside the evaluation.
+ */
+function shadow(dir) {
+  const runs = JSON.parse(readFileSync(join(dir, "runs.json"), "utf8"));
+  const arms = runs.arms
+    .map((entry) => loadArm(dir, entry))
+    .filter((arm) => arm.episodes.length > 0);
+  const pct = (value) => (value === null ? "—" : `${(value * 100).toFixed(0)}%`);
+  const axes = contract.AXES;
+  const lines = [
+    `# Same observations, other minds — ${basename(dir)}`,
+    "",
+    `Each arm's recorded observations, shown in order to the scripted reference policies. Cells are agreement with the arm's choice, with the exact agreement of a uniform chooser over the same offered options in parentheses; an axis that offered one option is not a choice and is left out. Means over episodes, the unit.`,
+    "",
+    `> ${shadowLib.SHADOW_CAVEAT}`,
+    "",
+    `| Arm | Reference | Decisions | ${axes.join(" | ")} |`,
+    `| :-- | :-- | --: | ${axes.map(() => "--:").join(" | ")} |`,
+  ];
+  const result = {
+    schema: shadowLib.SHADOW_SCHEMA,
+    run: basename(dir),
+    runId: runs.runId ?? null,
+    gitCommit: runs.git?.commit ?? null,
+    caveat: shadowLib.SHADOW_CAVEAT,
+    arms: [],
+  };
+  console.log(`same observations, other minds · ${basename(dir)}`);
+  console.log(`  ${shadowLib.SHADOW_CAVEAT}`);
+  for (const arm of arms) {
+    const references = shadowLib.SHADOW_REFERENCES.map((reference) =>
+      shadowLib.summarizeShadow(
+        reference,
+        arm.episodes.map((episode) =>
+          shadowLib.shadowEpisode(
+            {
+              episodeId: episode.runId,
+              seed: episode.seed,
+              decisions: episode.decisions,
+            },
+            reference,
+          ),
+        ),
+      ),
+    );
+    result.arms.push({ id: arm.arm.id, brain: arm.arm.brain, references });
+    for (const summary of references) {
+      const cells = axes.map((axis) => {
+        const row = summary.axes.find((candidate) => candidate.axis === axis);
+        return row && row.episodes > 0
+          ? `${pct(row.agreement)} (${pct(row.chance)})`
+          : "—";
+      });
+      lines.push(
+        `| ${arm.arm.id} | ${summary.reference} | ${summary.compared} | ${cells.join(" | ")} |`,
+      );
+      console.log(
+        `  ${arm.arm.id.padEnd(20)} vs ${summary.reference.padEnd(10)} n=${String(summary.compared).padStart(5)}  ${axes
+          .map((axis, index) => `${axis} ${cells[index]}`)
+          .join("  ")}`,
+      );
+    }
+  }
+  writeFileSync(join(dir, "shadow.json"), `${JSON.stringify(result, null, 2)}\n`);
+  writeFileSync(join(dir, "shadow.md"), `${lines.join("\n")}\n`);
+  console.log(`  wrote ${join(dir, "shadow.json")} and shadow.md`);
+}
+
 const compareIndex = process.argv.indexOf("--compare");
+const shadowDir = option("shadow", null);
 const archiveIndex = process.argv.indexOf("--archive");
 const evaluateDir = option("evaluate", null);
 if (compareIndex >= 0) {
@@ -546,13 +622,16 @@ if (compareIndex >= 0) {
   archive(process.argv[archiveIndex + 1], process.argv[archiveIndex + 2]);
 } else if (evaluateDir) {
   evaluate(evaluateDir);
+} else if (shadowDir) {
+  shadow(shadowDir);
 } else {
   const file = process.argv.slice(2).find((arg) => arg.endsWith(".json"));
   if (!file) {
     console.error(
       "usage: node tools/experiment.mjs <experiment.json> [--preset quick|dev|eval] [--duration s] [--arms a,b] [--dry-run] [--out dir] [--origin url] [--pricing file] [--require-live]\n" +
         "       node tools/experiment.mjs --evaluate <run dir>\n" +
-        "       node tools/experiment.mjs --compare a/evaluation.json b/evaluation.json",
+        "       node tools/experiment.mjs --compare a/evaluation.json b/evaluation.json\n" +
+        "       node tools/experiment.mjs --shadow <run dir>",
     );
     process.exit(2);
   }

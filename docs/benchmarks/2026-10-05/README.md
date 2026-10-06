@@ -255,6 +255,69 @@ median stayed near 145–150 ms, and the browser round trip rose by about 20 ms
 under load. The first two Jev episodes of the even-rules run finished before the
 direct-control run started.
 
+## Same observations, other minds
+
+Added 2026-10-06 from the archived decision records above; nothing was re-run
+and no model was called. A matched seed pairs only the start of a match — the
+worlds diverge within seconds — but every decision record holds the exact
+observation the seat chose from, and the scripted reference policies are pure
+functions of an observation and two counters. So each arm's observations were
+shown, in order, to the marksman and the skirmisher, and every axis that offered
+more than one option was compared with what the arm chose. Chance is exact: a
+uniform chooser over _k_ offered options agrees with any fixed choice with
+probability 1/_k_. Means over episodes, the unit.
+
+> Agreement on identical observations, not a counterfactual outcome and not a
+> skill score: the reference acted on nothing, and agreeing with a hand-written
+> rule is good only where the rule is.
+
+Even rules, with the aiming controller (`glide-jev-even`; cells are agreement,
+then chance):
+
+| Arm      | Reference  | Decisions |      move |      turn |       tilt |     weapon |     target |        aim |         go |
+| :------- | :--------- | --------: | --------: | --------: | ---------: | ---------: | ---------: | ---------: | ---------: |
+| jev      | marksman   |     4,745 |  63% (9%) | 27% (10%) |  60% (14%) |  84% (19%) |  70% (46%) |  65% (33%) |   2% (26%) |
+| jev      | skirmisher |     4,745 |  63% (9%) | 27% (10%) |  60% (14%) |  84% (19%) |  70% (46%) |  65% (33%) |  82% (26%) |
+| glide    | marksman   |       962 |  89% (9%) | 56% (10%) |  60% (14%) |  83% (18%) |  86% (37%) |   2% (33%) |  19% (28%) |
+| glide    | skirmisher |       962 |  89% (9%) | 56% (10%) |  60% (14%) |  83% (18%) |  86% (37%) |   2% (33%) |  59% (28%) |
+| marksman | marksman   |     5,304 | 100% (9%) | 97% (10%) | 100% (14%) | 100% (21%) | 100% (45%) | 100% (33%) | 100% (26%) |
+| random   | marksman   |     5,024 |  10% (9%) | 10% (10%) |  15% (14%) |  30% (29%) |  35% (34%) |  30% (33%) |  23% (24%) |
+
+What the table can and cannot carry:
+
+- **The instrument checks out.** The random arm sits at chance on every axis,
+  which is what a comparison that measured nothing would show for everyone.
+  The marksman shown its own observations agrees on every axis but `turn`, at
+  97%: each archived episode's records begin at its 15th or 16th decision,
+  after the benchmark's warm-up reset, so the policy's sweep counter starts out
+  of phase with the one that played. That is the ceiling, and its cause.
+- **Both models choose like the scripted rules far more often than chance** on
+  firing (84% and 83%, against about 19%) and on which visible enemy to engage
+  (70% and 86%, against 46% and 37%). Jev's place choices match the
+  skirmisher's 82% of the time (chance 26%). Agreement does not say why: two
+  choosers can agree because they apply the same rule, or because both favour
+  the option listed first.
+- **On where to aim, Glide departs from the rule almost completely.** Where the
+  aim region was a real choice, Glide chose `CENTER_MASS` in 94.8% of 193
+  decisions; the marksman aims for the head beyond 40 m or wherever the chest is
+  hidden, and chose `HEAD` in 97.7% of its 1,326. Glide's agreement there is 2%,
+  against a chance of 33%. Jev chose `HEAD` in 63.5% of 301.
+- **The marksman never moves**, so agreement on `move` is the share of
+  decisions spent holding still: 89% for Glide against 63% for Jev, consistent
+  with Glide walking about a third as far.
+- **The two references differ only in `go`.** Under places navigation the
+  skirmisher is the marksman with a plan for its feet, so each arm's two rows
+  match on every other axis.
+
+The two-seed smoke test (`glide-jev-comparison`) shows the same pattern,
+Glide's aim agreement included (0% against 33%). Direct control
+(`glide-jev-direct`) offers no target or aim axis, so the aim finding cannot
+appear there; Glide still holds still (95%) and Jev's place choices still match
+the skirmisher's (84%), but Glide's firing agrees with the marksman's less often
+(55% against a chance of 20%). Each directory's `shadow.md` has its table, and
+`/evaluation` shows them beside the archived evaluation. Reproduce with
+`node tools/experiment.mjs --shadow docs/benchmarks/2026-10-05/glide-jev-even`.
+
 ## Two seeds, mercy rules: the smoke test
 
 `tools/experiments/glide-jev-comparison.json`, definition `f16d1ec31051870b`,

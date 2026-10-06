@@ -23,6 +23,12 @@ import {
   readRecordsFile,
   type EpisodeRecords,
 } from "@/game/eval/ui/DecisionTrace";
+import {
+  EpisodeShadow,
+  ShadowTable,
+  parseShadowFile,
+  type ShadowFile,
+} from "@/game/eval/ui/ShadowAgreement";
 
 /**
  * `/evaluation` — read a Blacksite evaluation (`blacksite-evaluation/v1`).
@@ -45,6 +51,10 @@ export const Route = createFileRoute("/evaluation")({
 
 const ARCHIVED = import.meta.glob<{ default: unknown }>(
   "/docs/benchmarks/**/evaluation.json",
+);
+/** Shadow agreement written beside an archived evaluation by `--shadow`. */
+const ARCHIVED_SHADOW = import.meta.glob<{ default: unknown }>(
+  "/docs/benchmarks/**/shadow.json",
 );
 const MAX_EVALUATION_BYTES = 32 * 1024 * 1024;
 
@@ -588,11 +598,30 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
 function EvaluationBody({
   evaluation,
   base,
+  shadowPath,
 }: {
   evaluation: Evaluation;
   base: string | null;
+  shadowPath: string | null;
 }) {
   const e = evaluation.experiment;
+  const [shadow, setShadow] = useState<ShadowFile | null>(null);
+  useEffect(() => {
+    setShadow(null);
+    const load = shadowPath === null ? undefined : ARCHIVED_SHADOW[shadowPath];
+    if (load === undefined) return;
+    let cancelled = false;
+    load()
+      .then((module) => {
+        if (!cancelled) setShadow(parseShadowFile(module.default));
+      })
+      .catch(() => {
+        if (!cancelled) setShadow(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [shadowPath]);
   const contract = e.decisionType ? decisionType(e.decisionType.id) : null;
   const [records, setRecords] = useState<EpisodeRecords | null>(null);
   const [recordsError, setRecordsError] = useState<string | null>(null);
@@ -900,7 +929,27 @@ function EvaluationBody({
           ) : null}
         </div>
         {records ? <DecisionTrace records={records} contract={contract} /> : null}
+        {records ? <EpisodeShadow records={records} /> : null}
       </Section>
+
+      {shadow === null ? null : (
+        <Section id="shadow" title="Same observations, other minds">
+          <p className="text-muted-foreground max-w-4xl text-sm leading-relaxed">
+            Every arm&rsquo;s recorded observations, shown in order to the scripted
+            reference policies: how often the arm chose what a hand-written rule would
+            have chosen from the identical observation. A matched seed pairs only the
+            start of a match; this pairs every decision. {shadow.caveat} The random arm is
+            the control: it should sit at chance, and an arm compared with its own policy
+            shows the instrument&rsquo;s ceiling.
+          </p>
+          <div className="mt-3">
+            <ShadowTable
+              arms={shadow.arms}
+              caption={`${shadow.run}: means over episodes, the unit; read with the caveat above.`}
+            />
+          </div>
+        </Section>
+      )}
 
       <Section id="notes" title="Notes">
         <ul className="list-disc space-y-1 pl-5 text-sm">
@@ -1050,6 +1099,11 @@ function EvaluationView() {
             base={
               label?.startsWith("/docs/")
                 ? label.replace(/\/evaluation\.json$/, "").slice(1)
+                : null
+            }
+            shadowPath={
+              label?.startsWith("/docs/")
+                ? label.replace(/\/evaluation\.json$/, "/shadow.json")
                 : null
             }
           />

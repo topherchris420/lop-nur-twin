@@ -272,8 +272,12 @@ export class ScriptedProvider implements DecisionProvider {
   readonly kind = "script" as const;
   readonly descriptor: BrainDescriptor;
   private readonly memory: PolicyMemory = { decisions: 0, quiet: 0 };
+  readonly policy: ScriptPolicy;
 
-  constructor(readonly policy: ScriptPolicy) {
+  // An explicit field rather than a parameter property: the evaluation tools
+  // load this module under Node's type stripping, which does not support them.
+  constructor(policy: ScriptPolicy) {
+    this.policy = policy;
     this.descriptor = {
       id: `script:${policy}`,
       kind: "script",
