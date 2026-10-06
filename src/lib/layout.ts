@@ -1,10 +1,4 @@
-import {
-  SITE_PROFILE,
-  type Evidence,
-  type EvidenceConfidence,
-  type EvidenceStatus,
-  type SourceId,
-} from "./siteData";
+import { SITE_PROFILE, type Evidence } from "./siteData";
 
 export const SITE_SIZE = SITE_PROFILE.worldExtentM;
 
@@ -53,12 +47,54 @@ const CV: [number, number] = [Math.sin(COMPOUND_ROT), Math.cos(COMPOUND_ROT)];
 // prettier-ignore
 export function compound(u: number, v: number): [number, number] { return [COMPOUND_ORIGIN[0] + u * CU[0] + v * CV[0], COMPOUND_ORIGIN[1] + u * CU[1] + v * CV[1]]; }
 
+/*
+ * Pavement evidence, declared the way structure evidence is, so the ledger has
+ * one derivation for every layout subject and nothing else decides a pavement's
+ * classification. The runway is dated by the 2021 report that describes it and
+ * the taxiways by the 2025 reporting of resurfaced taxiways. Everything else on
+ * the ground — strips, streets, roads, aprons — is illustrative layout drawn
+ * against the pinned scene, with no date of any kind.
+ */
+const PAVEMENT_GEOMETRY_CAVEAT =
+  "Timeline visibility follows a cited public observation; the modeled centreline, width and endpoints are interpreted from imagery and are not surveyed.";
+const RUNWAY_EVIDENCE: Evidence = {
+  status: "reported",
+  confidence: "medium",
+  sourceIds: ["npr-airfield-expansion"],
+  observedOn: "2021-06-30",
+  uncertainty: PAVEMENT_GEOMETRY_CAVEAT,
+  note: "Timeline visibility follows the cited public observation; exact geometry remains modeled.",
+};
+const TAXIWAY_EVIDENCE: Evidence = {
+  status: "reported",
+  confidence: "medium",
+  sourceIds: ["twz-aircraft-2025", "nsj-airfield-2025"],
+  observedOn: "2025-09-13",
+  uncertainty: PAVEMENT_GEOMETRY_CAVEAT,
+  note: "Timeline visibility follows the cited public observation; exact geometry remains modeled.",
+};
+const ILLUSTRATIVE_PAVEMENT_EVIDENCE: Evidence = {
+  status: "illustrative",
+  confidence: "low",
+  sourceIds: ["sentinel-2-scene-2025"],
+  uncertainty:
+    "Illustrative pavement geometry. Its construction date is unknown and no cited source resolves it.",
+  note: "The source snapshot timestamps this illustrative layout record, not its construction; construction date remains unknown.",
+};
+
+/** The evidence a pavement record carries: by kind for segments, illustrative for aprons. */
+export function pavementEvidence(item: SegmentDef | ApronDef): Evidence {
+  if (!("kind" in item)) return ILLUSTRATIVE_PAVEMENT_EVIDENCE;
+  if (item.kind === "runway") return RUNWAY_EVIDENCE;
+  if (item.kind === "taxiway") return TAXIWAY_EVIDENCE;
+  return ILLUSTRATIVE_PAVEMENT_EVIDENCE;
+}
+
 // Measured from a public Sentinel-2 L2A scene; endpoint uncertainty is about 40 m.
 // prettier-ignore
 export const RUNWAYS: SegmentDef[] = [
   { id: "rwy-05-23", kind: "runway", name: "Main concrete runway 05/23", from: [-1006, 2711], to: [2591, -762], width: 60 },
 ];
-RUNWAYS[0]!.observedDate = "2021-06-30";
 export const RUNWAY_CENTER: [number, number] = [
   (RUNWAYS[0]!.from[0] + RUNWAYS[0]!.to[0]) / 2,
   (RUNWAYS[0]!.from[1] + RUNWAYS[0]!.to[1]) / 2,
@@ -97,7 +133,6 @@ export const STREETS: SegmentDef[] = [
   street("st-se-service", "South-east service", [120, 228], [185, 245], 7),
   street("st-fuel-access", "Fuel area access", [210, 130], [246, 130], 8),
 ];
-for (const taxiway of TAXIWAYS) taxiway.observedDate = "2025-09-13";
 // prettier-ignore
 export const ROADS: SegmentDef[] = [
   { id: "road-access", kind: "road", name: "South access track", from: compound(68, 228), to: [1560, 3250], width: 8 },
@@ -113,7 +148,10 @@ export const APRONS: ApronDef[] = [
 const DEFAULT_STRUCTURE_EVIDENCE: Evidence = {
   status: "interpreted",
   confidence: "medium",
-  sourceIds: ["sentinel-2-scene-2025", "sentinel-2-handbook"],
+  sourceIds: ["sentinel-2-scene-2025"],
+  // The handbook states the 10 m ground sample distance the footprint floor is
+  // derived from. It documents the method; the scene is the evidence.
+  methodSourceIds: ["sentinel-2-handbook"],
   observedOn: "2025-09-28",
   resolutionM: 10,
   method: "Footprint interpreted from public overhead imagery",
@@ -129,11 +167,16 @@ const DEFAULT_STRUCTURE_EVIDENCE: Evidence = {
  * resurfaced taxiways, and further building to the south-east). The reporting
  * establishes that a structure is there; its exact placement, size and
  * function here remain a modeled interpretation.
+ *
+ * The 2021 NPR report is deliberately not cited here. It describes the
+ * airfield as it stood in 2021 and is cited for the runway and the site; it
+ * cannot describe hangars first seen in imagery four years after it was
+ * published, and citing it made those hangars look publicly reported in 2021.
  */
 const REPORTED_2025_EVIDENCE: Evidence = {
   status: "reported",
   confidence: "medium",
-  sourceIds: ["twz-aircraft-2025", "nsj-airfield-2025", "npr-airfield-expansion"],
+  sourceIds: ["twz-aircraft-2025", "nsj-airfield-2025"],
   observedOn: "2025-09-13",
   method: "Facility construction reported from analysis of commercial satellite imagery",
   uncertainty:
@@ -341,36 +384,27 @@ const STRUCTURE_DEFS: StructureDef[] = [
   building("ops-walkway", "covered-walkway", "Covered walkway", 0, 175, [4, 3, 40], COMPOUND_ROT, "A roofed pedestrian corridor between the operations complex and the crew blocks. Illustrative infrastructure, not a resolved feature.", OPERATIONAL_ILLUSTRATIVE_EVIDENCE),
 ];
 
-// prettier-ignore
-const STRUCTURE_OBSERVED_DATES: Readonly<Partial<Record<string, string>>> = {
-  'jxds-prototype': '2025-09-13',
-  'j36-prototype': '2025-08-27',
-  'west-fighter-shelters': '2025-09-13',
-  'ne-apron-hangar': '2025-09-13',
-  'fuel-tank-a': '2025-09-13',
-  'fuel-tank-b': '2025-09-13',
-  'fuel-tank-c': '2025-09-13',
-  'fuel-pumphouse': '2025-09-28',
-  'se-build-hall': '2025-09-13',
-  'se-build-annex': '2025-09-13',
-  'crew-block-a': '2025-09-28',
-  'crew-block-b': '2025-09-28',
-};
-
+/**
+ * A structure's date is the date of the observation its evidence rests on —
+ * the scene it was traced from, or the imagery the cited reporting describes —
+ * and it is derived here rather than listed, so the timeline cannot disagree
+ * with the evidence block beside it.
+ *
+ * It used to be a hand-kept table covering twelve structures. The other
+ * twenty-three, traced from the same 2025-09-28 scene, carried no date, so the
+ * timeline drew them in 2021 on no cited evidence at all. The date bounds when
+ * a structure existed *by*; it is never a construction date.
+ *
+ * Illustrative content has no date of any kind: it has never been observed
+ * anywhere, so it has nothing to be dated by.
+ */
 export const STRUCTURES: StructureDef[] = STRUCTURE_DEFS.map((structure) => {
-  const observedDate = STRUCTURE_OBSERVED_DATES[structure.id];
+  const observedDate =
+    structure.evidence.status === "illustrative"
+      ? undefined
+      : structure.evidence.observedOn;
   return observedDate === undefined ? structure : { ...structure, observedDate };
 });
-
-/**
- * Apron viewpoint looking at the parked J-XDS. Currently unread — the FPS rig
- * drops the camera at its current position rather than spawning here — but
- * kept in step with the aircraft it points at.
- */
-export const FPS_SPAWN = {
-  position: compound(-39, -78),
-  target: compound(-60, -100),
-};
 
 // prettier-ignore
 export const FLATTEN_PADS: FlattenPad[] = [
@@ -390,6 +424,15 @@ export const CINEMATIC_WAYPOINTS: Waypoint[] = [
 ];
 // prettier-ignore
 export const ALL_SEGMENTS: SegmentDef[] = [...RUNWAYS, ...STRIPS, ...TAXIWAYS, ...STREETS, ...ROADS];
+
+// A pavement is dated, like a structure, by the observation its evidence rests
+// on. Illustrative pavement has no date of any kind.
+for (const item of [...ALL_SEGMENTS, ...APRONS]) {
+  const evidence = pavementEvidence(item);
+  if (evidence.status !== "illustrative" && evidence.observedOn !== undefined) {
+    item.observedDate = evidence.observedOn;
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /* Ground-level engagement zones (used by the first-person mode)       */
@@ -636,10 +679,20 @@ export const CIRCUIT_WAYPOINTS: [number, number, number][] = (() => {
 export const CIRCUIT_MIN_CLEARANCE_M = 45;
 
 /* ------------------------------------------------------------------ */
-/* Mission entities                                                    */
+/* Subjects                                                            */
 /* ------------------------------------------------------------------ */
 
-export type MissionEntityKind =
+/**
+ * Everything the evidence ledger may make a claim about: the site, its
+ * terrain and climatology, every pavement and structure, and the illustrative
+ * scenario elements that move. This is a registry of *what exists in the
+ * model*, nothing more. It carries no classification, confidence or source —
+ * those are claims, and claims live in exactly one place, the ledger in
+ * `evidence.ts`. An earlier version of this registry kept its own status field,
+ * and it disagreed with the ledger about the climatology (observed here,
+ * reported there); the field is gone so the disagreement cannot come back.
+ */
+export type SiteSubjectKind =
   | "site"
   | "terrain"
   | "environment"
@@ -650,82 +703,22 @@ export type MissionEntityKind =
   | "sensor"
   | "route";
 
-export type MissionCapability =
-  | "selectable"
-  | "camera-focus"
-  | "timeline-visibility"
-  | "analysis-envelope"
-  | "surface-support"
-  | "route-sampling"
-  | "deterministic-motion"
-  | "night-signaling"
-  | "environment-sensing"
-  | "telemetry-position"
-  | "scenario-context";
+/** How one subject relates to another. Shown by the claim inspector. */
+export type SiteSubjectRelationshipKind = "part-of" | "follows-route" | "derived-from";
 
-export type MissionTaskId =
-  | "inspect"
-  | "focus-camera"
-  | "apply-timeline"
-  | "analyze-envelope"
-  | "provide-surface"
-  | "sample-route"
-  | "fly-circuit"
-  | "patrol-perimeter"
-  | "freeze-at-seeded-phase"
-  | "signal-at-night"
-  | "indicate-wind"
-  | "rotate-illustrative-scan"
-  | "track-live-position"
-  | "apply-climatology";
-
-export type MissionRelationshipKind =
-  "part-of" | "follows-route" | "supported-by" | "derived-from";
-
-export type MissionTimestampKind =
-  | "calendar-observation"
-  | "source-snapshot"
-  | "climatology-window"
-  | "simulation-clock"
-  | "live-feed"
-  | "unknown";
-
-export interface MissionObservation {
-  /** Timestamp of the best available source or simulation clock; null means unknown. */
-  timestamp: string | null;
-  timestampKind: MissionTimestampKind;
-  /** Asset-visibility date. Undefined values intentionally remain timeless in the UI. */
-  observedDate?: string;
-  /** Evidence/source metadata, kept distinct from asset visibility. */
-  evidenceObservedOn?: string;
-  status: EvidenceStatus | "simulated" | "unknown";
-  confidence: EvidenceConfidence | "unknown";
-  sourceIds: readonly SourceId[];
-  note: string;
-}
-
-export interface MissionRelationship {
-  kind: MissionRelationshipKind;
+export interface SiteSubjectRelationship {
+  kind: SiteSubjectRelationshipKind;
   targetId: string;
 }
 
-export interface TaskableBehaviorDef {
-  id: MissionTaskId;
-  label: string;
-  execution: "discrete" | "reactive" | "simulation-clock";
-}
-
-export interface MissionEntityDef extends TemporalDef {
+export interface SiteSubjectDef extends TemporalDef {
   id: string;
-  kind: MissionEntityKind;
+  kind: SiteSubjectKind;
   label: string;
-  observation: MissionObservation;
-  capabilities: readonly MissionCapability[];
-  relationships: readonly MissionRelationship[];
-  taskableBehaviors: readonly TaskableBehaviorDef[];
+  relationships: readonly SiteSubjectRelationship[];
 }
 
-export const MISSION_SITE_ID = "site-lop-nur-airfield";
+export const SITE_SUBJECT_ID = "site-lop-nur-airfield";
 export const TERRAIN_ENTITY_ID = "terrain-site-surface";
 export const ENVIRONMENT_ENTITY_ID = "environment-climatology";
 export const PERIMETER_ROUTE_ENTITY_ID = "route-perimeter-patrol";
@@ -738,340 +731,89 @@ export const PATROL_ENTITY_IDS = [
   "patrol-vehicle-03",
 ] as const;
 
-const TASK_INSPECT: TaskableBehaviorDef = {
-  id: "inspect",
-  label: "Inspect entity record",
-  execution: "discrete",
-};
-const TASK_FOCUS: TaskableBehaviorDef = {
-  id: "focus-camera",
-  label: "Focus camera",
-  execution: "discrete",
-};
-const TASK_TIMELINE: TaskableBehaviorDef = {
-  id: "apply-timeline",
-  label: "Apply temporal visibility",
-  execution: "reactive",
-};
-const TASK_ANALYZE: TaskableBehaviorDef = {
-  id: "analyze-envelope",
-  label: "Draw notional analysis envelope",
-  execution: "reactive",
-};
-const PART_OF_SITE: readonly MissionRelationship[] = [
-  { kind: "part-of", targetId: MISSION_SITE_ID },
+const PART_OF_SITE: readonly SiteSubjectRelationship[] = [
+  { kind: "part-of", targetId: SITE_SUBJECT_ID },
 ];
 
-function structureObservation(structure: StructureDef): MissionObservation {
-  const timestamp = structure.observedDate ?? structure.evidence.observedOn ?? null;
-  return {
-    timestamp,
-    timestampKind:
-      structure.observedDate !== undefined
-        ? "calendar-observation"
-        : structure.evidence.observedOn !== undefined
-          ? "source-snapshot"
-          : "unknown",
-    observedDate: structure.observedDate,
-    evidenceObservedOn: structure.evidence.observedOn,
-    status: structure.evidence.status,
-    confidence: structure.evidence.confidence,
-    sourceIds: structure.evidence.sourceIds,
-    note: structure.evidence.note,
-  };
-}
-
-function pavementObservation(item: SegmentDef | ApronDef): MissionObservation {
-  const dated = item.observedDate !== undefined;
-  const isRunway = "kind" in item && item.kind === "runway";
-  const isTaxiway = "kind" in item && item.kind === "taxiway";
-  const sourceIds: readonly SourceId[] = isRunway
-    ? ["npr-airfield-expansion"]
-    : isTaxiway
-      ? ["twz-aircraft-2025", "nsj-airfield-2025"]
-      : ["sentinel-2-scene-2025"];
-  const evidenceObservedOn = item.observedDate ?? "2025-09-28";
-  return {
-    timestamp: evidenceObservedOn,
-    timestampKind: dated ? "calendar-observation" : "source-snapshot",
-    observedDate: item.observedDate,
-    evidenceObservedOn,
-    status: dated ? "reported" : "illustrative",
-    confidence: dated ? "medium" : "low",
-    sourceIds,
-    note: dated
-      ? "Timeline visibility follows the cited public observation; exact geometry remains modeled."
-      : "The source snapshot timestamps this illustrative layout record, not its construction; construction date remains unknown.",
-  };
-}
-
-function simulatedObservation(note: string): MissionObservation {
-  return {
-    timestamp: "scene-clock",
-    timestampKind: "simulation-clock",
-    status: "simulated",
-    confidence: "unknown",
-    sourceIds: [],
-    note,
-  };
-}
-
-const PAVEMENT_MISSION_ENTITIES: MissionEntityDef[] = [
-  ...ALL_SEGMENTS.map((segment): MissionEntityDef => ({
-    id: segment.id,
-    kind: "pavement",
-    label: segment.name,
-    observedDate: segment.observedDate,
-    observation: pavementObservation(segment),
-    capabilities: ["timeline-visibility", "surface-support"],
-    relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      TASK_TIMELINE,
-      {
-        id: "provide-surface",
-        label: "Provide modeled surface",
-        execution: "reactive",
-      },
-    ],
-  })),
-  ...APRONS.map((apron): MissionEntityDef => ({
-    id: apron.id,
-    kind: "pavement",
-    label: apron.name,
-    observedDate: apron.observedDate,
-    observation: pavementObservation(apron),
-    capabilities: ["timeline-visibility", "surface-support"],
-    relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      TASK_TIMELINE,
-      {
-        id: "provide-surface",
-        label: "Provide modeled surface",
-        execution: "reactive",
-      },
-    ],
-  })),
-];
-
-const STRUCTURE_MISSION_ENTITIES: MissionEntityDef[] = STRUCTURES.map(
-  (structure): MissionEntityDef => {
-    const aircraft = isAircraft(structure.type);
-    return {
-      id: structure.id,
-      kind: aircraft ? "aircraft" : "structure",
-      label: structure.name,
-      observedDate: structure.observedDate,
-      observation: structureObservation(structure),
-      capabilities: aircraft
-        ? ["selectable", "camera-focus", "timeline-visibility", "analysis-envelope"]
-        : ["selectable", "camera-focus", "timeline-visibility"],
-      relationships: PART_OF_SITE,
-      taskableBehaviors: aircraft
-        ? [TASK_INSPECT, TASK_FOCUS, TASK_TIMELINE, TASK_ANALYZE]
-        : [TASK_INSPECT, TASK_FOCUS, TASK_TIMELINE],
-    };
-  },
-);
-
-const PATROL_MISSION_ENTITIES: MissionEntityDef[] = PATROL_ENTITY_IDS.map(
-  (id, index): MissionEntityDef => ({
-    id,
-    kind: "vehicle",
-    label: `Perimeter patrol ${index + 1}`,
-    observation: simulatedObservation(
-      "Illustrative seeded patrol asset; phase, direction, and speed are deterministic scenario values.",
-    ),
-    capabilities: ["deterministic-motion", "route-sampling", "night-signaling"],
-    relationships: [
-      { kind: "part-of", targetId: MISSION_SITE_ID },
-      { kind: "follows-route", targetId: PERIMETER_ROUTE_ENTITY_ID },
-    ],
-    taskableBehaviors: [
-      {
-        id: "patrol-perimeter",
-        label: "Patrol perimeter",
-        execution: "simulation-clock",
-      },
-      {
-        id: "freeze-at-seeded-phase",
-        label: "Freeze at seeded phase",
-        execution: "reactive",
-      },
-      { id: "signal-at-night", label: "Signal at night", execution: "reactive" },
-    ],
-  }),
-);
-
-export const MISSION_ENTITIES: readonly MissionEntityDef[] = Object.freeze([
-  {
-    id: MISSION_SITE_ID,
-    kind: "site",
-    label: SITE_PROFILE.name,
-    observation: {
-      timestamp: "2025-09-28",
-      timestampKind: "source-snapshot",
-      evidenceObservedOn: "2025-09-28",
-      status: "interpreted",
-      confidence: "medium",
-      sourceIds: ["sentinel-2-scene-2025", "npr-airfield-expansion"],
-      note: "Local mission frame derived from public reporting and imagery; not an official site record.",
-    },
-    capabilities: ["scenario-context"],
-    relationships: [],
-    taskableBehaviors: [TASK_INSPECT],
-  },
+export const SITE_SUBJECTS: readonly SiteSubjectDef[] = Object.freeze([
+  { id: SITE_SUBJECT_ID, kind: "site", label: SITE_PROFILE.name, relationships: [] },
   {
     id: TERRAIN_ENTITY_ID,
     kind: "terrain",
     label: "Deterministic terrain surface",
-    observation: {
-      timestamp: null,
-      timestampKind: "unknown",
-      status: "interpreted",
-      confidence: "low",
-      sourceIds: ["copernicus-dem"],
-      note: "Deterministic terrain proxy informed by the cited DEM source; no runtime terrain download or surveyed timestamp.",
-    },
-    capabilities: ["surface-support", "scenario-context"],
     relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      {
-        id: "provide-surface",
-        label: "Provide deterministic terrain",
-        execution: "reactive",
-      },
-    ],
   },
   {
     id: ENVIRONMENT_ENTITY_ID,
     kind: "environment",
     label: "Monthly climatology environment",
-    observation: {
-      timestamp: "2001-2020",
-      timestampKind: "climatology-window",
-      status: "observed",
-      confidence: "medium",
-      sourceIds: ["nasa-power-climatology"],
-      note: "Monthly climatological means, not live weather or a historical condition for a specific day.",
-    },
-    capabilities: ["scenario-context", "environment-sensing"],
     relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      {
-        id: "apply-climatology",
-        label: "Apply climatology month",
-        execution: "discrete",
-      },
-    ],
   },
   {
     id: PERIMETER_ROUTE_ENTITY_ID,
     kind: "route",
     label: "Perimeter patrol route",
-    observation: simulatedObservation(
-      "Illustrative closed route derived from layout coordinates; not a surveyed security route.",
-    ),
-    capabilities: ["route-sampling", "scenario-context"],
     relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      {
-        id: "sample-route",
-        label: "Sample closed patrol route",
-        execution: "simulation-clock",
-      },
-    ],
   },
   {
     id: CIRCUIT_ROUTE_ENTITY_ID,
     kind: "route",
     label: "Resident demonstrator circuit",
-    observation: simulatedObservation(
-      "Illustrative circuit derived from the modeled runway; not a published procedure.",
-    ),
-    capabilities: ["route-sampling", "scenario-context"],
     relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      {
-        id: "sample-route",
-        label: "Sample flight circuit",
-        execution: "simulation-clock",
-      },
-    ],
   },
-  ...PAVEMENT_MISSION_ENTITIES,
-  ...STRUCTURE_MISSION_ENTITIES,
-  ...PATROL_MISSION_ENTITIES,
+  ...[...ALL_SEGMENTS, ...APRONS].map((item): SiteSubjectDef => ({
+    id: item.id,
+    kind: "pavement",
+    label: item.name,
+    observedDate: item.observedDate,
+    relationships: PART_OF_SITE,
+  })),
+  ...STRUCTURES.map((structure): SiteSubjectDef => ({
+    id: structure.id,
+    kind: isAircraft(structure.type) ? "aircraft" : "structure",
+    label: structure.name,
+    observedDate: structure.observedDate,
+    relationships: PART_OF_SITE,
+  })),
+  ...PATROL_ENTITY_IDS.map((id, index): SiteSubjectDef => ({
+    id,
+    kind: "vehicle",
+    label: `Perimeter patrol ${index + 1}`,
+    relationships: [
+      { kind: "part-of", targetId: SITE_SUBJECT_ID },
+      { kind: "follows-route", targetId: PERIMETER_ROUTE_ENTITY_ID },
+    ],
+  })),
   {
     id: CIRCUIT_AIRCRAFT_ID,
     kind: "aircraft",
     label: "Resident circuit demonstrator",
-    observation: simulatedObservation(
-      "Illustrative procedural aircraft following the deterministic resident circuit.",
-    ),
-    capabilities: [
-      "selectable",
-      "analysis-envelope",
-      "deterministic-motion",
-      "route-sampling",
-    ],
     relationships: [
-      { kind: "part-of", targetId: MISSION_SITE_ID },
+      { kind: "part-of", targetId: SITE_SUBJECT_ID },
       { kind: "follows-route", targetId: CIRCUIT_ROUTE_ENTITY_ID },
-    ],
-    taskableBehaviors: [
-      { id: "fly-circuit", label: "Fly resident circuit", execution: "simulation-clock" },
-      {
-        id: "freeze-at-seeded-phase",
-        label: "Freeze at deterministic origin",
-        execution: "reactive",
-      },
-      TASK_ANALYZE,
     ],
   },
   {
     id: RADAR_ENTITY_ID,
     kind: "sensor",
     label: "Illustrative rotating radar prop",
-    observation: simulatedObservation(
-      "Illustrative scene sensor with no asserted detection or performance data.",
-    ),
-    capabilities: ["environment-sensing", "deterministic-motion"],
     relationships: PART_OF_SITE,
-    taskableBehaviors: [
-      {
-        id: "rotate-illustrative-scan",
-        label: "Rotate illustrative scan",
-        execution: "simulation-clock",
-      },
-    ],
   },
   {
     id: WINDSOCK_ENTITY_ID,
     kind: "sensor",
     label: "Climatology windsock",
-    observation: simulatedObservation(
-      "Procedural indicator driven by monthly climatology, not live measured wind.",
-    ),
-    capabilities: ["environment-sensing", "deterministic-motion"],
     relationships: [
-      { kind: "part-of", targetId: MISSION_SITE_ID },
+      { kind: "part-of", targetId: SITE_SUBJECT_ID },
       { kind: "derived-from", targetId: ENVIRONMENT_ENTITY_ID },
-    ],
-    taskableBehaviors: [
-      { id: "indicate-wind", label: "Indicate climatology wind", execution: "reactive" },
     ],
   },
 ]);
 
-const MISSION_ENTITY_INDEX = new Map<string, MissionEntityDef>(
-  MISSION_ENTITIES.map((entity) => [entity.id, entity]),
+const SITE_SUBJECT_INDEX = new Map<string, SiteSubjectDef>(
+  SITE_SUBJECTS.map((subject) => [subject.id, subject]),
 );
 
-export function getMissionEntity(id: string): MissionEntityDef | undefined {
-  return MISSION_ENTITY_INDEX.get(id);
-}
-
-export function canTaskMissionEntity(id: string, taskId: MissionTaskId): boolean {
-  const entity = getMissionEntity(id);
-  return entity?.taskableBehaviors.some((behavior) => behavior.id === taskId) ?? false;
+export function getSiteSubject(id: string): SiteSubjectDef | undefined {
+  return SITE_SUBJECT_INDEX.get(id);
 }

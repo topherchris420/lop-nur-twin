@@ -54,7 +54,8 @@ The build fails when a classification is misapplied:
   ("is verified", "confirmed", "authoritative") without a negation.
 
 `scripts/test-evidence-validation.ts` feeds a deliberately broken record through
-the validator for each of **35 rules** and asserts the specific error fires. The
+the validator for each of its rules (**37** today; the script prints the count) and
+asserts the specific error fires. The
 uncertainty rules — a number with no method, a reversed date range, an
 `observed` claim that bounds no position — are documented in
 [`UNCERTAINTY_MODEL.md`](UNCERTAINTY_MODEL.md).
@@ -102,7 +103,7 @@ classified as a measurement must declare one.
 ## 5. Building the ledger
 
 `src/lib/evidence.ts` **derives** the ledger; nothing in it is hand-maintained.
-One record is emitted per (subject, cited source) pair for:
+One record is emitted per (subject, attesting source) pair for:
 
 - every structure and parked aircraft (classification and confidence copied
   from the layout's evidence block, source metadata resolved from the register);
@@ -115,13 +116,32 @@ One record is emitted per (subject, cited source) pair for:
 
 Record ids are deterministic (`ev-<subject>-<source>`) and the ledger is sorted
 by id, so two builds of the same commit produce the same ledger in the same
-order. Subject ids must resolve in the subject registry — the mission-entity
-catalog plus offsite context plus the measurement subjects — and geometry-backed
+order. Subject ids must resolve in the subject registry — `SITE_SUBJECTS` in
+`layout.ts` plus offsite context plus the measurement subjects — and geometry-backed
 subjects must additionally exist in the layout, so a record cannot outlive the
 thing it describes.
 
-The current ledger holds **129 records across 11 public sources** covering 45
-structures.
+**Attesting sources and method references are different things.** An
+attesting source shows or reports the subject; a method reference documents how
+a figure was derived. The Sentinel-2 User Handbook states the 10 m ground
+sample distance that every footprint floor is derived from. It shows no
+building, so it is declared in `methodSourceIds`, travels on the uncertainty
+envelope, and never becomes a record. Until it was separated, 23 buildings
+carried a second "supporting" record citing a 2015 sensor manual, and the
+temporal snapshot treated those buildings as knowable a decade before their
+imagery existed.
+
+**A source cannot attest what had not yet been observed.** The validator
+rejects a record whose source was published before the observation the claim
+rests on (its envelope's `latestDate`). That rule is what removed the 2021 NPR
+report from the 2025 build-out: it describes the airfield as it stood in 2021,
+and citing it made hangars first seen in 2025 read as publicly reported four
+years early. `recordKnowability()` in `evidence.ts` is the single place that
+decides from when a claim could have been made; the temporal snapshot and the
+claim inspector both read it.
+
+The ledger holds **99 records across 11 public sources** covering 45
+structures; `bun run validate:data` prints the current count.
 
 ## 6. Updating a source
 

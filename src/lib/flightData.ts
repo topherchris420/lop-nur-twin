@@ -1,5 +1,5 @@
 import { SITE_PROFILE } from "./siteData";
-import { MISSION_SITE_ID, RUNWAY_CENTER, type MissionEntityDef } from "./layout";
+import { RUNWAY_CENTER } from "./layout";
 
 /**
  * Live ADS-B traffic over the airfield, pulled from ADSB.lol's open API.
@@ -31,37 +31,8 @@ export interface Aircraft {
   observedAt: string | null;
 }
 
-export function getLiveTrafficMissionEntityId(hex: string): string {
+export function liveTrafficEntityId(hex: string): string {
   return `live-aircraft-${hex.toLowerCase()}`;
-}
-
-/** Build the ephemeral mission record that travels with a live render entity. */
-export function createLiveTrafficMissionEntity(aircraft: Aircraft): MissionEntityDef {
-  return {
-    id: getLiveTrafficMissionEntityId(aircraft.hex),
-    kind: "aircraft",
-    label: aircraft.callsign,
-    observation: {
-      timestamp: aircraft.observedAt,
-      timestampKind: "live-feed",
-      status: "reported",
-      confidence: "low",
-      sourceIds: ["adsb-lol-live"],
-      note:
-        aircraft.seenSecondsAgo === null
-          ? "Ephemeral ADSB.lol position report; identity, position, altitude, classification, and source age are unverified live-feed fields."
-          : `Ephemeral ADSB.lol position report, feed-reported position age ${aircraft.seenSecondsAgo.toFixed(1)} s; identity, position, altitude, and classification remain unverified.`,
-    },
-    capabilities: ["telemetry-position"],
-    relationships: [{ kind: "part-of", targetId: MISSION_SITE_ID }],
-    taskableBehaviors: [
-      {
-        id: "track-live-position",
-        label: "Track reported position",
-        execution: "reactive",
-      },
-    ],
-  };
 }
 
 /** Reference point of the local grid: the modeled runway center. */

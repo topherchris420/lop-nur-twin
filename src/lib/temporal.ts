@@ -31,7 +31,7 @@
 import {
   ALL_SEGMENTS,
   APRONS,
-  MISSION_SITE_ID,
+  SITE_SUBJECT_ID,
   STRUCTURES,
   isAircraft,
   type ApronDef,
@@ -42,6 +42,7 @@ import { PUBLIC_SOURCES, getSource, type SourceId } from "./siteData";
 import {
   CONFIDENCE_SCALE,
   getEvidenceForSubject,
+  isRecordKnowableAt,
   strongestClassification,
   type EvidenceClassification,
   type EvidenceRecord,
@@ -251,7 +252,7 @@ function datedLayoutEvent(
     sourceIds,
     ...(confidence === undefined ? {} : { confidence }),
     ...(uncertainty === undefined ? {} : { uncertainty }),
-    analystNote: `${label} The date is when the feature is first visible in a cited public scene, not a construction date; the construction date is unknown.`,
+    analystNote: `${label} The date is the observation the cited evidence rests on — when the feature is first seen in imagery — not a construction date; the construction date is unknown.`,
     ...(publicationDate === undefined ? {} : { publicationDate }),
     scope: "real-site-claim",
   };
@@ -267,7 +268,7 @@ function layoutEvents(): TemporalEvidenceEvent[] {
       aircraft ? "reported-aircraft-sighting" : "first-appearance",
       aircraft
         ? `${structure.name} is reported present in imagery of this date.`
-        : `${structure.name} is first visible in a cited scene of this date.`,
+        : `${structure.name} is first seen in imagery of this date, as the cited evidence records it.`,
       aircraft
         ? "Reported parked at the modeled position on this date only. No presence is asserted on any other date."
         : "Modeled as present from this date onward.",
@@ -323,7 +324,7 @@ function publicationEvents(): TemporalEvidenceEvent[] {
     if (publishedOn === undefined || !isIsoDate(publishedOn)) continue;
     events.push({
       id: `te-publication-${source.id}`,
-      subjectId: MISSION_SITE_ID,
+      subjectId: SITE_SUBJECT_ID,
       // A publication date is one of the few things here that is exactly known.
       earliestDate: publishedOn,
       latestDate: publishedOn,
@@ -426,8 +427,17 @@ export interface SnapshotSubject {
   /** The date the subject is established by, when one exists. */
   establishedBy?: string;
   /**
-   * Classification supportable by evidence *published* on or before the
-   * snapshot date. Undefined when nothing was public yet.
+   * True when the subject is established by the snapshot date *on evidence that
+   * was public by then* — what a public-source analyst standing on that date
+   * could have drawn. Presence alone is hindsight: the 2025 hangars are
+   * established by a 2025-09-13 image, but nobody outside could say so until
+   * the reporting appeared in November. The scene draws from this field.
+   */
+  publiclyEstablished: boolean;
+  /**
+   * Classification supportable by evidence knowable on or before the snapshot
+   * date: its source public, and the observation it rests on already made.
+   * Undefined when nothing was knowable yet.
    */
   evidenceClass?: EvidenceClassification;
   confidence?: number;
@@ -469,14 +479,16 @@ const SNAPSHOT_SUBJECT_IDS: readonly string[] = Object.freeze(
   ].sort(),
 );
 
-/** Records whose citing source was public on or before `date`. */
-function recordsPublishedBy(subjectId: string, date: string): readonly EvidenceRecord[] {
-  return getEvidenceForSubject(subjectId).filter((record) => {
-    // A model-internal record has no publication date and is available to the
-    // model at all times; it is also never a claim about the site.
-    if (record.sourceDate === undefined) return record.sourceUrl === undefined;
-    return record.sourceDate <= date;
-  });
+/**
+ * Records whose claim was knowable on `date` — see `recordKnowability` in
+ * `evidence.ts`, the one place that decides it. A record is not knowable merely
+ * because its source was in print: a 2021 report cannot attest a hangar first
+ * seen in 2025, and a sensor handbook attests no building at all.
+ */
+function recordsKnowableBy(subjectId: string, date: string): readonly EvidenceRecord[] {
+  return getEvidenceForSubject(subjectId).filter((record) =>
+    isRecordKnowableAt(record, date),
+  );
 }
 
 /** Distinct citing sources across a record set, ascending. */
@@ -527,18 +539,25 @@ export function deriveSnapshot(date: string): TemporalSnapshot {
           ? "established"
           : "not-yet-evidenced";
 
-    const available = recordsPublishedBy(subjectId, date);
+    const available = recordsKnowableBy(subjectId, date);
     const evidenceClass = strongestClassification(available);
     const confidence =
       available.length === 0
         ? undefined
         : available.reduce((best, record) => Math.max(best, record.confidence), 0);
+    // Established by the date, on at least one record from an external source
+    // that was knowable by then. A model-internal record never establishes
+    // anything about the site.
+    const publiclyEstablished =
+      presence === "established" &&
+      available.some((record) => record.sourceDate !== undefined);
 
     return {
       subjectId,
       label: subjectLabel(subjectId),
       presence,
       ...(establishedBy === undefined ? {} : { establishedBy }),
+      publiclyEstablished,
       ...(evidenceClass === undefined ? {} : { evidenceClass }),
       ...(confidence === undefined ? {} : { confidence }),
       sourceIds: availableSourceIds(available),

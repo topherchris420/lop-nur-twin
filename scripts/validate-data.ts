@@ -11,8 +11,8 @@ import {
   GRID_EASTING_ORIGIN,
   GRID_NORTHING_ORIGIN,
   ENVIRONMENT_ENTITY_ID,
-  MISSION_ENTITIES,
-  MISSION_SITE_ID,
+  SITE_SUBJECTS,
+  SITE_SUBJECT_ID,
   PATROL_ENTITY_IDS,
   PERIMETER_PATROL_ROUTE,
   PERIMETER_ROUTE_ENTITY_ID,
@@ -386,90 +386,40 @@ for (const [catalog, items] of [
   }
 }
 
-const missionEntityIds = new Set<string>();
-for (const entity of MISSION_ENTITIES) {
-  check(entity.id.trim().length > 0, "Mission entities must have stable IDs");
-  check(
-    !missionEntityIds.has(entity.id),
-    `Mission entity id "${entity.id}" must be unique`,
-  );
-  missionEntityIds.add(entity.id);
-  check(
-    entity.label.trim().length > 0,
-    `Mission entity "${entity.id}" must have a label`,
-  );
-  check(
-    entity.capabilities.length > 0,
-    `Mission entity "${entity.id}" must declare at least one capability`,
-  );
-  check(
-    new Set(entity.capabilities).size === entity.capabilities.length,
-    `Mission entity "${entity.id}" capabilities must be unique`,
-  );
-  check(
-    entity.taskableBehaviors.length > 0,
-    `Mission entity "${entity.id}" must declare at least one taskable behavior`,
-  );
-  check(
-    new Set(entity.taskableBehaviors.map((behavior) => behavior.id)).size ===
-      entity.taskableBehaviors.length,
-    `Mission entity "${entity.id}" behavior IDs must be unique`,
-  );
-  check(
-    entity.observation.note.trim().length > 0,
-    `Mission entity "${entity.id}" must explain its observation provenance`,
-  );
-  if (entity.observedDate !== undefined) {
-    checkTemporal(`Mission entity ${entity.id}`, entity, []);
-    check(
-      entity.observation.observedDate === entity.observedDate,
-      `Mission entity "${entity.id}" must preserve its layout observedDate`,
-    );
-  }
-  if (
-    entity.observation.timestampKind === "calendar-observation" ||
-    entity.observation.timestampKind === "source-snapshot"
-  ) {
-    check(
-      entity.observation.timestamp !== null &&
-        isValidIsoCalendarDate(entity.observation.timestamp),
-      `Mission entity "${entity.id}" must use an ISO timestamp for calendar/source observations`,
-    );
-  }
-  if (entity.observation.timestampKind === "unknown") {
-    check(
-      entity.observation.timestamp === null,
-      `Mission entity "${entity.id}" must represent unknown timestamps as null`,
-    );
-  }
-  for (const sourceId of entity.observation.sourceIds) {
-    check(
-      sourceIds.has(sourceId),
-      `Mission entity "${entity.id}" cites unknown source "${sourceId}"`,
-    );
+// The subject registry is what the ledger may make claims about. It carries
+// no classification of its own — that lives in the ledger alone — so these
+// checks are about identity and structure only.
+const subjectIds = new Set<string>();
+for (const subject of SITE_SUBJECTS) {
+  check(subject.id.trim().length > 0, "Subjects must have stable IDs");
+  check(!subjectIds.has(subject.id), `Subject id "${subject.id}" must be unique`);
+  subjectIds.add(subject.id);
+  check(subject.label.trim().length > 0, `Subject "${subject.id}" must have a label`);
+  if (subject.observedDate !== undefined) {
+    checkTemporal(`Subject ${subject.id}`, subject, []);
   }
 }
 
-for (const entity of MISSION_ENTITIES) {
-  for (const relationship of entity.relationships) {
+for (const subject of SITE_SUBJECTS) {
+  for (const relationship of subject.relationships) {
     check(
-      missionEntityIds.has(relationship.targetId),
-      `Mission entity "${entity.id}" relationship targets missing entity "${relationship.targetId}"`,
+      subjectIds.has(relationship.targetId),
+      `Subject "${subject.id}" relationship targets missing subject "${relationship.targetId}"`,
     );
   }
 }
 
 for (const item of [...ALL_SEGMENTS, ...APRONS, ...STRUCTURES]) {
-  const entity = MISSION_ENTITIES.find((candidate) => candidate.id === item.id);
-  check(entity !== undefined, `Layout record "${item.id}" must have a mission entity`);
+  const subject = SITE_SUBJECTS.find((candidate) => candidate.id === item.id);
+  check(subject !== undefined, `Layout record "${item.id}" must be a registered subject`);
   check(
-    entity?.observedDate === item.observedDate,
-    `Mission entity "${item.id}" must mirror the layout timeline date`,
+    subject?.observedDate === item.observedDate,
+    `Subject "${item.id}" must mirror the layout date`,
   );
 }
 
 for (const id of [
-  MISSION_SITE_ID,
+  SITE_SUBJECT_ID,
   TERRAIN_ENTITY_ID,
   ENVIRONMENT_ENTITY_ID,
   PERIMETER_ROUTE_ENTITY_ID,
@@ -479,17 +429,14 @@ for (const id of [
   WINDSOCK_ENTITY_ID,
   ...PATROL_ENTITY_IDS,
 ]) {
-  check(
-    missionEntityIds.has(id),
-    `Rendered mission object "${id}" must have an entity record`,
-  );
+  check(subjectIds.has(id), `Rendered object "${id}" must be a registered subject`);
 }
 check(
   PATROL_ENTITY_IDS.length >=
     Math.max(
       ...Object.values(QUALITY_PROFILES).map((profile) => profile.patrolVehicleCount),
     ),
-  "Mission registry must define enough patrol entities for the highest quality budget",
+  "The subject registry must define enough patrol entities for the highest quality budget",
 );
 
 check(CLIMATE_MONTHS.length === 12, "Climate catalog must contain exactly 12 months");

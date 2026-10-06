@@ -145,7 +145,17 @@ export type EvidenceConfidence = "low" | "medium" | "high";
 export interface Evidence {
   status: EvidenceStatus;
   confidence: EvidenceConfidence;
+  /** Sources that show or report the subject. Each one becomes a ledger record. */
   sourceIds: readonly SourceId[];
+  /**
+   * Sources that document the *method* behind the claim without showing or
+   * reporting the subject — the sensor handbook that states the ground sample
+   * distance a footprint floor is derived from, for example. They are cited on
+   * the uncertainty envelope and never become a record of their own: a 2015
+   * sensor manual is not evidence that a building stood in 2025, and counting
+   * it as one made claims look knowable a decade before their imagery existed.
+   */
+  methodSourceIds?: readonly SourceId[];
   observedOn?: string;
   resolutionM?: number;
   method?: string;

@@ -7,6 +7,7 @@ import {
   type UncertaintyEnvelope,
 } from "@/lib/uncertainty";
 import { TEMPORAL_SCOPE_META, type TemporalEvidenceEvent } from "@/lib/temporal";
+import { getSource, type SourceId } from "@/lib/siteData";
 import { cn } from "@/lib/utils";
 
 /**
@@ -103,6 +104,18 @@ export function UncertaintyPanel({
           {envelope.method === undefined ? null : ` — ${envelope.method}`}
         </p>
       ) : null}
+
+      {envelope.methodSourceIds === undefined ||
+      envelope.methodSourceIds.length === 0 ? null : (
+        <p className={cn("text-muted-foreground mt-1.5 leading-relaxed", text)}>
+          <span className="font-semibold">Method reference:</span>{" "}
+          {envelope.methodSourceIds
+            .map((id) => getSource(id as SourceId)?.title ?? id)
+            .join("; ")}{" "}
+          — documents how the figure is derived; it is not evidence that the subject
+          exists.
+        </p>
+      )}
 
       {envelope.narrative === undefined ? null : (
         <p className={cn("text-muted-foreground mt-1.5 leading-relaxed", text)}>

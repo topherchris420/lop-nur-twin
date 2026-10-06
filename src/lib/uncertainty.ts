@@ -145,6 +145,13 @@ export interface UncertaintyEnvelope {
   narrative?: string;
   /** Sources supporting the envelope, in declaration order. */
   sourceIds: readonly string[];
+  /**
+   * References for the method behind the numbers — the sensor handbook that
+   * states a ground sample distance, for instance. They support how a figure
+   * was derived and nothing else: they do not show the subject, they never
+   * become a ledger record, and they never make a claim knowable earlier.
+   */
+  methodSourceIds?: readonly string[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -218,6 +225,9 @@ export function deriveUncertainty(
     function: FUNCTION_BY_STATUS[evidence.status],
     ...(evidence.uncertainty === undefined ? {} : { narrative: evidence.uncertainty }),
     sourceIds: evidence.sourceIds,
+    ...(evidence.methodSourceIds === undefined || evidence.methodSourceIds.length === 0
+      ? {}
+      : { methodSourceIds: evidence.methodSourceIds }),
   };
 }
 

@@ -100,7 +100,7 @@ bounds when something existed _by_; it is not a construction date. See
 [`docs/TEMPORAL_MODEL.md`](docs/TEMPORAL_MODEL.md).
 
 **If you relax a validator rule, say so out loud** in
-`scripts/test-evidence-validation.ts`. That file asserts each of the 35 rules
+`scripts/test-evidence-validation.ts`. That file asserts each of the 37 rules
 still fires, because a validator that never fires is indistinguishable from one
 that has been quietly disabled.
 

@@ -8,9 +8,13 @@ import {
   confidenceRank,
   evidenceClassificationCounts,
   formatConfidence,
+  MODEL_INTERNAL_SOURCE_ID,
+  earliestKnowableDate,
   getEvidenceForSubject,
   getUncertaintyForSubject,
   isKnownEvidenceSubject,
+  isRecordKnowableAt,
+  recordKnowability,
   strongestClassification,
 } from "./evidence";
 import { validateEvidenceLedger } from "./evidenceValidation";
@@ -25,6 +29,7 @@ import {
   parseEvidenceMode,
 } from "./evidenceMode";
 import { ALL_SEGMENTS, APRONS, RUNWAYS, STRUCTURES } from "./layout";
+import { PUBLIC_SOURCES } from "./siteData";
 import {
   UNCERTAINTY_LEVELS,
   formatTemporalBound,
@@ -337,5 +342,81 @@ describe("uncertainty envelopes", () => {
 
   it("orders its levels from most to least established", () => {
     expect(UNCERTAINTY_LEVELS).toEqual(["known", "probable", "possible", "unknown"]);
+  });
+});
+
+describe("knowability", () => {
+  it("never makes a claim knowable before the observation it rests on", () => {
+    // The ledger-wide form of the rule the validator enforces per record: a
+    // source cannot attest what had not yet been observed.
+    for (const record of EVIDENCE_LEDGER) {
+      const knowability = recordKnowability(record);
+      if (knowability.kind !== "from") continue;
+      const observedBy = record.uncertainty?.latestDate;
+      if (observedBy !== undefined) {
+        expect(knowability.date >= observedBy, record.id).toBe(true);
+      }
+      if (record.sourceDate !== undefined) {
+        expect(knowability.date >= record.sourceDate, record.id).toBe(true);
+      }
+    }
+  });
+
+  it("cites method references on the envelope, never as evidence of a subject", () => {
+    // The Sentinel-2 handbook states a ground sample distance. It shows no
+    // building, so no record may name it as the source of a claim.
+    const methodOnly = new Set<string>(
+      STRUCTURES.flatMap((structure) => structure.evidence.methodSourceIds ?? []),
+    );
+    expect(methodOnly.has("sentinel-2-handbook")).toBe(true);
+    for (const record of EVIDENCE_LEDGER) {
+      expect(methodOnly.has(record.sourceId ?? ""), record.id).toBe(false);
+    }
+    const hangar = getUncertaintyForSubject("hangar-main");
+    expect(hangar?.methodSourceIds).toEqual(["sentinel-2-handbook"]);
+  });
+
+  it("dates every non-illustrative structure by the observation its evidence rests on", () => {
+    for (const structure of STRUCTURES) {
+      if (structure.evidence.status === "illustrative") {
+        expect(structure.observedDate, structure.id).toBeUndefined();
+      } else {
+        expect(structure.observedDate, structure.id).toBe(structure.evidence.observedOn);
+      }
+    }
+  });
+
+  it("does not let a source attest a feature first seen after it was published", () => {
+    const published = new Map<string, string | undefined>(
+      PUBLIC_SOURCES.map((source) => [source.id, source.publishedOn]),
+    );
+    for (const structure of STRUCTURES) {
+      const firstSeen = structure.observedDate;
+      if (firstSeen === undefined) continue;
+      for (const sourceId of structure.evidence.sourceIds) {
+        const date = published.get(sourceId);
+        if (date === undefined) continue;
+        expect(date >= firstSeen, `${structure.id} cites ${sourceId}`).toBe(true);
+      }
+    }
+  });
+
+  it("keeps model-internal claims available at every date and undated sources off the timeline", () => {
+    const internal = EVIDENCE_LEDGER.find(
+      (record) => record.sourceId === MODEL_INTERNAL_SOURCE_ID,
+    );
+    expect(internal).toBeDefined();
+    expect(isRecordKnowableAt(internal!, "1900-01-01")).toBe(true);
+    const undated = { ...internal!, sourceId: "adsb-lol-live" as const };
+    expect(recordKnowability(undated)).toEqual({ kind: "undated" });
+    expect(isRecordKnowableAt(undated, "2999-12-31")).toBe(false);
+  });
+
+  it("reports the earliest knowable date of a subject from its records", () => {
+    expect(earliestKnowableDate("rwy-05-23")).toBe("2021-06-30");
+    expect(earliestKnowableDate("hangar-main")).toBe("2025-09-28");
+    // Identified only by reporting published in November 2025.
+    expect(earliestKnowableDate("west-fighter-shelters")).toBe("2025-11-04");
+    expect(earliestKnowableDate("not-a-subject")).toBeUndefined();
   });
 });

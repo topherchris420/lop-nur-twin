@@ -2,11 +2,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import {
-  createLiveTrafficMissionEntity,
-  gpsTo3DCanvas,
-  type Aircraft,
-} from "@/lib/flightData";
+import { liveTrafficEntityId, gpsTo3DCanvas, type Aircraft } from "@/lib/flightData";
 import { useFlightData } from "@/lib/useFlightData";
 import { useTwinStore } from "@/lib/store";
 
@@ -42,10 +38,10 @@ const CIV_COLOR = "#f4e9c8";
 
 function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
   const reducedMotion = useTwinStore((s) => s.reducedMotion);
-  const missionEntity = useMemo(
-    () => createLiveTrafficMissionEntity(aircraft),
-    [aircraft],
-  );
+  // Live traffic is deliberately outside the evidence ledger: an unverified,
+  // ephemeral feed is not a claim this model makes. It carries an id for the
+  // scene graph and nothing that could be read as a classification.
+  const entityId = liveTrafficEntityId(aircraft.hex);
 
   const [x, y, z] = useMemo(
     () => gpsTo3DCanvas(aircraft.lat, aircraft.lon, aircraft.altFeet),
@@ -99,7 +95,7 @@ function LiveAircraft({ aircraft }: { aircraft: Aircraft }) {
       ref={groupRef}
       position={[x, y, z]}
       rotation={[0, rotationY, 0]}
-      userData={{ entityId: missionEntity.id, missionEntity }}
+      userData={{ entityId }}
     >
       {/* Fuselage — nose toward −z. */}
       <mesh material={bodyMat} rotation={[Math.PI / 2, 0, 0]} castShadow>

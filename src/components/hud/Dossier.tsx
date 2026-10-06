@@ -12,7 +12,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   STRUCTURE_TYPE_LABELS,
-  getMissionEntity,
   getStructure,
   isVisibleAtTimelineYear,
 } from "@/lib/layout";
@@ -64,7 +63,6 @@ export function Dossier() {
   const classification = strongestClassification(records) ?? def.evidence.status;
   const uncertainty = getUncertaintyForSubject(def.id);
   const temporalEvents = temporalEventsForSubject(def.id);
-  const missionEntity = getMissionEntity(def.id);
 
   return (
     <Card className="hud-side-panel absolute top-16 right-4 z-10 w-80 select-text">
@@ -194,41 +192,6 @@ export function Dossier() {
             })}
           </ul>
         </div>
-        {missionEntity ? (
-          <>
-            <Separator />
-            <div>
-              <div className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">
-                Mission entity
-              </div>
-              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px]">
-                <dt className="text-muted-foreground">Entity ID</dt>
-                <dd className="truncate text-right" title={missionEntity.id}>
-                  {missionEntity.id}
-                </dd>
-                <dt className="text-muted-foreground">Observation</dt>
-                <dd className="text-right">
-                  {missionEntity.observation.timestamp ?? "unknown"}
-                </dd>
-                <dt className="text-muted-foreground">Relationships</dt>
-                <dd className="text-right">{missionEntity.relationships.length}</dd>
-              </dl>
-              <div className="mt-2 flex flex-wrap gap-1">
-                {missionEntity.capabilities.map((capability) => (
-                  <Badge key={capability} variant="outline" className="text-[9px]">
-                    {capability}
-                  </Badge>
-                ))}
-              </div>
-              <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
-                Tasks:{" "}
-                {missionEntity.taskableBehaviors
-                  .map((behavior) => behavior.label)
-                  .join(" · ")}
-              </p>
-            </div>
-          </>
-        ) : null}
         <Button className="w-full" onClick={() => flyToStructure(def)}>
           <Navigation />
           Fly to structure

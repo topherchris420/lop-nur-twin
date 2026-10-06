@@ -36,6 +36,7 @@ interface UncertaintyEnvelope {
   basis?: UncertaintyBasis; // required whenever a number is present
   narrative?: string; // the project's own caveat, verbatim
   sourceIds: readonly string[];
+  methodSourceIds?: readonly string[]; // method references, e.g. a sensor handbook
 }
 ```
 
@@ -56,7 +57,11 @@ it as one would be inventing precision the source declined to give.
 **The resolution floor is not a measured error.** A footprint traced from 10 m
 imagery cannot be resolved finer than one pixel, so 10 m is a lower bound on how
 well the extent is known. The true error is unknown and is at least this large.
-The method string on every such envelope says exactly that.
+The method string on every such envelope says exactly that, and the envelope
+cites the Sentinel-2 User Handbook in `methodSourceIds` as the reference for the
+10 m figure. A method reference supports how a number was derived and nothing
+else: it is not evidence that the subject exists, so it never becomes a ledger
+record and never makes a claim knowable earlier.
 
 **Height and orientation are absent throughout.** No cited source states a
 tolerance for either, so every envelope this model emits omits both and the
@@ -120,6 +125,9 @@ a silent gap.
   and the cited 10 m imagery supports site-scale extent, never an exact position.
 - An `observed` claim recording an unknown identification. One of the two is
   wrong.
+- A record whose source was published before the envelope's `latestDate` — a
+  source cannot attest a feature first observed after it was published.
+- A method reference that is not in the source register.
 
 ## How it is shown
 

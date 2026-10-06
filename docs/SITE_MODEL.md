@@ -104,7 +104,7 @@ src/
   lib/
     layout.ts        ← single source of truth: runways, roads, structures, waypoints
     siteData.ts      ← public source register, CRS, datum, climatology
-    evidence.ts      ← evidence schema + the derived ledger (129 records)
+    evidence.ts      ← evidence schema + the derived ledger (99 records)
     evidenceValidation.ts ← the rules that fail a build on a false claim
     params.ts        ← validated, clamped URL query parameters
     safeUrl.ts       ← HTTPS-only external hrefs + noopener/noreferrer
@@ -134,7 +134,7 @@ scripts/
   run-ts.mjs         ← runs the TS build scripts under Bun or Node ≥ 22.18
   validate-data.ts   ← geometry, geodesy, sources, timeline, quality, evidence
   generate-manifest.ts ← public/model-manifest.json, canonical SHA-256 hashes
-  test-evidence-validation.ts ← twenty malformed records; asserts each rule fires
+  test-evidence-validation.ts ← one malformed record per rule; asserts each fires
 tools/
   probe.mjs          ← headless-browser capture + exposure report + plan view
   frames.mjs         ← the canonical six-view frame set, with A/B statistics

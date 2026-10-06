@@ -358,6 +358,28 @@ const CASES: Case[] = [
     },
     expect: /claims direct observation while recording an unknown identification/,
   },
+  {
+    // The bug this rule exists for: a 2021 report cited for hangars first seen
+    // in 2025 imagery made them read as publicly reported four years early.
+    name: "a source published before the observation it attests is rejected",
+    record: {
+      ...BASE,
+      classification: "reported",
+      sourceId: "npr-airfield-expansion",
+      sourceDate: "2021-06-30",
+      uncertainty: { ...BASE_UNCERTAINTY, latestDate: "2025-09-13" },
+    },
+    expect:
+      /cites a source published 2021-06-30, before the 2025-09-13 observation the claim rests on/,
+  },
+  {
+    name: "a method reference missing from the source register is rejected",
+    record: {
+      ...BASE,
+      uncertainty: { ...BASE_UNCERTAINTY, methodSourceIds: ["sentinel-2-manual-v9"] },
+    },
+    expect: /cites unknown method source "sentinel-2-manual-v9"/,
+  },
 ];
 
 let failures = 0;

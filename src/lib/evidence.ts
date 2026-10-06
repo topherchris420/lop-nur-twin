@@ -32,17 +32,17 @@ import {
   CIRCUIT_AIRCRAFT_ID,
   CIRCUIT_ROUTE_ENTITY_ID,
   ENVIRONMENT_ENTITY_ID,
-  MISSION_ENTITIES,
-  MISSION_SITE_ID,
   PATROL_ENTITY_IDS,
   PERIMETER_ROUTE_ENTITY_ID,
   RADAR_ENTITY_ID,
   RUNWAYS,
+  SITE_SUBJECTS,
+  SITE_SUBJECT_ID,
   STRUCTURES,
   TERRAIN_ENTITY_ID,
   WINDSOCK_ENTITY_ID,
+  pavementEvidence,
   segmentLength,
-  type StructureDef,
 } from "./layout";
 import {
   UNCERTAINTY_LEVELS,
@@ -57,6 +57,7 @@ import {
   PUBLIC_SOURCES,
   SITE_PROFILE,
   getSource,
+  type Evidence,
   type EvidenceConfidence,
   type PublicSource,
   type SourceId,
@@ -265,10 +266,10 @@ export const KNOWN_LIMITATIONS: readonly string[] = [
 /* ------------------------------------------------------------------ */
 
 /**
- * Every id an evidence record is allowed to point at. Mission entities
- * already enumerate the site, terrain, environment, routes, sensors, every
- * pavement record and every structure, so the registry is that catalog plus
- * the offsite context places and the derived measurement subjects.
+ * Every id an evidence record is allowed to point at. The layout's subject
+ * registry already enumerates the site, terrain, environment, routes, sensors,
+ * every pavement record and every structure, so this is that registry plus the
+ * offsite context places and the derived measurement subjects.
  */
 const MEASUREMENT_SUBJECT_IDS = [
   "measurement-runway-length",
@@ -279,7 +280,7 @@ const MEASUREMENT_SUBJECT_IDS = [
 export type MeasurementSubjectId = (typeof MEASUREMENT_SUBJECT_IDS)[number];
 
 const SUBJECT_IDS: ReadonlySet<string> = new Set<string>([
-  ...MISSION_ENTITIES.map((entity) => entity.id),
+  ...SITE_SUBJECTS.map((subject) => subject.id),
   ...OFFSITE_CONTEXT.map((place) => place.id),
   ...MEASUREMENT_SUBJECT_IDS,
 ]);
@@ -343,31 +344,39 @@ function joinNotes(parts: readonly (string | undefined)[]): string | undefined {
   return kept.length > 0 ? kept.join(" ") : undefined;
 }
 
-function structureRecords(structure: StructureDef): EvidenceRecord[] {
-  const { evidence } = structure;
-  const kind: EvidenceSubjectKind = structure.type.startsWith("aircraft-")
-    ? "aircraft"
-    : "structure";
+/**
+ * Records for one layout subject — a structure, an aircraft or a pavement —
+ * from the `Evidence` block the layout declares for it. Every layout subject
+ * goes through this one function, so there is exactly one place that turns a
+ * declaration into claims: classification and confidence are copied, source
+ * metadata is resolved from the register, and the uncertainty envelope is
+ * derived rather than written.
+ */
+function layoutRecords(subject: {
+  id: string;
+  kind: EvidenceSubjectKind;
+  claim: string;
+  evidence: Evidence;
+  observedDate?: string;
+}): EvidenceRecord[] {
+  const { evidence } = subject;
   const analystNotes = joinNotes([
     evidence.note,
     evidence.method ? `Method: ${evidence.method}` : undefined,
     evidence.uncertainty ? `Uncertainty: ${evidence.uncertainty}` : undefined,
   ]);
   const uncertainty = deriveUncertainty(evidence, {
-    // The asset-visibility date, when the layout records one. It bounds when
-    // the structure existed *by*, which is the only end of the range imagery
-    // establishes.
-    ...(structure.observedDate === undefined
-      ? {}
-      : { observedDate: structure.observedDate }),
+    // The layout date bounds when the subject existed *by*, which is the only
+    // end of the range imagery establishes.
+    ...(subject.observedDate === undefined ? {} : { observedDate: subject.observedDate }),
   });
 
   return evidence.sourceIds.map((sourceId): EvidenceRecord => {
     const source = getSource(sourceId);
     return {
-      id: `ev-${structure.id}-${sourceId}`,
-      subjectId: structure.id,
-      claim: `${structure.name} — ${structure.description}`,
+      id: `ev-${subject.id}-${sourceId}`,
+      subjectId: subject.id,
+      claim: subject.claim,
       classification: evidence.status,
       confidence: CONFIDENCE_SCALE[evidence.confidence],
       ...(source === undefined
@@ -379,65 +388,35 @@ function structureRecords(structure: StructureDef): EvidenceRecord[] {
         : { sourceResolutionM: evidence.resolutionM }),
       ...(analystNotes === undefined ? {} : { analystNotes }),
       uncertainty,
-      subjectKind: kind,
+      subjectKind: subject.kind,
     };
   });
 }
 
-function pavementRecords(): EvidenceRecord[] {
-  const records: EvidenceRecord[] = [];
-  for (const entity of MISSION_ENTITIES) {
-    if (entity.kind !== "pavement") continue;
-    const { observation } = entity;
-    // Pavement observations carry the mission vocabulary, which admits
-    // "simulated"/"unknown"; those never appear on a pavement record, but the
-    // narrowing keeps the classification honest if that ever changes.
-    const classification: EvidenceClassification =
-      observation.status === "simulated" || observation.status === "unknown"
-        ? "illustrative"
-        : observation.status;
-    const confidence =
-      observation.confidence === "unknown"
-        ? CONFIDENCE_SCALE.low
-        : CONFIDENCE_SCALE[observation.confidence];
-    const sourceIds: readonly (SourceId | typeof MODEL_INTERNAL_SOURCE_ID)[] =
-      observation.sourceIds.length > 0
-        ? observation.sourceIds
-        : [MODEL_INTERNAL_SOURCE_ID];
+function structureRecords(): EvidenceRecord[] {
+  return STRUCTURES.flatMap((structure) =>
+    layoutRecords({
+      id: structure.id,
+      kind: structure.type.startsWith("aircraft-") ? "aircraft" : "structure",
+      claim: `${structure.name} — ${structure.description}`,
+      evidence: structure.evidence,
+      ...(structure.observedDate === undefined
+        ? {}
+        : { observedDate: structure.observedDate }),
+    }),
+  );
+}
 
-    for (const sourceId of sourceIds) {
-      const source =
-        sourceId === MODEL_INTERNAL_SOURCE_ID ? undefined : getSource(sourceId);
-      records.push({
-        id: `ev-${entity.id}-${sourceId}`,
-        subjectId: entity.id,
-        claim: `${entity.label} — modeled pavement geometry in the local ${PRIMARY_CRS} frame.`,
-        classification,
-        confidence,
-        ...(source === undefined ? internalSourceFields() : sourceFields(source)),
-        coordinateReferenceSystem: PRIMARY_CRS,
-        analystNotes: observation.note,
-        uncertainty: {
-          // `observedDate` is set only where a cited scene dates the pavement;
-          // `evidenceObservedOn` timestamps the source snapshot the illustrative
-          // records were drawn against and is *not* a claim about the surface,
-          // so it never becomes a bound.
-          ...(entity.observedDate === undefined
-            ? {}
-            : { latestDate: entity.observedDate }),
-          identification: classification === "reported" ? "probable" : "unknown",
-          function: classification === "reported" ? "possible" : "unknown",
-          narrative:
-            classification === "reported"
-              ? "Timeline visibility follows a cited public observation; the modeled centreline, width and endpoints are interpreted from imagery and are not surveyed."
-              : "Illustrative pavement geometry. Its construction date is unknown and no cited source resolves it.",
-          sourceIds: observation.sourceIds,
-        },
-        subjectKind: "pavement",
-      });
-    }
-  }
-  return records;
+function pavementRecords(): EvidenceRecord[] {
+  return [...ALL_SEGMENTS, ...APRONS].flatMap((item) =>
+    layoutRecords({
+      id: item.id,
+      kind: "pavement",
+      claim: `${item.name} — modeled pavement geometry in the local ${PRIMARY_CRS} frame.`,
+      evidence: pavementEvidence(item),
+      ...(item.observedDate === undefined ? {} : { observedDate: item.observedDate }),
+    }),
+  );
 }
 
 /**
@@ -604,8 +583,8 @@ function siteAndContextRecords(): EvidenceRecord[] {
 
   if (imagery !== undefined) {
     records.push({
-      id: `ev-${MISSION_SITE_ID}-sentinel-2-scene-2025`,
-      subjectId: MISSION_SITE_ID,
+      id: `ev-${SITE_SUBJECT_ID}-sentinel-2-scene-2025`,
+      subjectId: SITE_SUBJECT_ID,
       claim: `A ${(SITE_PROFILE.worldExtentM / 1000).toFixed(1)} km square local frame reconstructs the airfield layout visible in the pinned public scene.`,
       classification: "observed",
       confidence: CONFIDENCE_SCALE.medium,
@@ -626,8 +605,8 @@ function siteAndContextRecords(): EvidenceRecord[] {
   }
   if (expansion !== undefined) {
     records.push({
-      id: `ev-${MISSION_SITE_ID}-npr-airfield-expansion`,
-      subjectId: MISSION_SITE_ID,
+      id: `ev-${SITE_SUBJECT_ID}-npr-airfield-expansion`,
+      subjectId: SITE_SUBJECT_ID,
       claim:
         "Public reporting describes a roughly three-mile runway and visible facility expansion at this airfield.",
       classification: "reported",
@@ -650,8 +629,8 @@ function siteAndContextRecords(): EvidenceRecord[] {
   }
   if (spacecraft !== undefined) {
     records.push({
-      id: `ev-${MISSION_SITE_ID}-swf-spacecraft-2026`,
-      subjectId: MISSION_SITE_ID,
+      id: `ev-${SITE_SUBJECT_ID}-swf-spacecraft-2026`,
+      subjectId: SITE_SUBJECT_ID,
       claim:
         "Cited analysis associates the runway with likely reusable experimental spacecraft landings.",
       classification: "reported",
@@ -756,7 +735,7 @@ function simulationRecords(): EvidenceRecord[] {
  */
 export const EVIDENCE_LEDGER: readonly EvidenceRecord[] = Object.freeze(
   [
-    ...STRUCTURES.flatMap(structureRecords),
+    ...structureRecords(),
     ...pavementRecords(),
     ...measurementRecords(),
     ...environmentAndTerrainRecords(),
@@ -844,6 +823,10 @@ export function getUncertaintyForSubject(
     ),
   ];
 
+  const methodSourceIds = [
+    ...new Set(envelopes.flatMap((envelope) => envelope.methodSourceIds ?? [])),
+  ];
+
   return {
     ...(horizontalMeters === undefined ? {} : { horizontalMeters }),
     ...(footprintMeters === undefined ? {} : { footprintMeters }),
@@ -858,7 +841,73 @@ export function getUncertaintyForSubject(
       : {}),
     ...(narratives.length === 0 ? {} : { narrative: narratives.join(" ") }),
     sourceIds: [...new Set(envelopes.flatMap((envelope) => envelope.sourceIds))],
+    ...(methodSourceIds.length === 0 ? {} : { methodSourceIds }),
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Knowability                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * From when a record's claim could have been made by someone reading public
+ * sources.
+ *
+ * Two dates bound it and neither is enough alone. The source has to be public
+ * (`sourceDate`), and the subject has to have been observable: a claim whose own
+ * envelope says the subject is established *by* a date cannot have been
+ * knowable before that date, whenever its source was printed. The later of the
+ * two is the answer. The validator separately rejects a record whose source
+ * predates the observation it attests (see `evidenceValidation.ts`), so for a
+ * valid ledger the publication date is always the later one — this function
+ * does not rely on that.
+ *
+ * - `model-internal` — the claim originates in this repository. It is available
+ *   to the model at every date and asserts nothing about the site.
+ * - `undated` — an external source with no publication date is never placed on
+ *   the evidence timeline, rather than being given a guessed date.
+ */
+export type RecordKnowability =
+  | { readonly kind: "model-internal" }
+  | { readonly kind: "undated" }
+  | { readonly kind: "from"; readonly date: string };
+
+export function recordKnowability(record: EvidenceRecord): RecordKnowability {
+  if (record.sourceId === MODEL_INTERNAL_SOURCE_ID) return { kind: "model-internal" };
+  if (record.sourceDate === undefined) return { kind: "undated" };
+  const observedBy = record.uncertainty?.latestDate;
+  return {
+    kind: "from",
+    date:
+      observedBy !== undefined && observedBy > record.sourceDate
+        ? observedBy
+        : record.sourceDate,
+  };
+}
+
+/** Whether a record's claim could have been made from public sources on `date`. */
+export function isRecordKnowableAt(record: EvidenceRecord, date: string): boolean {
+  const knowability = recordKnowability(record);
+  if (knowability.kind === "model-internal") return true;
+  if (knowability.kind === "undated") return false;
+  return knowability.date <= date;
+}
+
+/**
+ * The earliest date any record about a subject became knowable, or undefined
+ * when none is placed on the timeline. Model-internal records are excluded:
+ * they are available at every date and say nothing about when the site was
+ * known.
+ */
+export function earliestKnowableDate(subjectId: string): string | undefined {
+  let earliest: string | undefined;
+  for (const record of getEvidenceForSubject(subjectId)) {
+    const knowability = recordKnowability(record);
+    if (knowability.kind !== "from") continue;
+    if (earliest === undefined || knowability.date < earliest)
+      earliest = knowability.date;
+  }
+  return earliest;
 }
 
 /** Count of records per classification, for the legend and the manifest. */

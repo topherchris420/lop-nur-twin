@@ -51,7 +51,7 @@ bun run test:evidence
 `validate:data` proves the ledger currently passes. That is half the claim: **a
 validator that never fires is indistinguishable from one that has been quietly
 disabled.** This feeds a deliberately malformed record through
-`validateEvidenceLedger` for each of **35 rules** and asserts the specific error
+`validateEvidenceLedger` for each of its **37 rules** and asserts the specific error
 fires.
 
 If you relax a rule, this file is where you have to say so out loud.

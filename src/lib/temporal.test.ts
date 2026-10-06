@@ -301,3 +301,75 @@ describe("compareSnapshots", () => {
     expect(() => compareSnapshots(EARLY, "2025-02-30")).toThrow(TypeError);
   });
 });
+
+describe("what was knowable at a date", () => {
+  const BUILD_OUT = [
+    "west-fighter-shelters",
+    "ne-apron-hangar",
+    "fuel-tank-a",
+    "fuel-tank-b",
+    "fuel-tank-c",
+    "se-build-hall",
+    "se-build-annex",
+  ];
+
+  it("credits nothing to evidence that was not yet public", () => {
+    // A 2015 sensor handbook and a 2021 report once made 2025 buildings read as
+    // interpreted or reported years before their imagery existed.
+    const early = deriveSnapshot("2015-07-24");
+    expect(
+      early.subjects.filter((subject) => subject.evidenceClass !== undefined),
+    ).toEqual([]);
+    const mid2021 = deriveSnapshot(EARLY);
+    for (const id of BUILD_OUT) {
+      const subject = mid2021.subjects.find((candidate) => candidate.subjectId === id);
+      expect(subject?.evidenceClass, id).toBeUndefined();
+      expect(subject?.publiclyEstablished, id).toBe(false);
+    }
+  });
+
+  it("separates being established from being publicly established", () => {
+    // Established by a 2025-09-13 image, identified in print on 2025-11-04.
+    const september = deriveSnapshot("2025-09-13");
+    const november = deriveSnapshot("2025-11-04");
+    for (const id of BUILD_OUT) {
+      const before = september.subjects.find((subject) => subject.subjectId === id);
+      const after = november.subjects.find((subject) => subject.subjectId === id);
+      expect(before?.presence, id).toBe("established");
+      expect(before?.publiclyEstablished, id).toBe(false);
+      expect(after?.publiclyEstablished, id).toBe(true);
+    }
+  });
+
+  it("only ever calls a subject publicly established when it is established and evidenced", () => {
+    for (const date of TEMPORAL_SNAPSHOT_DATES) {
+      for (const subject of deriveSnapshot(date).subjects) {
+        if (!subject.publiclyEstablished) continue;
+        expect(subject.presence, `${subject.subjectId}@${date}`).toBe("established");
+        expect(subject.evidenceClass, `${subject.subjectId}@${date}`).toBeDefined();
+        expect(subject.establishedBy! <= date).toBe(true);
+      }
+    }
+  });
+
+  it("never publicly establishes illustrative content at any date", () => {
+    for (const date of TEMPORAL_SNAPSHOT_DATES) {
+      for (const subject of deriveSnapshot(date).subjects) {
+        if (subject.modelOnly) expect(subject.publiclyEstablished).toBe(false);
+      }
+    }
+  });
+
+  it("is monotonic: what was publicly established stays so as time moves forward", () => {
+    let previous = new Set<string>();
+    for (const date of TEMPORAL_SNAPSHOT_DATES) {
+      const current = new Set(
+        deriveSnapshot(date)
+          .subjects.filter((subject) => subject.publiclyEstablished)
+          .map((subject) => subject.subjectId),
+      );
+      for (const id of previous) expect(current.has(id), `${id}@${date}`).toBe(true);
+      previous = current;
+    }
+  });
+});

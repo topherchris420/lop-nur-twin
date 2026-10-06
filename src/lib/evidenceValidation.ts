@@ -354,6 +354,32 @@ export function validateEvidenceLedger(
     /* ------------------------------------------------ 8. uncertainty */
     validateUncertainty(record, fail);
 
+    /* ------------------------------------------------ 9. knowability */
+    // A source cannot attest what had not yet been observed. A record whose
+    // source was published before the date its own envelope says the subject
+    // is established by is citing something that could not have described it:
+    // a report of an earlier state of the site, or a method reference such as
+    // a sensor handbook. Either way the timeline would show the claim as
+    // knowable before anyone could have made it. Method references belong in
+    // the envelope's `methodSourceIds`, never on a record of their own.
+    const observedBy = record.uncertainty?.latestDate;
+    if (
+      record.sourceDate !== undefined &&
+      observedBy !== undefined &&
+      ISO_DATE.test(record.sourceDate) &&
+      ISO_DATE.test(observedBy) &&
+      record.sourceDate < observedBy
+    ) {
+      fail(
+        `${at} cites a source published ${record.sourceDate}, before the ${observedBy} observation the claim rests on; a source cannot attest a feature first observed after it was published`,
+      );
+    }
+    for (const methodSourceId of record.uncertainty?.methodSourceIds ?? []) {
+      if (!sourceIds.has(methodSourceId)) {
+        fail(`${at} cites unknown method source "${methodSourceId}"`);
+      }
+    }
+
     for (const [label, value] of [
       ["sourceDate", record.sourceDate],
       ["accessedAt", record.accessedAt],
