@@ -59,7 +59,7 @@ try {
     timeout: 60000,
   });
   await page.waitForFunction(
-    () => document.body.innerText.includes("CONSTRUCTION TIMELINE"),
+    () => document.body.innerText.includes("EVIDENCE TIMELINE"),
     { timeout: 60000 },
   );
   await page.keyboard.press("Backquote");

@@ -255,7 +255,7 @@ async function open(context, { webgl = true } = {}) {
 
 async function enterBethesda(s, origin) {
   await s.page.goto(origin + "/?quality=1", { waitUntil: "domcontentloaded" });
-  await s.waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
+  await s.waitFor(() => document.body.innerText.includes("EVIDENCE TIMELINE"));
   await s.page.keyboard.press("Backquote");
   await s.page.waitForSelector("#anomaly-coordinate");
   await s.page.focus("#anomaly-coordinate");
@@ -322,7 +322,7 @@ try {
   // --- Discovery, OFFLINE and DEMO ---------------------------------------------------
   const a = await open(browser.defaultBrowserContext());
   await a.page.goto(origin + "/?quality=1", { waitUntil: "domcontentloaded" });
-  await a.waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
+  await a.waitFor(() => document.body.innerText.includes("EVIDENCE TIMELINE"));
   check("the twin loads no lab code", !a.log.requests.some(isLabChunk));
   await enterBethesda(a, origin);
   await delay(1500);

@@ -78,7 +78,7 @@ try {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
+  await waitFor(() => document.body.innerText.includes("EVIDENCE TIMELINE"));
   check("Lop Nur opens normally", (await page.title()).startsWith("Lop Nur"));
   check("city not initially mounted", !(await page.$('[data-bethesda="active"]')));
   check("city bundle remains lazy", !resources.some((r) => /\/App-[^/]+\.js/.test(r)));
@@ -259,7 +259,7 @@ try {
   );
   // Deliberate renderer failure after the normal error-free run. The city
   // must keep its independent timer and semantic controls alive.
-  await waitFor(() => document.body.innerText.includes("CONSTRUCTION TIMELINE"));
+  await waitFor(() => document.body.innerText.includes("EVIDENCE TIMELINE"));
   await page.evaluate(() => {
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type, ...args) {

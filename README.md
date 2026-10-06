@@ -84,7 +84,7 @@ follow the source, inspect dates and uncertainty, or move to the semantic table
 at [`/analysis`](https://lop-nur-twin.vercel.app/analysis). Compare release
 manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 
-![A structure dossier showing evidence classification, sources and measured extents](docs/screenshot-dossier.png)
+![The claim inspector for the main assembly hangar: its classification, what the evidence establishes, what is inferred and unknown, its separate dates and its sources](docs/screenshot-dossier.png)
 
 - **Claims carry a status:** observed, reported, interpreted, or illustrative.
   The ledger is derived from the layout and source register. Build validation
