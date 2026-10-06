@@ -19,7 +19,7 @@
  *
  *   node tools/rain-admit.mjs bundle.json --registry /path/to/registry [--json]
  */
-import { readFileSync, statSync } from "node:fs";
+import { closeSync, fstatSync, openSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import "../scripts/ts-hooks.mjs";
 
@@ -36,11 +36,19 @@ if (!bundlePath || !registryDir) {
   console.error("usage: node tools/rain-admit.mjs bundle.json --registry DIR [--json]");
   process.exit(2);
 }
-if (statSync(bundlePath).size > 4 * 1024 * 1024) {
-  console.error("bundle exceeds 4 MB");
-  process.exit(2);
+// One descriptor: the file measured is the file read.
+const fd = openSync(bundlePath, "r");
+let raw;
+try {
+  if (fstatSync(fd).size > 4 * 1024 * 1024) {
+    console.error("bundle exceeds 4 MB");
+    process.exit(2);
+  }
+  raw = readFileSync(fd, "utf8");
+} finally {
+  closeSync(fd);
 }
-const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
+const bundle = JSON.parse(raw);
 if (
   !bundle ||
   typeof bundle !== "object" ||

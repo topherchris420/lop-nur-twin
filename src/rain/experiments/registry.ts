@@ -22,12 +22,13 @@
  */
 import {
   closeSync,
+  constants,
   existsSync,
-  lstatSync,
+  fstatSync,
   mkdirSync,
   openSync,
-  readFileSync,
   readdirSync,
+  readFileSync,
   renameSync,
   statSync,
   unlinkSync,
@@ -67,16 +68,45 @@ function atomicWrite(path: string, text: string): void {
   }
 }
 
-/** Read a bounded JSON file; symlinks are refused and parse errors are the registry's. */
-export function readJson(path: string, limit = 16 * 1024 * 1024): unknown {
+/**
+ * Read a bounded regular file through one descriptor: opened without following
+ * a symlink, measured and read as the same file, so nothing can be swapped in
+ * between the check and the read.
+ */
+export function readBoundedFile(path: string, limit: number): string {
   const name = path.slice(path.lastIndexOf("/") + 1);
-  if (lstatSync(path).isSymbolicLink()) throw new ExperimentError(`Refusing to read symlink ${name}`);
-  if (statSync(path).size > limit) throw new ExperimentError(`${name} exceeds ${limit} bytes`);
+  let fd: number;
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ELOOP" || code === "EMLINK")
+      throw new ExperimentError(`Refusing to read symlink ${name}`);
+    throw error;
+  }
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile()) throw new ExperimentError(`${name} is not a regular file`);
+    if (stat.size > limit) throw new ExperimentError(`${name} exceeds ${limit} bytes`);
+    return readFileSync(fd, "utf8");
+  } finally {
+    closeSync(fd);
+  }
+}
+
+/** Parse a file's text as JSON; a parse error is the registry's, named by file. */
+export function parseJsonText(text: string, name: string): unknown {
+  try {
+    return JSON.parse(text);
   } catch (error) {
     throw new ExperimentError(`${name} is not valid JSON: ${(error as Error).message}`);
   }
+}
+
+/** Read a bounded JSON file; symlinks are refused and parse errors are the registry's. */
+export function readJson(path: string, limit = 16 * 1024 * 1024): unknown {
+  const name = path.slice(path.lastIndexOf("/") + 1);
+  return parseJsonText(readBoundedFile(path, limit), name);
 }
 
 const sleepMs = (ms: number) => {

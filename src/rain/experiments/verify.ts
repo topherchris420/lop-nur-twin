@@ -11,11 +11,11 @@
  *
  * Server only.
  */
-import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { evaluate, type Criterion } from "./evaluate.js";
 import { credentialFormatsIn } from "./provenance.js";
-import { type Registry, readJson, type Json } from "./registry.js";
+import { parseJsonText, readBoundedFile, type Registry, readJson, type Json } from "./registry.js";
 import { reproductionReport } from "./runner.js";
 import { type ExperimentError, definitionErrors, runRecordErrors, sha256Bytes, sha256Json } from "./schema.js";
 import { summarize } from "./stats.js";
@@ -46,12 +46,19 @@ function verifyRun(registry: Registry, experimentId: string, definition: Json, r
   const dirName = runDir.slice(runDir.lastIndexOf("/") + 1);
   const label = `${experimentId}/${dirName}`;
   const path = join(runDir, "result.json");
-  if (!existsSync(path)) return [[`${label}: missing result.json`], warnings];
-  const raw = readFileSync(path, "utf8");
+  // Read once, through one descriptor: the bytes scanned are the bytes parsed.
+  let raw: string;
+  try {
+    raw = readBoundedFile(path, 16 * 1024 * 1024);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      return [[`${label}: missing result.json`], warnings];
+    return [[`${label}: ${(error as Error).message}`], warnings];
+  }
   if (credentialFormatsIn(raw)) problems.push(`${label}: credential-like pattern present in record`);
   let record: Json;
   try {
-    record = readJson(path) as Json;
+    record = parseJsonText(raw, "result.json") as Json;
   } catch (error) {
     return [[...problems, `${label}: ${(error as Error).message}`], warnings];
   }
@@ -100,9 +107,15 @@ function verifyRun(registry: Registry, experimentId: string, definition: Json, r
     if (!artifact.stored) continue;
     storedNames.add(artifact.name as string);
     const target = join(artifactDir, artifact.name as string);
-    if (!existsSync(target) || lstatSync(target).isSymbolicLink() || !lstatSync(target).isFile())
-      problems.push(`${label}: stored artifact ${artifact.name} is missing`);
-    else if (sha256Bytes(readFileSync(target, "utf8")) !== artifact.sha256)
+    // One descriptor: a symlink is refused at open, and the bytes hashed are the file measured.
+    let stored: string | null = null;
+    try {
+      stored = readBoundedFile(target, 64 * 1024 * 1024);
+    } catch {
+      stored = null;
+    }
+    if (stored === null) problems.push(`${label}: stored artifact ${artifact.name} is missing`);
+    else if (sha256Bytes(stored) !== artifact.sha256)
       problems.push(`${label}: artifact ${artifact.name} does not match its recorded SHA-256`);
   }
   if (existsSync(artifactDir))
