@@ -311,7 +311,7 @@ try {
     const s = await status(origin);
     if (s.configured !== false || s.failure !== null)
       throw new Error(
-        "the OFFLINE preview did not switch its runtime off: " + JSON.stringify(s),
+        "the OFFLINE preview did not switch its runtime off; see the console",
       );
   }
   browser = await puppeteer.launch({
@@ -668,8 +668,9 @@ try {
         s.identity?.bounded_decision === "off" &&
         s.identity?.remote_decisions === false &&
         s.identity?.corpus?.files > 0,
-      JSON.stringify(s).slice(0, 400),
+      "see the console for the status the route answered",
     );
+    console.log("LIVE status:", JSON.stringify(s).slice(0, 400));
     const identity = s.identity;
     const context = await browser.createBrowserContext();
     const c = await open(context);
@@ -823,8 +824,9 @@ try {
         s.identity?.model === "stand-in-model" &&
         s.identity?.meeting_engine === "rain.meeting.model.holdMeeting" &&
         s.identity?.remote_decisions === jevLive,
-      `expected a model meeting on stand-in-model, remote decisions ${jevLive}; got ${JSON.stringify(s).slice(0, 300)}`,
+      `expected a model meeting on stand-in-model, remote decisions ${jevLive}; see the console for the status the route answered`,
     );
+    console.log("MODEL status:", JSON.stringify(s).slice(0, 300));
     const context = await browser.createBrowserContext();
     const d = await open(context);
     await enterBethesda(d, model.origin);
