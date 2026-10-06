@@ -17,7 +17,7 @@ import { compileScenario } from "../scenarios";
 import { LAB_BUILDING_ID, LAB_DOOR, OPEN_RADIUS, nearDoor, resolvesLab } from "./site";
 import { ROOMS, ROOM_IDS, SPAWN, moveInLab, roomAt } from "./labLayout";
 import { LabStore } from "./store";
-import { evidenceItems, neutralEvents } from "./session";
+import { currentSpeaker, evidenceItems, neutralEvents } from "./session";
 import { approve, begin, complete, openCase } from "./cases";
 import { runToCompletion } from "./runner";
 import { seal, type ExperimentRecord } from "./record";
@@ -280,6 +280,17 @@ describe("embodiment follows R.A.I.N.'s neutral event vocabulary", () => {
     expect(events.filter((e) => e.type === "agent_utterance").length).toBe(
       meeting.turns.length,
     );
+  });
+  it("lights exactly the speaker of each agent_utterance, in order", () => {
+    // The scene stages from `currentSpeaker`; this pins it to the event stream.
+    const said = neutralEvents(meeting as never).flatMap((e) =>
+      e.type === "agent_utterance" ? [e.agent_id] : [],
+    );
+    said.forEach((agent, i) =>
+      expect(currentSpeaker(meeting as never, i + 1)?.toLowerCase()).toBe(agent),
+    );
+    expect(currentSpeaker(meeting as never, 0)).toBeNull();
+    expect(currentSpeaker(meeting as never, said.length + 1)).toBeNull();
   });
 });
 

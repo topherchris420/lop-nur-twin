@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  bootstrapInterval,
   mean,
   meanInterval,
   median,
@@ -73,15 +72,6 @@ describe("intervals", () => {
     const none = wilson(0, 10)!;
     expect(none.lo).toBe(0);
     expect(none.hi).toBeLessThan(0.35);
-  });
-
-  it("bootstraps deterministically from its seed", () => {
-    const xs = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3];
-    const a = bootstrapInterval(xs, median, { seed: 7, resamples: 500 });
-    const b = bootstrapInterval(xs, median, { seed: 7, resamples: 500 });
-    expect(a).toEqual(b);
-    expect(a!.lo).toBeLessThanOrEqual(median(xs)!);
-    expect(a!.hi).toBeGreaterThanOrEqual(median(xs)!);
   });
 });
 

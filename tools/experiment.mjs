@@ -17,8 +17,8 @@
  * anything runs. The runner refuses a definition that is malformed, misspelled
  * or names a metric this build cannot compute, and prints why.
  *
- * Arms that would call a paid model (Jev, a real LLM) run only with their flag
- * (`JEV_LIVE_TEST=1`, `LLM_LIVE_TEST=1`). Without it they are recorded as
+ * Arms that would call a paid model (Jev, Glide, a real LLM) run only with
+ * their flag (`JEV_LIVE_TEST=1`, `FASTINO_LIVE_TEST=1`, `LLM_LIVE_TEST=1`). Without it they are recorded as
  * PENDING — in the evaluation, in the table, with the reason — and the other
  * arms run; `--require-live` makes a missing flag an error instead. Nothing is
  * ever filled in for a pending arm. An arm with `"fakeLlm": true` runs against
@@ -546,7 +546,22 @@ function archive(source, destination) {
  * Reads the run's own decision records; runs nothing and calls nothing. Writes
  * shadow.json (blacksite-shadow/v1) and shadow.md beside the evaluation.
  */
-function shadow(dir) {
+/**
+ * Markdown as the repository's formatter would write it, so a regenerated
+ * archive never fails `format:check`. Prettier is a development dependency;
+ * without it the text is written as generated.
+ */
+async function formatMarkdown(text, file) {
+  try {
+    const prettier = await import("prettier");
+    const options = (await prettier.resolveConfig(file)) ?? {};
+    return await prettier.format(text, { ...options, filepath: file });
+  } catch {
+    return text;
+  }
+}
+
+async function shadow(dir) {
   const runs = JSON.parse(readFileSync(join(dir, "runs.json"), "utf8"));
   const arms = runs.arms
     .map((entry) => loadArm(dir, entry))
@@ -608,7 +623,8 @@ function shadow(dir) {
     }
   }
   writeFileSync(join(dir, "shadow.json"), `${JSON.stringify(result, null, 2)}\n`);
-  writeFileSync(join(dir, "shadow.md"), `${lines.join("\n")}\n`);
+  const markdown = join(dir, "shadow.md");
+  writeFileSync(markdown, await formatMarkdown(`${lines.join("\n")}\n`, markdown));
   console.log(`  wrote ${join(dir, "shadow.json")} and shadow.md`);
 }
 
@@ -623,7 +639,7 @@ if (compareIndex >= 0) {
 } else if (evaluateDir) {
   evaluate(evaluateDir);
 } else if (shadowDir) {
-  shadow(shadowDir);
+  await shadow(shadowDir);
 } else {
   const file = process.argv.slice(2).find((arg) => arg.endsWith(".json"));
   if (!file) {

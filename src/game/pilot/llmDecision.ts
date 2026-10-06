@@ -166,7 +166,10 @@ export function validateLlmDecision(
     return { ok: false, error: "confidence given but the source says none" };
   }
   if (source === "verbalized" && !anyConfidence) {
-    return { ok: false, error: "confidence source is verbalized but no number was written" };
+    return {
+      ok: false,
+      error: "confidence source is verbalized but no number was written",
+    };
   }
   let usage: LlmDecision["usage"] = null;
   const u = value["usage"];

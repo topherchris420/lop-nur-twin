@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { FileSearch, MoveLeft } from "lucide-react";
 import { GameScene } from "@/game/GameScene";
 import { GameHud } from "@/game/hud/GameHud";
 import { useGameStore } from "@/game/core/gameStore";
 import { cn } from "@/lib/utils";
+import { canCreateWebGLContext } from "@/lib/webgl";
 
 /**
  * `/play` — Blacksite, the first-person engagement simulator, running on the
@@ -24,6 +25,7 @@ function Play() {
   // The crosshair replaces the cursor for a human; a spectator watching a brain
   // keeps it, to reach TAKE CONTROL.
   const brain = useGameStore((s) => s.brain);
+  const [webgl] = useState(canCreateWebGLContext);
 
   useEffect(() => {
     document.title =
@@ -37,8 +39,34 @@ function Play() {
         brain === "human" ? "cursor-none" : "cursor-auto",
       )}
     >
-      <GameScene />
-      <GameHud />
+      {webgl ? (
+        <>
+          <GameScene />
+          <GameHud />
+        </>
+      ) : (
+        <div
+          role="alert"
+          className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-slate-200"
+        >
+          <div className="max-w-md space-y-3 leading-relaxed">
+            <p>
+              This browser could not start WebGL, which Blacksite needs to run a match.
+            </p>
+            <p>
+              Recorded runs do not:{" "}
+              <Link to="/evaluation" className="underline">
+                the evaluations
+              </Link>{" "}
+              hold every archived episode and its decisions, and the{" "}
+              <Link to="/analysis" className="underline">
+                analysis table
+              </Link>{" "}
+              holds the model the game is built on.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="pointer-events-none absolute top-3 left-3 z-40 flex flex-col items-start gap-2">
         <p
           role="note"
@@ -46,7 +74,7 @@ function Play() {
         >
           Illustrative simulation — not operational data
         </p>
-        {screen !== "boot" && (
+        {(screen !== "boot" || !webgl) && (
           <Link
             to="/"
             className="pointer-events-auto inline-flex cursor-pointer items-center gap-1.5 rounded border border-white/15 bg-[#0b0e14]/80 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-slate-200 uppercase backdrop-blur-sm hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"

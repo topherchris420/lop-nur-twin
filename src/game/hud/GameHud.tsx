@@ -189,7 +189,7 @@ function BootScreen({ onComplete }: { onComplete: () => void }) {
           Blacksite
         </h1>
         <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-400">
-          Lop Nur · First-Person Engagement Simulator
+          Lop Nur · One seat, many minds
         </p>
       </div>
       <p className="absolute bottom-24 text-[11px] uppercase tracking-[0.3em] text-slate-300">
@@ -346,9 +346,10 @@ function MainMenu() {
           <span className="block text-[#4da3ff]">Blacksite</span>
         </h1>
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-400">
-          A first-person engagement simulator built on the measured 6.8 km reconstruction
-          of the airfield. The map is the twin: same runway bearing, same compound layout,
-          same structures.
+          An illustrative first-person simulation on the twin&rsquo;s public-source
+          reconstruction of the airfield: same runway, same compound, same structures.
+          Play the seat yourself, or hand it to a model or a scripted policy under the
+          same rules, and every decision is recorded.
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-2">

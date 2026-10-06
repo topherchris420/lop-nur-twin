@@ -14,7 +14,6 @@ import {
 import { REMOTE_BRAINS, type ArmSpec, type ExperimentSpec } from "./experimentSpec.js";
 import { buildLedger, ledgerCalls, type Ledger } from "./ledger.js";
 import {
-  METRICS,
   metricDefinition,
   type EpisodeInput,
   type EpisodeReport,
@@ -856,6 +855,3 @@ export function validateEvaluation(
     return { ok: false, error: "provenance missing" };
   return { ok: true, value: value as Evaluation };
 }
-
-/** Every registered metric id, for documentation and the UI. */
-export const METRIC_IDS = METRICS.map((m) => m.id);

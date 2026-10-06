@@ -225,14 +225,6 @@ export function isAxisAction<A extends Axis>(
   );
 }
 
-/** `STRAFE_LEFT · TURN_RIGHT_SMALL · LOOK_DOWN_SMALL · FIRE`, plus the engagement when there is one. */
-export function frameLabel(frame: ControlFrame): string {
-  const core = CORE_AXES.map((axis) => frame[axis]).join(" · ");
-  const engaged =
-    frame.target === "NONE" ? core : `${core} · ${frame.target} ${frame.aim}`;
-  return frame.go === "NONE" ? engaged : `${engaged} · GO ${frame.go}`;
-}
-
 /* ------------------------------------------------------------------ */
 /* Timing — owned by the host, never by a brain                        */
 /* ------------------------------------------------------------------ */

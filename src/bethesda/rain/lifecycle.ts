@@ -57,12 +57,6 @@ const NEXT: Record<LifecycleState, readonly LifecycleState[]> = {
   FAILED: [],
   REJECTED: [],
 };
-export const TERMINAL: ReadonlySet<LifecycleState> = new Set([
-  "COMPLETED",
-  "INCONCLUSIVE",
-  "FAILED",
-  "REJECTED",
-]);
 export interface Transition {
   state: LifecycleState;
   /** Wall-clock time of the transition. Recorded, never replayed. */

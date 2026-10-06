@@ -115,13 +115,6 @@ export const THREAT_PRIORITY: DecisionTypeContract = {
   },
 };
 
-/** ENGAGE: permission to fire at a named or visible enemy. Anything else disengages. */
-export function engages(r: DecisionRecord): boolean {
-  return (
-    FIRE.has(r.frame.weapon) && (r.frame.target !== "NONE" || r.legal.target.length < 2)
-  );
-}
-
 export const ENGAGE_DISENGAGE: DecisionTypeContract = {
   id: "engage-disengage/v1",
   question:

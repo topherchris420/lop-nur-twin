@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
+import { Link } from "@tanstack/react-router";
 import { useTwinStore } from "@/lib/store";
 import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
@@ -13,6 +14,7 @@ import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
 import { getQualityProfile } from "@/lib/quality";
 import { readFlag } from "@/lib/params";
+import { canCreateWebGLContext } from "@/lib/webgl";
 
 const Effects = lazy(() => import("./Effects"));
 
@@ -41,19 +43,26 @@ function WebGLFallback() {
       role="alert"
       className="absolute inset-0 z-30 grid place-items-center bg-[#1c1b18] p-6 text-center text-sm text-[#e8e4d8]"
     >
-      This browser could not start WebGL. Hardware acceleration or a WebGL-capable browser
-      is required.
+      <div className="max-w-md space-y-3 leading-relaxed">
+        <p>
+          This browser could not start WebGL, so the 3D view is unavailable. Hardware
+          acceleration or a WebGL-capable browser is required for it.
+        </p>
+        <p>
+          The model itself does not need it: every structure, claim, source, date and
+          uncertainty is in the{" "}
+          <Link to="/analysis" className="underline">
+            analysis table
+          </Link>
+          , and releases can be compared in the{" "}
+          <Link to="/compare" className="underline">
+            manifest comparison
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
-}
-
-function canCreateWebGLContext(): boolean {
-  if (typeof document === "undefined") return false;
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-  if (!context) return false;
-  context.getExtension("WEBGL_lose_context")?.loseContext();
-  return true;
 }
 
 class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {

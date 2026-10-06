@@ -148,8 +148,6 @@ export interface TraceEvent {
   detail: string;
 }
 
-export { fnv1a64 } from "./hash";
-
 export function hashObservation(observation: unknown): string {
   return canonicalHash(observation);
 }

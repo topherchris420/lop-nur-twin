@@ -87,11 +87,8 @@ export const WORLD_OBSERVATION_SCHEMA = "bethesda-world-observation/v1" as const
  * checkout and is refused.
  */
 export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v2" as const;
-export const SESSION_SCHEMA = "rain-bethesda-session/v1" as const;
 /** R.A.I.N.'s external-run contract (`src/rain/experiments/schemas/submission.schema.json`). */
 export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
-/** R.A.I.N.'s pre-registration contract (`src/rain/experiments/schemas/experiment.schema.json`). */
-export const RAIN_DEFINITION_SCHEMA = "rain-experiment/v1" as const;
 export const RAIN_DECISION_SCHEMA = DECISION_SCHEMA;
 /**
  * R.A.I.N.'s escalation reasons (`src/rain/judgment/routing.ts`). A decision's
@@ -102,8 +99,6 @@ export const RAIN_ESCALATION_REASONS = ESCALATION_REASONS;
 export const RAIN_DECISION_ENGINES = ["laya", "typesafe"] as const;
 /** R.A.I.N.'s provider error codes for a failed attempt. */
 export const RAIN_PROVIDER_ERRORS = PROVIDER_ERRORS;
-/** Where the runtime's corpus and perspectives were imported from (`src/rain/data/source.json`). */
-export const RAIN_ORIGIN_REPOSITORY = "topherchris420/james_library" as const;
 export const LAB_REPOSITORY = "topherchris420/lop-nur-twin" as const;
 
 /**

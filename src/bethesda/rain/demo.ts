@@ -17,8 +17,6 @@ import source from "./fixtures/demo-source.json" with { type: "json" };
 import type { ExperimentProposal, MeetingRecord } from "./contracts";
 import { validateMeeting, validateProposalShape, type Checked } from "./validation";
 
-export const DEMO_SOURCE = source;
-
 export function demoMeeting(): Checked<MeetingRecord> {
   const checked = validateMeeting(meetingFixture);
   if (!checked.ok) return checked;

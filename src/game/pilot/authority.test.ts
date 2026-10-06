@@ -96,7 +96,9 @@ describe("no control-layer code decides an outcome", () => {
     const IMPORT = /import\s+(type\s+)?\{([^}]*)\}\s*from\s*["']\.\.\/core\/combat["']/g;
     for (const file of CONTROL_LAYER) {
       const source = read(file);
-      expect(source, file).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+["']\.\.\/core\/combat["']/);
+      expect(source, file).not.toMatch(
+        /import\s+\*\s+as\s+\w+\s+from\s+["']\.\.\/core\/combat["']/,
+      );
       for (const match of source.matchAll(IMPORT)) {
         const typeOnly = match[1] !== undefined;
         const names = (match[2] ?? "")

@@ -1,5 +1,3 @@
-import { mulberry32 } from "../../lib/noise.js";
-
 /**
  * The statistics an evaluation is allowed to print, and the rules for when it
  * is allowed to print them.
@@ -139,36 +137,6 @@ export function wilson(successes: number, n: number, z = 1.96): Interval | null 
     lo: Math.max(0, centre - half),
     hi: Math.min(1, centre + half),
     method: `95% Wilson interval, n=${n}`,
-  };
-}
-
-/**
- * Percentile bootstrap interval of any statistic, seeded so the same samples
- * always print the same interval. Used for medians and ratios, where no
- * closed form is honest.
- */
-export function bootstrapInterval(
-  samples: readonly number[],
-  statistic: (resample: readonly number[]) => number | null,
-  options: { resamples?: number; seed?: number } = {},
-): Interval | null {
-  if (samples.length < MIN_CI_N) return null;
-  const resamples = options.resamples ?? 2000;
-  const rand = mulberry32((options.seed ?? 0x5eed) >>> 0);
-  const stats: number[] = [];
-  const buffer = new Array<number>(samples.length);
-  for (let r = 0; r < resamples; r += 1) {
-    for (let i = 0; i < samples.length; i += 1) {
-      buffer[i] = samples[Math.floor(rand() * samples.length)]!;
-    }
-    const value = statistic(buffer);
-    if (value !== null && Number.isFinite(value)) stats.push(value);
-  }
-  if (stats.length < resamples / 2) return null;
-  return {
-    lo: percentile(stats, 2.5)!,
-    hi: percentile(stats, 97.5)!,
-    method: `95% percentile bootstrap, ${resamples} resamples, n=${samples.length}`,
   };
 }
 

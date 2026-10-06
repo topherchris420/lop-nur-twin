@@ -36,8 +36,9 @@ export function TopBar() {
 
   return (
     <>
-      <div className="site-title pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 text-center">
-        <div className="text-foreground/90 font-mono text-xs tracking-[0.35em] uppercase">
+      {/* A quiet backing plate: bare text over a pale daytime sky was unreadable. */}
+      <div className="site-title bg-card/70 pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 rounded-md px-3 py-1.5 text-center backdrop-blur-sm">
+        <div className="text-foreground font-mono text-xs tracking-[0.35em] uppercase">
           Lop Nur
         </div>
         <div className="text-muted-foreground text-[10px] tracking-[0.25em] uppercase">

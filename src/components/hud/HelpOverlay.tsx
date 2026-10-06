@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EVIDENCE_CLASSIFICATIONS, EVIDENCE_CLASSIFICATION_META } from "@/lib/evidence";
 import { useTwinStore } from "@/lib/store";
 
 const SHORTCUTS: Array<[string, string]> = [
@@ -112,7 +114,7 @@ export function HelpOverlay() {
       <Card className="max-h-[calc(100vh-1.5rem)] w-[26rem] max-w-full overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle id="help-title">Controls</CardTitle>
+            <CardTitle id="help-title">Using the twin</CardTitle>
             <Button
               variant="ghost"
               size="icon"
@@ -123,15 +125,44 @@ export function HelpOverlay() {
             </Button>
           </div>
           <CardDescription>
-            Click any structure to open its dossier. Click the minimap to fly there, or
+            Click any structure to inspect its claim. Click the minimap to fly there, or
             press <kbd className="kbd">M</kbd> to measure distances and grid bearings
-            across the site — clicks snap to the runway, strips and compound. Watch for
-            the demonstrator flying the runway pattern, the service vehicle, the turning
-            radar-like prop and — after dark (<kbd className="kbd">N</kbd>) — the winking
-            obstruction beacons.
+            across the site — clicks snap to the runway, strips and compound.
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <section aria-labelledby="help-evidence" className="mb-4 text-xs">
+            <h3 id="help-evidence" className="text-sm font-semibold">
+              Reading the evidence
+            </h3>
+            <dl className="mt-2 space-y-1">
+              {EVIDENCE_CLASSIFICATIONS.map((classification) => {
+                const meta = EVIDENCE_CLASSIFICATION_META[classification];
+                return (
+                  <div key={classification} className="flex gap-2">
+                    <dt className="w-24 shrink-0 font-medium">
+                      <span aria-hidden="true">{meta.glyph}</span> {meta.label}
+                    </dt>
+                    <dd className="text-muted-foreground">{meta.statement}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+            <p className="text-muted-foreground mt-2 leading-relaxed">
+              The <strong className="text-foreground">evidence mode</strong> chooses which
+              of these the scene draws. The{" "}
+              <strong className="text-foreground">evidence timeline</strong> steps through
+              the dates the evidence changed: solid means publicly established by then, an
+              outline means the model places it but nothing public yet did. A
+              structure&rsquo;s claim says what is established, what is inferred, what is
+              unknown and when it became knowable. Everything here also works without 3D
+              in the{" "}
+              <Link to="/analysis" className="text-foreground underline">
+                analysis table
+              </Link>
+              .
+            </p>
+          </section>
           <ul className="space-y-1.5">
             {SHORTCUTS.map(([key, desc]) => (
               <li key={key} className="flex items-center gap-3 text-xs">
@@ -147,6 +178,11 @@ export function HelpOverlay() {
             ))}
           </ul>
           <p className="text-muted-foreground mt-3 border-t border-border pt-3 text-xs">
+            Scenery to look for: the demonstrator flying the runway pattern, the service
+            vehicle, the turning radar-like prop and — after dark — the obstruction
+            beacons. All of it is illustrative.
+          </p>
+          <p className="text-muted-foreground mt-3 text-xs">
             On touch devices, orbit mode adds a bottom-right pan joystick to glide across
             the site — one finger still rotates and a pinch zooms. First-person mode shows
             a left thumb-stick to walk and a right-side drag area to look — push the stick

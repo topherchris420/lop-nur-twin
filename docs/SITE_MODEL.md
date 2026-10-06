@@ -161,8 +161,9 @@ export. The catalog contains no live aircraft or other moving scene entity;
 full method and limitations are in [`SPATIAL_ANALYSIS.md`](SPATIAL_ANALYSIS.md).
 
 Vite 8 · TypeScript (strict) · React 19 · TanStack Router · React Three Fiber ·
-drei · @react-three/postprocessing (with hand-written GLSL effects and passes) ·
-Tailwind CSS 4 · zustand · simplex-noise · leva and puppeteer (dev only)
+drei · postprocessing and @react-three/postprocessing (with hand-written GLSL
+effects and passes) · Tailwind CSS 4 · zustand · simplex-noise · puppeteer (dev
+only)
 
 No binary assets. Every texture, every mesh, every sound and every animation in
 both experiences is generated at runtime from seeded noise, so the repository

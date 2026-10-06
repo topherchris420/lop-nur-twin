@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ACTION_CONTRACT_VERSION } from "./contract";
+import { fnv1a64 } from "./hash";
 import {
   TRACE_VERSION,
   TraceRecorder,
-  fnv1a64,
   hashObservation,
   parseTrace,
   type TraceRecord,

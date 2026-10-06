@@ -102,7 +102,7 @@ export function EvidenceLegend() {
         </label>
         <EvidenceLegendList compact />
         <p className="text-muted-foreground mt-3 text-[10px] leading-relaxed">
-          Public-source analytical reconstruction. Modeled geometry in {PRIMARY_CRS}
+          Public-source analytical reconstruction. Modeled geometry in {PRIMARY_CRS}{" "}
           around an approximate {SITE_PROFILE.terrainDatum.elevationM} m{" "}
           {SITE_PROFILE.terrainDatum.verticalReference} datum. Not operational data;
           building functions are not verified interior uses.

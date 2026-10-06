@@ -22,7 +22,6 @@ import { mirageOffset } from "../world/mirage";
 import {
   MOVE_INPUT,
   WEAPON_INPUT,
-  frameLabel,
   placeSlot,
   targetSlot,
   type Axis,
@@ -1964,10 +1963,6 @@ class Pilot {
   /** The trace as JSON Lines, for download or replay. */
   exportTrace(): string {
     return this.recorder.toJsonl();
-  }
-
-  describeFrame(): string | null {
-    return this.executor.current ? frameLabel(this.executor.current) : null;
   }
 }
 

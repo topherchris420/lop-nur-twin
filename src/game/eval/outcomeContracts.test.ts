@@ -7,7 +7,6 @@ import {
   SHOT,
   THREAT_PRIORITY,
   decisionType,
-  engages,
 } from "./outcomeContracts";
 import { legal, outcome, record } from "./testing/fixtures";
 
@@ -91,26 +90,11 @@ describe("outcome contracts", () => {
     expect(THREAT_PRIORITY.matches(single)).toBe(false);
   });
 
-  it("engage/disengage reads fire permission with a target", () => {
+  it("engage/disengage applies with an enemy in view and scores the exchange", () => {
     const base = record({
       legal: legal({ enemies: 1 }),
       context: { ...record().context, visibleEnemies: 1 },
     });
-    expect(
-      engages({
-        ...base,
-        frame: { ...base.frame, weapon: "ADS_FIRE", target: "TARGET_0" },
-      }),
-    ).toBe(true);
-    expect(
-      engages({ ...base, frame: { ...base.frame, weapon: "ADS_FIRE", target: "NONE" } }),
-    ).toBe(false);
-    expect(
-      engages({
-        ...base,
-        frame: { ...base.frame, weapon: "NO_FIRE", target: "TARGET_0" },
-      }),
-    ).toBe(false);
     expect(ENGAGE_DISENGAGE.matches(base)).toBe(true);
     expect(
       ENGAGE_DISENGAGE.classify({
