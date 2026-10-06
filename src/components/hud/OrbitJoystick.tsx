@@ -41,8 +41,10 @@ export function OrbitJoystick() {
   if (mode !== "orbit" || !coarse) return null;
 
   const setThumb = (dx: number, dy: number) => {
+    // The thumb's classes centre it through CSS `translate`, which composes with
+    // `transform`; adding -50% here as well threw it up and left on first touch.
     if (thumbRef.current) {
-      thumbRef.current.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      thumbRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
     }
   };
 

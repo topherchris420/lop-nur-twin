@@ -23,6 +23,8 @@ import type { PresenceMark } from "./rain/presence";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evidence";
 import { groundAt, minimumGround } from "./terrain";
+import { LookDrag, type Stick } from "./walkInput";
+import { canRender } from "./webgl";
 export interface ViewControl {
   mode: "orbit" | "walk" | "seat";
   target: Point;
@@ -30,6 +32,8 @@ export interface ViewControl {
   yaw: number;
   pitch: number;
   keys: Set<string>;
+  /** The touch screen's walking stick; read with the keys on the city's clock. */
+  stick: Stick;
   tier: number;
   quality: "auto" | "detail" | "economy";
   fps: number;
@@ -216,17 +220,21 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   useEffect(() => {
     view.ready = true;
     const canvas = gl.domElement;
-    let dragging = false;
+    const look = new LookDrag();
     const down = (e: PointerEvent) => {
-      if (view.mode === "orbit") return;
-      dragging = true;
+      if (view.mode === "orbit" || !look.begin(e)) return;
       canvas.setPointerCapture(e.pointerId);
     };
-    let press: { x: number; y: number } | null = null;
+    let press: { id: number; x: number; y: number } | null = null;
     const raycaster = new THREE.Raycaster(),
       ndc = new THREE.Vector2();
     const select = (e: PointerEvent) => {
-      if (!press || Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) return;
+      if (
+        !press ||
+        press.id !== e.pointerId ||
+        Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5
+      )
+        return;
       if (document.pointerLockElement === canvas) return;
       const rect = canvas.getBoundingClientRect();
       ndc.set(
@@ -250,31 +258,40 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       view.onSelect?.(view.selected);
     };
     const up = (e: PointerEvent) => {
-      dragging = false;
+      look.end(e);
       select(e);
-      press = null;
+      if (press?.id === e.pointerId) press = null;
+    };
+    const cancel = (e: PointerEvent) => {
+      look.end(e);
+      if (press?.id === e.pointerId) press = null;
     };
     const press0 = (e: PointerEvent) => {
-      press = { x: e.clientX, y: e.clientY };
+      // A tap is one finger (or the mouse): the primary pointer starts one, and
+      // a second finger landing makes the gesture something else.
+      press = e.isPrimary ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null;
     };
     canvas.addEventListener("pointerdown", press0);
     const move = (e: PointerEvent) => {
-      if (view.mode !== "orbit" && (dragging || document.pointerLockElement === canvas)) {
-        view.yaw -= e.movementX * 0.002;
-        view.pitch = Math.max(-1.3, Math.min(1.3, view.pitch - e.movementY * 0.002));
-      }
+      if (view.mode === "orbit") return;
+      const turn = look.turn(e, document.pointerLockElement === canvas);
+      if (!turn) return;
+      view.yaw += turn.yaw;
+      view.pitch = Math.max(-1.3, Math.min(1.3, view.pitch + turn.pitch));
     };
     const lock = () => {
       if (view.mode !== "orbit") void canvas.requestPointerLock()?.catch(() => {});
     };
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", cancel);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("dblclick", lock);
     return () => {
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointerdown", press0);
       canvas.removeEventListener("pointerup", up);
+      canvas.removeEventListener("pointercancel", cancel);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("dblclick", lock);
     };
@@ -326,18 +343,7 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   ) : null;
 }
 export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
-  // R3F configures its renderer asynchronously; a missing WebGL context can
-  // reject before a React boundary sees it. Probe and release one context.
-  const supported = useMemo(() => {
-    try {
-      const context = document.createElement("canvas").getContext("webgl2");
-      if (!context) return false;
-      context.getExtension("WEBGL_lose_context")?.loseContext();
-      return true;
-    } catch {
-      return false;
-    }
-  }, []);
+  const supported = useMemo(canRender, []);
   if (!supported || view.failed)
     return (
       <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
@@ -347,6 +353,10 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
     );
   return (
     <Canvas
+      // Every drag on the city is the city's — an orbit in Survey, a look on
+      // foot — never the browser's scroll or zoom. Set on the wrapper from the
+      // first render, it holds whatever the orbit controls leave on the canvas.
+      style={{ touchAction: "none" }}
       shadows={view.tier > 0}
       dpr={view.tier > 0 ? [1, 1.5] : 1}
       camera={{

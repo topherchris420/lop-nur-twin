@@ -289,7 +289,9 @@ takes you back.
 Walk with **WASD**, use **Shift** to move faster, and drag to look. **Survey**
 offers orbit controls; **Pedestrian seat** follows an actor and lets you choose
 from its permitted actions. Free walking is exploration, not a human-versus-model
-comparison seat. Touch supports surveying; walking currently needs a keyboard.
+comparison seat. On a touch screen a thumb-stick walks and a drag looks, in the
+city and in the lab; in the city every step is the same recorded command as one
+taken on WASD.
 
 Inside the city, open **~ telemetry** or press backtick to introduce a scenario.
 A deterministic rule compiler (not a language model) turns the request into

@@ -143,6 +143,11 @@ try {
   await waitFor(() => /fallback [1-9]/.test(document.body.innerText));
   await click("Jev on");
   await click("Walk");
+  check(
+    "a mouse and keyboard walk without a touch stick",
+    !(await page.$("[data-touch-stick]")) &&
+      (await page.evaluate(() => document.body.innerText.includes("WASD"))),
+  );
   // Hold through actual simulation progress. A wall-clock sleep can elapse
   // entirely inside one software-rendered frame without a timer tick.
   const movementTick = await page.evaluate(() =>
@@ -343,6 +348,278 @@ try {
     !!from && !!to && from !== to,
     `${from} → ${to}`,
   );
+  // A phone: the city walked by thumb. Real multi-touch goes in through the
+  // DevTools protocol, so the pointer events are the ones a finger makes.
+  {
+    const phone = await browser.newPage();
+    phone.setDefaultTimeout(60000);
+    await phone.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+    await phone.evaluateOnNewDocument(() =>
+      Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 }),
+    );
+    const phoneErrors = [];
+    phone.on("pageerror", (e) => phoneErrors.push(String(e)));
+    await phone.setRequestInterception(true);
+    phone.on("request", (r) => {
+      if (r.url().includes("/api/jev/decision")) {
+        providerCalls++;
+        void r.respond({
+          status: 503,
+          contentType: "application/json",
+          body: '{"error":"offline test double"}',
+        });
+      } else void r.continue();
+    });
+    const cdp = await phone.createCDPSession();
+    const touch = (type, points) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: points.map(([x, y, id]) => ({ x, y, id, radiusX: 4, radiusY: 4 })),
+      });
+    const until = (predicate, ...args) =>
+      phone.waitForFunction(predicate, { polling: 100, timeout: 90000 }, ...args);
+    const tap = (name) =>
+      phone.evaluate((name) => {
+        const b = [...document.querySelectorAll("button")].find(
+          (b) => b.textContent.trim() === name,
+        );
+        if (!b) throw new Error("Missing " + name);
+        b.click();
+      }, name);
+    const where = () =>
+      phone.evaluate(() => {
+        const m = /(\d+\.\d{5})° N · (\d+\.\d{5})° W/.exec(document.body.innerText);
+        return m ? [Number(m[1]), Number(m[2])] : null;
+      });
+    const stick = () =>
+      phone.evaluate(() => {
+        const r = document
+          .querySelector("[data-touch-stick] > div")
+          ?.getBoundingClientRect();
+        return r ? [r.left + r.width / 2, r.top + r.height / 2] : null;
+      });
+    /** Holds the stick pushed up until the readout has moved about 3 m. */
+    const walk = async () => {
+      const [x, y] = await stick();
+      const from = await where();
+      await touch("touchStart", [[x, y, 1]]);
+      await touch("touchMove", [[x, y - 60, 1]]);
+      try {
+        await until((f) => {
+          const m = /(\d+\.\d{5})° N · (\d+\.\d{5})° W/.exec(document.body.innerText);
+          return m && Math.hypot(Number(m[1]) - f[0], Number(m[2]) - f[1]) >= 0.00003;
+        }, from);
+      } finally {
+        await touch("touchEnd", []);
+      }
+      // The header re-renders once a second; let it catch the last step.
+      await delay(2000);
+      const to = await where();
+      return [to[0] - from[0], to[1] - from[1]];
+    };
+    await phone.goto(origin + "/?quality=1", { waitUntil: "domcontentloaded" });
+    await phone.waitForFunction(
+      () => document.body.innerText.includes("EVIDENCE TIMELINE"),
+      {
+        polling: 100,
+        timeout: 90000,
+      },
+    );
+    // The phone's way in: the site index takes Bethesda's coordinates.
+    await phone.evaluate(() =>
+      [...document.querySelectorAll("button")]
+        .find((b) => /index/i.test(b.getAttribute("aria-label") ?? ""))
+        ?.click(),
+    );
+    await phone.waitForSelector("#site-index-search");
+    await phone.type("#site-index-search", "38.9847, -77.0947");
+    await until(() => document.body.innerText.includes("UNRESOLVED FEATURE"));
+    await tap("UNRESOLVED FEATURE · 39° N 77° W · outside this site");
+    await phone.waitForSelector('[data-bethesda="active"]', { timeout: 90000 });
+    await phone.waitForSelector("[data-touch-stick]");
+    const layout = await phone.evaluate(() => {
+      const base = document.querySelector("[data-touch-stick] > div");
+      const r = base.getBoundingClientRect();
+      const reachable = [
+        [0.5, 0.5],
+        [0.15, 0.5],
+        [0.85, 0.5],
+        [0.5, 0.15],
+        [0.5, 0.85],
+      ].every(([fx, fy]) =>
+        base.contains(
+          document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy),
+        ),
+      );
+      const boxes = [
+        "header",
+        "nav",
+        "[data-touch-stick]",
+        'section[aria-label="City controls"]',
+      ]
+        .map((s) => document.querySelector(s)?.getBoundingClientRect())
+        .filter(Boolean);
+      let overlaps = 0;
+      for (let i = 0; i < boxes.length; i++)
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i],
+            b = boxes[j];
+          if (
+            Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
+          )
+            overlaps++;
+        }
+      return {
+        reachable,
+        overlaps,
+        // What a finger on the street gets: the canvas, or a wrapper inside the
+        // city, refuses the browser's own pan and zoom.
+        look: (() => {
+          for (
+            let el = document.querySelector('[data-bethesda="active"] canvas');
+            el && el.closest('[data-bethesda="active"]');
+            el = el.parentElement
+          )
+            if (getComputedStyle(el).touchAction === "none") return "none";
+          return "auto";
+        })(),
+      };
+    });
+    check(
+      "a phone walks with a stick nothing covers, beside panels that do not overlap",
+      layout.reachable && layout.overlaps === 0,
+      JSON.stringify(layout),
+    );
+    check(
+      "on foot the street takes a drag as a look, not a scroll",
+      layout.look === "none",
+    );
+    const k = Math.cos((38.98 * Math.PI) / 180);
+    const angle = (a, b) =>
+      (Math.acos(
+        (a[0] * b[0] + a[1] * k * b[1] * k) /
+          (Math.hypot(a[0], a[1] * k) * Math.hypot(b[0], b[1] * k)),
+      ) *
+        180) /
+      Math.PI;
+    // Half a turn is pi / 0.004 px of drag, in swipes that fit the screen.
+    const half = Math.PI / 0.004,
+      swipes = Math.ceil(half / 300),
+      each = half / swipes;
+    const ahead = await walk();
+    const rested = await where();
+    await delay(2500);
+    const after = await where();
+    check(
+      "a full push of the stick walks, and letting go stops",
+      Math.hypot(...ahead) > 0 && rested[0] === after[0] && rested[1] === after[1],
+      `${ahead} then ${rested} → ${after}`,
+    );
+    // Two fingers: the stick held while another finger turns the street half
+    // way round, then lifts; the walker must come back along the way it went.
+    // The city is paused for the turn — under software rendering the swipes
+    // span many ticks, and a walker turning while it walks leaves its path —
+    // and resumed with the stick still held. In the protocol a touchEnd lifts
+    // the fingers it lists.
+    let back = [0, 0];
+    {
+      await tap("Pause");
+      const [x, y] = await stick();
+      const hold = [x, y - 60, 1];
+      await touch("touchStart", [[x, y, 1]]);
+      await touch("touchMove", [hold]);
+      for (let s = 0; s < swipes; s++) {
+        await touch("touchStart", [hold, [350, 340, 2]]);
+        for (let i = 1; i <= 10; i++)
+          await touch("touchMove", [hold, [350 - (each * i) / 10, 340, 2]]);
+        await touch("touchEnd", [[350 - each, 340, 2]]);
+      }
+      await tap("Resume");
+      await delay(2000);
+      const from = await where();
+      try {
+        await until((f) => {
+          const m = /(\d+\.\d{5})° N · (\d+\.\d{5})° W/.exec(document.body.innerText);
+          return m && Math.hypot(Number(m[1]) - f[0], Number(m[2]) - f[1]) >= 0.00003;
+        }, from);
+      } catch {
+        /* Judged below: a walker that did not move has no heading. */
+      } finally {
+        await touch("touchEnd", []);
+      }
+      await delay(2000);
+      const to = await where();
+      back = [to[0] - from[0], to[1] - from[1]];
+      check(
+        "a second finger turns the street while the stick keeps walking",
+        Math.hypot(...back) > 0 && angle(ahead, back) > 150,
+        Math.hypot(...back) > 0 ? `${angle(ahead, back).toFixed(0)}°` : "did not move",
+      );
+    }
+    // One finger alone turns half way again, and the stick retraces the first leg.
+    for (let s = 0; s < swipes; s++) {
+      await touch("touchStart", [[350, 340, 3]]);
+      for (let i = 1; i <= 10; i++)
+        await touch("touchMove", [[350 - (each * i) / 10, 340, 3]]);
+      await touch("touchEnd", []);
+    }
+    const again = await walk();
+    check(
+      "dragging the street half way round turns the walker back the way it came",
+      Math.hypot(...back) > 0 && angle(back, again) > 150,
+      Math.hypot(...back) > 0
+        ? `${angle(back, again).toFixed(0)}°`
+        : "no heading to compare",
+    );
+    check(
+      "a phone starts with fewer city controls",
+      await phone.evaluate(() =>
+        [...document.querySelectorAll("button")].some(
+          (b) => b.textContent.trim() === "More controls",
+        ),
+      ),
+    );
+    await tap("More controls");
+    await tap("Pause");
+    await phone.evaluate(() => {
+      const original = URL.createObjectURL;
+      URL.createObjectURL = function (blob) {
+        void blob.text().then((text) => (globalThis.__touchExport = text));
+        return original.call(this, blob);
+      };
+    });
+    await tap("Export replay");
+    await until(() => typeof globalThis.__touchExport === "string");
+    const touched = JSON.parse(await phone.evaluate(() => globalThis.__touchExport));
+    const moves = touched.commands.filter((c) => c.type === "move");
+    check(
+      "thumb steps are recorded moves, a full push at hurry speed",
+      moves.length > 0 &&
+        moves.every((m) => Math.abs(Math.hypot(m.dx, m.dz) - 0.65) < 1e-9),
+      `${moves.length} moves`,
+    );
+    await writeFile("shots/bethesda/touch-replay.json", JSON.stringify(touched));
+    await (
+      await phone.$('input[type="file"]')
+    ).uploadFile("shots/bethesda/touch-replay.json");
+    await until(() => document.body.innerText.includes("Replay verified"));
+    check("a walk taken by thumb replays and verifies", true);
+    await tap("Survey");
+    await until(
+      () =>
+        !document.querySelector("[data-touch-stick]") &&
+        !!document.querySelector('[data-bethesda="active"] aside canvas'),
+    );
+    check("surveying puts the map back in place of the stick", true);
+    await phone.screenshot({ path: "shots/bethesda/phone-survey.png" });
+    check(
+      "no page errors on the phone",
+      phoneErrors.length === 0,
+      phoneErrors.join("\n"),
+    );
+    await phone.close();
+  }
   await writeFile("shots/bethesda/browser-checks.json", JSON.stringify(checks, null, 2));
   if (checks.some((c) => !c.ok)) process.exitCode = 1;
 } catch (error) {

@@ -494,6 +494,12 @@ scripts.
   config**, including the full-rate LOD focus. A behaviour change bumps
   `SIM_VERSION`/`REPLAY_SCHEMA`; older traces are refused with an explanation,
   never replayed against different rules.
+- **One way to ask for a step.** WASD and the touch stick both go through
+  `walkIntent`/`stepFor` (`walkInput.ts`), in the city and in the lab; in the
+  city the step is always `movePlayer`, a recorded command, so a walk taken by
+  thumb replays like one taken on keys. A new input (a gamepad, say) is another
+  source for `walkIntent`, never a second path to the walker. Controls that
+  only make sense with a view on screen ask `canRender()` (`webgl.ts`) first.
 - **Presentation never writes simulation state.** `Actors.tsx`,
   `EventVisuals.tsx`, `landmarks.ts` and `signals.ts` read the simulator; the
   dev-only `window.__bethesda` handle exists for captures and is stripped from

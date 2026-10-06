@@ -40,6 +40,8 @@ import {
 } from "./labLayout";
 import { currentSpeaker } from "./session";
 import { EMBODIMENT } from "./embodiment";
+import { LookDrag, stepFor, walkIntent, type Stick } from "../walkInput";
+import { canRender } from "../webgl";
 import type { LabStore } from "./store";
 
 export interface LabNav {
@@ -47,6 +49,8 @@ export interface LabNav {
   yaw: number;
   pitch: number;
   keys: Set<string>;
+  /** The touch screen's walking stick, read with the keys every frame. */
+  stick: Stick;
   teleport: Vec | null;
   atExit: boolean;
   failed: boolean;
@@ -883,27 +887,27 @@ function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
   const room = useRef<RoomId | null>(null);
   useEffect(() => {
     const canvas = gl.domElement;
-    let dragging = false;
+    const look = new LookDrag(0.0022);
     const down = (e: PointerEvent) => {
-      dragging = true;
-      canvas.setPointerCapture(e.pointerId);
+      if (look.begin(e)) canvas.setPointerCapture(e.pointerId);
     };
-    const up = () => {
-      dragging = false;
-    };
+    const up = (e: PointerEvent) => look.end(e);
     const move = (e: PointerEvent) => {
-      if (!dragging && document.pointerLockElement !== canvas) return;
-      nav.yaw -= e.movementX * 0.0022;
-      nav.pitch = Math.max(-1.1, Math.min(1.1, nav.pitch - e.movementY * 0.0022));
+      const turn = look.turn(e, document.pointerLockElement === canvas);
+      if (!turn) return;
+      nav.yaw += turn.yaw;
+      nav.pitch = Math.max(-1.1, Math.min(1.1, nav.pitch + turn.pitch));
     };
     const lock = () => void canvas.requestPointerLock()?.catch(() => {});
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("dblclick", lock);
     return () => {
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointerup", up);
+      canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("dblclick", lock);
     };
@@ -913,18 +917,10 @@ function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
       nav.pos = { ...nav.teleport };
       nav.teleport = null;
     }
-    const k = nav.keys;
-    let x = 0,
-      z = 0;
-    if (k.has("KeyW") || k.has("ArrowUp")) z--;
-    if (k.has("KeyS") || k.has("ArrowDown")) z++;
-    if (k.has("KeyA") || k.has("ArrowLeft")) x--;
-    if (k.has("KeyD") || k.has("ArrowRight")) x++;
-    const n = Math.hypot(x, z);
-    if (n) {
-      const speed = (k.has("ShiftLeft") ? 3.4 : 1.8) * Math.min(dt, 0.1);
-      const dx = ((x * Math.cos(nav.yaw) + z * Math.sin(nav.yaw)) * speed) / n;
-      const dz = ((-x * Math.sin(nav.yaw) + z * Math.cos(nav.yaw)) * speed) / n;
+    const intent = walkIntent(nav.keys, nav.stick, true);
+    if (intent) {
+      const t = Math.min(dt, 0.1);
+      const { dx, dz } = stepFor(intent, nav.yaw, 1.8 * t, 3.4 * t);
       nav.pos = moveInLab(nav.pos, { x: nav.pos.x + dx, z: nav.pos.z + dz });
     }
     camera.position.set(nav.pos.x, 1.65, nav.pos.z);
@@ -941,16 +937,7 @@ function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
 }
 
 export function LabScene({ store, nav }: { store: LabStore; nav: LabNav }) {
-  const supported = useMemo(() => {
-    try {
-      const context = document.createElement("canvas").getContext("webgl2");
-      if (!context) return false;
-      context.getExtension("WEBGL_lose_context")?.loseContext();
-      return true;
-    } catch {
-      return false;
-    }
-  }, []);
+  const supported = useMemo(canRender, []);
   if (!supported || nav.failed)
     return (
       <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
@@ -960,6 +947,8 @@ export function LabScene({ store, nav }: { store: LabStore; nav: LabNav }) {
     );
   return (
     <Canvas
+      // Every drag on the interior is a look, never the browser's scroll.
+      style={{ touchAction: "none" }}
       dpr={[1, 1.5]}
       camera={{ fov: 70, near: 0.05, far: 120, position: [nav.pos.x, 1.65, nav.pos.z] }}
       gl={{

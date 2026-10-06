@@ -3,6 +3,7 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -60,6 +61,10 @@ import {
   pushLayer,
 } from "../lib/historyLayers";
 import { LAB_DOOR, nearDoor, resolvesLab } from "./rain/site";
+import { isCoarsePointer } from "../lib/touchInput";
+import { TouchStick } from "./TouchStick";
+import { stepFor, walkIntent } from "./walkInput";
+import { canRender } from "./webgl";
 import type { LabStore } from "./rain/store";
 import { EMBODIMENT } from "./rain/embodiment";
 
@@ -180,6 +185,7 @@ function world(sim?: CitySimulation, replayOf: ReplayOrigin | null = null) {
     yaw: -Math.PI / 2,
     pitch: 0,
     keys: new Set(),
+    stick: { x: 0, y: 0 },
     tier: index === 0 ? 0 : 1,
     quality: "auto",
     fps: 0,
@@ -571,6 +577,17 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
     [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const { sim, broker, view, replayOf } = w;
+  // A touch screen walks with a thumb-stick where the map was, as the twin's
+  // first-person mode does; a phone folds the controls to leave room for it.
+  const coarse = useMemo(isCoarsePointer, []);
+  const rendering = useMemo(canRender, []);
+  // Only with a street on screen: without WebGL the map stays, and says where
+  // the walker is.
+  const touchWalk = coarse && rendering && !view.failed;
+  const [fold, setFold] = useState(
+    () => window.matchMedia?.("(max-width: 639px)").matches ?? false,
+  );
+  const more = fold ? "max-sm:hidden" : "";
   // The lab: whether you are inside, and the store that outlives each visit.
   const [inside, setInside] = useState(false),
     [nearLab, setNearLab] = useState(false);
@@ -641,27 +658,20 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
         nearRef.current = near;
         setNearLab(near);
       }
+      if (!sim.paused && view.mode === "walk" && !insideRef.current) {
+        // Keys or the touch stick; either way the step is a recorded command.
+        const intent = walkIntent(view.keys, view.stick);
+        if (intent) {
+          const { dx, dz } = stepFor(intent, view.yaw, 0.32, 0.65);
+          sim.movePlayer(dx, dz);
+        }
+      }
       // The position readout must not depend on the 3D frame loop: without
-      // WebGL nothing else copies the walker (or the seated pedestrian) into it.
+      // WebGL nothing else copies the walker (or the seated pedestrian) into
+      // it. Copied after the step, so it is never a tick behind the walker.
       if (view.mode !== "orbit")
         view.target = { ...(view.mode === "seat" ? sim.agents[0]!.point : sim.player) };
       if (sim.paused) return;
-      if (view.mode === "walk" && !insideRef.current) {
-        let x = 0,
-          z = 0;
-        const k = view.keys,
-          speed = k.has("ShiftLeft") ? 0.65 : 0.32;
-        if (k.has("KeyW")) z--;
-        if (k.has("KeyS")) z++;
-        if (k.has("KeyA")) x--;
-        if (k.has("KeyD")) x++;
-        const norm = Math.hypot(x, z);
-        if (norm)
-          sim.movePlayer(
-            ((x * Math.cos(view.yaw) + z * Math.sin(view.yaw)) * speed) / norm,
-            ((-x * Math.sin(view.yaw) + z * Math.cos(view.yaw)) * speed) / norm,
-          );
-      }
       // The full-rate focus follows the viewer, but only as a recorded command.
       if (sim.tick % 10 === 0) {
         const focus =
@@ -778,18 +788,6 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
           <RenderBoundary>
             <CityScene sim={sim} view={view} />
           </RenderBoundary>
-          <header className={"absolute top-4 left-4 max-w-[68vw] " + panel}>
-            <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
-              ANOMALOUS LOCATION RESOLUTION
-            </p>
-            <h1 className="mt-1 text-xl tracking-wide">Bethesda, Maryland</h1>
-            <p className="mt-1 font-mono text-[10px]">
-              {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
-            </p>
-            <p className="mt-2 text-[11px] text-slate-300">
-              Real map / terrain · inferred buildings · simulated behavior
-            </p>
-          </header>
           <nav
             aria-label="Environment"
             className="absolute top-4 right-4 flex flex-col gap-2 sm:flex-row"
@@ -801,20 +799,10 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               Return to the desert
             </button>
           </nav>
-          <aside className={"absolute bottom-4 left-4 " + panel}>
-            <MiniMap sim={sim} view={view} />
-            <a
-              href={safeExternalHref("https://www.openstreetmap.org/copyright")}
-              {...EXTERNAL_LINK_PROPS}
-              className="mt-2 block text-[10px] text-teal-100 underline"
-            >
-              © OpenStreetMap contributors · ODbL
-            </a>
-          </aside>
           {view.evidence ? (
             <aside
               aria-label="Evidence legend"
-              className={"absolute top-36 left-4 w-60 text-[11px] " + panel}
+              className={"absolute top-36 left-4 w-60 text-[11px] max-sm:top-52 " + panel}
             >
               <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
                 EVIDENCE VIEW · BUILDING MASSING
@@ -841,190 +829,280 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               }}
             />
           ) : null}
-          <section
-            aria-label="City controls"
-            className={
-              "absolute right-4 bottom-4 max-h-[47vh] w-[min(640px,calc(100vw-32px))] overflow-auto sm:w-[min(640px,calc(100vw-250px))] " +
-              panel
-            }
-          >
-            {replayOf ? (
-              <p className="mb-2 font-mono text-[10px] tracking-[.12em] text-amber-200">
-                REPLAY · {replayOf.file} · verified to tick {replayOf.tick}
-                {sim.tick > replayOf.tick
-                  ? ` · running on since then: ticks after ${replayOf.tick} are new, not the recording`
-                  : " · paused at its last recorded tick"}
+          {/*
+            A phone is one column: the title at the top, then the map (or the
+            stick) and the controls at the bottom, the controls giving way first
+            when the screen runs short. Wider screens keep their corners. The
+            column lets taps through to the street; the panels in it take them.
+          */}
+          <div className="pointer-events-none max-sm:absolute max-sm:inset-4 max-sm:flex max-sm:flex-col max-sm:items-start max-sm:gap-2 sm:contents">
+            <header
+              className={
+                "pointer-events-auto max-w-[68vw] shrink-0 max-sm:max-w-[calc(100vw-11.5rem)] sm:absolute sm:top-4 sm:left-4 " +
+                panel
+              }
+            >
+              <p className="font-mono text-[9px] tracking-[.24em] text-teal-200">
+                ANOMALOUS LOCATION RESOLUTION
               </p>
-            ) : null}
-            <p role="status" className="mb-2 text-xs text-teal-100">
-              {message}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {(["orbit", "walk", "seat"] as const).map((mode, i) => (
-                <button
-                  key={mode}
-                  className={button}
-                  aria-pressed={view.mode === mode}
-                  onClick={() => {
-                    view.mode = mode;
-                    view.relocate = mode === "orbit";
-                    view.keys.clear();
-                    render();
-                  }}
-                >
-                  {["Survey", "Walk", "Pedestrian seat"][i]}
+              <h1 className="mt-1 text-xl tracking-wide">Bethesda, Maryland</h1>
+              <p className="mt-1 font-mono text-[10px]">
+                {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
+              </p>
+              <p className="mt-2 text-[11px] text-slate-300">
+                Real map / terrain · inferred buildings · simulated behavior
+              </p>
+            </header>
+            {nearLab ? (
+              // In the phone column it can never sit on the stick it is near.
+              <div
+                role="status"
+                className={
+                  "pointer-events-auto z-20 text-center text-xs max-sm:mt-auto max-sm:self-center sm:absolute sm:bottom-[50vh] sm:left-1/2 sm:-translate-x-1/2 " +
+                  panel
+                }
+              >
+                <p>An unmarked door, a little unlike the others.</p>
+                <button className={button + " mt-2"} onClick={() => enterLab("door")}>
+                  {coarse ? "Open it" : "Open it (E)"}
                 </button>
-              ))}
-              <button
-                className={button}
-                onClick={() => {
-                  sim.paused = !sim.paused;
-                  render();
-                }}
-              >
-                {sim.paused ? "Resume" : "Pause"}
-              </button>
-              <button
-                className={button}
-                aria-pressed={broker.enabled}
-                onClick={() => {
-                  broker.enabled = !broker.enabled;
-                  render();
-                }}
-              >
-                {broker.enabled ? "Jev on" : "Jev off"}
-              </button>
-              <button
-                className={button}
-                aria-pressed={view.evidence}
-                onClick={() => {
-                  view.evidence = !view.evidence;
-                  render();
-                }}
-              >
-                Evidence view
-              </button>
-            </div>
-            {view.mode === "walk" ? (
-              <p className="mt-2 text-xs text-slate-300">
-                WASD · Shift to move faster · drag to look · double-click for mouse lock ·
-                Escape releases · click a building for its dossier
-              </p>
+              </div>
             ) : null}
-            {view.mode === "seat" ? (
-              sim.agents[0]!.inside ? (
-                <p className="mt-2 text-xs text-slate-300">
-                  The pedestrian is indoors until tick {sim.agents[0]!.until}; there is
-                  nothing to choose until they come out.
+            {touchWalk && view.mode === "walk" ? (
+              <div className="flex shrink-0 flex-col items-start gap-2 max-sm:mt-auto sm:absolute sm:bottom-4 sm:left-4">
+                <TouchStick stick={view.stick} />
+                <a
+                  href={safeExternalHref("https://www.openstreetmap.org/copyright")}
+                  {...EXTERNAL_LINK_PROPS}
+                  className="pointer-events-auto text-[10px] text-teal-100 underline"
+                >
+                  © OpenStreetMap contributors · ODbL
+                </a>
+              </div>
+            ) : (
+              <aside
+                className={
+                  "pointer-events-auto shrink-0 max-sm:mt-auto sm:absolute sm:bottom-4 sm:left-4 " +
+                  panel
+                }
+              >
+                <MiniMap sim={sim} view={view} />
+                <a
+                  href={safeExternalHref("https://www.openstreetmap.org/copyright")}
+                  {...EXTERNAL_LINK_PROPS}
+                  className="mt-2 block text-[10px] text-teal-100 underline"
+                >
+                  © OpenStreetMap contributors · ODbL
+                </a>
+              </aside>
+            )}
+            <section
+              aria-label="City controls"
+              className={
+                "pointer-events-auto max-h-[47vh] min-h-0 w-full overflow-auto max-sm:shrink sm:absolute sm:right-4 sm:bottom-4 sm:w-[min(640px,calc(100vw-250px))] " +
+                panel
+              }
+            >
+              {replayOf ? (
+                <p className="mb-2 font-mono text-[10px] tracking-[.12em] text-amber-200">
+                  REPLAY · {replayOf.file} · verified to tick {replayOf.tick}
+                  {sim.tick > replayOf.tick
+                    ? ` · running on since then: ticks after ${replayOf.tick} are new, not the recording`
+                    : " · paused at its last recorded tick"}
                 </p>
-              ) : (
-                <div
-                  className="mt-2 flex flex-wrap gap-1"
-                  aria-label="Permitted human actions"
-                >
-                  {sim.observe(0).candidates.map((a) => (
-                    <button
-                      key={a}
-                      className={button}
-                      onClick={() => setMessage(describeChoice(a, sim.humanAction(a)))}
-                    >
-                      {a.replaceAll("_", " ")}
-                    </button>
-                  ))}
-                </div>
-              )
-            ) : null}
-            <div className="mt-2 flex flex-wrap gap-3">
-              <button
-                className="text-[11px] text-slate-300 underline"
-                title="Auto reduces visual cost on slow hardware. Detail keeps reflections and block-scale shadows. Economy disables shadows."
-                onClick={() => {
-                  view.quality =
-                    view.quality === "auto"
-                      ? "detail"
-                      : view.quality === "detail"
-                        ? "economy"
-                        : "auto";
-                  render();
-                }}
-              >
-                Visuals: {view.quality}
-              </button>
-              {landmarks.map((p) => (
+              ) : null}
+              <p role="status" className="mb-2 text-xs text-teal-100">
+                {message}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(["orbit", "walk", "seat"] as const).map((mode, i) => (
+                  <button
+                    key={mode}
+                    className={button}
+                    aria-pressed={view.mode === mode}
+                    onClick={() => {
+                      view.mode = mode;
+                      view.relocate = mode === "orbit";
+                      view.keys.clear();
+                      render();
+                    }}
+                  >
+                    {["Survey", "Walk", "Pedestrian seat"][i]}
+                  </button>
+                ))}
                 <button
-                  key={p.name}
-                  className="text-[11px] text-slate-300 underline"
+                  className={button}
                   onClick={() => {
-                    view.target = { ...p.point };
-                    view.mode = "orbit";
-                    view.relocate = true;
+                    sim.paused = !sim.paused;
                     render();
                   }}
                 >
-                  {p.name}
+                  {sim.paused ? "Resume" : "Pause"}
                 </button>
-              ))}
-            </div>
-            <Pulse sim={sim} />
-            <p className="mt-2 font-mono text-[10px] text-slate-300">
-              {sim.config.pedestrians} individual pedestrians · {sim.config.vehicles} cars
-              · {sim.config.buses} buses · {sim.config.statisticalPopulation} statistical
-              occupants
-              <br />
-              tick {sim.tick} · {view.fps} fps · render tier {view.tier} · {broker.status}{" "}
-              · accepted {broker.accepted} / fallback {broker.fallbacks} · decisions{" "}
-              {sim.decisions.length} (+{sim.reaffirmed} folded)
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100">
-              <button
-                className="underline disabled:no-underline disabled:opacity-60"
-                disabled={!room.exportable}
-                aria-describedby="replay-room"
-                onClick={() => {
-                  try {
-                    save("bethesda-replay.json", sim.export());
-                    setMessage("Replay exported.");
-                  } catch (e) {
-                    setMessage(String(e));
-                  }
-                }}
+                <button
+                  className={button}
+                  aria-pressed={broker.enabled}
+                  onClick={() => {
+                    broker.enabled = !broker.enabled;
+                    render();
+                  }}
+                >
+                  {broker.enabled ? "Jev on" : "Jev off"}
+                </button>
+                <button
+                  className={button}
+                  aria-pressed={view.evidence}
+                  onClick={() => {
+                    view.evidence = !view.evidence;
+                    render();
+                  }}
+                >
+                  Evidence view
+                </button>
+              </div>
+              {view.mode === "walk" ? (
+                <p className="mt-2 text-xs text-slate-300">
+                  {touchWalk
+                    ? "The stick walks · push it to the edge to hurry · drag the street to look · tap a building for its dossier"
+                    : "WASD · Shift to move faster · drag to look · double-click for mouse lock · Escape releases · click a building for its dossier"}
+                </p>
+              ) : null}
+              {view.mode === "seat" ? (
+                sim.agents[0]!.inside ? (
+                  <p className="mt-2 text-xs text-slate-300">
+                    The pedestrian is indoors until tick {sim.agents[0]!.until}; there is
+                    nothing to choose until they come out.
+                  </p>
+                ) : (
+                  <div
+                    className="mt-2 flex flex-wrap gap-1"
+                    aria-label="Permitted human actions"
+                  >
+                    {sim.observe(0).candidates.map((a) => (
+                      <button
+                        key={a}
+                        className={button}
+                        onClick={() => setMessage(describeChoice(a, sim.humanAction(a)))}
+                      >
+                        {a.replaceAll("_", " ")}
+                      </button>
+                    ))}
+                  </div>
+                )
+              ) : null}
+              <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-teal-100 sm:hidden">
+                <button
+                  className="underline"
+                  aria-expanded={!fold}
+                  onClick={() => setFold(!fold)}
+                >
+                  {fold ? "More controls" : "Fewer controls"}
+                </button>
+                {fold ? (
+                  <button className="underline" onClick={() => setCommand(true)}>
+                    ~ telemetry
+                  </button>
+                ) : null}
+              </div>
+              <div className={"mt-2 flex flex-wrap gap-3 " + more}>
+                <button
+                  className="text-[11px] text-slate-300 underline"
+                  title="Auto reduces visual cost on slow hardware. Detail keeps reflections and block-scale shadows. Economy disables shadows."
+                  onClick={() => {
+                    view.quality =
+                      view.quality === "auto"
+                        ? "detail"
+                        : view.quality === "detail"
+                          ? "economy"
+                          : "auto";
+                    render();
+                  }}
+                >
+                  Visuals: {view.quality}
+                </button>
+                {landmarks.map((p) => (
+                  <button
+                    key={p.name}
+                    className="text-[11px] text-slate-300 underline"
+                    onClick={() => {
+                      view.target = { ...p.point };
+                      view.mode = "orbit";
+                      view.relocate = true;
+                      render();
+                    }}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+              <div className={more}>
+                <Pulse sim={sim} />
+              </div>
+              <p className={"mt-2 font-mono text-[10px] text-slate-300 " + more}>
+                {sim.config.pedestrians} individual pedestrians · {sim.config.vehicles}{" "}
+                cars · {sim.config.buses} buses · {sim.config.statisticalPopulation}{" "}
+                statistical occupants
+                <br />
+                tick {sim.tick} · {view.fps} fps · render tier {view.tier} ·{" "}
+                {broker.status} · accepted {broker.accepted} / fallback {broker.fallbacks}{" "}
+                · decisions {sim.decisions.length} (+{sim.reaffirmed} folded)
+              </p>
+              <div
+                className={
+                  "mt-2 flex flex-wrap items-center gap-3 text-[11px] text-teal-100 " +
+                  more
+                }
               >
-                Export replay
-              </button>
-              <span
-                id="replay-room"
-                className={room.exportable ? "text-slate-300" : "text-amber-200"}
-              >
-                {replayNote(room)}
-              </span>
-              <label className="cursor-pointer underline">
-                {busy ? "Verifying…" : "Verify replay"}
-                <input
-                  aria-label="Verify replay file"
-                  type="file"
-                  accept=".json,application/json"
-                  className="sr-only"
-                  disabled={busy}
-                  onChange={(e) => void replay(e.target.files?.[0])}
-                />
-              </label>
-              <button
-                className="underline"
-                onClick={() => {
-                  setWorld(world());
-                  setSelected(null);
-                  setMessage(
-                    `City reset to tick 0 with the same seed (${PROFILES[profileIndex()]!.seed}): the same city, from the start.`,
-                  );
-                }}
-              >
-                Reset city
-              </button>
-              <button className="underline" onClick={() => setCommand(true)}>
-                ~ telemetry
-              </button>
-            </div>
-          </section>
+                <button
+                  className="underline disabled:no-underline disabled:opacity-60"
+                  disabled={!room.exportable}
+                  aria-describedby="replay-room"
+                  onClick={() => {
+                    try {
+                      save("bethesda-replay.json", sim.export());
+                      setMessage("Replay exported.");
+                    } catch (e) {
+                      setMessage(String(e));
+                    }
+                  }}
+                >
+                  Export replay
+                </button>
+                <span
+                  id="replay-room"
+                  className={room.exportable ? "text-slate-300" : "text-amber-200"}
+                >
+                  {replayNote(room)}
+                </span>
+                <label className="cursor-pointer underline">
+                  {busy ? "Verifying…" : "Verify replay"}
+                  <input
+                    aria-label="Verify replay file"
+                    type="file"
+                    accept=".json,application/json"
+                    className="sr-only"
+                    disabled={busy}
+                    onChange={(e) => void replay(e.target.files?.[0])}
+                  />
+                </label>
+                <button
+                  className="underline"
+                  onClick={() => {
+                    setWorld(world());
+                    setSelected(null);
+                    setMessage(
+                      `City reset to tick 0 with the same seed (${PROFILES[profileIndex()]!.seed}): the same city, from the start.`,
+                    );
+                  }}
+                >
+                  Reset city
+                </button>
+                <button className="underline" onClick={() => setCommand(true)}>
+                  ~ telemetry
+                </button>
+              </div>
+            </section>
+          </div>
           {notes ? (
             <section
               aria-label="Geographic field notes"
@@ -1156,20 +1234,6 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
                 </div>
               </form>
             </section>
-          ) : null}
-          {nearLab ? (
-            <div
-              role="status"
-              className={
-                "absolute bottom-[50vh] left-1/2 z-20 -translate-x-1/2 text-center text-xs " +
-                panel
-              }
-            >
-              <p>An unmarked door, a little unlike the others.</p>
-              <button className={button + " mt-2"} onClick={() => enterLab("door")}>
-                Open it (E)
-              </button>
-            </div>
           ) : null}
         </>
       )}

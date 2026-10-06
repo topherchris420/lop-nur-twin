@@ -34,7 +34,13 @@ deploy cannot load the city's renamed chunk; it says so and offers a reload
 instead of failing silently (`src/lib/staleBuild.ts`).
 
 Arrival is on mapped public pavement near the Bethesda Lane entrance. WASD /
-Shift walks; **Survey** orbits; **Pedestrian seat** puts you in agent 0's shoes
+Shift walks; on a touch screen a thumb-stick takes the map's corner (push it to
+the edge to hurry) and a drag on the street looks, one finger at a time, so the
+stick and a look work together. Keys and stick go through one function
+(`walkIntent` in `walkInput.ts`), and every step either takes is the same
+recorded `move` command, so a walk taken by thumb replays like one taken on
+WASD. A phone folds the city controls to leave the street visible (**More
+controls** opens them). **Survey** orbits; **Pedestrian seat** puts you in agent 0's shoes
 with only its legal actions, and says what the gate did with each choice:
 applied, replaced by a wait because it was no longer permitted, or refused
 because the pedestrian is indoors (no actions are offered until they come out).

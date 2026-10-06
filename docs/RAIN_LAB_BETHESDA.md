@@ -54,7 +54,8 @@ The lab is inside Bethesda, so first find Bethesda (see
 1. **On foot.** On the rear wall of an unnamed building (OSM way
    `117424685`), about 150 m from where Bethesda begins, is a dark service door
    like any other. Walk within 40 m and a faint spectral-teal line and a small
-   waveform appear on it; within 3 m the city offers **Open it (E)**. No text,
+   waveform appear on it; within 3 m the city offers **Open it (E)** (**Open
+   it** on a touch screen, which walks there with its thumb-stick). No text,
    no map marker, no landmark entry.
 2. **By telemetry.** In the city's console (backtick or `~ telemetry`), type
    `resolve r.a.i.n.` (or `resolve rain lab`), or the door's own coordinates,
@@ -343,7 +344,10 @@ calibrated, and the lab never presents one as R.A.I.N.'s confidence.
 | Systems Room       | See what the lab is connected to, and what it is not.                      | the runtime, the provenance, the boundaries and the limits                                                                                                                                                                           |
 
 Walk with WASD or the arrows (Shift hurries), drag or use mouse lock to look,
-or use the room buttons, which every capability also lives behind. Without
+or use the room buttons, which every capability also lives behind. A touch
+screen walks with a thumb-stick above the rooms and looks with a drag; on a
+phone the room's panel fills the lower half, so **Hide the panel to walk** folds
+it and brings the stick out. The door back is a button as well as E. Without
 WebGL the rooms are panels, and every capability stays available.
 
 ## The four perspectives

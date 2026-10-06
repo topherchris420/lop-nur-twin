@@ -123,10 +123,14 @@ const rainPath = (u) => new URL(u).pathname;
 const isLabChunk = (u) => /\/assets\/LabApp-[^/]+\.js/.test(u);
 
 /** A page with its requests, errors, CSP reports and saved files recorded. */
-async function open(context, { webgl = true } = {}) {
+async function open(context, { webgl = true, phone = false } = {}) {
   const page = await context.newPage();
   page.setDefaultTimeout(120000);
-  await page.setViewport({ width: 1100, height: 760 });
+  await page.setViewport(
+    phone
+      ? { width: 390, height: 844, isMobile: true, hasTouch: true }
+      : { width: 1100, height: 760 },
+  );
   const log = { requests: [], errors: [] };
   page.on("request", (r) => log.requests.push(r.url()));
   page.on("pageerror", (e) => log.errors.push(String(e)));
@@ -580,6 +584,151 @@ try {
     ),
   );
   await a.page.close();
+
+  // --- A phone: the lab walked by thumb ---------------------------------------------------
+  {
+    const p = await open(await browser.createBrowserContext(), { phone: true });
+    await enterBethesda(p, origin);
+    await enterLab(p);
+    const cdp = await p.page.createCDPSession();
+    const touch = (type, points) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: points.map(([x, y, id]) => ({ x, y, id, radiusX: 4, radiusY: 4 })),
+      });
+    const stickShown = () =>
+      p.page.evaluate(
+        () =>
+          (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
+            .width ?? 0) > 0,
+      );
+    const panelShown = () =>
+      p.page.evaluate(
+        () =>
+          (document.getElementById("lab-room-panel")?.getBoundingClientRect().height ??
+            0) > 0,
+      );
+    check(
+      "on a phone the lab opens on its panel, with the stick waiting until it folds",
+      (await panelShown()) && !(await stickShown()),
+    );
+    await p.click("Hide the panel to walk");
+    await p.waitFor(
+      () =>
+        (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
+          .width ?? 0) > 0,
+    );
+    const layout = await p.page.evaluate(() => {
+      const boxes = [
+        "header",
+        'nav[aria-label="Leave the lab"]',
+        "[data-touch-stick]",
+        'section[aria-label="Rooms"]',
+      ].map((s) => document.querySelector(s).getBoundingClientRect());
+      let overlaps = 0;
+      for (let i = 0; i < boxes.length; i++)
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i],
+            b = boxes[j];
+          if (
+            Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
+          )
+            overlaps++;
+        }
+      return {
+        overlaps,
+        // The canvas, or a wrapper inside the lab, refuses the browser's gestures.
+        look: (() => {
+          for (
+            let el = document.querySelector('[data-rain-lab="active"] canvas');
+            el && el.closest('[data-rain-lab="active"]');
+            el = el.parentElement
+          )
+            if (getComputedStyle(el).touchAction === "none") return "none";
+          return "auto";
+        })(),
+      };
+    });
+    check(
+      "folded, the panel gives way to a stick beside the rooms, nothing overlapping",
+      !(await panelShown()) && layout.overlaps === 0 && layout.look === "none",
+      JSON.stringify(layout),
+    );
+    const room = await p.page.evaluate(() =>
+      document.querySelector("[data-lab-room]").getAttribute("data-lab-room"),
+    );
+    const [x, y] = await p.page.evaluate(() => {
+      const r = document
+        .querySelector("[data-touch-stick] > div")
+        .getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await touch("touchStart", [[x, y, 1]]);
+    await touch("touchMove", [[x, y - 60, 1]]);
+    try {
+      await p.waitFor(
+        (from) =>
+          document.querySelector("[data-lab-room]").getAttribute("data-lab-room") !==
+          from,
+        180000,
+        room,
+      );
+    } finally {
+      await touch("touchEnd", []);
+    }
+    check("the stick walks the lab from the threshold into the next room", true, room);
+    await p.click("Show the room's panel");
+    check(
+      "the room's panel comes back and the stick steps aside",
+      (await panelShown()) && !(await stickShown()),
+    );
+    // The door back is a button a finger can press: walk backwards from the
+    // threshold to it, then tap it with a real touch, not a scripted click.
+    await p.click("Hide the panel to walk");
+    await p.click("Threshold");
+    await p.waitFor(
+      () =>
+        (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
+          .width ?? 0) > 0,
+    );
+    {
+      const [sx, sy] = await p.page.evaluate(() => {
+        const r = document
+          .querySelector("[data-touch-stick] > div")
+          .getBoundingClientRect();
+        return [r.left + r.width / 2, r.top + r.height / 2];
+      });
+      await touch("touchStart", [[sx, sy, 1]]);
+      await touch("touchMove", [[sx, sy + 60, 1]]);
+      try {
+        await p.waitFor(
+          () =>
+            [...document.querySelectorAll("button")].some(
+              (b) => b.textContent.trim() === "Open it",
+            ),
+          180000,
+        );
+      } finally {
+        await touch("touchEnd", []);
+      }
+    }
+    const door = await p.page.evaluate(() => {
+      const r = [...document.querySelectorAll("button")]
+        .find((b) => b.textContent.trim() === "Open it")
+        .getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await p.page.touchscreen.tap(door[0], door[1]);
+    await p.page.waitForSelector('[data-bethesda="active"]:not([data-indoors])');
+    check("pulling the stick back reaches the door, and a tap on it steps outside", true);
+    check(
+      "no page errors on the phone",
+      p.log.errors.length === 0,
+      p.log.errors.join("\n"),
+    );
+    await p.page.close();
+  }
 
   // --- A fresh browser without WebGL: import, replay, outings, tools ---------------------
   const fresh = await browser.createBrowserContext();
