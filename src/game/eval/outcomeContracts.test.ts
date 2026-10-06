@@ -3,11 +3,13 @@ import {
   COVER_SELECTION,
   DECISION_TYPES,
   ENGAGE_DISENGAGE,
+  ENGAGE_DISENGAGE_V2,
   RELOAD,
   SHOT,
   THREAT_PRIORITY,
   decisionType,
 } from "./outcomeContracts";
+import { legalActionsFor } from "../pilot/observation";
 import { legal, outcome, record } from "./testing/fixtures";
 
 const placeChoice = (overrides: Parameters<typeof outcome>[0] = {}, places = 3) =>
@@ -108,6 +110,60 @@ describe("outcome contracts", () => {
         outcome: outcome({ damageDealt: 0, damageTaken: 10 }),
       }),
     ).toBe("neutral");
+  });
+
+  it("engage/disengage v2 gives each side its own rule, and v1 is unchanged", () => {
+    const inView = {
+      legal: legal({ enemies: 1 }),
+      context: { ...record().context, visibleEnemies: 1 },
+    };
+    const engage = (o: Parameters<typeof outcome>[0]) =>
+      record({
+        ...inView,
+        frame: { weapon: "FIRE", target: "TARGET_0" },
+        outcome: outcome(o),
+      });
+    const disengage = (o: Parameters<typeof outcome>[0]) =>
+      record({
+        ...inView,
+        frame: { weapon: "NO_FIRE", move: "BACK" },
+        outcome: outcome(o),
+      });
+    const v2 = ENGAGE_DISENGAGE_V2;
+    expect(v2.side!(engage({}))).toBe("ENGAGE");
+    expect(v2.side!(disengage({}))).toBe("DISENGAGE");
+    // Under precision control a fire choice that names no target is not engaging.
+    expect(
+      v2.side!(record({ ...inView, frame: { weapon: "ADS_FIRE", target: "NONE" } })),
+    ).toBe("DISENGAGE");
+    // Under direct control no target is ever named: any fire choice engages.
+    const direct = legalActionsFor(
+      { stance: "stand", grounded: true, pitchDeg: 0 },
+      { ammo: 20, magSize: 30, reserve: 90, reloading: false, canFire: true },
+      { control: "direct", visibleEnemies: 1 },
+    );
+    expect(
+      v2.side!(record({ ...inView, legal: direct, frame: { weapon: "FIRE" } })),
+    ).toBe("ENGAGE");
+
+    // ENGAGE: the fight paid, or it did not.
+    expect(v2.classify(engage({ damageDealt: 50, damageTaken: 10 }))).toBe("beneficial");
+    expect(v2.classify(engage({ damageDealt: 10, damageTaken: 40 }))).toBe("neutral");
+    expect(v2.classify(engage({ damageDealt: 90, died: true }))).toBe("harmful");
+    // DISENGAGE: breaking off kept the seat safe, or did not.
+    expect(v2.classify(disengage({}))).toBe("beneficial");
+    expect(v2.classify(disengage({ damageTaken: 10 }))).toBe("neutral");
+    expect(v2.classify(disengage({ damageTaken: 25 }))).toBe("harmful");
+    expect(v2.classify(disengage({ died: true }))).toBe("harmful");
+    expect(v2.classify(disengage({ complete: false }))).toBeNull();
+
+    // v1 scores both sides by the fight: a clean break-off is only neutral there.
+    expect(ENGAGE_DISENGAGE.side).toBeUndefined();
+    expect(ENGAGE_DISENGAGE.classify(disengage({}))).toBe("neutral");
+    expect(ENGAGE_DISENGAGE.classify(disengage({ damageTaken: 25 }))).toBe("neutral");
+    expect(decisionType("engage-disengage/v1")).toBe(ENGAGE_DISENGAGE);
+    expect(decisionType("engage-disengage/v2")).toBe(v2);
+    expect(v2.matches(disengage({}))).toBe(ENGAGE_DISENGAGE.matches(disengage({})));
   });
 
   it("reload and shot read their own outcomes", () => {

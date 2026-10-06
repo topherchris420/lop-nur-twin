@@ -169,10 +169,29 @@ describe("other R.A.I.N. answers fail closed", () => {
     model: null,
     bounded_decision: "off",
     remote_decisions: false,
-    registry: { available: true, scratch: true },
+    registry: { available: true, scratch: true, reason: null },
   };
   it("identity: closed, consistent about models, from the right repository", () => {
     expect(validateIdentity(identity).ok).toBe(true);
+    // An unavailable registry says why, in bounded text.
+    const unavailable = {
+      ...identity,
+      registry: {
+        available: false,
+        scratch: true,
+        reason: "this deployment runs functions",
+      },
+    };
+    expect(validateIdentity(unavailable).ok).toBe(true);
+    expect(
+      validateIdentity({
+        ...identity,
+        registry: { ...unavailable.registry, reason: "x".repeat(301) },
+      }).ok,
+    ).toBe(false);
+    expect(
+      validateIdentity({ ...identity, registry: { available: true, scratch: true } }).ok,
+    ).toBe(false);
     expect(validateIdentity({ ...identity, model: "m" }).ok).toBe(false);
     expect(
       validateIdentity({ ...identity, rain: { ...identity.rain, repository: "x/y" } }).ok,
@@ -268,8 +287,13 @@ describe("other R.A.I.N. answers fail closed", () => {
       definition_sha256: "d".repeat(64),
       created_at: "2026-10-02T23:40:00.000Z",
       registry: "scratch",
+      certificate: "c".repeat(64),
     };
     expect(validatePreregistration(p, { requestId: "a".repeat(32) }).ok).toBe(true);
+    // The certificate a submission takes back is part of the answer, and only hex.
+    const { certificate: _certificate, ...uncertified } = p;
+    for (const bad of [uncertified, { ...p, certificate: "C".repeat(64) }])
+      expect(validatePreregistration(bad, { requestId: "a".repeat(32) }).ok).toBe(false);
     expect(
       validatePreregistration(
         { ...p, experiment_id: "EXP-1" },

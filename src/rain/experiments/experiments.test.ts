@@ -167,6 +167,24 @@ describe("ids and creation", () => {
     expect(create(reg).experiment_id).toBe("V3D-EXP-0001");
   });
 
+  it("adopts a definition registered elsewhere once, under its ID, without allocating one", () => {
+    const origin = registry();
+    const definition = create(origin);
+    const held = registry();
+    expect(held.holds("V3D-EXP-0001")).toBe(false);
+    held.adopt(definition);
+    held.adopt(definition); // the same definition again is a no-op
+    expect(held.holds("V3D-EXP-0001")).toBe(true);
+    expect(held.loadDefinition("V3D-EXP-0001")).toEqual(definition);
+    expect(held.ledger().allocated).toEqual([]);
+    expect(() => held.adopt({ ...definition, hypothesis: "Something else." })).toThrow(
+      /already held here with a different definition/,
+    );
+    expect(() => held.adopt({ ...definition, experiment_id: "EXP-1" })).toThrow(ExperimentError);
+    // Adopting allocates nothing: the next ID this registry issues is still its first.
+    expect(create(held).experiment_id).toBe("V3D-EXP-0002");
+  });
+
   it("writes experiment.json once", () => {
     const reg = registry();
     const definition = create(reg);

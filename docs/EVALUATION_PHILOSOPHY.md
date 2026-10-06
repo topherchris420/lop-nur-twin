@@ -130,6 +130,19 @@ Each contract also states what the controller _cannot_ do for the brain in
 that decision, so a reader can check the experiment isolates a choice rather
 than a motor skill.
 
+A contract that splits its decisions states a rule for each side and is
+reported per side as well as pooled. `engage-disengage/v1` is the cautionary
+case: it described ENGAGE and DISENGAGE and then scored both by the fight — a
+break-off was a success only if the seat out-dealt the enemy while not
+fighting it, so "does the brain break off when it should" could not come out
+yes. `engage-disengage/v2` scores ENGAGE by the exchange and DISENGAGE by
+whether the seat came out of the window untouched (harmful if it died or took a
+quarter of its health). v1 is left exactly as it was, because the experiments
+already run against it — `docs/benchmarks/2026-10-05/` among them — must still
+be scored by the rule they declared; read their engage-disengage figures as the
+fight's success rate over every decision with an enemy in view, not as a
+measure of breaking off.
+
 There is no universal "correct". Choosing cover that turns out to be exposed
 may have been the right call on what the seat knew; the contract scores what
 happened, not what a better player would have done.
@@ -238,9 +251,16 @@ The first use is in the
   frame pacing is not deterministic and the worlds diverge within seconds.
   Paired differences are by seed; the report says what that does not mean.
 - **Decisions are not independent.** A brain deciding five times a second with
-  a five-second window has about twenty-five windows open at once. Pooled
-  decision counts are printed, and so is the warning that they overstate the
-  evidence.
+  a five-second window has about twenty-five windows open at once, and one hit
+  or death is counted in every one of them. Pooled decision counts are printed
+  with the warning that they overstate the evidence, and beside them the same
+  rates over windows that share no time: per episode, the decisions kept by
+  time alone, never by outcome, so each event is counted once
+  (`src/game/eval/windows.ts`). In the 10-seed comparison of 5 October that
+  turned Jev's 225 pooled decisions into 42 such windows, and its success from
+  58% to 48% (33–62%). The decision trace says it row by row: each row shows how
+  many other decisions share its window, and can be narrowed to windows that
+  share none.
 - **Three seeds is exploratory.** The `quick` preset is for development; `dev`
   (10) and `eval` (30) exist for claims. Every evaluation under ten seeds
   carries an `insufficient-seeds` note. No evaluation claims significance.

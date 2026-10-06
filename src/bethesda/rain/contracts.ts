@@ -135,7 +135,8 @@ export const LIMITS = {
   meetingJobRequest: 1024,
   proposalRequest: 16 * 1024,
   preregisterRequest: 64 * 1024,
-  submissionRequest: 256 * 1024,
+  /** A submission and, so any instance can check it, the draft it was registered with. */
+  submissionRequest: 320 * 1024,
   /** A research session: meetings, then it must be restarted. */
   meetingsPerSession: 12,
   sessionMinutes: 120,
@@ -432,7 +433,8 @@ export interface RainIdentity {
    * question to a remote engine (Jev). Off, Jev is never asked.
    */
   remote_decisions: boolean;
-  registry: { available: boolean; scratch: boolean };
+  /** `reason` says why a registry is not available, and is null when it is. */
+  registry: { available: boolean; scratch: boolean; reason: string | null };
 }
 /** One of the host's own experiment options, offered to R.A.I.N.'s router. */
 export interface ProposalOption {
@@ -476,6 +478,24 @@ export interface Preregistration {
   definition_sha256: string;
   created_at: string;
   registry: "scratch" | "configured";
+}
+/**
+ * The registry's answer to a pre-registration: what the record keeps, and a
+ * certificate — an HMAC under the registry's key over the definition. The
+ * record never holds the certificate; a submission brings it back.
+ */
+export interface PreregistrationAnswer extends Preregistration {
+  certificate: string;
+}
+/**
+ * What a submission carries so that any instance of the registry can check it
+ * against its pre-registration: the draft as it was sent, when the registry
+ * took it, and the certificate it issued.
+ */
+export interface RegistryReceipt {
+  draft: Record<string, unknown>;
+  created_at: string;
+  certificate: string;
 }
 export type RainRunStatus = Exclude<RunStatus, "running">;
 export type RainCompletedStatus = CompletedStatus;

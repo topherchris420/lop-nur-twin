@@ -18,8 +18,9 @@
  * value. And the LLM endpoint's `LLM_API_KEY`: its name, a
  * `VITE_LLM…` copy, key shapes of the providers it supports (`sk-ant-…`,
  * `sk-…`), and the configured value — and the R.A.I.N. runtime's
- * `RAIN_LLM_API_KEY` (a model server's bearer token): its name, a `VITE_RAIN…`
- * copy and the configured value.
+ * `RAIN_LLM_API_KEY` (a model server's bearer token) and `RAIN_REGISTRY_SECRET`
+ * (the key that certifies pre-registrations): their names, a `VITE_RAIN…` copy
+ * and the configured values.
  *
  *   node tools/jev-secret-scan.mjs            # scans dist/
  *   node tools/jev-secret-scan.mjs path/to/output
@@ -40,7 +41,7 @@ const patterns = [
   {
     name: "credential variable name",
     test: (text) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|VITE_RAIN_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|RAIN_REGISTRY_SECRET|VITE_RAIN_/.test(
         text,
       ),
   },
@@ -64,6 +65,7 @@ for (const variable of [
   "FASTINO_API_KEY",
   "LLM_API_KEY",
   "RAIN_LLM_API_KEY",
+  "RAIN_REGISTRY_SECRET",
 ]) {
   const value = (process.env[variable] ?? "").trim();
   if (value.length < 12) continue;

@@ -157,32 +157,35 @@ experiment registry and R.A.I.N.'s bounded choice switched off (it answers
 DISABLED); so does a Vercel deployment. The settings, all server-side and all
 optional, are in `.env.example`:
 
-| Variable                        | Meaning                                                                                                |
-| :------------------------------ | :----------------------------------------------------------------------------------------------------- |
-| `RAIN_RUNTIME`                  | `local` (default) or `off`: off makes the lab OFFLINE, and say so                                      |
-| `RAIN_MEETING_ENGINE`           | `offline` (default) or `model`                                                                         |
-| `RAIN_LLM_BASE_URL`             | model only: an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` (Ollama)                  |
-| `RAIN_LLM_MODEL`                | model only: the model to run, exactly as the server lists it (`qwen2.5:7b`, `qwen2.5-7b-instruct`)     |
-| `RAIN_LLM_API_KEY`              | optional bearer token the model server requires                                                        |
-| `RAIN_LM_TIMEOUT`               | seconds per model answer, 30–3600 (default 300)                                                        |
-| `RAIN_MEETING_TURNS`            | 1–30 (default 25; the last 15 are the wrap-up)                                                         |
-| `RAIN_MEETING_TIMEOUT_MIN`      | minutes before an unfinished meeting is stopped, 5–60 (default 45)                                     |
-| `RAIN_MEETING_RECURSION`        | `true` (default) or `false`: the critique-and-revise pass per turn                                     |
-| `RAIN_MEETING_PRIVACY`          | `local` (default) or `hybrid`: local refuses a model server that is not on this machine or its network |
-| `RAIN_MEETING_ARCHIVE_DIR`      | optional directory that keeps each meeting's `rain-session-artifact/v1`                                |
-| `RAIN_DECISION_MODE`            | `off` (default) or `jev`: whether R.A.I.N.'s router may choose among the host's experiment options     |
-| `RAIN_DECISION_REMOTE_ALLOWED`  | `true` or `false` (default): whether a question may leave the machine for TypeSafe                     |
-| `RAIN_DECISION_CALIBRATION`     | optional path to a `rain-decision-calibration/v1` file                                                 |
-| `RAIN_DECISION_MINIMUM_SAMPLES` | calibration samples a profile needs (default 100)                                                      |
-| `RAIN_DECISION_TIMEOUT`         | seconds per decision (default 30)                                                                      |
-| `RAIN_REGISTRY_DIR`             | optional directory for the experiment registry; unset, a scratch directory discarded with the process  |
+| Variable                        | Meaning                                                                                                                                                        |
+| :------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RAIN_RUNTIME`                  | `local` (default) or `off`: off makes the lab OFFLINE, and say so                                                                                              |
+| `RAIN_MEETING_ENGINE`           | `offline` (default) or `model`                                                                                                                                 |
+| `RAIN_LLM_BASE_URL`             | model only: an OpenAI-compatible server, default `http://127.0.0.1:11434/v1` (Ollama)                                                                          |
+| `RAIN_LLM_MODEL`                | model only: the model to run, exactly as the server lists it (`qwen2.5:7b`, `qwen2.5-7b-instruct`)                                                             |
+| `RAIN_LLM_API_KEY`              | optional bearer token the model server requires                                                                                                                |
+| `RAIN_LM_TIMEOUT`               | seconds per model answer, 30–3600 (default 300)                                                                                                                |
+| `RAIN_MEETING_TURNS`            | 1–30 (default 25; the last 15 are the wrap-up)                                                                                                                 |
+| `RAIN_MEETING_TIMEOUT_MIN`      | minutes before an unfinished meeting is stopped, 5–60 (default 45)                                                                                             |
+| `RAIN_MEETING_RECURSION`        | `true` (default) or `false`: the critique-and-revise pass per turn                                                                                             |
+| `RAIN_MEETING_PRIVACY`          | `local` (default) or `hybrid`: local refuses a model server that is not on this machine or its network                                                         |
+| `RAIN_MEETING_ARCHIVE_DIR`      | optional directory that keeps each meeting's `rain-session-artifact/v1`                                                                                        |
+| `RAIN_DECISION_MODE`            | `off` (default) or `jev`: whether R.A.I.N.'s router may choose among the host's experiment options                                                             |
+| `RAIN_DECISION_REMOTE_ALLOWED`  | `true` or `false` (default): whether a question may leave the machine for TypeSafe                                                                             |
+| `RAIN_DECISION_CALIBRATION`     | optional path to a `rain-decision-calibration/v1` file                                                                                                         |
+| `RAIN_DECISION_MINIMUM_SAMPLES` | calibration samples a profile needs (default 100)                                                                                                              |
+| `RAIN_DECISION_TIMEOUT`         | seconds per decision (default 30)                                                                                                                              |
+| `RAIN_REGISTRY_DIR`             | optional directory for the experiment registry; unset, a scratch directory discarded with the process. One process only: refused on a function deployment      |
+| `RAIN_REGISTRY_SECRET`          | at least 32 random characters (`openssl rand -hex 32`): the key that certifies pre-registrations. Required for the registry on Vercel; optional on one process |
 
 A malformed setting does not degrade the runtime: it refuses to start, the
 lab says `RUNTIME OFFLINE` and names the setting (never its value), and
 `/api/rain/status` reports `misconfigured: <setting>`. On Vercel, set the
-variables in the project's environment (`RAIN_LLM_API_KEY` and
-`TYPESAFE_API_KEY` as **Sensitive**) and redeploy; the seven `api/rain/*`
-functions are declared in `vercel.json`. Model meetings need one long-lived
+variables in the project's environment (`RAIN_LLM_API_KEY`, `TYPESAFE_API_KEY`
+and `RAIN_REGISTRY_SECRET` as **Sensitive**) and redeploy; the seven
+`api/rain/*` functions are declared in `vercel.json`. Without
+`RAIN_REGISTRY_SECRET` a function deployment reports its registry unavailable,
+says why in the Systems Room, and offers no pre-registration. Model meetings need one long-lived
 server process and are refused in a function deployment. Never prefix any of
 these with `VITE_`.
 
@@ -501,6 +504,24 @@ The registry is a scratch directory discarded with the server process unless
 experiments. A configured registry is the operator's: `registry.json` is its
 allocation ledger, each `V3D-EXP-NNNN/experiment.json` is written once, and
 each run is a `runs/RUN-NNNN/result.json` that is never overwritten.
+
+Every pre-registration also carries a **certificate**: an HMAC-SHA256, under
+the registry's key, over the definition as registered (`created_at` and the
+assigned ID included). The record never holds it; the lab keeps it with the
+case and sends it back, with the draft, beside the submission. That is what
+lets a deployment whose requests land on different processes — Vercel's
+functions, each instance with a scratch registry of its own — admit a run
+wherever the report arrives: the instance rebuilds the definition from the
+draft, checks the certificate in constant time, and judges the run against
+exactly that definition, held once in a scratch registry of its own so a
+different experiment that happens to carry the same ID there is never used. A
+draft changed after registration, a moved `created_at` or a certificate from
+another key is refused. The key is `RAIN_REGISTRY_SECRET`, shared by every
+function; unset, each process makes one of its own, which is enough for one
+process and is why a function deployment without it offers no pre-registration.
+A configured registry admits only what it holds. A certificate is a code only
+servers holding the key can make or check — not a public signature — and
+changing the key voids the certificates of experiments not yet reported.
 `src/rain/experiments/verify.ts` re-derives every evaluation, statistic and
 digest from what is stored and reports any edit.
 
@@ -681,12 +702,15 @@ files are server-side.
 - The vocabulary is small on purpose: eight scenarios, six places, seven
   metrics. Adding one is a contract change, not a configuration.
 - Rate limits and the scratch registry are per server instance and reset on a
-  cold start. On Vercel each `api/rain/*` route is a separate function with
-  instances of its own, so with a scratch registry a submission can reach an
-  instance that never saw its pre-registration and is refused as not
-  registered. One process (`bun run dev`, `bun run preview`) closes the loop; a
-  function deployment needs a registry directory its functions share, which
-  Vercel does not provide.
+  cold start. On Vercel a submission is admitted wherever it lands, against its
+  certified pre-registration (with `RAIN_REGISTRY_SECRET` set), but the run
+  record is kept by the instance that admitted it and vanishes with it, and run
+  numbers are counted per instance: two instances can each number a run of the
+  same experiment `RUN-0001`. Experiment IDs restart at `V3D-EXP-0001` on
+  every scratch registry, so an ID names an experiment only together with its
+  definition's SHA-256, which every record carries. A registry that keeps runs
+  and numbers them once needs one disk every request reaches: one process with
+  `RAIN_REGISTRY_DIR`.
 - The authorization record attests to an action in a browser, not to a person.
 
 ## Verifying

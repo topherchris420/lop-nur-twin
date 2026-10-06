@@ -564,8 +564,8 @@ export class LabStore {
     if (!c?.validated || c.lifecycle.state !== "AUTHORIZED") return;
     const identity = this.runtime.status?.identity;
     if (this.mode() !== "LIVE" || !identity?.registry.available) {
-      this.proposalNote =
-        "R.A.I.N.'s registry is not available; nothing was pre-registered.";
+      const reason = identity?.registry.reason;
+      this.proposalNote = `R.A.I.N.'s registry is not available${reason ? `: ${reason}` : ""}; nothing was pre-registered.`;
       this.emit();
       return;
     }
@@ -584,7 +584,12 @@ export class LabStore {
       this.emit();
       return;
     }
-    c.preregistration = r.value;
+    // The record keeps the registry's answer. The certificate stays with the
+    // case and goes back with the submission, so whichever instance of the
+    // registry admits the run can check it against this definition.
+    const { certificate, ...preregistration } = r.value;
+    c.preregistration = preregistration;
+    c.receipt = { draft, created_at: preregistration.created_at, certificate };
     this.run_(c, true);
   }
   runLocal(id: string) {
@@ -684,7 +689,11 @@ export class LabStore {
     }
     this.registryNote = `Reporting ${record.run_id} to R.A.I.N. as ${c.preregistration.experiment_id}…`;
     this.emit();
-    const r = await this.client.submit(c.preregistration.experiment_id, submission.value);
+    const r = await this.client.submit(
+      c.preregistration.experiment_id,
+      submission.value,
+      c.receipt,
+    );
     if (!r.ok) {
       this.registryNote = `R.A.I.N. did not admit the run: ${r.failure} — ${r.detail}. Export the admission bundle to admit it later.`;
       this.emit();

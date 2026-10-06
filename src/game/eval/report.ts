@@ -97,6 +97,32 @@ export function renderText(evaluation: Evaluation): string {
   }
   lines.push("");
 
+  // A contract that splits its decisions states a rule per side; so does the report.
+  const sided = evaluation.arms.filter(
+    (arm) => arm.status === "complete" && arm.decisionMetrics?.bySide,
+  );
+  for (const arm of sided) {
+    const sides = Object.entries(arm.decisionMetrics!.bySide!).map(
+      ([side, v]) =>
+        `${side} success ${pct(v.successRate)}, harm ${pct(v.harmfulRate)} (n=${v.n})`,
+    );
+    lines.push(`${arm.id} by side — ${sides.join(" · ")}`);
+  }
+  if (sided.length > 0) lines.push("");
+
+  // Each event counted once: the pooled n counts overlapping windows.
+  const thinned = evaluation.arms.filter(
+    (arm) => arm.status === "complete" && arm.decisionMetrics?.disjoint,
+  );
+  for (const arm of thinned) {
+    const dm = arm.decisionMetrics!;
+    const d = dm.disjoint!;
+    lines.push(
+      `${arm.id} over windows that share no time — success ${pct(d.successRate)}${d.successInterval ? ` [${pct(d.successInterval.lo)}, ${pct(d.successInterval.hi)}]` : ""}, harm ${pct(d.harmfulRate)} (n=${d.n} of ${dm.scored} scored)`,
+    );
+  }
+  if (thinned.length > 0) lines.push("");
+
   for (const arm of evaluation.arms) {
     if (arm.status !== "complete") continue;
     if (!arm.calibration.available) {

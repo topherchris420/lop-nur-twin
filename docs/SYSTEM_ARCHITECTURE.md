@@ -298,13 +298,14 @@ system is **not** certified for. `SOURCE_DATE_EPOCH` makes it byte-reproducible.
 
 ## 9. Known architectural limits
 
-- **The R.A.I.N. registry is per instance.** Unset, `RAIN_REGISTRY_DIR` falls
-  back to a scratch directory per server process. On Vercel each `api/rain/*`
-  route is its own function with its own instances, so a submission can reach
-  an instance that never saw the pre-registration, and the registry refuses it
-  as not registered. Closing pre-registration and submission on Vercel needs a
-  shared registry directory, which a function deployment does not provide;
-  `bun run dev` and `bun run preview` run one process and close the loop.
+- **The R.A.I.N. registry's records are per instance.** Unset,
+  `RAIN_REGISTRY_DIR` falls back to a scratch directory per server process, and
+  a function deployment refuses a configured one. A pre-registration carries a
+  certificate (an HMAC under `RAIN_REGISTRY_SECRET` over the definition), so a
+  submission is judged against its registered definition on whichever instance
+  it reaches; without the secret, Vercel reports the registry unavailable. What
+  stays per instance is the run record and its number, which vanish with the
+  instance: durable records need one process and `RAIN_REGISTRY_DIR`.
 - **Model meetings need a long-lived process** and are refused in a function
   deployment.
 - **The browser holds everything.** A viewer can read and alter any of it,

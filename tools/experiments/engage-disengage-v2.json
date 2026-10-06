@@ -1,0 +1,61 @@
+{
+  "schema": "blacksite-experiment/v1",
+  "id": "engage-disengage-v2",
+  "question": "With an enemy in view, does the decision system fight when fighting pays and break off when it does not?",
+  "hypothesis": "Decisions taken with an enemy in view succeed under their own side's rule — an ENGAGE out-trades the enemy and survives the next five seconds, a DISENGAGE comes out of them untouched — more often for a policy with a plan than for random choices through the same controllers.",
+  "independentVariable": "brain",
+  "primaryMetric": "success_rate",
+  "secondaryMetrics": [
+    "harmful_rate",
+    "death_rate_next_window",
+    "damage_taken_next_window",
+    "decision_count"
+  ],
+  "decisionType": "engage-disengage/v2",
+  "outcomeWindowS": 5,
+  "seeds": {
+    "preset": "quick",
+    "base": 42
+  },
+  "duration": 120,
+  "mode": "tdm",
+  "seat": "even",
+  "arms": [
+    {
+      "id": "jev",
+      "brain": "jev",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "llm",
+      "brain": "llm",
+      "control": "precision",
+      "navigation": "places"
+    },
+    {
+      "id": "marksman",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "marksman"
+    },
+    {
+      "id": "skirmisher",
+      "brain": "script",
+      "control": "precision",
+      "navigation": "places",
+      "policy": "skirmisher"
+    },
+    {
+      "id": "random",
+      "brain": "random",
+      "control": "precision",
+      "navigation": "places"
+    }
+  ],
+  "controls": [
+    "random"
+  ],
+  "notes": "engage-disengage-v1 with the contract that scores each side by its own rule: v1 scored a break-off by the fight it did not have. Results are reported per side (ENGAGE, DISENGAGE) as well as pooled. The fire gate only withholds rounds from a permission already given; engaging is the brain's. Arms with brain jev or llm call paid APIs and run only with JEV_LIVE_TEST=1 / LLM_LIVE_TEST=1; without the flag they are recorded as PENDING and nothing is filled in for them."
+}

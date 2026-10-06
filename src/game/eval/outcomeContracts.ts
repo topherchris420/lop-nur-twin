@@ -43,6 +43,12 @@ export interface DecisionTypeContract {
   classify(record: DecisionRecord): OutcomeClass | null;
   /** A continuous figure per decision, for means and paired comparisons. */
   measure: { name: string; unit: string; read(record: DecisionRecord): number | null };
+  /**
+   * For a contract that splits its decisions into kinds with a rule each
+   * (ENGAGE against DISENGAGE), the kind a decision is. Results are reported
+   * per side as well as pooled.
+   */
+  side?: (record: DecisionRecord) => string;
 }
 
 const exposure = (r: DecisionRecord): number | null =>
@@ -115,6 +121,12 @@ export const THREAT_PRIORITY: DecisionTypeContract = {
   },
 };
 
+/**
+ * v1 describes an ENGAGE/DISENGAGE split and then applies one fighting rule to
+ * every decision, so breaking off could be scored a success only by out-dealing
+ * the enemy. It stays exactly as it was: experiments declared against it are
+ * scored against it. `engage-disengage/v2` gives each side its own rule.
+ */
 export const ENGAGE_DISENGAGE: DecisionTypeContract = {
   id: "engage-disengage/v1",
   question:
@@ -131,6 +143,42 @@ export const ENGAGE_DISENGAGE: DecisionTypeContract = {
     const o = r.outcome!;
     if (o.died) return "harmful";
     return o.damageDealt > o.damageTaken ? "beneficial" : "neutral";
+  },
+  measure: {
+    name: "damage dealt minus taken in window",
+    unit: "hp",
+    read: (r) => (r.outcome ? r.outcome.damageDealt - r.outcome.damageTaken : null),
+  },
+};
+
+/**
+ * ENGAGE: a fire choice that names a target, or — when precision control is not
+ * in effect, so no target is ever named — any fire choice. Everything else with
+ * an enemy in view is DISENGAGE.
+ */
+const engages = (r: DecisionRecord): boolean =>
+  FIRE.has(r.frame.weapon) &&
+  (offeredSlots(r.legal, "target") === 0 || slotOf(r.frame.target) !== null);
+
+export const ENGAGE_DISENGAGE_V2: DecisionTypeContract = {
+  id: "engage-disengage/v2",
+  question:
+    "With an enemy in view, does the brain fight when fighting pays and break off when it does not?",
+  applies:
+    "An executed decision taken with at least one enemy in view. ENGAGE is a fire choice that names a target (or, under direct control, where no target is named, any fire choice); everything else is DISENGAGE. Each side has its own rule.",
+  rule: "ENGAGE — beneficial: the seat survived the window and dealt more damage than it took (the fight paid); harmful: it died in the window; otherwise neutral. DISENGAGE — beneficial: the seat survived the window untouched (breaking off kept it safe); harmful: it died, or took at least 25 damage, a quarter of full health (breaking off did not get it out of harm's way); otherwise neutral.",
+  calibrationAxis: "weapon",
+  controllerCannot:
+    "The fire gate only withholds rounds from a permission already given; it never grants permission, and never moves the seat. Which side a decision is on is the brain's choice alone.",
+  matches: (r) => executed(r) && r.context.visibleEnemies >= 1,
+  side: (r) => (engages(r) ? "ENGAGE" : "DISENGAGE"),
+  classify: (r) => {
+    if (!scoreable(r)) return null;
+    const o = r.outcome!;
+    if (o.died) return "harmful";
+    if (engages(r)) return o.damageDealt > o.damageTaken ? "beneficial" : "neutral";
+    if (o.damageTaken >= HURT) return "harmful";
+    return o.damageTaken === 0 ? "beneficial" : "neutral";
   },
   measure: {
     name: "damage dealt minus taken in window",
@@ -229,6 +277,7 @@ export const DECISION_TYPES: readonly DecisionTypeContract[] = [
   COVER_SELECTION,
   THREAT_PRIORITY,
   ENGAGE_DISENGAGE,
+  ENGAGE_DISENGAGE_V2,
   NAVIGATION,
   RELOAD,
   SHOT,

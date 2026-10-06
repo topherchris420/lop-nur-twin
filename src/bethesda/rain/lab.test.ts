@@ -17,6 +17,7 @@ import { compileScenario } from "../scenarios";
 import { LAB_BUILDING_ID, LAB_DOOR, OPEN_RADIUS, nearDoor, resolvesLab } from "./site";
 import { ROOMS, ROOM_IDS, SPAWN, moveInLab, roomAt } from "./labLayout";
 import { LabStore } from "./store";
+import { RainClient } from "./client";
 import { currentSpeaker, evidenceItems, neutralEvents } from "./session";
 import { approve, begin, complete, openCase } from "./cases";
 import { runToCompletion } from "./runner";
@@ -200,7 +201,7 @@ describe("OFFLINE, DEMO and LIVE", () => {
         model: null,
         bounded_decision: "off",
         remote_decisions: false,
-        registry: { available: true, scratch: true },
+        registry: { available: true, scratch: true, reason: null },
       };
       const fetchImpl = vi.fn(async (url: string | URL | Request) =>
         String(url).endsWith("/status")
@@ -241,6 +242,95 @@ describe("OFFLINE, DEMO and LIVE", () => {
     await s.checkRuntime();
     // A reachable backend without a valid identity is not LIVE.
     expect(s.mode()).toBe("OFFLINE");
+  });
+});
+
+describe("the registry's certificate", () => {
+  const identity = {
+    schema: "rain-bethesda/v2",
+    kind: "identity",
+    runtime: { name: "lop-nur-twin-rain", version: "1" },
+    rain: {
+      repository: "topherchris420/lop-nur-twin",
+      commit: "9".repeat(40),
+      dirty: false,
+    },
+    corpus: { files: 17, sha256: "a".repeat(64) },
+    meeting_engine: "rain.meeting.offline.buildOfflineMeeting",
+    meeting_generation: "scripted",
+    model: null,
+    bounded_decision: "off",
+    remote_decisions: false,
+    registry: { available: true, scratch: true, reason: null },
+  };
+  it("stays with the case for the submission and never enters the record", async () => {
+    const certificate = "c".repeat(64);
+    const bodies: Record<string, Record<string, unknown>> = {};
+    const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const path = String(url).replace(/^.*\/api\/rain\//, "");
+      if (path === "status")
+        return respond(200, {
+          schema: "rain-bethesda/v2",
+          kind: "status",
+          configured: true,
+          reachable: true,
+          identity,
+          failure: null,
+        });
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      bodies[path] = body;
+      return respond(200, {
+        schema: "rain-bethesda/v2",
+        kind: "preregistration",
+        request_id: body.request_id,
+        experiment_id: "V3D-EXP-0001",
+        experiment_version: 1,
+        definition_sha256: "d".repeat(64),
+        created_at: "2026-10-06T01:00:00.000Z",
+        registry: "scratch",
+        certificate,
+      });
+    });
+    const s = store(fetchImpl);
+    await s.checkRuntime();
+    s.proposeByHand({
+      ...structuredClone(proposal),
+      origin: "human",
+      rain_decision: null,
+    });
+    const c = s.cases[0]!;
+    approve(c, {
+      operator: "R.A.I.N.Operator",
+      typedPrefix: c.validated!.definitionSha256.slice(0, 8),
+      reviewed: true,
+      now: new Date(),
+    });
+    // Another experiment is running, so this one is pre-registered and waits.
+    s.run = { caseId: "elsewhere", started: new Date(), progress: null, series: [] };
+    await s.preregisterAndRun(c.id);
+    expect(c.preregistration).toMatchObject({ experiment_id: "V3D-EXP-0001" });
+    expect(c.preregistration).not.toHaveProperty("certificate");
+    expect(c.receipt).toEqual({
+      draft: bodies.preregister!.draft,
+      created_at: "2026-10-06T01:00:00.000Z",
+      certificate,
+    });
+  });
+  it("goes back with the submission when there is one, and only then", async () => {
+    const sent: Record<string, unknown>[] = [];
+    const client = new RainClient(async (_url, init) => {
+      sent.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+      return respond(503, { error: "not configured" });
+    });
+    const receipt = {
+      draft: { title: "t" },
+      created_at: "2026-10-06T01:00:00.000Z",
+      certificate: "c".repeat(64),
+    };
+    await client.submit("V3D-EXP-0001", { schema_version: "x" }, receipt);
+    await client.submit("V3D-EXP-0001", { schema_version: "x" });
+    expect(sent[0]!.preregistration).toEqual(receipt);
+    expect(sent[1]).not.toHaveProperty("preregistration");
   });
 });
 
@@ -319,7 +409,7 @@ describe("LIVE: a model meeting, and a choice R.A.I.N. hands back", () => {
     model: "qwen2.5:7b",
     bounded_decision: "jev",
     remote_decisions: true,
-    registry: { available: true, scratch: true },
+    registry: { available: true, scratch: true, reason: null },
   };
   const JOB = "9".repeat(32);
   const pending = (requestId: string, turns = 0) => ({

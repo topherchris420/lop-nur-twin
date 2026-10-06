@@ -15,7 +15,8 @@ import {
   LIMITS,
   type Admission,
   type MeetingRecord,
-  type Preregistration,
+  type PreregistrationAnswer,
+  type RegistryReceipt,
   type ProposalChoice,
   type ProposalOption,
   type RainIdentity,
@@ -319,7 +320,7 @@ export class RainClient {
     );
   }
 
-  async preregister(draft: unknown): Promise<Result<Preregistration>> {
+  async preregister(draft: unknown): Promise<Result<PreregistrationAnswer>> {
     const requestId = hex(16);
     const r = await this.call(
       "preregister",
@@ -333,13 +334,23 @@ export class RainClient {
     return this.checked(r, (v) => validatePreregistration(v, { requestId }));
   }
 
-  async submit(experimentId: string, submission: unknown): Promise<Result<Admission>> {
+  /**
+   * Report a run. With the receipt of its pre-registration, whichever instance
+   * of the registry the request reaches can check it against the definition
+   * that was registered.
+   */
+  async submit(
+    experimentId: string,
+    submission: unknown,
+    receipt: RegistryReceipt | null = null,
+  ): Promise<Result<Admission>> {
     const requestId = hex(16);
     const body = JSON.stringify({
       session: this.session,
       request_id: requestId,
       experiment_id: experimentId,
       submission,
+      ...(receipt ? { preregistration: receipt } : {}),
     });
     if (body.length > LIMITS.submissionRequest)
       return {

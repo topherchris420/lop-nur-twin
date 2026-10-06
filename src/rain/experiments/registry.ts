@@ -47,6 +47,21 @@ const RUN_DIR = /^RUN-(\d{4,})$/;
 export const utcNow = (date = new Date()) => date.toISOString();
 export const formatExperimentId = (number: number) => `V3D-EXP-${String(number).padStart(4, "0")}`;
 
+/**
+ * The definition `create` writes: the registry's fields around the draft's.
+ * One assembly, so a definition another instance certified (`adopt`) is
+ * rebuilt byte for byte as it was registered.
+ */
+export function assembleDefinition(fields: Json, experimentId: string, createdAt: string): Json {
+  return {
+    schema_version: DEFINITION_SCHEMA,
+    experiment_version: 1,
+    ...fields,
+    experiment_id: experimentId,
+    created_at: createdAt,
+  };
+}
+
 export function checkExperimentId(value: unknown): string {
   if (typeof value !== "string" || !EXPERIMENT_ID.test(value))
     throw new ExperimentError(`Not an experiment ID: ${JSON.stringify(value)} (expected V3D-EXP-0001 form)`);
@@ -207,21 +222,41 @@ export class Registry {
   /** Allocate the next ID and write a validated, write-once definition. */
   create(fields: Json): Json {
     const createdAt = utcNow(this.now());
-    const draft = {
-      schema_version: DEFINITION_SCHEMA,
-      experiment_version: 1,
-      ...fields,
-      experiment_id: "V3D-EXP-0000",
-      created_at: createdAt,
-    };
+    const draft = assembleDefinition(fields, "V3D-EXP-0000", createdAt);
     validateDefinition(draft); // refuse before an ID is consumed
     const experimentId = this.allocate(createdAt);
-    const definition = { ...draft, experiment_id: experimentId };
+    const definition = assembleDefinition(fields, experimentId, createdAt);
     writeFileSync(join(this.experimentDir(experimentId), "experiment.json"), canonicalJson(definition), {
       encoding: "utf8",
       flag: "wx",
     });
     return definition;
+  }
+
+  /** Whether this registry holds a definition under the ID. */
+  holds(experimentId: string): boolean {
+    return existsSync(join(this.experimentDir(experimentId), "experiment.json"));
+  }
+
+  /**
+   * Hold a definition registered elsewhere — by another instance of this
+   * registry, which certified it — under the ID it was given there. Written
+   * once; holding it again is a no-op only if it is the same definition. No ID
+   * is allocated, so the ledger is not touched.
+   */
+  adopt(definition: Json): void {
+    validateDefinition(definition);
+    const experimentId = checkExperimentId(definition.experiment_id);
+    const text = canonicalJson(definition);
+    const path = join(this.experimentDir(experimentId), "experiment.json");
+    mkdirSync(this.experimentDir(experimentId), { recursive: true });
+    try {
+      writeFileSync(path, text, { encoding: "utf8", flag: "wx" });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      if (canonicalJson(this.loadDefinition(experimentId)) !== text)
+        throw new ExperimentError(`${experimentId} is already held here with a different definition`);
+    }
   }
 
   loadDefinition(experimentId: string): Json {

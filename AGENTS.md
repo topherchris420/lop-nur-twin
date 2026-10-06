@@ -578,11 +578,22 @@ world state; recorded observations become evidence.**
   discovery rules (`corpus.ts`) decide what counts as a paper on import and at
   run time.
 - **Secrets reach the runtime by value.** Only `api/rain/_config.ts` and
-  `vite.config.ts` read `RAIN_LLM_API_KEY` (and, for Jev, `TYPESAFE_API_KEY`);
-  nothing under `src/rain/` names a credential or reads the process
-  environment, and `secretBoundary.test.ts` fails if that changes. Never
-  `VITE_`-prefixed. The runtime, `contracts.ts` and `validation.ts` are shared
-  with `server/rain/` and import siblings as `./x.js`.
+  `vite.config.ts` read `RAIN_LLM_API_KEY`, `RAIN_REGISTRY_SECRET` (and, for
+  Jev, `TYPESAFE_API_KEY`); nothing under `src/rain/` names a credential or
+  reads the process environment, and `secretBoundary.test.ts` fails if that
+  changes. Never `VITE_`-prefixed. The runtime, `contracts.ts` and
+  `validation.ts` are shared with `server/rain/` and import siblings as
+  `./x.js`.
+- **A pre-registration is certified, not remembered.** A function deployment's
+  instances share no disk, so the registry signs each pre-registration (an
+  HMAC under `RAIN_REGISTRY_SECRET` over the definition) and the lab brings the
+  certificate and draft back with the submission; whichever instance it reaches
+  rebuilds the definition (`assembleDefinition`, the one `create` uses), checks
+  the certificate and judges the run against exactly that definition. Never
+  admit a run against a definition matched by ID alone — scratch registries all
+  start at `V3D-EXP-0001` — and never put the certificate in a record. Without
+  the secret, Vercel reports the registry unavailable; a configured
+  `RAIN_REGISTRY_DIR` is refused there.
 - **The registry judges its own criteria.** A submission carries measurements
   and no status or verdict; `experiments/runner.ts` evaluates the
   pre-registered criteria, and `bun run rain:conformance` runs the lab's

@@ -403,18 +403,18 @@ or extend one.
 
 ## What is built
 
-| Part                                                                                                | Status                                     | Notes                                                                                         |
-| :-------------------------------------------------------------------------------------------------- | :----------------------------------------- | :-------------------------------------------------------------------------------------------- |
-| Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                            | Build-gated by the evidence validator; both front doors gated by accessibility checks         |
-| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Browser suites for gameplay, engagement and gait                                              |
-| Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental** | Need server credentials; ten-seed runs are exploratory, not rankings                          |
-| Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                            | Offline; a result describes this build on the machine that ran it                             |
-| Bethesda city simulation, scenarios and replay                                                      | **Implemented**                            | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model               |
-| Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                               |
-| R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, pre-registration and submission do not close across functions (documented)         |
-| R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                          |
-| Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/` |
-| Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                               |
+| Part                                                                                                | Status                                     | Notes                                                                                             |
+| :-------------------------------------------------------------------------------------------------- | :----------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                            | Build-gated by the evidence validator; both front doors gated by accessibility checks             |
+| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Browser suites for gameplay, engagement and gait                                                  |
+| Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental** | Need server credentials; ten-seed runs are exploratory, not rankings                              |
+| Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                            | Offline; a result describes this build on the machine that ran it                                 |
+| Bethesda city simulation, scenarios and replay                                                      | **Implemented**                            | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model                   |
+| Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                                   |
+| R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, certified pre-registrations need `RAIN_REGISTRY_SECRET`; run records stay per instance |
+| R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                              |
+| Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`     |
+| Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                                   |
 
 ## Development and validation
 

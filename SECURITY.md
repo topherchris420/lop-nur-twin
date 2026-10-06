@@ -137,11 +137,13 @@ any kind.
   `/play?brain=llm` work the same way through `api/glide/decision.ts` with
   `FASTINO_API_KEY` and `api/llm/decision.ts` with `LLM_API_KEY`, under the same
   test and scan (which also looks for Anthropic- and OpenAI-shaped keys). The R.A.I.N. Lab's
-  research runtime needs no credential; its two optional ones — the bearer
-  token of a local model server (`RAIN_LLM_API_KEY`) and the TypeSafe key, when
-  R.A.I.N.'s router may ask Jev — are read only by `api/rain/_config.ts` and the
-  Vite middleware and passed to the runtime by value, under the same test and
-  scan; `src/rain/` itself names no credential and reads no environment. There
+  research runtime needs no credential; its optional ones — the bearer token of
+  a local model server (`RAIN_LLM_API_KEY`), the TypeSafe key when R.A.I.N.'s
+  router may ask Jev, and `RAIN_REGISTRY_SECRET`, the key that certifies
+  pre-registrations so any function instance can admit a run — are read only by
+  `api/rain/_config.ts` and the Vite middleware and passed to the runtime by
+  value, under the same test and scan; `src/rain/` itself names no credential
+  and reads no environment. There
   is no authentication.
 - Anything placed in a frontend build is public. Never add a credential to
   `.env`, `vite.config.ts`, a data file, or any module under `src/` — Vite

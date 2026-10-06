@@ -231,3 +231,83 @@ describe("blacksite-evaluation/v1", () => {
     expect(sweep.reading).toMatch(/per 100 ms|No detectable/);
   });
 });
+
+describe("a contract that splits its decisions", () => {
+  const inView = {
+    legal: legal({ enemies: 1 }),
+    context: { ...record().context, visibleEnemies: 1 },
+  };
+  const fight = (dealt: number, taken: number) =>
+    record({
+      ...inView,
+      frame: { weapon: "FIRE", target: "TARGET_0" },
+      outcome: outcome({ damageDealt: dealt, damageTaken: taken }),
+    });
+  const breakOff = (taken: number) =>
+    record({
+      ...inView,
+      frame: { weapon: "NO_FIRE" },
+      outcome: outcome({ damageTaken: taken }),
+    });
+  const evaluated = (decisionType: string) => {
+    const s = spec({ decisionType });
+    const run: ArmRun = {
+      arm: s.arms[0]!,
+      query: "brain=jev",
+      origin: "http://localhost:5173",
+      build: "synthetic",
+      pending: null,
+      episodes: [episode(42, [fight(50, 10), fight(0, 30), breakOff(0), breakOff(30)])],
+    };
+    return buildEvaluation(input([run], s));
+  };
+
+  it("is reported per side as well as pooled", () => {
+    const built = evaluated("engage-disengage/v2");
+    const dm = built.arms[0]!.decisionMetrics!;
+    expect(dm.classes).toEqual({ beneficial: 2, neutral: 1, harmful: 1 });
+    expect(dm.bySide).toEqual({
+      DISENGAGE: { n: 2, successRate: 0.5, harmfulRate: 0.5 },
+      ENGAGE: { n: 2, successRate: 0.5, harmfulRate: 0 },
+    });
+    expect(renderText(built)).toContain(
+      "jev by side — DISENGAGE success 50.0%, harm 50.0% (n=2) · ENGAGE success 50.0%, harm 0.0% (n=2)",
+    );
+  });
+
+  it("counts each event once over windows that share no time", () => {
+    const s = spec({ decisionType: "engage-disengage/v2" });
+    // Windows [0,5) [1,6) [5,10) [10,15): the second shares time with the first and
+    // third, so the windows that share none are the first, third and fourth.
+    const timed = (start: number, r: ReturnType<typeof fight>) => ({
+      ...r,
+      execution: { ...r.execution, actionStart: start },
+    });
+    const run: ArmRun = {
+      arm: s.arms[0]!,
+      query: "brain=jev",
+      origin: "http://localhost:5173",
+      build: "synthetic",
+      pending: null,
+      episodes: [
+        episode(42, [
+          timed(0, fight(50, 10)),
+          timed(1, fight(0, 30)),
+          timed(5, breakOff(30)),
+          timed(10, breakOff(0)),
+        ]),
+      ],
+    };
+    const dm = buildEvaluation(input([run], s)).arms[0]!.decisionMetrics!;
+    expect(dm.scored).toBe(4);
+    expect(dm.disjoint).toMatchObject({ n: 3, harmfulRate: 1 / 3 });
+    expect(dm.disjoint!.successRate).toBeCloseTo(2 / 3, 10);
+  });
+
+  it("is not invented for a contract without sides", () => {
+    const dm = evaluated("engage-disengage/v1").arms[0]!.decisionMetrics!;
+    expect(dm.bySide).toBeNull();
+    // v1 scores the clean break-off by the fight it did not have.
+    expect(dm.classes).toEqual({ beneficial: 1, neutral: 3, harmful: 0 });
+  });
+});

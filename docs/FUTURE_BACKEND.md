@@ -28,22 +28,22 @@ in the "recommended" section exists in this repository. In particular:
 
 ## Status of each component
 
-| Component                                                                   | Status                                                       | Where                                                                  |
-| :-------------------------------------------------------------------------- | :----------------------------------------------------------- | :--------------------------------------------------------------------- |
-| Deterministic geometry and layout                                           | **Implemented**                                              | `src/lib/layout.ts`                                                    |
-| Public source register                                                      | **Implemented**                                              | `src/lib/siteData.ts`                                                  |
-| Evidence ledger with 0–1 confidence, CRS, uncertainty                       | **Implemented**                                              | `src/lib/evidence.ts`                                                  |
-| Build-gating evidence validation + negative tests                           | **Implemented**                                              | `src/lib/evidenceValidation.ts`, `scripts/test-evidence-validation.ts` |
-| Reproducible release manifest with SHA-256 hashes                           | **Implemented**                                              | `scripts/generate-manifest.ts`                                         |
-| Accessible non-3D analytical view                                           | **Implemented**                                              | `src/routes/analysis.tsx`                                              |
-| Security headers and CSP, verified against the real build                   | **Implemented**                                              | `vite.config.ts`, `vercel.json`, `deploy/security-headers.conf`        |
-| CI: build, tests, CodeQL, Gitleaks, Trivy, SBOM, dependency review          | **Implemented**                                              | `.github/workflows/`                                                   |
-| Container deployment (non-root nginx, SPA fallback, health path)            | **Implemented**                                              | `Dockerfile`, `deploy/nginx.conf`                                      |
-| Optional model seats for the simulation (Jev, Glide, LLM)                   | **Implemented** — outside the analytical model               | `api/*/decision.ts`, `server/`                                         |
-| R.A.I.N. research runtime route                                             | **Implemented**; a registry its functions share is not built | `api/rain/`, `server/rain/`, `src/rain/`                               |
-| Evidence record schema shaped for a future API (`sourceHash`, `supersedes`) | **Scaffolded** — fields exist, deliberately unpopulated      | `src/lib/evidence.ts`                                                  |
-| Machine-readable release identity for a future registry                     | **Scaffolded** — manifest is the artifact an API would serve | `public/model-manifest.json`                                           |
-| PostGIS, object storage, evidence API, OIDC, RBAC, audit log, IaC           | **Recommended only — not built**                             | this document                                                          |
+| Component                                                                   | Status                                                                               | Where                                                                  |
+| :-------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| Deterministic geometry and layout                                           | **Implemented**                                                                      | `src/lib/layout.ts`                                                    |
+| Public source register                                                      | **Implemented**                                                                      | `src/lib/siteData.ts`                                                  |
+| Evidence ledger with 0–1 confidence, CRS, uncertainty                       | **Implemented**                                                                      | `src/lib/evidence.ts`                                                  |
+| Build-gating evidence validation + negative tests                           | **Implemented**                                                                      | `src/lib/evidenceValidation.ts`, `scripts/test-evidence-validation.ts` |
+| Reproducible release manifest with SHA-256 hashes                           | **Implemented**                                                                      | `scripts/generate-manifest.ts`                                         |
+| Accessible non-3D analytical view                                           | **Implemented**                                                                      | `src/routes/analysis.tsx`                                              |
+| Security headers and CSP, verified against the real build                   | **Implemented**                                                                      | `vite.config.ts`, `vercel.json`, `deploy/security-headers.conf`        |
+| CI: build, tests, CodeQL, Gitleaks, Trivy, SBOM, dependency review          | **Implemented**                                                                      | `.github/workflows/`                                                   |
+| Container deployment (non-root nginx, SPA fallback, health path)            | **Implemented**                                                                      | `Dockerfile`, `deploy/nginx.conf`                                      |
+| Optional model seats for the simulation (Jev, Glide, LLM)                   | **Implemented** — outside the analytical model                                       | `api/*/decision.ts`, `server/`                                         |
+| R.A.I.N. research runtime route                                             | **Implemented**; on functions, certified pre-registrations, per-instance run records | `api/rain/`, `server/rain/`, `src/rain/`                               |
+| Evidence record schema shaped for a future API (`sourceHash`, `supersedes`) | **Scaffolded** — fields exist, deliberately unpopulated                              | `src/lib/evidence.ts`                                                  |
+| Machine-readable release identity for a future registry                     | **Scaffolded** — manifest is the artifact an API would serve                         | `public/model-manifest.json`                                           |
+| PostGIS, object storage, evidence API, OIDC, RBAC, audit log, IaC           | **Recommended only — not built**                                                     | this document                                                          |
 
 ## Target architecture, if it is ever needed
 

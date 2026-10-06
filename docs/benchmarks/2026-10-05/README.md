@@ -62,6 +62,22 @@ taken with an enemy in view succeeds when the seat survives the next five
 seconds and deals more damage than it takes. Its n counts overlapping
 windows, so it overstates the independent evidence.
 
+_Note added 2026-10-06:_ v1 applies that one rule to breaking off as well, so
+a seat that disengaged cleanly scores neutral, not success. These figures are
+the fight's success rate over every decision with an enemy in view, not a
+measure of when to break off. `engage-disengage/v2` scores each side by its
+own rule; these runs were declared against v1 and stay scored by it.
+
+_Re-scored 2026-10-06, without changing the archived evaluation:_ that n
+counts each event in every window it falls in. Measured on these records, a
+window shares its time with a median of 7 others for Glide, 34 for Jev and 43
+for the marksman and random. Counting each event once — per episode, only the
+decisions whose windows share no time, kept by time alone, never by outcome —
+the same v1 rule gives Jev 47.6% (n=42, 95% interval 33.4–62.3%), Glide 79.1%
+(n=43, 64.8–88.6%), the marksman 98.6% (n=138, 94.9–99.6%) and random 12.0%
+(n=75, 6.4–21.3%). Reproduce with `node tools/experiment.mjs --evaluate` on a
+copy of the run and read each arm's `decisionMetrics.disjoint`.
+
 ### Paired by seed, Glide minus Jev
 
 | Metric                      | Mean difference [95% interval] | Glide higher / lower / equal |
@@ -181,6 +197,11 @@ fixed steps and pulls the trigger itself, and nothing aims for it.
 | engage-disengage success               | 3.0% (n=542)       | 6.6% (n=366)           | 0.0% (n=254) |
 | time in an enemy's sight line (mean)   | 27.8%              | 67.1%                  | 48.0%        |
 | metres moved                           | 3,008              | 598                    | 3,036        |
+
+Engage-disengage success here is `engage-disengage/v1` too, with the same
+caveats as above. Over windows that share no time (re-scored 2026-10-06, as
+above): Jev 2.0% (n=51, 0.3–10.3%), Glide 5.0% (n=100, 2.2–11.2%), random 0.0%
+(n=39, 0.0–9.0%).
 
 ### Paired by seed, Glide minus Jev
 

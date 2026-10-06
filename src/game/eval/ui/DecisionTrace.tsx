@@ -7,6 +7,7 @@ import {
   type DecisionRecord,
   type FailureRecord,
 } from "../records";
+import { disjointWindows, overlapCounts, windowSpans } from "../windows";
 import { VIZ, formatValue } from "./charts";
 import { ScrollRegion } from "./ScrollRegion";
 
@@ -16,6 +17,11 @@ import { ScrollRegion } from "./ScrollRegion";
  * it, what the world did, and how the declared contract classed it. Loaded
  * from the episode's `*.eval.json` (or the archived `.gz`), in the browser,
  * from a file the user chooses — nothing is fetched.
+ *
+ * Each row's outcome window overlaps its neighbours' (`../windows.ts`), and
+ * the table says so row by row: how many other decisions share the window, and
+ * a view that keeps only windows that share no time, so each event is counted
+ * once.
  */
 
 export const MAX_RECORDS_BYTES = 64 * 1024 * 1024;
@@ -53,6 +59,13 @@ export async function readRecordsFile(file: File): Promise<EpisodeRecords> {
     decisions: value.decisions,
     failures: value.failures,
   };
+}
+
+function median(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
 function exposure(r: DecisionRecord): number | null {
@@ -93,7 +106,7 @@ function ExposureTimeline({
   return (
     <svg
       role="img"
-      aria-label="Exposure in the outcome window after each executed decision, against simulation time. Filled points are decisions the experiment's contract selected. The table below lists every decision."
+      aria-label="Exposure in the outcome window after each executed decision, against simulation time. Neighbouring windows overlap, so neighbouring points share most of what they measure. Filled points are decisions the experiment's contract selected. The table below lists every decision."
       viewBox={`0 0 ${width} ${height}`}
       className="w-full max-w-[60rem] text-[10px]"
     >
@@ -158,6 +171,7 @@ export function DecisionTrace({
   contract: DecisionTypeContract | null;
 }) {
   const [onlyMatched, setOnlyMatched] = useState(contract !== null);
+  const [onlyDisjoint, setOnlyDisjoint] = useState(false);
   const sorted = useMemo(
     () => [...records.decisions].sort((a, b) => a.sequence - b.sequence),
     [records],
@@ -174,8 +188,23 @@ export function DecisionTrace({
       return row;
     });
   }, [sorted]);
-  const shown = rows
-    .filter((row) => !onlyMatched || !contract || contract.matches(row.r))
+  // Every executed decision's window, whatever the contract selects: an event
+  // is shared with all of them.
+  const spans = useMemo(() => windowSpans(sorted), [sorted]);
+  const overlaps = useMemo(() => overlapCounts(spans), [spans]);
+  const windowS = sorted.find((r) => r.outcome)?.outcome?.windowS ?? null;
+  const spacing = median(spans.slice(1).map((s, i) => s.start - spans[i]!.start));
+  const typicalOverlap = median([...overlaps.values()]);
+  const selected = useMemo(
+    () => rows.filter((row) => !onlyMatched || !contract || contract.matches(row.r)),
+    [rows, onlyMatched, contract],
+  );
+  const disjoint = useMemo(
+    () => disjointWindows(windowSpans(selected.map((row) => row.r))),
+    [selected],
+  );
+  const shown = selected
+    .filter((row) => !onlyDisjoint || disjoint.has(row.r.sequence))
     .slice(0, 2000);
   const axis = contract?.calibrationAxis ?? null;
   return (
@@ -196,13 +225,29 @@ export function DecisionTrace({
           Only decisions {contract.id} selects
         </label>
       ) : null}
+      <label className="mt-1 flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={onlyDisjoint}
+          onChange={(e) => setOnlyDisjoint(e.target.checked)}
+        />
+        Only windows that share no time ({disjoint.size} of {selected.length}): each event
+        counted once; kept by time alone, never by outcome
+      </label>
       <ScrollRegion label="Decision trace" className="mt-2 max-h-[32rem] overflow-auto">
         <table className="w-full min-w-[70rem] border-collapse text-left text-[11px]">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             Decisions in sequence order
             {shown.length === 2000 ? " (first 2,000 shown)" : ""}. Confidence is on the
             contract&rsquo;s axis, as the brain stated it; &ldquo;none&rdquo; means it
-            stated nothing.
+            stated nothing. Each outcome window is the{" "}
+            {windowS === null ? "" : `${formatValue(windowS, 0)} s `}after the decision
+            began executing
+            {spacing === null
+              ? ""
+              : `; decisions here began every ${formatValue(spacing, 2)} s (median), so a window typically shares its time with ${formatValue(typicalOverlap, 0)} others`}
+            . An event — a hit, a kill, a death — is counted in every window it falls in,
+            so the rows are not independent outcomes of their decisions.
           </caption>
           <thead>
             <tr className="border-border border-b">
@@ -217,6 +262,7 @@ export function DecisionTrace({
                 "world changed",
                 "execution",
                 "outcome window",
+                "window shared with",
                 "class",
               ].map((h) => (
                 <th
@@ -279,6 +325,11 @@ export function DecisionTrace({
                     {o
                       ? `${o.complete ? "" : "incomplete · "}dealt ${formatValue(o.damageDealt, 0)} · took ${formatValue(o.damageTaken, 0)} · exposed ${formatValue(exposure(r), 2)}${o.died ? " · died" : ""}${o.target?.killed ? " · target eliminated" : ""}${o.place?.reached ? " · reached" : ""}`
                       : "not executed"}
+                  </td>
+                  <td className="px-2 py-1">
+                    {overlaps.has(r.sequence)
+                      ? `${overlaps.get(r.sequence)} other${overlaps.get(r.sequence) === 1 ? "" : "s"}`
+                      : "—"}
                   </td>
                   <td className="px-2 py-1">
                     {contract?.matches(r) ? (contract.classify(r) ?? "unscored") : "—"}

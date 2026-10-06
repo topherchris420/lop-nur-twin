@@ -1909,7 +1909,7 @@ export function SystemsRoom({ store }: { store: LabStore }) {
                 ? id.registry.scratch
                   ? "scratch"
                   : "configured"
-                : "unavailable"}
+                : `unavailable${id.registry.reason ? ` — ${id.registry.reason}` : ""}`}
             </li>
           </ul>
         ) : (

@@ -17,12 +17,16 @@
  * - No shell and no subprocess but `git`, for this checkout's revision. A
  *   model's words only ever come back as text.
  * - The registry is a scratch directory unless `RAIN_REGISTRY_DIR` names one.
+ *   Every pre-registration carries a certificate — an HMAC under the registry
+ *   key over the definition — so an instance that never saw it can still check
+ *   a submission against exactly the definition that was registered.
  * - A remote decision engine is consulted only when the operator said so.
  * - `RAIN_RUNTIME=off` switches the runtime off: the lab runs OFFLINE.
  *
  * Server only.
  */
 import { execFileSync } from "node:child_process";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -34,8 +38,18 @@ import {
 } from "./corpus.js";
 import corpusData from "./data/corpus.json" with { type: "json" };
 import { Refused } from "./errors.js";
-import { ExperimentError, sha256Json } from "./experiments/schema.js";
-import { Registry } from "./experiments/registry.js";
+import {
+  canonicalJson,
+  ExperimentError,
+  sha256Json,
+  validateDefinition,
+  type Json,
+} from "./experiments/schema.js";
+import {
+  assembleDefinition,
+  checkExperimentId,
+  Registry,
+} from "./experiments/registry.js";
 import { recordSubmission, recordedBy } from "./experiments/runner.js";
 import {
   createDecisionRouter,
@@ -91,6 +105,11 @@ export const DRAFT_FIELDS = [
 ] as const;
 /** A scratch registry is bounded; a configured one is the operator's. */
 export const SCRATCH_REGISTRY_CAP = 1000;
+/** The shortest registry secret accepted, in characters. */
+export const REGISTRY_SECRET_MIN = 32;
+/** Domain separation: this key signs pre-registrations and nothing else. */
+const CERTIFICATE_CONTEXT = "rain-preregistration-certificate/v1\n";
+const HEX64 = /^[0-9a-f]{64}$/;
 
 export interface RainIdentity {
   schema: typeof RAIN_BETHESDA_SCHEMA;
@@ -103,7 +122,18 @@ export interface RainIdentity {
   model: string | null;
   bounded_decision: string;
   remote_decisions: boolean;
-  registry: { available: boolean; scratch: boolean };
+  /** `reason` says why a registry is not available, and is null when it is. */
+  registry: { available: boolean; scratch: boolean; reason: string | null };
+}
+/**
+ * What a submission brings back so that any instance can check it against its
+ * pre-registration: the draft as it was sent, when the registry took it, and
+ * the certificate the registry issued.
+ */
+export interface CertifiedPreregistration {
+  draft: Json;
+  created_at: string;
+  certificate: string;
 }
 export interface ProposalOption {
   id: string;
@@ -117,6 +147,12 @@ export interface RuntimeSecrets {
   typesafeModel?: string | undefined;
   /** A bearer token for the model server, when it wants one. */
   modelApiKey?: string | undefined;
+  /**
+   * The key that certifies pre-registrations. Shared by every instance of a
+   * deployment, it lets one instance check what another registered; unset,
+   * each process makes a key of its own.
+   */
+  registrySecret?: string | undefined;
 }
 export interface RuntimeOptions {
   env: Env;
@@ -146,7 +182,12 @@ export interface RuntimeApi {
     requestId: string,
   ): Promise<unknown> | unknown;
   preregister(draft: unknown, requestId: string): unknown;
-  submission(experimentId: string, submission: unknown, requestId: string): unknown;
+  submission(
+    experimentId: string,
+    submission: unknown,
+    requestId: string,
+    preregistration?: CertifiedPreregistration | null,
+  ): unknown;
 }
 export type RuntimeConfiguration =
   | { mode: "off" }
@@ -225,6 +266,8 @@ interface RuntimeParts {
   decision: DecisionConfig;
   registry: Registry;
   scratch: boolean;
+  certificateKey: Buffer;
+  registryReason: string | null;
   now: () => Date;
 }
 
@@ -238,6 +281,10 @@ export class RainRuntime implements RuntimeApi {
   private readonly decision: DecisionConfig;
   private readonly registry: Registry;
   private readonly scratch: boolean;
+  private readonly certificateKey: Buffer;
+  private readonly registryReason: string | null;
+  /** Definitions certified elsewhere, each held in a scratch registry of its own. */
+  private readonly certified = new Map<string, Registry>();
   private readonly now: () => Date;
   private constructor(parts: RuntimeParts) {
     this.env = parts.env;
@@ -249,6 +296,8 @@ export class RainRuntime implements RuntimeApi {
     this.decision = parts.decision;
     this.registry = parts.registry;
     this.scratch = parts.scratch;
+    this.certificateKey = parts.certificateKey;
+    this.registryReason = parts.registryReason;
     this.now = parts.now;
   }
 
@@ -269,6 +318,8 @@ export class RainRuntime implements RuntimeApi {
     if (secrets.typesafeApiKey)
       scanEnv.CONFIGURED_DECISION_API_KEY = secrets.typesafeApiKey;
     if (secrets.modelApiKey) scanEnv.CONFIGURED_MODEL_API_KEY = secrets.modelApiKey;
+    if (secrets.registrySecret)
+      scanEnv.CONFIGURED_REGISTRY_SECRET = secrets.registrySecret;
     const decision = createDecisionRouter(scanEnv, {
       decisionApiKey: secrets.typesafeApiKey,
       decisionModel: secrets.typesafeModel,
@@ -281,7 +332,28 @@ export class RainRuntime implements RuntimeApi {
     });
 
     const registryDir = env.RAIN_REGISTRY_DIR?.trim();
+    // A function deployment has no disk its instances share: a configured
+    // directory would be a different one on each of them.
+    if (registryDir && env.VERCEL)
+      throw new Error(
+        "RAIN_REGISTRY_DIR needs one disk every request reaches; this deployment runs functions",
+      );
     const scratch = !registryDir;
+    const registrySecret = secrets.registrySecret ?? "";
+    if (registrySecret && registrySecret.length < REGISTRY_SECRET_MIN)
+      throw new Error(
+        `the registry secret must be at least ${REGISTRY_SECRET_MIN} characters`,
+      );
+    const certificateKey = registrySecret
+      ? Buffer.from(registrySecret, "utf8")
+      : randomBytes(32);
+    // Each function instance holds a scratch registry of its own, and a run is
+    // reported long after it was pre-registered: without a key every instance
+    // shares, the instance that admits it cannot check the certificate.
+    const registryReason =
+      env.VERCEL && !registrySecret
+        ? "this deployment runs functions, whose instances share no registry, and has no registry secret to let one check another's pre-registration"
+        : null;
     const registry = new Registry(
       registryDir
         ? resolve(cwd, registryDir)
@@ -363,6 +435,8 @@ export class RainRuntime implements RuntimeApi {
       decision,
       registry,
       scratch,
+      certificateKey,
+      registryReason,
       now,
     });
   }
@@ -383,7 +457,11 @@ export class RainRuntime implements RuntimeApi {
       model: this.meetings?.model ?? null,
       bounded_decision: this.decision.mode,
       remote_decisions: this.decision.remoteAllowed,
-      registry: { available: true, scratch: this.scratch },
+      registry: {
+        available: this.registryReason === null,
+        scratch: this.scratch,
+        reason: this.registryReason,
+      },
     };
   }
 
@@ -465,6 +543,8 @@ export class RainRuntime implements RuntimeApi {
 
   /** Pre-register the lab's draft: the registry assigns `V3D-EXP-NNNN`. */
   preregister(draft: unknown, requestId: string) {
+    if (this.registryReason)
+      throw new Refused(503, "the registry is not available: " + this.registryReason);
     if (!draft || typeof draft !== "object" || Array.isArray(draft))
       throw new Refused(400, "draft must carry exactly the create --from fields");
     const d = draft as Record<string, unknown>;
@@ -500,15 +580,101 @@ export class RainRuntime implements RuntimeApi {
       definition_sha256: sha256Json(definition),
       created_at: definition.created_at as string,
       registry: this.scratch ? ("scratch" as const) : ("configured" as const),
+      certificate: this.certify(definition),
     };
   }
 
-  /** Admit one run's measurements; the registry evaluates the pre-registered criteria itself. */
-  submission(experimentId: string, submission: unknown, requestId: string) {
+  /** An HMAC-SHA256 under the registry key over the canonical definition. */
+  private certify(definition: Json): string {
+    return createHmac("sha256", this.certificateKey)
+      .update(CERTIFICATE_CONTEXT)
+      .update(canonicalJson(definition))
+      .digest("hex");
+  }
+
+  /**
+   * The registry that holds exactly the definition a submission was
+   * pre-registered with, once its certificate checks out: this one when it
+   * does; otherwise, for a scratch registry, one of its own for that
+   * definition, written once. A run is never judged against another experiment
+   * that happens to carry the same ID on this instance.
+   */
+  private registryFor(experimentId: string, p: CertifiedPreregistration): Registry {
+    let definition: Json;
+    try {
+      definition = assembleDefinition(
+        p.draft,
+        checkExperimentId(experimentId),
+        p.created_at,
+      );
+      validateDefinition(definition);
+    } catch (error) {
+      if (error instanceof ExperimentError)
+        throw new Refused(
+          422,
+          "the pre-registration is not a valid definition: " +
+            error.message.slice(0, 300),
+        );
+      throw error;
+    }
+    const given = HEX64.test(p.certificate) ? Buffer.from(p.certificate, "hex") : null;
+    if (!given || !timingSafeEqual(given, Buffer.from(this.certify(definition), "hex")))
+      throw new Refused(
+        422,
+        "the pre-registration certificate does not verify: this registry did not issue it for that definition",
+      );
+    const sha = sha256Json(definition);
+    if (
+      this.registry.holds(experimentId) &&
+      sha256Json(this.registry.loadDefinition(experimentId)) === sha
+    )
+      return this.registry;
+    if (!this.scratch)
+      throw new Refused(
+        422,
+        `${experimentId} is not in this registry with that definition`,
+      );
+    let held = this.certified.get(sha);
+    if (!held) {
+      if (this.certified.size >= SCRATCH_REGISTRY_CAP)
+        throw new Refused(422, "the scratch registry on this instance is full");
+      held = new Registry(join(this.registry.root, ".certified", sha), this.now);
+      try {
+        held.adopt(definition);
+      } catch (error) {
+        if (error instanceof ExperimentError)
+          throw new Refused(
+            422,
+            "R.A.I.N. could not hold the pre-registration: " +
+              error.message.slice(0, 300),
+          );
+        throw error;
+      }
+      this.certified.set(sha, held);
+    }
+    return held;
+  }
+
+  /**
+   * Admit one run's measurements; the registry evaluates the pre-registered
+   * criteria itself. A submission that brings its certified pre-registration
+   * is admitted by whichever instance it reaches.
+   */
+  submission(
+    experimentId: string,
+    submission: unknown,
+    requestId: string,
+    preregistration: CertifiedPreregistration | null = null,
+  ) {
+    if (this.registryReason)
+      throw new Refused(503, "the registry is not available: " + this.registryReason);
+    const registry = preregistration
+      ? this.registryFor(experimentId, preregistration)
+      : this.registry;
     let record: Record<string, unknown>;
     try {
-      record = recordSubmission(this.registry, experimentId, submission, {
-        recordedBy: recordedBy(this.cwd, this.registry),
+      record = recordSubmission(registry, experimentId, submission, {
+        recordedBy: recordedBy(this.cwd, registry),
         now: this.now,
       });
     } catch (error) {

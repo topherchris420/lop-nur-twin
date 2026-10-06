@@ -18,7 +18,11 @@ import {
   type Checked,
 } from "../../src/bethesda/rain/validation.js";
 import { Refused } from "../../src/rain/errors.js";
-import { DRAFT_FIELDS, type RuntimeConfiguration } from "../../src/rain/runtime.js";
+import {
+  DRAFT_FIELDS,
+  type CertifiedPreregistration,
+  type RuntimeConfiguration,
+} from "../../src/rain/runtime.js";
 import {
   isSameOrigin,
   json,
@@ -118,6 +122,15 @@ const SESSION_WINDOW_MS = LIMITS.sessionMinutes * 60_000;
 const TRACKED_KEYS = 5000;
 /** A proposal may wait on a remote engine; everything else answers at once. */
 const OPERATION_TIMEOUT_MS = 25_000;
+
+/** A draft as the lab sends it: exactly the `create --from` fields, external and simulated. */
+const labDraft = (draft: unknown): draft is Record<string, unknown> =>
+  !!draft &&
+  typeof draft === "object" &&
+  !Array.isArray(draft) &&
+  Object.keys(draft).sort().join() === [...DRAFT_FIELDS].sort().join() &&
+  (draft as { evidence_class?: unknown }).evidence_class === "simulated" &&
+  (draft as { runner?: { kind?: unknown } }).runner?.kind === "external";
 
 const error = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   json(status, { schema: RAIN_BETHESDA_SCHEMA, kind: "error", error: code, ...extra });
@@ -287,22 +300,35 @@ export function createRainHandler(config: RainServerConfig) {
       if (Object.keys(v).sort().join() !== "draft,request_id,session")
         return "unexpected fields";
       const draft = v.draft;
-      if (
-        !draft ||
-        typeof draft !== "object" ||
-        Array.isArray(draft) ||
-        Object.keys(draft).sort().join() !== [...DRAFT_FIELDS].sort().join() ||
-        (draft as { evidence_class?: unknown }).evidence_class !== "simulated" ||
-        (draft as { runner?: { kind?: unknown } }).runner?.kind !== "external"
-      )
-        return "invalid draft";
+      if (!labDraft(draft)) return "invalid draft";
       return {
         run: (runtime) => runtime.preregister(draft, requestId),
         check: (a) => validatePreregistration(a, { requestId }),
       };
     }
-    if (Object.keys(v).sort().join() !== "experiment_id,request_id,session,submission")
+    const fields = Object.keys(v).sort().join();
+    if (
+      fields !== "experiment_id,request_id,session,submission" &&
+      fields !== "experiment_id,preregistration,request_id,session,submission"
+    )
       return "unexpected fields";
+    // The receipt of the pre-registration, so any instance can check it; the
+    // runtime verifies its certificate.
+    const receipt = v.preregistration as Record<string, unknown> | undefined;
+    if (
+      receipt !== undefined &&
+      (!receipt ||
+        typeof receipt !== "object" ||
+        Array.isArray(receipt) ||
+        Object.keys(receipt).sort().join() !== "certificate,created_at,draft" ||
+        typeof receipt.certificate !== "string" ||
+        !/^[0-9a-f]{64}$/.test(receipt.certificate) ||
+        typeof receipt.created_at !== "string" ||
+        !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/.test(receipt.created_at) ||
+        !labDraft(receipt.draft))
+    )
+      return "invalid pre-registration";
+    const preregistration = (receipt ?? null) as CertifiedPreregistration | null;
     const experimentId = v.experiment_id;
     const submission = v.submission as Record<string, unknown> | null;
     if (typeof experimentId !== "string" || !RAIN_EXPERIMENT_ID.test(experimentId))
@@ -321,7 +347,8 @@ export function createRainHandler(config: RainServerConfig) {
     )
       return "invalid submission";
     return {
-      run: (runtime) => runtime.submission(experimentId, submission, requestId),
+      run: (runtime) =>
+        runtime.submission(experimentId, submission, requestId, preregistration),
       check: (a) => validateAdmission(a, { requestId, experimentId }),
     };
   }

@@ -530,11 +530,14 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
     );
   return (
     <ScrollRegion label="Decisions" className="overflow-x-auto">
-      <table className="w-full min-w-[60rem] border-collapse text-left text-xs">
+      <table className="w-full min-w-[76rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           Decisions the contract selected, and how their outcome windows were classed.
           Pooled over episodes; consecutive decisions share most of their window, so n
-          overstates independent evidence.
+          overstates independent evidence. The windows-that-share-no-time column keeps,
+          per episode, only decisions whose windows do not overlap — chosen by time alone,
+          never by outcome — so each event is counted once. A contract that splits its
+          decisions states a rule for each side, and is shown by side too.
         </caption>
         <thead>
           <tr className="border-border border-b">
@@ -543,8 +546,10 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
             <Th>Beneficial / neutral / harmful</Th>
             <Th>Success</Th>
             <Th>Harm</Th>
+            <Th>Windows that share no time (n, success, harm)</Th>
             <Th>Measure</Th>
             <Th>By choice (n, success)</Th>
+            <Th>By side (n, success, harm)</Th>
             <Th>Slot 0 chosen vs position-blind</Th>
           </tr>
         </thead>
@@ -573,6 +578,23 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
                 </td>
                 <td className="px-2 py-1.5">{pct(d.harmfulRate)}</td>
                 <td className="px-2 py-1.5">
+                  {d.disjoint ? (
+                    <>
+                      {d.disjoint.n}, {pct(d.disjoint.successRate)}
+                      {d.disjoint.successInterval ? (
+                        <span className="text-muted-foreground">
+                          {" "}
+                          [{pct(d.disjoint.successInterval.lo, 0)},{" "}
+                          {pct(d.disjoint.successInterval.hi, 0)}]
+                        </span>
+                      ) : null}
+                      , {pct(d.disjoint.harmfulRate)}
+                    </>
+                  ) : (
+                    "not computed for this file"
+                  )}
+                </td>
+                <td className="px-2 py-1.5">
                   {d.measure.name}: <Summary s={d.measure.summary} digits={3} />
                 </td>
                 <td className="max-w-[18rem] px-2 py-1.5 break-words">
@@ -580,6 +602,16 @@ function DecisionMetricsTable({ evaluation }: { evaluation: Evaluation }) {
                     .slice(0, 6)
                     .map(([k, v]) => `${k} ${v.n}, ${pct(v.successRate, 0)}`)
                     .join(" · ")}
+                </td>
+                <td className="max-w-[16rem] px-2 py-1.5 break-words">
+                  {d.bySide
+                    ? Object.entries(d.bySide)
+                        .map(
+                          ([k, v]) =>
+                            `${k} ${v.n}, ${pct(v.successRate, 0)}, ${pct(v.harmfulRate, 0)}`,
+                        )
+                        .join(" · ")
+                    : "n/a"}
                 </td>
                 <td className="px-2 py-1.5">
                   {d.slotBias

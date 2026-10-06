@@ -121,13 +121,14 @@ The lab inside Bethesda needs no configuration. Its research runtime
 scripted offline meeting engine, a scratch experiment registry per function
 instance, and R.A.I.N.'s bounded choice switched off (it answers DISABLED).
 The DEMO replays a labelled recording and nothing is sent anywhere. The
-`RAIN_*` settings in `.env.example` change that; the two that matter for a
+`RAIN_*` settings in `.env.example` change that; the three that matter for a
 deployment:
 
-| Variable             | Type  | Environments        | Value                                                                                   |
-| :------------------- | :---- | :------------------ | :-------------------------------------------------------------------------------------- |
-| `RAIN_RUNTIME`       | Plain | all                 | `local` (default) or `off`, which makes the lab OFFLINE and say so                      |
-| `RAIN_DECISION_MODE` | Plain | Production, Preview | `off` (default) or `jev`: lets R.A.I.N.'s router ask TypeSafe (with `TYPESAFE_API_KEY`) |
+| Variable               | Type      | Environments        | Value                                                                                                                                                                          |
+| :--------------------- | :-------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RAIN_RUNTIME`         | Plain     | all                 | `local` (default) or `off`, which makes the lab OFFLINE and say so                                                                                                             |
+| `RAIN_DECISION_MODE`   | Plain     | Production, Preview | `off` (default) or `jev`: lets R.A.I.N.'s router ask TypeSafe (with `TYPESAFE_API_KEY`)                                                                                        |
+| `RAIN_REGISTRY_SECRET` | Sensitive | all                 | at least 32 random characters (`openssl rand -hex 32`): certifies pre-registrations so any function instance can admit a run. Without it the registry is unavailable on Vercel |
 
 `RAIN_DECISION_MODE=jev` also needs `RAIN_DECISION_REMOTE_ALLOWED=true` before a
 question leaves the machine. Model meetings (`RAIN_MEETING_ENGINE=model`) need one
@@ -139,12 +140,13 @@ which reports whether the runtime is on and its identity — the engine, the
 commit, the corpus fingerprint, the decision mode — never a key. Rate limits
 are per instance, as for the decision endpoints.
 
-One limit is architectural: with a scratch registry, each `api/rain/*`
-function keeps its own, so a submission can reach an instance that never saw
-its pre-registration and is refused as not registered. A function deployment
-has no registry directory its functions share; meetings, proposals and local
-experiments are unaffected, and one process (`bun run preview`) closes the
-pre-registration loop. Everything else is in
+Each `api/rain/*` function instance keeps a scratch registry of its own, so a
+report can reach an instance that never saw its pre-registration. The
+pre-registration's certificate, an HMAC under `RAIN_REGISTRY_SECRET`, lets that
+instance check it and admit the run against the registered definition; without
+the secret the runtime reports the registry unavailable instead of accepting a
+pre-registration it could not honour. Run records still live and die with the
+instance that admitted them. Everything else is in
 [`docs/RAIN_LAB_BETHESDA.md`](RAIN_LAB_BETHESDA.md).
 
 ### Redeploying after these changes

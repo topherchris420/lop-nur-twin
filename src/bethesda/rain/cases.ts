@@ -14,6 +14,7 @@ import {
   RECORD_SCHEMA,
   type Admission,
   type Preregistration,
+  type RegistryReceipt,
   type RainRevision,
 } from "./contracts";
 import { validateExperiment, type CheckResult, type Validated } from "./experiments";
@@ -48,6 +49,8 @@ export interface ExperimentCase {
   rejectedInput: string | null;
   authorization: Authorization | null;
   preregistration: Preregistration | null;
+  /** The certificate and draft a submission takes back; never part of the record. */
+  receipt: RegistryReceipt | null;
   reproduces: ExperimentRecord | null;
   record: ExperimentRecord | null;
 }
@@ -76,6 +79,7 @@ export function openCase(
     rejectedInput: result.ok ? null : bounded(raw),
     authorization: null,
     preregistration: null,
+    receipt: null,
     reproduces: input.reproduces ?? null,
     record: null,
   };

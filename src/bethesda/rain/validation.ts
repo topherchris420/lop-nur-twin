@@ -46,7 +46,7 @@ import {
   type MeetingPending,
   type MeetingRecord,
   type SourceArtifact,
-  type Preregistration,
+  type PreregistrationAnswer,
   type ProposalChoice,
   type Quote,
   type RainIdentity,
@@ -434,7 +434,7 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
   if (o.kind !== "identity") r.fail("kind", "not an identity");
   const runtime = r.object(o.runtime, "runtime", ["name", "version"]);
   const corpus = r.object(o.corpus, "corpus", ["files", "sha256"]);
-  const registry = r.object(o.registry, "registry", ["available", "scratch"]);
+  const registry = r.object(o.registry, "registry", ["available", "scratch", "reason"]);
   const generation = r.oneOf(o.meeting_generation, "meeting_generation", GENERATIONS);
   const model = o.model === null ? null : r.pattern(o.model, "model", MODEL_ID);
   if ((generation === "model") !== (model !== null))
@@ -459,6 +459,10 @@ export function validateIdentity(v: unknown): Checked<RainIdentity> {
     registry: {
       available: r.boolean(registry?.available, "registry.available"),
       scratch: r.boolean(registry?.scratch, "registry.scratch"),
+      reason:
+        registry?.reason === null
+          ? null
+          : r.text(registry?.reason, "registry.reason", 300, 1),
     },
   });
 }
@@ -685,7 +689,7 @@ export function validateMeetingAnswer(
 export function validatePreregistration(
   v: unknown,
   expected: { requestId: string },
-): Checked<Preregistration> {
+): Checked<PreregistrationAnswer> {
   const r = new Reader("preregistration");
   const o = r.object(v, "", [
     "schema",
@@ -696,6 +700,7 @@ export function validatePreregistration(
     "definition_sha256",
     "created_at",
     "registry",
+    "certificate",
   ]);
   if (!o) return r.done(null as never);
   if (o.schema !== RAIN_BETHESDA_SCHEMA) r.fail("schema", "unsupported schema");
@@ -712,6 +717,7 @@ export function validatePreregistration(
     definition_sha256: r.pattern(o.definition_sha256, "definition_sha256", SHA256),
     created_at: r.timestamp(o.created_at, "created_at"),
     registry: r.oneOf(o.registry, "registry", ["scratch", "configured"] as const),
+    certificate: r.pattern(o.certificate, "certificate", SHA256),
   });
 }
 

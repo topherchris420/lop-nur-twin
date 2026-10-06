@@ -171,11 +171,12 @@ function llmDecisionApi(env: Record<string, string>): Plugin {
  * Serves `/api/rain/*` — the R.A.I.N. Lab's route to the research runtime that
  * runs in this process — from `vite` and `vite preview`, with the handler the
  * Vercel functions use. The `RAIN_*` settings come from the shell or
- * `.env.local` through `loadEnv` with the `RAIN_` prefix; the two credentials
- * the runtime can use, `TYPESAFE_API_KEY` (Jev as a decision engine) and
- * `RAIN_LLM_API_KEY` (a model server's bearer token), are read here by name
- * and passed by value, so no module under `src/` names them: never into
- * `define`, never `VITE_`-prefixed. With `RAIN_RUNTIME=off` the lab is
+ * `.env.local` through `loadEnv` with the `RAIN_` prefix; the secrets the
+ * runtime can use, `TYPESAFE_API_KEY` (Jev as a decision engine),
+ * `RAIN_LLM_API_KEY` (a model server's bearer token) and `RAIN_REGISTRY_SECRET`
+ * (the key that certifies pre-registrations), are read here by name and passed
+ * by value, so no module under `src/` names them: never into `define`, never
+ * `VITE_`-prefixed. With `RAIN_RUNTIME=off` the lab is
  * OFFLINE and says so.
  */
 function rainApi(env: Record<string, string>, typesafe: Record<string, string>): Plugin {
@@ -186,6 +187,7 @@ function rainApi(env: Record<string, string>, typesafe: Record<string, string>):
         typesafeApiKey: typesafe["TYPESAFE_API_KEY"],
         typesafeModel: typesafe["TYPESAFE_MODEL"],
         modelApiKey: env["RAIN_LLM_API_KEY"],
+        registrySecret: env["RAIN_REGISTRY_SECRET"],
       },
       cwd: process.cwd(),
     }),

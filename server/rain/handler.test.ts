@@ -233,6 +233,201 @@ describe("R.A.I.N. route boundary", () => {
   });
 });
 
+describe("R.A.I.N. registry across function instances", () => {
+  // Two handlers stand in for two Vercel functions: separate processes, each
+  // with its own scratch registry, and only the registry key in common.
+  const instance = (now: () => number) =>
+    createRainHandler({
+      runtime: configureRuntime({
+        env: { RAIN_DECISION_MODE: "off", VERCEL: "1" },
+        secrets: { registrySecret: "s".repeat(48) },
+        scratchDir,
+        cwd: "/",
+      }),
+      now,
+    });
+  const draft = {
+    title: "Bethesda simulation: Metro closure at Bethesda station — mean dwell",
+    question: "Does a Metro closure raise dwell time near the station entrance?",
+    hypothesis:
+      "Mean dwell near the entrance rises by at least 20 s in the treatment arm.",
+    rationale: "Fixture for the route test.",
+    subsystem: {
+      repository: "topherchris420/lop-nur-twin",
+      component: "fixture",
+      paths: [],
+    },
+    created_by: "R.A.I.N.Operator",
+    evidence_class: "simulated",
+    runner: {
+      kind: "external",
+      repository: "topherchris420/lop-nur-twin",
+      adapter: "rain-bethesda/v2 (rain-experiment-submission/v1)",
+    },
+    seed: null,
+    parameters: { scenario: "metro_closure", seeds: [1, 2, 3] },
+    procedure: ["Build matched arms.", "Inject the closure.", "Report the differences."],
+    variables: {
+      independent: ["closure injected"],
+      dependent: ["delta_mean_dwell_s"],
+      controls: ["same seed"],
+    },
+    metrics: [
+      {
+        name: "delta_mean_dwell_s",
+        unit: "s",
+        description: "difference",
+        deterministic: true,
+      },
+      { name: "cohort", unit: "", description: "cohort size", deterministic: true },
+    ],
+    criteria: {
+      guards: [{ id: "G1", metric: "cohort", op: ">=", value: 10 }],
+      success: [{ id: "S1", metric: "delta_mean_dwell_s", op: ">=", value: 20 }],
+      failure: [{ id: "F1", metric: "delta_mean_dwell_s", op: "<", value: 0 }],
+    },
+    dependencies: [],
+    data_policy: { classification: "public", store_artifacts: false },
+    limitations: ["Simulated."],
+  };
+  const run = (experimentId: string) => ({
+    schema_version: "rain-experiment-submission/v1",
+    experiment_id: experimentId,
+    experiment_version: 1,
+    evidence_class: "simulated",
+    started_at: "2026-10-06T01:00:00Z",
+    finished_at: "2026-10-06T01:00:30Z",
+    seed: 1,
+    parameters: { scenario: "metro_closure" },
+    inputs: {},
+    measurements: { delta_mean_dwell_s: 42.5, cohort: 36 },
+    series: { delta_mean_dwell_s: [40, 45, 42.5] },
+    observations: [],
+    limitations: [],
+    artifacts: [],
+    models: [],
+    provenance: {
+      producer: "lop-nur-twin Bethesda simulator",
+      repository: "topherchris420/lop-nur-twin",
+      commit: "0".repeat(40),
+      dirty: false,
+    },
+  });
+
+  it("admits a run where it lands, against the definition registered where it began", async () => {
+    let t = 0;
+    const preregister = instance(() => t);
+    const submission = instance(() => t);
+    const answer = await preregister(
+      post("preregister", { session: SESSION, request_id: REQUEST, draft }),
+      meta,
+    );
+    expect(answer.status).toBe(200);
+    const registered = (await answer.json()) as {
+      experiment_id: string;
+      created_at: string;
+      certificate: string;
+      definition_sha256: string;
+    };
+    expect(registered.certificate).toMatch(/^[0-9a-f]{64}$/);
+    const body = {
+      session: SESSION,
+      request_id: REQUEST,
+      experiment_id: registered.experiment_id,
+      submission: run(registered.experiment_id),
+    };
+    // What every hosted submission met before: another function, another disk.
+    const lost = await submission(post("submission", body), meta);
+    expect(lost.status).toBe(422);
+    expect(await lost.json()).toMatchObject({
+      error: expect.stringMatching(/V3D-EXP-0001 is not registered/),
+    });
+    t += 5_000;
+    const receipt = {
+      draft,
+      created_at: registered.created_at,
+      certificate: registered.certificate,
+    };
+    const admitted = await submission(
+      post("submission", { ...body, preregistration: receipt }),
+      meta,
+    );
+    expect(admitted.status).toBe(200);
+    expect(await admitted.json()).toMatchObject({
+      kind: "admission",
+      run_id: "V3D-EXP-0001-RUN-0001",
+      status: "passed",
+      definition_sha256: registered.definition_sha256,
+    });
+    t += 5_000;
+    const forged = await submission(
+      post("submission", {
+        ...body,
+        preregistration: {
+          ...receipt,
+          draft: { ...draft, hypothesis: "Mean dwell falls." },
+        },
+      }),
+      meta,
+    );
+    expect(forged.status).toBe(422);
+    expect(await forged.json()).toMatchObject({
+      error: expect.stringMatching(/certificate does not verify/),
+    });
+  });
+
+  it("checks a receipt's shape before the runtime is asked", async () => {
+    const handle = instance(() => 0);
+    const base = {
+      session: SESSION,
+      request_id: REQUEST,
+      experiment_id: "V3D-EXP-0001",
+      submission: run("V3D-EXP-0001"),
+    };
+    const receipt = {
+      draft,
+      created_at: "2026-10-06T01:00:00.000Z",
+      certificate: "a".repeat(64),
+    };
+    const statuses = await Promise.all(
+      [
+        { ...receipt, extra: 1 },
+        { ...receipt, certificate: "A".repeat(64) },
+        { ...receipt, created_at: "yesterday" },
+        { ...receipt, draft: { ...draft, evidence_class: "measured" } },
+        null,
+      ].map(async (preregistration) => {
+        const response = await handle(
+          post("submission", { ...base, preregistration }),
+          meta,
+        );
+        return [response.status, ((await response.json()) as { error: string }).error];
+      }),
+    );
+    expect(statuses).toEqual(Array(5).fill([400, "invalid pre-registration"]));
+  });
+
+  it("says why the registry is unavailable on functions without a key, and takes nothing", async () => {
+    const handle = createRainHandler({
+      runtime: configureRuntime({
+        env: { RAIN_DECISION_MODE: "off", VERCEL: "1" },
+        scratchDir,
+        cwd: "/",
+      }),
+    });
+    const status = (await (await handle(get("status"), meta)).json()) as {
+      identity: { registry: { available: boolean; reason: string | null } };
+    };
+    expect(status.identity.registry.available).toBe(false);
+    expect(status.identity.registry.reason).toMatch(/runs functions/);
+    const refused = await handle(
+      post("preregister", { session: SESSION, request_id: REQUEST, draft }),
+      meta,
+    );
+    expect(refused.status).toBe(503);
+  });
+});
+
 /** A runtime standing in for one that holds model meetings, answering what the test says. */
 function stub(answers: Partial<RuntimeApi>): RuntimeConfiguration {
   const refuse = () => {

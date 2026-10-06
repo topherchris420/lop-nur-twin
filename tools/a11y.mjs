@@ -68,6 +68,32 @@ const ROUTES = [
       if (opened) await page.waitForSelector("#arms", { timeout: 15000 });
     },
   },
+  {
+    path: "/evaluation",
+    label: "Blacksite evaluation (a decision trace open)",
+    gate: true,
+    settle: 1500,
+    // An archived episode's records, loaded through the page's own file input,
+    // so the trace table and its window controls are what axe inspects.
+    prepare: async (page) => {
+      const opened = await page.evaluate(() => {
+        const first = document
+          .querySelector('section[aria-labelledby="open-heading"] ul')
+          ?.querySelector("button");
+        first?.click();
+        return first !== null && first !== undefined;
+      });
+      if (!opened) return;
+      await page.waitForSelector('section[aria-labelledby="episodes"] input[type=file]', {
+        timeout: 15000,
+      });
+      const input = await page.$('section[aria-labelledby="episodes"] input[type=file]');
+      await input.uploadFile(
+        "docs/benchmarks/2026-10-05/glide-jev-even/jev.seed42.eval.json.gz",
+      );
+      await page.waitForSelector('[aria-label="Decision trace"]', { timeout: 30000 });
+    },
+  },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];

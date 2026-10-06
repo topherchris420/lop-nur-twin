@@ -220,6 +220,10 @@ describe("runtime configuration", () => {
         { RAIN_DECISION_MODE: "jev", RAIN_DECISION_REMOTE_ALLOWED: "please" },
         /RAIN_DECISION_REMOTE_ALLOWED must be true or false/,
       ],
+      [
+        { RAIN_REGISTRY_DIR: "registry", VERCEL: "1" },
+        /RAIN_REGISTRY_DIR needs one disk every request reaches/,
+      ],
     ];
     for (const [env, reason] of cases) {
       const configured = await configureRuntime(options(env));
@@ -227,6 +231,16 @@ describe("runtime configuration", () => {
       if (configured.mode === "misconfigured")
         expect(configured.reason, JSON.stringify(env)).toMatch(reason);
     }
+  });
+
+  it("refuses a short registry secret without repeating it", async () => {
+    const configured = await configureRuntime(
+      options({}, { secrets: { registrySecret: "shortsecret" } }),
+    );
+    expect(configured).toEqual({
+      mode: "misconfigured",
+      reason: "the registry secret must be at least 32 characters",
+    });
   });
 
   it("builds a local runtime with nothing configured", async () => {
@@ -254,7 +268,7 @@ describe("local runtime", () => {
     expect(identity.model).toBeNull();
     expect(identity.bounded_decision).toBe("off");
     expect(identity.remote_decisions).toBe(false);
-    expect(identity.registry).toEqual({ available: true, scratch: true });
+    expect(identity.registry).toEqual({ available: true, scratch: true, reason: null });
     expect(runtime.meetingRunning).toBe(false);
   });
 
@@ -354,6 +368,113 @@ describe("local runtime", () => {
     expect(runtime.preregister(draft(), REQUEST).experiment_id).toBe("V3D-EXP-0002");
   });
 
+  it("admits a run on another instance that shares the key, against the certified definition", async () => {
+    const secrets = { registrySecret: "k".repeat(40) };
+    const a = await RainRuntime.create(options({ VERCEL: "1" }, { secrets }));
+    const b = await RainRuntime.create(options({ VERCEL: "1" }, { secrets }));
+    expect(b.identity().registry).toEqual({
+      available: true,
+      scratch: true,
+      reason: null,
+    });
+    const registered = a.preregister(draft(), REQUEST);
+    expect(registered.certificate).toMatch(/^[0-9a-f]{64}$/);
+    const receipt = {
+      draft: draft(),
+      created_at: registered.created_at,
+      certificate: registered.certificate,
+    };
+    // b never saw the pre-registration, and numbers an experiment of its own
+    // V3D-EXP-0001 too: the run must be judged against a's, not b's.
+    expect(() =>
+      b.submission("V3D-EXP-0001", submission("V3D-EXP-0001"), REQUEST),
+    ).toThrow(/not registered/);
+    b.preregister(
+      { ...draft(), hypothesis: "Mean dwell falls near the entrance." },
+      REQUEST,
+    );
+    const admitted = b.submission(
+      "V3D-EXP-0001",
+      submission("V3D-EXP-0001"),
+      REQUEST,
+      receipt,
+    );
+    expect(admitted).toMatchObject({
+      run_id: "V3D-EXP-0001-RUN-0001",
+      status: "passed",
+      hypothesis_verdict: "supported",
+      definition_sha256: registered.definition_sha256,
+    });
+    expect(() =>
+      b.submission("V3D-EXP-0001", submission("V3D-EXP-0001"), REQUEST, receipt),
+    ).toThrow(/already recorded as V3D-EXP-0001-RUN-0001/);
+    // The instance that registered it admits it the ordinary way, receipt or not.
+    expect(
+      a.submission("V3D-EXP-0001", submission("V3D-EXP-0001"), REQUEST, receipt),
+    ).toMatchObject({ run_id: "V3D-EXP-0001-RUN-0001", status: "passed" });
+  });
+
+  it("refuses a pre-registration its certificate does not vouch for", async () => {
+    const secrets = { registrySecret: "k".repeat(40) };
+    const a = await RainRuntime.create(options({}, { secrets }));
+    const b = await RainRuntime.create(options({}, { secrets }));
+    const other = await RainRuntime.create(
+      options({}, { secrets: { registrySecret: "o".repeat(40) } }),
+    );
+    const registered = a.preregister(draft(), REQUEST);
+    const receipt = {
+      draft: draft(),
+      created_at: registered.created_at,
+      certificate: registered.certificate,
+    };
+    const refusal = (runtime: RainRuntime, r: typeof receipt) => {
+      try {
+        runtime.submission("V3D-EXP-0001", submission("V3D-EXP-0001"), REQUEST, r);
+      } catch (error) {
+        return error as Refused;
+      }
+      throw new Error("accepted");
+    };
+    const forged = { status: 422, code: expect.stringMatching(/does not verify/) };
+    // Another deployment's key; the criteria changed after registration; a
+    // backdated registration; an invented or malformed certificate.
+    expect(refusal(other, receipt)).toMatchObject(forged);
+    expect(
+      refusal(b, { ...receipt, draft: { ...draft(), hypothesis: "Mean dwell falls." } }),
+    ).toMatchObject(forged);
+    expect(
+      refusal(b, { ...receipt, created_at: "2020-01-01T00:00:00.000Z" }),
+    ).toMatchObject(forged);
+    expect(refusal(b, { ...receipt, certificate: "0".repeat(64) })).toMatchObject(forged);
+    expect(refusal(b, { ...receipt, certificate: "not hex" })).toMatchObject(forged);
+    // A configured registry is the record: it admits only what it holds.
+    const configured = await RainRuntime.create(
+      options({ RAIN_REGISTRY_DIR: dir("rain-registry-test-") }, { secrets }),
+    );
+    expect(refusal(configured, receipt)).toMatchObject({
+      status: 422,
+      code: "V3D-EXP-0001 is not in this registry with that definition",
+    });
+  });
+
+  it("takes no pre-registration on a function deployment without a registry key", async () => {
+    const runtime = await RainRuntime.create(options({ VERCEL: "1" }));
+    expect(runtime.identity().registry).toMatchObject({
+      available: false,
+      scratch: true,
+      reason: expect.stringMatching(/runs functions/),
+    });
+    expect(() => runtime.preregister(draft(), REQUEST)).toThrow(Refused);
+    try {
+      runtime.preregister(draft(), REQUEST);
+    } catch (error) {
+      expect(error).toMatchObject({
+        status: 503,
+        code: expect.stringMatching(/^the registry is not available: /),
+      });
+    }
+  });
+
   it("refuses drafts that are not the lab's, before the registry sees them", async () => {
     const runtime = await RainRuntime.create(options({}));
     const refusal = (value: unknown) => {
@@ -390,7 +511,11 @@ describe("local runtime", () => {
   it("uses a configured registry directory when given one", async () => {
     const registryDir = dir("rain-registry-test-");
     const runtime = await RainRuntime.create(options({ RAIN_REGISTRY_DIR: registryDir }));
-    expect(runtime.identity().registry).toEqual({ available: true, scratch: false });
+    expect(runtime.identity().registry).toEqual({
+      available: true,
+      scratch: false,
+      reason: null,
+    });
     expect(runtime.preregister(draft(), REQUEST).registry).toBe("configured");
     expect(
       readFileSync(join(registryDir, "V3D-EXP-0001", "experiment.json"), "utf8"),

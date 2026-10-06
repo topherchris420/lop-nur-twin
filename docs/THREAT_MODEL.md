@@ -310,11 +310,13 @@ invented for a model meeting. (i) A request or something a model writes reaches
 a subprocess, a path or the environment, or is executed; a model meeting leaves
 the machine under a local privacy rule. (j) An engine's answer R.A.I.N. did not
 act on becomes a R.A.I.N. proposal, or the question leaves the machine for a
-remote engine nobody allowed.
+remote engine nobody allowed. (k) A run is admitted against a pre-registration
+the registry never made, one changed after it was made, or another experiment
+that carries the same ID on the instance the report reaches.
 
 **Mitigations.** (a) Only `api/rain/_config.ts` and the Vite middleware read
-`RAIN_LLM_API_KEY` and `TYPESAFE_API_KEY`; both are passed to the runtime by
-value, `src/rain/` names no credential and reads no environment itself (a test
+`RAIN_LLM_API_KEY`, `RAIN_REGISTRY_SECRET` and `TYPESAFE_API_KEY`; each is
+passed to the runtime by value, `src/rain/` names no credential and reads no environment itself (a test
 asserts it), the secret boundary test and the build's scan cover the names and
 values, and a bearer token is sent to the configured model server and nowhere
 else. (b) The model endpoint comes from server environment only (`http(s)`, no
@@ -360,7 +362,16 @@ before the runtime starts. (j) Every attempt is kept as R.A.I.N.'s router
 returned it and shown as not acted on; only a person can adopt a handed-back
 pick, as their own proposal; Jev is consulted only when the operator sets
 `RAIN_DECISION_MODE=jev` and `RAIN_DECISION_REMOTE_ALLOWED=true`, and acted on
-only with a calibration profile the operator supplies.
+only with a calibration profile the operator supplies. (k) Each
+pre-registration carries an HMAC-SHA256 certificate under the registry key over
+the definition as registered, `created_at` and ID included. An instance that
+did not register it rebuilds the definition from the returned draft, compares
+the certificate in constant time, and admits the run against exactly that
+definition, held in a scratch registry of its own; an ID alone never selects a
+definition. The key is `RAIN_REGISTRY_SECRET`, read only by the entry points;
+without it a function deployment takes no pre-registration, and a configured
+registry admits only what it holds. A certificate proves only that a server
+holding the key issued it — it is not a public signature.
 
 **Residual risk.** Quote verification is the runtime's, against the corpus
 bundled in `src/rain/data`; the browser checks that a meeting's citation audit

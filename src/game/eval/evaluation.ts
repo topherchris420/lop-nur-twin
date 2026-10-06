@@ -25,6 +25,7 @@ import {
 } from "./outcomeContracts.js";
 import type { PricingConfig } from "./pricing.js";
 import type { ConfidenceSource, DecisionRecord, FailureRecord } from "./records.js";
+import { disjointWindows, windowSpans } from "./windows.js";
 import {
   mean,
   pairedDifference,
@@ -119,6 +120,25 @@ export interface DecisionMetrics {
   measure: { name: string; unit: string; summary: SampleSummary };
   /** Outcome by the option chosen on the contract's axis. */
   byChoice: Record<string, { n: number; successRate: number | null }>;
+  /**
+   * Outcome per side, for a contract that splits its decisions and states a
+   * rule for each. Absent from evaluations written before contracts had sides.
+   */
+  bySide?: Record<
+    string,
+    { n: number; successRate: number | null; harmfulRate: number | null }
+  > | null;
+  /**
+   * The same rates over windows that share no time: per episode, the scored
+   * decisions thinned by time alone, so each event is counted once. Absent from
+   * evaluations written before it was computed.
+   */
+  disjoint?: {
+    n: number;
+    successRate: number | null;
+    successInterval: Interval | null;
+    harmfulRate: number | null;
+  };
   slotBias: { firstShare: number; expected: number; n: number } | null;
   note: string;
 }
@@ -273,13 +293,15 @@ function readConfidence(
 }
 
 function decisionMetrics(
-  records: readonly DecisionRecord[],
+  episodes: readonly (readonly DecisionRecord[])[],
   contract: DecisionTypeContract,
 ): DecisionMetrics {
+  const records = episodes.flat();
   const matched = records.filter((r) => contract.matches(r));
   const classes: Record<OutcomeClass, number> = { beneficial: 0, neutral: 0, harmful: 0 };
   let scored = 0;
   const byChoice: Record<string, { n: number; success: number }> = {};
+  const bySide: Record<string, { n: number; success: number; harmful: number }> = {};
   for (const r of matched) {
     const cls = contract.classify(r);
     if (cls === null) continue;
@@ -289,6 +311,28 @@ function decisionMetrics(
     byChoice[key] ??= { n: 0, success: 0 };
     byChoice[key].n += 1;
     if (cls === "beneficial") byChoice[key].success += 1;
+    if (contract.side) {
+      const side = (bySide[contract.side(r)] ??= { n: 0, success: 0, harmful: 0 });
+      side.n += 1;
+      if (cls === "beneficial") side.success += 1;
+      if (cls === "harmful") side.harmful += 1;
+    }
+  }
+  // Each event counted once: within each episode (simulation time restarts),
+  // the scored decisions whose windows share no time, kept by time alone.
+  const disjoint = { n: 0, success: 0, harmful: 0 };
+  for (const decisions of episodes) {
+    const scoredHere = decisions.filter(
+      (r) => contract.matches(r) && contract.classify(r) !== null,
+    );
+    const kept = disjointWindows(windowSpans(scoredHere));
+    for (const r of scoredHere) {
+      if (!kept.has(r.sequence)) continue;
+      const cls = contract.classify(r);
+      disjoint.n += 1;
+      if (cls === "beneficial") disjoint.success += 1;
+      if (cls === "harmful") disjoint.harmful += 1;
+    }
   }
   const measure = matched
     .filter((r) => r.outcome?.complete)
@@ -320,8 +364,28 @@ function decisionMetrics(
         .sort((a, b) => b[1].n - a[1].n)
         .map(([k, v]) => [k, { n: v.n, successRate: v.n > 0 ? v.success / v.n : null }]),
     ),
+    bySide: contract.side
+      ? Object.fromEntries(
+          Object.entries(bySide)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([k, v]) => [
+              k,
+              {
+                n: v.n,
+                successRate: v.n > 0 ? v.success / v.n : null,
+                harmfulRate: v.n > 0 ? v.harmful / v.n : null,
+              },
+            ]),
+        )
+      : null,
+    disjoint: {
+      n: disjoint.n,
+      successRate: disjoint.n > 0 ? disjoint.success / disjoint.n : null,
+      successInterval: wilson(disjoint.success, disjoint.n),
+      harmfulRate: disjoint.n > 0 ? disjoint.harmful / disjoint.n : null,
+    },
     slotBias: slotAxis ? slotPositionBias(matched, slotAxis) : null,
-    note: "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance.",
+    note: "Pooled over every episode's decisions. Consecutive decisions share most of their outcome window, so these are not independent samples; intervals describe spread, not significance. The non-overlapping figures keep, per episode, only decisions whose windows share no time, chosen by time alone, so each event is counted once there.",
   };
 }
 
@@ -508,7 +572,12 @@ function evaluateArm(
   }
   const records = run.episodes.flatMap((e) => e.decisions);
   const failures = run.episodes.flatMap((e) => e.failures);
-  const metrics = contract ? decisionMetrics(records, contract) : null;
+  const metrics = contract
+    ? decisionMetrics(
+        run.episodes.map((e) => e.decisions),
+        contract,
+      )
+    : null;
 
   let calibration: ArmEvaluation["calibration"];
   const sources = [...new Set(records.map((r) => r.confidence.source))].filter(
