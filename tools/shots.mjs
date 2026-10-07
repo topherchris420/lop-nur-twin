@@ -123,158 +123,186 @@ async function captureBlacksite() {
 
   // Run the match forward, then park the player where the fighting is — the
   // frame worth publishing is a firefight, not a spawn.
-  const placed = await page.evaluate(() => {
-    const { game } = globalThis.__combat;
-    const { bots, characters, director } = globalThis.__combatSim;
-    const combat = globalThis.__combatModules;
-    const player = game.player;
-    const kills = [];
-    const STEP = 1 / 60;
+  const place = () =>
+    page.evaluate(() => {
+      const { game } = globalThis.__combat;
+      const { bots, characters, director } = globalThis.__combatSim;
+      const combat = globalThis.__combatModules;
+      const player = game.player;
+      const kills = [];
+      const STEP = 1 / 60;
 
-    for (let i = 0; i < 30 / STEP; i += 1) {
-      game.time += STEP;
-      bots.setFocus(player.position);
-      bots.update(STEP, game.time);
-      director.update(STEP);
-      combat.resolveDamage(game.time, kills);
-      for (const k of kills) director.onKill(k);
-      combat.tickActorState(STEP, game.time);
-      characters.update(STEP, { position: player.position });
-    }
-
-    // Put the camera on a live enemy at a range where a soldier reads as a
-    // soldier. Candidate viewpoints are validated against the same geometry
-    // the player walks through — a viewpoint chosen on distance alone lands
-    // inside a hangar about as often as not, and an interior wall at the near
-    // plane is indistinguishable from a broken renderer.
-    const world = game.world;
-    const MASK_SIGHT = 1 | 2;
-    let subject = null;
-    let closest = Infinity;
-    for (const a of game.actors) {
-      if (a.isPlayer || !a.alive || a.team === player.team) continue;
-      const d = a.position.distanceTo(player.position);
-      if (d < closest) {
-        closest = d;
-        subject = a;
+      for (let i = 0; i < 30 / STEP; i += 1) {
+        game.time += STEP;
+        bots.setFocus(player.position);
+        bots.update(STEP, game.time);
+        director.update(STEP);
+        combat.resolveDamage(game.time, kills);
+        for (const k of kills) director.onKill(k);
+        combat.tickActorState(STEP, game.time);
+        characters.update(STEP, { position: player.position });
       }
-    }
-    if (!subject) return null;
 
-    const chest = subject.position.clone();
-    chest.y += 1.2;
-    let eye = null;
-    let bestScore = -Infinity;
-    for (const range of [15, 18, 22, 27, 34]) {
-      for (let i = 0; i < 24; i += 1) {
-        const angle = (i / 24) * Math.PI * 2;
-        const candidate = subject.position.clone();
-        candidate.x += Math.cos(angle) * range;
-        candidate.z += Math.sin(angle) * range;
-        candidate.y = world.groundAt(candidate.x, candidate.z);
-        if (!world.isPositionFree(candidate, 0.34, 1.8)) continue;
-        const from = candidate.clone();
-        from.y += 1.62;
-        if (!world.hasLineOfSight(from, chest, MASK_SIGHT, subject.id)) continue;
-
-        // Close is better — a soldier at 40 m on an open apron is four pixels
-        // of camouflage against a horizon.
-        let score = -range;
-        // Sun behind the camera. Shooting into it blows out the sky, drops
-        // everything in frame to silhouette, and hides the thing the picture
-        // is of. `SUN.azimuthDeg` is 112, in `render/environment.ts`.
-        const sunAz = (112 * Math.PI) / 180;
-        const toSubject = Math.atan2(chest.x - candidate.x, -(chest.z - candidate.z));
-        // Positive when looking away from the sun.
-        score += -Math.cos(toSubject - sunAz) * 16;
-        // And something behind them is much better than empty lakebed: keep
-        // shooting past the subject and see if the compound is back there.
-        const away = chest.clone().sub(from).normalize();
-        const behind = world.raycast(chest, away, 120, MASK_SIGHT, subject.id);
-        if (behind && behind.distance < 90) score += 26;
-        // Other bodies in frame make it a firefight rather than a portrait.
-        for (const a of game.actors) {
-          if (a.isPlayer || !a.alive || a === subject) continue;
-          const toward = a.position.clone().sub(from).setY(0);
-          const dist = toward.length();
-          if (dist > 90 || dist < 1) continue;
-          if (toward.normalize().dot(away) > 0.72) score += 5;
-        }
-        if (score > bestScore) {
-          bestScore = score;
-          eye = candidate;
+      // Put the camera on a live enemy at a range where a soldier reads as a
+      // soldier. Candidate viewpoints are validated against the same geometry
+      // the player walks through — a viewpoint chosen on distance alone lands
+      // inside a hangar about as often as not, and an interior wall at the near
+      // plane is indistinguishable from a broken renderer.
+      const world = game.world;
+      const MASK_SIGHT = 1 | 2;
+      let subject = null;
+      let closest = Infinity;
+      for (const a of game.actors) {
+        if (a.isPlayer || !a.alive || a.team === player.team) continue;
+        const d = a.position.distanceTo(player.position);
+        if (d < closest) {
+          closest = d;
+          subject = a;
         }
       }
-    }
-    if (!eye) return null;
+      if (!subject) return null;
 
-    player.position.copy(eye);
-    player.velocity.set(0, 0, 0);
-    player.alive = true;
-    player.stance = "stand";
-    player.health = player.maxHealth;
+      const chest = subject.position.clone();
+      chest.y += 1.2;
+      let eye = null;
+      let bestScore = -Infinity;
+      for (const range of [15, 18, 22, 27, 34]) {
+        for (let i = 0; i < 24; i += 1) {
+          const angle = (i / 24) * Math.PI * 2;
+          const candidate = subject.position.clone();
+          candidate.x += Math.cos(angle) * range;
+          candidate.z += Math.sin(angle) * range;
+          candidate.y = world.groundAt(candidate.x, candidate.z);
+          if (!world.isPositionFree(candidate, 0.34, 1.8)) continue;
+          const from = candidate.clone();
+          from.y += 1.62;
+          if (!world.hasLineOfSight(from, chest, MASK_SIGHT, subject.id)) continue;
 
-    // Half a second so the squad reacts to somebody standing in the open.
-    for (let i = 0; i < 30; i += 1) {
-      game.time += STEP;
-      bots.setFocus(player.position);
-      bots.update(STEP, game.time);
-      combat.resolveDamage(game.time, kills);
-      combat.tickActorState(STEP, game.time);
-      characters.update(STEP, { position: player.position });
-    }
-    return { placed: true };
-  });
+          // Close is better — a soldier at 40 m on an open apron is four pixels
+          // of camouflage against a horizon.
+          let score = -range;
+          // Sun behind the camera. Shooting into it blows out the sky, drops
+          // everything in frame to silhouette, and hides the thing the picture
+          // is of. `SUN.azimuthDeg` is 112, in `render/environment.ts`.
+          const sunAz = (112 * Math.PI) / 180;
+          const toSubject = Math.atan2(chest.x - candidate.x, -(chest.z - candidate.z));
+          // Positive when looking away from the sun.
+          score += -Math.cos(toSubject - sunAz) * 16;
+          // And something behind them is much better than empty lakebed: keep
+          // shooting past the subject and see if the compound is back there.
+          const away = chest.clone().sub(from).normalize();
+          const behind = world.raycast(chest, away, 120, MASK_SIGHT, subject.id);
+          if (behind && behind.distance < 90) score += 26;
+          // Other bodies in frame make it a firefight rather than a portrait.
+          for (const a of game.actors) {
+            if (a.isPlayer || !a.alive || a === subject) continue;
+            const toward = a.position.clone().sub(from).setY(0);
+            const dist = toward.length();
+            if (dist > 90 || dist < 1) continue;
+            if (toward.normalize().dot(away) > 0.72) score += 5;
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            eye = candidate;
+          }
+        }
+      }
+      if (!eye) return null;
+
+      player.position.copy(eye);
+      player.velocity.set(0, 0, 0);
+      player.alive = true;
+      player.stance = "stand";
+      player.health = player.maxHealth;
+
+      // Half a second so the squad reacts to somebody standing in the open.
+      for (let i = 0; i < 30; i += 1) {
+        game.time += STEP;
+        bots.setFocus(player.position);
+        bots.update(STEP, game.time);
+        combat.resolveDamage(game.time, kills);
+        combat.tickActorState(STEP, game.time);
+        characters.update(STEP, { position: player.position });
+      }
+      return { placed: true };
+    });
 
   // The page's own frame loop keeps advancing the match while the browser
   // catches up on rendering, so aiming happens in a *second* pass, right
   // before the shutter. Aiming inside the step above points the camera at
   // where everybody used to be several seconds ago.
-  if (!placed) console.log("  no clear viewpoint found; capturing the spawn");
-  await sleep(3500);
-  const framed = await page.evaluate(() => {
-    const { game } = globalThis.__combat;
-    const player = game.player;
-    player.alive = true;
-    player.health = player.maxHealth;
-    player.lastDamageTime = -999;
-    player.aimStance = "tac";
-    player.velocity.set(0, 0, 0);
+  const frame = () =>
+    page.evaluate(() => {
+      const { game } = globalThis.__combat;
+      const player = game.player;
+      player.alive = true;
+      player.health = player.maxHealth;
+      player.lastDamageTime = -999;
+      player.aimStance = "tac";
+      player.velocity.set(0, 0, 0);
 
-    let aimAt = null;
-    let aimDistance = Infinity;
-    let inFrame = 0;
-    for (const a of game.actors) {
-      if (a.isPlayer || !a.alive) continue;
-      const d = a.position.distanceTo(player.position);
-      if (d < 80) inFrame += 1;
-      if (a.team !== player.team && d < aimDistance) {
-        aimDistance = d;
-        aimAt = a;
+      // The match kept running while the browser rendered, so the enemy the
+      // viewpoint was chosen for may be behind a wall by now. Aim only at one
+      // the eye can actually see, and prefer one with the sun behind the camera:
+      // re-aiming at the nearest enemy regardless once pointed the lens at the
+      // side of a hangar, into the sun.
+      const MASK_SIGHT = 1 | 2;
+      const eye = player.position.clone();
+      eye.y += 1.62;
+      const sunAz = (112 * Math.PI) / 180;
+      let aimAt = null;
+      let aimDistance = Infinity;
+      let bestScore = -Infinity;
+      let inFrame = 0;
+      for (const a of game.actors) {
+        if (a.isPlayer || !a.alive) continue;
+        const d = a.position.distanceTo(player.position);
+        if (d < 80) inFrame += 1;
+        if (a.team === player.team || d < 6 || d > 60) continue;
+        const head = a.position.clone();
+        head.y += 1.5;
+        if (!game.world.hasLineOfSight(eye, head, MASK_SIGHT, a.id)) continue;
+        const bearing = Math.atan2(head.x - eye.x, -(head.z - eye.z));
+        const score = -d - Math.cos(bearing - sunAz) * 16;
+        if (score > bestScore) {
+          bestScore = score;
+          aimDistance = d;
+          aimAt = a;
+        }
       }
-    }
-    if (!aimAt) return null;
+      if (!aimAt) return null;
 
-    const head = aimAt.position.clone();
-    head.y += 1.5;
-    const look = head.clone().sub(player.position);
-    player.yaw = Math.atan2(-look.x, -look.z);
-    // Level the horizon rather than staring at the apron: the eye is already
-    // at 1.62 m, so the head of a soldier at any useful range is near zero.
-    player.pitch = Math.atan2(
-      head.y - (player.position.y + 1.62),
-      Math.hypot(look.x, look.z),
-    );
-    player.alive = true;
-    player.health = player.maxHealth;
-    player.lastDamageTime = -999;
-    player.aimStance = "tac";
-    player.aiming = true;
-    player.state = "idle";
-    player.velocity.set(0, 0, 0);
+      const head = aimAt.position.clone();
+      head.y += 1.5;
+      const look = head.clone().sub(player.position);
+      player.yaw = Math.atan2(-look.x, -look.z);
+      // Level the horizon rather than staring at the apron: the eye is already
+      // at 1.62 m, so the head of a soldier at any useful range is near zero.
+      player.pitch = Math.atan2(
+        head.y - (player.position.y + 1.62),
+        Math.hypot(look.x, look.z),
+      );
+      player.alive = true;
+      player.health = player.maxHealth;
+      player.lastDamageTime = -999;
+      player.aimStance = "tac";
+      player.aiming = true;
+      player.state = "idle";
+      player.velocity.set(0, 0, 0);
 
-    return { standoff: +aimDistance.toFixed(1), contacts: inFrame };
-  });
+      return { standoff: +aimDistance.toFixed(1), contacts: inFrame };
+    });
+
+  // A match keeps moving; if no enemy is in sight by the time the shutter is
+  // ready, place and frame again rather than publish an unframed spawn.
+  let framed = null;
+  for (let attempt = 1; attempt <= 4 && framed === null; attempt += 1) {
+    const placed = await place();
+    if (!placed) console.log("  no clear viewpoint found this attempt");
+    await sleep(3500);
+    framed = await frame();
+    if (framed === null) console.log(`  attempt ${attempt}: no enemy in sight to frame`);
+  }
   if (framed) {
     console.log(
       `  framed a ${framed.standoff} m engagement, ${framed.contacts} within 80 m`,
