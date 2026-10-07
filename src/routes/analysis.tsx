@@ -573,7 +573,7 @@ function AnalysisView() {
           </p>
 
           {snapshot === null ? null : (
-            <div className="mt-4 overflow-x-auto">
+            <div className="relative mt-4 overflow-x-auto">
               <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
                 <caption className="text-muted-foreground pb-2 text-left text-xs">
                   Modeled state at {snapshot.date}. &ldquo;Established&rdquo; means a
@@ -657,7 +657,7 @@ function AnalysisView() {
                   : `${comparison.changes.length} change${comparison.changes.length === 1 ? "" : "s"}, ${comparison.addedSourceIds.length} newly published source${comparison.addedSourceIds.length === 1 ? "" : "s"}, ${comparison.eventsInWindow.length} temporal event${comparison.eventsInWindow.length === 1 ? "" : "s"} in the window.`}
               </p>
               {comparison.empty ? null : (
-                <div className="mt-3 overflow-x-auto">
+                <div className="relative mt-3 overflow-x-auto">
                   <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
                     <caption className="text-muted-foreground pb-2 text-left text-xs">
                       Differences between the two snapshots, ordered by subject identifier
@@ -716,7 +716,7 @@ function AnalysisView() {
             {TEMPORAL_LEDGER.length} events. Each is scoped so a site claim, a publication
             and a model-only note can never be read as the same kind of statement.
           </p>
-          <div className="mt-3 overflow-x-auto">
+          <div className="relative mt-3 overflow-x-auto">
             <table className="w-full min-w-[62rem] border-collapse text-left text-xs">
               <caption className="text-muted-foreground pb-2 text-left text-xs">
                 Every temporal event this model holds, ordered by date with undated events
@@ -920,7 +920,11 @@ function AnalysisView() {
             Showing {rows.length} of {STRUCTURES.length} modeled structures.
           </p>
 
-          <div id="structure-table" tabIndex={-1} className="mt-3 overflow-x-auto">
+          <div
+            id="structure-table"
+            tabIndex={-1}
+            className="relative mt-3 overflow-x-auto"
+          >
             <table className="w-full min-w-[72rem] border-collapse text-left text-xs">
               <caption className="text-muted-foreground pb-3 text-left text-xs">
                 Modeled structures in the public-source reconstruction. Positions are
@@ -1139,7 +1143,7 @@ function AnalysisView() {
                           <td colSpan={12} className="px-4 py-4">
                             <section
                               aria-labelledby="analysis-claim-heading"
-                              className="max-w-4xl"
+                              className="sticky left-4 max-w-[min(56rem,calc(100vw-4rem))]"
                             >
                               <h3
                                 id="analysis-claim-heading"

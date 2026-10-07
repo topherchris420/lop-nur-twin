@@ -195,6 +195,29 @@ for (const path of HOSTILE) {
 }
 
 {
+  // No document route may be wider than a phone. Screen-reader-only text is
+  // absolutely positioned; inside a scrolling table with no positioned
+  // ancestor it escaped the clipping and made /analysis 1,772 px wide, which a
+  // scrollIntoView could then shift sideways.
+  for (const path of [
+    "/analysis?claim=measurement-runway-length",
+    "/compare?before=r1&after=r2",
+  ]) {
+    const { page } = await open(`${previewOrigin}${path}`, {
+      settle: 2500,
+      viewport: { width: 390, height: 844 },
+    });
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    check(
+      `${path.split("?")[0]} is no wider than a 390 px phone`,
+      width <= 391,
+      `${width} px`,
+    );
+    await page.close();
+  }
+}
+
+{
   // The ruler as a form: a runway threshold to a building. The threshold's
   // error is the one the model states (±40 m); the building's is not stated,
   // and the readout must say so rather than borrow the runway's figure.

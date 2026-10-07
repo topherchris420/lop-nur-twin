@@ -57,6 +57,8 @@ export interface SnapTarget {
    * states a positional error.
    */
   positionedBy: string;
+  /** What kind of vertex it is, for anything that lists them. */
+  kind: "runway" | "pavement-end" | "apron-center" | "structure";
 }
 
 const CARDINALS = [
@@ -106,18 +108,21 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       label: "Runway center",
       source: runway,
       positionedBy: "measurement-site-reference-coordinate",
+      kind: "runway",
     });
   }
   for (const segment of ALL_SEGMENTS) {
     const [fromLabel, toLabel] = segmentEndpointLabels(segment);
-    const positionedBy =
-      segment.id === runway?.id ? "measurement-runway-length" : segment.id;
+    const isRunway = segment.id === runway?.id;
+    const positionedBy = isRunway ? "measurement-runway-length" : segment.id;
+    const kind = isRunway ? "runway" : "pavement-end";
     targets.push({
       x: segment.from[0],
       z: segment.from[1],
       label: fromLabel,
       source: segment,
       positionedBy,
+      kind,
     });
     targets.push({
       x: segment.to[0],
@@ -125,6 +130,7 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       label: toLabel,
       source: segment,
       positionedBy,
+      kind,
     });
   }
   for (const apron of APRONS) {
@@ -134,6 +140,7 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       label: `${apron.name} (center)`,
       source: apron,
       positionedBy: apron.id,
+      kind: "apron-center",
     });
   }
   for (const structure of STRUCTURES) {
@@ -143,6 +150,7 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       label: structure.name,
       source: structure,
       positionedBy: structure.id,
+      kind: "structure",
     });
   }
   return targets;

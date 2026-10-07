@@ -15,11 +15,14 @@ export function ScrollRegion({
   className: string;
   children: ReactNode;
 }) {
+  // `relative`: screen-reader-only text inside is absolutely positioned, and
+  // without a positioned ancestor it escapes the clipping and widens the page.
+  const classes = `relative ${className}`;
   return (
     // A focusable region is the pattern axe and WAI-ARIA prescribe for a
     // scroll container; the lint rule cannot see that it scrolls.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-    <div role="region" aria-label={label} tabIndex={0} className={className}>
+    <div role="region" aria-label={label} tabIndex={0} className={classes}>
       {children}
     </div>
   );

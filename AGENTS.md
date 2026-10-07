@@ -39,13 +39,24 @@ Guidance for coding agents (and humans) working on this repo.
 - **Read every URL parameter through `src/lib/params.ts`.** It bounds, clamps
   and rejects; a raw `new URLSearchParams(...).get()` in a component is a
   regression. External links go through `safeExternalHref()` and carry
-  `EXTERNAL_LINK_PROPS`.
+  `EXTERNAL_LINK_PROPS`. A route's `validateSearch` returns **every** key it
+  owns, `undefined` when rejected: TanStack Router keeps any raw key a
+  validator leaves out, so omitting one hands the page the unvalidated value
+  (`?before=1e309` once crashed `/compare` as the number Infinity). The router
+  also JSON-parses values first — `?distance=500` arrives as a number — and
+  `params.ts` judges a parsed number or boolean by its text.
 - **`/analysis` and `/compare` are not optional.** They are the model's
   accessible front doors — the routes that work when WebGL does not. A new
   analytical field belongs in the table as well as the dossier, and every new
   analytical _capability_ needs a semantic representation there, not only a
   control in the HUD. `bun run a11y` gates both routes on serious/critical axe
-  violations.
+  violations. The claim inspector answers for every subject the ledger claims
+  anything about (`CLAIM_SUBJECT_IDS`), not only structures, and the ruler has
+  a form (`MeasureBetween`) that offers exactly the vertices it would snap to.
+- **A measurement states only the error its own evidence documents.** Each
+  endpoint's positional error comes from the subject that positions it
+  (`positionalStatement()` in `measure.ts`); the runway's ±40 m belongs to the
+  runway thresholds and nothing else.
 - **Evidence mode and the evidence timeline compose in one predicate.**
   `src/lib/drawState.ts` owns it and answers solid, outline or hidden;
   `src/lib/sceneVisibility.ts` wraps it in hooks. A component asking "should I
@@ -394,7 +405,15 @@ changing anything here.
   issues is labelled FALLBACK, and a failure shows the status TIMEOUT,
   UNAVAILABLE or ERROR rather than a substitute. Probabilities and confidence
   are displayed as the provider returned them, and the random brain has none —
-  never fill them in.
+  never fill them in. The label is decided once, in `controlLabel.ts`: LIVE
+  only after a validated answer with no failure since; a connecting or failing
+  seat reads JEV CONNECTING, GLIDE TIMEOUT and so on.
+- **A decision is shown as recorded, never explained.** `/evaluation` validates
+  every decision file it opens (`eval/episodeRecords.ts`) and the decision
+  inspector (`eval/ui/DecisionInspector.tsx`) shows what the seat perceived,
+  could choose, chose, stated, cost, and what followed — and prints that no
+  reason is recorded, because a seat returns a choice, not an explanation.
+  Never add a field that reads a reason into a record.
 - **No network on the frame loop.** Decisions are requested from a 50 ms timer
   in `pilot.ts`, at most one in flight, with monotonic sequence numbers; a late
   or superseded answer is dropped, not applied. `useFrame` only executes the
@@ -699,7 +718,7 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 135 checks: deep links, refreshes, hostile
+bun run routes                # 137 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,
                               # filtering, mobile, focus without WebGL, and

@@ -87,7 +87,7 @@ export function ClaimList({
   }, [open]);
 
   return (
-    <div className="mt-3 overflow-x-auto">
+    <div className="relative mt-3 overflow-x-auto">
       <table className="w-full min-w-[52rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-3 text-left text-xs">
           Every claim this model makes that is not about a structure, grouped by kind.
@@ -184,7 +184,13 @@ export function ClaimList({
                 {claim === undefined ? null : (
                   <tr className="border-border bg-accent/20 border-b">
                     <td colSpan={6} className="px-4 py-4">
-                      <section aria-labelledby="claim-list-heading" className="max-w-4xl">
+                      {/* Held to the visible width of the scroll region, so
+                          on a phone the inspector reflows instead of scrolling
+                          sideways with the table. */}
+                      <section
+                        aria-labelledby="claim-list-heading"
+                        className="sticky left-4 max-w-[min(56rem,calc(100vw-4rem))]"
+                      >
                         <h3 id="claim-list-heading" className="text-base font-semibold">
                           Claim inspector: {claim.label}
                         </h3>

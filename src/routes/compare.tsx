@@ -290,7 +290,7 @@ function DifferenceTable({
       <p className="text-muted-foreground mt-1 max-w-3xl text-sm leading-relaxed">
         {meta.description}
       </p>
-      <div className="mt-3 overflow-x-auto">
+      <div className="relative mt-3 overflow-x-auto">
         <table className="w-full min-w-[52rem] border-collapse text-left text-xs">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             {meta.label} differences between the two manifests, ordered by subject
@@ -368,7 +368,7 @@ function RecordedRevisions({
           ? null
           : ` The latest change is ${revisionLabel(LATEST_REVISION)}; compare it with the revision before.`}
       </p>
-      <div className="border-border mt-3 overflow-x-auto rounded-md border">
+      <div className="border-border relative mt-3 overflow-x-auto rounded-md border">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">
             Recorded model revisions, oldest first, with their commit and date

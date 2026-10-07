@@ -408,7 +408,7 @@ export function SpatialQueryPanel({
           <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
             {successful.derivation}
           </p>
-          <div className="mt-3 overflow-x-auto">
+          <div className="relative mt-3 overflow-x-auto">
             <table
               id="spatial-query-results"
               tabIndex={-1}

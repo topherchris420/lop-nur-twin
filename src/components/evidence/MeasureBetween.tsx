@@ -40,13 +40,15 @@ function pointOf(target: SnapTarget): MeasurePoint {
   };
 }
 
+const GROUP_LABELS: Record<SnapTarget["kind"], string> = {
+  runway: "Runway (measured)",
+  "pavement-end": "Pavement ends",
+  "apron-center": "Aprons",
+  structure: "Structures and aircraft",
+};
+
 function groupOf(target: SnapTarget): string {
-  if (target.positionedBy.startsWith("measurement-")) return "Runway (measured)";
-  if (target.label.endsWith("(center)")) return "Aprons";
-  if (target.label.includes(" — start") || target.label.includes(" — end")) {
-    return "Pavement ends";
-  }
-  return "Structures and aircraft";
+  return GROUP_LABELS[target.kind];
 }
 
 const GROUP_ORDER = [
