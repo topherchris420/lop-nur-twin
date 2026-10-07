@@ -197,9 +197,15 @@ if (!only || only === "city") {
     survey?.click();
   });
   await frames(10);
-  await page.mouse.move(width / 2, height / 2);
+  // Zoom on the canvas itself: the HUD's transparent overlay would take a
+  // wheel event aimed at the middle of the screen.
   for (let i = 0; i < 14; i++) {
-    await page.mouse.wheel({ deltaY: -500 });
+    await page.evaluate(() => {
+      const canvas = document.querySelector('[data-bethesda="active"] canvas');
+      canvas?.dispatchEvent(
+        new WheelEvent("wheel", { deltaY: -500, bubbles: true, cancelable: true }),
+      );
+    });
     await frames(2);
   }
   for (const n of [1, 2, 3]) {
