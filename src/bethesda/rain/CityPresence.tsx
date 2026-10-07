@@ -5,12 +5,38 @@ import { groundAt } from "../terrain";
 import { EMBODIMENT } from "./embodiment";
 import type { Perspective } from "./contracts";
 import type { PresenceMark } from "./presence";
-import { buildFigure, type FigureRig } from "./figures";
-import { FigureAnimator, seedFor } from "./figureMotion";
+import type { FigureRig, buildFigure } from "./figures";
+import type { FigureAnimator, seedFor } from "./figureMotion";
 
 const WHO = Object.keys(EMBODIMENT) as Perspective[];
 
 const floorAt = (x: number, z: number) => groundAt({ x, z });
+
+/**
+ * The figures load with the first outing, not with the city: most visits
+ * never send a perspective out, and the city bundle should not carry them.
+ * A failed load (a stale build's renamed chunk) draws no figure and says
+ * nothing — the outing itself, its observation and the wall map go on.
+ */
+interface Kit {
+  buildFigure: typeof buildFigure;
+  FigureAnimator: typeof FigureAnimator;
+  seedFor: typeof seedFor;
+}
+let kit: Kit | null = null;
+let loading: Promise<void> | null = null;
+function loadKit() {
+  loading ??= Promise.all([import("./figures"), import("./figureMotion")]).then(
+    ([figures, motion]) => {
+      kit = {
+        buildFigure: figures.buildFigure,
+        FigureAnimator: motion.FigureAnimator,
+        seedFor: motion.seedFor,
+      };
+    },
+    () => undefined,
+  );
+}
 const reducedMotion = () =>
   typeof window !== "undefined" &&
   !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -23,8 +49,8 @@ const reducedMotion = () =>
  * evidence. A faint ring at the feet means the simulator is being asked to
  * observe the place; it is not a measurement.
  *
- * The figures are the lab's own (`figures.ts`), built the first time each
- * perspective goes out, and they walk — at the outing's 3 m/s, a jog — with
+ * The figures are the lab's own (`figures.ts`), loaded and built the first
+ * time each perspective goes out, and they walk — at the outing's 3 m/s, a jog — with
  * their feet placed on the pavement; while the simulator observes, they stand
  * and look round the place.
  *
@@ -60,12 +86,13 @@ export function CityPresence({ read }: { read: () => readonly PresenceMark[] }) 
         if (halo) halo.visible = false;
         continue;
       }
-      if (!c && group.current) {
-        const rig = buildFigure(who, "city");
+      if (!c && !kit) loadKit();
+      if (!c && kit && group.current) {
+        const rig = kit.buildFigure(who, "city");
         group.current.add(rig.root);
         c = cast.current[who] = {
           rig,
-          animator: new FigureAnimator(rig, seedFor(who)),
+          animator: new kit.FigureAnimator(rig, kit.seedFor(who)),
           x: mark.x,
           z: mark.z,
         };
