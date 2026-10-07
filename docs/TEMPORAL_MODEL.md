@@ -211,7 +211,11 @@ comparison is checkable.
   but the evidence of that date does not establish it, **hidden** when the
   evidence mode withholds it. Illustrative content is an outline at every past
   date — it has never been established anywhere — and animated scene dressing
-  is left out of past dates entirely.
+  is left out of past dates entirely. The evidence lens (`L`) reads the same
+  predicate one step further (`subjectLensClassification`): a solid subject is
+  painted by the classification that was knowable on the date, so the runway is
+  reported in the 2021 view and observed from the 2025 scene onward, and an
+  outline is never painted.
 - **The claim inspector** (the dossier, and the highlighted row on `/analysis`)
   opens with what could be said on the timeline date, and prints the site date,
   the publication date, the knowable-from date and the model-entry date on

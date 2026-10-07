@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useTwinStore } from "./store";
 import { touchInput } from "./touchInput";
 
-/** Global hotkeys: 1/2/3 cameras, N day/night, I index, R research, H help. */
+/** Global hotkeys: 1/2/3 cameras, N day/night, I index, R research, M measure, L lens, H help. */
 export function useKeyboardShortcuts(): void {
   const keys = useRef<Set<string>>(new Set());
 
@@ -44,6 +44,9 @@ export function useKeyboardShortcuts(): void {
           break;
         case "m":
           s.toggleMeasureMode();
+          break;
+        case "l":
+          s.toggleLens();
           break;
         case "escape":
           if (s.showHelp) s.toggleHelp();

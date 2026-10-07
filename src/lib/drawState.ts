@@ -26,8 +26,10 @@
  * in 2021 that no cited evidence placed there before September 2025.
  */
 
+import type { EvidenceClassification } from "./evidence";
 import {
   CANVAS_SUBJECT_IDS,
+  effectiveClassification,
   effectiveClassificationAt,
   isClassificationVisible,
   isSubjectVisible,
@@ -85,6 +87,27 @@ export function isSubjectDrawn(
   evidenceMode: EvidenceMode,
 ): boolean {
   return subjectDrawState(subject.id, snapshotDate, evidenceMode) === "solid";
+}
+
+/**
+ * The classification the evidence lens paints a subject with: today, the
+ * strongest class the ledger asserts about it (or about a measurement of it);
+ * at a past date, the strongest class that was knowable then. Undefined for
+ * anything not drawn solid, so a ghost or a withheld subject can never be
+ * painted as though it were established. This is the lens's only source of
+ * truth — `evidenceLens.ts` renders it and counts it, and decides nothing.
+ */
+export function subjectLensClassification(
+  subjectId: string,
+  snapshotDate: string | null,
+  evidenceMode: EvidenceMode,
+): EvidenceClassification | undefined {
+  if (subjectDrawState(subjectId, snapshotDate, evidenceMode) !== "solid")
+    return undefined;
+  // A subject with no record at all is illustrative by definition, exactly as
+  // `isSubjectVisible` treats it.
+  if (snapshotDate === null) return effectiveClassification(subjectId) ?? "illustrative";
+  return effectiveClassificationAt(subjectId, snapshotDate) ?? "illustrative";
 }
 
 /**

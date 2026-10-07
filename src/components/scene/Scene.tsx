@@ -6,6 +6,7 @@ import { Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { EvidenceGhosts } from "./EvidenceGhosts";
+import { EvidenceLens } from "./EvidenceLens";
 import { LivingScene } from "./LivingScene";
 import { UncertaintyLayer } from "./UncertaintyLayer";
 import { LiveTraffic } from "./LiveTraffic";
@@ -147,6 +148,7 @@ export function Scene() {
           <Pavements />
           <Structures />
           <EvidenceGhosts />
+          <EvidenceLens />
           <UncertaintyLayer />
           <LivingScene />
           {/* The upstream feed currently omits browser CORS headers. Keep the

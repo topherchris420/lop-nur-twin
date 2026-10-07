@@ -14,6 +14,7 @@ coerced — see the "hostile parameters" section of
 | `I`            | Site index (grouped outliner of structures)            |
 | `R`            | Research, sources, and climate panel                   |
 | `M`            | Measurement ruler on the minimap (snap, bearing, copy) |
+| `L`            | Evidence lens: paint the scene and map by status       |
 | `H`            | Help overlay                                           |
 | `Esc`          | Close panels / clear measurement / release the mouse   |
 | Click building | Open its dossier, with a "Fly to structure"            |
@@ -57,6 +58,7 @@ checks what the state ones actually set, and proves that no value but `1` or
 | `?year=<year>`         | Legacy: maps an old year-slider link to the matching timeline date.                   |
 | `?compare=YYYY-MM-DD`  | Second date for a change comparison.                                                  |
 | `?uncertainty=1`       | Draws spatial uncertainty envelopes (quality tier 2 and above).                       |
+| `?lens=1`              | Switches the evidence lens on: scene and map painted by evidence status.              |
 | `?night=1`             | Starts at night.                                                                      |
 | `?structure=<id>`      | Opens that dossier on `/`, or highlights that row on `/analysis`.                     |
 | `?at=<x>,<z>`          | Frames the camera on that point, in local metres, clamped to the site.                |

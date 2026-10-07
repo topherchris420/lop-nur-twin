@@ -43,7 +43,14 @@ be operable:
 - All controls are real `<button>` and `<a>` elements with `aria-label`,
   `aria-pressed` and `aria-expanded` where they express state.
 - Keyboard shortcuts cover every mode: `1`/`2`/`3` cameras, `N` day-night,
-  `I` site index, `R` research, `M` measure, `H` help, `Esc` to close.
+  `I` site index, `R` research, `M` measure, `L` evidence lens, `H` help,
+  `Esc` to close.
+- The evidence lens never carries status by colour alone: each class has a
+  tint, the badge's glyph as its mark on the site map, and a line pattern on
+  every edge that is solid for observed and progressively broken down the
+  ranks. The legend's `role="status"` readout and the per-status counts beside
+  each badge — on the HUD and on `/analysis` — say in text what the lens
+  paints.
 - The evidence legend is a labelled `<section>` with a real disclosure button.
 - The bottom panels (site map, mode hints, timeline, touch pan-stick, legend)
   share one grid that reflows by width, so no panel covers another at any

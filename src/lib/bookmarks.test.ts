@@ -36,6 +36,7 @@ function view(overrides: Partial<BookmarkView> = {}): BookmarkView {
     selectedId: "hangar-main",
     measurePoints: [{ x: 0, z: 0, snappedTo: "Runway center" }],
     showUncertainty: true,
+    showLens: true,
     environmentMonth: 5,
     night: false,
     qualityTier: 2,
@@ -450,13 +451,30 @@ describe("shareable links", () => {
           comparisonDate: null,
           selectedId: null,
           showUncertainty: false,
+          showLens: false,
           night: false,
         }),
       }),
     );
-    for (const key of ["snapshot", "compare", "structure", "uncertainty", "night"]) {
+    for (const key of [
+      "snapshot",
+      "compare",
+      "structure",
+      "uncertainty",
+      "lens",
+      "night",
+    ]) {
       expect(params[key]).toBeUndefined();
     }
+  });
+
+  it("carries the evidence lens as a flag, and reads it back as off when a file omits it", () => {
+    expect(
+      shareableSearchParams(bookmark({ view: view({ showLens: true }) }))["lens"],
+    ).toBe("1");
+    const { showLens: _omitted, ...withoutLens } = view();
+    const migrated = migrateBookmark({ ...bookmark(), view: withoutLens });
+    expect(migrated?.view.showLens).toBe(false);
   });
 
   it("percent-encodes every value and cannot be used to inject a parameter", () => {

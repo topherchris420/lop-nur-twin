@@ -91,6 +91,16 @@ them, and where the two disagree the code is right.
 - **First-run polish**: a branded boot overlay covers texture generation and
   the first frame, and the cinematic pass captions each site feature as it
   comes into frame.
+- **Evidence lens** (`L`, `src/components/scene/EvidenceLens.tsx`): every
+  solid structure and pavement under a translucent shell tinted by its evidence
+  classification, edged in that class's line pattern — solid for observed, more
+  broken down the ranks — and the minimap drawn in the same colours with each
+  structure as its status glyph (◆ ■ ▲ ○). The classification comes from
+  `subjectLensClassification` in `src/lib/drawState.ts`, the one predicate the
+  scene already draws by, so at a past timeline date the lens paints the status
+  that was knowable then and leaves ghosts as outlines. The shells are an
+  annotation over the reconstruction, not a repaint of it: the buildings keep
+  their materials underneath and nothing here is raycast or tier-gated.
 - **Measurement ruler** (`M`): drop points on the minimap to read leg and total
   distances, straight-line range and grid bearings. Clicks snap to modeled
   runway thresholds, strip ends and compound vertices, every vertex reports its

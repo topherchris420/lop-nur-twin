@@ -23,6 +23,7 @@ import {
   strongestClassification,
   type EvidenceClassification,
 } from "@/lib/evidence";
+import { describeLens, lensTally } from "@/lib/evidenceLens";
 import { MODEL_MANIFEST_PATH, shortHash, useModelManifest } from "@/lib/modelManifest";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import {
@@ -253,6 +254,10 @@ function AnalysisView() {
   }, [query, enabled, evidenceMode]);
 
   const counts = useMemo(evidenceClassificationCounts, []);
+  const legendTally = useMemo(
+    () => lensTally(snapshotDate, evidenceMode),
+    [snapshotDate, evidenceMode],
+  );
 
   const snapshot = useMemo(
     () => (snapshotDate === null ? null : deriveSnapshot(snapshotDate)),
@@ -277,6 +282,7 @@ function AnalysisView() {
       selectedId: highlighted ?? state.selectedId,
       measurePoints: state.measurePoints,
       showUncertainty: state.showUncertainty,
+      showLens: state.showLens,
       environmentMonth: state.environmentMonth,
       night: state.night,
       qualityTier: state.qualityTier,
@@ -403,11 +409,20 @@ function AnalysisView() {
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
               Status is shown with a symbol and a word as well as a colour, so it survives
-              greyscale printing and colour-blind review.
+              greyscale printing and colour-blind review. The counts beside each status
+              are what the 3D twin&rsquo;s evidence lens paints that way under the mode
+              above{snapshotDate === null ? "" : ` on ${snapshotDate}`} &mdash; the same
+              tally, whether or not anyone can see the paint.
             </p>
             <div className="border-border mt-3 rounded-lg border p-4">
-              <EvidenceLegendList />
+              <EvidenceLegendList tally={legendTally} />
             </div>
+            <p
+              role="status"
+              className="text-muted-foreground mt-2 text-xs leading-relaxed"
+            >
+              {describeLens(legendTally, snapshotDate)}
+            </p>
             <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
               {CONFIDENCE_SCALE_NOTE}
             </p>

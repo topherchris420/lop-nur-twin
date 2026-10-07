@@ -24,6 +24,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ["I", "Toggle site index"],
   ["R", "Toggle research and climate"],
   ["M", "Measure distances / bearings on the map"],
+  ["L", "Paint the scene and map by evidence status"],
   ["H", "Toggle this help"],
   ["Esc", "Close panels / clear measurement / release mouse"],
 ];
@@ -150,7 +151,9 @@ export function HelpOverlay() {
             </dl>
             <p className="text-muted-foreground mt-2 leading-relaxed">
               The <strong className="text-foreground">evidence mode</strong> chooses which
-              of these the scene draws. The{" "}
+              of these the scene draws; the{" "}
+              <strong className="text-foreground">evidence lens</strong> (
+              <kbd className="kbd">L</kbd>) paints each one as what it is. The{" "}
               <strong className="text-foreground">evidence timeline</strong> steps through
               the dates the evidence changed: solid means publicly established by then, an
               outline means the model places it but nothing public yet did. A

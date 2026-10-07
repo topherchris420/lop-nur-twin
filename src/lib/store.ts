@@ -56,6 +56,14 @@ interface TwinState {
   showUncertainty: boolean;
   toggleUncertainty: () => void;
 
+  /**
+   * The evidence lens: whether the scene and the minimap paint every subject
+   * by its evidence classification (`evidenceLens.ts`), so the picture itself
+   * says what was observed, reported, interpreted or invented.
+   */
+  showLens: boolean;
+  toggleLens: () => void;
+
   selectedId: string | null;
   select: (id: string | null) => void;
 
@@ -206,6 +214,9 @@ export const useTwinStore = create<TwinState>()((set) => ({
 
   showUncertainty: readFlag("uncertainty"),
   toggleUncertainty: () => set((s) => ({ showUncertainty: !s.showUncertainty })),
+
+  showLens: readFlag("lens"),
+  toggleLens: () => set((s) => ({ showLens: !s.showLens })),
 
   selectedId: null,
   select: (selectedId) => set({ selectedId }),

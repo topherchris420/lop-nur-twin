@@ -78,6 +78,8 @@ export interface BookmarkView {
   selectedId: string | null;
   measurePoints: readonly MeasurePoint[];
   showUncertainty: boolean;
+  /** Whether the evidence lens was painting the view. Absent in older files: off. */
+  showLens: boolean;
   environmentMonth: number;
   night: boolean;
   qualityTier: QualityTier | null;
@@ -217,6 +219,7 @@ function readView(value: unknown): BookmarkView {
       typeof selectedId === "string" && ID_PATTERN.test(selectedId) ? selectedId : null,
     measurePoints: readMeasurePoints(source["measurePoints"]),
     showUncertainty: source["showUncertainty"] === true,
+    showLens: source["showLens"] === true,
     environmentMonth: Math.round(clampNumber(source["environmentMonth"], 0, 11, 5)),
     night: source["night"] === true,
     qualityTier:
@@ -624,6 +627,7 @@ export function shareableSearchParams(bookmark: Bookmark): Record<string, string
   if (view.comparisonDate !== null) params["compare"] = view.comparisonDate;
   if (view.selectedId !== null) params["structure"] = view.selectedId;
   if (view.showUncertainty) params["uncertainty"] = "1";
+  if (view.showLens) params["lens"] = "1";
   if (view.night) params["night"] = "1";
   if (view.qualityTier !== null) params["quality"] = String(view.qualityTier);
   if (view.cameraTarget !== undefined) {

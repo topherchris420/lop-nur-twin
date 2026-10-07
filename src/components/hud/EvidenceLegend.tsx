@@ -4,9 +4,11 @@ import { Link } from "@tanstack/react-router";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EvidenceModeControl } from "@/components/evidence/EvidenceModeControl";
 import { PRIMARY_CRS, evidenceClassificationCounts } from "@/lib/evidence";
+import { describeLens, lensTally } from "@/lib/evidenceLens";
 import { SITE_PROFILE } from "@/lib/siteData";
 import { isCoarsePointer } from "@/lib/touchInput";
 import { useTwinStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 /**
  * The standing evidence legend.
@@ -40,7 +42,15 @@ export function EvidenceLegend() {
   const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);
   const showUncertainty = useTwinStore((state) => state.showUncertainty);
   const toggleUncertainty = useTwinStore((state) => state.toggleUncertainty);
+  const showLens = useTwinStore((state) => state.showLens);
+  const toggleLens = useTwinStore((state) => state.toggleLens);
+  const snapshotDate = useTwinStore((state) => state.snapshotDate);
   const counts = useMemo(evidenceClassificationCounts, []);
+  // What the lens paints, counted from the same predicate the scene draws by.
+  const tally = useMemo(
+    () => lensTally(snapshotDate, evidenceMode),
+    [snapshotDate, evidenceMode],
+  );
   const total =
     counts.observed + counts.reported + counts.interpreted + counts.illustrative;
 
@@ -86,6 +96,33 @@ export function EvidenceLegend() {
           idPrefix="hud-evidence-mode"
           className="border-border mb-3 border-b pb-3"
         />
+        <label className="mb-2 flex cursor-pointer items-start gap-2 text-[10px] leading-relaxed">
+          <input
+            type="checkbox"
+            checked={showLens}
+            onChange={toggleLens}
+            className="accent-primary focus-visible:ring-ring mt-0.5 size-3.5 focus-visible:ring-2 focus-visible:outline-none"
+          />
+          <span>
+            Paint by evidence status <kbd className="kbd">L</kbd>
+            <span className="text-muted-foreground block">
+              Tints every building and pavement in the scene and on the map by the status
+              below, with its glyph on the map and its line pattern on every edge &mdash;
+              solid for observed, more broken down the ranks. At a past timeline date, the
+              status that was knowable then.
+            </span>
+          </span>
+        </label>
+        {/* A live region that stays mounted, so switching the lens on is announced. */}
+        <p
+          role="status"
+          className={cn(
+            "text-muted-foreground text-[10px] leading-relaxed",
+            showLens && "mb-3",
+          )}
+        >
+          {showLens ? describeLens(tally, snapshotDate) : null}
+        </p>
         <label className="mb-3 flex cursor-pointer items-start gap-2 text-[10px] leading-relaxed">
           <input
             type="checkbox"
@@ -102,7 +139,7 @@ export function EvidenceLegend() {
             </span>
           </span>
         </label>
-        <EvidenceLegendList compact />
+        <EvidenceLegendList compact tally={tally} />
         <p className="text-muted-foreground mt-3 text-[10px] leading-relaxed">
           Public-source analytical reconstruction. Modeled geometry in {PRIMARY_CRS}{" "}
           around an approximate {SITE_PROFILE.terrainDatum.elevationM} m{" "}

@@ -23,6 +23,7 @@ import {
   confidenceRank,
   type EvidenceClassification,
 } from "@/lib/evidence";
+import type { LensTally } from "@/lib/evidenceLens";
 import { cn } from "@/lib/utils";
 
 /**
@@ -84,16 +85,32 @@ export function ConfidenceValue({
  * definition is what this project means by it. Every group carries both a
  * `<dt>` and a `<dd>` in either density, which is what the markup rule
  * requires and what makes it read correctly to a screen reader.
+ *
+ * Given a lens tally it also says, per status, how many structures and
+ * pavements the scene paints that way — the text of the evidence lens, for
+ * anyone who cannot see its paint, and the same counts whether the lens is on.
  */
-export function EvidenceLegendList({ compact = false }: { compact?: boolean }) {
+export function EvidenceLegendList({
+  compact = false,
+  tally,
+}: {
+  compact?: boolean;
+  tally?: LensTally;
+}) {
   return (
     <dl className="space-y-2">
       {EVIDENCE_CLASSIFICATIONS.map((classification) => {
         const meta = EVIDENCE_CLASSIFICATION_META[classification];
         return (
           <div key={classification}>
-            <dt>
+            <dt className="flex flex-wrap items-center gap-2">
               <EvidenceBadge classification={classification} />
+              {tally === undefined ? null : (
+                <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
+                  {tally.structures.painted[classification]} structures ·{" "}
+                  {tally.pavements.painted[classification]} pavements
+                </span>
+              )}
             </dt>
             <dd className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
               {meta.statement}

@@ -37,10 +37,10 @@ import {
   type MeasurePoint,
 } from "@/lib/measure";
 import { flyToPoint } from "@/lib/flyTo";
-import { getUncertaintyForSubject } from "@/lib/evidence";
+import { getUncertaintyForSubject, type EvidenceClassification } from "@/lib/evidence";
+import { IDENTIFICATION_DASH, LENS_PALETTE } from "@/lib/evidenceLens";
 import { type EvidenceMode } from "@/lib/evidenceMode";
-import { subjectDrawState } from "@/lib/sceneVisibility";
-import { type UncertaintyLevel } from "@/lib/uncertainty";
+import { subjectDrawState, subjectLensClassification } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 import { isCoarsePointer } from "@/lib/touchInput";
@@ -74,31 +74,74 @@ const SEGMENT_STYLE: Record<SegmentDef["kind"], { color: string; minWidth: numbe
   road: { color: "#7c6e51", minWidth: 1 },
 };
 
-/**
- * Dash pattern per identification level, in CSS pixels.
- *
- * At 240 px across 6.8 km the minimap is about 0.035 px per metre, so a ±40 m
- * envelope drawn to scale would be a pixel and a half — invisible, and worse,
- * misleadingly precise. Uncertainty is encoded here as *line texture* instead:
- * solid where identification is established, progressively broken where it is
- * not. The pattern is redundant with the shape and with the text in the dossier,
- * so nothing depends on a viewer resolving it.
+/*
+ * Uncertainty and the evidence lens both encode a rank as *line texture* here
+ * (`IDENTIFICATION_DASH` in `evidenceLens.ts`): at 240 px across 6.8 km the
+ * minimap is about 0.035 px per metre, so a ±40 m envelope drawn to scale
+ * would be a pixel and a half — invisible, and worse, misleadingly precise. A
+ * line is solid where identification is established and progressively broken
+ * where it is not. The pattern is redundant with the shape and with the text in
+ * the dossier, so nothing depends on a viewer resolving it.
  */
-const IDENTIFICATION_DASH: Record<UncertaintyLevel, readonly number[]> = {
-  known: [],
-  probable: [4, 2],
-  possible: [2, 2],
-  unknown: [1, 3],
-};
+
+/**
+ * The lens marks a structure with its classification's glyph — the same ◆ ■ ▲ ○
+ * the badges and the legend use — so the map's mark is the legend's mark, and
+ * status is never carried by the tint alone. The illustrative circle is hollow:
+ * a thing not resolved in any source is drawn as an outline here too.
+ */
+function drawClassificationGlyph(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  classification: EvidenceClassification,
+): void {
+  ctx.fillStyle = LENS_PALETTE[classification].color;
+  ctx.strokeStyle = LENS_PALETTE[classification].color;
+  ctx.beginPath();
+  switch (classification) {
+    case "observed":
+      ctx.moveTo(x, y - 3.4);
+      ctx.lineTo(x + 3.4, y);
+      ctx.lineTo(x, y + 3.4);
+      ctx.lineTo(x - 3.4, y);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case "reported":
+      ctx.rect(x - 2.6, y - 2.6, 5.2, 5.2);
+      ctx.fill();
+      break;
+    case "interpreted":
+      ctx.moveTo(x, y - 3.4);
+      ctx.lineTo(x + 3.2, y + 2.6);
+      ctx.lineTo(x - 3.2, y + 2.6);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case "illustrative":
+      ctx.lineWidth = 1.2;
+      ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+  }
+}
 
 function buildStaticLayer(
   snapshotDate: string | null,
   evidenceMode: EvidenceMode,
   showUncertainty: boolean,
+  showLens: boolean,
 ): HTMLCanvasElement {
   const stateOf = (subject: { id: string }) =>
     subjectDrawState(subject.id, snapshotDate, evidenceMode);
   const isDrawn = (subject: { id: string }) => stateOf(subject) === "solid";
+  // The lens's colour and pattern for a solid subject, from the one predicate
+  // the scene paints by; undefined with the lens off, or for a ghost.
+  const lensOf = (subject: { id: string }) =>
+    showLens
+      ? subjectLensClassification(subject.id, snapshotDate, evidenceMode)
+      : undefined;
 
   const canvas = document.createElement("canvas");
   canvas.width = SIZE * DPR;
@@ -142,15 +185,20 @@ function buildStaticLayer(
       }
       if (!isDrawn(seg)) continue;
       const style = SEGMENT_STYLE[seg.kind];
-      ctx.strokeStyle = style.color;
+      const lens = lensOf(seg);
+      // Under the lens a pavement is its classification's colour and pattern,
+      // not its surface's; the dashes need square caps to stay dashes.
+      ctx.strokeStyle = lens === undefined ? style.color : LENS_PALETTE[lens].color;
       ctx.lineWidth = Math.max(style.minWidth, seg.width * SCALE);
-      ctx.lineCap = "round";
+      ctx.lineCap = lens === undefined ? "round" : "butt";
+      ctx.setLineDash(lens === undefined ? [] : [...LENS_PALETTE[lens].dash]);
       const [x1, y1] = toMap(seg.from[0], seg.from[1]);
       const [x2, y2] = toMap(seg.to[0], seg.to[1]);
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
       ctx.stroke();
+      ctx.setLineDash([]);
     }
   };
   drawSegments(ROADS);
@@ -172,10 +220,21 @@ function buildStaticLayer(
       apron.size[0] * SCALE,
       apron.size[1] * SCALE,
     ] as const;
+    const lens = lensOf(apron);
     if (state === "ghost") {
       ctx.strokeStyle = GHOST_COLOR;
       ctx.lineWidth = 0.75;
       ctx.setLineDash([1.5, 2]);
+      ctx.strokeRect(...rect);
+      ctx.setLineDash([]);
+    } else if (lens !== undefined) {
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = LENS_PALETTE[lens].color;
+      ctx.fillRect(...rect);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = LENS_PALETTE[lens].color;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([...LENS_PALETTE[lens].dash]);
       ctx.strokeRect(...rect);
       ctx.setLineDash([]);
     } else {
@@ -198,6 +257,13 @@ function buildStaticLayer(
     }
     if (state !== "solid") continue;
     const [sx, sy] = toMap(s.position[0], s.position[1]);
+    const lens = lensOf(s);
+    if (lens !== undefined) {
+      // Under the lens every structure, the parked aircraft included, is its
+      // status glyph: the mark on the map is the mark in the legend.
+      drawClassificationGlyph(ctx, sx, sy, lens);
+      continue;
+    }
     const identification = getUncertaintyForSubject(s.id)?.identification ?? "unknown";
     if (isAircraft(s.type)) {
       // aircraft: cyan triangle pointing along its parked heading
@@ -374,6 +440,7 @@ export function Minimap() {
   const snapshotDate = useTwinStore((s) => s.snapshotDate);
   const evidenceMode = useTwinStore((s) => s.evidenceMode);
   const showUncertainty = useTwinStore((s) => s.showUncertainty);
+  const showLens = useTwinStore((s) => s.showLens);
   const measureMode = useTwinStore((s) => s.measureMode);
   const toggleMeasureMode = useTwinStore((s) => s.toggleMeasureMode);
   const hasMeasurePoints = useTwinStore((s) => s.measurePoints.length > 0);
@@ -381,8 +448,8 @@ export function Minimap() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hoverRef = useRef<{ mx: number; my: number } | null>(null);
   const staticLayer = useMemo(
-    () => buildStaticLayer(snapshotDate, evidenceMode, showUncertainty),
-    [snapshotDate, evidenceMode, showUncertainty],
+    () => buildStaticLayer(snapshotDate, evidenceMode, showUncertainty, showLens),
+    [snapshotDate, evidenceMode, showUncertainty, showLens],
   );
 
   useEffect(() => {
@@ -504,7 +571,7 @@ export function Minimap() {
     <div className="minimap-panel hud-panel pointer-events-auto max-w-[calc(100vw-2rem)] p-1.5">
       <div className="mb-1 flex items-center justify-between gap-2 pl-1">
         <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em]">
-          {measureMode ? "MEASURE" : "SITE MAP"}
+          {measureMode ? "MEASURE" : showLens ? "SITE MAP · BY EVIDENCE" : "SITE MAP"}
         </span>
         <button
           type="button"

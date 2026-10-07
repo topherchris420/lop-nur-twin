@@ -118,6 +118,16 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
   rejects unsupported classifications, missing citations, a source dated before
   the observation it attests, and wording that presents interpretation as
   verification.
+- **The picture carries the status too.** The evidence lens (`L`, or
+  `?lens=1`) paints every building and pavement in the scene and on the site
+  map by its classification — a tint, the status glyph on the map, and a line
+  pattern on every edge that is solid for observed and more broken down the
+  ranks, so it reads in greyscale. At a past timeline date it paints the
+  status that was knowable then. Nothing in the model is observed but the
+  runway measurements, and with the lens on the scene says so at a glance; the
+  legend and `/analysis` print the same tally for anyone who cannot see the
+  paint.
+
 - **Every claim can be inspected** — buildings, pavements, the runway
   measurements (the model's only observed claims), the terrain proxy, the
   climatology and the illustrative scenario elements. The claim inspector, in
@@ -145,6 +155,8 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
   evidence ledger so revisions can be compared.
 - **The evidence works without WebGL.** Analysis and comparison have semantic
   interfaces, with browser checks for accessibility.
+
+![The evidence lens over the compound: the interpreted halls and courts in amber, the reported fighter shelters, apron hangar, aircraft, fuel tanks and taxiway in blue, the illustrative solar field, switchyard and tanks in grey, the observed runway as a green line, and the legend's tally of what is painted which way](docs/screenshot-lens.png)
 
 Facility identities include project hypotheses. Terrain is a seeded proxy, not
 survey elevation; runway ends carry approximately 40 m of uncertainty; fences and

@@ -11,7 +11,7 @@
  *  - hostile or malformed query parameters, which reach a renderer and a
  *    physics world before anything else validates them — and, for the
  *    parameters whose job is state rather than rendering (`?year=`,
- *    `?compare=`, `?night=`, `?uncertainty=`, `?at=`), what actually reached
+ *    `?compare=`, `?night=`, `?uncertainty=`, `?lens=`, `?at=`), what actually reached
  *    the store;
  *  - `?liveTraffic=`, the one switch that can make a third-party request: only
  *    the documented value may make it, and the suite answers it locally so it
@@ -823,7 +823,9 @@ console.log("\n=== ?liveTraffic= stays opt-in ===");
 /* ------------------------------------------------------------------ */
 
 if (devOrigin !== "-") {
-  console.log("\n=== ?year=, ?compare=, ?night=, ?uncertainty=, ?at= (dev build) ===");
+  console.log(
+    "\n=== ?year=, ?compare=, ?night=, ?uncertainty=, ?lens=, ?at= (dev build) ===",
+  );
   const earliest = TEMPORAL_SNAPSHOT_DATES[0];
   const edge = SITE_SIZE / 2;
   const enc = encodeURIComponent;
@@ -832,28 +834,31 @@ if (devOrigin !== "-") {
     comparisonDate: null,
     night: false,
     showUncertainty: false,
+    showLens: false,
     target: null,
   };
   // Each case is one cold load; every expectation in it is its own check.
   // `target` is the camera target of the last fly-to the load requested.
   const CASES = [
     {
-      query: "year=1e309&compare=2025-02-30&night=yes&uncertainty=yes&at=1,foo",
+      query: "year=1e309&compare=2025-02-30&night=yes&uncertainty=yes&lens=yes&at=1,foo",
       expect: DEFAULTS,
     },
     {
-      query: `year=2021.5&compare=${enc("<script>")}&night=TRUE&uncertainty=TRUE&at=${enc("<script>")}`,
+      query: `year=2021.5&compare=${enc("<script>")}&night=TRUE&uncertainty=TRUE&lens=TRUE&at=${enc("<script>")}`,
       expect: DEFAULTS,
     },
     {
       // Out-of-range integers clamp to the timeline's ends; the rest are flags
       // and a point clamped to the modeled site.
-      query: "year=-99999&compare=1999-01-01&night=1&uncertainty=1&at=1e308,-1e308",
+      query:
+        "year=-99999&compare=1999-01-01&night=1&uncertainty=1&lens=1&at=1e308,-1e308",
       expect: {
         snapshotDate: snapshotDateForYear(TIMELINE_BOUNDS.minYear),
         comparisonDate: null,
         night: true,
         showUncertainty: true,
+        showLens: true,
         target: [edge, 0, -edge],
       },
     },
@@ -899,6 +904,7 @@ if (devOrigin !== "-") {
           comparisonDate: s.comparisonDate,
           night: s.night,
           showUncertainty: s.showUncertainty,
+          showLens: s.showLens,
           selectedId: s.selectedId,
           target: s.flyTo ? [...s.flyTo.target] : null,
         };
@@ -937,7 +943,7 @@ if (devOrigin !== "-") {
   }
 } else {
   console.log(
-    "\n=== ?year=, ?compare=, ?night=, ?uncertainty=, ?at= (dev build) === skipped",
+    "\n=== ?year=, ?compare=, ?night=, ?uncertainty=, ?lens=, ?at= (dev build) === skipped",
   );
 }
 

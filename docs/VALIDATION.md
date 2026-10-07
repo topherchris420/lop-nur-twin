@@ -141,8 +141,8 @@ cannot inspect one.
 `?evidence=not-a-mode`, `?structure=<script>…` and a 500-character id at the app
 and asserts it renders normally with no page errors. For the parameters whose
 job is state rather than rendering it goes further, on the dev build where the
-store is exposed: hostile `?year=`, `?compare=`, `?night=`, `?uncertainty=` and
-`?at=` values must leave the defaults, out-of-range ones must clamp to the
+store is exposed: hostile `?year=`, `?compare=`, `?night=`, `?uncertainty=`,
+`?lens=` and `?at=` values must leave the defaults, out-of-range ones must clamp to the
 timeline's ends and the site's edge, an invalid `?snapshot=` must fall through
 to `?year=`, and `?at=` must frame after `?structure=` — with the expected
 dates computed by `src/lib/temporal.ts`, so they move with the ledger. And it

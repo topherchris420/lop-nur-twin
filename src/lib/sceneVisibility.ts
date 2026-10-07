@@ -11,18 +11,41 @@ import {
   isSceneDressingVisible,
   isSubjectDrawn,
   subjectDrawState,
+  subjectLensClassification,
   type DrawState,
   type FilterableSubject,
 } from "./drawState";
+import type { EvidenceClassification } from "./evidence";
 import { useTwinStore } from "./store";
 
 export {
   isSceneDressingVisible,
   isSubjectDrawn,
   subjectDrawState,
+  subjectLensClassification,
   type DrawState,
   type FilterableSubject,
 } from "./drawState";
+
+/**
+ * The classification the evidence lens paints each subject with, for the
+ * scene's lens layer and the minimap. Undefined when the lens is off or the
+ * subject is not drawn solid.
+ */
+export function useSubjectLensClassification(): (
+  subjectId: string,
+) => EvidenceClassification | undefined {
+  const showLens = useTwinStore((state) => state.showLens);
+  const snapshotDate = useTwinStore((state) => state.snapshotDate);
+  const evidenceMode = useTwinStore((state) => state.evidenceMode);
+  return useCallback(
+    (subjectId: string) =>
+      showLens
+        ? subjectLensClassification(subjectId, snapshotDate, evidenceMode)
+        : undefined,
+    [showLens, snapshotDate, evidenceMode],
+  );
+}
 
 /**
  * The predicate the scene uses: true for subjects drawn solid. Stable across

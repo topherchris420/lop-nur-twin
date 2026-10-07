@@ -9,11 +9,12 @@
  * fixed cameras, fixed framing, one command.
  *
  *   node tools/shots.mjs                       -> all of them, in order
- *   node tools/shots.mjs --only blacksite      (twin | blacksite | debrief | white-paper)
+ *   node tools/shots.mjs --only blacksite      (twin | lens | blacksite | debrief | white-paper)
  *   node tools/shots.mjs --origin http://localhost:5199
  *
  * It writes docs/screenshot-overview.png, docs/screenshot-dossier.png,
- * docs/screenshot-blacksite.png, docs/screenshots/debrief.png and
+ * docs/screenshot-lens.png, docs/screenshot-blacksite.png,
+ * docs/screenshots/debrief.png and
  * docs/white-paper.png. The two Bethesda images in docs/screenshots/ are
  * `node tools/bethesda-look.mjs`'s street-detail.png and survey-detail.png,
  * captured against a preview of dist/.
@@ -110,6 +111,36 @@ async function captureTwin() {
   console.log(`  dossier: ${picked ?? "no site-index match"}`);
   await sleep(8000);
   await shoot(page, "docs/screenshot-dossier.png");
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
+/* The evidence lens                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The overview's own framing with the evidence lens on, so the two images
+ * differ in exactly one thing: the picture carrying its evidence status. The
+ * legend is opened so its tally is in the frame with the paint it counts.
+ */
+async function captureLens() {
+  console.log("lens:");
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1600, height: 900 });
+  await page.goto(`${origin}/?quality=${quality}&lens=1`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
+  });
+  await page.waitForFunction(() => globalThis.__twinStore != null, { timeout: 60000 });
+  await sleep(14000);
+  const [tx, tz] = compound(20, 40);
+  const [cx, cz] = compound(420, 520);
+  await page.evaluate(
+    ({ eye, target }) => globalThis.__twinStore.getState().requestFlyTo(eye, target),
+    { eye: [cx, 250, cz], target: [tx, 0, tz] },
+  );
+  await sleep(9000);
+  await shoot(page, "docs/screenshot-lens.png");
   await page.close();
 }
 
@@ -409,6 +440,7 @@ async function captureWhitePaper() {
 }
 
 if (!only || only === "twin") await captureTwin();
+if (!only || only === "lens") await captureLens();
 if (!only || only === "blacksite") await captureBlacksite();
 if (!only || only === "debrief") await captureDebrief();
 if (!only || only === "white-paper") await captureWhitePaper();

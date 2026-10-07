@@ -63,7 +63,14 @@ Guidance for coding agents (and humans) working on this repo.
   draw this?" calls `useSubjectFilter()` or `useSubjectDrawState()` rather than
   comparing classifications or dates itself. The timeline filter was
   copy-pasted into four components once already, and a second filter beside it
-  would have been four chances to disagree about what exists.
+  would have been four chances to disagree about what exists. The evidence
+  lens (`L`, `?lens=1`) asks the same module one more question —
+  `subjectLensClassification()`, the class to paint a solid subject, knowable
+  at the date — and `src/lib/evidenceLens.ts` only renders and counts it: the
+  palette, the status glyphs, the dash patterns (shared with the minimap's
+  uncertainty rings through `IDENTIFICATION_DASH`) and the tally the legend and
+  `/analysis` print. A surface that paints by status reads `LENS_PALETTE`; it
+  never picks a colour from a classification itself.
 - **A claim is knowable no earlier than its evidence.** `recordKnowability()` in
   `src/lib/evidence.ts` is the one place that decides from when a claim could
   have been made: the later of its source's publication and the observation it
@@ -718,7 +725,7 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 137 checks: deep links, refreshes, hostile
+bun run routes                # 140 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,
                               # filtering, mobile, focus without WebGL, and

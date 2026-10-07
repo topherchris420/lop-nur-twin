@@ -102,6 +102,7 @@ export function ResearchPanel() {
       selectedId: state.selectedId,
       measurePoints: state.measurePoints,
       showUncertainty: state.showUncertainty,
+      showLens: state.showLens,
       environmentMonth: state.environmentMonth,
       night: state.night,
       qualityTier: state.qualityTier,
@@ -121,6 +122,7 @@ export function ResearchPanel() {
     state.setComparisonDate(view.comparisonDate);
     state.setEnvironmentMonth(view.environmentMonth);
     if (state.showUncertainty !== view.showUncertainty) state.toggleUncertainty();
+    if (state.showLens !== view.showLens) state.toggleLens();
     if (state.night !== view.night) state.toggleNight();
     state.clearMeasure();
     for (const point of view.measurePoints) state.addMeasurePoint(point);

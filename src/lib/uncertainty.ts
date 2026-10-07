@@ -165,7 +165,7 @@ export interface UncertaintyEnvelope {
  * that the feature is there and roughly how big it is — which is precisely what
  * `EVIDENCE_CLASSIFICATION_META.observed` already says and no more.
  */
-const IDENTIFICATION_BY_STATUS: Record<EvidenceStatus, UncertaintyLevel> = {
+export const IDENTIFICATION_BY_STATUS: Record<EvidenceStatus, UncertaintyLevel> = {
   observed: "known",
   reported: "probable",
   interpreted: "possible",
