@@ -322,6 +322,19 @@ export function clearWalk(a: Vec, b: Vec): boolean {
  * deterministic, and computed once when a figure's destination changes.
  */
 export function routeInLab(from: Vec, to: Vec): Vec[] {
+  // The same walks recur every meeting (station to seat and back); a walk
+  // begun from mid-route is new, so the memory is small and bounded.
+  const key = `${from.x.toFixed(3)},${from.z.toFixed(3)}>${to.x.toFixed(3)},${to.z.toFixed(3)}`;
+  const known = routes.get(key);
+  if (known) return [...known];
+  const route = planRoute(from, to);
+  if (routes.size >= 64) routes.clear();
+  routes.set(key, route);
+  return [...route];
+}
+const routes = new Map<string, Vec[]>();
+
+function planRoute(from: Vec, to: Vec): Vec[] {
   if (clearWalk(from, to)) return [from, to];
   const g = grid();
   const start = nearestOpen(from),
@@ -401,20 +414,15 @@ export function routeInLab(from: Vec, to: Vec): Vec[] {
     if (c === start) break;
   }
   cells.reverse();
-  // Pull the path taut: from each corner, walk straight to the farthest
-  // point still in clear view.
+  // Pull the path taut: from each corner, walk on along the cells while they
+  // stay in clear view, and turn at the last one that does.
   const path: Vec[] = [from];
   let at = from,
-    k = 0;
+    k = -1;
   const points = [...cells, to];
   while (k < points.length - 1) {
-    let far = k;
-    for (let m = points.length - 1; m > k; m--)
-      if (clearWalk(at, points[m]!)) {
-        far = m;
-        break;
-      }
-    if (far === k) far = k + 1;
+    let far = k + 1;
+    while (far + 1 < points.length && clearWalk(at, points[far + 1]!)) far++;
     at = points[far]!;
     path.push(at);
     k = far;

@@ -3,8 +3,22 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { B } from "../../game/characters/rig";
 import { PERSPECTIVES, type Perspective } from "./contracts";
-import { buildFigure, figureGeometry, type FigureRig } from "./figures";
-import { FigureAnimator, seedFor, type FigureCue } from "./figureMotion";
+import {
+  assembleFigure,
+  buildFigure,
+  figureGeometry,
+  figurePieces,
+  type FigureRig,
+} from "./figures";
+import {
+  FigureAnimator,
+  arrived,
+  followRoute,
+  seedFor,
+  yawToward,
+  type FigureCue,
+  type RouteWalk,
+} from "./figureMotion";
 import { SEATS, STATIONS, clearWalk, routeInLab } from "./labLayout";
 
 const cue = (over: Partial<FigureCue> = {}): FigureCue => ({
@@ -41,7 +55,8 @@ describe("the four figures", () => {
       for (const i of [index.getX(v), index.getY(v), index.getZ(v), index.getW(v)])
         expect(i).toBeLessThan(rig.bones.length);
     }
-    expect(rig.triangles).toBeLessThan(40000);
+    // The documented budget (docs/RAIN_LAB_BETHESDA.md): 19–32k a figure.
+    expect(rig.triangles).toBeLessThan(34000);
     // Solid parts and open sheets, two draw groups, one material each.
     expect(g.groups.map((group) => group.materialIndex)).toEqual([0, 1]);
     g.computeBoundingBox();
@@ -69,12 +84,8 @@ describe("the four figures", () => {
   );
 
   it("the same perspective is the same figure every time", () => {
-    const first = buildFigure("Elena", "lab");
-    const a = hash(first.mesh.geometry.getAttribute("position").array);
-    first.dispose();
-    const second = buildFigure("Elena", "city");
-    expect(hash(second.mesh.geometry.getAttribute("position").array)).toBe(a);
-    second.dispose();
+    const a = hash(assembleFigure("Elena").getAttribute("position").array);
+    expect(hash(assembleFigure("Elena").getAttribute("position").array)).toBe(a);
   });
 });
 
@@ -269,4 +280,261 @@ describe("routes through the lab", () => {
       }
     },
   );
+});
+
+/* ------------------------------------------------------------------ */
+/* Regressions found in review                                         */
+/* ------------------------------------------------------------------ */
+
+/** Ankle positions while each foot is flat on the floor, run by run. */
+function plantedRuns(track: THREE.Vector3[]) {
+  const floor = Math.min(...track.map((p) => p.y));
+  const runs: THREE.Vector3[][] = [];
+  let run: THREE.Vector3[] = [];
+  for (const p of track) {
+    if (p.y < floor + 0.003) run.push(p);
+    else {
+      if (run.length >= 4) runs.push(run);
+      run = [];
+    }
+  }
+  if (run.length >= 4) runs.push(run);
+  return runs;
+}
+const drift = (run: THREE.Vector3[]) =>
+  Math.max(...run.map((p) => Math.hypot(p.x - run[0]!.x, p.z - run[0]!.z)));
+
+describe("walking the lab's routes", () => {
+  it.each([1 / 60, 1 / 120, 1 / 144])(
+    "every walk arrives, exactly, at %s s a frame",
+    (dt) => {
+      for (const who of PERSPECTIVES)
+        for (const [from, to] of [
+          [STATIONS[who].at, SEATS[who]],
+          [SEATS[who], STATIONS[who].at],
+        ] as const) {
+          const walk: RouteWalk = {
+            ...from,
+            route: routeInLab(from, to).slice(1),
+            leg: 0,
+            speed: 0,
+          };
+          for (let f = 0; f < 60 / dt && !arrived(walk); f++) followRoute(walk, dt);
+          expect(arrived(walk), `${who}`).toBe(true);
+          expect(walk.x).toBe(to.x);
+          expect(walk.z).toBe(to.z);
+        }
+    },
+  );
+
+  it.each(["Jasmine", "Luca", "Elena"] as const)(
+    "%s's feet stay planted round the corners of the walk to the table and on turning to it",
+    (who) => {
+      const rig = buildFigure(who, "lab");
+      const anim = new FigureAnimator(rig, seedFor(who));
+      const from = STATIONS[who].at,
+        to = SEATS[who];
+      anim.place(from.x, from.z, STATIONS[who].facing);
+      const walk: RouteWalk = {
+        ...from,
+        route: routeInLab(from, to).slice(1),
+        leg: 0,
+        speed: 0,
+      };
+      const left: THREE.Vector3[] = [],
+        right: THREE.Vector3[] = [];
+      for (let f = 0; f < 60 * 30; f++) {
+        followRoute(walk, 1 / 60);
+        // Once there, turn to the table, as the lab does.
+        const face = arrived(walk) ? yawToward(-walk.x, 1 - walk.z) : null;
+        anim.update(1 / 60, cue({ x: walk.x, z: walk.z, face }), false);
+        left.push(world(rig, B.footL));
+        right.push(world(rig, B.footR));
+      }
+      for (const track of [left, right])
+        for (const run of plantedRuns(track)) expect(drift(run), who).toBeLessThan(0.03);
+      rig.dispose();
+    },
+  );
+
+  it("turning on the spot steps round rather than dragging a planted foot", () => {
+    const rig = buildFigure("Luca", "lab");
+    const anim = new FigureAnimator(rig, seedFor("Luca"));
+    anim.place(0, 0, 0);
+    const feet: [THREE.Vector3[], THREE.Vector3[]] = [[], []];
+    for (let f = 0; f < 240; f++) {
+      anim.update(1 / 60, cue({ face: f < 30 ? 0 : 2.0 }), false);
+      feet[0].push(world(rig, B.footL));
+      feet[1].push(world(rig, B.footR));
+    }
+    for (const track of feet)
+      for (const run of plantedRuns(track)) expect(drift(run)).toBeLessThan(0.03);
+    expect(anim.position.yaw).toBeCloseTo(2.0, 2);
+    rig.dispose();
+  });
+});
+
+describe("review fixes hold", () => {
+  it("under reduced motion a turn moves no bone, and a moved figure faces where it went", () => {
+    const rig = buildFigure("Elena", "lab");
+    const anim = new FigureAnimator(rig, seedFor("Elena"));
+    const bones = () =>
+      rig.bones
+        .map((b) => [...b.quaternion.toArray(), ...b.position.toArray()].join())
+        .join("|");
+    anim.update(1 / 60, cue({ face: 0 }), true);
+    const still = bones();
+    for (let f = 0; f < 30; f++) {
+      anim.update(1 / 60, cue({ face: Math.PI / 2 }), true);
+      expect(bones()).toBe(still);
+    }
+    // An outing under reduced motion: snapped along, facing the way it goes (east).
+    anim.update(1 / 60, cue({ x: 0.3, face: null }), true);
+    expect(anim.position.yaw).toBeCloseTo(-Math.PI / 2, 5);
+  });
+
+  it("the lids follow the eyes down", () => {
+    const rig = buildFigure("Elena", "lab");
+    const anim = new FigureAnimator(rig, seedFor("Elena"));
+    const low = new THREE.Vector3(0, 0.3, -1.2);
+    let checked = 0;
+    for (let f = 0; f < 120; f++) {
+      anim.update(1 / 60, cue({ look: low }), false);
+      const eye = rig.bones[rig.face.eyeL]!.rotation.x,
+        lid = rig.bones[rig.face.lidL]!.rotation.x;
+      if (f > 30 && eye < -0.1 && lid > -0.5) {
+        expect(lid).toBeLessThan(0);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(10);
+    rig.dispose();
+  });
+
+  it("a gesturing hand opens palm up", () => {
+    const rig = buildFigure("Luca", "lab");
+    const anim = new FigureAnimator(rig, seedFor("Luca"));
+    const palm = new THREE.Vector3(),
+      q = new THREE.Quaternion();
+    let best = -Infinity;
+    for (let f = 0; f < 600; f++) {
+      anim.update(1 / 60, cue({ speaking: true }), false);
+      rig.root.updateMatrixWorld(true);
+      for (const [bone, side] of [
+        [B.handL, -1],
+        [B.handR, 1],
+      ] as const) {
+        if (world(rig, bone).y < 1.0) continue;
+        // At rest the palm faces the thigh: -side along x.
+        rig.bones[bone]!.getWorldQuaternion(q);
+        palm.set(-side, 0, 0).applyQuaternion(q);
+        best = Math.max(best, palm.y);
+      }
+    }
+    expect(best).toBeGreaterThan(0.3);
+    rig.dispose();
+  });
+
+  it("James crawls: the arms on the floor push back while the lifted ones reach", () => {
+    const rig = buildFigure("James", "lab");
+    const anim = new FigureAnimator(rig, seedFor("James"));
+    const speed = 1;
+    let z = 0,
+      grounded = 0,
+      sum = 0;
+    // Each arm's floor contact: the bone of the chain that rests lowest, and
+    // how high it rests (bones run along the arm, a few centimetres up).
+    anim.update(1 / 60, cue(), false);
+    const tips = rig.octopus!.arms.map((c) =>
+      c.reduce((low, b) => (world(rig, b).y < world(rig, low).y ? b : low), c[0]!),
+    );
+    const restY = tips.map((t) => world(rig, t).y);
+    let last = tips.map((t) => world(rig, t));
+    for (let f = 0; f < 300; f++) {
+      z -= speed / 60;
+      anim.update(1 / 60, cue({ z }), false);
+      const now = tips.map((t) => world(rig, t));
+      if (f > 60)
+        now.forEach((p, i) => {
+          if (p.y < restY[i]! + 0.015) {
+            // Along the walk only: an arm swung about its root also sweeps
+            // sideways, which is sculling; skating is moving with the body.
+            sum += Math.abs(p.z - last[i]!.z) * 60;
+            grounded++;
+          }
+        });
+      last = now;
+    }
+    expect(grounded).toBeGreaterThan(100);
+    // Planted arms hold their place along the walk; a backwards crawl had them
+    // skating ahead of the body at 1.6 m/s.
+    expect(sum / grounded).toBeLessThan(speed * 0.25);
+    rig.dispose();
+  });
+
+  it("James looks at what he attends to", () => {
+    const rig = buildFigure("James", "lab");
+    const anim = new FigureAnimator(rig, seedFor("James"));
+    const target = new THREE.Vector3(-0.6, 1.62, -1.8);
+    const fwd = new THREE.Vector3(),
+      q = new THREE.Quaternion();
+    for (let f = 0; f < 600; f++) {
+      anim.update(1 / 60, cue({ look: target }), false);
+      // Past the first glance, with the glance offsets that a listener sometimes takes ignored:
+      // the check is that the eyes can land on a target, not that they always do.
+    }
+    let error = Infinity;
+    for (let f = 0; f < 600; f++) {
+      anim.update(1 / 60, cue({ look: target }), false);
+      for (const eye of [rig.face.eyeL, rig.face.eyeR]) {
+        const at = world(rig, eye);
+        rig.bones[eye]!.getWorldQuaternion(q);
+        fwd.set(0, 0, -1).applyQuaternion(q);
+        const to = target.clone().sub(at).normalize();
+        error = Math.min(error, Math.acos(Math.min(1, fwd.dot(to))));
+      }
+    }
+    expect(error).toBeLessThan(0.06);
+    rig.dispose();
+  });
+
+  it.each(PERSPECTIVES)("every closed piece of %s faces outward", (who) => {
+    for (const { geometry } of figurePieces(who)) {
+      const index = geometry.getIndex();
+      if (!index) continue;
+      // Closed by its own indices: every edge is shared by two triangles.
+      const edges = new Map<string, number>();
+      for (let i = 0; i < index.count; i += 3)
+        for (const [a, b] of [
+          [index.getX(i), index.getX(i + 1)],
+          [index.getX(i + 1), index.getX(i + 2)],
+          [index.getX(i + 2), index.getX(i)],
+        ] as const) {
+          const key = a < b ? `${a},${b}` : `${b},${a}`;
+          edges.set(key, (edges.get(key) ?? 0) + 1);
+        }
+      if ([...edges.values()].some((n) => n !== 2)) continue;
+      const p = geometry.getAttribute("position");
+      const v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+      let volume = 0;
+      for (let i = 0; i < index.count; i += 3) {
+        for (let k = 0; k < 3; k++) v[k]!.fromBufferAttribute(p, index.getX(i + k));
+        volume += v[0]!.dot(v[1]!.clone().cross(v[2]!)) / 6;
+      }
+      expect(volume, `${who}: a piece of ${p.count} vertices`).toBeGreaterThan(0);
+    }
+  });
+
+  it("a fresh build is the same figure, and the built one is kept for the page", () => {
+    const a = hash(assembleFigure("Jasmine").getAttribute("position").array);
+    const b = hash(assembleFigure("Jasmine").getAttribute("position").array);
+    expect(b).toBe(a);
+    const first = buildFigure("Jasmine", "lab");
+    const geometry = first.mesh.geometry;
+    first.dispose();
+    const second = buildFigure("Jasmine", "city");
+    expect(second.mesh.geometry).toBe(geometry);
+    expect(hash(geometry.getAttribute("position").array)).toBe(a);
+    second.dispose();
+  });
 });

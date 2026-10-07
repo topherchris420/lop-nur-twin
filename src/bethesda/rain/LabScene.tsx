@@ -25,7 +25,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useRendererToneMapping } from "@/components/scene/Atmosphere";
 import { buildings, bounds } from "../model";
-import { PERSPECTIVES } from "./contracts";
+import { PERSPECTIVES, type Perspective } from "./contracts";
 import {
   EXIT_DOOR,
   ROOMS,
@@ -44,7 +44,14 @@ import {
 import { currentSpeaker } from "./session";
 import { EMBODIMENT } from "./embodiment";
 import { buildFigure } from "./figures";
-import { FigureAnimator, seedFor, yawToward } from "./figureMotion";
+import {
+  FigureAnimator,
+  arrived,
+  followRoute,
+  seedFor,
+  yawToward,
+  type RouteWalk,
+} from "./figureMotion";
 import { LookDrag, stepFor, walkIntent, type Stick } from "../walkInput";
 import { canRender } from "../webgl";
 import type { LabStore } from "./store";
@@ -695,55 +702,6 @@ const reducedMotion = () =>
   typeof window !== "undefined" &&
   !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-/** Walking pace through the lab: an unhurried 1.35 m/s, easing in and out. */
-const WALK = { top: 1.35, accel: 1.6, brake: 1.3 };
-
-interface Walk {
-  x: number;
-  z: number;
-  route: Vec[];
-  leg: number;
-  speed: number;
-  key: string;
-  away: boolean;
-}
-
-/** Where along its route a figure stands after `dt`; the route is consumed as it goes. */
-function advance(w: Walk, dt: number) {
-  let left = 0;
-  let px = w.x,
-    pz = w.z;
-  for (let i = w.leg; i < w.route.length; i++) {
-    left += Math.hypot(w.route[i]!.x - px, w.route[i]!.z - pz);
-    px = w.route[i]!.x;
-    pz = w.route[i]!.z;
-  }
-  if (left < 1e-3) {
-    w.speed = 0;
-    return;
-  }
-  const want = Math.min(WALK.top, Math.sqrt(2 * WALK.brake * left));
-  w.speed =
-    w.speed < want
-      ? Math.min(want, w.speed + WALK.accel * dt)
-      : Math.max(want, w.speed - WALK.brake * 2 * dt);
-  let step = Math.max(w.speed, 0.08) * dt;
-  while (step > 0 && w.leg < w.route.length) {
-    const to = w.route[w.leg]!;
-    const d = Math.hypot(to.x - w.x, to.z - w.z);
-    if (d <= step) {
-      w.x = to.x;
-      w.z = to.z;
-      step -= d;
-      w.leg++;
-    } else {
-      w.x += ((to.x - w.x) / d) * step;
-      w.z += ((to.z - w.z) / d) * step;
-      step = 0;
-    }
-  }
-}
-
 /**
  * The four perspectives, embodied (`figures.ts`) and animated
  * (`figureMotion.ts`) from R.A.I.N.'s neutral event vocabulary alone: who
@@ -751,7 +709,8 @@ function advance(w: Walk, dt: number) {
  * at its station; when a meeting is staged they walk to the table through the
  * doorways (`routeInLab`), and back when it is cleared. The speaker's mouth
  * and hands move and the others look to them; nothing moves with confidence
- * or agreement.
+ * or agreement. A perspective out on an outing is in the city: its seat stays
+ * empty, nobody turns to it, and its turn lights no ring.
  */
 function Perspectives({ store }: { store: LabStore }) {
   const reduced = useMemo(reducedMotion, []);
@@ -762,7 +721,11 @@ function Perspectives({ store }: { store: LabStore }) {
         const start = STATIONS[who].at;
         const animator = new FigureAnimator(rig, seedFor(who));
         animator.place(start.x, start.z, STATIONS[who].facing);
-        const walk: Walk = {
+        // The walks every meeting makes, planned now rather than on the frame
+        // a meeting starts (the first also builds the lab's walking grid).
+        routeInLab(start, SEATS[who]);
+        routeInLab(SEATS[who], start);
+        const walk: RouteWalk & { key: string; away: boolean } = {
           x: start.x,
           z: start.z,
           route: [],
@@ -771,7 +734,14 @@ function Perspectives({ store }: { store: LabStore }) {
           key: "",
           away: false,
         };
-        return { who, rig, animator, walk, head: new THREE.Vector3() };
+        return {
+          who,
+          rig,
+          animator,
+          walk,
+          head: new THREE.Vector3(),
+          glances: [] as THREE.Vector3[],
+        };
       }),
     [],
   );
@@ -790,39 +760,51 @@ function Perspectives({ store }: { store: LabStore }) {
     [],
   );
   const visitor = useMemo(() => new THREE.Vector3(), []);
-  const glances = useMemo(() => cast.map(() => [] as THREE.Vector3[]), [cast]);
   useFrame(({ camera }, dt) => {
     const m = store.meeting;
     const meeting = !!m && m.revealed <= m.record.turns.length;
-    const speaker = currentSpeaker(
+    const turn = currentSpeaker(
       m?.record ?? null,
       m && m.revealed < m.record.turns.length ? m.revealed : -1,
     );
     const away = store.presenceSnapshot();
+    const isAway = (who: Perspective) => {
+      for (const a of away) if (a.who === who) return true;
+      return false;
+    };
+    // Whose turn it is, if they are in the room to take it.
+    const speaker = turn && !isAway(turn) ? turn : null;
+    const key = `${meeting}`;
     visitor.copy(camera.position);
-    // Where each head is, for the others to look at.
-    for (const c of cast)
+    for (const c of cast) {
+      c.rig.root.visible = !isAway(c.who);
+      // Where each head is, for the others to look at.
       c.head.set(
         c.walk.x,
         c.rig.scale * (c.rig.kind === "octopus" ? 1.0 : 1.62),
         c.walk.z,
       );
-    cast.forEach((c, i) => {
+    }
+    let speaking: (typeof cast)[number] | null = null;
+    for (const c of cast) if (c.who === speaker) speaking = c;
+    for (const c of cast) {
       const { who, rig, animator, walk } = c;
-      const out = away.some((a) => a.who === who);
-      rig.root.visible = !out;
-      const target = meeting ? SEATS[who] : STATIONS[who].at;
-      const key = `${meeting}`;
-      if (out) {
+      const halo = halos.current[who],
+        shadow = shadows.current[who];
+      if (!rig.root.visible) {
         // On an outing the figure is in the city; it comes back to its station.
         walk.away = true;
-        return;
+        if (halo) halo.visible = false;
+        if (shadow) shadow.visible = false;
+        continue;
       }
+      const target = meeting ? SEATS[who] : STATIONS[who].at;
       if (walk.away || reduced) {
         walk.away = false;
         walk.x = target.x;
         walk.z = target.z;
         walk.route = [];
+        walk.leg = 0;
         walk.key = key;
         animator.place(target.x, target.z, animator.position.yaw);
       }
@@ -831,27 +813,25 @@ function Perspectives({ store }: { store: LabStore }) {
         walk.route = routeInLab({ x: walk.x, z: walk.z }, target).slice(1);
         walk.leg = 0;
       }
-      advance(walk, Math.min(dt, 0.1));
-      const arrived = walk.leg >= walk.route.length;
+      followRoute(walk, Math.min(dt, 0.1));
       // Face the speaker, the table, or the station's own direction.
       const towards =
         speaker && speaker !== who ? SEATS[speaker] : meeting ? TABLE.center : null;
-      const face = !arrived
+      const face = !arrived(walk)
         ? null
         : towards
           ? yawToward(towards.x - walk.x, towards.z - walk.z)
           : STATIONS[who].facing;
-      // Attention: the speaker; the table while a meeting has no speaker; a
-      // visitor who comes close between meetings; otherwise straight ahead.
+      // Attention: the speaker; the table while a meeting has no speaker in
+      // the room; a visitor who comes close between meetings; otherwise ahead.
       let look: THREE.Vector3 | null = null;
-      if (speaker && speaker !== who) look = cast.find((o) => o.who === speaker)!.head;
-      else if (meeting && !speaker) look = table;
+      if (speaking && speaking !== c) look = speaking.head;
+      else if (meeting && !speaking) look = table;
       else if (!meeting && Math.hypot(visitor.x - walk.x, visitor.z - walk.z) < 3)
         look = visitor;
-      const room = glances[i]!;
-      room.length = 0;
-      if (speaker === who)
-        for (const o of cast) if (o !== c && o.rig.root.visible) room.push(o.head);
+      c.glances.length = 0;
+      if (speaking === c)
+        for (const o of cast) if (o !== c && o.rig.root.visible) c.glances.push(o.head);
       animator.update(
         dt,
         {
@@ -860,26 +840,20 @@ function Perspectives({ store }: { store: LabStore }) {
           ground: 0,
           face,
           look,
-          glances: room,
-          speaking: speaker === who,
+          glances: c.glances,
+          speaking: speaking === c,
           scan: false,
         },
         reduced,
       );
-      const halo = halos.current[who];
       if (halo) {
-        halo.visible = speaker === who;
+        halo.visible = speaking === c;
         halo.position.set(walk.x, 0.02, walk.z);
       }
-      const shadow = shadows.current[who];
       if (shadow) {
         shadow.visible = true;
         shadow.position.set(walk.x, 0.012, walk.z);
       }
-    });
-    for (const c of cast) {
-      const shadow = shadows.current[c.who];
-      if (shadow && !c.rig.root.visible) shadow.visible = false;
     }
   });
   return (

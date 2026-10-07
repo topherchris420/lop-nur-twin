@@ -6,15 +6,17 @@
  * each, which is no way to judge a face, a hand or a walk. This walks into the
  * lab the way `tools/shots.mjs` does, puts the HUD away, and frames each
  * perspective at its station — full figure and head — then stages the DEMO
- * meeting and photographs the walk to the table and the table itself; last it
- * sends Luca out to Woodmont, returns to Bethesda and follows his jog from the
- * survey camera, zoomed in. The lab's cameras come from `labLayout.ts`, so a
- * moved station moves the shot.
+ * meeting and photographs the walk to the table and the table itself. The
+ * cameras come from `labLayout.ts`, so a moved station moves the shot.
+ *
+ * There is no city shot: under software WebGL the city renders at under a
+ * frame a second, and a capture of an outing photographs the same frame three
+ * times. The outing figures are the lab's own, so these frames stand for them.
  *
  *   bun run dev &
  *   node tools/rain-figures.mjs                    -> shots/rain-figures/*.png
  *   node tools/rain-figures.mjs --out shots/before --hud
- *   node tools/rain-figures.mjs --only portraits   (portraits | meeting | city)
+ *   node tools/rain-figures.mjs --only portraits   (portraits | meeting)
  *
  * It waits in rendered frames, not milliseconds: under software WebGL a frame
  * can take a second, and the figures' clock is the frame loop's.
@@ -161,60 +163,6 @@ if (!only || only === "meeting") {
   await look({ x: 5.2, z: 1.2 }, { x: SEATS.Jasmine.x + 1.2, z: 0.6 }, 1.15);
   await frames(30);
   await shoot("meeting-side");
-}
-
-if (!only || only === "city") {
-  console.log("city:");
-  // Luca's outing: the shortest route from the lab's door, 145 m at a jog.
-  const sent = await page.evaluate(() => {
-    const { store } = globalThis.__rainLab;
-    store.sendOuting("Luca", "woodmont_bethesda");
-    return store.outings.length;
-  });
-  if (!sent) throw new Error("rain-figures: the outing was refused");
-  await page.evaluate(() => {
-    const b = [...document.querySelectorAll("button")].find(
-      (b) => b.textContent.trim() === "Return to Bethesda",
-    );
-    b?.click();
-  });
-  await page.waitForFunction(() => !document.querySelector('[data-rain-lab="active"]'));
-  // Aim the survey camera where he will be a few seconds from now, close in.
-  await page.evaluate(() => {
-    const { store } = globalThis.__rainLab;
-    const { sim, view } = globalThis.__bethesda;
-    const o = store.outings[0];
-    const s = Math.min(o.length, (sim.tick - o.startTick) * 0.3 + 30);
-    let i = 1;
-    while (i < o.cumulative.length - 1 && o.cumulative[i] < s) i++;
-    const a = o.path[i - 1],
-      b = o.path[i];
-    const t = (s - o.cumulative[i - 1]) / (o.cumulative[i] - o.cumulative[i - 1] || 1);
-    view.target = { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
-    const survey = [...document.querySelectorAll("button")].find(
-      (b) => b.textContent.trim() === "Survey",
-    );
-    survey?.click();
-  });
-  await frames(10);
-  // Zoom on the canvas itself: the HUD's transparent overlay would take a
-  // wheel event aimed at the middle of the screen.
-  for (let i = 0; i < 14; i++) {
-    await page.evaluate(() => {
-      // The city's view is the largest canvas; the minimap is another.
-      const canvas = [
-        ...document.querySelectorAll('[data-bethesda="active"] canvas'),
-      ].sort((a, b) => b.width * b.height - a.width * a.height)[0];
-      canvas?.dispatchEvent(
-        new WheelEvent("wheel", { deltaY: -500, bubbles: true, cancelable: true }),
-      );
-    });
-    await frames(2);
-  }
-  for (const n of [1, 2, 3]) {
-    await frames(12);
-    await shoot(`city-${n}`);
-  }
 }
 
 await browser.close();

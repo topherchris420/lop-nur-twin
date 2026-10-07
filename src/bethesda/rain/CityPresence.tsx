@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { groundAt } from "../terrain";
+import { sidewalks } from "../network";
 import { EMBODIMENT } from "./embodiment";
 import type { Perspective } from "./contracts";
 import type { PresenceMark } from "./presence";
@@ -10,7 +11,29 @@ import type { FigureAnimator, seedFor } from "./figureMotion";
 
 const WHO = Object.keys(EMBODIMENT) as Perspective[];
 
-const floorAt = (x: number, z: number) => groundAt({ x, z });
+/**
+ * The pavement an outing walks on, above the terrain: the paving laid over a
+ * footway (geometry.ts draws it to +0.1975 m) or the road where a crossing
+ * runs over it — the heights the city's own pedestrians stand at (Actors.tsx).
+ */
+const SIDEWALK = 0.2,
+  CROSSING = 0.14;
+const crossingSegments = sidewalks.edges
+  .filter((e) => e.crossing)
+  .map((e) => [sidewalks.nodes.get(e.from)!, sidewalks.nodes.get(e.to)!] as const);
+function surfaceAt(x: number, z: number) {
+  for (const [a, b] of crossingSegments) {
+    const dx = b.x - a.x,
+      dz = b.z - a.z;
+    const t = Math.max(
+      0,
+      Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz || 1)),
+    );
+    if (Math.hypot(a.x + dx * t - x, a.z + dz * t - z) < 1.6) return CROSSING;
+  }
+  return SIDEWALK;
+}
+const floorAt = (x: number, z: number) => groundAt({ x, z }) + surfaceAt(x, z);
 
 /**
  * The figures load with the first outing, not with the city: most visits
@@ -50,9 +73,9 @@ const reducedMotion = () =>
  * observe the place; it is not a measurement.
  *
  * The figures are the lab's own (`figures.ts`), loaded and built the first
- * time each perspective goes out, and they walk — at the outing's 3 m/s, a jog — with
- * their feet placed on the pavement; while the simulator observes, they stand
- * and look round the place.
+ * time each perspective goes out, and they jog — the outing's 3 m/s — with
+ * their feet placed on the pavement, at the height the city's pedestrians
+ * walk; while the simulator observes, they stand and look round the place.
  *
  * Kept light enough for the city bundle: it imports no lab store or panel.
  */
@@ -70,7 +93,12 @@ export function CityPresence({ read }: { read: () => readonly PresenceMark[] }) 
   >({});
   useEffect(
     () => () => {
-      for (const c of Object.values(cast.current)) c?.rig.dispose();
+      // Out of the group first: a re-run effect (Fast Refresh, StrictMode)
+      // keeps the group, and a disposed figure left in it would be drawn.
+      for (const c of Object.values(cast.current)) {
+        c?.rig.root.removeFromParent();
+        c?.rig.dispose();
+      }
       cast.current = {};
     },
     [],
@@ -110,7 +138,7 @@ export function CityPresence({ read }: { read: () => readonly PresenceMark[] }) 
       const k = reduced ? 1 : Math.min(1, dt * 8);
       c.x += (mark.x - c.x) * k;
       c.z += (mark.z - c.z) * k;
-      const ground = groundAt({ x: c.x, z: c.z });
+      const ground = floorAt(c.x, c.z);
       c.animator.update(
         dt,
         {
@@ -128,7 +156,7 @@ export function CityPresence({ read }: { read: () => readonly PresenceMark[] }) 
       );
       if (halo) {
         halo.visible = mark.phase === "observing";
-        halo.position.set(c.x, ground + 0.04, c.z);
+        halo.position.set(c.x, ground + 0.02, c.z);
       }
     }
   });

@@ -29,7 +29,8 @@
  *
  * Every vertex is deterministic: the only noise is `seededNoise2D` with fixed
  * seeds, so the same perspective is the same figure in every browser.
- * Geometry is cached per perspective and shared between the lab and the city.
+ * Geometry is built once per perspective and kept for the page, shared
+ * between the lab and the city.
  */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -439,10 +440,10 @@ function ribbon(
         b = i * 4 + ((s + 1) % 4),
         c = (i + 1) * 4 + ((s + 1) % 4),
         d = (i + 1) * 4 + s;
-      index.push(a, b, d, b, c, d);
+      index.push(a, d, b, b, d, c);
     }
   const last = (points.length - 1) * 4;
-  index.push(0, 2, 1, 0, 3, 2, last, last + 1, last + 2, last, last + 2, last + 3);
+  index.push(0, 1, 2, 0, 2, 3, last, last + 2, last + 1, last, last + 3, last + 2);
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
   g.setIndex(index);
@@ -1718,8 +1719,9 @@ function shoeGeometry(side: number, pump: boolean): THREE.BufferGeometry {
     for (let i = 0; i < seg; i++) {
       const i0 = row * seg + i,
         i1 = row * seg + ((i + 1) % seg);
-      if (row) index.push(i0, i1, at);
-      else index.push(i1, i0, at);
+      // The band is wound (i0, i3, i1); the caps follow it outward.
+      if (row) index.push(i1, i0, at);
+      else index.push(i0, i1, at);
     }
   }
   const g = new THREE.BufferGeometry();
@@ -2060,7 +2062,8 @@ function buildOctopus(who: Perspective): Built {
     MANTLE.point(a, eyeY, _v);
     MANTLE.normal(a, eyeY, _w);
     _v.addScaledVector(_w, -0.012);
-    return { c: [_v.x, _v.y, _v.z], yaw: -s * 0.14 };
+    // The irises look straight ahead at rest, so a gaze lands where it is aimed.
+    return { c: [_v.x, _v.y, _v.z], yaw: 0 };
   };
   const L = eyeAt(-1),
     R = eyeAt(1);
@@ -2482,7 +2485,8 @@ float metalnessFactor = clamp(vFigPbr.y, 0.0, 1.0);
   diffuseColor.rgb *= 1.0 - (weave * 0.5 + 0.5) * 0.12 * cloth;
   roughnessFactor = clamp(roughnessFactor + weave * 0.06 * cloth, 0.04, 1.0);
   // Faces turned to the floor see less of the room.
-  float under = max(-normalize(vFigWorldN).y, 0.0);
+  // A sheet seen from behind (hair, a lid, a strap) faces the other way.
+  float under = max(-normalize(vFigWorldN).y * (gl_FrontFacing ? 1.0 : -1.0), 0.0);
   diffuseColor.rgb *= 1.0 - under * under * 0.22;
 }
 `;
@@ -2564,29 +2568,47 @@ export function figureMaterial(
 interface Cached {
   built: Built;
   geometry: THREE.BufferGeometry;
-  refs: number;
 }
+/**
+ * Built geometry is kept for the life of the page, about 1 MB a figure: the
+ * lab and the city are never mounted together, and a cache that let go when
+ * the last figure was disposed would rebuild all four on every visit.
+ */
 const cache = new Map<Perspective, Cached>();
+
+function build(who: Perspective): Built {
+  const look = LOOKS[who];
+  return look.archetype === "octopus" ? buildOctopus(who) : buildHuman(who, look);
+}
 
 function cached(who: Perspective): Cached {
   let c = cache.get(who);
   if (!c) {
-    const look = LOOKS[who];
-    const built =
-      look.archetype === "octopus" ? buildOctopus(who) : buildHuman(who, look);
-    c = { built, geometry: assemble(built.pieces), refs: 0 };
+    const built = build(who);
+    c = { built, geometry: assemble(built.pieces) };
     built.pieces.length = 0;
     cache.set(who, c);
   }
-  c.refs++;
   return c;
 }
 
 /** The geometry and skeleton a perspective is drawn with, without a renderer. */
 export function figureGeometry(who: Perspective) {
   const c = cached(who);
-  c.refs--;
   return { geometry: c.geometry, bones: c.built.specs.length, face: c.built.face };
+}
+
+/** A fresh, uncached build of a perspective's geometry: for checking it is deterministic. */
+export function assembleFigure(who: Perspective): THREE.BufferGeometry {
+  return assemble(build(who).pieces);
+}
+
+/** Each piece before assembly, for checking every closed one faces outward. */
+export function figurePieces(who: Perspective): {
+  geometry: THREE.BufferGeometry;
+  thin: boolean;
+}[] {
+  return build(who).pieces.map((p) => ({ geometry: p.g, thin: !!p.thin }));
 }
 
 export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig {
@@ -2613,6 +2635,9 @@ export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig
   const mesh = new THREE.SkinnedMesh(c.geometry, [solid, thin]);
   mesh.name = `rain-figure-${who}`;
   mesh.frustumCulled = false;
+  // Presentation only: a figure is never what a tap selects, in the lab or the
+  // city, visible or hidden.
+  mesh.raycast = () => {};
   mesh.castShadow = setting === "city";
   const root = new THREE.Group();
   root.name = `rain-perspective-${who}`;
@@ -2644,11 +2669,6 @@ export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig
       skeleton.dispose();
       solid.dispose();
       thin.dispose();
-      c.refs--;
-      if (c.refs <= 0) {
-        c.geometry.dispose();
-        cache.delete(who);
-      }
     },
   };
 }

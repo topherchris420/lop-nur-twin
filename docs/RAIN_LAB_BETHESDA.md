@@ -421,10 +421,16 @@ whatever is said, and the animator is never handed a record. When a meeting is
 staged the four walk to the table — through the doorways and round the
 furniture (`routeInLab`, the same `blocked` the visitor collides with) — and
 back to their stations when it is cleared. Their feet are placed by the shared
-two-bone IK with stride tied to speed, so a planted foot does not slide;
-James crawls on his arms. Between meetings a visitor who comes within 3 m is
-looked at. Reduced motion stills all of it: the figures stand where they belong
-and turn at once to whoever is speaking.
+two-bone IK with stride tied to speed, and a foot that comes down is anchored
+where it landed until it swings again, so a planted foot holds still through a
+walk's first steps, a corner, a turn on the spot and a stop; a foot strained
+from its place in the gait takes a step. James crawls: his side arms push back
+at the body's speed while down and reach forward lifted, and the arms pointing
+ahead and behind are carried clear. A perspective who is out on an outing is in
+the city: nobody turns to the empty seat, and that turn lights no ring. Between
+meetings a visitor who comes within 3 m is looked at. Reduced motion stills all
+of it: the figures stand where they belong and turn at once, without a step, to
+whoever is speaking.
 
 ![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, three of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
 
@@ -712,9 +718,9 @@ an avatar leaves by the lab's door and walks the mapped sidewalks (shortest by
 length, at most 1.5 km) at 3 m/s on the city's clock, pauses, and walks back.
 At most two are out at once, one per perspective. The avatar is not a
 simulation agent — nobody in the city sees, avoids or reacts to it — and it is
-drawn in the city — the same figure as in the lab, at a jog, its feet placed on
-the pavement, looking round the place while the simulator observes — on the
-minimap and on the lab's wall map, while its seat in the lab stands empty. Only inside the place's 40 m observation region does the
+drawn in the city — the same figure as in the lab, at a jog, its feet on the
+pavement at the height the city's pedestrians walk, looking round the place
+while the simulator observes — on the minimap and on the lab's wall map, while its seat in the lab stands empty. Only inside the place's 40 m observation region does the
 simulator observe, once: the four location tools and a world-observation
 packet, computed from simulator state at that tick, recorded as a
 `bethesda-avatar-observation/v1` naming who asked. The avatar's position is
@@ -826,13 +832,15 @@ on a phone) and steps down a level after two seconds of frames slower than
 not count; economy draws flat plates with 6 modes, no grain and the lamp dark.
 Reduced motion stills the plates and makes every change of figure immediate.
 
-The four perspectives are four skinned meshes of 20–27k triangles, two draw
-calls each (solid parts and open sheets such as hair), built once per
-perspective — 40–90 ms — and shared between the lab and the city, which builds
-a figure only the first time it goes out. Per frame only bone transforms are
-written, from preallocated scratch; a walking route is computed once when a
-destination changes. Each figure has a 64-pixel contact shadow, since the lab's
-lights cast none.
+The four perspectives are four skinned meshes of 19–32k triangles (James
+19k, Luca 26k, Jasmine 29k, Elena 32k), two draw calls each (solid parts and
+open sheets such as hair). Each is built once — 35–90 ms — and kept for the
+page, shared between the lab and the city; the city loads the figure code with
+its first outing, so a visit that sends nobody out never downloads it. Per
+frame only bone transforms are written; the walks every meeting makes are
+planned when the lab opens, and the lab's walking grid with them, so the frame a
+meeting starts does no planning. Each figure has a 64-pixel contact shadow,
+since the lab's lights cast none. The figures never take a tap.
 
 ## Privacy and security
 
@@ -932,13 +940,18 @@ JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… bun run verify:rain-lab   # also lets R.A.I
 ```
 
 The figures have their own checks. `src/bethesda/rain/figures.test.ts` builds
-all four and asserts the skinning, the face bones, the triangle budget and that
-a figure is the same every time; walks them and fails if a planted foot slides
-more than 2 cm or a knee bends backwards; checks the Godot behaviours (blinks,
-the mouth closing when the turn passes, gestures only while speaking, eyes
-before the head), that reduced motion holds everything still, that every
-station-to-seat route stays clear of the walls, and that the animator imports
-no record and names no verdict, confidence or tone. For the look:
+all four and asserts the skinning, the face bones, the triangle budget, that
+every closed piece faces outward and that a figure is the same every time;
+walks them straight and along the lab's own routes, corners and the turn to
+the table included, and fails if a planted foot slides more than 2–3 cm, a knee
+bends backwards, a turn on the spot drags a foot, or James's planted arms skate
+along the walk; checks that every walk arrives at any frame rate; checks the
+Godot behaviours (blinks, the mouth closing when the turn passes, gestures only
+while speaking and palm up, eyes before the head, lids following the eyes,
+James's gaze landing on its target), that reduced motion moves no bone on a
+turn and still faces where a figure goes, that every station-to-seat route stays
+clear of the walls, and that the animator imports no record and names no
+verdict, confidence or tone. For the look:
 
 ```sh
 bun run dev &

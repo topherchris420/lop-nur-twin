@@ -133,8 +133,8 @@ const _dir = new THREE.Vector3();
 const _lift = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
 const _plan = [
-  { target: new THREE.Vector3(), pitch: 0 },
-  { target: new THREE.Vector3(), pitch: 0 },
+  { target: new THREE.Vector3(), pitch: 0, yaw: 0 },
+  { target: new THREE.Vector3(), pitch: 0, yaw: 0 },
 ];
 
 function setEuler(bone: THREE.Bone, x: number, y: number, z: number) {
@@ -156,6 +156,33 @@ export class FigureAnimator {
   private z = 0;
   private yaw = 0;
   private yawRate = 0;
+  /** Where the body is going relative to where it faces, model space (0 = ahead). */
+  private strideYaw = 0;
+  /** The direction of travel this frame, world yaw, or null when standing. */
+  private travel: number | null = null;
+  /**
+   * Foot locking. A foot that comes down is anchored where it landed, in the
+   * world, and stays there however the body moves or turns over it — a walk's
+   * first steps, a corner, a turn on the spot, a stop. It is let go into a
+   * swing that lands where the gait wants it next, and a foot strained too far
+   * from that asks for a step. `wx`/`wz` is where it was drawn last frame.
+   */
+  private readonly contact = [
+    { planted: false, ax: NaN, az: NaN, yaw: 0, release: 0, wx: NaN, wz: NaN },
+    { planted: false, ax: NaN, az: NaN, yaw: 0, release: 0, wx: NaN, wz: NaN },
+  ];
+  /** How far, model metres, the most strained planted foot is from its place in the gait. */
+  private strain = 0;
+  /** This frame's root rotation and scale, for the conversions below. */
+  private readonly frame = { cos: 1, sin: 0, scale: 1 };
+  private readonly worldX = (mx: number, mz: number) =>
+    this.x + (mx * this.frame.cos + mz * this.frame.sin) * this.frame.scale;
+  private readonly worldZ = (mx: number, mz: number) =>
+    this.z + (-mx * this.frame.sin + mz * this.frame.cos) * this.frame.scale;
+  private readonly modelX = (wx: number, wz: number) =>
+    ((wx - this.x) * this.frame.cos - (wz - this.z) * this.frame.sin) / this.frame.scale;
+  private readonly modelZ = (wx: number, wz: number) =>
+    ((wx - this.x) * this.frame.sin + (wz - this.z) * this.frame.cos) / this.frame.scale;
   /** Smoothed ground speed, world m/s. */
   speed = 0;
   /** Gait phase, radians; one cycle is two steps. */
@@ -211,6 +238,15 @@ export class FigureAnimator {
     this.z = z;
     this.yaw = yaw;
     this.speed = 0;
+    this.yawRate = 0;
+    this.strideYaw = 0;
+    for (const c of this.contact) {
+      c.planted = false;
+      c.ax = c.az = c.wx = c.wz = NaN;
+      c.yaw = yaw;
+      c.release = 0;
+    }
+    this.strain = 0;
     this.placed = true;
   }
 
@@ -232,16 +268,30 @@ export class FigureAnimator {
     this.speed = reduced || moved >= 1 ? 0 : damp(this.speed, Math.min(v, 6), 10, dt);
     this.x = cue.x;
     this.z = cue.z;
-    const travelling = this.speed > 0.25 && moved > 1e-5;
+    // Face the way it is going once it is going anywhere; under reduced motion
+    // the figure is not walking, but it still faces where it is put next.
+    const going = moved > 1e-5 && moved < 1;
+    const travelling = going && (reduced || this.speed > 0.12);
+    this.travel = going && (reduced || this.speed > 0.05) ? yawToward(dx, dz) : null;
     const want = travelling ? yawToward(dx, dz) : (cue.face ?? this.yaw);
     const err = wrap(want - this.yaw);
     const before = this.yaw;
     if (reduced) this.yaw = want;
     else {
-      const rate = Math.min(travelling ? 5 : 3.2, Math.abs(err) * 5);
+      // On the spot a body turns about 115 degrees a second, in quick short
+      // steps; a planted foot can only stay put through so much of it.
+      const rate = Math.min(travelling ? 4 : 2, Math.abs(err) * 4);
       this.yaw = wrap(this.yaw + Math.sign(err) * Math.min(Math.abs(err), rate * dt));
     }
-    this.yawRate = dt > 0 ? damp(this.yawRate, wrap(this.yaw - before) / dt, 12, dt) : 0;
+    // Under reduced motion a turn is instant and takes no steps.
+    this.yawRate =
+      reduced || dt <= 0 ? 0 : damp(this.yawRate, wrap(this.yaw - before) / dt, 12, dt);
+    // The stride follows the travel, not the facing, so feet step where the
+    // body goes while the facing catches up (a corner, a walk's first steps).
+    const strideWant = this.travel === null ? 0 : wrap(this.travel - this.yaw);
+    this.strideYaw = reduced
+      ? 0
+      : this.strideYaw + wrap(strideWant - this.strideYaw) * (1 - Math.exp(-12 * dt));
     rig.root.position.set(this.x, cue.ground, this.z);
     rig.root.rotation.set(0, this.yaw, 0);
 
@@ -337,6 +387,8 @@ export class FigureAnimator {
     headLimit: number,
     dt: number,
     reduced: boolean,
+    /** How much of the head's pitch the bones actually apply, so the eyes make up the rest. */
+    pitchShare = 1,
   ) {
     const s = this.rig.scale;
     let target: THREE.Vector3 | null = cue.look;
@@ -362,7 +414,8 @@ export class FigureAnimator {
     this.headPitch += (clamp(pitch, -0.35, 0.3) - this.headPitch) * k;
     const ke = reduced ? 1 : 1 - Math.exp(-26 * dt);
     this.eyeYaw += (clamp(yaw - this.headYaw, -0.42, 0.42) - this.eyeYaw) * ke;
-    this.eyePitch += (clamp(pitch - this.headPitch, -0.3, 0.25) - this.eyePitch) * ke;
+    this.eyePitch +=
+      (clamp(pitch - this.headPitch * pitchShare, -0.3, 0.25) - this.eyePitch) * ke;
   }
 
   /* ------------------------------------------------------------------ */
@@ -389,12 +442,25 @@ export class FigureAnimator {
 
     /* ------------------------------------------------------- gait */
     const moving = smooth(0.08, 0.6, speed);
-    // Turning on the spot is taken in small steps rather than a pivot on planted feet.
-    const turning = smooth(0.7, 2.2, Math.abs(this.yawRate)) * (1 - moving);
+    // Turning on the spot is taken in small steps rather than a pivot on
+    // planted feet, and a foot strained or twisted away from its place in the
+    // gait (by a turn, by a walk's first metre, by stopping) asks for a step.
+    let twisted = 0;
+    if (!reduced)
+      for (const c of this.contact)
+        if (c.planted) twisted = Math.max(twisted, Math.abs(wrap(this.yaw - c.yaw)));
+    const turning =
+      Math.max(
+        smooth(0.7, 2.2, Math.abs(this.yawRate)),
+        smooth(0.12, 0.3, twisted),
+        smooth(0.04, 0.12, this.strain),
+      ) *
+      (1 - moving);
     const run = smooth(1.9, 3.1, speed);
-    const duty = 0.62 - 0.24 * run;
+    // Turning steps are short and quick, with less time on each foot.
+    const duty = 0.62 - 0.24 * run - 0.16 * turning;
     const lift = 0.05 + 0.1 * run;
-    const steps = 1.75 + 1.1 * run + 0.15 * turning;
+    const steps = 1.75 + 1.1 * run + 0.9 * turning;
     const pace = Math.max(0.25, speed);
     const period = Math.min(2 / steps, MAX_EXCURSION / (pace * duty));
     const excursion = speed * duty * period;
@@ -410,35 +476,81 @@ export class FigureAnimator {
 
     const cosY = Math.cos(this.yaw),
       sinY = Math.sin(this.yaw);
+    const fx = -Math.sin(this.strideYaw),
+      fz = -Math.cos(this.strideYaw);
+    // Model space <-> world, for the anchors: world = root + R(yaw) * model * scale.
+    this.frame.cos = cosY;
+    this.frame.sin = sinY;
+    this.frame.scale = s;
+    const { worldX, worldZ, modelX, modelZ } = this;
+    let strain = 0;
     for (let i = 0; i < 2; i++) {
       const side = i ? 1 : -1;
       const plan = _plan[i]!;
+      const contact = this.contact[i]!;
       const u = (this.gait / (Math.PI * 2) + (i ? 0.5 : 0)) % 1;
-      let along: number, height: number, pitch: number;
-      if (u < duty) {
-        // Planted: the foot holds still on the floor, so relative to the hips
-        // it moves back at exactly body speed.
-        const st = u / duty;
-        along = (FRONT_BIAS - st) * excursion;
+      let x: number, z: number, height: number, pitch: number, twist: number;
+      if (reduced) {
+        // Nothing steps: the feet stand where the stance puts them.
+        x = side * rig.stance;
+        z = ANKLE_Z;
+        height = pitch = twist = 0;
+        contact.planted = false;
+        contact.ax = contact.az = NaN;
+      } else if (u < duty || stepping <= 0.01) {
+        // Planted: anchored where it came down (where it was drawn last
+        // frame), so it holds still on the floor whatever the body does.
+        const st = u < duty ? u / duty : 0.5;
+        const along = (FRONT_BIAS - st) * excursion * moving;
+        const nx = side * rig.stance + fx * along,
+          nz = ANKLE_Z + fz * along;
+        if (!contact.planted) {
+          contact.planted = true;
+          contact.yaw = this.yaw;
+          const fresh = Number.isNaN(contact.wx);
+          contact.ax = fresh ? worldX(nx, nz) : contact.wx;
+          contact.az = fresh ? worldZ(nx, nz) : contact.wz;
+        }
+        x = modelX(contact.ax, contact.az);
+        z = modelZ(contact.ax, contact.az);
+        strain = Math.max(strain, Math.hypot(x - nx, z - nz));
+        twist = clamp(wrap(this.yaw - contact.yaw), -1, 1);
         height = stanceRise(st);
         pitch = stanceRoll(st);
       } else {
+        // Swinging: from where it lifted off to where the gait lands it next.
+        if (contact.planted) {
+          contact.planted = false;
+          contact.release = clamp(wrap(this.yaw - contact.yaw), -1, 1);
+        }
         const sw = (u - duty) / (1 - duty);
-        along = (FRONT_BIAS - 1 + sw * sw * (3 - 2 * sw)) * excursion;
+        const ease = 1 - smooth(0, 1, sw);
+        const along = (FRONT_BIAS - 1 + sw * sw * (3 - 2 * sw)) * excursion * moving;
+        const from = (FRONT_BIAS - 1) * excursion * moving;
+        x = side * rig.stance + fx * along;
+        z = ANKLE_Z + fz * along;
+        if (!Number.isNaN(contact.ax)) {
+          x += (modelX(contact.ax, contact.az) - (side * rig.stance + fx * from)) * ease;
+          z += (modelZ(contact.ax, contact.az) - (ANKLE_Z + fz * from)) * ease;
+        }
+        twist = contact.release * ease;
         height = swingRise(sw) + lift * Math.sin(Math.PI * sw);
         pitch = swingRoll(sw);
       }
-      const x = side * rig.stance;
-      const z = ANKLE_Z - along * moving;
+      contact.wx = worldX(x, z);
+      contact.wz = worldZ(x, z);
+      plan.yaw = this.strideYaw * moving - side * 0.06 - twist;
       let floor = 0;
-      if (cue.groundAt) {
-        const wx = this.x + (x * cosY + z * sinY) * s,
-          wz = this.z + (-x * sinY + z * cosY) * s;
-        floor = clamp((cue.groundAt(wx, wz) - cue.ground) / s, -0.15, 0.15);
-      }
+      if (cue.groundAt)
+        floor = clamp(
+          (cue.groundAt(contact.wx, contact.wz) - cue.ground) / s,
+          -0.15,
+          0.15,
+        );
       plan.target.set(x, floor + ANKLE_Y + height * stepping, z);
       plan.pitch = pitch * stepping;
     }
+    this.strain = strain;
 
     /* ----------------------------------------------------- pelvis */
     const bob =
@@ -477,7 +589,7 @@ export class FigureAnimator {
       _foot.copy(plan.target).sub(_pelvisPos).applyQuaternion(_pelvisInv);
       // The knee goes where the foot points, splayed a touch: the pole is the only thing deciding it.
       _pole
-        .set(side * 0.18, 0, -1)
+        .set(-Math.sin(plan.yaw) + side * 0.18, 0, -Math.cos(plan.yaw))
         .normalize()
         .applyQuaternion(_pelvisInv);
       solveTwoBone(
@@ -492,9 +604,7 @@ export class FigureAnimator {
         SHIN,
         _shinQ,
       );
-      _footQ
-        .setFromEuler(_e.set(plan.pitch, -side * 0.06, 0, "YXZ"))
-        .premultiply(_pelvisInv);
+      _footQ.setFromEuler(_e.set(plan.pitch, plan.yaw, 0, "YXZ")).premultiply(_pelvisInv);
       bones[foot]!.quaternion.copy(_shinQ).invert().multiply(_footQ);
     }
 
@@ -574,7 +684,7 @@ export class FigureAnimator {
         0,
       );
       // An open palm turned up and in while it gestures; relaxed toward the thigh otherwise.
-      setEuler(bones[twist]!, 0, side * g * 0.85, 0);
+      setEuler(bones[twist]!, 0, -side * g * 0.85, 0);
       setEuler(bones[hand]!, 0.06 + g * -0.18, 0, -side * (0.08 - g * 0.1));
     }
 
@@ -622,7 +732,8 @@ export class FigureAnimator {
     bones[oc.mantle]!.scale.set(1 + breath, 1 + breath * 0.6, 1 + breath);
 
     // The head — mantle and face together — turns toward what James attends to.
-    this.aim(cue, 1.0, 0.45, dt, reduced);
+    // The head bone carries half the pitch (below); the eyes make up the rest.
+    this.aim(cue, 1.0, 0.45, dt, reduced, 0.5);
     setEuler(
       head,
       this.headPitch * 0.5 - (cue.speaking ? this.beat * 0.02 : 0) - 0.1 * moving,
@@ -639,24 +750,43 @@ export class FigureAnimator {
       const dir = _dir.set(Math.sin(a), 0, Math.cos(a));
       // Lift: about cross(dir, up), positive raises the arm.
       const liftAxis = _lift.crossVectors(dir, _up).normalize();
-      const group = i % 2 ? Math.PI : 0;
-      const crawl = Math.sin(this.gait + group);
+      // Diagonal pairs of side arms crawl in turn, half a cycle apart.
+      const u = (this.gait / (Math.PI * 2) + (i % 2 ? 0.5 : 0)) % 1;
+      const sideArm = Math.abs(dir.x) > 0.6;
       const raise = i === this.gestureArm ? this.gestureWeight : 0;
       chainBones.forEach((index, k) => {
         const bone = bones[index]!;
         const reach = (k + 1) / chainBones.length;
+        // The sway quietens on an arm that is crawling.
         const wave = reduced
           ? 0
-          : Math.sin(omega * t + k * 0.55 + i * 1.7) * 0.11 * reach;
+          : Math.sin(omega * t + k * 0.55 + i * 1.7) *
+            0.11 *
+            reach *
+            (sideArm ? 1 - 0.8 * moving : 1);
         let up = reduced
           ? 0.02
           : 0.025 +
             0.03 * (0.5 + 0.5 * Math.sin(omega * 0.7 * t + k * 0.8 + i * 2.3)) * reach;
         let yaw = wave * (1 - raise);
-        if (k === 0) {
-          up += Math.max(0, crawl) * 0.28 * stepping;
-          // Swing the reaching arms forward: about +y, forward needs the sign of the arm's x.
-          yaw += Math.cos(this.gait + group) * 0.22 * moving * Math.sign(dir.x || 1);
+        if (k === 0 && sideArm) {
+          // A side arm crawls as a foot walks: down for half the cycle,
+          // pushing back at exactly the body's speed (linearly, so it stays
+          // put rather than surging), then lifted and eased forward again. It
+          // swings about its root, 0.14 m out, so its floor contact is about
+          // 0.38 m from the pivot: a swing of A each way moves it 4 r A |x|
+          // per cycle. Forward along the walk is the sign of the arm's x.
+          const reachA = Math.min(0.45, speed / (4 * 0.38 * Math.abs(dir.x) * cadence));
+          const forward = u < 0.5 ? 1 - 4 * u : -1 + 2 * smooth(0, 1, (u - 0.5) / 0.5);
+          yaw += forward * reachA * moving * Math.sign(dir.x);
+          if (u >= 0.5) up += Math.sin(Math.PI * ((u - 0.5) / 0.5)) * 0.28 * stepping;
+        } else if (k === 0) {
+          // Arms that point ahead or behind cannot push along the walk: they
+          // are carried just clear of the floor while he moves.
+          // Turning on the spot, they shuffle.
+          up +=
+            0.2 * moving +
+            Math.max(0, Math.sin(this.gait)) * 0.1 * Math.max(0, stepping - moving);
         }
         // A raised arm: up at the root, the tip curling over.
         up +=
@@ -685,10 +815,78 @@ export class FigureAnimator {
     // The lids follow the eyes down, a little.
     const follow = Math.min(0, this.eyePitch) * 0.6 + Math.max(0, this.eyePitch) * 0.2;
     for (const lid of [face.lidL, face.lidR])
-      setEuler(bones[lid]!, -close * 0.98 - follow, 0, 0);
+      setEuler(bones[lid]!, -close * 0.98 + follow, 0, 0);
     for (const eye of [face.eyeL, face.eyeR])
       setEuler(bones[eye]!, this.eyePitch, this.eyeYaw, 0);
     const m = bones[face.mouth]!;
     m.scale.set(1 - 0.15 * this.mouth, 1 + 2.3 * this.mouth, 1);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Walking a route                                                     */
+/* ------------------------------------------------------------------ */
+
+/** An unhurried 1.35 m/s through the lab, easing in and out. */
+export const WALK = { top: 1.35, accel: 1.6, brake: 1.3 };
+
+/** A figure's walk along a route of waypoints (the start is where it stands). */
+export interface RouteWalk {
+  x: number;
+  z: number;
+  route: readonly { x: number; z: number }[];
+  /** The next waypoint; `route.length` once arrived. */
+  leg: number;
+  speed: number;
+}
+
+export function arrived(w: RouteWalk) {
+  return w.leg >= w.route.length;
+}
+
+/**
+ * Move along the route by one frame: accelerate to a walk, brake so as to
+ * stop on the last point, and consume waypoints as they are reached. Within
+ * a millimetre of the end the walk snaps there and is over, whatever the frame
+ * rate — a figure that stopped short would never turn to the table.
+ */
+export function followRoute(w: RouteWalk, dt: number) {
+  let left = 0,
+    px = w.x,
+    pz = w.z;
+  for (let i = w.leg; i < w.route.length; i++) {
+    left += Math.hypot(w.route[i]!.x - px, w.route[i]!.z - pz);
+    px = w.route[i]!.x;
+    pz = w.route[i]!.z;
+  }
+  if (left < 1e-3) {
+    const end = w.route[w.route.length - 1];
+    if (end) {
+      w.x = end.x;
+      w.z = end.z;
+    }
+    w.leg = w.route.length;
+    w.speed = 0;
+    return;
+  }
+  const want = Math.min(WALK.top, Math.sqrt(2 * WALK.brake * left));
+  w.speed =
+    w.speed < want
+      ? Math.min(want, w.speed + WALK.accel * dt)
+      : Math.max(want, w.speed - WALK.brake * 2 * dt);
+  let step = Math.max(w.speed, 0.08) * dt;
+  while (step > 0 && w.leg < w.route.length) {
+    const to = w.route[w.leg]!;
+    const d = Math.hypot(to.x - w.x, to.z - w.z);
+    if (d <= step) {
+      w.x = to.x;
+      w.z = to.z;
+      step -= d;
+      w.leg++;
+    } else {
+      w.x += ((to.x - w.x) / d) * step;
+      w.z += ((to.z - w.z) / d) * step;
+      step = 0;
+    }
   }
 }
