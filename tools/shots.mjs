@@ -9,13 +9,13 @@
  * fixed cameras, fixed framing, one command.
  *
  *   node tools/shots.mjs                       -> all of them, in order
- *   node tools/shots.mjs --only blacksite      (twin | lens | blacksite | debrief | white-paper)
+ *   node tools/shots.mjs --only blacksite      (twin | lens | blacksite | debrief | lab | white-paper)
  *   node tools/shots.mjs --origin http://localhost:5199
  *
  * It writes docs/screenshot-overview.png, docs/screenshot-dossier.png,
  * docs/screenshot-lens.png, docs/screenshot-blacksite.png,
- * docs/screenshots/debrief.png and
- * docs/white-paper.png. The two Bethesda images in docs/screenshots/ are
+ * docs/screenshots/debrief.png, the four R.A.I.N. Lab rooms in
+ * docs/screenshots/rain-lab-*.png and docs/white-paper.png. The two Bethesda images in docs/screenshots/ are
  * `node tools/bethesda-look.mjs`'s street-detail.png and survey-detail.png,
  * captured against a preview of dist/.
  *
@@ -26,7 +26,7 @@
  */
 
 import puppeteer from "puppeteer";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -439,10 +439,143 @@ async function captureWhitePaper() {
   await page.close();
 }
 
+/* ------------------------------------------------------------------ */
+/* The R.A.I.N. Lab                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The lab, walked the way `tools/rain-lab.mjs` walks its LIVE preview: in
+ * through Bethesda's telemetry, a question to the runtime the site's own
+ * server holds, the DEMO's proposal stopped at the human boundary, then
+ * authorized, pre-registered, run and verified by replay. Four rooms, four
+ * frames, each taken when the room says what its caption says.
+ *
+ * It needs the research runtime on (the dev server and a plain preview both
+ * run it in-process, offline engine, nothing configured) and touches no model
+ * and no network: the meeting is the offline engine's scripted one, and the
+ * run is Bethesda's own simulator in a worker. The question is the DEMO
+ * recording's, so the meeting pictured is the recording's, word for word.
+ */
+async function captureLab() {
+  console.log("R.A.I.N. Lab:");
+  const demo = JSON.parse(
+    await readFile(
+      new URL("../src/bethesda/rain/fixtures/demo-meeting.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const status = await (await fetch(`${origin}/api/rain/status`)).json();
+  if (status.configured !== true)
+    throw new Error(
+      "R.A.I.N. Lab: the runtime is off on this server; serve it with nothing configured",
+    );
+  const page = await browser.newPage();
+  page.setDefaultTimeout(180000);
+  await page.setViewport({ width: 1600, height: 900 });
+  const waitText = (text, timeout = 180000) =>
+    page.waitForFunction((t) => document.body.innerText.includes(t), { timeout }, text);
+  const click = (prefix) =>
+    page.evaluate((prefix) => {
+      const b = [...document.querySelectorAll("button")].find((b) =>
+        b.textContent.trim().startsWith(prefix),
+      );
+      if (!b) throw new Error(`R.A.I.N. Lab: no button “${prefix}”`);
+      b.click();
+    }, prefix);
+  const settle = (n = 24) =>
+    page.evaluate(
+      (n) =>
+        new Promise((done) => {
+          let i = 0;
+          const f = () => (++i >= n ? done() : requestAnimationFrame(f));
+          requestAnimationFrame(f);
+        }),
+      n,
+    );
+
+  // Into Bethesda by its coordinates, then into the lab by its phrase.
+  await page.goto(`${origin}/?quality=${quality}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 90000,
+  });
+  await waitText("EVIDENCE TIMELINE", 90000);
+  await page.keyboard.press("Backquote");
+  await page.waitForSelector("#anomaly-coordinate");
+  await page.focus("#anomaly-coordinate");
+  await page.keyboard.sendCharacter("38.9847,-77.0947");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-bethesda="active"]');
+  await click("~ telemetry");
+  await page.waitForSelector("#city-event");
+  await page.focus("#city-event");
+  await page.keyboard.sendCharacter("resolve r.a.i.n.");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-rain-lab="active"]');
+  await waitText("RUNTIME LIVE");
+  await settle(40);
+  await shoot(page, "docs/screenshots/rain-lab-threshold.png");
+
+  // The Research Panel: the offline engine's meeting, every turn shown, and
+  // R.A.I.N.'s plates saying where the room stands.
+  await click("Research Panel");
+  await page.waitForSelector("#rain-question");
+  await page.focus("#rain-question");
+  await page.keyboard.sendCharacter(demo.question);
+  await click("Ask R.A.I.N.");
+  await waitText("R.A.I.N.'s offline engine answered");
+  await click("Show all ");
+  await waitText("WHERE THE ROOM STANDS");
+  await settle();
+  await shoot(page, "docs/screenshots/rain-lab-meeting.png");
+
+  // The Experiment Bay at the boundary: the protocol in full, nothing run.
+  await click("Experiment Bay");
+  await click("Load the DEMO's scripted proposal");
+  await waitText("AWAITING HUMAN APPROVAL");
+  await settle();
+  await shoot(page, "docs/screenshots/rain-lab-protocol.png");
+
+  // Authorize with the digest's own prefix, pre-register, run, and verify.
+  const sha = await page.evaluate(
+    () => document.querySelector("aside code.break-all")?.textContent ?? "",
+  );
+  const prefix = await page.evaluateHandle(() =>
+    [...document.querySelectorAll("label")]
+      .find((l) => l.textContent.trim().startsWith("First 8 characters"))
+      ?.querySelector("input"),
+  );
+  await prefix.asElement().type(sha.slice(0, 8));
+  await page.evaluate(() =>
+    document.querySelector('aside input[type="checkbox"]').click(),
+  );
+  await click("Authorize this definition");
+  await click("Pre-register with R.A.I.N., run, and report the measurements");
+  await waitText("pre-registered with R.A.I.N. as");
+  await page.waitForFunction(
+    () => !document.body.innerText.includes("EXPERIMENT RUNNING"),
+    { timeout: 300000 },
+  );
+  await click("Registry / Archive");
+  await waitText("R.A.I.N.'S OWN RECORD");
+  await click("Verify by replay (no model)");
+  await page.waitForFunction(
+    () => /Verified: every arm|Verification FAILED/.test(document.body.innerText),
+    { timeout: 300000 },
+  );
+  if (
+    !(await page.evaluate(() => document.body.innerText)).includes("Verified: every arm")
+  )
+    throw new Error("R.A.I.N. Lab: the record did not verify by replay");
+  await settle();
+  await shoot(page, "docs/screenshots/rain-lab-record.png");
+  await page.close();
+}
+
 if (!only || only === "twin") await captureTwin();
 if (!only || only === "lens") await captureLens();
 if (!only || only === "blacksite") await captureBlacksite();
 if (!only || only === "debrief") await captureDebrief();
+if (!only || only === "lab") await captureLab();
 if (!only || only === "white-paper") await captureWhitePaper();
 
 await browser.close();
