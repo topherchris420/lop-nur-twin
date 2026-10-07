@@ -409,6 +409,14 @@ plate instrument, its figures (after the Vers3Dynamics Cymatics studio) followin
 the runtime's state — deliberation, convergence, uncertainty, an experiment, a
 result, and a case waiting for a person — and never standing for evidence.
 
+![The R.A.I.N. Lab's Research Panel: R.A.I.N.'s large Chladni plate in front of the evidence table with the four perspectives' small plates around it, three of the perspectives in view, and the panel showing a LIVE meeting from the scripted offline engine, its resonance reading Unresolved and James's first turn quoting a source verified verbatim](docs/screenshots/rain-lab-meeting.png)
+
+_The Research Panel after a question to the runtime this site's server holds. The meeting is the offline engine's, labelled scripted with no model run; the plates read "unresolved" because the corpus grounding was partial, and they say so in words beside the picture._
+
+![The R.A.I.N. Lab's Registry: a run's record with its limitations, its provenance (this repository's commit, the DEMO recording's R.A.I.N. revision, no provider and no model) and replay re-simulating every arm identically without contacting a model](docs/screenshots/rain-lab-record.png)
+
+_The same question's experiment after a person authorized it, run on three matched seeds and verified by replay. In frame: what the record cannot establish, where every part of it came from, and each arm re-simulated._
+
 Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
 scenario limits, model authority and replay compatibility, and the
 [R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for the lab.

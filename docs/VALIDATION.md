@@ -321,7 +321,9 @@ about almost everything.
 Captures are review evidence, not project assets: `shots/` and
 `render_output*.png` are gitignored, and the no-binary-assets rule means they
 must never be committed. `bun run shots` regenerates the documentation's
-screenshots of the twin and Blacksite and the white paper's page image, and
+screenshots of the twin, Blacksite and the R.A.I.N. Lab and the white paper's
+page image (the lab's four need the research runtime on, as the dev server and
+a plain preview both have it), and
 `node tools/bethesda-look.mjs` captures the two of Bethesda (its
 `street-detail.png` and `survey-detail.png`); only commit their output when a
 screenshot genuinely needs to change.

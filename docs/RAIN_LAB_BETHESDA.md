@@ -333,6 +333,13 @@ calibrated, and the lab never presents one as R.A.I.N.'s confidence.
 
 ## The rooms
 
+![The Threshold: the lab's three rules on the wall, the Research Panel ahead with R.A.I.N.'s plate in front of its table, the room list and the runtime reported LIVE with the offline engine at the commit it runs](screenshots/rain-lab-threshold.png)
+
+_The Threshold on entering from Bethesda: "Inference is not evidence. Evidence
+is not permission. Confidence is not authority." The panel names the runtime
+the site's server holds, its engine and its commit, and that the reasoning
+text is scripted._
+
 | Room               | Hint shown on entering                                                     | What is there                                                                                                                                                                                                                                                                           |
 | :----------------- | :------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Threshold          | The lab's rules are written here. The door behind you returns to Bethesda. | the principle, the rules, the way back                                                                                                                                                                                                                                                  |
@@ -380,6 +387,13 @@ their source file, line and character span and whether they were verified
 verbatim. Where the record shows the perspectives disagreeing, the panel keeps
 the positions as separate branches. Confidence is never animated, and agreement
 among the four is described as agreement, never as validation.
+
+![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, three of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
+
+_A LIVE meeting from the offline engine on the DEMO question, labelled
+`SCRIPTED · NO MODEL RAN`. James's turn quotes `Dynamic Resonance
+Rooting.md:230`, characters 12529–12679, verified verbatim; the plates read
+unresolved, and the panel says why in words._
 
 ## R.A.I.N.'s resonance
 
@@ -558,6 +572,12 @@ dots, underscores and hyphens, so no spaces and no e-mail address), with
 signature. Any change to the definition voids it, and the runner refuses to
 start without a record that matches.
 
+![The Experiment Bay with the DEMO's hand-written proposal awaiting human approval: its origin stated, and the protocol a person reviews before anything runs — question, hypothesis, control, treatment, primary metric, seeds and failure condition](screenshots/rain-lab-protocol.png)
+
+_The boundary. The DEMO's proposal says it was written by hand and that no
+model or R.A.I.N. process produced it; nothing has run, and nothing will until
+a person authorizes definition `BX-f3c942dcf48a` by its digest._
+
 ### Matched runs
 
 Each seed runs twice on simulators the runner builds for itself — never the
@@ -700,6 +720,12 @@ sealed by a SHA-256 over the rest.
 - **Reproduce** re-validates the same proposal and, once authorized again, runs
   it fresh and compares the outcome, every measurement and every arm's final
   state with the original, listing any difference.
+
+![The Registry after a run verified by replay: the record's limitations, its provenance and every arm re-simulated identically, with no model contacted](screenshots/rain-lab-record.png)
+
+_That definition after authorization, pre-registration with the runtime and
+a run on seeds 101, 202 and 303. In frame: its limitations, its provenance
+(provider none, model none) and the replay, arm by arm._
 
 ## Provenance
 

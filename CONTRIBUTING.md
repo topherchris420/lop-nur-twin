@@ -199,7 +199,7 @@ table at every tier.
   `evidenceLedgerHash` moving means a claim changed. Those need different
   scrutiny, and `/compare` will tell a reviewer which happened.
 - **Regenerate nothing you did not intend to.** `bun run shots` rewrites the
-  committed screenshots of the twin, Blacksite and the white paper; only
+  committed screenshots of the twin, Blacksite, the R.A.I.N. Lab and the white paper; only
   include its output when a screenshot genuinely needed to change. Captures under `shots/` and `render_output*.png` are review
   evidence and are gitignored.
 - **CI runs on every pull request**, from forks included, with
