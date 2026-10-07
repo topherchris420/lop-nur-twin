@@ -201,7 +201,10 @@ if (!only || only === "city") {
   // wheel event aimed at the middle of the screen.
   for (let i = 0; i < 14; i++) {
     await page.evaluate(() => {
-      const canvas = document.querySelector('[data-bethesda="active"] canvas');
+      // The city's view is the largest canvas; the minimap is another.
+      const canvas = [
+        ...document.querySelectorAll('[data-bethesda="active"] canvas'),
+      ].sort((a, b) => b.width * b.height - a.width * a.height)[0];
       canvas?.dispatchEvent(
         new WheelEvent("wheel", { deltaY: -500, bubbles: true, cancelable: true }),
       );
