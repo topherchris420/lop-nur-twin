@@ -9,6 +9,7 @@ import {
   gridEastingNorthing,
   measurementSummary,
   pathTotalM,
+  positionalStatement,
   snapWorldPoint,
   straightLineM,
   type MeasurePoint,
@@ -19,6 +20,7 @@ import {
   RUNWAYS,
   RUNWAY_CENTER,
   SITE_SIZE,
+  getStructure,
   segmentLength,
 } from "./layout";
 import { SITE_PROFILE } from "./siteData";
@@ -222,14 +224,70 @@ describe("measurementSummary", () => {
     expect(summary).toContain(`E ${GRID_EASTING_ORIGIN.toFixed(0)}`);
   });
 
-  it("carries the uncertainty caveat into anything pasted out of the tool", () => {
+  it("carries the caveat into anything pasted out of the tool", () => {
     const summary = measurementSummary([point(0, 0), point(500, 0)]);
-    expect(summary).toContain(
-      `~${SITE_PROFILE.runway.endpointUncertaintyM} m uncertainty`,
-    );
     expect(summary).toContain("Not an aeronautical survey");
     expect(summary).toContain("Leg 1→2");
     expect(summary).toContain("Path total:");
+  });
+
+  it("states each endpoint's positional error from its own evidence, never a site-wide figure", () => {
+    const runway = RUNWAYS[0]!;
+    const threshold: MeasurePoint = {
+      x: runway.from[0],
+      z: runway.from[1],
+      snappedTo: "Runway 05 threshold",
+      subjectId: runway.id,
+    };
+    const hangar = getStructure("hangar-main")!;
+    const building: MeasurePoint = {
+      x: hangar.position[0],
+      z: hangar.position[1],
+      snappedTo: hangar.name,
+      subjectId: hangar.id,
+    };
+    const free = point(123, 456);
+
+    // The runway's thresholds are the one place a positional error is stated.
+    expect(positionalStatement(threshold)).toContain(
+      `±${SITE_PROFILE.runway.endpointUncertaintyM} m`,
+    );
+    // A building has only a resolution floor, and it is called one.
+    expect(positionalStatement(building)).toMatch(
+      /^positional error not stated; at least \d+ m/,
+    );
+    expect(positionalStatement(building)).not.toContain("±");
+    expect(positionalStatement(free)).toContain("free point");
+
+    const summary = measurementSummary([threshold, building, free]);
+    expect(summary.match(/±/g)).toHaveLength(1);
+    expect(summary).not.toContain("endpoints carry");
+  });
+
+  it("does not quote a subject's evidence for a point that is not on its vertex", () => {
+    const hangar = getStructure("hangar-main")!;
+    const moved: MeasurePoint = {
+      x: hangar.position[0] + 5,
+      z: hangar.position[1],
+      snappedTo: hangar.name,
+      subjectId: hangar.id,
+    };
+    expect(positionalStatement(moved)).toBe(
+      "positional error not recorded with this point",
+    );
+    // A legacy point names its vertex but carries no subject.
+    expect(positionalStatement(point(0, 0, "Runway center"))).toBe(
+      "positional error not recorded with this point",
+    );
+  });
+
+  it("records the timeline date and evidence mode when given them", () => {
+    const summary = measurementSummary([point(0, 0)], {
+      snapshotDate: "2021-06-30",
+      evidenceMode: "observed",
+    });
+    expect(summary).toContain("Evidence timeline: 2021-06-30");
+    expect(summary).toContain("Observed only");
   });
 
   it("is deterministic", () => {

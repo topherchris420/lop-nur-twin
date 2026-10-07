@@ -48,7 +48,11 @@ export interface BookmarkPanelProps {
   /** Hashes identifying the model this build serves. */
   provenance: BookmarkProvenance;
   /** Hashes to check saved bookmarks against; null while the manifest is unread. */
-  currentModel: { geometryHash?: string; evidenceLedgerHash?: string } | null;
+  currentModel: {
+    geometryHash?: string;
+    evidenceLedgerHash?: string;
+    manifestSchemaVersion?: string;
+  } | null;
   /** Applies a saved view to the live application. Omitted where that is not possible. */
   onOpen?: (bookmark: Bookmark) => void;
   density?: "compact" | "comfortable";

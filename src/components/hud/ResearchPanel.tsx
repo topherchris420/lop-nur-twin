@@ -34,6 +34,7 @@ import type { Bookmark } from "@/lib/bookmarks";
 import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { useTwinStore } from "@/lib/store";
+import { telemetry } from "@/lib/telemetry";
 
 const ROLE_LABELS: Record<PublicSource["role"], string> = {
   imagery: "Imagery",
@@ -76,7 +77,24 @@ export function ResearchPanel() {
    */
   const captureView = useCallback(() => {
     const state = useTwinStore.getState();
+    // The camera is read from the telemetry the rigs write each frame, and
+    // only once a frame has been drawn: before that it holds placeholders.
+    const camera = state.ready
+      ? {
+          cameraPosition: [telemetry.x, telemetry.y, telemetry.z] as [
+            number,
+            number,
+            number,
+          ],
+          cameraTarget: [telemetry.targetX, 0, telemetry.targetZ] as [
+            number,
+            number,
+            number,
+          ],
+        }
+      : {};
     return {
+      ...camera,
       cameraMode: state.cameraMode,
       snapshotDate: state.snapshotDate,
       comparisonDate: state.comparisonDate,
@@ -428,10 +446,11 @@ export function ResearchPanel() {
             Bookmarks
           </h2>
           <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
-            Saves the whole analytical position — camera, date, evidence mode, selection
-            and measurement path — with the hashes of the model it was taken against, so
-            reopening it on a changed build says so. Stored in this browser only. Full
-            management, including import and export, is on the analysis page.
+            Saves the analytical position — the point the camera is looking at, date,
+            evidence mode, selection and measurement path — with the hashes of the model
+            it was taken against, so reopening it on a changed build says so. Stored in
+            this browser only. Full management, including import and export, is on the
+            analysis page.
           </p>
           <BookmarkPanel
             captureView={captureView}
@@ -441,17 +460,15 @@ export function ResearchPanel() {
                     geometryHash: manifest.manifest.geometryHash,
                     evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
                     modelVersion: manifest.manifest.modelVersion,
+                    ...(manifest.manifest.manifestSchemaVersion === undefined
+                      ? {}
+                      : {
+                          manifestSchemaVersion: manifest.manifest.manifestSchemaVersion,
+                        }),
                   }
                 : {}
             }
-            currentModel={
-              manifest.status === "ready"
-                ? {
-                    geometryHash: manifest.manifest.geometryHash,
-                    evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
-                  }
-                : null
-            }
+            currentModel={manifest.status === "ready" ? manifest.manifest : null}
             onOpen={applyBookmark}
             density="compact"
             className="mt-2"

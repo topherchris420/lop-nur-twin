@@ -775,7 +775,19 @@ export function getEvidenceRecord(id: string): EvidenceRecord | undefined {
 export function getUncertaintyForSubject(
   subjectId: string,
 ): UncertaintyEnvelope | undefined {
-  const envelopes = getEvidenceForSubject(subjectId)
+  return widestUncertainty(getEvidenceForSubject(subjectId));
+}
+
+/**
+ * The widest envelope across a set of records — the merge
+ * `getUncertaintyForSubject` applies to a subject's whole ledger, exposed so a
+ * timeline snapshot can apply the same merge to the records knowable at its
+ * date instead of picking one record's envelope.
+ */
+export function widestUncertainty(
+  records: readonly EvidenceRecord[],
+): UncertaintyEnvelope | undefined {
+  const envelopes = records
     .map((record) => record.uncertainty)
     .filter((envelope): envelope is UncertaintyEnvelope => envelope !== undefined);
   const first = envelopes[0];
@@ -863,7 +875,10 @@ export function getUncertaintyForSubject(
  * does not rely on that.
  *
  * - `model-internal` — the claim originates in this repository. It is available
- *   to the model at every date and asserts nothing about the site.
+ *   to the model at every date and asserts nothing about the site. Every
+ *   illustrative record is one: it may name the scene it was checked against,
+ *   but that scene does not resolve it, so the scene's date is not a date on
+ *   which anything about it became known.
  * - `undated` — an external source with no publication date is never placed on
  *   the evidence timeline, rather than being given a guessed date.
  */
@@ -874,6 +889,7 @@ export type RecordKnowability =
 
 export function recordKnowability(record: EvidenceRecord): RecordKnowability {
   if (record.sourceId === MODEL_INTERNAL_SOURCE_ID) return { kind: "model-internal" };
+  if (record.classification === "illustrative") return { kind: "model-internal" };
   if (record.sourceDate === undefined) return { kind: "undated" };
   const observedBy = record.uncertainty?.latestDate;
   return {

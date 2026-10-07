@@ -94,6 +94,12 @@ export interface BookmarkProvenance {
   geometryHash?: string;
   evidenceLedgerHash?: string;
   modelVersion?: string;
+  /**
+   * The manifest schema the hashes were written under. Hashes are compared only
+   * within one schema: 1.2.0 narrowed `geometryHash` to placement, so the same
+   * model hashes differently before and after it.
+   */
+  manifestSchemaVersion?: string;
 }
 
 export interface Bookmark {
@@ -162,10 +168,19 @@ function readMeasurePoints(value: unknown): readonly MeasurePoint[] {
     if (typeof x !== "number" || !Number.isFinite(x)) continue;
     if (typeof z !== "number" || !Number.isFinite(z)) continue;
     const snappedTo = safeString(entry["snappedTo"], 120);
+    const subjectId = entry["subjectId"];
     points.push({
       x: clampNumber(x, -100_000, 100_000, 0),
       z: clampNumber(z, -100_000, 100_000, 0),
       snappedTo: snappedTo ?? null,
+      // A file's word for which subject a point sits on is kept only if it is
+      // a well-formed id; `positionalStatement` then also requires the point to
+      // lie exactly on that subject's vertex before quoting its evidence.
+      ...(snappedTo !== undefined &&
+      typeof subjectId === "string" &&
+      ID_PATTERN.test(subjectId)
+        ? { subjectId }
+        : {}),
     });
   }
   return points;
@@ -220,7 +235,13 @@ function readProvenance(value: unknown): BookmarkProvenance {
     return typeof raw === "string" && /^sha256:[0-9a-f]{64}$/.test(raw) ? raw : undefined;
   };
   const modelVersion = safeString(source["modelVersion"], 32);
+  const schema = source["manifestSchemaVersion"];
+  const manifestSchemaVersion =
+    typeof schema === "string" && /^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(schema)
+      ? schema
+      : undefined;
   return {
+    ...(manifestSchemaVersion === undefined ? {} : { manifestSchemaVersion }),
     ...(hash("geometryHash") === undefined ? {} : { geometryHash: hash("geometryHash") }),
     ...(hash("evidenceLedgerHash") === undefined
       ? {}
@@ -522,7 +543,11 @@ export interface ReproducibilityCheck {
  */
 export function checkReproducibility(
   bookmark: Bookmark,
-  current: { geometryHash?: string; evidenceLedgerHash?: string } | null,
+  current: {
+    geometryHash?: string;
+    evidenceLedgerHash?: string;
+    manifestSchemaVersion?: string;
+  } | null,
 ): ReproducibilityCheck {
   const saved = bookmark.provenance;
   if (
@@ -534,6 +559,14 @@ export function checkReproducibility(
       verdict: "unknown",
       message:
         "Cannot be checked: this bookmark or this build carries no geometry hash. Run `bun run manifest` so the model identifies itself.",
+    };
+  }
+  // Two hashes written under different schemas can differ while the model is
+  // the same, so comparing them would report a move that never happened.
+  if (saved.manifestSchemaVersion !== current.manifestSchemaVersion) {
+    return {
+      verdict: "unknown",
+      message: `Cannot be checked: this view was saved under manifest schema ${saved.manifestSchemaVersion ?? "1.1.0 or earlier"} and this build writes ${current.manifestSchemaVersion ?? "an unstated schema"}, whose hashes are computed differently. Save the view again to check it from now on.`,
     };
   }
   if (saved.geometryHash !== current.geometryHash) {

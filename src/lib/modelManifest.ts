@@ -19,6 +19,8 @@ export const MODEL_MANIFEST_PATH = "/model-manifest.json";
 export interface ModelManifest {
   modelName: string;
   modelVersion: string;
+  /** Absent from manifests written before the schema carried a version. */
+  manifestSchemaVersion?: string;
   generatedAt: string;
   coordinateReferenceSystem: string;
   evidenceRecordCount: number;

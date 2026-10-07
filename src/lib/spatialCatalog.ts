@@ -2,7 +2,9 @@ import {
   ALL_SEGMENTS,
   APRONS,
   STRUCTURES,
+  apronCorners,
   isAircraft,
+  structureCorners,
   type ApronDef,
   type SegmentDef,
   type StructureDef,
@@ -46,39 +48,8 @@ function closeRing(points: readonly LocalPoint[]): LocalRing {
   return Object.freeze([...points, points[0]!]);
 }
 
-function orientedRectangle(
-  center: readonly [number, number],
-  width: number,
-  depth: number,
-  rotation: number,
-): LocalRing {
-  if (!Number.isFinite(center[0]) || !Number.isFinite(center[1])) {
-    throw new RangeError("rectangle center must be finite");
-  }
-  if (!Number.isFinite(width) || !Number.isFinite(depth) || width <= 0 || depth <= 0) {
-    throw new RangeError("rectangle dimensions must be positive finite numbers");
-  }
-  if (!Number.isFinite(rotation)) {
-    throw new RangeError("rectangle rotation must be finite");
-  }
-
-  const halfWidth = width / 2;
-  const halfDepth = depth / 2;
-  const cosine = Math.cos(rotation);
-  const sine = Math.sin(rotation);
-
-  const corners = (
-    [
-      [-halfWidth, -halfDepth],
-      [halfWidth, -halfDepth],
-      [halfWidth, halfDepth],
-      [-halfWidth, halfDepth],
-    ] as const
-  ).map(([x, z]) =>
-    freezePoint(center[0] + x * cosine - z * sine, center[1] + x * sine + z * cosine),
-  );
-
-  return closeRing(corners);
+function cornerRing(corners: readonly (readonly [number, number])[]): LocalRing {
+  return closeRing(corners.map(([x, z]) => freezePoint(x, z)));
 }
 
 function segmentFootprint(segment: SegmentDef): LocalRing {
@@ -106,17 +77,16 @@ function segmentFootprint(segment: SegmentDef): LocalRing {
   ]);
 }
 
+/**
+ * Corners come from `layout.ts`, which places them the way the scene does.
+ * Deriving them here once mirrored every rotated structure.
+ */
 function structureFootprint(structure: StructureDef): LocalRing {
-  return orientedRectangle(
-    structure.position,
-    structure.size[0],
-    structure.size[2],
-    structure.rotation,
-  );
+  return cornerRing(structureCorners(structure));
 }
 
 function apronFootprint(apron: ApronDef): LocalRing {
-  return orientedRectangle(apron.center, apron.size[0], apron.size[1], apron.rotation);
+  return cornerRing(apronCorners(apron));
 }
 
 function subjectKind(source: StructureDef | SegmentDef | ApronDef): SpatialSubjectKind {

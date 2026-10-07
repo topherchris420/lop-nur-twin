@@ -253,13 +253,7 @@ function AnalysisView() {
     };
   }, [highlighted]);
 
-  const currentModel =
-    manifest.status === "ready"
-      ? {
-          geometryHash: manifest.manifest.geometryHash,
-          evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
-        }
-      : null;
+  const currentModel = manifest.status === "ready" ? manifest.manifest : null;
   const spatialIdentity =
     manifest.status === "ready"
       ? {
@@ -777,12 +771,13 @@ function AnalysisView() {
             Bookmarks
           </h2>
           <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
-            A saved analytical position: camera, date, evidence mode, selection,
-            measurement path &mdash; and the two hashes identifying the model it was taken
-            against, so reopening it against a changed build says so instead of quietly
-            showing you something else. Stored in this browser only. A shareable link
-            carries the view settings; the note, the tags and the measurement path never
-            leave this machine.
+            A saved analytical position: date, evidence mode, selection, measurement path
+            and, for a view saved in the 3D twin, the point its camera was looking at
+            &mdash; and the two hashes identifying the model it was taken against, so
+            reopening it against a changed build says so instead of quietly showing you
+            something else. Stored in this browser only. A shareable link carries the view
+            settings; the note, the tags and the measurement path never leave this
+            machine.
           </p>
           <BookmarkPanel
             captureView={captureView}
@@ -792,6 +787,11 @@ function AnalysisView() {
                     geometryHash: manifest.manifest.geometryHash,
                     evidenceLedgerHash: manifest.manifest.evidenceLedgerHash,
                     modelVersion: manifest.manifest.modelVersion,
+                    ...(manifest.manifest.manifestSchemaVersion === undefined
+                      ? {}
+                      : {
+                          manifestSchemaVersion: manifest.manifest.manifestSchemaVersion,
+                        }),
                   }
                 : {}
             }

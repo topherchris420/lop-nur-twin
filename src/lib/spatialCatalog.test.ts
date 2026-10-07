@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import {
   ALL_SEGMENTS,
@@ -26,27 +27,49 @@ function sortCorners(points: readonly LocalPoint[]): readonly LocalPoint[] {
   );
 }
 
-function expectedRectangle(
-  center: readonly [number, number],
+/**
+ * The independent reference: the corners the scene actually renders, read off
+ * the same Three.js transforms `Structures.tsx` and `Pavements.tsx` apply.
+ * An earlier version of this test re-derived the catalog's own formula and so
+ * agreed with it while every rotated building was exported as its mirror image.
+ */
+function renderedCorners(
+  object: THREE.Object3D,
   width: number,
   depth: number,
-  rotation: number,
+  plane: boolean,
 ): LocalRing {
-  const halfWidth = width / 2;
-  const halfDepth = depth / 2;
-  const cosine = Math.cos(rotation);
-  const sine = Math.sin(rotation);
+  object.updateMatrixWorld(true);
   const offsets: readonly LocalPoint[] = [
-    [-halfWidth, -halfDepth],
-    [halfWidth, -halfDepth],
-    [halfWidth, halfDepth],
-    [-halfWidth, halfDepth],
+    [-width / 2, -depth / 2],
+    [width / 2, -depth / 2],
+    [width / 2, depth / 2],
+    [-width / 2, depth / 2],
   ];
-  const corners: readonly LocalPoint[] = offsets.map(([x, z]) => [
-    center[0] + x * cosine - z * sine,
-    center[1] + x * sine + z * cosine,
-  ]);
+  const corners: readonly LocalPoint[] = offsets.map(([a, b]) => {
+    // A structure's footprint lies in its local XZ plane; an apron is a
+    // PlaneGeometry, whose extent lies in its local XY plane.
+    const local = plane ? new THREE.Vector3(a, b, 0) : new THREE.Vector3(a, 0, b);
+    const world = local.applyMatrix4(object.matrixWorld);
+    return [world.x, world.z];
+  });
   return [...corners, corners[0]!] as LocalRing;
+}
+
+function renderedStructure(def: StructureDef): LocalRing {
+  // `StructureNode`: <group position={[x, 0, z]} rotation={[0, rotation, 0]}>.
+  const group = new THREE.Group();
+  group.position.set(def.position[0], 0, def.position[1]);
+  group.rotation.set(0, def.rotation, 0);
+  return renderedCorners(group, def.size[0], def.size[2], false);
+}
+
+function renderedApron(def: ApronDef): LocalRing {
+  // `ApronSlab`: <mesh rotation={[-π/2, 0, -rotation]}><planeGeometry args={size} />.
+  const mesh = new THREE.Object3D();
+  mesh.position.set(def.center[0], 0, def.center[1]);
+  mesh.rotation.set(-Math.PI / 2, 0, -def.rotation);
+  return renderedCorners(mesh, def.size[0], def.size[1], true);
 }
 
 function expectedSegmentFootprint(segment: SegmentDef): LocalRing {
@@ -67,22 +90,8 @@ function expectedSegmentFootprint(segment: SegmentDef): LocalRing {
 }
 
 function expectedFootprint(subject: StructureDef | ApronDef | SegmentDef): LocalRing {
-  if ("position" in subject) {
-    return expectedRectangle(
-      subject.position,
-      subject.size[0],
-      subject.size[2],
-      subject.rotation,
-    );
-  }
-  if ("center" in subject) {
-    return expectedRectangle(
-      subject.center,
-      subject.size[0],
-      subject.size[1],
-      subject.rotation,
-    );
-  }
+  if ("position" in subject) return renderedStructure(subject);
+  if ("center" in subject) return renderedApron(subject);
   return expectedSegmentFootprint(subject);
 }
 
@@ -120,7 +129,12 @@ describe("spatial catalog", () => {
     ).toBe(false);
   });
 
-  it("closes every footprint ring and preserves the declared rectangle corners", () => {
+  it("closes every footprint ring on the corners the scene renders", () => {
+    // A mirrored rectangle coincides with the original only at multiples of
+    // 90°, so this is only a test if some footprint is rotated off-axis.
+    expect(
+      STRUCTURES.some((structure) => Math.abs(Math.sin(2 * structure.rotation)) > 0.1),
+    ).toBe(true);
     const expectedSubjects = [...STRUCTURES, ...ALL_SEGMENTS, ...APRONS];
     expect(expectedSubjects).toHaveLength(SPATIAL_SUBJECTS.length);
 

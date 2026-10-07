@@ -93,4 +93,14 @@ describe("inspectClaim", () => {
       expect(generated, structure.id).not.toMatch(/\b(verified|confirmed|official)\b/i);
     }
   });
+
+  it("gives illustrative content no evidence date, though it names a dated scene", () => {
+    for (const structure of STRUCTURES) {
+      const claim = inspectClaim(structure.id);
+      if (claim?.classification !== "illustrative") continue;
+      expect(claim.dates.firstPublished, structure.id).toBeUndefined();
+      expect(claim.dates.knowableFrom, structure.id).toBeUndefined();
+    }
+    expect(inspectClaim("solar-field")?.classification).toBe("illustrative");
+  });
 });

@@ -108,9 +108,19 @@ export function ClaimInspector({
           <dt className="text-muted-foreground">At the site</dt>
           <dd>{claim.dates.siteEvent}</dd>
           <dt className="text-muted-foreground">Evidence public</dt>
-          <dd>{claim.dates.firstPublished ?? "no publication date stated"}</dd>
+          <dd>
+            {claim.dates.firstPublished ??
+              (claim.classification === "illustrative"
+                ? "none: no cited source resolves it"
+                : "no publication date stated")}
+          </dd>
           <dt className="text-muted-foreground">Knowable from</dt>
-          <dd>{claim.dates.knowableFrom ?? "not on the evidence timeline"}</dd>
+          <dd>
+            {claim.dates.knowableFrom ??
+              (claim.classification === "illustrative"
+                ? "never: it is not a claim about the site"
+                : "not on the evidence timeline")}
+          </dd>
           <dt className="text-muted-foreground">Entered this model</dt>
           <dd>not recorded by this repository</dd>
         </dl>

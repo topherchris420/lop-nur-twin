@@ -375,6 +375,33 @@ describe("checkReproducibility", () => {
     ).toBe("unknown");
   });
 
+  it("refuses to compare hashes written under different manifest schemas", () => {
+    // 1.2.0 narrowed the geometry hash to placement, so an unchanged model
+    // hashes differently on either side of it; that is not a move.
+    const saved = {
+      ...bookmark(),
+      provenance: { geometryHash: HASH_A, evidenceLedgerHash: HASH_A },
+    };
+    const check = checkReproducibility(saved, {
+      geometryHash: HASH_B,
+      evidenceLedgerHash: HASH_A,
+      manifestSchemaVersion: "1.2.0",
+    });
+    expect(check.verdict).toBe("unknown");
+    expect(check.message).toContain("1.2.0");
+    const sameSchema = {
+      ...bookmark(),
+      provenance: { ...saved.provenance, manifestSchemaVersion: "1.2.0" },
+    };
+    expect(
+      checkReproducibility(sameSchema, {
+        geometryHash: HASH_B,
+        evidenceLedgerHash: HASH_A,
+        manifestSchemaVersion: "1.2.0",
+      }).verdict,
+    ).toBe("geometry-changed");
+  });
+
   it("always explains itself in words", () => {
     for (const current of [
       null,

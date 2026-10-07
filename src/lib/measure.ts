@@ -7,6 +7,8 @@ import {
   type SegmentDef,
 } from "./layout";
 import { SITE_PROFILE } from "./siteData";
+import { getUncertaintyForSubject } from "./evidence";
+import { EVIDENCE_MODE_META } from "./evidenceMode";
 import { DEFAULT_EVIDENCE_MODE, type EvidenceMode } from "./evidenceMode";
 import { isSubjectDrawn } from "./drawState";
 import { localToProjected } from "./geospatial";
@@ -28,6 +30,12 @@ export interface MeasurePoint {
   z: number;
   /** label of the modeled vertex this point snapped to, or null for a free click */
   snappedTo: string | null;
+  /**
+   * The layout subject the point snapped to. Absent for a free click, and for
+   * points saved before it was recorded: those can name their vertex but not
+   * say how well its position is known.
+   */
+  subjectId?: string;
 }
 
 /** A layout vertex a click can lock onto. */
@@ -42,6 +50,13 @@ export interface SnapTarget {
    * cannot see the endpoints of.
    */
   source: { id: string };
+  /**
+   * The subject whose evidence documents this vertex's position. For most
+   * vertices it is the layout subject itself; the runway's thresholds and
+   * centre are positioned by the runway measurements, the one place this model
+   * states a positional error.
+   */
+  positionedBy: string;
 }
 
 const CARDINALS = [
@@ -90,17 +105,27 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       z: RUNWAY_CENTER[1],
       label: "Runway center",
       source: runway,
+      positionedBy: "measurement-site-reference-coordinate",
     });
   }
   for (const segment of ALL_SEGMENTS) {
     const [fromLabel, toLabel] = segmentEndpointLabels(segment);
+    const positionedBy =
+      segment.id === runway?.id ? "measurement-runway-length" : segment.id;
     targets.push({
       x: segment.from[0],
       z: segment.from[1],
       label: fromLabel,
       source: segment,
+      positionedBy,
     });
-    targets.push({ x: segment.to[0], z: segment.to[1], label: toLabel, source: segment });
+    targets.push({
+      x: segment.to[0],
+      z: segment.to[1],
+      label: toLabel,
+      source: segment,
+      positionedBy,
+    });
   }
   for (const apron of APRONS) {
     targets.push({
@@ -108,6 +133,7 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       z: apron.center[1],
       label: `${apron.name} (center)`,
       source: apron,
+      positionedBy: apron.id,
     });
   }
   for (const structure of STRUCTURES) {
@@ -116,6 +142,7 @@ export const SNAP_TARGETS: readonly SnapTarget[] = (() => {
       z: structure.position[1],
       label: structure.name,
       source: structure,
+      positionedBy: structure.id,
     });
   }
   return targets;
@@ -203,17 +230,70 @@ export function formatBearingDeg(deg: number): string {
   return `${normalized.toFixed(0).padStart(3, "0")}° ${bearingCardinal(normalized)}`;
 }
 
+/** The snap target a recorded point sits on, if it names one. */
+function snapTargetOf(point: MeasurePoint): SnapTarget | undefined {
+  if (point.subjectId === undefined) return undefined;
+  return SNAP_TARGETS.find(
+    (target) =>
+      target.source.id === point.subjectId &&
+      target.x === point.x &&
+      target.z === point.z,
+  );
+}
+
+/**
+ * How well one endpoint's position is known, from the evidence of the subject
+ * that positions it — never a site-wide figure. Almost nothing in this model
+ * states a positional error: the runway's measured thresholds do (about 40 m),
+ * a building has at most the resolution of the scene it was drawn from as a
+ * lower bound, and a free click marks no modeled feature at all. Printing the
+ * runway's figure against every endpoint, as this tool once did, turned an
+ * unknown into a number.
+ */
+export function positionalStatement(point: MeasurePoint): string {
+  if (point.snappedTo === null) {
+    return "free point: marks no modeled feature, so no positional claim";
+  }
+  const target = snapTargetOf(point);
+  if (target === undefined) {
+    return "positional error not recorded with this point";
+  }
+  const envelope = getUncertaintyForSubject(target.positionedBy);
+  if (envelope?.horizontalMeters !== undefined) {
+    return `positional error ±${envelope.horizontalMeters} m (${envelope.basis ?? "basis not stated"})`;
+  }
+  if (envelope?.footprintMeters !== undefined) {
+    return `positional error not stated; at least ${envelope.footprintMeters} m, the resolution of the cited scene`;
+  }
+  return "positional error not stated";
+}
+
+/** Optional context that makes a pasted measurement reproducible. */
+export interface MeasurementContext {
+  snapshotDate: string | null;
+  evidenceMode: EvidenceMode;
+}
+
 /**
  * A plain-text, citable summary of a measurement: the registered grid frame,
- * every vertex's easting/northing (and any snapped identity), each leg's
- * distance and bearing, and the totals. Copied to the clipboard so a
- * measurement can be pasted into notes or a report instead of re-described.
+ * every vertex's easting/northing, snapped identity and how well its position
+ * is known, each leg's distance and bearing, and the totals. Copied to the
+ * clipboard so a measurement can be pasted into notes or a report instead of
+ * re-described.
  */
-export function measurementSummary(points: readonly MeasurePoint[]): string {
+export function measurementSummary(
+  points: readonly MeasurePoint[],
+  context?: MeasurementContext,
+): string {
   const lines: string[] = [
-    `${SITE_PROFILE.name} — digital-twin measurement`,
+    `${SITE_PROFILE.name} — measurement on the public-source reconstruction`,
     `Frame: ${SITE_PROFILE.localCrs.code} (${SITE_PROFILE.localCrs.name}); grid metres.`,
   ];
+  if (context !== undefined) {
+    lines.push(
+      `Evidence timeline: ${context.snapshotDate ?? "now (the model's current state)"}; evidence mode: ${EVIDENCE_MODE_META[context.evidenceMode].label}.`,
+    );
+  }
   if (points.length === 0) {
     lines.push("No points placed.");
     return lines.join("\n");
@@ -224,7 +304,7 @@ export function measurementSummary(points: readonly MeasurePoint[]): string {
     const { easting, northing } = gridEastingNorthing(point.x, point.z);
     const identity = point.snappedTo ? `  ${point.snappedTo}` : "";
     lines.push(
-      `P${index + 1}  E ${easting.toFixed(0)}  N ${northing.toFixed(0)}${identity}`,
+      `P${index + 1}  E ${easting.toFixed(0)}  N ${northing.toFixed(0)}${identity} — ${positionalStatement(point)}`,
     );
   });
 
@@ -246,7 +326,7 @@ export function measurementSummary(points: readonly MeasurePoint[]): string {
 
   lines.push("");
   lines.push(
-    `Modeled interpretation from public imagery; endpoints carry ~${SITE_PROFILE.runway.endpointUncertaintyM} m uncertainty. Not an aeronautical survey.`,
+    "Distances are between modeled positions. A leg is no better known than its least certain endpoint, and where an endpoint's error is not stated, neither is the leg's. Not an aeronautical survey.",
   );
   return lines.join("\n");
 }

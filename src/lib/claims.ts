@@ -287,7 +287,11 @@ export function inspectClaim(
   const subject = getSiteSubject(subjectId);
   const envelope = getUncertaintyForSubject(subjectId);
   const meta = EVIDENCE_CLASSIFICATION_META[classification];
+  // Only a record that is a claim about the site has an evidence date. An
+  // illustrative record may name the scene it was checked against, and that
+  // scene's date is not when anything about it became public.
   const firstPublished = records
+    .filter((record) => recordKnowability(record).kind === "from")
     .map((record) => record.sourceDate)
     .filter((date): date is string => date !== undefined)
     .sort()[0];

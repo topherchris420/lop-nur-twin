@@ -81,23 +81,38 @@ recreates the conflation this module exists to remove.
 The schema defines ten categories. Five are populated from the data this
 repository holds; five are not, and stay empty.
 
-| Category                     | Populated | From                                                     |
-| :--------------------------- | :-------- | :------------------------------------------------------- |
-| `first-appearance`           | Yes       | `observedDate` on structures, segments and aprons        |
-| `pavement-change`            | Yes       | Taxiways, which the 2025 reporting describes resurfacing |
-| `reported-aircraft-sighting` | Yes       | The two dated aircraft records                           |
-| `evidence-publication`       | Yes       | `publishedOn` in the source register                     |
-| `model-only-change`          | Yes       | Illustrative structures, which have no date at all       |
-| `footprint-expansion`        | **No**    | —                                                        |
-| `structure-added`            | **No**    | —                                                        |
-| `structure-removed`          | **No**    | —                                                        |
-| `reclassification`           | **No**    | —                                                        |
-| `correction-or-withdrawal`   | **No**    | —                                                        |
+| Category                     | Populated | From                                                      |
+| :--------------------------- | :-------- | :-------------------------------------------------------- |
+| `first-appearance`           | Yes       | `observedDate` on structures, segments and aprons         |
+| `pavement-change`            | Yes       | Taxiways, which the 2025 reporting describes resurfacing  |
+| `reported-aircraft-sighting` | Yes       | The two dated aircraft records                            |
+| `evidence-publication`       | Yes       | `publishedOn` of every source a claim in the ledger cites |
+| `model-only-change`          | Yes       | Illustrative structures, which have no date at all        |
+| `footprint-expansion`        | **No**    | —                                                         |
+| `structure-added`            | **No**    | —                                                         |
+| `structure-removed`          | **No**    | —                                                         |
+| `reclassification`           | **No**    | —                                                         |
+| `correction-or-withdrawal`   | **No**    | —                                                         |
 
 `temporalCoverageGaps()` computes the empty list at runtime and `/analysis`
 prints it. **An empty category is a coverage gap the interface shows, not
 something to fill in with plausible history.** If this project ever corrects or
 withdraws a claim, the category is there to record it.
+
+A publication event is classed by what the ledger says that source supports —
+the strongest classification of any claim citing it — never by the kind of
+source it is. Classing it by role once made the CSIS and SWF analyses
+"observed" when every claim they support here is reported. A method reference
+that no claim cites (the Sentinel-2 User Handbook) makes no event: its
+publication changes nothing anyone could conclude, so it is not a date on which
+the evidence changed, and the timeline no longer opens in 2015 on a stop where
+nothing differs from the next.
+
+Illustrative content has no evidence date at all. An illustrative pavement or
+building may name the scene it was checked against, but that scene does not
+resolve it, so `recordKnowability()` treats every illustrative record as the
+model's own (`model-internal`) and the claim inspector prints "none" and
+"never" rather than the scene's date.
 
 A dated aircraft is a _sighting_, not a construction event. An airframe parked
 outside a hangar on one date says nothing about any other date, and the event's

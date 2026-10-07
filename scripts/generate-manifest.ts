@@ -81,9 +81,12 @@ function modelVersion(): string {
 /* ------------------------------------------------------------------ */
 
 /**
- * Everything that decides where a thing sits in the world. Presentation-only
- * fields (descriptions, labels) are deliberately excluded so a wording fix
- * does not read as a geometry change.
+ * Everything that decides where a thing sits in the world, and nothing else.
+ * Presentation-only fields (descriptions, labels) are excluded so a wording
+ * fix does not read as a geometry change, and so are evidence attributes —
+ * status, confidence, sources, observation dates — which `evidenceLedgerHash`
+ * already covers. Until schema 1.2.0 they were in here too, so reclassifying a
+ * hangar read as the hangar having moved.
  */
 const geometryInput = {
   crs: PRIMARY_CRS,
@@ -96,14 +99,12 @@ const geometryInput = {
     from: segment.from,
     to: segment.to,
     width: segment.width,
-    observedDate: segment.observedDate,
   })),
   aprons: APRONS.map((apron) => ({
     id: apron.id,
     center: apron.center,
     size: apron.size,
     rotation: apron.rotation,
-    observedDate: apron.observedDate,
   })),
   structures: STRUCTURES.map((structure) => ({
     id: structure.id,
@@ -111,10 +112,6 @@ const geometryInput = {
     position: structure.position,
     rotation: structure.rotation,
     size: structure.size,
-    observedDate: structure.observedDate,
-    evidenceStatus: structure.evidence.status,
-    evidenceConfidence: structure.evidence.confidence,
-    sourceIds: structure.evidence.sourceIds,
   })),
   flattenPads: FLATTEN_PADS.map((pad) => ({ center: pad.center, radius: pad.radius })),
 };
@@ -293,10 +290,11 @@ const classificationCounts = evidenceClassificationCounts();
 const manifest = {
   modelName: "Lop Nur Twin",
   modelVersion: modelVersion(),
-  // 1.1.0 adds `subjects`, `subjectDigestHash` and `temporal`. `/compare` reads
-  // this to decide which comparisons it can make, and refuses a major-version
-  // mismatch rather than diffing fields that mean different things.
-  manifestSchemaVersion: "1.1.0",
+  // 1.1.0 adds `subjects`, `subjectDigestHash` and `temporal`; 1.2.0 narrows
+  // `geometryHash` to placement alone. `/compare` reads this to decide which
+  // comparisons it can make, and refuses a major-version mismatch rather than
+  // diffing fields that mean different things.
+  manifestSchemaVersion: "1.2.0",
   generatedAt: generatedAt(),
   coordinateReferenceSystem: PRIMARY_CRS,
   geographicReferenceSystem: GEOGRAPHIC_CRS,

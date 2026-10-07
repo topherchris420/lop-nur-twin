@@ -12,6 +12,13 @@ import {
   temporalEventsForSubject,
 } from "./temporal";
 import { PUBLIC_SOURCES } from "./siteData";
+import {
+  EVIDENCE_LEDGER,
+  getEvidenceForSubject,
+  isRecordKnowableAt,
+  strongestClassification,
+  widestUncertainty,
+} from "./evidence";
 
 /** Two dates with real evidence between them: the 2021 report and the 2025 scene. */
 const EARLY = "2021-06-30";
@@ -107,12 +114,50 @@ describe("the temporal ledger", () => {
     }
   });
 
-  it("has one publication event per dated source", () => {
-    const dated = PUBLIC_SOURCES.filter((source) => source.publishedOn !== undefined);
+  it("has one publication event per dated source that a claim cites, and none for a method reference", () => {
+    const cited = new Set(EVIDENCE_LEDGER.map((record) => record.sourceId));
+    const dated = PUBLIC_SOURCES.filter(
+      (source) => source.publishedOn !== undefined && cited.has(source.id),
+    );
     const events = TEMPORAL_LEDGER.filter(
       (event) => event.category === "evidence-publication",
     );
-    expect(events.length).toBe(dated.length);
+    expect(events.map((event) => event.sourceIds[0]).sort()).toEqual(
+      dated.map((source) => source.id).sort(),
+    );
+    // The sensor handbook explains how scenes are read and attests nothing, so
+    // its publication is not a date on which the evidence changed.
+    expect(events.some((event) => event.sourceIds.includes("sentinel-2-handbook"))).toBe(
+      false,
+    );
+    expect(TEMPORAL_SNAPSHOT_DATES).not.toContain("2015-07-24");
+  });
+
+  it("classes a publication by what the ledger says it supports, not by the source's role", () => {
+    // One definition of "observed": the ledger's. A published analysis whose
+    // every claim here is reported is not an observation because it is an
+    // analysis of imagery.
+    for (const event of TEMPORAL_LEDGER) {
+      if (event.category !== "evidence-publication") continue;
+      const supports = strongestClassification(
+        EVIDENCE_LEDGER.filter((record) => record.sourceId === event.sourceIds[0]),
+      );
+      expect(event.evidenceClass, event.id).toBe(supports);
+    }
+    const csis = TEMPORAL_LEDGER.find(
+      (event) => event.id === "te-publication-csis-lop-nur-2020",
+    );
+    expect(csis?.evidenceClass).toBe("reported");
+  });
+
+  it("merges a snapshot subject's envelope the way the inspector does", () => {
+    const now = TEMPORAL_SNAPSHOT_DATES[TEMPORAL_SNAPSHOT_DATES.length - 1]!;
+    for (const subject of deriveSnapshot(now).subjects) {
+      const knowable = getEvidenceForSubject(subject.subjectId).filter((record) =>
+        isRecordKnowableAt(record, now),
+      );
+      expect(subject.uncertainty, subject.subjectId).toEqual(widestUncertainty(knowable));
+    }
   });
 
   it("classes a dated aircraft as a sighting, not a construction event", () => {
@@ -316,10 +361,16 @@ describe("what was knowable at a date", () => {
   it("credits nothing to evidence that was not yet public", () => {
     // A 2015 sensor handbook and a 2021 report once made 2025 buildings read as
     // interpreted or reported years before their imagery existed.
+    // Illustrative content is the model's own at every date and asserts
+    // nothing about the site; everything else waits for its evidence.
     const early = deriveSnapshot("2015-07-24");
     expect(
-      early.subjects.filter((subject) => subject.evidenceClass !== undefined),
+      early.subjects.filter(
+        (subject) =>
+          subject.evidenceClass !== undefined && subject.evidenceClass !== "illustrative",
+      ),
     ).toEqual([]);
+    expect(early.subjects.some((subject) => subject.publiclyEstablished)).toBe(false);
     const mid2021 = deriveSnapshot(EARLY);
     for (const id of BUILD_OUT) {
       const subject = mid2021.subjects.find((candidate) => candidate.subjectId === id);

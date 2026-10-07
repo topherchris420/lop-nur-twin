@@ -18,7 +18,13 @@ enter query results, exports, the evidence ledger, or model hashes.
 ## Footprint derivation
 
 - Structures and aprons become oriented rectangular polygons from their
-  declared center, rotation, and footprint dimensions.
+  declared center, rotation, and footprint dimensions, through
+  `structureCorners()` and `apronCorners()` in `layout.ts`. The two use opposite
+  yaw conventions because the scene places them differently (a group rotated
+  about `y`, and a plane laid flat), and the catalog's test checks every
+  footprint against the Three.js transforms the scene actually applies. An
+  earlier catalog applied the apron convention to every structure and so
+  exported each rotated building as its mirror image.
 - Runways, strips, taxiways, streets, and roads become rectangles around their
   centerline using the declared width and flat end caps.
 - Decorative pavement fillets are presentation details and are not included.

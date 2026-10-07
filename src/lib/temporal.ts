@@ -1,10 +1,10 @@
 /**
  * The temporal evidence ledger, snapshots, and change comparison.
  *
- * The 3D twin already has a timeline: a year slider that hides anything whose
- * `observedDate` is later than the selected year. That is useful and it is also
- * the whole extent of the model's sense of time, and it quietly conflates three
- * different dates that this module keeps apart:
+ * The 3D twin's only clock is the evidence timeline built from this ledger. It
+ * replaced a year slider that hid anything whose `observedDate` was later than
+ * the selected year, which quietly conflated three different dates that this
+ * module keeps apart:
  *
  * 1. **When something happened at the site.** Almost never known. A first
  *    appearance in a cited scene bounds when a building existed *by*; it says
@@ -16,8 +16,8 @@
  *    what an analyst could have concluded at a given moment, and it is what
  *    makes a snapshot mean something beyond "which buildings were drawn".
  * 3. **When the change entered this model.** A fact about this repository, not
- *    about the site. Events that carry it are scoped `model-only-change` and
- *    are never mixed into a site claim.
+ *    about the site, and recorded apart from it (`modelHistory.ts`): nothing
+ *    here reads it, and no site claim ever carries it.
  *
  * Every event here is derived from data that already exists — `observedDate` on
  * layout records, `publishedOn` and `accessedOn` in the source register — and
@@ -42,8 +42,11 @@ import {
 import { PUBLIC_SOURCES, getSource, type SourceId } from "./siteData";
 import {
   CONFIDENCE_SCALE,
+  EVIDENCE_LEDGER,
   getEvidenceForSubject,
+  getUncertaintyForSubject,
   isRecordKnowableAt,
+  widestUncertainty,
   strongestClassification,
   type EvidenceClassification,
   type EvidenceRecord,
@@ -211,10 +214,9 @@ function subjectSourceIds(subjectId: string): readonly string[] {
   return [...new Set(ids.filter((id): id is string => id !== undefined))].sort();
 }
 
+/** The merged envelope, the same one the inspector and the exports show. */
 function subjectUncertainty(subjectId: string): UncertaintyEnvelope | undefined {
-  return getEvidenceForSubject(subjectId).find(
-    (record) => record.uncertainty !== undefined,
-  )?.uncertainty;
+  return getUncertaintyForSubject(subjectId);
 }
 
 /**
@@ -310,19 +312,31 @@ function layoutEvents(): TemporalEvidenceEvent[] {
 }
 
 /**
- * One event per source that states a publication date.
+ * One event per dated source that some claim in the ledger cites.
  *
  * These are the events that make "what could have been concluded when" a
  * question with an answer. They are scoped `evidence-availability` so nothing
  * downstream can mistake a publication for a change at the site — the CSIS
  * analysis published in 2026 discusses imagery from 2020, and a ledger that
  * cannot express that distinction is worse than no ledger.
+ *
+ * The event's class is the strongest class the ledger gives any claim citing
+ * the source: what that publication actually supports here. It used to be
+ * read off the source's role, which made a sensor handbook and three
+ * published analyses "observed" — a second definition of the word, beside the
+ * ledger's, and a wrong one. A method reference that no claim cites makes no
+ * event at all: its publication changes nothing anyone could conclude, so it
+ * is not a date on which the evidence changed.
  */
 function publicationEvents(): TemporalEvidenceEvent[] {
   const events: TemporalEvidenceEvent[] = [];
   for (const source of PUBLIC_SOURCES) {
     const publishedOn = source.publishedOn;
     if (publishedOn === undefined || !isIsoDate(publishedOn)) continue;
+    const supports = strongestClassification(
+      EVIDENCE_LEDGER.filter((record) => record.sourceId === source.id),
+    );
+    if (supports === undefined) continue;
     events.push({
       id: `te-publication-${source.id}`,
       subjectId: SITE_SUBJECT_ID,
@@ -333,7 +347,7 @@ function publicationEvents(): TemporalEvidenceEvent[] {
       category: "evidence-publication",
       before: "Not available to a public-source analyst before this date.",
       after: `Publicly available: ${source.title} (${source.publisher}).`,
-      evidenceClass: source.role === "reporting" ? "reported" : "observed",
+      evidenceClass: supports,
       sourceIds: [source.id],
       analystNote: `Publication date only. It bounds when this evidence became usable, not when anything it describes occurred; this project last consulted the source on ${source.accessedOn}.`,
       publicationDate: publishedOn,
@@ -552,6 +566,9 @@ export function deriveSnapshot(date: string): TemporalSnapshot {
     const publiclyEstablished =
       presence === "established" &&
       available.some((record) => record.sourceDate !== undefined);
+    // The widest envelope over what was knowable then, as the inspector merges
+    // the whole ledger — never one record's envelope chosen by position.
+    const envelope = widestUncertainty(available);
 
     return {
       subjectId,
@@ -562,9 +579,7 @@ export function deriveSnapshot(date: string): TemporalSnapshot {
       ...(evidenceClass === undefined ? {} : { evidenceClass }),
       ...(confidence === undefined ? {} : { confidence }),
       sourceIds: availableSourceIds(available),
-      ...(available[0]?.uncertainty === undefined
-        ? {}
-        : { uncertainty: available[0].uncertainty }),
+      ...(envelope === undefined ? {} : { uncertainty: envelope }),
       modelOnly: modelOnlySubjects.has(subjectId),
     };
   });

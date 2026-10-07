@@ -16,6 +16,12 @@ export interface Telemetry {
   fps: number;
   /** index of the cinematic leg currently in frame (-1 = none) */
   cinematicLeg: number;
+  /**
+   * The ground point the view is about, in local metres: the orbit target, or
+   * where the camera stands in the other rigs. A saved view returns here.
+   */
+  targetX: number;
+  targetZ: number;
 }
 
 export const telemetry: Telemetry = {
@@ -25,4 +31,6 @@ export const telemetry: Telemetry = {
   heading: 0,
   fps: 60,
   cinematicLeg: -1,
+  targetX: 0,
+  targetZ: 0,
 };

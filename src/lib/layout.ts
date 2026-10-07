@@ -542,6 +542,40 @@ export function segmentLength(seg: SegmentDef): number { return Math.hypot(seg.t
 export function segmentAngle(seg: SegmentDef): number { return Math.atan2(seg.to[0] - seg.from[0], seg.to[1] - seg.from[1]); }
 // prettier-ignore
 export function segmentCenter(seg: SegmentDef): [number, number] { return [(seg.from[0] + seg.to[0]) / 2, (seg.from[1] + seg.to[1]) / 2]; }
+
+/**
+ * Footprint corners in site metres, placed exactly as the scene places them.
+ * A structure is a group with `rotation.y = rotation`, which takes a local
+ * (x, z) to (x·cos r + z·sin r, −x·sin r + z·cos r); an apron is a plane laid
+ * with euler [−π/2, 0, −rotation], which is the same yaw with the opposite
+ * sign. The two conventions differ, so nothing outside this file re-derives
+ * either: the spatial catalog once applied the apron's to every structure and
+ * exported each rotated building as its mirror image.
+ */
+function yawedRectangle(
+  center: readonly [number, number],
+  width: number,
+  depth: number,
+  yaw: number,
+): [number, number][] {
+  const cos = Math.cos(yaw);
+  const sin = Math.sin(yaw);
+  return (
+    [
+      [-width / 2, -depth / 2],
+      [width / 2, -depth / 2],
+      [width / 2, depth / 2],
+      [-width / 2, depth / 2],
+    ] as const
+  ).map(([x, z]): [number, number] => [
+    center[0] + x * cos + z * sin,
+    center[1] - x * sin + z * cos,
+  ]);
+}
+// prettier-ignore
+export function structureCorners(def: StructureDef): [number, number][] { return yawedRectangle(def.position, def.size[0], def.size[2], def.rotation); }
+// prettier-ignore
+export function apronCorners(def: ApronDef): [number, number][] { return yawedRectangle(def.center, def.size[0], def.size[1], -def.rotation); }
 const STRUCTURE_INDEX = new Map(STRUCTURES.map((structure) => [structure.id, structure]));
 // prettier-ignore
 export function getStructure(id: string): StructureDef | undefined { return STRUCTURE_INDEX.get(id); }

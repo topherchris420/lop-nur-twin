@@ -31,6 +31,7 @@ import {
   gridEastingNorthing,
   measurementSummary,
   pathTotalM,
+  positionalStatement,
   snapWorldPoint,
   straightLineM,
   type MeasurePoint,
@@ -468,7 +469,7 @@ export function Minimap() {
       .getState()
       .addMeasurePoint(
         snap
-          ? { x: snap.x, z: snap.z, snappedTo: snap.label }
+          ? { x: snap.x, z: snap.z, snappedTo: snap.label, subjectId: snap.source.id }
           : { x: wx, z: wz, snappedTo: null },
       );
   };
@@ -569,8 +570,10 @@ function MeasureReadout() {
   const copy = () => {
     const clipboard = navigator.clipboard;
     if (!clipboard) return;
+    // Read at copy time: the readout does not need to re-render on either.
+    const { snapshotDate, evidenceMode } = useTwinStore.getState();
     void clipboard
-      .writeText(measurementSummary(points))
+      .writeText(measurementSummary(points, { snapshotDate, evidenceMode }))
       .then(() => {
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1500);
@@ -617,6 +620,11 @@ function MeasureReadout() {
               ↳ {stats.last.snappedTo}
             </div>
           )}
+          {/* How well the last point's position is known, from its own evidence:
+              usually "not stated", which is the honest answer. */}
+          <div className="text-muted-foreground leading-snug">
+            {positionalStatement(stats.last)}
+          </div>
         </div>
       ) : (
         <p className="text-muted-foreground leading-snug">

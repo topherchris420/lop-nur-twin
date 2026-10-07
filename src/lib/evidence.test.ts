@@ -407,9 +407,27 @@ describe("knowability", () => {
     );
     expect(internal).toBeDefined();
     expect(isRecordKnowableAt(internal!, "1900-01-01")).toBe(true);
-    const undated = { ...internal!, sourceId: "adsb-lol-live" as const };
+    const undated = {
+      ...internal!,
+      classification: "reported" as const,
+      sourceId: "adsb-lol-live" as const,
+    };
     expect(recordKnowability(undated)).toEqual({ kind: "undated" });
     expect(isRecordKnowableAt(undated, "2999-12-31")).toBe(false);
+  });
+
+  it("dates no illustrative record by the scene it was checked against", () => {
+    // Illustrative pavements and infrastructure name the 2025 scene only to
+    // say it does not resolve them; its date is not when anything about them
+    // became known, because nothing about them is a claim about the site.
+    const illustrative = EVIDENCE_LEDGER.filter(
+      (record) => record.classification === "illustrative",
+    );
+    expect(illustrative.some((record) => record.sourceDate !== undefined)).toBe(true);
+    for (const record of illustrative) {
+      expect(recordKnowability(record), record.id).toEqual({ kind: "model-internal" });
+    }
+    expect(earliestKnowableDate("apron-main")).toBeUndefined();
   });
 
   it("reports the earliest knowable date of a subject from its records", () => {

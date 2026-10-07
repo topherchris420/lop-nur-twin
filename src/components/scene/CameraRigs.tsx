@@ -270,6 +270,16 @@ function TelemetryTracker() {
     // compass heading: 0° = north (-z), clockwise positive
     telemetry.heading =
       (THREE.MathUtils.radToDeg(Math.atan2(dir.current.x, -dir.current.z)) + 360) % 360;
+    // The orbit rig registers its controls as the default; their target is
+    // the point the view is about. The other rigs are about where they stand.
+    const target = (state.controls as { target?: unknown } | null)?.target;
+    if (target instanceof THREE.Vector3) {
+      telemetry.targetX = target.x;
+      telemetry.targetZ = target.z;
+    } else {
+      telemetry.targetX = cam.position.x;
+      telemetry.targetZ = cam.position.z;
+    }
   });
   return null;
 }

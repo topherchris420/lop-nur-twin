@@ -172,9 +172,14 @@ to name a record that exists.
 standard `node:crypto`:
 
 - **`geometryHash`** over segments, aprons, structures, flatten pads, the site
-  extent and the CRS registration — position, rotation, size, observed date,
-  evidence status and cited sources. Presentation-only fields (descriptions,
-  labels) are excluded, so a wording fix does not read as a geometry change.
+  extent and the CRS registration — position, rotation and size, and nothing
+  else. Presentation-only fields (descriptions, labels) are excluded, so a
+  wording fix does not read as a geometry change, and so are evidence
+  attributes (status, confidence, sources, observation dates), which the ledger
+  hash covers. Before manifest schema 1.2.0 they were included, so reclassifying
+  a building read as the building having moved; a bookmark saved under the
+  older schema is reported as not checkable rather than compared across the
+  two definitions.
 - **`evidenceLedgerHash`** over the full ledger.
 
 Both inputs are canonicalised first: object keys sorted recursively,
