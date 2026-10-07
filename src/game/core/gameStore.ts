@@ -161,7 +161,12 @@ interface GameStoreState {
   setBotCount: (count: number) => void;
   botSkill: number;
   setBotSkill: (skill: number) => void;
-  /** Deterministic match seed, so a given match replays identically. */
+  /**
+   * The match seed: the same bots, spawns, weapons and bot random seed at the
+   * start. Not the same match — the simulation steps with the frame's own time
+   * and a brain's decisions are paced in wall time, so two runs from one seed
+   * diverge within seconds.
+   */
   matchSeed: number;
   rerollMatchSeed: () => void;
   /** Bumped to rebuild the match on the same seed: the same bots, spawns and weapons. */

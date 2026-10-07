@@ -105,9 +105,13 @@ weapons, collision and damage cannot tell who is playing.
 | `replay`  | A recorded trace played back (`&trace=last`, or the menu's Load trace). Labelled REPLAY. Not live.         |
 
 `?seed=<int>` also pins the match seed; the results screen prints it and offers
-**Same seed**, which rebuilds the identical match — the same bots, weapons and
-spawns — so a person can play the match a model just played, or hand theirs to
-one. `?jevNav=places|steps` chooses how a brain moves (see below);
+**Same seed**, which rebuilds the match from it — the same bots, weapons, spawns
+and bot random seed — so a person can start where a model started, or hand
+their start to one. It is the same start, not the same match: Blacksite steps
+with each frame's own time and paces a brain's decisions in wall time, so two
+runs from one seed diverge within seconds, and a replay re-performs a recorded
+control stream into a world that may already differ from the one it was
+recorded in. `?jevNav=places|steps` chooses how a brain moves (see below);
 `?cadence=<ms>` and `?latency=<ms>` set a local brain's decision interval and
 answer delay for experiments. `?fallback=random` lets the random policy
 stand in, labelled FALLBACK, while Jev or Glide cannot answer. `?record=1` keeps the last

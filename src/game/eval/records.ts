@@ -34,6 +34,12 @@ export const DECISION_RECORD_VERSION = "blacksite-decision/v1";
  */
 export const EPISODE_DECISIONS_SCHEMA = "blacksite-episode-decisions/v1";
 
+/**
+ * The most decision records, and the most failures, one episode keeps. The
+ * seat stops recording at this many; a reader refuses a file with more.
+ */
+export const MAX_EPISODE_RECORDS = 6000;
+
 export type RecordSource =
   "jev" | "glide" | "llm" | "random" | "script" | "replay" | "fallback-random";
 

@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { game } from "../core/gameState";
 import { useGameStore, type BrainKind } from "../core/gameStore";
 import { AXES, type Axis } from "../pilot/contract";
-import { pilot, type ControlLabel, type PilotStatus } from "../pilot/pilot";
+import { pilot, type PilotStatus } from "../pilot/pilot";
+import { labelText, type ControlLabel } from "../pilot/controlLabel";
 import {
   GLIDE_DECISION_ENDPOINT,
   JEV_DECISION_ENDPOINT,
@@ -21,9 +22,12 @@ import { parseTrace } from "../pilot/recorder";
  * `JevHud` sits above the ammo readout while a brain has the player, and says
  * three things plainly: who is in control (LIVE JEV, LIVE GLIDE, LIVE LLM,
  * FALLBACK, RANDOM, SCRIPTED or REPLAY — only a TypeSafe answer is ever
- * labelled LIVE JEV, and only a Fastino answer LIVE GLIDE), what it is doing,
- * and how to take the controls back. It repaints from the pilot's telemetry
- * singleton on its own ~8 Hz timer; nothing on the frame loop touches React.
+ * labelled LIVE JEV, and only a Fastino answer LIVE GLIDE; a remote seat that
+ * is connecting or failing reads JEV CONNECTING, GLIDE TIMEOUT and so on,
+ * never LIVE), what it is doing, and how to take the controls back. The label
+ * is decided in `pilot/controlLabel.ts`; this only draws it. It repaints from
+ * the pilot's telemetry singleton on its own ~8 Hz timer; nothing on the frame
+ * loop touches React.
  *
  * `PlayerControlSelector` is the Human / Jev / Glide / LLM / Random / Scripted
  * / Replay choice on the main and pause menus.
@@ -33,6 +37,9 @@ const LABEL_COLOR: Record<ControlLabel, string> = {
   "LIVE JEV": "#4da3ff",
   "LIVE GLIDE": "#9ec5ff",
   "LIVE LLM": "#7fd4c1",
+  JEV: "#cbd5e1",
+  GLIDE: "#cbd5e1",
+  LLM: "#cbd5e1",
   FALLBACK: "#ffb648",
   RANDOM: "#cbd5e1",
   SCRIPTED: "#b5c99a",
@@ -148,17 +155,17 @@ export function JevHud() {
       if (!root) return;
       root.dataset["jevLabel"] = t.label;
       root.dataset["jevStatus"] = t.status;
+      // A seat that is not live carries its status in the label (JEV TIMEOUT),
+      // so the status is not printed twice.
+      const text = labelText(t.label, t.status);
+      const carriesStatus = text !== t.label;
       if (labelRef.current) {
-        // Nothing is live while the service cannot answer; say so plainly.
-        labelRef.current.textContent =
-          t.label.startsWith("LIVE ") && t.status === "UNAVAILABLE"
-            ? `${t.label.slice("LIVE ".length)} UNAVAILABLE`
-            : t.label;
+        labelRef.current.textContent = text;
         labelRef.current.style.color =
-          t.status === "UNAVAILABLE" ? "#ff8a80" : LABEL_COLOR[t.label];
+          carriesStatus && STATUS_ALERT.has(t.status) ? "#ff8a80" : LABEL_COLOR[t.label];
       }
       if (statusRef.current) {
-        statusRef.current.textContent = t.status.replace("_", " ");
+        statusRef.current.textContent = carriesStatus ? "" : t.status.replace("_", " ");
         statusRef.current.style.color = STATUS_ALERT.has(t.status)
           ? "#ff5a4d"
           : "#e2e8f0";

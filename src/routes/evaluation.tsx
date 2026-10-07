@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Crosshair, FileSearch, Upload } from "lucide-react";
+import { readEpisodeRecords, type EpisodeRecords } from "@/game/eval/episodeRecords";
 import {
   validateEvaluation,
   type ArmEvaluation,
@@ -18,11 +19,7 @@ import {
   SweepChart,
   formatValue,
 } from "@/game/eval/ui/charts";
-import {
-  DecisionTrace,
-  readRecordsFile,
-  type EpisodeRecords,
-} from "@/game/eval/ui/DecisionTrace";
+import { DecisionTrace, readRecordsFile } from "@/game/eval/ui/DecisionTrace";
 import {
   EpisodeShadow,
   ShadowTable,
@@ -41,8 +38,10 @@ import {
  *
  * This is part of the illustrative simulation, not the analytical model: it
  * says nothing about the real site. It renders no canvas. Evaluations archived
- * in the repository (`docs/benchmarks/**`) are bundled at build time; any other
- * file is opened from the user's machine. Nothing is fetched from anywhere.
+ * in the repository (`docs/benchmarks/**`) are bundled at build time, and the
+ * per-episode decision records beside them are shipped as static files that
+ * are fetched from this site only when someone opens one; any other file is
+ * opened from the user's machine. Nothing is fetched from anywhere else.
  */
 
 export const Route = createFileRoute("/evaluation")({
@@ -56,7 +55,40 @@ const ARCHIVED = import.meta.glob<{ default: unknown }>(
 const ARCHIVED_SHADOW = import.meta.glob<{ default: unknown }>(
   "/docs/benchmarks/**/shadow.json",
 );
+/**
+ * The decision records archived beside each evaluation, one `*.eval.json.gz`
+ * per episode. As URLs, not modules: together they are megabytes of gzip, so
+ * the build emits them as files and the page fetches one only when it is
+ * opened, instead of carrying any of them in its JavaScript.
+ */
+const ARCHIVED_DECISIONS = import.meta.glob<string>(
+  "/docs/benchmarks/**/*.eval.json.gz",
+  {
+    query: "?url",
+    import: "default",
+  },
+);
 const MAX_EVALUATION_BYTES = 32 * 1024 * 1024;
+
+/**
+ * Fetch one archived episode's records from this site and check them like a
+ * chosen file. The URL comes from the build; it is still refused if it is not
+ * same-origin, and it is fetched without credentials.
+ */
+async function fetchArchivedRecords(
+  load: () => Promise<string>,
+  signal: AbortSignal,
+): Promise<EpisodeRecords> {
+  const url = new URL(await load(), window.location.href);
+  if (url.origin !== window.location.origin) throw new Error("not served by this site");
+  const response = await fetch(url, { credentials: "omit", signal });
+  if (!response.ok || response.body === null) {
+    throw new Error(`the site answered ${response.status}`);
+  }
+  // A host may serve the .gz already decoded; readEpisodeRecords looks at the
+  // bytes, not the name, to tell.
+  return readEpisodeRecords(response.body);
+}
 
 const button =
   "border-border hover:bg-accent focus-visible:ring-ring inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm focus-within:ring-2 focus-visible:ring-2 focus-visible:outline-none";
@@ -237,18 +269,25 @@ function ArmsTable({ evaluation }: { evaluation: Evaluation }) {
 function EpisodesTable({
   evaluation,
   base,
+  archived,
+  onOpen,
 }: {
   evaluation: Evaluation;
   base: string | null;
+  /** Whether this build carries an episode's decision records, by artifact name. */
+  archived: ((name: string) => boolean) | null;
+  onOpen: (name: string) => void;
 }) {
   const primary = evaluation.experiment.primaryMetric.id;
   return (
     <ScrollRegion label="Episodes" className="max-h-[28rem] overflow-auto">
-      <table className="w-full min-w-[60rem] border-collapse text-left text-xs">
+      <table className="w-full min-w-[66rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left text-xs">
           Every episode, with the files its numbers came from
-          {base ? `, relative to ${base}` : ""}. Open a decision file below to see the
-          episode decision by decision.
+          {base ? `, relative to ${base}` : ""}.{" "}
+          {archived
+            ? "Open an episode's decisions here, or a decision file below, to see it decision by decision."
+            : "Open a decision file below to see the episode decision by decision."}
         </caption>
         <thead>
           <tr className="border-border border-b">
@@ -260,6 +299,7 @@ function EpisodesTable({
             <Th>Decisions</Th>
             <Th>Paced</Th>
             <Th>Artifacts</Th>
+            {archived ? <Th>Decision records</Th> : null}
           </tr>
         </thead>
         <tbody className="font-mono">
@@ -284,6 +324,25 @@ function EpisodesTable({
                     .filter(Boolean)
                     .join(" · ")}
                 </td>
+                {archived ? (
+                  <td className="px-2 py-1">
+                    {typeof e.artifacts.decisions === "string" &&
+                    archived(e.artifacts.decisions) ? (
+                      <button
+                        type="button"
+                        className="border-border hover:bg-accent focus-visible:ring-ring cursor-pointer rounded border px-2 py-1 font-sans whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
+                        aria-label={`Open decisions: ${arm.id}, seed ${e.seed}`}
+                        onClick={() => onOpen(e.artifacts.decisions!)}
+                      >
+                        Open decisions
+                      </button>
+                    ) : (
+                      <span className="text-muted-foreground font-sans">
+                        not in this build
+                      </span>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             )),
           )}
@@ -631,10 +690,13 @@ function EvaluationBody({
   evaluation,
   base,
   shadowPath,
+  decisionsDir,
 }: {
   evaluation: Evaluation;
   base: string | null;
   shadowPath: string | null;
+  /** The archive directory the evaluation came from, `/docs/benchmarks/…/`. */
+  decisionsDir: string | null;
 }) {
   const e = evaluation.experiment;
   const [shadow, setShadow] = useState<ShadowFile | null>(null);
@@ -657,6 +719,59 @@ function EvaluationBody({
   const contract = e.decisionType ? decisionType(e.decisionType.id) : null;
   const [records, setRecords] = useState<EpisodeRecords | null>(null);
   const [recordsError, setRecordsError] = useState<string | null>(null);
+  /** What is open, or being opened, in words for the status line. */
+  const [recordsStatus, setRecordsStatus] = useState<string | null>(null);
+  const opening = useRef<AbortController | null>(null);
+  useEffect(() => () => opening.current?.abort(), []);
+  const archivedLoader = useCallback(
+    (name: string) =>
+      decisionsDir === null ? undefined : ARCHIVED_DECISIONS[`${decisionsDir}${name}`],
+    [decisionsDir],
+  );
+  const archived = useMemo(
+    () =>
+      decisionsDir === null ? null : (name: string) => archivedLoader(name) !== undefined,
+    [decisionsDir, archivedLoader],
+  );
+  const show = useCallback((loaded: EpisodeRecords, from: string) => {
+    setRecords(loaded);
+    setRecordsError(null);
+    setRecordsStatus(`Showing the decisions in ${from}.`);
+  }, []);
+  const refuse = useCallback((message: string) => {
+    setRecords(null);
+    setRecordsStatus(null);
+    setRecordsError(message);
+  }, []);
+  /** Cancel whatever is being opened; the newest choice always wins. */
+  const begin = useCallback((name: string): AbortSignal => {
+    opening.current?.abort();
+    const controller = new AbortController();
+    opening.current = controller;
+    setRecordsError(null);
+    setRecordsStatus(`Opening ${name}…`);
+    return controller.signal;
+  }, []);
+  // Started from a click, never from an effect, so nothing aborts its own
+  // request on a re-render.
+  const openArchived = useCallback(
+    (name: string) => {
+      const load = archivedLoader(name);
+      if (load === undefined) return;
+      const signal = begin(name);
+      fetchArchivedRecords(load, signal)
+        .then((loaded) => {
+          if (!signal.aborted) show(loaded, name);
+        })
+        .catch((error: unknown) => {
+          if (signal.aborted) return;
+          refuse(
+            `${name} was not opened: ${error instanceof Error ? error.message : "it could not be read"}.`,
+          );
+        });
+    },
+    [archivedLoader, begin, show, refuse],
+  );
   const strip = evaluation.arms.map((arm) => ({
     id: arm.id,
     label: armLabel(arm),
@@ -925,7 +1040,12 @@ function EvaluationBody({
       </Section>
 
       <Section id="episodes" title="Episodes and artifacts">
-        <EpisodesTable evaluation={evaluation} base={base} />
+        <EpisodesTable
+          evaluation={evaluation}
+          base={base}
+          archived={archived}
+          onOpen={openArchived}
+        />
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className={button}>
             <FileSearch className="size-4" aria-hidden="true" />
@@ -938,14 +1058,14 @@ function EvaluationBody({
                 const file = event.target.files?.[0];
                 event.target.value = "";
                 if (!file) return;
+                const signal = begin(file.name);
                 readRecordsFile(file)
                   .then((r) => {
-                    setRecords(r);
-                    setRecordsError(null);
+                    if (!signal.aborted) show(r, file.name);
                   })
                   .catch((error: unknown) => {
-                    setRecords(null);
-                    setRecordsError(
+                    if (signal.aborted) return;
+                    refuse(
                       error instanceof Error
                         ? error.message
                         : "The file could not be read.",
@@ -954,6 +1074,9 @@ function EvaluationBody({
               }}
             />
           </label>
+          <p role="status" className="font-mono text-xs">
+            {recordsStatus}
+          </p>
           {recordsError ? (
             <p role="alert" className="text-sm">
               {recordsError}
@@ -1127,6 +1250,9 @@ function EvaluationView() {
 
         {evaluation ? (
           <EvaluationBody
+            // A new evaluation starts with nothing open: records from another
+            // run's episode would otherwise sit under this one's tables.
+            key={label ?? ""}
             evaluation={evaluation}
             base={
               label?.startsWith("/docs/")
@@ -1137,6 +1263,9 @@ function EvaluationView() {
               label?.startsWith("/docs/")
                 ? label.replace(/\/evaluation\.json$/, "/shadow.json")
                 : null
+            }
+            decisionsDir={
+              label?.startsWith("/docs/") ? label.replace(/evaluation\.json$/, "") : null
             }
           />
         ) : null}

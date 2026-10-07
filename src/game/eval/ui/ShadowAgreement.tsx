@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { AXES } from "../../pilot/contract";
+import type { EpisodeRecords } from "../episodeRecords";
 import {
   SHADOW_CAVEAT,
   SHADOW_REFERENCES,
@@ -8,7 +9,6 @@ import {
   summarizeShadow,
   type ShadowSummary,
 } from "../shadow";
-import type { EpisodeRecords } from "./DecisionTrace";
 import { ScrollRegion } from "./ScrollRegion";
 
 /**

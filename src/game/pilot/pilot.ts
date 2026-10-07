@@ -74,6 +74,7 @@ import { OutcomeTracker } from "./outcomes";
 import {
   DECISION_RECORD_VERSION,
   EPISODE_DECISIONS_SCHEMA,
+  MAX_EPISODE_RECORDS,
   contextOf,
   type DecisionRecord,
   type FailureRecord,
@@ -96,6 +97,7 @@ import {
   type Negotiated,
 } from "./capabilities";
 import { rigState } from "./rigState";
+import { controlLabel, type ControlLabel } from "./controlLabel";
 
 /**
  * The player's pilot seat: who is flying, and the machinery between a brain's
@@ -127,19 +129,7 @@ export type PilotStatus =
   | "PAUSED"
   | "MATCH_COMPLETE";
 
-/**
- * Who the HUD says is in control. LIVE JEV is only ever a TypeSafe answer, and
- * LIVE GLIDE only ever a Fastino one.
- */
-export type ControlLabel =
-  | "HUMAN"
-  | "LIVE JEV"
-  | "LIVE GLIDE"
-  | "LIVE LLM"
-  | "RANDOM"
-  | "SCRIPTED"
-  | "REPLAY"
-  | "FALLBACK";
+export type { ControlLabel } from "./controlLabel";
 
 /** The brains answered by a model behind this deployment's own endpoints. */
 type RemoteBrain = "jev" | "glide" | "llm";
@@ -153,7 +143,6 @@ const REMOTE_BRAINS: Record<
   {
     endpoint: string;
     capabilities: Capabilities;
-    label: ControlLabel;
     provider: (session: string) => DecisionProvider;
     /** Whether `?fallback=random` may stand in while it is down. */
     fallback: boolean;
@@ -162,21 +151,18 @@ const REMOTE_BRAINS: Record<
   jev: {
     endpoint: JEV_DECISION_ENDPOINT,
     capabilities: JEV_CAPABILITIES,
-    label: "LIVE JEV",
     provider: (session) => new JevHttpProvider(session),
     fallback: true,
   },
   glide: {
     endpoint: GLIDE_DECISION_ENDPOINT,
     capabilities: GLIDE_CAPABILITIES,
-    label: "LIVE GLIDE",
     provider: (session) => new GlideHttpProvider(session),
     fallback: true,
   },
   llm: {
     endpoint: LLM_DECISION_ENDPOINT,
     capabilities: LLM_CAPABILITIES,
-    label: "LIVE LLM",
     provider: (session) => new LlmHttpProvider(session),
     fallback: false,
   },
@@ -243,7 +229,7 @@ export interface BrainOptions {
 }
 
 /** Decision and failure records kept per episode for the evaluation. */
-const MAX_EVAL_RECORDS = 6000;
+const MAX_EVAL_RECORDS = MAX_EPISODE_RECORDS;
 
 const TICK_MS = 50;
 const RESPAWN_BANNER_MS = 1200;
@@ -1921,20 +1907,12 @@ class Pilot {
     t.inFlight = this.loop?.inFlight ?? false;
     t.target = this.perception.lastTarget;
     t.traceRecords = this.recorder.size;
-    t.label =
-      this.brain === "human"
-        ? "HUMAN"
-        : this.brain === "random"
-          ? "RANDOM"
-          : this.brain === "script"
-            ? "SCRIPTED"
-            : this.brain === "replay"
-              ? "REPLAY"
-              : this.fallbackActive || executing?.source === "fallback-random"
-                ? "FALLBACK"
-                : isRemoteBrain(this.brain)
-                  ? REMOTE_BRAINS[this.brain].label
-                  : "LIVE JEV";
+    t.label = controlLabel({
+      brain: this.brain,
+      accepted: this.metrics.counters.accepted,
+      fallback: this.fallbackActive || executing?.source === "fallback-random",
+      failing: this.failure !== null,
+    });
     t.status = this.status();
   }
 

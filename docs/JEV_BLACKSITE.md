@@ -769,8 +769,12 @@ executing; **LIVE GLIDE** only while Fastino's are; **LIVE LLM** only while a
 conventional LLM's are (see
 [A conventional LLM in the seat](#a-conventional-llm-in-the-seat));
 **FALLBACK** from the first fallback frame until the remote brain answers
-again; **HUMAN**; **RANDOM**; **SCRIPTED**; **REPLAY**; and **JEV UNAVAILABLE**
-/ **GLIDE UNAVAILABLE** / **LLM UNAVAILABLE** when the service cannot answer.
+again; **HUMAN**; **RANDOM**; **SCRIPTED**; **REPLAY**. A remote seat that has
+not been answered yet, or whose last request failed, is named without LIVE and
+with its status — **JEV CONNECTING**, **JEV TIMEOUT**, **JEV UNAVAILABLE**,
+**JEV ERROR**, and likewise for GLIDE and LLM — until a validated answer arrives.
+The label is decided in one place, `src/game/pilot/controlLabel.ts`, and
+`controlLabel.test.ts` pins it.
 Probabilities and confidence are shown only when the provider supplied them
 (TypeSafe and Fastino state probabilities; an LLM's confidence is a number it
 wrote) — the random brain shows "uniform over legal options", a replay none,
@@ -821,6 +825,18 @@ validation and the outcome window. It is the file `/evaluation` opens. The
 trace replays controls; the decision records explain them. Archives written
 before the schema id existed carry none and are still read; a file naming any
 other schema is refused.
+
+`/evaluation` checks every field of a decision file it reads before showing
+any of it (`src/game/eval/episodeRecords.ts`): types, vocabularies, bounds and
+lengths. One malformed record refuses the whole file, and the refusal names the
+first record and field that failed; nothing is dropped or repaired. Each row of
+the decision trace opens an inspector that lays one decision out by the
+record's own sections — what the seat perceived, what it could choose, what it
+chose, how sure it said it was, what it cost, whether it was still legal, what
+software did and what the next few seconds held — with a fixed line that no
+reason is recorded. An archived evaluation opens its episodes' decision files
+in place; they ship as static files and are fetched from the site only when one
+is opened.
 
 The decision loop itself refuses an answer whose frame names an option the
 observation did not offer, whoever produced it, as an `invalid` failure.

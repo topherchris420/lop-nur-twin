@@ -109,6 +109,38 @@ const ROUTES = [
       await page.waitForSelector('[aria-label="Decision trace"]', { timeout: 30000 });
     },
   },
+  {
+    path: "/evaluation",
+    label: "Blacksite evaluation (archived decisions opened in place, one inspected)",
+    gate: true,
+    settle: 1500,
+    // The same-origin fetch of an archived episode, then the inspector, so the
+    // one-decision view is what axe inspects too.
+    prepare: async (page) => {
+      const opened = await page.evaluate(() => {
+        const first = document
+          .querySelector('section[aria-labelledby="open-heading"] ul')
+          ?.querySelector("button");
+        first?.click();
+        return first !== null && first !== undefined;
+      });
+      if (!opened) return;
+      await page.waitForSelector("#arms", { timeout: 15000 });
+      const found = await page.evaluate(() => {
+        const open = [...document.querySelectorAll("button")].find(
+          (button) => button.textContent?.trim() === "Open decisions",
+        );
+        open?.click();
+        return open !== undefined;
+      });
+      if (!found) return;
+      await page.waitForSelector('[aria-label="Decision trace"] tbody th button', {
+        timeout: 30000,
+      });
+      await page.click('[aria-label="Decision trace"] tbody th button');
+      await page.waitForSelector('section[id$="-inspector"]', { timeout: 15000 });
+    },
+  },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];

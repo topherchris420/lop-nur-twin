@@ -1,22 +1,23 @@
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AXES } from "../../pilot/contract";
+import { readEpisodeRecords, type EpisodeRecords } from "../episodeRecords";
 import type { DecisionTypeContract } from "../outcomeContracts";
-import {
-  EPISODE_DECISIONS_SCHEMA,
-  type AxisConfidence,
-  type DecisionRecord,
-  type FailureRecord,
-} from "../records";
+import type { AxisConfidence, DecisionRecord } from "../records";
 import { disjointWindows, overlapCounts, windowSpans } from "../windows";
 import { VIZ, formatValue } from "./charts";
+import { DecisionInspector, changedAxes } from "./DecisionInspector";
 import { ScrollRegion } from "./ScrollRegion";
 
 /**
  * One episode's decisions, row by row: what was chosen, with what stated
  * confidence, how late, whether it was still legal, what software did with
  * it, what the world did, and how the declared contract classed it. Loaded
- * from the episode's `*.eval.json` (or the archived `.gz`), in the browser,
- * from a file the user chooses — nothing is fetched.
+ * from the episode's `*.eval.json` (or the archived `.gz`) — a file the user
+ * chooses, or an archived episode the page fetches from this site — and
+ * checked by `../episodeRecords.ts` before any of it is shown.
+ *
+ * Each row opens the decision inspector, which lays one decision out by the
+ * record's own sections; previous and next step through the rows shown.
  *
  * Each row's outcome window overlaps its neighbours' (`../windows.ts`), and
  * the table says so row by row: how many other decisions share the window, and
@@ -24,41 +25,15 @@ import { ScrollRegion } from "./ScrollRegion";
  * once.
  */
 
-export const MAX_RECORDS_BYTES = 64 * 1024 * 1024;
-
-export interface EpisodeRecords {
-  episodeId: string;
-  brain: { id: string; provider: string } | null;
-  decisions: DecisionRecord[];
-  failures: FailureRecord[];
-}
-
+/** Read and check a file the user chose. The error names the file and the reason. */
 export async function readRecordsFile(file: File): Promise<EpisodeRecords> {
-  if (file.size > MAX_RECORDS_BYTES) throw new Error(`${file.name} is larger than 64 MB`);
-  const text = file.name.endsWith(".gz")
-    ? await new Response(
-        file.stream().pipeThrough(new DecompressionStream("gzip")),
-      ).text()
-    : await file.text();
-  const value = JSON.parse(text) as Partial<EpisodeRecords> & { schema?: unknown };
-  // Archived episodes predate the schema id; anything that names one must
-  // name this one.
-  if (value.schema !== undefined && value.schema !== EPISODE_DECISIONS_SCHEMA) {
+  try {
+    return await readEpisodeRecords(file.stream());
+  } catch (error) {
     throw new Error(
-      `unsupported decision-records schema: ${String(value.schema).slice(0, 60)}`,
+      `${file.name} was not opened: ${error instanceof Error ? error.message : "it could not be read"}.`,
     );
   }
-  if (!Array.isArray(value.decisions) || !Array.isArray(value.failures)) {
-    throw new Error(
-      "not an episode's decision records (expected decisions and failures)",
-    );
-  }
-  return {
-    episodeId: String(value.episodeId ?? "unknown"),
-    brain: value.brain ?? null,
-    decisions: value.decisions,
-    failures: value.failures,
-  };
 }
 
 function median(values: readonly number[]): number | null {
@@ -74,14 +49,37 @@ function exposure(r: DecisionRecord): number | null {
     : null;
 }
 
-/** What changed from the previous executed frame, so a row says what was decided. */
-function changedAxes(r: DecisionRecord, previous: DecisionRecord | null): string {
-  const parts = AXES.filter(
-    (axis) =>
-      (r.legal[axis] as readonly string[]).length >= 2 &&
-      (!previous || previous.frame[axis] !== r.frame[axis]),
-  ).map((axis) => `${axis}=${r.frame[axis]}`);
-  return parts.length > 0 ? parts.join(" ") : "(no change)";
+/**
+ * The whole choice, compactly: every axis that offered more than one option,
+ * with those that changed from the previous executed frame marked in text as
+ * well as weight.
+ */
+function ChoiceCell({
+  r,
+  previous,
+}: {
+  r: DecisionRecord;
+  previous: DecisionRecord | null;
+}) {
+  const changed = changedAxes(r, previous);
+  const axes = AXES.filter((axis) => (r.legal[axis] as readonly string[]).length >= 2);
+  return (
+    <ul className="flex flex-wrap gap-x-2">
+      {axes.map((axis) =>
+        changed.has(axis) ? (
+          <li key={axis} className="font-semibold">
+            <span aria-hidden="true">Δ </span>
+            {axis}={r.frame[axis]}
+            <span className="sr-only"> (changed)</span>
+          </li>
+        ) : (
+          <li key={axis} className="text-muted-foreground">
+            {axis}={r.frame[axis]}
+          </li>
+        ),
+      )}
+    </ul>
+  );
 }
 
 function ExposureTimeline({
@@ -163,6 +161,26 @@ function describeConfidence(
   return parts.length === 0 ? "none reported" : parts.join(" · ");
 }
 
+/** The rows either side of `sequence` in `order`, whether or not it is one of them. */
+function neighbours(
+  order: readonly number[],
+  sequence: number,
+): { index: number | null; previous: number | null; next: number | null } {
+  const index = order.indexOf(sequence);
+  if (index >= 0) {
+    return {
+      index,
+      previous: index > 0 ? order[index - 1]! : null,
+      next: index < order.length - 1 ? order[index + 1]! : null,
+    };
+  }
+  return {
+    index: null,
+    previous: order.filter((s) => s < sequence).at(-1) ?? null,
+    next: order.find((s) => s > sequence) ?? null,
+  };
+}
+
 export function DecisionTrace({
   records,
   contract,
@@ -170,8 +188,19 @@ export function DecisionTrace({
   records: EpisodeRecords;
   contract: DecisionTypeContract | null;
 }) {
+  const id = useId();
+  const inspectorId = `${id}-inspector`;
+  const rowButtonId = (sequence: number): string => `${id}-row-${sequence}`;
   const [onlyMatched, setOnlyMatched] = useState(contract !== null);
   const [onlyDisjoint, setOnlyDisjoint] = useState(false);
+  // Tied to the records it was chosen in, so opening another file closes it.
+  const [selected, setSelected] = useState<{
+    records: EpisodeRecords;
+    sequence: number;
+  } | null>(null);
+  const selectedSequence = selected?.records === records ? selected.sequence : null;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusOnOpen = useRef(false);
   const sorted = useMemo(
     () => [...records.decisions].sort((a, b) => a.sequence - b.sequence),
     [records],
@@ -179,7 +208,7 @@ export function DecisionTrace({
   const rows = useMemo(() => {
     let previous: DecisionRecord | null = null;
     return sorted.map((r) => {
-      const row = { r, changed: changedAxes(r, previous) };
+      const row = { r, previous };
       if (
         r.validation.status === "executed" ||
         r.validation.status === "executed_illegal"
@@ -195,24 +224,56 @@ export function DecisionTrace({
   const windowS = sorted.find((r) => r.outcome)?.outcome?.windowS ?? null;
   const spacing = median(spans.slice(1).map((s, i) => s.start - spans[i]!.start));
   const typicalOverlap = median([...overlaps.values()]);
-  const selected = useMemo(
+  const filtered = useMemo(
     () => rows.filter((row) => !onlyMatched || !contract || contract.matches(row.r)),
     [rows, onlyMatched, contract],
   );
   const disjoint = useMemo(
-    () => disjointWindows(windowSpans(selected.map((row) => row.r))),
-    [selected],
+    () => disjointWindows(windowSpans(filtered.map((row) => row.r))),
+    [filtered],
   );
-  const shown = selected
+  const shown = filtered
     .filter((row) => !onlyDisjoint || disjoint.has(row.r.sequence))
     .slice(0, 2000);
   const axis = contract?.calibrationAxis ?? null;
+
+  const open = (sequence: number, focus: boolean): void => {
+    focusOnOpen.current = focus;
+    setSelected({ records, sequence });
+  };
+  // Opening from the table moves focus to the inspector, so a keyboard user
+  // lands on what they opened; stepping keeps focus on the step buttons.
+  useEffect(() => {
+    if (selectedSequence !== null && focusOnOpen.current) {
+      focusOnOpen.current = false;
+      headingRef.current?.focus();
+    }
+  }, [selectedSequence]);
+
+  const selectedRow =
+    selectedSequence === null
+      ? null
+      : (rows.find((row) => row.r.sequence === selectedSequence) ?? null);
+  const step = selectedRow
+    ? neighbours(
+        shown.map((row) => row.r.sequence),
+        selectedRow.r.sequence,
+      )
+    : null;
+
   return (
     <div className="mt-4">
+      <h3 className="text-base font-semibold">Decision trace</h3>
       <p className="text-muted-foreground text-xs">
         Episode <span className="font-mono">{records.episodeId}</span> · brain{" "}
-        <span className="font-mono">{records.brain?.id ?? "unknown"}</span> ·{" "}
-        {records.decisions.length} decisions, {records.failures.length} failed requests
+        <span className="font-mono">{records.brain?.id ?? "unknown"}</span>
+        {records.stale ? (
+          <>
+            {" "}
+            · stale policy <span className="font-mono">{records.stale}</span>
+          </>
+        ) : null}{" "}
+        · {records.decisions.length} decisions, {records.failures.length} failed requests
       </p>
       <ExposureTimeline records={sorted} contract={contract} />
       {contract ? (
@@ -231,16 +292,23 @@ export function DecisionTrace({
           checked={onlyDisjoint}
           onChange={(e) => setOnlyDisjoint(e.target.checked)}
         />
-        Only windows that share no time ({disjoint.size} of {selected.length}): each event
+        Only windows that share no time ({disjoint.size} of {filtered.length}): each event
         counted once; kept by time alone, never by outcome
       </label>
       <ScrollRegion label="Decision trace" className="mt-2 max-h-[32rem] overflow-auto">
-        <table className="w-full min-w-[70rem] border-collapse text-left text-[11px]">
+        <table className="w-full min-w-[76rem] border-collapse text-left text-[11px]">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             Decisions in sequence order
-            {shown.length === 2000 ? " (first 2,000 shown)" : ""}. Confidence is on the
+            {shown.length === 2000 ? " (first 2,000 shown)" : ""}. Choose a
+            decision&rsquo;s number to inspect it. &ldquo;Chose&rdquo; lists every axis
+            that offered more than one option; Δ and bold mark an axis whose choice
+            differs from the previous executed decision. Confidence is on the
             contract&rsquo;s axis, as the brain stated it; &ldquo;none&rdquo; means it
-            stated nothing. Each outcome window is the{" "}
+            stated nothing
+            {axis === null
+              ? ", and with no contract there is no axis to show: the inspector shows every axis"
+              : ""}
+            . Each outcome window is the{" "}
             {windowS === null ? "" : `${formatValue(windowS, 0)} s `}after the decision
             began executing
             {spacing === null
@@ -276,29 +344,49 @@ export function DecisionTrace({
             </tr>
           </thead>
           <tbody className="font-mono">
-            {shown.map(({ r, changed }) => {
+            {shown.map(({ r, previous }) => {
               const conf = axis ? r.confidence.perAxis[axis] : undefined;
               const o = r.outcome;
+              const isOpen = r.sequence === selectedSequence;
               return (
-                <tr key={r.sequence} className="border-border border-b align-top">
-                  <th scope="row" className="px-2 py-1 font-medium">
-                    {r.sequence}
+                <tr
+                  key={r.sequence}
+                  aria-current={isOpen ? "true" : undefined}
+                  className={`border-border border-b align-top ${isOpen ? "bg-accent" : ""}`}
+                >
+                  <th scope="row" className="px-1 py-0.5 font-medium">
+                    <button
+                      type="button"
+                      id={rowButtonId(r.sequence)}
+                      aria-controls={isOpen ? inspectorId : undefined}
+                      aria-label={`Inspect decision ${r.sequence}${isOpen ? " (open)" : ""}`}
+                      onClick={() => open(r.sequence, true)}
+                      className="hover:bg-accent focus-visible:ring-ring w-full cursor-pointer rounded px-1 py-0.5 text-left underline decoration-dotted underline-offset-2 focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                      {isOpen ? <span aria-hidden="true">▶ </span> : null}
+                      {r.sequence}
+                    </button>
                   </th>
                   <td className="px-2 py-1">
                     {formatValue(r.execution.actionStart ?? r.acceptedAtSim, 1)}
                   </td>
-                  <td className="max-w-[18rem] px-2 py-1 break-words">{changed}</td>
+                  <td className="max-w-[22rem] px-2 py-1 break-words">
+                    <ChoiceCell r={r} previous={previous} />
+                  </td>
                   <td className="px-2 py-1">
                     {/* Each figure under its own name: a probability is "p", a
                         provider's confidence figure is "conf", and a model's
                         own stated confidence is "said". A confidence is never
-                        printed as a probability. */}
-                    {describeConfidence(r.confidence.source, conf)}
+                        printed as a probability, and without a contract axis
+                        nothing is picked to stand for the rest. */}
+                    {axis === null ? "—" : describeConfidence(r.confidence.source, conf)}
                   </td>
-                  <td className="px-2 py-1">
-                    {formatValue(r.accounting.wallLatencyMs, 0)} ms
+                  <td className="px-2 py-1 whitespace-nowrap">
+                    {r.accounting.wallLatencyMs === null
+                      ? "not reported"
+                      : `${formatValue(r.accounting.wallLatencyMs, 0)} ms`}
                   </td>
-                  <td className="px-2 py-1">
+                  <td className="px-2 py-1 whitespace-nowrap">
                     {r.validation.ageAtExecutionMs === null
                       ? "—"
                       : `${r.validation.ageAtExecutionMs} ms`}
@@ -340,6 +428,27 @@ export function DecisionTrace({
           </tbody>
         </table>
       </ScrollRegion>
+      {selectedRow && step ? (
+        <DecisionInspector
+          id={inspectorId}
+          headingRef={headingRef}
+          record={selectedRow.r}
+          previous={selectedRow.previous}
+          overlap={overlaps.get(selectedRow.r.sequence) ?? null}
+          contract={contract}
+          position={
+            step.index === null ? null : { index: step.index, total: shown.length }
+          }
+          onPrevious={step.previous === null ? null : () => open(step.previous!, false)}
+          onNext={step.next === null ? null : () => open(step.next!, false)}
+          onClose={() => {
+            const sequence = selectedRow.r.sequence;
+            setSelected(null);
+            // Back to the row it was opened from, when that row is shown.
+            document.getElementById(rowButtonId(sequence))?.focus();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

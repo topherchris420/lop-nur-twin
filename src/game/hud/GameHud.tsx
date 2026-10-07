@@ -796,8 +796,9 @@ function ResultsScreen() {
           </TacticalButton>
           <TacticalButton
             onClick={() => {
-              // The same bots, weapons and spawns: the match someone — or
-              // something — else just played, for you to play.
+              // The same bots, weapons and spawns the match someone — or
+              // something — else just played started from. The same start,
+              // not the same match: runs from one seed diverge.
               replayMatchSeed();
               setScreen("playing");
             }}
@@ -807,7 +808,8 @@ function ResultsScreen() {
           <TacticalButton onClick={() => setScreen("menu")}>Menu</TacticalButton>
         </div>
         <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-slate-400">
-          SEED {matchSeed} · /play?seed={matchSeed}&amp;brain=jev hands this match to Jev
+          SEED {matchSeed} · /play?seed={matchSeed}&amp;brain=jev starts Jev from this
+          seed
         </p>
       </div>
     </Scrim>
