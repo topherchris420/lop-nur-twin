@@ -4,7 +4,7 @@ Behind an unmarked door in the Bethesda anomaly is a research lab where the four
 perspectives of R.A.I.N. — James, Jasmine, Luca and Elena — investigate
 questions about the city, and where their hypotheses become experiments that
 the Bethesda simulator runs. The R.A.I.N. Lab is an integrated research
-environment embedded inside the Bethesda digital twin. Its research runtime,
+environment embedded inside the Bethesda city simulation. Its research runtime,
 experiment registry, evidence layer and simulation interface live in this
 repository; this is the lab's canonical home. It is a spatial interface to a
 real workflow, not a chatbot and not a scripted scene:
@@ -109,11 +109,11 @@ the registry and its evaluation of submitted runs.
 
 ## Three modes, labelled
 
-| Mode        | When                                                                              | What runs                                                                                        | What it says                                                                                   |
-| :---------- | :-------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
-| **OFFLINE** | `RAIN_RUNTIME=off` on the server, or a runtime that could not start               | nothing is generated; every room is explorable; local experiments still run on the simulator     | `RUNTIME OFFLINE` and why (switched off, or the setting that stopped it)                       |
-| **DEMO**    | you choose **Replay the recorded meeting (DEMO)**                                 | one recorded meeting is replayed; no process runs and your question is sent nowhere              | `PRERECORDED · DEMO` and `SCRIPTED · NO MODEL RAN`                                             |
-| **LIVE**    | the default: `/api/rain/status` reports the runtime on and its identity validates | meetings, proposals, pre-registration and submissions go to the runtime through the site's route | `RUNTIME LIVE`, the engine, this repository's commit, and whether a model or a script answered |
+| Mode        | When                                                                                     | What runs                                                                                        | What it says                                                                                   |
+| :---------- | :--------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| **OFFLINE** | `RAIN_RUNTIME=off`, a runtime that could not start or did not answer, or not yet checked | nothing is generated; every room is explorable; local experiments still run on the simulator     | `RUNTIME OFFLINE` and why (switched off, or the setting that stopped it)                       |
+| **DEMO**    | you choose **Replay the recorded meeting (DEMO)**                                        | one recorded meeting is replayed; no process runs and your question is sent nowhere              | `PRERECORDED · DEMO` and `SCRIPTED · NO MODEL RAN`                                             |
+| **LIVE**    | the default: `/api/rain/status` reports the runtime on and its identity validates        | meetings, proposals, pre-registration and submissions go to the runtime through the site's route | `RUNTIME LIVE`, the engine, this repository's commit, and whether a model or a script answered |
 
 LIVE never falls back to DEMO. A failed LIVE request shows its failure —
 `NOT CONFIGURED`, `UNAVAILABLE`, `TIMEOUT`, `RATE LIMITED`, `SESSION LIMIT`,
@@ -717,7 +717,7 @@ unknown. There is no source hash for anything that was not fetched.
 
 | When                                                                                                                                    | The lab                                                               |
 | :-------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| `RAIN_RUNTIME=off`, or a runtime that could not start                                                                                   | says OFFLINE and names the setting; nothing is generated              |
+| `RAIN_RUNTIME=off`, a runtime that could not start or did not answer, or a status not yet checked                                       | says OFFLINE and which of those it is; nothing is generated           |
 | a timeout, a rate limit, a session limit or a server error                                                                              | shows that failure and nothing in its place                           |
 | an answer that is malformed, oversized, for another request, from an unknown speaker, or whose citation audit disagrees with its quotes | refuses it as INVALID ANSWER (on the server and again in the browser) |
 | a quote that does not verify                                                                                                            | shows it as NOT verified and the turn as UNGROUNDED                   |

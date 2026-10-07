@@ -24,7 +24,10 @@ The transition reads **ANOMALOUS LOCATION RESOLUTION**: the telemetry drifts fro
 Lop Nur's 40.77252° N · 89.28122° E into 38.98470° N · 77.09470° W, glitching as
 it goes, then settles on **39° N · 77° W · BETHESDA** and lazily loads the city.
 Reduced-motion users see the settled card. Ordinary visits never request the
-city or its data. **Return to the desert** remounts Lop Nur, and so does the
+city or its data. The card says plainly what is being crossed: from the evidence
+reconstruction into a simulation whose streets and terrain are mapped, whose
+buildings are modeled, and whose people and events are invented.
+**Return to the desert** remounts Lop Nur, and so does the
 browser's Back: the city takes a history entry on the same URL while it is open
 (`src/lib/historyLayers.ts`), and the lab one above it, so Back steps out of the
 lab, then out of the city, and never off the site. Nothing opens from history —
@@ -399,8 +402,8 @@ never without a person's authorization of the exact definition. The lab's
 research runtime lives in this repository (`src/rain/`) and runs inside the
 site's own server. The lab is fictional, its pictures are not evidence, and
 its results describe the simulator, not Bethesda. Its DEMO is labelled as a
-recording, it is OFFLINE only when the server switches the runtime off or the
-runtime could not start, and the city never waits on it. Discovery, the
+recording, it is OFFLINE whenever the runtime is switched off, could not start,
+did not answer or has not been checked yet, and the city never waits on it. Discovery, the
 protocol, LIVE configuration and every boundary are in
 [the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
 

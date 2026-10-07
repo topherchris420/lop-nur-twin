@@ -1,7 +1,7 @@
 # The R.A.I.N. runtime migration
 
 The R.A.I.N. Lab is an integrated research environment embedded inside the
-Bethesda digital twin. Its research runtime, experiment registry, evidence layer
+Bethesda city simulation. Its research runtime, experiment registry, evidence layer
 and simulation interface live in this repository. This note records how that
 came to be: until 2026-10-06 the lab consumed `topherchris420/james_library`
 at run time, through a Python bridge; since then the runtime it needs is code

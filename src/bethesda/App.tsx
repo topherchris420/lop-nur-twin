@@ -855,7 +855,8 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
                 {geo.lat.toFixed(5)}° N · {Math.abs(geo.lon).toFixed(5)}° W
               </p>
               <p className="mt-2 text-[11px] text-slate-300">
-                Real map / terrain · inferred buildings · simulated behavior
+                Mapped streets and terrain · modeled buildings · simulated people and
+                events
               </p>
             </header>
             {nearLab ? (

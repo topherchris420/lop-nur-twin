@@ -39,7 +39,7 @@ class Boundary extends Component<
               </button>
             ) : null}
             <button className="underline" onClick={this.props.onReturn}>
-              Return to Lop Nur
+              Return to the desert
             </button>
           </div>
         </div>
@@ -106,6 +106,17 @@ function Resolution() {
         </p>
         <p className="mt-5 text-sm tracking-[.5em]" style={{ opacity: t }}>
           BETHESDA
+        </p>
+        {/* The one line that must not be missed: the instrument is the same,
+            the ground under it is not. Lop Nur is a reconstruction of evidence;
+            what follows is a simulation on mapped geography. */}
+        <p
+          className="mx-auto mt-8 max-w-xs text-[11px] leading-relaxed tracking-[.08em] text-[#afc9c7]/90"
+          style={{ opacity: t }}
+        >
+          Leaving the evidence reconstruction. Streets and terrain ahead are mapped;
+          buildings are modeled; people and events are simulated, and nothing that happens
+          there is evidence.
         </p>
       </div>
     </div>
