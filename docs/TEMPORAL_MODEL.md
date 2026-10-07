@@ -35,10 +35,34 @@ express that distinction is worse than no ledger.
 
 **3. When the change entered this model.** A fact about this repository.
 
-This repository has never recorded per-feature model history, so
-`modelVersionIntroduced` is absent on every event and the interface prints "not
-recorded by this repository". Filling it with the current model version would be
-a guess dressed as provenance.
+It is recorded apart from the evidence, in `model-history/`, and never written
+into a site claim. Each **revision** there is the release manifest one commit on
+`main` produced, re-derived by running _that commit's own_ generator with
+`SOURCE_DATE_EPOCH` pinned to its commit time and kept byte for byte. A revision
+is recorded wherever what the manifest says (everything but its timestamp and
+package version) differs from the commit before it. `bun run model:record`
+appends them; `bun run model:verify` (and CI) re-runs every one and requires the
+same bytes; and the build refuses a model that is not its own latest revision,
+so the record is complete by construction from where it begins.
+
+It begins at the first manifest that digested each subject (`088c729`,
+2026-08-05). Earlier manifests hash the model as a whole and name no subject,
+so a subject present there entered the model **by** revision 1, at an unknown
+earlier time — the same "existed by" discipline the site dates follow. A
+subject added later entered **in** the revision that first carries it.
+
+What changed, per subject, is read off its four digests (`modelHistory.ts`).
+Its placement digest also covers the date it was first observed, so where that
+date moved too the change is reported as "placement or first-observed date",
+never as a move it may not have been. A dated evidence event entered the model
+when its subject's first-observed date last changed. Measurements, the site and
+the terrain carry no per-subject digest, and their entry prints "not recorded"
+rather than borrowing a neighbour's.
+
+Until 2026-10-07 this repository recorded none of this and the interface printed
+"not recorded by this repository" against every claim. Filling that in with the
+current version would have been a guess dressed as provenance; re-deriving it
+from the repository's own history is a record.
 
 ## The event schema
 
@@ -57,7 +81,6 @@ interface TemporalEvidenceEvent {
   confidence?: number;
   uncertainty?: UncertaintyEnvelope;
   analystNote?: string;
-  modelVersionIntroduced?: string; // absent throughout — see above
   publicationDate?: string;
   scope: TemporalScope;
 }
@@ -205,6 +228,6 @@ comparison is checkable.
   outline appears.
 - **It does not animate between dates.** There is no interpolation and no
   growth sequence; each stop is a snapshot of what the evidence supported then.
-- **It does not record when a claim entered this model.** That is a fact about
-  this repository, which has never kept per-subject history; the inspector
-  prints "not recorded by this repository" rather than the current version.
+- **It does not say when a claim entered this model before the record begins.**
+  The model history starts at the first manifest that digested each subject;
+  anything present there entered "by" it, and earlier is unknown.

@@ -16,13 +16,20 @@ questions:
 
 | Hash              | Answers                                               |
 | :---------------- | :---------------------------------------------------- |
-| `geometryHash`    | Did this thing move, turn, or resize?                 |
+| `geometryHash`    | Did this thing move, turn, resize, or get re-dated?   |
 | `evidenceHash`    | Did its classification, confidence or sources change? |
 | `wordingHash`     | Did only the prose describing it change?              |
 | `uncertaintyHash` | Did what we admit not knowing about it change?        |
 
 A build that only rewords a description moves `wordingHash` and nothing else,
 which is what lets `/compare` report "documentation only" without guessing.
+
+A subject's `geometryHash` also covers its first-observed date. Where that date
+changed too, `/compare` lists the placement row as covering a date that changed
+— it cannot say whether anything moved — and lists the date itself under
+Evidence. Schema **1.2.0** narrowed the _whole-model_ `geometryHash` to
+placement alone; the per-subject digests are unchanged, so revisions on either
+side of it still compare subject by subject.
 
 ## Change categories
 
@@ -53,8 +60,14 @@ The page says so, and lists what is outside the manifest by design:
 
 ## Loading a manifest
 
-Two sources, and only two:
+Three sources, and only three:
 
+- **A recorded revision** of this model (`model-history/`), bundled with the
+  build and loaded only when chosen. `?before=r2&after=r3` opens two of them,
+  and the claim inspector links that way for every revision that touched a
+  subject. Each is the manifest its own commit's generator writes, reproducible
+  byte for byte with `bun run model:verify` (see
+  [the temporal model](TEMPORAL_MODEL.md#three-dates-never-merged)).
 - **This build's manifest**, fetched from the same origin that served the page.
 - **A file you choose** from your own machine.
 

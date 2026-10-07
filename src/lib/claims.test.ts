@@ -52,7 +52,17 @@ describe("inspectClaim", () => {
     expect(claim?.dates.siteEvent).toBe("existed by 2025-09-13; earliest date unknown");
     expect(claim?.dates.firstPublished).toBe("2025-11-04");
     expect(claim?.dates.knowableFrom).toBe("2025-11-04");
-    expect(claim?.dates.modelEntry).toBe("not recorded");
+    // The third date is the recorded revision it entered the model by, from
+    // the repository's own history — never an evidence date restated.
+    expect(claim?.dates.modelEntry.recorded).toBe(true);
+    expect(claim?.dates.modelEntry.entered).toMatch(
+      /^By r1 · \d{4}-\d{2}-\d{2} · [0-9a-f]{7}/,
+    );
+    expect(claim?.dates.modelEntry.entered).not.toContain("2025-11-04");
+    // Where the history digests nothing, it says so.
+    expect(inspectClaim("measurement-runway-length")?.dates.modelEntry.recorded).toBe(
+      false,
+    );
   });
 
   it("cites a method reference as a method, never as support", () => {

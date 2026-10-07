@@ -8,6 +8,7 @@ import {
 } from "@/lib/uncertainty";
 import { TEMPORAL_SCOPE_META, type TemporalEvidenceEvent } from "@/lib/temporal";
 import { getSource, type SourceId } from "@/lib/siteData";
+import { eventModelEntry } from "@/lib/modelHistory";
 import { cn } from "@/lib/utils";
 
 /**
@@ -157,8 +158,7 @@ export function UncertaintyPanel({
                     {event.publicationDate ?? "not stated by the source"}.
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    Entered this model:{" "}
-                    {event.modelVersionIntroduced ?? "not recorded by this repository"}.
+                    Entered this model: {eventModelEntry(event)}.
                   </p>
                   {event.analystNote === undefined ? null : (
                     <p className="text-muted-foreground mt-0.5 leading-relaxed">

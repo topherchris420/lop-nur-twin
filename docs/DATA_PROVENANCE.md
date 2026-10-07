@@ -211,6 +211,11 @@ To check a deployment against a commit, compare the hashes in its
 `/model-manifest.json` (downloadable from the research panel and from
 `/analysis`) with the hashes a local `npm run manifest` produces.
 
+The repository also keeps its own: `model-history/` holds the manifest of every
+model-changing commit on `main` since the first one that digested each subject,
+and `bun run model:verify` reproduces each from its commit, byte for byte. See
+[the temporal model](TEMPORAL_MODEL.md#three-dates-never-merged).
+
 ## 9. What is interpreted or illustrative
 
 Stated plainly, and shipped inside the manifest as `knownLimitations`:

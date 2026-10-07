@@ -13,6 +13,7 @@ import {
   readIntParam,
   readIsoDateParam,
   readSitePointParam,
+  parseRevisionValue,
 } from "./params";
 import { SITE_SIZE } from "./layout";
 import { safeExternalHref } from "./safeUrl";
@@ -235,5 +236,28 @@ describe("safeExternalHref", () => {
 
   it("returns undefined for an absent URL", () => {
     expect(safeExternalHref(undefined)).toBeUndefined();
+  });
+});
+
+describe("parseRevisionValue", () => {
+  it("accepts r and a recorded revision number, and nothing else", () => {
+    expect(parseRevisionValue("r1", 4)).toBe(1);
+    expect(parseRevisionValue("r4", 4)).toBe(4);
+    for (const value of [
+      "r5",
+      "r0",
+      "r01",
+      "3",
+      "R3",
+      "r3 ",
+      "r-1",
+      "r1e3",
+      "<script>",
+      "",
+      null,
+      3,
+    ]) {
+      expect(parseRevisionValue(value, 4), String(value)).toBeNull();
+    }
   });
 });

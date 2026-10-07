@@ -194,3 +194,14 @@ export function readHeadingParam(name: string): number | null {
   if (value === null) return null;
   return ((value % 360) + 360) % 360;
 }
+
+/**
+ * `?before=r3` — a recorded model revision, `r` and a positive integer no
+ * larger than `count`. Anything else, including a bare number, is null.
+ */
+export function parseRevisionValue(value: unknown, count: number): number | null {
+  const raw = boundedString(value);
+  if (raw === null || !/^r[1-9]\d{0,3}$/.test(raw)) return null;
+  const revision = Number(raw.slice(1));
+  return revision <= count ? revision : null;
+}

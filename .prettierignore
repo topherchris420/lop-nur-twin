@@ -51,3 +51,7 @@ docs/superpowers
 # `--archive` and `--evaluate`. They are records of a run; formatting one by
 # hand makes the next re-score a whole-file diff.
 docs/benchmarks/**/*.json
+
+# The model's recorded revisions: manifests kept byte for byte as each commit's
+# own generator wrote them, and the index the recorder writes beside them.
+model-history/

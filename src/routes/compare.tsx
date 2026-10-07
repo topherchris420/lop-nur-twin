@@ -14,6 +14,13 @@ import {
   type ManifestDiff,
 } from "@/lib/manifestDiff";
 import { MODEL_MANIFEST_PATH, fetchManifestText, shortHash } from "@/lib/modelManifest";
+import {
+  LATEST_REVISION,
+  MODEL_REVISIONS,
+  revisionLabel,
+  type ModelRevision,
+} from "@/lib/modelHistory";
+import { parseRevisionValue } from "@/lib/params";
 
 /**
  * `/compare` — two model manifests, side by side.
@@ -30,16 +37,48 @@ import { MODEL_MANIFEST_PATH, fetchManifestText, shortHash } from "@/lib/modelMa
  * screen reader, and a comparison tool that needs a GPU is a comparison tool
  * that is unavailable when it matters.
  *
- * Nothing is fetched from a third party. One side is the manifest this build
- * serves, same-origin; the other is a file the user chooses. There is
+ * Nothing is fetched from a third party. Either side is the manifest this
+ * build serves (same origin), one of the model's recorded revisions (bundled
+ * with the build, see `model-history/`), or a file the user chooses. There is
  * deliberately no "compare with a URL" field — it would turn this page into a
  * request-forwarding surface and break the offline guarantee for a convenience
  * that a download already provides.
+ *
+ * `?before=r2&after=r3` opens two recorded revisions; the claim inspector
+ * links here that way for every revision that touched a subject.
  */
+
+interface CompareSearch {
+  before?: string;
+  after?: string;
+}
 
 export const Route = createFileRoute("/compare")({
   component: CompareView,
+  // Only `r<n>` naming a recorded revision is let through; anything else is
+  // dropped, not coerced, and the page opens empty.
+  validateSearch: (search: Record<string, unknown>): CompareSearch => {
+    const out: CompareSearch = {};
+    for (const key of ["before", "after"] as const) {
+      const revision = parseRevisionValue(search[key], MODEL_REVISIONS.length);
+      if (revision !== null) out[key] = `r${revision}`;
+    }
+    return out;
+  },
 });
+
+/**
+ * The recorded manifests, as raw text. Lazy: each is its own chunk, read only
+ * when chosen, and parsed by the same validator as a file from disk.
+ */
+const RECORDED_MANIFESTS = import.meta.glob<string>("/model-history/manifests/*.json", {
+  query: "?raw",
+  import: "default",
+});
+
+function recordedManifestLoader(revision: ModelRevision) {
+  return RECORDED_MANIFESTS[`/model-history/${revision.manifest}`];
+}
 
 type Side = "before" | "after";
 
@@ -296,6 +335,120 @@ function DifferenceTable({
   );
 }
 
+/**
+ * The model's recorded revisions (`model-history/`), each a manifest that one
+ * commit on `main` produced. Choosing two compares what this repository said
+ * then; it says nothing new about the site.
+ */
+function RecordedRevisions({
+  busy,
+  onUse,
+}: {
+  busy: boolean;
+  onUse: (side: Side, revision: ModelRevision) => void;
+}) {
+  const previous = MODEL_REVISIONS[LATEST_REVISION.revision - 2];
+  const button =
+    "border-border hover:bg-accent focus-visible:ring-ring rounded border px-2 py-1 text-xs focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50";
+  return (
+    <section aria-labelledby="revisions-heading" className="mt-8">
+      <h2 id="revisions-heading" className="text-lg font-semibold">
+        Recorded revisions
+      </h2>
+      <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+        Every change to what this model says, from the first manifest that digested each
+        subject. Each file is the manifest that commit&rsquo;s own generator writes,
+        reproducible byte for byte with{" "}
+        <code className="font-mono text-xs">bun run model:verify</code>, and the build
+        refuses a model that is not the latest of them.
+        {previous === undefined
+          ? null
+          : ` The latest change is ${revisionLabel(LATEST_REVISION)}; compare it with the revision before.`}
+      </p>
+      <div className="border-border mt-3 overflow-x-auto rounded-md border">
+        <table className="w-full text-left text-sm">
+          <caption className="sr-only">
+            Recorded model revisions, oldest first, with their commit and date
+          </caption>
+          <thead className="bg-secondary/60 text-xs">
+            <tr>
+              <th scope="col" className="px-2 py-2">
+                Revision
+              </th>
+              <th scope="col" className="px-2 py-2">
+                Landed on main
+              </th>
+              <th scope="col" className="px-2 py-2">
+                Commit
+              </th>
+              <th scope="col" className="px-2 py-2">
+                Schema
+              </th>
+              <th scope="col" className="px-2 py-2">
+                Use as
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {MODEL_REVISIONS.map((revision) => (
+              <tr key={revision.revision} className="border-border border-t">
+                <th scope="row" className="px-2 py-2 font-mono font-medium">
+                  r{revision.revision}
+                </th>
+                <td className="px-2 py-2 font-mono text-xs">{revision.committedAt}</td>
+                <td className="px-2 py-2">
+                  <span className="font-mono text-xs">
+                    {revision.commit.slice(0, 12)}
+                  </span>{" "}
+                  <span className="text-muted-foreground">{revision.title}</span>
+                </td>
+                <td className="px-2 py-2 font-mono text-xs">
+                  {revision.manifestSchemaVersion}
+                </td>
+                <td className="px-2 py-2">
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className={button}
+                      onClick={() => onUse("before", revision)}
+                      aria-label={`Use r${revision.revision} as before`}
+                    >
+                      Before
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className={button}
+                      onClick={() => onUse("after", revision)}
+                      aria-label={`Use r${revision.revision} as after`}
+                    >
+                      After
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {previous === undefined ? null : (
+        <button
+          type="button"
+          disabled={busy}
+          className="border-border bg-secondary hover:bg-accent focus-visible:ring-ring mt-3 rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+          onClick={() => {
+            onUse("before", previous);
+            onUse("after", LATEST_REVISION);
+          }}
+        >
+          Compare r{previous.revision} with r{LATEST_REVISION.revision}
+        </button>
+      )}
+    </section>
+  );
+}
+
 function download(filename: string, text: string, mime: string) {
   const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -380,6 +533,38 @@ function CompareView() {
     [accept],
   );
 
+  const loadRecorded = useCallback(
+    (side: Side, revision: ModelRevision) => {
+      const setError = side === "before" ? setBeforeError : setAfterError;
+      const load = recordedManifestLoader(revision);
+      if (load === undefined) {
+        setError(`Revision r${revision.revision}'s manifest is not part of this build.`);
+        return;
+      }
+      setBusy(true);
+      load()
+        .then((text) =>
+          accept(side, text, `${revisionLabel(revision)} (recorded revision)`),
+        )
+        .catch(() =>
+          setError(`Revision r${revision.revision}'s manifest could not be read.`),
+        )
+        .finally(() => setBusy(false));
+    },
+    [accept],
+  );
+
+  // A link naming two revisions opens them; each side loads once per value.
+  const search = Route.useSearch();
+  useEffect(() => {
+    for (const side of ["before", "after"] as const) {
+      const value = search[side];
+      if (value === undefined) continue;
+      const revision = MODEL_REVISIONS[Number(value.slice(1)) - 1];
+      if (revision !== undefined) loadRecorded(side, revision);
+    }
+  }, [search, loadRecorded]);
+
   const diff = useMemo(
     () =>
       before === null || after === null
@@ -417,9 +602,10 @@ function CompareView() {
             not the same event as one that moved a footprint.
           </p>
           <p className="text-muted-foreground mt-3 max-w-4xl text-sm leading-relaxed">
-            This page loads nothing from a third party. One side is the manifest this
-            build serves, from the same origin; the other is a file you choose from your
-            own machine. There is no field for a remote URL.
+            This page loads nothing from a third party. Either side can be a recorded
+            revision of this model, the manifest this build serves from the same origin,
+            or a file you choose from your own machine. There is no field for a remote
+            URL.
           </p>
           <nav aria-label="Views of this model" className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -454,6 +640,8 @@ function CompareView() {
           </nav>
         </header>
 
+        <RecordedRevisions busy={busy} onUse={loadRecorded} />
+
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <ManifestSlot
             side="before"
@@ -482,9 +670,9 @@ function CompareView() {
           <div id="comparison" tabIndex={-1}>
             {diff === null ? (
               <p role="status" className="text-muted-foreground mt-2 text-sm">
-                Load a manifest into both slots to compare them. CI publishes the manifest
-                as an artifact on every run, so an earlier build&rsquo;s file can be
-                downloaded from its run and loaded here.
+                Load a manifest into both slots to compare them &mdash; two recorded
+                revisions above, this build&rsquo;s own, or a file. CI also publishes the
+                manifest as an artifact on every run.
               </p>
             ) : (
               <>

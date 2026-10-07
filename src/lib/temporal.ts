@@ -160,13 +160,6 @@ export interface TemporalEvidenceEvent {
   confidence?: number;
   uncertainty?: UncertaintyEnvelope;
   analystNote?: string;
-  /**
-   * Which release of this model first carried the change. The repository has
-   * never recorded per-feature model history, so this is absent throughout and
-   * `temporalCoverageGaps()` says so rather than filling it with the current
-   * version, which would be a guess dressed as provenance.
-   */
-  modelVersionIntroduced?: string;
   /** When the evidence behind this event became public, where a source states it. */
   publicationDate?: string;
   scope: TemporalScope;

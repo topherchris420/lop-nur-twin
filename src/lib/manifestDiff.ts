@@ -340,7 +340,7 @@ export const CHANGE_CATEGORY_META: Record<
     label: "Analytical model",
     glyph: "▲",
     description:
-      "Modeled geometry changed: something moved, turned, resized, or was added or removed. This is the category that needs a spatial re-review.",
+      "Modeled placement changed: something moved, turned, resized, or was added or removed — or, where a row says its digest also covers a first-observed date that changed, possibly only that date. This is the category that needs a spatial re-review.",
   },
   evidence: {
     label: "Evidence",
@@ -613,8 +613,20 @@ export function diffManifests(
         });
         continue;
       }
-      add("analytical-model", id, "geometryHash", left.geometryHash, right.geometryHash);
-      add("analytical-model", id, "observedDate", left.observedDate, right.observedDate);
+      // A subject's placement digest also covers its first-observed date.
+      // When that date changed, the digest cannot say whether anything moved,
+      // and the row says so instead of reporting a move. The date itself is
+      // evidence: it is when a cited scene first shows the subject.
+      add(
+        "analytical-model",
+        id,
+        left.observedDate === right.observedDate
+          ? "geometryHash"
+          : "geometryHash (covers the first-observed date, which also changed)",
+        left.geometryHash,
+        right.geometryHash,
+      );
+      add("evidence", id, "observedDate", left.observedDate, right.observedDate);
       add("evidence", id, "evidenceClass", left.evidenceClass, right.evidenceClass);
       add("evidence", id, "confidence", left.confidence, right.confidence);
       add("evidence", id, "sources", left.sourceIds, right.sourceIds);

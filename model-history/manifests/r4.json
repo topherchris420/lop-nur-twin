@@ -1,0 +1,1029 @@
+{
+  "modelName": "Lop Nur Twin",
+  "modelVersion": "0.1.0",
+  "manifestSchemaVersion": "1.2.0",
+  "generatedAt": "2026-10-07T07:39:01.000Z",
+  "coordinateReferenceSystem": "EPSG:32645",
+  "geographicReferenceSystem": "EPSG:4326",
+  "verticalReference": "EGM2008 orthometric height",
+  "siteExtentM": 6800,
+  "evidenceRecordCount": 99,
+  "evidenceByClassification": {
+    "observed": 4,
+    "reported": 27,
+    "interpreted": 30,
+    "illustrative": 38
+  },
+  "sourceCount": 11,
+  "structureCount": 45,
+  "segmentCount": 20,
+  "apronCount": 3,
+  "timelineYears": {
+    "min": 2021,
+    "max": 2025
+  },
+  "geometryHash": "sha256:d3025b45f8f81f6c9ced000988f4902d6ac37bef04b9d75a3bc359837293e78e",
+  "evidenceLedgerHash": "sha256:bc5ccc131b57bf1eda0192c2ae485289314b087afd0438a04a8c88a17098847c",
+  "subjectDigestHash": "sha256:b044d1d733fd4a69928833f837565b8c073e4196beb85675f71be7d2008a96d9",
+  "subjects": [
+    {
+      "id": "air-search-radome",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:5a229bc79de8793b0e6e66ce9e40246398a29e21223726861ad762210864cd9d",
+      "evidenceHash": "sha256:add5881a3c100bb1e531fc854fc7a60f58fa260e1171a37873f8d912727bfaef",
+      "wordingHash": "sha256:0947d488d5e5b5b70b8dccde609344247db034ce2b01ceb90654f45b5719ff74",
+      "uncertaintyHash": "sha256:6736e04a4063e262b8181e78b181c96abf5e885eb7279311fc28af9aaa52b937"
+    },
+    {
+      "id": "apron-center",
+      "kind": "pavement-apron",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:66f2ff54381fd3e03dbd9f5c04c109ff84b50858ea532de32177a3f61a424056",
+      "evidenceHash": "sha256:60d5aee292310a684abb29272c259cbcfc3ad92f844f04a0766ab47bbbb8d631",
+      "wordingHash": "sha256:dccb09797c3b5f986fa6a0bb1d84d2368e9777b42b3d33d9322adc19b2d7de58",
+      "uncertaintyHash": "sha256:9985185f231ad31d2221cf9813b3a228233e82199ce6509f793169d6d1fc9364"
+    },
+    {
+      "id": "apron-main",
+      "kind": "pavement-apron",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:2bda454cf50f7a0e687bb1cbf99171457af4919c1ae66999a45fb2d19fa08826",
+      "evidenceHash": "sha256:ecf840c44b490a8b4b657fcfc29ef627bfb9cfbd5b14ef1e5e0a890bacd32e6b",
+      "wordingHash": "sha256:73a611716546e9f846643e939a16808450000dc870db16b42a9ad0158d6fe182",
+      "uncertaintyHash": "sha256:cee079f93485cf13572ce14e5ab18f1715e2d3c4ecc53d75755595d568ecdf83"
+    },
+    {
+      "id": "apron-west",
+      "kind": "pavement-apron",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:171d5f49db4175a827c310848947ca6c1e8c2b960af7f735b22285a15f8d624e",
+      "evidenceHash": "sha256:749305232a1990a4d4e9b748228385a7b123f2487782ece577dfe0e9ebb8277b",
+      "wordingHash": "sha256:ffffbc95739729d0b64c387c4a2e27ee734c9c55cd0e5d68a89390efa89f9432",
+      "uncertaintyHash": "sha256:159a1cd77863efe8159e387848effe88aaf336e56eba4b42d0ee9c90d2d0b8f9"
+    },
+    {
+      "id": "comms-shelter-main",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:f27b419786b8f1fef5d344514998e5771e2bad65010591bf2ca604d26db1ae30",
+      "evidenceHash": "sha256:6cd10fc144f13c5ea55c0110ed74fbcea9b94f9e04f3a3ebe6cd2b0d967a22d7",
+      "wordingHash": "sha256:99055adea42ae8c88a35c174ee2a2e5c2e06a647a6a0886c318c8c7f23f5e696",
+      "uncertaintyHash": "sha256:7151ec6da89580b19c5b5139e6bfca2eab6d3ab1dfb3f703d2418d67bac4d0c8"
+    },
+    {
+      "id": "court-center",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:8ad5f5e03cb495234a14f5a586f0d297fc88ff1c30914f1da5319f4e4749e181",
+      "evidenceHash": "sha256:a55e06bc945f044298bcabcb2d83f2020070bb6d0cc2334787ce3f1ca52d2618",
+      "wordingHash": "sha256:f9dd2ac1f72bb2e703b136e63434d14e0fa9463b4426d056f155e432d1577107",
+      "uncertaintyHash": "sha256:cdf94108f23f0774c5c49e5cdb4acf37688798d71bfec55a3014baaa3a3a3244"
+    },
+    {
+      "id": "court-center-east",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:3c0c89e026a7ee4fe01f401f6f4578b969d5a0a53174b3243d38c4b6abeeeddd",
+      "evidenceHash": "sha256:27c9a0a9f55e1b3ec62098a9ad032c9e28d1f0f7ebd683dd4a4017facb197eeb",
+      "wordingHash": "sha256:86801d6786df6ca364182309fc57bcef6142361d64dd56ee32008351ed567fb1",
+      "uncertaintyHash": "sha256:8edb0e886d2b066ea90e9956fb7a83e20ca5573e3ea9193004a6d2948b8d6680"
+    },
+    {
+      "id": "court-center-north",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:7117343919ba9408c7ff4c999f056276ffce380bba56107c64b808b0186ea567",
+      "evidenceHash": "sha256:b03e7b98d33d423a6101ea1e66a717fdb90fd776cbd155c798cda25f7fb83a89",
+      "wordingHash": "sha256:b54b3f3da268289b9599cfe9e5af947e11aac968053fa4b4e0f607a473fcd61f",
+      "uncertaintyHash": "sha256:3ccc8e1aea9359b75b87da3ef1bd75c0e9217f59ca00be44ddf768283f5c2cf4"
+    },
+    {
+      "id": "court-west",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:815cd03ccadb607f2a1ff788f31c1c2c1f73ceece03d2e8404fcad1710ab0e87",
+      "evidenceHash": "sha256:e7ed9fbda84a24b13a640cde062a99ba2d46ce2aeb11b04df592ad9393907b09",
+      "wordingHash": "sha256:1df5d6017bb83076e7bedbd9c88431d40954e8363c66012ee53662793cad5e88",
+      "uncertaintyHash": "sha256:bd43c062fd7e1f67e0e338af0e054011c900a309c09ac2b3835f20fb9b35702d"
+    },
+    {
+      "id": "court-west-core",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:b70bd10f49185791f24f433a86fc875fa9fd20a19f756db10839070ecf23aa97",
+      "evidenceHash": "sha256:a13c5577c4bb6c7a4a65db1715acb00e97fde7d2d58b07b13d0464ddb1bb820a",
+      "wordingHash": "sha256:7491bd447c2e372f036f7c3f3c333c846467f981c751e019e2e3eccaafab4b49",
+      "uncertaintyHash": "sha256:aeb13a644b1674f776562cfd34cb07b4d576e9e8e4d3040fee96704304a70a88"
+    },
+    {
+      "id": "crew-block-a",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.3,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:78a8b5a8fbfe25e1dcaebb0eaff88515b5bd3d975c53ccf5b3ce8cfdd9738e1b",
+      "evidenceHash": "sha256:9782e62c78e8247b9e5e4c5096331e68d2aca803540486e04990913211d6419d",
+      "wordingHash": "sha256:2c14637ef299636d683fd1d88850f6859579e8836f2a565515bc897f1e89da0a",
+      "uncertaintyHash": "sha256:9f9879d4a9b669bae884e07c9fa247e96c512850340239c899a799a3b9372a5c"
+    },
+    {
+      "id": "crew-block-b",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.3,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:7912fd3b3b264f3f9e6b33ab764f32589db485ed6924200cfaef8db8018074fa",
+      "evidenceHash": "sha256:ff165fc5bd2cedbd6dbbdfe55b6bc8d88e78488cf82fb22354a587a862f6e496",
+      "wordingHash": "sha256:38e89be571498e84dd2252eed876e8f93dbc07f66c7ed80db3b120567fc2f253",
+      "uncertaintyHash": "sha256:e893941c76b439fb0dae2ec409f2f110d62c1f92f66b0a9fe5e9c3e8cf5ec6e9"
+    },
+    {
+      "id": "east-middle",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:be3561384c589689ad5414f4a9ace9da2389d841483955abc72fe41e1503e6da",
+      "evidenceHash": "sha256:df1b2cc49aad1105ca082bb18bb938caa117142c2f023ebe344c191dd58c9bf3",
+      "wordingHash": "sha256:784ebf3242a92a249a692b0b4e4bd6fed5afec4220619254a5eaeb379ad73cd7",
+      "uncertaintyHash": "sha256:5016eaa3a4e36589f58ac51750a4127e408d4ed6c44aa0b93853be856dc65779"
+    },
+    {
+      "id": "east-middle-wing",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:61008b66877da5154da016d24a2796c162b3cfbed570579458b72f8620e2bf4f",
+      "evidenceHash": "sha256:d8753e537037340dd7a898f1ab910099c9762078856fc39d36f8d532782689dc",
+      "wordingHash": "sha256:55700d8fb4d814bec773ec42f1ac0d6192cb93c222b35f702fd534ded640db67",
+      "uncertaintyHash": "sha256:c45e15cab549693ce04a67086001add916bc6f1a29aa529383df526c495f0713"
+    },
+    {
+      "id": "east-north",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:e45619f72d1227a8b7aca234c1384fc35fbad9a6dff08aaa059ab00a383e4a06",
+      "evidenceHash": "sha256:247d0d6d7e88372b414547f7cb74ca6639891749b50c3ce4d6083b2c70480078",
+      "wordingHash": "sha256:8f20a8fe8c8869c94dfc9902ea9870dbd31c9f8ef1aa3adcc444ac1280d7576c",
+      "uncertaintyHash": "sha256:b233d706d7cd042c7fa48baedbbf5408e3873141d3bccf62003f8bd9ba028eab"
+    },
+    {
+      "id": "east-south",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:a72711210eb7c9b078a4822431715c7982373da69548cf02139347201864f59d",
+      "evidenceHash": "sha256:9496243baacdc125f724226db39726e1359c50542b6cd17ec59e780424ea8941",
+      "wordingHash": "sha256:64213f4ddca97a68b4c155e4d507a00ce9a00ed6fe357d52c7ef6a439a5912e1",
+      "uncertaintyHash": "sha256:7f0399df91b1634ba682d982d920ad27de283fcb4c9ca22d4c88b7a83da4ad7a"
+    },
+    {
+      "id": "fuel-pumphouse",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.3,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:45069f5395c8b9aaed78bb93e3beb507785c94954b8040c766fdc262629ca818",
+      "evidenceHash": "sha256:8ddaf0df6282a955f365f0ba59d16093e5b5dbd4852068ddeac36456476e8f9c",
+      "wordingHash": "sha256:1fe7cb7e8f2289313b35d08a361a0ec8c161b706a34cfe33b156fbce07c9965e",
+      "uncertaintyHash": "sha256:3f38f68814b0ce2765e133b685bd3d6e8efaffbe90e3d417405afed0c6f80de1"
+    },
+    {
+      "id": "fuel-tank-a",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:ca253b32e1241bd1a85405c8fb8895bf299ac59b17b80cca63d9def9869acc34",
+      "evidenceHash": "sha256:339495d4cf1b41461b6dc89d4b234f4b45cf4b38ee6c725be44f39d0552699fa",
+      "wordingHash": "sha256:7df53d37761e92215334658e89dc452cdd74b05acb43d140d6656a8d86f1317d",
+      "uncertaintyHash": "sha256:3ad5a0a2311337b260afa4b06916e321eda60e4a55b4b4ab2ee0a08018dfca5a"
+    },
+    {
+      "id": "fuel-tank-b",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:aff48dce48abe5dd51a60da443f9c9ac8f29a4ac6b19f184aad91f4f3090dbf6",
+      "evidenceHash": "sha256:eaca86750ba55603ae7203359162c0f09a183a8e5a6ff042a1e3331f13bc4f86",
+      "wordingHash": "sha256:1b24925b7d57d40789c863eb027a94d9038b64efa0d7caaf9bde947a22586433",
+      "uncertaintyHash": "sha256:41a19a83441717f29e93830e0d0225553ede4cf0b7182455350b5462fd2c5445"
+    },
+    {
+      "id": "fuel-tank-c",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:9dba900fa3d82156350711129782c3e15c3dbbf41986036a2a5404c4505e230a",
+      "evidenceHash": "sha256:ba8a12c068ccb2747fb7df02a975d11de6f0e438722b008c2f867580ece1dd6c",
+      "wordingHash": "sha256:ec9fd374bc3492214e281006abb6004fd830abf95aeaf30571d99a3b80e4021f",
+      "uncertaintyHash": "sha256:e1f8304278e2945c8ca077e6b8341062bf1408e690d800b0498786db87e4d8fb"
+    },
+    {
+      "id": "gate-guardhouse",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:3e126320a8df5919c4afb25f59b3e0d57aa1949012373abcbbb2187afd9da2fb",
+      "evidenceHash": "sha256:45899f3e1e5db08c46662dd32fa6290f7e4c0d5440b9744f822cec09fda41842",
+      "wordingHash": "sha256:4016ddd118c4dec2e40a15dc0720c1c0a19fcc88e6755104c369bbd54424ac07",
+      "uncertaintyHash": "sha256:cd24111dd161790f0b54e866b379e160c622edb45747975feaff0ea88d158980"
+    },
+    {
+      "id": "guard-tower-nw",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:be4a545d59f4ed97afcf84b5475238276183ec5dfac470cce83467c5eeccc7b9",
+      "evidenceHash": "sha256:659e45fe071078273125d622963d418032c7840afdabd2a1475049f833ad72cc",
+      "wordingHash": "sha256:4a5d0dcaaec8274114f01eff37db4b881704a5946c8732c75d185e9d674ef948",
+      "uncertaintyHash": "sha256:0f1e3091c608e671c67b6ee6513fbed2b525fdc2d7a4b895b9137f6b5771e636"
+    },
+    {
+      "id": "guard-tower-se",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:50b466ff8624b55d9849340e29527b55dcf052079fcf14501ddcb7e3c5ffefbd",
+      "evidenceHash": "sha256:33d502cb53fc82e636b0678888f4a3f2f441130a0d9819d821b1ebca801caa9e",
+      "wordingHash": "sha256:c1248cae666bfa848d6a3aecbca3fe6515685b0fb3b3f6b771196c549d2ea7ef",
+      "uncertaintyHash": "sha256:d28dcb04a7a30323a826c6a17e6dd829cb4d6f541b8e73a57c1f6e197b97dda2"
+    },
+    {
+      "id": "hangar-main",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:660abe9c8cc82b6171cb0845cc80f8786722fc443259f48a9ee16c4b1a59b7af",
+      "evidenceHash": "sha256:a1c29a4b3ed445d75b611bef99a308e85149065be1f5dd83244ca25a404be02e",
+      "wordingHash": "sha256:8a925eae7eec64e0b7f1e0eb5204f19bff6ffe7f803ed94a436644df2220c0a1",
+      "uncertaintyHash": "sha256:9fdff9542e83260b08206feba1ca31548375b062b40a9e51ea86acf291057508"
+    },
+    {
+      "id": "j36-prototype",
+      "kind": "aircraft",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-08-27",
+      "sourceIds": [
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:421d8656a31911dd2e6cd6ed61ce249e2f41a8b01b2a390ce7b25484d16556c9",
+      "evidenceHash": "sha256:fc64481fd494f625cd2c6715eef879c934173cb71a59c802803ce738deb2c17a",
+      "wordingHash": "sha256:2a19fb70d0582bf1b47177914ced2ca0300fb3fb8f99dccc59c95249c22092b8",
+      "uncertaintyHash": "sha256:afb81a4136e4505af601ece2c46d9b6f55c518beddbe6b59bc6276c002cafe1f"
+    },
+    {
+      "id": "jxds-prototype",
+      "kind": "aircraft",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:73d85b2ef03bae5b08bd21b199c6fe0c7a1b9845ef5391358388006803895933",
+      "evidenceHash": "sha256:df770a81142f8acdc072044111129be3dc95afad351dede6ee5192edada223b7",
+      "wordingHash": "sha256:1bbc0a2bab766fd380cd6d7fe9d387a5d37106f16ddd73dc767c82503a2a41e3",
+      "uncertaintyHash": "sha256:7be1409e5840083a2c732e5feeb9d4e0ece112843489244a87e98b5e56a42746"
+    },
+    {
+      "id": "main-switchyard",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:8816ee894f579498e488204d1aa84641d054917b58afc99e0e13f31dff89bce2",
+      "evidenceHash": "sha256:f1e3794739e50352502136e5f134dba9c6e05f7acd915c15668685e5890b49a8",
+      "wordingHash": "sha256:d39188eee663ebfdf31024f6cb1808ccede7cf3111efe91d029d30c88f4dd1b1",
+      "uncertaintyHash": "sha256:cb17f77df6aee9770baa355c2490dc6e25b224e22941b3308d6b392808e40ad5"
+    },
+    {
+      "id": "ne-apron-hangar",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:6ecb48677e4a59d3c34b23f67929140613207172d8bccc1528e7ec964c83440f",
+      "evidenceHash": "sha256:57b98fe01d883bcf2a36b8990be88e149ee915719bd9135bc70352b293672b58",
+      "wordingHash": "sha256:84057606e4b21e612a45b120a00998e30152ed77740c97490a78912e70c64ef5",
+      "uncertaintyHash": "sha256:02b8241e6042b7e4a0cd7f6e99997e2b4fbd401ecc49e0fa3ba8964753c30baa"
+    },
+    {
+      "id": "north-shed",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:98e5f8a7b7beebc472118a6ee33d2c8c57580652f6755463c79c313948ae7ebf",
+      "evidenceHash": "sha256:1855ae77f5885b63f769abf2ae11d727ab0a0a43959625bde1c0b556272d75fd",
+      "wordingHash": "sha256:b8f4c8f72e23ffadea415ce07c0606e841333c69cf0b2ed549ae0d4af6e5622f",
+      "uncertaintyHash": "sha256:14e4fec6bfeef2a6e0fcab27ba5477cb23a392c781341a13644f972f59fd1139"
+    },
+    {
+      "id": "north-utility",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:6b7bd128ff7f786c52908f10e6ebfc3ad0e6e6575644b20e21551b6414dab57b",
+      "evidenceHash": "sha256:9e62f1752068d6b7ddbdc20c468fdb88095cc8d4fe7f289a8bb9ad0b11c7dd57",
+      "wordingHash": "sha256:e6648c1bed4eb7bc640165cd3c67dcaced45580831f1f00c3badad3c15240249",
+      "uncertaintyHash": "sha256:54c43b2954faa22ca971527744f759d5c19a32348c29478ab56a4ff295577ac2"
+    },
+    {
+      "id": "ops-court",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:45f9ead21f415843b633ee7e929ececce9184a99f3e8cb8a16ba7edd13297944",
+      "evidenceHash": "sha256:ffa84b2137b75795ffb68b372c073ef249a1e5c9a7306d3cba822dfb0eff3f98",
+      "wordingHash": "sha256:6ea3b13aad311616eaa3557b7f2897941b11095b039c02e023fa76f7ad46190d",
+      "uncertaintyHash": "sha256:e7f8c1f4916f288b69e03430bfae20ac7fae509bf84e657388fb958f277e6d4a"
+    },
+    {
+      "id": "ops-east",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:c5ce4408574db9f0b80582c2a812a2739df5c143d3fb180568cb4642bce638ec",
+      "evidenceHash": "sha256:3c9783e12ce8cde038567796ea40397c29d2233aaa7bd6450def0ac4ccd11a3f",
+      "wordingHash": "sha256:928fe37e606f27d9a551ac87a71e44b284094a8c21612414bbe81ee395fb0c32",
+      "uncertaintyHash": "sha256:0a7288326d2a97ce25ca93291d890006ae30463c09e4d804cf94b4b12cc55acd"
+    },
+    {
+      "id": "ops-north",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:4c3d44276b4f41d2fcf65e97f0c1d55bf3828ebea617ebc996984ea32a739810",
+      "evidenceHash": "sha256:1b85ec681aa65033163174cd82e60e5518a74746605b66cb1b3b023043e74963",
+      "wordingHash": "sha256:764b24b6a1deec5ebd9f7a4444c4355182ecfb49123feea432375f81173c90a0",
+      "uncertaintyHash": "sha256:670bab73989ab0308a21f5e2be575d4a253c918a53efdcdc91ec49468bc0f106"
+    },
+    {
+      "id": "ops-walkway",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:2f53ed32d7baaae6e6f4f1a2d242c5a85db9c0d7c6501bcdb9bb04278bc1ebac",
+      "evidenceHash": "sha256:6ebe859b6353b958e244926a31dc6e455a35f0a04511f313a8d23a0a3f693c8d",
+      "wordingHash": "sha256:c5368e286237789489d19169a9f2494cf719c1b7576cadb71d539e8d60719ee9",
+      "uncertaintyHash": "sha256:198ed0ccbc0a104240d030585d35a826aa60769e7919ffdf55b6746317dc22b9"
+    },
+    {
+      "id": "ops-west",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:3eb10a1e30901a922b29ab61d24c642cfc0dbfe3902214d70d7c41af3b9b6349",
+      "evidenceHash": "sha256:74298c2e2fefaec01c188c69c69c67f2856c27e3fed083c9135af072ef0e63c0",
+      "wordingHash": "sha256:0b3d948a64899ca1c529d74c8f80dc8c6630c744cfe9d01c520ab6b01deea763",
+      "uncertaintyHash": "sha256:4f7e1dd100d5c2b375e4acc706e81eaea0bc8e45feef11a36baaf6d912608160"
+    },
+    {
+      "id": "road-access",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:f257a89812ceb281b7ee66513cce20de106c1d191855184cfb42d26500e52249",
+      "evidenceHash": "sha256:eccd81d88302e0c82cb93c076198c6c1eae354173e53624d040160396b13527a",
+      "wordingHash": "sha256:2ffb2e905c846f8f5953e0a909aeead971964d794f876a63df3f62747bf141ce",
+      "uncertaintyHash": "sha256:2193ff8e76f2df0d24e37ba6ca67381a18560884ee304ab08279b5c804eccabb"
+    },
+    {
+      "id": "road-perim",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:548b6ac86a9f5b8db81fb3173bb7295981f243d1346c9716f3e07b543e4db3dd",
+      "evidenceHash": "sha256:ada6f14ced3db236ab59d3d0a92707c2fa43187874f4e3e797fd24cac4d83843",
+      "wordingHash": "sha256:e88137cfd86914879dbcb4ff8813a11924a60570a0fd46ed2dfef972b00aaa0a",
+      "uncertaintyHash": "sha256:046be8de3548180c4815ca6ddc73c32f1418916ad61952ddd7ee201c02607869"
+    },
+    {
+      "id": "rwy-05-23",
+      "kind": "pavement-segment",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2021-06-30",
+      "sourceIds": [
+        "npr-airfield-expansion"
+      ],
+      "geometryHash": "sha256:92ae395020e064679f34f26a79eb8583399d74a1ca0a70e9ef71c9cf0899d963",
+      "evidenceHash": "sha256:a4137c01e4379866b697e221cadd03db3cfca9da21c6afadea9a3b676b4d124b",
+      "wordingHash": "sha256:399b474d773d609ad7368f0135a24438b544653f30f04886dc262f6602d014f8",
+      "uncertaintyHash": "sha256:5662dc93280159f4c02fb57122b869ff840253463923dbaa4b1a3b79e3394c81"
+    },
+    {
+      "id": "se-build-annex",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:502f18dad0f1bd819e7b7c45d416d440dfb05ee25a7394ff6dc1fba8f42a9ba4",
+      "evidenceHash": "sha256:26d1c7a0d7610a5c46186b2f55e602a47d858c9c34aecf6691c0218201cd2cd9",
+      "wordingHash": "sha256:ad2c5daf7ae203a4cd74068186cdcf6c29cb051eac31d4dc46a9c0499833bdb5",
+      "uncertaintyHash": "sha256:27599f46257765951ca99061e3c22f83e9435b0c2c9e6bfefb2aef6452e6d9e4"
+    },
+    {
+      "id": "se-build-hall",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:75c6cad5043235f11edabb52540358330d8f617b0531d264a2de562e89f7324d",
+      "evidenceHash": "sha256:eb7e42cdefcb2949625ac67c9035efe4666cfeef1782b54354638c2fbef58935",
+      "wordingHash": "sha256:cc8d4f423c6e9de617af9a15fe1fbcde16af3e4aff34f5b90ac419d84e892bf7",
+      "uncertaintyHash": "sha256:15967d4d93064c8a3a44df487462fd449ae14a894981c2004f4cb331ca77c34c"
+    },
+    {
+      "id": "solar-field",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:9c982532b7f6263cf1affdbf7c43bd89321e0d2d1a1df73a7d782616b2a67fd8",
+      "evidenceHash": "sha256:596a62031340f8de3560590bee31e5c080b450f723e52410de8695556111630b",
+      "wordingHash": "sha256:349cd4dc9ecc1aea34ae6a4df383b8fcc4dfa0bfd445d4ff1a691adbf1e2a632",
+      "uncertaintyHash": "sha256:54d50c4234443843a6ec847466cc6de4c37601f2d4afc343fee1c0ce030c2899"
+    },
+    {
+      "id": "south-center",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:618beb644e2083ebe3c385a3a9614fe73a8b847be725cf7cd6ce5c2a5c5353a3",
+      "evidenceHash": "sha256:7c3060824a0fbb3e2e358d01ff1d3412822772565f6543a6df52f7cc7d4da356",
+      "wordingHash": "sha256:7b807d850c77260e70fcfc47bd711b9e3e9fd96d81ba167e4a9a001280bc5c0e",
+      "uncertaintyHash": "sha256:8028c31de20d1910e0acbe2aadf545af6a15a854a6c1735d2c069e79a9520ab2"
+    },
+    {
+      "id": "south-west",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:defde32b5e540d1284cf502e40ff662caa94e5c83c0b10f7e2c968eeb9048ced",
+      "evidenceHash": "sha256:f21ef8ee6de9a3b90e6689895addf316657eead0ef810fbb82a1286d9b547be6",
+      "wordingHash": "sha256:58a25999542c343e54ec0f2bce6826823fa1af6f16aa27b2cbd52ec8e202fb9b",
+      "uncertaintyHash": "sha256:bd6ec66f5e6e813088208a2a872422edb22c7850056d3f2924efa196a3a844f0"
+    },
+    {
+      "id": "south-west-small",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:ca397f87b8d85473ed35fb2b8ceedc6358a80fff94863ad37095b24e561c8025",
+      "evidenceHash": "sha256:5ef777b9afc23a4647c050c02bc6be6094f3e0c5e597d41603b401c499669691",
+      "wordingHash": "sha256:ea8986f6a8f5c355aba9119b6782415224b0e1b720585e6878a04c81b07bd9f0",
+      "uncertaintyHash": "sha256:72fd7b9b553182f878784efb28ac50d603cb569c9b38e59184d7638432460919"
+    },
+    {
+      "id": "st-center",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:23691dffe64ffe6701bb9a749dc3794728c31e3ffbee929f5ece543fb52ac080",
+      "evidenceHash": "sha256:897f4907c37ee0e01ff1298a688f7c1d08c6296476bbef937fda5c9b631288c1",
+      "wordingHash": "sha256:4ac0ac0570ab5357ec5dc090a7cd666e8c81701bcce48ec88ae4e7311d1e8aa3",
+      "uncertaintyHash": "sha256:1e4cdab3cbbc31459142984aef4fa9348ef8c15f0760cabe27716eac463eb9a3"
+    },
+    {
+      "id": "st-crew",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:c28953867b33f6dfdcbff374875411c60d6f8091a4e53736cf325d51ff3a1257",
+      "evidenceHash": "sha256:52e14e8efb8680c093c2903b177d08e689f8c4fd4a31d13cdfc130e21bbac5a6",
+      "wordingHash": "sha256:f5129a33b1d11c8ff1cf01d4bb75f394cd14f440cf54df497c1db4f6007548d1",
+      "uncertaintyHash": "sha256:1ab9910ac2a70951b645efb3e6c73d81d4b10d8e503fd0ed5a295adff34e8d5f"
+    },
+    {
+      "id": "st-east",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:6ced7daf200618dea01fb279e03a4408ff5e6251bce8acfbbd19195a18bd032e",
+      "evidenceHash": "sha256:6e9b8bb4e513e880c6855ed3093ac2cf68ce71dc12cdf9375f6a6bd379e8b5e5",
+      "wordingHash": "sha256:11412ac3a1603956877eda116f5199ea990148e15c82ee11daa17d10d2fdb116",
+      "uncertaintyHash": "sha256:7a13b4a8a18a25a1914aaf999565eead5652343a8899b1f748f66bbf48032cb3"
+    },
+    {
+      "id": "st-east-inner",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:72b47074547624c9db6062b30f00fc74fda85998f44d586098f7660172255dd2",
+      "evidenceHash": "sha256:120f4923eb8fc35d1f0f957f04a5f2e190652ac6003f629520ee1e655156ab4d",
+      "wordingHash": "sha256:ed54cf502c2049e5d796f2313c5c8d459689578a74a52f1232a97235aa9bb182",
+      "uncertaintyHash": "sha256:039f5ac8e9d163e60d53247ee77b740bc0f9dfa58d754ba0cec7f6253ffc0d52"
+    },
+    {
+      "id": "st-fuel-access",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:f6b203be7c47753045f37cc6615469565c92e3600ae6e663cd5152bf1daf3176",
+      "evidenceHash": "sha256:e314368f6889ddd4b03905b677204b2810592340b67673108c39f319175ccf42",
+      "wordingHash": "sha256:60b6791eeec0f798f2f464a271a883c93864038c2e7956a746be4c3a57530fb7",
+      "uncertaintyHash": "sha256:ea4cd447bcfe6363fd14606dcb9f054cf9d3e9f126d40236dc19fe8a8c00aca7"
+    },
+    {
+      "id": "st-mid",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:31304e2f079e55bd3944ebeda7a61cc91a36ab62e930f566b6df699ee0b7941a",
+      "evidenceHash": "sha256:efe45706a1af56087ae056a1c7692d964ebc79c3b08a994119afdc78c41b3585",
+      "wordingHash": "sha256:962883f2a7f955043aefcda7bb52574d7724b549252b09c7ad5e2ec9b7f41e17",
+      "uncertaintyHash": "sha256:1703c2b2c1bffb8069cebc94007cf51aa9f2e72bc4e255f74ad7446ba29602f6"
+    },
+    {
+      "id": "st-ne-loop",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:25b7781eb8b9ba796b02f881ea56289fae99c56e4b225b302351317215310c09",
+      "evidenceHash": "sha256:0c57a92d21f83f84c079bb896a00848a3d6ee807cd198e76bd18afdf4b953cd1",
+      "wordingHash": "sha256:8b440978e2b79fa297c8dffe3117ad411db194af503d0d2f45225600b2ccb6c4",
+      "uncertaintyHash": "sha256:2de26592098ed54fefe53da2bb7ea9cf0c97e3e1f171a135e0fcf13a3e09c9e6"
+    },
+    {
+      "id": "st-north",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:ac8bfb878c5ad2e94e1cd6b6f3181fccdaf564cb9e563fc53a4265c4e02b257a",
+      "evidenceHash": "sha256:25d541ea0ef9987fd064c01b05f4e5dd45d05348225bd56922749ae3165a2483",
+      "wordingHash": "sha256:dab1a0cdafab9a27b15650d33f77a1e6df22719c2568d67028a780b7e32a3fe3",
+      "uncertaintyHash": "sha256:a69f3b7cff932c86531514a41378c169b1fca94c990f093689a7e45d8aafffb8"
+    },
+    {
+      "id": "st-se-service",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:d8afd22ee7222320bb3402c96b5c9364e3b80a5ce7d3c6d17e3d2044288eccb1",
+      "evidenceHash": "sha256:c62bf49300c03ba33684365d45614cc03beff502a19814d1cd70647009aab333",
+      "wordingHash": "sha256:c404356ee29552aa8422466ac6009b7158029f29d0f3917f445e8f58f61ef878",
+      "uncertaintyHash": "sha256:f99a7be3f1c75f78c2d3195693df4a3da8a2b61c7179c0ad9c643adf285cf9fe"
+    },
+    {
+      "id": "st-south",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:ae4dcbf60beb6c65c381f2aa016d551351103bfa8bf3f5c7c476361c05cee9be",
+      "evidenceHash": "sha256:2136adc46647694264da9e708d9dd8358f609420d82270b0aa59103379d47701",
+      "wordingHash": "sha256:a648f29b3277eddda4c5ba8deb3cacb37911f4bfbee90a5c464798e62824d199",
+      "uncertaintyHash": "sha256:6e27ea316927592c0497a84c6132ab1e4cce26c4857131a644c62c4e6e1403f9"
+    },
+    {
+      "id": "st-spine-ext",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:6ac346b134ec638be7b6d3c5e3f2397e7768d2d295c6c509c464ad0c9ec5957c",
+      "evidenceHash": "sha256:6dc90e365e16b500ba3f9325c3d193218f557a5bb1e58bccb55e8331314ddf1e",
+      "wordingHash": "sha256:49c1616503db612191bbb8a4e8768a6f33f07cf1b3623672e99d25fc6e183bd0",
+      "uncertaintyHash": "sha256:f63f123bb38511acae991ecf7cc5860e21d8676a234d3909447468653f49541f"
+    },
+    {
+      "id": "st-west",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:e1712fa897e0d3d69cef9a95d0e64f3eb1d9ae8ac96fdc51cdfe2d5d316bd0a7",
+      "evidenceHash": "sha256:54cdb2b5f28a4a8bd85659ea731017882d52f371ffa3b7a8991c44b99e636373",
+      "wordingHash": "sha256:dbf736455a2937e46a4d5891d01ead691693cae26abe61f64626a6ff6db23c5e",
+      "uncertaintyHash": "sha256:289c073d1238ce48f015b70ead82417840bcdb9c8f23ca95b37bb9032676e61f"
+    },
+    {
+      "id": "st-west-inner",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:bd94364e473b55aa0ac0ddcff4be182d54147d9fed035eb2824efb597f6591d2",
+      "evidenceHash": "sha256:521142a191da5f0a9b2eaf2dc9944bb147abee552d5147c599a8cb50b181ccf6",
+      "wordingHash": "sha256:ada6b46b2792fcf68ead62cf2b0699ab20338f75dae58dd2827d2224ef7a690d",
+      "uncertaintyHash": "sha256:32e3eeddd1e94372314ada10743c1fea2c36ffe1119320b848e9220b69187411"
+    },
+    {
+      "id": "tower-main",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:1a327e68546733fc0169e2aa75244bfcafebc9c12a34006649f2203270b5c612",
+      "evidenceHash": "sha256:c5f2059a1aa148b5dbafa82cc01fe318889879540be491276d22f1bd5a9921b2",
+      "wordingHash": "sha256:043f581ddab378bd1a3ae622fbe83f3d58b4c374e49c209a7e42ca01daff8b2c",
+      "uncertaintyHash": "sha256:0c18f8e17d2c69197bd37cc735c4773e8bd67aa8c41ec8aa53a92bff64228139"
+    },
+    {
+      "id": "tri-north",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:9f22dc6f225c69c217da0145d2f5ba2ffedab9306e7695d576ddcad33c01df0c",
+      "evidenceHash": "sha256:7997d36f5c864bdd3e5ff72ce4e28cec9477c9e587bf927ae2ca6fef29ff9ae1",
+      "wordingHash": "sha256:eaf9352fd04f2d49983f9230d962f0707da8c760bd1c5713749ab3b2938a5b12",
+      "uncertaintyHash": "sha256:53805daa01c448667c736e4a4e3ddc5c1d4b646515107934e94c787d7dbf9941"
+    },
+    {
+      "id": "tri-west",
+      "kind": "pavement-segment",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:30c581fa023a88ed3e7ba4d43b0851f119d36cff6486522008af4504798c73ec",
+      "evidenceHash": "sha256:0a916338ff71196467de765ba3d826ba25c66a3b7cb5f6eb374c2baa78b8c676",
+      "wordingHash": "sha256:60ec102445c7057e5878a1a5bfef20d9f6fc6aca7ed9eb1073a0b503e1a1a9cf",
+      "uncertaintyHash": "sha256:2c5d81a8edbf05363ba013cdfa1fd7c964fd9a4ca3a5595fffb7cbe8e2a15f38"
+    },
+    {
+      "id": "twy-apron",
+      "kind": "pavement-segment",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:6979dbd8f45ae7737369e69aa859eff9449438e7d4d9555acf634d04da863695",
+      "evidenceHash": "sha256:9843963addf8ff5d709eff98ebe038e8db8c3609b8fe42e12a9db110d7605644",
+      "wordingHash": "sha256:3e2764f1eef3be4910865dbd5aa81aafff65cc6f27ace39b3897bdd6321013b3",
+      "uncertaintyHash": "sha256:96bbbcbb48910ff235e82f585f109a13cd39c4a5d2d6a4cd19df503910f7dfc0"
+    },
+    {
+      "id": "twy-stub",
+      "kind": "pavement-segment",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:7939a16b56f0fe19d09804c6b967115a648bf3ba1e20f5d57910f926fd474352",
+      "evidenceHash": "sha256:719184a62481161e8d38538add785cf4bb854c203d3f46ed50144f511bf3bbe4",
+      "wordingHash": "sha256:e88f2cc9e84f6b634c240e4751dbf7294fb9dd7743322235b8281b50310a6542",
+      "uncertaintyHash": "sha256:448cc7e10e4620032baaa65aea47cba46f738678e113bd8c6009553508314e82"
+    },
+    {
+      "id": "wastewater-plant",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:0ef4d0967cbe5f1203e793df77c18dce18814b513d5d0129129d372db93e1231",
+      "evidenceHash": "sha256:73920667dbddd23560411a538ec0c272ea697b808de8df1522a8dd3a49e135e9",
+      "wordingHash": "sha256:88fc08f9bccd882482bd1af76dff1c4c5149e96979c6a0b18d87f39038c22c5e",
+      "uncertaintyHash": "sha256:b8017440ccbd7a25742969fcb0e782b30f79778d6eddb52bab41dfb7aadd47dc"
+    },
+    {
+      "id": "water-tank-tower",
+      "kind": "structure",
+      "evidenceClass": "illustrative",
+      "confidence": 0.3,
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:98553c576b0d1d3ea08c9f909dab6726d75dff19f16fee9dc03531f93c2ed67d",
+      "evidenceHash": "sha256:f0a844b08a70ba2c789a715cb0500d6793ada4e9a50ae397af16eabecd691992",
+      "wordingHash": "sha256:fc0960cef6bdd7908a18b604472d9a6378833ce0b6f765137243f273896a81e4",
+      "uncertaintyHash": "sha256:46c2888b013ba4d6344c0d603dcbacb05a6ec53ec41fa135beccdec9a765867d"
+    },
+    {
+      "id": "west-core",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:423268c7512d4cd6b88ad763eeeea45e367813990af344bf6a2e2eca422998e0",
+      "evidenceHash": "sha256:e3d901fe155f4c830817a45327b17db8c037285d2935b74a3f53e3b1536d5f34",
+      "wordingHash": "sha256:fd0b48b63c2bf706108c9608439405cff6ac7ee8bb2ac4010a29459322a5000a",
+      "uncertaintyHash": "sha256:090169e4e054066a55c531605e29ea4cd6897c93146704c19de47723fc093ea9"
+    },
+    {
+      "id": "west-fighter-shelters",
+      "kind": "structure",
+      "evidenceClass": "reported",
+      "confidence": 0.55,
+      "observedDate": "2025-09-13",
+      "sourceIds": [
+        "nsj-airfield-2025",
+        "twz-aircraft-2025"
+      ],
+      "geometryHash": "sha256:d3d60f0dfe1187120c42e8a0549a6bbaebe46cb7799c185d477730b57399872b",
+      "evidenceHash": "sha256:13b74d0d3da77539c6525b9ee79a8b506d80f78a896c622ad98c73a8909c88cd",
+      "wordingHash": "sha256:bceff5be07eceb7773d88e066e5b8a31fe9d3d3138be6fa886e7b084e4851f8d",
+      "uncertaintyHash": "sha256:e916288bfbb2ce9617e2f11585667d6447665f9302fe3606fc44d9f084d603a7"
+    },
+    {
+      "id": "west-link",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:e1792672b3c83f3b425bde987077feb1a5da8a5fac9e1c10ee88c0664e41cecd",
+      "evidenceHash": "sha256:3cb495bf67eccf8ba24ef46c6ce005fa6b455c758eed33cb10ee110b32453055",
+      "wordingHash": "sha256:c851e4bc5d37ffc981bc2bf0b19e22eeed07617edd1e4a3c8aea4ad470a8d118",
+      "uncertaintyHash": "sha256:b6306d0c6ff6b32146cc66ec095a19891be2c59a8031bd747cb26b2087af140b"
+    },
+    {
+      "id": "west-long",
+      "kind": "structure",
+      "evidenceClass": "interpreted",
+      "confidence": 0.55,
+      "observedDate": "2025-09-28",
+      "sourceIds": [
+        "sentinel-2-scene-2025"
+      ],
+      "geometryHash": "sha256:826783ba227df61f5d6086a244f8ea2edc9403640fac74abc7b180fea0d4d3ad",
+      "evidenceHash": "sha256:825db038105fa19b7815fd5f8847cc0f7db78351781f934f90452785fa63a51c",
+      "wordingHash": "sha256:7fa7c2de66b8f594c5c7f894b6596efc823aca96869d42c04fbafb4f51e9f9a4",
+      "uncertaintyHash": "sha256:187e084fb2c510fd5e0de0a921cc8be9ccf8ad084e8bbfef88e87250d78a2505"
+    }
+  ],
+  "temporal": {
+    "eventCount": 57,
+    "byScope": {
+      "evidence-availability": 9,
+      "real-site-claim": 38,
+      "model-only-change": 10
+    },
+    "byCategory": {
+      "evidence-publication": 9,
+      "first-appearance": 34,
+      "reported-aircraft-sighting": 2,
+      "pavement-change": 2,
+      "model-only-change": 10
+    },
+    "snapshotDates": [
+      "2021-01-01",
+      "2021-06-30",
+      "2024-07-01",
+      "2025-05-20",
+      "2025-08-27",
+      "2025-09-13",
+      "2025-09-28",
+      "2025-11-04",
+      "2025-11-09",
+      "2026-02-13",
+      "2026-06-12"
+    ],
+    "emptyCategories": [
+      "footprint-expansion",
+      "structure-added",
+      "structure-removed",
+      "reclassification",
+      "correction-or-withdrawal"
+    ]
+  },
+  "validationStatus": "passed",
+  "validationErrorCount": 0,
+  "confidenceScale": "Confidence is a project-assigned ordinal (low 0.30 / medium 0.55 / high 0.80) published on a 0-1 scale. It ranks how well a claim is supported by its cited source; it is not a measured probability or a statistical estimate.",
+  "classification": "UNCLASSIFIED // PUBLIC SOURCES ONLY",
+  "assurance": {
+    "governmentCertified": false,
+    "fedrampAuthorized": false,
+    "cmmcCertified": false,
+    "approvedForClassifiedInformation": false,
+    "approvedForControlledUnclassifiedInformation": false,
+    "operationalIntelligenceProduct": false
+  },
+  "knownLimitations": [
+    "This is a public-source analytical reconstruction, not operational data, an official facility record, or an aeronautical chart.",
+    "Terrain relief is a seeded procedural proxy around an approximate ~981 m EGM2008 datum sampled from Copernicus GLO-30. No DEM tile is redistributed and the surface must not be used for survey-grade elevation, slope or sightline analysis.",
+    "Facility functions are interpretations. Names such as \"assembly hangar\", \"operations block\" and \"crew accommodation\" are model hypotheses; public overhead imagery does not establish interiors, occupants or use.",
+    "Aircraft identifications, dimensions and parking positions follow cited public reporting. External shapes are massed from widely circulated photographs whose provenance cannot be verified.",
+    "Base-support systems — power, water, sanitation, communications, sensors and security — are illustrative. None is resolved in the cited 10 m imagery.",
+    "Modeled runway endpoints carry roughly 40 m of uncertainty; the 10 m source imagery supports site-scale measurement, not detailed interior or function claims.",
+    "Animated elements (flight circuit, patrol vehicles, radar rotation, windsock, day/night cycle) are illustrative scenario motion, not observed site operations.",
+    "Climate values are 2001-2020 NASA POWER monthly climatological means for a model grid cell — not local observations, a forecast, or conditions during any reported event.",
+    "The Blacksite simulation at /play is an illustrative interactive demonstration on the same geometry. Nothing in it represents observed activity, capability or tactics.",
+    "Confidence values are project-assigned ordinal ranks published on a 0-1 scale, not measured probabilities.",
+    "No source artifact is retrieved at build time, so no source content hashes are recorded; provenance is pinned by citation, access date and reviewed data change."
+  ],
+  "generator": {
+    "script": "scripts/generate-manifest.ts",
+    "hashAlgorithm": "SHA-256 over canonical JSON (recursively sorted object keys, UTF-8)",
+    "reproducibility": "Set SOURCE_DATE_EPOCH to pin generatedAt; every other field is a pure function of the committed model data."
+  }
+}

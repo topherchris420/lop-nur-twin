@@ -47,6 +47,7 @@ import {
 } from "@/lib/temporal";
 import { formatUncertainty } from "@/lib/uncertainty";
 import { useTwinStore } from "@/lib/store";
+import { eventModelEntry, modelEntryCells } from "@/lib/modelHistory";
 import { SpatialQueryPanel } from "@/components/evidence/SpatialQueryPanel";
 import { ClaimInspector } from "@/components/evidence/ClaimInspector";
 import { inspectClaim } from "@/lib/claims";
@@ -745,9 +746,7 @@ function AnalysisView() {
                       <td className="px-2 py-2 font-mono">
                         {event.publicationDate ?? "not stated"}
                       </td>
-                      <td className="px-2 py-2 font-mono">
-                        {event.modelVersionIntroduced ?? "not recorded"}
-                      </td>
+                      <td className="px-2 py-2 font-mono">{eventModelEntry(event)}</td>
                       <td className="text-muted-foreground max-w-[22rem] px-2 py-2 leading-relaxed">
                         {event.analystNote ?? "—"}
                       </td>
@@ -928,6 +927,9 @@ function AnalysisView() {
                     Sources
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
+                    In this model
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     Analyst notes
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
@@ -950,6 +952,7 @@ function AnalysisView() {
                     .filter((note): note is string => note !== undefined);
                   const [width, height, depth] = structure.size;
                   const isSelected = highlighted === structure.id;
+                  const history = modelEntryCells(structure.id);
 
                   const claim = isSelected
                     ? inspectClaim(structure.id, snapshotDate)
@@ -1056,6 +1059,18 @@ function AnalysisView() {
                             })}
                           </ul>
                         </td>
+                        <td className="px-2 py-3 font-mono text-[10px] whitespace-nowrap">
+                          {history === null ? (
+                            "not recorded"
+                          ) : (
+                            <>
+                              <span className="block">entered {history.entered}</span>
+                              <span className="text-muted-foreground block">
+                                last change {history.lastChange}
+                              </span>
+                            </>
+                          )}
+                        </td>
                         <td className="text-muted-foreground max-w-[26rem] px-2 py-3 leading-relaxed">
                           {notes.length > 0
                             ? notes.join(" ")
@@ -1091,7 +1106,7 @@ function AnalysisView() {
                           id={`claim-${structure.id}`}
                           className="border-border bg-accent/20 border-b"
                         >
-                          <td colSpan={11} className="px-4 py-4">
+                          <td colSpan={12} className="px-4 py-4">
                             <section
                               aria-labelledby="analysis-claim-heading"
                               className="max-w-4xl"

@@ -1,0 +1,918 @@
+{
+  "schema": "lop-nur-model-history/v1",
+  "origin": {
+    "commit": "088c729b567a4dd6df499446876c26db0925ec33",
+    "reason": "The first commit on main whose manifest generator digests each subject (manifest schema 1.1.0). Earlier manifests hash the model as a whole and name no subject, so the record cannot attribute anything to a subject before it: a subject present here entered the model by this revision, at an unknown earlier time."
+  },
+  "method": "Each revision's manifest is the output of that commit's own scripts/generate-manifest.ts, run by scripts/record-model-history.ts with SOURCE_DATE_EPOCH set to the commit's time, kept byte for byte. A revision is recorded wherever the manifest's content (everything but generatedAt and modelVersion) differs from the previous first-parent commit's. `bun run model:record --verify` reproduces every file.",
+  "revisions": [
+    {
+      "revision": 1,
+      "commit": "088c729b567a4dd6df499446876c26db0925ec33",
+      "committedAt": "2026-08-06T01:27:03Z",
+      "title": "420 release",
+      "manifest": "manifests/r1.json",
+      "manifestSha256": "sha256:9180ef8850049461d0e24a2740a22b9e128b5e442369a7478d03c5f26622a2db",
+      "manifestSchemaVersion": "1.1.0",
+      "contentKey": "sha256:8697d1c603f29cc530d43170dc552b514399a042dddcefbd5b40c096c451cb70",
+      "recordedAt": "2026-10-07T07:44:05Z"
+    },
+    {
+      "revision": 2,
+      "commit": "7b53f51df97c27f99610e39bf671b9d9e6f5785d",
+      "committedAt": "2026-08-23T14:12:24Z",
+      "title": "docs: rename Lop Nur Geospatial Simulation Testbed to Lop Nur Twin",
+      "manifest": "manifests/r2.json",
+      "manifestSha256": "sha256:20da66c58a2c3a575cdecd1200b130070ecb0d276d55724cd3f66e400e00a8dc",
+      "manifestSchemaVersion": "1.1.0",
+      "contentKey": "sha256:abb23938c8920ad3788951e76cab91c7c79362e08ca03d4ac53f030def71f17d",
+      "recordedAt": "2026-10-07T07:44:05Z"
+    },
+    {
+      "revision": 3,
+      "commit": "be2978a6fddbfd7696dd1536b9308af7b847631b",
+      "committedAt": "2026-10-06T08:42:12Z",
+      "title": "Stop the evidence timeline claiming knowledge before it existed",
+      "manifest": "manifests/r3.json",
+      "manifestSha256": "sha256:9ff529ea5e29e19953ab3418ca33de4a6d44b236a6fd64039e89e4eaba56ac0c",
+      "manifestSchemaVersion": "1.1.0",
+      "contentKey": "sha256:614c287fd0e1b4c736b0127e836ce29e07beec7b011d3d1f2f413f584997bb38",
+      "recordedAt": "2026-10-07T07:44:05Z"
+    },
+    {
+      "revision": 4,
+      "commit": "ebf5b80f66c0a200c1c18f3a53314bb4a5f5cef6",
+      "committedAt": "2026-10-07T07:39:01Z",
+      "title": "Stop the twin stating what its evidence does not support",
+      "manifest": "manifests/r4.json",
+      "manifestSha256": "sha256:a116572a0c8fe55b68602f8d68192547216b1fdb11072f9dad16a728fd4b150a",
+      "manifestSchemaVersion": "1.2.0",
+      "contentKey": "sha256:f38c069299d9d096d54f44bdcabe4f598dcbb865cfa471e8286a288c538b60d9",
+      "recordedAt": "2026-10-07T07:44:05Z"
+    }
+  ],
+  "subjects": {
+    "air-search-radome": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "apron-center": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "apron-main": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "apron-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "comms-shelter-main": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "court-center": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "court-center-east": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "court-center-north": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "court-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "court-west-core": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "crew-block-a": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "crew-block-b": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "east-middle": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "east-middle-wing": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "east-north": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "east-south": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "fuel-pumphouse": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "fuel-tank-a": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "fuel-tank-b": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "fuel-tank-c": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "gate-guardhouse": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "guard-tower-nw": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "guard-tower-se": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "hangar-main": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "j36-prototype": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "jxds-prototype": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "main-switchyard": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "ne-apron-hangar": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "north-shed": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "north-utility": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "ops-court": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "ops-east": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "ops-north": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "ops-walkway": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "ops-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "road-access": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "road-perim": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "rwy-05-23": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "se-build-annex": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "se-build-hall": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "solar-field": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "south-center": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "south-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "south-west-small": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "st-center": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-crew": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-east": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-east-inner": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-fuel-access": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-mid": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-ne-loop": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-north": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-se-service": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-south": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-spine-ext": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "st-west-inner": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "tower-main": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "tri-north": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "tri-west": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "twy-apron": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "twy-stub": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "wording"
+        ]
+      }
+    ],
+    "wastewater-plant": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "water-tank-tower": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      }
+    ],
+    "west-core": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "west-fighter-shelters": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "west-link": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ],
+    "west-long": [
+      {
+        "revision": 1,
+        "kind": "present-at-origin"
+      },
+      {
+        "revision": 3,
+        "kind": "changed",
+        "aspects": [
+          "placement-or-first-observed-date",
+          "evidence",
+          "wording",
+          "uncertainty"
+        ]
+      }
+    ]
+  }
+}

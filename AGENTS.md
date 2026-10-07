@@ -65,6 +65,13 @@ Guidance for coding agents (and humans) working on this repo.
   document is absent, and prints as "not stated" — never as zero, a dash or an
   omitted row. The three dates (site event, evidence publication, model entry)
   are separate fields and separate columns, always.
+- **The model's history is recorded, never written.** `model-history/` holds the
+  manifest each model-changing commit on `main` produced, re-derived from that
+  commit by `bun run model:record` and reproduced byte for byte by
+  `bun run model:verify` (CI runs it). Never edit a recorded manifest or type a
+  date into the index; `scripts/validate-model-history.ts` checks every byte and
+  rederives the per-subject table. Model entry is about this repository and
+  lives in `modelHistory.ts` — never in a temporal evidence event.
 - **The twin's bottom edge is one grid.** The site map, mode hints, timeline,
   touch pan-stick and evidence legend sit in `.hud-dock` (`src/routes/index.tsx`,
   `src/styles.css`), which reflows by width. A new panel along the bottom goes
@@ -93,7 +100,11 @@ Guidance for coding agents (and humans) working on this repo.
 2. If you used an existing `type`, you're done — placement, dossier, minimap,
    site index, analysis table and evidence ledger all pick it up automatically.
    Re-run `bun run manifest`: the `geometryHash` and `evidenceLedgerHash`
-   change, and that is the audit trail.
+   change, and that is the audit trail. Then record it: commit the change, run
+   `bun run model:record` (full history and Bun required), and commit
+   `model-history/`. The build refuses a model that is not its own latest
+   recorded revision, because otherwise the claim inspector could not say when
+   the structure entered the model.
 3. For a **new type**: extend the `StructureType` union and
    `STRUCTURE_TYPE_LABELS` in `layout.ts`, then add a builder component in
    `src/components/scene/Structures.tsx` and a case in `StructureBody`.

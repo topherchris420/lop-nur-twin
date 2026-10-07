@@ -157,6 +157,9 @@ const HOSTILE = [
   "/analysis?spatialDate=2025-02-30&presence=established",
   "/analysis?uncertainty=-1&includeUnknown=yes",
   "/compare?anything=" + "b".repeat(300),
+  "/compare?before=r999&after=r0",
+  `/compare?before=${encodeURIComponent("<script>alert(1)</script>")}&after=1e309`,
+  "/compare?before=r01&after=R2",
   `/evaluation?file=${encodeURIComponent("../../etc/passwd")}&x=${"c".repeat(300)}`,
 ];
 for (const path of HOSTILE) {
@@ -181,6 +184,24 @@ for (const path of HOSTILE) {
     `renders normally: ${path.slice(0, 58)}`,
     rendered && errors.length === 0,
     errors[0] ?? "clean",
+  );
+  await page.close();
+}
+
+{
+  // Two recorded model revisions by name: the comparison is drawn from the
+  // manifests bundled with the build, with no file and no fetch to a third
+  // party. A malformed name above leaves the page empty instead.
+  const { page, errors } = await open(`${previewOrigin}/compare?before=r1&after=r2`, {
+    settle: 2500,
+  });
+  const status = await page.evaluate(
+    () => document.querySelector("#comparison [role=status]")?.textContent ?? "",
+  );
+  check(
+    "/compare?before=r1&after=r2 compares two recorded revisions",
+    /differences? across/.test(status) && errors.length === 0,
+    errors[0] ?? status.slice(0, 80),
   );
   await page.close();
 }

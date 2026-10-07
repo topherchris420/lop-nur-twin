@@ -25,6 +25,7 @@
 
 import {
   EVIDENCE_CLASSIFICATION_META,
+  MODEL_INTERNAL_SOURCE_ID,
   getEvidenceForSubject,
   getUncertaintyForSubject,
   recordKnowability,
@@ -36,6 +37,7 @@ import {
 import { getSiteSubject, getStructure, STRUCTURE_TYPE_LABELS } from "./layout";
 import { getSource, type SourceId } from "./siteData";
 import { deriveSnapshot, isIsoDate } from "./temporal";
+import { modelEntryFor, type ModelEntryAnswer } from "./modelHistory";
 import {
   UNCERTAINTY_LEVEL_META,
   formatTemporalBound,
@@ -102,8 +104,8 @@ export interface ClaimInspection {
     firstPublished?: string;
     /** Earliest date any claim about it could have been made. */
     knowableFrom?: string;
-    /** This repository has never recorded per-subject model history. */
-    modelEntry: "not recorded";
+    /** When it entered this model and what has changed since, from `model-history/`. */
+    modelEntry: ModelEntryAnswer;
   };
   relationships: readonly { kind: string; targetId: string; targetLabel: string }[];
   atDate?: ClaimAtDate;
@@ -123,7 +125,7 @@ function supportOf(record: EvidenceRecord): ClaimSupport {
     confidence: record.confidence,
     ...(record.sourceDate === undefined ? {} : { published: record.sourceDate }),
     ...(knowability.kind === "from" ? { knowableFrom: knowability.date } : {}),
-    modelInternal: knowability.kind === "model-internal",
+    modelInternal: record.sourceId === MODEL_INTERNAL_SOURCE_ID,
     ...(record.sourceResolutionM === undefined
       ? {}
       : { resolutionM: record.sourceResolutionM }),
@@ -327,7 +329,7 @@ export function inspectClaim(
       siteEvent: envelope === undefined ? "not stated" : formatTemporalBound(envelope),
       ...(firstPublished === undefined ? {} : { firstPublished }),
       ...(knowableFrom === undefined ? {} : { knowableFrom }),
-      modelEntry: "not recorded",
+      modelEntry: modelEntryFor(subjectId),
     },
     relationships: (subject?.relationships ?? []).map((relationship) => ({
       kind: relationship.kind,

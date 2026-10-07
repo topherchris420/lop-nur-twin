@@ -108,9 +108,11 @@ describe("the temporal ledger", () => {
     }
   });
 
-  it("records no model-entry version, because the repository does not track one", () => {
+  it("keeps the model's own history out of the evidence events", () => {
+    // When something entered this model is a fact about the repository,
+    // recorded apart (`modelHistory.ts`) and never written into a site claim.
     for (const event of TEMPORAL_LEDGER) {
-      expect(event.modelVersionIntroduced).toBeUndefined();
+      expect(Object.keys(event)).not.toContain("modelVersionIntroduced");
     }
   });
 

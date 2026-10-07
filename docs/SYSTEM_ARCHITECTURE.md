@@ -131,9 +131,20 @@ last snapshot date in that year.
 `inspectClaim(subjectId, date)` (`src/lib/claims.ts`) assembles what one
 subject's claim is: its classification and what that means, what the evidence
 establishes, what is inferred, what is unknown, the separate dates (site event,
-first publication, knowable from, model entry — "not recorded" where it was
-not), supporting sources and method references, relationships, and its
-standing at the selected date. The dossier and `/analysis` render the same
+first publication, knowable from, and model entry with its last change, from the
+recorded model history), supporting sources and method references,
+relationships, and its standing at the selected date.
+
+### The model has a history
+
+`model-history/` records every change to what this model says since the first
+manifest that digested each subject: the manifest each model-changing commit on
+`main` produced, re-derived by running that commit's own generator and kept byte
+for byte. The build refuses a model that is not its latest revision, CI
+reproduces every one, the claim inspector answers "when did this enter the
+model, and what has changed since", and `/compare` opens any two revisions
+(`?before=r2&after=r3`). It is a record of the instrument, not evidence about
+the site. The dossier and `/analysis` render the same
 inspection through `ClaimInspector.tsx`.
 
 ### Accessible front doors
@@ -282,6 +293,7 @@ npm run build
   ├─ node scripts/run-ts.mjs scripts/validate-data.ts      # geometry, geodesy, evidence, timeline
   ├─ node scripts/run-ts.mjs scripts/validate-bethesda.ts  # city data, corpus and DEMO hashes
   ├─ node scripts/run-ts.mjs scripts/generate-manifest.ts  # public/model-manifest.json
+  ├─ node scripts/run-ts.mjs scripts/validate-model-history.ts  # this model is its latest recorded revision
   ├─ vite build                                            # → dist/
   ├─ tsc --noEmit                                          # strict types
   └─ node tools/jev-secret-scan.mjs dist                   # no credential in the bundle

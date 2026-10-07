@@ -1,9 +1,11 @@
 import { ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { ClaimInspection } from "@/lib/claims";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "@/lib/safeUrl";
 import { ConfidenceValue, EvidenceBadge } from "@/components/evidence/EvidenceUi";
 import { UncertaintyPanel } from "@/components/evidence/UncertaintyPanel";
 import type { TemporalEvidenceEvent } from "@/lib/temporal";
+import { revisionLabel } from "@/lib/modelHistory";
 import { cn } from "@/lib/utils";
 
 /**
@@ -122,7 +124,9 @@ export function ClaimInspector({
                 : "not on the evidence timeline")}
           </dd>
           <dt className="text-muted-foreground">Entered this model</dt>
-          <dd>not recorded by this repository</dd>
+          <dd>{claim.dates.modelEntry.entered}</dd>
+          <dt className="text-muted-foreground">Last model change</dt>
+          <dd>{claim.dates.modelEntry.lastChange}</dd>
         </dl>
       </section>
 
@@ -163,7 +167,9 @@ export function ClaimInspector({
                 <p className={cn("text-muted-foreground mt-0.5 font-mono", small)}>
                   {support.modelInternal
                     ? "this repository's own definition"
-                    : `${support.publisher ?? "publisher unknown"} · published ${support.published ?? "unknown"} · knowable from ${support.knowableFrom ?? "unknown"}`}
+                    : support.classification === "illustrative"
+                      ? `${support.publisher ?? "publisher unknown"} · named, but does not resolve it: the element is this repository's own`
+                      : `${support.publisher ?? "publisher unknown"} · published ${support.published ?? "unknown"} · knowable from ${support.knowableFrom ?? "unknown"}`}
                   {support.measurementUncertaintyM === undefined
                     ? ""
                     : ` · ±${support.measurementUncertaintyM} m`}
@@ -207,11 +213,42 @@ export function ClaimInspector({
         </p>
       )}
 
-      <p className={cn("text-muted-foreground leading-relaxed", small)}>
-        Changes across releases are not tracked per subject inside the app. Each release
-        manifest carries a digest for this subject; compare two of them on the comparison
-        page to see whether its geometry, evidence, wording or uncertainty changed.
-      </p>
+      <section aria-labelledby={`${idPrefix}-history`}>
+        <Heading id={`${idPrefix}-history`} className={headingClass}>
+          In this model
+        </Heading>
+        {claim.dates.modelEntry.events.length === 0 ? (
+          <p className={cn("text-muted-foreground mt-1 leading-relaxed", small)}>
+            {claim.dates.modelEntry.entered}
+          </p>
+        ) : (
+          <ol className={cn("mt-1 space-y-0.5 font-mono", small)}>
+            {claim.dates.modelEntry.events.map(({ revision, text }) => (
+              <li key={revision.revision}>
+                {revision.revision > 1 ? (
+                  <Link
+                    to="/compare"
+                    search={{
+                      before: `r${revision.revision - 1}`,
+                      after: `r${revision.revision}`,
+                    }}
+                    className="text-primary hover:underline"
+                  >
+                    {revisionLabel(revision)}
+                  </Link>
+                ) : (
+                  revisionLabel(revision)
+                )}
+                <span className="text-muted-foreground"> — {text}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+        <p className={cn("text-muted-foreground mt-1 leading-relaxed", small)}>
+          A record of what this repository said and when, reproduced from each
+          commit&rsquo;s own manifest. It is not evidence about the site.
+        </p>
+      </section>
     </div>
   );
 }

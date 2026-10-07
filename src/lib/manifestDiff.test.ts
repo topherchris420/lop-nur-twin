@@ -179,6 +179,22 @@ describe("diffManifests", () => {
     expect(diff.categoriesTouched).not.toContain("documentation");
   });
 
+  it("never reports a re-dated subject as moved", () => {
+    // The placement digest covers the first-observed date; when the date
+    // changed, the digest cannot say whether the subject moved as well.
+    const diff = diffManifests(
+      manifest(),
+      manifest({
+        subjects: [subject({ geometryHash: HASH_B, observedDate: "2025-11-04" })],
+      }),
+    );
+    const placement = diff.differences.find((d) => d.category === "analytical-model");
+    expect(placement?.field).toMatch(/first-observed date/);
+    expect(diff.differences.find((d) => d.field === "observedDate")?.category).toBe(
+      "evidence",
+    );
+  });
+
   it("classes a reworded description as documentation only", () => {
     const diff = diffManifests(
       manifest(),

@@ -85,8 +85,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
+      # Full history: the model-history step below reproduces each recorded
+      # revision from its own commit.
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -137,6 +141,13 @@ jobs:
           bun run manifest
           diff -u /tmp/manifest-first.json public/model-manifest.json
           echo "manifest is byte-identical across runs with SOURCE_DATE_EPOCH pinned"
+
+      # Every recorded model revision (`model-history/`) is the manifest its own
+      # commit's generator writes. Re-run each one and require the same bytes:
+      # a history nobody can reproduce would be a story, not a record. The
+      # build above already refused a model that is not the latest revision.
+      - name: Reproduce the recorded model history
+        run: bun run model:verify
 
       # The manifest is the machine-readable statement of what this commit
       # contains; publishing it as an artifact makes a CI run citable, and
