@@ -57,13 +57,16 @@ export const Route = createFileRoute("/compare")({
   component: CompareView,
   // Only `r<n>` naming a recorded revision is let through; anything else is
   // dropped, not coerced, and the page opens empty.
+  //
+  // Both keys are always returned, `undefined` when rejected: the router keeps
+  // any raw key a validator leaves out, so omitting one would hand the page the
+  // unvalidated value (`?before=1e309` arrived as the number Infinity).
   validateSearch: (search: Record<string, unknown>): CompareSearch => {
-    const out: CompareSearch = {};
-    for (const key of ["before", "after"] as const) {
-      const revision = parseRevisionValue(search[key], MODEL_REVISIONS.length);
-      if (revision !== null) out[key] = `r${revision}`;
-    }
-    return out;
+    const revision = (key: "before" | "after") => {
+      const parsed = parseRevisionValue(search[key], MODEL_REVISIONS.length);
+      return parsed === null ? undefined : `r${parsed}`;
+    };
+    return { before: revision("before"), after: revision("after") };
   },
 });
 
@@ -558,9 +561,9 @@ function CompareView() {
   const search = Route.useSearch();
   useEffect(() => {
     for (const side of ["before", "after"] as const) {
-      const value = search[side];
-      if (value === undefined) continue;
-      const revision = MODEL_REVISIONS[Number(value.slice(1)) - 1];
+      const parsed = parseRevisionValue(search[side], MODEL_REVISIONS.length);
+      if (parsed === null) continue;
+      const revision = MODEL_REVISIONS[parsed - 1];
       if (revision !== undefined) loadRecorded(side, revision);
     }
   }, [search, loadRecorded]);

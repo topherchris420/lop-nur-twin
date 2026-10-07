@@ -33,9 +33,20 @@ const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 /** Dates are ISO calendar dates and nothing else. */
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * The text of a parameter value, bounded. TanStack Router parses search values
+ * as JSON before a route's `validateSearch` sees them, so `?distance=500`
+ * arrives as the number 500, `?includeUnknown=true` as a boolean and
+ * `?distance=1e309` as Infinity. Every rule here is written against the text a
+ * visitor typed, so a parsed number or boolean is read back as its text and
+ * judged by the same rule — `Infinity` still fails `finiteNumber`. Rejecting
+ * them outright once made the router fall back to the raw value instead.
+ */
 function boundedString(value: unknown): string | null {
-  if (typeof value !== "string" || value.length > MAX_VALUE_LENGTH) return null;
-  return value;
+  const text =
+    typeof value === "number" || typeof value === "boolean" ? String(value) : value;
+  if (typeof text !== "string" || text.length > MAX_VALUE_LENGTH) return null;
+  return text;
 }
 
 function rawParam(name: string): string | null {

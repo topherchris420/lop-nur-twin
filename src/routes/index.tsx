@@ -18,7 +18,7 @@ import { TimelineControl } from "@/components/hud/TimelineControl";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import { STRUCTURES, getStructure } from "@/lib/layout";
 import { flyToPoint, flyToStructure } from "@/lib/flyTo";
-import { readSitePointParam } from "@/lib/params";
+import { parseIdValue, readSitePointParam } from "@/lib/params";
 import { useTwinStore } from "@/lib/store";
 
 interface TwinSearch {
@@ -31,12 +31,16 @@ export const Route = createFileRoute("/")({
   // The parameter arrives from a link or from whatever a visitor types. Only a
   // well-formed id that names a structure this model actually contains is
   // allowed through; anything else is dropped, not coerced.
+  // The key is always returned, `undefined` when rejected, because the router
+  // keeps any raw key a validator leaves out.
   validateSearch: (search: Record<string, unknown>): TwinSearch => {
-    const raw = search["structure"];
-    if (typeof raw !== "string") return {};
-    const id = raw.trim();
-    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) return {};
-    return STRUCTURES.some((structure) => structure.id === id) ? { structure: id } : {};
+    const id = parseIdValue(search["structure"]);
+    return {
+      structure:
+        id !== null && STRUCTURES.some((structure) => structure.id === id)
+          ? id
+          : undefined,
+    };
   },
 });
 

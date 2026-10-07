@@ -25,6 +25,8 @@
 
 import {
   EVIDENCE_CLASSIFICATION_META,
+  EVIDENCE_LEDGER,
+  MEASUREMENT_SUBJECT_LABELS,
   MODEL_INTERNAL_SOURCE_ID,
   getEvidenceForSubject,
   getUncertaintyForSubject,
@@ -33,9 +35,15 @@ import {
   earliestKnowableDate,
   type EvidenceClassification,
   type EvidenceRecord,
+  type EvidenceSubjectKind,
 } from "./evidence";
-import { getSiteSubject, getStructure, STRUCTURE_TYPE_LABELS } from "./layout";
-import { getSource, type SourceId } from "./siteData";
+import {
+  SITE_SUBJECT_ID,
+  getSiteSubject,
+  getStructure,
+  STRUCTURE_TYPE_LABELS,
+} from "./layout";
+import { OFFSITE_CONTEXT, getSource, type SourceId } from "./siteData";
 import { deriveSnapshot, isIsoDate } from "./temporal";
 import { modelEntryFor, type ModelEntryAnswer } from "./modelHistory";
 import {
@@ -111,6 +119,33 @@ export interface ClaimInspection {
   atDate?: ClaimAtDate;
 }
 
+/**
+ * Every subject the ledger makes a claim about, sorted by id: structures,
+ * pavements, measurements, the site, its terrain and climatology, off-site
+ * context and the illustrative scenario elements. The inspector answers for
+ * each of them, not only for buildings.
+ */
+export const CLAIM_SUBJECT_IDS: readonly string[] = Object.freeze(
+  [...new Set(EVIDENCE_LEDGER.map((record) => record.subjectId))].sort(),
+);
+
+const CLAIM_SUBJECT_SET: ReadonlySet<string> = new Set(CLAIM_SUBJECT_IDS);
+
+export function isClaimSubject(subjectId: string): boolean {
+  return CLAIM_SUBJECT_SET.has(subjectId);
+}
+
+/** A subject's human name, from whichever registry holds it. */
+export function claimSubjectLabel(subjectId: string): string {
+  return (
+    getStructure(subjectId)?.name ??
+    getSiteSubject(subjectId)?.label ??
+    OFFSITE_CONTEXT.find((place) => place.id === subjectId)?.name ??
+    MEASUREMENT_SUBJECT_LABELS[subjectId as keyof typeof MEASUREMENT_SUBJECT_LABELS] ??
+    subjectId
+  );
+}
+
 function supportOf(record: EvidenceRecord): ClaimSupport {
   const knowability = recordKnowability(record);
   return {
@@ -176,11 +211,67 @@ function establishedBy(
   return lines;
 }
 
+/**
+ * What this model adds, and what stays unknown, for subjects that are not a
+ * thing built at the site. Each sentence restates what the ledger's own
+ * records and notes say about that kind of subject, so the inspector cannot
+ * claim more for a climatology or a terrain proxy than the ledger does.
+ */
+const NOT_BUILT: Partial<
+  Record<EvidenceSubjectKind | "site", { infers: string; unknown: string }>
+> = {
+  measurement: {
+    infers:
+      "The figure is this project's reading of the cited scene, with endpoints placed at its resolution; it is not an aeronautical survey.",
+    unknown: "Positional error: not stated.",
+  },
+  environment: {
+    infers:
+      "How the monthly means drive the scene's light, wind and haze is this project's rendering of them.",
+    unknown:
+      "Conditions on any particular day: these are long-term monthly means for a grid cell, not a local station or a forecast.",
+  },
+  terrain: {
+    infers:
+      "The rendered relief is a seeded procedural proxy around one sampled height; it is not survey elevation.",
+    unknown:
+      "The real surface's relief: one elevation near the runway centre is sampled, nothing more.",
+  },
+  context: {
+    infers: "Nothing is modeled: it is regional context and is not drawn in this scene.",
+    unknown: "Its extent and layout: this project does not reconstruct it.",
+  },
+  site: {
+    infers:
+      "The layout inside the frame is this project's tracing of the cited scene; no building function inside it is established by it.",
+    unknown:
+      "What the facility is for: neither the layout nor the reporting establishes a function.",
+  },
+  simulation: {
+    infers: "",
+    unknown:
+      "Everything about the real site: this element is not a claim about the ground.",
+  },
+};
+
+/** The site itself is a context record, but it is not off-site context. */
+function notBuiltKind(
+  subjectId: string,
+  recordKind: EvidenceSubjectKind | undefined,
+): EvidenceSubjectKind | "site" | undefined {
+  return subjectId === SITE_SUBJECT_ID ? "site" : recordKind;
+}
+
 /** What this model adds on top of the evidence. */
 function inferredBy(
   classification: EvidenceClassification,
   envelope: UncertaintyEnvelope | undefined,
+  recordKind: EvidenceSubjectKind | "site" | undefined,
 ): string[] {
+  const own = recordKind === undefined ? undefined : NOT_BUILT[recordKind];
+  // A scenario element is illustrative, and the illustrative sentence below
+  // already says the one true thing about it.
+  if (own !== undefined && recordKind !== "simulation") return [own.infers];
   switch (classification) {
     case "observed":
       return ["Exact position, height and form are modeled, not measured."];
@@ -207,11 +298,26 @@ function inferredBy(
 /** What stays unknown, read off the envelope's absent fields. */
 function unknownFor(
   subjectKind: string | undefined,
+  recordKind: EvidenceSubjectKind | "site" | undefined,
   envelope: UncertaintyEnvelope | undefined,
 ): string[] {
   if (envelope === undefined)
     return ["Everything about the real site: no envelope is recorded."];
   const lines: string[] = [];
+  // When a thing was built and what it is for are questions about things that
+  // are built; asked of a measurement or a climatology they read as gaps in
+  // knowledge that are not the gaps that matter.
+  const own = recordKind === undefined ? undefined : NOT_BUILT[recordKind];
+  if (own !== undefined) {
+    if (recordKind === "measurement") {
+      return [
+        envelope.horizontalMeters === undefined
+          ? "Positional error: not stated."
+          : `Anything finer than its stated ±${envelope.horizontalMeters} m.`,
+      ];
+    }
+    return [own.unknown];
+  }
   if (envelope.earliestDate === undefined) {
     lines.push(
       envelope.latestDate === undefined
@@ -303,11 +409,18 @@ export function inspectClaim(
       ? standingAt(subjectId, snapshotDate)
       : undefined;
 
+  // What a non-structure subject *is* is the claim the ledger makes about it,
+  // in the ledger's own words: the strongest record's sentence.
+  const claimSentence = records.find(
+    (record) => record.classification === classification,
+  )?.claim;
   return {
     subjectId,
-    label: structure?.name ?? subject?.label ?? subjectId,
+    label: claimSubjectLabel(subjectId),
     ...(structure === undefined
-      ? {}
+      ? claimSentence === undefined
+        ? {}
+        : { description: claimSentence }
       : {
           typeLabel: STRUCTURE_TYPE_LABELS[structure.type],
           description: structure.description,
@@ -322,8 +435,16 @@ export function inspectClaim(
       title: getSource(sourceId as SourceId)?.title ?? sourceId,
     })),
     establishes: establishedBy(classification, records),
-    infers: inferredBy(classification, envelope),
-    unknown: unknownFor(subject?.kind, envelope),
+    infers: inferredBy(
+      classification,
+      envelope,
+      notBuiltKind(subjectId, records[0]?.subjectKind),
+    ),
+    unknown: unknownFor(
+      subject?.kind,
+      notBuiltKind(subjectId, records[0]?.subjectKind),
+      envelope,
+    ),
     ...(envelope === undefined ? {} : { uncertainty: envelope }),
     dates: {
       siteEvent: envelope === undefined ? "not stated" : formatTemporalBound(envelope),

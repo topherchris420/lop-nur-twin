@@ -160,6 +160,12 @@ const HOSTILE = [
   "/compare?before=r999&after=r0",
   `/compare?before=${encodeURIComponent("<script>alert(1)</script>")}&after=1e309`,
   "/compare?before=r01&after=R2",
+  // A validator that rejects by leaving a key out hands the page the raw
+  // value: the router keeps unvalidated keys. A number where a string is
+  // expected is how that once crashed /compare.
+  "/compare?before=1e309",
+  "/analysis?claim=1e309&structure=7",
+  "/?structure=1e309",
   `/evaluation?file=${encodeURIComponent("../../etc/passwd")}&x=${"c".repeat(300)}`,
 ];
 for (const path of HOSTILE) {
@@ -184,6 +190,44 @@ for (const path of HOSTILE) {
     `renders normally: ${path.slice(0, 58)}`,
     rendered && errors.length === 0,
     errors[0] ?? "clean",
+  );
+  await page.close();
+}
+
+{
+  // The ruler as a form: a runway threshold to a building. The threshold's
+  // error is the one the model states (±40 m); the building's is not stated,
+  // and the readout must say so rather than borrow the runway's figure.
+  const { page, errors } = await open(`${previewOrigin}/analysis`, { settle: 2000 });
+  const readout = await page.evaluate(() => {
+    const pick = (id, match) => {
+      const select = document.getElementById(id);
+      const option = [...(select?.options ?? [])].find((o) =>
+        match.test(o.textContent ?? ""),
+      );
+      if (!select || !option) return false;
+      select.value = option.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    };
+    const ok =
+      pick("measure-from", /Runway 05 threshold/) &&
+      pick("measure-to", /Main assembly hangar/);
+    return ok ? null : "options missing";
+  });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const text = await page.evaluate(
+    () =>
+      document.querySelector("section[aria-labelledby=measure-heading] [role=status]")
+        ?.textContent ?? "",
+  );
+  check(
+    "/analysis measures between two points with each end's own stated error",
+    readout === null &&
+      (text.match(/±/g) ?? []).length === 1 &&
+      /not stated/.test(text) &&
+      errors.length === 0,
+    readout ?? errors[0] ?? text.slice(0, 90),
   );
   await page.close();
 }

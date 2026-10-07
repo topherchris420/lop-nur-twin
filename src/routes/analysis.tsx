@@ -50,7 +50,9 @@ import { useTwinStore } from "@/lib/store";
 import { eventModelEntry, modelEntryCells } from "@/lib/modelHistory";
 import { SpatialQueryPanel } from "@/components/evidence/SpatialQueryPanel";
 import { ClaimInspector } from "@/components/evidence/ClaimInspector";
-import { inspectClaim } from "@/lib/claims";
+import { inspectClaim, isClaimSubject } from "@/lib/claims";
+import { ClaimList } from "@/components/evidence/ClaimList";
+import { MeasureBetween } from "@/components/evidence/MeasureBetween";
 import {
   parseBooleanValue,
   parseBoundedFloatValue,
@@ -89,6 +91,8 @@ import { getSpatialSubject } from "@/lib/spatialCatalog";
 interface AnalysisSearch {
   /** Row to highlight, handed over from a dossier in the 3D twin. */
   structure?: string;
+  /** A claim about something other than a structure, whose inspector is open. */
+  claim?: string;
   kinds?: string;
   classes?: string;
   support?: SourceSupport;
@@ -99,6 +103,20 @@ interface AnalysisSearch {
   anchor?: string;
   distance?: number;
 }
+
+const ANALYSIS_SEARCH_KEYS = [
+  "structure",
+  "claim",
+  "kinds",
+  "classes",
+  "support",
+  "uncertainty",
+  "includeUnknown",
+  "spatialDate",
+  "presence",
+  "anchor",
+  "distance",
+] as const satisfies readonly (keyof AnalysisSearch)[];
 
 export const Route = createFileRoute("/analysis")({
   component: AnalysisView,
@@ -112,6 +130,14 @@ export const Route = createFileRoute("/analysis")({
       STRUCTURES.some((candidate) => candidate.id === structure)
     ) {
       validated.structure = structure;
+    }
+    const claim = parseIdValue(search["claim"]);
+    if (
+      claim !== null &&
+      isClaimSubject(claim) &&
+      !STRUCTURES.some((candidate) => candidate.id === claim)
+    ) {
+      validated.claim = claim;
     }
 
     const kinds = parseCommaEnumValue(search["kinds"], SPATIAL_SUBJECT_KINDS);
@@ -147,7 +173,12 @@ export const Route = createFileRoute("/analysis")({
       validated.anchor = anchor;
       validated.distance = distance;
     }
-    return validated;
+    // Every key is returned, `undefined` when rejected: the router keeps any
+    // raw key a validator leaves out, so an omitted key would reach the page
+    // unvalidated (a `?claim=1e309` arrives as the number Infinity).
+    return Object.fromEntries(
+      ANALYSIS_SEARCH_KEYS.map((key) => [key, validated[key]]),
+    );
   },
 });
 
@@ -168,7 +199,7 @@ function structureConfidence(structure: StructureDef): number {
 
 function AnalysisView() {
   const routeSearch = Route.useSearch();
-  const { structure: highlighted } = routeSearch;
+  const { structure: highlighted, claim: openClaim } = routeSearch;
   const navigate = useNavigate({ from: "/analysis" });
   const [query, setQuery] = useState("");
   const [enabled, setEnabled] =
@@ -265,16 +296,17 @@ function AnalysisView() {
       : undefined;
 
   const updateSpatialSearch = useCallback(
-    (next: Omit<AnalysisSearch, "structure">) => {
+    (next: Omit<AnalysisSearch, "structure" | "claim">) => {
       void navigate({
         replace: true,
         search: {
           ...(highlighted === undefined ? {} : { structure: highlighted }),
+          ...(openClaim === undefined ? {} : { claim: openClaim }),
           ...next,
         },
       });
     },
-    [highlighted, navigate],
+    [highlighted, openClaim, navigate],
   );
 
   const toggleClassification = (classification: EvidenceClassification) => {
@@ -1149,6 +1181,34 @@ function AnalysisView() {
               </p>
             ) : null}
           </div>
+        </section>
+
+        <section aria-labelledby="claims-heading" className="mt-10">
+          <h2 id="claims-heading" className="text-lg font-semibold">
+            Claims beyond the structures
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            The runway measurements and the site&rsquo;s reference coordinate are the only
+            claims in this model observed in a cited scene. They, the pavements, the
+            terrain proxy, the climatology, off-site context and the illustrative scenario
+            elements each answer the same questions as a structure.
+          </p>
+          <ClaimList
+            open={openClaim}
+            evidenceMode={evidenceMode}
+            snapshotDate={snapshotDate}
+          />
+        </section>
+
+        <section aria-labelledby="measure-heading" className="mt-10">
+          <h2 id="measure-heading" className="text-lg font-semibold">
+            Measure between modeled points
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            The 3D site map&rsquo;s ruler, as a form. Distances and bearings are in{" "}
+            {PRIMARY_CRS} grid metres between modeled positions.
+          </p>
+          <MeasureBetween evidenceMode={evidenceMode} snapshotDate={snapshotDate} />
         </section>
 
         <section aria-labelledby="sources-heading" className="mt-10">

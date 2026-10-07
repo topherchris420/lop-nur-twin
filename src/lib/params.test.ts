@@ -261,3 +261,23 @@ describe("parseRevisionValue", () => {
     }
   });
 });
+
+describe("values the router has already parsed", () => {
+  // TanStack Router hands `validateSearch` JSON-parsed values: `?distance=500`
+  // is the number 500. They are judged by the same rule as their text.
+  it("reads a parsed number or boolean through its text", () => {
+    expect(parseBoundedFloatValue(500, 0, 6800)).toBe(500);
+    expect(parseBoundedFloatValue(Infinity, 0, 6800)).toBeNull();
+    expect(parseBoundedFloatValue(Number.NaN, 0, 6800)).toBeNull();
+    expect(parseBooleanValue(true)).toBe(true);
+    expect(parseBooleanValue(1)).toBe(true);
+    expect(parseBooleanValue(0)).toBe(false);
+    expect(parseRevisionValue(1, 4)).toBeNull();
+    expect(parseIsoDateValue(2025)).toBeNull();
+  });
+
+  it("still refuses objects and arrays", () => {
+    expect(parseIdValue({ toString: () => "hangar-main" })).toBeNull();
+    expect(parseBoundedFloatValue([500], 0, 6800)).toBeNull();
+  });
+});

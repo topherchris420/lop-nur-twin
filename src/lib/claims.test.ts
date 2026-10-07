@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inspectClaim } from "./claims";
+import { CLAIM_SUBJECT_IDS, inspectClaim, isClaimSubject } from "./claims";
 import { getEvidenceForSubject, strongestClassification } from "./evidence";
 import { STRUCTURES } from "./layout";
 import { TEMPORAL_SNAPSHOT_DATES } from "./temporal";
@@ -92,7 +92,7 @@ describe("inspectClaim", () => {
   });
 
   it("uses no word that asserts verification", () => {
-    for (const structure of STRUCTURES) {
+    for (const structure of CLAIM_SUBJECT_IDS.map((id) => ({ id }))) {
       const claim = inspectClaim(structure.id, "2025-09-28");
       const generated = [
         ...(claim?.establishes ?? []),
@@ -112,5 +112,19 @@ describe("inspectClaim", () => {
       expect(claim.dates.knowableFrom, structure.id).toBeUndefined();
     }
     expect(inspectClaim("solar-field")?.classification).toBe("illustrative");
+  });
+
+  it("answers for every subject the ledger claims anything about, not only structures", () => {
+    // The observed claims in this model are measurements, which no structure
+    // row ever showed; the inspector has to reach them.
+    expect(CLAIM_SUBJECT_IDS).toContain("measurement-runway-length");
+    for (const subjectId of CLAIM_SUBJECT_IDS) {
+      const claim = inspectClaim(subjectId);
+      expect(claim, subjectId).toBeDefined();
+      expect(claim?.label, subjectId).not.toBe(subjectId);
+      expect(claim?.description, subjectId).toBeTruthy();
+    }
+    expect(inspectClaim("measurement-runway-length")?.classification).toBe("observed");
+    expect(isClaimSubject("not-a-subject")).toBe(false);
   });
 });

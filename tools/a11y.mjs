@@ -44,6 +44,21 @@ const ROUTES = [
   // canvas, so every axe finding on it is a real finding about real markup
   // rather than a complaint about a WebGL surface.
   { path: "/compare", label: "Model manifest comparison", gate: true, settle: 1500 },
+  // The same two routes in their fullest states: a measurement's claim
+  // inspector open beside a structure's, and two recorded model revisions
+  // compared, so axe reads the inspector, the history list and the diff tables.
+  {
+    path: "/analysis?structure=hangar-main&claim=measurement-runway-length",
+    label: "Accessible analysis table (two claim inspectors open)",
+    gate: true,
+    settle: 2000,
+  },
+  {
+    path: "/compare?before=r2&after=r3",
+    label: "Model manifest comparison (two recorded revisions)",
+    gate: true,
+    settle: 2500,
+  },
   // `/evaluation` renders tables and inline SVG, no canvas: gated like
   // `/compare`. The second pass opens the newest archived evaluation first, so
   // the tables and charts are what axe inspects, not just the empty page.

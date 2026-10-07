@@ -279,6 +279,13 @@ const MEASUREMENT_SUBJECT_IDS = [
 
 export type MeasurementSubjectId = (typeof MEASUREMENT_SUBJECT_IDS)[number];
 
+/** Plain names for the derived measurement subjects, which the layout does not register. */
+export const MEASUREMENT_SUBJECT_LABELS: Record<MeasurementSubjectId, string> = {
+  "measurement-runway-length": "Runway length and width (measurement)",
+  "measurement-runway-bearing": "Runway bearing (measurement)",
+  "measurement-site-reference-coordinate": "Site reference coordinate (measurement)",
+};
+
 const SUBJECT_IDS: ReadonlySet<string> = new Set<string>([
   ...SITE_SUBJECTS.map((subject) => subject.id),
   ...OFFSITE_CONTEXT.map((place) => place.id),
