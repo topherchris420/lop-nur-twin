@@ -68,9 +68,9 @@ be operable:
 ## Automated testing
 
 `tools/a11y.mjs` runs axe-core 4.12 against the **production build** served by
-`vite preview` with the deployed security headers, across all four routes. It
-also records Content-Security-Policy violations and page errors in the same
-pass.
+`vite preview` with the deployed security headers, across every route and the
+fullest state of each document route. It also records Content-Security-Policy
+violations and page errors in the same pass.
 
 ```sh
 npm run build
@@ -82,19 +82,22 @@ Rules: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`.
 
 Gating policy — deliberate and asymmetric:
 
-- **`/analysis`**: any serious or critical violation fails the run. This route
-  is the accessible view; it has no excuse.
+- **`/analysis`, `/compare` and `/evaluation`**: any serious or critical
+  violation fails the run, empty and in their fullest states — two claim
+  inspectors open on `/analysis`, two recorded model revisions diffed on
+  `/compare`, an archived episode's decisions open with one decision inspected
+  on `/evaluation`. These render no canvas; they have no excuse.
 - **`/` and `/play`**: violations are printed in full, but only CSP violations
   and page errors fail. Their primary content is a canvas that axe cannot
   evaluate, and a soft gate that everyone ignores is worse than an honest one.
 
 ### Result of the last run in this environment
 
-| Route       | axe violations | serious/critical | CSP violations | page errors |
-| :---------- | -------------: | ---------------: | -------------: | ----------: |
-| `/analysis` |              0 |                0 |              0 |           0 |
-| `/`         |              0 |                0 |              0 |           0 |
-| `/play`     |              0 |                0 |              0 |           0 |
+Run on 2026-10-07 against a preview of this build: every pass — `/analysis`
+(empty and with two inspectors open), `/compare` (empty and with two revisions
+diffed), `/evaluation` (empty, a run open, a decision inspected), `/` and
+`/play` — reported 0 axe violations, 0 serious or critical, 0 CSP violations
+and 0 page errors.
 
 Two real defects were found and fixed while building this: a `<dl>` containing
 a status `<div>` that was neither a term nor a definition, and a dimmed

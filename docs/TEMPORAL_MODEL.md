@@ -165,7 +165,7 @@ deliberately does not merge them:
 A hangar can be established by a September 2025 image while the reporting that
 identifies it was not published until November. An analyst standing in October
 could not have written the November sentence, and the snapshot reflects that:
-the hangar is _established_ on 2025-09-28 in hindsight, and _publicly
+the hangar is _established_ on 2025-09-13 in hindsight, and _publicly
 established_ only from 2025-11-04.
 
 Two bugs made the snapshot claim knowledge before it existed, and both are now

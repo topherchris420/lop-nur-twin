@@ -6,7 +6,7 @@ LLM's, a script's, a person's — easier to falsify.
 
 The question it is built around is the one a good result should provoke:
 
-> **When an intelligent system appears to perform well, which part of that
+> **When a decision system appears to perform well, which part of that
 > performance actually came from the model?**
 
 A number from this benchmark is a measurement of one build, on one machine,
@@ -85,8 +85,9 @@ the same words: the LLM prompt and Jev's request are both built from
 `questionParts()` in `server/jev/question.ts`, and `server/llm/handler.test.ts`
 fails if their state, questions or option descriptions ever diverge. The LLM
 gets longer loop limits (12 s to answer and to be stale, against Jev's 2.2 s
-and 1.5 s), because without them it could never act; that is the largest stated
-difference between the two seats and every report carries it.
+and 1.5 s), because without them it could never act, and Glide, which asks
+Jev's question word for word, gets 8 s; those are the largest stated
+differences between the seats, and every report carries them.
 
 ## Declared before the run
 

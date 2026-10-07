@@ -18,13 +18,40 @@ The simulation decides its consequences.
 
 ![The reconstructed runway and south hangar compound](docs/screenshot-overview.png)
 
-### 30-second walkthrough
+### One loop, four scales
 
-The project is also presented as a short visual walkthrough: a public-source reconstruction of the Lop Nur airfield, the analytical evidence layer, structure dossiers, and **Blacksite**, the playable decision environment. The sequence moves from **reconstruction → evidence → provenance → play**, making the central idea visible before you open the application.
+```mermaid
+flowchart LR
+  subgraph LN["Lop Nur · what can be reconstructed?"]
+    S["Public sources"] --> L["Evidence ledger<br/>observed · reported ·<br/>interpreted · illustrative"]
+    L --> M["Reconstruction<br/>with a recorded history"]
+  end
+  subgraph BS["Blacksite · what does an agent choose?"]
+    P["Bounded perception"] --> D["Human · script · random<br/>Jev · Glide · LLM"]
+    D --> G["Host gate<br/>legal options · staleness"]
+    G --> R["Rules decide<br/>the consequence"]
+    R --> T["Decision records"]
+  end
+  subgraph BE["Bethesda · what happens when it is populated?"]
+    C["Scenario compiler"] --> E["Effects → agents"]
+    E --> RP["Replay verifies state"]
+  end
+  subgraph RL["R.A.I.N. Lab · what if research is part of the world?"]
+    H["Hypothesis"] --> A["Authorized experiment<br/>on fresh simulators"]
+    A --> SR["Sealed record:<br/>evidence only after replay"]
+  end
+  M --> P
+  M -. "same instrument,<br/>other ground" .-> C
+  E -.-> A
+```
 
-**Explore the live twin:** [lop-nur-twin.vercel.app](https://lop-nur-twin.vercel.app/) · **Play Blacksite:** [lop-nur-twin.vercel.app/play](https://lop-nur-twin.vercel.app/play)
-
-> **Explore the evidence. Take the controls. Follow the anomaly.**
+Every arrow leaves something you can open: a claim's sources, dates and
+uncertainty in the claim inspector, and the revision of this repository it
+entered in; a decision's observation, options, choice and aftermath in the
+decision inspector; a city run's commands in its replay; a lab result's
+definition, authorization and re-simulation in its sealed record. Nothing moves
+right to left: a simulated outcome is never evidence about the site, and a
+model's answer is never a fact about the world.
 
 | Experience              | What you can do                                                                                                        | What it establishes                                                                           |
 | :---------------------- | :--------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
@@ -91,10 +118,19 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
   rejects unsupported classifications, missing citations, a source dated before
   the observation it attests, and wording that presents interpretation as
   verification.
-- **Every claim can be inspected.** The claim inspector — in the dossier, and
-  inline at `/analysis?structure=<id>` — says what the evidence establishes,
-  what is inferred, what is unknown, which sources support it and which only
-  describe a method, and when it became knowable.
+- **Every claim can be inspected** — buildings, pavements, the runway
+  measurements (the model's only observed claims), the terrain proxy, the
+  climatology and the illustrative scenario elements. The claim inspector, in
+  the dossier and inline at `/analysis?structure=<id>` or `?claim=<id>`, says
+  what the evidence establishes, what is inferred, what is unknown, which
+  sources support it and which only describe a method, and when it became
+  knowable.
+- **The model has a recorded history.** `model-history/` holds the manifest of
+  every model-changing commit since the first that digested each subject,
+  reproduced byte for byte from its own commit; the build refuses a model that
+  is not its latest revision. So the inspector says when a claim entered the
+  model and what has changed since, and `/compare?before=r2&after=r3` opens any
+  two revisions.
 - **Time is evidence time.** The evidence timeline steps through the dates the
   evidence changed. At each one the scene draws solid only what was publicly
   established by then, outlines what the model places but no public evidence
@@ -103,7 +139,9 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 - **Unknown stays unknown.** Missing uncertainty is “not stated,” never zero.
   Site-event, evidence-publication and model-entry dates remain separate.
 - **Measurements have a frame.** Distances and bearings use EPSG:32645, with
-  WGS84 GeoJSON, CSV and JSON exports. Release manifests hash geometry and the
+  WGS84 GeoJSON, CSV and JSON exports. Each endpoint carries the positional
+  error its own evidence states — ±40 m at the runway thresholds, usually "not
+  stated" elsewhere — never a site-wide figure. Release manifests hash geometry and the
   evidence ledger so revisions can be compared.
 - **The evidence works without WebGL.** Analysis and comparison have semantic
   interfaces, with browser checks for accessibility.
@@ -148,7 +186,12 @@ Observation, decision, validated input, environment transition, consequence,
 trace: a brain proposes, the host refuses any option the observation did not
 offer or that has gone stale, and the same rules a keyboard meets decide what
 happens. Every decision is recorded with the observation it was made from;
-**Save decisions** exports an episode's records.
+**Save decisions** exports an episode's records, and `/evaluation` opens the
+archived ones in place and steps through them one decision at a time: what the
+seat perceived, what it could choose, what it chose, how sure it said it was
+(and from what), whether it was still legal, what executed and what followed.
+Where a reason would go, it says none is recorded — a seat returns a choice,
+not an explanation, and none is invented for it.
 
 | Seat     | URL setting                                     | Role                                                                 |
 | :------- | :---------------------------------------------- | :------------------------------------------------------------------- |
@@ -412,7 +455,9 @@ or extend one.
 | Part                                                                                                | Status                                     | Notes                                                                                             |
 | :-------------------------------------------------------------------------------------------------- | :----------------------------------------- | :------------------------------------------------------------------------------------------------ |
 | Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                            | Build-gated by the evidence validator; both front doors gated by accessibility checks             |
-| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Browser suites for gameplay, engagement and gait                                                  |
+| Recorded model history (`model-history/`)                                                           | **Implemented**                            | Begins at the first per-subject manifest (2026-08-05); earlier entry dates are unknown            |
+| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Replay re-performs a control stream; same-seed runs diverge, so it is not a state replay          |
+| Decision records and the one-decision inspector on `/evaluation`                                    | **Implemented**                            | Records are validated on load; the human seat records none                                        |
 | Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental** | Need server credentials; ten-seed runs are exploratory, not rankings                              |
 | Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                            | Offline; a result describes this build on the machine that ran it                                 |
 | Bethesda city simulation, scenarios and replay                                                      | **Implemented**                            | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model                   |
@@ -435,6 +480,7 @@ npm run lint
 npm run test:run
 npm run test:evidence
 npm run test:bethesda
+npm run model:verify   # reproduce every recorded model revision from its own commit (Bun, full history)
 ```
 
 With Bun, `bun run check` combines formatting, lint, unit tests, evidence tests and

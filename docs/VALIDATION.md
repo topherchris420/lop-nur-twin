@@ -9,7 +9,10 @@ when to run them.
 `bun run build` is the authoritative integration gate. It runs the offline data
 validator, then Bethesda's (`scripts/validate-bethesda.ts`: the city's data,
 the R.A.I.N. corpus and the DEMO recording, each against its hashes),
-regenerates the release manifest, produces the production bundle, runs a strict
+regenerates the release manifest, checks it is the latest revision recorded in
+`model-history/` (`scripts/validate-model-history.ts`: every recorded manifest's
+bytes, the derived per-subject table, and the current model), produces the
+production bundle, runs a strict
 `tsc --noEmit` over every file in `src/`, `scripts/`, `server/` and `api/` — no
 `any`, unused locals are errors, no exclusions — and finishes with
 `tools/jev-secret-scan.mjs`, which fails the build if `dist/` contains the name
@@ -24,7 +27,7 @@ bun run format:check   # Prettier
 bun run lint           # ESLint
 bun run test:run       # Vitest
 bun run test:evidence  # the validator's own negative tests
-bun run build          # validate (twin, Bethesda) → manifest → bundle → strict typecheck → secret scan
+bun run build          # validate (twin, Bethesda) → manifest → model history → bundle → strict typecheck → secret scan
 ```
 
 Nothing in that list re-runs a build operation the build already performs.
@@ -104,10 +107,17 @@ byte-identical manifests.
 
 See [`docs/MODEL_COMPARISON.md`](MODEL_COMPARISON.md) for diffing two of them.
 
+`bun run model:verify` goes further back: it checks out every commit recorded in
+`model-history/`, runs that commit's own generator pinned to its commit time, and
+requires the recorded bytes. CI runs it with full history, so the model's record
+of its own past is reproduced on every run rather than trusted.
+
 ## Accessibility and routes
 
 Both need the **preview** server rather than the dev server, because they test
 the artifact that actually ships — including its security headers.
+`bun run routes` also reads the dev server's store (`:5173`) to check what state
+parameters set; pass `-` as its second argument to skip that part.
 
 ```sh
 bun run build && bun run preview &
@@ -119,8 +129,10 @@ bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
 ```
 
 `bun run a11y` gates `/analysis`, `/compare` and `/evaluation` on serious and
-critical axe violations — `/evaluation` twice, empty and with the newest archived
-run open, so its tables and charts are what is inspected. `/` and `/play` are
+critical axe violations, each in its fullest states as well as empty: `/analysis`
+with a structure's and a measurement's claim inspectors open, `/compare` with two
+recorded model revisions diffed, and `/evaluation` with an archived run open,
+then an episode's decisions opened in place and one decision inspected. `/` and `/play` are
 reported but not gated: their primary content is a WebGL canvas, and an axe rule
 cannot inspect one.
 
@@ -155,6 +167,27 @@ hostile filters, refresh stability, and mobile containment.
 keyboard-only task completion, 200% zoom and colour-contrast review of the
 canvas itself remain manual. This repository makes no Section 508 conformance
 claim — see [`docs/ACCESSIBILITY.md`](ACCESSIBILITY.md).
+
+## The hidden city and the lab
+
+Bethesda and the R.A.I.N. Lab have suites of their own, which build and serve
+their own previews, so they run beside the dev server rather than against it.
+CI runs the first two in the `bethesda` job and the third in `verify`.
+
+```sh
+bun run verify:bethesda    # both entrances, scenarios, the outage fallback,
+                           # replay, a11y, CSP and a browser without WebGL
+bun run verify:rain-lab    # OFFLINE, DEMO, authorization, a run, its replay, a
+                           # tampered import, the tools, a11y, CSP, no WebGL;
+                           # LIVE against the in-process runtime; a model
+                           # meeting against tools/stand-in-model.mjs
+bun run rain:conformance   # the lab's drafts and submissions through the
+                           # runtime's own validators, evaluator and registry
+```
+
+`bun run test:bethesda` is the unit layer under them: the city's simulator,
+effects, walking and presentation, the lab's protocol, records and authority
+rules, the runtime, and the server routes. None of them calls a model.
 
 ## Simulation and audio
 
@@ -338,7 +371,7 @@ GitHub-native features with similar names:
 | Setting                                     | Why it matters                                                                                                                                                        |
 | :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Branch protection** on the default branch | Without it, the checks below can be bypassed by pushing directly.                                                                                                     |
-| **Required status checks**                  | CI running is not CI blocking. The `verify`, `browser`, `secrets`, `vulnerabilities` and `sbom` jobs should be required.                                              |
+| **Required status checks**                  | CI running is not CI blocking. The `verify`, `browser`, `bethesda`, `secrets`, `vulnerabilities` and `sbom` jobs should be required.                                  |
 | **Required CodeQL check**                   | Same distinction, for the security workflow.                                                                                                                          |
 | **Native secret scanning**                  | Scans across the whole repository continuously and covers partner patterns. The Gitleaks job scans history in CI, which is a different guarantee.                     |
 | **Push protection**                         | Blocks a secret _before_ it is committed. Nothing in a workflow can do this — a workflow runs after the push.                                                         |

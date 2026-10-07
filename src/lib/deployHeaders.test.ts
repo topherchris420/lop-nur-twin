@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { SECURITY_HEADERS } from "../../vite.config";
 
 /**
  * The container image must send the hosted demo's security headers on every
@@ -21,6 +22,19 @@ const INCLUDE = "include /etc/nginx/snippets/lop-nur-security-headers.conf;";
 
 /** nginx text without its comments, which mention the very directives checked here. */
 const code = (text: string) => text.replace(/#[^\n]*/g, "");
+
+describe("the preview server's security headers", () => {
+  // `bun run preview` is what the accessibility, route and lab suites test, so
+  // a drifted copy here would pass them against headers nobody deploys.
+  it("match vercel.json's, value for value", () => {
+    const hosted = vercel.headers.find((h) => h.source === "/(.*)")!.headers;
+    const expected = hosted.filter((h) => h.key !== "Strict-Transport-Security");
+    expect(Object.keys(SECURITY_HEADERS).sort()).toEqual(
+      expected.map((h) => h.key).sort(),
+    );
+    for (const { key, value } of expected) expect(SECURITY_HEADERS[key], key).toBe(value);
+  });
+});
 
 describe("the container's security headers", () => {
   it("match vercel.json's, value for value", () => {

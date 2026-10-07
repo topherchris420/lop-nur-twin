@@ -30,18 +30,29 @@ simulation, also run what covers it:
 
 ```sh
 bun run build && bun run preview &
-bun run a11y && bun run routes
+bun run a11y && bun run routes      # routes also reads the dev server's store
 
 bun run dev &
-bun run smoke && bun run gait && bun run audio && bun run jev
+bun run smoke && bun run gait && bun run audio && bun run jev && bun run glide
+bun run llm                         # starts its own dev server and fake model
+
+bun run verify:bethesda             # the hidden city, on its own preview
+bun run verify:rain-lab             # the lab, on three previews of its own
+bun run rain:conformance            # no server
 ```
+
+If you changed what the model says — a structure, a pavement, a source, a
+claim's wording — commit it, then record it with `bun run model:record` (full
+history and Bun) and commit `model-history/`; the build refuses a model that is
+not its own latest recorded revision.
 
 [`docs/VALIDATION.md`](docs/VALIDATION.md) says what each of these proves.
 
 **Keep the build green.** `bun run build` runs the data validator, regenerates
-the manifest, bundles, runs a strict `tsc --noEmit` over `src/`, `scripts/`,
-`server/` and `api/` — no `any`, unused locals are errors, no exclusions — and
-finishes by scanning `dist/` for the Jev API key. A change that needs the build
+the manifest, checks it against the recorded model history, bundles, runs a
+strict `tsc --noEmit` over `src/`, `scripts/`, `server/` and `api/` — no `any`,
+unused locals are errors, no exclusions — and finishes by scanning `dist/` for
+any of the four provider credentials. A change that needs the build
 red is a change that needs a different design.
 
 ## Formatting and linting

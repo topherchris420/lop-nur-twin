@@ -255,9 +255,10 @@ elevation up-positive. Absolute coordinates are withheld.
 - **Damage** is the HUD's direction indicator; **obstacles** are waist-high
   probes around the body, which a person sees on screen.
 
-The spatial-intelligence overlay keeps brackets on enemies for a few seconds
-after sight is lost, at their live position. Jev is **not** given that: it gets
-the frozen last-seen position instead, which is the more conservative choice.
+Neither seat is told where a lost enemy is now. The human HUD once kept
+brackets on enemies at their live position for a few seconds after sight was
+lost; that overlay was removed so both seats get the same thing, a frozen
+last-seen position (see "One set of senses" in `AGENTS.md`).
 
 **What Jev actually reads.** The server renders the observation into plain
 language before asking — TypeSafe's own guidance is that Jev reads semantic
@@ -1566,42 +1567,42 @@ These are the boundaries of the experiment as it now stands, not failures.
 
 ## Files
 
-| Path                                                          | Role                                                                      |
-| :------------------------------------------------------------ | :------------------------------------------------------------------------ |
-| `src/game/pilot/contract.ts`                                  | action vocabulary, descriptions, timing (shared with the server)          |
-| `src/game/pilot/observation.ts`                               | observation schema, validator, legal actions (shared)                     |
-| `src/game/pilot/decision.ts`                                  | decision schema and validation (shared)                                   |
-| `src/game/pilot/perception.ts`                                | builds observations from the live game                                    |
-| `src/game/pilot/executor.ts`                                  | control frame → `InputState`, with expiry                                 |
-| `src/game/pilot/motor.ts`                                     | the precision motor controller: tracking, recoil feed-forward, fire gate  |
-| `src/game/pilot/hitGeometry.ts`                               | aim points, angular sizes, spread-cone share (shared with the server)     |
-| `src/game/characters/hitboxSpecs.ts`                          | the one hitbox table colliders and aim geometry read                      |
-| `src/game/player/eliteAssist.ts`                              | Elite Operator, the human aim help                                        |
-| `src/game/pilot/places.ts`, `navigator.ts`                    | places navigation: the finder and the local walking controller            |
-| `src/game/pilot/debrief.ts`                                   | what the seat perceived, against what happened                            |
-| `src/game/pilot/capabilities.ts`                              | capability negotiation (shared with the server)                           |
-| `src/game/pilot/policies.ts`                                  | the scripted reference policies                                           |
-| `src/game/world/mirage.ts`                                    | heat shimmer: how far a body at range appears displaced                   |
-| `tools/experiment.mjs`, `tools/experiments/*.json`            | matched experiments and their questions                                   |
-| `tools/kill-anatomy.mjs`                                      | what each victim was doing when the seat killed it                        |
-| `src/game/pilot/loop.ts`                                      | one request in flight, sequences, staleness, timeouts, backoff, fallback  |
-| `src/game/pilot/providers.ts`                                 | the Jev HTTP brain and the seeded random brain                            |
-| `src/game/pilot/pilot.ts`                                     | the pilot seat: brain selection, frames, takeover, telemetry              |
-| `src/game/pilot/recorder.ts`, `traceStorage.ts`               | JSONL traces, replay parsing, local storage                               |
-| `src/game/pilot/metrics.ts`                                   | episode statistics and benchmark aggregation                              |
-| `src/game/pilot/rigState.ts`, `PilotHost.tsx`                 | rig facts for perception; lifecycle, H key, dev handle                    |
-| `src/game/hud/JevHud.tsx`                                     | the panel and the Player control selector                                 |
-| `server/jev/handler.ts`, `question.ts`, `rateLimit.ts`        | the endpoint                                                              |
-| `api/jev/decision.ts`                                         | the Vercel Function                                                       |
-| `tools/jev*.mjs`                                              | browser checks, benchmark, replay, secret scan                            |
-| `src/game/pilot/brain.ts`, `llmDecision.ts`                   | brain descriptors and accounting; the LLM decision schema (shared)        |
-| `src/game/pilot/staleness.ts`, `outcomes.ts`                  | revalidation at execution; per-decision outcome windows                   |
-| `server/llm/`, `api/llm/decision.ts`                          | the LLM endpoint: prompt, adapters, handler                               |
-| `src/game/eval/`                                              | records, contracts, statistics, calibration, ledger, warnings, evaluation |
-| `src/routes/evaluation.tsx`, `src/game/eval/ui/`              | the `/evaluation` page                                                    |
-| `config/pricing.json`                                         | the only place a model price may live (none is set)                       |
-| `tools/experiment.mjs`, `tools/fake-llm.mjs`, `tools/llm.mjs` | experiments and evaluations; the offline LLM test double                  |
-| `server/glide/`, `api/glide/decision.ts`, `tools/glide.mjs`   | Glide: Fastino's SystemOne endpoint, its function and browser checks      |
+| Path                                                          | Role                                                                          |
+| :------------------------------------------------------------ | :---------------------------------------------------------------------------- |
+| `src/game/pilot/contract.ts`                                  | action vocabulary, descriptions, timing (shared with the server)              |
+| `src/game/pilot/observation.ts`                               | observation schema, validator, legal actions (shared)                         |
+| `src/game/pilot/decision.ts`                                  | decision schema and validation (shared)                                       |
+| `src/game/pilot/perception.ts`                                | builds observations from the live game                                        |
+| `src/game/pilot/executor.ts`                                  | control frame → `InputState`, with expiry                                     |
+| `src/game/pilot/motor.ts`                                     | the precision motor controller: tracking, recoil feed-forward, fire gate      |
+| `src/game/pilot/hitGeometry.ts`                               | aim points, angular sizes, spread-cone share (shared with the server)         |
+| `src/game/characters/hitboxSpecs.ts`                          | the one hitbox table colliders and aim geometry read                          |
+| `src/game/player/eliteAssist.ts`                              | Elite Operator, the human aim help                                            |
+| `src/game/pilot/places.ts`, `navigator.ts`                    | places navigation: the finder and the local walking controller                |
+| `src/game/pilot/debrief.ts`                                   | what the seat perceived, against what happened                                |
+| `src/game/pilot/capabilities.ts`                              | capability negotiation (shared with the server)                               |
+| `src/game/pilot/policies.ts`                                  | the scripted reference policies                                               |
+| `src/game/world/mirage.ts`                                    | heat shimmer: how far a body at range appears displaced                       |
+| `tools/experiment.mjs`, `tools/experiments/*.json`            | matched experiments and their questions                                       |
+| `tools/kill-anatomy.mjs`                                      | what each victim was doing when the seat killed it                            |
+| `src/game/pilot/loop.ts`                                      | one request in flight, sequences, staleness, timeouts, backoff, fallback      |
+| `src/game/pilot/providers.ts`                                 | the HTTP brains (Jev, Glide, LLM), the seeded random brain, the delay wrapper |
+| `src/game/pilot/pilot.ts`                                     | the pilot seat: brain selection, frames, takeover, telemetry                  |
+| `src/game/pilot/recorder.ts`, `traceStorage.ts`               | JSONL traces, replay parsing, local storage                                   |
+| `src/game/pilot/metrics.ts`                                   | episode statistics and benchmark aggregation                                  |
+| `src/game/pilot/rigState.ts`, `PilotHost.tsx`                 | rig facts for perception; lifecycle, H key, dev handle                        |
+| `src/game/hud/JevHud.tsx`                                     | the panel and the Player control selector                                     |
+| `server/jev/handler.ts`, `question.ts`, `rateLimit.ts`        | the endpoint                                                                  |
+| `api/jev/decision.ts`                                         | the Vercel Function                                                           |
+| `tools/jev*.mjs`                                              | browser checks, benchmark, replay, secret scan                                |
+| `src/game/pilot/brain.ts`, `llmDecision.ts`                   | brain descriptors and accounting; the LLM decision schema (shared)            |
+| `src/game/pilot/staleness.ts`, `outcomes.ts`                  | revalidation at execution; per-decision outcome windows                       |
+| `server/llm/`, `api/llm/decision.ts`                          | the LLM endpoint: prompt, adapters, handler                                   |
+| `src/game/eval/`                                              | records, contracts, statistics, calibration, ledger, warnings, evaluation     |
+| `src/routes/evaluation.tsx`, `src/game/eval/ui/`              | the `/evaluation` page                                                        |
+| `config/pricing.json`                                         | the only place a model price may live (none is set)                           |
+| `tools/experiment.mjs`, `tools/fake-llm.mjs`, `tools/llm.mjs` | experiments and evaluations; the offline LLM test double                      |
+| `server/glide/`, `api/glide/decision.ts`, `tools/glide.mjs`   | Glide: Fastino's SystemOne endpoint, its function and browser checks          |
 
 The shared modules (now also `hitGeometry.ts` and `characters/hitboxSpecs.ts`)
 import each other as `./x.js`: the Vercel function runs as

@@ -699,7 +699,7 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
-bun run routes                # 127 checks: deep links, refreshes, hostile
+bun run routes                # 135 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,
                               # filtering, mobile, focus without WebGL, and

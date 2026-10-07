@@ -11,7 +11,7 @@ export type SegmentKind = "runway" | "strip" | "taxiway" | "street" | "road";
  * The declarations in this file that hold *data* rather than logic are written
  * as tables — one record per line, columns lining up — and are marked
  * `prettier-ignore` so the formatter leaves them that way. Exploding a
- * 60-structure array to ten lines per entry makes a geometry change unreadable
+ * 45-structure array to ten lines per entry makes a geometry change unreadable
  * in review, which is the one thing the single-source-of-truth rule depends on.
  * Everything else in the file is formatted normally.
  */

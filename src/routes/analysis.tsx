@@ -189,7 +189,7 @@ function structureClassification(structure: StructureDef): EvidenceClassificatio
   );
 }
 
-/** Highest confidence recorded for a structure, or the layout ordinal if none. */
+/** Highest confidence the ledger records for a structure. */
 function structureConfidence(structure: StructureDef): number {
   const records = getEvidenceForSubject(structure.id);
   return records.reduce((best, record) => Math.max(best, record.confidence), 0);

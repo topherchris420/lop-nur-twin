@@ -29,8 +29,11 @@ trivy-results.*
 # copied in and then overwritten, which only invites confusion.
 public/model-manifest.json
 
-# Documentation and screenshots are not needed to serve the app.
+# Documentation and screenshots are not needed to serve the app — except the
+# archived benchmark runs, which /evaluation bundles at build time. Without
+# them the container served /evaluation with nothing to open.
 docs/
+!docs/benchmarks/
 *.md
 !README.md
 

@@ -235,19 +235,32 @@ function Scoreboard() {
         .filter((a) => a.team === "red")
         .sort((a, b) => b.score - a.score);
 
+      // Built from elements and text, never from an HTML string: names are
+      // constants today, but a scoreboard is exactly where a name someone
+      // typed would one day arrive, and `textContent` cannot execute it.
       const renderRows = (actors: typeof game.actors, tbody: HTMLTableSectionElement) => {
-        let html = "";
-        for (const a of actors) {
-          const bg = a.isPlayer ? "bg-white/15" : "bg-transparent";
-          const highlight = a.isPlayer ? "text-white font-bold" : "text-slate-200";
-          html += `<tr class="border-b border-white/5 text-[11px] uppercase tracking-[0.1em] transition-colors ${bg} ${highlight}">
-            <td class="py-1.5 px-3 text-left max-w-[120px] truncate">${a.name}</td>
-            <td class="py-1.5 px-3 text-right opacity-80">${a.kills}</td>
-            <td class="py-1.5 px-3 text-right opacity-80">${a.deaths}</td>
-            <td class="py-1.5 px-3 text-right font-mono text-white">${a.score}</td>
-          </tr>`;
-        }
-        tbody.innerHTML = html;
+        const rows = actors.map((a) => {
+          const row = document.createElement("tr");
+          row.className = `border-b border-white/5 text-[11px] uppercase tracking-[0.1em] transition-colors ${
+            a.isPlayer
+              ? "bg-white/15 text-white font-bold"
+              : "bg-transparent text-slate-200"
+          }`;
+          const cells: [string, string | number][] = [
+            ["py-1.5 px-3 text-left max-w-[120px] truncate", a.name],
+            ["py-1.5 px-3 text-right opacity-80", a.kills],
+            ["py-1.5 px-3 text-right opacity-80", a.deaths],
+            ["py-1.5 px-3 text-right font-mono text-white", a.score],
+          ];
+          for (const [className, value] of cells) {
+            const cell = document.createElement("td");
+            cell.className = className;
+            cell.textContent = String(value);
+            row.append(cell);
+          }
+          return row;
+        });
+        tbody.replaceChildren(...rows);
       };
 
       renderRows(blueActors, tbodyBlueRef.current);

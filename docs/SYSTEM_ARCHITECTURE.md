@@ -118,13 +118,15 @@ of three things:
 - **solid** — publicly established by that date, on evidence knowable by then,
   and admitted by the current evidence mode;
 - **ghost** — the model places it, but at that date it was not yet publicly
-  established, or its classification then is filtered out; drawn as an outline;
-- **hidden** — no evidence yet, or filtered out entirely.
+  established (including when no evidence of it existed yet), or its
+  classification then is filtered out; drawn as an outline;
+- **hidden** — withheld by the evidence mode at any date.
 
 One predicate composes the timeline and the evidence mode; components ask
 `useSubjectFilter()` / `useSubjectDrawState()` rather than comparing
-classifications themselves. The legacy `?year=` URL parameter maps onto the
-last snapshot date in that year.
+classifications themselves. The legacy `?year=` URL parameter clamps to the
+modeled years, maps the last one to "now", and any other to the last timeline
+date on or before the end of that year.
 
 ### Claims are inspectable
 
