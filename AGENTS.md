@@ -696,7 +696,7 @@ bun run jev                   # the player seat, places included; no API calls
 bun run glide                 # the Glide seat against an in-browser fake; no API calls
 bun run llm                   # the LLM seat against the offline test double
 bun run test:eval             # evaluation core, seat and server unit tests
-bun run shots                 # regenerate the README screenshots
+bun run shots                 # regenerate the documentation screenshots
 node tools/inspect.mjs        # dump live camera, lights, colliders, actors
 node tools/closeup.mjs        # stage a soldier 3 m from the camera
 node tools/frames.mjs --out shots/before   # the canonical frame set

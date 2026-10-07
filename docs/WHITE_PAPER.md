@@ -65,7 +65,7 @@ once. What follows is the current census of what has been represented.
 | **Terrain**                     | 6.8 × 6.8 km of seeded, procedural dried-lakebed terrain. A nearby Copernicus GLO-30 sample supplies an approximate ~981 m EGM2008 elevation datum; the rendered relief is a proxy, not a DEM-derived surface.                                                                                                                                                                                                                               |
 | **A living base**               | The flight circuit, radar-like prop, service vehicle, windsock, beacons and day/night cycle are illustrative systems that make scale and environmental conditions legible; they do not claim observed operations.                                                                                                                                                                                                                            |
 
-![Structure dossier — click any building or aircraft for its details and a fly-to jump](screenshot-dossier.png)
+![Structure dossier — the main assembly hangar, ringed in the scene, with its classification, what is and is not known, and its dates](screenshot-dossier.png)
 
 <sup>**Fig. 2 — Structure dossier.** Click any building or aircraft for its details and a "fly to structure" jump.</sup>
 

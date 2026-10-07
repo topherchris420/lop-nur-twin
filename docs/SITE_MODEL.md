@@ -143,7 +143,7 @@ tools/
   gait.mjs           ← one animator, several stride cycles, five assertions
   a11y.mjs           ← axe-core + CSP violations across all four routes
   routes.mjs         ← deep links, refreshes, hostile parameters, keyboard, mobile
-  shots.mjs          ← regenerates the screenshots in this README
+  shots.mjs          ← regenerates the documentation screenshots
 deploy/nginx.conf    ← container runtime: SPA fallback, /healthz, security headers
 ```
 

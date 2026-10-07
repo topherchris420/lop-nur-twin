@@ -23,7 +23,7 @@ The one thing they share is geometry. `/play` mounts the twin's `Terrain`,
 of the rendered scene graph, so the map and the twin cannot drift apart. That is
 also why a change to `layout.ts` moves the fight with it.
 
-![Blacksite — an engagement on the main apron, the assembly hangar behind](screenshot-blacksite.png)
+![Blacksite — an engagement between two buildings, looking west-northwest across open ground](screenshot-blacksite.png)
 
 A team deathmatch on the airfield. It exists because the most direct way to
 understand a place's scale is to have to cross it under fire: the assembly
@@ -177,6 +177,14 @@ The results screen ends with a debrief kept by the same rule for every seat:
 how much of each life was spent in an enemy's sight line, and each death
 classed as _never seen_, _seen, not engaged_ or _engaged, exchange lost_, with
 the range, whether there was any cover within 10 m, and where.
+
+This one is from a real match the scripted skirmisher played on seed 42, cut
+short when the capture tool ran out the clock
+(`node tools/shots.mjs --only debrief`). It ended without a death, so there is
+none to class. The same seed will not reproduce it: frame pacing is not
+deterministic, so two runs of one seed differ.
+
+![The results screen on seed 42: victory 12–4, eleven kills and no deaths, and a three-sentence debrief labelled scripted](screenshots/debrief.png)
 
 What a brain may see and choose, the timing rules, the server boundary and the
 measured results are in [`docs/JEV_BLACKSITE.md`](JEV_BLACKSITE.md). None of it

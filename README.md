@@ -111,7 +111,7 @@ follow the source, inspect dates and uncertainty, or move to the semantic table
 at [`/analysis`](https://lop-nur-twin.vercel.app/analysis). Compare release
 manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 
-![The claim inspector for the main assembly hangar: its classification, what the evidence establishes, what is inferred and unknown, its separate dates and its sources](docs/screenshot-dossier.png)
+![The claim inspector for the main assembly hangar: its classification, why it is in the model, what the evidence establishes, what is inferred and unknown, and its separate dates](docs/screenshot-dossier.png)
 
 - **Claims carry a status:** observed, reported, interpreted, or illustrative.
   The ledger is derived from the layout and source register. Build validation
@@ -164,7 +164,7 @@ collision, weapons and damage pipeline. Every brain writes the `InputState`
 that a keyboard and mouse would fill; none can award damage, move an actor
 directly or invent a result.
 
-![Blacksite beside the main hangar, with compass, radar, killfeed and ammunition HUD](docs/screenshot-blacksite.png)
+![Blacksite between two buildings, soldiers in view, with compass, radar, score, clock and ammunition HUD](docs/screenshot-blacksite.png)
 
 ```mermaid
 flowchart LR
@@ -307,7 +307,7 @@ traffic, parks and people going about their routines. It's an explorable
 procedural reconstruction of downtown Bethesda, Maryland, with a separate
 simulation beneath it.
 
-![Street-level Bethesda: procedural shopfronts, brick sidewalks, trees and pedestrians](docs/screenshots/bethesda-street.png)
+![Street-level Bethesda: procedural shopfronts, a brick sidewalk, trees and a pedestrian](docs/screenshots/bethesda-street.png)
 
 _Street-level exploration in the running application. Buildings and street detail are procedural; mapped geography anchors the scene._
 

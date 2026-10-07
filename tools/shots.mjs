@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The screenshots the README embeds.
+ * The documentation screenshots.
  *
  * Documentation images go stale the moment anything visible changes, and a
  * README shot recaptured by hand is recaptured from a slightly different
@@ -8,9 +8,15 @@
  * to solve for look development. This does the same for the published images:
  * fixed cameras, fixed framing, one command.
  *
- *   node tools/shots.mjs                       -> docs/*.png
- *   node tools/shots.mjs --only blacksite
+ *   node tools/shots.mjs                       -> all of them, in order
+ *   node tools/shots.mjs --only blacksite      (twin | blacksite | debrief | white-paper)
  *   node tools/shots.mjs --origin http://localhost:5199
+ *
+ * It writes docs/screenshot-overview.png, docs/screenshot-dossier.png,
+ * docs/screenshot-blacksite.png, docs/screenshots/debrief.png and
+ * docs/white-paper.png. The two Bethesda images in docs/screenshots/ are
+ * `node tools/bethesda-look.mjs`'s street-detail.png and survey-detail.png,
+ * captured against a preview of dist/.
  *
  * The combat shots step the simulation forward before capturing. A match that
  * has only just started is eleven people walking; the picture worth publishing
@@ -21,6 +27,7 @@
 import puppeteer from "puppeteer";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { pathToFileURL } from "node:url";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -52,9 +59,9 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--enable-unsafe-swiftshader", "--use-gl=angle"],
 });
 
-async function shoot(page, path) {
+async function shoot(page, path, options = {}) {
   await mkdir(dirname(path), { recursive: true });
-  const buffer = await page.screenshot({ type: "png" });
+  const buffer = await page.screenshot({ type: "png", ...options });
   await writeFile(path, buffer);
   console.log(`  ${path}  (${Math.round(buffer.length / 1024)} KB)`);
 }
@@ -370,8 +377,40 @@ async function captureDebrief() {
   await page.close();
 }
 
+/* ------------------------------------------------------------------ */
+/* The white paper                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The white paper as a page. It embeds the overview and the dossier, so it is
+ * taken after them; nothing else regenerated it, and it once went months
+ * behind its own HTML. The committed file is rendered from disk with nothing
+ * fetched, at 900 CSS pixels and twice the density, in the light scheme the
+ * page is designed as paper for.
+ */
+async function captureWhitePaper() {
+  console.log("white paper:");
+  const page = await browser.newPage();
+  await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
+  await page.setViewport({ width: 900, height: 1000, deviceScaleFactor: 2 });
+  await page.setRequestInterception(true);
+  page.on("request", (request) =>
+    /^(file|data):/.test(request.url()) ? void request.continue() : void request.abort(),
+  );
+  await page.goto(pathToFileURL("docs/white-paper.html").href, { waitUntil: "load" });
+  await page.evaluate(() => document.fonts.ready);
+  const missing = await page.evaluate(() =>
+    [...document.images].filter((image) => image.naturalWidth === 0).map((i) => i.src),
+  );
+  if (missing.length > 0)
+    throw new Error(`white paper: no image at ${missing.join(", ")}`);
+  await shoot(page, "docs/white-paper.png", { fullPage: true });
+  await page.close();
+}
+
 if (!only || only === "twin") await captureTwin();
 if (!only || only === "blacksite") await captureBlacksite();
 if (!only || only === "debrief") await captureDebrief();
+if (!only || only === "white-paper") await captureWhitePaper();
 
 await browser.close();

@@ -444,7 +444,8 @@ npm run build             # includes validate:bethesda (both OSM layers, DTM)
 npm run verify:bethesda   # browser: discovery (both entrances), scenarios,
                           # outage fallback, walking, replay, a11y, CSP, return
 npm run verify:rain-lab   # browser: the hidden lab (see RAIN_LAB_BETHESDA.md)
-node tools/bethesda-look.mjs
+node tools/bethesda-look.mjs  # street and survey frames; the README shows its
+                              # street-detail.png and survey-detail.png
 ```
 
 ## What still requires the owner
