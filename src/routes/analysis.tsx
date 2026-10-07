@@ -176,9 +176,7 @@ export const Route = createFileRoute("/analysis")({
     // Every key is returned, `undefined` when rejected: the router keeps any
     // raw key a validator leaves out, so an omitted key would reach the page
     // unvalidated (a `?claim=1e309` arrives as the number Infinity).
-    return Object.fromEntries(
-      ANALYSIS_SEARCH_KEYS.map((key) => [key, validated[key]]),
-    );
+    return Object.fromEntries(ANALYSIS_SEARCH_KEYS.map((key) => [key, validated[key]]));
   },
 });
 

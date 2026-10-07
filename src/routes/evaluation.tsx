@@ -59,14 +59,18 @@ const ARCHIVED_SHADOW = import.meta.glob<{ default: unknown }>(
  * The decision records archived beside each evaluation, one `*.eval.json.gz`
  * per episode. As URLs, not modules: together they are megabytes of gzip, so
  * the build emits them as files and the page fetches one only when it is
- * opened, instead of carrying any of them in its JavaScript.
+ * opened, instead of carrying any of them in its JavaScript. The glob is eager
+ * because each entry is only a URL string; a lazy one cost a chunk apiece.
  */
-const ARCHIVED_DECISIONS = import.meta.glob<string>(
+const ARCHIVED_DECISION_URLS = import.meta.glob<string>(
   "/docs/benchmarks/**/*.eval.json.gz",
-  {
-    query: "?url",
-    import: "default",
-  },
+  { query: "?url", import: "default", eager: true },
+);
+const ARCHIVED_DECISIONS: Record<string, () => Promise<string>> = Object.fromEntries(
+  Object.entries(ARCHIVED_DECISION_URLS).map(([path, url]) => [
+    path,
+    () => Promise.resolve(url),
+  ]),
 );
 const MAX_EVALUATION_BYTES = 32 * 1024 * 1024;
 
