@@ -780,7 +780,12 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               </p>
             }
           >
-            <LabApp sim={sim} holder={labHolder} onExit={exitLab} />
+            <LabApp
+              sim={sim}
+              holder={labHolder}
+              onExit={exitLab}
+              visuals={view.quality}
+            />
           </Suspense>
         </LabBoundary>
       ) : (

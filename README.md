@@ -349,7 +349,10 @@ recorded so it can be re-simulated without contacting anything. Its results
 describe the simulator, not Bethesda. Its DEMO is labelled as a recording; LIVE,
 a meeting comes from the runtime's scripted offline engine or, when a local
 model server is configured, from a model meeting such as Qwen's, and every turn
-says which wrote it.
+says which wrote it. R.A.I.N. has no face there: it is seen through a Chladni
+plate instrument, its figures (after the Vers3Dynamics Cymatics studio) following
+the runtime's state — deliberation, convergence, uncertainty, an experiment, a
+result, and a case waiting for a person — and never standing for evidence.
 
 Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
 scenario limits, model authority and replay compatibility, and the

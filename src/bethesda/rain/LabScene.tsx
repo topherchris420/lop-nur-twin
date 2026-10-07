@@ -43,6 +43,8 @@ import { EMBODIMENT } from "./embodiment";
 import { LookDrag, stepFor, walkIntent, type Stick } from "../walkInput";
 import { canRender } from "../webgl";
 import type { LabStore } from "./store";
+import { RAINResonanceFace, type ResonanceQuality } from "./ResonanceFace";
+import { resonanceView, snapshotOf, type ResonanceView } from "./resonance";
 
 export interface LabNav {
   pos: Vec;
@@ -956,8 +958,41 @@ function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
   return null;
 }
 
-export function LabScene({ store, nav }: { store: LabStore; nav: LabNav }) {
+/**
+ * The resonance view, re-derived only when the store has changed: the
+ * instrument reads it every frame, and the store is never written by it.
+ */
+function useResonance(store: LabStore) {
+  return useMemo(() => {
+    let version = -1,
+      view: ResonanceView | null = null;
+    return () => {
+      if (!view || store.version !== version) {
+        version = store.version;
+        view = resonanceView(snapshotOf(store));
+      }
+      return view;
+    };
+  }, [store]);
+}
+
+export function LabScene({
+  store,
+  nav,
+  quality,
+  auto,
+  onInspect,
+}: {
+  store: LabStore;
+  nav: LabNav;
+  /** Where R.A.I.N.'s instrument starts; under `auto` it steps down on slow frames. */
+  quality: ResonanceQuality;
+  auto: boolean;
+  /** A click or tap on the instrument: open what R.A.I.N. is doing. */
+  onInspect: () => void;
+}) {
   const supported = useMemo(canRender, []);
+  const read = useResonance(store);
   if (!supported || nav.failed)
     return (
       <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
@@ -994,6 +1029,13 @@ export function LabScene({ store, nav }: { store: LabStore; nav: LabNav }) {
       <ObservationWall store={store} />
       <Systems store={store} />
       <Perspectives store={store} />
+      <RAINResonanceFace
+        key={quality}
+        read={read}
+        quality={quality}
+        auto={auto}
+        onInspect={onInspect}
+      />
       <Walker store={store} nav={nav} />
     </Canvas>
   );

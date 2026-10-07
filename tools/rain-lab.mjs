@@ -288,6 +288,32 @@ async function enterLab(s, line = "resolve r.a.i.n.") {
       !document.body.innerText.includes("Runtime: checking"),
   );
 }
+/** R.A.I.N.'s resonance state, as the lab root states it. */
+const resonance = (s) =>
+  s.page.evaluate(() =>
+    document.querySelector('[data-rain-lab="active"]')?.getAttribute("data-resonance"),
+  );
+/** Every resonance state the lab passes through from now on, in order. */
+const followResonance = (s) =>
+  s.page.evaluate(() => {
+    const root = document.querySelector('[data-rain-lab="active"]');
+    const seen = (globalThis.__resonance = [root.getAttribute("data-resonance")]);
+    new MutationObserver(() => {
+      const v = root.getAttribute("data-resonance");
+      if (v !== seen.at(-1)) seen.push(v);
+    }).observe(root, { attributes: true, attributeFilter: ["data-resonance"] });
+  });
+/** Waits for rendered frames, not time: under software WebGL a frame takes long. */
+const frames = (s, n) =>
+  s.page.evaluate(
+    (n) =>
+      new Promise((done) => {
+        let i = 0;
+        const f = () => (++i >= n ? done() : requestAnimationFrame(f));
+        requestAnimationFrame(f);
+      }),
+    n,
+  );
 async function authorize(s) {
   await s.click("Experiment Bay");
   await s.click("Load the DEMO's scripted proposal");
@@ -364,6 +390,12 @@ try {
       JSON.stringify(a.rain()) === JSON.stringify(["/api/rain/status"]),
     JSON.stringify(a.rain()),
   );
+  check(
+    "OFFLINE: R.A.I.N.'s plates lie strewn and still; nothing drives them",
+    (await resonance(a)) === "idle",
+    await resonance(a),
+  );
+  await followResonance(a);
   const entryTick = await a.tick();
   await a.axe("threshold");
   await a.click("Research Panel");
@@ -379,8 +411,22 @@ try {
   );
   await a.click("Replay the recorded meeting (DEMO)");
   await a.waitFor(() => document.body.innerText.includes("PRERECORDED · DEMO"));
+  const staged = await resonance(a);
   await a.clickStarting("Show all ");
   await a.waitFor(() => document.body.innerText.includes("WHERE THE ROOM STANDS"));
+  {
+    const words = await a.page.evaluate(
+      () => document.getElementById("lab-resonance")?.innerText ?? "",
+    );
+    check(
+      "the plates deliberate while the DEMO is staged and stay unresolved after it, as its partial grounding says",
+      staged === "deliberating" &&
+        (await resonance(a)) === "uncertain" &&
+        words.includes("grounding was partial") &&
+        words.includes("not evidence"),
+      `${staged} → ${await resonance(a)}`,
+    );
+  }
   {
     const t = await a.text();
     check(
@@ -423,6 +469,11 @@ try {
 
   // --- Experiment Bay: authorization, run, registry ------------------------------------
   const { sha, prefix } = await authorize(a);
+  check(
+    "a proposal waiting for a person stills the plates at the boundary",
+    (await resonance(a)) === "awaiting-human",
+    await resonance(a),
+  );
   {
     const t = await a.text();
     check(
@@ -486,6 +537,67 @@ try {
     "the registry records the demo hypothesis as COMPLETED · NOT SUPPORTED",
     (await a.text()).includes("COMPLETED · hypothesis NOT SUPPORTED"),
   );
+  {
+    const seen = await a.page.evaluate(() => globalThis.__resonance);
+    const at = (state) => seen.indexOf(state);
+    check(
+      "the plates followed the runtime: deliberating, unresolved, at the boundary, running, then the result as recorded",
+      at("deliberating") >= 0 &&
+        at("deliberating") < at("uncertain") &&
+        at("uncertain") < at("awaiting-human") &&
+        at("awaiting-human") < at("experiment") &&
+        at("experiment") < at("result-contradicted") &&
+        seen.at(-1) === "result-contradicted",
+      JSON.stringify(seen),
+    );
+  }
+  // A visitor reaches the plates by pointing at them: the large plate opens
+  // what it shows. Aim from the Research Panel's arrival: the camera at
+  // (0, 1.65, 6.3), looking 0.14 rad down towards the plate's centre at
+  // (0, 1.0, 3.85), through the projection the scene centred on the open room.
+  await a.click("Research Panel");
+  await frames(a, 8);
+  {
+    const [x, y] = await a.page.evaluate(() => {
+      const c = document.querySelector('[data-rain-lab="active"] canvas'),
+        r = c.getBoundingClientRect();
+      const [cx, cy] = (c.dataset.viewCenter ?? `${r.width / 2},${r.height / 2}`)
+        .split(",")
+        .map(Number);
+      const down =
+        Math.tan(Math.atan(0.65 / 2.45) - 0.14) / Math.tan((35 * Math.PI) / 180);
+      return [r.left + cx, r.top + cy + (down * r.height) / 2];
+    });
+    await a.page.mouse.move(x - 40, y - 30);
+    await a.page.mouse.move(x, y, { steps: 4 });
+    await frames(a, 3);
+    await a.page.mouse.click(x, y);
+    await a
+      .waitFor(() => document.activeElement?.id === "lab-resonance", 30000)
+      .catch(() => {});
+    check(
+      "pointing at R.A.I.N.'s plate and clicking it opens what it shows",
+      await a.page.evaluate(
+        () =>
+          document.activeElement?.id === "lab-resonance" &&
+          document.activeElement.innerText.includes("hypothesis NOT SUPPORTED") &&
+          document.querySelector('[data-rain-lab="active"] canvas').style.cursor ===
+            "pointer",
+      ),
+      await a.page.evaluate(() => document.activeElement?.id ?? ""),
+    );
+  }
+  // The click is answered once: coming back to the room later leaves focus alone.
+  await a.click("Registry / Archive");
+  await a.click("Research Panel");
+  await a.page.waitForSelector("#lab-resonance");
+  await frames(a, 3);
+  check(
+    "a later visit to the Research Panel does not take focus again",
+    await a.page.evaluate(() => document.activeElement?.id !== "lab-resonance"),
+  );
+  await a.click("Registry / Archive");
+  await a.waitFor(() => document.body.innerText.includes("Verify by replay (no model)"));
   const beforeVerify = a.rain().length;
   await a.click("Verify by replay (no model)");
   await a.waitFor(
@@ -893,6 +1005,15 @@ try {
     (await b.text()).includes(
       "Every room and every capability remains available in the panels.",
     ),
+  );
+  await b.click("Research Panel");
+  await b.page.waitForSelector("#lab-resonance");
+  check(
+    "without WebGL R.A.I.N.'s resonance is still stated, in words",
+    await b.page.evaluate(() => {
+      const t = document.getElementById("lab-resonance").innerText;
+      return t.includes("R.A.I.N.'S RESONANCE") && t.includes("not evidence");
+    }),
   );
   await b.click("Registry / Archive");
   await b.waitFor(() => document.body.innerText.includes("No records yet"));

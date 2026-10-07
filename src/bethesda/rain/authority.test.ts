@@ -182,7 +182,7 @@ describe("authority, by construction", () => {
     for (const f of ["runner.ts", "replay.ts"])
       expect(read(f)).toMatch(/new CitySimulation\(|CitySimulation\.execute\(/);
   });
-  it("observations, tools, presence and replay import no renderer, client, network or recording", () => {
+  it("observations, tools, presence, replay and the resonance import no renderer, client, network or recording", () => {
     for (const f of [
       "observations.ts",
       "replay.ts",
@@ -190,6 +190,8 @@ describe("authority, by construction", () => {
       "experiments.ts",
       "tools.ts",
       "presence.ts",
+      "resonance.ts",
+      "chladni.ts",
     ]) {
       const text = read(f);
       expect(text, f).not.toMatch(

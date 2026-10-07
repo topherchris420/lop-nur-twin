@@ -333,15 +333,15 @@ calibrated, and the lab never presents one as R.A.I.N.'s confidence.
 
 ## The rooms
 
-| Room               | Hint shown on entering                                                     | What is there                                                                                                                                                                                                                        |
-| :----------------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Threshold          | The lab's rules are written here. The door behind you returns to Bethesda. | the principle, the rules, the way back                                                                                                                                                                                               |
-| Research Panel     | Ask the four perspectives to investigate a question.                       | the question; a model meeting's progress and **Stop the meeting**; the meeting turn by turn with its speaker; verified sources; who wrote each turn; disagreement as separate branches; ungrounded turns marked; next investigations |
-| Evidence Library   | Inspect the sources used in the current meeting.                           | every item, filterable by kind of claim (below)                                                                                                                                                                                      |
-| Experiment Bay     | Turn a supported hypothesis into a Bethesda experiment.                    | proposals, their deterministic checks, the protocol, authorization, and any choice R.A.I.N. handed back with what each engine returned                                                                                               |
-| Observation Room   | Watch the simulator run: arms, ticks, cohorts and what was refused.        | the run in progress, the live city, the perspectives' outings, the observation tools, and every refusal                                                                                                                              |
-| Registry / Archive | Replay, reproduce, or inspect prior results — failures included.           | every record — supported, not supported, inconclusive, failed, rejected — with replay, export and reproduction                                                                                                                       |
-| Systems Room       | See what the lab is connected to, and what it is not.                      | the runtime, the provenance, the boundaries and the limits                                                                                                                                                                           |
+| Room               | Hint shown on entering                                                     | What is there                                                                                                                                                                                                                                                                           |
+| :----------------- | :------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Threshold          | The lab's rules are written here. The door behind you returns to Bethesda. | the principle, the rules, the way back                                                                                                                                                                                                                                                  |
+| Research Panel     | Ask the four perspectives to investigate a question.                       | R.A.I.N.'s resonance instrument and what it shows; the question; a model meeting's progress and **Stop the meeting**; the meeting turn by turn with its speaker; verified sources; who wrote each turn; disagreement as separate branches; ungrounded turns marked; next investigations |
+| Evidence Library   | Inspect the sources used in the current meeting.                           | every item, filterable by kind of claim (below)                                                                                                                                                                                                                                         |
+| Experiment Bay     | Turn a supported hypothesis into a Bethesda experiment.                    | proposals, their deterministic checks, the protocol, authorization, and any choice R.A.I.N. handed back with what each engine returned                                                                                                                                                  |
+| Observation Room   | Watch the simulator run: arms, ticks, cohorts and what was refused.        | the run in progress, the live city, the perspectives' outings, the observation tools, and every refusal                                                                                                                                                                                 |
+| Registry / Archive | Replay, reproduce, or inspect prior results — failures included.           | every record — supported, not supported, inconclusive, failed, rejected — with replay, export and reproduction                                                                                                                                                                          |
+| Systems Room       | See what the lab is connected to, and what it is not.                      | the runtime, the provenance, the boundaries and the limits                                                                                                                                                                                                                              |
 
 Walk with WASD or the arrows (Shift hurries), drag or use mouse lock to look,
 or use the room buttons, which every capability also lives behind. A touch
@@ -357,8 +357,11 @@ centres the room on that band left of the panel. The stick stands in the band's
 lower corner, over at most half its width. The door back is a button as well as
 E, and its prompt stands in the open room, never on the stick or a panel.
 `tools/rain-lab.mjs` turns a phone upright, on its side and a small one on its
-side, and checks each of these where the scene applied it. Without WebGL the
-rooms are panels, and every capability stays available.
+side, and checks each of these where the scene applied it. On a wide screen the
+view is centred between the rooms at the lower left and the panel on the
+right, so what is ahead — R.A.I.N.'s instrument first — is not behind the
+panel. Without WebGL the rooms are panels, and every capability stays
+available.
 
 ## The four perspectives
 
@@ -378,6 +381,100 @@ verbatim. Where the record shows the perspectives disagreeing, the panel keeps
 the positions as separate branches. Confidence is never animated, and agreement
 among the four is described as agreement, never as validation.
 
+## R.A.I.N.'s resonance
+
+The R.A.I.N. Lab uses Chladni resonance patterns as the visual interface for
+its research runtime. The patterns do not constitute evidence or scientific
+measurement. They provide a perceptual representation of runtime state,
+uncertainty, disagreement, convergence, experimentation, and the boundary
+between machine inference and human authorization.
+
+R.A.I.N. has no face, head or avatar in the lab. It has a resonance. On a steel
+plinth in the Research Panel, between the door and the evidence table, stands
+one large bronze Chladni plate clamped at its centre and tilted towards the
+door; behind it stand four small plates, one for each perspective, in the order
+of their seats, each coupled to the large plate's stem by a thin rod. Sand lies
+on every plate and gathers where the plate stays still. Walking in from the
+Threshold, it is the first thing in view, with the four perspectives at the
+table behind it. Nothing labels it.
+
+**How it is driven.** Each perspective has its own resonance (James (2,4)+,
+Jasmine (1,3)−, Luca (2,3)−, Elena (1,4)+). While a meeting is staged, every
+perspective that has spoken drives the large plate at its own frequency from
+its own exciter, the speaker loudest, and its small plate is driven with it;
+the rod of each perspective taking part catches a little light. The large
+plate's figure is their sum — many perspectives, a relationship, and, if the
+meeting resolves, a synthesis: the separate figures give way to one.
+
+| State                 | Derived from (the store, read-only)                                                                                        | What the instrument does                                                                                        |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `idle`                | nothing in progress; runtime LIVE                                                                                          | the large plate holds the studio's Harmonic cross, (8,4), lightly driven; the small plates are strewn and still |
+| `idle` (offline)      | nothing in progress; runtime OFFLINE or unreachable                                                                        | nothing drives any plate; the sand lies where it was strewn                                                     |
+| `listening`           | `store.asking`; a model meeting's `turnsStarted / turnsPlanned`                                                            | driven between two resonances, where a plate barely answers; brightens with the real turn count, never words    |
+| `deliberating`        | a meeting whose turns are still being staged (`revealed < turns.length`)                                                   | the speakers so far drive the large plate together, the current one leading; the speaker's small plate is lit   |
+| `converging`          | a finished offline meeting with `grounding: "strong"` and no unverified span                                               | the four figures resolve into one clean figure; sand settles                                                    |
+| `uncertain`           | a finished meeting with partial or no grounding, an unverified span, or a model meeting (which the runtime does not grade) | every perspective that spoke keeps sounding; no single figure forms; the sand stays only partly settled         |
+| `awaiting-human`      | a case in `AWAITING_HUMAN_APPROVAL`                                                                                        | the plate stops; the experiment's figure lies still; a thin guard round the plate lights amber                  |
+| `experiment`          | `store.run` and its progress (arm, ticks)                                                                                  | the experiment's figure is driven; the sand gathers as the run proceeds; the small plates go dark               |
+| `result-supported`    | the most recent ended case: `COMPLETED`, verdict `supported`                                                               | the experiment's figure settles as it formed                                                                    |
+| `result-contradicted` | `COMPLETED`, verdict `not_supported` (shown as "not supported")                                                            | the figure gives way to its partner — the other figure of the same mode pair                                    |
+| `result-unresolved`   | `INCONCLUSIVE`, or `FAILED` (not evaluated)                                                                                | the figure and its partner sound together; neither forms                                                        |
+
+What is happening now comes first — a run, a question in flight, a meeting
+being staged — then a case waiting for a person, then the newer of a finished
+meeting (`MeetingState.stagedAt`) and a finished run, then rest. Where a figure
+has to be chosen at all, it is chosen the way the Cymatics studio's Word tab
+chooses one: a hash of the question, or of the experiment's definition digest,
+picks a resonance and a place to drive it. The hash says nothing about meaning.
+Confidence is never drawn (records carry none), and convergence is agreement
+among the perspectives, never validation.
+
+**Architecture.**
+
+```
+R.A.I.N. runtime → lab store (meeting, cases, run, records)
+  → snapshotOf(store)            resonance.ts: reads, writes nothing
+  → resonanceView(snapshot)      resonance.ts: pure; state, drives, settle, why
+  → RAINResonanceFace            ResonanceFace.tsx: plates, plinth, light
+  → PlateField shader            the studio's plate figures, chladni.ts
+```
+
+`resonanceView` keeps no state of its own; the same store always gives the same
+view, so there is no second state machine to drift from the runtime's. The
+instrument receives only a `read()` of that view: it never sees the store, the
+client or a provider, so an offline meeting, a Qwen meeting or any other model
+looks the same to it. `resonance.test.ts` checks every state, the ordering,
+determinism, and that deriving a view changes nothing in the store, its cases,
+its records, the registry or the city.
+
+**Touching it.** Pointing at a plate lights its edge a little, and so does
+walking up to it. A click or tap opens the Research Panel at
+**R.A.I.N.'s resonance**: the state, the runtime facts it follows, the
+question on the table and a reminder that the figures are not evidence. That
+section is the instrument's semantic form, so it is there without WebGL too.
+
+**Its rule.** The instrument looks; it never acts. It cannot alter an outcome,
+a record, the registry, the evidence or a claim; it authorizes nothing, calls
+no model and sends nothing; and a figure is never evidence of anything.
+`authority.test.ts` keeps `resonance.ts` and `chladni.ts` free of renderers,
+clients and the network.
+
+**Provenance.** The plate numerics in `chladni.ts` are ported from
+[Vers3Dynamics Cymatics](https://huggingface.co/spaces/ciaochris/vers3dynamics-cymatics)
+(`physics.js` at revision `9a9c46fb0ff0ae8c51367e8ae5c1ba39892ed112`,
+SHA-256 `e6857f62…bea3cc`), a playable Chladni plate published under the MIT
+License (notice in `NOTICE`): the square plate's modes and their sum and
+difference figures, the Lorentzian response, the energy normalisation, the
+exciter's seat, the stroboscope (0.55 Hz) and the word signature, with the same
+constants, and the studio's pigment ramps (verdigris, bone, copper). The
+studio is not embedded and nothing is fetched from it: the sand is drawn
+analytically from each figure's time-averaged energy in a patched
+`MeshStandardMaterial`, so the instrument shares the room's lights, fog and
+depth buffer. As the studio says of itself, it is a qualitative model with
+tuning chosen for the eye, not a calibrated solver. Vers3Dynamics Cymatics
+gives the lab its visual language; the R.A.I.N. runtime remains the only
+source of what the plates show.
+
 ## What counts as evidence
 
 The Evidence Library sorts every item into one of six kinds, each labelled the
@@ -392,9 +489,9 @@ same way everywhere in the lab:
 | **SIMULATION RESULT** | the measurements of a completed matched run                                                                            |
 | **VALIDATED CHECK**   | a deterministic host check that passed                                                                                 |
 
-Never evidence: where an avatar stands, anything rendered, the interior, a
-perspective's confidence, an engine's probabilities, a model's prose, and the
-four agreeing. An observation packet can be recomputed from the simulator at
+Never evidence: where an avatar stands, anything rendered, the interior, the
+resonance plates and their figures, a perspective's confidence, an engine's
+probabilities, a model's prose, and the four agreeing. An observation packet can be recomputed from the simulator at
 the tick it names, and `verifyObservation` fails if a count, the tick or the
 state hash does not match.
 
@@ -650,6 +747,19 @@ map redraws once a second and the avatars' positions are computed once per city
 tick. The runtime answers an offline meeting in well under a second; the
 browser bundle carries none of the runtime's data — the corpus and the SOUL
 files are server-side.
+
+R.A.I.N.'s instrument costs two shader programs (the large plate with its
+relief, the small plates without), one point light over it — an eighth in the
+lab, always mounted so the room's light count never changes — and no texture
+beyond a 64-pixel shadow. A figure is rebuilt only when the view's key changes
+(a new turn, a new state), never per frame; per frame only uniforms are eased in
+place, and the targets they ease towards are written in place too. It follows
+the city's **Visuals**: detail draws the large plate with a 112-segment relief
+and up to 16 modes per figure; auto starts there (at 56 segments and 10 modes
+on a phone) and steps down a level after two seconds of frames slower than
+28 fps — a frame over half a second, or the first second, is a hitch and does
+not count; economy draws flat plates with 6 modes, no grain and the lamp dark.
+Reduced motion stills the plates and makes every change of figure immediate.
 
 ## Privacy and security
 

@@ -59,7 +59,8 @@ export const ROOMS: Record<RoomId, Room> = {
     hint: "Ask the four perspectives to investigate a question.",
     min: { x: -6, z: -5 },
     max: { x: 6, z: 7 },
-    spawn: { x: 0, z: 5 },
+    // Inside the door, R.A.I.N.'s instrument ahead and the table beyond it.
+    spawn: { x: 0, z: 6.3 },
   },
   library: {
     id: "library",
@@ -181,11 +182,34 @@ export const SEATS: Record<Perspective, Vec> = {
   Jasmine: { x: -3, z: 1.4 },
   Elena: { x: 3, z: 1.4 },
 };
+/**
+ * R.A.I.N.'s resonance instrument (`ResonanceFace.tsx`): a plinth carrying
+ * one large Chladni plate and four small ones, between the threshold door and
+ * the evidence table. It faces the door, so it is the first thing seen on
+ * entering the Research Panel, with the perspectives' seats behind it.
+ */
+export const RESONANCE = {
+  at: { x: 0, z: 3.75 },
+  width: 1.95,
+  depth: 1.05,
+  /** How far down someone arriving in the Research Panel looks, so the plates are in view on any screen. */
+  look: -0.14,
+};
 /** Fixed furniture the player cannot walk through. */
 export const OBSTACLES: { min: Vec; max: Vec }[] = [
   {
     min: { x: TABLE.center.x - TABLE.width / 2, z: TABLE.center.z - TABLE.depth / 2 },
     max: { x: TABLE.center.x + TABLE.width / 2, z: TABLE.center.z + TABLE.depth / 2 },
+  },
+  {
+    min: {
+      x: RESONANCE.at.x - RESONANCE.width / 2,
+      z: RESONANCE.at.z - RESONANCE.depth / 2,
+    },
+    max: {
+      x: RESONANCE.at.x + RESONANCE.width / 2,
+      z: RESONANCE.at.z + RESONANCE.depth / 2,
+    },
   },
 ];
 

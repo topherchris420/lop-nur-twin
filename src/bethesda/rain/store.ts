@@ -76,6 +76,8 @@ export interface MeetingState {
   record: MeetingRecord;
   source: "LIVE" | "DEMO";
   revealed: number;
+  /** When this browser began staging it (wall clock, ISO), so it can be ordered against a run's end. */
+  stagedAt: string;
 }
 export interface RunState {
   caseId: string;
@@ -373,6 +375,7 @@ export class LabStore {
       record,
       source,
       revealed: reducedMotion() ? record.turns.length : 1,
+      stagedAt: new Date().toISOString(),
     };
     this.note =
       source === "DEMO"

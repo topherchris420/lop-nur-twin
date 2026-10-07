@@ -36,6 +36,8 @@ import { runArtifactText, type ExperimentRecord } from "./record";
 import { armTrace } from "./replay";
 import { CONFIRMATION_LENGTH } from "./authorization";
 import { engineName, suggestion, type LabStore } from "./store";
+import { resonanceView, snapshotOf } from "./resonance";
+import { CYMATICS_SOURCE } from "./chladni";
 import { TOOL_NAMES, SENSOR, REGION_RADIUS, type ToolName } from "./tools";
 import { positionAt } from "./presence";
 import { LOCATION_IDS, type Perspective } from "./contracts";
@@ -232,12 +234,64 @@ function MeetingVerdict({
   );
 }
 
+/**
+ * What R.A.I.N.'s instrument shows, in words: the same view the plates are
+ * drawn from, so the panel and the room cannot disagree. A click on the
+ * instrument brings it into view.
+ */
+/** A click on the instrument: how many there have been, and how many were already shown. */
+export interface Inspect {
+  count: number;
+  handled: { current: number };
+}
+function Resonance({ store, inspect }: { store: LabStore; inspect?: Inspect }) {
+  const v = resonanceView(snapshotOf(store));
+  const ref = useRef<HTMLElement>(null);
+  const id = useId();
+  // Each click is shown once: coming back to the room later leaves focus alone.
+  useEffect(() => {
+    if (!inspect || inspect.count <= inspect.handled.current) return;
+    inspect.handled.current = inspect.count;
+    ref.current?.scrollIntoView({ block: "nearest" });
+    ref.current?.focus({ preventScroll: true });
+  }, [inspect]);
+  const question = store.meeting?.record.question;
+  return (
+    <section
+      ref={ref}
+      id="lab-resonance"
+      tabIndex={-1}
+      aria-labelledby={id}
+      data-resonance={v.state}
+      className="mt-3 rounded border border-teal-100/15 p-2 focus:outline-2 focus:outline-teal-200"
+    >
+      <h3 id={id} className={label}>
+        R.A.I.N.&apos;S RESONANCE
+      </h3>
+      <p className="mt-1 text-xs leading-relaxed">
+        <strong>{v.label}.</strong> {v.because}
+      </p>
+      {question && v.state !== "experiment" && !v.state.startsWith("result") ? (
+        <p className={quiet + " mt-1"}>On the table: {question}</p>
+      ) : null}
+      <p className={quiet + " mt-1"}>
+        The large plate before the table is R.A.I.N.; the four behind it are James,
+        Jasmine, Luca and Elena, each at a resonance of its own. The figures show the
+        runtime&apos;s state. They are not evidence or measurement, and they decide
+        nothing.
+      </p>
+    </section>
+  );
+}
+
 export function ResearchPanel({
   store,
   go,
+  inspect,
 }: {
   store: LabStore;
   go: (r: RoomId) => void;
+  inspect?: Inspect;
 }) {
   const m = store.meeting;
   const [question, setQuestion] = useState(m?.record.question ?? "");
@@ -255,6 +309,7 @@ export function ResearchPanel({
     <div>
       <h2 className="text-base">Research Panel</h2>
       <RuntimeLine store={store} />
+      <Resonance store={store} inspect={inspect} />
       <form
         className="mt-2"
         onSubmit={(e) => {
@@ -1935,6 +1990,11 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             Simulator {SIM_VERSION} · map {short(DATA_VERSION, 16)} · terrain{" "}
             {short(TERRAIN_VERSION, 16)} · streetscape {short(TRANSIT_VERSION, 16)}
           </li>
+          <li>
+            Resonance plates: the plate model of Vers3Dynamics Cymatics (Hugging Face
+            Space {CYMATICS_SOURCE.space} at {short(CYMATICS_SOURCE.revision)},{" "}
+            {CYMATICS_SOURCE.license} License), drawn natively here
+          </li>
         </ul>
       </Section>
       <Section title="BOUNDARIES">
@@ -1964,6 +2024,11 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             nothing.
           </li>
           <li>Records stay in this browser unless you export them.</li>
+          <li>
+            R.A.I.N.&apos;s resonance plates show the runtime&apos;s state. They are drawn
+            from it and write nothing back: not evidence, not a measurement, not a
+            decision.
+          </li>
         </ul>
       </Section>
       <Section title="LIMITS">
@@ -1984,17 +2049,20 @@ export function RoomPanel({
   room,
   go,
   onExit,
+  inspect,
 }: {
   store: LabStore;
   room: RoomId;
   go: (r: RoomId) => void;
   onExit: () => void;
+  /** Clicks on R.A.I.N.'s instrument. */
+  inspect?: Inspect;
 }) {
   switch (room) {
     case "threshold":
       return <ThresholdPanel store={store} onExit={onExit} />;
     case "panel":
-      return <ResearchPanel store={store} go={go} />;
+      return <ResearchPanel store={store} go={go} inspect={inspect} />;
     case "library":
       return <EvidenceLibrary store={store} />;
     case "bay":

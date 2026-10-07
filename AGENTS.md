@@ -521,6 +521,18 @@ in-process by `server/rain/handler.ts`. It was ported from
 exist to keep: **models propose; host code validates; the simulator determines
 world state; recorded observations become evidence.**
 
+- **R.A.I.N.'s resonance is a view, never a source.** The plate instrument in
+  the Research Panel (`ResonanceFace.tsx`) is drawn from `resonance.ts`, whose
+  `snapshotOf`/`resonanceView` read the lab store and keep no state, so there is
+  no second state machine beside the runtime's. A new driver is another field
+  read from the store — never a timer, a random number or a guess at what a
+  model is doing — and the instrument receives only `read()` and an
+  `onInspect` that navigates to the Research Panel, never the store, a client or
+  a provider. Where a figure must be chosen it is a hash, which says
+  nothing about meaning, and no figure is evidence. `resonance.test.ts` fails if
+  deriving a view changes a case, a record, the registry or the city. The plate
+  numerics in `chladni.ts` are the Vers3Dynamics Cymatics studio's (MIT, see
+  `NOTICE`): keep its constants, or the figures stop being the studio's.
 - **The lab holds the live city read-only.** Only `runner.ts` and `replay.ts`
   call a simulator's mutating methods, and only on simulators they built.
   `authority.test.ts` scans every lab module for `step`, `inject`, `accept`,

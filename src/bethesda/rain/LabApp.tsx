@@ -21,7 +21,9 @@ import { canRender } from "../webgl";
 import { LabScene, type LabNav } from "./LabScene";
 import { RoomPanel, button, panel } from "./LabPanels";
 import { LabStore } from "./store";
-import { ROOMS, ROOM_IDS, SPAWN, type RoomId } from "./labLayout";
+import { RESONANCE, ROOMS, ROOM_IDS, SPAWN, type RoomId } from "./labLayout";
+import type { ResonanceQuality } from "./ResonanceFace";
+import { resonanceView, snapshotOf } from "./resonance";
 
 /**
  * A small screen, either way up. The class names below spell the same query
@@ -33,10 +35,13 @@ export default function LabApp({
   sim,
   holder,
   onExit,
+  visuals = "auto",
 }: {
   sim: CitySimulation;
   holder: RefObject<unknown>;
   onExit: () => void;
+  /** The city's Visuals setting, which R.A.I.N.'s instrument follows. */
+  visuals?: "auto" | "detail" | "economy";
 }) {
   const [store] = useState(() => {
     const existing = holder.current;
@@ -65,6 +70,14 @@ export default function LabApp({
   // a band of the room above it for the stick and a look: the panel never has
   // to be put away to walk.
   const coarse = useMemo(isCoarsePointer, []);
+  // R.A.I.N.'s instrument follows the city's Visuals: economy draws it flat
+  // and plain, detail in full; auto starts lower on a phone and steps down by
+  // itself when frames stay slow.
+  const quality: ResonanceQuality =
+    visuals === "economy" ? "low" : visuals === "detail" || !coarse ? "high" : "medium";
+  // A click on the instrument opens the Research Panel at what the plate shows.
+  const [inspected, setInspected] = useState(0);
+  const inspectHandled = useRef(0);
   const rendering = useMemo(canRender, []);
   const touchWalk = coarse && rendering && !nav.failed;
   const root = useRef<HTMLDivElement>(null),
@@ -72,8 +85,9 @@ export default function LabApp({
     aside = useRef<HTMLElement>(null),
     rooms = useRef<HTMLElement>(null),
     strip = useRef<HTMLDivElement>(null);
-  // Tell the camera where that band is, so the room ahead shows in it rather
-  // than behind the panel (`LabNav.viewCenter`).
+  // Tell the camera where that band is — on a wide screen, the gap between the
+  // rooms and the panel — so the room ahead shows in it rather than behind the
+  // panel (`LabNav.viewCenter`).
   useEffect(() => {
     const small = window.matchMedia(SMALL_SCREEN);
     const measure = () => {
@@ -81,8 +95,11 @@ export default function LabApp({
         h = header.current?.getBoundingClientRect(),
         a = aside.current?.getBoundingClientRect(),
         g = rooms.current?.getBoundingClientRect();
-      if (!small.matches || !r || !h || !a || !g || a.width === 0 || a.height === 0)
-        nav.viewCenter = null;
+      if (!r || !h || !a || !g || a.width === 0 || a.height === 0) nav.viewCenter = null;
+      else if (!small.matches)
+        // A wide screen: the room shows between the rooms at the lower left
+        // and the panel down the right, at the canvas's own height.
+        nav.viewCenter = { x: (g.right + a.left) / 2 - r.left, y: r.height / 2 };
       else
         nav.viewCenter = {
           // The panel along the bottom (a phone held upright) leaves the full
@@ -118,6 +135,7 @@ export default function LabApp({
   const go = (room: RoomId) => {
     nav.teleport = { ...ROOMS[room].spawn };
     nav.yaw = room === "threshold" ? 0 : nav.yaw;
+    if (room === "panel") nav.pitch = RESONANCE.look;
     store.enterRoom(room);
   };
   useEffect(() => {
@@ -176,9 +194,19 @@ export default function LabApp({
       ref={root}
       data-rain-lab="active"
       data-lab-room={store.room}
+      data-resonance={resonanceView(snapshotOf(store)).state}
       className="relative h-full w-full overflow-hidden bg-[#071012] text-slate-100"
     >
-      <LabScene store={store} nav={nav} />
+      <LabScene
+        store={store}
+        nav={nav}
+        quality={quality}
+        auto={visuals === "auto"}
+        onInspect={() => {
+          if (store.room !== "panel") go("panel");
+          setInspected((n) => n + 1);
+        }}
+      />
       <nav aria-label="Leave the lab" className="absolute top-4 right-4">
         <button className={panel + " text-xs"} onClick={onExit}>
           Return to Bethesda
@@ -305,7 +333,13 @@ export default function LabApp({
             panel
           }
         >
-          <RoomPanel store={store} room={store.room} go={go} onExit={onExit} />
+          <RoomPanel
+            store={store}
+            room={store.room}
+            go={go}
+            onExit={onExit}
+            inspect={{ count: inspected, handled: inspectHandled }}
+          />
         </aside>
       </div>
     </div>
