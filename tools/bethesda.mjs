@@ -349,7 +349,9 @@ try {
     `${from} → ${to}`,
   );
   // A phone: the city walked by thumb. Real multi-touch goes in through the
-  // DevTools protocol, so the pointer events are the ones a finger makes.
+  // DevTools protocol, so the pointer events are the ones a finger makes. The
+  // desktop page is done; its city would keep ticking beside the phone's.
+  await page.close();
   {
     const phone = await browser.newPage();
     phone.setDefaultTimeout(60000);
@@ -437,6 +439,14 @@ try {
     await tap("UNRESOLVED FEATURE · 39° N 77° W · outside this site");
     await phone.waitForSelector('[data-bethesda="active"]', { timeout: 90000 });
     await phone.waitForSelector("[data-touch-stick]");
+    // Economy visuals, as the desktop page uses: both clicks before a frame.
+    await phone.evaluate(() => {
+      const visuals = [...document.querySelectorAll("button")].find(
+        (b) => b.textContent.trim() === "Visuals: auto",
+      );
+      visuals?.click();
+      visuals?.click();
+    });
     const layout = await phone.evaluate(() => {
       const base = document.querySelector("[data-touch-stick] > div");
       const r = base.getBoundingClientRect();
@@ -531,8 +541,8 @@ try {
       await touch("touchMove", [hold]);
       for (let s = 0; s < swipes; s++) {
         await touch("touchStart", [hold, [350, 340, 2]]);
-        for (let i = 1; i <= 10; i++)
-          await touch("touchMove", [hold, [350 - (each * i) / 10, 340, 2]]);
+        for (let i = 1; i <= 4; i++)
+          await touch("touchMove", [hold, [350 - (each * i) / 4, 340, 2]]);
         await touch("touchEnd", [[350 - each, 340, 2]]);
       }
       await tap("Resume");
@@ -560,8 +570,8 @@ try {
     // One finger alone turns half way again, and the stick retraces the first leg.
     for (let s = 0; s < swipes; s++) {
       await touch("touchStart", [[350, 340, 3]]);
-      for (let i = 1; i <= 10; i++)
-        await touch("touchMove", [[350 - (each * i) / 10, 340, 3]]);
+      for (let i = 1; i <= 4; i++)
+        await touch("touchMove", [[350 - (each * i) / 4, 340, 3]]);
       await touch("touchEnd", []);
     }
     const again = await walk();

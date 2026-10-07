@@ -345,10 +345,20 @@ calibrated, and the lab never presents one as R.A.I.N.'s confidence.
 
 Walk with WASD or the arrows (Shift hurries), drag or use mouse lock to look,
 or use the room buttons, which every capability also lives behind. A touch
-screen walks with a thumb-stick above the rooms and looks with a drag; on a
-phone the room's panel fills the lower half, so **Hide the panel to walk** folds
-it and brings the stick out. The door back is a button as well as E. Without
-WebGL the rooms are panels, and every capability stays available.
+screen walks with a thumb-stick above the rooms and looks with a drag. On a
+small screen nothing has to be put away to walk: the rooms become one strip
+that scrolls sideways, the room's panel takes at most 45% of the height (less on
+a short phone, so about 200 px of the room always stays open), the title
+shrinks, and the camera's projection is shifted to centre on the band between
+the title and the strip (`LabNav.viewCenter`, measured in `LabApp`), so the room
+ahead shows there rather than behind the panel. A phone on its side keeps the
+panel on the right and the room, the stick and the strip on the left, and
+centres the room on that band left of the panel. The stick stands in the band's
+lower corner, over at most half its width. The door back is a button as well as
+E, and its prompt stands in the open room, never on the stick or a panel.
+`tools/rain-lab.mjs` turns a phone upright, on its side and a small one on its
+side, and checks each of these where the scene applied it. Without WebGL the
+rooms are panels, and every capability stays available.
 
 ## The four perspectives
 

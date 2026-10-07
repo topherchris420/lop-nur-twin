@@ -51,6 +51,13 @@ export interface LabNav {
   keys: Set<string>;
   /** The touch screen's walking stick, read with the keys every frame. */
   stick: Stick;
+  /**
+   * Where on the canvas the room is left uncovered, in CSS pixels, when the
+   * panels take a large share of a small screen; null centres the view as
+   * usual. The camera's projection is shifted to centre on it, so the room
+   * ahead shows in the gap rather than behind the panel.
+   */
+  viewCenter: { x: number; y: number } | null;
   teleport: Vec | null;
   atExit: boolean;
   failed: boolean;
@@ -883,8 +890,9 @@ function Lights() {
 }
 
 function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
-  const { camera, gl } = useThree();
+  const { camera, gl, size } = useThree();
   const room = useRef<RoomId | null>(null);
+  const offset = useRef("");
   useEffect(() => {
     const canvas = gl.domElement;
     const look = new LookDrag(0.0022);
@@ -926,6 +934,18 @@ function Walker({ store, nav }: { store: LabStore; nav: LabNav }) {
     camera.position.set(nav.pos.x, 1.65, nav.pos.z);
     camera.rotation.order = "YXZ";
     camera.rotation.set(nav.pitch, nav.yaw, 0);
+    // Centre the projection on the part of the canvas the panels leave open.
+    const c = nav.viewCenter;
+    const ox = c ? Math.round(size.width / 2 - c.x) : 0,
+      oy = c ? Math.round(size.height / 2 - c.y) : 0;
+    const key = `${size.width}x${size.height}+${ox}+${oy}`;
+    if (key !== offset.current && camera instanceof THREE.PerspectiveCamera) {
+      offset.current = key;
+      if (ox === 0 && oy === 0) camera.clearViewOffset();
+      else camera.setViewOffset(size.width, size.height, ox, oy, size.width, size.height);
+      // The point the projection now centres on, for the phone checks to read.
+      gl.domElement.dataset.viewCenter = `${size.width / 2 - ox},${size.height / 2 - oy}`;
+    }
     nav.atExit = Math.hypot(nav.pos.x - EXIT_DOOR.x, nav.pos.z - EXIT_DOOR.z) < 1.8;
     const r = roomAt(nav.pos);
     if (r && r !== room.current) {

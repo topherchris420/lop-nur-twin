@@ -1,8 +1,8 @@
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import type { Stick } from "./walkInput";
 
-/** Pixels of thumb travel for a full deflection, as the twin's pan-stick. */
-const RADIUS = 46;
+/** Thumb travel for a full deflection, as a share of the base's width (the twin's 46 of 112). */
+const REACH = 0.41;
 
 /**
  * A thumb-stick for walking on a touch screen. It writes its deflection into
@@ -18,6 +18,7 @@ const RADIUS = 46;
 export function TouchStick({ stick, label = "walk" }: { stick: Stick; label?: string }) {
   const active = useRef<number | null>(null);
   const center = useRef({ x: 0, y: 0 });
+  const radius = useRef(46);
   const base = useRef<HTMLDivElement>(null);
   const thumb = useRef<HTMLDivElement>(null);
 
@@ -47,14 +48,15 @@ export function TouchStick({ stick, label = "walk" }: { stick: Stick; label?: st
     if (e.pointerId !== active.current) return;
     let dx = e.clientX - center.current.x,
       dy = e.clientY - center.current.y;
-    const len = Math.hypot(dx, dy);
-    if (len > RADIUS) {
-      dx = (dx / len) * RADIUS;
-      dy = (dy / len) * RADIUS;
+    const len = Math.hypot(dx, dy),
+      reach = radius.current;
+    if (len > reach) {
+      dx = (dx / len) * reach;
+      dy = (dy / len) * reach;
     }
     place(dx, dy);
-    stick.x = dx / RADIUS;
-    stick.y = -dy / RADIUS; // up the screen is forward
+    stick.x = dx / reach;
+    stick.y = -dy / reach; // up the screen is forward
   };
   const end = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.pointerId === active.current) rest();
@@ -74,6 +76,8 @@ export function TouchStick({ stick, label = "walk" }: { stick: Stick; label?: st
           active.current = e.pointerId;
           const r = base.current.getBoundingClientRect();
           center.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+          // The stick is smaller on a short screen; its travel scales with it.
+          radius.current = r.width * REACH;
           e.currentTarget.setPointerCapture(e.pointerId);
           follow(e);
         }}
@@ -82,11 +86,11 @@ export function TouchStick({ stick, label = "walk" }: { stick: Stick; label?: st
         onPointerCancel={end}
         onLostPointerCapture={end}
         onContextMenu={(e) => e.preventDefault()}
-        className="pointer-events-auto relative h-28 w-28 touch-none rounded-full border border-teal-100/40 bg-[#071012]/45 backdrop-blur-sm select-none"
+        className="pointer-events-auto relative h-28 w-28 touch-none rounded-full [@media(max-height:500px)]:h-20 [@media(max-height:500px)]:w-20 border border-teal-100/40 bg-[#071012]/45 backdrop-blur-sm select-none"
       >
         <div
           ref={thumb}
-          className="pointer-events-none absolute top-1/2 left-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-100/70 bg-teal-200/25"
+          className="pointer-events-none absolute top-1/2 left-1/2 h-14 w-14 -translate-x-1/2 [@media(max-height:500px)]:h-10 [@media(max-height:500px)]:w-10 -translate-y-1/2 rounded-full border border-teal-100/70 bg-teal-200/25"
         />
       </div>
       <span className="font-mono text-[10px] tracking-[0.2em] text-teal-100/70 uppercase">

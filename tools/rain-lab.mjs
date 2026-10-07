@@ -585,7 +585,7 @@ try {
   );
   await a.page.close();
 
-  // --- A phone: the lab walked by thumb ---------------------------------------------------
+  // --- A phone: the lab walked by thumb, its panel open --------------------------------
   {
     const p = await open(await browser.createBrowserContext(), { phone: true });
     await enterBethesda(p, origin);
@@ -596,49 +596,124 @@ try {
         type,
         touchPoints: points.map(([x, y, id]) => ({ x, y, id, radiusX: 4, radiusY: 4 })),
       });
-    const stickShown = () =>
-      p.page.evaluate(
-        () =>
-          (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
-            .width ?? 0) > 0,
-      );
-    const panelShown = () =>
-      p.page.evaluate(
-        () =>
-          (document.getElementById("lab-room-panel")?.getBoundingClientRect().height ??
-            0) > 0,
-      );
-    check(
-      "on a phone the lab opens on its panel, with the stick waiting until it folds",
-      (await panelShown()) && !(await stickShown()),
-    );
-    await p.click("Hide the panel to walk");
-    await p.waitFor(
-      () =>
-        (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
-          .width ?? 0) > 0,
-    );
-    const layout = await p.page.evaluate(() => {
-      const boxes = [
-        "header",
-        'nav[aria-label="Leave the lab"]',
-        "[data-touch-stick]",
-        'section[aria-label="Rooms"]',
-      ].map((s) => document.querySelector(s).getBoundingClientRect());
-      let overlaps = 0;
-      for (let i = 0; i < boxes.length; i++)
-        for (let j = i + 1; j < boxes.length; j++) {
-          const a = boxes[i],
-            b = boxes[j];
-          if (
-            Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
-            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
+    const PARTS = [
+      "header",
+      'nav[aria-label="Leave the lab"]',
+      "[data-touch-stick]",
+      'section[aria-label="Rooms"]',
+      "#lab-room-panel",
+      'div[role="status"].z-10',
+    ];
+    /**
+     * The parts on screen, any two that overlap and any that leave the screen;
+     * the band the room shows in (between the title and the rooms strip, left
+     * of the panel when it stands down the right); and the point the camera's
+     * projection is centred on, as the scene last applied it.
+     */
+    const layout = () =>
+      p.page.evaluate((parts) => {
+        const shown = parts
+          .map((s) => [s, document.querySelector(s)?.getBoundingClientRect()])
+          .filter(([, r]) => r && r.width > 0 && r.height > 0);
+        const overlaps = [];
+        for (let i = 0; i < shown.length; i++)
+          for (let j = i + 1; j < shown.length; j++) {
+            const [m, a] = shown[i],
+              [n, b] = shown[j];
+            if (
+              Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+              Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1
+            )
+              overlaps.push(`${m} × ${n}`);
+          }
+        const outside = shown
+          .filter(
+            ([, r]) =>
+              r.top < -1 ||
+              r.left < -1 ||
+              r.bottom > innerHeight + 1 ||
+              r.right > innerWidth + 1,
           )
-            overlaps++;
-        }
+          .map(([s]) => s);
+        const rect = (s) => document.querySelector(s).getBoundingClientRect();
+        const header = rect("header"),
+          rooms = rect('section[aria-label="Rooms"]'),
+          panel = rect("#lab-room-panel"),
+          stick = rect("[data-touch-stick]"),
+          canvas = rect('[data-rain-lab="active"] canvas');
+        const beside = panel.top < innerHeight / 2;
+        const band = {
+          left: 0,
+          right: beside ? panel.left : innerWidth,
+          top: header.bottom,
+          bottom: rooms.top,
+        };
+        const [cx, cy] = (
+          document.querySelector('[data-rain-lab="active"] canvas').dataset.viewCenter ??
+          "NaN,NaN"
+        )
+          .split(",")
+          .map(Number);
+        return {
+          size: `${innerWidth}x${innerHeight}`,
+          shown: shown.map(([s]) => s),
+          overlaps,
+          outside,
+          beside,
+          band: {
+            wide: Math.round(band.right - band.left),
+            tall: Math.round(band.bottom - band.top),
+          },
+          // The stick stands in the band's lower corner, over at most half its width.
+          cornered:
+            stick.width === 0 ||
+            (stick.left >= band.left - 1 &&
+              stick.right <= (band.left + band.right) / 2 &&
+              stick.bottom <= band.bottom + 1),
+          centred:
+            Math.abs(canvas.left + cx - (band.left + band.right) / 2) <= 2 &&
+            Math.abs(canvas.top + cy - (band.top + band.bottom) / 2) <= 2,
+          centre: [Math.round(canvas.left + cx), Math.round(canvas.top + cy)],
+        };
+      }, PARTS);
+    /** Turns the phone, waiting until the camera has re-centred on the new band. */
+    const turn = async (width, height) => {
+      await p.page.setViewport({ width, height, isMobile: true, hasTouch: true });
+      await p.waitFor(() => {
+        const c = document.querySelector('[data-rain-lab="active"] canvas'),
+          h = document.querySelector("header").getBoundingClientRect(),
+          g = document
+            .querySelector('section[aria-label="Rooms"]')
+            .getBoundingClientRect();
+        const y = Number(c.dataset.viewCenter?.split(",")[1]);
+        return Math.abs(c.getBoundingClientRect().top + y - (h.bottom + g.top) / 2) <= 2;
+      }, 60000);
+    };
+    const shares = (l, min) =>
+      ["[data-touch-stick]", "#lab-room-panel"].every((s) => l.shown.includes(s)) &&
+      l.overlaps.length === 0 &&
+      l.outside.length === 0 &&
+      l.band.tall >= min.tall &&
+      l.band.wide >= min.wide &&
+      l.cornered &&
+      l.centred;
+    const stickAt = () =>
+      p.page.evaluate(() => {
+        const r = document
+          .querySelector("[data-touch-stick] > div")
+          .getBoundingClientRect();
+        return [r.left + r.width / 2, r.top + r.height / 2];
+      });
+    await turn(390, 844);
+    const upright = await layout();
+    const strip = await p.page.evaluate(() => {
+      const s = document.querySelector('section[aria-label="Rooms"] div');
       return {
-        overlaps,
-        // The canvas, or a wrapper inside the lab, refuses the browser's gestures.
+        tall: Math.round(
+          document.querySelector('section[aria-label="Rooms"]').getBoundingClientRect()
+            .height,
+        ),
+        scrolls: s.scrollWidth > s.clientWidth,
         look: (() => {
           for (
             let el = document.querySelector('[data-rain-lab="active"] canvas');
@@ -651,56 +726,112 @@ try {
       };
     });
     check(
-      "folded, the panel gives way to a stick beside the rooms, nothing overlapping",
-      !(await panelShown()) && layout.overlaps === 0 && layout.look === "none",
-      JSON.stringify(layout),
+      "on a phone the room, the stick, the rooms and the panel share the screen, the camera centred on the room's band",
+      shares(upright, { tall: 180, wide: 300 }) && strip.look === "none",
+      JSON.stringify(upright),
     );
+    check(
+      "the rooms are one strip that scrolls sideways",
+      strip.tall <= 64 && strip.scrolls,
+      JSON.stringify(strip),
+    );
+    // Scroll the strip to its far end first, so the room walked into starts
+    // out of sight and only the strip's own scrolling can bring it back.
+    const unseen = await p.page.evaluate(() => {
+      const s = document.querySelector('section[aria-label="Rooms"] div');
+      s.scrollLeft = s.scrollWidth;
+      const r = s.getBoundingClientRect();
+      return [...s.querySelectorAll("button")]
+        .filter((b) => {
+          const q = b.getBoundingClientRect();
+          return q.right <= r.left + 1 || q.left >= r.right - 1;
+        })
+        .map((b) => b.textContent.trim());
+    });
     const room = await p.page.evaluate(() =>
       document.querySelector("[data-lab-room]").getAttribute("data-lab-room"),
     );
-    const [x, y] = await p.page.evaluate(() => {
-      const r = document
-        .querySelector("[data-touch-stick] > div")
-        .getBoundingClientRect();
-      return [r.left + r.width / 2, r.top + r.height / 2];
-    });
-    await touch("touchStart", [[x, y, 1]]);
-    await touch("touchMove", [[x, y - 60, 1]]);
-    try {
-      await p.waitFor(
-        (from) =>
-          document.querySelector("[data-lab-room]").getAttribute("data-lab-room") !==
-          from,
-        180000,
-        room,
-      );
-    } finally {
-      await touch("touchEnd", []);
+    {
+      const [x, y] = await stickAt();
+      await touch("touchStart", [[x, y, 1]]);
+      await touch("touchMove", [[x, y - 60, 1]]);
+      try {
+        await p.waitFor(
+          (from) =>
+            document.querySelector("[data-lab-room]").getAttribute("data-lab-room") !==
+            from,
+          180000,
+          room,
+        );
+      } finally {
+        await touch("touchEnd", []);
+      }
     }
-    check("the stick walks the lab from the threshold into the next room", true, room);
-    await p.click("Show the room's panel");
     check(
-      "the room's panel comes back and the stick steps aside",
-      (await panelShown()) && !(await stickShown()),
-    );
-    // The door back is a button a finger can press: walk backwards from the
-    // threshold to it, then tap it with a real touch, not a scripted click.
-    await p.click("Hide the panel to walk");
-    await p.click("Threshold");
-    await p.waitFor(
-      () =>
-        (document.querySelector("[data-touch-stick] > div")?.getBoundingClientRect()
-          .width ?? 0) > 0,
+      "the stick walks from the threshold into the next room with the panel open",
+      true,
+      room,
     );
     {
-      const [sx, sy] = await p.page.evaluate(() => {
-        const r = document
-          .querySelector("[data-touch-stick] > div")
-          .getBoundingClientRect();
-        return [r.left + r.width / 2, r.top + r.height / 2];
+      const walked = await p.page.evaluate(() => {
+        const s = document.querySelector('section[aria-label="Rooms"] div'),
+          b = s.querySelector('[aria-pressed="true"]'),
+          q = b.getBoundingClientRect(),
+          r = s.getBoundingClientRect();
+        return {
+          name: b.textContent.trim(),
+          shown: q.left >= r.left - 1 && q.right <= r.right + 1,
+        };
       });
-      await touch("touchStart", [[sx, sy, 1]]);
-      await touch("touchMove", [[sx, sy + 60, 1]]);
+      check(
+        "the strip scrolls the room walked into back into view",
+        unseen.includes(walked.name) && walked.shown,
+        JSON.stringify({ unseen, walked }),
+      );
+    }
+    {
+      const last = await p.page.evaluate(() => {
+        const s = document.querySelector('section[aria-label="Rooms"] div');
+        s.scrollLeft = s.scrollWidth;
+        const b = [...s.querySelectorAll("button")].at(-1),
+          r = b.getBoundingClientRect();
+        return {
+          name: b.textContent.trim(),
+          x: r.left + r.width / 2,
+          y: r.top + r.height / 2,
+        };
+      });
+      await p.page.touchscreen.tap(last.x, last.y);
+      await p.waitFor(
+        (name) => document.querySelector("h1")?.textContent.trim() === name,
+        30000,
+        last.name,
+      );
+      check("a tap on the strip opens that room", true, last.name);
+    }
+    // On its side the panel moves to the right and the stick and the strip to
+    // the left; a small phone on its side is the tightest fit of all.
+    const sideways = [];
+    for (const [w, h] of [
+      [844, 390],
+      [568, 320],
+    ]) {
+      await turn(w, h);
+      sideways.push(await layout());
+    }
+    check(
+      "on its side, the room, the stick, the strip and the panel still share the screen",
+      sideways.every((l) => l.beside && shares(l, { tall: 120, wide: 300 })),
+      JSON.stringify(sideways),
+    );
+    await turn(390, 844);
+    // The door back is a button a finger can press: walk backwards from the
+    // threshold to it, then tap it with a real touch, not a scripted click.
+    await p.click("Threshold");
+    {
+      const [x, y] = await stickAt();
+      await touch("touchStart", [[x, y, 1]]);
+      await touch("touchMove", [[x, y + 60, 1]]);
       try {
         await p.waitFor(
           () =>
@@ -713,6 +844,27 @@ try {
         await touch("touchEnd", []);
       }
     }
+    // Upright the prompt stands in the band above the stick; on its side,
+    // under the title, beside the stick.
+    const atDoor = [];
+    for (const [w, h] of [
+      [568, 320],
+      [844, 390],
+      [390, 844],
+    ]) {
+      await turn(w, h);
+      atDoor.push(await layout());
+    }
+    check(
+      "the door's prompt stands in the open room, on nothing else, upright or on its side",
+      atDoor.every(
+        (l) =>
+          l.shown.includes('div[role="status"].z-10') &&
+          l.overlaps.length === 0 &&
+          l.outside.length === 0,
+      ),
+      JSON.stringify(atDoor),
+    );
     const door = await p.page.evaluate(() => {
       const r = [...document.querySelectorAll("button")]
         .find((b) => b.textContent.trim() === "Open it")

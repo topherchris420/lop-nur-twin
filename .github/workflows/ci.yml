@@ -216,6 +216,45 @@ jobs:
       - name: Route, parameter and interaction checks
         run: bun run routes
 
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: |
+            /tmp/dev-server.log
+            /tmp/preview-server.log
+          if-no-files-found: ignore
+
+  # The hidden city and its lab, in a job of their own. They are the longest
+  # browser suites — both now walk a phone by touch on software WebGL — and in
+  # the job above they pushed it past its time limit; here they run beside it.
+  bethesda:
+    name: Hidden Bethesda city and R.A.I.N. Lab checks
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies from the lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Production build
+        run: bun run build
+
+      - name: Start the preview server with production security headers
+        run: |
+          bun run preview --port 4173 > /tmp/preview-server.log 2>&1 &
+          timeout 180 bash -c 'until curl -sf http://localhost:4173/ > /dev/null; do sleep 2; done'
+
       - name: Hidden Bethesda city checks (no API calls)
         run: bun run verify:bethesda http://localhost:4173
 
@@ -229,18 +268,18 @@ jobs:
       - name: Hidden R.A.I.N. Lab checks (no API calls)
         run: bun run verify:rain-lab
 
-      - name: Upload server logs on failure
+      - name: Upload logs and captures on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: server-logs
+          name: bethesda-logs
           path: |
-            /tmp/dev-server.log
             /tmp/preview-server.log
             shots/bethesda/browser-checks.json
             shots/bethesda/browser-failure.json
             shots/bethesda/survey.png
             shots/bethesda/walk-storm.png
+            shots/bethesda/phone-survey.png
             shots/rain-lab/browser-checks.json
             shots/rain-lab/browser-failure.json
           if-no-files-found: ignore
