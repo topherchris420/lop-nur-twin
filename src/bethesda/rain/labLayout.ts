@@ -251,3 +251,173 @@ export function moveInLab(from: Vec, to: Vec): Vec {
   if (!blocked(zOnly)) return zOnly;
   return from;
 }
+
+/* ------------------------------------------------------------------ */
+/* Walking routes for the perspectives                                 */
+/* ------------------------------------------------------------------ */
+
+const CELL = 0.25;
+const GRID = {
+  x0: -18,
+  z0: -17,
+  nx: Math.round(36 / CELL),
+  nz: Math.round(32 / CELL),
+};
+let walkable: Uint8Array | null = null;
+function grid() {
+  if (walkable) return walkable;
+  walkable = new Uint8Array(GRID.nx * GRID.nz);
+  for (let j = 0; j < GRID.nz; j++)
+    for (let i = 0; i < GRID.nx; i++)
+      walkable[j * GRID.nx + i] = blocked(cellCentre(i, j)) ? 0 : 1;
+  return walkable;
+}
+function cellCentre(i: number, j: number): Vec {
+  return { x: GRID.x0 + (i + 0.5) * CELL, z: GRID.z0 + (j + 0.5) * CELL };
+}
+function cellOf(p: Vec): [number, number] {
+  return [
+    Math.max(0, Math.min(GRID.nx - 1, Math.floor((p.x - GRID.x0) / CELL))),
+    Math.max(0, Math.min(GRID.nz - 1, Math.floor((p.z - GRID.z0) / CELL))),
+  ];
+}
+/** The walkable cell nearest a point, searching outward ring by ring. */
+function nearestOpen(p: Vec): number {
+  const g = grid();
+  const [ci, cj] = cellOf(p);
+  for (let r = 0; r < 24; r++) {
+    let best = -1,
+      bestD = Infinity;
+    for (let j = cj - r; j <= cj + r; j++)
+      for (let i = ci - r; i <= ci + r; i++) {
+        if (Math.max(Math.abs(i - ci), Math.abs(j - cj)) !== r) continue;
+        if (i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz || !g[j * GRID.nx + i])
+          continue;
+        const c = cellCentre(i, j);
+        const d = Math.hypot(c.x - p.x, c.z - p.z);
+        if (d < bestD) {
+          bestD = d;
+          best = j * GRID.nx + i;
+        }
+      }
+    if (best >= 0) return best;
+  }
+  return -1;
+}
+/** A straight walk is clear if every 10 cm along it is walkable. */
+export function clearWalk(a: Vec, b: Vec): boolean {
+  const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 0.1));
+  for (let k = 0; k <= n; k++) {
+    const t = k / n;
+    if (blocked({ x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t })) return false;
+  }
+  return true;
+}
+
+/**
+ * A route a perspective walks between two points of the lab: through the
+ * doorways and round the furniture, never through a wall. A* over a 25 cm
+ * grid of the same `blocked` the visitor collides with, then pulled taut so
+ * a walk is a few straight legs rather than a staircase. Presentation only —
+ * deterministic, and computed once when a figure's destination changes.
+ */
+export function routeInLab(from: Vec, to: Vec): Vec[] {
+  if (clearWalk(from, to)) return [from, to];
+  const g = grid();
+  const start = nearestOpen(from),
+    goal = nearestOpen(to);
+  if (start < 0 || goal < 0) return [from, to];
+  const n = GRID.nx * GRID.nz;
+  const cost = new Float64Array(n).fill(Infinity);
+  const prev = new Int32Array(n).fill(-1);
+  const closed = new Uint8Array(n);
+  const gi = goal % GRID.nx,
+    gj = Math.floor(goal / GRID.nx);
+  const h = (c: number) => {
+    const dx = Math.abs((c % GRID.nx) - gi),
+      dz = Math.abs(Math.floor(c / GRID.nx) - gj);
+    return (Math.max(dx, dz) + (Math.SQRT2 - 1) * Math.min(dx, dz)) * CELL;
+  };
+  const heap: [number, number][] = [[h(start), start]];
+  cost[start] = 0;
+  const push = (item: [number, number]) => {
+    heap.push(item);
+    for (let i = heap.length - 1; i > 0;) {
+      const p = (i - 1) >> 1;
+      if (heap[p]![0] <= heap[i]![0]) break;
+      [heap[p], heap[i]] = [heap[i]!, heap[p]!];
+      i = p;
+    }
+  };
+  const pop = () => {
+    const top = heap[0]!,
+      last = heap.pop()!;
+    if (heap.length) {
+      heap[0] = last;
+      for (let i = 0; ;) {
+        const l = 2 * i + 1,
+          r = l + 1;
+        let m = i;
+        if (l < heap.length && heap[l]![0] < heap[m]![0]) m = l;
+        if (r < heap.length && heap[r]![0] < heap[m]![0]) m = r;
+        if (m === i) break;
+        [heap[m], heap[i]] = [heap[i]!, heap[m]!];
+        i = m;
+      }
+    }
+    return top;
+  };
+  while (heap.length) {
+    const [, c] = pop();
+    if (closed[c]) continue;
+    closed[c] = 1;
+    if (c === goal) break;
+    const ci = c % GRID.nx,
+      cj = Math.floor(c / GRID.nx);
+    for (let dj = -1; dj <= 1; dj++)
+      for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue;
+        const i = ci + di,
+          j = cj + dj;
+        if (i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz) continue;
+        const next = j * GRID.nx + i;
+        if (!g[next] || closed[next]) continue;
+        // No cutting a corner past a blocked cell.
+        if (di && dj && (!g[cj * GRID.nx + i] || !g[j * GRID.nx + ci])) continue;
+        const step = (di && dj ? Math.SQRT2 : 1) * CELL;
+        if (cost[c]! + step < cost[next]!) {
+          cost[next] = cost[c]! + step;
+          prev[next] = c;
+          push([cost[next] + h(next), next]);
+        }
+      }
+  }
+  if (prev[goal]! < 0 && goal !== start) return [from, to];
+  const cells: Vec[] = [];
+  for (let c = goal; c >= 0; c = prev[c]!) {
+    const ci = c % GRID.nx,
+      cj = Math.floor(c / GRID.nx);
+    cells.push(cellCentre(ci, cj));
+    if (c === start) break;
+  }
+  cells.reverse();
+  // Pull the path taut: from each corner, walk straight to the farthest
+  // point still in clear view.
+  const path: Vec[] = [from];
+  let at = from,
+    k = 0;
+  const points = [...cells, to];
+  while (k < points.length - 1) {
+    let far = k;
+    for (let m = points.length - 1; m > k; m--)
+      if (clearWalk(at, points[m]!)) {
+        far = m;
+        break;
+      }
+    if (far === k) far = k + 1;
+    at = points[far]!;
+    path.push(at);
+    k = far;
+  }
+  return path;
+}

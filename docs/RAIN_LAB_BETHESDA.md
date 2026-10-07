@@ -388,6 +388,44 @@ verbatim. Where the record shows the perspectives disagreeing, the panel keeps
 the positions as separate branches. Confidence is never animated, and agreement
 among the four is described as agreement, never as validation.
 
+**How they are built.** Who each perspective is comes from R.A.I.N.'s Godot
+client — `agent_avatar.gd`'s `LOOKS` (James an octopus in spectacles; Jasmine
+in overalls, safety goggles worn as a headband and gold hoops, with a natural
+afro; Luca in a sweater and scarf with swept hair; Elena in a blazer and A-line
+skirt, long hair and glasses) and the lab theme's colours, now in
+`embodiment.ts`. The figures are modelled in code the way a character artist
+blocks one out in Blender, because the site ships no binary assets
+(`figures.ts`): the head, torso, skirt and James's mantle are lofted through
+measured cross-sections; limbs are swept along their bones in one piece from
+shoulder to wrist and hip to ankle; hair is a shell of the scalp above a
+hairline; the shirt's V, the lapels and the bib are laid over the torso as
+their own surfaces. Each is one skinned mesh on the shared 34-bone rig in
+`game/characters/rig.ts` (James has his own: a hub, a mantle that breathes and
+eight six-bone arms), with face bones for the eyes, upper lids and mouth, and
+Luca's scarf tail on three more. Colour, roughness and metalness are per
+vertex; the material adds a cloth weave, a little warmth under skin and a cool
+grazing rim so a figure separates from the dark walls.
+
+**How they move.** The behaviours are the Godot client's, re-timed for a
+figure in a room (`figureMotion.ts`): breathing; blinks on the client's
+timings, one in five a double; a wandering gaze; weight shifting from foot to
+foot; James's arms swaying in a wave that grows toward the tip and Luca's scarf
+moving. A listener's eyes go to the speaker and the head follows; the speaker's
+mouth moves on the client's procedural voice (syllables under a slower phrase
+contour), the head takes small beats, the hands gesture — rest, a gesture after
+0.9–2.4 s, held, and back — and the gaze goes round the table. What the client
+also does and the lab does not: tone presets, nods, the end-of-conversation
+celebration, the drop-in entrance and the squash-and-stretch hops, because each
+reads as agreement or confidence; a gesture has one energy whoever speaks and
+whatever is said, and the animator is never handed a record. When a meeting is
+staged the four walk to the table — through the doorways and round the
+furniture (`routeInLab`, the same `blocked` the visitor collides with) — and
+back to their stations when it is cleared. Their feet are placed by the shared
+two-bone IK with stride tied to speed, so a planted foot does not slide;
+James crawls on his arms. Between meetings a visitor who comes within 3 m is
+looked at. Reduced motion stills all of it: the figures stand where they belong
+and turn at once to whoever is speaking.
+
 ![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, three of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
 
 _A LIVE meeting from the offline engine on the DEMO question, labelled
@@ -674,8 +712,9 @@ an avatar leaves by the lab's door and walks the mapped sidewalks (shortest by
 length, at most 1.5 km) at 3 m/s on the city's clock, pauses, and walks back.
 At most two are out at once, one per perspective. The avatar is not a
 simulation agent — nobody in the city sees, avoids or reacts to it — and it is
-drawn in the city, on the minimap and on the lab's wall map, while its seat in
-the lab stands empty. Only inside the place's 40 m observation region does the
+drawn in the city — the same figure as in the lab, at a jog, its feet placed on
+the pavement, looking round the place while the simulator observes — on the
+minimap and on the lab's wall map, while its seat in the lab stands empty. Only inside the place's 40 m observation region does the
 simulator observe, once: the four location tools and a world-observation
 packet, computed from simulator state at that tick, recorded as a
 `bethesda-avatar-observation/v1` naming who asked. The avatar's position is
@@ -787,6 +826,14 @@ on a phone) and steps down a level after two seconds of frames slower than
 not count; economy draws flat plates with 6 modes, no grain and the lamp dark.
 Reduced motion stills the plates and makes every change of figure immediate.
 
+The four perspectives are four skinned meshes of 20–27k triangles, two draw
+calls each (solid parts and open sheets such as hair), built once per
+perspective — 40–90 ms — and shared between the lab and the city, which builds
+a figure only the first time it goes out. Per frame only bone transforms are
+written, from preallocated scratch; a walking route is computed once when a
+destination changes. Each figure has a 64-pixel contact shadow, since the lab's
+lights cast none.
+
 ## Privacy and security
 
 - **The browser talks only to its own site.** `/api/rain/*` is the only route to
@@ -882,6 +929,21 @@ bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFF
                             # the stand-in model server
 JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… bun run verify:rain-lab   # also lets R.A.I.N. ask Jev once:
                                                             # one paid TypeSafe call
+```
+
+The figures have their own checks. `src/bethesda/rain/figures.test.ts` builds
+all four and asserts the skinning, the face bones, the triangle budget and that
+a figure is the same every time; walks them and fails if a planted foot slides
+more than 2 cm or a knee bends backwards; checks the Godot behaviours (blinks,
+the mouth closing when the turn passes, gestures only while speaking, eyes
+before the head), that reduced motion holds everything still, that every
+station-to-seat route stays clear of the walls, and that the animator imports
+no record and names no verdict, confidence or tone. For the look:
+
+```sh
+bun run dev &
+node tools/rain-figures.mjs          # shots/rain-figures/: each perspective full-length and
+                                     # close up, the walk to the table, the table from two sides
 ```
 
 `tools/rain-lab.mjs` serves the build that ships, with its security headers; it

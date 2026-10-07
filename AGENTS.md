@@ -499,7 +499,7 @@ its test and the city branch of `server/jev/handler.ts`),
 it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 (with `rainApi` in `vite.config.ts` and their functions in `vercel.json`),
 `tools/rain-lab.mjs`, `tools/rain-conformance.mjs`, `tools/rain-admit.mjs`,
-`tools/stand-in-model.mjs`, `scripts/export-rain-demo.ts`,
+`tools/rain-figures.mjs`, `tools/stand-in-model.mjs`, `scripts/export-rain-demo.ts`,
 `scripts/import-rain-source.ts`, the `RAIN_` lines of `.env.example`, the
 R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
@@ -558,6 +558,20 @@ in-process by `server/rain/handler.ts`. It was ported from
 exist to keep: **models propose; host code validates; the simulator determines
 world state; recorded observations become evidence.**
 
+- **The four perspectives are drawn from the vocabulary, never from a claim.**
+  `figures.ts` builds James, Jasmine, Luca and Elena from the Godot client's
+  `LOOKS` (`embodiment.ts`) as skinned meshes on the shared rig in
+  `game/characters/rig.ts` — procedural, like everything else; a Blender or
+  Godot export would be a binary asset. `figureMotion.ts` animates them from
+  what the neutral event vocabulary says (whose turn is shown, where the
+  meeting is) and nothing else: the client's tone presets, nods and
+  celebration are deliberately not ported, because each reads as agreement or
+  confidence, and `figures.test.ts` fails if the animator imports a record or
+  names a verdict, confidence or tone. Feet are placed by the shared IK, so a
+  planted foot must not slide (the test walks them). Routes go through
+  `routeInLab`, which collides with the same `blocked` as the visitor; never
+  move a figure through a wall. Check a change by eye with
+  `node tools/rain-figures.mjs` against the dev server.
 - **R.A.I.N.'s resonance is a view, never a source.** The plate instrument in
   the Research Panel (`ResonanceFace.tsx`) is drawn from `resonance.ts`, whose
   `snapshotOf`/`resonanceView` read the lab store and keep no state, so there is
@@ -725,6 +739,8 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
+node tools/rain-figures.mjs   # (dev server) the four perspectives close up, walking,
+                              # and at the table -> shots/rain-figures/
 bun run routes                # 140 checks: deep links, refreshes, hostile
                               # parameters and what the state ones set,
                               # ?liveTraffic= staying opt-in, keyboard order,

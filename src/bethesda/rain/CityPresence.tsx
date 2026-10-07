@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import type * as THREE from "three";
 import { groundAt } from "../terrain";
 import { EMBODIMENT } from "./embodiment";
 import type { Perspective } from "./contracts";
 import type { PresenceMark } from "./presence";
+import { buildFigure, type FigureRig } from "./figures";
+import { FigureAnimator, seedFor } from "./figureMotion";
 
 const WHO = Object.keys(EMBODIMENT) as Perspective[];
+
+const floorAt = (x: number, z: number) => groundAt({ x, z });
+const reducedMotion = () =>
+  typeof window !== "undefined" &&
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * The lab's perspectives on outings, drawn in the city. Presentation only:
@@ -16,104 +23,105 @@ const WHO = Object.keys(EMBODIMENT) as Perspective[];
  * evidence. A faint ring at the feet means the simulator is being asked to
  * observe the place; it is not a measurement.
  *
+ * The figures are the lab's own (`figures.ts`), built the first time each
+ * perspective goes out, and they walk — at the outing's 3 m/s, a jog — with
+ * their feet placed on the pavement; while the simulator observes, they stand
+ * and look round the place.
+ *
  * Kept light enough for the city bundle: it imports no lab store or panel.
  */
 export function CityPresence({ read }: { read: () => readonly PresenceMark[] }) {
-  const figures = useRef<Partial<Record<Perspective, THREE.Group | null>>>({});
+  const group = useRef<THREE.Group>(null);
   const halos = useRef<Partial<Record<Perspective, THREE.Mesh | null>>>({});
-  const state = useRef<
-    Partial<Record<Perspective, { x: number; z: number; yaw: number }>>
-  >({});
-  const materials = useMemo(
-    () =>
-      Object.fromEntries(
-        WHO.map((who) => [
-          who,
-          {
-            body: new THREE.MeshStandardMaterial({
-              color: EMBODIMENT[who].body,
-              roughness: 0.6,
-            }),
-            head: new THREE.MeshStandardMaterial({
-              color: EMBODIMENT[who].skin,
-              roughness: 0.55,
-            }),
-            hair: new THREE.MeshStandardMaterial({
-              color: EMBODIMENT[who].hair,
-              roughness: 0.8,
-            }),
-          },
-        ]),
-      ) as Record<
+  const reduced = useMemo(reducedMotion, []);
+  const cast = useRef<
+    Partial<
+      Record<
         Perspective,
-        Record<"body" | "head" | "hair", THREE.MeshStandardMaterial>
-      >,
-    [],
-  );
+        { rig: FigureRig; animator: FigureAnimator; x: number; z: number }
+      >
+    >
+  >({});
   useEffect(
     () => () => {
-      for (const set of Object.values(materials))
-        for (const m of Object.values(set)) m.dispose();
+      for (const c of Object.values(cast.current)) c?.rig.dispose();
+      cast.current = {};
     },
-    [materials],
+    [],
   );
   useFrame((_, dt) => {
     const marks = read();
     for (const who of WHO) {
-      const g = figures.current[who],
-        halo = halos.current[who];
-      if (!g || !halo) continue;
+      const halo = halos.current[who];
       const mark = marks.find((m) => m.who === who);
+      let c = cast.current[who];
       if (!mark) {
-        g.visible = halo.visible = false;
-        delete state.current[who];
+        if (c) c.rig.root.visible = false;
+        if (halo) halo.visible = false;
         continue;
       }
+      if (!c && group.current) {
+        const rig = buildFigure(who, "city");
+        group.current.add(rig.root);
+        c = cast.current[who] = {
+          rig,
+          animator: new FigureAnimator(rig, seedFor(who)),
+          x: mark.x,
+          z: mark.z,
+        };
+        c.animator.place(mark.x, mark.z, 0);
+      }
+      if (!c) continue;
+      if (!c.rig.root.visible) {
+        // A new outing starts at the lab's door, not where the last one ended.
+        c.x = mark.x;
+        c.z = mark.z;
+        c.animator.place(mark.x, mark.z, c.animator.position.yaw);
+      }
+      c.rig.root.visible = true;
       // Ease toward the 10 Hz position so the walk reads as a walk.
-      const s = (state.current[who] ??= { x: mark.x, z: mark.z, yaw: 0 });
-      const k = Math.min(1, dt * 8);
-      const dx = mark.x - s.x,
-        dz = mark.z - s.z;
-      if (Math.hypot(dx, dz) > 0.05) s.yaw = Math.atan2(dx, dz);
-      s.x += dx * k;
-      s.z += dz * k;
-      const ground = groundAt(s);
-      g.visible = true;
-      g.position.set(s.x, ground, s.z);
-      g.rotation.y = s.yaw;
-      halo.visible = mark.phase === "observing";
-      halo.position.set(s.x, ground + 0.04, s.z);
+      const k = reduced ? 1 : Math.min(1, dt * 8);
+      c.x += (mark.x - c.x) * k;
+      c.z += (mark.z - c.z) * k;
+      const ground = groundAt({ x: c.x, z: c.z });
+      c.animator.update(
+        dt,
+        {
+          x: c.x,
+          z: c.z,
+          ground,
+          face: null,
+          look: null,
+          glances: [],
+          speaking: false,
+          scan: mark.phase === "observing",
+          groundAt: floorAt,
+        },
+        reduced,
+      );
+      if (halo) {
+        halo.visible = mark.phase === "observing";
+        halo.position.set(c.x, ground + 0.04, c.z);
+      }
     }
   });
   return (
-    <group name="rain-lab-presence">
+    <group name="rain-lab-presence" ref={group}>
       {WHO.map((who) => (
-        <group key={who}>
-          <group ref={(g) => void (figures.current[who] = g)} visible={false}>
-            <mesh position={[0, 0.82, 0]} material={materials[who].body} castShadow>
-              <cylinderGeometry args={[0.2, 0.26, 1.2, 12]} />
-            </mesh>
-            <mesh position={[0, 1.58, 0]} material={materials[who].head} castShadow>
-              <sphereGeometry args={[0.17, 14, 12]} />
-            </mesh>
-            <mesh position={[0, 1.66, -0.02]} material={materials[who].hair}>
-              <sphereGeometry args={[0.175, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            </mesh>
-          </group>
-          <mesh
-            ref={(h) => void (halos.current[who] = h)}
-            rotation={[-Math.PI / 2, 0, 0]}
-            visible={false}
-          >
-            <ringGeometry args={[0.55, 0.68, 32]} />
-            <meshBasicMaterial
-              color="#3fb6b0"
-              transparent
-              opacity={0.65}
-              depthWrite={false}
-            />
-          </mesh>
-        </group>
+        <mesh
+          key={who}
+          ref={(h) => void (halos.current[who] = h)}
+          rotation={[-Math.PI / 2, 0, 0]}
+          visible={false}
+        >
+          <ringGeometry args={[0.55, 0.68, 32]} />
+          <meshBasicMaterial
+            color="#3fb6b0"
+            transparent
+            opacity={0.65}
+            depthWrite={false}
+          />
+        </mesh>
       ))}
     </group>
   );

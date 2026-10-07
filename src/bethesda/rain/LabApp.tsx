@@ -65,6 +65,9 @@ export default function LabApp({
     atExit: false,
     failed: false,
   }).current;
+  // Dev-only handle for look-development captures of the figures, like
+  // `window.__bethesda`. Stripped from production builds; nothing reads it.
+  if (import.meta.env.DEV) Object.assign(window, { __rainLab: { store, nav } });
   // A touch screen walks the interior with a thumb-stick. On a small screen the
   // rooms shrink to a strip and the room's panel takes the lower part, leaving
   // a band of the room above it for the stick and a look: the panel never has
