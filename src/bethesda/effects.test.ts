@@ -130,10 +130,38 @@ describe("the world reacts through generic effects", () => {
     for (let i = 0; i < 300; i++) {
       const from = ids[(i * 37) % ids.length]!,
         to = ids[(i * 101 + 7) % ids.length]!;
-      const next = nextToward(roads, from, to, s.closedRoads, s.closureVersion);
+      const next = nextToward(roads, from, to, s.closedRoads);
       if (next !== undefined) expect(s.closedRoads.has(next)).toBe(false);
     }
   });
+  it("never shares a cached route tree between simulations with different closures", () => {
+    // Two cities whose closure counters coincide but whose closures differ:
+    // the module-level route cache must not hand one the other's trees.
+    const a = new CitySimulation(config),
+      b = new CitySimulation(config);
+    a.inject(one("Huge fire near Bethesda Row"));
+    b.inject(one("Gas leak near the library"));
+    expect(a.closureVersion).toBe(b.closureVersion);
+    const key = (s: CitySimulation) => [...s.closedRoads].sort((x, y) => x - y).join(",");
+    expect(a.closedRoads.size).toBeGreaterThan(0);
+    expect(key(a)).not.toBe(key(b));
+    const ids = [...roads.nodes.keys()].filter((id) => roads.nodes.get(id)!.out.length);
+    const targets = ids.filter((_, i) => i % 60 === 0);
+    const route = (closed?: ReadonlySet<number>) =>
+      targets.flatMap((to) => ids.map((from) => nextToward(roads, from, to, closed)));
+    roads.routeCache.clear();
+    const open = route(),
+      alone = route(a.closedRoads);
+    // The fire actually changes some first steps, so a borrowed tree would show.
+    expect(alone.some((next, i) => next !== open[i])).toBe(true);
+    roads.routeCache.clear();
+    route(b.closedRoads); // warm the cache with the other city's closures first
+    const after = route(a.closedRoads);
+    expect(after).toEqual(alone);
+    expect(after.filter((next) => next !== undefined && a.closedRoads.has(next))).toEqual(
+      [],
+    );
+  }, 30000);
   it("dispatches the declared units and forms a perimeter at closure entries", () => {
     const s = new CitySimulation(config);
     const fire = one("Huge fire near Bethesda Row");

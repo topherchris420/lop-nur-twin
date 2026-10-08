@@ -44,7 +44,15 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
     rain = useRef<THREE.Points>(null),
     metroTape = useRef<THREE.Mesh>(null);
   const scratch = useMemo(
-    () => ({ dummy: new THREE.Object3D(), color: new THREE.Color(), version: -1 }),
+    () => ({
+      dummy: new THREE.Object3D(),
+      color: new THREE.Color(),
+      // The closure set last drawn. A simulation replaces (never mutates) its
+      // set on every change, and each simulation owns its own, so identity
+      // covers both a closure change and a world swap (Reset, Verify replay),
+      // where a per-simulation version counter can coincide.
+      closed: null as ReadonlySet<number> | null,
+    }),
     [],
   );
   const rainGeometry = useMemo(() => {
@@ -176,8 +184,8 @@ export function EventVisuals({ sim }: { sim: CitySimulation }) {
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
     // Barricades where an open road enters a closure; rebuilt on change only.
-    if (barricades.current && scratch.version !== sim.closureVersion) {
-      scratch.version = sim.closureVersion;
+    if (barricades.current && scratch.closed !== sim.closedRoads) {
+      scratch.closed = sim.closedRoads;
       let n = 0;
       const seen: Point[] = [];
       for (const id of sim.closedRoads) {

@@ -283,10 +283,12 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
       const ground = groundAt({ x, z }) + surface;
       let heading = edge.heading;
       if (a.kind === "pedestrian" && ["watch", "record"].includes(a.action)) {
+        // `at` is where the simulator tracks the event (a procession's moving
+        // middle), not the compiled `point` where it started.
         const event = sim.events.find(
-          (e) => e.kind !== "storm" && distance(e.point, a.point) < 100,
+          (e) => e.kind !== "storm" && distance(e.at, a.point) < 100,
         );
-        if (event) heading = Math.atan2(event.point.x - x, event.point.z - z);
+        if (event) heading = Math.atan2(event.at.x - x, event.at.z - z);
       }
       const sin = Math.sin(heading),
         cos = Math.cos(heading);

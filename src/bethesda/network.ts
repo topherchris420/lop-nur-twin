@@ -149,18 +149,44 @@ export function position(net: Network, e: Edge, progress: number, lane = 0): Poi
   return { x: p.x + Math.cos(e.heading) * lane, z: p.z - Math.sin(e.heading) * lane };
 }
 /**
+ * A short, process-wide name for a closure set's contents (its sorted edge
+ * ids), memoised per set object: simulations replace, never mutate, their
+ * closure sets. Cached route trees are keyed by it, so they are keyed by what
+ * is actually closed. A per-simulation counter would let simulations sharing
+ * these module-level networks (the live city, Reset, Verify replay, lab arms)
+ * reuse each other's trees. Equal contents share a name; a name is never
+ * reused for different contents, even after the interning table is dropped.
+ */
+const closureNames = new WeakMap<ReadonlySet<number>, number>();
+let closureContents = new Map<string, number>(),
+  nextClosureName = 0;
+function closureName(closed: ReadonlySet<number>): number {
+  let name = closureNames.get(closed);
+  if (name === undefined) {
+    const contents = [...closed].sort((a, b) => a - b).join(",");
+    name = closureContents.get(contents);
+    if (name === undefined) {
+      if (closureContents.size >= 4096) closureContents = new Map();
+      name = ++nextClosureName;
+      closureContents.set(contents, name);
+    }
+    closureNames.set(closed, name);
+  }
+  return name;
+}
+/**
  * The first edge of a shortest-hop route from `from` to `target`, avoiding
- * `closed` edges. `version` names the closure set so cached trees are never
- * reused across a different set of closures.
+ * `closed` edges. Cached trees are keyed by the closure set's contents, so the
+ * answer depends only on `(net, from, target, closed)`, never on what another
+ * simulation routed before.
  */
 export function nextToward(
   net: Network,
   from: string,
   target: string,
   closed?: ReadonlySet<number>,
-  version = 0,
 ): number | undefined {
-  const key = closed?.size ? `${version}:${target}` : target;
+  const key = closed?.size ? `${closureName(closed)}:${target}` : target;
   let map = net.routeCache.get(key);
   if (!map) {
     map = new Map();

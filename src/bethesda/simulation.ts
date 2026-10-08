@@ -1438,13 +1438,11 @@ export class CitySimulation {
           : a.kind === "emergency"
             ? undefined
             : this.closedRoads;
-      let next = a.goal
-        ? nextToward(net, n.id, a.goal, closed, this.closureVersion)
-        : undefined;
+      let next = a.goal ? nextToward(net, n.id, a.goal, closed) : undefined;
       if (next === undefined && a.kind === "bus") {
         for (let k = 0; k < 6 && next === undefined; k++) {
           if (this.advanceWaypoint(a)) return;
-          next = nextToward(net, n.id, a.goal, closed, this.closureVersion);
+          next = nextToward(net, n.id, a.goal, closed);
         }
       }
       if (next === undefined) {

@@ -35,6 +35,8 @@ export interface ViewControl {
   /** The touch screen's walking stick; read with the keys on the city's clock. */
   stick: Stick;
   tier: number;
+  /** The pixel ratio the quality ladder chose; unset until it chooses one. */
+  dpr?: number;
   quality: "auto" | "detail" | "economy";
   fps: number;
   ready: boolean;
@@ -132,7 +134,10 @@ function Signals({ sim }: { sim: CitySimulation }) {
 function EvidenceCity({ view }: { view: ViewControl }) {
   const group = useRef<THREE.Group>(null);
   const outline = useRef<THREE.LineSegments>(null);
-  const built = useRef<{ meshes: THREE.Mesh[]; selected: string | null } | null>(null);
+  const built = useRef<{ meshes: THREE.Mesh[] } | null>(null);
+  // The building the outline currently traces; it starts empty (null), so the
+  // outline is rebuilt only when the selection actually changes.
+  const outlined = useRef<string | null>(null);
   useFrame(() => {
     if (!group.current) return;
     group.current.visible = view.evidence;
@@ -164,10 +169,10 @@ function EvidenceCity({ view }: { view: ViewControl }) {
         meshes.push(mesh);
         group.current.add(mesh);
       }
-      built.current = { meshes, selected: null };
+      built.current = { meshes };
     }
-    if (outline.current && built.current?.selected !== view.selected) {
-      if (built.current) built.current.selected = view.selected;
+    if (outline.current && outlined.current !== view.selected) {
+      outlined.current = view.selected;
       outline.current.geometry.dispose();
       const b = buildings.find((x) => x.id === view.selected);
       if (b) {
@@ -201,6 +206,14 @@ function EvidenceCity({ view }: { view: ViewControl }) {
       </lineSegments>
     </>
   );
+}
+/**
+ * Whether an object is actually drawn: hiding a group leaves its children's own
+ * `visible` set, so a hidden event slot's cones and discs would still be hit.
+ */
+function shown(object: THREE.Object3D | null): boolean {
+  for (let o = object; o; o = o.parent) if (!o.visible) return false;
+  return true;
 }
 function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   const { camera, gl, setDpr, scene } = useThree();
@@ -247,7 +260,7 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         .find(
           (h) =>
             h.object instanceof THREE.Mesh &&
-            h.object.visible &&
+            shown(h.object) &&
             !(h.object instanceof THREE.InstancedMesh),
         );
       if (!hit) return;
@@ -300,7 +313,8 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     if (quality.current !== view.quality) {
       quality.current = view.quality;
       view.tier = view.quality === "economy" ? 0 : 1;
-      setDpr(view.tier ? Math.min(devicePixelRatio, 1.5) : 0.85);
+      view.dpr = view.tier ? Math.min(devicePixelRatio, 1.5) : 0.85;
+      setDpr(view.dpr);
       setShadows(view.tier > 0);
       stats.current = { elapsed: 0, frames: 0 };
     }
@@ -310,7 +324,8 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       view.fps = Math.round(stats.current.frames / stats.current.elapsed);
       if (view.quality === "auto" && view.fps < 25 && view.tier > 0) {
         view.tier = 0;
-        setDpr(0.75);
+        view.dpr = 0.75;
+        setDpr(view.dpr);
         setShadows(false);
       }
       stats.current = { elapsed: 0, frames: 0 };
@@ -344,6 +359,12 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
 }
 export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   const supported = useMemo(canRender, []);
+  // Reset and Verify replay swap in a new view without remounting the canvas;
+  // the context-loss listener, attached once, must mark the current one.
+  const current = useRef(view);
+  useEffect(() => {
+    current.current = view;
+  }, [view]);
   if (!supported || view.failed)
     return (
       <p role="status" className="absolute top-44 left-5 max-w-sm text-sm text-teal-100">
@@ -358,7 +379,9 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       // first render, it holds whatever the orbit controls leave on the canvas.
       style={{ touchAction: "none" }}
       shadows={view.tier > 0}
-      dpr={view.tier > 0 ? [1, 1.5] : 1}
+      // The quality ladder's choice, once it has made one: a re-render must not
+      // hand the canvas back a pixel ratio the ladder stepped away from.
+      dpr={view.dpr ?? (view.tier > 0 ? [1, 1.5] : 1)}
       camera={{
         fov: 60,
         near: 0.15,
@@ -375,7 +398,7 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
           // R3F releases the context itself half a second after the canvas
           // unmounts (entering the R.A.I.N. Lab does that); only a loss while
           // the canvas is still on the page means rendering failed.
-          if (gl.domElement.isConnected) view.failed = true;
+          if (gl.domElement.isConnected) current.current.failed = true;
         });
       }}
     >

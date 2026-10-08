@@ -1124,6 +1124,9 @@ function EvaluationBody({
 function EvaluationView() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  // Counts accepted loads: two uploads may share a file name, and each must
+  // still start EvaluationBody afresh.
+  const [loads, setLoads] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const archived = useMemo(() => Object.keys(ARCHIVED).sort().reverse(), []);
 
@@ -1140,6 +1143,7 @@ function EvaluationView() {
     }
     setError(null);
     setLabel(from);
+    setLoads((n) => n + 1);
     setEvaluation(checked.value);
   }, []);
 
@@ -1256,7 +1260,7 @@ function EvaluationView() {
           <EvaluationBody
             // A new evaluation starts with nothing open: records from another
             // run's episode would otherwise sit under this one's tables.
-            key={label ?? ""}
+            key={`${loads}:${label ?? ""}`}
             evaluation={evaluation}
             base={
               label?.startsWith("/docs/")

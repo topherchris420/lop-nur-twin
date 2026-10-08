@@ -1088,7 +1088,12 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
                     accept=".json,application/json"
                     className="sr-only"
                     disabled={busy}
-                    onChange={(e) => void replay(e.target.files?.[0])}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      // Cleared so choosing the same file again still fires.
+                      e.target.value = "";
+                      void replay(file);
+                    }}
                   />
                 </label>
                 <button

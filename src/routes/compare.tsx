@@ -467,7 +467,13 @@ function CompareView() {
   const [after, setAfter] = useState<LoadedManifest | null>(null);
   const [beforeError, setBeforeError] = useState<string | null>(null);
   const [afterError, setAfterError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  // Loads in flight, counted: one finishing must not clear another's busy.
+  const [pending, setPending] = useState(0);
+  const busy = pending > 0;
+  // The latest request per side. A load resolves into its side only while it
+  // is still that side's latest, so a slow earlier choice never overwrites a
+  // newer one.
+  const requests = useRef<Record<Side, number>>({ before: 0, after: 0 });
   const bundledText = useRef<string | null>(null);
 
   useEffect(() => {
@@ -490,6 +496,7 @@ function CompareView() {
   const loadFile = useCallback(
     (side: Side, file: File) => {
       const setError = side === "before" ? setBeforeError : setAfterError;
+      const ticket = ++requests.current[side];
       if (file.size > MAX_MANIFEST_BYTES) {
         setError(
           `"${file.name}" is ${file.size} bytes, over the ${MAX_MANIFEST_BYTES}-byte limit. It is refused without being read.`,
@@ -499,10 +506,10 @@ function CompareView() {
       file
         .text()
         .then((text) => {
-          accept(side, text, file.name);
+          if (requests.current[side] === ticket) accept(side, text, file.name);
         })
         .catch(() => {
-          setError("The file could not be read.");
+          if (requests.current[side] === ticket) setError("The file could not be read.");
         });
     },
     [accept],
@@ -511,18 +518,20 @@ function CompareView() {
   const loadBundled = useCallback(
     (side: Side) => {
       const setError = side === "before" ? setBeforeError : setAfterError;
+      const ticket = ++requests.current[side];
       const cached = bundledText.current;
       if (cached !== null) {
         accept(side, cached, MODEL_MANIFEST_PATH);
         return;
       }
-      setBusy(true);
+      setPending((n) => n + 1);
       fetchManifestText()
         .then((text) => {
           bundledText.current = text;
-          accept(side, text, MODEL_MANIFEST_PATH);
+          if (requests.current[side] === ticket) accept(side, text, MODEL_MANIFEST_PATH);
         })
         .catch((error: unknown) => {
+          if (requests.current[side] !== ticket) return;
           setError(
             `This build's manifest could not be read (${
               error instanceof Error ? error.message : "unknown error"
@@ -530,7 +539,7 @@ function CompareView() {
           );
         })
         .finally(() => {
-          setBusy(false);
+          setPending((n) => n - 1);
         });
     },
     [accept],
@@ -539,20 +548,23 @@ function CompareView() {
   const loadRecorded = useCallback(
     (side: Side, revision: ModelRevision) => {
       const setError = side === "before" ? setBeforeError : setAfterError;
+      const ticket = ++requests.current[side];
       const load = recordedManifestLoader(revision);
       if (load === undefined) {
         setError(`Revision r${revision.revision}'s manifest is not part of this build.`);
         return;
       }
-      setBusy(true);
+      setPending((n) => n + 1);
       load()
-        .then((text) =>
-          accept(side, text, `${revisionLabel(revision)} (recorded revision)`),
-        )
-        .catch(() =>
-          setError(`Revision r${revision.revision}'s manifest could not be read.`),
-        )
-        .finally(() => setBusy(false));
+        .then((text) => {
+          if (requests.current[side] === ticket)
+            accept(side, text, `${revisionLabel(revision)} (recorded revision)`);
+        })
+        .catch(() => {
+          if (requests.current[side] === ticket)
+            setError(`Revision r${revision.revision}'s manifest could not be read.`);
+        })
+        .finally(() => setPending((n) => n - 1));
     },
     [accept],
   );
