@@ -292,7 +292,8 @@ observation is game state, not personal data, and nothing is persisted.
 the same server process (`src/rain/`): the offline meeting engine, model
 meetings against an OpenAI-compatible server when the operator configures one,
 R.A.I.N.'s bounded decision router (Jev only when the operator allows it), and
-the experiment registry that pre-registers and admits the lab's runs. See
+the experiment registry that pre-registers and admits the lab's runs, and the
+mathematical substrate, a pinned read-only index of `openai/math`. See
 `docs/RAIN_LAB_BETHESDA.md` and `docs/RAIN_MIGRATION.md`.
 
 **Threats.** (a) The model server's token or the TypeSafe key leaks into the
@@ -312,7 +313,14 @@ the machine under a local privacy rule. (j) An engine's answer R.A.I.N. did not
 act on becomes a R.A.I.N. proposal, or the question leaves the machine for a
 remote engine nobody allowed. (k) A run is admitted against a pre-registration
 the registry never made, one changed after it was made, or another experiment
-that carries the same ID on the instance the report reaches.
+that carries the same ID on the instance the report reaches. (l) Mathematics is
+laundered into evidence or authority: a manuscript, a Lean formalization or a
+reasoning summary is presented as establishing a simulated outcome, a relation
+is inferred from word overlap, an unformalized result is labelled formalized, a
+reasoning summary is cited as a proof, or a cited result's substrate revision
+changes after a person authorized it. (m) The substrate becomes a way in: a
+request names a URL, a path or a repository to read, an index is tampered with,
+or something the runtime serves is used to change what it serves.
 
 **Mitigations.** (a) Only `api/rain/_config.ts` and the Vite middleware read
 `RAIN_LLM_API_KEY`, `RAIN_REGISTRY_SECRET` and `TYPESAFE_API_KEY`; each is
@@ -371,7 +379,25 @@ definition, held in a scratch registry of its own; an ID alone never selects a
 definition. The key is `RAIN_REGISTRY_SECRET`, read only by the entry points;
 without it a function deployment takes no pre-registration, and a configured
 registry admits only what it holds. A certificate proves only that a server
-holding the key issued it — it is not a public signature.
+holding the key issued it — it is not a public signature. (l) Statuses follow
+from what the repository holds at the pinned commit and are checked wherever an
+answer is read (a manuscript is formalized only if its family's Lean scope page
+lists it); a relation is always a person's or the host rule's, which may say
+only `insufficient_context` or `related_but_not_applicable`; a connecting
+relation needs stated assumptions; a reasoning summary cannot carry a relation
+that leans on established mathematics; the basis is hashed into the definition
+a person authorizes, checked against the runtime's own index at
+pre-registration (another commit, index, status or path is refused) and against
+the proposal at replay; nothing in a run reads it, the evidence library lists
+none of it, and the suite asserts that a run's outcome is identical with and
+without it. (m) The index is bundled data, checked (`indexErrors`, its content
+hash included) and deep-frozen before it is served; every answer is a new
+object; the substrate has no operation that writes, reads no file, imports no
+network module and starts no process (a test asserts each); a request is closed
+— a query, a discipline from the index's own list, a filter, a limit of one to
+eight, a mode and a hypothesis; or a three-digit family — and no request names a
+path, URL or repository; paths reach the browser as text, never as links, and
+nothing they name is opened or fetched.
 
 **Residual risk.** Quote verification is the runtime's, against the corpus
 bundled in `src/rain/data`; the browser checks that a meeting's citation audit

@@ -12,7 +12,11 @@
  * coordinate or a world mutation.
  *
  * The definition is what a human approves. Its SHA-256 binds the approval, the
- * run, the record and the R.A.I.N. submission to these exact contents.
+ * run, the record and the R.A.I.N. submission to these exact contents —
+ * including the mathematics the proposal cites (`mathematical_basis`), so a
+ * change of substrate revision is a different definition, authorized afresh.
+ * The basis is carried, never used: nothing in a run, a measurement or an
+ * evaluation reads it.
  */
 import {
   compileScenario,
@@ -29,6 +33,7 @@ import {
   CRITERIA_RULE,
   DEFINITION_SCHEMA,
   EXPERIMENT_BOUNDS,
+  EXPERIMENT_PROPOSAL_SCHEMA,
   LOCATION_LABELS,
   METRICS,
   METRIC_IDS,
@@ -45,6 +50,13 @@ import {
 } from "./contracts";
 import { validateProposalShape, type Checked } from "./validation";
 import { canonicalJson, sha256Json } from "../../rain/sha256";
+import {
+  RELATION_WORDS,
+  STATUS_WORDS,
+  parseBasis,
+  type MathematicalBasisEntry,
+} from "../../rain/mathematics/contracts";
+import { NOT_ESTABLISHED } from "./mathematics";
 
 /** Fixed telemetry per supported pair; compiled, never interpolated from input. */
 const PHRASE: Record<LocationId, string> = {
@@ -141,6 +153,12 @@ export interface ExperimentDefinition {
     success: Criterion[];
     failure: Criterion[];
   };
+  /**
+   * The mathematics the proposal cited, as cited: each result with its
+   * substrate revision, status, relation, assumptions and assessor. Context
+   * for the hypothesis; nothing the run measures or evaluates reads it.
+   */
+  mathematical_basis: MathematicalBasisEntry[];
   limitations: string[];
   versions: {
     sim: typeof SIM_VERSION;
@@ -267,7 +285,12 @@ export function criteriaFor(
 function limitationsFor(
   d: Pick<
     ExperimentDefinition,
-    "scenario" | "seeds" | "primary_metric" | "window_ticks" | "population"
+    | "scenario"
+    | "seeds"
+    | "primary_metric"
+    | "window_ticks"
+    | "population"
+    | "mathematical_basis"
   >,
 ): string[] {
   const out = [
@@ -288,7 +311,26 @@ function limitationsFor(
     out.push(
       "A Metro closure closes the service, not the place: the rules make commuters at the entrance wait or re-route to bus stops, and the entrance attracts onlookers.",
     );
+  const basis = d.mathematical_basis;
+  if (basis.length)
+    out.push(
+      `Mathematical context: ${basis.length} result${basis.length === 1 ? "" : "s"} from ${basis[0]!.repository} at ${basis[0]!.commit.slice(0, 12)} informed this hypothesis. ${NOT_ESTABLISHED.join(" ")}`,
+    );
   return out;
+}
+
+/** One line per basis entry, for the protocol a person reviews. Derived, never written by hand. */
+export function basisLines(basis: readonly MathematicalBasisEntry[]): string[] {
+  return basis.map(
+    (e) =>
+      `Family ${e.result_family} · ${e.title} · ${STATUS_WORDS[e.status].label} · ${RELATION_WORDS[e.relation].label} (${e.assessed_by === "person" ? "assessed by a person" : "host rule"})` +
+      (e.manuscript_path ? ` · manuscript ${e.manuscript_path}` : "") +
+      (e.reasoning_summary_path
+        ? ` · reasoning summary ${e.reasoning_summary_path}`
+        : "") +
+      (e.assumptions.length ? ` · assumptions: ${e.assumptions.join("; ")}` : "") +
+      (e.rationale ? ` · rationale: ${e.rationale}` : ""),
+  );
 }
 
 /** Compile one supported pair with the city's own compiler, checking the result. */
@@ -325,7 +367,7 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
   const shape = validateProposalShape(raw);
   checks.push({
     id: "shape",
-    label: "Closed rain-bethesda-experiment/v1 shape and vocabulary",
+    label: `Closed ${EXPERIMENT_PROPOSAL_SCHEMA} shape and vocabulary`,
     ok: shape.ok,
     detail: shape.ok ? "all fields typed, bounded and known" : shape.errors.join("; "),
   });
@@ -341,6 +383,15 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
       : compiled.error,
   });
   if (!compiled.ok) return { ok: false, errors: [compiled.error], checks };
+  const basis = p.mathematical_basis;
+  checks.push({
+    id: "mathematics",
+    label: "Mathematical basis: closed, admissible, one substrate revision",
+    ok: true,
+    detail: basis.length
+      ? `${basis.length} result${basis.length === 1 ? "" : "s"} from ${basis[0]!.repository} at ${basis[0]!.commit.slice(0, 12)} (index ${basis[0]!.index_sha256.slice(0, 12)}): ${basis.map((e) => `${e.result_family} ${e.relation} (${e.assessed_by})`).join(", ")}. Context for the hypothesis, not evidence for the outcome; every connecting relation states its assumptions.`
+      : "no mathematical basis cited",
+  });
   const ticks = p.seeds.length * 2 * (p.warmup_ticks + p.observation_window_ticks);
   checks.push({
     id: "budget",
@@ -369,6 +420,7 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
     primary_metric: p.primary_metric,
     window_ticks: p.observation_window_ticks,
     population: { ...EXPERIMENT_POPULATION },
+    mathematical_basis: p.mathematical_basis.map((e) => structuredClone(e)),
   };
   const definition: ExperimentDefinition = {
     schema: DEFINITION_SCHEMA,
@@ -442,6 +494,11 @@ export function verifyDefinition(
   if (actual !== definitionSha256) errors.push("definition does not match its SHA-256");
   if (definition?.schema !== DEFINITION_SCHEMA)
     errors.push("unsupported definition schema");
+  const basis = parseBasis(definition?.mathematical_basis);
+  if (!basis.ok)
+    errors.push(
+      "the mathematical basis is malformed: " + basis.errors.slice(0, 2).join("; "),
+    );
   const now = currentVersions();
   for (const k of Object.keys(now) as (keyof typeof now)[])
     if (definition?.versions?.[k] !== now[k])
@@ -474,5 +531,7 @@ export function protocolOf(d: ExperimentDefinition) {
     expected: `If the hypothesis holds, every treatment arm ends with ${METRIC_LABELS[d.primary_metric].toLowerCase()} ${sign} than its matched control, by at least ${d.minimum_effect} ${m.unit} on average.`,
     limitations: d.limitations,
     location: LOCATION_LABELS[d.scenario.location],
+    mathematics: basisLines(d.mathematical_basis),
+    notEstablished: d.mathematical_basis.length ? [...NOT_ESTABLISHED] : [],
   };
 }

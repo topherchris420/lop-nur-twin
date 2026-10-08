@@ -47,6 +47,14 @@ import {
 } from "./presence";
 import { runTool, type ToolResult } from "./tools";
 import type { LocationId, Perspective } from "./contracts";
+import {
+  MATH_LIMITS,
+  parseBasis,
+  type FormalizationFilter,
+  type MathematicalBasisEntry,
+} from "../../rain/mathematics/contracts";
+import type { MathRecord, MathResults, MathStatus } from "./mathValidation";
+import { basisEntryFrom, type BasisChoice } from "./mathematics";
 
 export interface Handoff {
   at: string;
@@ -78,6 +86,30 @@ export interface MeetingState {
   revealed: number;
   /** When this browser began staging it (wall clock, ISO), so it can be ordered against a run's end. */
   stagedAt: string;
+}
+/**
+ * The mathematical substrate as the lab holds it: the runtime's validated
+ * answers, and the basis a person is assembling for the next proposal.
+ * Discrete state only; nothing here is evidence, and nothing here runs.
+ */
+export interface MathematicsState {
+  status: MathStatus | null;
+  statusError: string | null;
+  searching: "context" | "challenge" | null;
+  /** The last context search and the last challenge, each with when it arrived. */
+  context: { answer: MathResults; at: string } | null;
+  challenge: { answer: MathResults; at: string } | null;
+  /** Inspected result families, newest first. A basis entry is built only from one of these. */
+  inspected: MathRecord[];
+  /** The mathematics the next proposal will cite, and when it last changed. */
+  basis: MathematicalBasisEntry[];
+  basisAt: string | null;
+  note: string;
+}
+export interface MathSearchFilters {
+  discipline: string | null;
+  formalization: FormalizationFilter;
+  limit: number;
 }
 export interface RunState {
   caseId: string;
@@ -227,6 +259,17 @@ export class LabStore {
   presenceNote = "";
   /** Direct, read-only tool inspections from the Observation Room. */
   toolResults: ToolResult[] = [];
+  mathematics: MathematicsState = {
+    status: null,
+    statusError: null,
+    searching: null,
+    context: null,
+    challenge: null,
+    inspected: [],
+    basis: [],
+    basisAt: null,
+    note: "",
+  };
   private presenceTimer: ReturnType<typeof setInterval> | null = null;
   private snapshot: { tick: number; outings: Outing[]; marks: PresenceMark[] } | null =
     null;
@@ -307,6 +350,114 @@ export class LabStore {
       ? { status: r.value, checking: false, error: null }
       : { status: null, checking: false, error: `${r.failure} · ${r.detail}` };
     this.emit();
+    if (this.mode() === "LIVE") await this.checkMathematics();
+  }
+
+  // --- The mathematical substrate -----------------------------------------------------
+  private setMath(patch: Partial<MathematicsState>) {
+    this.mathematics = { ...this.mathematics, ...patch };
+    this.emit();
+  }
+  async checkMathematics() {
+    const r = await this.client.mathStatus();
+    this.setMath(
+      r.ok
+        ? { status: r.value, statusError: null }
+        : { status: null, statusError: `${r.failure} · ${r.detail}` },
+    );
+  }
+  /** Whether the substrate can be asked: the runtime LIVE and serving one. */
+  mathAvailable(): boolean {
+    return this.mode() === "LIVE" && !!this.mathematics.status?.available;
+  }
+  /**
+   * `search_mathematics` for a question, or, with a hypothesis, a challenge:
+   * what in the substrate could weaken, bound or contradict it. Nothing is
+   * shown until a validated answer arrives, and nothing stands in for one.
+   */
+  async searchMathematics(
+    query: string,
+    filters: MathSearchFilters,
+    hypothesis: string | null = null,
+  ) {
+    if (this.mathematics.searching) return;
+    const mode = hypothesis ? "challenge" : "context";
+    if (!this.mathAvailable()) {
+      this.setMath({
+        note: "The mathematical substrate is unavailable: the runtime is OFFLINE or serves none. Nothing was searched.",
+      });
+      return;
+    }
+    this.setMath({
+      searching: mode,
+      note:
+        mode === "challenge"
+          ? "Searching the substrate for what could weaken the hypothesis…"
+          : "Searching the substrate…",
+    });
+    const r = await this.client.mathSearch({ query, ...filters, mode, hypothesis });
+    if (!r.ok) {
+      this.setMath({
+        searching: null,
+        note: `The substrate search failed: ${r.failure} — ${r.detail}. Nothing is shown in its place.`,
+      });
+      return;
+    }
+    const at = new Date().toISOString();
+    this.setMath({
+      searching: null,
+      [mode]: { answer: r.value, at },
+      note: `${r.value.matches} result famil${r.value.matches === 1 ? "y shares" : "ies share"} terms with the ${mode === "challenge" ? "hypothesis" : "query"} (${r.value.provenance.repository} at ${r.value.provenance.commit.slice(0, 12)}). Shared words are not applicability.`,
+    });
+  }
+  /** `inspect_mathematical_result`: one family's record, kept for citing. */
+  async inspectMathematics(family: string) {
+    if (!this.mathAvailable()) {
+      this.setMath({
+        note: "The mathematical substrate is unavailable; nothing was inspected.",
+      });
+      return;
+    }
+    const r = await this.client.mathInspect(family);
+    if (!r.ok) {
+      this.setMath({ note: `Inspection failed: ${r.failure} — ${r.detail}.` });
+      return;
+    }
+    this.setMath({
+      inspected: [
+        r.value,
+        ...this.mathematics.inspected.filter((x) => x.family.id !== family),
+      ].slice(0, 6),
+      note: `Inspected family ${family} at ${r.value.provenance.commit.slice(0, 12)}.`,
+    });
+  }
+  /**
+   * Cite an inspected result in the next proposal's mathematical basis. Its
+   * identifiers, paths and status come from the substrate's answer; its
+   * relation, assumptions and rationale from the person, checked by the same
+   * rules the runtime applies. One substrate revision per basis.
+   */
+  attachMathematics(family: string, choice: BasisChoice): string[] {
+    const record = this.mathematics.inspected.find((x) => x.family.id === family);
+    if (!record) return ["inspect the result before citing it"];
+    const entry = basisEntryFrom(record, choice);
+    if (!entry.ok) return entry.errors;
+    const next = [...this.mathematics.basis, entry.value];
+    const checked = parseBasis(next);
+    if (!checked.ok) return checked.errors;
+    if (next.length > MATH_LIMITS.basisEntries) return ["the basis is full"];
+    this.setMath({
+      basis: checked.value,
+      basisAt: new Date().toISOString(),
+      note: `Family ${family} is in the basis of the next proposal (${entry.value.relation}, ${entry.value.assessed_by === "person" ? "your assessment" : "host rule"}).`,
+    });
+    return [];
+  }
+  detachMathematics(index: number) {
+    this.setMath({
+      basis: this.mathematics.basis.filter((_, i) => i !== index),
+      basisAt: new Date().toISOString(),
+    });
   }
 
   // --- Rooms --------------------------------------------------------------------
@@ -451,6 +602,7 @@ export class LabStore {
       meetingId: this.meeting?.record.meeting_id ?? null,
       origin: "human",
       decision: null,
+      basis: this.mathematics.basis,
     });
     if (!p) return;
     this.open(p, this.origin());
@@ -522,6 +674,9 @@ export class LabStore {
       meetingId: this.meeting?.record.meeting_id ?? null,
       origin: "rain",
       decision: { decision_id: d.decision_id, envelope_hash: d.envelope_hash },
+      // The person's basis travels with whatever is proposed next; each entry
+      // says who assessed it, and R.A.I.N.'s choice was made without it.
+      basis: this.mathematics.basis,
     });
     if (!p) return;
     this.open(p, this.origin());

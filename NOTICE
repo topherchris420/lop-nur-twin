@@ -84,3 +84,23 @@ line, so none is reproduced here beyond its author's name. The MIT License:
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
+
+openai/math (mathematical substrate index)
+------------------------------------------
+
+`src/rain/mathematics/data/openai-math.json` is derived from the catalogue of
+`openai/math` (https://github.com/openai/math) at commit
+adc7f1241b42e322a6451854ab7e4b4c146bf78a: result-family titles and summaries
+(CONTENTS.md), disciplines (overview.tex), manuscript titles and abstracts,
+citations and attribution notes as each manuscript's README gives them, the
+Lean formalization catalogue's fields (lean/formalization.yaml), the Lean scope
+pages' text and the comparator configs' declaration names. It was reformatted
+into JSON with per-file SHA-256 by `scripts/math-substrate.ts`; nothing else was
+changed. No manuscript PDF, LaTeX source, Lean source or reasoning-summary PDF
+is copied: they are named by path at that commit and never fetched. The
+repository is licensed under the Apache License, Version 2.0, reproduced in
+full in `src/rain/mathematics/data/LICENSE.md`; it carries no NOTICE file. As
+the repository says, its manuscripts were produced by an internal OpenAI model,
+some with human assistance (each such note is kept with its manuscript), and
+its Lean formalizations build on third-party libraries it lists (mathlib4 and
+others), each under its own licence; none of them is included here.

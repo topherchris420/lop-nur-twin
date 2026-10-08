@@ -17,7 +17,19 @@ import {
   validateProposalChoice,
   type Checked,
 } from "../../src/bethesda/rain/validation.js";
+import {
+  validateMathRecord,
+  validateMathResults,
+  validateMathStatus,
+} from "../../src/bethesda/rain/mathValidation.js";
 import { Refused } from "../../src/rain/errors.js";
+import {
+  FORMALIZATION_FILTERS,
+  MATH_LIMITS,
+  SEARCH_MODES,
+  type FormalizationFilter,
+  type SearchMode,
+} from "../../src/rain/mathematics/contracts.js";
 import {
   DRAFT_FIELDS,
   type CertifiedPreregistration,
@@ -54,6 +66,13 @@ import { UsageLedger } from "./usage.js";
  *   POST /api/rain/proposal        R.A.I.N.'s bounded choice among host options
  *   POST /api/rain/preregister     register an experiment draft
  *   POST /api/rain/submission      report a run; the registry evaluates it
+ *   GET  /api/rain/math-status     the mathematical substrate: repository, commit, index
+ *   POST /api/rain/math-search     search_mathematics: bounded results and findings
+ *   POST /api/rain/math-inspect    inspect_mathematical_result: one result family
+ *
+ * The substrate's answers (`rain-mathematics/v1`) are mathematical context:
+ * the route serves them through the same checks and limits as everything
+ * else, and nothing about them makes them evidence.
  *
  * With `RAIN_RUNTIME=off`, or a runtime that could not be configured, every
  * route answers "not configured" and the lab runs OFFLINE. Nothing here ever
@@ -74,15 +93,22 @@ const OPS = [
   "proposal",
   "preregister",
   "submission",
+  "math-status",
+  "math-search",
+  "math-inspect",
 ] as const;
 type Op = (typeof OPS)[number];
-const REQUEST_BYTES: Record<Exclude<Op, "status">, number> = {
+/** Operations answered to a GET, without a session: they report, and change nothing. */
+type Read = "status" | "math-status";
+const REQUEST_BYTES: Record<Exclude<Op, Read>, number> = {
   meeting: LIMITS.meetingRequest,
   "meeting-status": LIMITS.meetingRequest,
   "meeting-cancel": LIMITS.meetingJobRequest,
   proposal: LIMITS.proposalRequest,
   preregister: LIMITS.preregisterRequest,
   submission: LIMITS.submissionRequest,
+  "math-search": MATH_LIMITS.searchRequest,
+  "math-inspect": MATH_LIMITS.inspectRequest,
 };
 const RESPONSE_BYTES: Record<Op, number> = {
   status: LIMITS.identityResponse,
@@ -92,18 +118,23 @@ const RESPONSE_BYTES: Record<Op, number> = {
   proposal: LIMITS.proposalResponse,
   preregister: LIMITS.preregistrationResponse,
   submission: LIMITS.admissionResponse,
+  "math-status": MATH_LIMITS.statusResponse,
+  "math-search": MATH_LIMITS.searchResponse,
+  "math-inspect": MATH_LIMITS.inspectResponse,
 };
 /** Minimum interval between one session's requests, per operation. */
-const SESSION_INTERVAL_MS: Record<Exclude<Op, "status">, number> = {
+const SESSION_INTERVAL_MS: Record<Exclude<Op, Read>, number> = {
   meeting: 15_000,
   "meeting-status": 2_000,
   "meeting-cancel": 1_000,
   proposal: 5_000,
   preregister: 2_000,
   submission: 2_000,
+  "math-search": 2_000,
+  "math-inspect": 1_000,
 };
 /** What one research session may do in its `sessionMinutes`. */
-const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
+const SESSION_CAPS: Record<Exclude<Op, Read>, number> = {
   meeting: LIMITS.meetingsPerSession,
   // A session lasts at most sessionMinutes; at one check every two seconds.
   "meeting-status": (LIMITS.sessionMinutes * 60) / 2,
@@ -111,6 +142,8 @@ const SESSION_CAPS: Record<Exclude<Op, "status">, number> = {
   proposal: 24,
   preregister: 24,
   submission: 24,
+  "math-search": 120,
+  "math-inspect": 240,
 };
 /**
  * Session ids are the browser's to mint, so a session's caps bound a research
@@ -135,6 +168,33 @@ const labDraft = (draft: unknown): draft is Record<string, unknown> =>
 const error = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   json(status, { schema: RAIN_BETHESDA_SCHEMA, kind: "error", error: code, ...extra });
 
+/** The substrate's routes, by the `op` that `vercel.json` rewrites each one to. */
+export const SUBSTRATE_ROUTES = {
+  status: "math-status",
+  search: "math-search",
+  inspect: "math-inspect",
+} as const satisfies Record<string, Op>;
+
+/**
+ * The substrate's three routes share one Vercel Function (`api/rain/math.ts`),
+ * because a Hobby deployment takes at most twelve: `vercel.json` rewrites
+ * `/api/rain/math-<op>` to `/api/rain/math?op=<op>`. Whether the function then
+ * sees the public path or the rewritten one, this gives the handler the route
+ * the browser asked for. Any other request is returned as it came, so the
+ * handler answers it exactly as it would have — `/api/rain/math` itself, or
+ * with an unknown `op`, names no operation and is a 404.
+ */
+export function substrateRequest(request: Request): Request {
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/rain/math") return request;
+  const op = url.searchParams.get("op");
+  if (op === null || !Object.prototype.hasOwnProperty.call(SUBSTRATE_ROUTES, op))
+    return request;
+  url.pathname = `/api/rain/${SUBSTRATE_ROUTES[op as keyof typeof SUBSTRATE_ROUTES]}`;
+  url.searchParams.delete("op");
+  return new Request(url, request);
+}
+
 export function createRainHandler(config: RainServerConfig) {
   const configured = Promise.resolve(config.runtime);
   const now = config.now ?? (() => Date.now());
@@ -151,6 +211,22 @@ export function createRainHandler(config: RainServerConfig) {
   const sessions = new UsageLedger(SESSION_WINDOW_MS, TRACKED_KEYS);
   const addresses = new UsageLedger(SESSION_WINDOW_MS, TRACKED_KEYS);
   let identity: { at: number; body: unknown } | null = null;
+  let substrate: { at: number; body: unknown } | null = null;
+
+  /** The substrate's identity, validated like every runtime answer, or why none is served. */
+  async function mathStatus(): Promise<Response> {
+    const c = await configured;
+    if (c.mode !== "local") return error(503, "not configured");
+    if (!substrate || now() - substrate.at > 30_000) {
+      const checked = validateMathStatus(c.runtime.mathStatus());
+      if (!checked.ok)
+        return error(502, "invalid runtime answer", {
+          reasons: checked.errors.slice(0, 5),
+        });
+      substrate = { at: now(), body: checked.value };
+    }
+    return json(200, substrate.body);
+  }
 
   async function status(): Promise<Response> {
     const c = await configured;
@@ -192,7 +268,7 @@ export function createRainHandler(config: RainServerConfig) {
    * cap. Nothing is counted against a session or an address here: only a
    * request the runtime is asked to answer is (`count`).
    */
-  function admit(op: Exclude<Op, "status">, session: string, client: string) {
+  function admit(op: Exclude<Op, Read>, session: string, client: string) {
     if (!limiter.admitClient(client).ok) return "rate limited";
     const t = now();
     const used = sessions.get(`${op}:${session}`, t);
@@ -203,7 +279,7 @@ export function createRainHandler(config: RainServerConfig) {
       return "address limit reached";
     return null;
   }
-  function count(op: Exclude<Op, "status">, session: string, client: string) {
+  function count(op: Exclude<Op, Read>, session: string, client: string) {
     const t = now();
     sessions.record(`${op}:${session}`, t);
     addresses.record(`${op}:${client}`, t);
@@ -215,10 +291,70 @@ export function createRainHandler(config: RainServerConfig) {
     check: (v: unknown) => Checked<unknown>;
   };
   /** Check a request's closed fields and plan the runtime call and the answer's check. */
-  function plan(op: Exclude<Op, "status">, v: Record<string, unknown>): Plan | string {
+  function plan(op: Exclude<Op, Read>, v: Record<string, unknown>): Plan | string {
     const requestId = v.request_id;
     if (typeof requestId !== "string" || !HEX32.test(requestId))
       return "invalid request id";
+    if (op === "math-search") {
+      if (
+        Object.keys(v).sort().join() !==
+        "discipline,formalization,hypothesis,limit,mode,query,request_id,session"
+      )
+        return "unexpected fields";
+      if (typeof v.query !== "string" || unsafeText(v.query)) return "invalid query";
+      const query = normalizeQuestion(v.query);
+      if (!query || query.length > MATH_LIMITS.query) return "invalid query";
+      if (
+        v.discipline !== null &&
+        (typeof v.discipline !== "string" ||
+          !v.discipline ||
+          v.discipline.length > MATH_LIMITS.disciplineName ||
+          unsafeText(v.discipline))
+      )
+        return "invalid discipline";
+      if (!FORMALIZATION_FILTERS.includes(v.formalization as FormalizationFilter))
+        return "invalid formalization";
+      if (
+        typeof v.limit !== "number" ||
+        !Number.isInteger(v.limit) ||
+        v.limit < 1 ||
+        v.limit > MATH_LIMITS.results
+      )
+        return "invalid limit";
+      if (!SEARCH_MODES.includes(v.mode as SearchMode)) return "invalid mode";
+      const mode = v.mode as SearchMode;
+      let hypothesis: string | null = null;
+      if (v.hypothesis !== null) {
+        if (typeof v.hypothesis !== "string" || unsafeText(v.hypothesis))
+          return "invalid hypothesis";
+        hypothesis = normalizeQuestion(v.hypothesis);
+        if (hypothesis.length > MATH_LIMITS.hypothesis) return "invalid hypothesis";
+      }
+      if (mode === "challenge" && !hypothesis) return "a challenge needs a hypothesis";
+      const input = {
+        query,
+        discipline: v.discipline,
+        formalization: v.formalization as FormalizationFilter,
+        limit: v.limit,
+        mode,
+        hypothesis: hypothesis || null,
+      };
+      return {
+        run: (runtime) => runtime.mathSearch(input, requestId),
+        check: (a) => validateMathResults(a, { requestId, query, mode }),
+      };
+    }
+    if (op === "math-inspect") {
+      if (Object.keys(v).sort().join() !== "family,request_id,session")
+        return "unexpected fields";
+      const family = v.family;
+      if (typeof family !== "string" || !/^[0-9]{3}$/.test(family))
+        return "invalid family";
+      return {
+        run: (runtime) => runtime.mathInspect(family, requestId),
+        check: (a) => validateMathRecord(a, { requestId, family }),
+      };
+    }
     if (op === "meeting") {
       if (Object.keys(v).sort().join() !== "question,request_id,session")
         return "unexpected fields";
@@ -357,9 +493,9 @@ export function createRainHandler(config: RainServerConfig) {
     const op = new URL(request.url).pathname.replace(/^\/api\/rain\//, "") as Op;
     if (!OPS.includes(op)) return error(404, "not found");
     if (!isSameOrigin(request)) return error(403, "same origin required");
-    if (op === "status") {
+    if (op === "status" || op === "math-status") {
       if (request.method !== "GET") return error(405, "GET required");
-      return status();
+      return op === "status" ? status() : mathStatus();
     }
     if (request.method !== "POST") return error(405, "POST required");
     if (!request.headers.get("content-type")?.includes("application/json"))

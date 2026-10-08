@@ -53,6 +53,7 @@ import {
   type RainRevision,
   type Turn,
 } from "./contracts.js";
+import { parseBasis } from "../../rain/mathematics/contracts.js";
 
 export type Checked<T> = { ok: true; value: T } | { ok: false; errors: string[] };
 
@@ -856,9 +857,14 @@ export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
     "observation_window_ticks",
     "rain_decision",
     "meeting_id",
+    "mathematical_basis",
   ]);
   if (!o) return r.done(null as never);
   if (o.schema !== EXPERIMENT_PROPOSAL_SCHEMA) r.fail("schema", "unsupported schema");
+  // The mathematics a proposal cites: every entry closed and admissible, no
+  // result twice, one substrate revision. Context for the hypothesis only.
+  const basis = parseBasis(o.mathematical_basis);
+  if (!basis.ok) for (const e of basis.errors) r.fail("", e);
   if (o.comparison !== "matched_seed_control")
     r.fail("comparison", "only matched-seed controls are supported");
   const scenario = r.oneOf(o.scenario, "scenario", SCENARIO_IDS);
@@ -931,6 +937,7 @@ export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
     observation_window_ticks: window,
     rain_decision: decision,
     meeting_id: o.meeting_id === null ? null : r.pattern(o.meeting_id, "meeting_id", ID),
+    mathematical_basis: basis.ok ? basis.value.map((e) => structuredClone(e)) : [],
   });
 }
 

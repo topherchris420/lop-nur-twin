@@ -26,14 +26,15 @@ repository: there is no database, no user account and no runtime dependency on
 a third-party service for the model. The server side is optional and never
 touches the analytical model:
 
-| Server side (Vercel Functions, declared in `vercel.json`) | What it does                                                                                                 | Holds                                   |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
-| `api/jev/decision.ts`                                     | Writes the question for TypeSafe Jev from a validated observation and returns a validated answer             | `TYPESAFE_API_KEY`                      |
-| `api/glide/decision.ts`                                   | The same question, word for word, to Fastino Glide                                                           | `FASTINO_API_KEY`                       |
-| `api/llm/decision.ts`                                     | The same question content to a configured Anthropic or OpenAI-compatible model                               | `LLM_API_KEY`                           |
-| `api/rain/*.ts` (seven routes)                            | The R.A.I.N. research runtime, in process: status, meetings, bounded proposals, pre-registration, submission | `RAIN_LLM_API_KEY` (optional), registry |
+| Server side (Vercel Functions, declared in `vercel.json`) | What it does                                                                                                                                                              | Holds                                   |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------- |
+| `api/jev/decision.ts`                                     | Writes the question for TypeSafe Jev from a validated observation and returns a validated answer                                                                          | `TYPESAFE_API_KEY`                      |
+| `api/glide/decision.ts`                                   | The same question, word for word, to Fastino Glide                                                                                                                        | `FASTINO_API_KEY`                       |
+| `api/llm/decision.ts`                                     | The same question content to a configured Anthropic or OpenAI-compatible model                                                                                            | `LLM_API_KEY`                           |
+| `api/rain/*.ts` (ten routes, eight functions)             | The R.A.I.N. research runtime, in process: status, meetings, bounded proposals, pre-registration, submission, and the mathematical substrate (status, search, inspection) | `RAIN_LLM_API_KEY` (optional), registry |
 
-Ten functions in all. None is a prompt proxy: the browser sends a bounded,
+Eleven functions in all (the substrate's three routes share `api/rain/math.ts`;
+the Hobby plan takes at most twelve). None is a prompt proxy: the browser sends a bounded,
 validated observation or request, and the server writes whatever reaches a
 model. The decision endpoints store nothing. The R.A.I.N. runtime keeps an
 experiment registry in a scratch directory unless `RAIN_REGISTRY_DIR` names one
@@ -240,6 +241,22 @@ handler and the Bethesda scripts reference it.
   record that is evidence only once replay re-simulates it. Imported records,
   and records this browser kept from earlier visits, wait in a quarantine until
   replay passes.
+- **The mathematical substrate** (`src/rain/mathematics/`) is a second body of
+  material beside the evidence corpus, never inside it: a version-pinned,
+  read-only index of `openai/math` (372 result families, 722 manuscripts, 235
+  Lean scope pages at one commit), generated deterministically from the
+  repository's own catalogue by `scripts/math-substrate.ts` and checked and
+  frozen before the runtime serves it. It answers `rain-mathematics/v1` on three
+  routes (`math-status`, `math-search`, `math-inspect`): bounded searches that
+  report shared words and what they do not establish, a challenge mode that
+  looks for counterexamples, bounds and conditional results first, and bounded
+  inspections — every answer naming the repository, commit and index it came
+  from. A person cites results in a proposal (`mathematical_basis`) with a
+  stated relation and assumptions; the citation is hashed into the definition a
+  person authorizes, checked against the substrate at pre-registration, sealed
+  into the record and checked again by replay. Nothing in a run reads it, the
+  evidence library never lists it, and the browser receives no part of the
+  index. See [the lab guide](RAIN_LAB_BETHESDA.md#the-mathematical-substrate).
 
 ## 5. Frontend stack
 
@@ -320,6 +337,11 @@ system is **not** certified for. `SOURCE_DATE_EPOCH` makes it byte-reproducible.
   it reaches; without the secret, Vercel reports the registry unavailable. What
   stays per instance is the run record and its number, which vanish with the
   instance: durable records need one process and `RAIN_REGISTRY_DIR`.
+- **The mathematical substrate is one repository at one commit.** Updating it
+  means re-indexing from a clean checkout and redeploying; a basis cited from
+  the previous commit is then refused at pre-registration until it is cited
+  again. Its search is lexical, and a second repository is a contract change
+  (`SUBSTRATES`, an indexer, tests), not a configuration.
 - **Model meetings need a long-lived process** and are refused in a function
   deployment.
 - **The browser holds everything.** A viewer can read and alter any of it,

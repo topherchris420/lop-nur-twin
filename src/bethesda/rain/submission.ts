@@ -53,6 +53,13 @@ function parameters(d: ExperimentDefinition, experimentId: string, sha: string) 
     primary_metric: d.primary_metric,
     expected_direction: d.expected_direction,
     minimum_effect: d.minimum_effect,
+    // The mathematics the hypothesis cites, as authorized. The registry's
+    // definition holds it and its certificate covers it; the runtime checks
+    // it against its own substrate before registering, and nothing evaluates it.
+    mathematical_basis: d.mathematical_basis.map((e) => ({
+      ...e,
+      assumptions: [...e.assumptions],
+    })),
   };
 }
 
@@ -146,7 +153,10 @@ export function rainDefinitionDraft(
     question: d.question,
     hypothesis: d.hypothesis,
     rationale:
-      "Proposed in the R.A.I.N. Lab inside the Bethesda simulation and executed by lop-nur-twin's deterministic city simulator as matched-seed control and treatment arms. The criteria are the lab's fixed rain-criteria/v1 template for the pre-registered metric, direction and minimum effect.",
+      "Proposed in the R.A.I.N. Lab inside the Bethesda simulation and executed by lop-nur-twin's deterministic city simulator as matched-seed control and treatment arms. The criteria are the lab's fixed rain-criteria/v1 template for the pre-registered metric, direction and minimum effect." +
+      (d.mathematical_basis.length
+        ? ` The hypothesis cites ${d.mathematical_basis.length} result${d.mathematical_basis.length === 1 ? "" : "s"} of the mathematical substrate ${d.mathematical_basis[0]!.repository} at ${d.mathematical_basis[0]!.commit} (parameters.mathematical_basis) as context, not as evidence: the simulated measurements alone decide the criteria.`
+        : ""),
     subsystem: {
       repository: LAB_REPOSITORY,
       component: `Bethesda city simulation (${SIM_VERSION})`,

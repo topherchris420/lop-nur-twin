@@ -134,8 +134,15 @@ describe("deterministic validation", () => {
       (p: Record<string, unknown>) => (p.expected_direction = "sideways"),
     ],
     [
+      "the retired schema, without a mathematical basis",
+      (p: Record<string, unknown>) => {
+        p.schema = "rain-bethesda-experiment/v1";
+        delete p.mathematical_basis;
+      },
+    ],
+    [
       "an unknown schema",
-      (p: Record<string, unknown>) => (p.schema = "rain-bethesda-experiment/v2"),
+      (p: Record<string, unknown>) => (p.schema = "rain-bethesda-experiment/v3"),
     ],
     ["smuggled coordinates", (p: Record<string, unknown>) => (p.point = { x: 0, z: 0 })],
     [

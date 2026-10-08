@@ -409,6 +409,23 @@ plate instrument, its figures (after the Vers3Dynamics Cymatics studio) followin
 the runtime's state — deliberation, convergence, uncertainty, an experiment, a
 result, and a case waiting for a person — and never standing for evidence.
 
+**A mathematical substrate beside the evidence.** R.A.I.N. also holds a
+version-pinned, read-only index of [`openai/math`](https://github.com/openai/math)
+— 372 result families, 722 manuscripts and 235 Lean scope pages at one commit,
+indexed from the repository's own catalogue, its manuscripts and Lean sources
+left where they are. In the Research Panel R.A.I.N. searches it for a question,
+challenges a candidate hypothesis with the counterexamples, bounds and
+conditional results it holds, and shows each result's status — Lean
+formalization present (not checked here), manuscript, reasoning summary (not a
+proof) — with the commit it came from. A person cites results in a proposal with
+a stated relation and the assumptions that connect them to the simulator; the
+citation is sealed into the definition a person authorizes and the record replay
+checks, and the runtime refuses a citation from another revision. Mathematics
+frames hypotheses; it never becomes evidence, never authorizes a run and never
+changes a result: mathematical substrate ≠ evidence corpus, mathematical result
+≠ empirical result, Lean formalization ≠ empirical validation, hypothesis ≠
+conclusion.
+
 ![The R.A.I.N. Lab's Research Panel: R.A.I.N.'s large Chladni plate in front of the evidence table with the four perspectives' small plates around it, three of the perspectives in view, and the panel showing a LIVE meeting from the scripted offline engine, its resonance reading Unresolved and James's first turn quoting a source verified verbatim](docs/screenshots/rain-lab-meeting.png)
 
 _The Research Panel after a question to the runtime this site's server holds. The meeting is the offline engine's, labelled scripted with no model run; the plates read "unresolved" because the corpus grounding was partial, and they say so in words beside the picture._
@@ -484,6 +501,7 @@ or extend one.
 | Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                                   |
 | R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, certified pre-registrations need `RAIN_REGISTRY_SECRET`; run records stay per instance |
 | R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                              |
+| R.A.I.N. mathematical substrate (`openai/math`, pinned): search, challenge, inspection, citations   | **Implemented**                            | Lexical search; relations are a person's; Lean is indexed, never compiled; one commit at a time   |
 | Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`     |
 | Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                                   |
 
@@ -518,7 +536,8 @@ src/game/pilot/   Observations, decisions, controllers, navigation and debrief
 src/game/eval/    Experiment definitions, outcome contracts and evaluation
 src/bethesda/    City geography, terrain, simulation, scenarios and replay
 src/bethesda/rain/  The R.A.I.N. Lab: protocol, experiments, records and rooms
-src/rain/        The R.A.I.N. research runtime: corpus, meetings, decisions, registry
+src/rain/        The R.A.I.N. research runtime: corpus, meetings, decisions, registry,
+                 and the mathematical substrate (src/rain/mathematics/)
 server/, api/    Server-side Jev, Glide, LLM and R.A.I.N. endpoints
 tools/           Browser checks, experiments, benchmarks and diagnostics
 docs/            Methods, limitations, guides and archived evidence
@@ -537,6 +556,7 @@ need matched experiments that show what changed.
 | [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support—and how it can mislead |
 | [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay  |
 | [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay  |
+| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                     | Mathematics as context: status, relation, basis  |
 | [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits              |
 | [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions       |
 | [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md)                                                         | Implementation and checks                        |
@@ -555,3 +575,11 @@ terms. See the [geographic data license](src/bethesda/data/LICENSE.md),
 [terrain source register](src/bethesda/data/terrain-source.json) and
 [streetscape source register](src/bethesda/data/streetscape-source.json). Reference
 photographs are not bundled imagery or achieved renders.
+
+The R.A.I.N. runtime's mathematical substrate index is derived from the
+catalogue of [`openai/math`](https://github.com/openai/math) (Apache 2.0) at the
+commit it names: titles, summaries, abstracts, citations, attribution notes and
+Lean declaration names, reformatted, with no manuscript, LaTeX, Lean source or
+reasoning summary copied. Its licence is reproduced beside it
+([`src/rain/mathematics/data/LICENSE.md`](src/rain/mathematics/data/LICENSE.md));
+[NOTICE](NOTICE) says what was derived.

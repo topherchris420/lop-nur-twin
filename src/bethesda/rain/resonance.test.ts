@@ -36,7 +36,9 @@ const rest: ResonanceSnapshot = {
   meeting: null,
   run: null,
   awaiting: null,
+  ready: null,
   result: null,
+  mathematics: { searching: null, framing: null, basis: null },
 };
 const meeting = (over: Partial<NonNullable<ResonanceSnapshot["meeting"]>> = {}) => ({
   question: "Does a Metro closure disperse pedestrians?",
@@ -105,7 +107,7 @@ function finishedCase() {
 
 describe("R.A.I.N.'s resonance is derived from the runtime's state", () => {
   it("names every state, once", () => {
-    expect(new Set(RESONANCE_STATES).size).toBe(10);
+    expect(new Set(RESONANCE_STATES).size).toBe(16);
     for (const s of RESONANCE_STATES) expect(RESONANCE_LABELS[s]).toBeTruthy();
   });
   it("rests when nothing is happening: a still plate offline, its resting figure when connected", () => {

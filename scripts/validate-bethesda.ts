@@ -20,6 +20,8 @@ import {
   isCorpusPath,
 } from "../src/rain/corpus.ts";
 import { OFFLINE_ENGINE, REPOSITORY } from "../src/rain/protocol.ts";
+import mathIndex from "../src/rain/mathematics/data/openai-math.json" with { type: "json" };
+import { indexErrors } from "../src/rain/mathematics/substrateIndex.ts";
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -200,6 +202,27 @@ if (
   demoProposal.rain_decision !== null
 )
   fail("R.A.I.N. demo proposal must be a valid fixture that claims no R.A.I.N. decision");
+// The R.A.I.N. runtime's mathematical substrate: the pinned index of
+// openai/math passes every check its readers apply (schema, identifiers and
+// paths, sorting, statuses that follow from what it holds, counts, and the
+// content hash over everything but when it was made), and the licence beside
+// it is the licence it hashed. Never hand-edited: re-index with
+// `scripts/math-substrate.ts index --from <checkout>`.
+const mathErrors = indexErrors(mathIndex);
+if (mathErrors.length)
+  fail(
+    "the mathematical substrate index is invalid: " + mathErrors.slice(0, 3).join("; "),
+  );
+const mathLicense = readFileSync(
+  new URL("../src/rain/mathematics/data/LICENSE.md", import.meta.url),
+  "utf8",
+);
+if (
+  sha256(/```\n([\s\S]*?)```/.exec(mathLicense)?.[1] ?? "") !== mathIndex.license.sha256
+)
+  fail("the mathematical substrate's licence differs from the one its index hashed");
+if (mathIndex.license.spdx !== "Apache-2.0")
+  fail("the mathematical substrate's licence is not the one its repository declares");
 console.log(
-  `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified; R.A.I.N. corpus ${rainCorpus.files.length} papers ${rainFingerprint.slice(0, 12)} verified; demo recording ${demoSource.meetingId} at ${demoSource.rain.repository} ${demoSource.rain.commit.slice(0, 12)} verified`,
+  `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified; R.A.I.N. corpus ${rainCorpus.files.length} papers ${rainFingerprint.slice(0, 12)} verified; demo recording ${demoSource.meetingId} at ${demoSource.rain.repository} ${demoSource.rain.commit.slice(0, 12)} verified; mathematical substrate ${mathIndex.repository} ${mathIndex.commit.slice(0, 12)} (${mathIndex.counts.families} families, index ${mathIndex.content_sha256.slice(0, 12)}) verified`,
 );

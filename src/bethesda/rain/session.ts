@@ -23,6 +23,7 @@ import {
   type ProposalOption,
   type ScenarioId,
 } from "./contracts";
+import type { MathematicalBasisEntry } from "../../rain/mathematics/contracts";
 import type { ExperimentRecord } from "./record";
 import type { AvatarObservation } from "./presence";
 
@@ -191,6 +192,8 @@ export function proposalFrom(
     origin: ExperimentProposal["origin"];
     decision: ExperimentProposal["rain_decision"];
     hypothesis?: string;
+    /** The mathematics the proposal cites; the host copies it, never writes it. */
+    basis?: readonly MathematicalBasisEntry[];
   },
 ): ExperimentProposal | null {
   const t = OPTIONS.find((o) => o.id === optionId)?.template;
@@ -215,6 +218,7 @@ export function proposalFrom(
     observation_window_ticks: 1200,
     rain_decision: input.decision,
     meeting_id: input.meetingId,
+    mathematical_basis: (input.basis ?? []).map((e) => structuredClone(e)),
   };
 }
 
@@ -321,11 +325,20 @@ export function evidenceItems(
         category: "HYPOTHESIS",
         title: `${r.experiment_id} hypothesis`,
         body: r.definition.hypothesis,
-        provenance: `proposal ${r.definition.proposal.proposal_id} (${r.definition.proposal.origin})`,
+        // The mathematics a hypothesis cites is named here and listed nowhere
+        // in this library: it is context for the claim, never evidence for it.
+        provenance:
+          `proposal ${r.definition.proposal.proposal_id} (${r.definition.proposal.origin})` +
+          (r.definition.mathematical_basis?.length
+            ? ` · cites ${r.definition.mathematical_basis.length} mathematical result${r.definition.mathematical_basis.length === 1 ? "" : "s"} as context, not evidence`
+            : ""),
         grounded: null,
       });
     for (const check of r.validation)
-      if (check.ok)
+      // The mathematical basis's form check stays in the Experiment Bay: in
+      // this library it would read as mathematics validated, and mathematics
+      // is never evidence here.
+      if (check.ok && check.id !== "mathematics")
         items.push({
           id: `${r.run_id}:c:${check.id}`,
           category: "VALIDATED CHECK",

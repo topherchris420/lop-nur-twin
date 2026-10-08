@@ -209,9 +209,22 @@ describe("authority, by construction", () => {
       );
       for (const spec of imports)
         expect(spec, `${f} imports ${spec}`).toMatch(
-          /\/rain\/(protocol|experiments\/evaluate|judgment\/routing|judgment\/(contracts|calibration|sensitive)|meeting\/perspectives|sha256|text|corpus)(\.js)?$/,
+          /\/rain\/(protocol|experiments\/evaluate|judgment\/routing|judgment\/(contracts|calibration|sensitive)|meeting\/perspectives|mathematics\/contracts|sha256|text|corpus)(\.js)?$/,
         );
     }
+  });
+  it("the lab never imports the substrate's index, its indexer or its server side", () => {
+    for (const f of files) {
+      const text = read(f);
+      expect(text, f).not.toMatch(
+        /rain\/mathematics\/(substrate|substrateIndex|indexer|bundled|fixture)|openai-math(-fixture)?\.json/,
+      );
+    }
+    // The pure modules the lab shares with the server reach no renderer, client or network.
+    for (const f of ["mathematics.ts", "mathValidation.ts"])
+      expect(read(f), f).not.toMatch(
+        /from "three"|@react-three|from "react"|\.\/client|\.\/store|fetch\(/,
+      );
   });
   it("text from R.A.I.N. is never rendered as HTML or followed as a link", () => {
     for (const f of files.filter((f) => f.endsWith(".tsx")))
@@ -230,6 +243,9 @@ describe("authority, by construction", () => {
       ["../../../src/rain/meeting/", /\.ts$/],
       ["../../../src/rain/judgment/", /\.ts$/],
       ["../../../src/rain/experiments/", /\.ts$/],
+      ["../../../src/rain/mathematics/", /\.ts$/],
+      ["../../../src/rain/mathematics/data/", /\.(json|md)$/],
+      ["../../../src/rain/mathematics/fixtures/", /\.json$/],
     ] as const) {
       const folder = new URL(where, import.meta.url).pathname;
       expect(

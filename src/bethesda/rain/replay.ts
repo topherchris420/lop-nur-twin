@@ -36,7 +36,7 @@ import {
   type ArmRecord,
 } from "./runner";
 import { recordDigestOK, type ExperimentRecord } from "./record";
-import { canonicalJson } from "../../rain/sha256";
+import { canonicalJson, sha256Json } from "../../rain/sha256";
 import { Lifecycle, terminalFor } from "./lifecycle";
 
 export interface VerificationCheck {
@@ -188,6 +188,21 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
     !definitionErrors.length && r.experiment_id === experimentIdOf(sha),
     definitionErrors.join("; ") ||
       "definition digest, versions and compiled scenario match",
+  );
+  // The proposal the record carries is the one the definition was made from,
+  // so the mathematics it cites is the mathematics a person authorized.
+  let proposalSha = "";
+  try {
+    proposalSha = sha256Json(r.proposal);
+  } catch {
+    proposalSha = "";
+  }
+  check(
+    "proposal",
+    !!r.proposal &&
+      proposalSha === d.proposal?.sha256 &&
+      same(r.proposal.mathematical_basis, d.mathematical_basis),
+    "the record's proposal, and the mathematical basis it cites, are the definition's",
   );
   const authErrors = verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
   check(

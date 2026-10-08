@@ -1,8 +1,8 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { createRainHandler } from "./handler";
+import { SUBSTRATE_ROUTES, createRainHandler, substrateRequest } from "./handler";
 import { LIMITS } from "../../src/bethesda/rain/contracts";
 import demoMeeting from "../../src/bethesda/rain/fixtures/demo-meeting.json" with { type: "json" };
 import {
@@ -441,6 +441,9 @@ function stub(answers: Partial<RuntimeApi>): RuntimeConfiguration {
     proposal: refuse,
     preregister: refuse,
     submission: refuse,
+    mathStatus: refuse,
+    mathSearch: refuse,
+    mathInspect: refuse,
     ...answers,
   };
   return { mode: "local", runtime };
@@ -683,5 +686,208 @@ describe("R.A.I.N. model meetings through the route", () => {
     const response = await throwing(post("meeting", meetingRequest()), meta);
     expect(response.status).toBe(500);
     expect(await response.text()).not.toContain("secret detail");
+  });
+});
+
+describe("R.A.I.N. mathematical substrate through the route", () => {
+  const search = (over: Record<string, unknown> = {}) => ({
+    session: SESSION,
+    request_id: REQUEST,
+    query: "percolation on random graphs",
+    discipline: null,
+    formalization: "any",
+    limit: 3,
+    mode: "context",
+    hypothesis: null,
+    ...over,
+  });
+  /** A clock that moves a minute per call, so pacing never decides these tests. */
+  const minutes = () => {
+    let t = Date.parse("2026-10-08T00:00:00.000Z");
+    return () => (t += 60_000);
+  };
+  it("reports the substrate, its commit and its index, to a GET only", async () => {
+    const handle = local(minutes());
+    const response = await handle(get("math-status"), meta);
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      schema: string;
+      available: boolean;
+      substrate: { repository: string; commit: string; index_sha256: string };
+    };
+    expect(body.schema).toBe("rain-mathematics/v1");
+    expect(body.available).toBe(true);
+    expect(body.substrate.repository).toBe("openai/math");
+    expect(body.substrate.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(body.substrate.index_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect((await handle(post("math-status", {}), meta)).status).toBe(405);
+  });
+  it("searches and inspects in-process, and answers with the validated record", async () => {
+    const handle = local(minutes());
+    const found = await handle(post("math-search", search()), meta);
+    expect(found.status).toBe(200);
+    const results = (await found.json()) as {
+      results: { family: string }[];
+      provenance: { commit: string };
+    };
+    expect(results.results.length).toBeGreaterThan(0);
+    const inspected = await handle(
+      post("math-inspect", {
+        session: SESSION,
+        request_id: REQUEST,
+        family: results.results[0]!.family,
+      }),
+      meta,
+    );
+    expect(inspected.status).toBe(200);
+    const missing = await handle(
+      post("math-inspect", { session: SESSION, request_id: REQUEST, family: "999" }),
+      meta,
+    );
+    expect(missing.status).toBe(404);
+  });
+  it("refuses malformed requests before the runtime is asked", async () => {
+    const handle = local(minutes());
+    const codes = async (body: unknown, op = "math-search") => {
+      const r = await handle(post(op, body), meta);
+      return [r.status, ((await r.json()) as { error: string }).error];
+    };
+    expect(await codes({ ...search(), url: "https://evil.example" })).toEqual([
+      400,
+      "unexpected fields",
+    ]);
+    expect(await codes(search({ limit: 9 }))).toEqual([400, "invalid limit"]);
+    expect(await codes(search({ limit: "3" }))).toEqual([400, "invalid limit"]);
+    expect(await codes(search({ mode: "prove" }))).toEqual([400, "invalid mode"]);
+    expect(await codes(search({ formalization: "verified" }))).toEqual([
+      400,
+      "invalid formalization",
+    ]);
+    expect(await codes(search({ query: "x".repeat(301) }))).toEqual([
+      400,
+      "invalid query",
+    ]);
+    expect(await codes(search({ query: "graphs\u202e" }))).toEqual([
+      400,
+      "invalid query",
+    ]);
+    expect(await codes(search({ mode: "challenge" }))).toEqual([
+      400,
+      "a challenge needs a hypothesis",
+    ]);
+    expect(
+      await codes(
+        { session: SESSION, request_id: REQUEST, family: "../../etc" },
+        "math-inspect",
+      ),
+    ).toEqual([400, "invalid family"]);
+    expect(
+      await codes(
+        { session: SESSION, request_id: REQUEST, family: "017", path: "lean/OAI.lean" },
+        "math-inspect",
+      ),
+    ).toEqual([400, "unexpected fields"]);
+  });
+  it("never lets a malformed runtime answer leave the server", async () => {
+    const handle = createRainHandler({
+      runtime: stub({
+        mathSearch: () => ({
+          schema: "rain-mathematics/v1",
+          kind: "math-results",
+          request_id: REQUEST,
+          verdict: "the mathematics proves the hypothesis",
+        }),
+        mathStatus: () => ({
+          schema: "rain-mathematics/v1",
+          kind: "math-status",
+          available: true,
+        }),
+      }),
+    });
+    const r = await handle(post("math-search", search()), meta);
+    expect(r.status).toBe(502);
+    expect(((await r.json()) as { error: string }).error).toBe("invalid runtime answer");
+    expect((await handle(get("math-status"), meta)).status).toBe(502);
+  });
+  it("is not configured when the runtime is off, and invents nothing", async () => {
+    const handle = createRainHandler({
+      runtime: configureRuntime({ env: { RAIN_RUNTIME: "off" } }),
+    });
+    expect((await handle(get("math-status"), meta)).status).toBe(503);
+    expect((await handle(post("math-search", search()), meta)).status).toBe(503);
+  });
+  it("paces a session's searches", async () => {
+    let t = Date.parse("2026-10-08T00:00:00.000Z");
+    const handle = local(() => t);
+    expect((await handle(post("math-search", search()), meta)).status).toBe(200);
+    t += 500;
+    expect((await handle(post("math-search", search()), meta)).status).toBe(429);
+    t += 2_000;
+    expect((await handle(post("math-search", search()), meta)).status).toBe(200);
+  });
+});
+
+describe("R.A.I.N. mathematical substrate behind one Vercel Function", () => {
+  const vercel = JSON.parse(
+    readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
+  ) as {
+    functions: Record<string, unknown>;
+    rewrites: { source: string; destination: string }[];
+  };
+  /** Applies the substrate's rewrite rule to a public path, as a router would. */
+  const rewritten = (path: string) => {
+    const rule = vercel.rewrites.find((r) => r.destination.startsWith("/api/rain/math?"));
+    const m = /^\/api\/rain\/math-:op\(([a-z|]+)\)$/.exec(rule?.source ?? "");
+    if (!rule || !m) return null;
+    const hit = new RegExp(`^/api/rain/math-(${m[1]})$`).exec(path);
+    return hit ? rule.destination.replace(":op", hit[1]!) : null;
+  };
+
+  it("rewrites exactly the substrate's routes to the one function", () => {
+    expect(vercel.functions).toHaveProperty(["api/rain/math.ts"]);
+    for (const [op, route] of Object.entries(SUBSTRATE_ROUTES))
+      expect(rewritten(`/api/rain/${route}`)).toBe(`/api/rain/math?op=${op}`);
+    for (const other of [
+      "status",
+      "meeting",
+      "math",
+      "math-",
+      "math-statusx",
+      "math-run",
+    ])
+      expect(rewritten(`/api/rain/${other}`), other).toBeNull();
+  });
+  it("gives the handler the route the browser asked for, whichever path the function sees", async () => {
+    const handle = local();
+    for (const [op, route] of Object.entries(SUBSTRATE_ROUTES)) {
+      const seen = substrateRequest(get(`math?op=${op}`));
+      expect(new URL(seen.url).pathname).toBe(`/api/rain/${route}`);
+      expect(new URL(seen.url).search).toBe("");
+      const kept = get(route);
+      expect(substrateRequest(kept)).toBe(kept);
+    }
+    const viaRewrite = await handle(substrateRequest(get("math?op=status")), meta);
+    const direct = await handle(get("math-status"), meta);
+    expect(viaRewrite.status).toBe(200);
+    expect(await viaRewrite.json()).toEqual(await direct.json());
+    // A body survives the rebuilt request: the inspection is refused for its family, not lost.
+    const body = { session: SESSION, request_id: REQUEST, family: "../../etc" };
+    const refused = await handle(substrateRequest(post("math?op=inspect", body)), meta);
+    expect([refused.status, ((await refused.json()) as { error: string }).error]).toEqual(
+      [400, "invalid family"],
+    );
+  });
+  it("names no operation for the bare function or an op it does not serve", async () => {
+    const handle = local();
+    for (const path of [
+      "math",
+      "math?op=",
+      "math?op=run",
+      "math?op=constructor",
+      "math?op=meeting",
+    ]) {
+      const r = await handle(substrateRequest(get(path)), meta);
+      expect(r.status, path).toBe(404);
+    }
   });
 });
