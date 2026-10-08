@@ -449,7 +449,7 @@ meetings a visitor who comes within 3 m is looked at. Reduced motion stills all
 of it: the figures stand where they belong and turn at once, without a step, to
 whoever is speaking.
 
-![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, three of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
+![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, two of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
 
 _A LIVE meeting from the offline engine on the DEMO question, labelled
 `SCRIPTED · NO MODEL RAN`. James's turn quotes `Dynamic Resonance

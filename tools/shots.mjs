@@ -67,6 +67,20 @@ async function shoot(page, path, options = {}) {
   console.log(`  ${path}  (${Math.round(buffer.length / 1024)} KB)`);
 }
 
+/**
+ * Wait for the site to come online, not for a clock. On a cold dev server the
+ * first visit compiles the app, and fourteen seconds in the intro can still be
+ * reconstructing; a fly-to requested then is photographed from the far default
+ * orbit with the intro fading over the compound.
+ */
+async function waitForSiteOnline(page) {
+  await page.waitForFunction(() => globalThis.__twinStore != null, { timeout: 60000 });
+  await page.waitForFunction(() => globalThis.__twinStore.getState().ready === true, {
+    timeout: 180000,
+  });
+  await sleep(10000);
+}
+
 /* ------------------------------------------------------------------ */
 /* The twin                                                            */
 /* ------------------------------------------------------------------ */
@@ -79,8 +93,7 @@ async function captureTwin() {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await page.waitForFunction(() => globalThis.__twinStore != null, { timeout: 60000 });
-  await sleep(14000);
+  await waitForSiteOnline(page);
 
   // Aerial oblique from the south-east. Close in: the site's own sandy haze
   // is thick enough that from the default orbit distance the compound is a
@@ -131,8 +144,7 @@ async function captureLens() {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await page.waitForFunction(() => globalThis.__twinStore != null, { timeout: 60000 });
-  await sleep(14000);
+  await waitForSiteOnline(page);
   const [tx, tz] = compound(20, 40);
   const [cx, cz] = compound(420, 520);
   await page.evaluate(

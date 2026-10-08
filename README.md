@@ -2,23 +2,68 @@
 
 **Explore the evidence. Take the controls. Follow the anomaly.**
 
-Lop Nur Twin brings together a public-source reconstruction of a desert airfield,
-a playable experiment in machine decision-making, and a hidden simulation of
-downtown Bethesda, Maryland. Each asks a different question: **what do we know,
-what did the agent choose, and what happened because of it?**
-
-The boundary matters. Geography comes from documented sources; interpretation is
-labelled; simulated lives and events are fiction. A model can propose an action.
-The simulation decides its consequences.
-
 [Explore Lop Nur](https://lop-nur-twin.vercel.app/) ·
 [Play Blacksite](https://lop-nur-twin.vercel.app/play) ·
 [Inspect the evidence](https://lop-nur-twin.vercel.app/analysis) ·
 [Review an evaluation](https://lop-nur-twin.vercel.app/evaluation)
 
-![The reconstructed runway and south hangar compound](docs/screenshot-overview.png)
+![The reconstructed runway and south hangar compound seen from the south-east, with the site telemetry, site map, evidence timeline and evidence status panels around it](docs/screenshot-overview.png)
 
-### One loop, four scales
+A desert airfield rebuilt from public sources, where every building can tell you
+how it knows it belongs there. A first-person game on the same ground, where a
+human, a script or a language model takes the same seat and every decision is
+recorded. And, for anyone who goes looking, a second city beneath the first, with
+a research lab behind a door.
+
+Three worlds, one rule. **Geography comes from documented sources. Interpretation
+is labelled. Simulated lives and events are fiction.** A model can propose an
+action; the simulation decides its consequences; and nothing that happens in the
+game or the city ever becomes evidence about the site.
+
+> **When a system performs well, how much of what you saw came from its choices,
+> its controllers, or its environment?** Everything here exists to make that
+> question answerable — including the day a small hand-written script matched a live
+> model's score and exposed the game instead.
+> [Read what happened.](#the-result-that-changed-the-experiment)
+
+## Five minutes in
+
+Open [lop-nur-twin.vercel.app](https://lop-nur-twin.vercel.app/). No account, no
+credentials, and the evidence tables work without WebGL.
+
+1. **Press `L`.** The evidence lens paints every building and pavement by its
+   status — observed, reported, interpreted or illustrative. Nothing in the
+   model is observed but the runway measurements, and the scene now says so at
+   a glance.
+2. **Click the main assembly hangar**, or press `I` and pick it from the site
+   index. Its dossier opens: classification, why it is in the model, what the
+   evidence establishes, what is inferred, what is unknown, and when the claim
+   entered the model.
+3. **Drag the evidence timeline back.** At each date the scene draws solid only
+   what public sources could support by then, outlines what the model places
+   without public evidence yet, and hides the rest. An outline is absence of
+   evidence, never evidence of absence.
+4. **Press `M`** and click two points on the site map. The ruler reports
+   distance and bearing in EPSG:32645, with only the positional error each
+   endpoint's own evidence documents — ±40 m at the runway thresholds, usually
+   "not stated" elsewhere.
+5. **Press `2`** to walk the apron at ground level — the assembly hangar is
+   126 m of wall — then **Play Blacksite** to cross the same ground under fire.
+6. There is more down there. See [Find Bethesda](#find-bethesda).
+
+Prefer tables to pixels? [`/analysis`](https://lop-nur-twin.vercel.app/analysis)
+lists every claim with its sources, dates and uncertainty, and
+[`/compare`](https://lop-nur-twin.vercel.app/compare) diffs any two revisions of
+the model.
+
+[Quick start](#quick-start) · [The twin](#the-twin-a-reconstruction-that-shows-its-work) ·
+[Blacksite](#blacksite-one-seat-many-minds) ·
+[Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
+[The R.A.I.N. Lab](#a-lab-behind-a-door) ·
+[Experiments](#measure-it-yourself) · [Status](#what-is-built) ·
+[Documentation](#documentation)
+
+## One loop, four scales
 
 ```mermaid
 flowchart LR
@@ -60,14 +105,8 @@ model's answer is never a fact about the world.
 | **Where is The Lab?**   | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                        | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
 
 Blacksite shares the twin's geometry and cannot write to its evidence ledger.
-Bethesda has its own geography and simulation; it does not share Blacksite's combat
-physics.
-
-[Quick start](#quick-start) · [The twin](#the-analytical-twin) ·
-[Blacksite](#blacksite-one-seat-many-minds) ·
-[Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
-[Experiments](#measure-it-yourself) · [Status](#what-is-built) ·
-[Documentation](#documentation)
+Bethesda has its own geography and simulation; it does not share Blacksite's
+combat physics.
 
 ## Quick start
 
@@ -104,7 +143,7 @@ the server; never prefix them with `VITE_`. Enabling a live model can spend API
 credit. Automated live runs require a separate opt-in; offline checks use test
 doubles.
 
-## The analytical twin
+## The twin: a reconstruction that shows its work
 
 The twin makes its evidence inspectable. Select a structure to open its dossier,
 follow the source, inspect dates and uncertainty, or move to the semantic table
@@ -127,7 +166,6 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
   runway measurements, and with the lens on the scene says so at a glance; the
   legend and `/analysis` print the same tally for anyone who cannot see the
   paint.
-
 - **Every claim can be inspected** — buildings, pavements, the runway
   measurements (the model's only observed claims), the terrain proxy, the
   climatology and the illustrative scenario elements. The claim inspector, in
@@ -151,8 +189,8 @@ manifests at [`/compare`](https://lop-nur-twin.vercel.app/compare).
 - **Measurements have a frame.** Distances and bearings use EPSG:32645, with
   WGS84 GeoJSON, CSV and JSON exports. Each endpoint carries the positional
   error its own evidence states — ±40 m at the runway thresholds, usually "not
-  stated" elsewhere — never a site-wide figure. Release manifests hash geometry and the
-  evidence ledger so revisions can be compared.
+  stated" elsewhere — never a site-wide figure. Release manifests hash geometry
+  and the evidence ledger so revisions can be compared.
 - **The evidence works without WebGL.** Analysis and comparison have semantic
   interfaces, with browser checks for accessibility.
 
@@ -166,7 +204,8 @@ purpose or activity.
 
 Start with [data provenance](docs/DATA_PROVENANCE.md), the
 [site model](docs/SITE_MODEL.md) and the
-[uncertainty model](docs/UNCERTAINTY_MODEL.md).
+[uncertainty model](docs/UNCERTAINTY_MODEL.md), or read the
+[white paper](docs/WHITE_PAPER.md) for the long-form argument.
 
 ## Blacksite: one seat, many minds
 
@@ -261,7 +300,7 @@ Heat shimmer, bot exposure behaviour and explicit seat rules followed. The
 marksman's kill rate roughly halved, but it still survived those runs. That is
 an unresolved limitation, not a solved benchmark. Later, offering Jev named
 places instead of movement steps made it walk over a kilometre across three
-episodes—and nearly stop fighting. Changing what a model can choose changes
+episodes — and nearly stop fighting. Changing what a model can choose changes
 what its score means.
 
 These are small, historical experiments, not current performance promises or
@@ -307,9 +346,9 @@ observations can be shown to the scripted policies and compared choice by
 choice, against the exact agreement a uniform chooser would reach. The random
 seat sits at chance on every axis, as a control should. In the even-rules run,
 where the aim point was a real choice, Glide chose centre mass in 95% of those
-decisions; the marksman chose the head in 98% of its own, and Jev in 64%. This is agreement on
-identical inputs, not a counterfactual outcome and not a skill score
-([method](docs/EVALUATION_PHILOSOPHY.md#same-observations-other-minds),
+decisions; the marksman chose the head in 98% of its own, and Jev in 64%. This
+is agreement on identical inputs, not a counterfactual outcome and not a skill
+score ([method](docs/EVALUATION_PHILOSOPHY.md#same-observations-other-minds),
 [tables](docs/benchmarks/2026-10-05/README.md#same-observations-other-minds)).
 
 ## Enjoy a normal walk in Bethesda
@@ -327,8 +366,10 @@ _Street-level exploration in the running application. Buildings and street detai
 
 _Survey mode reveals the downtown layout and courtyard blocks. Both screenshots show the actual application with its interface and map attribution visible._
 
+### Find Bethesda
+
 <details>
-<summary><strong>Find Bethesda · discovery spoiler</strong></summary>
+<summary><strong>Discovery spoiler</strong></summary>
 
 From the twin at `/`, press **backtick** (the key below Escape on a US keyboard).
 Enter `38.9847,-77.0947` or `resolve bethesda`, then submit. Or open the **Site
@@ -347,6 +388,8 @@ from its permitted actions. Free walking is exploration, not a human-versus-mode
 comparison seat. On a touch screen a thumb-stick walks and a drag looks, in the
 city and in the lab; in the city every step is the same recorded command as one
 taken on WASD.
+
+### Introduce a scenario
 
 Inside the city, open **~ telemetry** or press backtick to introduce a scenario.
 A deterministic rule compiler (not a language model) turns the request into
@@ -385,29 +428,43 @@ limitations and downloads of the geographic data.
 **Bounded decisions, verifiable replay.** Humans in the pedestrian seat and
 optional Jev proposals pass through the city's permitted-action gate, which
 says what it did with each choice; an agent indoors takes no choice from
-anyone.
-Deterministic code retains routing, collisions, traffic and event mechanics.
-Jev is off by default; no live Jev Bethesda result is claimed. Export a replay
-before leaving, then re-import it to verify checkpoints, decision history and
-final simulation state without calling a model. This verifies state, not identical
-rendered pixels.
+anyone. Deterministic code retains routing, collisions, traffic and event
+mechanics. Jev is off by default; no live Jev Bethesda result is claimed. Export
+a replay before leaving, then re-import it to verify checkpoints, decision
+history and final simulation state without calling a model. This verifies
+state, not identical rendered pixels.
 
-**A lab behind a door.** Somewhere in the city is the R.A.I.N. Lab, an
-integrated research environment where the four perspectives of R.A.I.N.
-investigate questions and their hypotheses become matched experiments on the
-simulator. Its research runtime, experiment registry, evidence layer and
-simulation interface live in this repository (`src/rain/`, `src/bethesda/rain/`);
-this is the lab's canonical home. Its interior is fictional and its pictures
-are not evidence; every run needs a person's authorization of the exact
-definition, runs on separate simulators rather than the city you are in, and is
-recorded so it can be re-simulated without contacting anything. Its results
-describe the simulator, not Bethesda. Its DEMO is labelled as a recording; LIVE,
-a meeting comes from the runtime's scripted offline engine or, when a local
-model server is configured, from a model meeting such as Qwen's, and every turn
-says which wrote it. R.A.I.N. has no face there: it is seen through a Chladni
-plate instrument, its figures (after the Vers3Dynamics Cymatics studio) following
-the runtime's state — deliberation, convergence, uncertainty, an experiment, a
-result, and a case waiting for a person — and never standing for evidence.
+Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
+scenario limits, model authority and replay compatibility.
+
+### A lab behind a door
+
+Somewhere in the city is the R.A.I.N. Lab, an integrated research environment
+where the four perspectives of R.A.I.N. investigate questions and their
+hypotheses become matched experiments on the simulator. Its research runtime,
+experiment registry, evidence layer and simulation interface live in this
+repository (`src/rain/`, `src/bethesda/rain/`); this is the lab's canonical
+home.
+
+![The R.A.I.N. Lab's Research Panel: R.A.I.N.'s large Chladni plate in front of the evidence table with the four perspectives' small plates around it, two of the perspectives in view, and the panel showing a LIVE meeting from the scripted offline engine, its resonance reading Unresolved and James's first turn quoting a source verified verbatim](docs/screenshots/rain-lab-meeting.png)
+
+_The Research Panel after a question to the runtime this site's server holds. The meeting is the offline engine's, labelled scripted with no model run; the plates read "unresolved" because the corpus grounding was partial, and they say so in words beside the picture._
+
+Its interior is fictional and its pictures are not evidence; every run needs a
+person's authorization of the exact definition, runs on separate simulators
+rather than the city you are in, and is recorded so it can be re-simulated
+without contacting anything. Its results describe the simulator, not Bethesda.
+Its DEMO is labelled as a recording; LIVE, a meeting comes from the runtime's
+scripted offline engine or, when a local model server is configured, from a
+model meeting such as Qwen's, and every turn says which wrote it. R.A.I.N. has
+no face there: it is seen through a Chladni plate instrument, its figures (after
+the Vers3Dynamics Cymatics studio) following the runtime's state — deliberation,
+convergence, uncertainty, an experiment, a result, and a case waiting for a
+person — and never standing for evidence.
+
+![The R.A.I.N. Lab's Registry: a run's record with its limitations, its provenance (this repository's commit, the DEMO recording's R.A.I.N. revision, no provider and no model) and replay re-simulating every arm identically without contacting a model](docs/screenshots/rain-lab-record.png)
+
+_The same question's experiment after a person authorized it, run on three matched seeds and verified by replay. In frame: what the record cannot establish, where every part of it came from, and each arm re-simulated._
 
 **A mathematical substrate beside the evidence.** R.A.I.N. also holds a
 version-pinned, read-only index of [`openai/math`](https://github.com/openai/math)
@@ -426,17 +483,9 @@ changes a result: mathematical substrate ≠ evidence corpus, mathematical resul
 ≠ empirical result, Lean formalization ≠ empirical validation, hypothesis ≠
 conclusion.
 
-![The R.A.I.N. Lab's Research Panel: R.A.I.N.'s large Chladni plate in front of the evidence table with the four perspectives' small plates around it, three of the perspectives in view, and the panel showing a LIVE meeting from the scripted offline engine, its resonance reading Unresolved and James's first turn quoting a source verified verbatim](docs/screenshots/rain-lab-meeting.png)
-
-_The Research Panel after a question to the runtime this site's server holds. The meeting is the offline engine's, labelled scripted with no model run; the plates read "unresolved" because the corpus grounding was partial, and they say so in words beside the picture._
-
-![The R.A.I.N. Lab's Registry: a run's record with its limitations, its provenance (this repository's commit, the DEMO recording's R.A.I.N. revision, no provider and no model) and replay re-simulating every arm identically without contacting a model](docs/screenshots/rain-lab-record.png)
-
-_The same question's experiment after a person authorized it, run on three matched seeds and verified by replay. In frame: what the record cannot establish, where every part of it came from, and each arm re-simulated._
-
-Read the [Bethesda guide](docs/BETHESDA_ANOMALY.md) for provenance, terrain,
-scenario limits, model authority and replay compatibility, and the
-[R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for the lab.
+Read the [R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for meetings,
+experiments, authorization, replay and
+[the mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate).
 
 ## Measure it yourself
 
@@ -509,7 +558,9 @@ or extend one.
 
 Built with TypeScript, React, Three.js / React Three Fiber, Vite and TanStack
 Router. Rendering, simulation state, evidence and remote decision endpoints have
-separate responsibilities.
+separate responsibilities. Everything on screen is procedural and seeded: no
+binary assets, no runtime downloads, and a given seed always reproduces the
+same site.
 
 ```sh
 npm run build          # validate both geographies, manifest, bundle, types, secret scan
@@ -519,6 +570,7 @@ npm run test:run
 npm run test:evidence
 npm run test:bethesda
 npm run model:verify   # reproduce every recorded model revision from its own commit (Bun, full history)
+npm run shots          # recapture the documentation screenshots from the running app
 ```
 
 With Bun, `bun run check` combines formatting, lint, unit tests, evidence tests and
@@ -529,38 +581,41 @@ routes and Bethesda's discovery/scenario/replay flow. See
 for server requirements and commands.
 
 ```text
-src/lib/          Lop Nur layout, sources, evidence, coordinates and analysis
-src/components/   Analytical scene and interface
-src/game/         Blacksite simulation, player, bots, weapons and HUD
-src/game/pilot/   Observations, decisions, controllers, navigation and debrief
-src/game/eval/    Experiment definitions, outcome contracts and evaluation
-src/bethesda/    City geography, terrain, simulation, scenarios and replay
+src/lib/            Lop Nur layout, sources, evidence, coordinates and analysis
+src/components/     Analytical scene and interface
+src/game/           Blacksite simulation, player, bots, weapons and HUD
+src/game/pilot/     Observations, decisions, controllers, navigation and debrief
+src/game/eval/      Experiment definitions, outcome contracts and evaluation
+src/bethesda/       City geography, terrain, simulation, scenarios and replay
 src/bethesda/rain/  The R.A.I.N. Lab: protocol, experiments, records and rooms
-src/rain/        The R.A.I.N. research runtime: corpus, meetings, decisions, registry,
-                 and the mathematical substrate (src/rain/mathematics/)
-server/, api/    Server-side Jev, Glide, LLM and R.A.I.N. endpoints
-tools/           Browser checks, experiments, benchmarks and diagnostics
-docs/            Methods, limitations, guides and archived evidence
+src/rain/           The R.A.I.N. research runtime: corpus, meetings, decisions, registry,
+                    and the mathematical substrate (src/rain/mathematics/)
+server/, api/       Server-side Jev, Glide, LLM and R.A.I.N. endpoints
+tools/              Browser checks, experiments, benchmarks and diagnostics
+docs/               Methods, limitations, guides and archived evidence
 ```
 
-Before contributing, read [AGENTS.md](AGENTS.md). Changes should preserve the
-evidence boundary, bounded model authority and a working build. Gameplay changes
-need matched experiments that show what changed.
+Before contributing, read [AGENTS.md](AGENTS.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md). Changes should preserve the evidence
+boundary, bounded model authority and a working build. Gameplay changes need
+matched experiments that show what changed.
 
 ## Documentation
 
-| Start here                                                                                                                             | For                                              |
-| :------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
-| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                          | Playing, mechanics and navigation                |
-| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                          | Providers, controllers, traces and benchmarks    |
-| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support—and how it can mislead |
-| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay  |
-| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay  |
-| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                     | Mathematics as context: status, relation, basis  |
-| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits              |
-| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions       |
-| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md)                                                         | Implementation and checks                        |
-| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                      | Hosting, credentials and trust boundaries        |
+| Start here                                                                                                                             | For                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
+| [White paper](docs/WHITE_PAPER.md)                                                                                                     | The long-form argument for the reconstruction      |
+| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                          | Playing, mechanics and navigation                  |
+| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                          | Providers, controllers, traces and benchmarks      |
+| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support — and how it can mislead |
+| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay    |
+| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay    |
+| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                     | Mathematics as context: status, relation, basis    |
+| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits                |
+| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions         |
+| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Accessibility](docs/ACCESSIBILITY.md)                | Implementation, checks and what is actually tested |
+| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                      | Hosting, credentials and trust boundaries          |
+| [Government evaluation guide](docs/GOVERNMENT_EVALUATION.md)                                                                           | What this can and cannot be used for, in an hour   |
 
 ## License and attribution
 
