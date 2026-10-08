@@ -474,7 +474,7 @@ describe("the lab, end to end through the route", () => {
       vehicles: 4,
       buses: 1,
     });
-    const s = new LabStore(sim, fetchImpl as unknown as typeof fetch);
+    const s = new LabStore(sim, fetchImpl);
     stores.push(s);
     return { s, fetchImpl };
   }
