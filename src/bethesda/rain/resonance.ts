@@ -18,6 +18,13 @@
  * is drawn as a figure resolving, never as validation, and confidence is
  * never drawn: the records carry none.
  *
+ * The mathematical substrate drives it too, as process and nothing more: a
+ * search in flight, context found, a formalization present, challenging
+ * material found, a hypothesis framed with stated assumptions, an authorized
+ * experiment ready to run. A figure that settles because a Lean formalization
+ * is present says that a file exists at a commit, never that the mathematics
+ * — still less the hypothesis — is true.
+ *
  * Pure: no renderer, no React, no clock. `snapshotOf` reads a store;
  * `resonanceView` maps a snapshot to a view.
  */
@@ -30,6 +37,10 @@ import {
   type Point,
 } from "./chladni";
 import { PERSPECTIVES, type Perspective, type RainVerdict } from "./contracts";
+import {
+  CHALLENGING_RELATIONS,
+  CONNECTING_RELATIONS,
+} from "../../rain/mathematics/contracts";
 import type { LabStore } from "./store";
 
 export type ResonanceFaceState =
@@ -42,7 +53,13 @@ export type ResonanceFaceState =
   | "result-supported"
   | "result-contradicted"
   | "result-unresolved"
-  | "awaiting-human";
+  | "awaiting-human"
+  | "math-search"
+  | "math-context"
+  | "math-formalized"
+  | "math-conflict"
+  | "hypothesis-formed"
+  | "ready-for-experiment";
 
 export const RESONANCE_STATES: readonly ResonanceFaceState[] = [
   "idle",
@@ -55,6 +72,12 @@ export const RESONANCE_STATES: readonly ResonanceFaceState[] = [
   "result-contradicted",
   "result-unresolved",
   "awaiting-human",
+  "math-search",
+  "math-context",
+  "math-formalized",
+  "math-conflict",
+  "hypothesis-formed",
+  "ready-for-experiment",
 ];
 
 /** What a person reads for each state, in the registry's own words where it has them. */
@@ -69,6 +92,12 @@ export const RESONANCE_LABELS: Record<ResonanceFaceState, string> = {
   "result-contradicted": "Result: not supported",
   "result-unresolved": "Result: unresolved",
   "awaiting-human": "Waiting for a person",
+  "math-search": "Searching the mathematics",
+  "math-context": "Mathematical context found",
+  "math-formalized": "Formalization found",
+  "math-conflict": "Mathematical challenge found",
+  "hypothesis-formed": "Hypothesis formed",
+  "ready-for-experiment": "Ready for the experiment",
 };
 
 /** The studio's pigments: ramps from a single grain in shadow to a pile in full light. */
@@ -120,6 +149,9 @@ const REST_AT = seat(REST);
 /** A question in flight: driven between (3,3) and (2,4)−, where the plate barely answers. */
 const BETWEEN = (modeOf(3, 3).f + modeOf(2, 4).f) / 2;
 const BETWEEN_AT: Point = { x: 0.45, y: -0.3 };
+/** A substrate search in flight: driven between (5,1) and (4,3)−, another place the plate barely answers. */
+const SEARCHING = (modeOf(5, 1).f + modeOf(4, 3).f) / 2;
+const SEARCHING_AT: Point = { x: -0.35, y: 0.4 };
 
 /** The facts the view is derived from, read from the store and nothing else. */
 export interface ResonanceSnapshot {
@@ -147,6 +179,31 @@ export interface ResonanceSnapshot {
   } | null;
   /** The newest case waiting for a person's authorization. */
   awaiting: { experimentId: string; definition: string } | null;
+  /** The newest case a person authorized that has not run yet. */
+  ready: { experimentId: string; definition: string } | null;
+  /** The mathematical substrate's part: process facts, never what the mathematics says. */
+  mathematics: {
+    searching: "context" | "challenge" | null;
+    /** The newer of the last context search and the last challenge. */
+    framing: {
+      mode: "context" | "challenge";
+      /** The families shown, in rank order. */
+      families: string[];
+      formalized: number;
+      /** Results a challenge found that state counterexamples, obstructions, bounds or conditions. */
+      challenging: number;
+      at: string;
+    } | null;
+    /** The next proposal's mathematical basis, when it has one. */
+    basis: {
+      families: string[];
+      /** Entries whose relation asserts a connection, with stated assumptions. */
+      connecting: number;
+      /** Entries that offer a counterexample to, or contradict, the candidate. */
+      challenging: number;
+      at: string;
+    } | null;
+  };
   /** The case that ended most recently in this session. */
   result: {
     experimentId: string;
@@ -161,6 +218,7 @@ export interface ResonanceSnapshot {
 export function snapshotOf(store: LabStore): ResonanceSnapshot {
   const m = store.meeting;
   let awaiting: ResonanceSnapshot["awaiting"] = null;
+  let ready: ResonanceSnapshot["ready"] = null;
   let result: ResonanceSnapshot["result"] = null;
   for (const c of store.cases) {
     const state = c.lifecycle.state;
@@ -171,6 +229,7 @@ export function snapshotOf(store: LabStore): ResonanceSnapshot {
     };
     // Cases are newest first: the first one waiting is the newest.
     if (state === "AWAITING_HUMAN_APPROVAL" && !awaiting) awaiting = ids;
+    if (state === "AUTHORIZED" && !ready) ready = ids;
     if (
       (state === "COMPLETED" || state === "INCONCLUSIVE" || state === "FAILED") &&
       c.record
@@ -182,6 +241,10 @@ export function snapshotOf(store: LabStore): ResonanceSnapshot {
   }
   const running = store.run ? store.caseById(store.run.caseId) : null;
   const p = store.run?.progress ?? null;
+  const math = store.mathematics;
+  const latest = [math.context, math.challenge]
+    .filter((x) => x !== null)
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))[0];
   return {
     live: store.mode() === "LIVE",
     asking: store.asking,
@@ -215,7 +278,36 @@ export function snapshotOf(store: LabStore): ResonanceSnapshot {
           }
         : null,
     awaiting,
+    ready,
     result,
+    mathematics: {
+      searching: math.searching,
+      framing: latest
+        ? {
+            mode: latest.answer.mode,
+            families: latest.answer.results.map((r) => r.family),
+            formalized: latest.answer.results.filter((r) => r.formalization_path !== null)
+              .length,
+            challenging: latest.answer.results.filter(
+              (r) => r.group !== null && r.group !== "stated_results",
+            ).length,
+            at: latest.at,
+          }
+        : null,
+      basis:
+        math.basis.length && math.basisAt
+          ? {
+              families: math.basis.map((e) => e.result_family),
+              connecting: math.basis.filter((e) =>
+                CONNECTING_RELATIONS.includes(e.relation),
+              ).length,
+              challenging: math.basis.filter((e) =>
+                CHALLENGING_RELATIONS.includes(e.relation),
+              ).length,
+              at: math.basisAt,
+            }
+          : null,
+    },
   };
 }
 
@@ -312,51 +404,49 @@ const VERDICT_WORDS: Record<RainVerdict, string> = {
   not_evaluated: "NOT EVALUATED",
 };
 
-function ended(s: ResonanceSnapshot): ResonanceView | null {
-  const m = s.meeting;
-  const r = s.result;
-  const meetingDone = m && m.revealed >= m.speakers.length ? m : null;
-  // The newer of a finished meeting and a finished run is what the plate shows.
-  if (r && (!meetingDone || Date.parse(r.at) >= Date.parse(meetingDone.stagedAt))) {
-    const { mode, at } = experimentFigure(r.definition);
-    const record = `The registry recorded ${r.experimentId} as ${r.state} · hypothesis ${VERDICT_WORDS[r.verdict]}.`;
-    const not = " The figure follows that record; it is not evidence for it.";
-    if (r.state === "COMPLETED" && r.verdict === "supported")
-      return view(
-        "result-supported",
-        record + " The experiment's figure settles as it formed." + not,
-        { settle: 1, motion: 0.05, level: 0.75, pigment: "verdigris" },
-        [{ f: mode.f, a: 1, at }],
-        quiet(0.05),
-      );
-    if (r.state === "COMPLETED" && r.verdict === "not_supported") {
-      const other = partnerOf(mode)!;
-      return view(
-        "result-contradicted",
-        record + " The experiment's figure gives way to its partner." + not,
-        { settle: 1, motion: 0.05, level: 0.75, pigment: "copper" },
-        [{ f: other.f, a: 1, at }],
-        quiet(0.05),
-      );
-    }
+function resultView(r: NonNullable<ResonanceSnapshot["result"]>): ResonanceView {
+  const { mode, at } = experimentFigure(r.definition);
+  const record = `The registry recorded ${r.experimentId} as ${r.state} · hypothesis ${VERDICT_WORDS[r.verdict]}.`;
+  const not = " The figure follows that record; it is not evidence for it.";
+  if (r.state === "COMPLETED" && r.verdict === "supported")
+    return view(
+      "result-supported",
+      record + " The experiment's figure settles as it formed." + not,
+      { settle: 1, motion: 0.05, level: 0.75, pigment: "verdigris" },
+      [{ f: mode.f, a: 1, at }],
+      quiet(0.05),
+    );
+  if (r.state === "COMPLETED" && r.verdict === "not_supported") {
     const other = partnerOf(mode)!;
     return view(
-      "result-unresolved",
-      record +
-        (r.state === "FAILED"
-          ? " The run did not complete, so nothing was evaluated."
-          : " The evidence did not settle it.") +
-        " The figure and its partner both sound, and neither forms." +
-        not,
-      { settle: 0.68, motion: 0.1, level: 0.6, pigment: "bone" },
-      [
-        { f: mode.f, a: 0.7, at },
-        { f: other.f, a: 0.7, at },
-      ],
+      "result-contradicted",
+      record + " The experiment's figure gives way to its partner." + not,
+      { settle: 1, motion: 0.05, level: 0.75, pigment: "copper" },
+      [{ f: other.f, a: 1, at }],
       quiet(0.05),
     );
   }
-  if (!meetingDone) return null;
+  const other = partnerOf(mode)!;
+  return view(
+    "result-unresolved",
+    record +
+      (r.state === "FAILED"
+        ? " The run did not complete, so nothing was evaluated."
+        : " The evidence did not settle it.") +
+      " The figure and its partner both sound, and neither forms." +
+      not,
+    { settle: 0.68, motion: 0.1, level: 0.6, pigment: "bone" },
+    [
+      { f: mode.f, a: 0.7, at },
+      { f: other.f, a: 0.7, at },
+    ],
+    quiet(0.05),
+  );
+}
+
+function meetingView(
+  meetingDone: NonNullable<ResonanceSnapshot["meeting"]>,
+): ResonanceView {
   const spoken = PERSPECTIVES.filter((p) => meetingDone.speakers.includes(p));
   const grounded =
     meetingDone.generation === "scripted" &&
@@ -404,9 +494,149 @@ function ended(s: ResonanceSnapshot): ResonanceView | null {
 }
 
 /**
+ * The figure a substrate result is drawn with: the signature of its family's
+ * number, a mode with a partner. Chosen by a hash, it means nothing about the
+ * mathematics.
+ */
+function familyFigure(family: string): { mode: PlateMode; at: Point } {
+  const s = signatureOf(`mathematics:${family}`, true)!;
+  return { mode: s.mode, at: s.exciter };
+}
+const RANKED = [1, 0.6, 0.4];
+const NOT_A_VERDICT =
+  " Each figure is chosen by a hash of a family's number: the plate shows that mathematics is on the table, never that it is relevant, applicable or true.";
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+function framingView(
+  f: NonNullable<ResonanceSnapshot["mathematics"]["framing"]>,
+): ResonanceView | null {
+  if (!f.families.length) return null;
+  const top = f.families.slice(0, 3);
+  const asked = f.mode === "challenge" ? "the hypothesis" : "the question";
+  if (f.mode === "challenge" && f.challenging > 0)
+    return view(
+      "math-conflict",
+      `A challenge of the hypothesis found ${f.challenging} ${plural(f.challenging, "result that states", "results that state")} a counterexample, an obstruction, a bound or a condition. Each figure sounds with its partner and none forms: whether any of them bears on the hypothesis has not been established.` +
+        NOT_A_VERDICT,
+      { settle: 0.55, motion: 0.3, level: 0.6, pigment: "copper" },
+      top.flatMap((id, i) => {
+        const { mode, at } = familyFigure(id);
+        return [
+          { f: mode.f, a: RANKED[i]! * 0.7, at },
+          { f: partnerOf(mode)!.f, a: RANKED[i]! * 0.7, at },
+        ];
+      }),
+      quiet(0.05),
+    );
+  const drive = top.map((id, i) => {
+    const { mode, at } = familyFigure(id);
+    return { f: mode.f, a: RANKED[i]!, at };
+  });
+  if (f.formalized > 0)
+    return view(
+      "math-formalized",
+      `${f.families.length} result ${plural(f.families.length, "family shares", "families share")} terms with ${asked}, and ${f.formalized} ${plural(f.formalized, "has", "have")} a Lean formalization present in the repository. Present is not checked here, and a formalization proves a mathematical statement, never the simulator's behaviour.` +
+        NOT_A_VERDICT,
+      { settle: 0.75, motion: 0.12, level: 0.65, pigment: "bone" },
+      drive,
+      quiet(0.05),
+    );
+  return view(
+    "math-context",
+    `${f.families.length} result ${plural(f.families.length, "family shares", "families share")} terms with ${asked}, none with a Lean formalization here. Shared words are not applicability.` +
+      NOT_A_VERDICT,
+    { settle: 0.55, motion: 0.2, level: 0.55, pigment: "bone" },
+    drive,
+    quiet(0.05),
+  );
+}
+
+function basisView(
+  b: NonNullable<ResonanceSnapshot["mathematics"]["basis"]>,
+): ResonanceView {
+  const n = b.families.length;
+  const top = b.families.slice(0, 3);
+  if (b.challenging > 0)
+    return view(
+      "math-conflict",
+      `A person cited ${b.challenging} ${plural(b.challenging, "result", "results")} as a counterexample to, or a contradiction of, the candidate, with stated assumptions. The challenge is recorded with the next proposal, not resolved; each figure sounds against its partner.` +
+        NOT_A_VERDICT,
+      { settle: 0.55, motion: 0.3, level: 0.6, pigment: "copper" },
+      top.flatMap((id, i) => {
+        const { mode, at } = familyFigure(id);
+        return [
+          { f: mode.f, a: RANKED[i]! * 0.7, at },
+          { f: partnerOf(mode)!.f, a: RANKED[i]! * 0.7, at },
+        ];
+      }),
+      quiet(0.05),
+    );
+  if (b.connecting > 0) {
+    const s = signatureOf(`basis:${b.families.join(",")}`, true)!;
+    return view(
+      "hypothesis-formed",
+      `A person framed the next proposal with ${n} mathematical ${plural(n, "result", "results")}, stating the assumptions that connect ${plural(n, "it", "them")} to the simulator. A framing, not a finding: nothing has been tested, and only the matched runs will decide.` +
+        NOT_A_VERDICT,
+      { settle: 0.85, motion: 0.1, level: 0.6, pigment: "bone" },
+      [{ f: s.mode.f, a: 1, at: s.exciter }],
+      quiet(0.05),
+    );
+  }
+  return view(
+    "math-context",
+    `${n} ${plural(n, "result is", "results are")} in the next proposal's mathematical basis as context only: nobody has stated a connection to the simulator.` +
+      NOT_A_VERDICT,
+    { settle: 0.55, motion: 0.2, level: 0.55, pigment: "bone" },
+    top.map((id, i) => {
+      const { mode, at } = familyFigure(id);
+      return { f: mode.f, a: RANKED[i]!, at };
+    }),
+    quiet(0.05),
+  );
+}
+
+/**
+ * The newest finished thing: a run's record, the next proposal's
+ * mathematical basis, a substrate search, or a staged meeting. Ties go to the
+ * record, then the basis, then the search, then the meeting.
+ */
+function ended(s: ResonanceSnapshot): ResonanceView | null {
+  const m = s.meeting;
+  const meetingDone = m && m.revealed >= m.speakers.length ? m : null;
+  const when = (iso: string) => {
+    const t = Date.parse(iso);
+    return Number.isNaN(t) ? 0 : t;
+  };
+  const candidates: { at: number; order: number; make: () => ResonanceView | null }[] =
+    [];
+  const r = s.result;
+  if (r) candidates.push({ at: when(r.at), order: 0, make: () => resultView(r) });
+  const basis = s.mathematics.basis;
+  if (basis)
+    candidates.push({ at: when(basis.at), order: 1, make: () => basisView(basis) });
+  const framing = s.mathematics.framing;
+  if (framing)
+    candidates.push({ at: when(framing.at), order: 2, make: () => framingView(framing) });
+  if (meetingDone)
+    candidates.push({
+      at: when(meetingDone.stagedAt),
+      order: 3,
+      make: () => meetingView(meetingDone),
+    });
+  candidates.sort((a, b) => b.at - a.at || a.order - b.order);
+  for (const c of candidates) {
+    const v = c.make();
+    if (v) return v;
+  }
+  return null;
+}
+
+/**
  * The state the instrument is in. What is happening now comes first — a run,
- * a question in flight, a meeting being staged — then a case waiting for a
- * person, then the newer of a finished meeting and a finished run, then rest.
+ * a question in flight, a substrate search, a meeting being staged — then a
+ * case waiting for a person, then one a person authorized, then the newest of
+ * a finished run, the next proposal's mathematical basis, a substrate search
+ * and a finished meeting, then rest.
  */
 export function resonanceView(s: ResonanceSnapshot): ResonanceView {
   if (s.run) {
@@ -438,6 +668,16 @@ export function resonanceView(s: ResonanceSnapshot): ResonanceView {
       quiet(0.1 + 0.25 * share),
     );
   }
+  if (s.mathematics.searching)
+    return view(
+      "math-search",
+      s.mathematics.searching === "challenge"
+        ? "R.A.I.N. is searching the mathematical substrate for what could weaken the hypothesis. The plate is driven between resonances while nothing has been found."
+        : "R.A.I.N. is searching the mathematical substrate. The plate is driven between resonances while nothing has been found.",
+      { settle: 0.3, motion: 0.3, level: 0.5, pigment: "bone" },
+      [{ f: SEARCHING, a: 1, at: SEARCHING_AT }],
+      quiet(0.06),
+    );
   const m = s.meeting;
   if (m && m.revealed < m.speakers.length) {
     const r = Math.max(1, m.revealed);
@@ -478,6 +718,16 @@ export function resonanceView(s: ResonanceSnapshot): ResonanceView {
       [{ f: mode.f, a: 1, at }],
       quiet(0.03),
       true,
+    );
+  }
+  if (s.ready) {
+    const { mode, at } = experimentFigure(s.ready.definition);
+    return view(
+      "ready-for-experiment",
+      `${s.ready.experimentId} is AUTHORIZED: a person approved its exact definition. It runs only when someone starts it; until then the plate holds its figure, still.`,
+      { settle: 1, motion: 0, level: 0.5, pigment: "verdigris" },
+      [{ f: mode.f, a: 1, at }],
+      quiet(0.03),
     );
   }
   const finished = ended(s);

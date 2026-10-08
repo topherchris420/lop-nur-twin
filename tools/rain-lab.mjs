@@ -1189,6 +1189,75 @@ try {
       }).slice(0, 600),
     );
     await c.axe("registry with R.A.I.N.'s own record");
+    // The mathematical substrate, LIVE: a search, an inspected family, a citation
+    // with a stated assumption, and the basis in the protocol a person reviews —
+    // context for a hypothesis, labelled as such, and never in the evidence.
+    {
+      const math = await (await fetch(live.origin + "/api/rain/math-status")).json();
+      check(
+        "LIVE: the runtime serves the pinned openai/math substrate",
+        math.available === true &&
+          math.substrate?.repository === "openai/math" &&
+          /^[0-9a-f]{40}$/.test(math.substrate?.commit ?? "") &&
+          math.substrate?.counts?.families > 0,
+        JSON.stringify(math).slice(0, 300),
+      );
+      await c.click("Research Panel");
+      await c.waitFor(() => document.body.innerText.includes("MATHEMATICAL SUBSTRATE"));
+      await c.type(
+        await c.control("MATHEMATICAL SUBSTRATE", "Question for the substrate", "input"),
+        "percolation on random graphs",
+      );
+      await c.click("Search the substrate");
+      await c.waitFor(() => document.body.innerText.includes("RELEVANT RESULTS"), 60000);
+      {
+        const t = await c.text();
+        check(
+          "LIVE: a substrate search shows results with their status, the commit and what is not established",
+          t.includes(math.substrate.commit) &&
+            /LEAN FORMALIZATION PRESENT · NOT CHECKED HERE|MANUSCRIPT · NOT FORMALIZED/.test(
+              t,
+            ) &&
+            t.includes("Shared words are not applicability") &&
+            c.rain().includes("/api/rain/math-search"),
+        );
+      }
+      await c.clickStarting("Inspect family ");
+      await c.waitFor(
+        () => document.body.innerText.includes("CITE IN THE NEXT PROPOSAL"),
+        60000,
+      );
+      await c.axe("Research Panel with a substrate search and an inspected result");
+      await c.type(
+        await c.control("INSPECTED RESULT", "Assumptions that connect it", "textarea"),
+        "Pedestrians choosing among sidewalks at a junction behave like an open edge.",
+      );
+      await c.clickStarting("Cite family ");
+      await c.waitFor(() =>
+        document.body.innerText.includes("MATHEMATICAL BASIS OF THE NEXT PROPOSAL (1)"),
+      );
+      await c.click("Experiment Bay");
+      await c.click("Propose it");
+      await c.waitFor(() => document.body.innerText.includes("AWAITING HUMAN APPROVAL"));
+      {
+        const t = await c.text();
+        check(
+          "LIVE: a proposal carries the cited mathematics into the protocol a person authorizes, as context",
+          t.includes("MATHEMATICAL BASIS") &&
+            t.includes("Assumes: Pedestrians choosing among sidewalks") &&
+            t.includes(
+              "The cited mathematics does not establish the simulator outcome.",
+            ) &&
+            t.includes("Mathematical basis: closed, admissible, one substrate revision"),
+        );
+      }
+      await c.axe("Experiment Bay with a mathematical basis");
+      await c.click("Evidence Library");
+      check(
+        "LIVE: the evidence library says mathematics is not evidence, and lists none",
+        (await c.text()).includes("Mathematics is not listed here."),
+      );
+    }
     // The server stops answering. The lab must say so and show nothing new.
     live.child.kill();
     await delay(15500);

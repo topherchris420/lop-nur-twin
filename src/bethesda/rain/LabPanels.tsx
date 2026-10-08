@@ -9,6 +9,7 @@ import {
   CRITERIA_RULE,
   DEFINITION_SCHEMA,
   EXPERIMENT_BOUNDS,
+  EXPERIMENT_PROPOSAL_SCHEMA,
   LIMITS,
   LOCATION_LABELS,
   METRICS,
@@ -42,6 +43,30 @@ import { TOOL_NAMES, SENSOR, REGION_RADIUS, type ToolName } from "./tools";
 import { positionAt } from "./presence";
 import { LOCATION_IDS, type Perspective } from "./contracts";
 import type { ExperimentCase } from "./cases";
+import {
+  CHALLENGE_GROUPS,
+  CHALLENGE_GROUP_WORDS,
+  FORMALIZATION_FILTERS,
+  KIND_WORDS,
+  MATHEMATICAL_RELATIONS,
+  MATH_LIMITS,
+  RELATION_WORDS,
+  STATUS_WORDS,
+  findingText,
+  pinnedUrl,
+  type FormalizationFilter,
+  type MathematicalBasisEntry,
+  type MathematicalRelation,
+} from "../../rain/mathematics/contracts";
+import type { MathRecord, MathResults, MathResultSummary } from "./mathValidation";
+import {
+  NOT_ESTABLISHED,
+  SIMULATOR_ASSUMPTIONS,
+  connects,
+  hostMay,
+  hostReading,
+  readable,
+} from "./mathematics";
 import { DATA_VERSION } from "../model";
 import { TERRAIN_VERSION } from "../terrain";
 import { TRANSIT_VERSION } from "../streetscape";
@@ -284,6 +309,621 @@ function Resonance({ store, inspect }: { store: LabStore; inspect?: Inspect }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// The mathematical substrate: an instrument beside the evidence, never in it.
+// ---------------------------------------------------------------------------
+function StatusChip({ status }: { status: keyof typeof STATUS_WORDS }) {
+  return (
+    <span
+      className="inline-block rounded border border-[#c9b3e6]/60 px-1.5 py-0.5 font-mono text-[9px] tracking-widest text-[#ddd0f0]"
+      title={STATUS_WORDS[status].meaning}
+    >
+      {STATUS_WORDS[status].label}
+    </span>
+  );
+}
+function NotEstablished() {
+  return (
+    <div className="mt-2 border-l-2 border-amber-200/60 pl-2">
+      <p className={label}>WHAT THIS DOES NOT ESTABLISH</p>
+      <ul className="mt-1 list-disc pl-4 text-[11px] text-slate-300">
+        {NOT_ESTABLISHED.map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+function ResultRow({
+  store,
+  r,
+  repository,
+  commit,
+}: {
+  store: LabStore;
+  r: MathResultSummary;
+  repository: MathResults["provenance"]["repository"];
+  commit: string;
+}) {
+  const host = hostReading(r);
+  return (
+    <li className="rounded border border-teal-100/10 p-2">
+      <p className="text-xs">
+        <strong>
+          {r.rank}. Family {r.family}
+        </strong>{" "}
+        <span className={quiet}>· {r.discipline?.name ?? "no discipline"}</span>
+      </p>
+      <p className="text-xs">{readable(r.title)}</p>
+      <p className="mt-1 flex flex-wrap gap-1">
+        <StatusChip status={r.status} />
+        {r.kinds
+          .filter((k) => k !== "statement")
+          .map((k) => (
+            <span
+              key={k}
+              className="inline-block rounded border border-teal-100/30 px-1.5 py-0.5 font-mono text-[9px] tracking-widest"
+            >
+              {KIND_WORDS[k].toUpperCase()}
+            </span>
+          ))}
+        {r.reasoning_summary_path ? (
+          <span className="inline-block rounded border border-amber-200/50 px-1.5 py-0.5 font-mono text-[9px] tracking-widest text-amber-100">
+            REASONING SUMMARY · NOT A PROOF
+          </span>
+        ) : null}
+      </p>
+      {r.kind_basis.length ? (
+        <p className={quiet}>
+          In the repository&apos;s own words:{" "}
+          {r.kind_basis.map((k) => `“${k.phrase}” (${k.field})`).join(" · ")}
+        </p>
+      ) : null}
+      <p className={quiet}>
+        Shares: {r.matched.map((m) => `${m.term} (${m.fields.join(", ")})`).join(" · ")}
+      </p>
+      <p className={quiet}>
+        Host rule: {host.why} → {RELATION_WORDS[host.relation].label}
+      </p>
+      {r.formalization_path ? (
+        <p className={quiet}>
+          Lean scope page:{" "}
+          <code>{pinnedUrl(repository, commit, r.formalization_path)}</code> (
+          {r.statements} comparator statement{r.statements === 1 ? "" : "s"})
+        </p>
+      ) : null}
+      <button
+        className={button + " mt-1"}
+        type="button"
+        onClick={() => void store.inspectMathematics(r.family)}
+      >
+        Inspect family {r.family}
+      </button>
+    </li>
+  );
+}
+function Findings({ answer }: { answer: MathResults }) {
+  return (
+    <ul className="mt-1 list-disc pl-4 text-[11px]">
+      {answer.findings.map((f) => (
+        <li key={f.id}>{findingText(f)}</li>
+      ))}
+    </ul>
+  );
+}
+function Provenance({ p }: { p: MathResults["provenance"] }) {
+  return (
+    <p className={quiet + " mt-1"}>
+      {p.repository} · commit {p.commit} ({p.commit_date ?? "date unknown"}) · index{" "}
+      {short(p.index_sha256, 16)} generated {p.generated_at} · retrieved {p.retrieved_at}
+    </p>
+  );
+}
+function CiteForm({ store, record }: { store: LabStore; record: MathRecord }) {
+  const f = record.family;
+  const host = hostReading(f);
+  const [cite, setCite] = useState("family");
+  const [relation, setRelation] = useState<MathematicalRelation>(host.relation);
+  const [assumptions, setAssumptions] = useState("");
+  const hostWords = host.why.slice(0, MATH_LIMITS.rationale);
+  const [rationale, setRationale] = useState(hostWords);
+  const [errors, setErrors] = useState<string[]>([]);
+  // The host rule's reading, unchanged, is the host's; anything a person
+  // changed or added — the relation, an assumption, the words — is theirs.
+  const byPerson =
+    !hostMay(relation) ||
+    relation !== host.relation ||
+    assumptions.trim() !== "" ||
+    rationale !== hostWords;
+  const field =
+    "mt-0.5 w-full rounded border border-teal-100/25 bg-[#0d2328] p-1 text-xs";
+  return (
+    <form
+      className="mt-2 grid gap-2 text-[11px]"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const errs = store.attachMathematics(f.id, {
+          manuscriptPath: cite.startsWith("preprints/") ? cite : null,
+          reasoningSummary: cite === "reasoning-summary",
+          relation,
+          assumptions: assumptions.split("\n"),
+          rationale,
+          assessedBy: byPerson ? "person" : "host-rule",
+        });
+        setErrors(errs);
+      }}
+    >
+      <p className={label}>CITE IN THE NEXT PROPOSAL</p>
+      <label>
+        What is cited
+        <select className={field} value={cite} onChange={(e) => setCite(e.target.value)}>
+          <option value="family">Family {f.id} as a whole</option>
+          {f.manuscripts.map((m) => (
+            <option key={m.path} value={m.path}>
+              Manuscript: {readable(m.title).slice(0, 90)}
+            </option>
+          ))}
+          {f.reasoning_summary ? (
+            <option value="reasoning-summary">The reasoning summary (not a proof)</option>
+          ) : null}
+        </select>
+      </label>
+      <label>
+        Relation to the question
+        <select
+          className={field}
+          value={relation}
+          onChange={(e) => setRelation(e.target.value as MathematicalRelation)}
+        >
+          {MATHEMATICAL_RELATIONS.map((r) => (
+            <option key={r} value={r}>
+              {RELATION_WORDS[r].label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className={quiet}>{RELATION_WORDS[relation].meaning}</p>
+      <label>
+        Assumptions that connect it to the experiment (one per line
+        {connects(relation) ? "; required for this relation" : ""})
+        <textarea
+          className={field}
+          rows={3}
+          value={assumptions}
+          onChange={(e) => setAssumptions(e.target.value)}
+        />
+      </label>
+      <label>
+        Rationale
+        <textarea
+          className={field}
+          rows={2}
+          maxLength={MATH_LIMITS.rationale}
+          value={rationale}
+          onChange={(e) => setRationale(e.target.value)}
+        />
+      </label>
+      <p className={quiet}>
+        Assessed by:{" "}
+        {byPerson
+          ? "you — a relation beyond the host rule's, or stated assumptions, is a person's claim"
+          : "the host rule — no claim beyond its own"}
+      </p>
+      <button className={button} type="submit">
+        Cite family {f.id} in the next proposal
+      </button>
+      {errors.length ? (
+        <ul role="alert" className="list-disc pl-5 text-amber-100">
+          {errors.map((e) => (
+            <li key={e}>{e}</li>
+          ))}
+        </ul>
+      ) : null}
+    </form>
+  );
+}
+function InspectedRecord({ store, record }: { store: LabStore; record: MathRecord }) {
+  const f = record.family;
+  const p = record.provenance;
+  return (
+    <div className="mt-2 rounded border border-[#c9b3e6]/30 p-2 text-xs">
+      <p>
+        <strong>Family {f.id}</strong> · {readable(f.title)}{" "}
+        <span className={quiet}>· {f.discipline?.name ?? "no discipline"}</span>
+      </p>
+      <p className="mt-1">
+        <StatusChip status={f.status} />
+      </p>
+      <p className={quiet + " mt-1"}>{STATUS_WORDS[f.status].meaning}</p>
+      {f.issues.length ? (
+        <p className="text-amber-100">Issues: {f.issues.join("; ")}</p>
+      ) : null}
+      <p className="mt-1">
+        {readable(f.summary.text)}
+        {f.summary.truncated ? " […]" : ""}
+      </p>
+      <p className={quiet}>
+        The family&apos;s description from {f.summary.source}, markup simplified for
+        reading; records keep the repository&apos;s text verbatim.
+      </p>
+      <p className={label + " mt-2"}>MANUSCRIPTS</p>
+      <ul className="mt-1 space-y-1">
+        {f.manuscripts.map((m) => (
+          <li key={m.path} className="border-l border-teal-100/20 pl-2">
+            <p>
+              {readable(m.title)} <StatusChip status={m.status} />
+              {m.annotation ? <span className={quiet}> · {m.annotation}</span> : null}
+            </p>
+            <p className={quiet}>
+              <code className="break-all">
+                {pinnedUrl(p.repository, p.commit, m.path)}
+              </code>
+              {m.date ? ` · ${m.date}` : ""}
+              {m.citation ? ` · cite as ${m.citation.key}` : " · no citation"}
+              {m.main_result_catalogued
+                ? " · main result in the formalization catalogue"
+                : ""}
+            </p>
+            {m.notes.map((n) => (
+              <p key={n} className="text-amber-100">
+                The README says: {n}
+              </p>
+            ))}
+            <details>
+              <summary className={quiet}>Abstract ({m.abstract.source})</summary>
+              <p>
+                {readable(m.abstract.text)}
+                {m.abstract.truncated ? " […]" : ""}
+              </p>
+            </details>
+          </li>
+        ))}
+      </ul>
+      {f.formalization ? (
+        <>
+          <p className={label + " mt-2"}>LEAN FORMALIZATION</p>
+          <p className={quiet}>
+            Scope page{" "}
+            <code className="break-all">
+              {pinnedUrl(p.repository, p.commit, f.formalization.path)}
+            </code>{" "}
+            · catalogue scope “{f.formalization.catalogue_scope ?? "not stated"}” ·
+            catalogue review status “{f.formalization.review_status ?? "not stated"}” ·
+            not compiled or checked by this lab
+          </p>
+          <details>
+            <summary className={quiet}>What is formalized, and what is not</summary>
+            <p className="whitespace-pre-line">
+              {readable(f.formalization.scope.text)}
+              {f.formalization.scope.truncated ? " […]" : ""}
+            </p>
+          </details>
+          <ul className="mt-1 list-disc pl-4">
+            {f.formalization.statements.map((st) => (
+              <li key={st.statement_path}>
+                {readable(st.result)}: <code>{st.theorems.join(", ")}</code>{" "}
+                <span className={quiet}>
+                  ({st.statement_path}; solution {st.solution_module}
+                  {st.solution_present ? "" : ", file not present"}; axioms{" "}
+                  {st.permitted_axioms.join(", ") || "none listed"})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className={quiet + " mt-2"}>
+          No formalization found: the repository has no Lean scope page for this family at
+          this commit.
+        </p>
+      )}
+      {f.reasoning_summary ? (
+        <p className={quiet + " mt-2"}>
+          Reasoning summary (not a proof):{" "}
+          <code className="break-all">
+            {pinnedUrl(p.repository, p.commit, f.reasoning_summary.path)}
+          </code>{" "}
+          — {readable(f.reasoning_summary.subject)}
+        </p>
+      ) : null}
+      <Provenance p={p} />
+      {f.status === "unverified" ? (
+        <p className="mt-2 text-amber-100">
+          Unverified results cannot be cited: their metadata is incomplete at this commit.
+        </p>
+      ) : (
+        <CiteForm key={f.id} store={store} record={record} />
+      )}
+    </div>
+  );
+}
+export function BasisList({
+  basis,
+  onRemove,
+}: {
+  basis: readonly MathematicalBasisEntry[];
+  onRemove?: (i: number) => void;
+}) {
+  return (
+    <ol className="mt-1 space-y-1 text-[11px]">
+      {basis.map((e, i) => (
+        <li
+          key={`${e.result_family}:${e.manuscript_path ?? ""}:${e.reasoning_summary_path ?? ""}`}
+        >
+          <strong>Family {e.result_family}</strong> · {readable(e.title)}{" "}
+          <StatusChip status={e.status} /> · {RELATION_WORDS[e.relation].label} (
+          {e.assessed_by === "person" ? "a person's assessment" : "host rule"})
+          {e.manuscript_path ? (
+            <span className={quiet}> · cites {e.manuscript_path}</span>
+          ) : null}
+          {e.reasoning_summary_path ? (
+            <span className={quiet}> · cites {e.reasoning_summary_path}</span>
+          ) : null}
+          {e.assumptions.length ? (
+            <ul className="list-disc pl-4">
+              {e.assumptions.map((a) => (
+                <li key={a}>Assumes: {a}</li>
+              ))}
+            </ul>
+          ) : null}
+          {e.rationale ? <p className={quiet}>Rationale: {e.rationale}</p> : null}
+          <p className={quiet}>
+            {e.repository} {e.commit} · index {short(e.index_sha256, 16)}
+            {e.formalization_path ? ` · Lean ${e.formalization_path}` : ""}
+          </p>
+          {onRemove ? (
+            <button
+              className={button + " mt-1"}
+              type="button"
+              onClick={() => onRemove(i)}
+            >
+              Remove family {e.result_family} from the basis
+            </button>
+          ) : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+function MathematicalSubstrate({
+  store,
+  question,
+}: {
+  store: LabStore;
+  question: string;
+}) {
+  const math = store.mathematics;
+  const status = math.status;
+  const available = store.mathAvailable();
+  const [query, setQuery] = useState("");
+  const [discipline, setDiscipline] = useState("");
+  const [formalization, setFormalization] = useState<FormalizationFilter>("any");
+  const [limit, setLimit] = useState(String(MATH_LIMITS.defaultResults));
+  const [hypothesis, setHypothesis] = useState("");
+  const [shown, setShown] = useState<string | null>(null);
+  const id = useId();
+  const filters = {
+    discipline: discipline || null,
+    formalization,
+    limit: Number(limit),
+  };
+  const asked = (query || question).trim();
+  const record =
+    math.inspected.find((r) => r.family.id === shown) ?? math.inspected[0] ?? null;
+  const field =
+    "mt-0.5 w-full rounded border border-teal-100/25 bg-[#0d2328] p-1 text-xs";
+  return (
+    <section
+      id="lab-mathematics"
+      aria-labelledby={id}
+      className="mt-3 rounded border border-[#c9b3e6]/25 p-2"
+    >
+      <h3 id={id} className={label}>
+        MATHEMATICAL SUBSTRATE
+      </h3>
+      <p className={quiet}>
+        {status?.substrate
+          ? `${status.substrate.repository} at ${status.substrate.commit.slice(0, 12)} (${status.substrate.commit_date ?? "date unknown"}) · index ${short(status.substrate.index_sha256, 16)} · ${status.substrate.counts.families} result families, ${status.substrate.counts.manuscripts} manuscripts, ${status.substrate.counts.formalizations} with Lean · ${status.substrate.license}`
+          : store.mode() !== "LIVE"
+            ? "UNAVAILABLE: the research runtime is OFFLINE, so no substrate can be searched. Proposals still run, with no mathematical basis."
+            : `UNAVAILABLE${status?.reason ? `: ${status.reason}` : math.statusError ? `: ${math.statusError}` : ""}`}
+      </p>
+      <p className="mt-1 text-[11px]">
+        Mathematical context for a hypothesis — never evidence for a result. The substrate
+        finds results that share terms with a question and says what is established about
+        them; how a result bears on the question is a person&apos;s claim, stated with its
+        assumptions.
+      </p>
+      <form
+        className="mt-2 grid grid-cols-2 gap-2 text-[11px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void store.searchMathematics(asked, filters);
+        }}
+      >
+        <label className="col-span-2">
+          Question for the substrate
+          <input
+            className={field}
+            value={query}
+            maxLength={MATH_LIMITS.query}
+            placeholder={question.slice(0, MATH_LIMITS.query) || "random walks on graphs"}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <label>
+          Discipline
+          <select
+            className={field}
+            value={discipline}
+            onChange={(e) => setDiscipline(e.target.value)}
+          >
+            <option value="">any</option>
+            {(status?.substrate?.disciplines ?? []).map((d) => (
+              <option key={d.id} value={d.name}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Lean formalization
+          <select
+            className={field}
+            value={formalization}
+            onChange={(e) => setFormalization(e.target.value as FormalizationFilter)}
+          >
+            {FORMALIZATION_FILTERS.map((x) => (
+              <option key={x} value={x}>
+                {x}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Results
+          <select
+            className={field}
+            value={limit}
+            onChange={(e) => setLimit(e.target.value)}
+          >
+            {[3, 5, 8].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className={button + " self-end"}
+          type="submit"
+          disabled={!available || !!math.searching || !asked}
+        >
+          {math.searching === "context" ? "Searching…" : "Search the substrate"}
+        </button>
+        <label className="col-span-2">
+          Candidate hypothesis to challenge
+          <textarea
+            className={field}
+            rows={2}
+            maxLength={MATH_LIMITS.hypothesis}
+            value={hypothesis}
+            onChange={(e) => setHypothesis(e.target.value)}
+          />
+        </label>
+        <button
+          className={button + " col-span-2"}
+          type="button"
+          disabled={!available || !!math.searching || !hypothesis.trim()}
+          onClick={() =>
+            void store.searchMathematics(asked || hypothesis, filters, hypothesis)
+          }
+        >
+          {math.searching === "challenge"
+            ? "Challenging…"
+            : "Challenge the hypothesis: look for counterexamples, bounds and conditions"}
+        </button>
+      </form>
+      <p role="status" aria-live="polite" className="mt-2 text-[11px] text-teal-100">
+        {math.note}
+      </p>
+      {math.context ? (
+        <Section title="RELEVANT RESULTS">
+          <p className={quiet}>
+            For “{math.context.answer.query}”: {math.context.answer.matches} result famil
+            {math.context.answer.matches === 1 ? "y shares" : "ies share"} terms (
+            {math.context.answer.terms.used.join(", ") || "no usable terms"}).
+          </p>
+          <ol className="mt-1 space-y-2">
+            {math.context.answer.results.map((r) => (
+              <ResultRow
+                key={r.family}
+                store={store}
+                r={r}
+                repository={math.context!.answer.provenance.repository}
+                commit={math.context!.answer.provenance.commit}
+              />
+            ))}
+          </ol>
+          <p className={label + " mt-2"}>WHAT THE SUBSTRATE STAGE ESTABLISHES</p>
+          <Findings answer={math.context.answer} />
+          <Provenance p={math.context.answer.provenance} />
+        </Section>
+      ) : null}
+      {math.challenge ? (
+        <Section title="CHALLENGE">
+          <p className={quiet}>
+            Against “{math.challenge.answer.hypothesis}”: grouped by the repository&apos;s
+            own words, not by a judgment of how each bears on the hypothesis.
+          </p>
+          {CHALLENGE_GROUPS.map((g) => {
+            const rows = math.challenge!.answer.results.filter((r) => r.group === g);
+            return rows.length ? (
+              <div key={g} className="mt-1">
+                <p className={label}>{CHALLENGE_GROUP_WORDS[g].toUpperCase()}</p>
+                <ol className="mt-1 space-y-2">
+                  {rows.map((r) => (
+                    <ResultRow
+                      key={r.family}
+                      store={store}
+                      r={r}
+                      repository={math.challenge!.answer.provenance.repository}
+                      commit={math.challenge!.answer.provenance.commit}
+                    />
+                  ))}
+                </ol>
+              </div>
+            ) : null;
+          })}
+          <Findings answer={math.challenge.answer} />
+          <Provenance p={math.challenge.answer.provenance} />
+        </Section>
+      ) : null}
+      {math.inspected.length ? (
+        <Section title="INSPECTED RESULT">
+          {math.inspected.length > 1 ? (
+            <div className="flex flex-wrap gap-1" aria-label="Inspected families">
+              {math.inspected.map((r) => (
+                <button
+                  key={r.family.id}
+                  type="button"
+                  className={button}
+                  aria-pressed={record?.family.id === r.family.id}
+                  onClick={() => setShown(r.family.id)}
+                >
+                  Family {r.family.id}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {record ? <InspectedRecord store={store} record={record} /> : null}
+        </Section>
+      ) : null}
+      <Section title={`MATHEMATICAL BASIS OF THE NEXT PROPOSAL (${math.basis.length})`}>
+        {math.basis.length ? (
+          <BasisList basis={math.basis} onRemove={(i) => store.detachMathematics(i)} />
+        ) : (
+          <p className={quiet}>
+            Nothing cited. A proposal made now — by you or by R.A.I.N. — carries no
+            mathematical basis.
+          </p>
+        )}
+        <details className="mt-1">
+          <summary className={quiet}>
+            The simulator&apos;s own assumptions (the host&apos;s)
+          </summary>
+          <ul className="list-disc pl-4 text-[11px]">
+            {SIMULATOR_ASSUMPTIONS.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </details>
+        <NotEstablished />
+      </Section>
+    </section>
+  );
+}
+
 export function ResearchPanel({
   store,
   go,
@@ -490,6 +1130,7 @@ export function ResearchPanel({
           neither.
         </p>
       )}
+      <MathematicalSubstrate store={store} question={question} />
     </div>
   );
 }
@@ -514,6 +1155,12 @@ export function EvidenceLibrary({ store }: { store: LabStore }) {
       <h2 className="text-base">Evidence Library</h2>
       <p className={quiet}>
         Six kinds of material, never blurred. Each item carries exactly one label.
+      </p>
+      <p className={quiet + " mt-1"}>
+        Mathematics is not listed here. Results from the mathematical substrate are
+        context for a hypothesis, read in the Research Panel and cited with their
+        assumptions; a manuscript, a reasoning summary or a Lean formalization is never
+        evidence of what the simulator does.
       </p>
       <ul
         className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2"
@@ -580,7 +1227,7 @@ function ProposalForm({ store, question }: { store: LabStore; question: string }
       onSubmit={(e) => {
         e.preventDefault();
         store.proposeByHand({
-          schema: "rain-bethesda-experiment/v1",
+          schema: EXPERIMENT_PROPOSAL_SCHEMA,
           proposal_id: `human-form-${Date.now().toString(36)}`,
           origin: "human",
           question: question || "A person's own question.",
@@ -599,6 +1246,7 @@ function ProposalForm({ store, question }: { store: LabStore; question: string }
           observation_window_ticks: Number(window),
           rain_decision: null,
           meeting_id: store.meeting?.record.meeting_id ?? null,
+          mathematical_basis: store.mathematics.basis,
         });
       }}
     >
@@ -847,6 +1495,24 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
                 scope="row"
                 className="py-1 pr-2 font-mono text-[9px] tracking-widest text-teal-200"
               >
+                MATHEMATICAL BASIS
+              </th>
+              <td className="py-1">
+                {v && v.definition.mathematical_basis.length ? (
+                  <>
+                    <BasisList basis={v.definition.mathematical_basis} />
+                    <NotEstablished />
+                  </>
+                ) : (
+                  "None cited. Nothing mathematical is claimed for this experiment."
+                )}
+              </td>
+            </tr>
+            <tr className="border-t border-teal-100/10 align-top">
+              <th
+                scope="row"
+                className="py-1 pr-2 font-mono text-[9px] tracking-widest text-teal-200"
+              >
                 AUTHORIZATION STATUS
               </th>
               <td className="py-1">
@@ -1031,6 +1697,11 @@ export function ExperimentBay({ store }: { store: LabStore }) {
         The host compiles it with the city's own scenario compiler; nothing a proposer
         writes can carry a coordinate, code or a world mutation. Every run needs your
         approval.
+      </p>
+      <p className={quiet + " mt-1"}>
+        {store.mathematics.basis.length
+          ? `Mathematical basis: the ${store.mathematics.basis.length} result${store.mathematics.basis.length === 1 ? "" : "s"} cited in the Research Panel (family ${store.mathematics.basis.map((e) => e.result_family).join(", ")}, ${store.mathematics.basis[0]!.repository} at ${store.mathematics.basis[0]!.commit.slice(0, 12)}) travel with the next proposal you or R.A.I.N. make — not the DEMO's, which is written by hand. Context for its hypothesis, never evidence for its result, and never an authorization.`
+          : "Mathematical basis: none cited. Results from the mathematical substrate are cited in the Research Panel, with their assumptions."}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
         <button className={button} onClick={() => store.proposeDemo()}>
@@ -1576,6 +2247,17 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
           <code className="break-all">{r.rejected_input}</code>
         </Section>
       )}
+      {r.definition?.mathematical_basis?.length ? (
+        <Section title="MATHEMATICAL BASIS AND ITS PROVENANCE">
+          <p className={quiet}>
+            The mathematics that led to this experiment, as authorized: context for the
+            hypothesis, sealed into the definition&apos;s digest. It played no part in the
+            run, the measurements or the evaluation.
+          </p>
+          <BasisList basis={r.definition.mathematical_basis} />
+          <NotEstablished />
+        </Section>
+      ) : null}
       {r.run ? (
         <Section title="RESULT">
           <Badge c="SIMULATION RESULT" />
@@ -1976,6 +2658,53 @@ export function SystemsRoom({ store }: { store: LabStore }) {
           </p>
         )}
       </Section>
+      <Section title="MATHEMATICAL SUBSTRATE">
+        {store.mathematics.status?.substrate ? (
+          <ul>
+            <li>
+              {store.mathematics.status.substrate.repository} at commit{" "}
+              {store.mathematics.status.substrate.commit} (
+              {store.mathematics.status.substrate.commit_date ?? "date unknown"}), pinned:
+              never a branch
+            </li>
+            <li>
+              Index {store.mathematics.status.substrate.index_schema} ·{" "}
+              {short(store.mathematics.status.substrate.index_sha256, 16)} · generated{" "}
+              {store.mathematics.status.substrate.generated_at} ·{" "}
+              {store.mathematics.status.substrate.counts.families} families,{" "}
+              {store.mathematics.status.substrate.counts.manuscripts} manuscripts,{" "}
+              {store.mathematics.status.substrate.counts.formalizations} Lean scope pages
+              ({store.mathematics.status.substrate.counts.statements} comparator
+              statements), {store.mathematics.status.substrate.counts.reasoning_summaries}{" "}
+              reasoning summaries;{" "}
+              {store.mathematics.status.substrate.counts.unverified_families} families and{" "}
+              {store.mathematics.status.substrate.counts.unverified_manuscripts}{" "}
+              manuscripts unverified; {store.mathematics.status.substrate.counts.rejected}{" "}
+              catalogue entries refused
+            </li>
+            <li>
+              Licence {store.mathematics.status.substrate.license} (copy beside the index)
+              · formalization catalogue scope “
+              {store.mathematics.status.substrate.formalization_scope ?? "not stated"}”,
+              review status “
+              {store.mathematics.status.substrate.review_status ?? "not stated"}”
+            </li>
+            {store.mathematics.status.substrate.collection.map((c) => (
+              <li key={c.heading}>
+                The repository, “{c.heading}”: {c.text}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>
+            Not served
+            {store.mathematics.status?.reason
+              ? `: ${store.mathematics.status.reason}`
+              : ""}
+            {store.mode() !== "LIVE" ? " (the runtime is OFFLINE)" : ""}.
+          </p>
+        )}
+      </Section>
       <Section title="REVISIONS AND VERSIONS">
         <ul>
           <li>
@@ -2028,6 +2757,12 @@ export function SystemsRoom({ store }: { store: LabStore }) {
             R.A.I.N.&apos;s resonance plates show the runtime&apos;s state. They are drawn
             from it and write nothing back: not evidence, not a measurement, not a
             decision.
+          </li>
+          <li>
+            The mathematical substrate is a pinned, read-only index: the browser receives
+            bounded answers about it, never the repository, and nothing it holds is
+            evidence. A mathematical basis can suggest, constrain or challenge a
+            hypothesis; it cannot authorize, run or decide an experiment.
           </li>
         </ul>
       </Section>

@@ -9,8 +9,9 @@ The server-side components that do exist are outside the analytical model and
 optional: three stateless decision endpoints (`api/jev`, `api/glide`,
 `api/llm`) that let a remote model choose the player's controls in the
 illustrative simulation, each holding one provider credential and storing
-nothing; and the R.A.I.N. Lab's seven `api/rain/*` routes, which run its
-research runtime in process with a scratch experiment registry. None serves
+nothing; and the R.A.I.N. Lab's ten `api/rain/*` routes, which run its
+research runtime in process with a scratch experiment registry and a bundled,
+read-only mathematical substrate. None serves
 model data, and the site works without them — see
 [`docs/SYSTEM_ARCHITECTURE.md`](SYSTEM_ARCHITECTURE.md). Nothing below builds on
 them.

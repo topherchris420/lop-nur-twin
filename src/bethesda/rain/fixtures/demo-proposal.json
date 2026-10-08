@@ -1,5 +1,5 @@
 {
-  "schema": "rain-bethesda-experiment/v1",
+  "schema": "rain-bethesda-experiment/v2",
   "proposal_id": "demo-metro-dispersion",
   "origin": "fixture",
   "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
@@ -14,5 +14,6 @@
   "warmup_ticks": 300,
   "observation_window_ticks": 1200,
   "rain_decision": null,
-  "meeting_id": "rain-offline-93ae4b5195a5761ea843"
+  "meeting_id": "rain-offline-93ae4b5195a5761ea843",
+  "mathematical_basis": []
 }

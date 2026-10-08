@@ -21,6 +21,10 @@
  *   key over the definition — so an instance that never saw it can still check
  *   a submission against exactly the definition that was registered.
  * - A remote decision engine is consulted only when the operator said so.
+ * - The mathematical substrate is a bundled, version-pinned index served
+ *   read-only (`./mathematics/`): it is checked when the runtime starts, a
+ *   pre-registration's mathematical basis is checked against it, and nothing
+ *   it holds is evidence. An index that fails its checks is not served.
  * - `RAIN_RUNTIME=off` switches the runtime off: the lab runs OFFLINE.
  *
  * Server only.
@@ -70,6 +74,13 @@ import {
   type LoadedCorpus,
 } from "./meeting/offline.js";
 import { enforceMeetingPrivacy, PrivacyError, type Privacy } from "./meeting/privacy.js";
+import { bundledIndex } from "./mathematics/bundled.js";
+import { MATHEMATICS_SCHEMA, parseBasis } from "./mathematics/contracts.js";
+import {
+  MathematicalSubstrate,
+  SubstrateUnavailable,
+  type SearchInput,
+} from "./mathematics/substrate.js";
 import {
   MODEL_ENGINE,
   MODEL_ID,
@@ -167,6 +178,8 @@ export interface RuntimeOptions {
   resolveHost?: (host: string) => Promise<string[]>;
   /** Creates the scratch registry directory; injectable for tests. */
   scratchDir?: () => string;
+  /** The substrate index to serve instead of the bundled one; injectable for tests. */
+  mathematicsIndex?: unknown;
   sleep?: (ms: number) => Promise<void>;
 }
 
@@ -182,6 +195,10 @@ export interface RuntimeApi {
     requestId: string,
   ): Promise<unknown> | unknown;
   preregister(draft: unknown, requestId: string): unknown;
+  /** The mathematical substrate: which repository, commit and index, or why none is served. */
+  mathStatus(): unknown;
+  mathSearch(input: SearchInput, requestId: string): unknown;
+  mathInspect(family: string, requestId: string): unknown;
   submission(
     experimentId: string,
     submission: unknown,
@@ -268,6 +285,8 @@ interface RuntimeParts {
   scratch: boolean;
   certificateKey: Buffer;
   registryReason: string | null;
+  mathematics: MathematicalSubstrate | null;
+  mathematicsReason: string | null;
   now: () => Date;
 }
 
@@ -285,6 +304,8 @@ export class RainRuntime implements RuntimeApi {
   private readonly registryReason: string | null;
   /** Definitions certified elsewhere, each held in a scratch registry of its own. */
   private readonly certified = new Map<string, Registry>();
+  private readonly mathematics: MathematicalSubstrate | null;
+  private readonly mathematicsReason: string | null;
   private readonly now: () => Date;
   private constructor(parts: RuntimeParts) {
     this.env = parts.env;
@@ -298,6 +319,8 @@ export class RainRuntime implements RuntimeApi {
     this.scratch = parts.scratch;
     this.certificateKey = parts.certificateKey;
     this.registryReason = parts.registryReason;
+    this.mathematics = parts.mathematics;
+    this.mathematicsReason = parts.mathematicsReason;
     this.now = parts.now;
   }
 
@@ -425,6 +448,19 @@ export class RainRuntime implements RuntimeApi {
         now,
       });
     }
+    // The substrate is served only if its index passes every check; otherwise
+    // the runtime still starts, and says why no mathematics is available.
+    let mathematics: MathematicalSubstrate | null = null;
+    let mathematicsReason: string | null = null;
+    try {
+      mathematics = MathematicalSubstrate.load(
+        options.mathematicsIndex ?? bundledIndex(),
+        now,
+      );
+    } catch (error) {
+      if (!(error instanceof SubstrateUnavailable)) throw error;
+      mathematicsReason = error.message.slice(0, 300);
+    }
     return new RainRuntime({
       env,
       cwd,
@@ -437,6 +473,8 @@ export class RainRuntime implements RuntimeApi {
       scratch,
       certificateKey,
       registryReason,
+      mathematics,
+      mathematicsReason,
       now,
     });
   }
@@ -541,6 +579,68 @@ export class RainRuntime implements RuntimeApi {
     };
   }
 
+  /** The substrate's identity, or why none is served. */
+  mathStatus() {
+    if (this.mathematics) return this.mathematics.status();
+    return {
+      schema: MATHEMATICS_SCHEMA,
+      kind: "math-status" as const,
+      available: false,
+      reason: this.mathematicsReason ?? "no mathematical substrate is configured",
+      substrate: null,
+    };
+  }
+
+  private substrate(): MathematicalSubstrate {
+    if (!this.mathematics)
+      throw new Refused(
+        503,
+        "the mathematical substrate is not available: " +
+          (this.mathematicsReason ?? "none is configured"),
+      );
+    return this.mathematics;
+  }
+
+  /** `search_mathematics`: results that share terms with a query, and what that does and does not establish. */
+  mathSearch(input: SearchInput, requestId: string) {
+    return this.substrate().searchMathematics(input, requestId);
+  }
+
+  /** `inspect_mathematical_result`: one result family, bounded. */
+  mathInspect(family: string, requestId: string) {
+    return this.substrate().inspectMathematicalResult({ family }, requestId);
+  }
+
+  /**
+   * A draft that cites mathematics must cite it exactly as this substrate
+   * holds it — the same repository, commit and index, the same status and
+   * paths — or it is not registered. The registry's definition then carries
+   * the basis, and its certificate covers it.
+   */
+  private checkBasis(d: Record<string, unknown>) {
+    const parameters = d.parameters as Record<string, unknown> | null;
+    if (
+      !parameters ||
+      typeof parameters !== "object" ||
+      !("mathematical_basis" in parameters)
+    )
+      return;
+    const parsed = parseBasis(parameters.mathematical_basis);
+    if (!parsed.ok)
+      throw new Refused(
+        422,
+        "the mathematical basis is malformed: " + parsed.errors.slice(0, 3).join("; "),
+      );
+    if (!parsed.value.length) return;
+    const errors = this.substrate().verifyBasis(parsed.value);
+    if (errors.length)
+      throw new Refused(
+        422,
+        "the mathematical basis does not match the substrate: " +
+          errors.slice(0, 3).join("; ").slice(0, 300),
+      );
+  }
+
   /** Pre-register the lab's draft: the registry assigns `V3D-EXP-NNNN`. */
   preregister(draft: unknown, requestId: string) {
     if (this.registryReason)
@@ -555,6 +655,7 @@ export class RainRuntime implements RuntimeApi {
       d.evidence_class !== "simulated"
     )
       throw new Refused(400, "only external, simulated experiments are registered here");
+    this.checkBasis(d);
     if (this.scratch && this.registry.experimentIds().length >= SCRATCH_REGISTRY_CAP)
       throw new Refused(
         422,

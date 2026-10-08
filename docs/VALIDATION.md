@@ -8,7 +8,8 @@ when to run them.
 
 `bun run build` is the authoritative integration gate. It runs the offline data
 validator, then Bethesda's (`scripts/validate-bethesda.ts`: the city's data,
-the R.A.I.N. corpus and the DEMO recording, each against its hashes),
+the R.A.I.N. corpus, the DEMO recording and the mathematical substrate's index
+and licence, each against its hashes),
 regenerates the release manifest, checks it is the latest revision recorded in
 `model-history/` (`scripts/validate-model-history.ts`: every recorded manifest's
 bytes, the derived per-subject table, and the current model), produces the
@@ -182,8 +183,26 @@ bun run verify:rain-lab    # OFFLINE, DEMO, authorization, a run, its replay, a
                            # LIVE against the in-process runtime; a model
                            # meeting against tools/stand-in-model.mjs
 bun run rain:conformance   # the lab's drafts and submissions through the
-                           # runtime's own validators, evaluator and registry
+                           # runtime's own validators, evaluator and registry,
+                           # one of them citing mathematics
+bun run rain:math:verify   # the mathematical substrate's index: every check its
+                           # readers apply; with -- --from <checkout>, re-derived
 ```
+
+### The mathematical substrate
+
+What proves that mathematics stays context and never becomes evidence:
+
+| Check                                    | What it proves                                                                                                                                                                                                                                                                                                                                                                                         | What it does not prove                                                    |
+| :--------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| `src/rain/mathematics/indexer.test.ts`   | the indexer is deterministic and sorts stably; duplicates and malformed entries are refused; missing metadata is unverified, never repaired; the index is pinned to a commit; any edit after generation is detected; the fixture's real families equal the pinned index's                                                                                                                              | that the repository's catalogue is right about its own mathematics        |
+| `src/rain/mathematics/substrate.test.ts` | searches and inspections are bounded and exact, a missing family is NOT FOUND, every answer names its commit and index, the index cannot be changed through what it serves, nothing reads a file, fetches or executes, and basis entries obey their rules and the substrate                                                                                                                            | that a search finds every relevant result: it ranks shared words          |
+| `src/bethesda/rain/mathematics.test.ts`  | a basis survives validation, pre-registration (the registry's definition holds it), sealing and replay; a changed revision changes the digest and voids the authorization; an edited basis fails replay; the outcome is identical with or without mathematics; the evidence library lists none; malformed answers are refused; the lab works end to end through the real route, and not at all OFFLINE | that a cited relation is true: it is a person's claim, recorded as theirs |
+| `validate:bethesda`, `rain:math:verify`  | the bundled index passes every check and carries the licence it hashed; with `--from`, that it is exactly what that commit's catalogue gives                                                                                                                                                                                                                                                           | anything about a manuscript's correctness, or a Lean proof's              |
+| `rain:conformance`, `verify:rain-lab`    | a basis travels through the runtime's registry and is refused from another commit; in a browser, a search, an inspection and a citation reach the protocol a person authorizes, with axe in each room                                                                                                                                                                                                  | that the mathematics bears on Bethesda                                    |
+
+No check compiles Lean or runs a comparator: the lab indexes formalizations,
+it does not verify them, and says so wherever it shows one.
 
 `bun run test:bethesda` is the unit layer under them: the city's simulator,
 effects, walking and presentation, the lab's protocol, records and authority

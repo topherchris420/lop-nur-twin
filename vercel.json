@@ -31,6 +31,15 @@
     },
     "api/rain/submission.ts": {
       "maxDuration": 30
+    },
+    "api/rain/math-status.ts": {
+      "maxDuration": 10
+    },
+    "api/rain/math-search.ts": {
+      "maxDuration": 10
+    },
+    "api/rain/math-inspect.ts": {
+      "maxDuration": 10
     }
   },
   "headers": [

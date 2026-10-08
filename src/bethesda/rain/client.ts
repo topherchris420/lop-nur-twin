@@ -1,7 +1,10 @@
 /**
  * The browser's only R.A.I.N. client. It talks to this site's `/api/rain/*`
  * routes and nothing else — the CSP allows no other origin, and the research
- * runtime, with any model-server address or key, lives on the server.
+ * runtime, with any model-server address or key, lives on the server. The
+ * mathematical substrate is reached the same way: the browser never fetches a
+ * manuscript, a Lean file or the repository itself, only the runtime's
+ * bounded answers about them.
  *
  * Every answer is validated again here with the shared validators, bound to
  * the request that asked for it, and bounded in size and time. A failure is a
@@ -21,6 +24,19 @@ import {
   type ProposalOption,
   type RainIdentity,
 } from "./contracts";
+import {
+  MATH_LIMITS,
+  type FormalizationFilter,
+  type SearchMode,
+} from "../../rain/mathematics/contracts";
+import {
+  validateMathRecord,
+  validateMathResults,
+  validateMathStatus,
+  type MathRecord,
+  type MathResults,
+  type MathStatus,
+} from "./mathValidation";
 import {
   normalizeQuestion,
   parseBounded,
@@ -42,6 +58,7 @@ export type Failure =
   | "INVALID ANSWER"
   | "FAILED"
   | "CANCELLED"
+  | "NOT FOUND"
   | "ERROR";
 /** A model meeting in progress, as R.A.I.N.'s console reports it. Progress, not evidence. */
 export interface MeetingProgress {
@@ -139,13 +156,15 @@ export class RainClient {
                   : "RATE LIMITED"
                 : response.status === 422
                   ? "REFUSED"
-                  : response.status === 502 &&
-                      (code.startsWith("invalid runtime") ||
-                        code.startsWith("runtime answer too large"))
-                    ? "INVALID ANSWER"
-                    : response.status === 503 || response.status === 502
-                      ? "UNAVAILABLE"
-                      : "ERROR";
+                  : response.status === 404 && code && code !== "not found"
+                    ? "NOT FOUND"
+                    : response.status === 502 &&
+                        (code.startsWith("invalid runtime") ||
+                          code.startsWith("runtime answer too large"))
+                      ? "INVALID ANSWER"
+                      : response.status === 503 || response.status === 502
+                        ? "UNAVAILABLE"
+                        : "ERROR";
         return { ok: false, failure, detail: code || `HTTP ${response.status}` };
       }
       if (!parsed.ok)
@@ -332,6 +351,82 @@ export class RainClient {
       CALL_TIMEOUT,
     );
     return this.checked(r, (v) => validatePreregistration(v, { requestId }));
+  }
+
+  /** The mathematical substrate's identity, or why the runtime serves none. */
+  async mathStatus(): Promise<Result<MathStatus>> {
+    const r = await this.call(
+      "math-status",
+      null,
+      MATH_LIMITS.statusResponse,
+      STATUS_TIMEOUT,
+    );
+    return this.checked(r, validateMathStatus);
+  }
+
+  /** `search_mathematics`, bound to this request. */
+  async mathSearch(input: {
+    query: string;
+    discipline: string | null;
+    formalization: FormalizationFilter;
+    limit: number;
+    mode: SearchMode;
+    hypothesis: string | null;
+  }): Promise<Result<MathResults>> {
+    const query = normalizeQuestion(input.query);
+    if (!query || query.length > MATH_LIMITS.query)
+      return {
+        ok: false,
+        failure: "ERROR",
+        detail: `a query of 1 to ${MATH_LIMITS.query} characters`,
+      };
+    const hypothesis =
+      input.hypothesis === null ? null : normalizeQuestion(input.hypothesis);
+    if (hypothesis !== null && hypothesis.length > MATH_LIMITS.hypothesis)
+      return {
+        ok: false,
+        failure: "ERROR",
+        detail: `a hypothesis of at most ${MATH_LIMITS.hypothesis} characters`,
+      };
+    const requestId = hex(16);
+    const r = await this.call(
+      "math-search",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          session: this.session,
+          request_id: requestId,
+          query,
+          discipline: input.discipline,
+          formalization: input.formalization,
+          limit: input.limit,
+          mode: input.mode,
+          hypothesis: hypothesis || null,
+        }),
+      },
+      MATH_LIMITS.searchResponse,
+      CALL_TIMEOUT,
+    );
+    return this.checked(r, (v) =>
+      validateMathResults(v, { requestId, query, mode: input.mode }),
+    );
+  }
+
+  /** `inspect_mathematical_result`: one result family, bound to this request. */
+  async mathInspect(family: string): Promise<Result<MathRecord>> {
+    if (!/^[0-9]{3}$/.test(family))
+      return { ok: false, failure: "ERROR", detail: "a result family is three digits" };
+    const requestId = hex(16);
+    const r = await this.call(
+      "math-inspect",
+      {
+        method: "POST",
+        body: JSON.stringify({ session: this.session, request_id: requestId, family }),
+      },
+      MATH_LIMITS.inspectResponse,
+      CALL_TIMEOUT,
+    );
+    return this.checked(r, (v) => validateMathRecord(v, { requestId, family }));
   }
 
   /**

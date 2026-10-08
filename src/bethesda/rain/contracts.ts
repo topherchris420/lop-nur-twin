@@ -30,6 +30,13 @@
  * identity names the runtime that answers (before the consolidation of the
  * runtime into this repository it named a bridge process) and the repository
  * whose revision it reports.
+ *
+ * The mathematical substrate speaks its own family, `rain-mathematics/v1`
+ * (`../../rain/mathematics/contracts.ts`, validated in `mathValidation.ts`),
+ * beside this one: mathematics is context for a hypothesis, never part of the
+ * meeting's evidence, so none of the wire types here changed for it. What it
+ * adds to an experiment is the proposal's and the definition's
+ * `mathematical_basis`, which is why those two are at v2.
  */
 import {
   CRITERIA_RULE,
@@ -57,6 +64,7 @@ import {
   TURN_LIMITS,
   UNSAFE_TEXT,
 } from "../../rain/protocol.js";
+import type { MathematicalBasisEntry } from "../../rain/mathematics/contracts.js";
 
 export {
   CRITERIA_RULE,
@@ -71,8 +79,20 @@ export {
   type Evaluation,
   type Perspective,
 };
-export const EXPERIMENT_PROPOSAL_SCHEMA = "rain-bethesda-experiment/v1" as const;
-export const DEFINITION_SCHEMA = "bethesda-experiment-definition/v1" as const;
+/**
+ * v2: a proposal carries its `mathematical_basis` — the results of a
+ * mathematical substrate it cites, each with its status, its relation to the
+ * question, its stated assumptions and who assessed it. v1 had none and is
+ * refused.
+ */
+export const EXPERIMENT_PROPOSAL_SCHEMA = "rain-bethesda-experiment/v2" as const;
+/**
+ * v2: the definition a person authorizes carries the proposal's mathematical
+ * basis, so its digest — and with it the authorization, the pre-registration
+ * and the record — changes if the basis or its substrate revision does. A v1
+ * definition is refused at replay, with that reason.
+ */
+export const DEFINITION_SCHEMA = "bethesda-experiment-definition/v2" as const;
 export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as const;
 /**
  * Not `bethesda-observation/*`: that family is the agent-perspective schema the
@@ -532,6 +552,11 @@ export interface ExperimentProposal {
   rain_decision: { decision_id: string; envelope_hash: string } | null;
   /** The meeting the proposal answers, if any. */
   meeting_id: string | null;
+  /**
+   * The mathematics the proposal cites, if any: context for the hypothesis,
+   * read at one commit of one substrate index. Never evidence for the result.
+   */
+  mathematical_basis: MathematicalBasisEntry[];
 }
 
 export const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{3,63}$/;

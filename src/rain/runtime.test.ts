@@ -576,3 +576,61 @@ describe("local runtime", () => {
     expect(runtime.meetingRunning).toBe(false);
   });
 });
+
+describe("the mathematical substrate in the runtime", () => {
+  it("serves the bundled index and leaves the identity as it was", async () => {
+    const rt = await RainRuntime.create(options({}));
+    const status = rt.mathStatus() as {
+      available: boolean;
+      substrate: { repository: string; counts: { families: number } } | null;
+    };
+    expect(status.available).toBe(true);
+    expect(status.substrate?.repository).toBe("openai/math");
+    expect(status.substrate?.counts.families).toBe(372);
+    expect(Object.keys(rt.identity()).sort()).toEqual(
+      [
+        "bounded_decision",
+        "corpus",
+        "kind",
+        "meeting_engine",
+        "meeting_generation",
+        "model",
+        "registry",
+        "remote_decisions",
+        "rain",
+        "runtime",
+        "schema",
+      ].sort(),
+    );
+  });
+  it("still starts when the index fails its checks, serves no mathematics, and says why", async () => {
+    const rt = await RainRuntime.create(
+      options({}, { mathematicsIndex: { schema: "rain-math-substrate-index/v1" } }),
+    );
+    const status = rt.mathStatus() as {
+      available: boolean;
+      reason: string;
+      substrate: null;
+    };
+    expect(status.available).toBe(false);
+    expect(status.substrate).toBeNull();
+    expect(status.reason).toMatch(/failed its checks/);
+    expect(() =>
+      rt.mathSearch(
+        {
+          query: "graphs",
+          discipline: null,
+          formalization: "any",
+          limit: 3,
+          mode: "context",
+          hypothesis: null,
+        },
+        REQUEST,
+      ),
+    ).toThrow(Refused);
+    // The rest of the runtime is unaffected: meetings are still held.
+    expect((rt.meeting("What is a resonance?", REQUEST) as { kind: string }).kind).toBe(
+      "meeting",
+    );
+  });
+});

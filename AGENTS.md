@@ -500,8 +500,8 @@ it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 (with `rainApi` in `vite.config.ts` and their functions in `vercel.json`),
 `tools/rain-lab.mjs`, `tools/rain-conformance.mjs`, `tools/rain-admit.mjs`,
 `tools/rain-figures.mjs`, `tools/stand-in-model.mjs`, `scripts/export-rain-demo.ts`,
-`scripts/import-rain-source.ts`, the `RAIN_` lines of `.env.example`, the
-R.A.I.N. names in `tools/jev-secret-scan.mjs` and
+`scripts/import-rain-source.ts`, `scripts/math-substrate.ts`, the `RAIN_` lines
+of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
 scripts.
 
@@ -597,11 +597,12 @@ world state; recorded observations become evidence.**
 - **The browser bundle takes only the runtime's pure modules.** The lab may
   import `src/rain/protocol.ts`, `experiments/evaluate.ts`,
   `judgment/routing.ts` (and its `contracts`, `calibration`, `sensitive`),
-  `meeting/perspectives.ts`, `sha256.ts`, `text.ts` and `corpus.ts`;
-  `authority.test.ts` fails on anything else. The corpus data, the SOUL files,
-  the offline engine, model meetings, the registry and the runtime itself are
-  server-side and reach the browser only as validated `rain-bethesda/v2`
-  answers.
+  `meeting/perspectives.ts`, `sha256.ts`, `text.ts`, `corpus.ts` and
+  `mathematics/contracts.ts`; `authority.test.ts` fails on anything else. The
+  corpus data, the SOUL files, the offline engine, model meetings, the
+  registry, the mathematical substrate's index, indexer and search, and the
+  runtime itself are server-side and reach the browser only as validated
+  `rain-bethesda/v2` or `rain-mathematics/v1` answers.
 - **No words are written here.** A meeting is a validated R.A.I.N. record —
   LIVE from `/api/rain/meeting` (a model meeting arrives later, through
   `/api/rain/meeting-status`) or the DEMO recording — staged through
@@ -689,6 +690,56 @@ world state; recorded observations become evidence.**
   reason.
 - **Unknown stays unknown.** A commit, model or token count nobody reported is
   `null`; the submission refuses to invent the producing commit.
+
+### The mathematical substrate (`src/rain/mathematics/`)
+
+A read-only, version-pinned index of `openai/math`'s catalogue that the lab
+searches for mathematical context before it proposes. Read "The mathematical
+substrate" in `docs/RAIN_LAB_BETHESDA.md` first. The rule it exists to keep:
+**a mathematical result is context, never evidence** — it cannot authorize,
+execute, change the simulator, change a record's evidence, or pass the host
+gate.
+
+- **The index is generated, never edited.** `data/openai-math.json` is written
+  by `bun run rain:math:index -- --from <clean checkout of openai/math>` with
+  the real commit, generation time and content hash; `rain:math:verify`
+  (and `validate-bethesda.ts`, inside `bun run build`) checks every path,
+  status, count and the hash, and `--from` re-derives it from the checkout. To
+  move to a newer commit, re-index; never patch an entry. No PDF, LaTeX, Lean
+  source or reasoning-summary PDF is copied — only the catalogue's own words,
+  and `data/LICENSE.md` carries the repository's Apache-2.0 licence verbatim.
+- **Status comes from the repository, never from a reading.** `formalized`
+  means a Lean scope page exists at the pinned commit — the Lean is never
+  compiled or checked here, and the label says so; `reasoning-summary` is not
+  a proof; `unverified` (missing or inconsistent metadata) is shown and never
+  admissible in a basis. The words for every status, relation and finding live
+  once, in `mathematics/contracts.ts`.
+- **No relation from similarity.** Search is deterministic, lexical and
+  explained: each result lists the terms it shares and the fields they came
+  from, and every result arrives as `insufficient_context`. Only a person
+  states a connecting relation (`supports_hypothesis`, `provides_method`, …),
+  with assumptions and a rationale; the host's own rule may say no more than
+  `insufficient_context` or `related_but_not_applicable`. Challenge mode
+  orders counterexamples and obstructions first and never claims one refutes
+  the hypothesis.
+- **A basis is sealed and re-checked, never trusted.** `mathematical_basis` is
+  part of the `rain-bethesda-experiment/v2` proposal and the definition
+  digest. `parseBasis` refuses an unknown field, an unverified status, mixed
+  revisions or a connecting relation without assumptions — in the browser, at
+  pre-registration and at replay — and the runtime's `verifyBasis` refuses a
+  moved commit, another index, or a wrong title, status or path before it
+  pre-registers. The basis never enters the Evidence Library or the evidence
+  list of a record.
+- **The API reads and nothing else.** `math-status`, `math-search` and
+  `math-inspect` take closed, bounded fields — never a URL, a path, code or a
+  repository name — and answer `rain-mathematics/v1` objects the lab validates
+  (`mathValidation.ts`) before it shows a word. A missing or broken index
+  fails closed: the runtime still starts, the substrate reports itself
+  unavailable, and a proposal with a basis is refused.
+- **Tests never touch the network.** `fixtures/openai-math-fixture.json` is a
+  small excerpt (four families verbatim from the pinned commit, plus synthetic
+  entries marked as such that exist to be refused or flagged); `fixture.ts`
+  builds an index from it in memory.
 
 ## Verifying changes
 

@@ -19,6 +19,14 @@
  * - a real `Registry.create` + `recordSubmission` in a temporary registry,
  *   whose run status must match the lab's.
  *
+ * One more experiment cites mathematics: the DEMO's proposal with a
+ * mathematical basis built from the runtime's own substrate (an inspected
+ * `openai/math` family, cited by a person with stated assumptions). Its draft
+ * must carry the basis into the registry's definition, the runtime must
+ * pre-register it and refuse the same basis read at another commit, and its
+ * result must be the DEMO's exactly: mathematics informs a hypothesis and
+ * decides nothing.
+ *
  *   node tools/rain-conformance.mjs      (bun run rain:conformance)
  *
  * Exit status is 1 on any disagreement. It never fetches anything and calls
@@ -47,6 +55,12 @@ const { Registry } = await import("../src/rain/experiments/registry.ts");
 const { recordSubmission, recordedBy } =
   await import("../src/rain/experiments/runner.ts");
 const { sha256Json } = await import("../src/rain/sha256.ts");
+const { bundledIndex } = await import("../src/rain/mathematics/bundled.ts");
+const { MathematicalSubstrate } = await import("../src/rain/mathematics/substrate.ts");
+const { validateMathRecord } = await import("../src/bethesda/rain/mathValidation.ts");
+const { basisEntryFrom } = await import("../src/bethesda/rain/mathematics.ts");
+const { rainDefinitionDraft } = await import("../src/bethesda/rain/submission.ts");
+const { configureRuntime } = await import("../src/rain/runtime.ts");
 
 const demo = JSON.parse(
   readFileSync(
@@ -76,6 +90,31 @@ const variants = [
     },
   ],
 ];
+// The basis is built the way the lab builds it: from an inspected family, as
+// the runtime's substrate answers, validated, then cited by a person.
+const substrate = MathematicalSubstrate.load(bundledIndex());
+const REQ = "c".repeat(32);
+const inspected = validateMathRecord(
+  JSON.parse(JSON.stringify(substrate.inspectMathematicalResult({ family: "237" }, REQ))),
+  { requestId: REQ, family: "237" },
+);
+if (!inspected.ok) throw new Error(inspected.errors.join("; "));
+const cited = basisEntryFrom(inspected.value, {
+  manuscriptPath: null,
+  reasoningSummary: false,
+  relation: "suggests_hypothesis",
+  assumptions: [
+    "A pedestrian leaving the entrance takes one sidewalk segment per step, as a walk on the street graph.",
+  ],
+  rationale:
+    "Walk exponents suggest how far a dispersing cohort travels in a window; the simulator's rules decide whether it does.",
+  assessedBy: "person",
+});
+if (!cited.ok) throw new Error(cited.errors.join("; "));
+variants.push([
+  "mathematical-basis",
+  { ...demo, proposal_id: "conformance-mathematics", mathematical_basis: [cited.value] },
+]);
 const out = "shots/rain-conformance";
 mkdirSync(out, { recursive: true });
 const origin = { rain: null, rainSource: "unavailable", model: null };
@@ -184,6 +223,7 @@ const conform = (name, record) => {
   }
 };
 
+const recorded = new Map();
 for (const [name, proposal] of variants) {
   const c = cases.openCase(proposal, { id: name, now: new Date(), origin });
   const v = c.validated;
@@ -202,7 +242,65 @@ for (const [name, proposal] of variants) {
     v.experimentId,
     c.authorization,
   );
-  conform(name, cases.complete(c, result, { started, finished: new Date() }));
+  const record = cases.complete(c, result, { started, finished: new Date() });
+  recorded.set(name, record);
+  conform(name, record);
+}
+{
+  const record = recorded.get("mathematical-basis");
+  const plain = recorded.get("not-supported");
+  const basis = record.definition.mathematical_basis;
+  check(
+    "mathematical-basis: the sealed definition carries the basis as cited",
+    sorted(basis) === sorted([cited.value]),
+  );
+  check(
+    "mathematical-basis: the result is the DEMO's exactly; mathematics decides nothing",
+    sorted(record.run.measurements) === sorted(plain.run.measurements) &&
+      sorted(record.run.evaluation) === sorted(plain.run.evaluation) &&
+      record.outcome.verdict === plain.outcome.verdict,
+  );
+  const draft = rainDefinitionDraft(
+    record.definition,
+    record.experiment_id,
+    record.definition_sha256,
+    "R.A.I.N.Operator",
+  );
+  const scratch = mkdtempSync(join(tmpdir(), "rain-conformance-math-"));
+  try {
+    const registered = new Registry(scratch).create(draft);
+    check(
+      "mathematical-basis: the registry's pre-registered definition holds the basis",
+      sorted(registered.parameters.mathematical_basis) === sorted(basis),
+    );
+    const configured = await configureRuntime({
+      env: {},
+      cwd: process.cwd(),
+      scratchDir: () => mkdtempSync(join(scratch, "runtime-")),
+    });
+    const runtime = configured.runtime;
+    const answer = runtime.preregister(draft, REQ);
+    check(
+      "mathematical-basis: the runtime pre-registers it against its own substrate",
+      /^V3D-EXP-/.test(answer.experiment_id),
+      answer.experiment_id,
+    );
+    const moved = structuredClone(draft);
+    moved.parameters.mathematical_basis[0].commit = "f".repeat(40);
+    let refusal = "";
+    try {
+      runtime.preregister(moved, REQ);
+    } catch (e) {
+      refusal = e instanceof Error ? e.message : String(e);
+    }
+    check(
+      "mathematical-basis: the runtime refuses the basis read at another commit",
+      /does not match the substrate/.test(refusal),
+      refusal.slice(0, 160),
+    );
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
 }
 {
   const c = cases.openCase(demo, { id: "error", now: new Date(), origin });
