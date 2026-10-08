@@ -35,7 +35,7 @@ import {
 import { runSession, type SessionSummary } from "./controller";
 import { ModelFailure } from "./models";
 import { decisionDigestOK } from "./roles";
-import { deriveState } from "./state";
+import { RUNTIME_SPENT_MESSAGE, deriveState } from "./state";
 import { ResearchStore, StoreError, type StoredRecord } from "./store";
 import type { TraceEntry } from "./trace";
 import {
@@ -535,6 +535,13 @@ describe("failing closed", () => {
       expect(kinds(run.entries)).not.toContain("analysis");
       const record = readRecord(dir, of(run.entries, "record")[0]!.path);
       expect(record.error?.message).toMatch(/runtime budget ran out/);
+      expect(record.error?.type).toBe("RuntimeSpent");
+      expect(record.run).toBeNull();
+      // Nothing was measured, so the design did not run: its seeds stay fresh.
+      const store = new ResearchStore(dir);
+      const state = deriveState(store.records(), store.traces().entries);
+      expect(state.experiments).toEqual([]);
+      expect(state.measured).toEqual({});
     },
     LONG,
   );
@@ -599,6 +606,43 @@ describe("the research state is derived, and contradictions are kept", () => {
     expect(status("X4-increase")).toBe("inconclusive");
     expect(status("X5-increase")).toBe("not_evaluated");
     expect(status("X6-increase")).toBe("inconclusive");
+  });
+  it("keeps a design's seeds fresh when the session's budget cut its run off unmeasured", () => {
+    const cut = (design: string, error: { type: string; message: string }) => {
+      const r = fake(design, "not_evaluated");
+      Object.assign(r.record!, {
+        outcome: { ...r.record!.outcome, state: "FAILED", rain_status: "error" },
+        run: null,
+        error: { stage: "execute", ...error },
+      });
+      return r;
+    };
+    const state = deriveState(
+      [
+        cut("X2-increase-primary", {
+          type: "RuntimeSpent",
+          message: RUNTIME_SPENT_MESSAGE,
+        }),
+        // Sealed before the error had a name: the message alone says the same.
+        cut("X3-increase-primary", { type: "Error", message: RUNTIME_SPENT_MESSAGE }),
+        // A run that failed on its own did run, and is kept.
+        cut("X4-increase-primary", { type: "Error", message: "the simulator diverged" }),
+        fake("X2-increase-replication", "supported"),
+      ],
+      [],
+    );
+    expect(state.experiments.map((x) => x.design_id)).toEqual([
+      "X4-increase-primary",
+      "X2-increase-replication",
+    ]);
+    expect(state.measured).toEqual({
+      "X4:primary": "X4-increase-primary",
+      "X2:replication": "X2-increase-replication",
+    });
+    expect(state.hypotheses.find((x) => x.id === "X2-increase")!.status).toBe(
+      "supported",
+    );
+    expect(state.warnings).toEqual([]);
   });
   it("leaves out a record this loop did not make", () => {
     const foreign = fake("X3-increase-primary", "supported");

@@ -330,9 +330,13 @@ export function evidenceItems(
       grounded: meeting.audit.checked === meeting.audit.verified && unverified === 0,
     });
   }
-  for (const r of records) {
+  // The registry holds only records replay verified, but a record is data:
+  // one of an unexpected shape loses its own items and never the library.
+  const list = <T>(v: readonly T[]): readonly T[] => (Array.isArray(v) ? v : []);
+  const isText = (v: unknown) => typeof v === "string";
+  const itemsOf = (r: ExperimentRecord, out: EvidenceItem[]) => {
     if (r.definition)
-      items.push({
+      out.push({
         id: `${r.run_id}:h`,
         category: "HYPOTHESIS",
         title: `${r.experiment_id} hypothesis`,
@@ -346,12 +350,12 @@ export function evidenceItems(
             : ""),
         grounded: null,
       });
-    for (const check of r.validation)
+    for (const check of list(r.validation))
       // The mathematical basis's form check stays in the Experiment Bay: in
       // this library it would read as mathematics validated, and mathematics
       // is never evidence here.
       if (check.ok && check.id !== "mathematics")
-        items.push({
+        out.push({
           id: `${r.run_id}:c:${check.id}`,
           category: "VALIDATED CHECK",
           title: check.label,
@@ -359,11 +363,11 @@ export function evidenceItems(
           provenance: `host validation of ${r.experiment_id ?? "a rejected proposal"}`,
           grounded: null,
         });
-    if (!r.run) continue;
-    for (const arm of r.run.arms) {
+    if (!r.run) return;
+    for (const arm of list(r.run.arms)) {
       const last = arm.observations.at(-1);
       if (last)
-        items.push({
+        out.push({
           id: `${arm.id}:o`,
           category: "OBSERVATION",
           title: `${arm.arm} · seed ${arm.seed} · tick ${last.tick}`,
@@ -374,11 +378,11 @@ export function evidenceItems(
           grounded: null,
         });
     }
-    items.push({
+    out.push({
       id: `${r.run_id}:result`,
       category: "SIMULATION RESULT",
       title: `${r.experiment_id} · ${r.outcome.state} · ${r.outcome.verdict.replaceAll("_", " ")}`,
-      body: r.run.per_seed
+      body: list(r.run.per_seed)
         .map(
           (s) =>
             `seed ${s.seed}: control ${s.control ?? "not measured"}, treatment ${s.treatment ?? "not measured"}, difference ${s.delta ?? "not computable"}`,
@@ -387,6 +391,17 @@ export function evidenceItems(
       provenance: `${r.run.evaluation.rule}: ${r.run.evaluation.summary}`,
       grounded: null,
     });
+  };
+  for (const r of records) {
+    const out: EvidenceItem[] = [];
+    try {
+      itemsOf(r, out);
+    } catch {
+      continue;
+    }
+    // Every word shown is text; anything else would break the page that shows it.
+    if (out.every((i) => [i.id, i.title, i.body, i.provenance].every(isText)))
+      items.push(...out);
   }
   return items;
 }

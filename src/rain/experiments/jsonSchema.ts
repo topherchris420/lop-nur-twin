@@ -97,11 +97,13 @@ export function schemaErrors(value: unknown, schema: Schema): string[] {
       const o = v as Record<string, unknown>;
       const properties = (s.properties ?? {}) as Record<string, Schema>;
       for (const key of (s.required as string[] | undefined) ?? [])
-        if (!(key in o)) fail(`'${key}' is a required property`);
+        if (!Object.hasOwn(o, key)) fail(`'${key}' is a required property`);
       if (typeof s.maxProperties === "number" && Object.keys(o).length > s.maxProperties)
         fail(`${repr(v)} has too many properties`);
-      for (const [key, sub] of Object.entries(properties)) if (key in o) check(o[key], sub, [...path, key]);
-      const extra = Object.keys(o).filter((k) => !(k in properties));
+      // Own keys only: `in` would see Object.prototype, so a "constructor",
+      // "toString" or "__proto__" key would pass a closed object unexamined.
+      for (const [key, sub] of Object.entries(properties)) if (Object.hasOwn(o, key)) check(o[key], sub, [...path, key]);
+      const extra = Object.keys(o).filter((k) => !Object.hasOwn(properties, k));
       if (s.additionalProperties === false && extra.length)
         fail(
           `Additional properties are not allowed (${extra.map((k) => `'${k}'`).join(", ")} ${extra.length === 1 ? "was" : "were"} unexpected)`,

@@ -32,7 +32,7 @@ import {
 import { OPTIONS, ESCALATE, proposalFrom } from "./session";
 import { runExperiment, type Progress, type RunResult } from "./runner";
 import { verifyRecord, type Verification } from "./replay";
-import { recordDigestOK, type ExperimentRecord } from "./record";
+import { attachmentErrors, recordDigestOK, type ExperimentRecord } from "./record";
 import { rainDefinitionDraft, rainSubmission } from "./submission";
 import { ROOMS, type RoomId } from "./labLayout";
 import type { WorkerRequest } from "./experimentWorker";
@@ -275,6 +275,14 @@ export class LabStore {
     null;
   private revealTimer: ReturnType<typeof setInterval> | null = null;
   private cancelRun: (() => void) | null = null;
+  /**
+   * The case waiting on R.A.I.N.'s registry for its pre-registration. While it
+   * waits, nothing else may run it or pre-register it again: a registration
+   * that arrives must find the case exactly as it left it.
+   */
+  preregistering: string | null = null;
+  /** Set when the lab is left: nothing that arrives afterwards is acted on. */
+  private disposed = false;
 
   constructor(sim: CitySimulation, fetchImpl?: typeof fetch) {
     this.sim = sim;
@@ -493,9 +501,17 @@ export class LabStore {
         this.emit();
       },
     });
+    if (this.disposed) return;
     this.asking = false;
     this.askAbort = null;
     this.meetingProgress = null;
+    // A meeting stopped from the lab is not shown, even if it arrived.
+    if (r.ok && stop.signal.aborted) {
+      this.note =
+        "LIVE request failed: CANCELLED — the meeting was stopped. Nothing is shown in its place.";
+      this.emit();
+      return;
+    }
     if (!r.ok) {
       this.note =
         `LIVE request failed: ${r.failure} — ${r.detail}. Nothing is shown in its place.` +
@@ -521,6 +537,7 @@ export class LabStore {
     this.startMeeting(d.value, "DEMO");
   }
   private startMeeting(record: MeetingRecord, source: "LIVE" | "DEMO") {
+    if (this.disposed) return;
     if (this.revealTimer) clearInterval(this.revealTimer);
     this.meeting = {
       record,
@@ -720,6 +737,17 @@ export class LabStore {
   async preregisterAndRun(id: string) {
     const c = this.caseById(id);
     if (!c?.validated || c.lifecycle.state !== "AUTHORIZED") return;
+    if (this.preregistering) {
+      this.proposalNote =
+        "A pre-registration is already waiting for R.A.I.N.'s registry; nothing else is sent until it answers.";
+      this.emit();
+      return;
+    }
+    if (c.preregistration) {
+      this.proposalNote = `This experiment is already pre-registered as ${c.preregistration.experiment_id}.`;
+      this.emit();
+      return;
+    }
     const identity = this.runtime.status?.identity;
     if (this.mode() !== "LIVE" || !identity?.registry.available) {
       const reason = identity?.registry.reason;
@@ -735,10 +763,32 @@ export class LabStore {
       c.authorization?.operator ?? "R.A.I.N.Operator",
     );
     this.proposalNote = "Pre-registering with R.A.I.N. before the run…";
+    this.preregistering = c.id;
     this.emit();
-    const r = await this.client.preregister(draft);
+    let r: Awaited<ReturnType<RainClient["preregister"]>>;
+    try {
+      r = await this.client.preregister(draft);
+    } finally {
+      this.preregistering = null;
+    }
+    if (this.disposed) return;
     if (!r.ok) {
       this.proposalNote = `R.A.I.N. did not pre-register the experiment: ${r.failure} — ${r.detail}. Nothing ran. You may run it in Bethesda only; the record will say it was not pre-registered.`;
+      this.emit();
+      return;
+    }
+    // A registration describes a run that has not started. If the case moved
+    // while R.A.I.N. answered — it ran, was declined or ended — the answer is
+    // not stamped on it: its record would claim a pre-registration made after
+    // the run began.
+    if (
+      this.caseById(id) !== c ||
+      c.validated !== v ||
+      c.lifecycle.state !== "AUTHORIZED" ||
+      c.preregistration ||
+      this.run?.caseId === c.id
+    ) {
+      this.proposalNote = `R.A.I.N. registered ${r.value.experiment_id}, but the experiment had moved on (${c.lifecycle.state}) before the answer arrived. The registration is not attached to it and nothing ran on it.`;
       this.emit();
       return;
     }
@@ -752,7 +802,14 @@ export class LabStore {
   }
   runLocal(id: string) {
     const c = this.caseById(id);
-    if (c) this.run_(c, false);
+    if (!c) return;
+    if (this.preregistering === c.id) {
+      this.proposalNote =
+        "This experiment is waiting for R.A.I.N. to pre-register it; it runs when the registry answers.";
+      this.emit();
+      return;
+    }
+    this.run_(c, false);
   }
   private run_(c: ExperimentCase, report: boolean) {
     if (this.run) {
@@ -884,8 +941,23 @@ export class LabStore {
       return;
     }
     const r = parsed as ExperimentRecord;
-    if (!r || r.schema !== RECORD_SCHEMA || !recordDigestOK(r)) {
+    if (
+      !r ||
+      typeof r !== "object" ||
+      r.schema !== RECORD_SCHEMA ||
+      typeof r.run_id !== "string" ||
+      !recordDigestOK(r)
+    ) {
       this.registryNote = `Not a ${RECORD_SCHEMA} record, or its digest does not match; nothing was imported.`;
+      this.emit();
+      return;
+    }
+    // What replay cannot re-simulate — R.A.I.N.'s admission, the
+    // pre-registration it answers, a reproduction report — must be well formed
+    // and bound to this record before it is held at all.
+    const attached = attachmentErrors(r);
+    if (attached.length) {
+      this.registryNote = `${r.run_id} carries what it cannot (${attached.slice(0, 2).join("; ")}); nothing was imported.`;
       this.emit();
       return;
     }
@@ -904,9 +976,22 @@ export class LabStore {
       this.emit();
       return;
     }
-    this.quarantine = [r, ...this.quarantine.filter((x) => x.run_id !== r.run_id)].slice(
-      0,
-      QUARANTINED,
+    // Nor does it replace a copy this browser kept, which would then be
+    // stored as if it were that copy: an import is never stored.
+    if (this.restored.has(r.run_id)) {
+      const kept = this.quarantine.find((x) => x.run_id === r.run_id);
+      this.registryNote =
+        kept?.record_sha256 === r.record_sha256
+          ? `${r.run_id} is already held, kept in this browser, until replay re-verifies it; nothing changed.`
+          : `A record numbered ${r.run_id} kept in this browser is held until replay re-verifies it; an import never replaces it, so nothing was imported.`;
+      this.emit();
+      return;
+    }
+    // The quarantine bounds imports only; a held stored copy is never pushed
+    // out to make room.
+    let imports = 0;
+    this.quarantine = [r, ...this.quarantine.filter((x) => x.run_id !== r.run_id)].filter(
+      (x) => this.restored.has(x.run_id) || ++imports <= QUARANTINED,
     );
     this.registryNote = `Imported ${r.run_id}. It is quarantined — not in the registry and not evidence — until replay re-simulates every arm.`;
     this.emit();
@@ -996,11 +1081,14 @@ export class LabStore {
   private saveRecords() {
     // Stored records still waiting for replay stay stored: a visit that ends
     // before they re-verify must not lose them.
+    // They are never the ones evicted: the registry's oldest records make room
+    // for them, and if they alone exceed the bound they are all kept.
     const waiting = this.quarantine.filter((r) => this.restored.has(r.run_id));
+    const room = Math.max(0, STORED_RECORDS - waiting.length);
     try {
       globalThis.localStorage?.setItem(
         STORAGE_KEY,
-        JSON.stringify([...this.records, ...waiting].slice(0, STORED_RECORDS)),
+        JSON.stringify([...this.records.slice(0, room), ...waiting]),
       );
     } catch {
       this.registryNote =
@@ -1089,8 +1177,10 @@ export class LabStore {
 
   /** Leaving Bethesda ends a run in progress, and the record says so. */
   dispose() {
+    this.disposed = true;
     this.askAbort?.abort();
     if (this.revealTimer) clearInterval(this.revealTimer);
+    this.revealTimer = null;
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     this.presenceTimer = null;
     const c = this.caseById(this.run?.caseId ?? null);

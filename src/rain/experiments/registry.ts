@@ -34,7 +34,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { DEFINITION_SCHEMA, ExperimentError, canonicalJson, validateDefinition, type Json } from "./schema.js";
 
 export type { Json } from "./schema.js";
@@ -89,7 +89,7 @@ function atomicWrite(path: string, text: string): void {
  * between the check and the read.
  */
 export function readBoundedFile(path: string, limit: number): string {
-  const name = path.slice(path.lastIndexOf("/") + 1);
+  const name = basename(path);
   let fd: number;
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -120,7 +120,7 @@ export function parseJsonText(text: string, name: string): unknown {
 
 /** Read a bounded JSON file; symlinks are refused and parse errors are the registry's. */
 export function readJson(path: string, limit = 16 * 1024 * 1024): unknown {
-  const name = path.slice(path.lastIndexOf("/") + 1);
+  const name = basename(path);
   return parseJsonText(readBoundedFile(path, limit), name);
 }
 
@@ -289,7 +289,7 @@ export class Registry {
   beginRun(experimentId: string): { runId: string; runDir: string } {
     const runs = join(this.experimentDir(experimentId), "runs");
     mkdirSync(runs, { recursive: true });
-    const existing = this.runDirs(experimentId).map((dir) => Number(RUN_DIR.exec(dir.slice(dir.lastIndexOf("/") + 1))![1]));
+    const existing = this.runDirs(experimentId).map((dir) => Number(RUN_DIR.exec(basename(dir))![1]));
     let number = Math.max(0, ...existing) + 1;
     for (;;) {
       const name = `RUN-${String(number).padStart(4, "0")}`;

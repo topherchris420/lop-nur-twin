@@ -217,6 +217,64 @@ describe("model meeting", () => {
     expect(held.artifact.turns.map((t) => t.agent)).toEqual(["James", "Jasmine"]);
   });
 
+  it("asks the model nothing more once the lab cancels during a retry pause", async () => {
+    const controller = new AbortController();
+    const server = standIn(() => {
+      throw new Error("server went away");
+    });
+    const held = await holdMeeting(
+      "q",
+      documents,
+      { ...settings, maxRetries: 3 },
+      hooks(server.fetchImpl, {
+        signal: controller.signal,
+        sleep: async () => controller.abort(),
+      }),
+    );
+    // The connection test and the first attempt; no retry after the cancel.
+    expect(server.calls).toHaveLength(2);
+    expect([held.cancelled, held.modelStopped]).toEqual([true, false]);
+    expect(held.artifact.status).toBe("interrupted");
+  });
+
+  it("ends a retry pause early when the lab cancels", async () => {
+    const controller = new AbortController();
+    const server = standIn(() => {
+      throw new Error("server went away");
+    });
+    const held = await holdMeeting(
+      "q",
+      documents,
+      { ...settings, maxRetries: 3 },
+      hooks(server.fetchImpl, {
+        signal: controller.signal,
+        sleep: () => {
+          queueMicrotask(() => controller.abort());
+          return new Promise<void>(() => {});
+        },
+      }),
+    );
+    expect(server.calls).toHaveLength(2);
+    expect(held.cancelled).toBe(true);
+  });
+
+  it("sends no critique or refinement after a cancel mid-turn", async () => {
+    const controller = new AbortController();
+    const server = standIn(() => {
+      controller.abort();
+      return GROUNDED;
+    });
+    const held = await holdMeeting(
+      "q",
+      documents,
+      { ...settings, recursiveIntellect: true },
+      hooks(server.fetchImpl, { signal: controller.signal }),
+    );
+    expect(server.calls).toHaveLength(2);
+    expect(held.cancelled).toBe(true);
+    expect(held.artifact.turns).toEqual([]);
+  });
+
   it("stands a placeholder in for an answer it cannot use", async () => {
     const server = standIn((body, turn) =>
       turn === 1 && body.messages.at(-1)!.content.includes("[Meeting Start]")

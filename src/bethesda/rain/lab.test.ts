@@ -316,6 +316,73 @@ describe("the registry's certificate", () => {
       certificate,
     });
   });
+  it("is never stamped on a case that moved while the registry answered", async () => {
+    let answer!: (r: Response) => void;
+    const pending = new Promise<Response>((resolve) => (answer = resolve));
+    let requestId = "";
+    const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const path = String(url).replace(/^.*\/api\/rain\//, "");
+      if (path === "status")
+        return respond(200, {
+          schema: "rain-bethesda/v2",
+          kind: "status",
+          configured: true,
+          reachable: true,
+          identity,
+          failure: null,
+        });
+      requestId = (JSON.parse(String(init?.body)) as { request_id: string }).request_id;
+      return pending;
+    });
+    const s = store(fetchImpl);
+    await s.checkRuntime();
+    s.proposeByHand({
+      ...structuredClone(proposal),
+      origin: "human",
+      rain_decision: null,
+    });
+    const c = s.cases[0]!;
+    s.approve(c.id, {
+      operator: "R.A.I.N.Operator",
+      typedPrefix: c.validated!.definitionSha256.slice(0, 8),
+      reviewed: true,
+    });
+    const waiting = s.preregisterAndRun(c.id);
+    // While R.A.I.N. answers, the case cannot be run or pre-registered again.
+    expect(s.preregistering).toBe(c.id);
+    s.runLocal(c.id);
+    expect(c.lifecycle.state).toBe("AUTHORIZED");
+    expect(s.run).toBeNull();
+    expect(s.proposalNote).toMatch(/waiting for R\.A\.I\.N\. to pre-register it/);
+    await s.preregisterAndRun(c.id);
+    expect(
+      fetchImpl.mock.calls.filter(([u]) => String(u).endsWith("preregister")),
+    ).toHaveLength(1);
+    // The operator declines it before the answer arrives.
+    s.decline(c.id);
+    expect(c.lifecycle.state).toBe("REJECTED");
+    answer(
+      respond(200, {
+        schema: "rain-bethesda/v2",
+        kind: "preregistration",
+        request_id: requestId,
+        experiment_id: "V3D-EXP-0001",
+        experiment_version: 1,
+        definition_sha256: "d".repeat(64),
+        created_at: "2026-10-06T01:00:00.000Z",
+        registry: "scratch",
+        certificate: "c".repeat(64),
+      }),
+    );
+    await waiting;
+    expect(s.preregistering).toBeNull();
+    expect(c.preregistration).toBeNull();
+    expect(c.receipt).toBeNull();
+    expect(c.record?.rain_preregistration).toBeNull();
+    expect(s.records[0]?.rain_preregistration).toBeNull();
+    expect(s.run).toBeNull();
+    expect(s.proposalNote).toMatch(/had moved on \(REJECTED\)/);
+  });
   it("goes back with the submission when there is one, and only then", async () => {
     const sent: Record<string, unknown>[] = [];
     const client = new RainClient(async (_url, init) => {
@@ -505,6 +572,73 @@ describe("LIVE: a model meeting, and a choice R.A.I.N. hands back", () => {
     expect(calls).toContain("meeting-cancel");
     expect(s.meeting).toBeNull();
     expect(s.note).toMatch(/CANCELLED/);
+  });
+  /** A route whose meeting request answers only when released, and honours an abort. */
+  const held = () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const paths: string[] = [];
+    const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const path = String(url).replace(/^.*\/api\/rain\//, "");
+      paths.push(path);
+      if (path === "status")
+        return respond(200, {
+          schema: "rain-bethesda/v2",
+          kind: "status",
+          configured: true,
+          reachable: true,
+          identity: modelIdentity,
+          failure: null,
+        });
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      await new Promise<void>((resolve, reject) => {
+        void gate.then(resolve);
+        init?.signal?.addEventListener("abort", () =>
+          reject(new DOMException("aborted", "AbortError")),
+        );
+      });
+      return respond(200, modelMeeting(body.request_id as string));
+    });
+    return { fetchImpl, paths, release: () => release() };
+  };
+  it("stops a request in flight when asked, and shows nothing in its place", async () => {
+    const route = held();
+    const s = store(route.fetchImpl);
+    await s.checkRuntime();
+    const asked = s.ask(meeting.question);
+    await vi.waitFor(() => expect(route.paths).toContain("meeting"));
+    s.stopAsking();
+    // The request is abandoned at once: nothing waits for R.A.I.N. to answer.
+    await asked;
+    expect(s.asking).toBe(false);
+    expect(s.meeting).toBeNull();
+    expect(s.note).toMatch(/CANCELLED/);
+    route.release();
+  });
+  it("never returns a meeting that arrives after the meeting was stopped", async () => {
+    const controller = new AbortController();
+    const client = new RainClient(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      controller.abort();
+      // A server that answers anyway, ignoring the abort.
+      return respond(200, modelMeeting(body.request_id as string));
+    });
+    const r = await client.meeting(meeting.question, { signal: controller.signal });
+    expect(r).toMatchObject({ ok: false, failure: "CANCELLED" });
+  });
+  it("acts on nothing that arrives after the lab is left", async () => {
+    const route = held();
+    const s = store(route.fetchImpl);
+    await s.checkRuntime();
+    const asked = s.ask(meeting.question);
+    await vi.waitFor(() => expect(route.paths).toContain("meeting"));
+    s.dispose();
+    route.release();
+    await asked;
+    expect(s.meeting).toBeNull();
+    // A meeting the DEMO stages after leaving starts no reveal either.
+    s.playDemo();
+    expect(s.meeting).toBeNull();
   });
   const handed = (body: Record<string, unknown>, attempts: unknown[]) =>
     respond(200, {
@@ -714,4 +848,85 @@ describe("an imported record is not evidence until replay passes", () => {
       vi.unstubAllGlobals();
     }
   }, 120_000);
+  /** A rejection record (cheap to verify), optionally edited and re-sealed. */
+  const rejection = (runId: string, edit: (r: ExperimentRecord) => void = () => {}) => {
+    const r = openCase(
+      { schema: "nope" },
+      {
+        id: runId,
+        now: new Date(),
+        origin: { rain: null, rainSource: "unavailable", model: null },
+      },
+    ).record!;
+    const copy = structuredClone(r);
+    copy.run_id = runId;
+    edit(copy);
+    const { record_sha256: _stale, ...body } = copy;
+    return seal(body);
+  };
+  const forgedCheck = (r: ExperimentRecord) =>
+    r.validation.push({ id: "budget", label: "Budget", ok: true, detail: "fine" });
+  it("never evicts a held stored copy to make room, in storage or in the quarantine", async () => {
+    const held = rejection("REJ-held", forgedCheck);
+    const stored = kept([held]);
+    try {
+      const s = store(vi.fn());
+      expect((await settled(s, held.run_id)).ok).toBe(false);
+      expect(s.heldFrom(held.run_id)).toBe("storage");
+      // More imports than the quarantine holds: imports make room for imports.
+      for (let i = 0; i < 10; i++)
+        s.importRecord(JSON.stringify(rejection(`REJ-import${i}`, forgedCheck)));
+      expect(s.quarantine.map((r) => r.run_id)).toContain(held.run_id);
+      expect(s.quarantine.filter((r) => s.heldFrom(r.run_id) === "import")).toHaveLength(
+        8,
+      );
+      // More records than storage holds: the registry's oldest make room.
+      for (let i = 0; i < 30; i++)
+        s.proposeByHand({ schema: "nope", origin: "human", rain_decision: null });
+      expect(s.records.length).toBe(30);
+      const ids = stored();
+      expect(ids).toHaveLength(24);
+      expect(ids).toContain(held.run_id);
+      expect(ids.slice(0, 23)).toEqual(s.records.slice(0, 23).map((r) => r.run_id));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }, 120_000);
+  it("never lets an import replace, or pass for, a copy kept in this browser", async () => {
+    const held = rejection("REJ-held", forgedCheck);
+    const stored = kept([held]);
+    try {
+      const s = store(vi.fn());
+      expect((await settled(s, held.run_id)).ok).toBe(false);
+      const impostor = rejection("REJ-held");
+      expect(impostor.record_sha256).not.toBe(held.record_sha256);
+      s.importRecord(JSON.stringify(impostor));
+      expect(s.registryNote).toMatch(/an import never replaces it/);
+      expect(s.quarantine.map((r) => r.record_sha256)).toEqual([held.record_sha256]);
+      expect(s.records).toEqual([]);
+      // Storage still holds the copy it held, and only that.
+      s.proposeByHand({ schema: "nope", origin: "human", rain_decision: null });
+      const inStorage = JSON.parse(
+        globalThis.localStorage.getItem("lop-nur:rain-lab:registry/v1")!,
+      ) as ExperimentRecord[];
+      expect(inStorage.find((r) => r.run_id === held.run_id)?.record_sha256).toBe(
+        held.record_sha256,
+      );
+      expect(stored()).toContain(held.run_id);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }, 120_000);
+  it("refuses an import whose R.A.I.N. admission is malformed or answers nothing", () => {
+    const s = store(vi.fn());
+    const admitted = rejection("REJ-admitted", (r) => {
+      r.rain_admission = {
+        interpretation: { deterministic: 42, model: null },
+      } as unknown as ExperimentRecord["rain_admission"];
+    });
+    s.importRecord(JSON.stringify(admitted));
+    expect(s.registryNote).toMatch(/nothing was imported/);
+    expect(s.quarantine).toEqual([]);
+    expect(s.records).toEqual([]);
+  });
 });

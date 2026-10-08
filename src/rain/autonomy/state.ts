@@ -146,6 +146,22 @@ export interface ResearchState {
 export const NOTE =
   "Derived from the sealed records and session traces in this directory; rebuilt on every load and never read back. Hypothesis status comes from records and the registry's pre-registered criteria. Every question, hypothesis wording and interpretation attributed to a model is that model's text, not evidence. Simulation results describe the Bethesda simulator's rules, not Bethesda.";
 
+/** The error a run sealed when the session's runtime budget, not the run, ended it. */
+export const RUNTIME_SPENT = "RuntimeSpent";
+export const RUNTIME_SPENT_MESSAGE =
+  "the session's runtime budget ran out during the run";
+
+/**
+ * A run the session's runtime budget cut off before it finished: sealed
+ * FAILED with no run section, so nothing was measured. Records sealed before
+ * the error was named carry the plain `Error` type and the same message.
+ */
+export const cutOffUnmeasured = (r: NonNullable<StoredRecord["record"]>): boolean =>
+  r.outcome.state === "FAILED" &&
+  r.run === null &&
+  r.error !== null &&
+  (r.error.type === RUNTIME_SPENT || r.error.message === RUNTIME_SPENT_MESSAGE);
+
 const hypothesisOf = (design: string) => design.split("-").slice(0, 2).join("-");
 const competitorOf = (id: string) =>
   id.endsWith("-increase")
@@ -197,6 +213,9 @@ export function deriveState(
     // A design that was refused never ran, whatever admitted it first; the
     // trace holds the refusal, and its seeds stay fresh.
     if (r.outcome.state === "REJECTED" && r.proposal?.origin === "rain") continue;
+    // Nor did one the session's budget cut off before it measured anything:
+    // the trace holds the stop, and the design's seeds stay fresh.
+    if (cutOffUnmeasured(r)) continue;
     if (!r.standing) {
       warnings.push(
         `${stored.path} was not admitted under a standing authority; it is not this loop's record and is left out`,

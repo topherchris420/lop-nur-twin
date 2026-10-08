@@ -33,7 +33,12 @@ import { ROOMS, ROOM_IDS, type RoomId } from "./labLayout";
 import { CATEGORIES, OPTIONS, branches, evidenceItems, type Category } from "./session";
 import { labRevision } from "./provenance";
 import { admissionBundle, runArtifactName } from "./submission";
-import { runArtifactText, type ExperimentRecord } from "./record";
+import {
+  boundAdmission,
+  boundReproduction,
+  runArtifactText,
+  type ExperimentRecord,
+} from "./record";
 import { armTrace } from "./replay";
 import { CONFIRMATION_LENGTH } from "./authorization";
 import { engineName, suggestion, type LabStore } from "./store";
@@ -1570,7 +1575,7 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
           <button
             className={button}
             onClick={() => store.runLocal(c.id)}
-            disabled={!!store.run}
+            disabled={!!store.run || !!store.preregistering}
           >
             Run in Bethesda (not pre-registered with R.A.I.N.)
           </button>
@@ -1578,7 +1583,7 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
             <button
               className={button}
               onClick={() => void store.preregisterAndRun(c.id)}
-              disabled={!!store.run}
+              disabled={!!store.run || !!store.preregistering}
             >
               Pre-register with R.A.I.N., run, and report the measurements
             </button>
@@ -2203,6 +2208,9 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
   const verification = store.verifications[r.run_id];
   const [arm, setArm] = useState(r.run?.arms[0]?.id ?? "");
   const p = r.provenance;
+  // Shown only when well formed and bound to this record; never trusted as text.
+  const admission = boundAdmission(r);
+  const reproduction = boundReproduction(r);
   const canReport =
     store.mode() === "LIVE" &&
     !!r.rain_preregistration &&
@@ -2305,13 +2313,17 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
           </ul>
         </Section>
       ) : null}
-      {r.rain_admission ? (
+      {admission ? (
         <Section title="R.A.I.N.'S OWN RECORD">
-          {r.rain_admission.run_id}: {r.rain_admission.status} (
-          {r.rain_admission.hypothesis_verdict.replaceAll("_", " ")}) — R.A.I.N.
-          interpretation (deterministic, R.A.I.N. registry):{" "}
-          {r.rain_admission.interpretation.deterministic}
+          {admission.run_id}: {admission.status} (
+          {admission.hypothesis_verdict.replaceAll("_", " ")}) — R.A.I.N. interpretation
+          (deterministic, R.A.I.N. registry): {admission.interpretation.deterministic}
         </Section>
+      ) : r.rain_admission ? (
+        <p className={quiet + " mt-2"}>
+          R.A.I.N.&apos;s record attached to this copy is malformed or answers another
+          registration; it is not shown.
+        </p>
       ) : (
         <p className={quiet + " mt-2"}>
           R.A.I.N. interpretation: unavailable — this run has not been admitted by a
@@ -2340,13 +2352,13 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
         terrain {short(p.terrain_sha256)} · provider {p.provider ?? "none"} · model{" "}
         {p.model ?? "none"} · recorded {p.recorded_at}
       </Section>
-      {r.reproduction ? (
+      {reproduction ? (
         <Section title="REPRODUCTION">
-          Of {r.reproduction.source_run}: outcome{" "}
-          {r.reproduction.outcome_matches ? "matches" : "DIFFERS"}; deterministic metrics{" "}
-          {r.reproduction.deterministic_metrics_match ? "match" : "DIFFER"}
-          {r.reproduction.mismatches.length
-            ? ` (${r.reproduction.mismatches.join("; ")})`
+          Of {reproduction.source_run}: outcome{" "}
+          {reproduction.outcome_matches ? "matches" : "DIFFERS"}; deterministic metrics{" "}
+          {reproduction.deterministic_metrics_match ? "match" : "DIFFER"}
+          {reproduction.mismatches.length
+            ? ` (${reproduction.mismatches.join("; ")})`
             : ""}
           .
         </Section>

@@ -369,6 +369,34 @@ describe("the bounded observation tools", () => {
     expect(segment.result.packets).toHaveLength(30);
     expect(segment.result.truncated).toBe(true);
   });
+  it("say a replay segment is truncated only when packets in its range were left out", () => {
+    const sim = city();
+    // Exactly thirty packets: all of them fit, so nothing was dropped.
+    const thirty = [recorded(Array.from({ length: 30 }, (_, i) => i * 100))];
+    const arm = thirty[0]!.run!.arms[0]!.id;
+    const segment = (records: ExperimentRecord[], to_tick: number) => {
+      const r = runTool(
+        {
+          tool: "request_replay_segment",
+          run_id: records[0]!.run_id,
+          arm_id: arm,
+          from_tick: 0,
+          to_tick,
+        },
+        { sim, records },
+      );
+      if (!r.ok) throw new Error(r.error);
+      return r.result as { packets: unknown[]; truncated: boolean };
+    };
+    expect(segment(thirty, 18000)).toMatchObject({ truncated: false });
+    expect(segment(thirty, 18000).packets).toHaveLength(30);
+    // Thirty-one in range: one is left out.
+    const more = [recorded(Array.from({ length: 31 }, (_, i) => i * 100))];
+    expect(segment(more, 18000)).toMatchObject({ truncated: true });
+    expect(segment(more, 18000).packets).toHaveLength(30);
+    // Thirty-one recorded, thirty in range: nothing in range was left out.
+    expect(segment(more, 2900)).toMatchObject({ truncated: false });
+  });
 });
 
 describe("perspectives in the city", () => {

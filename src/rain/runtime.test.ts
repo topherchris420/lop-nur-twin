@@ -243,6 +243,43 @@ describe("runtime configuration", () => {
     });
   });
 
+  it("names an unreadable calibration file by its setting, never by its path", async () => {
+    const configured = await configureRuntime(
+      options({ RAIN_DECISION_CALIBRATION: "no-such-dir/calibration.json" }),
+    );
+    expect(configured).toEqual({
+      mode: "misconfigured",
+      reason: "RAIN_DECISION_CALIBRATION could not be read",
+    });
+  });
+
+  it("publishes a platform error as what failed, never its path", async () => {
+    const path = join(ROOT, "private", "scratch");
+    const configured = await configureRuntime(
+      options(
+        {},
+        {
+          scratchDir: () => {
+            throw Object.assign(
+              new Error(`EACCES: permission denied, mkdtemp '${path}'`),
+              {
+                code: "EACCES",
+                syscall: "mkdtemp",
+                path,
+              },
+            );
+          },
+        },
+      ),
+    );
+    expect(configured.mode).toBe("misconfigured");
+    if (configured.mode === "misconfigured") {
+      expect(configured.reason).toMatch(/could not be used/);
+      expect(configured.reason).not.toContain(path);
+      expect(configured.reason).not.toContain("private");
+    }
+  });
+
   it("builds a local runtime with nothing configured", async () => {
     const configured = await configureRuntime(options({}));
     expect(configured.mode).toBe("local");

@@ -10,7 +10,9 @@
  * `node:os`. Never imported by the browser.
  */
 import { execFileSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { arch, cpus, platform, release } from "node:os";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 
 export const REDACTED = "[REDACTED]";
 
@@ -48,7 +50,9 @@ export function redact<T>(value: T, key: string | null = null): T {
   if (Array.isArray(value)) return value.map((v) => redact(v, key)) as T;
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = redact(v, k);
+    // Defined, not assigned, so a "__proto__" key survives as data.
+    for (const [k, v] of Object.entries(value as Record<string, unknown>))
+      Object.defineProperty(out, k, { value: redact(v, k), enumerable: true, writable: true, configurable: true });
     return out as T;
   }
   if (typeof value === "string") {
@@ -81,10 +85,36 @@ function git(cwd: string, ...args: string[]): string | null {
   }
 }
 
+/** A path with symlinks resolved where it exists (a temp directory may sit behind one). */
+function real(path: string): string {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return path;
+  }
+}
+
+/**
+ * Git `:(top,exclude)` pathspecs for the `excluded` directories (absolute, or
+ * relative to `cwd`) that sit inside the repository at `top`, written
+ * repository-relative with forward slashes. A directory outside the checkout
+ * (a scratch registry in the temp directory, a certified registry elsewhere)
+ * is not git's to look at, and naming it would make `git status` fail.
+ */
+export function excludePathspecs(cwd: string, top: string, excluded: readonly string[]): string[] {
+  const root = real(resolve(top));
+  return excluded.flatMap((path) => {
+    const rel = relative(root, real(resolve(cwd, path)));
+    if (!rel || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) return [];
+    return [`:(top,exclude)${rel.split(sep).join("/")}`];
+  });
+}
+
 /**
  * Commit, branch and dirty state of the checkout at `cwd`. Registry data
- * (`excluded`, repository-relative) is ignored for the dirty check: recording
- * a run must not make the next run look like it came from modified code.
+ * (`excluded`: directories, absolute or relative to `cwd`) is ignored for
+ * the dirty check when it lies inside the checkout: recording a run must not
+ * make the next run look like it came from modified code.
  */
 export function gitState(cwd: string, excluded: readonly string[] = []): GitState {
   const commit = git(cwd, "rev-parse", "HEAD");
@@ -96,7 +126,8 @@ export function gitState(cwd: string, excluded: readonly string[] = []): GitStat
       changed_paths: null,
       note: "git metadata unavailable; source revision unknown",
     };
-  const pathspec = [".", ...excluded.map((path) => `:(exclude)${path}`)];
+  const top = excluded.length ? git(cwd, "rev-parse", "--show-toplevel") : null;
+  const pathspec = [".", ...(top ? excludePathspecs(cwd, top, excluded) : [])];
   const status = git(cwd, "status", "--porcelain", "--untracked-files=normal", "--", ...pathspec);
   const changed = (status ?? "").split("\n").filter((line) => line.trim());
   return {

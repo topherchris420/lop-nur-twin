@@ -120,6 +120,22 @@ export function findQuoteSpan(content: string, quote: string): [number, number] 
   return [start, end];
 }
 
+/**
+ * Find `quote` in the one document it cites. A quote is verified by its own
+ * source: the same words in another paper, earlier in path order, neither
+ * confirm nor refute where this one came from.
+ */
+export function verifyQuoteAt(
+  documents: ReadonlyMap<string, string>,
+  source: string,
+  quote: string,
+): CitationMatch | null {
+  const content = documents.get(source);
+  if (content === undefined) return null;
+  const span = findQuoteSpan(content, quote);
+  return span === null ? null : { source, spanStart: span[0], spanEnd: span[1] };
+}
+
 /** Find `quote` in the documents, by path order; the first hit names the source. */
 export function verifyQuote(
   documents: ReadonlyMap<string, string>,

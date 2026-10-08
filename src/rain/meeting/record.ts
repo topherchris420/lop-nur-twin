@@ -8,7 +8,12 @@
  *
  * Shared with the server: imports siblings as `./x.js`, nothing else.
  */
-import { documentMap, verifyQuote, type CorpusDocument } from "../corpus.js";
+import {
+  documentMap,
+  verifyQuote,
+  verifyQuoteAt,
+  type CorpusDocument,
+} from "../corpus.js";
 import { sha256 } from "../sha256.js";
 import { countBefore, pyJsonDumps } from "../text.js";
 import type { OfflineMeeting } from "./offline.js";
@@ -103,7 +108,7 @@ export const nowIso = (date = new Date()) => date.toISOString();
 
 /**
  * The offline engine's meeting in `rain-bethesda/v2`. Every quote is checked
- * again with `verifyQuote` against the documents it was drawn from, and the
+ * again with `verifyQuoteAt` against the document it cites, and the
  * meeting id is derived from the content: the engine is deterministic, so the
  * same question over the same corpus is the same meeting.
  */
@@ -116,8 +121,8 @@ export function offlineMeetingRecord(
 ): MeetingRecord {
   const docs = documentMap(documents);
   const quote = (p: OfflineMeeting["turns"][number]["quotes"][number]): RecordQuote => {
-    const match = verifyQuote(docs, p.text);
-    const verified = match !== null && match.source === p.source;
+    const match = verifyQuoteAt(docs, p.source, p.text);
+    const verified = match !== null;
     return {
       source: p.source,
       line: p.line,

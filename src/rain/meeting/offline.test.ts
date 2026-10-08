@@ -11,6 +11,7 @@ import {
   buildOfflineMeeting,
   loadCorpus,
   quotesOf,
+  verifyMeetingQuotes,
 } from "./offline.js";
 import { offlineMeetingRecord } from "./record.js";
 
@@ -135,6 +136,28 @@ describe("offline meeting", () => {
     expect(JSON.stringify(buildOfflineMeeting(QUESTION, corpus()))).toBe(
       JSON.stringify(buildOfflineMeeting(QUESTION, corpus())),
     );
+  });
+
+  it("verifies each quote against its own source, not the first paper that holds it", () => {
+    // An earlier-sorted paper carrying the same words must not unverify a quote
+    // whose own source holds it verbatim.
+    const meeting = buildOfflineMeeting(QUESTION, corpus());
+    expect(quotesOf(meeting).length).toBeGreaterThan(0);
+    expect(meeting.audit.verified).toBe(meeting.audit.checked);
+    const reprint = { path: "000 Reprint.md", text: OSCILLATOR_PAPER + GEOMETRY_PAPER };
+    const docs = [reprint, ...corpus()];
+    expect(
+      quotesOf(meeting).every((q) => findQuoteSpan(reprint.text, q.text) !== null),
+    ).toBe(true);
+    expect(verifyMeetingQuotes(meeting, docs).every(Boolean)).toBe(true);
+    const record = offlineMeetingRecord(meeting, docs, "a".repeat(32), {
+      repository: "topherchris420/lop-nur-twin",
+      commit: null,
+      dirty: null,
+    });
+    const quotes = record.turns.flatMap((t) => t.quotes);
+    expect(quotes.every((q) => q.verified)).toBe(true);
+    expect(quotes.filter((q) => q.verified)).toHaveLength(record.audit.verified);
   });
 
   it("does not dress an off-topic question up as evidence", () => {

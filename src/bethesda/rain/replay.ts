@@ -24,6 +24,8 @@ import { canonicalHash } from "../../game/pilot/hash";
 import { RECORD_SCHEMA } from "./contracts";
 import {
   experimentIdOf,
+  rejectedChecksOK,
+  validateExperiment,
   verifyDefinition,
   type ExperimentDefinition,
 } from "./experiments";
@@ -38,8 +40,13 @@ import {
   type ArmName,
   type ArmRecord,
 } from "./runner";
-import { recordDigestOK, type ExperimentRecord } from "./record";
-import { canonicalJson, sha256Json } from "../../rain/sha256";
+import {
+  attachmentErrors,
+  recordDigestOK,
+  unresolvedFor,
+  type ExperimentRecord,
+} from "./record";
+import { canonicalJson } from "../../rain/sha256";
 import { Lifecycle, terminalFor } from "./lifecycle";
 
 export interface VerificationCheck {
@@ -146,7 +153,64 @@ export function armTrace(recorded: ArmRecord): Trace {
   }
 }
 
-export function* verifyRecord(raw: unknown): Generator<number, Verification> {
+/**
+ * The definition, its digest, its id and the validation, re-derived from the
+ * record's proposal by the same deterministic validation that made them. A
+ * definition is never trusted for being self-consistent: anyone can edit one,
+ * re-hash it and authorize the edit, so it must be the one its proposal
+ * yields in this build. A record that holds no proposal can hold no
+ * definition, and only the checks a rejected proposal can have produced.
+ */
+function derivationErrors(r: ExperimentRecord): string[] {
+  if (r.proposal === null) {
+    const errors: string[] = [];
+    if (r.definition !== null || r.definition_sha256 !== null || r.experiment_id !== null)
+      errors.push("a definition with no proposal to derive it from");
+    if (r.kind !== "rejection") errors.push("a run with no proposal");
+    if (typeof r.rejected_input !== "string")
+      errors.push("a rejection that does not keep what was rejected");
+    if (!rejectedChecksOK(r.validation))
+      errors.push("the validation is not what validating a rejected proposal produces");
+    return errors;
+  }
+  const derived = validateExperiment(r.proposal);
+  if (!derived.ok)
+    return [
+      "the proposal does not validate in this build: " +
+        derived.errors.slice(0, 2).join("; "),
+    ];
+  const v = derived.value;
+  const errors: string[] = [];
+  if (!same(v.proposal, r.proposal))
+    errors.push("the proposal is not in the form validation keeps");
+  if (!same(v.definition, r.definition)) {
+    const d = (r.definition ?? {}) as unknown as Record<string, unknown>;
+    const fresh = v.definition as unknown as Record<string, unknown>;
+    const differ = Object.keys({ ...fresh, ...d }).filter((k) => !same(fresh[k], d[k]));
+    errors.push(
+      `the definition is not the one its proposal yields (differs in ${differ.join(", ") || "form"})`,
+    );
+  }
+  if (v.definitionSha256 !== r.definition_sha256 || v.experimentId !== r.experiment_id)
+    errors.push("the definition digest or id is not the one its proposal yields");
+  if (!same(v.checks, r.validation))
+    errors.push("the validation is not what validating the proposal produces");
+  return errors;
+}
+
+/** Exactly one authority, binding this definition. */
+function authorityErrors(r: ExperimentRecord, d: ExperimentDefinition, sha: string) {
+  // A standing authority is judged as it stood when the policy admitted the
+  // run: replay takes no clock, so a charter that has since expired still
+  // verifies the runs it admitted while it stood.
+  return r.authorization && r.standing
+    ? ["the record carries both a person's authorization and a standing authority"]
+    : r.standing
+      ? verifyStanding(r.standing, r.experiment_id ?? "", d, sha)
+      : verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
+}
+
+function* verifyUnguarded(raw: unknown): Generator<number, Verification> {
   const checks: VerificationCheck[] = [];
   const check = (id: string, ok: boolean, detail: string) => {
     checks.push({ id, ok, detail });
@@ -171,11 +235,55 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
       r.lifecycle.at(-1)?.state === r.outcome?.state,
       "lifecycle ends in the recorded outcome",
     );
+  const attached = attachmentErrors(r);
+  check(
+    "attachments",
+    !attached.length,
+    attached.join("; ") ||
+      "pre-registration, admission, reproduction report and error are well formed and bound to this record",
+  );
   if (r.kind === "rejection" || !r.run) {
     check(
       "no-run",
       !r.run && (r.outcome?.state === "REJECTED" || r.outcome?.state === "FAILED"),
       "nothing to re-simulate: the experiment never produced measurements",
+    );
+    // What a record that never ran still shows (its proposal, definition,
+    // checks, authority and outcome) must be what the lab would have written.
+    const derivation = derivationErrors(r);
+    check(
+      "proposal",
+      !derivation.length,
+      derivation.join("; ") ||
+        (r.proposal
+          ? "the definition, its digest and the validation re-derive from the record's proposal"
+          : "the validation is what a rejected proposal produces"),
+    );
+    if (r.authorization || r.standing) {
+      const authErrors =
+        r.definition && r.definition_sha256
+          ? authorityErrors(r, r.definition, r.definition_sha256)
+          : ["an authority with no definition to bind to"];
+      check(
+        "authorization",
+        !authErrors.length,
+        authErrors.join("; ") || "binds to this definition",
+      );
+    }
+    const state = r.outcome?.state;
+    check(
+      "outcome",
+      (state === "REJECTED"
+        ? r.kind === "rejection" && r.error === null
+        : state === "FAILED" && r.kind !== "rejection" && r.error !== null) &&
+        r.outcome.rain_status === (state === "FAILED" ? "error" : null) &&
+        r.outcome.verdict === "not_evaluated" &&
+        r.outcome.summary === (r.lifecycle.at(-1)?.detail ?? "no outcome recorded") &&
+        same(
+          r.outcome.unresolved,
+          unresolvedFor(state, "not_evaluated", r.definition?.seeds.length ?? 0),
+        ),
+      `${state ?? "no state"} · not evaluated`,
     );
     return { ok: checks.every((c) => c.ok), checks };
   }
@@ -192,30 +300,17 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
     definitionErrors.join("; ") ||
       "definition digest, versions and compiled scenario match",
   );
-  // The proposal the record carries is the one the definition was made from,
-  // so the mathematics it cites is the mathematics a person authorized.
-  let proposalSha = "";
-  try {
-    proposalSha = sha256Json(r.proposal);
-  } catch {
-    proposalSha = "";
-  }
+  // The definition is the one the record's proposal yields, so the criteria,
+  // seeds, effect and mathematics a person authorized are the proposal's, and
+  // the checks the record shows are the ones validation produced.
+  const derivation = derivationErrors(r);
   check(
     "proposal",
-    !!r.proposal &&
-      proposalSha === d.proposal?.sha256 &&
-      same(r.proposal.mathematical_basis, d.mathematical_basis),
-    "the record's proposal, and the mathematical basis it cites, are the definition's",
+    !derivation.length,
+    derivation.join("; ") ||
+      "the definition, its digest and the validation re-derive from the record's proposal",
   );
-  // Exactly one authority. A standing one is judged as it stood when the
-  // policy admitted the run: replay takes no clock, so a charter that has
-  // since expired still verifies the runs it admitted while it stood.
-  const authErrors =
-    r.authorization && r.standing
-      ? ["the record carries both a person's authorization and a standing authority"]
-      : r.standing
-        ? verifyStanding(r.standing, r.experiment_id ?? "", d, sha)
-        : verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
+  const authErrors = authorityErrors(r, d, sha);
   check(
     "authorization",
     !authErrors.length,
@@ -231,10 +326,11 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
   if (
     !check(
       "arms",
-      same(
-        r.run.arms.map((a) => a.id),
-        expected,
-      ),
+      Array.isArray(r.run.arms) &&
+        same(
+          r.run.arms.map((a) => a?.id),
+          expected,
+        ),
       `${expected.length} arms, one control and one treatment per seed`,
     )
   )
@@ -253,6 +349,14 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
     same(summary.measurements, r.run.measurements),
     "recomputed from the arms",
   );
+  // What the Registry and the Evidence Library show of a run is recomputed
+  // too: each seed's values and difference, and the series behind the charts.
+  check(
+    "per-seed",
+    same(summary.per_seed, r.run.per_seed),
+    "every seed's control, treatment and difference recomputed from the arms",
+  );
+  check("series", same(summary.series, r.run.series), "recomputed from the arms");
   check(
     "evaluation",
     same(summary.evaluation, r.run.evaluation) && summary.status === r.run.status,
@@ -262,10 +366,39 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
     "outcome",
     r.outcome.state === terminalFor(summary.status) &&
       r.outcome.rain_status === summary.status &&
-      r.outcome.verdict === summary.verdict,
+      r.outcome.verdict === summary.verdict &&
+      r.run.verdict === summary.verdict &&
+      r.outcome.summary === summary.evaluation.summary &&
+      same(
+        r.outcome.unresolved,
+        unresolvedFor(r.outcome.state, summary.verdict, d.seeds.length),
+      ),
     `${r.outcome.state} · ${summary.verdict.replaceAll("_", " ")}`,
   );
   return { ok: checks.every((c) => c.ok), checks };
+}
+
+/**
+ * Verify a record by replay. Whatever the file holds, the answer is a
+ * verification: a record malformed enough to throw is a failed one.
+ */
+export function* verifyRecord(raw: unknown): Generator<number, Verification> {
+  try {
+    return yield* verifyUnguarded(raw);
+  } catch (e) {
+    return {
+      ok: false,
+      checks: [
+        {
+          id: "shape",
+          ok: false,
+          detail:
+            "the record is malformed: " +
+            (e instanceof Error ? e.message : String(e)).slice(0, 300),
+        },
+      ],
+    };
+  }
 }
 
 export function verifyRecordSync(raw: unknown): Verification {

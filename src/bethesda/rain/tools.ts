@@ -222,11 +222,13 @@ export function runTool(
         { ...provenance, tick: packet.tick, world_hash: packet.world_hash },
       );
     }
-    const segment = packets
-      .filter((p) => p.tick >= req.from_tick && p.tick <= req.to_tick)
-      .slice(0, SEGMENT_PACKETS);
+    const inRange = packets.filter(
+      (p) => p.tick >= req.from_tick && p.tick <= req.to_tick,
+    );
+    // Truncated only when packets in the range were left out.
+    const segment = inRange.slice(0, SEGMENT_PACKETS);
     return ok(
-      { packets: segment, truncated: segment.length === SEGMENT_PACKETS },
+      { packets: segment, truncated: inRange.length > segment.length },
       provenance,
     );
   }

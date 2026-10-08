@@ -1,12 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import proposal from "./fixtures/demo-proposal.json" with { type: "json" };
 import { CitySimulation, REPLAY_SCHEMA } from "../simulation";
-import { approve, begin, complete, openCase, type Origin } from "./cases";
+import { approve, begin, complete, decline, openCase, type Origin } from "./cases";
+import { authorize } from "./authorization";
+import { criteriaFor, experimentIdOf, verifyDefinition } from "./experiments";
+import { evidenceItems } from "./session";
+import { sha256Json } from "../../rain/sha256";
 import { evaluate } from "../../rain/experiments/evaluate";
 import { cohortAt, observeWorld, verifyObservation } from "./observations";
 import { regionOf, runToCompletion, type RunResult } from "./runner";
 import { armTrace, verifyRecordSync } from "./replay";
-import { seal, type ExperimentRecord } from "./record";
+import { attachmentErrors, seal, type ExperimentRecord } from "./record";
 import { rainSubmission } from "./submission";
 
 const origin: Origin = { rain: null, rainSource: "unavailable", model: null };
@@ -239,5 +243,221 @@ describe("replay", () => {
   it("refuses something that is not a record", () => {
     expect(verifyRecordSync({ schema: REPLAY_SCHEMA }).ok).toBe(false);
     expect(verifyRecordSync(null).ok).toBe(false);
+  });
+});
+
+describe("replay re-derives what it does not re-simulate", () => {
+  const { record } = run(quick);
+  const failing = (r: unknown) =>
+    verifyRecordSync(r)
+      .checks.filter((c) => !c.ok)
+      .map((c) => c.id);
+  it("refuses a definition edited, re-hashed, re-authorized and re-run consistently", () => {
+    // Everything an attacker can recompute is recomputed: the definition's
+    // digest, its id, the arm ids, a fresh authorization and a real run of
+    // the edited definition. Only the proposal it claims to come from is not.
+    const c = authorized(quick);
+    const v = c.validated!;
+    const definition = structuredClone(v.definition);
+    definition.expected_direction =
+      definition.expected_direction === "increase" ? "decrease" : "increase";
+    definition.minimum_effect = 0.01;
+    definition.criteria = criteriaFor(
+      definition.seeds.length,
+      definition.primary_metric,
+      definition.expected_direction,
+      definition.minimum_effect,
+    );
+    definition.hypothesis = "Closing the Metro draws people in.";
+    const sha = sha256Json(definition);
+    const experimentId = experimentIdOf(sha);
+    const auth = authorize({
+      experimentId,
+      definitionSha256: sha,
+      operator: "R.A.I.N.Operator",
+      typedPrefix: sha.slice(0, 8),
+      reviewed: true,
+      now: new Date(),
+    });
+    if (!auth.ok) throw new Error(auth.errors.join("; "));
+    c.validated = { ...v, definition, definitionSha256: sha, experimentId };
+    c.authorization = auth.value;
+    const started = new Date();
+    const result = runToCompletion(definition, sha, experimentId, auth.value);
+    const forged = complete(c, result, { started, finished: new Date() });
+    // The checks a definition could pass on its own all pass.
+    expect(verifyDefinition(definition, sha)).toEqual([]);
+    const verification = verifyRecordSync(forged);
+    expect(verification.ok).toBe(false);
+    expect(failing(forged)).toEqual(["proposal"]);
+    expect(verification.checks.find((x) => x.id === "proposal")?.detail).toMatch(
+      /expected_direction|minimum_effect|criteria|hypothesis/,
+    );
+  }, 120_000);
+  it.each<[string, string, (r: ExperimentRecord) => void]>([
+    ["a seed's difference", "per-seed", (r) => (r.run!.per_seed[0]!.delta = 999)],
+    ["a seed's control value", "per-seed", (r) => (r.run!.per_seed[1]!.control = 1)],
+    [
+      "the series",
+      "series",
+      (r) => {
+        const key = Object.keys(r.run!.series)[0]!;
+        r.run!.series[key] = [...r.run!.series[key]!, 1];
+      },
+    ],
+    [
+      "a forged passed check",
+      "proposal",
+      (r) =>
+        r.validation.push({
+          id: "peer-review",
+          label: "Peer reviewed",
+          ok: true,
+          detail: "accepted",
+        }),
+    ],
+    ["a check's words", "proposal", (r) => (r.validation[0]!.detail = "all verified")],
+    ["the outcome's summary", "outcome", (r) => (r.outcome.summary = "It worked.")],
+  ])("fails on a re-sealed change to %s", (_what, id, edit) => {
+    expect(failing(reseal(record, edit))).toContain(id);
+  });
+  it("fails, without throwing, on a record of the wrong shape", () => {
+    for (const edit of [
+      (r: ExperimentRecord) =>
+        ((r.run as unknown as Record<string, unknown>).per_seed = "x"),
+      (r: ExperimentRecord) => ((r.run as unknown as Record<string, unknown>).arms = 5),
+      (r: ExperimentRecord) => ((r as unknown as Record<string, unknown>).validation = 5),
+      (r: ExperimentRecord) => ((r as unknown as Record<string, unknown>).outcome = null),
+    ]) {
+      const bad = reseal(record, edit);
+      expect(() => verifyRecordSync(bad)).not.toThrow();
+      expect(verifyRecordSync(bad).ok).toBe(false);
+    }
+  });
+  describe("a record that never ran", () => {
+    const declined = (() => {
+      const c = openCase(quick, { id: "declined", now: new Date(), origin });
+      decline(c, "the operator declined", new Date());
+      return c.record!;
+    })();
+    const rejected = openCase(
+      { ...quick, scenario: "rally", location: "bethesda_metro" },
+      { id: "rejected", now: new Date(), origin },
+    ).record!;
+    const malformed = openCase(
+      { schema: "nope" },
+      { id: "malformed", now: new Date(), origin },
+    ).record!;
+    it("verifies as written, whether its proposal validated or not", () => {
+      expect(rejected.proposal).toBeNull();
+      expect(rejected.validation.map((c) => [c.id, c.ok])).toEqual([["shape", false]]);
+      for (const r of [declined, rejected, malformed])
+        expect(failing(structuredClone(r))).toEqual([]);
+    });
+    it("fails on a re-sealed forged check, definition or outcome", () => {
+      const forgedCheck = (r: ExperimentRecord) =>
+        r.validation.push({ id: "budget", label: "Budget", ok: true, detail: "fine" });
+      expect(failing(reseal(declined, forgedCheck))).toContain("proposal");
+      expect(failing(reseal(rejected, forgedCheck))).toContain("proposal");
+      expect(failing(reseal(malformed, forgedCheck))).toContain("proposal");
+      expect(failing(reseal(malformed, (r) => (r.validation[0]!.ok = true)))).toContain(
+        "proposal",
+      );
+      expect(
+        failing(reseal(declined, (r) => (r.definition!.minimum_effect = 0.01))),
+      ).toContain("proposal");
+      expect(
+        failing(reseal(declined, (r) => (r.outcome.verdict = "supported"))),
+      ).toContain("outcome");
+    });
+  });
+});
+
+describe("what a record carries beside its run", () => {
+  const { record } = run(quick);
+  const preregistration = {
+    schema: "rain-bethesda/v2" as const,
+    kind: "preregistration" as const,
+    request_id: "a".repeat(32),
+    experiment_id: "V3D-EXP-0001",
+    experiment_version: 1,
+    definition_sha256: "d".repeat(64),
+    created_at: "2026-10-06T01:00:00.000Z",
+    registry: "scratch" as const,
+  };
+  const admission = {
+    schema: "rain-bethesda/v2" as const,
+    kind: "admission" as const,
+    request_id: "b".repeat(32),
+    run_id: "V3D-EXP-0001-RUN-0001",
+    status: "failed" as const,
+    hypothesis_verdict: "not_supported" as const,
+    evaluation: {
+      rule: "rain-criteria/v1",
+      guards: [],
+      success: [{ id: "S1", metric: "m", op: ">=", value: 1, observed: 0, holds: false }],
+      failure: [{ id: "F1", metric: "m", op: "<=", value: 0, observed: 0, holds: true }],
+      summary: "Failure criterion triggered: F1. The hypothesis is not supported.",
+    },
+    interpretation: { deterministic: "Failure criterion triggered: F1.", model: null },
+    definition_sha256: "d".repeat(64),
+    recorded_at: "2026-10-06T01:05:00.000Z",
+  };
+  const admitted = (edit: (a: Record<string, unknown>) => void = () => {}) =>
+    reseal(record, (r) => {
+      r.rain_preregistration = structuredClone(preregistration);
+      const a = structuredClone(admission) as unknown as Record<string, unknown>;
+      edit(a);
+      r.rain_admission = a as unknown as ExperimentRecord["rain_admission"];
+    });
+  it("accepts R.A.I.N.'s admission when it is well formed and answers this record's pre-registration", () => {
+    expect(attachmentErrors(admitted())).toEqual([]);
+    expect(verifyRecordSync(admitted()).ok).toBe(true);
+  });
+  it.each<[string, (a: Record<string, unknown>) => void]>([
+    [
+      "an interpretation that is not text",
+      (a) => (a.interpretation = { deterministic: 42, model: null }),
+    ],
+    ["a verdict that is not a word", (a) => (a.hypothesis_verdict = 7)],
+    ["another experiment's run", (a) => (a.run_id = "V3D-EXP-0002-RUN-0001")],
+    ["another registered definition", (a) => (a.definition_sha256 = "e".repeat(64))],
+    ["a field of its own", (a) => (a.note = "trust me")],
+  ])("refuses an admission with %s", (_what, edit) => {
+    const r = admitted(edit);
+    expect(attachmentErrors(r).length).toBeGreaterThan(0);
+    const v = verifyRecordSync(r);
+    expect(v.ok).toBe(false);
+    expect(v.checks.find((x) => x.id === "attachments")?.ok).toBe(false);
+  });
+  it("refuses an admission with no pre-registration, and a reproduction report about nothing", () => {
+    const orphan = reseal(record, (r) => {
+      r.rain_admission = structuredClone(admission) as ExperimentRecord["rain_admission"];
+    });
+    expect(verifyRecordSync(orphan).ok).toBe(false);
+    const report = reseal(record, (r) => {
+      r.reproduction = {
+        source_run: "BX-000000000000-R1",
+        outcome_matches: true,
+        deterministic_metrics_match: true,
+        mismatches: [],
+      };
+    });
+    expect(attachmentErrors(report).join()).toMatch(/not about the run/);
+    expect(verifyRecordSync(report).ok).toBe(false);
+  });
+});
+
+describe("the Evidence Library", () => {
+  it("never throws on a record of the wrong shape", () => {
+    const { record } = run(quick);
+    const bad = structuredClone(record) as unknown as Record<string, unknown>;
+    bad.validation = 5;
+    (bad.run as Record<string, unknown>).per_seed = "x";
+    (bad.run as Record<string, unknown>).arms = { length: 2 };
+    expect(() => evidenceItems(null, [bad as unknown as ExperimentRecord])).not.toThrow();
+    // A well-formed record beside it is still listed.
+    const items = evidenceItems(null, [bad as unknown as ExperimentRecord, record]);
+    expect(items.some((i) => i.id === `${record.run_id}:result`)).toBe(true);
   });
 });

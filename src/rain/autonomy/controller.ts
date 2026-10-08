@@ -90,7 +90,12 @@ import {
   type DesignLine,
 } from "./prompts.js";
 import { SEATS, ask, type DecisionRecord } from "./roles.js";
-import { deriveState, type ResearchState } from "./state.js";
+import {
+  RUNTIME_SPENT,
+  RUNTIME_SPENT_MESSAGE,
+  deriveState,
+  type ResearchState,
+} from "./state.js";
 import { StoreError, type ResearchStore, type SessionLog } from "./store.js";
 import {
   SESSION_SCHEMA,
@@ -170,7 +175,10 @@ class Stop extends Error {
     this.detail = detail.slice(0, 600);
   }
 }
-class RuntimeSpent extends Error {}
+/** Named, so a sealed record says the budget, not the run, ended it (`cutOffUnmeasured`). */
+class RuntimeSpent extends Error {
+  override name = RUNTIME_SPENT;
+}
 
 const message = (e: unknown) =>
   (e instanceof Error ? e.message : String(e)).slice(0, 400);
@@ -864,8 +872,7 @@ export async function runSession(input: SessionInput): Promise<SessionSummary> {
           record = complete(c, next.value, { started, finished: now() });
           break;
         }
-        if (monotonic() >= deadline)
-          throw new RuntimeSpent("the session's runtime budget ran out during the run");
+        if (monotonic() >= deadline) throw new RuntimeSpent(RUNTIME_SPENT_MESSAGE);
       }
     } catch (error) {
       failure = error;

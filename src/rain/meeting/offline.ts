@@ -11,8 +11,8 @@
  *   span of a corpus document.
  * - Each perspective chooses evidence through its own lens (measured results,
  *   buildability, cross-paper structure, stated limitations).
- * - Every quote is re-verified with the same verifier the model meeting uses,
- *   and the corpus is fingerprinted.
+ * - Every quote is re-verified, verbatim, against the document it cites (the
+ *   matcher the model meeting uses), and the corpus is fingerprinted.
  * - When the library does not cover the question, the room says so instead
  *   of presenting unrelated passages as evidence.
  *
@@ -27,7 +27,7 @@ import {
   documentMap,
   findQuoteSpan,
   hashCorpusDocuments,
-  verifyQuote,
+  verifyQuoteAt,
   type CorpusDocument,
 } from "../corpus.js";
 import { sha256 } from "../sha256.js";
@@ -752,8 +752,7 @@ function audit(corpus: LoadedCorpus, turns: readonly Turn[]): CitationAudit {
   const quotes = turns.flatMap((t) => t.quotes);
   let verified = 0;
   for (const quote of quotes) {
-    const match = verifyQuote(corpus.documents, quote.text);
-    if (match !== null && match.source === quote.source) verified++;
+    if (verifyQuoteAt(corpus.documents, quote.source, quote.text) !== null) verified++;
   }
   return {
     checked: quotes.length,
@@ -1306,7 +1305,6 @@ export const verifyMeetingQuotes = (
   meeting: OfflineMeeting,
   documents: readonly CorpusDocument[],
 ) =>
-  quotesOf(meeting).map((q) => {
-    const match = verifyQuote(documentMap(documents), q.text);
-    return match !== null && match.source === q.source;
-  });
+  quotesOf(meeting).map(
+    (q) => verifyQuoteAt(documentMap(documents), q.source, q.text) !== null,
+  );

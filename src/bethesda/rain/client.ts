@@ -123,14 +123,27 @@ export class RainClient {
     return null;
   }
 
+  /**
+   * One bounded request. `signal` is the caller's: aborting it abandons the
+   * request at once and answers CANCELLED, never a timeout and never an answer.
+   */
   private async call(
     path: string,
     init: RequestInit | null,
     limit: number,
     timeout: number,
+    signal?: AbortSignal,
   ): Promise<Result<unknown>> {
+    const cancelled = (): Result<unknown> => ({
+      ok: false,
+      failure: "CANCELLED",
+      detail: "the request was stopped",
+    });
+    if (signal?.aborted) return cancelled();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    const stop = () => controller.abort();
+    signal?.addEventListener("abort", stop, { once: true });
     try {
       const response = await this.fetchImpl(`/api/rain/${path}`, {
         ...(init ?? {}),
@@ -169,13 +182,17 @@ export class RainClient {
       }
       if (!parsed.ok)
         return { ok: false, failure: "INVALID ANSWER", detail: parsed.errors[0]! };
+      if (signal?.aborted) return cancelled();
       return { ok: true, value: parsed.value };
     } catch {
-      return controller.signal.aborted
-        ? { ok: false, failure: "TIMEOUT", detail: "no answer in time" }
-        : { ok: false, failure: "UNAVAILABLE", detail: "network error" };
+      return signal?.aborted
+        ? cancelled()
+        : controller.signal.aborted
+          ? { ok: false, failure: "TIMEOUT", detail: "no answer in time" }
+          : { ok: false, failure: "UNAVAILABLE", detail: "network error" };
     } finally {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", stop);
     }
   }
 
@@ -217,14 +234,23 @@ export class RainClient {
    * One meeting. The offline engine answers at once. A model meeting answers
    * with a job, which is checked every few seconds until R.A.I.N. returns the
    * meeting or says why it could not — each answer validated against this
-   * request. Aborting asks R.A.I.N. to stop the job; so does giving up after
-   * `LIMITS.meetingJobMinutes`. Nothing stands in for a meeting that did not
-   * arrive.
+   * request. Aborting abandons the request in flight and asks R.A.I.N. to stop
+   * the job, if it has named one; so does giving up after
+   * `LIMITS.meetingJobMinutes`. A meeting that arrives after the abort is not
+   * returned: the answer is CANCELLED. Nothing stands in for a meeting that did
+   * not arrive.
    */
   async meeting(
     question: string,
     options: MeetingOptions = {},
   ): Promise<Result<MeetingRecord>> {
+    const signal = options.signal;
+    const cancelled = {
+      ok: false,
+      failure: "CANCELLED",
+      detail: "the meeting was stopped",
+    } as const;
+    if (signal?.aborted) return cancelled;
     const closed = this.sessionOpen();
     if (closed) return { ok: false, failure: "SESSION LIMIT", detail: closed };
     const q = normalizeQuestion(question);
@@ -246,10 +272,22 @@ export class RainClient {
         },
         LIMITS.meetingResponse,
         CALL_TIMEOUT,
+        signal,
       ),
       (v) => validateMeetingAnswer(v, { requestId, question: q }),
     );
+    let jobId: string | null = null;
     for (;;) {
+      if (signal?.aborted) {
+        // Stopped while a request was in flight: whatever it returned is not
+        // kept, and a job R.A.I.N. named is asked to stop.
+        const named =
+          answer.ok && answer.value.kind === "meeting-pending"
+            ? answer.value.job_id
+            : jobId;
+        if (named) await this.cancelMeeting(requestId, named);
+        return cancelled;
+      }
       if (!answer.ok) return answer;
       const a = answer.value;
       if (a.kind === "meeting") return { ok: true, value: a };
@@ -262,10 +300,11 @@ export class RainClient {
         turnsStarted: a.turns_started,
         turnsPlanned: a.turns_planned,
       });
-      await wait(options.pollMs ?? POLL_MS, options.signal);
-      if (options.signal?.aborted) {
+      jobId = a.job_id;
+      await wait(options.pollMs ?? POLL_MS, signal);
+      if (signal?.aborted) {
         await this.cancelMeeting(requestId, a.job_id);
-        return { ok: false, failure: "CANCELLED", detail: "the meeting was stopped" };
+        return cancelled;
       }
       if (Date.now() - started > LIMITS.meetingJobMinutes * 60_000) {
         await this.cancelMeeting(requestId, a.job_id);
@@ -275,7 +314,6 @@ export class RainClient {
           detail: `no meeting after ${LIMITS.meetingJobMinutes} minutes`,
         };
       }
-      const jobId = a.job_id;
       const next = this.checked(
         await this.call(
           "meeting-status",
@@ -284,14 +322,15 @@ export class RainClient {
             body: JSON.stringify({
               session: this.session,
               request_id: requestId,
-              job_id: jobId,
+              job_id: a.job_id,
               question: q,
             }),
           },
           LIMITS.meetingResponse,
           CALL_TIMEOUT,
+          signal,
         ),
-        (v) => validateMeetingAnswer(v, { requestId, question: q, jobId }),
+        (v) => validateMeetingAnswer(v, { requestId, question: q, jobId: a.job_id }),
       );
       // Being paced is not an answer: check again, with the same job.
       answer = !next.ok && next.failure === "RATE LIMITED" ? answer : next;

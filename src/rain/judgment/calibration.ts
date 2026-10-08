@@ -22,8 +22,14 @@ function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
+    // Defined, not assigned, so a "__proto__" key is kept as data.
     for (const key of Object.keys(value).sort())
-      out[key] = sortKeys((value as Record<string, unknown>)[key]);
+      Object.defineProperty(out, key, {
+        value: sortKeys((value as Record<string, unknown>)[key]),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
     return out;
   }
   if (typeof value === "number" && !Number.isFinite(value))

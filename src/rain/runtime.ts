@@ -268,9 +268,24 @@ export async function configureRuntime(
     const runtime = await RainRuntime.create(options);
     return { mode: "local", runtime };
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "the runtime could not start";
-    return { mode: "misconfigured", reason: reason.slice(0, 300) };
+    return { mode: "misconfigured", reason: publishableReason(error) };
   }
+}
+
+/**
+ * The runtime's own refusals name a setting; an error from the platform (a
+ * file or directory that could not be used) carries a path, which is a value,
+ * so it is published only as what failed.
+ */
+function publishableReason(error: unknown): string {
+  if (!(error instanceof Error)) return "the runtime could not start";
+  const system = error as NodeJS.ErrnoException;
+  if (
+    typeof system.code === "string" &&
+    (system.syscall !== undefined || system.path !== undefined)
+  )
+    return "the runtime could not start: a file or directory it needs could not be used";
+  return error.message.slice(0, 300);
 }
 
 interface RuntimeParts {
@@ -343,14 +358,23 @@ export class RainRuntime implements RuntimeApi {
     if (secrets.modelApiKey) scanEnv.CONFIGURED_MODEL_API_KEY = secrets.modelApiKey;
     if (secrets.registrySecret)
       scanEnv.CONFIGURED_REGISTRY_SECRET = secrets.registrySecret;
+    // The read's own error names the file's absolute path; the reason this
+    // runtime publishes names the setting, never its value.
+    const calibrationPath = env.RAIN_DECISION_CALIBRATION?.trim();
+    let calibrationText: string | null = null;
+    if (calibrationPath) {
+      try {
+        calibrationText = (options.readFile ?? ((p) => readFileSync(p, "utf8")))(
+          resolve(cwd, calibrationPath),
+        );
+      } catch {
+        throw new Error("RAIN_DECISION_CALIBRATION could not be read");
+      }
+    }
     const decision = createDecisionRouter(scanEnv, {
       decisionApiKey: secrets.typesafeApiKey,
       decisionModel: secrets.typesafeModel,
-      calibrationText: env.RAIN_DECISION_CALIBRATION?.trim()
-        ? (options.readFile ?? ((p) => readFileSync(p, "utf8")))(
-            resolve(cwd, env.RAIN_DECISION_CALIBRATION.trim()),
-          )
-        : null,
+      calibrationText,
       fetchImpl: options.fetchImpl,
     });
 

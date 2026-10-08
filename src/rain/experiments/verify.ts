@@ -12,7 +12,7 @@
  * Server only.
  */
 import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { evaluate, type Criterion } from "./evaluate.js";
 import { credentialFormatsIn } from "./provenance.js";
 import { parseJsonText, readBoundedFile, type Registry, readJson, type Json } from "./registry.js";
@@ -33,7 +33,9 @@ function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
-    for (const key of Object.keys(value).sort()) out[key] = sortKeys((value as Json)[key]);
+    // Defined, not assigned, so a "__proto__" key is compared as data.
+    for (const key of Object.keys(value).sort())
+      Object.defineProperty(out, key, { value: sortKeys((value as Json)[key]), enumerable: true, writable: true, configurable: true });
     return out;
   }
   return value;
@@ -43,7 +45,7 @@ const without = (value: Json, key: string): Json => Object.fromEntries(Object.en
 function verifyRun(registry: Registry, experimentId: string, definition: Json, runDir: string): [string[], string[]] {
   const problems: string[] = [];
   const warnings: string[] = [];
-  const dirName = runDir.slice(runDir.lastIndexOf("/") + 1);
+  const dirName = basename(runDir);
   const label = `${experimentId}/${dirName}`;
   const path = join(runDir, "result.json");
   // Read once, through one descriptor: the bytes scanned are the bytes parsed.

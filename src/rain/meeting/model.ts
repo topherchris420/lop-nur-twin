@@ -393,9 +393,26 @@ export async function holdMeeting(
   const fetchImpl =
     hooks.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
   const now = hooks.now ?? (() => new Date());
-  const sleep =
-    hooks.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const signal = hooks.signal;
+  const wait =
+    hooks.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  /** A pause between attempts that a cancellation ends early, and then refuses to continue past. */
+  const sleep = async (ms: number) => {
+    if (signal?.aborted) throw new MeetingCancelled();
+    if (signal) {
+      let onAbort = () => {};
+      const aborted = new Promise<void>((resolve) => {
+        onAbort = resolve;
+        signal.addEventListener("abort", onAbort, { once: true });
+      });
+      try {
+        await Promise.race([wait(ms), aborted]);
+      } finally {
+        signal.removeEventListener("abort", onAbort);
+      }
+    } else await wait(ms);
+    if (signal?.aborted) throw new MeetingCancelled();
+  };
   const temperature = settings.temperature ?? 0.7;
   const maxTokens = settings.maxTokens ?? 320;
   const maxRetries = settings.maxRetries ?? 2;
@@ -410,6 +427,9 @@ export async function holdMeeting(
     messages: Message[],
     options: { temperature: number; maxTokens: number },
   ) => {
+    // A cancelled meeting asks the model server nothing more: the listener
+    // below only hears an abort that happens after it is attached.
+    if (signal?.aborted) throw new MeetingCancelled();
     const controller = new AbortController();
     const onAbort = () => controller.abort();
     signal?.addEventListener("abort", onAbort, { once: true });
@@ -523,6 +543,7 @@ export async function holdMeeting(
     const message = userMessage(agent, recentChat, mission, prevSpeaker);
     const system: Message = { role: "system", content: systemPrompt(agent) };
     for (let attempt = 0; attempt < maxRetries; attempt++) {
+      if (signal?.aborted) throw new MeetingCancelled();
       try {
         const answer = await chat([system, { role: "user", content: message }], {
           temperature,

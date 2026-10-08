@@ -99,8 +99,15 @@ function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
+    // Defined, not assigned: `out["__proto__"] = …` would set the prototype
+    // and drop the key from the hashed text.
     for (const key of Object.keys(value).sort())
-      out[key] = sortKeys((value as Record<string, unknown>)[key]);
+      Object.defineProperty(out, key, {
+        value: sortKeys((value as Record<string, unknown>)[key]),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
     return out;
   }
   if (typeof value === "number" && !Number.isFinite(value))

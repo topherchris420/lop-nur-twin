@@ -355,6 +355,43 @@ export function compileFor(
   return { ok: true, event, telemetry };
 }
 
+/** The first check's fixed words; its detail varies only when it fails. */
+export const SHAPE_CHECK = {
+  label: `Closed ${EXPERIMENT_PROPOSAL_SCHEMA} shape and vocabulary`,
+  passed: "all fields typed, bounded and known",
+} as const;
+export const SCENARIO_CHECK_LABEL = "Supported scenario at a mapped place";
+
+/**
+ * The checks a proposal that never became a definition can have carried: the
+ * shape check failed, or it passed and the scenario check failed. Validation
+ * stops at the first failure, so nothing else can have passed — a record that
+ * claims more passed checks for a proposal it does not hold is refused.
+ */
+export function rejectedChecksOK(raw: unknown): boolean {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 2) return false;
+  const checks = raw as unknown[];
+  const isCheck = (c: unknown): c is CheckResult =>
+    !!c &&
+    typeof c === "object" &&
+    Object.keys(c).length === 4 &&
+    typeof (c as CheckResult).id === "string" &&
+    typeof (c as CheckResult).label === "string" &&
+    typeof (c as CheckResult).ok === "boolean" &&
+    typeof (c as CheckResult).detail === "string";
+  if (!checks.every(isCheck)) return false;
+  const [shape, scenario] = checks;
+  if (!shape || shape.id !== "shape" || shape.label !== SHAPE_CHECK.label) return false;
+  if (!scenario) return !shape.ok;
+  return (
+    shape.ok &&
+    shape.detail === SHAPE_CHECK.passed &&
+    scenario.id === "scenario" &&
+    scenario.label === SCENARIO_CHECK_LABEL &&
+    !scenario.ok
+  );
+}
+
 /**
  * Deterministic validation: the shape, the vocabulary, the map, the budget and
  * the build. Returns the definition only when every check passes; the checks
@@ -367,16 +404,16 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
   const shape = validateProposalShape(raw);
   checks.push({
     id: "shape",
-    label: `Closed ${EXPERIMENT_PROPOSAL_SCHEMA} shape and vocabulary`,
+    label: SHAPE_CHECK.label,
     ok: shape.ok,
-    detail: shape.ok ? "all fields typed, bounded and known" : shape.errors.join("; "),
+    detail: shape.ok ? SHAPE_CHECK.passed : shape.errors.join("; "),
   });
   if (!shape.ok) return { ok: false, errors: shape.errors, checks };
   const p = shape.value;
   const compiled = compileFor(p.scenario, p.location);
   checks.push({
     id: "scenario",
-    label: "Supported scenario at a mapped place",
+    label: SCENARIO_CHECK_LABEL,
     ok: compiled.ok,
     detail: compiled.ok
       ? `${SCENARIO_LABELS[p.scenario]} → ${compiled.event.kind} at ${compiled.event.place} (radius ${compiled.event.radius} m, ${compiled.event.durationTicks} ticks)`

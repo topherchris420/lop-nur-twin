@@ -4,10 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { type Measurements, evaluate } from "./evaluate.js";
-import { REDACTED, credentialFormatsIn, redact } from "./provenance.js";
+import { REDACTED, credentialFormatsIn, excludePathspecs, gitState, redact } from "./provenance.js";
 import { type Json, Registry } from "./registry.js";
 import { recordSubmission, recordedBy } from "./runner.js";
-import { ExperimentError, definitionErrors, runRecordErrors } from "./schema.js";
+import { ExperimentError, canonicalJson, definitionErrors, runRecordErrors, sha256Json } from "./schema.js";
 import { percentChange, summarize } from "./stats.js";
 import { verify } from "./verify.js";
 
@@ -228,6 +228,37 @@ describe("ids and creation", () => {
     }
   });
 
+  it("refuses prototype-named keys in a closed object, and hashes the open ones it accepts", () => {
+    const definition: Json = {
+      schema_version: "rain-experiment/v1",
+      experiment_id: "V3D-EXP-0001",
+      experiment_version: 1,
+      created_at: "2026-01-01T00:00:00.000Z",
+      ...draft({ subsystem: { repository: "r", component: "c", paths: ["README.md"] } }),
+    };
+    const text = JSON.stringify(definition);
+    for (const key of ["constructor", "toString", "hasOwnProperty", "__proto__"]) {
+      // JSON.parse makes "__proto__" an own key, as a request body would.
+      const top = JSON.parse(`{"${key}": {}, ${text.slice(1)}`) as Json;
+      expect(Object.hasOwn(top, key)).toBe(true);
+      expect(definitionErrors(top).join(" | ")).toContain(`'${key}' was unexpected`);
+      const nested = JSON.parse(text.replace('"subsystem":{', `"subsystem":{"${key}":1,`)) as Json;
+      expect(definitionErrors(nested).join(" | ")).toContain(`'${key}' was unexpected`);
+    }
+    // A required key is the object's own, never one it inherits.
+    const missing = JSON.parse(text) as Json;
+    delete (missing.subsystem as Json).component;
+    Object.setPrototypeOf(missing.subsystem, { component: "inherited" });
+    expect(definitionErrors(missing).join(" | ")).toContain("'component' is a required property");
+    // Where a definition is open (parameters), what is validated is what is hashed.
+    const open = JSON.parse(text.replace('"parameters":{', '"parameters":{"__proto__":{"x":1},')) as Json;
+    expect(definitionErrors(open)).toEqual([]);
+    expect(canonicalJson(open)).toContain('"__proto__"');
+    expect(sha256Json(open)).not.toBe(sha256Json(JSON.parse(text)));
+    expect(JSON.parse(canonicalJson(open))).toEqual(open);
+    expect(redact(open)).toEqual(open);
+  });
+
   it("refuses definitions that hold secrets", () => {
     const reg = registry();
     for (const parameters of [{ api_key: "anything" }, { note: `use ${PLANTED_VALUE}` }])
@@ -432,6 +463,26 @@ describe("provenance helpers", () => {
     });
     expect(credentialFormatsIn("-----BEGIN RSA PRIVATE KEY-----")).toBe(true);
     expect(credentialFormatsIn("ordinary text about tokens")).toBe(false);
+  });
+
+  it("excludes only a registry inside the checkout, repository-relative", () => {
+    const reg = registry();
+    // A scratch registry in the temp directory is outside the checkout: git
+    // refuses an outside pathspec, so it must not be named at all.
+    expect(excludePathspecs(ROOT, ROOT, [reg.root])).toEqual([]);
+    expect(excludePathspecs(ROOT, ROOT, [ROOT])).toEqual([]);
+    expect(excludePathspecs(ROOT, ROOT, [join(ROOT, ".rain-research", "experiments")])).toEqual([
+      ":(top,exclude).rain-research/experiments",
+    ]);
+    expect(excludePathspecs(join(ROOT, "src"), ROOT, [join("rain", "registry")])).toEqual([
+      ":(top,exclude)src/rain/registry",
+    ]);
+    // With git present, the dirty check survives either kind of registry.
+    for (const state of [recordedBy(ROOT, reg).git, gitState(ROOT, [join(ROOT, ".rain-research", "experiments")])]) {
+      if (state.commit === null) continue;
+      expect(state.dirty).not.toBeNull();
+      expect(state.changed_paths).not.toBeNull();
+    }
   });
 
   it("summarises series with fixed precision and flags small samples", () => {
