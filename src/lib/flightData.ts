@@ -1,5 +1,6 @@
 import { SITE_PROFILE } from "./siteData";
-import { RUNWAY_CENTER } from "./layout";
+import { wgs84ToLocalExtended } from "./geospatial";
+import { terrainHeight } from "./terrain";
 
 /**
  * Live ADS-B traffic over the airfield, pulled from ADSB.lol's open API.
@@ -35,32 +36,49 @@ export function liveTrafficEntityId(hex: string): string {
   return `live-aircraft-${hex.toLowerCase()}`;
 }
 
-/** Reference point of the local grid: the modeled runway center. */
-const REF_LAT = SITE_PROFILE.referenceCoordinate.latitude;
-const REF_LON = SITE_PROFILE.referenceCoordinate.longitude;
-
-const METERS_PER_DEGREE = 111_320;
 const FEET_TO_METERS = 0.3048;
-const cosLat = Math.cos(REF_LAT * (Math.PI / 180));
 
 /**
  * Map a global (lat, lon, altitude-ft) position into the scene's local metric
  * grid (`+x` east, `+z` south, `y` up), returning `[x, y, z]`.
  *
- * The reference coordinate is the runway center, which lives at
- * `RUNWAY_CENTER` in the local frame rather than the origin, so the equirect-
- * angular offset from the reference point is added onto `RUNWAY_CENTER`. This
- * keeps live aircraft registered to the modeled runway they overfly.
+ * Horizontal: the scene's x/z are the EPSG:32645 (UTM 45N) grid, which at the
+ * site is turned about 1.5° from true north, so the position goes through the
+ * project's one WGS84→grid conversion in `geospatial.ts` rather than a flat
+ * latitude/longitude offset (which drifted ~26 m per kilometre from the runway).
+ *
+ * Vertical: scene `y = 0` is the site's terrain datum
+ * (`SITE_PROFILE.terrainDatum.elevationM` above sea level), not sea level. The
+ * feed's altitude is feet — barometric, or GNSS geometric when that is all it
+ * sends — so it is converted to metres and the datum subtracted; that is
+ * approximate (pressure altitude is not orthometric height), and an aircraft
+ * reported at or below the site is set on the ground.
+ *
+ * Throws `RangeError`/`TypeError` for a position the projection cannot
+ * place (non-finite, or a latitude outside the zone's coverage).
  */
 export function gpsTo3DCanvas(
   planeLat: number,
   planeLon: number,
   planeAltFeet: number | string | null | undefined,
 ): [number, number, number] {
-  const x = (planeLon - REF_LON) * METERS_PER_DEGREE * cosLat + RUNWAY_CENTER[0];
-  const z = (REF_LAT - planeLat) * METERS_PER_DEGREE + RUNWAY_CENTER[1];
-  const y = (typeof planeAltFeet === "number" ? planeAltFeet : 0) * FEET_TO_METERS;
+  const { x, z } = wgs84ToLocalExtended({ latitude: planeLat, longitude: planeLon });
+  const altitudeM =
+    typeof planeAltFeet === "number" && Number.isFinite(planeAltFeet)
+      ? planeAltFeet * FEET_TO_METERS
+      : 0;
+  const ground = terrainHeight(x, z);
+  const y = Math.max(ground, altitudeM - SITE_PROFILE.terrainDatum.elevationM);
   return [x, y, z];
+}
+
+function canPlace(lat: number, lon: number): boolean {
+  try {
+    gpsTo3DCanvas(lat, lon, 0);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** ADSB.lol `/v2` response shape, kept loose — every field is optional. */
@@ -139,7 +157,8 @@ export async function fetchAircraft(signal?: AbortSignal): Promise<Aircraft[]> {
     if (
       typeof raw.hex !== "string" ||
       typeof raw.lat !== "number" ||
-      typeof raw.lon !== "number"
+      typeof raw.lon !== "number" ||
+      !canPlace(raw.lat, raw.lon)
     ) {
       continue;
     }

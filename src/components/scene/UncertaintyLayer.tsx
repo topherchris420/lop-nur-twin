@@ -40,7 +40,10 @@ const RING_SEGMENTS: Record<UncertaintyLevel, number> = {
 };
 
 interface Envelope {
+  /** Unique per ring (the React key). */
   id: string;
+  /** The ledger subject the ring belongs to, which decides whether it is drawn. */
+  subjectId: string;
   x: number;
   z: number;
   radiusM: number;
@@ -62,7 +65,14 @@ function collectEnvelopes(): Envelope[] {
     if (envelope === undefined) return;
     const radiusM = uncertaintyRadiusM(envelope);
     if (radiusM === undefined) return;
-    envelopes.push({ id, x, z, radiusM, identification: envelope.identification });
+    envelopes.push({
+      id,
+      subjectId: id,
+      x,
+      z,
+      radiusM,
+      identification: envelope.identification,
+    });
   };
 
   for (const structure of STRUCTURES) {
@@ -81,6 +91,7 @@ function collectEnvelopes(): Envelope[] {
       envelopes.push(
         {
           id: `${runway.id}-from`,
+          subjectId: runway.id,
           x: runway.from[0],
           z: runway.from[1],
           radiusM,
@@ -88,6 +99,7 @@ function collectEnvelopes(): Envelope[] {
         },
         {
           id: `${runway.id}-to`,
+          subjectId: runway.id,
           x: runway.to[0],
           z: runway.to[1],
           radiusM,
@@ -95,6 +107,7 @@ function collectEnvelopes(): Envelope[] {
         },
         {
           id: `${runway.id}-center`,
+          subjectId: runway.id,
           x: RUNWAY_CENTER[0],
           z: RUNWAY_CENTER[1],
           radiusM,
@@ -154,11 +167,10 @@ export function UncertaintyLayer() {
 
   const visible = useMemo(
     () =>
-      envelopes.filter((envelope) =>
-        // The runway's three envelopes hang off derived ids, so they are tested
-        // against the runway record itself.
-        isDrawn({ id: envelope.id.replace(/-(from|to|center)$/, "") }),
-      ),
+      // The runway's three rings carry the runway as their subject, so they
+      // are tested against the runway record itself; every other ring is its
+      // own subject (ids such as `court-center` are not runway rings).
+      envelopes.filter((envelope) => isDrawn({ id: envelope.subjectId })),
     [envelopes, isDrawn],
   );
 

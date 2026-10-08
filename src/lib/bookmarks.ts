@@ -32,6 +32,7 @@ import {
   parseEvidenceMode,
   type EvidenceMode,
 } from "./evidenceMode";
+import { manifestHashesComparable } from "./manifestSchema";
 import { isIsoDate, snapshotDateForYear } from "./temporal";
 import type { MeasurePoint } from "./measure";
 import type { CameraMode, QualityTier } from "./store";
@@ -464,6 +465,38 @@ export function parseBookmarkCollection(text: string): BookmarkCollectionResult 
   return { bookmarks, rejected };
 }
 
+export interface CappedBookmarks {
+  /** The list to show and save: never longer than `MAX_BOOKMARKS`. */
+  bookmarks: readonly Bookmark[];
+  /** How many of the incoming bookmarks made it in. */
+  added: number;
+  /** How many were refused because the collection is full. */
+  refused: number;
+}
+
+/**
+ * Puts `incoming` in front of `existing`, refusing whatever does not fit under
+ * `MAX_BOOKMARKS`.
+ *
+ * Existing bookmarks are never pushed out to make room: `saveBookmarks`
+ * keeps only the first `MAX_BOOKMARKS`, so adding to a full list used to drop
+ * the oldest saved views silently while the panel still listed them. A full
+ * collection refuses the new ones instead and the caller says so.
+ */
+export function addBookmarksWithinCap(
+  existing: readonly Bookmark[],
+  incoming: readonly Bookmark[],
+): CappedBookmarks {
+  const kept = existing.slice(0, MAX_BOOKMARKS);
+  const room = MAX_BOOKMARKS - kept.length;
+  const added = Math.min(incoming.length, room);
+  return {
+    bookmarks: [...incoming.slice(0, added), ...kept],
+    added,
+    refused: incoming.length - added,
+  };
+}
+
 /** The export format: the envelope, pretty-printed, with a trailing newline. */
 export function exportBookmarks(bookmarks: readonly Bookmark[]): string {
   return `${JSON.stringify(
@@ -566,7 +599,9 @@ export function checkReproducibility(
   }
   // Two hashes written under different schemas can differ while the model is
   // the same, so comparing them would report a move that never happened.
-  if (saved.manifestSchemaVersion !== current.manifestSchemaVersion) {
+  if (
+    !manifestHashesComparable(saved.manifestSchemaVersion, current.manifestSchemaVersion)
+  ) {
     return {
       verdict: "unknown",
       message: `Cannot be checked: this view was saved under manifest schema ${saved.manifestSchemaVersion ?? "1.1.0 or earlier"} and this build writes ${current.manifestSchemaVersion ?? "an unstated schema"}, whose hashes are computed differently. Save the view again to check it from now on.`,

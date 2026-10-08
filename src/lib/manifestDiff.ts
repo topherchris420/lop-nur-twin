@@ -24,6 +24,8 @@
  * pointed at.
  */
 
+import { MANIFEST_SCHEMA_VERSION, manifestHashesComparable } from "./manifestSchema";
+
 /* ------------------------------------------------------------------ */
 /* Schema                                                              */
 /* ------------------------------------------------------------------ */
@@ -219,9 +221,9 @@ export function parseManifest(text: string): ManifestParseResult {
         error: `Manifest schema version ${schemaVersion} is incompatible with this build, which reads major version ${SUPPORTED_MANIFEST_MAJOR}. Fields with the same name may not mean the same thing, so the comparison is refused rather than guessed.`,
       };
     }
-    if (schemaVersion !== "1.1.0") {
+    if (schemaVersion !== MANIFEST_SCHEMA_VERSION) {
       warnings.push(
-        `Manifest schema version ${schemaVersion} differs from this build's 1.1.0. Fields it does not carry are reported as unavailable rather than as changes.`,
+        `Manifest schema version ${schemaVersion} differs from this build's ${MANIFEST_SCHEMA_VERSION}. Fields it does not carry are reported as unavailable rather than as changes, and hashes whose definition differs between the two versions are not compared.`,
       );
     }
   }
@@ -467,13 +469,24 @@ export function diffManifests(
     after.validationErrorCount,
   );
 
-  add(
-    "analytical-model",
-    "model",
-    "geometryHash",
-    before.geometryHash,
-    after.geometryHash,
+  // The whole-model geometry hash changed definition in schema 1.2.0 (it was
+  // narrowed to placement), so across schema versions a different hash does
+  // not mean anything moved. It is compared under the same rule the bookmark
+  // reproducibility check uses; the per-subject geometry digests below kept
+  // their definition and still are compared.
+  const geometryHashComparable = manifestHashesComparable(
+    before.manifestSchemaVersion,
+    after.manifestSchemaVersion,
   );
+  if (geometryHashComparable) {
+    add(
+      "analytical-model",
+      "model",
+      "geometryHash",
+      before.geometryHash,
+      after.geometryHash,
+    );
+  }
   add(
     "analytical-model",
     "model",
@@ -644,6 +657,11 @@ export function diffManifests(
 
   const touched = new Set(differences.map((difference) => difference.category));
   const notCovered = [...NOT_COVERED];
+  if (!geometryHashComparable) {
+    notCovered.unshift(
+      `The whole-model geometryHash. The manifests were written under schema ${before.manifestSchemaVersion ?? "1.0 (undeclared)"} and ${after.manifestSchemaVersion ?? "1.0 (undeclared)"}, which compute it differently, so comparing it would report a change that may not have happened. Per-subject geometry digests are compared where both manifests carry them.`,
+    );
+  }
   if (!subjectComparisonAvailable) {
     notCovered.unshift(
       "Per-subject changes. At least one manifest carries no `subjects` array, so only totals and whole-model hashes could be compared.",

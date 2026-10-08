@@ -176,7 +176,13 @@ export function projectedToWgs84(point: ProjectedCoordinate): GeographicCoordina
 
 export function wgs84ToProjected(point: GeographicCoordinate): ProjectedCoordinate {
   assertGeographicCoordinate(point);
+  const projected = transverseMercator(point);
+  assertProjectedCoordinate(projected);
+  return projected;
+}
 
+/** The zone 45N transverse Mercator forward series, without the zone checks. */
+function transverseMercator(point: GeographicCoordinate): ProjectedCoordinate {
   const latitudeRad = latitudeToRadians(point.latitude);
   const longitudeRad = longitudeToRadians(point.longitude);
   const sinLatitude = Math.sin(latitudeRad);
@@ -188,7 +194,7 @@ export function wgs84ToProjected(point: GeographicCoordinate): ProjectedCoordina
   const a = cosLatitude * (longitudeRad - CENTRAL_MERIDIAN_RAD);
   const m = meridionalArc(latitudeRad);
 
-  const projected = {
+  return {
     easting:
       FALSE_EASTING +
       UTM_SCALE *
@@ -206,11 +212,36 @@ export function wgs84ToProjected(point: GeographicCoordinate): ProjectedCoordina
               ((5 - t + 9 * c + 4 * c * c) * a ** 4) / 24 +
               ((61 - 58 * t + t * t + 600 * c - 330 * WGS84_EP2) * a ** 6) / 720)),
   };
-
-  assertProjectedCoordinate(projected);
-  return projected;
 }
 
 export function localToWgs84(point: LocalCoordinate): GeographicCoordinate {
   return projectedToWgs84(localToProjected(point));
+}
+
+export function wgs84ToLocal(point: GeographicCoordinate): LocalCoordinate {
+  return projectedToLocal(wgs84ToProjected(point));
+}
+
+/**
+ * WGS84 to the local scene grid through the same EPSG:32645 projection, for a
+ * position that may lie outside zone 45N's 84–90°E band.
+ *
+ * Live traffic is requested within 150 nm of the site, which reaches about
+ * 92.5°E — past the zone's eastern edge, where `wgs84ToLocal` refuses. The
+ * projection itself is defined there (this is the same series, extended), it
+ * is only less accurate far from the central meridian, and those aircraft are
+ * hundreds of kilometres outside the modeled site. Use the strict
+ * `wgs84ToLocal` for anything the model claims.
+ */
+export function wgs84ToLocalExtended(point: GeographicCoordinate): LocalCoordinate {
+  assertFinite(point.longitude, "Geographic longitude");
+  assertFinite(point.latitude, "Geographic latitude");
+  if (point.latitude < UTM_MIN_LATITUDE_DEG || point.latitude > UTM_MAX_LATITUDE_DEG) {
+    throw new RangeError("Latitude is outside UTM zone 45N coverage");
+  }
+  const projected = transverseMercator(point);
+  return {
+    x: projected.easting - GRID_EASTING_ORIGIN,
+    z: GRID_NORTHING_ORIGIN - projected.northing,
+  };
 }

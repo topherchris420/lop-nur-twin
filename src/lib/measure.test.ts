@@ -150,6 +150,20 @@ describe("formatting", () => {
     expect(formatBearingDeg(0)).toBe("000° N");
     expect(formatBearingDeg(-90)).toBe("270° W");
   });
+
+  it("chooses the unit after rounding, so 999.5 m reads as a kilometre", () => {
+    expect(formatDistanceM(999.4)).toBe("999 m");
+    expect(formatDistanceM(999.5)).toBe("1.00 km");
+    expect(formatDistanceM(999.99)).toBe("1.00 km");
+  });
+
+  it("rounds a bearing before normalising it, so it never reads 360°", () => {
+    expect(formatBearingDeg(359.4)).toBe("359° N");
+    expect(formatBearingDeg(359.5)).toBe("000° N");
+    expect(formatBearingDeg(359.99)).toBe("000° N");
+    expect(formatBearingDeg(-0.4)).toBe("000° N");
+    expect(formatBearingDeg(719.6)).toBe("000° N");
+  });
 });
 
 describe("snapWorldPoint", () => {

@@ -3,9 +3,11 @@ import {
   BOOKMARK_SCHEMA_VERSION,
   BOOKMARK_STORAGE_KEY,
   LEGACY_BOOKMARK_STORAGE_KEYS,
+  MAX_BOOKMARKS,
   MAX_IMPORT_LENGTH,
   MAX_NAME_LENGTH,
   MAX_NOTE_LENGTH,
+  addBookmarksWithinCap,
   checkReproducibility,
   createBookmark,
   duplicateBookmark,
@@ -496,5 +498,42 @@ describe("shareable links", () => {
     expect(shareableUrl(saved, "https://example.invalid", "/analysis")).toContain(
       "/analysis?",
     );
+  });
+});
+
+describe("addBookmarksWithinCap", () => {
+  const many = (count: number, prefix: string) =>
+    Array.from({ length: count }, (_, index) => bookmark({ id: `${prefix}-${index}` }));
+
+  it("puts new bookmarks first while there is room", () => {
+    const existing = many(3, "old");
+    const result = addBookmarksWithinCap(existing, many(2, "new"));
+    expect(result.added).toBe(2);
+    expect(result.refused).toBe(0);
+    expect(result.bookmarks.map((item) => item.id)).toEqual([
+      "new-0",
+      "new-1",
+      "old-0",
+      "old-1",
+      "old-2",
+    ]);
+  });
+
+  it("refuses what does not fit rather than pushing saved bookmarks out", () => {
+    const existing = many(MAX_BOOKMARKS - 1, "old");
+    const result = addBookmarksWithinCap(existing, many(5, "new"));
+    expect(result.added).toBe(1);
+    expect(result.refused).toBe(4);
+    expect(result.bookmarks).toHaveLength(MAX_BOOKMARKS);
+    // Every bookmark already saved survives.
+    expect(result.bookmarks.slice(1)).toEqual(existing);
+  });
+
+  it("returns a list that saves and reloads unchanged", () => {
+    const store = memoryStore();
+    const result = addBookmarksWithinCap(many(MAX_BOOKMARKS, "old"), many(1, "new"));
+    expect(result.refused).toBe(1);
+    expect(saveBookmarks(store, result.bookmarks)).toBe(true);
+    expect(loadBookmarks(store)).toEqual(result.bookmarks);
   });
 });

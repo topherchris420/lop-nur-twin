@@ -225,17 +225,25 @@ export function straightLineM(points: readonly MeasurePoint[]): number {
   return distanceM(points[0]!, points[points.length - 1]!);
 }
 
-/** "842 m" under a kilometre, "3.60 km" above it. */
+/**
+ * "842 m" under a kilometre, "3.60 km" above it. The unit is chosen from the
+ * value as printed, so 999.6 m reads "1.00 km", never "1000 m".
+ */
 export function formatDistanceM(m: number): string {
   if (!Number.isFinite(m)) return "—";
-  if (m < 1000) return `${m.toFixed(0)} m`;
+  const metres = Math.round(m);
+  if (metres < 1000) return `${metres} m`;
   return `${(m / 1000).toFixed(2)} km`;
 }
 
-/** "046° NE" — zero-padded grid bearing plus its compass point. */
+/**
+ * "046° NE" — zero-padded grid bearing plus its compass point. Rounded before
+ * it is normalised, so 359.6° reads "000°", never "360°".
+ */
 export function formatBearingDeg(deg: number): string {
-  const normalized = ((deg % 360) + 360) % 360;
-  return `${normalized.toFixed(0).padStart(3, "0")}° ${bearingCardinal(normalized)}`;
+  if (!Number.isFinite(deg)) return "—";
+  const degrees = ((Math.round(deg) % 360) + 360) % 360;
+  return `${String(degrees).padStart(3, "0")}° ${bearingCardinal(deg)}`;
 }
 
 /** The snap target a recorded point sits on, if it names one. */

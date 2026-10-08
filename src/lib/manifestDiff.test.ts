@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   MAX_MANIFEST_BYTES,
@@ -8,6 +9,7 @@ import {
   type ComparableManifest,
   type ManifestSubjectDigest,
 } from "./manifestDiff";
+import { MANIFEST_SCHEMA_VERSION } from "./manifestSchema";
 
 const HASH_A = `sha256:${"a".repeat(64)}`;
 const HASH_B = `sha256:${"b".repeat(64)}`;
@@ -32,7 +34,7 @@ function manifest(overrides: Partial<ComparableManifest> = {}): ComparableManife
   return {
     modelName: "Lop Nur Twin",
     modelVersion: "0.1.0",
-    manifestSchemaVersion: "1.1.0",
+    manifestSchemaVersion: MANIFEST_SCHEMA_VERSION,
     generatedAt: "2026-01-01T00:00:00.000Z",
     geometryHash: HASH_A,
     evidenceLedgerHash: HASH_A,
@@ -323,5 +325,52 @@ describe("exports", () => {
     );
     expect(markdown).toContain("No differences.");
     expect(markdown).toContain("## Not covered by this comparison");
+  });
+});
+
+describe("across manifest schema versions", () => {
+  const recorded = (name: string) =>
+    readFileSync(
+      new URL(`../../model-history/manifests/${name}`, import.meta.url),
+      "utf8",
+    );
+
+  it("reads this build's own schema version without a warning", () => {
+    const result = parseManifest(recorded("r4.json"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.manifest.manifestSchemaVersion).toBe(MANIFEST_SCHEMA_VERSION);
+    expect(result.warnings).toEqual([]);
+  });
+
+  it("does not report r3 -> r4 (schema 1.1.0 -> 1.2.0) as moved geometry", () => {
+    // r4 changed only how the whole-model geometryHash is computed (and
+    // dropped one temporal event); no subject's placement digest moved.
+    const before = parseManifest(recorded("r3.json"));
+    const after = parseManifest(recorded("r4.json"));
+    expect(before.ok && after.ok).toBe(true);
+    if (!before.ok || !after.ok) return;
+    expect(before.manifest.geometryHash).not.toBe(after.manifest.geometryHash);
+    expect(before.warnings.join(" ")).toMatch(/1.1.0 differs/);
+
+    const diff = diffManifests(before.manifest, after.manifest);
+    expect(diff.differences.filter((d) => d.field === "geometryHash")).toEqual([]);
+    expect(diff.categoriesTouched).not.toContain("analytical-model");
+    expect(diff.notCovered.join(" ")).toMatch(/whole-model geometryHash/);
+    expect(diff.differences.find((d) => d.field === "manifestSchemaVersion")).toEqual({
+      category: "release-metadata",
+      subjectId: "model",
+      field: "manifestSchemaVersion",
+      before: "1.1.0",
+      after: "1.2.0",
+    });
+  });
+
+  it("still compares the whole-model geometryHash within one schema version", () => {
+    const diff = diffManifests(manifest(), manifest({ geometryHash: HASH_B }));
+    expect(diff.differences.find((d) => d.field === "geometryHash")?.category).toBe(
+      "analytical-model",
+    );
+    expect(diff.notCovered.join(" ")).not.toMatch(/whole-model geometryHash/);
   });
 });

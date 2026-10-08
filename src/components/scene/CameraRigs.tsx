@@ -7,6 +7,7 @@ import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { telemetry } from "@/lib/telemetry";
 import { touchInput, resetTouchInput, isCoarsePointer } from "@/lib/touchInput";
+import { keyboardPan } from "@/lib/keyboardPan";
 import { SITE_SIZE } from "@/lib/layout";
 
 const CinematicRig = lazy(() => import("./CinematicRig"));
@@ -24,6 +25,16 @@ function smootherstep(t: number): number {
 /* Orbit (free-fly) rig with fly-to animation                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The last fly-to request an orbit rig has acted on. It lives outside the
+ * component because the rig unmounts in the other camera modes while the store
+ * keeps its last request: a per-mount ref restarted at 0 and replayed the old
+ * fly-to every time the user came back to orbit. It cannot simply start at the
+ * store's current seq either, because `requestFlyTo` itself switches to orbit —
+ * the request that mounts the rig is one it has not handled yet.
+ */
+let handledFlyToSeq = 0;
+
 function OrbitRig() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const flyTo = useTwinStore((s) => s.flyTo);
@@ -35,7 +46,6 @@ function OrbitRig() {
     toPos: THREE.Vector3;
     toTarget: THREE.Vector3;
   } | null>(null);
-  const lastSeq = useRef(0);
   // scratch vectors for the on-screen pan-stick (allocated once)
   const panForward = useRef(new THREE.Vector3());
   const panRight = useRef(new THREE.Vector3());
@@ -43,8 +53,8 @@ function OrbitRig() {
 
   useEffect(() => {
     const controls = controlsRef.current;
-    if (!flyTo || !controls || flyTo.seq === lastSeq.current) return;
-    lastSeq.current = flyTo.seq;
+    if (!flyTo || !controls || flyTo.seq === handledFlyToSeq) return;
+    handledFlyToSeq = flyTo.seq;
     if (reducedMotion) {
       controls.object.position.set(...flyTo.position);
       controls.target.set(...flyTo.target);
@@ -71,8 +81,12 @@ function OrbitRig() {
       controls.object.position.lerpVectors(a.fromPos, a.toPos, k);
       controls.target.lerpVectors(a.fromTarget, a.toTarget, k);
       if (a.t >= 1) anim.current = null;
-    } else if (touchInput.moveX !== 0 || touchInput.moveY !== 0) {
-      // Mobile pan-stick: glide the whole orbit rig across the ground. We move
+    } else if (
+      touchInput.moveX + keyboardPan.moveX !== 0 ||
+      touchInput.moveY + keyboardPan.moveY !== 0
+    ) {
+      // Pan-stick or arrow keys: glide the whole orbit rig across the ground.
+      // The two sources write separate channels and are summed here. We move
       // camera and target together so the framing (distance / pitch / heading)
       // is preserved — this is a translation, not a rotation. A fly-to always
       // wins, hence the `else`.
@@ -93,8 +107,8 @@ function OrbitRig() {
       const speed = THREE.MathUtils.clamp(dist * 0.6, 40, 1400) * delta;
       const step = panStep.current
         .set(0, 0, 0)
-        .addScaledVector(panForward.current, touchInput.moveY)
-        .addScaledVector(panRight.current, touchInput.moveX);
+        .addScaledVector(panForward.current, touchInput.moveY + keyboardPan.moveY)
+        .addScaledVector(panRight.current, touchInput.moveX + keyboardPan.moveX);
       const mag = Math.min(1, step.length());
       if (mag > 1e-3) {
         step.normalize().multiplyScalar(speed * mag);
@@ -179,11 +193,21 @@ function FpsRig() {
 
     const down = (e: KeyboardEvent) => keys.current.add(e.code);
     const up = (e: KeyboardEvent) => keys.current.delete(e.code);
+    // A keyup that happens while the window is unfocused never arrives, so
+    // Alt-Tab mid-stride would otherwise leave the walker walking.
+    const releaseAll = () => keys.current.clear();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") releaseAll();
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
+    window.addEventListener("blur", releaseAll);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", releaseAll);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       resetTouchInput();
       setPointerLocked(false);
     };

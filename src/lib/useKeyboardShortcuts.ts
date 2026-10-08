@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTwinStore } from "./store";
-import { touchInput } from "./touchInput";
+import { resetKeyboardPan, stepKeyboardPan } from "./keyboardPan";
 
 /** Global hotkeys: 1/2/3 cameras, N day/night, I index, R research, M measure, L lens, H help. */
 export function useKeyboardShortcuts(): void {
@@ -64,40 +64,39 @@ export function useKeyboardShortcuts(): void {
       keys.current.delete(e.code);
     };
 
-    // Update touchInput for orbit panning (arrow keys) and FPS movement
-    const updateKeys = () => {
-      const mode = useTwinStore.getState().cameraMode;
-      if (mode === "orbit") {
-        // Arrow keys for orbit panning
-        if (keys.current.has("ArrowUp") || keys.current.has("KeyW")) {
-          touchInput.moveY = 0.8;
-        } else if (keys.current.has("ArrowDown") || keys.current.has("KeyS")) {
-          touchInput.moveY = -0.8;
-        } else {
-          touchInput.moveY *= 0.8;
-        }
+    // A key released while the window is not focused (Alt-Tab, a click into
+    // another app, a hidden tab) never delivers its keyup here, so the held
+    // set is dropped whenever focus or visibility goes.
+    const releaseAll = () => keys.current.clear();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") releaseAll();
+    };
 
-        if (keys.current.has("ArrowRight") || keys.current.has("KeyD")) {
-          touchInput.moveX = 0.8;
-        } else if (keys.current.has("ArrowLeft") || keys.current.has("KeyA")) {
-          touchInput.moveX = -0.8;
-        } else {
-          touchInput.moveX *= 0.8;
-        }
+    // Arrow keys / WASD pan the orbit camera through their own channel, so the
+    // ease-out after release never touches the touch pan-stick's deflection.
+    const updateKeys = () => {
+      if (useTwinStore.getState().cameraMode === "orbit") {
+        stepKeyboardPan(keys.current);
+      } else {
+        resetKeyboardPan();
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", releaseAll);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const interval = setInterval(updateKeys, 16);
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", releaseAll);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       clearInterval(interval);
-      touchInput.moveX = 0;
-      touchInput.moveY = 0;
+      releaseAll();
+      resetKeyboardPan();
     };
   }, []);
 }

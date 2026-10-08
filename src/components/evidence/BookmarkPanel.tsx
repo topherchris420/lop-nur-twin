@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BOOKMARK_SCHEMA_VERSION,
+  MAX_BOOKMARKS,
   MAX_NAME_LENGTH,
   MAX_NOTE_LENGTH,
+  addBookmarksWithinCap,
   checkReproducibility,
   createBookmark,
   defaultStore,
@@ -41,6 +43,10 @@ const VERDICT_META = {
   "geometry-changed": { glyph: "✗", label: "Geometry moved" },
   unknown: { glyph: "?", label: "Cannot be checked" },
 } as const;
+
+function fullMessage(what: string): string {
+  return `${what}: this browser keeps at most ${MAX_BOOKMARKS} bookmarks and the list is full. Delete one (export first to keep a copy) and try again.`;
+}
 
 export interface BookmarkPanelProps {
   /** Snapshot of the current analytical position, captured when saving. */
@@ -87,8 +93,12 @@ export function BookmarkPanel({
 
   const persist = useCallback(
     (next: readonly Bookmark[], message: string) => {
-      setBookmarks(next);
-      const ok = saveBookmarks(activeStore, next);
+      // The list shown is exactly the list saved: `saveBookmarks` keeps the
+      // first MAX_BOOKMARKS, and callers that add go through
+      // `addBookmarksWithinCap`, so nothing here is ever cut silently.
+      const kept = next.slice(0, MAX_BOOKMARKS);
+      setBookmarks(kept);
+      const ok = saveBookmarks(activeStore, kept);
       setStatus(
         ok
           ? message
@@ -99,13 +109,20 @@ export function BookmarkPanel({
   );
 
   const save = useCallback(() => {
+    if (bookmarks.length >= MAX_BOOKMARKS) {
+      setStatus(fullMessage("This view was not saved"));
+      return;
+    }
     const bookmark = createBookmark({
       name: name.trim().length > 0 ? name : `View ${bookmarks.length + 1}`,
       view: captureView(),
       provenance,
       ...(note.trim().length === 0 ? {} : { note }),
     });
-    persist([bookmark, ...bookmarks], `Saved "${bookmark.name}".`);
+    persist(
+      addBookmarksWithinCap(bookmarks, [bookmark]).bookmarks,
+      `Saved "${bookmark.name}".`,
+    );
     setName("");
     setNote("");
   }, [bookmarks, captureView, name, note, persist, provenance]);
@@ -124,11 +141,15 @@ export function BookmarkPanel({
           const incoming = result.bookmarks.filter(
             (bookmark) => !existing.has(bookmark.id),
           );
+          const capped = addBookmarksWithinCap(bookmarks, incoming);
           persist(
-            [...incoming, ...bookmarks],
-            `Imported ${incoming.length} bookmark${incoming.length === 1 ? "" : "s"}` +
+            capped.bookmarks,
+            `Imported ${capped.added} bookmark${capped.added === 1 ? "" : "s"}` +
               (result.rejected > 0
-                ? `; ${result.rejected} record${result.rejected === 1 ? "" : "s"} rejected as malformed or duplicated.`
+                ? `; ${result.rejected} record${result.rejected === 1 ? "" : "s"} rejected as malformed or duplicated`
+                : "") +
+              (capped.refused > 0
+                ? `; ${capped.refused} not imported because this browser keeps at most ${MAX_BOOKMARKS} bookmarks. Delete some and import the file again to bring in the rest.`
                 : "."),
           );
         })
@@ -354,12 +375,17 @@ export function BookmarkPanel({
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      if (bookmarks.length >= MAX_BOOKMARKS) {
+                        setStatus(fullMessage(`"${bookmark.name}" was not duplicated`));
+                        return;
+                      }
                       persist(
-                        [duplicateBookmark(bookmark), ...bookmarks],
+                        addBookmarksWithinCap(bookmarks, [duplicateBookmark(bookmark)])
+                          .bookmarks,
                         `Duplicated "${bookmark.name}".`,
-                      )
-                    }
+                      );
+                    }}
                     className={cn(
                       "border-border hover:bg-accent focus-visible:ring-ring rounded border px-2 py-0.5 focus-visible:ring-2 focus-visible:outline-none",
                       text,
