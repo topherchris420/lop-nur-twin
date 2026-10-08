@@ -20,10 +20,13 @@ export const EMBODIMENT: Record<
 
 /**
  * Who each perspective is drawn as, from the same Godot client's `LOOKS`
- * table: James is an octopus in spectacles; Jasmine wears overalls, safety
- * goggles as a headband and gold hoops, with a natural afro; Luca a sweater,
- * a scarf and swept hair; Elena a blazer and an A-line skirt, long hair and
- * glasses. `figures.ts` models them in 3D from this table and nothing else.
+ * table: James is an octopus in spectacles; Jasmine wears safety goggles as a
+ * headband and gold hoops, with a natural afro; Luca a sweater, a scarf and
+ * swept hair; Elena a blazer and an A-line skirt, long hair and glasses.
+ * Jasmine's clothes are the lab's own, not the client's: where the client
+ * dresses her in overalls, the lab has a yellow off-the-shoulder top, a satin
+ * wrap skirt slit to the thigh, heels and a fine gold chain. `figures.ts` models
+ * them in 3D from this table and nothing else.
  */
 export type Look =
   | { archetype: "octopus"; accessory: "spectacles" }
@@ -31,7 +34,7 @@ export type Look =
       archetype: "humanoid";
       build: "feminine" | "masculine";
       hair: "afro" | "swept" | "long";
-      outfit: "overalls" | "scarf" | "blazer_skirt";
+      outfit: "off_shoulder_wrap" | "scarf" | "blazer_skirt";
       accessory: "goggles" | "glasses" | "";
       earrings: boolean;
       lashes: boolean;
@@ -45,7 +48,7 @@ export const LOOKS: Record<Perspective, Look> = {
     archetype: "humanoid",
     build: "feminine",
     hair: "afro",
-    outfit: "overalls",
+    outfit: "off_shoulder_wrap",
     accessory: "goggles",
     earrings: true,
     lashes: true,

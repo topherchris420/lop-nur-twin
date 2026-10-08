@@ -7,7 +7,8 @@
  *
  *  - **idle:** breathing, randomised blinks (one in five a double blink, the
  *    client's timings), a wandering gaze, weight shifting between the feet,
- *    and each perspective's secondary motion — James's arms, Luca's scarf;
+ *    and each perspective's secondary motion — James's arms, Luca's scarf,
+ *    Jasmine's skirt swung clear of her legs;
  *  - **listening:** the eyes and then the head go to whoever is speaking;
  *  - **talking:** the mouth moves on the client's procedural voice (syllable
  *    bumps under a slower phrase contour, attack faster than release), the
@@ -132,6 +133,32 @@ const _footQ = new THREE.Quaternion();
 const _dir = new THREE.Vector3();
 const _lift = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
+const _axisK = new THREE.Vector3();
+const _sample = new THREE.Vector3();
+const _kneecap = new THREE.Vector3();
+const _shin = new THREE.Vector3();
+/** Hip, knee and ankle of each leg in the pelvis's frame, as the solve left them. */
+const _legJoints = [0, 1].map(
+  () => [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] as const,
+);
+/**
+ * Points down a leg that a skirt must clear: along the thigh (0) or the shin
+ * (1), how far, and the leg's radius there (`figures.ts`' feminine leg).
+ */
+const LEG_SAMPLES: readonly (readonly [0 | 1, number, number])[] = [
+  [0, 0.3, 0.084],
+  [0, 0.55, 0.077],
+  [0, 0.8, 0.069],
+  [0, 1, 0.066],
+  [1, 0.06, 0.066],
+  [1, 0.15, 0.06],
+  [1, 0.3, 0.055],
+  [1, 0.45, 0.051],
+];
+/** How far outside a leg a pushed skirt stays. */
+const SKIRT_MARGIN = 0.012;
+/** Scratch for a skirt's targets: more bones than any skirt has. */
+const _skirtTarget = new Float32Array(32);
 const _plan = [
   { target: new THREE.Vector3(), pitch: 0, yaw: 0 },
   { target: new THREE.Vector3(), pitch: 0, yaw: 0 },
@@ -173,6 +200,10 @@ export class FigureAnimator {
   ];
   /** How far, model metres, the most strained planted foot is from its place in the gait. */
   private strain = 0;
+  /** How far each of a skirt's bones has swung out, radians. */
+  private readonly skirtSwing: Float32Array;
+  /** How far out from the skirt's axis each bone's hinge is, in its own direction. */
+  private readonly skirtHinge: Float32Array;
   /** This frame's root rotation and scale, for the conversions below. */
   private readonly frame = { cos: 1, sin: 0, scale: 1 };
   private readonly worldX = (mx: number, mz: number) =>
@@ -216,6 +247,17 @@ export class FigureAnimator {
     private readonly rig: FigureRig,
     seed: number,
   ) {
+    this.skirtSwing = new Float32Array(rig.skirt?.bones.length ?? 0);
+    this.skirtHinge = this.skirtSwing.map((_, k) => {
+      const sk = rig.skirt!,
+        b = sk.bones[k]! * 3,
+        a = sk.angles[k]!;
+      // Bone positions are the pelvis's frame; the axis is the model's.
+      return (
+        (rig.rest[b]! - sk.axis[0] + REST_POS[B.pelvis * 3]!) * Math.sin(a) +
+        (rig.rest[b + 2]! - sk.axis[1] + PELVIS_Z) * Math.cos(a)
+      );
+    });
     this.rand = mulberry32(seed >>> 0);
     this.phase0 = this.rand() * Math.PI * 2;
     this.nextBlink = 0.6 + this.rand() * 2.4;
@@ -247,6 +289,7 @@ export class FigureAnimator {
       c.release = 0;
     }
     this.strain = 0;
+    this.skirtSwing.fill(0);
     this.placed = true;
   }
 
@@ -606,7 +649,18 @@ export class FigureAnimator {
       );
       _footQ.setFromEuler(_e.set(plan.pitch, plan.yaw, 0, "YXZ")).premultiply(_pelvisInv);
       bones[foot]!.quaternion.copy(_shinQ).invert().multiply(_footQ);
+      const [hip, knee, ankle] = _legJoints[i]!;
+      hip.copy(bones[thigh]!.position);
+      knee
+        .set(rig.rest[shin * 3]!, rig.rest[shin * 3 + 1]!, rig.rest[shin * 3 + 2])
+        .applyQuaternion(bones[thigh]!.quaternion)
+        .add(hip);
+      ankle
+        .set(rig.rest[foot * 3]!, rig.rest[foot * 3 + 1]!, rig.rest[foot * 3 + 2])
+        .applyQuaternion(_shinQ)
+        .add(knee);
     }
+    this.swingSkirt(dt, reduced, moving);
 
     /* ------------------------------------------------------ spine */
     // The chest counter-rotates the hips, and straightens against the sway.
@@ -700,6 +754,119 @@ export class FigureAnimator {
         0,
         step + idle,
       );
+    }
+  }
+
+  /**
+   * How far a skirt bone (or the blend of two, `t` of the way from `k0` to
+   * `k1`) must swing out about its hinge for the skirt at height `y` (pelvis
+   * frame) to clear a leg reaching `out` from the axis in that direction.
+   */
+  private skirtNeed(
+    k0: number,
+    k1: number,
+    t: number,
+    out: number,
+    y: number,
+    reachAt: (y: number, k: number) => number,
+  ) {
+    const h = this.rig.rest[this.rig.skirt!.bones[k0]! * 3 + 1]! - y;
+    if (h < 0.03) return 0;
+    const hinge = this.skirtHinge[k0]! * (1 - t) + this.skirtHinge[k1]! * t;
+    const reach = reachAt(y, k0) * (1 - t) + reachAt(y, k1) * t;
+    return Math.atan2(out - hinge, h) - Math.atan2(reach - hinge, h);
+  }
+
+  /**
+   * A skirt is not tied to the legs: each of its bones hangs from the pelvis
+   * and swings out only as far as the leg that reaches it needs, then falls
+   * back as cloth does. The front is pushed by whichever leg leads and the
+   * back by whichever trails, so the sides hang rather than tenting. A leg is
+   * a few points along thigh and shin, in the pelvis's frame.
+   */
+  private swingSkirt(dt: number, reduced: boolean, moving: number) {
+    const sk = this.rig.skirt;
+    if (!sk) return;
+    const { bones } = this.rig;
+    const n = sk.bones.length,
+      spacing = (Math.PI * 2) / n;
+    // The pelvis's frame is the model's at rest, moved to the pelvis.
+    const ax = sk.axis[0] - REST_POS[B.pelvis * 3]!,
+      az = sk.axis[1] - PELVIS_Z;
+    const hemY = sk.hem - PELVIS_Y;
+    const step = sk.heights[1]! - sk.heights[0]!;
+    const reachAt = (y: number, k: number) => {
+      const at = Math.max(
+        0,
+        Math.min(sk.heights.length - 1.001, (y + PELVIS_Y - sk.heights[0]!) / step),
+      );
+      const row = Math.floor(at);
+      return (
+        sk.reach[row]![k]! + (sk.reach[row + 1]![k]! - sk.reach[row]![k]!) * (at - row)
+      );
+    };
+    const target = _skirtTarget;
+    // Walking, the air lifts the back a little.
+    for (let k = 0; k < n; k++)
+      target[k] = 0.05 * moving * Math.max(0, Math.cos(sk.angles[k]!));
+    // Swing the skirt clear of a sphere of leg at `p` (pelvis frame).
+    const push = (p: THREE.Vector3, radius: number) => {
+      if (p.y < hemY - 0.02) return;
+      const vx = p.x - ax,
+        vz = p.z - az;
+      const dist = Math.hypot(vx, vz);
+      let toward = Math.atan2(vx, vz);
+      if (toward < 0) toward += Math.PI * 2;
+      // The skirt in the leg's own direction is a blend of the two bones
+      // either side of it, weighted by how near each is. Each swings in
+      // proportion to its weight there, the nearer a little past the need, so
+      // the blend clears the leg without the farther bone swinging as far.
+      const between = toward / spacing;
+      const k0 = Math.floor(between) % n,
+        k1 = (k0 + 1) % n,
+        t = between - Math.floor(between);
+      const need = this.skirtNeed(k0, k1, t, dist + radius + SKIRT_MARGIN, p.y, reachAt);
+      const share = (w: number) => need * Math.min(1.15, 2 * w);
+      if (share(1 - t) > target[k0]!) target[k0] = share(1 - t);
+      if (share(t) > target[k1]!) target[k1] = share(t);
+      // And each bone, as far as the leg reaches in its own direction.
+      for (let k = 0; k < n; k++) {
+        const a = sk.angles[k]!;
+        const along = vx * Math.sin(a) + vz * Math.cos(a);
+        if (along <= 0) continue;
+        const own = this.skirtNeed(k, k, 0, along + radius + SKIRT_MARGIN, p.y, reachAt);
+        if (own > target[k]!) target[k] = own;
+      }
+    };
+    for (const [hip, knee, ankle] of _legJoints) {
+      for (const [part, f, radius] of LEG_SAMPLES) {
+        if (part) _sample.copy(knee).lerp(ankle, f);
+        else _sample.copy(hip).lerp(knee, f);
+        push(_sample, radius);
+      }
+      // A bent knee's cap stands out in front of the joint, the more the more
+      // it bends: opposite the two bones' directions from the knee.
+      _kneecap
+        .subVectors(hip, knee)
+        .normalize()
+        .add(_shin.subVectors(ankle, knee).normalize());
+      const bend = _kneecap.length();
+      if (bend > 0.05) {
+        _kneecap.multiplyScalar(-Math.min(0.025, bend * 0.03) / bend).add(knee);
+        push(_kneecap, 0.05);
+      }
+    }
+    // Pushed at once, since a leg does not wait; falling back with a lag.
+    const fall = 1 - Math.exp(-dt * 6);
+    for (let k = 0; k < n; k++) {
+      const want = target[k]!;
+      let swing = this.skirtSwing[k]!;
+      swing = reduced || want > swing ? want : swing + (want - swing) * fall;
+      this.skirtSwing[k] = swing;
+      const a = sk.angles[k]!;
+      // About this axis "down" turns toward the bone's own direction.
+      _axisK.set(-Math.cos(a), 0, Math.sin(a));
+      bones[sk.bones[k]!]!.quaternion.setFromAxisAngle(_axisK, swing);
     }
   }
 

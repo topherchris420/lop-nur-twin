@@ -17,11 +17,12 @@
  *  - **One skinned mesh per figure, on the shared rig.** The humans use the
  *    34-bone skeleton in `game/characters/rig.ts` (the one the city's
  *    pedestrians and Blacksite's soldiers already agree on) plus face bones —
- *    eyes, upper lids and the mouth — and, for Luca, a scarf tail. James has
- *    his own: a hub, a mantle that breathes, and eight six-bone arms. Weights
+ *    eyes, upper lids and the mouth — and, for Luca, a scarf tail; Jasmine's
+ *    skirt hangs from twelve bones of its own round the hips. James has his
+ *    own: a hub, a mantle that breathes, and eight six-bone arms. Weights
  *    come from proximity to each bone's rest segment, restricted per part
- *    (hair to the head, a skirt to the pelvis and thighs), so joints round
- *    over and nothing drags what it should not.
+ *    (hair to the head, Elena's skirt to the pelvis and thighs), so joints
+ *    round over and nothing drags what it should not.
  *  - **One material pair.** Colour, roughness and metalness are per vertex;
  *    `figureMaterial` adds a cloth weave, underside occlusion and a grazing
  *    rim so a silhouette separates from the lab's dark walls. Solid parts and
@@ -71,6 +72,8 @@ export interface FigureRig {
   face: FaceBones;
   /** Luca's scarf tail, top to bottom; empty for everyone else. */
   tail: readonly number[];
+  /** Jasmine's skirt, which the animator swings clear of her legs; null for everyone else. */
+  skirt: SkirtRig | null;
   /** James's hub, head (look), mantle (breath) and eight arm chains. */
   octopus: {
     hub: number;
@@ -91,6 +94,25 @@ export interface FigureRig {
   triangles: number;
   material: THREE.MeshStandardMaterial;
   dispose(): void;
+}
+
+/**
+ * A skirt hung from the pelvis on bones spaced round the hips, each hinged on
+ * the skirt where it leaves the hips. Each swings outward in its own direction
+ * and nothing else: the animator pushes it clear of whatever leg reaches it
+ * and lets it fall back.
+ */
+export interface SkirtRig {
+  bones: readonly number[];
+  /** Each bone's direction round the body: 0 behind, pi/2 the figure's right, pi in front. */
+  angles: readonly number[];
+  /** The vertical the directions are measured round, model x and z. */
+  axis: readonly [number, number];
+  /** The hem's height, model space. */
+  hem: number;
+  /** Heights, and at each how far out the skirt reaches from the axis in each bone's direction. */
+  heights: readonly number[];
+  reach: readonly (readonly number[])[];
 }
 
 /** Where the figure is lit: the lab's dark rooms want more rim than a sunlit street. */
@@ -216,6 +238,35 @@ function chain(parent: number, bones: readonly number[], f: number, out: Influen
   out.w[1] = t;
   out.i[2] = out.i[3] = lo;
   out.w[2] = out.w[3] = 0;
+}
+
+/**
+ * `a` where `t` is 1, `b` where it is 0, and between them the four strongest
+ * influences of both: a garment that hangs from the torso and is moved by
+ * other bones below follows the torso exactly where it meets it.
+ */
+function blendSkins(a: Skin, b: Skin, t: (y: number) => number): Skin {
+  const ia: Influence = { i: [0, 0, 0, 0], w: [0, 0, 0, 0] },
+    ib: Influence = { i: [0, 0, 0, 0], w: [0, 0, 0, 0] };
+  const acc = new Map<number, number>();
+  return (x, y, z, out, index) => {
+    const s = t(y);
+    if (s >= 1) return a(x, y, z, out, index);
+    if (s <= 0) return b(x, y, z, out, index);
+    a(x, y, z, ia, index);
+    b(x, y, z, ib, index);
+    acc.clear();
+    for (let k = 0; k < 4; k++) {
+      acc.set(ia.i[k]!, (acc.get(ia.i[k]!) ?? 0) + ia.w[k]! * s);
+      acc.set(ib.i[k]!, (acc.get(ib.i[k]!) ?? 0) + ib.w[k]! * (1 - s));
+    }
+    const top = [...acc].sort((p, q) => q[1] - p[1] || p[0] - q[0]).slice(0, 4);
+    const total = top.reduce((sum, [, w]) => sum + w, 0);
+    for (let k = 0; k < 4; k++) {
+      out.i[k] = top[k]?.[0] ?? top[0]![0];
+      out.w[k] = (top[k]?.[1] ?? 0) / total;
+    }
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -742,6 +793,63 @@ function patchOn(
   return g;
 }
 
+/**
+ * A frill hung from a line on a garment: it falls `drop`, flares out by
+ * `flare` as it goes and is gathered into `waves` folds, darker in their
+ * hollows. `at(u)` gives the line and the outward direction along it.
+ */
+function frill(
+  at: (u: number, p: THREE.Vector3, out: THREE.Vector3) => void,
+  o: {
+    cols: number;
+    closed: boolean;
+    drop: number;
+    flare: number;
+    waves: number;
+    depth: number;
+    color: THREE.Color;
+    shade: THREE.Color;
+  },
+): THREE.BufferGeometry {
+  const rows = 3;
+  const cols = o.closed ? o.cols : o.cols + 1;
+  const pos: number[] = [],
+    col: number[] = [];
+  const p = new THREE.Vector3(),
+    n = new THREE.Vector3(),
+    c = new THREE.Color();
+  for (let r = 0; r <= rows; r++) {
+    const v = r / rows;
+    for (let k = 0; k < cols; k++) {
+      const u = k / o.cols;
+      at(u, p, n);
+      const wave = Math.sin(u * Math.PI * 2 * o.waves);
+      p.addScaledVector(n, 0.002 + o.flare * Math.pow(v, 1.4) + o.depth * v * wave);
+      p.y -= o.drop * v;
+      pos.push(p.x, p.y, p.z);
+      c.copy(o.color).lerp(o.shade, (0.5 - 0.5 * wave) * (0.25 + 0.5 * v));
+      col.push(c.r, c.g, c.b);
+    }
+  }
+  const index: number[] = [];
+  for (let r = 0; r < rows; r++)
+    for (let k = 0; k < o.cols; k++) {
+      const k1 = o.closed ? (k + 1) % cols : k + 1;
+      const i0 = r * cols + k,
+        i1 = r * cols + k1,
+        i2 = (r + 1) * cols + k1,
+        i3 = (r + 1) * cols + k;
+      // Rows run downward, so this winding faces out.
+      index.push(i0, i3, i1, i1, i3, i2);
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
+
 /** Angle from the front of a section: 0 straight ahead, pi straight behind. */
 function fromFront(a: number) {
   const d = Math.abs(
@@ -926,6 +1034,52 @@ const EYE_Y = 1.649,
   EYE_Z = -0.074;
 const MOUTH: V3 = [0, 1.5805, -0.08];
 
+/**
+ * Jasmine's clothes, by height: the top's neckline across the chest and the
+ * upper arms, its hem, the skirt's waist, where its slit opens and where it
+ * ends; and round the figure, the slit over the right thigh and the tie at the
+ * right hip (`a` = pi is the front, pi/2 the figure's right).
+ */
+const WRAP = {
+  neckline: 1.348,
+  topHem: 1.095,
+  waist: 1.052,
+  slitTop: 0.7,
+  hem: 0.36,
+  slitAt: Math.PI - 0.4,
+  tieAt: Math.PI - 1.0,
+  /** A yellow dress: the top in saffron, the satin skirt a shade deeper. */
+  top: "#ffc22e",
+  skirt: "#f2a91d",
+} as const;
+
+/** Jasmine's skirt: just outside the torso at the waist and hips, flaring to the hem. */
+function wrapSkirt(torso: Profile) {
+  const hug = (y: number): Ring => {
+    const t = torso.section(y);
+    return { y, w: t.w + 0.006, df: t.df + 0.006, db: t.db + 0.006, zc: t.zc };
+  };
+  return new Profile(
+    [
+      { y: WRAP.hem, w: 0.236, df: 0.185, db: 0.205, zc: 0.016 },
+      { y: 0.45, w: 0.23, df: 0.175, db: 0.195, zc: 0.015 },
+      { y: 0.6, w: 0.218, df: 0.158, db: 0.172, zc: 0.013 },
+      { y: 0.75, w: 0.21, df: 0.15, db: 0.157, zc: 0.011 },
+      { y: 0.88, w: 0.196, df: 0.134, db: 0.138, zc: 0.008 },
+      hug(0.96),
+      hug(WRAP.waist),
+    ],
+    2.4,
+  );
+}
+/**
+ * How many bones carry Jasmine's skirt, the vertical their directions are
+ * measured round, and the height of their hinges, where it leaves the hips.
+ */
+const SKIRT_BONES = 12;
+const SKIRT_AXIS = [0, 0.01] as const;
+const SKIRT_HINGE = 0.95;
+
 const rest = (i: number): V3 => [
   REST_POS[i * 3]!,
   REST_POS[i * 3 + 1]!,
@@ -937,6 +1091,7 @@ interface Built {
   pieces: Piece[];
   face: FaceBones;
   tail: number[];
+  skirt: SkirtRig | null;
   octopus: FigureRig["octopus"];
   scale: number;
   stance: number;
@@ -946,12 +1101,17 @@ interface Built {
 function buildHuman(who: Perspective, look: HumanLook): Built {
   const e = EMBODIMENT[who];
   const fem = look.build === "feminine";
-  const body = tone(e.body),
-    bodyShade = tone(e.body, 0.22),
-    bodyLight = tone(e.body, 0, 0.25),
-    accent = tone(e.accent),
-    accentShade = tone(e.accent, 0.25),
-    accentLight = tone(e.accent, 0, 0.3),
+  // The garments' colours: the client's theme, except Jasmine's dress, which
+  // is the lab's own in its cut and its colour.
+  const cloth =
+    look.outfit === "off_shoulder_wrap"
+      ? { body: WRAP.top, accent: WRAP.skirt }
+      : { body: e.body, accent: e.accent };
+  const body = tone(cloth.body),
+    bodyShade = tone(cloth.body, 0.22),
+    bodyLight = tone(cloth.body, 0, 0.25),
+    accent = tone(cloth.accent),
+    accentShade = tone(cloth.accent, 0.25),
     skin = tone(e.skin),
     hair = tone(e.hair),
     hairLight = tone(e.hair, 0, 0.22),
@@ -986,12 +1146,45 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
       ),
     );
   }
+  const torso = fem ? TORSO_FEMININE : TORSO_MASCULINE;
+  const bare = look.outfit === "off_shoulder_wrap";
+  const skirt = bare ? wrapSkirt(torso) : null;
+  let skirtRig: SkirtRig | null = null;
+  if (skirt) {
+    // Bones round the hips, each hinged on the skirt at the hip line and
+    // pointing at the hem in its own direction, and how far out the skirt
+    // reaches in that direction at each height.
+    const [ax, az] = SKIRT_AXIS;
+    const angles = Array.from(
+      { length: SKIRT_BONES },
+      (_, k) => (k / SKIRT_BONES) * Math.PI * 2,
+    );
+    const heights: number[] = [];
+    for (let y = WRAP.hem; y < SKIRT_HINGE + 0.03; y += 0.04) heights.push(y);
+    const reach = heights.map((y) =>
+      angles.map((a) => {
+        skirt.point(a, y, _v);
+        return (_v.x - ax) * Math.sin(a) + (_v.z - az) * Math.cos(a);
+      }),
+    );
+    const bones = angles.map((a, k) => {
+      const hinge = skirt.point(a, SKIRT_HINGE, new THREE.Vector3());
+      skirt.point(a, WRAP.hem, _v);
+      return addBone(
+        specs,
+        `skirt${k}`,
+        B.pelvis,
+        [hinge.x, hinge.y, hinge.z],
+        [_v.x, _v.y, _v.z],
+      );
+    });
+    skirtRig = { bones, angles, axis: SKIRT_AXIS, hem: WRAP.hem, heights, reach };
+  }
   const seg = segmentsOf(specs);
   const pieces: Piece[] = [];
   const add = (p: Piece) => pieces.push(p);
 
   /* ------------------------------------------------------ torso */
-  const torso = fem ? TORSO_FEMININE : TORSO_MASCULINE;
   const torsoSkin = near(seg, [
     B.pelvis,
     B.spine1,
@@ -1003,76 +1196,130 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
     B.thighL,
     B.thighR,
   ]);
-  const waist =
-    look.outfit === "overalls" ? 1.075 : look.outfit === "scarf" ? 0.99 : 0.985;
-  const cuts = look.outfit === "scarf" ? [waist, 1.025, 1.13, 1.155] : [waist, 1.165];
-  add({
-    g: loft(torso, 48, bandRows(torso.y0, torso.y1, 0.012, cuts), (a, _y, band, out) => {
-      const f = fromFront(a);
-      if (band < waist) {
-        out.copy(look.outfit === "overalls" ? accent : accentShade);
-        return;
-      }
-      switch (look.outfit) {
-        case "overalls":
-          // The shirt; the bib is laid over it below.
-          out.copy(body);
-          break;
-        case "scarf":
-          // A ribbed hem and Godot's light stripe across the sweater.
-          out.copy(
-            band < 1.025 ? bodyShade : band > 1.13 && band < 1.155 ? bodyLight : body,
-          );
-          break;
-        case "blazer_skirt":
-          // The jacket's closing edge below the button; the shirt and lapels are laid over it.
-          out.copy(band < 1.165 && f < 0.012 ? accentShade : body);
-          break;
-      }
-    }),
-    rough: 0.86,
-    skin: torsoSkin,
-  });
-  // Garments laid over the torso as their own surfaces, so their edges are
-  // edges and not a blend between two vertex colours.
-  if (look.outfit === "overalls") {
-    const bib = (
-      a0: number,
-      a1: number,
+  if (bare) {
+    // Jasmine's top: bare shoulders above a neckline straight across the chest
+    // and the upper arms, the top itself to just above the skirt's waist, and
+    // a line of skin between them. Skin and cloth are separate bands so each
+    // has its own sheen; below the waist the torso is under the skirt.
+    const band = (
       y0: number,
       y1: number,
-      lift: number,
+      step: number,
       color: THREE.Color,
+      cloth: boolean,
+      shade?: (a: number, y: number) => number,
     ) =>
       add({
-        g: patchOn(torso, { y0, y1, span: () => [a0, a1], lift }),
-        color,
-        rough: 0.84,
+        g: loft(torso, 48, bandRows(y0, y1, step), (a, y, _band, out) => {
+          out.copy(color);
+          if (shade) out.multiplyScalar(shade(a, y));
+        }),
+        rough: cloth ? 0.82 : 0.52,
+        sss: cloth ? 0 : 1,
         skin: torsoSkin,
       });
-    bib(Math.PI - 0.6, Math.PI + 0.6, waist - 0.01, 1.31, 0.004, accent);
-    bib(Math.PI - 0.6, Math.PI + 0.6, 1.296, 1.31, 0.0062, accentShade);
-    bib(Math.PI - 0.24, Math.PI + 0.24, 1.15, 1.245, 0.0068, accentShade);
-    bib(Math.PI - 0.24, Math.PI + 0.24, 1.233, 1.245, 0.0082, accent);
-    // A shirt collar round the neck.
-    const collar: THREE.Vector3[] = [];
-    for (let i = 0; i < 16; i++) {
-      const t = (i / 16) * Math.PI * 2;
-      collar.push(
-        new THREE.Vector3(
-          0.066 * Math.sin(t),
-          1.468 + 0.007 * Math.cos(t),
-          0.008 + 0.06 * Math.cos(t),
+    band(torso.y0, WRAP.waist, 0.03, accentShade, true);
+    band(WRAP.waist, WRAP.topHem, 0.012, skin, false);
+    band(WRAP.topHem, WRAP.neckline, 0.016, body, true);
+    // A soft crease where the neck rises out of the shoulders.
+    const at = new THREE.Vector3();
+    band(WRAP.neckline, torso.y1, 0.012, skin, false, (a, y) => {
+      torso.point(a, y, at);
+      const d = Math.hypot(at.x, at.z - 0.013) - 0.05;
+      return 1 - 0.16 * (1 - smooth(0, 0.03, d)) * smooth(1.42, 1.45, y);
+    });
+    // The top's hem, turned up, so its edge throws a line of shadow.
+    add({
+      g: patchOn(torso, {
+        y0: WRAP.topHem,
+        y1: WRAP.topHem + 0.014,
+        span: () => [0, Math.PI * 2],
+        lift: 0.0028,
+        cols: 48,
+      }),
+      color: tone(cloth.body, 0.08),
+      rough: 0.82,
+      skin: torsoSkin,
+    });
+    // A frill along the neckline, across the chest and the back; the sleeves
+    // carry their own, so the line runs on over the arms.
+    for (const [a0, a1] of [
+      [Math.PI - 1.05, Math.PI + 1.05],
+      [-1.0, 1.0],
+    ] as const)
+      add({
+        g: frill(
+          (u, p, n) => {
+            const a = a0 + (a1 - a0) * u;
+            torso.point(a, WRAP.neckline + 0.004, p);
+            torso.normal(a, WRAP.neckline + 0.004, n);
+          },
+          {
+            cols: 56,
+            closed: false,
+            drop: 0.042,
+            flare: 0.022,
+            waves: 11,
+            depth: 0.0035,
+            color: tone(cloth.body, 0, 0.06),
+            shade: bodyShade,
+          },
         ),
-      );
+        rough: 0.82,
+        thin: true,
+        skin: torsoSkin,
+      });
+    // A fine gold chain round the base of the neck, its drop above the neckline.
+    const chainY = (a: number) => 1.384 + 0.078 * smooth(0, 1.9, fromFront(a));
+    const chain: THREE.Vector3[] = [];
+    for (let i = 0; i < 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      torso.point(a, chainY(a), _v);
+      torso.normal(a, chainY(a), _w);
+      chain.push(_v.clone().addScaledVector(_w, 0.0032));
     }
     add({
-      g: tubeAlong(collar, 0.011, true),
-      color: bodyShade,
+      g: tubeAlong(chain, 0.0011, true, 64, 4),
+      color: gold,
+      rough: 0.25,
+      metal: 1,
+      skin: torsoSkin,
+    });
+    torso.point(Math.PI, chainY(Math.PI) - 0.011, _v);
+    torso.normal(Math.PI, chainY(Math.PI) - 0.011, _w);
+    _v.addScaledVector(_w, 0.005);
+    add({
+      g: ellipsoid([0.0042, 0.0068, 0.0028], [_v.x, _v.y, _v.z]),
+      color: gold,
+      rough: 0.25,
+      metal: 1,
+      skin: torsoSkin,
+    });
+  } else {
+    const waist = look.outfit === "scarf" ? 0.99 : 0.985;
+    const cuts = look.outfit === "scarf" ? [waist, 1.025, 1.13, 1.155] : [waist, 1.165];
+    add({
+      g: loft(
+        torso,
+        48,
+        bandRows(torso.y0, torso.y1, 0.012, cuts),
+        (a, _y, band, out) => {
+          if (band < waist) out.copy(accentShade);
+          else if (look.outfit === "scarf")
+            // A ribbed hem and Godot's light stripe across the sweater.
+            out.copy(
+              band < 1.025 ? bodyShade : band > 1.13 && band < 1.155 ? bodyLight : body,
+            );
+          // The jacket's closing edge below the button; the shirt and lapels are laid over it.
+          else out.copy(band < 1.165 && fromFront(a) < 0.012 ? accentShade : body);
+        },
+      ),
       rough: 0.86,
       skin: torsoSkin,
     });
   }
+  // Garments laid over the torso as their own surfaces, so their edges are
+  // edges and not a blend between two vertex colours.
   if (look.outfit === "blazer_skirt") {
     // The shirt's V, and the lapels either side of it down to the button.
     const v = (y: number) =>
@@ -1257,36 +1504,42 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
     const sh = rest(upper),
       el = rest(fore),
       wr = rest(hand);
-    // A small deltoid under the sleeve's cap, rounding shoulder into arm.
+    // A small deltoid under the sleeve's cap, rounding shoulder into arm;
+    // Jasmine's shoulders are bare.
     add({
       g: ellipsoid(
         [0.044 * k + 0.004, 0.052 * k, 0.048 * k],
         [side * 0.172, 1.382, -0.012],
       ),
-      color: sleeve,
-      rough: 0.86,
+      color: bare ? skin : sleeve,
+      rough: bare ? 0.52 : 0.86,
+      sss: bare ? 1 : 0,
       skin: near(seg, [clav, upper, B.spine3]),
     });
+    if (bare)
+      // A bare shoulder needs its slope: the line from the neck into the arm
+      // that a sleeve would otherwise draw.
+      add({
+        g: ellipsoid(
+          [0.085, 0.03, 0.046],
+          [side * 0.13, 1.422, 0.002],
+          [0, 0, -side * 0.16],
+        ),
+        color: skin,
+        rough: 0.52,
+        sss: 1,
+        skin: near(seg, [clav, upper, B.spine3]),
+      });
     // One tube from shoulder to wrist, so the elbow is a bend in a sleeve and
     // not two capsules meeting. The bones do the bending.
     const elbow = (sh[1] - el[1]) / (sh[1] - wr[1]);
-    const rolled = look.outfit === "overalls";
-    const cuffTop = el[1] - 0.03,
-      cuffBottom = el[1] - 0.062;
-    const cuffT = (sh[1] - (cuffTop + cuffBottom) / 2) / (sh[1] - wr[1]);
     const armKeys: [number, number, number][] = [
       [0, 0.046, 0.05],
       [0.18, 0.047, 0.049],
       [0.45, 0.041, 0.043],
       [elbow, 0.039, 0.04],
-      // The forearm's swell, or a rolled cuff where the swell would be.
-      ...(rolled
-        ? ([
-            [cuffT - 0.05, 0.042, 0.045],
-            [cuffT, 0.046, 0.049],
-            [cuffT + 0.06, 0.038, 0.041],
-          ] as [number, number, number][])
-        : ([[elbow + 0.1, 0.041, 0.044]] as [number, number, number][])),
+      // The forearm's swell.
+      [elbow + 0.1, 0.041, 0.044],
       [0.9, 0.03, 0.032],
       [1, 0.027, 0.029],
     ];
@@ -1297,21 +1550,90 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
       { seg: 16, rings: 26 },
     );
     const cuff = wr[1] + 0.03;
+    const armSkin = near(seg, [clav, upper, fore, twist, hand]);
     add({
       g: colorize(armG, (_x, y, _z, out) => {
-        if (rolled) {
-          // Jasmine's sleeves are rolled to the elbow.
-          if (y > cuffTop) out.copy(sleeve);
-          else if (y > cuffBottom) out.copy(bodyShade);
-          else out.copy(skin);
-        } else if (y > cuff) out.copy(sleeve);
+        if (bare) out.copy(skin);
+        else if (y > cuff) out.copy(sleeve);
         else if (look.outfit === "blazer_skirt" && y > cuff - 0.012) out.copy(white);
         else out.copy(skin);
       }),
-      rough: 0.84,
+      rough: bare ? 0.52 : 0.84,
       sss: skin,
-      skin: near(seg, [clav, upper, fore, twist, hand]),
+      skin: armSkin,
     });
+    if (bare) {
+      // A short puffed sleeve from the neckline, gathered at both ends: its
+      // frill carries the neckline over the arm, an elastic holds the hem.
+      const along = (y: number): V3 => {
+        const t = (sh[1] - y) / (sh[1] - el[1]);
+        return [sh[0] + (el[0] - sh[0]) * t, y, sh[2] + (el[2] - sh[2]) * t];
+      };
+      const top = along(WRAP.neckline + 0.008),
+        bottom = along(1.222);
+      const puff = sweep(
+        top,
+        bottom,
+        [
+          [0, 0.049, 0.051],
+          [0.35, 0.059, 0.061],
+          [0.75, 0.057, 0.059],
+          [1, 0.044, 0.046],
+        ],
+        { seg: 18, rings: 8, caps: [false, false] },
+      );
+      add({
+        g: colorize(puff, (x, y, z, out) => {
+          // Gathers where the elastic pulls the cloth in, at the top and the hem.
+          const t = (top[1] - y) / (top[1] - bottom[1]);
+          const g = 1 - smooth(0, 0.3, t) + smooth(0.72, 1, t);
+          const th = Math.atan2(x - top[0], z - top[2]);
+          out.copy(body).lerp(bodyShade, 0.3 * g * (0.5 - 0.5 * Math.cos(th * 9)));
+        }),
+        rough: 0.82,
+        thin: true,
+        skin: armSkin,
+      });
+      add({
+        g: frill(
+          (u, p, n) => {
+            const th = u * Math.PI * 2;
+            n.set(Math.sin(th), 0, Math.cos(th));
+            p.set(top[0] + 0.049 * n.x, top[1] + 0.002, top[2] + 0.051 * n.z);
+          },
+          {
+            cols: 40,
+            closed: true,
+            drop: 0.036,
+            flare: 0.014,
+            waves: 12,
+            depth: 0.003,
+            color: tone(cloth.body, 0, 0.06),
+            shade: bodyShade,
+          },
+        ),
+        rough: 0.82,
+        thin: true,
+        skin: armSkin,
+      });
+      const elastic: THREE.Vector3[] = [];
+      for (let i = 0; i < 16; i++) {
+        const th = (i / 16) * Math.PI * 2;
+        elastic.push(
+          new THREE.Vector3(
+            bottom[0] + 0.0445 * Math.sin(th),
+            bottom[1],
+            bottom[2] + 0.0465 * Math.cos(th),
+          ),
+        );
+      }
+      add({
+        g: tubeAlong(elastic, 0.0032, true, 24, 5),
+        color: tone(cloth.body, 0.1),
+        rough: 0.82,
+        skin: armSkin,
+      });
+    }
     // The hand: palm, fingers curled a little toward the thigh, thumb ahead.
     const hx = wr[0];
     add({
@@ -1353,15 +1675,12 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
   }
 
   /* ------------------------------------------------------ legs */
-  const leg =
-    look.outfit === "overalls" ? accent : look.outfit === "scarf" ? accentShade : legSkin;
-  const sole =
-    look.outfit === "overalls"
-      ? tone("#d9d4c8")
-      : look.outfit === "scarf"
-        ? tone("#2a2420")
-        : shoe;
+  const leg = look.outfit === "scarf" ? accentShade : legSkin;
+  const sole = look.outfit === "scarf" ? tone("#2a2420") : shoe;
   const upperShoe = look.outfit === "scarf" ? tone("#4a3426") : shoe;
+  // Jasmine's heels, a deeper wine than her lips.
+  const wine = tone("#5c1d2a"),
+    wineSole = tone("#5c1d2a", 0.5);
   for (const side of [-1, 1] as const) {
     const L = side < 0;
     const thigh = L ? B.thighL : B.thighR,
@@ -1404,11 +1723,13 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
             [1, 0.036, 0.04],
           ];
     const legG = sweep(rest(thigh), rest(foot), legKeys, { seg: 18, rings: 26 });
-    // Under Elena's skirt the thigh is in the skirt's shade, so a stride that
-    // pushes it through the hem shows cloth rather than a gap.
+    // Under a skirt the thigh is in the skirt's shade, so a stride that pushes
+    // it through the hem shows cloth rather than a gap; Jasmine's slit shows
+    // her leg to the thigh, so hers is bare higher up.
     const hidden = leg === legSkin ? accentShade : leg;
+    const covered = bare ? 0.8 : 0.6;
     add({
-      g: colorize(legG, (_x, y, _z, out) => out.copy(y > 0.6 ? hidden : leg)),
+      g: colorize(legG, (_x, y, _z, out) => out.copy(y > covered ? hidden : leg)),
       rough: leg === legSkin ? 0.5 : 0.86,
       sss: leg === legSkin ? legSkin : 0,
       skin: near(seg, [B.pelvis, thigh, shin, foot]),
@@ -1425,20 +1746,52 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
           ],
           { seg: 16, rings: 2, caps: [false, true] },
         ),
-        color: look.outfit === "overalls" ? accentLight : leg,
+        color: leg,
         rough: 0.86,
         skin: near(seg, [shin, foot]),
       });
     }
-    // Coloured by height: trainers with a pale sole for Jasmine, brown
-    // leather for Luca, Godot's dark shoe for Elena's pumps.
+    // Brown leather for Luca and Godot's dark shoe for Elena's pumps, coloured
+    // by height; Jasmine's heels are cut low over the instep.
+    const shoeSkin = near(seg, [shin, foot, toe]);
     add({
-      g: colorize(shoeGeometry(side, look.outfit === "blazer_skirt"), (_x, y, _z, out) =>
-        out.copy(y < 0.022 ? sole : upperShoe),
+      g: shoeGeometry(
+        side,
+        bare ? "heel" : look.outfit === "blazer_skirt" ? "pump" : "flat",
+        (t, up, y, out) => {
+          if (!bare) out.copy(y < 0.022 ? sole : upperShoe);
+          else if (up > 0.3 && t > 0.13 && t < 0.52 - 0.08 * (1 - up)) out.copy(legSkin);
+          else out.copy(up < -0.6 ? wineSole : wine);
+        },
       ),
-      rough: 0.5,
-      skin: near(seg, [shin, foot, toe]),
+      rough: bare ? 0.38 : 0.5,
+      sss: bare ? legSkin : 0,
+      skin: shoeSkin,
     });
+    if (bare) {
+      // The heel itself, under the back of the shoe, and a strap round the ankle.
+      const z = 0.082 + (-0.212 - 0.082) * 0.07;
+      const post = new THREE.CylinderGeometry(0.0105, 0.0055, HEEL + 0.004, 10);
+      post.translate(side * 0.1008, (HEEL + 0.004) / 2, z);
+      add({ g: post, color: wine, rough: 0.38, skin: shoeSkin });
+      const strap: THREE.Vector3[] = [];
+      for (let i = 0; i < 16; i++) {
+        const th = (i / 16) * Math.PI * 2;
+        strap.push(
+          new THREE.Vector3(
+            side * 0.0999 + 0.0375 * Math.sin(th),
+            0.104,
+            0.0255 + 0.0415 * Math.cos(th),
+          ),
+        );
+      }
+      add({
+        g: tubeAlong(strap, 0.0028, true, 24, 5),
+        color: wine,
+        rough: 0.38,
+        skin: near(seg, [shin, foot]),
+      });
+    }
   }
 
   /* --------------------------------------------------- outfits */
@@ -1454,7 +1807,7 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
       ],
       2.3,
     );
-    const pleat = tone(e.accent, 0.4);
+    const pleat = tone(cloth.accent, 0.4);
     add({
       g: loft(skirt, 40, bandRows(0.53, 1.005, 0.03, [0.55]), (a, _y, band, out) => {
         out.copy(band < 0.55 || fromFront(a) < 0.03 ? pleat : accentShade);
@@ -1484,52 +1837,163 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
       skin: near(seg, [B.spine1, B.spine2]),
     });
   }
-  if (look.outfit === "overalls") {
-    // Straps from the bib over each shoulder to the back, gold buttons where they meet.
-    for (const s of [-1, 1]) {
+  if (skirt && skirtRig) {
+    // A satin wrap skirt from the waist to below the knee, flaring and falling
+    // in soft folds: its front panel crosses to a tie at the right hip and
+    // opens into a slit over the right thigh. It hangs from its own bones,
+    // which the animator swings clear of the legs (`figureMotion.ts`).
+    // Folds that deepen toward the hem, out of the satin's own weight.
+    const fold = (a: number, y: number) =>
+      0.013 *
+      (1 - smooth(WRAP.hem, 0.9, y)) *
+      (0.65 * Math.sin(7 * a + 0.6) + 0.35 * Math.sin(10 * a + 2.1));
+    // The front panel's edge, from the tie down to the slit, and the slit's
+    // half-opening, nothing above its top and widest at the hem.
+    const edge = (y: number) =>
+      WRAP.slitAt - (WRAP.slitAt - WRAP.tieAt) * smooth(WRAP.slitTop, WRAP.waist, y);
+    const open = (y: number) =>
+      y >= WRAP.slitTop
+        ? 0
+        : 0.15 * Math.pow((WRAP.slitTop - y) / (WRAP.slitTop - WRAP.hem), 1.3);
+    const drape = (o: {
+      y0: number;
+      y1: number;
+      rows: number;
+      cols: number;
+      span: (y: number) => readonly [number, number];
+      lift: (u: number) => number;
+    }) => {
+      const pos: number[] = [];
+      for (let r = 0; r <= o.rows; r++) {
+        const y = o.y0 + ((o.y1 - o.y0) * r) / o.rows;
+        const [a0, a1] = o.span(y);
+        for (let c = 0; c <= o.cols; c++) {
+          const u = c / o.cols,
+            a = a0 + (a1 - a0) * u;
+          skirt.point(a, y, _v);
+          skirt.normal(a, y, _w);
+          _v.addScaledVector(_w, fold(a, y) + o.lift(u));
+          pos.push(_v.x, _v.y, _v.z);
+        }
+      }
+      const index: number[] = [];
+      for (let r = 0; r < o.rows; r++)
+        for (let c = 0; c < o.cols; c++) {
+          const i0 = r * (o.cols + 1) + c,
+            i1 = i0 + 1,
+            i3 = i0 + o.cols + 1,
+            i2 = i3 + 1;
+          index.push(i0, i1, i3, i1, i2, i3);
+        }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      g.setIndex(index);
+      g.computeVertexNormals();
+      const at = (r: number, c: number) =>
+        new THREE.Vector3().fromArray(pos, (r * (o.cols + 1) + c) * 3);
+      return { g, at };
+    };
+    // At the waist it moves with the torso it meets; below, with the two
+    // skirt bones either side of it, which the animator swings clear of the legs.
+    const { bones: hang, axis } = skirtRig;
+    const skirtSkin = blendSkins(
+      torsoSkin,
+      (x, _y, z, out) => {
+        let a = Math.atan2(x - axis[0], z - axis[1]);
+        if (a < 0) a += Math.PI * 2;
+        const f = (a / (Math.PI * 2)) * SKIRT_BONES;
+        const k = Math.floor(f) % SKIRT_BONES,
+          t = f - Math.floor(f);
+        out.i[0] = hang[k]!;
+        out.w[0] = 1 - t;
+        out.i[1] = hang[(k + 1) % SKIRT_BONES]!;
+        out.w[1] = t;
+        out.i[2] = out.i[3] = B.pelvis;
+        out.w[2] = out.w[3] = 0;
+      },
+      (y) => smooth(SKIRT_HINGE - 0.02, WRAP.waist - 0.04, y),
+    );
+    const satin = { rough: 0.42, thin: true, skin: skirtSkin } as const;
+    const rows = 20,
+      cols = 60;
+    const sheet = drape({
+      y0: WRAP.hem,
+      y1: WRAP.waist,
+      rows,
+      cols,
+      span: (y) => [edge(y) + open(y), edge(y) + Math.PI * 2 - open(y)],
+      lift: () => 0,
+    });
+    add({ g: sheet.g, color: accent, ...satin });
+    // The front panel's turned edge, lying over the seam where it wraps.
+    add({
+      g: drape({
+        y0: WRAP.hem,
+        y1: WRAP.waist,
+        rows,
+        cols: 3,
+        span: (y) => [edge(y) + open(y), edge(y) + open(y) + 0.08],
+        lift: (u) => 0.004 - 0.0022 * smooth(0, 1, u),
+      }).g,
+      color: accent,
+      ...satin,
+    });
+    // A rolled hem up one side of the slit, round the skirt and down the other.
+    const slitRow = Math.ceil(
+      ((WRAP.slitTop - WRAP.hem) / (WRAP.waist - WRAP.hem)) * rows,
+    );
+    const hem: THREE.Vector3[] = [];
+    for (let r = slitRow; r > 0; r--) hem.push(sheet.at(r, 0));
+    for (let c = 0; c <= cols; c++) hem.push(sheet.at(0, c));
+    for (let r = 1; r <= slitRow; r++) hem.push(sheet.at(r, cols));
+    add({
+      g: tubeAlong(hem, 0.0026, false, 120, 4),
+      color: tone(cloth.accent, 0.1),
+      rough: 0.42,
+      skin: skirtSkin,
+    });
+    // The waistband, and the tie at the right hip with its two ends.
+    add({
+      g: drape({
+        y0: WRAP.waist - 0.026,
+        y1: WRAP.waist,
+        rows: 2,
+        cols: 64,
+        span: (y) => [edge(y), edge(y) + Math.PI * 2],
+        lift: () => 0.003,
+      }).g,
+      color: tone(cloth.accent, 0.12),
+      ...satin,
+    });
+    const onSkirt = (a: number, y: number, lift: number) => {
+      skirt.point(a, y, _v);
+      skirt.normal(a, y, _w);
+      return [_v.clone().addScaledVector(_w, fold(a, y) + lift), _w.clone()] as const;
+    };
+    const [knot] = onSkirt(WRAP.tieAt, WRAP.waist - 0.013, 0.01);
+    add({
+      g: ellipsoid([0.017, 0.014, 0.011], [knot.x, knot.y, knot.z]),
+      color: accent,
+      rough: 0.42,
+      skin: skirtSkin,
+    });
+    for (const [len, sway] of [
+      [0.2, -0.12],
+      [0.16, 0.1],
+    ] as const) {
       const pts: THREE.Vector3[] = [],
         nrm: THREE.Vector3[] = [];
-      const path: [number, number][] = [
-        [Math.PI - s * 0.5, 1.302],
-        [Math.PI - s * 0.46, 1.37],
-        [Math.PI - s * 0.48, 1.425],
-      ];
-      for (const [a, y] of path) {
-        torso.point(a, y, _v);
-        torso.normal(a, y, _w);
-        pts.push(_v.clone().addScaledVector(_w, 0.005));
-        nrm.push(_w.clone());
+      for (let i = 0; i <= 6; i++) {
+        const v = i / 6;
+        const [p, n] = onSkirt(
+          WRAP.tieAt + sway * v,
+          WRAP.waist - 0.02 - len * v,
+          0.007 + 0.002 * v,
+        );
+        pts.push(p);
+        nrm.push(n);
       }
-      pts.push(new THREE.Vector3(s * 0.098, 1.462, 0.004));
-      nrm.push(new THREE.Vector3(s * 0.2, 1, 0).normalize());
-      for (const [a, y] of [
-        [s * 0.48, 1.42],
-        [s * 0.44, 1.32],
-        [s * 0.4, 1.2],
-        [s * 0.36, 1.09],
-      ] as const) {
-        torso.point(a, y, _v);
-        torso.normal(a, y, _w);
-        pts.push(_v.clone().addScaledVector(_w, 0.005));
-        nrm.push(_w.clone());
-      }
-      add({
-        g: ribbon(pts, nrm, 0.03, 0.006),
-        color: accent,
-        rough: 0.84,
-        thin: true,
-        skin: near(seg, [B.spine2, B.spine3, B.clavicleL, B.clavicleR]),
-      });
-      torso.point(Math.PI - s * 0.5, 1.288, _v);
-      torso.normal(Math.PI - s * 0.5, 1.288, _w);
-      _v.addScaledVector(_w, 0.01);
-      add({
-        g: ellipsoid([0.0085, 0.0085, 0.0085], [_v.x, _v.y, _v.z], [0, 0, 0], [10, 6]),
-        color: gold,
-        rough: 0.3,
-        metal: 1,
-        skin: near(seg, [B.spine2, B.spine3]),
-      });
+      add({ g: ribbon(pts, nrm, 0.024, 0.0035), color: accent, ...satin });
     }
   }
   if (look.outfit === "scarf") {
@@ -1654,6 +2118,7 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
     pieces,
     face,
     tail,
+    skirt: skirtRig,
     octopus: null,
     scale: who === "Jasmine" ? 0.95 : who === "Elena" ? 0.965 : 1,
     stance: fem ? 0.088 : 0.1,
@@ -1661,24 +2126,57 @@ function buildHuman(who: Perspective, look: HumanLook): Built {
   };
 }
 
-/** A shoe from heel to toe, flat on the floor. Coloured afterwards by height. */
-function shoeGeometry(side: number, pump: boolean): THREE.BufferGeometry {
-  const prof: [number, number, number][] = [
-    // t, half width, top height
-    [0, 0.03, 0.074],
-    [0.07, 0.042, 0.1],
-    [0.25, 0.047, 0.108],
-    [0.45, 0.05, 0.084],
-    [0.65, 0.054, 0.064],
-    [0.85, 0.05, 0.054],
-    [0.95, 0.042, 0.046],
-    [1, 0.03, 0.036],
-  ];
+type ShoeStyle = "flat" | "pump" | "heel";
+/** How high Jasmine's heels raise the back of the shoe off the floor. */
+const HEEL = 0.045;
+
+/**
+ * A shoe from heel to toe, standing on the floor. `paint` colours each vertex
+ * by where it lies: `t` from heel (0) to toe (1), `up` from the sole (-1) to
+ * the top (1), and its height. A heeled shoe's sole is raised under the heel
+ * and slopes to the ball of the foot; the heel itself is a separate piece.
+ */
+function shoeGeometry(
+  side: number,
+  style: ShoeStyle,
+  paint: (t: number, up: number, y: number, out: THREE.Color) => void,
+): THREE.BufferGeometry {
+  const heel = style === "heel";
+  const prof: [number, number, number][] = heel
+    ? [
+        // t, half width, top height: a low vamp over a raised heel
+        [0, 0.03, 0.094],
+        [0.07, 0.042, 0.1],
+        [0.25, 0.046, 0.096],
+        [0.45, 0.05, 0.07],
+        [0.65, 0.053, 0.05],
+        [0.85, 0.05, 0.042],
+        [0.95, 0.042, 0.036],
+        [1, 0.03, 0.028],
+      ]
+    : [
+        // t, half width, top height
+        [0, 0.03, 0.074],
+        [0.07, 0.042, 0.1],
+        [0.25, 0.047, 0.108],
+        [0.45, 0.05, 0.084],
+        [0.65, 0.054, 0.064],
+        [0.85, 0.05, 0.054],
+        [0.95, 0.042, 0.046],
+        [1, 0.03, 0.036],
+      ];
+  const pump = style === "pump";
+  const narrow = heel ? 0.86 : pump ? 0.9 : 1,
+    low = pump ? 0.82 : 1;
+  const sole = (t: number) => (heel ? HEEL * (1 - smooth(0.3, 0.68, t)) : 0);
   const zHeel = 0.082,
-    zToe = pump ? -0.212 : -0.205;
+    zToe = style === "flat" ? -0.205 : -0.212;
   const seg = 20;
-  const pos: number[] = [];
+  const pos: number[] = [],
+    col: number[] = [];
+  const c = new THREE.Color();
   const rings = 28;
+  const mids: number[] = [];
   for (let r = 0; r <= rings; r++) {
     const t = r / rings;
     let k = 0;
@@ -1686,19 +2184,25 @@ function shoeGeometry(side: number, pump: boolean): THREE.BufferGeometry {
     const a = prof[k]!,
       b = prof[k + 1]!;
     const s = smooth(0, 1, (t - a[0]) / (b[0] - a[0]));
-    const hw = (a[1] + (b[1] - a[1]) * s) * (pump ? 0.9 : 1);
-    const top = (a[2] + (b[2] - a[2]) * s) * (pump ? 0.82 : 1);
+    const hw = (a[1] + (b[1] - a[1]) * s) * narrow;
+    const top = (a[2] + (b[2] - a[2]) * s) * low;
+    const bottom = sole(t);
+    const mid = (top + bottom) / 2,
+      half = (top - bottom) / 2;
+    mids.push(mid);
     const z = zHeel + (zToe - zHeel) * t;
     const x0 = side * (0.1 + 0.012 * t);
     for (let i = 0; i < seg; i++) {
       const th = (i / seg) * Math.PI * 2;
-      const c = Math.cos(th),
+      const cs = Math.cos(th),
         sn = Math.sin(th);
-      const x = x0 + hw * Math.sign(c) * Math.pow(Math.abs(c), 0.75);
+      const x = x0 + hw * Math.sign(cs) * Math.pow(Math.abs(cs), 0.75);
       // A flat sole and a rounded upper: the lower half is squarer than the top.
       const e = sn < 0 ? 0.35 : 0.8;
-      const y = top / 2 + (top / 2) * Math.sign(sn) * Math.pow(Math.abs(sn), e);
+      const y = mid + half * Math.sign(sn) * Math.pow(Math.abs(sn), e);
       pos.push(x, y, z);
+      paint(t, sn, y, c);
+      col.push(c.r, c.g, c.b);
     }
   }
   const index: number[] = [];
@@ -1715,7 +2219,10 @@ function shoeGeometry(side: number, pump: boolean): THREE.BufferGeometry {
     [rings, zToe - 0.004],
   ] as const) {
     const at = pos.length / 3;
-    pos.push(side * (0.1 + 0.012 * (row ? 1 : 0)), row ? 0.016 : 0.035, z);
+    const y = heel ? mids[row]! - 0.002 : row ? 0.016 : 0.035;
+    pos.push(side * (0.1 + 0.012 * (row ? 1 : 0)), y, z);
+    paint(row / rings, 0, y, c);
+    col.push(c.r, c.g, c.b);
     for (let i = 0; i < seg; i++) {
       const i0 = row * seg + i,
         i1 = row * seg + ((i + 1) % seg);
@@ -1726,11 +2233,12 @@ function shoeGeometry(side: number, pump: boolean): THREE.BufferGeometry {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   g.setIndex(index);
   faceOutward(
     g,
     ((rings >> 1) * seg + 4) * 2,
-    new THREE.Vector3(side * 0.106, 0.04, (zHeel + zToe) / 2),
+    new THREE.Vector3(side * 0.106, heel ? mids[rings >> 1]! : 0.04, (zHeel + zToe) / 2),
   );
   g.computeVertexNormals();
   return g;
@@ -2358,6 +2866,7 @@ function buildOctopus(who: Perspective): Built {
     pieces,
     face,
     tail: [],
+    skirt: null,
     octopus: { hub, head, mantle, arms, angles },
     scale: 1,
     stance: 0,
@@ -2656,6 +3165,7 @@ export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig
     bones,
     face: c.built.face,
     tail: c.built.tail,
+    skirt: c.built.skirt,
     octopus: c.built.octopus,
     scale: c.built.scale,
     stance: c.built.stance,

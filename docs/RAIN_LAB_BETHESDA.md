@@ -390,19 +390,22 @@ among the four is described as agreement, never as validation.
 
 **How they are built.** Who each perspective is comes from R.A.I.N.'s Godot
 client — `agent_avatar.gd`'s `LOOKS` (James an octopus in spectacles; Jasmine
-in overalls, safety goggles worn as a headband and gold hoops, with a natural
-afro; Luca in a sweater and scarf with swept hair; Elena in a blazer and A-line
-skirt, long hair and glasses) and the lab theme's colours, now in
-`embodiment.ts`. The figures are modelled in code the way a character artist
+in safety goggles worn as a headband and gold hoops, with a natural afro; Luca
+in a sweater and scarf with swept hair; Elena in a blazer and A-line skirt, long
+hair and glasses) and the lab theme's colours, now in `embodiment.ts`.
+Jasmine's clothes are the lab's own, not the client's overalls: a yellow
+off-the-shoulder top with a frill and short puffed sleeves, a satin wrap skirt
+to below the knee, slit up the right thigh and tied at the hip, wine heels and a
+fine gold chain. The figures are modelled in code the way a character artist
 blocks one out in Blender, because the site ships no binary assets
 (`figures.ts`): the head, torso, skirt and James's mantle are lofted through
 measured cross-sections; limbs are swept along their bones in one piece from
 shoulder to wrist and hip to ankle; hair is a shell of the scalp above a
-hairline; the shirt's V, the lapels and the bib are laid over the torso as
-their own surfaces. Each is one skinned mesh on the shared 34-bone rig in
+hairline; the shirt's V, the lapels, the top's hem and frill are laid over the
+torso as their own surfaces. Each is one skinned mesh on the shared 34-bone rig in
 `game/characters/rig.ts` (James has his own: a hub, a mantle that breathes and
 eight six-bone arms), with face bones for the eyes, upper lids and mouth, and
-Luca's scarf tail on three more. Colour, roughness and metalness are per
+Luca's scarf tail on three more and Jasmine's skirt on twelve. Colour, roughness and metalness are per
 vertex; the material adds a cloth weave, a little warmth under skin and a cool
 grazing rim so a figure separates from the dark walls.
 
@@ -426,7 +429,12 @@ where it landed until it swings again, so a planted foot holds still through a
 walk's first steps, a corner, a turn on the spot and a stop; a foot strained
 from its place in the gait takes a step. James crawls: his side arms push back
 at the body's speed while down and reach forward lifted, and the arms pointing
-ahead and behind are carried clear. A perspective who is out on an outing is in
+ahead and behind are carried clear. Jasmine's skirt is not tied to her legs: it
+hangs from twelve bones round the hips, each hinged where the skirt leaves
+them, and each swings out only as far as the leg that reaches it needs — the
+leading leg pushes the front, the trailing one the back, the sides hang — then
+falls back with a short lag, so it flows rather than tenting. `figures.test.ts`
+walks her to the table and fails if a leg comes through it by 3.5 cm. A perspective who is out on an outing is in
 the city: nobody turns to the empty seat, and that turn lights no ring. Between
 meetings a visitor who comes within 3 m is looked at. Reduced motion stills all
 of it: the figures stand where they belong and turn at once, without a step, to
@@ -832,8 +840,8 @@ on a phone) and steps down a level after two seconds of frames slower than
 not count; economy draws flat plates with 6 modes, no grain and the lamp dark.
 Reduced motion stills the plates and makes every change of figure immediate.
 
-The four perspectives are four skinned meshes of 19–32k triangles (James
-19k, Luca 26k, Jasmine 29k, Elena 32k), two draw calls each (solid parts and
+The four perspectives are four skinned meshes of 19–34k triangles (James
+19k, Luca 26k, Elena 32k, Jasmine 33k), two draw calls each (solid parts and
 open sheets such as hair). Each is built once — 35–90 ms — and kept for the
 page, shared between the lab and the city; the city loads the figure code with
 its first outing, so a visit that sends nobody out never downloads it. Per

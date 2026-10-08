@@ -560,7 +560,8 @@ world state; recorded observations become evidence.**
 
 - **The four perspectives are drawn from the vocabulary, never from a claim.**
   `figures.ts` builds James, Jasmine, Luca and Elena from the Godot client's
-  `LOOKS` (`embodiment.ts`) as skinned meshes on the shared rig in
+  `LOOKS` (`embodiment.ts`; Jasmine's dress is the lab's own, and says so
+  there) as skinned meshes on the shared rig in
   `game/characters/rig.ts` — procedural, like everything else; a Blender or
   Godot export would be a binary asset. `figureMotion.ts` animates them from
   what the neutral event vocabulary says (whose turn is shown, where the
@@ -568,7 +569,10 @@ world state; recorded observations become evidence.**
   celebration are deliberately not ported, because each reads as agreement or
   confidence, and `figures.test.ts` fails if the animator imports a record or
   names a verdict, confidence or tone. Feet are placed by the shared IK, so a
-  planted foot must not slide (the test walks them). Routes go through
+  planted foot must not slide (the test walks them). A skirt hangs from its
+  own bones, which the animator swings clear of the legs; a skirt weighted to
+  the thighs tents at every stride, and the test fails if a leg comes through
+  Jasmine's on her walk to the table. Routes go through
   `routeInLab`, which collides with the same `blocked` as the visitor; never
   move a figure through a wall. Check a change by eye with
   `node tools/rain-figures.mjs` against the dev server.

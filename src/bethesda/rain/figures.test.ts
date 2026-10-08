@@ -55,7 +55,7 @@ describe("the four figures", () => {
       for (const i of [index.getX(v), index.getY(v), index.getZ(v), index.getW(v)])
         expect(i).toBeLessThan(rig.bones.length);
     }
-    // The documented budget (docs/RAIN_LAB_BETHESDA.md): 19–32k a figure.
+    // The documented budget (docs/RAIN_LAB_BETHESDA.md): 19–34k a figure.
     expect(rig.triangles).toBeLessThan(34000);
     // Solid parts and open sheets, two draw groups, one material each.
     expect(g.groups.map((group) => group.materialIndex)).toEqual([0, 1]);
@@ -536,5 +536,153 @@ describe("review fixes hold", () => {
     expect(second.mesh.geometry).toBe(geometry);
     expect(hash(geometry.getAttribute("position").array)).toBe(a);
     second.dispose();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Jasmine's skirt                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Where each piece sits in a figure's merged geometry: solid pieces, then open sheets. */
+function pieceRanges(who: Perspective) {
+  const ranges: { start: number; count: number; thin: boolean; box: THREE.Box3 }[] = [];
+  const pieces = figurePieces(who);
+  let start = 0;
+  for (const thin of [false, true])
+    for (const { geometry, thin: t } of pieces) {
+      if (t !== thin) continue;
+      geometry.computeBoundingBox();
+      const count = geometry.getAttribute("position").count;
+      ranges.push({ start, count, thin, box: geometry.boundingBox!.clone() });
+      start += count;
+    }
+  return { pieces, ranges, total: start };
+}
+
+describe("Jasmine's skirt", () => {
+  const swing = (rig: FigureRig, k: number) =>
+    2 * Math.acos(Math.min(1, Math.abs(rig.bones[rig.skirt!.bones[k]!]!.quaternion.w)));
+
+  it("her legs stay inside it on the walk to the table, round its corners", () => {
+    const rig = buildFigure("Jasmine", "lab");
+    const { pieces, ranges, total } = pieceRanges("Jasmine");
+    expect(rig.mesh.geometry.getAttribute("position").count).toBe(total);
+    // The skirt is the one large open sheet down to the hem; each leg runs hip to ankle.
+    const at = ranges.findIndex((r) => r.thin && r.count > 1000 && r.box.min.y < 0.4);
+    const sheet = ranges[at]!;
+    const legs = ranges.filter(
+      (r) => !r.thin && r.box.min.y < 0.06 && r.box.max.y > 0.95 && r.box.max.y < 1.05,
+    );
+    expect(legs).toHaveLength(2);
+    // The sheet's own edges (hem, slit) have no outside to be inside of.
+    const sheets = pieces.filter((p) => p.thin);
+    const solids = ranges.filter((r) => !r.thin).length;
+    const index = sheets[at - solids]!.geometry.getIndex()!;
+    const uses = new Map<string, number>();
+    for (let i = 0; i < index.count; i += 3)
+      for (const [a, b] of [
+        [index.getX(i), index.getX(i + 1)],
+        [index.getX(i + 1), index.getX(i + 2)],
+        [index.getX(i + 2), index.getX(i)],
+      ] as const) {
+        const key = a < b ? `${a},${b}` : `${b},${a}`;
+        uses.set(key, (uses.get(key) ?? 0) + 1);
+      }
+    const edge = new Set<number>();
+    for (const [key, n] of uses)
+      if (n === 1) for (const v of key.split(",")) edge.add(Number(v));
+
+    const skinned = (start: number, count: number, every = 1) => {
+      const out: THREE.Vector3[] = [];
+      for (let k = 0; k < count; k += every)
+        out.push(rig.mesh.getVertexPosition(start + k, new THREE.Vector3()));
+      return out;
+    };
+    const anim = new FigureAnimator(rig, seedFor("Jasmine"));
+    const from = STATIONS.Jasmine.at,
+      to = SEATS.Jasmine;
+    anim.place(from.x, from.z, STATIONS.Jasmine.facing);
+    const walk: RouteWalk = {
+      ...from,
+      route: routeInLab(from, to).slice(1),
+      leg: 0,
+      speed: 0,
+    };
+    let worst = 0;
+    for (let f = 0; f < 60 * 18; f++) {
+      followRoute(walk, 1 / 60);
+      const face = arrived(walk) ? yawToward(-walk.x, 1 - walk.z) : null;
+      anim.update(1 / 60, cue({ x: walk.x, z: walk.z, face }), false);
+      if (f % 10) continue;
+      rig.root.updateMatrixWorld(true);
+      const skirt = skinned(sheet.start, sheet.count);
+      const g = new THREE.BufferGeometry().setFromPoints(skirt);
+      g.setIndex(index);
+      g.computeVertexNormals();
+      const normal = g.getAttribute("normal");
+      for (const leg of legs)
+        for (const p of skinned(leg.start, leg.count, 2)) {
+          let best = Infinity,
+            nearest = -1;
+          for (let k = 0; k < skirt.length; k++) {
+            const d = skirt[k]!.distanceToSquared(p);
+            if (d < best) [best, nearest] = [d, k];
+          }
+          if (best > 0.08 ** 2 || edge.has(nearest)) continue;
+          const out = p
+            .clone()
+            .sub(skirt[nearest]!)
+            .dot(new THREE.Vector3().fromBufferAttribute(normal, nearest));
+          worst = Math.max(worst, out);
+        }
+      g.dispose();
+    }
+    // A skinned skirt is not cloth: a knee may brush through by a couple of centimetres.
+    expect(worst).toBeLessThan(0.035);
+    rig.dispose();
+  });
+
+  it("hangs close to straight when she stands; walking, the legs swing its front and back and its sides hang", () => {
+    const rig = buildFigure("Jasmine", "lab");
+    const sk = rig.skirt!;
+    expect(sk.bones.length).toBeGreaterThanOrEqual(8);
+    const anim = new FigureAnimator(rig, seedFor("Jasmine"));
+    anim.place(0, 0, 0);
+    for (let f = 0; f < 120; f++) anim.update(1 / 60, cue({ face: 0 }), false);
+    // At most resting over a knee.
+    for (let k = 0; k < sk.bones.length; k++) expect(swing(rig, k)).toBeLessThan(0.12);
+    // Due north at a walk, facing it: the front is pi, the sides pi/2 and 3pi/2.
+    const nearest = (a: number) =>
+      sk.angles.reduce(
+        (best, b, k) =>
+          Math.abs(Math.atan2(Math.sin(b - a), Math.cos(b - a))) <
+          Math.abs(
+            Math.atan2(Math.sin(sk.angles[best]! - a), Math.cos(sk.angles[best]! - a)),
+          )
+            ? k
+            : best,
+        0,
+      );
+    const front = nearest(Math.PI),
+      sides = [nearest(Math.PI / 2), nearest((3 * Math.PI) / 2)];
+    let frontMax = 0,
+      sideMax = 0;
+    let z = 0;
+    for (let f = 0; f < 240; f++) {
+      z -= 1.3 / 60;
+      anim.update(1 / 60, cue({ z, face: 0 }), false);
+      if (f < 90) continue;
+      frontMax = Math.max(frontMax, swing(rig, front));
+      for (const k of sides) sideMax = Math.max(sideMax, swing(rig, k));
+    }
+    expect(frontMax).toBeGreaterThan(0.2);
+    expect(sideMax).toBeLessThan(0.12);
+    // Nobody else wears one.
+    for (const who of ["James", "Luca", "Elena"] as const) {
+      const other = buildFigure(who, "lab");
+      expect(other.skirt).toBeNull();
+      other.dispose();
+    }
+    rig.dispose();
   });
 });
