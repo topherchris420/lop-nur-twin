@@ -735,7 +735,10 @@ gate.
   repository name — and answer `rain-mathematics/v1` objects the lab validates
   (`mathValidation.ts`) before it shows a word. A missing or broken index
   fails closed: the runtime still starts, the substrate reports itself
-  unavailable, and a proposal with a basis is refused.
+  unavailable, and a proposal with a basis is refused. The three routes share
+  one Vercel Function, `api/rain/math.ts`, behind a rewrite in `vercel.json`:
+  the Hobby plan refuses a deployment with more than twelve functions, after
+  the build has passed, and `src/lib/deployFunctions.test.ts` fails first.
 - **Tests never touch the network.** `fixtures/openai-math-fixture.json` is a
   small excerpt (four families verbatim from the pinned commit, plus synthetic
   entries marked as such that exist to be refused or flagged); `fixture.ts`

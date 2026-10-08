@@ -1,5 +1,5 @@
 import { clientKeyFrom } from "../../server/jev/handler.js";
-import { createRainHandler } from "../../server/rain/handler.js";
+import { createRainHandler, substrateRequest } from "../../server/rain/handler.js";
 import { configureRuntime } from "../../src/rain/runtime.js";
 
 /**
@@ -34,5 +34,12 @@ const handle = createRainHandler({
 export const rainRoute = {
   fetch(request: Request): Promise<Response> {
     return handle(request, { clientKey: clientKeyFrom(request.headers, "unknown") });
+  },
+};
+
+/** The substrate's three routes, rewritten to one function (`api/rain/math.ts`). */
+export const substrateRoute = {
+  fetch(request: Request): Promise<Response> {
+    return rainRoute.fetch(substrateRequest(request));
   },
 };

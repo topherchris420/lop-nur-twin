@@ -192,8 +192,9 @@ A malformed setting does not degrade the runtime: it refuses to start, the
 lab says `RUNTIME OFFLINE` and names the setting (never its value), and
 `/api/rain/status` reports `misconfigured: <setting>`. On Vercel, set the
 variables in the project's environment (`RAIN_LLM_API_KEY`, `TYPESAFE_API_KEY`
-and `RAIN_REGISTRY_SECRET` as **Sensitive**) and redeploy; the ten
-`api/rain/*` functions are declared in `vercel.json`. Without
+and `RAIN_REGISTRY_SECRET` as **Sensitive**) and redeploy; the eight
+`api/rain/*` functions are declared in `vercel.json` (the substrate's three
+routes are rewritten to one, `api/rain/math.ts`). Without
 `RAIN_REGISTRY_SECRET` a function deployment reports its registry unavailable,
 says why in the Systems Room, and offers no pre-registration. Model meetings need one long-lived
 server process and are refused in a function deployment. Never prefix any of
@@ -810,7 +811,8 @@ says so.
 ### The route
 
 `GET /api/rain/math-status`, `POST /api/rain/math-search` and
-`POST /api/rain/math-inspect` answer `rain-mathematics/v1` — a family of its own
+`POST /api/rain/math-inspect` (one Vercel Function, `api/rain/math.ts`, behind a
+rewrite) answer `rain-mathematics/v1` — a family of its own
 beside `rain-bethesda/v2`, which did not change. Requests are closed: a search
 takes a query of at most 300 characters, an optional discipline from the
 substrate's own list, `required`, `preferred` or `any`, a limit of one to eight,

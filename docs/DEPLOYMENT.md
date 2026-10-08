@@ -67,16 +67,20 @@ If your platform pins an older Node, either raise it or install Bun and run
 3. **Cache policy** — hashed assets under `/assets/` are immutable for a year;
    `/model-manifest.json` is `no-cache`, because a stale manifest would
    describe a build the visitor is not looking at; `/api/*` is `no-store`.
-4. **Thirteen functions** — `api/jev/decision.ts` and `api/glide/decision.ts`, the
+4. **Eleven functions** — `api/jev/decision.ts` and `api/glide/decision.ts`, the
    server sides of `/play?brain=jev` and `?brain=glide`, capped at 10 seconds
    each; `api/llm/decision.ts`, the server side of `/play?brain=llm`, capped at
    30 seconds because a conventional LLM answers in seconds and may be retried
-   within its deadline; and the R.A.I.N. Lab's ten `api/rain/*` routes — `status` (10 s),
+   within its deadline; and the R.A.I.N. Lab's ten `api/rain/*` routes in eight functions — `status` (10 s),
    `meeting` (60 s), `meeting-status` and `meeting-cancel` (10 s each; a model
    meeting is a job the lab checks on, so no function waits for it),
    `proposal`, `preregister` and `submission` (30 s each), and the
-   mathematical substrate's `math-status`, `math-search` and `math-inspect`
-   (10 s each; they answer from the bundled, pinned index and fetch nothing).
+   mathematical substrate's `math-status`, `math-search` and `math-inspect`,
+   which a rewrite sends to one function, `api/rain/math.ts` (10 s; it answers
+   from the bundled, pinned index and fetches nothing). The Hobby plan refuses
+   a deployment with more than twelve functions — after the build has passed —
+   so `src/lib/deployFunctions.test.ts` counts the files under `api/` and fails
+   past twelve or when one is missing from `vercel.json`.
 
 ### The Jev decision endpoint
 
@@ -127,7 +131,7 @@ a Firewall rule for `/api/llm/decision` too if it is enabled in production.
 ### The R.A.I.N. Lab route
 
 The lab inside Bethesda needs no configuration. Its research runtime
-(`src/rain/`) runs inside the ten `api/rain/*` functions: LIVE with the
+(`src/rain/`) runs inside the eight `api/rain/*` functions: LIVE with the
 scripted offline meeting engine, a scratch experiment registry per function
 instance, and R.A.I.N.'s bounded choice switched off (it answers DISABLED).
 The DEMO replays a labelled recording and nothing is sent anywhere. The

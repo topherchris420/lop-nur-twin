@@ -168,6 +168,33 @@ const labDraft = (draft: unknown): draft is Record<string, unknown> =>
 const error = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   json(status, { schema: RAIN_BETHESDA_SCHEMA, kind: "error", error: code, ...extra });
 
+/** The substrate's routes, by the `op` that `vercel.json` rewrites each one to. */
+export const SUBSTRATE_ROUTES = {
+  status: "math-status",
+  search: "math-search",
+  inspect: "math-inspect",
+} as const satisfies Record<string, Op>;
+
+/**
+ * The substrate's three routes share one Vercel Function (`api/rain/math.ts`),
+ * because a Hobby deployment takes at most twelve: `vercel.json` rewrites
+ * `/api/rain/math-<op>` to `/api/rain/math?op=<op>`. Whether the function then
+ * sees the public path or the rewritten one, this gives the handler the route
+ * the browser asked for. Any other request is returned as it came, so the
+ * handler answers it exactly as it would have — `/api/rain/math` itself, or
+ * with an unknown `op`, names no operation and is a 404.
+ */
+export function substrateRequest(request: Request): Request {
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/rain/math") return request;
+  const op = url.searchParams.get("op");
+  if (op === null || !Object.prototype.hasOwnProperty.call(SUBSTRATE_ROUTES, op))
+    return request;
+  url.pathname = `/api/rain/${SUBSTRATE_ROUTES[op as keyof typeof SUBSTRATE_ROUTES]}`;
+  url.searchParams.delete("op");
+  return new Request(url, request);
+}
+
 export function createRainHandler(config: RainServerConfig) {
   const configured = Promise.resolve(config.runtime);
   const now = config.now ?? (() => Date.now());

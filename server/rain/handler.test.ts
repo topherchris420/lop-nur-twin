@@ -1,8 +1,8 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { createRainHandler } from "./handler";
+import { SUBSTRATE_ROUTES, createRainHandler, substrateRequest } from "./handler";
 import { LIMITS } from "../../src/bethesda/rain/contracts";
 import demoMeeting from "../../src/bethesda/rain/fixtures/demo-meeting.json" with { type: "json" };
 import {
@@ -824,5 +824,70 @@ describe("R.A.I.N. mathematical substrate through the route", () => {
     expect((await handle(post("math-search", search()), meta)).status).toBe(429);
     t += 2_000;
     expect((await handle(post("math-search", search()), meta)).status).toBe(200);
+  });
+});
+
+describe("R.A.I.N. mathematical substrate behind one Vercel Function", () => {
+  const vercel = JSON.parse(
+    readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
+  ) as {
+    functions: Record<string, unknown>;
+    rewrites: { source: string; destination: string }[];
+  };
+  /** Applies the substrate's rewrite rule to a public path, as a router would. */
+  const rewritten = (path: string) => {
+    const rule = vercel.rewrites.find((r) => r.destination.startsWith("/api/rain/math?"));
+    const m = /^\/api\/rain\/math-:op\(([a-z|]+)\)$/.exec(rule?.source ?? "");
+    if (!rule || !m) return null;
+    const hit = new RegExp(`^/api/rain/math-(${m[1]})$`).exec(path);
+    return hit ? rule.destination.replace(":op", hit[1]!) : null;
+  };
+
+  it("rewrites exactly the substrate's routes to the one function", () => {
+    expect(vercel.functions).toHaveProperty(["api/rain/math.ts"]);
+    for (const [op, route] of Object.entries(SUBSTRATE_ROUTES))
+      expect(rewritten(`/api/rain/${route}`)).toBe(`/api/rain/math?op=${op}`);
+    for (const other of [
+      "status",
+      "meeting",
+      "math",
+      "math-",
+      "math-statusx",
+      "math-run",
+    ])
+      expect(rewritten(`/api/rain/${other}`), other).toBeNull();
+  });
+  it("gives the handler the route the browser asked for, whichever path the function sees", async () => {
+    const handle = local();
+    for (const [op, route] of Object.entries(SUBSTRATE_ROUTES)) {
+      const seen = substrateRequest(get(`math?op=${op}`));
+      expect(new URL(seen.url).pathname).toBe(`/api/rain/${route}`);
+      expect(new URL(seen.url).search).toBe("");
+      const kept = get(route);
+      expect(substrateRequest(kept)).toBe(kept);
+    }
+    const viaRewrite = await handle(substrateRequest(get("math?op=status")), meta);
+    const direct = await handle(get("math-status"), meta);
+    expect(viaRewrite.status).toBe(200);
+    expect(await viaRewrite.json()).toEqual(await direct.json());
+    // A body survives the rebuilt request: the inspection is refused for its family, not lost.
+    const body = { session: SESSION, request_id: REQUEST, family: "../../etc" };
+    const refused = await handle(substrateRequest(post("math?op=inspect", body)), meta);
+    expect([refused.status, ((await refused.json()) as { error: string }).error]).toEqual(
+      [400, "invalid family"],
+    );
+  });
+  it("names no operation for the bare function or an op it does not serve", async () => {
+    const handle = local();
+    for (const path of [
+      "math",
+      "math?op=",
+      "math?op=run",
+      "math?op=constructor",
+      "math?op=meeting",
+    ]) {
+      const r = await handle(substrateRequest(get(path)), meta);
+      expect(r.status, path).toBe(404);
+    }
   });
 });

@@ -31,9 +31,10 @@ touches the analytical model:
 | `api/jev/decision.ts`                                     | Writes the question for TypeSafe Jev from a validated observation and returns a validated answer                                                                          | `TYPESAFE_API_KEY`                      |
 | `api/glide/decision.ts`                                   | The same question, word for word, to Fastino Glide                                                                                                                        | `FASTINO_API_KEY`                       |
 | `api/llm/decision.ts`                                     | The same question content to a configured Anthropic or OpenAI-compatible model                                                                                            | `LLM_API_KEY`                           |
-| `api/rain/*.ts` (ten routes)                              | The R.A.I.N. research runtime, in process: status, meetings, bounded proposals, pre-registration, submission, and the mathematical substrate (status, search, inspection) | `RAIN_LLM_API_KEY` (optional), registry |
+| `api/rain/*.ts` (ten routes, eight functions)             | The R.A.I.N. research runtime, in process: status, meetings, bounded proposals, pre-registration, submission, and the mathematical substrate (status, search, inspection) | `RAIN_LLM_API_KEY` (optional), registry |
 
-Thirteen functions in all. None is a prompt proxy: the browser sends a bounded,
+Eleven functions in all (the substrate's three routes share `api/rain/math.ts`;
+the Hobby plan takes at most twelve). None is a prompt proxy: the browser sends a bounded,
 validated observation or request, and the server writes whatever reaches a
 model. The decision endpoints store nothing. The R.A.I.N. runtime keeps an
 experiment registry in a scratch directory unless `RAIN_REGISTRY_DIR` names one

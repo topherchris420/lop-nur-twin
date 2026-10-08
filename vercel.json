@@ -32,13 +32,7 @@
     "api/rain/submission.ts": {
       "maxDuration": 30
     },
-    "api/rain/math-status.ts": {
-      "maxDuration": 10
-    },
-    "api/rain/math-search.ts": {
-      "maxDuration": 10
-    },
-    "api/rain/math-inspect.ts": {
+    "api/rain/math.ts": {
       "maxDuration": 10
     }
   },
@@ -109,6 +103,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/rain/math-:op(status|search|inspect)",
+      "destination": "/api/rain/math?op=:op"
+    },
     {
       "source": "/((?!api/|assets/).*)",
       "destination": "/index.html"
