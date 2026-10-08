@@ -20,12 +20,15 @@
  * socket they closed fails without reaching them. Nothing else is retried, and nothing is
  * repaired here; whether a completion's JSON is an acceptable action is the
  * host's question (`actions.ts`). A model's words come back as text through
- * `fetch` and nothing else: no tool call, URL or command in them is followed.
- * Token counts are reported only when the server reports them, and null
- * otherwise, never estimated.
+ * one HTTP request (`nodeTransport`) and nothing else: no tool call, URL or
+ * command in them is followed. Token counts are reported only when the server
+ * reports them, and null otherwise, never estimated.
  *
  * Server only.
  */
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { Readable } from "node:stream";
 import type { ProviderKind } from "./config.js";
 
 export type ModelFailureCode =
@@ -77,6 +80,7 @@ export interface LocalModel {
   complete(request: StructuredRequest, options?: CallOptions): Promise<ModelAnswer>;
 }
 export interface ModelHooks {
+  /** Replaces `nodeTransport`; tests answer through it without a server. */
   fetchImpl?: typeof fetch;
   monotonic?: () => number;
 }
@@ -85,6 +89,67 @@ export interface ModelHooks {
 export const MAX_RESPONSE = 512 * 1024;
 /** The pause before the one retry of a connection that failed before any answer. */
 export const RETRY_MS = 250;
+
+export interface TransportInit {
+  method: "GET" | "POST";
+  headers: Record<string, string>;
+  body?: string | undefined;
+  signal: AbortSignal;
+  /** For an injected `fetch`; `nodeTransport` never follows a redirect. */
+  redirect: "error";
+}
+
+/**
+ * The adapters' HTTP client: one request, whose only limit is the caller's
+ * signal. Node's global `fetch` stops waiting for a response's headers after
+ * 300 s of its own, and a non-streaming completion sends none until the model
+ * has finished, so on a slow machine it ended calls the deadline had not —
+ * `RAIN_MODEL_TIMEOUT_MS` above five minutes did nothing, and the cut-off was
+ * reported as a server that never answered. `node:http` sets no such limit,
+ * which leaves the deadline the only one. A redirect is not followed: it is an
+ * answer, and not a completion.
+ */
+export function nodeTransport(url: string, init: TransportInit): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const target = new URL(url);
+    const send = target.protocol === "https:" ? httpsRequest : httpRequest;
+    const headers = { ...init.headers };
+    if (init.body !== undefined)
+      headers["Content-Length"] = String(Buffer.byteLength(init.body));
+    const req = send(
+      target,
+      { method: init.method, headers, signal: init.signal, agent: false },
+      (res) => {
+        const status = res.statusCode ?? 0;
+        // A failure mid-body reaches the caller through the web stream; this
+        // only keeps an unheard "error" event from ending the process.
+        res.on("error", () => undefined);
+        const abort = () => res.destroy(new Error("aborted"));
+        init.signal.addEventListener("abort", abort, { once: true });
+        res.once("close", () => init.signal.removeEventListener("abort", abort));
+        try {
+          const empty = status === 204 || status === 205 || status === 304;
+          if (empty) res.resume();
+          const fields = new Headers();
+          for (const [name, value] of Object.entries(res.headers))
+            if (value !== undefined)
+              fields.set(name, Array.isArray(value) ? value.join(", ") : value);
+          resolve(
+            new Response(empty ? null : (Readable.toWeb(res) as ReadableStream), {
+              status,
+              headers: fields,
+            }),
+          );
+        } catch (error) {
+          res.destroy();
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      },
+    );
+    req.on("error", reject);
+    req.end(init.body);
+  });
+}
 
 const count = (v: unknown): number | null =>
   typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;
@@ -97,8 +162,7 @@ async function call(
   hooks: ModelHooks,
   options: CallOptions,
 ): Promise<unknown> {
-  const fetchImpl =
-    hooks.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
+  const send = hooks.fetchImpl ?? nodeTransport;
   const controller = new AbortController();
   const onAbort = () => controller.abort();
   options.signal?.addEventListener("abort", onAbort, { once: true });
@@ -109,7 +173,7 @@ async function call(
       if (options.signal?.aborted)
         throw new ModelFailure("cancelled", "the call was cancelled");
       try {
-        response = await fetchImpl(url, {
+        response = await send(url, {
           method: init.method,
           headers: init.body === undefined ? {} : { "Content-Type": "application/json" },
           body: init.body === undefined ? undefined : JSON.stringify(init.body),

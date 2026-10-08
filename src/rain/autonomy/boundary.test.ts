@@ -29,11 +29,13 @@ describe("the autonomous researcher's boundary", () => {
         /child_process|\beval\(|new Function\(|(?<!\.)\b(exec|execFile|execSync|execFileSync|spawn)\(|import\(\s*[^"'`]/,
       );
   });
-  it("writes files only through the research store, and fetches only in the model adapters", () => {
+  it("writes files only through the research store, and reaches the network only in the model adapters", () => {
     const writes =
       /\b(writeFileSync|appendFileSync|renameSync|mkdirSync|rmSync|unlinkSync|cpSync)\b/;
     expect(sources.filter((f) => writes.test(read(f)))).toEqual(["store.ts"]);
-    expect(sources.filter((f) => /\bfetch\(/.test(read(f)))).toEqual(["models.ts"]);
+    const network =
+      /\bfetch\(|\bWebSocket\b|["'](node:)?(http|https|http2|net|tls|dgram|undici)["']/;
+    expect(sources.filter((f) => network.test(read(f)))).toEqual(["models.ts"]);
   });
   it("never mutates a simulator: experiments run only through the lab's runner", () => {
     for (const f of sources)
