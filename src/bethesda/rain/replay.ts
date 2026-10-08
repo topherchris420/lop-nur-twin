@@ -3,7 +3,9 @@
  *
  * Verification trusts nothing in the file it reads. It re-derives the
  * definition's digest and that this build simulates it identically; re-checks
- * that the authorization binds to it; requires every arm's recorded commands
+ * that the authorization binds to it — a person's, or a standing authority:
+ * the charter's authorization, the policy's admission and the design it lists;
+ * requires every arm's recorded commands
  * to be exactly the ones the definition implies (a focus at tick 0, and the
  * compiled scenario at the end of warm-up for a treatment — any other command
  * is refused, so a record cannot smuggle a world mutation in); re-executes
@@ -26,6 +28,7 @@ import {
   type ExperimentDefinition,
 } from "./experiments";
 import { verifyAuthorization } from "./authorization";
+import { verifyStanding } from "./standing";
 import { aggregate, cohortAt, observeWorld } from "./observations";
 import {
   armId,
@@ -204,11 +207,22 @@ export function* verifyRecord(raw: unknown): Generator<number, Verification> {
       same(r.proposal.mathematical_basis, d.mathematical_basis),
     "the record's proposal, and the mathematical basis it cites, are the definition's",
   );
-  const authErrors = verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
+  // Exactly one authority. A standing one is judged as it stood when the
+  // policy admitted the run: replay takes no clock, so a charter that has
+  // since expired still verifies the runs it admitted while it stood.
+  const authErrors =
+    r.authorization && r.standing
+      ? ["the record carries both a person's authorization and a standing authority"]
+      : r.standing
+        ? verifyStanding(r.standing, r.experiment_id ?? "", d, sha)
+        : verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
   check(
     "authorization",
     !authErrors.length,
-    authErrors.join("; ") || "binds to this definition",
+    authErrors.join("; ") ||
+      (r.standing
+        ? `a standing authority binds it: design ${r.standing.admission.design_id} of a charter a local operator authorized, admitted by ${r.standing.admission.policy_version}`
+        : "binds to this definition"),
   );
   if (!checks.every((c) => c.ok)) return { ok: false, checks };
   const expected = d.seeds.flatMap((seed) =>

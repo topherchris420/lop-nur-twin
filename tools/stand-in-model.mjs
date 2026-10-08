@@ -12,6 +12,15 @@
  * stand-in. The lab labels the meeting with the model name this server
  * reports, `stand-in-model`, never a real model's.
  *
+ * It also stands in for the autonomous research loop's model
+ * (`src/rain/autonomy/`), on both APIs that loop speaks: LM Studio's
+ * (`/v1/chat/completions` with a `json_schema` response format) and
+ * Ollama's (`GET /api/tags`, `POST /api/chat` with a `format` schema). Asked
+ * for the researcher's action, it proposes the first design the prompt lists
+ * as NOT RUN, or stops when none is; asked for the analyst's reading, it
+ * repeats the reading the prompt's verdict line implies. Both are mechanical,
+ * and its words say so: a test double, not reasoning.
+ *
  *   node tools/stand-in-model.mjs --port 4189
  *
  * Standard library only; loopback only.
@@ -77,6 +86,63 @@ function reply(messages, maxTokens) {
   );
 }
 
+/** The autonomy loop's two structured questions, told apart by the schema asked for. */
+function structured(messages, schema) {
+  const prompt = messages
+    .map((m) => (m && typeof m === "object" ? String(m.content ?? "") : ""))
+    .join("\n");
+  const props = schema && typeof schema === "object" ? (schema.properties ?? {}) : {};
+  if ("reading" in props) {
+    const verdict =
+      /^VERDICT \(the registry's pre-registered criteria\): (.+)$/m.exec(prompt)?.[1] ??
+      "";
+    return {
+      action: "record_analysis",
+      reading:
+        verdict === "supported"
+          ? "supports"
+          : verdict === "not supported"
+            ? "contradicts"
+            : "inconclusive",
+      interpretation: `[stand-in model] The verdict line reads "${verdict || "nothing"}", and this reply repeats the reading it implies. A test double, not an analysis.`,
+      caveats: ["[stand-in model] A real model would weigh the per-seed results here."],
+      open_questions: [
+        "[stand-in model] Does the replication panel agree with the primary one?",
+      ],
+    };
+  }
+  const design =
+    /^- (X\d+-(?:increase|decrease)-(?:primary|replication)) · NOT RUN$/m.exec(
+      prompt,
+    )?.[1] ?? "";
+  const blank = {
+    action: "stop",
+    design: "",
+    experiment: "",
+    question: "",
+    hypothesis: "",
+    competing_hypothesis: "",
+    rationale: "",
+    ranking: [],
+    stop_reason: "",
+  };
+  if (!design)
+    return {
+      ...blank,
+      stop_reason: "[stand-in model] The prompt lists no design as NOT RUN.",
+    };
+  return {
+    ...blank,
+    action: "propose_experiment",
+    design,
+    question: `[stand-in model] What does design ${design} measure?`,
+    hypothesis: `[stand-in model] ${design} moves its metric the way its id names.`,
+    competing_hypothesis: `[stand-in model] ${design} moves it the other way, or not at all.`,
+    rationale:
+      "[stand-in model] The first design the Lab lists as NOT RUN, taken mechanically. A test double's choice, not reasoning.",
+  };
+}
+
 const option = (name, fallback) => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? Number(process.argv[i + 1]) : fallback;
@@ -112,9 +178,13 @@ const server = createServer((req, res) => {
         object: "list",
         data: [{ id: MODEL, object: "model", owned_by: "test" }],
       });
+    // Ollama's own listing, for the autonomy loop's Ollama adapter.
+    if (path === "/api/tags")
+      return send(res, 200, { models: [{ name: MODEL, model: MODEL }] });
     return send(res, 404, { error: { message: "not found" } });
   }
-  if (req.method !== "POST" || path !== "/v1/chat/completions")
+  const ollama = path === "/api/chat";
+  if (req.method !== "POST" || (path !== "/v1/chat/completions" && !ollama))
     return send(res, 404, { error: { message: "not found" } });
   const chunks = [];
   let size = 0;
@@ -138,8 +208,33 @@ const server = createServer((req, res) => {
     const messages = body && typeof body === "object" ? body.messages : null;
     if (!Array.isArray(messages))
       return send(res, 400, { error: { message: "messages required" } });
-    const maxTokens = Number.isInteger(body.max_tokens) ? body.max_tokens : 512;
-    const content = reply(messages, maxTokens);
+    const schema = ollama
+      ? body.format
+      : body.response_format?.type === "json_schema"
+        ? body.response_format.json_schema?.schema
+        : null;
+    const maxTokens = Number.isInteger(body.max_tokens)
+      ? body.max_tokens
+      : Number.isInteger(body.options?.num_predict)
+        ? body.options.num_predict
+        : 512;
+    const content =
+      schema && typeof schema === "object"
+        ? JSON.stringify(structured(messages, schema))
+        : reply(messages, maxTokens);
+    if (ollama)
+      // No eval counts: this server counts no tokens, and reports none.
+      return setTimeout(
+        () =>
+          send(res, 200, {
+            model: MODEL,
+            created_at: new Date().toISOString(),
+            message: { role: "assistant", content },
+            done: true,
+            done_reason: "stop",
+          }),
+        schema ? 0 : delayMs,
+      );
     setTimeout(
       () =>
         send(res, 200, {
@@ -154,7 +249,7 @@ const server = createServer((req, res) => {
           ],
           // No usage block: this server counts no tokens, and reports none.
         }),
-      maxTokens <= 8 ? 0 : delayMs,
+      maxTokens <= 8 || schema ? 0 : delayMs,
     );
   });
 });

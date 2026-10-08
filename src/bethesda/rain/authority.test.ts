@@ -244,6 +244,7 @@ describe("authority, by construction", () => {
       ["../../../src/rain/judgment/", /\.ts$/],
       ["../../../src/rain/experiments/", /\.ts$/],
       ["../../../src/rain/mathematics/", /\.ts$/],
+      ["../../../src/rain/autonomy/", /\.ts$/],
       ["../../../src/rain/mathematics/data/", /\.(json|md)$/],
       ["../../../src/rain/mathematics/fixtures/", /\.json$/],
     ] as const) {

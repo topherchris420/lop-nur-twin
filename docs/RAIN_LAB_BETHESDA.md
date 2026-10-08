@@ -19,7 +19,12 @@ human question → R.A.I.N. meeting → evidence and constraints → mathematica
 
 **Models propose; host code validates; the simulator determines world state;
 recorded observations become evidence.** Every arrow in that line is code in
-this repository, and each side keeps its own authority.
+this repository, and each side keeps its own authority. The
+[autonomous loop](#autonomous-research) runs the same line without a person at
+each step — a local model's choice of design → the host's experiment → the
+autonomy policy, under a charter a person authorized in advance → the same
+simulator, registry and sealed records — and gives the model no authority the
+line did not give it.
 
 The runtime was ported from R.A.I.N.'s own code in
 `topherchris420/james_library`; [the migration note](RAIN_MIGRATION.md) says
@@ -103,6 +108,7 @@ Bethesda simulator (src/bethesda/simulation.ts), in the browser
 | `src/rain/mathematics/`                                                      | the mathematical substrate: the pinned `openai/math` index, search, inspection, challenge, basis verification   |
 | `src/rain/protocol.ts`, `meeting/perspectives.ts`, `experiments/evaluate.ts` | the pure parts the browser bundle shares with the server: schema names, limits, the team, the evaluator         |
 | `src/rain/mathematics/contracts.ts`                                          | the substrate's pure vocabulary: statuses, relations, findings, limits and the basis rules, shared with the lab |
+| `src/rain/autonomy/`                                                         | the autonomous researcher: local models (Ollama, LM Studio), its seats, its actions, the loop and its memory    |
 
 What stays on the lab's side: the scenario vocabulary and its compilation
 through the city's own scenario compiler, validation, authorization, the
@@ -158,6 +164,22 @@ wrote it — the meeting as a whole and each turn (`generation`):
 A runtime that reports a model is labelled with that model's name, and only
 then; a meeting that claims a model but carries no session artifact of running
 it is refused.
+
+## Who directs the research
+
+OFFLINE, DEMO and LIVE say what the runtime is doing. Separately, research in
+the lab is directed in one of three ways, and every record says which:
+
+| Direction          | Who chooses the experiment                                                                                                               | Who allows it to run                                                                                | Where                                                     |
+| :----------------- | :--------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **Human-directed** | a person, in the Experiment Bay (origin `human`), or the DEMO fixture (`fixture`)                                                        | that person, by authorizing the exact definition's digest                                           | the lab                                                   |
+| **Model-directed** | R.A.I.N.'s bounded router among the host's options (origin `rain`), informed by a meeting — scripted, or a local model's                 | a person, by authorizing the exact definition's digest                                              | the lab                                                   |
+| **Autonomous**     | a local open model in R.A.I.N.'s researcher seat, choosing among the designs of a charter (origin `rain`, linked to its decision record) | a person, in advance, by authorizing the **charter** — and the autonomy policy, for each experiment | `npm run rain:autonomous` ([below](#autonomous-research)) |
+
+The first two ask a person about every experiment. The third asks once, about a
+closed list of exact designs, and then lets a deterministic policy admit them
+one at a time. No direction gives a model authority over the evidence, the
+definitions, the records or the registry's verdicts.
 
 ## Running LIVE
 
@@ -1024,10 +1046,14 @@ a world is a validated, authorized experiment, on its own simulators.
 
 Every ending lands in the lab's registry, failures and refusals included, and
 the most recent 24 records are kept in this browser's storage. A record
-(`bethesda-rain-experiment-record/v2`) holds the proposal, the validation, the
-definition and its digest, the authorization, the lifecycle, the run, the
-outcome, the runtime's pre-registration and record if any, and the provenance,
-sealed by a SHA-256 over the rest.
+(`bethesda-rain-experiment-record/v3`) holds the proposal, the validation, the
+definition and its digest, the authorization — a person's of this definition,
+or, for an autonomous run, the standing authority it was admitted under, never
+both — the lifecycle, the run, the outcome, the runtime's pre-registration and
+record if any, and the provenance, sealed by a SHA-256 over the rest. A v2
+record has no `standing` field and is refused, with that reason. An autonomous
+record imported here is quarantined and replayed like any other, and the
+Registry says what admitted it.
 
 - **Verify by replay (no model)** re-executes every arm's recorded commands
   through the simulator and compares the intervention-tick state, the cohort,
@@ -1077,6 +1103,354 @@ substrate revision of every cited result — repository, commit, index content
 hash, family, paths and status — under the definition's digest. **Unknown stays unknown**: a value nobody reported is `null`
 or "unknown", never estimated. A build without git records its own commit as
 unknown. There is no source hash for anything that was not fetched.
+
+## Autonomous research
+
+`npm run rain:autonomous` runs R.A.I.N.'s research loop without a person at each
+step. A local open model, served by Ollama or LM Studio on this machine or its
+network, sits in R.A.I.N.'s researcher and analyst seats; the Lab keeps every
+authority it has always kept:
+
+```text
+observe → research → propose → validate → authorize → pre-register → execute
+→ replay → analyze → record → update → … repeat, within budgets → summary
+```
+
+**The model does not become the Lab. The Lab gives the model a world in which
+it can research.** The model proposes. The host writes the experiment. A
+charter a person authorized decides what may run. The simulator produces the
+consequences. The registry's pre-registered criteria decide each verdict, and
+the records say who did what. Inference is not evidence, evidence is not
+permission, confidence is not authority — for the model as for everyone.
+
+### Connecting a local model
+
+**Ollama** serves on `http://127.0.0.1:11434` while it runs:
+
+```sh
+ollama pull qwen2.5:7b                 # any model with structured output
+ollama serve                           # if it is not already running
+export RAIN_MODEL_PROVIDER=ollama RAIN_MODEL=qwen2.5:7b    # exactly as `ollama list` shows it
+```
+
+**LM Studio** serves on `http://127.0.0.1:1234` once its server is started:
+
+```sh
+lms load qwen2.5-7b-instruct --context-length 8192        # or load it in the Developer tab
+lms server start                                          # or Start Server there
+export RAIN_MODEL_PROVIDER=lmstudio RAIN_MODEL=qwen2.5-7b-instruct   # the identifier LM Studio shows
+```
+
+In PowerShell, set each with `$env:RAIN_MODEL_PROVIDER = "lmstudio"` and so on,
+then run the same `npm run` commands.
+
+The adapters (`src/rain/autonomy/models.ts`) ask each server for
+schema-constrained JSON in its own way — Ollama's `/api/chat` with a `format`
+schema, LM Studio's `/v1/chat/completions` with a strict `json_schema` response
+format — and nothing else in the loop knows which answered. The model is named
+exactly as its server lists it; nothing defaults and nothing is hard-coded. The
+endpoint must be loopback or a private network (an Ollama `:cloud` model is
+refused): autonomy runs local models only, and sends them no credential. The
+researcher's prompt is about 1,700–2,000 tokens and grows with the results, so
+give the model at least an 8,192-token context (Ollama's `RAIN_MODEL_CONTEXT`
+defaults to it; LM Studio takes it when the model is loaded).
+
+### Running it
+
+```sh
+npm run rain:autonomous -- --dry-run          # proposes and validates; executes nothing, writes nothing
+npm run rain:autonomous -- --charter          # the charter a person reviews, with its digest
+RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous -- --authorize <first 8 characters of the digest> --reviewed
+RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous                    # later sessions, while it stands
+RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous -- --iterations 5  # fewer than the charter's ceiling
+npm run rain:autonomous -- --status           # the research state, derived from the records
+npm run rain:autonomous -- --verify           # replay every record; no model is contacted
+```
+
+`--json` prints each trace entry as one JSON line, then the summary; `--dir`
+overrides `RAIN_AUTONOMY_DIR`. Exit status 0 means the session ended on a
+budget, on the researcher's own stop, or with nothing left to run; 1 that it
+failed closed; 2 a usage, setting or authorization problem; 3 that the model
+server could not be reached. With 2 and 3, nothing ran.
+
+| Variable                                      | Meaning                                                                                              |
+| :-------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| `RAIN_AUTONOMY_ENABLED`                       | `true` or `false` (default): a live session runs only when true; a dry run works either way          |
+| `RAIN_MODEL_PROVIDER`                         | `ollama` (default) or `lmstudio`                                                                     |
+| `RAIN_MODEL`                                  | the model exactly as the server lists it; no default (unset, the CLI lists what the server has)      |
+| `RAIN_OLLAMA_URL`, `RAIN_LMSTUDIO_URL`        | defaults `http://127.0.0.1:11434` and `http://127.0.0.1:1234`                                        |
+| `RAIN_MODEL_TIMEOUT_MS`                       | per answer, 5,000–3,600,000 (default 120,000); raise it on a CPU-only machine                        |
+| `RAIN_MODEL_TEMPERATURE`                      | 0–2 (default 0.2)                                                                                    |
+| `RAIN_MODEL_MAX_TOKENS`, `RAIN_MODEL_CONTEXT` | per answer, 128–8,192 (default 1,024); Ollama's context window, 2,048–131,072 (default 8,192)        |
+| `RAIN_MAX_ITERATIONS`, `RAIN_MAX_EXPERIMENTS` | per session, 1–100 (default 10 each)                                                                 |
+| `RAIN_MAX_RUNTIME_MS`                         | per session, 10,000–86,400,000 (default 1,800,000: thirty minutes)                                   |
+| `RAIN_MAX_FAILED_PROPOSALS`                   | per session, 1–50 (default 3)                                                                        |
+| `RAIN_MAX_MODEL_CALLS`                        | per session, 1–1,000 (default 60)                                                                    |
+| `RAIN_MAX_MODEL_TOKENS`                       | optional; set, a server that reports no token counts stops the session rather than have them guessed |
+| `RAIN_AUTONOMY_CHARTER_HOURS`                 | how long an authorization of the charter stands, 1–168 (default 24)                                  |
+| `RAIN_AUTONOMY_DIR`                           | the research state (default `.rain-research`, git-ignored)                                           |
+| `RAIN_AUTONOMY_OPERATOR`                      | the role label an authorization names (default `R.A.I.N.Operator`); a role, never a name             |
+
+### The charter: a person's approval, given in advance
+
+The lab's rule is that nothing runs without a human authorization bound to a
+digest. Autonomy keeps it by moving the review, not removing it
+(`src/bethesda/rain/standing.ts`):
+
+1. The host writes a **charter** (`rain-autonomy-charter/v1`): every design the
+   loop may run — each of the eleven host options, tested in either direction,
+   on one of two fixed seed panels (primary 101, 202, 303; replication 404, 505,
+   606), 44 in all, each named by the SHA-256 of exactly what would run (the
+   definition without its question, hypothesis and proposal) — with the model
+   that may direct the work, the most one session may spend, and how long an
+   approval stands.
+2. A person reviews it (`--charter`) and authorizes its digest the lab's way: a
+   role label, `--reviewed`, and the digest's first eight characters typed back
+   (`rain-autonomy-charter-authorization/v1`). It is a local operator
+   attestation, `identity_verified: false`, kept in the research directory, and
+   it expires (after 24 hours by default). A different model, endpoint,
+   ceiling, validity or simulator build is a different charter, authorized
+   again.
+3. For each proposal, the **autonomy policy** (`rain-autonomy-policy/1`) checks
+   eight rules, reports every one, and issues an admission
+   (`rain-autonomy-admission/v1`) only when all of them hold:
+
+| Rule                 | Holds when                                                                                                                                                                    |
+| :------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `charter-authorized` | a person authorized this exact charter, and the authorization still stands                                                                                                    |
+| `design-listed`      | the design is one the charter lists                                                                                                                                           |
+| `validated`          | the lab's deterministic validation passed (`validateExperiment`)                                                                                                              |
+| `design-digest`      | what would run is exactly the design the charter lists                                                                                                                        |
+| `host-written`       | the question and hypothesis are the host's sentences for the design, and the proposal names the model decision that asked for it by id and SHA-256                            |
+| `fresh-seeds`        | that option's seed panel has not been measured: the same design repeats its result exactly, and a hypothesis revised after seeing a result is tested on seeds it has not seen |
+| `experiment-budget`  | the session has experiments left                                                                                                                                              |
+| `runtime-budget`     | the session has time left                                                                                                                                                     |
+
+The runner accepts the bundle — charter, authorization and admission,
+`rain-autonomy-standing-authority/v1` — where it accepts a person's
+authorization, and re-verifies all of it before a tick runs (`preflight`). The
+sealed record carries it in `standing` (and never a person's authorization
+beside it), replay re-verifies it, judging the expiry at the moment of
+admission, and the lifecycle passes through AWAITING HUMAN APPROVAL like every
+case's, saying that the approval was the charter's.
+
+### What the model is shown, and what it can ask for
+
+The researcher is never asked "what should I do next?" in the open. Each
+iteration it is shown its task, the budget, its own current question, every
+hypothesis the Lab has operationalized with the status the registry's criteria
+gave it, every result, the open questions, what was refused this session, every
+design with whether its seeds are still fresh, what each costs and the known
+limitations, and it answers with one JSON object constrained by a schema that
+enumerates the ids it may name (`src/rain/autonomy/prompts.ts`). It may ask for
+exactly this:
+
+| Action               | What the Lab does                                                                                                                                                                              |
+| :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inspect_result`     | answers from the sealed record: per-seed values, the criteria and what is unresolved (read-only)                                                                                               |
+| `inspect_design`     | answers with the design's protocol (read-only)                                                                                                                                                 |
+| `propose_experiment` | takes a design id, the model's question, hypothesis, competing hypothesis and rationale, and up to three alternatives ranked best first; the host writes the experiment and the policy decides |
+| `stop`               | takes a reason and ends the session                                                                                                                                                            |
+| `record_analysis`    | (the analyst) takes a reading — supports, contradicts or inconclusive — an interpretation, caveats and open questions                                                                          |
+
+At most two read-only calls per iteration. An answer that is not one JSON
+object, names an id the Lab did not list, carries an unknown or missing field,
+both proposes and stops, or holds control or invisible characters is refused
+with its reason, and the reason is shown to the researcher next time. There is
+no action that writes a file, opens a URL, runs a command, edits a definition, a
+record, the evidence or the registry, or touches the city — there is no field
+to put one in (`actions.ts`; `boundary.test.ts` checks the code around it).
+
+| Seat         | Occupied by | Does                                                                              |
+| :----------- | :---------- | :-------------------------------------------------------------------------------- |
+| researcher   | the model   | observes, inspects, proposes a design or stops                                    |
+| planner      | the model   | ranks alternatives; the policy tries them in that order when the first is refused |
+| critic       | unassigned  | a seat for a second model that may object before submission                       |
+| experimenter | the host    | writes the experiment from the design and runs it on fresh simulators             |
+| analyst      | the model   | reads one result against its pre-registered hypothesis                            |
+| archivist    | the host    | seals records, reports to the registry, appends the trace                         |
+
+The seats are the orchestration boundary (`roles.ts`): another model, or a
+different one per seat, can take one later without the Lab's side changing.
+Today one local model takes all three model seats.
+
+### One iteration
+
+1. **Observe.** The research state is derived again from the sealed records
+   and the session traces (`state.ts`).
+2. **Research.** The researcher may inspect, then proposes a design or stops.
+3. **Propose.** The host writes the proposal for the design
+   (`autonomousProposal`): origin `rain`, the host's question and hypothesis,
+   the design's direction and seeds, and the model's decision named by id and
+   SHA-256 in `rain_decision`.
+4. **Validate.** `validateExperiment`, exactly as in the lab.
+5. **Authorize.** The policy admits the design or refuses it, every rule
+   reported. A refusal is a sealed REJECTED record, and the researcher's
+   ranked alternatives are tried in its order.
+6. **Pre-register.** The runtime's registry registers the draft before anything
+   runs (`V3D-EXP-NNNN`, with its certificate).
+7. **Execute.** Matched control and treatment arms per seed, on simulators the
+   runner builds for itself (`runExperiment`); the live city is not involved.
+8. **Replay.** The sealed record is re-simulated at once (`verifyRecord`).
+9. **Analyze.** The analyst reads the result. Its reading is checked against
+   what the criteria imply; a disagreement is recorded and shown, and the
+   criteria stand.
+10. **Record.** The registry admits the measurements and evaluates its own
+    pre-registered criteria; the analyst's reading travels beside them as the
+    submission's `model_interpretation`, which the registry keeps as
+    `MODEL_INFERRED` and never evaluates. The sealed record is written once.
+11. **Update and repeat**, until a budget is spent, the researcher stops, no
+    design with fresh seeds remains, or something fails.
+
+A **dry run** does steps 1–5 and stops there: no pre-registration, no
+simulator, no analysis, nothing written to disk. It shows each design it would
+execute — "would be approved once the charter is authorized", if it is not
+yet — treats it as planned, and asks for the next.
+
+### What a person sees
+
+A live session with Qwen2.5 3B on Ollama, on four CPU cores and no GPU — about
+three minutes. In the first iteration the model's answer left its own words
+empty and was refused, with the reason shown to it; it then proposed the
+Metro-closure design, and when its analyst read the result differently from the
+criteria, the disagreement was recorded and the criteria stood. In the third it
+chose the replication panel, to test the pattern on seeds it had not seen:
+
+```text
+RAIN AUTONOMOUS SESSION
+
+Mode:      LIVE — runs only what the autonomy policy admits under the charter
+Model:     qwen2.5:3b
+Provider:  Ollama at http://127.0.0.1:11434 (loopback)
+Charter:   CH-6be25d841f8a · authorized by local operator R.A.I.N.Operator at 2026-10-08T17:10:00.358Z, until 2026-10-09T17:10:00.358Z
+Budgets:   3 iterations · 2 experiments · 3600 s · 3 failed proposals · 60 model calls · no token ceiling
+Seats:     researcher (model) · planner (model) · critic (unassigned) · experimenter (host) · analyst (model) · archivist (host)
+Research:  .rain-research
+Session:   RS-20261008T171000Z-1be906cc
+Before:    0 record(s) in the research state
+Model check: OK — qwen2.5:3b is served by Ollama at http://127.0.0.1:11434
+
+── Iteration 1 / 3 ──
+Observed:  0 experiment(s) recorded · 0 hypothesis(es) tested · 44 design(s) with fresh seeds · 0 open question(s)
+researcher (model): ANSWER REFUSED — question is required for this action; hypothesis is required for this action; competing_hypothesis is required for this action
+Refused (research): question is required for this action; hypothesis is required for this action; competing_hypothesis is required for this action
+
+── Iteration 2 / 3 ──
+Observed:  0 experiment(s) recorded · 0 hypothesis(es) tested · 44 design(s) with fresh seeds · 0 open question(s)
+Current question (model):     How does a temporary closure of the Bethesda Metro entrance affect pedestrian movement in the area?
+Current hypothesis (model):   A closure of the Bethesda Metro entrance will cause an increase in pedestrian movement as people seek alternative transportation.
+Competing hypothesis (model): A closure of the Bethesda Metro entrance will not significantly affect pedestrian movement as people can still use other modes of transportation.
+Rationale (model):            This design tests the effect of a closure on pedestrian movement by increasing the event's severity. The competing hypothesis suggests that the closure will not lead to a noticeable change in pedestrian behavior.
+Proposed experiment:          X1-increase-primary (then X1-decrease-primary, X1-decrease-replication, X2-increase-primary)
+Validation:     PASSED — BX-5995339c8a72, 6 deterministic checks
+Authorization:  APPROVED — X1-increase-primary admitted by rain-autonomy-policy/1 under CH-6be25d841f8a (8 of 8 rules)
+Pre-registered: V3D-EXP-0001 (configured registry), before the run
+Executing:      BX-5995339c8a72 · 6 arms on fresh simulators · 3.6 s
+Result:         COMPLETED · not supported (simulation) — Failure criterion triggered: F1. The hypothesis is not supported.
+Replay:         verified — every arm re-simulated identically, no model contacted
+Interpretation (model, not evidence): reads "inconclusive" — DISAGREES with the criteria (contradicts); the criteria stand
+  The simulation results do not provide a clear support or contradiction to the hypothesis. The hypothesis was not supported by the simulation, but the sample size is small (3 seeds) and the results are descriptive. Further analysis is needed to understand why the results did not align with the hypothesis and whether the pattern holds in Bethesda.
+Next question (model): Why did the simulation results differ from the hypothesis?
+Registry:       V3D-EXP-0001-RUN-0001 · failed (not supported) — judged by its own pre-registered criteria
+Record:         records/BX-5995339c8a72-Rmuzsm7me1.json · COMPLETED · sealed 97b1df6cc9236d13…
+
+── Iteration 3 / 3 ──
+Observed:  1 experiment(s) recorded · 1 hypothesis(es) tested · 42 design(s) with fresh seeds · 4 open question(s)
+Current question (model):     How does a temporary closure of the Bethesda Metro entrance affect pedestrian movement in the area?
+Current hypothesis (model):   In the Bethesda simulator, metro closure at Bethesda Metro entrance makes cohort mean distance from the location rise by at least 10 against a matched no-event control, in every seed.
+Competing hypothesis (model): In the Bethesda simulator, metro closure at Bethesda Metro entrance does not significantly affect the cohort mean distance from the location compared to a matched no-event control, in every seed.
+Rationale (model):            This design will test the hypothesis by running the experiment on a replication seed panel to see if the pattern of increased pedestrian movement is consistent across different seeds and scenarios.
+Proposed experiment:          X1-increase-replication (then X1-decrease-replication, X1-decrease-primary, X1-increase-primary)
+Validation:     PASSED — BX-03b4c5de2ca8, 6 deterministic checks
+Authorization:  APPROVED — X1-increase-replication admitted by rain-autonomy-policy/1 under CH-6be25d841f8a (8 of 8 rules)
+Pre-registered: V3D-EXP-0002 (configured registry), before the run
+Executing:      BX-03b4c5de2ca8 · 6 arms on fresh simulators · 2.6 s
+Result:         COMPLETED · not supported (simulation) — Failure criterion triggered: F1. The hypothesis is not supported.
+Replay:         verified — every arm re-simulated identically, no model contacted
+Interpretation (model, not evidence): reads "contradicts" — agrees with the criteria
+  The simulation results contradict the pre-registered hypothesis that metro closure at Bethesda Metro entrance would increase the cohort mean distance from the location by at least 10 meters in every seed. The mean treatment-control difference across the three seeds is -26.55 meters, which is not in the predicted direction of an increase.
+Next question (model): Why did the simulator show a decrease in mean distance instead of an increase?
+Registry:       V3D-EXP-0002-RUN-0001 · failed (not supported) — judged by its own pre-registered criteria
+Record:         records/BX-03b4c5de2ca8-Rmuzsnucn2.json · COMPLETED · sealed 62fa2936272eaacc…
+
+── Session ended: the iteration budget is spent — 3 iteration(s)
+Experiments:    2 run
+  BX-5995339c8a72 X1-increase-primary · COMPLETED · not supported · V3D-EXP-0001-RUN-0001 · records/BX-5995339c8a72-Rmuzsm7me1.json
+  BX-03b4c5de2ca8 X1-increase-replication · COMPLETED · not supported · V3D-EXP-0002-RUN-0001 · records/BX-03b4c5de2ca8-Rmuzsnucn2.json
+Proposals:      1 failed · 1 refusal(s)
+Model calls:    5 · tokens 7529 prompt + 991 completion, as the server reported
+Trace:          .rain-research/sessions/RS-20261008T171000Z-1be906cc/trace.jsonl
+State:          .rain-research/state.json (derived; never read back)
+```
+
+### The research state, and how a run traces back
+
+```text
+.rain-research/
+  charters/CH-<12>.json                       the charter, written once
+  charters/CH-<12>.authorization-<12>.json    a person's authorization of it, written once
+  records/<run id>.json                       sealed bethesda-rain-experiment-record/v3, written once
+  sessions/<session id>/trace.jsonl           every step, append-only (rain-autonomy-trace/v1)
+  sessions/<session id>/summary.json          the session's summary
+  registry/                                   the runtime's registry, unless RAIN_REGISTRY_DIR names one
+  state.json                                  a derived snapshot for people; never read back
+```
+
+The state is not a memory blob. It is derived on every load from two sources
+with their own standing: **sealed records**, each checked against its digest,
+which alone say what ran and — through the registry's criteria — what a
+hypothesis's status is (untested; supported, not supported or inconclusive in
+simulation; contested when its seed panels disagree, with both results kept);
+and **session traces**, which hold what the model said, labelled as the
+model's. A record that does not match its digest is left out and named.
+
+Every session has an id (`RS-…`); every experiment its definition id (`BX-…`),
+the registry's (`V3D-EXP-NNNN`) and a run id; and every model call a decision
+record (`rain-autonomy-decision/v1`): the session, the seat, the provider and
+model, the prompt exactly as sent, the text exactly as returned, what the host
+accepted or why it refused it, the token counts the server reported (`null`
+when it reported none) and the record's own SHA-256 — which the proposal, the
+admission and so the sealed record name. A run traces back: session → model →
+prompt → proposed action → authorization → experiment → result → analysis.
+
+### The epistemic boundary
+
+- A model's words never enter what runs. The definition's question and
+  hypothesis are the host's, and `host-written` refuses anything else. The
+  model's question, hypothesis, rationale and interpretation are kept in the
+  trace, labelled `generation: "model"`, and reach a later prompt only as its
+  own earlier words.
+- A hypothesis's status comes only from sealed records and the registry's
+  pre-registered criteria. An analyst's reading that disagrees is recorded as a
+  disagreement; the registry keeps it as `MODEL_INFERRED`, apart from its
+  evaluation.
+- Results are simulation output: the registry records every run as
+  `evidence_class: "simulated"`, and every result the model is shown says it
+  describes the simulator's rules, not Bethesda.
+- Nothing in `src/rain/autonomy/` imports the Lop Nur evidence ledger, the site
+  model, its sources or its history, writes outside the research directory,
+  starts a process or touches a simulator (`boundary.test.ts`), and a test runs
+  a whole session and checks the evidence ledger's hash did not move.
+- A sealed record is never overwritten (`wx`), and `state.json` is never read
+  back.
+
+### Failing closed
+
+| When                                                                                   | The loop                                                                                       |
+| :------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| `RAIN_AUTONOMY_ENABLED` is not `true`, or no standing authorization covers the charter | runs nothing, writes nothing, says which and shows the charter (exit 2)                        |
+| the model directing the session is not the one the charter names                       | runs nothing, writes nothing (exit 2)                                                          |
+| the model server does not answer, or does not list the model                           | runs nothing (exit 3); mid-session, stops `model_unavailable` after recording what ran         |
+| a connection fails before any answer                                                   | tries once more — usually a server closing an idle keep-alive socket during a run — then stops |
+| an answer is malformed, ambiguous, or names what the Lab did not list                  | refuses it, tells the researcher why, counts a failed proposal                                 |
+| the same refused answer twice, or a refused design proposed again                      | stops `repeated`                                                                               |
+| the policy refuses a design                                                            | seals a REJECTED record, tries the ranked alternatives, then counts a failed proposal          |
+| the registry refuses a pre-registration or a submission                                | stops `registry`; nothing runs unregistered                                                    |
+| a run fails, or the runtime budget ends during it                                      | seals a FAILED record, reports it to the registry as an error, then stops                      |
+| a record does not replay                                                               | stops `replay`                                                                                 |
+| a token ceiling is set and the server reports no counts                                | stops `model_tokens`: unknown stays unknown                                                    |
+| this checkout's commit is unknown                                                      | runs nothing: the registry's submission contract requires the producing commit                 |
+| any budget is spent                                                                    | stops, naming which: iterations, experiments, runtime, failed proposals, model calls, tokens   |
 
 ## Failing closed
 
@@ -1211,9 +1585,25 @@ since the lab's lights cast none. The figures never take a tap.
   consolidated runtime; its model meetings are tested against the stand-in.
 - A model meeting records no verdict, so a model meeting has none in the lab
   either; the offline engine's meetings keep theirs.
-- With `RAIN_DECISION_MODE` off — the default — R.A.I.N. proposes nothing, and
-  experiments start from the DEMO fixture or a person. With Jev and no
-  calibration profile, R.A.I.N. hands every choice back.
+- With `RAIN_DECISION_MODE` off — the default — R.A.I.N. proposes nothing in
+  the lab, and experiments start from the DEMO fixture or a person. With Jev
+  and no calibration profile, R.A.I.N. hands every choice back.
+- The autonomous loop runs from the command line only; the lab's rooms do not
+  start, watch or stop a session, though they replay and show its records. Its
+  choices are among the charter's 44 designs — the lab's eleven options, two
+  directions, two seed panels, fixed warm-up and window — so it cannot yet vary
+  a threshold, a seed count or a population: a new design is a new charter.
+- How well a model researches is not measured here. The tests drive the loop
+  with a scripted model and `tools/stand-in-model.mjs`, which choose
+  mechanically. By hand, on four CPU cores, in dry runs and the session above:
+  Qwen2.5 1.5B answered `stop` at every turn — once while ranking three
+  designs, an ambiguous answer the host now refuses; then three times with no
+  reason, each refused — and nothing ran; Qwen2.5 3B proposed, refused once,
+  ran two experiments and once read a result differently from the criteria.
+  That is two models on one machine, not an evaluation.
+- The charter's authorization is a local attestation kept in the research
+  directory: anyone who can write there can write one. It shows what a person
+  approved, not that one did.
 - The vocabulary is small on purpose: eight scenarios, six places, seven
   metrics. Adding one is a contract change, not a configuration.
 - Rate limits and the scratch registry are per server instance and reset on a
@@ -1241,7 +1631,9 @@ bun run test:bethesda       # the lab and its runtime: contracts, experiments, a
                             # runs and replay, the door, OFFLINE/DEMO/LIVE, tools, outings;
                             # the corpus, the offline engine (DEMO reproduction), records,
                             # model meetings on a stand-in, jobs, routing, calibration,
-                            # TypeSafe, config, the registry, privacy, the runtime, the route
+                            # TypeSafe, config, the registry, privacy, the runtime, the route;
+                            # the standing authorization, and the autonomous loop end to end
+                            # on a scripted model (src/rain/autonomy/, no model server needed)
 bun run rain:conformance    # the lab's drafts and submissions through the runtime's
                             # validators, evaluator and registry, one citing mathematics
 bun run build               # validate:bethesda checks the bundled corpus, the DEMO recording
@@ -1250,6 +1642,9 @@ bun run rain:math:verify    # the substrate index's checks; with -- --from <chec
                             # openai/math at the pinned commit>, re-derives it exactly
 bun run rain:math:search -- "random walks on graphs"   # what the runtime would answer
 bun run rain:math:inspect -- 017
+npm run rain:autonomous -- --dry-run   # with a local model, or tools/stand-in-model.mjs:
+                            # what the autonomous loop would run; executes and writes nothing
+npm run rain:autonomous -- --verify    # replay every record in the research state
 bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFFLINE,
                             # DEMO, authorization, run, replay, tampered import, a fresh
                             # browser, outings, tools, axe in every room, CSP, no WebGL;
@@ -1308,6 +1703,12 @@ key from every preview's environment.
   version then fail verification with an explanation, as they should.
 - The lab must stay removable from Bethesda: the city reaches it only through
   the door, the console phrase and the outing figures it draws.
+- The autonomy policy's rules live once, in `standing.ts`, under
+  `POLICY_VERSION`; a changed rule bumps it. A new design — a threshold, a
+  panel, an option — changes every charter's digest, so every standing
+  authorization must be given again; that is the point. A new action for the
+  model goes in `actions.ts` as a read the host answers from its records, never
+  as something that acts.
 - The substrate index is generated, never edited: re-index from a clean
   checkout (`bun run rain:math:index -- --from <checkout>`). A new commit is a
   new content hash, and every basis that cites the old one is refused at

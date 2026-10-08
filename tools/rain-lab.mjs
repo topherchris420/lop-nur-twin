@@ -616,9 +616,10 @@ try {
   const record = JSON.parse(recordText);
   check(
     "the exported record carries its definition, authorization, arms, outcome and provenance",
-    record.schema === "bethesda-rain-experiment-record/v2" &&
+    record.schema === "bethesda-rain-experiment-record/v3" &&
       /^[0-9a-f]{64}$/.test(record.record_sha256) &&
       record.authorization?.identity_verified === false &&
+      record.standing === null &&
       record.run?.arms?.length === 6 &&
       record.outcome?.state === "COMPLETED" &&
       "lop_nur_twin_commit" in record.provenance &&

@@ -11,14 +11,18 @@
  *
  * The runner is a generator so a worker or a time-sliced loop can drive it,
  * and it refuses to start unless the definition re-verifies against this build
- * and the authorization binds to its exact SHA-256. A proposal, however it
- * arrived, cannot reach this code without both.
+ * and an authority binds to its exact SHA-256: a person's authorization of
+ * that definition, or a standing authority (`standing.ts`) — a charter a
+ * person authorized that lists this definition's exact design, and the
+ * autonomy policy's admission of it. A proposal, however it arrived, cannot
+ * reach this code without both.
  */
 import { CitySimulation, type Command, type Config } from "../simulation";
 import { canonicalHash } from "../../game/pilot/hash";
 import { METRIC_IDS, type MetricId } from "./contracts";
 import { verifyDefinition, type ExperimentDefinition } from "./experiments";
 import { verifyAuthorization, type Authorization } from "./authorization";
+import { isStanding, verifyStanding, type StandingAuthority } from "./standing";
 import {
   aggregate,
   cohortAt,
@@ -269,18 +273,24 @@ export function summarize(
   };
 }
 
+/** Who allowed a run: a person, for this definition; or a charter a person authorized. */
+export type RunAuthority = Authorization | StandingAuthority;
+
 /** Every precondition, re-checked at the moment of execution. */
 export function preflight(
   d: ExperimentDefinition,
   definitionSha256: string,
   experimentId: string,
-  authorization: Authorization | null,
+  authorization: RunAuthority | null,
+  now: Date = new Date(),
 ): string[] {
   return [
     ...verifyDefinition(d, definitionSha256),
-    ...(authorization
-      ? verifyAuthorization(authorization, experimentId, definitionSha256)
-      : ["no authorization record: a human must approve this exact definition"]),
+    ...(!authorization
+      ? ["no authorization record: a human must approve this exact definition"]
+      : isStanding(authorization)
+        ? verifyStanding(authorization, experimentId, d, definitionSha256, { now })
+        : verifyAuthorization(authorization, experimentId, definitionSha256)),
   ];
 }
 
@@ -288,7 +298,7 @@ export function* runExperiment(
   d: ExperimentDefinition,
   definitionSha256: string,
   experimentId: string,
-  authorization: Authorization | null,
+  authorization: RunAuthority | null,
 ): Generator<Progress, RunResult> {
   const refused = preflight(d, definitionSha256, experimentId, authorization);
   if (refused.length) throw new RunRefused(refused);
@@ -305,7 +315,7 @@ export function runToCompletion(
   d: ExperimentDefinition,
   definitionSha256: string,
   experimentId: string,
-  authorization: Authorization | null,
+  authorization: RunAuthority | null,
 ): RunResult {
   const steps = runExperiment(d, definitionSha256, experimentId, authorization);
   for (;;) {

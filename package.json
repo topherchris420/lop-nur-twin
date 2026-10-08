@@ -59,6 +59,7 @@
     "rain:demo": "node scripts/run-ts.mjs scripts/export-rain-demo.ts",
     "rain:admit": "node tools/rain-admit.mjs",
     "rain:stand-in": "node tools/stand-in-model.mjs",
+    "rain:autonomous": "node tools/rain-autonomous.mjs",
     "rain:math:index": "node scripts/run-ts.mjs scripts/math-substrate.ts index",
     "rain:math:verify": "node scripts/run-ts.mjs scripts/math-substrate.ts verify",
     "rain:math:inspect": "node scripts/run-ts.mjs scripts/math-substrate.ts inspect",

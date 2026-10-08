@@ -2,9 +2,10 @@
  * The experiment record (`RECORD_SCHEMA`): one experiment, everything it took.
  *
  * A record keeps what was proposed, which deterministic checks ran and how
- * they came out, what a human approved, what actually ran (every arm's
- * recorded commands and hashes), what was observed, what the criteria
- * decided, what remains unresolved, both repositories' revisions — and, when
+ * they came out, what a human approved — the definition itself, or a charter
+ * that lists its design — what actually ran (every arm's recorded commands
+ * and hashes), what was observed, what the criteria decided, what remains
+ * unresolved, both repositories' revisions — and, when
  * R.A.I.N. admitted the run, R.A.I.N.'s own run record beside the host's.
  * Rejected, failed and inconclusive experiments are records too.
  *
@@ -25,6 +26,7 @@ import {
 } from "./contracts";
 import { canonicalJson, sha256, sha256Json } from "../../rain/sha256";
 import type { Authorization } from "./authorization";
+import type { StandingAuthority } from "./standing";
 import type { CheckResult, ExperimentDefinition } from "./experiments";
 import type { LifecycleState, Transition } from "./lifecycle";
 import type { Provenance } from "./provenance";
@@ -70,7 +72,14 @@ export interface ExperimentRecord {
   validation: CheckResult[];
   definition: ExperimentDefinition | null;
   definition_sha256: string | null;
+  /** A person's authorization of this exact definition. */
   authorization: Authorization | null;
+  /**
+   * Or, for a run R.A.I.N.'s autonomous researcher proposed: the charter a
+   * person authorized and the autonomy policy's admission of this definition
+   * under it. A run carries exactly one of the two.
+   */
+  standing: StandingAuthority | null;
   rain_preregistration: Preregistration | null;
   run: RunSection | null;
   error: { stage: string; type: string; message: string } | null;
