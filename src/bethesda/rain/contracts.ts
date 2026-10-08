@@ -102,11 +102,15 @@ export const AUTHORIZATION_SCHEMA = "bethesda-experiment-authorization/v1" as co
  */
 export const WORLD_OBSERVATION_SCHEMA = "bethesda-world-observation/v1" as const;
 /**
- * v2: the record's provenance names the R.A.I.N. runtime's repository and
- * revision in its own fields (`rain_*`); v1 named the bridge's james_library
- * checkout and is refused.
+ * v3: a record says which kind of authority let it run — a person's
+ * authorization of its exact definition (`authorization`), or a standing
+ * authority (`standing`: a charter a person authorized, and the autonomy
+ * policy's admission of this definition under it) — and never both. v2 had no
+ * `standing` field and is refused, with that reason; v2's provenance already
+ * named the R.A.I.N. runtime in its own fields, and v1, which named the
+ * bridge's james_library checkout, was retired before it.
  */
-export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v2" as const;
+export const RECORD_SCHEMA = "bethesda-rain-experiment-record/v3" as const;
 /** R.A.I.N.'s external-run contract (`src/rain/experiments/schemas/submission.schema.json`). */
 export const RAIN_SUBMISSION_SCHEMA = "rain-experiment-submission/v1" as const;
 export const RAIN_DECISION_SCHEMA = DECISION_SCHEMA;

@@ -222,10 +222,29 @@ export function rainDefinitionDraft(
 export const runArtifactName = (record: ExperimentRecord) =>
   `bethesda-run-${record.run_id}.json`;
 
-/** One run, as R.A.I.N.'s external-run contract describes it. No status, no verdict. */
+/** A model-backed component of a run, in the submission contract's own fields. */
+export interface SubmittedModel {
+  role: string;
+  name: string;
+  provider: string;
+  calls: number;
+  latency_ms?: number[];
+  validation?: { passed: number; failed: number };
+}
+
+/**
+ * One run, as R.A.I.N.'s external-run contract describes it. No status, no
+ * verdict. `extra` carries what the autonomous researcher adds: each model
+ * role it used, and the analyst's reading of the result, which the registry
+ * stores apart from its own evaluation (`MODEL_INFERRED`) and never evaluates.
+ */
 export function rainSubmission(
   record: ExperimentRecord,
   rain: { experimentId: string; experimentVersion: number },
+  extra: {
+    models?: readonly SubmittedModel[];
+    modelInterpretation?: { model: string; text: string } | null;
+  } = {},
 ): Checked<Record<string, unknown>> {
   const errors: string[] = [];
   const d = record.definition;
@@ -245,7 +264,9 @@ export function rainSubmission(
     record.run?.started_at ?? record.lifecycle.find((t) => t.state === "RUNNING")?.at;
   const finished = record.run?.finished_at ?? record.lifecycle.at(-1)?.at;
   const prereg = record.rain_preregistration;
-  const authorized = record.authorization?.authorized_at ?? "unknown";
+  const standing = record.standing;
+  const authorized =
+    record.authorization?.authorized_at ?? standing?.admission.admitted_at ?? "unknown";
   const artifact = runArtifactText(record);
   const submission: Record<string, unknown> = {
     schema_version: RAIN_SUBMISSION_SCHEMA,
@@ -263,8 +284,13 @@ export function rainSubmission(
       map_sha256: record.provenance.bethesda_map_sha256,
       streetscape_sha256: record.provenance.streetscape_sha256,
       terrain_sha256: record.provenance.terrain_sha256,
-      authorization_sha256: record.authorization?.authorization_sha256 ?? null,
-      authorization: "local operator attestation; not authenticated identity",
+      authorization_sha256:
+        record.authorization?.authorization_sha256 ??
+        standing?.admission.admission_sha256 ??
+        null,
+      authorization: standing
+        ? `standing authority: design ${standing.admission.design_id} of charter ${standing.admission.charter_sha256}, which a local operator authorized (attestation; not authenticated identity), admitted unattended by ${standing.admission.policy_version}`
+        : "local operator attestation; not authenticated identity",
     },
     measurements: record.run ? { ...record.run.measurements } : {},
     series: record.run ? { ...record.run.series } : {},
@@ -286,13 +312,17 @@ export function rainSubmission(
         kind: "replay",
       },
     ],
-    models:
-      record.provenance.model !== null
+    models: extra.models
+      ? extra.models.map((m) => structuredClone(m))
+      : record.provenance.model !== null
         ? [
             {
               role: "proposer",
               name: record.provenance.model,
-              provider: "R.A.I.N.",
+              provider:
+                record.provenance.provider === "rain"
+                  ? "R.A.I.N."
+                  : (record.provenance.provider ?? "unknown"),
               calls: 1,
             },
           ]
@@ -307,6 +337,11 @@ export function rainSubmission(
       environment: { contract: RAIN_BETHESDA_SCHEMA, sim_version: SIM_VERSION },
     },
   };
+  if (extra.modelInterpretation)
+    submission.model_interpretation = {
+      model: extra.modelInterpretation.model.slice(0, 200),
+      text: extra.modelInterpretation.text.slice(0, 8000),
+    };
   if (record.error)
     submission.error = {
       stage: record.error.stage.slice(0, 64),

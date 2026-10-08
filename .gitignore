@@ -40,3 +40,8 @@ shots/
 # Python bytecode from the data importers under scripts/.
 __pycache__/
 *.pyc
+
+# R.A.I.N.'s autonomous research state (`npm run rain:autonomous`): sealed
+# records, session traces, charters and their authorizations, and the
+# registry. Research output of one machine, not source.
+.rain-research/

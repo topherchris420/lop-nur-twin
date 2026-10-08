@@ -73,6 +73,8 @@ export function provenance(input: {
   rain: RainRevision | null;
   rainSource: RainSource;
   model: string | null;
+  /** Who served the model, when it was not R.A.I.N.'s own router: `ollama`, `lmstudio`. */
+  provider?: string | null;
   seeds: number[];
   now: Date;
 }): Provenance {
@@ -94,7 +96,7 @@ export function provenance(input: {
     bethesda_map_sha256: DATA_VERSION,
     streetscape_sha256: TRANSIT_VERSION,
     terrain_sha256: TERRAIN_VERSION,
-    provider: input.model ? "rain" : null,
+    provider: input.model ? (input.provider ?? "rain") : null,
     model: input.model,
     seeds: [...input.seeds],
     recorded_at: input.now.toISOString(),

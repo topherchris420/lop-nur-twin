@@ -137,7 +137,9 @@ The R.A.I.N. Lab inside Bethesda needs no configuration: its research runtime
 runs inside this repository's own server process (`/api/rain/*`). A local model
 for its meetings and the TypeSafe engine for its bounded decisions are server-side
 settings too, `RAIN_*` in `.env.example` (see the
-[lab guide](docs/RAIN_LAB_BETHESDA.md#running-live)). The LLM adapter
+[lab guide](docs/RAIN_LAB_BETHESDA.md#running-live)), and so is the local model
+its [autonomous research loop](docs/RAIN_LAB_BETHESDA.md#autonomous-research)
+runs with. The LLM adapter
 supports Anthropic and OpenAI-compatible providers. Keys stay on
 the server; never prefix them with `VITE_`. Enabling a live model can spend API
 credit. Automated live runs require a separate opt-in; offline checks use test
@@ -483,8 +485,35 @@ changes a result: mathematical substrate ≠ evidence corpus, mathematical resul
 ≠ empirical result, Lean formalization ≠ empirical validation, hypothesis ≠
 conclusion.
 
+**Human-directed, model-directed, autonomous.** Research in the lab is directed
+in one of three ways. A person proposes an experiment and authorizes its exact
+definition; or R.A.I.N. proposes one — its bounded router choosing among the
+host's options, informed by a scripted or local-model meeting — and a person
+authorizes it; or R.A.I.N. runs **autonomously**: `npm run rain:autonomous`
+puts a local open model, served by [Ollama](https://ollama.com) or
+[LM Studio](https://lmstudio.ai), in R.A.I.N.'s researcher and analyst seats
+and lets it observe the research state, propose, run, read and record
+experiments in a loop, within budgets, until one is spent or nothing worth
+running remains. Autonomy moves the person's review rather than removing it: a
+person authorizes a **charter** — the exact experiment designs the loop may
+run, by digest, with the model and the ceilings — and a deterministic policy
+admits each proposal under it, or refuses it with its reasons. The model never
+writes a definition, never decides a verdict and never touches the evidence:
+its questions, hypotheses and interpretations are kept as its words, labelled,
+beside sealed, replayable records whose verdicts are the registry's
+pre-registered criteria.
+
+```sh
+ollama pull qwen2.5:7b      # or load a model in LM Studio and start its server
+export RAIN_MODEL_PROVIDER=ollama RAIN_MODEL=qwen2.5:7b   # lmstudio / the name LM Studio lists
+npm run rain:autonomous -- --dry-run                      # what it would run; runs and writes nothing
+npm run rain:autonomous -- --charter                      # the charter to review, with its digest
+RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous -- --authorize <first 8 characters> --reviewed
+```
+
 Read the [R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for meetings,
-experiments, authorization, replay and
+experiments, authorization, replay,
+[autonomous research](docs/RAIN_LAB_BETHESDA.md#autonomous-research) and
 [the mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate).
 
 ## Measure it yourself
@@ -550,6 +579,7 @@ or extend one.
 | Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                                   |
 | R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, certified pre-registrations need `RAIN_REGISTRY_SECRET`; run records stay per instance |
 | R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                              |
+| R.A.I.N. autonomous research loop (`npm run rain:autonomous`, Ollama or LM Studio)                  | **Implemented** · **experimental**         | Runs only under a charter a person authorized; CLI only; small local models propose poorly        |
 | R.A.I.N. mathematical substrate (`openai/math`, pinned): search, challenge, inspection, citations   | **Implemented**                            | Lexical search; relations are a person's; Lean is indexed, never compiled; one commit at a time   |
 | Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`     |
 | Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                                   |
@@ -589,7 +619,8 @@ src/game/eval/      Experiment definitions, outcome contracts and evaluation
 src/bethesda/       City geography, terrain, simulation, scenarios and replay
 src/bethesda/rain/  The R.A.I.N. Lab: protocol, experiments, records and rooms
 src/rain/           The R.A.I.N. research runtime: corpus, meetings, decisions, registry,
-                    and the mathematical substrate (src/rain/mathematics/)
+                    the mathematical substrate (src/rain/mathematics/) and the
+                    autonomous researcher (src/rain/autonomy/)
 server/, api/       Server-side Jev, Glide, LLM and R.A.I.N. endpoints
 tools/              Browser checks, experiments, benchmarks and diagnostics
 docs/               Methods, limitations, guides and archived evidence

@@ -503,7 +503,8 @@ it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 `scripts/import-rain-source.ts`, `scripts/math-substrate.ts`, the `RAIN_` lines
 of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
-scripts.
+scripts. Its autonomous researcher adds `src/rain/autonomy/`,
+`tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`.
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
   pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
@@ -644,7 +645,10 @@ world state; recorded observations become evidence.**
 - **Nothing runs without a human authorization bound to the digest.** The
   record is a local operator attestation with `identity_verified: false`; do
   not describe it as identity, and do not add a path to `runExperiment` that
-  skips `preflight`.
+  skips `preflight`. The one other authority `preflight` accepts is a standing
+  one (`standing.ts`): a charter a person authorized by its digest, listing the
+  exact design digests it covers, and the autonomy policy's admission of one
+  definition under it. A record carries exactly one of the two.
 - **LIVE never falls back to DEMO.** `client.ts` must not import the recording
   (a test asserts it). A failure is a typed failure shown as such.
 - **The DEMO recording is re-recorded, never edited.**
@@ -682,7 +686,7 @@ world state; recorded observations become evidence.**
   they disagree. `experiments/evaluate.ts` is the one `rain-criteria/v1`
   implementation, used by the browser and the registry alike.
 - **Records are evidence only through replay.** Every ending is a sealed
-  `bethesda-rain-experiment-record/v2`; `verifyRecord` re-simulates it. A digest
+  `bethesda-rain-experiment-record/v3`; `verifyRecord` re-simulates it. A digest
   is not a signature: an imported record stays in the store's `quarantine` —
   out of `records`, the Evidence Library and the tools — until `verifyRecord`
   passes. A change to the record, the protocol or the simulator's behaviour
@@ -690,6 +694,59 @@ world state; recorded observations become evidence.**
   reason.
 - **Unknown stays unknown.** A commit, model or token count nobody reported is
   `null`; the submission refuses to invent the producing commit.
+
+### The autonomous researcher (`src/rain/autonomy/`)
+
+`npm run rain:autonomous` (`tools/rain-autonomous.mjs`) runs R.A.I.N.'s
+research loop with a local open model — Ollama or LM Studio — in the researcher
+and analyst seats. Read "Autonomous research" in `docs/RAIN_LAB_BETHESDA.md`
+first. The rule it exists to keep: **the model does not become the Lab** — it
+proposes; the host writes the experiment; a charter a person authorized
+decides what may run; the simulator produces the consequences; the
+registry's criteria decide; the records say who did what.
+
+- **Autonomy moves the review; it never removes it.** The charter
+  (`buildCharter`) lists every design by the SHA-256 of what would run
+  (`designSha256`), the model, the ceilings and the validity; a person
+  authorizes its digest with the lab's ritual; `admit` (the autonomy policy)
+  issues one admission per definition, only when every rule holds. Never admit
+  a design the charter does not list, never let a session raise a ceiling, and
+  never add a path that runs without the policy's admission or skips
+  `preflight`. A changed rule bumps `POLICY_VERSION`, and a changed design is a
+  new charter, authorized again.
+- **A model's words never enter a definition.** The host writes the question
+  and hypothesis for a design (`autonomousProposal`); the `host-written` rule
+  refuses anything else. The model's question, hypothesis, rationale and
+  interpretation live in the trace, labelled `generation: "model"`, and the
+  registry stores the analyst's reading as `MODEL_INFERRED`, apart from its
+  evaluation. Hypothesis status comes from sealed records and the criteria
+  (`state.ts`), never from a model's reading; a disagreement is recorded, and
+  the criteria stand.
+- **The model gets a vocabulary, not a computer.** `actions.ts` is closed:
+  read-only inspections, a proposal of a listed design, a stop, an analysis.
+  A new tool is a read the host answers from its records; there is never one
+  that writes, fetches, runs or edits. `boundary.test.ts` fails if a module
+  here imports the evidence ledger or the site model, starts a process, writes
+  outside `store.ts`, fetches outside `models.ts`, or touches a simulator.
+- **Memory is derived, never written back.** Records are written once (`wx`)
+  and left out of the state when their digest fails; the trace is append-only;
+  `state.json` is a snapshot for people that nothing reads. Every model call
+  leaves a `rain-autonomy-decision/v1` record with the prompt and the answer,
+  and the proposal and the admission name it by SHA-256.
+- **Bounded, and closed when in doubt.** There is no `while (true)`: every
+  iteration, experiment, second, failed proposal, model call and token is
+  counted against a budget at most the charter's ceiling. A model that does
+  not answer, a registry that refuses, a run that fails or does not replay, a
+  proposal repeated after its refusal: the session stops and says why.
+  Token counts a server does not report are `null`; a token ceiling then stops
+  the session rather than guess.
+- **Local models only, and no credentials.** The endpoint must be loopback or
+  private-network and an Ollama `:cloud` model is refused; nothing under
+  `src/rain/autonomy/` reads the environment (`autonomyConfig` takes it by
+  value) or sends a key.
+- **CI never needs a model.** Tests use `fixtures.ts` (a scripted model) and
+  fake servers; `tools/stand-in-model.mjs` answers both adapters' APIs for
+  checking the CLI by hand. Never make a test depend on Ollama or LM Studio.
 
 ### The mathematical substrate (`src/rain/mathematics/`)
 

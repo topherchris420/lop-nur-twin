@@ -184,6 +184,14 @@ export const OPTIONS: (ProposalOption & { template: Template | null })[] = [
   },
 ];
 
+/** The host's own sentence for what an option tests, in one direction. */
+export function optionHypothesis(optionId: string, direction: Direction): string | null {
+  const t = OPTIONS.find((o) => o.id === optionId)?.template;
+  if (!t) return null;
+  const label = METRIC_LABELS[t.metric].toLowerCase();
+  return `In the Bethesda simulator, ${SCENARIO_LABELS[t.scenario].toLowerCase()} at ${LOCATION_LABELS[t.location]} makes ${label} ${direction === "increase" ? "rise" : "fall"} by at least ${t.effect} against a matched no-event control, in every seed.`;
+}
+
 export function proposalFrom(
   optionId: string,
   input: {
@@ -194,26 +202,30 @@ export function proposalFrom(
     hypothesis?: string;
     /** The mathematics the proposal cites; the host copies it, never writes it. */
     basis?: readonly MathematicalBasisEntry[];
+    /**
+     * The pre-registered direction, when it is not the option's own. The
+     * option's threshold stays: only which way it is tested changes.
+     */
+    direction?: Direction;
+    seeds?: readonly number[];
   },
 ): ExperimentProposal | null {
   const t = OPTIONS.find((o) => o.id === optionId)?.template;
   if (!t) return null;
-  const label = METRIC_LABELS[t.metric].toLowerCase();
+  const direction = input.direction ?? t.direction;
   return {
     schema: EXPERIMENT_PROPOSAL_SCHEMA,
     proposal_id: `${input.origin}-${optionId}-${Date.now().toString(36)}`,
     origin: input.origin,
     question: input.question.slice(0, 500),
-    hypothesis:
-      input.hypothesis ??
-      `In the Bethesda simulator, ${SCENARIO_LABELS[t.scenario].toLowerCase()} at ${LOCATION_LABELS[t.location]} makes ${label} ${t.direction === "increase" ? "rise" : "fall"} by at least ${t.effect} against a matched no-event control, in every seed.`,
+    hypothesis: input.hypothesis ?? optionHypothesis(optionId, direction)!,
     scenario: t.scenario,
     location: t.location,
     primary_metric: t.metric,
-    expected_direction: t.direction,
+    expected_direction: direction,
     minimum_effect: t.effect,
     comparison: "matched_seed_control",
-    seeds: [101, 202, 303],
+    seeds: [...(input.seeds ?? [101, 202, 303])],
     warmup_ticks: 300,
     observation_window_ticks: 1200,
     rain_decision: input.decision,

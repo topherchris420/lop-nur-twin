@@ -1444,7 +1444,9 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
             ? v.proposal.origin === "fixture"
               ? "DEMO fixture (written by hand; no model or R.A.I.N. process produced it)"
               : v.proposal.origin === "rain"
-                ? `R.A.I.N. bounded decision ${short(v.proposal.rain_decision?.decision_id ?? "", 8)}`
+                ? c.standing
+                  ? `R.A.I.N.'s autonomous researcher, decision ${short(v.proposal.rain_decision?.decision_id ?? "", 8)}`
+                  : `R.A.I.N. bounded decision ${short(v.proposal.rain_decision?.decision_id ?? "", 8)}`
                 : "a person"
             : "unknown"}
         </span>
@@ -1518,9 +1520,11 @@ function CaseView({ store, c }: { store: LabStore; c: ExperimentCase }) {
               <td className="py-1">
                 {c.authorization
                   ? `Authorized by local operator ${c.authorization.operator} at ${c.authorization.authorized_at} (not authenticated identity) · record ${short(c.authorization.authorization_sha256, 16)}`
-                  : state === "REJECTED"
-                    ? "Never authorized."
-                    : "Awaiting human approval. Nothing runs until a person authorizes this exact definition."}
+                  : c.standing
+                    ? `Admitted unattended at ${c.standing.admission.admitted_at} by ${c.standing.admission.policy_version}, under a charter local operator ${c.standing.authorization.operator} authorized at ${c.standing.authorization.authorized_at} (a standing authorization, not authenticated identity) · admission ${short(c.standing.admission.admission_sha256, 16)}`
+                    : state === "REJECTED"
+                      ? "Never authorized."
+                      : "Awaiting human approval. Nothing runs until a person authorizes this exact definition."}
                 {c.preregistration
                   ? ` · pre-registered with R.A.I.N. as ${c.preregistration.experiment_id}`
                   : ""}
@@ -2232,7 +2236,9 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
             {" · "}
             {r.authorization
               ? `frozen and authorized at ${r.authorization.authorized_at} by local operator ${r.authorization.operator}`
-              : "never authorized"}
+              : r.standing
+                ? `admitted unattended at ${r.standing.admission.admitted_at} by ${r.standing.admission.policy_version} as design ${r.standing.admission.design_id} of a charter local operator ${r.standing.authorization.operator} authorized at ${r.standing.authorization.authorized_at} (standing authorization; this definition was not reviewed on its own)`
+                : "never authorized"}
             {r.rain_preregistration
               ? ` · pre-registered with R.A.I.N. as ${r.rain_preregistration.experiment_id} (${r.rain_preregistration.registry} registry) at ${r.rain_preregistration.created_at}`
               : " · not pre-registered with R.A.I.N."}
@@ -2397,7 +2403,9 @@ function RecordView({ store, r }: { store: LabStore; r: ExperimentRecord }) {
             onClick={() => {
               const b = admissionBundle(
                 r,
-                r.authorization?.operator ?? "R.A.I.N.Operator",
+                r.authorization?.operator ??
+                  r.standing?.authorization.operator ??
+                  "R.A.I.N.Operator",
               );
               if (b.ok)
                 download(

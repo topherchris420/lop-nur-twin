@@ -5,9 +5,11 @@
  * through `Lifecycle.to`, which refuses any transition the diagram does not
  * draw. A proposal enters PROPOSED and is validated at once; a failed check
  * ends it REJECTED with its reasons. Approval needs an authorization record
- * that verifies; running needs the runner's own preflight to pass again;
- * every ending — including rejection, a failed execution and a stale R.A.I.N.
- * proposal — produces a record.
+ * that verifies — a person's, for this definition, or a standing authority a
+ * charter's authorization and the autonomy policy's admission make
+ * (`admitStanding`); running needs the runner's own preflight to pass again;
+ * every ending — including rejection, a refusal by the autonomy policy, a
+ * failed execution and a stale R.A.I.N. proposal — produces a record.
  */
 import {
   LIMITS,
@@ -31,6 +33,12 @@ import {
   type RunSection,
 } from "./record";
 import { preflight, type RunResult } from "./runner";
+import {
+  POLICY_VERSION,
+  charterIdOf,
+  verifyStanding,
+  type StandingAuthority,
+} from "./standing";
 
 export interface Origin {
   /** Where the R.A.I.N. revision in this case's provenance comes from. */
@@ -38,6 +46,8 @@ export interface Origin {
   rainSource: RainSource;
   /** A model that produced the proposal, if any. Never filled in. */
   model: string | null;
+  /** Who served that model, when it was not R.A.I.N.'s router; absent, `rain`. */
+  provider?: string | null;
 }
 export interface ExperimentCase {
   id: string;
@@ -48,6 +58,8 @@ export interface ExperimentCase {
   checks: CheckResult[];
   rejectedInput: string | null;
   authorization: Authorization | null;
+  /** The standing authority a run R.A.I.N.'s autonomous researcher proposed was admitted under. */
+  standing: StandingAuthority | null;
   preregistration: Preregistration | null;
   /** The certificate and draft a submission takes back; never part of the record. */
   receipt: RegistryReceipt | null;
@@ -78,6 +90,7 @@ export function openCase(
     checks: result.checks,
     rejectedInput: result.ok ? null : bounded(raw),
     authorization: null,
+    standing: null,
     preregistration: null,
     receipt: null,
     reproduces: input.reproduces ?? null,
@@ -144,6 +157,57 @@ export function approve(
   return { ok: true };
 }
 
+/**
+ * AUTHORIZED under a standing authority: a charter a person authorized lists
+ * this definition's exact design, and the autonomy policy admitted it. The
+ * lifecycle passes through AWAITING HUMAN APPROVAL like every case's — the
+ * approval was given in advance, to the charter — and says so.
+ */
+export function admitStanding(
+  c: ExperimentCase,
+  standing: StandingAuthority,
+  now: Date,
+): { ok: true } | { ok: false; errors: string[] } {
+  if (c.lifecycle.state !== "AWAITING_HUMAN_APPROVAL" || !c.validated)
+    return { ok: false, errors: ["this case is not awaiting approval"] };
+  const v = c.validated;
+  const errors = verifyStanding(
+    standing,
+    v.experimentId,
+    v.definition,
+    v.definitionSha256,
+    {
+      now,
+    },
+  );
+  if (errors.length) return { ok: false, errors };
+  c.standing = standing;
+  const a = standing.authorization;
+  c.lifecycle.to(
+    "AUTHORIZED",
+    `admitted unattended by ${POLICY_VERSION} under charter ${charterIdOf(a.charter_sha256)}, which local operator ${a.operator} authorized at ${a.authorized_at} (a standing authorization, not authenticated identity; this definition was not reviewed on its own — its design ${standing.admission.design_id} was)`,
+    now,
+  );
+  return { ok: true };
+}
+
+/**
+ * REJECTED by the autonomy policy, with every rule that did not hold — before
+ * admission, or after it when the registry would not pre-register the run:
+ * the policy runs nothing unregistered.
+ */
+export function refuseByPolicy(c: ExperimentCase, reasons: readonly string[], now: Date) {
+  const state = c.lifecycle.state;
+  if (state !== "AWAITING_HUMAN_APPROVAL" && state !== "AUTHORIZED") return false;
+  c.lifecycle.to(
+    "REJECTED",
+    `refused by the autonomy policy (${POLICY_VERSION}): ${reasons.join("; ")}`,
+    now,
+  );
+  c.record = endRecord(c, now, "rejection", null, null);
+  return true;
+}
+
 export function decline(c: ExperimentCase, reason: string, now: Date) {
   if (!c.lifecycle.can("REJECTED") || c.lifecycle.state === "PROPOSED") return false;
   c.lifecycle.to("REJECTED", "declined by the operator: " + reason, now);
@@ -160,7 +224,8 @@ export function begin(c: ExperimentCase, now: Date): string[] {
     v.definition,
     v.definitionSha256,
     v.experimentId,
-    c.authorization,
+    c.authorization ?? c.standing,
+    now,
   );
   if (refused.length) {
     c.lifecycle.to("REJECTED", "preflight refused: " + refused.join("; "), now);
@@ -263,6 +328,7 @@ function endRecord(
     definition: v?.definition ?? null,
     definition_sha256: v?.definitionSha256 ?? null,
     authorization: c.authorization,
+    standing: c.standing,
     rain_preregistration: c.preregistration,
     run,
     error,
@@ -272,6 +338,7 @@ function endRecord(
       rain: c.origin.rain,
       rainSource: c.origin.rainSource,
       model: c.origin.model,
+      provider: c.origin.provider ?? null,
       seeds,
       now,
     }),
