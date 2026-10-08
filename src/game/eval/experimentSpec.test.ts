@@ -115,6 +115,38 @@ describe("experiment contracts", () => {
     ]);
   });
 
+  it("refuses an outcome window the seat would not run as declared", () => {
+    // `?outcomeWindow=` is read as an integer; 2.5 would silently run as 5.
+    const half = parseExperiment({ ...valid, outcomeWindowS: 2.5 });
+    expect(half.ok).toBe(false);
+    if (!half.ok) expect(half.errors.join(" ")).toMatch(/outcomeWindowS: whole seconds/);
+    expect(parseExperiment({ ...valid, outcomeWindowS: 0 }).ok).toBe(false);
+    expect(parseExperiment({ ...valid, outcomeWindowS: 31 }).ok).toBe(false);
+    const whole = parseExperiment({ ...valid, outcomeWindowS: 3 });
+    expect(whole.ok && whole.spec.outcomeWindowS).toBe(3);
+  });
+
+  it("refuses a cadence below the host's floor, directly or by sweep", () => {
+    // negotiate() never runs faster than the host's 100 ms, so 50 would run as
+    // 100 while the reports said 50.
+    const direct = parseExperiment({
+      ...valid,
+      arms: [{ ...valid.arms[0], cadenceMs: 50 }],
+    });
+    expect(direct.ok).toBe(false);
+    if (!direct.ok) expect(direct.errors.join(" ")).toMatch(/cadenceMs: .*\[100, 2000\]/);
+    const swept = parseExperiment({
+      ...valid,
+      independentVariable: "cadence",
+      arms: [valid.arms[0]],
+      sweep: { param: "cadenceMs", values: [99, 200] },
+    });
+    expect(swept.ok).toBe(false);
+    expect(
+      parseExperiment({ ...valid, arms: [{ ...valid.arms[0], cadenceMs: 100 }] }).ok,
+    ).toBe(true);
+  });
+
   it("expands seed presets", () => {
     const parsed = parseExperiment({ ...valid, seeds: { preset: "dev", base: 100 } });
     expect(parsed.ok).toBe(true);

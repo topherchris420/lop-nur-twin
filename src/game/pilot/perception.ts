@@ -5,13 +5,13 @@ import {
   MASK_BULLET,
   MASK_MOVEMENT,
   MASK_SIGHT,
-  OPPOSING_TEAM,
   forwardToYaw,
   yawDelta,
   yawToForward,
   type EntityId,
 } from "../core/types";
 import { useGameStore } from "../core/gameStore";
+import { hostileTo } from "../core/hostility";
 import {
   ACTION_CONTRACT_VERSION,
   OBSERVATION_SCHEMA_VERSION,
@@ -179,7 +179,11 @@ export class Perception {
     const world = game.world;
     const hud = game.hud;
     const now = game.time;
-    const enemyTeam = OPPOSING_TEAM[player.team];
+    // Who counts as an enemy is the mode's rule (`core/hostility.ts`): the
+    // other team, or in a free-for-all everyone else. What may be reported
+    // about one is still only what the player's own senses give.
+    const isEnemy = (other: { id: EntityId; team: Actor["team"] }): boolean =>
+      hostileTo(player.team, player.id, other);
 
     eyePosition(player, _eye);
     _aim.copy(game.cameraForward);
@@ -200,7 +204,7 @@ export class Perception {
     /* -------------------------------------------------- visible */
     const visible: (VisibleEnemy & { id: EntityId })[] = [];
     for (const other of game.actors) {
-      if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+      if (other.isPlayer || !other.alive || !isEnemy(other)) continue;
       const sight = sightOf(_eye, aimYaw, aimPitch, { h: halfH, v: halfV }, other);
       if (!sight) continue;
       const { distance, bearing, elevation, headVisible, chestVisible } = sight;
@@ -294,7 +298,7 @@ export class Perception {
     const pings = hud.gunfirePings ?? [];
     for (let i = pings.length - 1; i >= 0; i -= 1) {
       const ping = pings[i]!;
-      if (ping.shooterTeam !== enemyTeam) continue;
+      if (!isEnemy({ id: ping.shooterId, team: ping.shooterTeam })) continue;
       const age = now - ping.time;
       if (age < 0 || age > PING_MEMORY_S) continue;
       const dx = ping.x - player.position.x;
@@ -388,7 +392,7 @@ export class Perception {
 
     /* --------------------------------------------------- allies */
     const allies: JevObservation["perception"]["allies"] = game.actors
-      .filter((a) => !a.isPlayer && a.alive && a.team === player.team)
+      .filter((a) => !a.isPlayer && a.alive && !isEnemy(a))
       .map((a) => ({
         dx: a.position.x - player.position.x,
         dz: a.position.z - player.position.z,

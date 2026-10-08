@@ -4,7 +4,6 @@ import { GROUND_ZONES, type GroundZone } from "@/lib/layout";
 import {
   HUMAN_METRICS,
   MASK_SIGHT,
-  OPPOSING_TEAM,
   forwardToYaw,
   yawDelta,
   yawToForward,
@@ -24,7 +23,15 @@ import type { CollisionWorld } from "../physics/collisionWorld";
 import type { MatchDirector } from "../modes/match";
 import { WeaponRuntime } from "../weapons/runtime";
 import { getWeapon } from "../weapons/arsenal";
-import { applyNearMissSuppression, respawnActor, seat } from "../core/combat";
+import {
+  applyNearMissSuppression,
+  areHostile,
+  freeForAllActive,
+  hostileTo,
+  respawnActor,
+  seat,
+} from "../core/combat";
+import { TEAM_HOME_SIDE } from "../modes/spawns";
 import { mirageOffset } from "../world/mirage";
 
 /**
@@ -481,7 +488,7 @@ export class BotManager {
    * spread over the whole 600 m compound.
    */
   private zonesForTeam(team: Team): GroundZone[] {
-    const preferred = team === "blue" ? "north" : "south";
+    const preferred = TEAM_HOME_SIDE[team];
     const own = GROUND_ZONES.filter((z) => z.side === preferred);
     const neutral = GROUND_ZONES.filter((z) => z.side === "neutral");
     const claimed = own.length > 0 ? [...own, ...neutral] : [...GROUND_ZONES];
@@ -515,7 +522,12 @@ export class BotManager {
    * if it is behind the enemy or already in somebody's sights, so candidates
    * are scored rather than accepted on first fit.
    */
-  private findSpawnPoint(team: Team, rand: () => number, out: THREE.Vector3): boolean {
+  private findSpawnPoint(
+    team: Team,
+    rand: () => number,
+    out: THREE.Vector3,
+    selfId: EntityId | null = null,
+  ): boolean {
     const zones = this.zonesForTeam(team);
     if (zones.length === 0) return false;
     let bestScore = -Infinity;
@@ -536,7 +548,7 @@ export class BotManager {
       ) {
         continue;
       }
-      const score = this.scoreSpawn(_spawn, team);
+      const score = this.scoreSpawn(_spawn, team, selfId);
       if (score > bestScore) {
         bestScore = score;
         out.copy(_spawn);
@@ -550,8 +562,11 @@ export class BotManager {
   }
 
   /** Higher is better; 0 is a spawn with nothing wrong with it. */
-  private scoreSpawn(position: THREE.Vector3, team: Team): number {
-    const enemyTeam = OPPOSING_TEAM[team];
+  private scoreSpawn(
+    position: THREE.Vector3,
+    team: Team,
+    selfId: EntityId | null,
+  ): number {
     let score = 0;
 
     if (this.hasFocus) {
@@ -564,7 +579,7 @@ export class BotManager {
 
     _eye.set(position.x, position.y + HUMAN_METRICS.eyeHeight.stand, position.z);
     for (const other of game.actors) {
-      if (!other.alive || other.team !== enemyTeam) continue;
+      if (!other.alive || !hostileTo(team, selfId, other)) continue;
       const d = other.position.distanceTo(position);
       if (d < SPAWN_ENEMY_CLEARANCE) score -= (SPAWN_ENEMY_CLEARANCE - d) * 14;
       if (d > SPAWN_SIGHT_CLEARANCE) continue;
@@ -593,7 +608,7 @@ export class BotManager {
       const weaponId = BOT_PRIMARIES[Math.floor(this.rand() * BOT_PRIMARIES.length)]!;
       actor.weaponId = weaponId;
 
-      if (!this.findSpawnPoint(team, this.rand, _probe)) {
+      if (!this.findSpawnPoint(team, this.rand, _probe, id)) {
         // No clear ground anywhere in this team's zones; skip rather than
         // place a bot inside a building.
         continue;
@@ -687,7 +702,7 @@ export class BotManager {
   private onBotDown(actor: Actor, time: number): void {
     const killer =
       actor.lastAttackerId !== null ? game.actorById.get(actor.lastAttackerId) : null;
-    if (!killer || !killer.alive || killer.team === actor.team) return;
+    if (!killer || !killer.alive || !areHostile(actor, killer)) return;
     this.report(actor.team, killer.id, killer.position, time);
   }
 
@@ -715,7 +730,7 @@ export class BotManager {
   }
 
   private respawn(bot: Bot): void {
-    if (!this.findSpawnPoint(bot.actor.team, bot.rand, _probe)) return;
+    if (!this.findSpawnPoint(bot.actor.team, bot.rand, _probe, bot.actor.id)) return;
     respawnActor(bot.actor, _probe, bot.rand() * Math.PI * 2);
     bot.weapon.refill();
     bot.state = "patrol";
@@ -737,8 +752,13 @@ export class BotManager {
   /* Perception                                                        */
   /* ---------------------------------------------------------------- */
 
-  /** Share a sighting with the rest of the team. */
+  /**
+   * Share a sighting with the rest of the team. A free-for-all has no team to
+   * tell: every other body is an enemy, so a sighting stays with whoever made
+   * it.
+   */
   private report(team: Team, targetId: EntityId, at: THREE.Vector3, time: number): void {
+    if (freeForAllActive()) return;
     const existing = this.contacts[team];
     if (existing) {
       existing.position.copy(at);
@@ -757,7 +777,6 @@ export class BotManager {
 
   private perceive(bot: Bot, dt: number, time: number): void {
     const actor = bot.actor;
-    const enemyTeam = OPPOSING_TEAM[actor.team];
     eyePosition(actor, _eye);
 
     let bestId: number | null = null;
@@ -766,7 +785,7 @@ export class BotManager {
     let heardDistance = Infinity;
 
     for (const other of game.actors) {
-      if (!other.alive || other.team !== enemyTeam) continue;
+      if (!other.alive || !areHostile(actor, other)) continue;
       _toTarget.copy(other.position).sub(actor.position);
       const distance = _toTarget.length();
       if (distance > SIGHT_RANGE) continue;
@@ -878,7 +897,7 @@ export class BotManager {
       actor.lastAttackerId !== null
     ) {
       const attacker = game.actorById.get(actor.lastAttackerId);
-      if (attacker && attacker.team !== actor.team) {
+      if (attacker && areHostile(actor, attacker)) {
         bot.lastKnown.copy(attacker.position);
         this.report(actor.team, attacker.id, attacker.position, time);
         if (
@@ -1406,7 +1425,7 @@ export class BotManager {
   }
 
   private pickPatrolGoal(bot: Bot): void {
-    if (this.findSpawnPoint(bot.actor.team, bot.rand, _probe)) {
+    if (this.findSpawnPoint(bot.actor.team, bot.rand, _probe, bot.actor.id)) {
       bot.goal.copy(_probe);
     }
   }
@@ -1475,7 +1494,7 @@ export class BotManager {
       }
       // Separate from nearby teammates so squads do not stack.
       for (const other of game.actors) {
-        if (other.id === actor.id || !other.alive || other.team !== actor.team) continue;
+        if (other.id === actor.id || !other.alive || areHostile(actor, other)) continue;
         const dx = actor.position.x - other.position.x;
         const dz = actor.position.z - other.position.z;
         const d2 = dx * dx + dz * dz;
@@ -1688,7 +1707,7 @@ export class BotManager {
       });
       actor.lastFireTime = time;
       _shotEnd.copy(_eye).addScaledVector(actor.aimDir, 200);
-      applyNearMissSuppression(_eye, _shotEnd, actor.team);
+      applyNearMissSuppression(_eye, _shotEnd, actor);
       bot.burst -= 1;
       if (bot.burst <= 0) {
         bot.burstPause =

@@ -580,6 +580,35 @@ export class PrecisionMotorController {
       }
     }
 
+    if (bound.samples.length === 0) {
+      // Bound but not yet seen: there is no estimate of where it is, and the
+      // controller aims only at what it has seen. Hold the brain's look (the
+      // executor's frame) and keep the trigger released until the first real
+      // sample, instead of steering toward a placeholder position (the world
+      // origin, which a fresh binding's `lastFeet` holds). The sight-loss
+      // grace above still lets the binding go if no sample arrives.
+      this.rateYaw = 0;
+      this.ratePitch = 0;
+      this.gateLatched = false;
+      this.triggerDown = false;
+      this.stabilizeFor = 0;
+      input.fire = false;
+      if (trigger.forTarget) input.firePressed = false;
+      input.ads = trigger.ads;
+      if (trigger.fire && input.sprint) input.sprint = false;
+      const t = this.telemetry;
+      t.bound = true;
+      t.targetId = bound.targetId;
+      t.aim = bound.aim;
+      t.heldAim = held;
+      t.errorDeg = null;
+      t.hitShare = null;
+      t.gate = "tracking";
+      t.distanceM = distance;
+      t.stabilizing = false;
+      return;
+    }
+
     /* ----------------------------------------------- prediction */
     // The newest sample the delay allows, carried forward by the estimated
     // velocity. During the sight-loss grace the last sample is extrapolated —

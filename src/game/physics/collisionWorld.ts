@@ -52,13 +52,39 @@ export interface Collider {
 
 let nextColliderId = 1;
 
-const _v1 = new THREE.Vector3();
-const _v2 = new THREE.Vector3();
-const _v3 = new THREE.Vector3();
-const _v4 = new THREE.Vector3();
+/*
+ * Module scratch. Each vector belongs to exactly one function, so a callee can
+ * never overwrite a caller's operand: `isPositionFree` once kept its capsule
+ * segment in a vector that `closestPointOnCollider` also wrote, three calls
+ * down, and answered "free" for a capsule standing inside a crate.
+ */
+// bakeFromObject
+const _bakePos = new THREE.Vector3();
+const _bakeCenter = new THREE.Vector3();
+const _bakeInstancePos = new THREE.Vector3();
+const _bakeInstanceCenter = new THREE.Vector3();
 const _q = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _mat = new THREE.Matrix4();
+// raycast
+const _rayLocalOrigin = new THREE.Vector3();
+const _rayLocalDir = new THREE.Vector3();
+// hasLineOfSight
+const _losDir = new THREE.Vector3();
+// closestPointOnCollider
+const _closestLocal = new THREE.Vector3();
+// isPositionFree
+const _freeMin = new THREE.Vector3();
+const _freeMax = new THREE.Vector3();
+const _freeBottom = new THREE.Vector3();
+const _freeTop = new THREE.Vector3();
+const _freePoint = new THREE.Vector3();
+const _freeCandidates: Collider[] = [];
+// moveCapsule
+const _moveDisplacement = new THREE.Vector3();
+const _stepProbe = new THREE.Vector3();
+const _snapDown = new THREE.Vector3();
+const _snapOrigin = new THREE.Vector3();
 
 export function makeCollider(
   center: THREE.Vector3,
@@ -210,7 +236,7 @@ export function closestPointOnCollider(
   p: THREE.Vector3,
   out: THREE.Vector3,
 ): THREE.Vector3 {
-  const l = toLocal(c, p, _v3);
+  const l = toLocal(c, p, _closestLocal);
   const h = c.halfExtents;
   l.x = Math.min(h.x, Math.max(-h.x, l.x));
   l.y = Math.min(h.y, Math.max(-h.y, l.y));
@@ -479,7 +505,7 @@ export class CollisionWorld {
 
       object.updateWorldMatrix(true, false);
       _mat.copy(object.matrixWorld);
-      _mat.decompose(_v1, _q, _scale);
+      _mat.decompose(_bakePos, _q, _scale);
 
       const sizeX = (bounds.max.x - bounds.min.x) * Math.abs(_scale.x);
       const sizeY = (bounds.max.y - bounds.min.y) * Math.abs(_scale.y);
@@ -487,7 +513,7 @@ export class CollisionWorld {
       if (sizeX * sizeY * sizeZ < minVolume) return;
 
       // Geometry-local centre through the full world matrix.
-      _v2
+      _bakeCenter
         .set(
           (bounds.min.x + bounds.max.x) / 2,
           (bounds.min.y + bounds.max.y) / 2,
@@ -503,8 +529,8 @@ export class CollisionWorld {
         for (let i = 0; i < count; i += 1) {
           instanced.getMatrixAt(i, _mat);
           _mat.premultiply(object.matrixWorld);
-          _mat.decompose(_v3, _q, _scale);
-          _v4
+          _mat.decompose(_bakeInstancePos, _q, _scale);
+          _bakeInstanceCenter
             .set(
               (bounds.min.x + bounds.max.x) / 2,
               (bounds.min.y + bounds.max.y) / 2,
@@ -517,14 +543,22 @@ export class CollisionWorld {
             ((bounds.max.z - bounds.min.z) / 2) * Math.abs(_scale.z),
           );
           if (half.x * half.y * half.z * 8 < minVolume) continue;
-          this.addStatic(makeCollider(_v4, half, _q, layer, classifySurface(instanced)));
+          this.addStatic(
+            makeCollider(
+              _bakeInstanceCenter,
+              half,
+              _q,
+              layer,
+              classifySurface(instanced),
+            ),
+          );
           added += 1;
         }
         return;
       }
 
       const half = new THREE.Vector3(sizeX / 2, sizeY / 2, sizeZ / 2);
-      this.addStatic(makeCollider(_v2, half, _q, layer, classifySurface(object)));
+      this.addStatic(makeCollider(_bakeCenter, half, _q, layer, classifySurface(object)));
       added += 1;
     });
     return added;
@@ -537,6 +571,8 @@ export class CollisionWorld {
   /**
    * Nearest hit along a ray. `dir` must be normalised.
    * Static geometry uses the grid; dynamic colliders are tested linearly.
+   * `ignoreEntities` skips further entities as well as `ignoreEntity` — a
+   * round that has already passed through a body must not hit it again.
    */
   raycast(
     origin: THREE.Vector3,
@@ -544,6 +580,7 @@ export class CollisionWorld {
     maxDist: number,
     mask: number = MASK_SOLID,
     ignoreEntity: EntityId | null = null,
+    ignoreEntities: ReadonlySet<EntityId> | null = null,
   ): RayHit | null {
     this.stamp += 1;
     const stamp = this.stamp;
@@ -553,8 +590,15 @@ export class CollisionWorld {
     const consider = (c: Collider): void => {
       if ((c.layer & mask) === 0) return;
       if (ignoreEntity !== null && c.entityId === ignoreEntity) return;
-      const lo = toLocal(c, origin, _v1);
-      const ld = dirToLocal(c, dir, _v2);
+      if (
+        ignoreEntities !== null &&
+        c.entityId !== null &&
+        ignoreEntities.has(c.entityId)
+      ) {
+        return;
+      }
+      const lo = toLocal(c, origin, _rayLocalOrigin);
+      const ld = dirToLocal(c, dir, _rayLocalDir);
       const slab = raySlab(lo, ld, c.halfExtents);
       if (!slab) return;
       const t = slab.tMin >= 0 ? slab.tMin : slab.tMax >= 0 ? 0 : -1;
@@ -613,11 +657,11 @@ export class CollisionWorld {
     mask: number = MASK_SOLID,
     ignoreEntity: EntityId | null = null,
   ): boolean {
-    _v4.copy(to).sub(from);
-    const dist = _v4.length();
+    _losDir.copy(to).sub(from);
+    const dist = _losDir.length();
     if (dist < 1e-4) return true;
-    _v4.multiplyScalar(1 / dist);
-    return this.raycast(from, _v4, dist - 0.05, mask, ignoreEntity) === null;
+    _losDir.multiplyScalar(1 / dist);
+    return this.raycast(from, _losDir, dist - 0.05, mask, ignoreEntity) === null;
   }
 
   /** Ray/heightfield march with a bisection refine. Returns distance or null. */
@@ -699,16 +743,19 @@ export class CollisionWorld {
     height: number,
     mask: number = MASK_MOVEMENT,
   ): boolean {
-    const min = _v1.set(position.x - radius, position.y, position.z - radius);
-    const max = _v2.set(position.x + radius, position.y + height, position.z + radius);
-    const candidates: Collider[] = [];
-    this.queryAABB(min, max, candidates);
-    const bottom = _v3.set(position.x, position.y + radius, position.z);
-    const top = _v4.set(position.x, position.y + height - radius, position.z);
-    const point = new THREE.Vector3();
+    // Read the position once: a caller may hand in one of its own scratch
+    // vectors, and nothing below may depend on it staying put.
+    const px = position.x;
+    const py = position.y;
+    const pz = position.z;
+    const min = _freeMin.set(px - radius, py, pz - radius);
+    const max = _freeMax.set(px + radius, py + height, pz + radius);
+    const candidates = this.queryAABB(min, max, _freeCandidates);
+    const bottom = _freeBottom.set(px, py + radius, pz);
+    const top = _freeTop.set(px, py + height - radius, pz);
     for (const c of candidates) {
       if ((c.layer & mask) === 0) continue;
-      if (capsuleColliderDepth(c, bottom, top, radius, point) > 0) return false;
+      if (capsuleColliderDepth(c, bottom, top, radius, _freePoint) > 0) return false;
     }
     return true;
   }
@@ -745,7 +792,7 @@ export class CollisionWorld {
       impactSpeed: 0,
     };
 
-    const displacement = _v1.copy(velocity).multiplyScalar(dt);
+    const displacement = _moveDisplacement.copy(velocity).multiplyScalar(dt);
     // Substep so fast movement can't tunnel through a hangar wall.
     const maxStep = radius * 0.6;
     const steps = Math.min(8, Math.max(1, Math.ceil(displacement.length() / maxStep)));
@@ -828,7 +875,11 @@ export class CollisionWorld {
             const topY = c.max.y;
             const rise = topY - result.position.y;
             if (rise > 0 && rise <= stepHeight) {
-              const probe = _v3.set(result.position.x, topY + 0.02, result.position.z);
+              const probe = _stepProbe.set(
+                result.position.x,
+                topY + 0.02,
+                result.position.z,
+              );
               if (this.isPositionFree(probe, radius * 0.92, height)) {
                 result.position.y = topY + 0.01;
                 if (result.velocity.y < 0) result.velocity.y = 0;
@@ -863,8 +914,8 @@ export class CollisionWorld {
     // instead of hopping off every lip.
     if (!result.grounded && wasGrounded && result.velocity.y <= 0.5) {
       const snap = stepHeight + 0.12;
-      const down = _v3.set(0, -1, 0);
-      const origin = _v4.set(
+      const down = _snapDown.set(0, -1, 0);
+      const origin = _snapOrigin.set(
         result.position.x,
         result.position.y + 0.08,
         result.position.z,

@@ -2,7 +2,8 @@ import { HEARING_RANGE_M, RADAR_RANGE_M } from "../pilot/observation";
 import { useEffect, useRef } from "react";
 import { game } from "../core/gameState";
 import { useGameStore } from "../core/gameStore";
-import { COMBAT } from "../core/combat";
+import { COMBAT, hostileTo } from "../core/combat";
+import { damageArcRotation } from "./damageDirection";
 import { STRUCTURES, RUNWAYS, TAXIWAYS, APRONS } from "@/lib/layout";
 
 /**
@@ -162,7 +163,7 @@ function paintDamageDirs(ctx: CanvasRenderingContext2D, w: number, h: number): v
   if (hud.damageDirs.length === 0) return;
   const cx = w / 2;
   const cy = h / 2;
-  const camYaw = Math.atan2(game.cameraForward.x, game.cameraForward.z);
+  const camForward = game.cameraForward;
   const radius = Math.min(w, h) * 0.19;
 
   ctx.save();
@@ -174,7 +175,9 @@ function paintDamageDirs(ctx: CanvasRenderingContext2D, w: number, h: number): v
       continue;
     }
     const alpha = Math.max(0, 1 - age / 1.8);
-    const relative = entry.angle - camYaw;
+    // `entry.angle` is the round's travel heading; the arc points back along
+    // it, at the shooter.
+    const relative = damageArcRotation(entry.angle, camForward.x, camForward.z);
     const thickness = Math.min(9, 4.5 + (entry.amount ?? 30) / 18);
     const arcSpan = 0.38;
 
@@ -409,7 +412,14 @@ function paintCompass(ctx: CanvasRenderingContext2D, w: number): void {
   const playerPos = game.player.position;
 
   for (const ping of pings) {
-    if (ping.shooterTeam === game.player.team) continue;
+    // Enemy fire by the mode's rule: in a free-for-all, everyone's but ours.
+    if (
+      !hostileTo(game.player.team, game.player.id, {
+        id: ping.shooterId,
+        team: ping.shooterTeam,
+      })
+    )
+      continue;
     const age = now - ping.time;
     if (age > 3.2) continue;
     // Heard only within hearing range: the same shots a brain is told about.
@@ -641,9 +651,11 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
     ctx.restore();
   }
 
-  // Friendly Teammates (Blue Chevrons)
+  // Friendly Teammates (Blue Chevrons): whoever the mode says is not hostile,
+  // so nobody in a free-for-all.
   for (const actor of game.actors) {
-    if (!actor.alive || actor.isPlayer || actor.team !== player.team) continue;
+    if (!actor.alive || actor.isPlayer || hostileTo(player.team, player.id, actor))
+      continue;
     const [ax, ay] = worldToMap(actor.position.x, actor.position.z);
     const relYaw = actor.yaw - camHeadingRad;
     ctx.save();
@@ -664,7 +676,10 @@ function paintRadarMinimap(ctx: CanvasRenderingContext2D): void {
   const pings = hud.gunfirePings ?? [];
   const now = game.time;
   for (const ping of pings) {
-    if (ping.shooterTeam === player.team) continue;
+    if (
+      !hostileTo(player.team, player.id, { id: ping.shooterId, team: ping.shooterTeam })
+    )
+      continue;
     const age = now - ping.time;
     if (age > 2.8) continue;
     if (

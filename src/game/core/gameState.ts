@@ -308,6 +308,14 @@ export interface GameState {
   world: CollisionWorld | null;
 
   /**
+   * Bumped every time the player is put back into play — a respawn or a new
+   * match. The rig compares it each frame and restocks its weapons and resets
+   * its movement state when it changes, so nothing from the last life (an
+   * empty magazine, a mantle in progress, a held crouch) carries over.
+   */
+  playerSpawnEpoch: number;
+
+  /**
    * The running match, or `null` outside one.
    *
    * Typed structurally, against `Actor` which is declared here, so this file
@@ -319,6 +327,8 @@ export interface GameState {
     scoreBlue: number;
     scoreRed: number;
     timeRemaining: number;
+    /** Every actor hostile to every other; see `areHostile` in `combat.ts`. */
+    readonly freeForAll?: boolean;
     onKill(report: { attacker: Actor | null; victim: Actor }): void;
   } | null;
 
@@ -383,7 +393,13 @@ export interface GameState {
     hitmarkerKill: boolean;
     /** Elite Operator is reshaping the human's aim this match. */
     eliteOperator: boolean;
-    /** Radians: yaw of the most recent damage source relative to the camera. */
+    /**
+     * Each hit the player took from an attacker. `angle` is the world heading
+     * the round was travelling, in radians (`atan2(dir.x, dir.z)` of its
+     * direction) — not relative to the camera, and pointing away from the
+     * shooter: the source lies at `-sin(angle), -cos(angle)` from the player.
+     * Readers subtract the view's own heading.
+     */
     damageDirs: { angle: number; time: number; amount?: number }[];
     scoreBlue: number;
     scoreRed: number;
@@ -399,6 +415,8 @@ export interface GameState {
       z: number;
       owner: Team | null;
       progress: number;
+      /** Whose progress a neutral domination zone carries. */
+      capturingTeam?: Team | null;
       contested: boolean;
     }[];
     activeHardpoint: number | null;
@@ -411,13 +429,20 @@ export interface GameState {
       subtext?: string;
       medal?: boolean;
     }[];
-    /** Enemy gunfire pings for radar & compass: world pos, yaw bearing, time, shooterTeam */
+    /**
+     * Every actor's gunfire, for the radar, the compass and the seat's
+     * contacts: world pos, yaw bearing, time, and who fired. Readers keep only
+     * the shots `hostileTo` (`core/hostility.ts`) calls enemy fire; the
+     * shooter's id is what tells the player's own shots apart in a
+     * free-for-all, where team colour says nothing.
+     */
     gunfirePings: {
       x: number;
       y: number;
       z: number;
       bearing: number;
       time: number;
+      shooterId: EntityId;
       shooterTeam: Team;
     }[];
     /** Tactical radio voice callouts */
@@ -488,6 +513,7 @@ export const game: GameState = {
   actorById: new Map([[PLAYER_ENTITY_ID, player]]),
   player,
   world: null,
+  playerSpawnEpoch: 0,
   matchDirector: null,
   characters: null,
   damageQueue: [],
@@ -593,6 +619,7 @@ export function resetPlayerForMatch(): void {
   p.lastAttackerId = null;
   game.hud.lastKill = null;
   game.hud.damageDirs.length = 0;
+  game.playerSpawnEpoch += 1;
 }
 
 /** Exported so `Queue` stays available if a system wants a pooled channel. */

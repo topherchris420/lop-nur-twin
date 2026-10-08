@@ -1,5 +1,5 @@
 import type { Actor } from "../core/gameState";
-import type { KillReport } from "../core/combat";
+import { areHostile, type KillReport } from "../core/combat";
 import type { EntityId } from "../core/types";
 
 export interface ScoreEvent {
@@ -65,7 +65,7 @@ export class ScoringEngine {
     victimState.lastKillerId = attacker && attacker.id !== victim.id ? attacker.id : null;
     victimState.multiKill = 0;
 
-    if (!attacker || attacker.id === victim.id || attacker.team === victim.team) {
+    if (!attacker || attacker.id === victim.id || !areHostile(attacker, victim)) {
       return events;
     }
 

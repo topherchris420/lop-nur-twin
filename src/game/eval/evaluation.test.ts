@@ -230,6 +230,78 @@ describe("blacksite-evaluation/v1", () => {
     expect(sweep.slopePer100ms!.estimate).toBeLessThan(0);
     expect(sweep.reading).toMatch(/per 100 ms|No detectable/);
   });
+
+  it("reports a cadence sweep once, and at the interval each episode ran", () => {
+    // The base arm holds a fixed injected latency; that must not make the
+    // cadence sweep's arms a latency sweep as well.
+    const s = spec({
+      independentVariable: "cadence",
+      arms: [
+        {
+          id: "script",
+          brain: "script",
+          policy: "marksman",
+          control: "precision",
+          latencyMs: 250,
+        },
+      ],
+      sweep: { param: "cadenceMs", values: [100, 300, 600] },
+    });
+    // What each arm's episodes recorded as negotiated (the first ran slower
+    // than declared, as a host floor would make it).
+    const ran = [150, 300, 600];
+    const runs: ArmRun[] = s.arms.map((arm, k) => ({
+      arm,
+      query: "",
+      origin: "",
+      build: null,
+      pending: null,
+      episodes: [42, 43, 44].map((seed) => ({
+        ...episode(
+          seed,
+          Array.from({ length: 10 }, (_, i) => choice(null, i < 8 - 2 * k + (seed % 2))),
+        ),
+        interface: { intervalMs: ran[k]! },
+      })),
+    }));
+    const e = buildEvaluation(input(runs, s));
+    expect(e.sweeps.map((w) => w.param)).toEqual(["cadenceMs"]);
+    expect(e.sweeps[0]!.base).toBe("script");
+    expect(e.sweeps[0]!.points.map((p) => p.value)).toEqual([150, 300, 600]);
+  });
+
+  it("does not contrast arms that differ in a setting outside the factors", () => {
+    const s = spec({
+      contributionFactors: ["brain"],
+      arms: [
+        { id: "random", brain: "random", control: "precision" },
+        { id: "script", brain: "script", policy: "marksman", control: "precision" },
+        {
+          id: "script-late",
+          brain: "script",
+          policy: "marksman",
+          control: "precision",
+          latencyMs: 600,
+        },
+      ],
+    });
+    const runs: ArmRun[] = s.arms.map((arm) => ({
+      arm,
+      query: "",
+      origin: "",
+      build: null,
+      pending: null,
+      episodes: [42, 43, 44].map((seed) => episode(seed, [choice(null, true)])),
+    }));
+    const e = buildEvaluation(input(runs, s));
+    const pairs = e.contribution!.contrasts.map((c) => `${c.from.arm}→${c.to.arm}`);
+    expect(pairs).toEqual(["random→script"]);
+    expect(e.contribution!.contrasts[0]!.heldFixed).toMatchObject({
+      latencyMs: "0",
+      stale: "strict",
+      cadenceMs: "default",
+    });
+  });
 });
 
 describe("a contract that splits its decisions", () => {

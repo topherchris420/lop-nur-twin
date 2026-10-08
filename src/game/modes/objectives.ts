@@ -9,8 +9,13 @@ export interface DominationZone {
   center: [number, number];
   radius: number;
   owner: Team | null;
-  /** Capture progress, 0 to 1 */
+  /**
+   * Capture progress, 0 to 1. On a neutral zone it belongs to `capturingTeam`;
+   * on an owned zone it is the owner's hold, worn down by the other team.
+   */
   progress: number;
+  /** Whose progress a neutral zone is carrying; `null` when it has none. */
+  capturingTeam: Team | null;
   contested: boolean;
 }
 
@@ -28,6 +33,8 @@ export interface ObjectiveHudZone {
   z: number;
   owner: Team | null;
   progress: number;
+  /** Whose progress a neutral zone is carrying, for colouring the ring. */
+  capturingTeam: Team | null;
   contested: boolean;
 }
 
@@ -38,6 +45,12 @@ export interface ObjectiveHudState {
 }
 
 const DOMINATION_CAPTURE_TIME_SEC = 10;
+/**
+ * Progress on an empty zone drifts back to rest at this rate per second: a
+ * neutral zone toward 0, an owned one toward full hold. Half the capture rate,
+ * so a contested-then-abandoned capture is lost over twenty seconds.
+ */
+const DOMINATION_DECAY_PER_SEC = 0.5 / DOMINATION_CAPTURE_TIME_SEC;
 const HARDPOINT_ROTATION_INTERVAL = 60;
 const ZONE_RADIUS = 18;
 
@@ -51,6 +64,7 @@ function createDominationZone(id: string, label: string, zoneId: string): Domina
     radius: ZONE_RADIUS,
     owner: null,
     progress: 0,
+    capturingTeam: null,
     contested: false,
   };
 }
@@ -64,6 +78,68 @@ function createHardpointZone(id: string, zoneId: string): HardpointZone {
     center: gz.position,
     radius: ZONE_RADIUS,
   };
+}
+
+/**
+ * One uncontested step of a domination capture by `team` with `count` bodies
+ * on the point. Progress always belongs to somebody: a neutral zone carries
+ * one team's progress, and another team has to drain it to zero before
+ * building its own — it never inherits it.
+ */
+export function stepCapture(
+  zone: DominationZone,
+  team: Team,
+  count: number,
+  dt: number,
+): void {
+  if (zone.owner === team) {
+    zone.progress = 1;
+    zone.capturingTeam = null;
+    return;
+  }
+  // Faster capture with more teammates: 1x for 1 player, 1.5x for 2, 2.0x for 3, etc.
+  const rate = (1 / DOMINATION_CAPTURE_TIME_SEC) * (1 + 0.5 * (count - 1));
+
+  if (zone.owner !== null) {
+    // Neutralising an enemy zone; once it falls, the neutraliser starts on it.
+    zone.progress -= rate * dt;
+    if (zone.progress <= 0) {
+      zone.progress = 0;
+      zone.owner = null;
+      zone.capturingTeam = team;
+    }
+    return;
+  }
+
+  if (zone.capturingTeam !== null && zone.capturingTeam !== team) {
+    // Somebody else's half-capture: wear it down first.
+    zone.progress -= rate * dt;
+    if (zone.progress <= 0) {
+      zone.progress = 0;
+      zone.capturingTeam = team;
+    }
+    return;
+  }
+
+  zone.capturingTeam = team;
+  zone.progress += rate * dt;
+  if (zone.progress >= 1) {
+    zone.progress = 1;
+    zone.owner = team;
+    zone.capturingTeam = null;
+  }
+}
+
+/** An empty zone drifts back to rest: neutral toward 0, owned toward full. */
+export function decayCapture(zone: DominationZone, dt: number): void {
+  const step = DOMINATION_DECAY_PER_SEC * dt;
+  if (zone.owner !== null) {
+    zone.progress = Math.min(1, zone.progress + step);
+    return;
+  }
+  if (zone.progress <= 0) return;
+  zone.progress = Math.max(0, zone.progress - step);
+  if (zone.progress === 0) zone.capturingTeam = null;
 }
 
 export class ObjectiveManager {
@@ -125,31 +201,13 @@ export class ObjectiveManager {
 
       if (!zone.contested) {
         const count = Math.max(blueCount, redCount);
-        const cappingTeam = blueCount > 0 ? "blue" : redCount > 0 ? "red" : null;
+        const cappingTeam: Team | null =
+          blueCount > 0 ? "blue" : redCount > 0 ? "red" : null;
 
         if (cappingTeam) {
-          if (zone.owner !== cappingTeam) {
-            // Faster capture with more teammates: 1x for 1 player, 1.5x for 2, 2.0x for 3, etc.
-            const captureRate =
-              (1 / DOMINATION_CAPTURE_TIME_SEC) * (1 + 0.5 * (count - 1));
-
-            if (zone.owner === null) {
-              zone.progress += captureRate * dt;
-              if (zone.progress >= 1) {
-                zone.progress = 1;
-                zone.owner = cappingTeam;
-              }
-            } else {
-              // Neutralizing an enemy zone
-              zone.progress -= captureRate * dt;
-              if (zone.progress <= 0) {
-                zone.progress = 0;
-                zone.owner = null;
-              }
-            }
-          } else {
-            zone.progress = 1;
-          }
+          stepCapture(zone, cappingTeam, count, dt);
+        } else {
+          decayCapture(zone, dt);
         }
       }
 
@@ -223,6 +281,7 @@ export class ObjectiveManager {
           z: z.center[1],
           owner: z.owner,
           progress: z.progress,
+          capturingTeam: z.capturingTeam,
           contested: z.contested,
         })),
         activeHardpoint: null,
@@ -240,6 +299,7 @@ export class ObjectiveManager {
             owner: this.hpOwner,
             // Provide rotation progress for HUD to display timer
             progress: this.hpRotationTimer / HARDPOINT_ROTATION_INTERVAL,
+            capturingTeam: null,
             contested: this.hpContested,
           },
         ],
@@ -258,6 +318,7 @@ export class ObjectiveManager {
     for (const z of this.dominationZones) {
       z.owner = null;
       z.progress = 0;
+      z.capturingTeam = null;
       z.contested = false;
     }
 

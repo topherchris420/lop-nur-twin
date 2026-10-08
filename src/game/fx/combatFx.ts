@@ -332,7 +332,9 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
   float tile = aMeta.x;
   float col = mod(tile, uAtlas.x);
-  float row = floor(tile / uAtlas.x);
+  // Row 0 is painted at the canvas top and the texture keeps flipY = true,
+  // so v = 1 is the canvas top: count rows down from there.
+  float row = uAtlas.y - 1.0 - floor(tile / uAtlas.x);
   vUv = (uv + vec2(col, row)) / uAtlas;
   vLocal = corner;
   vTangent = normalize(aRight.xyz);
@@ -834,6 +836,9 @@ class CasingRenderer {
   }
 
   dispose(): void {
+    // Releases the instanceMatrix/instanceColor buffers; the geometry's
+    // dispose does not cover them.
+    this.mesh.dispose();
     this.mesh.geometry.dispose();
     (this.mesh.material as THREE.Material).dispose();
   }

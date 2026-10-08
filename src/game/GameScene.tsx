@@ -30,7 +30,7 @@ import { CharacterManager } from "./characters/manager";
 import { MatchDirector } from "./modes/match";
 import { SpawnSelector } from "./modes/spawns";
 import { WEAPONS } from "./weapons/arsenal";
-import { createAudio, disposeAudio } from "./audio";
+import { createAudio, disposeAudio, getAudio } from "./audio";
 import { forwardToYaw, type SurfaceType } from "./core/types";
 import { sunState } from "@/lib/sunState";
 import {
@@ -353,6 +353,9 @@ function AudioHost({ world }: { world: CollisionWorld | null }) {
       // Injected, so the audio layer never imports the physics module.
       hasLineOfSight: (from, to) => game.world?.hasLineOfSight(from, to) ?? true,
     });
+    engine.setMasterVolume(useGameStore.getState().masterVolume);
+    // Every gesture, not just the first: Safari suspends a running context
+    // and only a later gesture may resume it.
     const unlock = (): void => void engine.unlock();
     window.addEventListener("pointerdown", unlock);
     window.addEventListener("keydown", unlock);
@@ -364,11 +367,14 @@ function AudioHost({ world }: { world: CollisionWorld | null }) {
   }, []);
 
   useEffect(() => {
-    createAudio().setMasterVolume(masterVolume);
+    getAudio()?.setMasterVolume(masterVolume);
   }, [masterVolume]);
 
   useFrame((_state, rawDelta) => {
-    const engine = createAudio();
+    // Never create the engine from the frame loop: a frame can run before the
+    // mount effect, and an engine made here would have no occlusion test.
+    const engine = getAudio();
+    if (!engine) return;
     engine.syncListener();
     engine.update(Math.min(0.05, rawDelta));
   });

@@ -7,11 +7,11 @@ import {
   type InputState,
 } from "../core/gameState";
 import { useGameStore, type BrainKind } from "../core/gameStore";
+import { areHostile } from "../core/hostility";
 import {
   HUMAN_METRICS,
   MASK_MOVEMENT,
   MASK_SIGHT,
-  OPPOSING_TEAM,
   forwardToYaw,
   yawToForward,
   type EntityId,
@@ -523,7 +523,7 @@ class Pilot {
       weapon,
       body: (id) => {
         const actor = game.actorById.get(id);
-        if (!actor || !actor.alive || actor.team !== OPPOSING_TEAM[game.player.team]) {
+        if (!actor || !actor.alive || !areHostile(game.player, actor)) {
           return null;
         }
         // The body the seat sees: displaced by the heat shimmer at range, as
@@ -1336,13 +1336,12 @@ class Pilot {
     const world = game.world;
     if (!world) return null;
     const player = game.player;
-    const enemyTeam = OPPOSING_TEAM[player.team];
     eyePosition(player, _eye);
     const aim = game.cameraForward;
     if (aim.lengthSq() < 1e-8) return null;
     let best: { errorDeg: number; rangeM: number; id: EntityId } | null = null;
     for (const other of game.actors) {
-      if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+      if (other.isPlayer || !other.alive || !areHostile(player, other)) continue;
       const chest = aimRegionGeometry("UPPER_CHEST", other.stance);
       _chest.set(other.position.x, other.position.y + chest.heightM, other.position.z);
       _to.copy(_chest).sub(_eye);
@@ -1366,7 +1365,6 @@ class Pilot {
     const world = game.world;
     const out: EnemySample[] = [];
     if (!world) return out;
-    const enemyTeam = OPPOSING_TEAM[player.team];
     eyePosition(player, _eye);
     const aim = game.cameraForward;
     const aimYaw = forwardToYaw(aim.x, aim.z);
@@ -1381,7 +1379,7 @@ class Pilot {
       player.position.z,
     );
     for (const other of game.actors) {
-      if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+      if (other.isPlayer || !other.alive || !areHostile(player, other)) continue;
       if (other.position.distanceTo(player.position) > 165) continue;
       const inView = sightOf(_eye, aimYaw, aimPitch, fov, other) !== null;
       eyePosition(other, _to);
@@ -1582,9 +1580,8 @@ class Pilot {
         h: rigState.horizontalFovDeg / 2,
         v: Math.max(10, game.cameraFov / 2),
       };
-      const enemyTeam = OPPOSING_TEAM[player.team];
       for (const other of game.actors) {
-        if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+        if (other.isPlayer || !other.alive || !areHostile(player, other)) continue;
         if (sightOf(_eye, aimYaw, aimPitch, fov, other) === null) continue;
         visible += 1;
         if (other.id === targetId) targetStillValid = true;
@@ -1823,9 +1820,8 @@ class Pilot {
    * and labelled so wherever it is reported. Read-only.
    */
   private pollEnemyFire(): void {
-    const enemyTeam = OPPOSING_TEAM[game.player.team];
     for (const other of game.actors) {
-      if (other.isPlayer || other.team !== enemyTeam) continue;
+      if (other.isPlayer || !areHostile(game.player, other)) continue;
       const last = this.enemyFire.get(other.id);
       const t = other.lastFireTime;
       this.enemyFire.set(other.id, t);
@@ -1864,13 +1860,7 @@ class Pilot {
     const now = game.time;
     const decisions = this.evalRecords.map((record) => {
       const copy: DecisionRecord = JSON.parse(JSON.stringify(record)) as DecisionRecord;
-      if (record.outcome && !record.outcome.complete) {
-        copy.outcome = OutcomeTracker.provisional(
-          record,
-          now,
-          this.outcomes.startOf(record),
-        );
-      }
+      if (record.outcome) copy.outcome = this.outcomes.readOut(record, now);
       return copy;
     });
     return {

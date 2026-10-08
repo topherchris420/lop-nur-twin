@@ -34,6 +34,12 @@ export interface ArmView {
   navigation: string;
   motor: string;
   policy: string | null;
+  /**
+   * Every other arm-defining parameter (staleness, latency, cadence, seat,
+   * orders, origin, build, query, test double), canonicalised. A baseline is
+   * matched only when this is equal too.
+   */
+  setting: string;
   seeds: number[];
   simSeconds: number;
   kills: number;
@@ -253,7 +259,8 @@ export function detectWarnings(
           b.brain === "random" &&
           b.control === arm.control &&
           b.navigation === arm.navigation &&
-          b.motor === arm.motor,
+          b.motor === arm.motor &&
+          b.setting === arm.setting,
       );
       if (!baseline) continue;
       const a = mean([...arm.primary.values()].filter((v): v is number => v !== null));

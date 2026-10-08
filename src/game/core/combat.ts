@@ -6,7 +6,8 @@ import {
   type EntityId,
   type HitRegion,
 } from "./types";
-import { game, queueSound, type Actor } from "./gameState";
+import { game, queueDamage, queueSound, type Actor } from "./gameState";
+import { areHostile } from "./hostility";
 
 /**
  * Damage resolution, health regeneration and death.
@@ -53,6 +54,44 @@ export const SEAT_RULES = ["mercy", "even"] as const;
 export type SeatRules = (typeof SEAT_RULES)[number];
 export const seat = { rules: "mercy" as SeatRules };
 
+/**
+ * Who may hurt whom: decided once, in `hostility.ts`, and re-exported here for
+ * the simulation. Damage resolution, kill credit, assists, suppression, bot
+ * perception and spawn scoring all ask it.
+ */
+export { areHostile, freeForAllActive, hostileTo } from "./hostility";
+
+/**
+ * Attacker id for damage nobody dealt: a fall, the environment. It resolves
+ * to no actor, so it earns no kill credit, no assist and no seat scaling.
+ */
+export const ENVIRONMENT_ENTITY_ID: EntityId = -1;
+
+/** Score `killActor` credits for a kill, before the mode's own bonuses. */
+export const KILL_SCORE = { base: 100, headshot: 150 } as const;
+
+/** Queue environmental damage (a fall) through the ordinary pipeline. */
+export function queueEnvironmentalDamage(
+  victim: Actor,
+  amount: number,
+  kind: DamageEvent["kind"],
+  time: number,
+): void {
+  queueDamage({
+    targetId: victim.id,
+    attackerId: ENVIRONMENT_ENTITY_ID,
+    amount,
+    kind,
+    region: null,
+    direction: new THREE.Vector3(0, -1, 0),
+    point: victim.position.clone(),
+    distanceM: 0,
+    penetrated: false,
+    weaponId: kind,
+    time,
+  });
+}
+
 interface DamageRecord {
   attackerId: EntityId;
   amount: number;
@@ -80,8 +119,8 @@ export interface AppliedDamage {
   /** The hitbox the round landed in, as the weapon runtime reported it. */
   region: HitRegion | null;
   /**
-   * The damage event's own time. A round that passes through one hitbox into
-   * another — an arm, then the chest — reports twice with the same time, so a
+   * The damage event's own time. A round that passes through one body into
+   * another reports twice with the same time (each body once), so a
    * counter of rounds that hit keys on this, not on the report.
    */
   eventTime: number;
@@ -125,12 +164,13 @@ export function resolveDamage(time: number, out: KillReport[]): void {
       !COMBAT.friendlyFire &&
       attacker &&
       attacker.id !== victim.id &&
-      attacker.team === victim.team
+      !areHostile(attacker, victim)
     ) {
       continue;
     }
 
-    const merciful = seat.rules === "mercy";
+    // Seat rules scale combat between actors; a fall is not a fight.
+    const merciful = seat.rules === "mercy" && attacker !== null;
     const damageScale = !merciful
       ? 1
       : attacker?.isPlayer
@@ -142,7 +182,9 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     const appliedDamage = event.amount * damageScale;
     victim.health -= appliedDamage;
     victim.lastDamageTime = time;
-    victim.lastAttackerId = event.attackerId;
+    // Environmental damage has nobody to blame, and must not blame the last
+    // actor who did.
+    victim.lastAttackerId = attacker ? event.attackerId : null;
 
     // Near-miss suppression is handled elsewhere; a direct hit always
     // suppresses hard and induces defensive flinch.
@@ -159,10 +201,13 @@ export function resolveDamage(time: number, out: KillReport[]): void {
     }
 
     if (victim.isPlayer) {
-      _dir.copy(event.direction).normalize();
-      const angle = Math.atan2(_dir.x, _dir.z);
-      game.hud.damageDirs.push({ angle, time, amount: appliedDamage });
-      if (game.hud.damageDirs.length > 8) game.hud.damageDirs.shift();
+      // Only an attacker has a direction worth pointing at.
+      if (attacker) {
+        _dir.copy(event.direction).normalize();
+        const angle = Math.atan2(_dir.x, _dir.z);
+        game.hud.damageDirs.push({ angle, time, amount: appliedDamage });
+        if (game.hud.damageDirs.length > 8) game.hud.damageDirs.shift();
+      }
       queueSound({ id: "damage", gain: Math.min(1, 0.35 + appliedDamage / 90) });
     }
 
@@ -259,7 +304,7 @@ function killActor(
       if (time - record.time > COMBAT.assistWindow) continue;
       if (record.amount < 20) continue;
       const helper = game.actorById.get(record.attackerId);
-      if (helper && helper.team !== victim.team) {
+      if (helper && areHostile(helper, victim)) {
         helper.assists += 1;
         assists.push(helper);
         if (helper.isPlayer) {
@@ -277,11 +322,11 @@ function killActor(
     log.length = 0;
   }
 
-  if (attacker && attacker.id !== victim.id && attacker.team !== victim.team) {
+  if (attacker && areHostile(attacker, victim)) {
     attacker.kills += 1;
     attacker.streak += 1;
     const isHeadshot = event.region === "head";
-    attacker.score += isHeadshot ? 150 : 100;
+    attacker.score += isHeadshot ? KILL_SCORE.headshot : KILL_SCORE.base;
 
     if (attacker.isPlayer) {
       game.hud.lastKill = {
@@ -402,23 +447,24 @@ export function recordGunfirePing(shooter: Actor, time: number): void {
     z: shooter.position.z,
     bearing,
     time,
+    shooterId: shooter.id,
     shooterTeam: shooter.team,
   });
   if (game.hud.gunfirePings.length > 24) game.hud.gunfirePings.shift();
 }
 
-/** Raise suppression on anyone a round passed close to. */
+/** Raise suppression on anyone hostile to the shooter a round passed close to. */
 export function applyNearMissSuppression(
   from: THREE.Vector3,
   to: THREE.Vector3,
-  shooterTeam: string,
+  shooter: Actor,
 ): void {
   _dir.copy(to).sub(from);
   const length = _dir.length();
   if (length < 1e-3) return;
   _dir.multiplyScalar(1 / length);
   for (const actor of game.actors) {
-    if (!actor.alive || actor.team === shooterTeam) continue;
+    if (!actor.alive || !areHostile(shooter, actor)) continue;
     _tmp.copy(actor.position).sub(from);
     const along = _tmp.dot(_dir);
     if (along < 0 || along > length) continue;
@@ -452,6 +498,7 @@ export function respawnActor(actor: Actor, position: THREE.Vector3, yaw: number)
   actor.suppression = 0;
   actor.lastDamageTime = -99;
   damageLog.delete(actor.id);
+  if (actor.isPlayer) game.playerSpawnEpoch += 1;
 }
 
 /** Count of live actors per team, for the mode layer. */

@@ -683,13 +683,29 @@ export class PlayerController {
     v.yaw = 0;
   }
 
-  /** Reset on respawn. */
+  /**
+   * Reset on respawn and at the start of a match: nothing from the last life
+   * may carry over. A mantle left running would drag the new body back to
+   * where the old one died, and a held stance would override the spawn's.
+   */
   reset(): void {
+    this.events.length = 0;
     this.stanceBlend = 0;
     this.proneBlend = 0;
     this.targetStance = "stand";
+    this.coyote = 0;
+    this.jumpBuffered = 0;
+    this.sprintHeld = 0;
+    this.tacSprintTimer = 0;
     this.sliding = false;
+    this.slideTimer = 0;
+    this.slideCooldown = 0;
+    this.slideDir.set(0, 0, 0);
     this.mantling = false;
+    this.mantleTimer = 0;
+    this.wasGrounded = true;
+    this.prevY = 0;
+    this.speed = 0;
     this.tacSprinting = false;
     this.sprinting = false;
     this.landDip = 0;

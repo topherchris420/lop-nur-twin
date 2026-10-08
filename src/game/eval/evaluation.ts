@@ -647,9 +647,65 @@ function evaluateArm(
   };
 }
 
+/**
+ * Every arm-defining parameter that is not a contribution factor, with the
+ * seat's defaults filled in, as strings. Two arms are a matched pair only when
+ * these are equal: an arm that also changes staleness, latency, cadence, seat
+ * rules, place or target order, origin, build, extra query or test double
+ * differs in more than the factor a contrast would name. The declared values
+ * are compared (an omitted cadence is the seat's default, whatever it is), so
+ * arms declared alike stay comparable across brains.
+ */
+export function armSetting(run: ArmRun): Record<string, string> {
+  const arm = run.arm;
+  return {
+    stale: arm.stale ?? "strict",
+    latencyMs: String(arm.latencyMs ?? 0),
+    cadenceMs: arm.cadenceMs === undefined ? "default" : String(arm.cadenceMs),
+    seat: arm.seat ?? "mercy",
+    placeOrder: arm.placeOrder ?? "nearest",
+    targetOrder: arm.targetOrder ?? "nearest",
+    origin: run.origin,
+    build: run.build ?? "unknown",
+    query: arm.query ?? "",
+    fakeLlm: arm.fakeLlm === true ? "yes" : "no",
+  };
+}
+
+function canonicalSetting(setting: Record<string, string>): string {
+  return Object.keys(setting)
+    .sort()
+    .map((k) => `${k}=${setting[k]}`)
+    .join("&");
+}
+
 function primaryBySeed(arm: ArmEvaluation, metric: string): Map<number, number | null> {
   return new Map(arm.episodes.map((e) => [e.seed, e.metrics[metric] ?? null]));
 }
+
+/**
+ * The value an episode actually ran at. For cadence that is the interval the
+ * seat negotiated and recorded (`interface.intervalMs`), which the host floors
+ * — a declared 50 ms ran at 100 — so a sweep regresses on what ran, not on
+ * what was asked. Latency is applied to local brains as declared.
+ */
+function sweptValue(
+  arm: ArmEvaluation,
+  param: Sweep["param"],
+  episode: ArmEvaluation["episodes"][number] | undefined,
+): number {
+  if (param === "cadenceMs") {
+    const recorded = episode?.interface?.["intervalMs"];
+    if (typeof recorded === "number" && Number.isFinite(recorded)) return recorded;
+  }
+  return arm.config[param]!;
+}
+
+/** The suffix `expandSweep` appends for each swept parameter. */
+const SWEEP_SUFFIX: Record<Sweep["param"], RegExp> = {
+  latencyMs: /@lat\d+$/,
+  cadenceMs: /@cad\d+$/,
+};
 
 function sweeps(arms: readonly ArmEvaluation[], spec: ExperimentSpec): Sweep[] {
   const out: Sweep[] = [];
@@ -659,7 +715,9 @@ function sweeps(arms: readonly ArmEvaluation[], spec: ExperimentSpec): Sweep[] {
     );
     const groups = new Map<string, ArmEvaluation[]>();
     for (const arm of tagged) {
-      const base = arm.id.replace(/@(lat|cad)\d+$/, "");
+      // Strip only this parameter's suffix: a cadence sweep whose base arm
+      // also sets a fixed latency is not a latency sweep.
+      const base = arm.id.replace(SWEEP_SUFFIX[param], "");
       groups.set(base, [...(groups.get(base) ?? []), arm]);
     }
     for (const [base, group] of groups) {
@@ -667,7 +725,7 @@ function sweeps(arms: readonly ArmEvaluation[], spec: ExperimentSpec): Sweep[] {
       const points = group
         .map((arm) => ({
           arm: arm.id,
-          value: arm.config[param]!,
+          value: sweptValue(arm, param, arm.episodes[0]),
           primary: arm.aggregate[spec.primaryMetric]!,
           successRate: arm.decisionMetrics?.successRate ?? null,
           decisions: arm.episodes.reduce((a, e) => a + e.decisions, 0),
@@ -680,7 +738,7 @@ function sweeps(arms: readonly ArmEvaluation[], spec: ExperimentSpec): Sweep[] {
         for (const e of arm.episodes) {
           const y = e.metrics[spec.primaryMetric];
           if (y === null || y === undefined) continue;
-          xs.push(arm.config[param]! / 100);
+          xs.push(sweptValue(arm, param, e) / 100);
           ys.push(y);
         }
       }
@@ -766,6 +824,7 @@ export function buildEvaluation(input: BuildInput): Evaluation {
       navigation: arm.config.navigation ?? "places",
       motor: arm.config.motor ?? "standard",
       policy: arm.config.policy ?? null,
+      setting: canonicalSetting(armSetting(run)),
       seeds: arm.episodes.map((e) => e.seed),
       simSeconds: run.episodes.reduce((a, e) => a + e.simSeconds, 0),
       kills: run.episodes.reduce((a, e) => a + e.metrics.kills, 0),
@@ -793,6 +852,7 @@ export function buildEvaluation(input: BuildInput): Evaluation {
     const policyFactor = spec.contributionFactors.includes("policy");
     const factorArms: FactorArm[] = complete.map((arm) => ({
       id: arm.id,
+      setting: armSetting(input.arms.find((r) => r.arm.id === arm.id)!),
       levels: {
         brain:
           arm.config.brain === "script" && !policyFactor

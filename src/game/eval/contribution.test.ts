@@ -50,6 +50,31 @@ describe("contribution analysis", () => {
     expect(report.statement).toMatch(/not shares of a whole/);
   });
 
+  it("never contrasts arms whose other settings differ, and lists them as held fixed", () => {
+    const at = (arm: FactorArm, setting: Record<string, string>): FactorArm => ({
+      ...arm,
+      setting,
+    });
+    const r = contributions(
+      [
+        at(arms[0]!, { latencyMs: "0", stale: "strict" }),
+        // Differs from random-direct in control *and* injected latency.
+        at(arms[1]!, { latencyMs: "600", stale: "strict" }),
+        // Differs from random-direct in brain only.
+        at(arms[2]!, { latencyMs: "0", stale: "strict" }),
+      ],
+      ["brain", "control"],
+    );
+    expect(r.contrasts.map((c) => `${c.from.arm}→${c.to.arm}`)).toEqual([
+      "random-direct→model-direct",
+    ]);
+    expect(r.contrasts[0]!.heldFixed).toMatchObject({
+      control: "direct",
+      latencyMs: "0",
+      stale: "strict",
+    });
+  });
+
   it("finds nothing to contrast when every pair differs in two factors", () => {
     const r = contributions([arms[0]!, arms[3]!], ["brain", "control"]);
     expect(r.contrasts).toEqual([]);

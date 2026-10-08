@@ -200,12 +200,14 @@ export function renderImpact(v: VoiceRender): number {
     );
   }
 
+  // The send taps `v.dest`, which is ahead of the engine's distance, occlusion
+  // and request-gain stage, so it carries that stage's level itself.
   const send = reverbSend(
     v.ctx,
     v.reverb as never,
     v.env,
     v.when,
-    v.indoor ? 0.32 : 0.08,
+    (v.indoor ? 0.32 : 0.08) * (v.wetGain ?? 1),
     0.04,
   );
   if (send) {
@@ -306,7 +308,15 @@ export function renderExplosion(v: VoiceRender): number {
       rand: v.rand,
     }),
   );
-  const send = reverbSend(v.ctx, v.reverb as never, v.env, v.when, 0.7, 0.3);
+  // Scaled like the dry signal; see renderImpact.
+  const send = reverbSend(
+    v.ctx,
+    v.reverb as never,
+    v.env,
+    v.when,
+    0.7 * (v.wetGain ?? 1),
+    0.3,
+  );
   if (send) {
     v.dest.connect(send);
     v.own(send);

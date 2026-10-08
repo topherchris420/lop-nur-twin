@@ -64,6 +64,11 @@ interface Projectile {
 
 const PATTERN_LENGTH = 40;
 const MAX_PENETRATIONS = 4;
+/**
+ * How far a melee strike reaches from the eye, in metres. The knife's damage
+ * curve falls to nothing at 2.1 m; this is where it still lands in full.
+ */
+export const MELEE_REACH_M = 1.9;
 
 const _dir = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -71,6 +76,7 @@ const _up = new THREE.Vector3();
 const _origin = new THREE.Vector3();
 const _next = new THREE.Vector3();
 const _hitDir = new THREE.Vector3();
+const _struck = new Set<number>();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 
 /** Deterministic spray pattern: ramp up, then a stable serpentine. */
@@ -160,6 +166,11 @@ export class WeaponRuntime {
     this.reserve = def.startingReserve;
   }
 
+  /** A melee weapon carries no ammunition and never needs any. */
+  get isMelee(): boolean {
+    return this.def.weaponClass === "melee";
+  }
+
   get fireMode(): FireMode {
     return this.def.fireModes[this.fireModeIndex] ?? "semi";
   }
@@ -191,7 +202,7 @@ export class WeaponRuntime {
       this.state !== "raising" &&
       this.shotClock <= 0 &&
       this.burstCooldown <= 0 &&
-      this.ammo > 0
+      (this.ammo > 0 || this.isMelee)
     );
   }
 
@@ -368,7 +379,7 @@ export class WeaponRuntime {
   wantsShot(canFire: boolean): boolean {
     if (!canFire || this.state === "reloading" || this.state === "raising") return false;
     if (this.shotClock > 0 || this.burstCooldown > 0) return false;
-    if (this.ammo <= 0) {
+    if (this.ammo <= 0 && !this.isMelee) {
       if (this.triggerHeld && !this.triggerWasHeld) {
         queueSound({ id: "dry-fire", gain: 0.6, weaponId: this.def.id });
         this.shotClock = 0.2;
@@ -391,6 +402,10 @@ export class WeaponRuntime {
   fire(context: ShotContext): void {
     const def = this.def;
     this.cancelInspect();
+    if (this.isMelee) {
+      this.strike(context);
+      return;
+    }
     this.ammo -= 1;
     this.shotClock = shotInterval(def.rpm);
     this.lastShotTime = context.time;
@@ -457,6 +472,70 @@ export class WeaponRuntime {
     }
   }
 
+  /**
+   * A melee attack: one short ray from the eye along the aim, no spread, no
+   * recoil, no ammunition and no penetration. Damage goes through the same
+   * queue as a round, so friendly fire, scaling and kills apply unchanged. It
+   * is not gunfire, so it leaves no gunfire ping.
+   */
+  private strike(context: ShotContext): void {
+    const def = this.def;
+    this.shotClock = shotInterval(def.rpm);
+    this.lastShotTime = context.time;
+    this.firedThisFrame = true;
+    this.ejectThisFrame = false;
+    this.shotIndex += 1;
+    this.shotsFired += 1;
+    queueSound({
+      id: "fire",
+      position: context.origin.clone(),
+      weaponId: def.id,
+      gain: 0.6,
+      pitch: 0.97 + this.rand() * 0.06,
+      variant: this.shotIndex & 7,
+    });
+
+    _dir.copy(context.direction).normalize();
+    const hit = context.world.raycast(
+      context.origin,
+      _dir,
+      MELEE_REACH_M,
+      MASK_BULLET,
+      context.shooter.id,
+    );
+    if (!hit) return;
+    if (hit.entityId !== null && hit.region !== null) {
+      queueDamage({
+        targetId: hit.entityId,
+        attackerId: context.shooter.id,
+        amount: damageAtRange(def.ballistics.damage, hit.distance),
+        kind: "melee",
+        region: hit.region,
+        direction: _dir.clone(),
+        point: hit.point.clone(),
+        distanceM: hit.distance,
+        penetrated: false,
+        weaponId: def.id,
+        time: context.time,
+      });
+      queueImpact({
+        kind: "blood",
+        point: hit.point.clone(),
+        normal: hit.normal.clone(),
+        surface: "flesh",
+        incoming: _dir.clone(),
+        energy: 1,
+      });
+      return;
+    }
+    queueSound({
+      id: "impact",
+      position: hit.point.clone(),
+      surface: hit.surface,
+      gain: 0.5,
+    });
+  }
+
   private fireOne(
     context: ShotContext,
     spreadRad: number,
@@ -511,6 +590,11 @@ export class WeaponRuntime {
     let penetrations = 0;
     let tracerEmitted = false;
     const maxRange = def.weaponClass === "shotgun" ? 60 : 420;
+    // Bodies this round has already passed through. The re-cast after a body
+    // hit starts a short way past the entry point, which is still inside a
+    // chest box; without this the same victim is hit again at t = 0.
+    const struck = _struck;
+    struck.clear();
 
     while (penetrations <= MAX_PENETRATIONS) {
       const hit = world.raycast(
@@ -519,6 +603,7 @@ export class WeaponRuntime {
         maxRange - travelled,
         MASK_BULLET,
         context.shooter.id,
+        struck.size > 0 ? struck : null,
       );
       if (!hit) {
         if (!tracerEmitted) {
@@ -565,11 +650,14 @@ export class WeaponRuntime {
           incoming: direction.clone(),
           energy: Math.min(1, remaining),
         });
+        struck.add(hit.entityId);
         // A round that defeats a body keeps going, at a cost.
         remaining *= 0.45;
         penetrations += 1;
         if (remaining < 0.12) return;
-        _origin.copy(hit.point).addScaledVector(direction, 0.35);
+        // The struck body is ignored from here on, so the next cast can start
+        // right at the entry point and still find a wall standing behind it.
+        _origin.copy(hit.point).addScaledVector(direction, 0.02);
         continue;
       }
 
@@ -800,18 +888,34 @@ export class WeaponRuntime {
     if (this.shotIndex > 0 && time - this.lastShotTime > 0.42) this.shotIndex = 0;
   }
 
+  /**
+   * A fresh weapon, as at spawn: full magazine and reserve, nothing cycling,
+   * no recoil or heat carried over from the previous life.
+   */
   refill(): void {
     this.ammo = this.def.magSize;
     this.reserve = this.def.startingReserve;
     this.shotIndex = 0;
+    this.shotClock = 0;
+    this.shotsInBurst = 0;
+    this.burstCooldown = 0;
     this.bloom = 0;
+    this.barrelHeat = 0;
+    this.ads = 0;
     this.kickPitch = 0;
     this.kickYaw = 0;
     this.recenterPitch = 0;
     this.recenterYaw = 0;
+    this.viewKick = 0;
+    this.viewRoll = 0;
+    this.inspecting = false;
+    this.inspectTimer = 0;
     this.state = "idle";
     this.stateTimer = 0;
+    this.reloadDuration = 0;
     this.reloadStage = 0;
+    this.reloadWasEmpty = false;
+    this.pendingChamber = false;
     for (const p of this.projectiles) p.active = false;
   }
 

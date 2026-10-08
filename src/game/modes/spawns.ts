@@ -3,9 +3,21 @@ import { GROUND_ZONES } from "@/lib/layout";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 import type { Team } from "@/game/core/types";
-import { HUMAN_METRICS, MASK_SIGHT, OPPOSING_TEAM } from "@/game/core/types";
+import { HUMAN_METRICS, MASK_SIGHT } from "@/game/core/types";
 import type { Actor } from "@/game/core/gameState";
+import { hostileTo } from "@/game/core/combat";
 import type { CollisionWorld } from "@/game/physics/collisionWorld";
+
+/**
+ * Which half of the compound each team calls home. The one definition: the
+ * bots' zone choice (`BotManager`) and the respawn selector below both read
+ * it, and it agrees with the player's opening spawn, `GROUND_OVERLOOK`, on
+ * the north apron — the player is blue.
+ */
+export const TEAM_HOME_SIDE: Readonly<Record<Team, "north" | "south">> = {
+  blue: "north",
+  red: "south",
+};
 
 const CAPSULE_RADIUS = HUMAN_METRICS.radius * 1.08;
 const CAPSULE_HEIGHT = HUMAN_METRICS.colliderHeight.stand;
@@ -64,7 +76,7 @@ export class SpawnSelector {
   ): { position: [number, number, number]; yaw: number } {
     let bestScore = -Infinity;
     let bestCandidate: SpawnCandidate | null = null;
-    const enemyTeam = OPPOSING_TEAM[team];
+    const home = TEAM_HOME_SIDE[team];
     const _eye = new THREE.Vector3();
 
     for (const candidate of this.candidates) {
@@ -77,15 +89,14 @@ export class SpawnSelector {
       let score = 0;
       let compromised = false;
 
-      // Treat 'south' as blue-favored, 'north' as red-favored, 'neutral' as neutral
-      if (candidate.side === "south" && team === "blue") score += 100;
-      else if (candidate.side === "north" && team === "red") score += 100;
-      else if (candidate.side === "north" && team === "blue") score -= 100;
-      else if (candidate.side === "south" && team === "red") score -= 100;
+      // Own half favoured, the other team's half avoided, neutral ground even.
+      if (candidate.side === home) score += 100;
+      else if (candidate.side !== "neutral") score -= 100;
 
       for (const actor of actors) {
         if (!actor.alive) continue;
-        const isEnemy = actor.team === enemyTeam;
+        // The actor being spawned is dead, so it never meets itself here.
+        const isEnemy = hostileTo(team, null, actor);
         const distance = candidate.position.distanceTo(actor.position);
 
         if (isEnemy) {

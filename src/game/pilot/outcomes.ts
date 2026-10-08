@@ -15,9 +15,18 @@ import type { DecisionRecord, OutcomeWindow } from "../eval/records";
  * window has about twenty-five open at once, and they share most of their
  * outcome. That is recorded as is, and every report that pools them says so.
  *
- * A window ends when its time is up (complete), when the seat dies (complete —
- * the outcome is known: it died), or when the episode ends first (incomplete,
- * and not scored).
+ * A window ends when its time is up (complete), when the seat dies (the
+ * outcome is known: it died), or when the episode ends first (incomplete, and
+ * not scored).
+ *
+ * Censoring is by the window's nominal end, whatever happened in it: a window
+ * is complete only if `start + windowS` falls inside the episode. A death
+ * window closes at the death with `died` and `timeToDeathS` recorded, but is
+ * held as provisional until its nominal end passes; if the episode ends first
+ * it is marked incomplete like any other window still running then. Without
+ * this the last `windowS` seconds of every episode would be scored only when
+ * they ended in death — harm counted, success never — which inflates the
+ * harmful rate and deflates the success rate.
  */
 
 interface OpenWindow {
@@ -34,6 +43,8 @@ const MAX_OPEN = 64;
 
 export class OutcomeTracker {
   private open: OpenWindow[] = [];
+  /** Closed by a death, but their nominal end has not been reached yet. */
+  private diedPending: OpenWindow[] = [];
 
   constructor(
     public windowS: number,
@@ -85,6 +96,10 @@ export class OutcomeTracker {
 
   /** Once per simulation step. Closes the windows whose time is up. */
   step(simTime: number, movedM: number): void {
+    // A death window whose nominal end has passed inside the episode is final.
+    this.diedPending = this.diedPending.filter(
+      (w) => simTime - w.startSim < this.windowS,
+    );
     const keep: OpenWindow[] = [];
     for (const w of this.open) {
       w.window.movedM += movedM;
@@ -148,32 +163,43 @@ export class OutcomeTracker {
       w.window.died = true;
       w.window.timeToDeathS = simTime - w.startSim;
       this.finish(w, simTime, true);
+      // Complete only if the episode outlasts its nominal end (see above).
+      if (simTime - w.startSim < this.windowS) this.diedPending.push(w);
     }
     this.open = [];
   }
 
-  /** The episode is over, or being read mid-run: close what is open as incomplete. */
+  /**
+   * The episode is over: close what is open as incomplete, and censor every
+   * death window whose nominal end lies beyond now, exactly as a window
+   * without a death would be.
+   */
   closeAll(simTime: number): void {
     for (const w of this.open) this.finish(w, simTime, false);
+    for (const w of this.diedPending) {
+      if (simTime - w.startSim < this.windowS) w.window.complete = false;
+    }
     this.open = [];
+    this.diedPending = [];
   }
 
   /**
    * A copy of a record's window as it would read if the episode ended now,
-   * without closing it — for reading records out while the match runs.
+   * without closing anything — for reading records out while the match runs.
+   * A window still running reports the time observed so far; a death window
+   * whose nominal end is still ahead reads as incomplete, as `closeAll` would
+   * leave it.
    */
-  static provisional(
-    record: DecisionRecord,
-    simTime: number,
-    startSim: number | null,
-  ): OutcomeWindow | null {
+  readOut(record: DecisionRecord, simTime: number): OutcomeWindow | null {
     const o = record.outcome;
-    if (!o || o.complete || startSim === null) return o ? { ...o } : null;
-    return { ...o, elapsedS: Math.max(0, simTime - startSim) };
-  }
-
-  startOf(record: DecisionRecord): number | null {
-    return this.open.find((w) => w.record === record)?.startSim ?? null;
+    if (!o) return null;
+    const open = this.open.find((w) => w.record === record);
+    if (open && !o.complete) {
+      return { ...o, elapsedS: Math.max(0, simTime - open.startSim) };
+    }
+    const died = this.diedPending.find((w) => w.record === record);
+    if (died && simTime - died.startSim < this.windowS) return { ...o, complete: false };
+    return { ...o };
   }
 
   private finish(w: OpenWindow, simTime: number, complete: boolean): void {

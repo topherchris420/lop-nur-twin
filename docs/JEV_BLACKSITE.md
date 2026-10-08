@@ -530,8 +530,9 @@ are asked, how often, and which local controllers execute.
 
 The host accepts more than today's remote model can use at speed. For local
 brains two parameters turn that headroom into an experiment: `?cadence=<ms>`
-sets the decision interval (50–2000) and `?latency=<ms>` holds each answer
-back (0–1500) before the loop sees it. The same policy can then be measured
+sets the decision interval (50–2000; the host's 100 ms floor still applies, so
+lower values run at 100 ms and an experiment spec refuses them) and
+`?latency=<ms>` holds each answer back (0–1500) before the loop sees it. The same policy can then be measured
 at today's round trip, at half of it and at twice it — what a faster or slower
 model would gain here, measured before that model exists. Neither parameter
 applies to Jev, whose latency is real.

@@ -18,6 +18,7 @@ function arm(overrides: Partial<ArmView>): ArmView {
     navigation: "places",
     motor: "standard",
     policy: null,
+    setting: "latencyMs=0&stale=strict",
     seeds: [42, 43, 44],
     simSeconds: 360,
     kills: 10,
@@ -146,6 +147,20 @@ describe("benchmark warnings", () => {
   it("does not compare a model with a random arm under a different controller", () => {
     const model = arm({ id: "model", brain: "jev", control: "precision" });
     const random = arm({ id: "random", brain: "random", control: "direct" });
+    const w = detectWarnings([model, random], kpm, 30);
+    expect(ids(w)).not.toContain("controller-dominance");
+    expect(ids(w)).not.toContain("model-irrelevance");
+  });
+
+  it("does not compare a model with a random arm that differs in any other setting", () => {
+    // Same controller, navigator and motor, but the random arm's answers are
+    // delayed: it is not the same seat with only the choices changed.
+    const model = arm({ id: "model", brain: "jev" });
+    const random = arm({
+      id: "random",
+      brain: "random",
+      setting: "latencyMs=600&stale=strict",
+    });
     const w = detectWarnings([model, random], kpm, 30);
     expect(ids(w)).not.toContain("controller-dominance");
     expect(ids(w)).not.toContain("model-irrelevance");

@@ -520,9 +520,13 @@ void main() {
   vColor = vec4(mix(aColor0.rgb, aColor1.rgb, t), mix(aColor0.a, aColor1.a, t));
   vAdditive = aStyle.y;
 
+  // The atlas is painted with tile row 0 at the top of the canvas, and the
+  // CanvasTexture keeps three's default flipY = true, so v = 1 is the canvas
+  // top: count rows down from v = 1. (Flipping the texture instead would turn
+  // every tile upside down inside its cell.)
   float sprite = aStyle.x;
   float col = mod(sprite, uAtlas.x);
-  float row = floor(sprite / uAtlas.x);
+  float row = uAtlas.y - 1.0 - floor(sprite / uAtlas.x);
   vUv = (uv + vec2(col, row)) / uAtlas;
 
   #include <logdepthbuf_vertex>
@@ -544,9 +548,12 @@ void main() {
   float alpha = texel.a * vColor.a;
   if (alpha < 0.003) discard;
   vec3 rgb = texel.rgb * vColor.rgb;
-  // Additive particles pre-multiply by alpha and leave the destination alone;
-  // alpha-blended ones go through normal source-over.
-  gl_FragColor = vec4(rgb * mix(1.0, alpha, vAdditive), mix(alpha, 0.0, vAdditive));
+  // The blend is ONE, ONE_MINUS_SRC_ALPHA (premultiplied source-over), so
+  // both paths premultiply rgb by alpha. Additive particles then write zero
+  // alpha and leave the destination alone; alpha-blended ones cover it by
+  // alpha. Unpremultiplied rgb here made smoke and dust add their full colour
+  // whatever their alpha.
+  gl_FragColor = vec4(rgb * alpha, mix(alpha, 0.0, vAdditive));
   #include <colorspace_fragment>
 }
 `;

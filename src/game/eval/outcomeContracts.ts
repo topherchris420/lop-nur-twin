@@ -56,7 +56,13 @@ const exposure = (r: DecisionRecord): number | null =>
     ? r.outcome.exposedSamples / r.outcome.exposureSamples
     : null;
 
-/** Executed, with a full window to judge. */
+/**
+ * Executed, with a full window to judge. `complete` means the window's nominal
+ * end (start + windowS) fell inside the episode, whatever happened in it: a
+ * window that ended in the seat's death is censored at the episode's end like
+ * any other (`pilot/outcomes.ts`), so the last seconds of an episode are not
+ * scored only when they ended badly.
+ */
 const scoreable = (r: DecisionRecord): boolean =>
   r.outcome !== null &&
   r.outcome.complete &&

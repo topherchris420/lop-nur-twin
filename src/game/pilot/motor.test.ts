@@ -473,6 +473,30 @@ describe("precision motor controller", () => {
     expect(turnedLeft).toBeLessThan(10 * DEG);
   });
 
+  it("holds the brain's look until a newly bound target is first seen", () => {
+    // Bound while out of sight: there is no sample yet, so there is nothing to
+    // steer toward — least of all the world origin a fresh binding starts at.
+    const enemy = at(1, 30, 30, { hidden: true });
+    const bench = new Bench({ targets: [enemy] });
+    bench.motor.engage({ targetId: 1, aim: "UPPER_CHEST" }, 0);
+    for (let i = 0; i < 5; i += 1) {
+      // The executor's frame: a small search turn, and the trigger held.
+      bench.input.lookYaw = 0.01;
+      bench.input.lookPitch = -0.002;
+      bench.input.fire = true;
+      bench.motor.apply(bench.input, bench.sense(), FIRE, DT);
+      expect(bench.input.lookYaw).toBe(0.01);
+      expect(bench.input.lookPitch).toBe(-0.002);
+      expect(bench.input.fire).toBe(false);
+      bench.time += DT;
+    }
+    // Still bound, inside the sight-loss grace; the first sight starts tracking.
+    expect(bench.motor.targetId).toBe(1);
+    enemy.hidden = false;
+    bench.run(1, HOLD);
+    expect(bench.errorTo(enemy)).toBeLessThan(1);
+  });
+
   it("releases an eliminated target", () => {
     const enemy = at(1, 30, 5);
     const bench = new Bench({ targets: [enemy] });

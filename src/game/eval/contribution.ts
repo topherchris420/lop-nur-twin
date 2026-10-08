@@ -10,6 +10,14 @@ import { pairedDifference, type PairedDifference } from "./stats.js";
  * module computes, and it prints the level of every other factor next to each
  * contrast.
  *
+ * "Exactly one" means one among *everything* that defines an arm, not only the
+ * declared factors: two arms that also differ in staleness policy, injected
+ * latency, cadence, seat rules, place or target order, origin, build, extra
+ * query or test double are not a matched ablation, whatever their factor
+ * levels say. Those parameters travel as an arm's `setting`; a contrast is
+ * formed only between arms whose settings are equal, and `heldFixed` lists
+ * them beside the other factors.
+ *
  * It deliberately does not produce "the model contributed 62%". Effects in this
  * game interact — the aiming controller is worth far more to a brain that
  * engages than to one that hides — so shares of a total do not add up, and a
@@ -24,6 +32,12 @@ export type Factor = (typeof FACTORS)[number];
 export interface FactorArm {
   id: string;
   levels: Record<Factor, string>;
+  /**
+   * Every other arm-defining parameter (staleness, latency, cadence, seat,
+   * orders, origin, build, query, test double), with defaults filled in. Two
+   * arms are comparable only when these are equal. Omitted means none.
+   */
+  setting?: Readonly<Record<string, string>>;
   primary: ReadonlyMap<number, number | null>;
 }
 
@@ -31,8 +45,11 @@ export interface Contrast {
   factor: Factor;
   from: { arm: string; level: string };
   to: { arm: string; level: string };
-  /** The other factors' levels, which this contrast holds fixed. */
-  heldFixed: Partial<Record<Factor, string>>;
+  /**
+   * The other factors' levels and every other arm-defining parameter, which
+   * this contrast holds fixed.
+   */
+  heldFixed: Record<string, string>;
   difference: PairedDifference;
 }
 
@@ -55,11 +72,20 @@ export interface ContributionReport {
 const STATEMENT =
   "Each contrast is the paired, by-seed difference between two arms that differ in one factor only, at the other factors' stated levels. It is descriptive for this design and this environment. Effects interact, so they are not shares of a whole and do not sum to one.";
 
+function sameSetting(a: FactorArm, b: FactorArm): boolean {
+  const sa = a.setting ?? {};
+  const sb = b.setting ?? {};
+  const keys = new Set([...Object.keys(sa), ...Object.keys(sb)]);
+  for (const key of keys) if (sa[key] !== sb[key]) return false;
+  return true;
+}
+
 function differsOnlyIn(
   a: FactorArm,
   b: FactorArm,
   factors: readonly Factor[],
 ): Factor | null {
+  if (!sameSetting(a, b)) return null;
   const diff = factors.filter((f) => a.levels[f] !== b.levels[f]);
   const others = FACTORS.filter(
     (f) => !factors.includes(f) && a.levels[f] !== b.levels[f],
@@ -92,8 +118,9 @@ export function contributions(
         baseline(a.levels[factor]) - baseline(b.levels[factor]) ||
         a.levels[factor].localeCompare(b.levels[factor]);
       if (order > 0) continue;
-      const heldFixed: Partial<Record<Factor, string>> = {};
+      const heldFixed: Record<string, string> = {};
       for (const f of FACTORS) if (f !== factor) heldFixed[f] = a.levels[f];
+      for (const [key, level] of Object.entries(a.setting ?? {})) heldFixed[key] = level;
       contrasts.push({
         factor,
         from: { arm: a.id, level: a.levels[factor] },
@@ -117,6 +144,7 @@ export function contributions(
           (a) =>
             a.levels[fa] === la &&
             a.levels[fb] === lb &&
+            sameSetting(a, arms[0]!) &&
             FACTORS.every(
               (f) => f === fa || f === fb || a.levels[f] === arms[0]!.levels[f],
             ),

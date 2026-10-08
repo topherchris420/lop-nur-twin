@@ -6,7 +6,7 @@ import {
 } from "../core/types";
 import { game, type Actor } from "../core/gameState";
 import type { KillReport } from "../core/combat";
-import { COMBAT, respawnActor } from "../core/combat";
+import { COMBAT, KILL_SCORE, areHostile, respawnActor } from "../core/combat";
 import { ObjectiveManager, type ObjectiveHudState } from "./objectives";
 import { ScoringEngine, getMatchMedals, type ScoreEvent, type Medal } from "./scoring";
 
@@ -105,6 +105,14 @@ export class MatchDirector {
   readonly objectives: ObjectiveManager;
   readonly scoring: ScoringEngine;
 
+  /**
+   * Read by `areHostile` through `game.matchDirector`: in a free-for-all every
+   * actor is an enemy of every other, whatever colour it was dealt.
+   */
+  get freeForAll(): boolean {
+    return this.rules.freeForAll;
+  }
+
   constructor(mode: GameModeId) {
     this.rules = MODE_RULES[mode];
     this.timeRemaining = this.rules.timeLimitSec;
@@ -117,11 +125,9 @@ export class MatchDirector {
     if (this.phase !== "live") return;
     const attacker = report.attacker;
     if (!attacker) return;
-    if (!this.rules.freeForAll && attacker.team === report.victim.team) return;
+    if (attacker.id === report.victim.id || !areHostile(attacker, report.victim)) return;
     if (this.rules.freeForAll) {
-      // In a free-for-all the "team" scores track the player against the field.
-      if (attacker.isPlayer) this.scoreBlue += 1;
-      else this.scoreRed = Math.max(this.scoreRed, attacker.kills);
+      this.updateFreeForAllScore();
     } else if (attacker.team === "blue") {
       this.scoreBlue += 1;
     } else {
@@ -133,7 +139,9 @@ export class MatchDirector {
     let bonus = 0;
     for (const e of events) bonus += e.points;
     if (attacker.isPlayer && events.length > 0) {
-      attacker.score += bonus - 100; // base 100 already counted in combat.ts
+      // `killActor` has already credited the kill (and the headshot, if it
+      // was one); add only what the scoring engine awards beyond that.
+      attacker.score += bonus - (report.headshot ? KILL_SCORE.headshot : KILL_SCORE.base);
       for (const e of events) {
         game.hud.scoreEvents.push({
           label: e.label,
@@ -149,6 +157,19 @@ export class MatchDirector {
       const assistEvents = this.scoring.onAssist(helper);
       for (const e of assistEvents) helper.score += e.points;
     }
+  }
+
+  /**
+   * Free-for-all standings: blue is the player's own kills, red the best
+   * individual tally in the field. Nobody shares kills with a team colour.
+   */
+  private updateFreeForAllScore(): void {
+    let best = 0;
+    for (const actor of game.actors) {
+      if (!actor.isPlayer && actor.kills > best) best = actor.kills;
+    }
+    this.scoreBlue = game.player.kills;
+    this.scoreRed = best;
   }
 
   update(dt: number): void {
@@ -204,6 +225,9 @@ export class MatchDirector {
   private end(reason: "score" | "time"): void {
     if (this.phase === "post") return;
     this.phase = "post";
+    if (this.rules.freeForAll) this.updateFreeForAllScore();
+    // In a free-for-all "blue" is the player and "red" the field's leader, so
+    // the player wins only by leading outright.
     const winner: Team | "draw" =
       this.scoreBlue === this.scoreRed
         ? "draw"

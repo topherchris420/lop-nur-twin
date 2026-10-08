@@ -100,7 +100,12 @@ export class EnvironmentLighting {
   private readonly scene = new THREE.Scene();
   private readonly material: THREE.ShaderMaterial;
   private cachedKey: string | null = null;
-  private cachedTexture: THREE.Texture | null = null;
+  /**
+   * The whole render target `fromScene` returns, not just its texture:
+   * disposing only the texture leaves the framebuffer and depth renderbuffer
+   * behind on every regenerate.
+   */
+  private cachedTarget: THREE.WebGLRenderTarget | null = null;
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.pmrem = new THREE.PMREMGenerator(renderer);
@@ -133,7 +138,7 @@ export class EnvironmentLighting {
   get(options: EnvironmentOptions): THREE.Texture {
     const bucket = Math.round((options.elevationRad * 180) / Math.PI / 3);
     const key = `${bucket}|${options.dayFactor.toFixed(2)}`;
-    if (this.cachedTexture && this.cachedKey === key) return this.cachedTexture;
+    if (this.cachedTarget && this.cachedKey === key) return this.cachedTarget.texture;
 
     const elev = options.elevationRad;
     const az = options.azimuthRad;
@@ -164,15 +169,15 @@ export class EnvironmentLighting {
     u["uTurbidity"]!.value = 1.4 + (1 - above) * 1.8;
 
     const target = this.pmrem.fromScene(this.scene, 0, 1, 200);
-    this.cachedTexture?.dispose();
+    this.cachedTarget?.dispose();
     this.cachedKey = key;
-    this.cachedTexture = target.texture;
+    this.cachedTarget = target;
     return target.texture;
   }
 
   dispose(): void {
-    this.cachedTexture?.dispose();
-    this.cachedTexture = null;
+    this.cachedTarget?.dispose();
+    this.cachedTarget = null;
     this.pmrem.dispose();
     this.material.dispose();
     this.scene.traverse((o) => {

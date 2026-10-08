@@ -1023,6 +1023,7 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
   group.name = "ground-clutter";
   const materials: THREE.Material[] = [];
   const geometries: THREE.BufferGeometry[] = [];
+  const meshes: THREE.InstancedMesh[] = [];
   let instances = 0;
   let triangles = 0;
 
@@ -1084,6 +1085,7 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
     mesh.computeBoundingSphere();
 
     group.add(mesh);
+    meshes.push(mesh);
     instances += list.length;
     const index = geometry.getIndex();
     const tris = index ? index.count / 3 : geometry.attributes["position"]!.count / 3;
@@ -1095,6 +1097,9 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
     instances,
     triangles,
     dispose(): void {
+      // InstancedMesh.dispose() is what releases the GPU buffers behind
+      // instanceMatrix and instanceColor; disposing the geometry does not.
+      for (const mesh of meshes) mesh.dispose();
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) material.dispose();
       group.clear();

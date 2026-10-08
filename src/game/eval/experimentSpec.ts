@@ -1,3 +1,4 @@
+import { HOST_CAPABILITIES } from "../pilot/capabilities.js";
 import { canonicalHash } from "../pilot/hash.js";
 import { decisionType } from "./outcomeContracts.js";
 import { metricDefinition } from "./metricRegistry.js";
@@ -40,6 +41,20 @@ export const INDEPENDENT_VARIABLES = [
   "seat",
   "build",
 ] as const;
+
+/**
+ * Injected answer delay, ms. The maximum is the contract's 1.5 s decision max
+ * age on purpose: `latency-sweep.json` puts a point at that edge to measure
+ * answer loss there.
+ */
+const LATENCY_RANGE = [0, 1500] as const;
+
+/**
+ * Decision interval, ms. The floor is the host's: `negotiate()` never runs a
+ * seat faster than `HOST_CAPABILITIES.minIntervalMs`, so a declared cadence
+ * below it would run at the floor while every report stated the declared value.
+ */
+const CADENCE_RANGE = [HOST_CAPABILITIES.minIntervalMs, 2000] as const;
 
 export const SEED_PRESETS: Readonly<Record<string, number>> = {
   quick: 3,
@@ -205,8 +220,18 @@ function parseArm(value: unknown, path: string, errors: string[]): ArmSpec | nul
     errors.push(`${path}.policy: a script arm names its policy`);
   if (brain !== "script" && policy !== undefined)
     errors.push(`${path}.policy: only script arms take a policy`);
-  const latencyMs = intIn(value["latencyMs"], 0, 1500, `${path}.latencyMs`, errors);
-  const cadenceMs = intIn(value["cadenceMs"], 50, 2000, `${path}.cadenceMs`, errors);
+  const latencyMs = intIn(
+    value["latencyMs"],
+    ...LATENCY_RANGE,
+    `${path}.latencyMs`,
+    errors,
+  );
+  const cadenceMs = intIn(
+    value["cadenceMs"],
+    ...CADENCE_RANGE,
+    `${path}.cadenceMs`,
+    errors,
+  );
   if (
     brain !== undefined &&
     REMOTE_BRAINS.includes(brain) &&
@@ -325,8 +350,8 @@ function expandSweep(sweep: unknown, arms: ArmSpec[], errors: string[]): ArmSpec
     for (const v of values) {
       const checked =
         param === "latencyMs"
-          ? intIn(v, 0, 1500, "sweep.values[]", errors)
-          : intIn(v, 50, 2000, "sweep.values[]", errors);
+          ? intIn(v, ...LATENCY_RANGE, "sweep.values[]", errors)
+          : intIn(v, ...CADENCE_RANGE, "sweep.values[]", errors);
       if (checked === undefined || param === undefined) continue;
       out.push({
         ...arm,
@@ -393,9 +418,18 @@ export function parseExperiment(value: unknown): SpecResult {
       } else secondary.push(def.id);
     }
   }
+  // Whole seconds: the seat reads `?outcomeWindow=` as an integer and falls
+  // back to 5 on anything else, so 2.5 here would run as 5 while every report
+  // said 2.5.
   const window = value["outcomeWindowS"] ?? 5;
-  if (typeof window !== "number" || !(window >= 1 && window <= 30)) {
-    errors.push("outcomeWindowS: seconds in [1, 30]");
+  if (
+    typeof window !== "number" ||
+    !Number.isInteger(window) ||
+    !(window >= 1 && window <= 30)
+  ) {
+    errors.push(
+      "outcomeWindowS: whole seconds in [1, 30] (the seat's ?outcomeWindow= takes an integer)",
+    );
   }
 
   let seeds: number[] = [];

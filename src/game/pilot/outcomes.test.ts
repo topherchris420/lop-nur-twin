@@ -87,8 +87,48 @@ describe("outcome windows", () => {
     const tracker = new OutcomeTracker(5);
     const r = fresh();
     tracker.begin(r, 2, { targetId: null, ownsTravel: false });
-    const copy = OutcomeTracker.provisional(r, 3, tracker.startOf(r));
+    const copy = tracker.readOut(r, 3);
     expect(copy).toMatchObject({ complete: false, elapsedS: 1 });
     expect(tracker.openCount).toBe(1);
+  });
+
+  it("censors a death window whose nominal end lies past the episode's end", () => {
+    // Started at 57 with a 5 s window: it could not have run its full five
+    // seconds in a 60 s episode, so it is censored like a window without a
+    // death, rather than scored only because it ended in one.
+    const tracker = new OutcomeTracker(5);
+    const late = fresh();
+    tracker.begin(late, 57, { targetId: null, ownsTravel: false });
+    tracker.death(58);
+    // Read out mid-run, it already says what the episode end would make it.
+    expect(tracker.readOut(late, 59)).toMatchObject({ died: true, complete: false });
+    tracker.closeAll(60);
+    expect(late.outcome).toMatchObject({ died: true, timeToDeathS: 1, complete: false });
+  });
+
+  it("keeps a death window complete once its nominal end falls inside the episode", () => {
+    const tracker = new OutcomeTracker(5);
+    const early = fresh();
+    tracker.begin(early, 50, { targetId: null, ownsTravel: false });
+    tracker.death(52);
+    // The episode runs on past 55, the window's nominal end.
+    tracker.step(55, 0);
+    expect(tracker.readOut(early, 56)).toMatchObject({ died: true, complete: true });
+    tracker.closeAll(60);
+    expect(early.outcome).toMatchObject({ died: true, timeToDeathS: 2, complete: true });
+  });
+
+  it("treats a death window and a quiet window at the episode's end alike", () => {
+    const tracker = new OutcomeTracker(5);
+    const quiet = fresh();
+    tracker.begin(quiet, 56, { targetId: null, ownsTravel: false });
+    tracker.closeAll(58);
+    const dying = new OutcomeTracker(5);
+    const died = fresh();
+    dying.begin(died, 56, { targetId: null, ownsTravel: false });
+    dying.death(57);
+    dying.closeAll(58);
+    expect(quiet.outcome!.complete).toBe(false);
+    expect(died.outcome!.complete).toBe(false);
   });
 });

@@ -64,6 +64,14 @@ export interface VoiceRender {
   own(...nodes: AudioNode[]): void;
   /** True when the local player made this sound (no position, so no panning). */
   isLocal: boolean;
+  /**
+   * The level the engine applies to this voice's dry signal *after* `dest`:
+   * request gain, occlusion and the panner's distance roll-off. A renderer that
+   * taps a reverb send off `dest` scales the send by this, so the wet level
+   * follows the dry one instead of arriving at full strength from 300 m away
+   * or from behind a wall. Absent means 1 (the offline measurement harness).
+   */
+  wetGain?: number;
 }
 
 export type VoiceRenderer = (v: VoiceRender) => number;
@@ -81,6 +89,31 @@ interface Voice {
 }
 
 const SPEED_OF_SOUND = 343;
+
+/** Panner settings shared by `play()` and `pannerDistanceGain()`. */
+const PANNER_REF_DISTANCE = 6;
+const PANNER_ROLLOFF = 0.9;
+const PANNER_MAX_DISTANCE = 400;
+
+/**
+ * Relative depth of the tinnitus flutter: the ring's level wobbles by this
+ * fraction of itself. A fraction, not an absolute gain, so a silent ring stays
+ * silent — an absolute LFO summed into a gain whose base is 0 is a 4 kHz tone
+ * that never stops.
+ */
+export const TINNITUS_FLUTTER_DEPTH = 0.2;
+
+/**
+ * The gain an `inverse`-model `PannerNode` applies at `distance`, per the Web
+ * Audio spec: ref / (ref + rolloff * (clamp(d, ref, max) - ref)).
+ */
+export function pannerDistanceGain(distance: number): number {
+  const d = Math.min(PANNER_MAX_DISTANCE, Math.max(PANNER_REF_DISTANCE, distance));
+  return (
+    PANNER_REF_DISTANCE /
+    (PANNER_REF_DISTANCE + PANNER_ROLLOFF * (d - PANNER_REF_DISTANCE))
+  );
+}
 
 /** Higher wins when the voice cap is reached. */
 const PRIORITY: Partial<Record<SoundId, number>> = {
@@ -122,7 +155,10 @@ export class AudioEngine {
   readonly ctx: AudioContext;
   private readonly master: GainNode;
   private readonly suppressionLp: BiquadFilterNode;
+  /** Envelope: 0 when there is no ringing, driven by `update()`. */
   private readonly tinnitusGain: GainNode;
+  /** Flutter: 1 + lfo * depth, applied after the envelope. */
+  private readonly tinnitusFlutter: GainNode;
   private readonly tinnitusOsc: OscillatorNode;
   private readonly tinnitusLfo: OscillatorNode;
   private readonly limiter: DynamicsCompressorNode;
@@ -131,14 +167,26 @@ export class AudioEngine {
   private readonly voices: Voice[] = [];
   private readonly renderers = new Map<SoundId, VoiceRenderer>();
   private readonly maxVoices: number;
-  private readonly options: AudioEngineOptions;
+  private hasLineOfSight: AudioEngineOptions["hasLineOfSight"];
   private tinnitusIntensity = 0;
+  /** True once a gesture has started the context at least once. */
   private unlocked = false;
+  private readonly onStateChange = (): void => {
+    // Safari and iOS suspend or "interrupt" a running context (a call, the tab
+    // backgrounded). Once the user has unlocked audio, try to bring it back;
+    // where the browser insists on a gesture, the host's next `unlock()` does.
+    const state = this.ctx.state;
+    if (!this.unlocked || state === "running" || state === "closed") return;
+    this.ctx.resume().catch(() => {
+      /* needs a gesture; unlock() will retry */
+    });
+  };
 
   constructor(options: AudioEngineOptions = {}) {
-    this.options = options;
+    this.hasLineOfSight = options.hasLineOfSight;
     this.maxVoices = options.maxVoices ?? 48;
     this.ctx = new AudioContext({ latencyHint: "interactive" });
+    this.ctx.addEventListener("statechange", this.onStateChange);
 
     // A limiter, not a compressor doing limiter duty: eight simultaneous
     // gunshots must not clip, and nothing quieter should be touched.
@@ -160,21 +208,26 @@ export class AudioEngine {
     this.suppressionLp.Q.value = 0.7071;
     this.suppressionLp.connect(this.master);
 
-    // High-pitched 4kHz tinnitus ringing oscillator with subtle amplitude flutter
+    // High-pitched 4kHz tinnitus ringing with subtle amplitude flutter:
+    // osc -> envelope (intensity, base 0) -> flutter (1 + lfo * depth) -> master.
+    // The LFO modulates a gain whose base is 1, downstream of the envelope, so
+    // the flutter scales with the ring and is silent when the ring is.
     this.tinnitusOsc = this.ctx.createOscillator();
     this.tinnitusOsc.type = "sine";
     this.tinnitusOsc.frequency.value = 4080;
     this.tinnitusGain = gainNode(this.ctx, 0);
+    this.tinnitusFlutter = gainNode(this.ctx, 1);
 
     this.tinnitusLfo = this.ctx.createOscillator();
     this.tinnitusLfo.type = "sine";
     this.tinnitusLfo.frequency.value = 4.2;
-    const lfoDepth = gainNode(this.ctx, 0.035);
+    const lfoDepth = gainNode(this.ctx, TINNITUS_FLUTTER_DEPTH);
     this.tinnitusLfo.connect(lfoDepth);
-    lfoDepth.connect(this.tinnitusGain.gain);
+    lfoDepth.connect(this.tinnitusFlutter.gain);
 
     this.tinnitusOsc.connect(this.tinnitusGain);
-    this.tinnitusGain.connect(this.master);
+    this.tinnitusGain.connect(this.tinnitusFlutter);
+    this.tinnitusFlutter.connect(this.master);
     this.tinnitusOsc.start(0);
     this.tinnitusLfo.start(0);
 
@@ -202,12 +255,34 @@ export class AudioEngine {
     this.renderers.set(id, renderer);
   }
 
-  /** Browsers block audio until a gesture; call this from a click or key. */
+  /**
+   * Browsers block audio until a gesture; call this from every click or key.
+   * Not one-shot: Safari and iOS suspend or interrupt a context that was
+   * already running, and only a later gesture may resume it, so every call
+   * resumes whenever the context is not running.
+   */
   async unlock(): Promise<void> {
-    if (this.unlocked) return;
-    if (this.ctx.state === "suspended") await this.ctx.resume();
-    this.unlocked = this.ctx.state === "running";
-    if (this.unlocked) this.reverb.warm();
+    const state = this.ctx.state;
+    if (state === "closed") return;
+    if (state !== "running") {
+      try {
+        await this.ctx.resume();
+      } catch {
+        return;
+      }
+    }
+    if (this.ctx.state !== "running") return;
+    if (!this.unlocked) this.reverb.warm();
+    this.unlocked = true;
+  }
+
+  /**
+   * Install or replace the occlusion test after construction. The engine is a
+   * singleton, so whichever caller happens to create it first must not decide
+   * for good whether occlusion exists.
+   */
+  setLineOfSight(fn: AudioEngineOptions["hasLineOfSight"]): void {
+    this.hasLineOfSight = fn;
   }
 
   setMasterVolume(value: number): void {
@@ -318,8 +393,8 @@ export class AudioEngine {
       _source.copy(request.position);
       distance = _listener.distanceTo(_source);
       if (distance > 400) return;
-      if (this.options.hasLineOfSight && distance > 4) {
-        occluded = !this.options.hasLineOfSight(_listener, _source);
+      if (this.hasLineOfSight && distance > 4) {
+        occluded = !this.hasLineOfSight(_listener, _source);
       }
     }
 
@@ -345,9 +420,9 @@ export class AudioEngine {
       panner = this.ctx.createPanner();
       panner.panningModel = "HRTF";
       panner.distanceModel = "inverse";
-      panner.refDistance = 6;
-      panner.rolloffFactor = 0.9;
-      panner.maxDistance = 400;
+      panner.refDistance = PANNER_REF_DISTANCE;
+      panner.rolloffFactor = PANNER_ROLLOFF;
+      panner.maxDistance = PANNER_MAX_DISTANCE;
       panner.positionX.value = request.position.x;
       panner.positionY.value = request.position.y;
       panner.positionZ.value = request.position.z;
@@ -355,7 +430,8 @@ export class AudioEngine {
       output = panner;
     }
     output.connect(voiceGain);
-    voiceGain.gain.value = (request.gain ?? 1) * (occluded ? 0.45 : 1);
+    const postGain = (request.gain ?? 1) * (occluded ? 0.45 : 1);
+    voiceGain.gain.value = postGain;
     voiceGain.connect(this.busFor(request.id));
 
     const nodes: AudioNode[] = [voiceGain, filter];
@@ -374,6 +450,7 @@ export class AudioEngine {
       reverb: this.reverb,
       own: (...extra) => nodes.push(...extra),
       isLocal: !request.position,
+      wetGain: postGain * (panner ? pannerDistanceGain(distance) : 1),
     });
 
     this.voices.push({ nodes, endsAt: Math.max(endsAt, when + 0.05), priority });
@@ -419,6 +496,8 @@ export class AudioEngine {
     const p = game.cameraPosition;
     const f = game.cameraForward;
     const u = game.cameraUp;
+    // Firefox has no AudioParam position/orientation on the listener; without
+    // the older setters there, the listener would sit at the origin for good.
     if (listener.positionX) {
       listener.positionX.value = p.x;
       listener.positionY.value = p.y;
@@ -429,10 +508,14 @@ export class AudioEngine {
       listener.upX.value = u.x;
       listener.upY.value = u.y;
       listener.upZ.value = u.z;
+    } else {
+      listener.setPosition(p.x, p.y, p.z);
+      listener.setOrientation(f.x, f.y, f.z, u.x, u.y, u.z);
     }
   }
 
   dispose(): void {
+    this.ctx.removeEventListener("statechange", this.onStateChange);
     for (let i = this.voices.length - 1; i >= 0; i -= 1) this.stop(i);
     this.reverb.dispose();
     try {
@@ -441,6 +524,7 @@ export class AudioEngine {
       this.tinnitusOsc.disconnect();
       this.tinnitusLfo.disconnect();
       this.tinnitusGain.disconnect();
+      this.tinnitusFlutter.disconnect();
       this.suppressionLp.disconnect();
     } catch {
       /* already disconnected */

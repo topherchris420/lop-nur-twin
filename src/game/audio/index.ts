@@ -275,9 +275,16 @@ const RENDERERS: Partial<Record<SoundId, VoiceRenderer>> = {
 
 let engine: AudioEngine | null = null;
 
-/** Create the engine and register every renderer. Idempotent. */
+/**
+ * Create the engine and register every renderer. Idempotent; a later call that
+ * passes `hasLineOfSight` installs it on the existing engine, so occlusion does
+ * not depend on which caller happened to create the singleton first.
+ */
 export function createAudio(options: AudioEngineOptions = {}): AudioEngine {
-  if (engine) return engine;
+  if (engine) {
+    if (options.hasLineOfSight) engine.setLineOfSight(options.hasLineOfSight);
+    return engine;
+  }
   engine = new AudioEngine(options);
   for (const [id, renderer] of Object.entries(RENDERERS)) {
     if (renderer) engine.register(id as SoundId, renderer);

@@ -18,7 +18,12 @@ import { buildWeaponModel, type WeaponModel } from "../weapons/model";
 import { ViewmodelAnimator } from "../weapons/animation";
 import { getWeapon } from "../weapons/arsenal";
 import type { FxManager } from "../fx/combatFx";
-import { applyNearMissSuppression } from "../core/combat";
+import {
+  applyNearMissSuppression,
+  areHostile,
+  queueEnvironmentalDamage,
+} from "../core/combat";
+import { startNewLife } from "./lifecycle";
 import { ViewmodelStage } from "./viewmodelStage";
 import { isCoarsePointer } from "@/lib/touchInput";
 import { sunState } from "@/lib/sunState";
@@ -28,7 +33,7 @@ import { pilot } from "../pilot/pilot";
 import { rigState } from "../pilot/rigState";
 import { mirageOffset } from "../world/mirage";
 import { EliteOperatorAssist, type AssistEnemy, type AssistSense } from "./eliteAssist";
-import { MASK_SIGHT, OPPOSING_TEAM } from "../core/types";
+import { MASK_SIGHT } from "../core/types";
 
 /**
  * The first-person rig: input, camera, weapon and viewmodel.
@@ -251,6 +256,8 @@ export function PlayerRig({
   const death = useRef(0);
   /** Eased horizontal field of view, in degrees. See `core/types.ts`. */
   const horizontalFov = useRef(fovSetting);
+  /** The spawn this rig last restocked for; see `game.playerSpawnEpoch`. */
+  const spawnEpoch = useRef(game.playerSpawnEpoch);
 
   useEffect(() => {
     scene.add(laser.group);
@@ -390,6 +397,13 @@ export function PlayerRig({
     const playing = useGameStore.getState().screen === "playing";
     const dt = Math.min(0.05, rawDelta);
     const player = game.player;
+    // A respawn or a new match: the next life starts with full weapons and no
+    // movement state left over from the last one.
+    if (spawnEpoch.current !== game.playerSpawnEpoch) {
+      spawnEpoch.current = game.playerSpawnEpoch;
+      startNewLife([held.primary, held.secondary], controller);
+      animator.reset();
+    }
     const active = held[held.active];
     const model = held.models[held.active];
 
@@ -418,9 +432,8 @@ export function PlayerRig({
         sense.ads = active.ads;
         sense.playerSpeed = player.speed;
         elite.enemies.length = 0;
-        const enemyTeam = OPPOSING_TEAM[player.team];
         for (const other of game.actors) {
-          if (other.isPlayer || !other.alive || other.team !== enemyTeam) continue;
+          if (other.isPlayer || !other.alive || !areHostile(player, other)) continue;
           // The body as the player sees it through the heat shimmer.
           let seen = elite.apparent.get(other.id);
           if (!seen) {
@@ -469,8 +482,9 @@ export function PlayerRig({
         } else if (event.kind === "slide-start" && fx) {
           fx.groundDust(player.position, player.groundSurface, 1.4, 0.9);
         } else if (event.kind === "fall-damage") {
-          player.health = Math.max(0, player.health - event.amount);
-          player.lastDamageTime = game.time;
+          // Through the damage pipeline like any other hit, so a fatal fall
+          // kills — scored, respawned and debriefed the same way.
+          queueEnvironmentalDamage(player, event.amount, "fall", game.time);
         }
       }
 
@@ -527,7 +541,8 @@ export function PlayerRig({
         if (eliteOn) {
           elite.assist.onShot(active.lastPatternKickDeg, store.eliteRecoilAssist);
         }
-        if (fx) {
+        // A knife has no muzzle and sends nothing downrange.
+        if (fx && !active.isMelee) {
           const calibre =
             active.def.weaponClass === "sniper" || active.def.weaponClass === "lmg"
               ? 0.34
@@ -536,7 +551,7 @@ export function PlayerRig({
                 : 0.26;
           fx.muzzleFlash(_muzzle, _forward, calibre, false, true);
           _probeEnd.copy(_eye).addScaledVector(_forward, 200);
-          applyNearMissSuppression(_eye, _probeEnd, player.team);
+          applyNearMissSuppression(_eye, _probeEnd, player);
         }
         player.lastFireTime = game.time;
       }
