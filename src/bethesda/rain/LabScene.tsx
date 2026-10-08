@@ -11,9 +11,11 @@
  *
  * The four perspectives are embodied from R.A.I.N.'s own client
  * (R.A.I.N.'s Godot client in topherchris420/james_library: `agent_avatar.gd` LOOKS and the lab theme's
- * colours), as low-poly figures. Staging follows R.A.I.N.'s neutral event
- * vocabulary: the speaker of the current `agent_utterance` is lit and the
- * others turn to them. Nothing animates confidence or agreement.
+ * colours) as rigged, skinned figures (`figures.ts`), animated with the
+ * client's own behaviours (`figureMotion.ts`). Staging follows R.A.I.N.'s
+ * neutral event vocabulary: the speaker of the current `agent_utterance` is
+ * lit and talks, and the others turn to them. Nothing animates confidence or
+ * agreement.
  *
  * No React state on the frame loop: motion lives in refs and `useFrame`;
  * the store is read, never written per frame (room changes are discrete).
@@ -35,11 +37,21 @@ import {
   WALL_HEIGHT,
   moveInLab,
   roomAt,
+  routeInLab,
   type RoomId,
   type Vec,
 } from "./labLayout";
 import { currentSpeaker } from "./session";
 import { EMBODIMENT } from "./embodiment";
+import { buildFigure } from "./figures";
+import {
+  FigureAnimator,
+  arrived,
+  followRoute,
+  seedFor,
+  yawToward,
+  type RouteWalk,
+} from "./figureMotion";
 import { LookDrag, stepFor, walkIntent, type Stick } from "../walkInput";
 import { canRender } from "../webgl";
 import type { LabStore } from "./store";
@@ -669,182 +681,216 @@ function Systems({ store }: { store: LabStore }) {
 }
 
 // --- The four perspectives --------------------------------------------------------
-function Figure({ who }: { who: Perspective }) {
-  const e = EMBODIMENT[who];
-  if (who === "James")
-    return (
-      <group>
-        <mesh position={[0, 1.25, 0]} scale={[0.42, 0.52, 0.42]}>
-          <sphereGeometry args={[1, 20, 16]} />
-          <meshStandardMaterial color={e.body} roughness={0.55} />
-        </mesh>
-        {Array.from({ length: 8 }, (_, i) => (
-          <mesh
-            key={i}
-            name="tentacle"
-            position={[
-              Math.cos((i / 8) * Math.PI * 2) * 0.25,
-              0.42,
-              Math.sin((i / 8) * Math.PI * 2) * 0.25,
-            ]}
-            rotation={[
-              Math.sin((i / 8) * Math.PI * 2) * 0.35,
-              0,
-              -Math.cos((i / 8) * Math.PI * 2) * 0.35,
-            ]}
-          >
-            <cylinderGeometry args={[0.07, 0.025, 0.85, 8]} />
-            <meshStandardMaterial color={e.accent} roughness={0.6} />
-          </mesh>
-        ))}
-        {[-0.13, 0.13].map((x) => (
-          <mesh key={x} position={[x, 1.33, -0.4]}>
-            <torusGeometry args={[0.08, 0.012, 8, 20]} />
-            <meshStandardMaterial color="#d8dde0" metalness={0.8} roughness={0.2} />
-          </mesh>
-        ))}
-      </group>
-    );
-  const feminine = who !== "Luca";
-  return (
-    <group>
-      {[-0.1, 0.1].map((x) => (
-        <mesh key={x} position={[x, 0.42, 0]}>
-          <cylinderGeometry args={[0.065, 0.06, 0.84, 8]} />
-          <meshStandardMaterial
-            color={who === "Elena" ? e.skin : e.accent}
-            roughness={0.7}
-          />
-        </mesh>
-      ))}
-      {who === "Elena" ? (
-        <mesh position={[0, 0.78, 0]}>
-          <cylinderGeometry args={[0.2, 0.3, 0.5, 14]} />
-          <meshStandardMaterial color={e.accent} roughness={0.7} />
-        </mesh>
-      ) : null}
-      <mesh position={[0, 1.2, 0]}>
-        <capsuleGeometry args={[feminine ? 0.2 : 0.22, 0.42, 6, 12]} />
-        <meshStandardMaterial color={e.body} roughness={0.7} />
-      </mesh>
-      <mesh position={[0, 1.7, 0]}>
-        <sphereGeometry args={[0.15, 16, 12]} />
-        <meshStandardMaterial color={e.skin} roughness={0.6} />
-      </mesh>
-      {who === "Jasmine" ? (
-        <>
-          <mesh position={[0, 1.8, 0.03]}>
-            <sphereGeometry args={[0.24, 18, 14]} />
-            <meshStandardMaterial color={e.hair} roughness={0.95} />
-          </mesh>
-          <mesh position={[0, 1.86, -0.02]} rotation={[0.25, 0, 0]}>
-            <torusGeometry args={[0.2, 0.025, 8, 24]} />
-            <meshStandardMaterial color="#3d4a50" roughness={0.4} />
-          </mesh>
-          {[-0.15, 0.15].map((x) => (
-            <mesh key={x} position={[x, 1.62, 0]} rotation={[0, Math.PI / 2, 0]}>
-              <torusGeometry args={[0.035, 0.008, 6, 16]} />
-              <meshStandardMaterial color="#d6b04a" metalness={0.9} roughness={0.25} />
-            </mesh>
-          ))}
-        </>
-      ) : null}
-      {who === "Luca" ? (
-        <>
-          <mesh position={[0, 1.8, 0.04]} scale={[1, 0.6, 1.1]}>
-            <sphereGeometry args={[0.16, 14, 10]} />
-            <meshStandardMaterial color={e.hair} roughness={0.9} />
-          </mesh>
-          <mesh name="scarf" position={[0, 1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.14, 0.05, 8, 18]} />
-            <meshStandardMaterial color="#b4583a" roughness={0.9} />
-          </mesh>
-        </>
-      ) : null}
-      {who === "Elena" ? (
-        <>
-          <mesh position={[0, 1.58, 0.08]}>
-            <capsuleGeometry args={[0.13, 0.4, 6, 10]} />
-            <meshStandardMaterial color={e.hair} roughness={0.9} />
-          </mesh>
-          {[-0.06, 0.06].map((x) => (
-            <mesh key={x} position={[x, 1.72, -0.15]}>
-              <torusGeometry args={[0.04, 0.008, 6, 14]} />
-              <meshStandardMaterial color="#1b1b22" roughness={0.3} />
-            </mesh>
-          ))}
-        </>
-      ) : null}
-    </group>
-  );
+
+/** A soft dark disc under a figure: the room has no shadow-casting light, and feet need a floor. */
+function contactShadow() {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 64;
+  const c = canvas.getContext("2d")!;
+  const g = c.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, "rgba(0,0,0,0.62)");
+  g.addColorStop(0.45, "rgba(0,0,0,0.34)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  c.fillStyle = g;
+  c.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(canvas);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
+const reducedMotion = () =>
+  typeof window !== "undefined" &&
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * The four perspectives, embodied (`figures.ts`) and animated
+ * (`figureMotion.ts`) from R.A.I.N.'s neutral event vocabulary alone: who
+ * has the current turn, and where the meeting is. Between meetings each idles
+ * at its station; when a meeting is staged they walk to the table through the
+ * doorways (`routeInLab`), and back when it is cleared. The speaker's mouth
+ * and hands move and the others look to them; nothing moves with confidence
+ * or agreement. A perspective out on an outing is in the city: its seat stays
+ * empty, nobody turns to it, and its turn lights no ring.
+ */
 function Perspectives({ store }: { store: LabStore }) {
-  const refs = useRef<Record<string, THREE.Group | null>>({});
+  const reduced = useMemo(reducedMotion, []);
+  const cast = useMemo(
+    () =>
+      PERSPECTIVES.map((who) => {
+        const rig = buildFigure(who, "lab");
+        const start = STATIONS[who].at;
+        const animator = new FigureAnimator(rig, seedFor(who));
+        animator.place(start.x, start.z, STATIONS[who].facing);
+        // The walks every meeting makes, planned now rather than on the frame
+        // a meeting starts (the first also builds the lab's walking grid).
+        routeInLab(start, SEATS[who]);
+        routeInLab(SEATS[who], start);
+        const walk: RouteWalk & { key: string; away: boolean } = {
+          x: start.x,
+          z: start.z,
+          route: [],
+          leg: 0,
+          speed: 0,
+          key: "",
+          away: false,
+        };
+        return {
+          who,
+          rig,
+          animator,
+          walk,
+          head: new THREE.Vector3(),
+          glances: [] as THREE.Vector3[],
+        };
+      }),
+    [],
+  );
+  const shadowMap = useMemo(contactShadow, []);
+  useEffect(
+    () => () => {
+      for (const c of cast) c.rig.dispose();
+      shadowMap.dispose();
+    },
+    [cast, shadowMap],
+  );
   const halos = useRef<Record<string, THREE.Mesh | null>>({});
-  const pos = useRef<Record<string, THREE.Vector3>>({});
-  useFrame(({ clock }, dt) => {
+  const shadows = useRef<Record<string, THREE.Mesh | null>>({});
+  const table = useMemo(
+    () => new THREE.Vector3(TABLE.center.x, 0.86, TABLE.center.z),
+    [],
+  );
+  const visitor = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera }, dt) => {
     const m = store.meeting;
     const meeting = !!m && m.revealed <= m.record.turns.length;
-    const speaker = currentSpeaker(
+    const turn = currentSpeaker(
       m?.record ?? null,
       m && m.revealed < m.record.turns.length ? m.revealed : -1,
     );
     const away = store.presenceSnapshot();
-    for (const who of PERSPECTIVES) {
-      const g = refs.current[who];
-      if (!g) continue;
-      // A perspective on an outing is in the city, not at its station.
-      g.visible = !away.some((a) => a.who === who);
+    const isAway = (who: Perspective) => {
+      for (const a of away) if (a.who === who) return true;
+      return false;
+    };
+    // Whose turn it is, if they are in the room to take it.
+    const speaker = turn && !isAway(turn) ? turn : null;
+    const key = `${meeting}`;
+    visitor.copy(camera.position);
+    for (const c of cast) {
+      c.rig.root.visible = !isAway(c.who);
+      // Where each head is, for the others to look at.
+      c.head.set(
+        c.walk.x,
+        c.rig.scale * (c.rig.kind === "octopus" ? 1.0 : 1.62),
+        c.walk.z,
+      );
+    }
+    let speaking: (typeof cast)[number] | null = null;
+    for (const c of cast) if (c.who === speaker) speaking = c;
+    for (const c of cast) {
+      const { who, rig, animator, walk } = c;
+      const halo = halos.current[who],
+        shadow = shadows.current[who];
+      if (!rig.root.visible) {
+        // On an outing the figure is in the city; it comes back to its station.
+        walk.away = true;
+        if (halo) halo.visible = false;
+        if (shadow) shadow.visible = false;
+        continue;
+      }
       const target = meeting ? SEATS[who] : STATIONS[who].at;
-      const p = (pos.current[who] ??= new THREE.Vector3(
-        STATIONS[who].at.x,
-        0,
-        STATIONS[who].at.z,
-      ));
-      const k = Math.min(1, dt * 1.2);
-      p.x += (target.x - p.x) * k;
-      p.z += (target.z - p.z) * k;
-      const breathe = Math.sin(clock.elapsedTime * 1.4 + who.length) * 0.012;
-      g.position.set(p.x, breathe, p.z);
+      if (walk.away || reduced) {
+        walk.away = false;
+        walk.x = target.x;
+        walk.z = target.z;
+        walk.route = [];
+        walk.leg = 0;
+        walk.key = key;
+        animator.place(target.x, target.z, animator.position.yaw);
+      }
+      if (walk.key !== key) {
+        walk.key = key;
+        walk.route = routeInLab({ x: walk.x, z: walk.z }, target).slice(1);
+        walk.leg = 0;
+      }
+      followRoute(walk, Math.min(dt, 0.1));
       // Face the speaker, the table, or the station's own direction.
-      const look =
+      const towards =
         speaker && speaker !== who ? SEATS[speaker] : meeting ? TABLE.center : null;
-      const yaw = look
-        ? Math.atan2(look.x - p.x, look.z - p.z) + Math.PI
-        : STATIONS[who].facing;
-      // Turn the short way round.
-      const turn =
-        ((((yaw - g.rotation.y + Math.PI) % (Math.PI * 2)) + Math.PI * 2) %
-          (Math.PI * 2)) -
-        Math.PI;
-      g.rotation.y += turn * Math.min(1, dt * 3);
-      g.traverse((o) => {
-        if (o.name === "tentacle")
-          o.rotation.z += Math.sin(clock.elapsedTime * 1.7 + o.position.x * 9) * 0.0025;
-        if (o.name === "scarf") o.rotation.y = Math.sin(clock.elapsedTime * 1.1) * 0.08;
-      });
-      const halo = halos.current[who];
+      const face = !arrived(walk)
+        ? null
+        : towards
+          ? yawToward(towards.x - walk.x, towards.z - walk.z)
+          : STATIONS[who].facing;
+      // Attention: the speaker; the table while a meeting has no speaker in
+      // the room; a visitor who comes close between meetings; otherwise ahead.
+      let look: THREE.Vector3 | null = null;
+      if (speaking && speaking !== c) look = speaking.head;
+      else if (meeting && !speaking) look = table;
+      else if (!meeting && Math.hypot(visitor.x - walk.x, visitor.z - walk.z) < 3)
+        look = visitor;
+      c.glances.length = 0;
+      if (speaking === c)
+        for (const o of cast) if (o !== c && o.rig.root.visible) c.glances.push(o.head);
+      animator.update(
+        dt,
+        {
+          x: walk.x,
+          z: walk.z,
+          ground: 0,
+          face,
+          look,
+          glances: c.glances,
+          speaking: speaking === c,
+          scan: false,
+        },
+        reduced,
+      );
       if (halo) {
-        halo.visible = speaker === who && g.visible;
-        halo.position.set(p.x, 0.02, p.z);
+        halo.visible = speaking === c;
+        halo.position.set(walk.x, 0.02, walk.z);
+      }
+      if (shadow) {
+        shadow.visible = true;
+        shadow.position.set(walk.x, 0.012, walk.z);
       }
     }
   });
   return (
     <>
-      {PERSPECTIVES.map((who) => (
+      {cast.map(({ who, rig }) => (
         <group key={who}>
-          <group ref={(g) => void (refs.current[who] = g)}>
-            <Figure who={who} />
-          </group>
+          <primitive object={rig.root} />
+          <mesh
+            ref={(s) => void (shadows.current[who] = s)}
+            rotation={[-Math.PI / 2, 0, 0]}
+            scale={rig.footprint * rig.scale * 2.4}
+            renderOrder={1}
+          >
+            <planeGeometry args={[1, 1]} />
+            <meshBasicMaterial
+              map={shadowMap}
+              transparent
+              depthWrite={false}
+              toneMapped={false}
+              polygonOffset
+              polygonOffsetFactor={-2}
+            />
+          </mesh>
           <mesh
             ref={(h) => void (halos.current[who] = h)}
             rotation={[-Math.PI / 2, 0, 0]}
             visible={false}
           >
-            <ringGeometry args={[0.45, 0.55, 32]} />
-            <meshBasicMaterial color="#3fb6b0" transparent opacity={0.7} />
+            <ringGeometry
+              args={[rig.footprint * 1.25, rig.footprint * 1.25 + 0.08, 48]}
+            />
+            <meshBasicMaterial
+              color="#3fb6b0"
+              transparent
+              opacity={0.7}
+              depthWrite={false}
+            />
           </mesh>
         </group>
       ))}

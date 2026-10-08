@@ -388,6 +388,58 @@ verbatim. Where the record shows the perspectives disagreeing, the panel keeps
 the positions as separate branches. Confidence is never animated, and agreement
 among the four is described as agreement, never as validation.
 
+**How they are built.** Who each perspective is comes from R.A.I.N.'s Godot
+client — `agent_avatar.gd`'s `LOOKS` (James an octopus in spectacles; Jasmine
+in safety goggles worn as a headband and gold hoops, with a natural afro; Luca
+in a sweater and scarf with swept hair; Elena in a blazer and A-line skirt, long
+hair and glasses) and the lab theme's colours, now in `embodiment.ts`.
+Jasmine's clothes are the lab's own, not the client's overalls: a yellow
+off-the-shoulder top with a frill and short puffed sleeves, a satin wrap skirt
+to below the knee, slit up the right thigh and tied at the hip, wine heels and a
+fine gold chain. The figures are modelled in code the way a character artist
+blocks one out in Blender, because the site ships no binary assets
+(`figures.ts`): the head, torso, skirt and James's mantle are lofted through
+measured cross-sections; limbs are swept along their bones in one piece from
+shoulder to wrist and hip to ankle; hair is a shell of the scalp above a
+hairline; the shirt's V, the lapels, the top's hem and frill are laid over the
+torso as their own surfaces. Each is one skinned mesh on the shared 34-bone rig in
+`game/characters/rig.ts` (James has his own: a hub, a mantle that breathes and
+eight six-bone arms), with face bones for the eyes, upper lids and mouth, and
+Luca's scarf tail on three more and Jasmine's skirt on twelve. Colour, roughness and metalness are per
+vertex; the material adds a cloth weave, a little warmth under skin and a cool
+grazing rim so a figure separates from the dark walls.
+
+**How they move.** The behaviours are the Godot client's, re-timed for a
+figure in a room (`figureMotion.ts`): breathing; blinks on the client's
+timings, one in five a double; a wandering gaze; weight shifting from foot to
+foot; James's arms swaying in a wave that grows toward the tip and Luca's scarf
+moving. A listener's eyes go to the speaker and the head follows; the speaker's
+mouth moves on the client's procedural voice (syllables under a slower phrase
+contour), the head takes small beats, the hands gesture — rest, a gesture after
+0.9–2.4 s, held, and back — and the gaze goes round the table. What the client
+also does and the lab does not: tone presets, nods, the end-of-conversation
+celebration, the drop-in entrance and the squash-and-stretch hops, because each
+reads as agreement or confidence; a gesture has one energy whoever speaks and
+whatever is said, and the animator is never handed a record. When a meeting is
+staged the four walk to the table — through the doorways and round the
+furniture (`routeInLab`, the same `blocked` the visitor collides with) — and
+back to their stations when it is cleared. Their feet are placed by the shared
+two-bone IK with stride tied to speed, and a foot that comes down is anchored
+where it landed until it swings again, so a planted foot holds still through a
+walk's first steps, a corner, a turn on the spot and a stop; a foot strained
+from its place in the gait takes a step. James crawls: his side arms push back
+at the body's speed while down and reach forward lifted, and the arms pointing
+ahead and behind are carried clear. Jasmine's skirt is not tied to her legs: it
+hangs from twelve bones round the hips, each hinged where the skirt leaves
+them, and each swings out only as far as the leg that reaches it needs — the
+leading leg pushes the front, the trailing one the back, the sides hang — then
+falls back with a short lag, so it flows rather than tenting. `figures.test.ts`
+walks her to the table and fails if a leg comes through it by 3.5 cm. A perspective who is out on an outing is in
+the city: nobody turns to the empty seat, and that turn lights no ring. Between
+meetings a visitor who comes within 3 m is looked at. Reduced motion stills all
+of it: the figures stand where they belong and turn at once, without a step, to
+whoever is speaking.
+
 ![The Research Panel with a LIVE meeting from the offline engine: R.A.I.N.'s large plate in front of the table, the four small plates, three of the perspectives, the resonance reading Unresolved, and James's first turn quoting a span verified verbatim](screenshots/rain-lab-meeting.png)
 
 _A LIVE meeting from the offline engine on the DEMO question, labelled
@@ -674,8 +726,9 @@ an avatar leaves by the lab's door and walks the mapped sidewalks (shortest by
 length, at most 1.5 km) at 3 m/s on the city's clock, pauses, and walks back.
 At most two are out at once, one per perspective. The avatar is not a
 simulation agent — nobody in the city sees, avoids or reacts to it — and it is
-drawn in the city, on the minimap and on the lab's wall map, while its seat in
-the lab stands empty. Only inside the place's 40 m observation region does the
+drawn in the city — the same figure as in the lab, at a jog, its feet on the
+pavement at the height the city's pedestrians walk, looking round the place
+while the simulator observes — on the minimap and on the lab's wall map, while its seat in the lab stands empty. Only inside the place's 40 m observation region does the
 simulator observe, once: the four location tools and a world-observation
 packet, computed from simulator state at that tick, recorded as a
 `bethesda-avatar-observation/v1` naming who asked. The avatar's position is
@@ -787,6 +840,16 @@ on a phone) and steps down a level after two seconds of frames slower than
 not count; economy draws flat plates with 6 modes, no grain and the lamp dark.
 Reduced motion stills the plates and makes every change of figure immediate.
 
+The four perspectives are four skinned meshes of 19–34k triangles (James
+19k, Luca 26k, Elena 32k, Jasmine 33k), two draw calls each (solid parts and
+open sheets such as hair). Each is built once — 35–90 ms — and kept for the
+page, shared between the lab and the city; the city loads the figure code with
+its first outing, so a visit that sends nobody out never downloads it. Per
+frame only bone transforms are written; the walks every meeting makes are
+planned when the lab opens, and the lab's walking grid with them, so the frame a
+meeting starts does no planning. Each figure has a 64-pixel contact shadow,
+since the lab's lights cast none. The figures never take a tap.
+
 ## Privacy and security
 
 - **The browser talks only to its own site.** `/api/rain/*` is the only route to
@@ -882,6 +945,26 @@ bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFF
                             # the stand-in model server
 JEV_LIVE_TEST=1 TYPESAFE_API_KEY=… bun run verify:rain-lab   # also lets R.A.I.N. ask Jev once:
                                                             # one paid TypeSafe call
+```
+
+The figures have their own checks. `src/bethesda/rain/figures.test.ts` builds
+all four and asserts the skinning, the face bones, the triangle budget, that
+every closed piece faces outward and that a figure is the same every time;
+walks them straight and along the lab's own routes, corners and the turn to
+the table included, and fails if a planted foot slides more than 2–3 cm, a knee
+bends backwards, a turn on the spot drags a foot, or James's planted arms skate
+along the walk; checks that every walk arrives at any frame rate; checks the
+Godot behaviours (blinks, the mouth closing when the turn passes, gestures only
+while speaking and palm up, eyes before the head, lids following the eyes,
+James's gaze landing on its target), that reduced motion moves no bone on a
+turn and still faces where a figure goes, that every station-to-seat route stays
+clear of the walls, and that the animator imports no record and names no
+verdict, confidence or tone. For the look:
+
+```sh
+bun run dev &
+node tools/rain-figures.mjs          # shots/rain-figures/: each perspective full-length and
+                                     # close up, the walk to the table, the table from two sides
 ```
 
 `tools/rain-lab.mjs` serves the build that ships, with its security headers; it
