@@ -15,6 +15,14 @@ human, a script or a language model takes the same seat and every decision is
 recorded. And, for anyone who goes looking, a second city beneath the first, with
 a research lab behind a door.
 
+That lab is not only another scene. It is the beginning of a different kind of
+system: a bounded research environment in which a local open model can observe
+a world, formulate questions, choose among pre-authorized experiments, run them
+on fresh simulators, inspect replayable results, preserve contradictions, and
+decide what to investigate next. The model supplies reasoning; the Lab supplies
+the world, memory, constraints, authorization, simulation, provenance and
+stopping rules.
+
 Three worlds, one rule. **Geography comes from documented sources. Interpretation
 is labelled. Simulated lives and events are fiction.** A model can propose an
 action; the simulation decides its consequences; and nothing that happens in the
@@ -25,6 +33,104 @@ game or the city ever becomes evidence about the site.
 > question answerable — including the day a small hand-written script matched a live
 > model's score and exposed the game instead.
 > [Read what happened.](#the-result-that-changed-the-experiment)
+
+## Why this is more than a digital twin
+
+The interesting object here is not the model. **It is the loop around the model.**
+
+Lop Nur Twin now contains a research runtime in which a local model can move
+through a bounded research cycle:
+
+```text
+observe
+  ↓
+ask what is unresolved
+  ↓
+form a hypothesis
+  ↓
+choose a permitted experiment
+  ↓
+host validates the proposal
+  ↓
+authorization policy admits it
+  ↓
+fresh simulator runs it
+  ↓
+replay verifies what happened
+  ↓
+registry evaluates the result
+  ↓
+record the interpretation and uncertainty
+  ↓
+return to the research state
+  ↓
+ask the next question
+```
+
+This changes the role of the model. It is no longer only something the project
+can ask a question. It can become a participant in an ongoing research process.
+
+But the autonomy is deliberately asymmetric:
+
+| The model may | The Lab retains |
+| :------------ | :-------------- |
+| Observe research state | Definition of what can run |
+| Form questions and hypotheses | Authorization |
+| Rank permitted designs | Simulation state |
+| Analyze sealed results | Evidence provenance |
+| Recommend what to examine next | Registry verdicts |
+| Stop its own research session | Budgets and termination |
+
+A charter binds the autonomous session to an exact set of experiment designs,
+model identity, ceilings and validity. The model cannot silently rewrite the
+experiment, enlarge its own budget, change the simulator, promote an
+interpretation into evidence, or grant itself new authority.
+
+That distinction is the project's central wager:
+
+> **Inference is not evidence. Evidence is not permission. Confidence is not authority.**
+
+The result is deliberately closer to a laboratory than to an autonomous chatbot.
+A researcher can be given room to explore without giving it the keys to the
+building.
+
+### The recursion is intentional, but not yet unbounded
+
+The current autonomous researcher is a single bounded lineage. That is the
+foundation for a more unusual experiment.
+
+A future R.A.I.N. world can expose a typed, budgeted capability to instantiate a
+descendant world:
+
+```text
+Researcher
+   │
+   ├── conducts experiments
+   │
+   └── proposes a new bounded world
+             │
+             ▼
+        Child researcher
+             │
+             └── proposes another bounded world
+```
+
+Every generation would carry explicit identity, capabilities, parentage,
+generation number, world constraints and provenance. A child would inherit a
+capability envelope, not its parent's authority. The cycle could continue only
+where the Lab explicitly permits the next generation to exist.
+
+That is not a claim that intelligence becomes infinite. It is an experiment in
+whether **research processes can generate new research environments while
+remaining inspectable, reproducible and bounded**.
+
+The hidden Lab in Bethesda is therefore more than an Easter egg. It is the
+place where the project's different layers meet: evidence, simulation, models,
+experiments, memory and agency, all under one provenance boundary.
+
+The project can be explored as a game. It can be read as a digital twin. It can
+be inspected as an evaluation harness. Increasingly, it can also be treated as
+a small artificial research world.
 
 ## Five minutes in
 
@@ -56,7 +162,8 @@ lists every claim with its sources, dates and uncertainty, and
 [`/compare`](https://lop-nur-twin.vercel.app/compare) diffs any two revisions of
 the model.
 
-[Quick start](#quick-start) · [The twin](#the-twin-a-reconstruction-that-shows-its-work) ·
+[Quick start](#quick-start) · [Why this matters](#why-this-is-more-than-a-digital-twin) ·
+[The twin](#the-twin-a-reconstruction-that-shows-its-work) ·
 [Blacksite](#blacksite-one-seat-many-minds) ·
 [Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
 [The R.A.I.N. Lab](#a-lab-behind-a-door) ·
