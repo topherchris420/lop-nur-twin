@@ -196,8 +196,10 @@ data = {'type': 'bethesda-streetscape/v1', 'bbox': BBOX, 'license': 'ODbL-1.0',
         'busRoutes': routes, 'buildingAttributes': attributes}
 out = folder / 'streetscape.json'
 out.write_text(json.dumps(data, ensure_ascii=False))
-subprocess.run([str(folder.parents[2] / 'node_modules/.bin/prettier'), '--write', str(out)],
-               check=True)
+# Prettier's own CLI entry under node: node_modules/.bin/prettier is a shell
+# script, and on Windows only prettier.cmd exists, which needs a shell.
+subprocess.run(['node', str(folder.parents[2] / 'node_modules/prettier/bin/prettier.cjs'),
+                '--write', str(out)], check=True)
 counts = {k: len(v) for k, v in data.items() if isinstance(v, list) and k != 'bbox'}
 raw_hash = hashlib.sha256(source_path.read_bytes()).hexdigest()
 manifest_path = folder / 'streetscape-source.json'

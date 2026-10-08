@@ -435,6 +435,8 @@ async function run(file) {
 
   const startedAt = new Date().toISOString();
   const entries = [];
+  /** Arms that were meant to run and crashed, as opposed to unflagged live arms. */
+  const failed = [];
   const defaultOrigin = option("origin", null);
   try {
     for (const arm of experiment.arms) {
@@ -459,6 +461,7 @@ async function run(file) {
         entry.report = basename(outFile);
       } catch (error) {
         entry.pending = `failed: ${String(error.message).split("\n")[0]}`;
+        failed.push(arm.id);
         console.error(`  [${arm.id}] ${error.message}`);
       }
     }
@@ -474,6 +477,15 @@ async function run(file) {
     `${JSON.stringify({ runId, startedAt, finishedAt: new Date().toISOString(), git, node: process.version, platform: platform(), cpus: cpus().length, liveFlagsSet, arms: entries }, null, 2)}\n`,
   );
   evaluate(outDir);
+  // The evaluation above records a crashed arm as pending, which is honest
+  // about the numbers; the run itself still did not do what it was asked.
+  if (failed.length > 0) {
+    console.error(
+      `\n[experiment] ${failed.length} of ${entries.length} arm(s) failed: ${failed.join(", ")}` +
+        ` (evaluation written to ${outDir})`,
+    );
+    process.exitCode = 1;
+  }
 }
 
 function compare(fileA, fileB) {

@@ -44,6 +44,7 @@ import {
   type FormalizationFilter,
 } from "../src/rain/mathematics/contracts.ts";
 import { sha256 } from "../src/rain/sha256.ts";
+import { formatAs } from "./prettier.ts";
 
 const REPO = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const DATA = join(REPO, "src", "rain", "mathematics", "data");
@@ -113,11 +114,10 @@ function pinned(root: string) {
   return { commit, commitDate: git("log", "-1", "--format=%cI", "HEAD") };
 }
 
-function writeFormatted(path: string, text: string) {
-  writeFileSync(path, text);
-  execFileSync(join(REPO, "node_modules", ".bin", "prettier"), ["--write", path], {
-    stdio: "ignore",
-  });
+/** Formats every file before writing any, so a formatter failure writes nothing. */
+function writeFormatted(files: [path: string, text: string][]) {
+  const texts = files.map(([path, text]) => [path, formatAs(path, text)] as const);
+  for (const [path, text] of texts) writeFileSync(path, text);
 }
 
 function bundled(): SubstrateIndex {
@@ -126,8 +126,9 @@ function bundled(): SubstrateIndex {
 
 /** The licence file beside the index: its fenced text must be the licence the index hashed. */
 function licenseErrors(index: SubstrateIndex): string[] {
-  const text = readFileSync(LICENSE, "utf8");
-  const fenced = /```\n([\s\S]*?)```/.exec(text)?.[1] ?? "";
+  // Committed text: read as LF whatever the checkout did to its line endings.
+  const text = readFileSync(LICENSE, "utf8").replace(/\r\n/g, "\n");
+  const fenced = /```\r?\n([\s\S]*?)```/.exec(text)?.[1] ?? "";
   return sha256(fenced) === index.license.sha256
     ? []
     : ["data/LICENSE.md does not carry the licence the index names"];
@@ -149,20 +150,22 @@ if (command === "index") {
   const errors = indexErrors(index);
   if (errors.length) die("the new index fails its own checks:\n  " + errors.join("\n  "));
   const license = tree.read("LICENSE")!;
-  writeFormatted(INDEX, JSON.stringify(index, null, 2) + "\n");
-  writeFormatted(
-    LICENSE,
-    "# License of the mathematical substrate index\n\n" +
-      "`openai-math.json` is derived from the catalogue of `openai/math`\n" +
-      `(${index.repository_url}) at commit ${commit} (${commitDate}): titles, summaries,\n` +
-      "abstracts, citations and attribution notes as the repository's own files give them, the\n" +
-      "Lean scope pages' text and the comparator configs' declaration names, reformatted into\n" +
-      "JSON. No manuscript, LaTeX source, Lean source or reasoning-summary PDF is copied. The\n" +
-      "repository is published under the Apache License, Version 2.0, reproduced below; see\n" +
-      "`openai-math.json` for the per-file hashes and the generation time.\n\n```\n" +
-      license +
-      "```\n",
-  );
+  writeFormatted([
+    [INDEX, JSON.stringify(index, null, 2) + "\n"],
+    [
+      LICENSE,
+      "# License of the mathematical substrate index\n\n" +
+        "`openai-math.json` is derived from the catalogue of `openai/math`\n" +
+        `(${index.repository_url}) at commit ${commit} (${commitDate}): titles, summaries,\n` +
+        "abstracts, citations and attribution notes as the repository's own files give them, the\n" +
+        "Lean scope pages' text and the comparator configs' declaration names, reformatted into\n" +
+        "JSON. No manuscript, LaTeX source, Lean source or reasoning-summary PDF is copied. The\n" +
+        "repository is published under the Apache License, Version 2.0, reproduced below; see\n" +
+        "`openai-math.json` for the per-file hashes and the generation time.\n\n```\n" +
+        license +
+        "```\n",
+    ],
+  ]);
   const c = index.counts;
   console.log(
     `indexed ${c.families} families, ${c.manuscripts} manuscripts, ${c.formalizations} Lean scope pages (${c.statements} comparator statements) and ${c.reasoning_summaries} reasoning summaries in ${c.disciplines} disciplines from openai/math ${commit.slice(0, 12)}; content ${index.content_sha256.slice(0, 16)}…`,

@@ -24,6 +24,7 @@
  *
  *   node tools/jev-secret-scan.mjs            # scans dist/
  *   node tools/jev-secret-scan.mjs path/to/output
+ *   node tools/jev-secret-scan.mjs --self-test  # checks the key shapes themselves
  *
  * Runs as the last step of `bun run build`. Exits non-zero on any finding.
  */
@@ -31,8 +32,9 @@
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const root = process.argv[2] ?? "dist";
-if (!existsSync(root)) {
+const selfTest = process.argv[2] === "--self-test";
+const root = selfTest ? null : (process.argv[2] ?? "dist");
+if (root !== null && !existsSync(root)) {
   console.error(`jev-secret-scan: no such directory: ${root}`);
   process.exit(2);
 }
@@ -55,10 +57,51 @@ const patterns = [
     test: (text) => /sk-ant-[A-Za-z0-9_-]{20,}/.test(text),
   },
   {
+    // Legacy `sk-` keys are alphanumeric; project, service-account and admin
+    // keys (`sk-proj-`, `sk-svcacct-`, `sk-admin-`) carry `-` and `_` too.
     name: "OpenAI-shaped key",
-    test: (text) => /\bsk-(proj-)?[A-Za-z0-9]{32,}/.test(text),
+    test: (text) => /\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}/.test(text),
   },
 ];
+
+if (selfTest) {
+  // Synthetic shapes only, assembled at run time so the source holds no
+  // key-shaped literal: none of these is, or was, a real credential.
+  const body = "aB3".repeat(11);
+  const mustFlag = [
+    ["OpenAI-shaped key", `"sk-${body}"`],
+    ["OpenAI-shaped key", `value=sk-proj-${body.slice(0, 12)}-${body.slice(12)}_x`],
+    ["OpenAI-shaped key", `sk-svcacct-${body}`],
+    ["OpenAI-shaped key", `sk-admin-${body}`],
+    ["Anthropic-shaped key", `sk-ant-api03-${body}`],
+    ["Fastino-shaped key", `fast_sk_${body}`],
+    ["TypeSafe-shaped key", `apikey_${body}`],
+    ["credential variable name", "process.env.VITE_LLM_KEY"],
+  ];
+  const mustPass = [
+    "task-scheduler-queue-length-limit",
+    "risk-assessment",
+    "sk-short",
+    "desk-lamp-and-chair-set-for-the-office",
+  ];
+  const failures = [];
+  for (const [name, text] of mustFlag) {
+    const pattern = patterns.find((p) => p.name === name);
+    if (!pattern?.test(text)) failures.push(`missed (${name}): ${text}`);
+  }
+  for (const text of mustPass)
+    for (const pattern of patterns)
+      if (pattern.test(text)) failures.push(`false positive (${pattern.name}): ${text}`);
+  if (failures.length > 0) {
+    console.error("jev-secret-scan --self-test FAILED:");
+    for (const failure of failures) console.error(`  ${failure}`);
+    process.exit(1);
+  }
+  console.log(
+    `jev-secret-scan --self-test: ${mustFlag.length} shapes flagged, ${mustPass.length} look-alikes passed`,
+  );
+  process.exit(0);
+}
 const configured = [];
 for (const variable of [
   "TYPESAFE_API_KEY",

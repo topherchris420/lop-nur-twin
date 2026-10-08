@@ -171,6 +171,9 @@ if (brain === "jev" || brain === "glide") {
   service = status;
 }
 
+// When the benchmark began, before the browser and the first episode; the
+// report is assembled only after every episode has run.
+const startedAt = new Date().toISOString();
 const browser = await launch();
 const results = [];
 const rawSamples = [];
@@ -360,7 +363,8 @@ try {
         : "The brain turned the view itself in fixed steps; no local controller assisted.",
     mode,
     origin,
-    startedAt: new Date().toISOString(),
+    startedAt,
+    finishedAt: new Date().toISOString(),
     episodesRequested: episodes,
     secondsPerEpisode: seconds,
     rendering: flag("render") ? "real" : "stubbed (matrices only; see jev-harness.mjs)",

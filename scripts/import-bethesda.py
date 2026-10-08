@@ -96,7 +96,8 @@ folder = pathlib.Path(__file__).resolve().parents[1] / 'src/bethesda/data'
 folder.mkdir(parents=True,exist_ok=True)
 data = {'type':'FeatureCollection','bbox':BBOX,'license':'ODbL-1.0','attribution':'© OpenStreetMap contributors','features':features}
 (folder/'osm.json').write_text(json.dumps(data,ensure_ascii=False))
-subprocess.run([str(folder.parents[2]/'node_modules/.bin/prettier'),'--write',str(folder/'osm.json')],check=True)
+# Prettier's own CLI entry under node: .bin/prettier needs a shell on Windows.
+subprocess.run(['node',str(folder.parents[2]/'node_modules/prettier/bin/prettier.cjs'),'--write',str(folder/'osm.json')],check=True)
 counts = {k:sum(f['properties']['kind']==k for f in features) for k in sorted({f['properties']['kind'] for f in features})}
 raw_hash = hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()
 previous = json.loads((folder/'source.json').read_text()) if (folder/'source.json').exists() else {}

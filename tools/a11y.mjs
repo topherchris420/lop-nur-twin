@@ -37,6 +37,25 @@ const axeSource = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 
 const origin = process.argv[2] ?? "http://localhost:4173";
 
+/**
+ * Opens the newest archived evaluation on `/evaluation` and waits for its arms.
+ * A route that exists to inspect an opened run must not quietly fall back to
+ * the empty page, where axe would pass without having read the run at all, so
+ * a missing archive button is a setup failure, not a skip.
+ */
+async function openArchivedRun(page) {
+  const opened = await page.evaluate(() => {
+    const first = document
+      .querySelector('section[aria-labelledby="open-heading"] ul')
+      ?.querySelector("button");
+    first?.click();
+    return first !== null && first !== undefined;
+  });
+  if (!opened)
+    throw new Error("no archived run is listed under the open-heading section to open");
+  await page.waitForSelector("#arms", { timeout: 15000 });
+}
+
 /** `gate: true` means axe violations fail the run, not just get printed. */
 const ROUTES = [
   { path: "/analysis", label: "Accessible analysis table", gate: true, settle: 1500 },
@@ -73,15 +92,7 @@ const ROUTES = [
     label: "Blacksite evaluation (an archived run open)",
     gate: true,
     settle: 1500,
-    prepare: async (page) => {
-      const opened = await page.evaluate(() => {
-        const list = document.querySelector('section[aria-labelledby="open-heading"] ul');
-        const first = list?.querySelector("button");
-        first?.click();
-        return first !== null && first !== undefined;
-      });
-      if (opened) await page.waitForSelector("#arms", { timeout: 15000 });
-    },
+    prepare: openArchivedRun,
   },
   {
     path: "/evaluation",
@@ -91,14 +102,7 @@ const ROUTES = [
     // An archived episode's records, loaded through the page's own file input,
     // so the trace table and its window controls are what axe inspects.
     prepare: async (page) => {
-      const opened = await page.evaluate(() => {
-        const first = document
-          .querySelector('section[aria-labelledby="open-heading"] ul')
-          ?.querySelector("button");
-        first?.click();
-        return first !== null && first !== undefined;
-      });
-      if (!opened) return;
+      await openArchivedRun(page);
       await page.waitForSelector('section[aria-labelledby="episodes"] input[type=file]', {
         timeout: 15000,
       });
@@ -117,15 +121,7 @@ const ROUTES = [
     // The same-origin fetch of an archived episode, then the inspector, so the
     // one-decision view is what axe inspects too.
     prepare: async (page) => {
-      const opened = await page.evaluate(() => {
-        const first = document
-          .querySelector('section[aria-labelledby="open-heading"] ul')
-          ?.querySelector("button");
-        first?.click();
-        return first !== null && first !== undefined;
-      });
-      if (!opened) return;
-      await page.waitForSelector("#arms", { timeout: 15000 });
+      await openArchivedRun(page);
       const found = await page.evaluate(() => {
         const open = [...document.querySelectorAll("button")].find(
           (button) => button.textContent?.trim() === "Open decisions",
@@ -133,7 +129,7 @@ const ROUTES = [
         open?.click();
         return open !== undefined;
       });
-      if (!found) return;
+      if (!found) throw new Error('the opened run offers no "Open decisions" button');
       await page.waitForSelector('[aria-label="Decision trace"] tbody th button', {
         timeout: 30000,
       });
@@ -183,7 +179,22 @@ for (const route of ROUTES) {
   const url = `${origin}${route.path}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
   await new Promise((resolve) => setTimeout(resolve, route.settle));
-  if (route.prepare) await route.prepare(page);
+  if (route.prepare) {
+    try {
+      await route.prepare(page);
+    } catch (error) {
+      // The state this route exists to check never appeared; scanning what is
+      // on screen instead would pass on a page that was never inspected.
+      await page.close();
+      failures += 1;
+      console.log(`\n=== ${route.path} — ${route.label} ===`);
+      console.log(
+        `  FAIL: setup could not open what this check inspects: ${error.message}`,
+      );
+      summaries.push({ path: route.path, setupFailed: true });
+      continue;
+    }
+  }
 
   await page.evaluate(axeSource);
   const results = await page.evaluate(
@@ -256,6 +267,10 @@ await browser.close();
 
 console.log("\n--- summary ---");
 for (const summary of summaries) {
+  if (summary.setupFailed) {
+    console.log(`${summary.path.padEnd(10)} SETUP FAILED: not inspected`);
+    continue;
+  }
   console.log(
     `${summary.path.padEnd(10)} axe ${String(summary.axeViolations).padStart(2)} ` +
       `(serious/critical ${summary.gating}) · csp ${summary.csp} · errors ${summary.errors}`,

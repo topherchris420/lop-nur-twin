@@ -1019,21 +1019,62 @@ await acquireSlot();
  */
 function stopServer() {
   if (!server) return;
+  killTree(server.pid);
+  server = null;
+}
+
+/**
+ * Stops a process and everything it started. Windows has no process groups to
+ * signal, so the tree is ended by `taskkill /T`; elsewhere the detached
+ * server leads its own group and the group is signalled.
+ */
+function killTree(pid) {
   try {
-    process.kill(-server.pid, "SIGTERM");
+    if (process.platform === "win32")
+      execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
+    else process.kill(-pid, "SIGTERM");
   } catch {
     // Already gone.
   }
-  server = null;
+}
+
+/** PIDs listening on a local TCP port, or none if that cannot be read. */
+function listenersOn(port) {
+  const pids = new Set();
+  try {
+    if (process.platform === "win32") {
+      const table = execFileSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8" });
+      for (const line of table.split(/\r?\n/)) {
+        const [proto, local, , state, pid] = line.trim().split(/\s+/);
+        if (proto === "TCP" && state === "LISTENING" && local?.endsWith(`:${port}`))
+          pids.add(Number(pid));
+      }
+    } else {
+      const out = execFileSync("lsof", ["-t", "-i", `TCP:${port}`, "-s", "TCP:LISTEN"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      for (const pid of out.split(/\s+/)) if (pid) pids.add(Number(pid));
+    }
+  } catch {
+    // No listener (lsof exits 1), or the tool is missing.
+  }
+  return [...pids].filter(
+    (pid) => Number.isInteger(pid) && pid > 0 && pid !== process.pid,
+  );
 }
 
 if (serveDir) {
   const port = 5300 + heldIndex;
   // Whatever an earlier, killed run left on this slot's port.
-  try {
-    execFileSync("fuser", ["-k", `${port}/tcp`], { stdio: "ignore" });
-  } catch {
-    // Nothing listening.
+  for (const pid of listenersOn(port)) {
+    try {
+      if (process.platform === "win32")
+        execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
+      else process.kill(pid, "SIGTERM");
+    } catch {
+      // Already gone.
+    }
   }
   try {
     execFileSync(
@@ -1056,6 +1097,7 @@ if (serveDir) {
       cwd: serveDir,
       detached: true,
       stdio: "ignore",
+      windowsHide: true,
     },
   );
   origin = `http://localhost:${port}`;

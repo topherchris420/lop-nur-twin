@@ -22,7 +22,6 @@
  * Never hand-edit the fixture or its manifest; re-record instead. The build
  * (`scripts/validate-bethesda.ts`) fails when they disagree.
  */
-import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -31,6 +30,7 @@ import { corpusFingerprint, hashCorpusDocuments } from "../src/rain/corpus.ts";
 import { buildOfflineMeeting } from "../src/rain/meeting/offline.ts";
 import { offlineMeetingRecord } from "../src/rain/meeting/record.ts";
 import { corpusDocuments, labRevision } from "../src/rain/runtime.ts";
+import { formatAs } from "./prettier.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FIXTURES = join(REPO, "src", "bethesda", "rain", "fixtures");
@@ -38,13 +38,9 @@ const QUESTION =
   "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?";
 const allowNewMeeting = process.argv.includes("--allow-new-meeting");
 
-function writeFormatted(path: string, value: unknown): string {
-  writeFileSync(path, JSON.stringify(value, null, 2) + "\n", "utf8");
-  execFileSync(join(REPO, "node_modules", ".bin", "prettier"), ["--write", path], {
-    stdio: "ignore",
-  });
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
-}
+/** The bytes `path` will hold: its JSON as the repository's formatter writes it. */
+const formatted = (path: string, value: unknown): string =>
+  formatAs(path, JSON.stringify(value, null, 2) + "\n");
 
 interface PreviousManifest {
   recordedAt?: string;
@@ -109,7 +105,10 @@ if (firstId && firstId !== record.meeting_id) {
 
 mkdirSync(FIXTURES, { recursive: true });
 const meetingPath = join(FIXTURES, "demo-meeting.json");
-const digest = writeFormatted(meetingPath, record);
+// Both files are formatted before either is written, so a formatter failure
+// cannot leave a new recording beside the old manifest.
+const meetingText = formatted(meetingPath, record);
+const digest = createHash("sha256").update(meetingText, "utf8").digest("hex");
 const manifest = {
   schema: "rain-bethesda-demo-source/v1",
   recordedAt: record.produced_at,
@@ -131,7 +130,9 @@ const manifest = {
     "The experiment proposal shipped beside it (demo-proposal.json) was written by hand for the demo. No model and no R.A.I.N. process produced it.",
   ],
 };
-writeFormatted(manifestPath, manifest);
+const manifestText = formatted(manifestPath, manifest);
+writeFileSync(meetingPath, meetingText, "utf8");
+writeFileSync(manifestPath, manifestText, "utf8");
 console.log(
   `recorded ${record.meeting_id} at ${revision.repository} ${revision.commit} -> ${meetingPath}`,
 );

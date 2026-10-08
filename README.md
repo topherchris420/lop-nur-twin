@@ -17,9 +17,9 @@ a research lab behind a door.
 
 That lab is not only another scene. It is the beginning of a different kind of
 system: a bounded research environment in which a local open model can observe
-a world, formulate questions, choose among pre-authorized experiments, run them
-on fresh simulators, inspect replayable results, preserve contradictions, and
-decide what to investigate next. The model supplies reasoning; the Lab supplies
+a world, formulate questions, pick from experiments a person has pre-authorized,
+have the host run them on fresh simulators, inspect replayable results,
+preserve contradictions, and decide what to investigate next. The model supplies reasoning; the Lab supplies
 the world, memory, constraints, authorization, simulation, provenance and
 stopping rules.
 
@@ -38,8 +38,11 @@ game or the city ever becomes evidence about the site.
 
 The interesting object here is not the model. **It is the loop around the model.**
 
-Lop Nur Twin now contains a research runtime in which a local model can move
-through a bounded research cycle:
+Lop Nur Twin now contains an experimental research runtime in which a local
+model can move through a bounded research cycle. It runs from the command line
+(`npm run rain:autonomous`, not on the deployed site), needs a local
+[Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) server, and
+runs only under a charter a person has authorized:
 
 ```text
 observe
@@ -53,6 +56,8 @@ choose a permitted experiment
 host validates the proposal
   ↓
 authorization policy admits it
+  ↓
+registry pre-registers its criteria
   ↓
 fresh simulator runs it
   ↓
@@ -69,20 +74,24 @@ ask the next question
 
 This changes the role of the model. It is no longer only something the project
 can ask a question. It can become a participant in an ongoing research process.
+Its questions and hypotheses are kept as its own labelled words: the design that
+runs, including the question and hypothesis it tests, is always one the host
+wrote, and the host's experimenter seat, not the model, runs it.
 
 But the autonomy is deliberately asymmetric:
 
-| The model may | The Lab retains |
-| :------------ | :-------------- |
-| Observe research state | Definition of what can run |
-| Form questions and hypotheses | Authorization |
-| Rank permitted designs | Simulation state |
-| Analyze sealed results | Evidence provenance |
-| Recommend what to examine next | Registry verdicts |
-| Stop its own research session | Budgets and termination |
+| The model may                  | The Lab retains            |
+| :----------------------------- | :------------------------- |
+| Observe research state         | Definition of what can run |
+| Form questions and hypotheses  | Authorization              |
+| Rank permitted designs         | Simulation state           |
+| Analyze sealed results         | Evidence provenance        |
+| Recommend what to examine next | Registry verdicts          |
+| Stop its own research session  | Budgets and termination    |
 
-A charter binds the autonomous session to an exact set of experiment designs,
-model identity, ceilings and validity. The model cannot silently rewrite the
+A charter binds the autonomous session to an exact set of experiment designs
+(by digest), the model identity, the session ceilings and an expiry; the full
+policy is described [with the lab](#a-lab-behind-a-door). The model cannot silently rewrite the
 experiment, enlarge its own budget, change the simulator, promote an
 interpretation into evidence, or grant itself new authority.
 
@@ -94,12 +103,13 @@ The result is deliberately closer to a laboratory than to an autonomous chatbot.
 A researcher can be given room to explore without giving it the keys to the
 building.
 
-### The recursion is intentional, but not yet unbounded
+### Where the recursion could go (not implemented)
 
-The current autonomous researcher is a single bounded lineage. That is the
-foundation for a more unusual experiment.
+The current autonomous researcher is a single bounded lineage, and nothing in
+the code creates new worlds. That lineage is the foundation for a more unusual
+experiment the project has not built yet.
 
-A future R.A.I.N. world can expose a typed, budgeted capability to instantiate a
+A future R.A.I.N. world could expose a typed, budgeted capability to instantiate a
 descendant world:
 
 ```text

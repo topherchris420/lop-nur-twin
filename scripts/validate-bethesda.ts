@@ -25,7 +25,19 @@ import { indexErrors } from "../src/rain/mathematics/substrateIndex.ts";
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
-const bytes = readFileSync(new URL("../src/bethesda/data/osm.json", import.meta.url));
+// Every file hashed here is committed text, imported and hashed with LF line
+// endings. A checkout that turned them into CRLF (Git for Windows' default
+// without .gitattributes) has not changed what they say, so the hash is taken
+// over the LF form: identical to the raw bytes for an LF file.
+const readText = (url: URL): Buffer => {
+  const buf = readFileSync(url);
+  return buf.includes(13)
+    ? Buffer.from(buf.toString("utf8").replace(/\r\n/g, "\n"))
+    : buf;
+};
+// The licence text sits in the first fenced block of LICENSE.md.
+const FENCED = /```\r?\n([\s\S]*?)```/;
+const bytes = readText(new URL("../src/bethesda/data/osm.json", import.meta.url));
 if (createHash("sha256").update(bytes).digest("hex") !== source.snapshotSha256)
   fail("snapshot checksum differs from acquisition manifest");
 if (raw.license !== "ODbL-1.0" || source.license !== raw.license) fail("missing license");
@@ -59,7 +71,7 @@ for (const f of raw.features) {
 }
 for (const [kind, n] of Object.entries(source.counts))
   if (counts.get(kind) !== n) fail("feature count differs: " + kind);
-const terrainBytes = readFileSync(
+const terrainBytes = readText(
   new URL("../src/bethesda/data/terrain.json", import.meta.url),
 );
 if (
@@ -75,7 +87,7 @@ if (
   !terrainSource.licenseText.includes("You can copy, modify, distribute")
 )
   fail("invalid terrain, crop bounds or redistribution terms");
-const streetscapeBytes = readFileSync(
+const streetscapeBytes = readText(
   new URL("../src/bethesda/data/streetscape.json", import.meta.url),
 );
 if (
@@ -126,17 +138,17 @@ if (
   rainPerspectives.license !== "MIT"
 )
   fail("R.A.I.N. source manifest is incomplete");
-if (sha256(readFileSync(rainDataUrl("corpus.json"))) !== rainSource.corpus.snapshotSha256)
+if (sha256(readText(rainDataUrl("corpus.json"))) !== rainSource.corpus.snapshotSha256)
   fail(
     "R.A.I.N. corpus snapshot differs from its import manifest; re-import it, never hand-edit it",
   );
 if (
-  sha256(readFileSync(rainDataUrl("perspectives.json"))) !==
+  sha256(readText(rainDataUrl("perspectives.json"))) !==
   rainSource.perspectives.snapshotSha256
 )
   fail("R.A.I.N. perspectives snapshot differs from its import manifest");
-const license = readFileSync(rainDataUrl("LICENSE.md"), "utf8");
-if (sha256(/```\n([\s\S]*?)```/.exec(license)?.[1] ?? "") !== rainSource.licenseSha256)
+const license = readText(rainDataUrl("LICENSE.md")).toString("utf8");
+if (sha256(FENCED.exec(license)?.[1] ?? "") !== rainSource.licenseSha256)
   fail("R.A.I.N. license text differs from its import manifest");
 if (rainCorpus.files.length !== rainSource.corpus.files)
   fail("R.A.I.N. corpus file count differs");
@@ -167,7 +179,7 @@ if (
 // scripted meeting from the runtime's offline engine at a named, clean commit
 // of this repository, over the bundled corpus, and a fixture proposal that
 // passes the host's ordinary validation.
-const demoBytes = readFileSync(
+const demoBytes = readText(
   new URL("../src/bethesda/rain/fixtures/demo-meeting.json", import.meta.url),
 );
 if (sha256(demoBytes) !== demoSource.snapshotSha256)
@@ -213,13 +225,10 @@ if (mathErrors.length)
   fail(
     "the mathematical substrate index is invalid: " + mathErrors.slice(0, 3).join("; "),
   );
-const mathLicense = readFileSync(
+const mathLicense = readText(
   new URL("../src/rain/mathematics/data/LICENSE.md", import.meta.url),
-  "utf8",
-);
-if (
-  sha256(/```\n([\s\S]*?)```/.exec(mathLicense)?.[1] ?? "") !== mathIndex.license.sha256
-)
+).toString("utf8");
+if (sha256(FENCED.exec(mathLicense)?.[1] ?? "") !== mathIndex.license.sha256)
   fail("the mathematical substrate's licence differs from the one its index hashed");
 if (mathIndex.license.spdx !== "Apache-2.0")
   fail("the mathematical substrate's licence is not the one its repository declares");

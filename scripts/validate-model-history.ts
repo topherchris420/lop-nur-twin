@@ -37,6 +37,8 @@ const currentManifestPath = path.join(projectRoot, "public", "model-manifest.jso
 
 const errors: string[] = [];
 const fail = (message: string) => errors.push(message);
+const lfBytes = (bytes: Buffer): Buffer =>
+  bytes.includes(13) ? Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n")) : bytes;
 
 const history = parseModelHistory(
   JSON.parse(readFileSync(path.join(historyDir, "index.json"), "utf8")),
@@ -57,7 +59,10 @@ for (const revision of history.revisions) {
     fail(`${at}: ${revision.manifest} is missing`);
     continue;
   }
-  const bytes = readFileSync(file);
+  // A recorded manifest is committed LF text; a CRLF checkout has not changed
+  // what it says, so the digest is checked over its LF form (the raw bytes,
+  // for an LF file).
+  const bytes = lfBytes(readFileSync(file));
   if (sha256(bytes) !== revision.manifestSha256) {
     fail(`${at}: ${revision.manifest} does not have the bytes its digest names`);
   }

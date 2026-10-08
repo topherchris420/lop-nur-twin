@@ -29,6 +29,11 @@
  *
  *   node tools/rain-conformance.mjs      (bun run rain:conformance)
  *
+ * Each experiment must also reach the outcome it is here to cover (`EXPECTED`
+ * below): a variant that drifts to another verdict would otherwise leave the
+ * supported, contradicted or inconclusive path untested while every check
+ * still passes.
+ *
  * Exit status is 1 on any disagreement. It never fetches anything and calls
  * no model.
  */
@@ -132,7 +137,24 @@ const sorted = (value) =>
       : v,
   );
 
+// The outcome each experiment exists to cover, as the lab states it.
+const EXPECTED = {
+  "not-supported": { state: "COMPLETED", verdict: "not_supported" },
+  supported: { state: "COMPLETED", verdict: "supported" },
+  inconclusive: { state: "INCONCLUSIVE", verdict: "insufficient_evidence" },
+  "mathematical-basis": { state: "COMPLETED", verdict: "not_supported" },
+  "execution-error": { state: "FAILED", verdict: "not_evaluated" },
+};
+
 const conform = (name, record) => {
+  const expected = EXPECTED[name];
+  check(
+    `${name}: the lab reaches the outcome this variant covers`,
+    expected !== undefined &&
+      record.outcome?.state === expected.state &&
+      record.outcome?.verdict === expected.verdict,
+    `expected ${expected ? `${expected.state} · ${expected.verdict}` : "(no expectation declared)"}, lab ${record.outcome?.state} · ${record.outcome?.verdict}`,
+  );
   const bundle = admissionBundle(record, "R.A.I.N.Operator");
   if (!bundle.ok) {
     check(`${name}: admission bundle`, false, bundle.errors.join("; "));

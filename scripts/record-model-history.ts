@@ -104,9 +104,12 @@ function withWorktree<T>(run: (worktree: string) => T): T {
   const worktree = path.join(base, "wt");
   git("worktree", "add", "--quiet", "--detach", worktree, "HEAD");
   try {
+    // A directory junction on Windows: a plain symlink there needs admin
+    // rights or Developer Mode, and `junction` is ignored everywhere else.
     symlinkSync(
       path.join(projectRoot, "node_modules"),
       path.join(worktree, "node_modules"),
+      process.platform === "win32" ? "junction" : "dir",
     );
     return run(worktree);
   } finally {
