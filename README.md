@@ -2,10 +2,15 @@
 
 **Explore the evidence. Take the controls. Follow the anomaly♟️.**
 
+[![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Live site](https://img.shields.io/badge/live-lop--nur--twin.vercel.app-0a7)](https://lop-nur-twin.vercel.app/)
+
 [Explore Lop Nur](https://lop-nur-twin.vercel.app/) ·
 [Play Blacksite](https://lop-nur-twin.vercel.app/play) ·
 [Inspect the evidence](https://lop-nur-twin.vercel.app/analysis) ·
-[Review an evaluation](https://lop-nur-twin.vercel.app/evaluation)
+[Review an evaluation](https://lop-nur-twin.vercel.app/evaluation) ·
+[Meet R.A.I.N.](https://rainlabteam.vercel.app/)
 
 ![The reconstructed runway and south hangar compound seen from the south-east, with the site telemetry, site map, evidence timeline and evidence status panels around it](docs/screenshot-overview.png)
 
@@ -33,6 +38,21 @@ game or the city ever becomes evidence about the site.
 > question answerable — including the day a small hand-written script matched a live
 > model's score and exposed the game instead.
 > [Read what happened.](#the-result-that-changed-the-experiment)
+
+**Contents** ·
+[Why this matters](#why-this-is-more-than-a-digital-twin) ·
+[Five minutes in](#five-minutes-in) ·
+[One loop, four scales](#one-loop-four-scales) ·
+[Quick start](#quick-start) ·
+[The twin](#the-twin-a-reconstruction-that-shows-its-work) ·
+[Blacksite](#blacksite-one-seat-many-minds) ·
+[Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
+[The R.A.I.N. Lab](#a-lab-behind-a-door) ·
+[Measure it yourself](#measure-it-yourself) ·
+[What is built](#what-is-built) ·
+[Development](#development-and-validation) ·
+[Documentation](#documentation) ·
+[License](#license-and-attribution)
 
 ## Why this is more than a digital twin
 
@@ -172,14 +192,6 @@ lists every claim with its sources, dates and uncertainty, and
 [`/compare`](https://lop-nur-twin.vercel.app/compare) diffs any two revisions of
 the model.
 
-[Quick start](#quick-start) · [Why this matters](#why-this-is-more-than-a-digital-twin) ·
-[The twin](#the-twin-a-reconstruction-that-shows-its-work) ·
-[Blacksite](#blacksite-one-seat-many-minds) ·
-[Bethesda](#enjoy-a-normal-walk-in-bethesda) ·
-[The R.A.I.N. Lab](#a-lab-behind-a-door) ·
-[Experiments](#measure-it-yourself) · [Status](#what-is-built) ·
-[Documentation](#documentation)
-
 ## One loop, four scales
 
 ```mermaid
@@ -219,11 +231,13 @@ model's answer is never a fact about the world.
 | :---------------------- | :--------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
 | **The analytical twin** | Inspect structures, trace sources, measure the site, export data, and compare revisions.                               | A reconstruction near Lop Nur (~40.77° N, 89.28° E), with explicit evidence and uncertainty.  |
 | **Blacksite**           | Play the airfield yourself or give the same seat to Jev, Glide, a compatible LLM, a script, or a seeded random policy. | How choices, controllers and environment interact under declared game rules.                  |
-| **Where is The Lab?**   | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                        | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
+| **Bethesda**            | Discover a walkable city, introduce bounded scenarios and replay its decisions.                                        | A separate city simulation grounded in mapped streets, building footprints and broad terrain. |
+| **The R.A.I.N. Lab**    | Ask a question, watch four perspectives meet, authorize an experiment and replay its sealed record.                    | A research loop whose every step — proposal, authorization, run, verdict — is recorded.       |
 
 Blacksite shares the twin's geometry and cannot write to its evidence ledger.
 Bethesda has its own geography and simulation; it does not share Blacksite's
-combat physics.
+combat physics. The lab holds the live city read-only and runs its experiments
+on simulators of its own.
 
 ## Quick start
 
@@ -558,12 +572,25 @@ scenario limits, model authority and replay compatibility.
 
 ### A lab behind a door
 
+[![R.A.I.N. Lab — Recursive Architecture of Intelligent Nexus: a cartoon octopus in a white suit striding with a tuning fork inside a ring of lightning](docs/rain-lab.webp)](https://rainlabteam.vercel.app/)
+
 Somewhere in the city is the R.A.I.N. Lab, an integrated research environment
 where the four perspectives of R.A.I.N. investigate questions and their
 hypotheses become matched experiments on the simulator. Its research runtime,
 experiment registry, evidence layer and simulation interface live in this
 repository (`src/rain/`, `src/bethesda/rain/`); this is the lab's canonical
 home.
+
+R.A.I.N. — the Recursive Architecture of Intelligent Nexus — is Vers3Dynamics'
+open-source, local-first research-meeting system, and it has a front door of
+its own at **[rainlabteam.vercel.app](https://rainlabteam.vercel.app/)**. There,
+four AI perspectives argue a question from your own papers, quote them
+verbatim, and end with a verdict, the open disagreement and a next move. The
+runtime in this repository was ported from R.A.I.N.'s own code
+(`topherchris420/james_library`, MIT); the [migration note](docs/RAIN_MIGRATION.md)
+records what was incorporated, what was left behind and against which commit.
+Here the same four perspectives meet inside a simulated city, and their
+hypotheses have somewhere to run.
 
 ![The R.A.I.N. Lab's Research Panel: R.A.I.N.'s large Chladni plate in front of the evidence table with the four perspectives' small plates around it, two of the perspectives in view, and the panel showing a LIVE meeting from the scripted offline engine, its resonance reading Unresolved and James's first turn quoting a source verified verbatim](docs/screenshots/rain-lab-meeting.png)
 
@@ -758,6 +785,7 @@ matched experiments that show what changed.
 | [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support — and how it can mislead |
 | [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay    |
 | [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay    |
+| [R.A.I.N. Lab site](https://rainlabteam.vercel.app/)                                                                                   | R.A.I.N. itself: local-first research meetings     |
 | [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                     | Mathematics as context: status, relation, basis    |
 | [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits                |
 | [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions         |
@@ -779,7 +807,13 @@ terms. See the [geographic data license](src/bethesda/data/LICENSE.md),
 [streetscape source register](src/bethesda/data/streetscape-source.json). Reference
 photographs are not bundled imagery or achieved renders.
 
-The R.A.I.N. runtime's mathematical substrate index is derived from the
+The R.A.I.N. research runtime under `src/rain/` is a TypeScript port of
+R.A.I.N.'s own code in [`topherchris420/james_library`](https://github.com/topherchris420/james_library)
+(MIT, Copyright (c) 2026 Vers3Dynamics), and the bundled corpus and SOUL files
+in `src/rain/data/` are imported from it with per-file hashes in
+[`src/rain/data/source.json`](src/rain/data/source.json). R.A.I.N.'s public
+home is [rainlabteam.vercel.app](https://rainlabteam.vercel.app/). The
+mathematical substrate index is derived from the
 catalogue of [`openai/math`](https://github.com/openai/math) (Apache 2.0) at the
 commit it names: titles, summaries, abstracts, citations, attribution notes and
 Lean declaration names, reformatted, with no manuscript, LaTeX, Lean source or
