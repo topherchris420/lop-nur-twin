@@ -1,6 +1,6 @@
 # Lop Nur Twin
 
-**Explore the evidence. Take the controls. Follow the anomaly.**
+**Explore the evidence. Take the controls. Follow the anomaly♟️.**
 
 [Explore Lop Nur](https://lop-nur-twin.vercel.app/) ·
 [Play Blacksite](https://lop-nur-twin.vercel.app/play) ·
