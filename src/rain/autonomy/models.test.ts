@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import type { AddressInfo } from "node:net";
+import { afterEach, describe, expect, it } from "vitest";
 import { autonomyConfig, normalizeBaseUrl, type ProviderKind } from "./config";
 import {
   MAX_RESPONSE,
@@ -310,6 +312,123 @@ describe("an unavailable or misbehaving model fails typed, and nothing is repair
     const { fetchImpl } = server(() => json({}));
     await expect(
       createLocalModel(settings("ollama"), { fetchImpl }).complete(request, {
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ code: "cancelled" });
+  });
+});
+
+describe("the default transport, over a real connection", () => {
+  const open: (() => Promise<void>)[] = [];
+  afterEach(async () => {
+    await Promise.all(open.splice(0).map((close) => close()));
+  });
+  /** A real local server; counts requests and keeps each one's body. */
+  async function listen(
+    handle: (req: IncomingMessage, res: ServerResponse, body: string) => void,
+  ) {
+    const bodies: string[] = [];
+    const srv = createServer((req, res) => {
+      let body = "";
+      req.setEncoding("utf8");
+      req.on("data", (chunk: string) => (body += chunk));
+      req.on("end", () => {
+        bodies.push(body);
+        handle(req, res, body);
+      });
+    });
+    await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
+    const close = () => {
+      srv.closeAllConnections();
+      return new Promise<void>((resolve) => srv.close(() => resolve()));
+    };
+    open.push(close);
+    return {
+      baseUrl: `http://127.0.0.1:${(srv.address() as AddressInfo).port}`,
+      bodies,
+      close,
+    };
+  }
+  const completion = (res: ServerResponse) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        model: "qwen2.5-7b-instruct",
+        choices: [{ message: { content: '{"a":"b"}' }, finish_reason: "stop" }],
+        usage: { prompt_tokens: 90, completion_tokens: 5 },
+      }),
+    );
+  };
+
+  it("waits for headers a slow model holds back, and sends the request whole", async () => {
+    let contentType: string | undefined;
+    const s = await listen((req, res) => {
+      contentType = req.headers["content-type"];
+      setTimeout(() => completion(res), 300);
+    });
+    const answer = await createLocalModel(
+      settings("lmstudio", { baseUrl: s.baseUrl, timeoutMs: 5000 }),
+    ).complete(request);
+    expect(answer).toMatchObject({ text: '{"a":"b"}', promptTokens: 90 });
+    expect(contentType).toBe("application/json");
+    expect(JSON.parse(s.bodies[0]!)).toMatchObject({ model: "qwen2.5-7b-instruct" });
+  });
+  it("ends on the deadline and not before, and never asks again", async () => {
+    const s = await listen(() => undefined);
+    const started = performance.now();
+    await expect(
+      createLocalModel(
+        settings("lmstudio", { baseUrl: s.baseUrl, timeoutMs: 1000 }),
+      ).complete(request),
+    ).rejects.toMatchObject({ code: "timeout", message: "no answer within 1 s" });
+    expect(performance.now() - started).toBeGreaterThanOrEqual(990);
+    expect(s.bodies).toHaveLength(1);
+  });
+  it("a deadline that falls while the answer is arriving is a timeout", async () => {
+    const s = await listen((_req, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write('{"choices":[');
+    });
+    await expect(
+      createLocalModel(
+        settings("ollama", { baseUrl: s.baseUrl, timeoutMs: 500 }),
+      ).complete(request),
+    ).rejects.toMatchObject({ code: "timeout" });
+  });
+  it("nothing listening is unavailable", async () => {
+    const s = await listen(() => undefined);
+    await s.close();
+    await expect(
+      createLocalModel(settings("ollama", { baseUrl: s.baseUrl })).listModels(),
+    ).rejects.toMatchObject({ code: "unavailable" });
+  });
+  it("follows no redirect, and an empty answer is malformed rather than a crash", async () => {
+    const moved = await listen((_req, res) => {
+      res.writeHead(302, { Location: "http://127.0.0.1:9/elsewhere" });
+      res.end();
+    });
+    await expect(
+      createLocalModel(settings("lmstudio", { baseUrl: moved.baseUrl })).complete(
+        request,
+      ),
+    ).rejects.toMatchObject({ code: "http" });
+    expect(moved.bodies).toHaveLength(1);
+    const empty = await listen((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    await expect(
+      createLocalModel(settings("lmstudio", { baseUrl: empty.baseUrl })).complete(
+        request,
+      ),
+    ).rejects.toMatchObject({ code: "malformed" });
+  });
+  it("a call cancelled in flight is cancelled", async () => {
+    const s = await listen(() => undefined);
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 100);
+    await expect(
+      createLocalModel(settings("ollama", { baseUrl: s.baseUrl })).complete(request, {
         signal: controller.signal,
       }),
     ).rejects.toMatchObject({ code: "cancelled" });
