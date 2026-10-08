@@ -2,7 +2,14 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { SUBSTRATE_ROUTES, createRainHandler, substrateRequest } from "./handler";
+import {
+  DECISION_DEADLINE_MARGIN_MS,
+  PROPOSAL_FUNCTION_MAX_DURATION_S,
+  SUBSTRATE_ROUTES,
+  createRainHandler,
+  proposalDeadlineMs,
+  substrateRequest,
+} from "./handler";
 import { LIMITS } from "../../src/bethesda/rain/contracts";
 import demoMeeting from "../../src/bethesda/rain/fixtures/demo-meeting.json" with { type: "json" };
 import {
@@ -671,7 +678,11 @@ describe("R.A.I.N. model meetings through the route", () => {
         }),
         meta,
       );
-      await vi.advanceTimersByTimeAsync(25_001);
+      await vi.advanceTimersByTimeAsync(proposalDeadlineMs() - 1);
+      expect(
+        await Promise.race([answer.then(() => "answered"), Promise.resolve("waiting")]),
+      ).toBe("waiting");
+      await vi.advanceTimersByTimeAsync(2);
       expect((await answer).status).toBe(504);
     } finally {
       vi.useRealTimers();
@@ -889,5 +900,134 @@ describe("R.A.I.N. mathematical substrate behind one Vercel Function", () => {
       const r = await handle(substrateRequest(get(path)), meta);
       expect(r.status, path).toBe(404);
     }
+  });
+});
+
+describe("R.A.I.N. route bodies and deadlines", () => {
+  const options = [
+    { id: "X1", description: "Metro closure at the Bethesda Metro" },
+    { id: "ESCALATE_TO_HUMAN", description: "None of these tests the question." },
+  ];
+  const proposal = () =>
+    post("proposal", {
+      session: SESSION,
+      request_id: REQUEST,
+      question: QUESTION,
+      options,
+    });
+
+  it("answers a body that is not UTF-8 with a 400, like the decision routes", async () => {
+    const handle = local();
+    const response = await handle(
+      new Request(`${ORIGIN}/api/rain/meeting`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: ORIGIN },
+        body: new Uint8Array([0x7b, 0x22, 0xff, 0xfe, 0x22, 0x7d]),
+      }),
+      meta,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "invalid body" });
+  });
+  it("answers a body the client abandons with a 400, never an unhandled rejection", async () => {
+    const handle = local();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("{"));
+        controller.error(new Error("aborted"));
+      },
+    });
+    const response = await handle(
+      new Request(`${ORIGIN}/api/rain/meeting`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: ORIGIN },
+        body,
+        duplex: "half",
+      } as RequestInit),
+      meta,
+    );
+    expect(response.status).toBe(400);
+  });
+  it("waits past the decision router's deadline, never short of it", () => {
+    expect(proposalDeadlineMs()).toBe(30_000 + DECISION_DEADLINE_MARGIN_MS);
+    expect(proposalDeadlineMs("45")).toBe(45_000 + DECISION_DEADLINE_MARGIN_MS);
+    expect(proposalDeadlineMs(0.5)).toBe(25_000);
+    // The router refuses these and the runtime is then not configured.
+    expect(proposalDeadlineMs("soon")).toBe(proposalDeadlineMs());
+    expect(proposalDeadlineMs("301")).toBe(proposalDeadlineMs());
+  });
+  it("lets the router answer a hung engine with its own TIMEOUT envelope", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      let asked = 0;
+      const handle = createRainHandler({
+        runtime: configureRuntime({
+          env: { RAIN_DECISION_MODE: "jev", RAIN_DECISION_REMOTE_ALLOWED: "true" },
+          secrets: { typesafeApiKey: "test-key-not-real" },
+          // TypeSafe never answers and ignores its abort.
+          fetchImpl: () => {
+            asked++;
+            return new Promise<Response>(() => {});
+          },
+          scratchDir,
+          cwd: "/",
+        }),
+        decisionTimeout: "30",
+        proposalLimitMs: PROPOSAL_FUNCTION_MAX_DURATION_S * 1000,
+      });
+      const answer = handle(proposal(), meta);
+      await vi.advanceTimersByTimeAsync(30_001);
+      const response = await answer;
+      expect(asked).toBe(1);
+      expect(response.status).toBe(200);
+      const choice = (await response.json()) as { decision: { reason: string } };
+      expect(choice.decision.reason).toBe("TIMEOUT");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it("fits the proposal deadline inside the proposal function's limit in vercel.json", () => {
+    const vercel = JSON.parse(
+      readFileSync(join(__dirname, "..", "..", "vercel.json"), "utf8"),
+    ) as { functions: Record<string, { maxDuration?: number }> };
+    const limit = vercel.functions["api/rain/proposal.ts"]?.maxDuration;
+    expect(limit).toBe(PROPOSAL_FUNCTION_MAX_DURATION_S);
+    expect(proposalDeadlineMs() + DECISION_DEADLINE_MARGIN_MS).toBeLessThanOrEqual(
+      PROPOSAL_FUNCTION_MAX_DURATION_S * 1000,
+    );
+  });
+  it("refuses, by the setting's name, a decision timeout the function would cut off", async () => {
+    const limited = (decisionTimeout: string) =>
+      createRainHandler({
+        // Answers at once, and malformed: a 502 shows the runtime was asked.
+        runtime: stub({ proposal: () => ({}) }),
+        decisionTimeout,
+        proposalLimitMs: PROPOSAL_FUNCTION_MAX_DURATION_S * 1000,
+      });
+    const tooLong = limited("300");
+    const text = await (await tooLong(get("status"), meta)).text();
+    expect(JSON.parse(text)).toMatchObject({ configured: false });
+    expect(JSON.parse(text).failure).toMatch(/^misconfigured: RAIN_DECISION_TIMEOUT /);
+    expect(text).not.toContain("300");
+    const refused = await tooLong(proposal(), meta);
+    expect(refused.status).toBe(503);
+    expect(await refused.json()).toMatchObject({ error: "not configured" });
+    // The longest timeout that leaves the route its margin and time to answer.
+    const longest =
+      (PROPOSAL_FUNCTION_MAX_DURATION_S * 1000 - 2 * DECISION_DEADLINE_MARGIN_MS) / 1000;
+    expect((await limited(String(longest))(proposal(), meta)).status).toBe(502);
+    expect((await limited(String(longest + 1))(proposal(), meta)).status).toBe(503);
+    // Where nothing cuts a request off (the Vite middleware), any router timeout stands.
+    const unlimited = createRainHandler({
+      runtime: configureRuntime({
+        env: { RAIN_DECISION_MODE: "off" },
+        scratchDir,
+        cwd: "/",
+      }),
+      decisionTimeout: "300",
+    });
+    expect(await (await unlimited(get("status"), meta)).json()).toMatchObject({
+      configured: true,
+    });
   });
 });

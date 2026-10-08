@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -20,6 +20,9 @@ import { describe, expect, it } from "vitest";
  */
 
 const ROOT = join(__dirname, "..", "..", "..");
+
+/** A repo-relative path with `/` separators on every platform. */
+const rel = (path: string): string => relative(ROOT, path).split(sep).join("/");
 
 function walk(dir: string): string[] {
   const out: string[] = [];
@@ -43,19 +46,19 @@ describe("credential boundary", () => {
         read(path),
       ),
     );
-    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+    expect(offenders.map(rel)).toEqual([]);
   });
 
   it("no browser module reads server environment variables", () => {
     const offenders = browserFiles.filter((path) => /process\.env/.test(read(path)));
-    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+    expect(offenders.map(rel)).toEqual([]);
   });
 
   it("no browser module imports server code", () => {
     const offenders = browserFiles.filter((path) =>
       /from\s+["'][^"']*\/server\//.test(read(path)),
     );
-    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+    expect(offenders.map(rel)).toEqual([]);
   });
 
   it("the key is read only by the server-side entry points", () => {
@@ -68,7 +71,7 @@ describe("credential boundary", () => {
           read(path),
         ),
       )
-      .map((path) => relative(ROOT, path))
+      .map(rel)
       .sort();
     expect(readers).toEqual([
       "api/jev/decision.ts",
@@ -86,7 +89,7 @@ describe("credential boundary", () => {
           read(path),
         ),
       )
-      .map((path) => relative(ROOT, path))
+      .map(rel)
       .sort();
     expect(readers).toEqual(["api/glide/decision.ts", "vite.config.ts"]);
   });
@@ -100,7 +103,7 @@ describe("credential boundary", () => {
           read(path),
         ),
       )
-      .map((path) => relative(ROOT, path))
+      .map(rel)
       .sort();
     expect(readers).toEqual(["api/llm/decision.ts", "vite.config.ts"]);
   });
@@ -114,7 +117,7 @@ describe("credential boundary", () => {
           read(path),
         ),
       )
-      .map((path) => relative(ROOT, path))
+      .map(rel)
       .sort();
     expect(readers).toEqual(["api/rain/_config.ts", "vite.config.ts"]);
   });
@@ -127,7 +130,7 @@ describe("credential boundary", () => {
           read(path),
         ),
       )
-      .map((path) => relative(ROOT, path))
+      .map(rel)
       .sort();
     expect(readers).toEqual(["api/rain/_config.ts", "vite.config.ts"]);
   });
@@ -137,14 +140,14 @@ describe("credential boundary", () => {
         read(path),
       ),
     );
-    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+    expect(offenders.map(rel)).toEqual([]);
   });
 
   it("the SDK that talks to a provider is imported only on the server", () => {
     const offenders = browserFiles.filter((path) =>
       /@anthropic-ai\/sdk/.test(read(path)),
     );
-    expect(offenders.map((path) => relative(ROOT, path))).toEqual([]);
+    expect(offenders.map(rel)).toEqual([]);
   });
 
   it("the committed example environment file carries no value", () => {

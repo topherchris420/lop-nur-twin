@@ -14,6 +14,7 @@ import {
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
 import { createGlideDecisionHandler } from "./server/glide/handler.js";
 import { createRainHandler } from "./server/rain/handler.js";
+import { isAllowedApiHost } from "./server/hostCheck.js";
 import { configureRuntime } from "./src/rain/runtime.js";
 import { LIMITS } from "./src/bethesda/rain/contracts.js";
 
@@ -191,6 +192,8 @@ function rainApi(env: Record<string, string>, typesafe: Record<string, string>):
       },
       cwd: process.cwd(),
     }),
+    // Nothing cuts a dev request off, so no function limit applies here.
+    decisionTimeout: env["RAIN_DECISION_TIMEOUT"],
   });
   return decisionApi(
     "bethesda-rain-api",
@@ -200,7 +203,14 @@ function rainApi(env: Record<string, string>, typesafe: Record<string, string>):
   );
 }
 
-/** Mount one decision handler at one path on the dev and preview servers. */
+/**
+ * Mount one decision handler at one path on the dev and preview servers.
+ *
+ * Every request is held to the server's `allowedHosts` (`server/hostCheck.ts`)
+ * before the handler sees it: the handlers' same-origin check trusts the
+ * `Host` header, which DNS rebinding hands to the attacker, and these routes
+ * spend the developer's credentials.
+ */
 function decisionApi(
   name: string,
   mountPath: string | ((path: string) => boolean),
@@ -209,54 +219,65 @@ function decisionApi(
 ): Plugin {
   const matches =
     typeof mountPath === "string" ? (path: string) => path === mountPath : mountPath;
-  const middleware: Connect.NextHandleFunction = (req, res, next) => {
-    const path = (req.url ?? "").split("?")[0] ?? "";
-    if (!matches(path)) {
-      next();
-      return;
-    }
-    const chunks: Buffer[] = [];
-    let size = 0;
-    req.on("data", (chunk: Buffer) => {
-      // Keep one byte past the limit so the handler can report 413 itself.
-      if (size > maxBodyBytes) return;
-      chunks.push(chunk);
-      size += chunk.length;
-    });
-    req.on("end", () => {
-      const headers = new Headers();
-      for (const [key, value] of Object.entries(req.headers)) {
-        if (typeof value === "string") headers.set(key, value);
-        else if (Array.isArray(value)) headers.set(key, value.join(", "));
+  const middleware =
+    (allowedHosts: readonly string[] | true): Connect.NextHandleFunction =>
+    (req, res, next) => {
+      const path = (req.url ?? "").split("?")[0] ?? "";
+      if (!matches(path)) {
+        next();
+        return;
       }
-      const method = req.method ?? "GET";
-      const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
-      const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, {
-        method,
-        headers,
-        body: method === "GET" || method === "HEAD" ? undefined : body,
+      if (!isAllowedApiHost(req.headers.host, allowedHosts)) {
+        res.statusCode = 403;
+        res.setHeader("Content-Type", "text/plain");
+        res.end("Blocked request: this host is not allowed to use the API.");
+        return;
+      }
+      const chunks: Buffer[] = [];
+      let size = 0;
+      req.on("data", (chunk: Buffer) => {
+        // Keep one byte past the limit so the handler can report 413 itself.
+        if (size > maxBodyBytes) return;
+        chunks.push(chunk);
+        size += chunk.length;
       });
-      handle(request, {
-        clientKey: clientKeyFrom(headers, req.socket.remoteAddress ?? "local"),
-      })
-        .then(async (response) => {
-          res.statusCode = response.status;
-          response.headers.forEach((value, key) => res.setHeader(key, value));
-          res.end(Buffer.from(await response.arrayBuffer()));
+      req.on("end", () => {
+        const headers = new Headers();
+        for (const [key, value] of Object.entries(req.headers)) {
+          if (typeof value === "string") headers.set(key, value);
+          else if (Array.isArray(value)) headers.set(key, value.join(", "));
+        }
+        const method = req.method ?? "GET";
+        const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
+        const request = new Request(
+          `http://${req.headers.host ?? "localhost"}${req.url}`,
+          {
+            method,
+            headers,
+            body: method === "GET" || method === "HEAD" ? undefined : body,
+          },
+        );
+        handle(request, {
+          clientKey: clientKeyFrom(headers, req.socket.remoteAddress ?? "local"),
         })
-        .catch(() => {
-          res.statusCode = 500;
-          res.end();
-        });
-    });
-  };
+          .then(async (response) => {
+            res.statusCode = response.status;
+            response.headers.forEach((value, key) => res.setHeader(key, value));
+            res.end(Buffer.from(await response.arrayBuffer()));
+          })
+          .catch(() => {
+            res.statusCode = 500;
+            res.end();
+          });
+      });
+    };
   return {
     name,
     configureServer(server) {
-      server.middlewares.use(middleware);
+      server.middlewares.use(middleware(server.config.server.allowedHosts));
     },
     configurePreviewServer(server) {
-      server.middlewares.use(middleware);
+      server.middlewares.use(middleware(server.config.preview.allowedHosts));
     },
   };
 }

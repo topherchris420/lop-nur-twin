@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import proposal from "./fixtures/demo-proposal.json" with { type: "json" };
 import { CitySimulation, PROFILES } from "../simulation";
 import { approve, begin, expireIfStale, openCase, type Origin } from "./cases";
@@ -167,7 +168,7 @@ describe("stale R.A.I.N. proposals fail closed", () => {
  * may not reach a renderer, a network client or the DEMO recording.
  */
 describe("authority, by construction", () => {
-  const dir = new URL(".", import.meta.url).pathname;
+  const dir = fileURLToPath(new URL(".", import.meta.url));
   const files = readdirSync(dir).filter(
     (f) => /\.(ts|tsx)$/.test(f) && !f.endsWith(".test.ts"),
   );
@@ -248,7 +249,7 @@ describe("authority, by construction", () => {
       ["../../../src/rain/mathematics/data/", /\.(json|md)$/],
       ["../../../src/rain/mathematics/fixtures/", /\.json$/],
     ] as const) {
-      const folder = new URL(where, import.meta.url).pathname;
+      const folder = fileURLToPath(new URL(where, import.meta.url));
       expect(
         readdirSync(folder)
           .filter((f) => pattern.test(f))

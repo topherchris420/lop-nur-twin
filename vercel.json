@@ -24,7 +24,7 @@
       "maxDuration": 10
     },
     "api/rain/proposal.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "api/rain/preregister.ts": {
       "maxDuration": 30

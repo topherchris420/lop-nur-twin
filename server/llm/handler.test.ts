@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { validateLlmDecision } from "../../src/game/pilot/llmDecision";
+import { isModelId } from "../../src/game/pilot/decision";
+import { isLlmModelId, validateLlmDecision } from "../../src/game/pilot/llmDecision";
 import { makeObservation } from "../../src/game/pilot/testing/fixtures";
 import { buildSystemOneRequest } from "../jev/question";
 import { DEFAULT_RATE_LIMITS, RateLimiter } from "../jev/rateLimit";
@@ -246,6 +247,55 @@ describe("openai-compatible adapter", () => {
     expect((up.calls[0]!.body["response_format"] as { type: string }).type).toBe(
       "json_schema",
     );
+  });
+
+  it("serves a namespaced model id end to end, and the browser accepts it", async () => {
+    const NAMESPACED = "Qwen/Qwen2.5-7B-Instruct";
+    expect(
+      resolveLlmConfig({
+        provider: "openai-compatible",
+        apiKey: KEY,
+        model: NAMESPACED,
+        baseUrl: "http://127.0.0.1:9/v1",
+      }),
+    ).toMatchObject({ configured: true, model: NAMESPACED });
+    const { call, up } = setup({ model: NAMESPACED }, () =>
+      openAiReply(JSON.stringify(firstOptions()), { model: NAMESPACED }),
+    );
+    const response = await call(post(decide));
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(up.calls[0]!.body["model"]).toBe(NAMESPACED);
+    expect(body).toMatchObject({ model: NAMESPACED, requestedModel: NAMESPACED });
+    expect(validateLlmDecision(body, { sequence: 9, legal: observation.legal }).ok).toBe(
+      true,
+    );
+  });
+
+  it("widens the model id for LLM providers only, and never to a URL", () => {
+    for (const id of [
+      "Qwen/Qwen2.5-7B-Instruct",
+      "meta-llama/Llama-3.1-8B-Instruct",
+      "qwen2.5:7b",
+      "m".repeat(128),
+    ])
+      expect(isLlmModelId(id), id).toBe(true);
+    for (const id of ["", "/leading", "http://evil.example/m", "a b", "m".repeat(129), 7])
+      expect(isLlmModelId(id), String(id)).toBe(false);
+    // Jev's contract is unchanged.
+    expect(isModelId("Qwen/Qwen2.5-7B-Instruct")).toBe(false);
+    expect(
+      resolveLlmConfig({
+        provider: "openai-compatible",
+        apiKey: KEY,
+        model: "https://evil.example/m",
+        baseUrl: "http://127.0.0.1:9/v1",
+      }),
+    ).toMatchObject({
+      configured: false,
+      model: null,
+      reason: "LLM_MODEL is missing or malformed",
+    });
   });
 
   it("records the served model as unknown when the provider reports none", async () => {

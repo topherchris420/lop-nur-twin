@@ -2,10 +2,10 @@ import {
   OBSERVATION_SCHEMA_VERSION,
   ACTION_CONTRACT_VERSION,
 } from "../../src/game/pilot/contract.js";
-import { isModelId } from "../../src/game/pilot/decision.js";
 import {
   LLM_DECISION_SCHEMA,
   LLM_PROVIDERS,
+  isLlmModelId,
   parseLlmAnswers,
   type LlmDecision,
   type LlmProviderName,
@@ -127,7 +127,7 @@ export function resolveLlmConfig(config: LlmServerConfig): ResolvedLlmConfig {
   const apiKey = config.apiKey?.trim();
   const rawModel =
     config.model?.trim() || (provider === "anthropic" ? DEFAULT_ANTHROPIC_MODEL : "");
-  const model = isModelId(rawModel) ? rawModel : null;
+  const model = isLlmModelId(rawModel) ? rawModel : null;
   const baseUrl = config.baseUrl?.trim() || null;
   const effort = (EFFORTS as readonly string[]).includes(config.effort?.trim() ?? "")
     ? (config.effort!.trim() as (typeof EFFORTS)[number])
@@ -453,7 +453,7 @@ export function createLlmDecisionHandler(config: LlmServerConfig): LlmDecisionHa
     }
     // The served model is what the provider says served the answer. When it
     // says nothing, that is unknown — not the model this server asked for.
-    const servedModel = isModelId(result.model) ? result.model : null;
+    const servedModel = isLlmModelId(result.model) ? result.model : null;
     // Asked for a confidence and wrote none is "none", not "verbalized".
     const wroteConfidence = Object.values(answers.value.answers).some(
       (answer) => answer?.confidence !== null && answer?.confidence !== undefined,

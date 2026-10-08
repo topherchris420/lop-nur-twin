@@ -1,5 +1,9 @@
 import { clientKeyFrom } from "../../server/jev/handler.js";
-import { createRainHandler, substrateRequest } from "../../server/rain/handler.js";
+import {
+  PROPOSAL_FUNCTION_MAX_DURATION_S,
+  createRainHandler,
+  substrateRequest,
+} from "../../server/rain/handler.js";
 import { configureRuntime } from "../../src/rain/runtime.js";
 
 /**
@@ -16,7 +20,9 @@ import { configureRuntime } from "../../src/rain/runtime.js";
  * so Vite never inlines anything. With `RAIN_RUNTIME=off` every route answers
  * "not configured" and the lab runs OFFLINE. Vercel does not deploy
  * underscore-prefixed files as functions; the route files beside this one
- * import it.
+ * import it. A proposal waits up to `RAIN_DECISION_TIMEOUT` on the decision
+ * router, so the route is told that setting and the proposal function's
+ * `maxDuration`; a timeout that cannot fit inside it is refused by name.
  */
 const handle = createRainHandler({
   runtime: configureRuntime({
@@ -29,6 +35,8 @@ const handle = createRainHandler({
     },
     cwd: process.cwd(),
   }),
+  decisionTimeout: process.env["RAIN_DECISION_TIMEOUT"],
+  proposalLimitMs: PROPOSAL_FUNCTION_MAX_DURATION_S * 1000,
 });
 
 export const rainRoute = {

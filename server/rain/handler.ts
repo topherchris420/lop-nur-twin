@@ -82,6 +82,19 @@ import { UsageLedger } from "./usage.js";
 export interface RainServerConfig {
   /** The configured runtime, from `configureRuntime`; resolved once and kept. */
   runtime: RuntimeConfiguration | Promise<RuntimeConfiguration>;
+  /**
+   * `RAIN_DECISION_TIMEOUT` as the entry point read it (seconds), so a
+   * proposal's route deadline can sit beyond the decision router's own.
+   */
+  decisionTimeout?: string | number | undefined;
+  /**
+   * The longest one proposal request may run where this is deployed: the
+   * proposal function's `maxDuration` on Vercel, absent where nothing cuts a
+   * request off (the Vite middleware). A `RAIN_DECISION_TIMEOUT` whose route
+   * deadline does not fit inside it is refused as a misconfiguration, by the
+   * setting's name, rather than cut off without an answer.
+   */
+  proposalLimitMs?: number | undefined;
   now?: () => number;
 }
 
@@ -153,8 +166,43 @@ const SESSION_CAPS: Record<Exclude<Op, Read>, number> = {
 const SESSION_WINDOW_MS = LIMITS.sessionMinutes * 60_000;
 /** Keys each ledger tracks; a full one forgets closed windows, then the least recent. */
 const TRACKED_KEYS = 5000;
-/** A proposal may wait on a remote engine; everything else answers at once. */
+/** Everything but a proposal answers at once; this bounds a runtime that does not. */
 const OPERATION_TIMEOUT_MS = 25_000;
+/** The decision router's own default, in seconds (`RAIN_DECISION_TIMEOUT`). */
+export const DEFAULT_DECISION_TIMEOUT_S = 30;
+/** How long past the router's deadline the route waits for its TIMEOUT envelope. */
+export const DECISION_DEADLINE_MARGIN_MS = 2_000;
+/**
+ * `maxDuration` of `api/rain/proposal.ts` in `vercel.json`, in seconds;
+ * `handler.test.ts` fails if the two disagree.
+ */
+export const PROPOSAL_FUNCTION_MAX_DURATION_S = 60;
+
+/**
+ * How long the route waits for a proposal. A proposal may wait on a remote
+ * engine, and the decision router answers a slow one with its own TIMEOUT
+ * envelope after `RAIN_DECISION_TIMEOUT` seconds; the route must outlast that,
+ * or the envelope can never arrive and the route gives up while the router is
+ * still busy. The router refuses a timeout outside (0, 300] s, and the runtime
+ * then is not configured, so an unreadable value falls back to its default.
+ * On Vercel it must also fit inside the proposal function's `maxDuration`
+ * (`proposalLimitMs`): a `RAIN_DECISION_TIMEOUT` that does not is refused as a
+ * misconfiguration, so it is never cut off silently.
+ */
+export function proposalDeadlineMs(decisionTimeout?: string | number): number {
+  const seconds =
+    decisionTimeout === undefined || decisionTimeout === ""
+      ? DEFAULT_DECISION_TIMEOUT_S
+      : Number(decisionTimeout);
+  const bounded =
+    Number.isFinite(seconds) && seconds > 0 && seconds <= 300
+      ? seconds
+      : DEFAULT_DECISION_TIMEOUT_S;
+  return Math.max(
+    OPERATION_TIMEOUT_MS,
+    Math.ceil(bounded * 1000) + DECISION_DEADLINE_MARGIN_MS,
+  );
+}
 
 /** A draft as the lab sends it: exactly the `create --from` fields, external and simulated. */
 const labDraft = (draft: unknown): draft is Record<string, unknown> =>
@@ -196,8 +244,21 @@ export function substrateRequest(request: Request): Request {
 }
 
 export function createRainHandler(config: RainServerConfig) {
-  const configured = Promise.resolve(config.runtime);
   const now = config.now ?? (() => Date.now());
+  const proposalDeadline = proposalDeadlineMs(config.decisionTimeout);
+  const limit = config.proposalLimitMs;
+  // The deadline, and time to write the answer, inside the function's limit.
+  const fits =
+    limit === undefined || proposalDeadline + DECISION_DEADLINE_MARGIN_MS <= limit;
+  const configured: Promise<RuntimeConfiguration> = Promise.resolve(config.runtime).then(
+    (c) =>
+      fits || c.mode !== "local"
+        ? c
+        : {
+            mode: "misconfigured",
+            reason: `RAIN_DECISION_TIMEOUT must leave a proposal time to answer inside this function's ${Math.floor(limit / 1000)} s limit`,
+          },
+  );
   const limiter = new RateLimiter(
     {
       perClient: { capacity: 12, refillPerSecond: 0.5 },
@@ -500,7 +561,13 @@ export function createRainHandler(config: RainServerConfig) {
     if (request.method !== "POST") return error(405, "POST required");
     if (!request.headers.get("content-type")?.includes("application/json"))
       return error(415, "JSON required");
-    const raw = await readBody(request, REQUEST_BYTES[op]);
+    let raw: string | null;
+    try {
+      raw = await readBody(request, REQUEST_BYTES[op]);
+    } catch {
+      // Not UTF-8, or the client went away mid-body: nothing to answer but this.
+      return error(400, "invalid body");
+    }
     if (raw === null) return error(413, "body too large");
     let parsed: unknown;
     try {
@@ -528,7 +595,7 @@ export function createRainHandler(config: RainServerConfig) {
         new Promise<never>((_, reject) => {
           timer = setTimeout(
             () => reject(new Refused(504, "timeout")),
-            OPERATION_TIMEOUT_MS,
+            op === "proposal" ? proposalDeadline : OPERATION_TIMEOUT_MS,
           );
         }),
       ]).finally(() => clearTimeout(timer));

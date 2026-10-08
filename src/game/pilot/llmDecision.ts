@@ -1,5 +1,5 @@
 import { AXES, isAxisAction, type Axis, type ControlFrame } from "./contract.js";
-import { QUESTION_HASH, isModelId } from "./decision.js";
+import { QUESTION_HASH } from "./decision.js";
 import { askedAxes, type LegalActions, type Validated } from "./observation.js";
 
 /**
@@ -26,6 +26,19 @@ import { askedAxes, type LegalActions, type Validated } from "./observation.js";
 export const LLM_DECISION_SCHEMA = "blacksite-llm-decision/v2";
 
 export const LLM_PROVIDERS = ["anthropic", "openai-compatible"] as const;
+
+/**
+ * A model id as an LLM provider names it. Wider than Jev's `isModelId`:
+ * OpenAI-compatible servers name models by namespace (`Qwen/Qwen2.5-7B-Instruct`,
+ * `meta-llama/Llama-3.1-8B-Instruct`), so `/` is allowed and the length is
+ * 128. Never a URL. The server applies it to what it asks for and what the
+ * provider says it served; the browser applies it again.
+ */
+const LLM_MODEL_ID = /^(?!.*:[/]{2})[A-Za-z0-9][A-Za-z0-9._/:-]{0,127}$/;
+
+export function isLlmModelId(value: unknown): value is string {
+  return typeof value === "string" && LLM_MODEL_ID.test(value);
+}
 export type LlmProviderName = (typeof LLM_PROVIDERS)[number];
 
 export interface LlmAxisAnswer {
@@ -125,10 +138,10 @@ export function validateLlmDecision(
     return { ok: false, error: "unknown provider" };
   }
   const model = value["model"];
-  if (model !== null && !isModelId(model))
+  if (model !== null && !isLlmModelId(model))
     return { ok: false, error: "served model id malformed" };
   const requestedModel = value["requestedModel"];
-  if (!isModelId(requestedModel))
+  if (!isLlmModelId(requestedModel))
     return { ok: false, error: "requested model id missing or malformed" };
   const latency = value["latencyMs"];
   if (typeof latency !== "number" || !Number.isFinite(latency) || latency < 0) {

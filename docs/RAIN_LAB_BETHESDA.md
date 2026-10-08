@@ -206,7 +206,7 @@ optional, are in `.env.example`:
 | `RAIN_DECISION_REMOTE_ALLOWED`  | `true` or `false` (default): whether a question may leave the machine for TypeSafe                                                                             |
 | `RAIN_DECISION_CALIBRATION`     | optional path to a `rain-decision-calibration/v1` file                                                                                                         |
 | `RAIN_DECISION_MINIMUM_SAMPLES` | calibration samples a profile needs (default 100)                                                                                                              |
-| `RAIN_DECISION_TIMEOUT`         | seconds per decision (default 30)                                                                                                                              |
+| `RAIN_DECISION_TIMEOUT`         | seconds per decision (default 30; at most 56 on Vercel, so a proposal still answers inside its 60 s function limit)                                            |
 | `RAIN_REGISTRY_DIR`             | optional directory for the experiment registry; unset, a scratch directory discarded with the process. One process only: refused on a function deployment      |
 | `RAIN_REGISTRY_SECRET`          | at least 32 random characters (`openssl rand -hex 32`): the key that certifies pre-registrations. Required for the registry on Vercel; optional on one process |
 
