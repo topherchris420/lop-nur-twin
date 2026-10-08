@@ -636,7 +636,7 @@ world state; recorded observations become evidence.**
   carries no local checkpoint.
 - **R.A.I.N. chooses; the host writes.** R.A.I.N. picks among `OPTIONS` in
   `session.ts`; the proposal is built from the option. A proposal is a closed
-  `rain-bethesda-experiment/v1` object with ids from the vocabulary in
+  `rain-bethesda-experiment/v2` object with ids from the vocabulary in
   `contracts.ts` — never a coordinate, command, code, URL or path. The scenario
   is compiled by the city's own compiler (`compileFor`) and must land on the
   expected mapped place. A hand-written proposal is a person's
