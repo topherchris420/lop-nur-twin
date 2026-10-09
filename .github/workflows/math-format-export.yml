@@ -1,0 +1,41 @@
+name: Temporary math-format export
+
+on:
+  push:
+    paths:
+      - .github/workflows/math-format-export.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Install the pinned formatter
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+        run: bun install --frozen-lockfile
+      - name: Format targeted sources without publishing
+        run: bunx prettier --write README.md docs/MATH_PORTFOLIO.md scripts/math-portfolio.ts src/rain/mathematics/portfolio.ts src/rain/mathematics/portfolio.test.ts
+      - name: Export formatted bytes for reviewed commit
+        run: |
+          python3 - <<'PY'
+          import base64
+          from pathlib import Path
+          paths = (
+              "README.md",
+              "docs/MATH_PORTFOLIO.md",
+              "scripts/math-portfolio.ts",
+              "src/rain/mathematics/portfolio.ts",
+              "src/rain/mathematics/portfolio.test.ts",
+          )
+          for path in paths:
+              data = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+              for part, start in enumerate(range(0, len(data), 4000)):
+                  print(f"MATH_FORMAT_OUTPUT|{path}|{part}|{data[start:start+4000]}")
+          PY
