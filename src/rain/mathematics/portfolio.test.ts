@@ -23,10 +23,15 @@ describe("portfolio mathematics candidate scouting", () => {
     expect(report.epistemic_status).toBe("candidate_references_only");
     expect(report.projects).toHaveLength(8);
     for (const p of report.projects) {
-      expect(p.findings.some((f) => f.id === "assumptions_unmapped") || p.candidates.length === 0).toBe(true);
+      expect(
+        p.findings.some((f) => f.id === "assumptions_unmapped") ||
+          p.candidates.length === 0,
+      ).toBe(true);
       for (const c of p.candidates) {
         expect(c.source_url).toContain(report.provenance.commit);
-        expect(c.manuscript_urls.every((url) => url.includes(report.provenance.commit))).toBe(true);
+        expect(
+          c.manuscript_urls.every((url) => url.includes(report.provenance.commit)),
+        ).toBe(true);
         expect(c.matched_terms.length).toBeGreaterThan(0);
         expect(["formalized", "manuscript", "unverified"]).toContain(c.catalogue_status);
       }

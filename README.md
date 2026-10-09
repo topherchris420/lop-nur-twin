@@ -20,12 +20,12 @@
 
 You do not have to understand the whole architecture before using it. Pick the question you want to put to the system:
 
-| Your question | Go here | What actually runs |
-| --- | --- | --- |
-| **How do we know a building belongs in the reconstruction?** | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Public-source claims, classifications, uncertainties and dated revisions; no model needed |
-| **How does a model behave when the world can refuse its choices?** | [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Evaluation](https://lop-nur-twin.vercel.app/evaluation) | Human, scripted or model-driven policies under the simulator's own rules |
-| **Can a simulated city become a place to conduct research?** | [Find Bethesda](#find-bethesda) · [Open the Lab](#a-lab-behind-a-door) | A walkable simulated city, four research perspectives, bounded experiments and replay |
-| **Can a local AI propose the *next* experiment without authorizing itself?** | [Autonomous research](#why-this-is-more-than-a-digital-twin) · [Lab guide](docs/RAIN_LAB_BETHESDA.md#autonomous-research) | Experimental local CLI, `npm run rain:autonomous`, under a charter that a person approves |
+| Your question                                                                | Go here                                                                                                                   | What actually runs                                                                        |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **How do we know a building belongs in the reconstruction?**                 | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis)                                                            | Public-source claims, classifications, uncertainties and dated revisions; no model needed |
+| **How does a model behave when the world can refuse its choices?**           | [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Evaluation](https://lop-nur-twin.vercel.app/evaluation)         | Human, scripted or model-driven policies under the simulator's own rules                  |
+| **Can a simulated city become a place to conduct research?**                 | [Find Bethesda](#find-bethesda) · [Open the Lab](#a-lab-behind-a-door)                                                    | A walkable simulated city, four research perspectives, bounded experiments and replay     |
+| **Can a local AI propose the _next_ experiment without authorizing itself?** | [Autonomous research](#why-this-is-more-than-a-digital-twin) · [Lab guide](docs/RAIN_LAB_BETHESDA.md#autonomous-research) | Experimental local CLI, `npm run rain:autonomous`, under a charter that a person approves |
 
 **No credentials for the public reconstruction and scripted experiences.** A live model or experimental autonomous researcher requires setup and authorization. Simulated discoveries are not claims about the real airfield, human behavior or the physical world.
 
@@ -631,7 +631,7 @@ person — and never standing for evidence.
 
 _The same question's experiment after a person authorized it, run on three matched seeds and verified by replay. In frame: what the record cannot establish, where every part of it came from, and each arm re-simulated._
 
-**Portfolio-wide mathematics scouting.** R.A.I.N. can now compare bounded research questions for eight Vers3Dynamics repositories against its pinned mathematical index, returning *candidate references* and concrete falsification questions with source provenance. Run `npm run rain:math:portfolio` or `npm run rain:math:portfolio -- --project circle`. It does not prove applicability or execute Lean. [Research questions and limits](docs/MATH_PORTFOLIO.md).
+**Portfolio-wide mathematics scouting.** R.A.I.N. can now compare bounded research questions for eight Vers3Dynamics repositories against its pinned mathematical index, returning _candidate references_ and concrete falsification questions with source provenance. Run `npm run rain:math:portfolio` or `npm run rain:math:portfolio -- --project circle`. It does not prove applicability or execute Lean. [Research questions and limits](docs/MATH_PORTFOLIO.md).
 
 **A mathematical substrate beside the evidence.** R.A.I.N. also holds a
 version-pinned, read-only index of [`openai/math`](https://github.com/openai/math)

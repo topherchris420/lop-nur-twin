@@ -16,7 +16,7 @@ npm run rain:math:portfolio -- --project dynamic-resonance-rooting --json
 The `--project` names are the eight repositories currently in [`portfolio.ts`](../src/rain/mathematics/portfolio.ts). The tool searches R.A.I.N.'s **bundled index**, so it makes no network request. It reports:
 
 - a research question and a possible next falsification experiment for each project;
-- up to three lexical *candidate* mathematical families with matched terms, catalogue status and commit-pinned URLs;
+- up to three lexical _candidate_ mathematical families with matched terms, catalogue status and commit-pinned URLs;
 - the upstream revision and index content hash;
 - explicit boundaries, including when no lexical candidate exists.
 
@@ -30,19 +30,19 @@ It does **not** evaluate theorems, download the PDFs, run Lean, establish applic
 4. **Register a falsifiable prediction** and run matched seeds or previously unseen observations. Preserve failures and alternative interpretations.
 5. **Keep levels separate:** an index match is a research suggestion; a checked proof concerns its formal statement; a measured algorithmic improvement needs a benchmark; a physical or human claim needs its own external evidence.
 
-Do not copy manuscripts, Lean sources or PDFs into the other repositories. Read the [upstream Apache-2.0 license](https://github.com/openai/math/blob/main/LICENSE) before reusing material. Prefer references and derived *questions* over code duplication.
+Do not copy manuscripts, Lean sources or PDFs into the other repositories. Read the [upstream Apache-2.0 license](https://github.com/openai/math/blob/main/LICENSE) before reusing material. Prefer references and derived _questions_ over code duplication.
 
 ## Project lenses
 
-| Repository | Question to investigate first |
-| --- | --- |
-| [R.A.I.N. / Lop Nur Twin](https://github.com/topherchris420/lop-nur-twin) | Stability of conclusions under explicit simulator rule ablations |
-| [Resonate AI Mesh](https://github.com/topherchris420/resonate-ai-mesh) | Authority invariants under stale proposals and counterfactual policies |
-| [DRR](https://github.com/topherchris420/dynamic-resonance-rooting) | False-alarm behavior of lag inference on dependent, long-memory signals |
-| [CIRCLE](https://github.com/topherchris420/circle) | Bounded timing errors under missing or reordered synthetic sensor packets |
-| [Pine Gap](https://github.com/topherchris420/satellite-vision-scape) | Separating agent skill from environment-induced advantages |
-| [rain-pipeline](https://github.com/topherchris420/rain-pipeline) | Preregistered negative controls and independent subject-level holdouts |
-| [Vanta](https://github.com/topherchris420/vanta) | Whether a research graph mistakes shared language for a sourced connection |
-| [Studio](https://github.com/topherchris420/quantum-spin-sound) | Spectral parity between an intended pattern and real audio output |
+| Repository                                                                | Question to investigate first                                              |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [R.A.I.N. / Lop Nur Twin](https://github.com/topherchris420/lop-nur-twin) | Stability of conclusions under explicit simulator rule ablations           |
+| [Resonate AI Mesh](https://github.com/topherchris420/resonate-ai-mesh)    | Authority invariants under stale proposals and counterfactual policies     |
+| [DRR](https://github.com/topherchris420/dynamic-resonance-rooting)        | False-alarm behavior of lag inference on dependent, long-memory signals    |
+| [CIRCLE](https://github.com/topherchris420/circle)                        | Bounded timing errors under missing or reordered synthetic sensor packets  |
+| [Pine Gap](https://github.com/topherchris420/satellite-vision-scape)      | Separating agent skill from environment-induced advantages                 |
+| [rain-pipeline](https://github.com/topherchris420/rain-pipeline)          | Preregistered negative controls and independent subject-level holdouts     |
+| [Vanta](https://github.com/topherchris420/vanta)                          | Whether a research graph mistakes shared language for a sourced connection |
+| [Studio](https://github.com/topherchris420/quantum-spin-sound)            | Spectral parity between an intended pattern and real audio output          |
 
 **Current status:** the scouting workflow is a deterministic, versioned reference layer. These candidate questions are **not** new experimental results, validated mathematical improvements or integrations of OpenAI model weights.
