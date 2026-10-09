@@ -631,6 +631,8 @@ person — and never standing for evidence.
 
 _The same question's experiment after a person authorized it, run on three matched seeds and verified by replay. In frame: what the record cannot establish, where every part of it came from, and each arm re-simulated._
 
+**Portfolio-wide mathematics scouting.** R.A.I.N. can now compare bounded research questions for eight Vers3Dynamics repositories against its pinned mathematical index, returning *candidate references* and concrete falsification questions with source provenance. Run `npm run rain:math:portfolio` or `npm run rain:math:portfolio -- --project circle`. It does not prove applicability or execute Lean. [Research questions and limits](docs/MATH_PORTFOLIO.md).
+
 **A mathematical substrate beside the evidence.** R.A.I.N. also holds a
 version-pinned, read-only index of [`openai/math`](https://github.com/openai/math)
 — 372 result families, 722 manuscripts and 235 Lean scope pages at one commit,

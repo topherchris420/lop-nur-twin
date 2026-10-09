@@ -63,7 +63,8 @@
     "rain:math:index": "node scripts/run-ts.mjs scripts/math-substrate.ts index",
     "rain:math:verify": "node scripts/run-ts.mjs scripts/math-substrate.ts verify",
     "rain:math:inspect": "node scripts/run-ts.mjs scripts/math-substrate.ts inspect",
-    "rain:math:search": "node scripts/run-ts.mjs scripts/math-substrate.ts search"
+    "rain:math:search": "node scripts/run-ts.mjs scripts/math-substrate.ts search",
+    "rain:math:portfolio": "node scripts/run-ts.mjs scripts/math-portfolio.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
