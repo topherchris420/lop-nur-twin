@@ -1,6 +1,8 @@
 # R.A.I.N. Lab
 
-**Explore the evidence. Take the controls. Follow the anomaly♟️.**
+**A laboratory you can enter. A world that can answer back.**
+
+**Explore the evidence. Take the controls. Follow the anomaly.**
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -13,6 +15,23 @@
 [Meet R.A.I.N.](https://rainlabteam.vercel.app/)
 
 ![The reconstructed runway and south hangar compound seen from the south-east, with the site telemetry, site map, evidence timeline and evidence status panels around it](docs/screenshot-overview.png)
+
+### Choose your first experiment
+
+You do not have to understand the whole architecture before using it. Pick the question you want to put to the system:
+
+| Your question | Go here | What actually runs |
+| --- | --- | --- |
+| **How do we know a building belongs in the reconstruction?** | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Public-source claims, classifications, uncertainties and dated revisions; no model needed |
+| **How does a model behave when the world can refuse its choices?** | [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Evaluation](https://lop-nur-twin.vercel.app/evaluation) | Human, scripted or model-driven policies under the simulator's own rules |
+| **Can a simulated city become a place to conduct research?** | [Find Bethesda](#find-bethesda) · [Open the Lab](#a-lab-behind-a-door) | A walkable simulated city, four research perspectives, bounded experiments and replay |
+| **Can a local AI propose the *next* experiment without authorizing itself?** | [Autonomous research](#why-this-is-more-than-a-digital-twin) · [Lab guide](docs/RAIN_LAB_BETHESDA.md#autonomous-research) | Experimental local CLI, `npm run rain:autonomous`, under a charter that a person approves |
+
+**No credentials for the public reconstruction and scripted experiences.** A live model or experimental autonomous researcher requires setup and authorization. Simulated discoveries are not claims about the real airfield, human behavior or the physical world.
+
+### One laboratory, one repository
+
+The R.A.I.N. runtime, research perspectives and evidence corpus were integrated into **this repository** from the earlier `james_library` project on 6 October 2026. The production-facing integration uses native TypeScript under [`src/rain/`](src/rain/) and Bethesda's [`src/bethesda/rain/`](src/bethesda/rain/). You do **not** need a second checkout or a Python bridge. The [migration record](docs/RAIN_MIGRATION.md) documents exact source commits, parity comparisons and intentionally unported modules. Older results remain historical evidence, not certification of the newer autonomy.
 
 A desert airfield rebuilt from public sources, where every building can tell you
 how it knows it belongs there. A first-person game on the same ground, where a
