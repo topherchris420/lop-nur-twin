@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   approve,
   admitStanding,
@@ -344,12 +344,22 @@ describe("a run under a standing authority", () => {
   });
   it("runs, seals a v3 record carrying it, and replays without a clock, after expiry too", () => {
     expect(begin(c, at(3))).toEqual([]);
-    const result = runToCompletion(
-      v.definition,
-      v.definitionSha256,
-      v.experimentId,
-      standing,
-    );
+    // Execution happens while the charter is still valid. Replay below
+    // intentionally uses real time, including dates after authorization expiry.
+    const result = (() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(at(3));
+      try {
+        return runToCompletion(
+          v.definition,
+          v.definitionSha256,
+          v.experimentId,
+          standing,
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    })();
     const record = complete(c, result, { started: at(3), finished: at(4) });
     expect(record.schema).toBe("bethesda-rain-experiment-record/v3");
     expect(record.authorization).toBeNull();
