@@ -14,9 +14,9 @@
  * Server only.
  */
 import { evaluate, type Criterion, type Evaluation } from "./evaluate.js";
-import { environment, gitState, redact, type GitState } from "./provenance.js";
+import { credentialFormatsIn, environment, gitState, redact, type GitState } from "./provenance.js";
 import { type Registry, utcNow, type Json } from "./registry.js";
-import { ExperimentError, RUN_SCHEMA, sha256Json, submissionErrors } from "./schema.js";
+import { ExperimentError, RUN_SCHEMA, sha256Bytes, sha256Json, submissionErrors } from "./schema.js";
 import { summarize, type Summary } from "./stats.js";
 
 const CLASS_NOTES: Record<string, string> = {
@@ -133,7 +133,7 @@ export function recordSubmission(
   registry: Registry,
   experimentId: string,
   submission: unknown,
-  options: { recordedBy?: RecordedBy; now?: () => Date } = {},
+  options: { recordedBy?: RecordedBy; now?: () => Date; artifacts?: Readonly<Record<string, string>> } = {},
 ): Json {
   const errors = submissionErrors(submission);
   if (errors.length) throw new ExperimentError("Invalid submission:\n  " + errors.join("\n  "));
@@ -158,6 +158,21 @@ export function recordSubmission(
     );
   if (s.evidence_class !== definition.evidence_class)
     throw new ExperimentError("Submission evidence class does not match the registered experiment");
+  const artifacts = options.artifacts ?? {};
+  const policy = definition.data_policy as { classification: string; store_artifacts: boolean };
+  if (new Set(s.artifacts.map((a) => a.name)).size !== s.artifacts.length)
+    throw new ExperimentError("Duplicate artifact names");
+  if (Object.keys(artifacts).length && (!policy.store_artifacts || policy.classification === "sensitive"))
+    throw new ExperimentError("The pre-registered data policy forbids storing artifacts");
+  let artifactBytes = 0;
+  for (const [name, text] of Object.entries(artifacts)) {
+    const declared = s.artifacts.find((a) => a.name === name);
+    if (!declared || typeof text !== "string" || Buffer.byteLength(text) !== declared.bytes || sha256Bytes(text) !== declared.sha256)
+      throw new ExperimentError(`Artifact ${name} differs from its declared bytes or SHA-256`);
+    artifactBytes += Buffer.byteLength(text);
+    if (artifactBytes > 8 * 1024 * 1024 || credentialFormatsIn(text))
+      throw new ExperimentError("Artifacts exceed 8 MiB or contain credential-like text");
+  }
   const submissionSha256 = sha256Json(submission);
   for (const existing of registry.runs(experimentId))
     if ((existing.provenance as Json | undefined)?.submission_sha256 === submissionSha256)
@@ -206,8 +221,8 @@ export function recordSubmission(
       sha256: a.sha256,
       bytes: a.bytes,
       kind: a.kind,
-      stored: false,
-      note: "external artifact; referenced by hash, never fetched",
+      stored: Object.hasOwn(artifacts, a.name as string),
+      note: Object.hasOwn(artifacts, a.name as string) ? "host-supplied bytes checked against the declared hash; never fetched" : "external artifact; referenced by hash, never fetched",
       ...("uri" in a ? { uri: redact(a.uri) } : {}),
     })),
     models: [],
@@ -221,6 +236,9 @@ export function recordSubmission(
       recorded_at: utcNow(now()),
     },
   };
+  // A crash while publishing artifacts leaves an explicit unfinished record.
+  registry.writeRun(runDir, record);
+  registry.writeArtifacts(runDir, artifacts);
   const error = (s.error as Json | undefined) ?? null;
   complete(record, definition, output, error ? redact(error) : null, utcNow(now()));
   record.finished_at = s.finished_at;

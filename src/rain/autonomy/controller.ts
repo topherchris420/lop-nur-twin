@@ -68,7 +68,7 @@ import {
   type SessionBudgets,
   type StandingAuthority,
 } from "../../bethesda/rain/standing.js";
-import type { ExperimentRecord } from "../../bethesda/rain/record.js";
+import { runArtifactSha256, type ExperimentRecord } from "../../bethesda/rain/record.js";
 import type { RuntimeApi } from "../runtime.js";
 import {
   ANALYSIS_SCHEMA,
@@ -897,6 +897,7 @@ export async function runSession(input: SessionInput): Promise<SessionSummary> {
       emit({
         kind: "replay",
         run_id: record.run_id,
+        artifact_sha256: runArtifactSha256(record),
         ok: verification.ok,
         failed: verification.checks
           .filter((x) => !x.ok)

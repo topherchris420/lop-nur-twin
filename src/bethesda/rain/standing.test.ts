@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   approve,
   admitStanding,
@@ -31,6 +31,8 @@ import {
   type StandingAuthority,
 } from "./standing";
 import { submissionErrors } from "../../rain/experiments/schema";
+
+afterEach(() => vi.useRealTimers());
 
 const ceilings: Ceilings = {
   iterations: 4,
@@ -343,23 +345,17 @@ describe("a run under a standing authority", () => {
     ).toContain(`the charter's authorization expired at ${authorization.expires_at}`);
   });
   it("runs, seals a v3 record carrying it, and replays without a clock, after expiry too", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(at(3));
     expect(begin(c, at(3))).toEqual([]);
-    // Execution happens while the charter is still valid. Replay below
-    // intentionally uses real time, including dates after authorization expiry.
-    const result = (() => {
-      vi.useFakeTimers({ toFake: ["Date"] });
-      vi.setSystemTime(at(3));
-      try {
-        return runToCompletion(
-          v.definition,
-          v.definitionSha256,
-          v.experimentId,
-          standing,
-        );
-      } finally {
-        vi.useRealTimers();
-      }
-    })();
+    // Execution happens while the charter is valid; replay below explicitly
+    // advances the clock beyond expiry. afterEach restores the real clock.
+    const result = runToCompletion(
+      v.definition,
+      v.definitionSha256,
+      v.experimentId,
+      standing,
+    );
     const record = complete(c, result, { started: at(3), finished: at(4) });
     expect(record.schema).toBe("bethesda-rain-experiment-record/v3");
     expect(record.authorization).toBeNull();
@@ -370,6 +366,7 @@ describe("a run under a standing authority", () => {
     });
     // The DEMO's design, on the DEMO's seeds: the simulator says the cohort comes closer.
     expect(record.outcome.verdict).toBe("not_supported");
+    vi.setSystemTime(at(24 * 60 + 5));
     const verified = verifyRecordSync(record);
     expect(verified.checks.filter((x) => !x.ok)).toEqual([]);
     expect(verified.checks.find((x) => x.id === "authorization")!.detail).toMatch(

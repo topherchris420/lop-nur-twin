@@ -58,6 +58,8 @@
     "rain:conformance": "node tools/rain-conformance.mjs",
     "rain:demo": "node scripts/run-ts.mjs scripts/export-rain-demo.ts",
     "rain:admit": "node tools/rain-admit.mjs",
+    "rain:research": "node tools/rain-research.mjs",
+    "rain:lineage-demo": "node tools/rain-lineage-demo.mjs",
     "rain:stand-in": "node tools/stand-in-model.mjs",
     "rain:autonomous": "node tools/rain-autonomous.mjs",
     "rain:math:index": "node scripts/run-ts.mjs scripts/math-substrate.ts index",

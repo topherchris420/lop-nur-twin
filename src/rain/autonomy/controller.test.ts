@@ -19,7 +19,7 @@ import { configureRuntime, type RuntimeApi } from "../runtime";
 import { sha256Json } from "../sha256";
 import { EVIDENCE_LEDGER } from "../../lib/evidence";
 import { verifyRecordSync } from "../../bethesda/rain/replay";
-import type { ExperimentRecord } from "../../bethesda/rain/record";
+import { runArtifactSha256, type ExperimentRecord } from "../../bethesda/rain/record";
 import { optionHypothesis } from "../../bethesda/rain/session";
 import {
   authorizeCharter,
@@ -576,8 +576,44 @@ describe("the research state is derived, and contradictions are kept", () => {
       },
     } as unknown as ExperimentRecord,
   });
+  const replayEntries = (records: StoredRecord[], ok = true): TraceEntry[] =>
+    records.map(
+      (r) =>
+        ({
+          kind: "replay",
+          run_id: r.record!.run_id,
+          artifact_sha256: runArtifactSha256(r.record!),
+          ok,
+          failed: ok ? [] : ["measurements differ"],
+        }) as TraceEntry,
+    );
+  const verifiedState = (records: StoredRecord[], entries: TraceEntry[]) =>
+    deriveState(records, [...replayEntries(records), ...entries]);
+  it("withdraws support after failed or missing replay while retaining the original result", () => {
+    const records = [fake("X2-increase-primary", "supported")];
+    for (const entries of [[], replayEntries(records, false)]) {
+      const state = deriveState(records, entries);
+      expect(state.hypotheses[0]!.status).toBe("needs_reassessment");
+      expect(state.experiments[0]!.verdict).toBe("supported");
+      expect(state.warnings.join()).toMatch(/replay verification/);
+    }
+    expect(deriveState(records, replayEntries(records)).hypotheses[0]!.status).toBe(
+      "supported",
+    );
+  });
+  it("does not reuse a replay receipt after its artifact changes or when the receipt is unbound", () => {
+    const records = [fake("X2-increase-primary", "supported")];
+    const entries = replayEntries(records);
+    records[0]!.record!.outcome.summary = "changed after replay";
+    expect(deriveState(records, entries).hypotheses[0]!.status).toBe(
+      "needs_reassessment",
+    );
+    const legacy = replayEntries(records);
+    if (legacy[0]!.kind === "replay") delete legacy[0]!.artifact_sha256;
+    expect(deriveState(records, legacy).hypotheses[0]!.status).toBe("needs_reassessment");
+  });
   it("marks a hypothesis contested when its seed panels disagree, keeping both runs", () => {
-    const state = deriveState(
+    const state = verifiedState(
       [
         fake("X2-increase-primary", "supported"),
         fake("X2-increase-replication", "not_supported"),
@@ -593,7 +629,7 @@ describe("the research state is derived, and contradictions are kept", () => {
     });
   });
   it("reads every verdict the criteria give: insufficient evidence is inconclusive, a failed run is not evaluated", () => {
-    const state = deriveState(
+    const state = verifiedState(
       [
         fake("X4-increase-primary", "insufficient_evidence"),
         fake("X5-increase-primary", "not_evaluated"),
@@ -617,7 +653,7 @@ describe("the research state is derived, and contradictions are kept", () => {
       });
       return r;
     };
-    const state = deriveState(
+    const state = verifiedState(
       [
         cut("X2-increase-primary", {
           type: "RuntimeSpent",
@@ -647,7 +683,7 @@ describe("the research state is derived, and contradictions are kept", () => {
   it("leaves out a record this loop did not make", () => {
     const foreign = fake("X3-increase-primary", "supported");
     (foreign.record as { standing: unknown }).standing = null;
-    const state = deriveState([foreign], []);
+    const state = verifiedState([foreign], []);
     expect(state.experiments).toEqual([]);
     expect(state.warnings.join()).toMatch(/not admitted under a standing authority/);
   });

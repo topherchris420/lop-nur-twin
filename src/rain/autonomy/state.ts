@@ -28,6 +28,7 @@ import {
 } from "../../bethesda/rain/contracts.js";
 import { optionHypothesis, OPTIONS } from "../../bethesda/rain/session.js";
 import { parseDesignId, type Panel } from "../../bethesda/rain/standing.js";
+import { runArtifactSha256 } from "../../bethesda/rain/record.js";
 import type { StoredRecord } from "./store.js";
 import type { TraceEntry } from "./trace.js";
 import type { Reading } from "./actions.js";
@@ -40,6 +41,7 @@ export type HypothesisStatus =
   | "not_supported"
   | "inconclusive"
   | "contested"
+  | "needs_reassessment"
   | "not_evaluated";
 export const STATUS_WORDS: Record<HypothesisStatus, string> = {
   untested: "UNTESTED",
@@ -47,6 +49,8 @@ export const STATUS_WORDS: Record<HypothesisStatus, string> = {
   not_supported: "NOT SUPPORTED IN SIMULATION",
   inconclusive: "INCONCLUSIVE IN SIMULATION",
   contested: "CONTESTED: the seed panels disagree, and both results are kept",
+  needs_reassessment:
+    "NEEDS REASSESSMENT: a contributing result has no successful replay",
   not_evaluated: "NOT EVALUATED: its run did not complete",
 };
 
@@ -191,9 +195,10 @@ export function deriveState(
   const warnings: string[] = [];
   const experiments: ExperimentEntry[] = [];
   const refusals: RefusalEntry[] = [];
-  const replayed = new Map<string, boolean>();
+  const replayed = new Map<string, { ok: boolean; artifact_sha256?: string }>();
+  const replayStatus = new Map<string, boolean | null>();
   for (const e of entries) {
-    if (e.kind === "replay") replayed.set(e.run_id, e.ok);
+    if (e.kind === "replay") replayed.set(e.run_id, e);
     if (e.kind === "refusal")
       refusals.push({
         session_id: e.session_id,
@@ -229,6 +234,14 @@ export function deriveState(
       continue;
     }
     const run = r.run;
+    const receipt = replayed.get(r.run_id);
+    const verified =
+      receipt?.ok === false
+        ? false
+        : receipt?.ok === true && receipt.artifact_sha256 === runArtifactSha256(r)
+          ? true
+          : null;
+    replayStatus.set(r.run_id, verified);
     const m = run?.measurements ?? {};
     const num = (k: string) => (typeof m[k] === "number" ? m[k] : null);
     experiments.push({
@@ -261,7 +274,7 @@ export function deriveState(
       decision_id: a.decision_id,
       record_sha256: r.record_sha256,
       path: stored.path,
-      replay_verified: replayed.get(r.run_id) ?? null,
+      replay_verified: verified,
     });
   }
   const measured: Record<string, string> = {};
@@ -355,6 +368,15 @@ export function deriveState(
   }
   for (const h of hypotheses.values()) {
     h.status = statusOf(h.runs.map((r) => r.verdict));
+    const unverified = h.runs.filter(
+      (r) => r.verdict !== "not_evaluated" && replayStatus.get(r.run_id) !== true,
+    );
+    if (unverified.length) {
+      h.status = "needs_reassessment";
+      warnings.push(
+        `${h.id}: ${unverified.map((r) => r.run_id).join(", ")} has failed or missing replay verification; the original results are retained for review`,
+      );
+    }
     h.model_statements = h.model_statements.slice(-3);
   }
   return {

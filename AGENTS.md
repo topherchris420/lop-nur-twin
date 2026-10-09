@@ -697,6 +697,17 @@ world state; recorded observations become evidence.**
 
 ### The autonomous researcher (`src/rain/autonomy/`)
 
+The registry's operator research-lineage workflow is documented in
+`docs/RAIN_RESEARCH_LINEAGE.md`. `experiments/research.ts` derives claim standing
+from existing definitions, runs and artifacts; all mutations remain in
+`experiments/registry.ts`. Never accept a claim's own verdict or substitute
+model prose for measurements. Research revisions are immutable and extend an
+explicit parent; changed sources invalidate their consumers on inspection.
+Follow-ups do not schedule or authorize execution. Preserve the default
+hash-only artifact policy unless a definition explicitly opted into storage.
+Autonomous replay receipts bind the stable run artifact SHA-256, so attaching
+the registry's admission does not change the artifact that was verified.
+
 `npm run rain:autonomous` (`tools/rain-autonomous.mjs`) runs R.A.I.N.'s
 research loop with a local open model — Ollama or LM Studio — in the researcher
 and analyst seats. Read "Autonomous research" in `docs/RAIN_LAB_BETHESDA.md`

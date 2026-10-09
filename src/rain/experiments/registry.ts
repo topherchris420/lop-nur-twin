@@ -25,6 +25,9 @@ import {
   constants,
   existsSync,
   fstatSync,
+  lstatSync,
+  linkSync,
+  fsyncSync,
   mkdirSync,
   openSync,
   readdirSync,
@@ -34,8 +37,9 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { basename, join } from "node:path";
-import { DEFINITION_SCHEMA, ExperimentError, canonicalJson, validateDefinition, type Json } from "./schema.js";
+import { basename, join, relative, resolve, isAbsolute, sep } from "node:path";
+import { DEFINITION_SCHEMA, ExperimentError, canonicalJson, validateDefinition, sha256Json, type Json } from "./schema.js";
+import { assessResearch, validateResearchPlan, validateResearchReview, MAX_RESEARCH_REVISIONS, MAX_RESEARCH_BYTES, type ResearchPlan, type ResearchRevision, type ResearchReview } from "./research.js";
 
 export type { Json } from "./schema.js";
 
@@ -92,7 +96,7 @@ export function readBoundedFile(path: string, limit: number): string {
   const name = basename(path);
   let fd: number;
   try {
-    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ELOOP" || code === "EMLINK")
@@ -139,8 +143,8 @@ export class Registry {
   private readonly now: () => Date;
   constructor(root: string, now: () => Date = () => new Date()) {
     this.now = now;
-    this.root = root;
-    this.ledgerPath = join(root, "registry.json");
+    this.root = resolve(root);
+    this.ledgerPath = join(this.root, "registry.json");
   }
 
   // ── identifiers ────────────────────────────────────────────────────
@@ -260,7 +264,7 @@ export class Registry {
   }
 
   loadDefinition(experimentId: string): Json {
-    const path = join(this.experimentDir(experimentId), "experiment.json");
+    const path = this.safePath(join(this.experimentDir(experimentId), "experiment.json"));
     if (!existsSync(path)) throw new ExperimentError(`${experimentId} is not registered`);
     const definition = readJson(path) as Json;
     validateDefinition(definition);
@@ -271,10 +275,10 @@ export class Registry {
 
   // ── runs ───────────────────────────────────────────────────────────
   runDirs(experimentId: string): string[] {
-    const runs = join(this.experimentDir(experimentId), "runs");
+    const runs = this.safePath(join(this.experimentDir(experimentId), "runs"));
     if (!existsSync(runs)) return [];
     return readdirSync(runs)
-      .filter((name) => RUN_DIR.test(name) && statSync(join(runs, name)).isDirectory())
+      .filter((name) => RUN_DIR.test(name) && statSync(this.safePath(join(runs, name))).isDirectory())
       .sort((a, b) => Number(RUN_DIR.exec(a)![1]) - Number(RUN_DIR.exec(b)![1]))
       .map((name) => join(runs, name));
   }
@@ -304,7 +308,7 @@ export class Registry {
   }
 
   writeRun(runDir: string, record: Json): void {
-    const path = join(runDir, "result.json");
+    const path = this.safePath(join(runDir, "result.json"));
     if (existsSync(path)) {
       const current = readJson(path) as Json;
       if (current.status !== "running")
@@ -317,8 +321,130 @@ export class Registry {
     const match = RUN_ID.exec(runId ?? "");
     if (!match) throw new ExperimentError(`Not a run ID: ${JSON.stringify(runId)} (expected V3D-EXP-0001-RUN-0001 form)`);
     const runDir = join(this.experimentDir(match[1]!), "runs", `RUN-${match[2]}`);
-    const path = join(runDir, "result.json");
+    const path = this.safePath(join(runDir, "result.json"));
     if (!existsSync(path)) throw new ExperimentError(`${runId} is not recorded`);
     return { runDir, record: readJson(path) as Json };
+  }
+
+  /** Reject traversal and symlinked ancestors before reading or writing artifacts. */
+  safePath(path: string): string {
+    const target = resolve(path);
+    const rel = relative(this.root, target);
+    if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel))
+      throw new ExperimentError("Path leaves the experiment registry");
+    let current = this.root;
+    for (const part of ["", ...rel.split(sep).filter(Boolean)]) {
+      current = join(current, part);
+      try {
+        if (lstatSync(current).isSymbolicLink()) throw new ExperimentError("Symlinked registry paths are refused");
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+    }
+    return target;
+  }
+
+  /** Publish a complete immutable file; interruption never exposes a partial revision. */
+  private writeOnce(path: string, text: string): void {
+    this.safePath(path);
+    const temp = `${path}.${process.pid}.${Date.now()}.tmp`;
+    const fd = openSync(temp, "wx");
+    try { writeFileSync(fd, text, "utf8"); fsyncSync(fd); }
+    finally { closeSync(fd); }
+    try { linkSync(temp, path); }
+    finally { unlinkSync(temp); }
+  }
+
+  /** Bytes supplied by the host, never a URI or path supplied by a producer. */
+  writeArtifacts(runDir: string, artifacts: Readonly<Record<string, string>>): void {
+    if (!Object.keys(artifacts).length) return;
+    const dir = this.safePath(join(runDir, "artifacts"));
+    mkdirSync(dir);
+    for (const [name, text] of Object.entries(artifacts)) {
+      if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(name)) throw new ExperimentError("Invalid artifact name");
+      this.writeOnce(join(dir, name), text);
+    }
+  }
+
+  readArtifact(runId: string, name: string): string {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(name)) throw new ExperimentError("Invalid artifact name");
+    const { runDir } = this.resolveRun(runId);
+    return readBoundedFile(this.safePath(join(runDir, "artifacts", name)), 8 * 1024 * 1024);
+  }
+
+  researchHistory(): ResearchRevision[] {
+    const dir = this.safePath(join(this.root, "research"));
+    if (!existsSync(dir)) return [];
+    const names = readdirSync(dir).filter((n) => /^REV-\d{6}\.json$/.test(n)).sort();
+    if (names.length > MAX_RESEARCH_REVISIONS) throw new ExperimentError("Research history exceeds its revision budget");
+    const history: ResearchRevision[] = [];
+    for (const name of names) {
+      const r = readJson(this.safePath(join(dir, name)), MAX_RESEARCH_BYTES * 16) as ResearchRevision;
+      const { sha256, ...body } = r;
+      const previous = history.at(-1);
+      if (r.schema !== "rain-research-revision/v1" || r.revision !== history.length + 1 ||
+          name !== `REV-${String(r.revision).padStart(6, "0")}.json` ||
+          sha256Json(body) !== sha256 || r.previous_sha256 !== (previous?.sha256 ?? null))
+        throw new ExperimentError("Research history is missing a revision or has changed");
+      validateResearchPlan(r.plan);
+      const { identity_verified, ...review } = r.review;
+      if (identity_verified !== false) throw new ExperimentError("Research review is an attestation, not identity verification");
+      validateResearchReview(r.plan, review);
+      if (r.plan.based_on !== null && !history.some((h) => h.revision === r.plan.based_on))
+        throw new ExperimentError("Missing research branch parent");
+      history.push(r);
+    }
+    return history;
+  }
+
+  /** Append a reviewed branch snapshot under the registry's existing writer lock. */
+  saveResearch(raw: ResearchPlan, expectedRevision: number, review: ResearchReview): ResearchRevision {
+    const plan = structuredClone(validateResearchPlan(raw));
+    const approved = validateResearchReview(plan, review);
+    mkdirSync(this.safePath(this.root), { recursive: true });
+    return this.withLedgerLock(() => {
+      const history = this.researchHistory();
+      if (history.length !== expectedRevision) throw new ExperimentError("Research revision conflict; review the current history first");
+      if (history.length >= MAX_RESEARCH_REVISIONS) throw new ExperimentError("Research revision budget exhausted");
+      if (plan.based_on !== null && !history.some((h) => h.revision === plan.based_on)) throw new ExperimentError("Missing branch parent");
+      const head = history.filter((h) => h.plan.branch === plan.branch).at(-1);
+      if (head && plan.based_on !== head.revision) throw new ExperimentError("An existing branch must extend its latest revision");
+      for (const claim of plan.claims) {
+        this.loadDefinition(claim.experiment.id);
+        for (const source of claim.runs) this.resolveRun(source.id);
+      }
+      const body: Omit<ResearchRevision, "sha256"> = {
+        schema: "rain-research-revision/v1", revision: history.length + 1,
+        previous_sha256: history.at(-1)?.sha256 ?? null, created_at: utcNow(this.now()),
+        review: { ...approved, identity_verified: false }, plan, assessment: assessResearch(this, plan),
+      };
+      const result = { ...body, sha256: sha256Json(body) };
+      const text = canonicalJson(result);
+      if (Buffer.byteLength(text) > MAX_RESEARCH_BYTES * 16) throw new ExperimentError("Research revision is too large");
+      const dir = this.safePath(join(this.root, "research"));
+      mkdirSync(dir, { recursive: true });
+      this.writeOnce(join(dir, `REV-${String(result.revision).padStart(6, "0")}.json`), text);
+      return result;
+    });
+  }
+
+  /** Preserve an interrupted record, close it as an error, never infer an outcome. */
+  recoverInterruptedRun(runId: string, review: { operator: string; reviewed: true; record_sha256: string }): Json {
+    return this.withLedgerLock(() => {
+      const { runDir, record } = this.resolveRun(runId);
+      if (review.reviewed !== true || typeof review.operator !== "string" || !/^[A-Za-z0-9_.-]{1,64}$/.test(review.operator) || review.record_sha256 !== sha256Json(record))
+        throw new ExperimentError("Recovery requires operator review of the exact interrupted record");
+      if (record.status !== "running") throw new ExperimentError("Only a running record can be recovered");
+      const prior = this.safePath(join(runDir, "interrupted.json"));
+      const text = canonicalJson(record);
+      if (existsSync(prior)) {
+        if (readBoundedFile(prior, 16 * 1024 * 1024) !== text) throw new ExperimentError("Interrupted snapshot differs");
+      } else this.writeOnce(prior, text);
+      const recovered = { ...record, status: "error", hypothesis_verdict: "not_evaluated", evaluation: null,
+        finished_at: utcNow(this.now()), error: { stage: "recovery", type: "InterruptedExecution", message: `Closed by ${review.operator}; restart requires a new authorized run. Original record retained as interrupted.json.` },
+        interpretation: { deterministic: "Execution was interrupted; the hypothesis was not evaluated.", model: null } };
+      this.writeRun(runDir, recovered);
+      return recovered;
+    });
   }
 }

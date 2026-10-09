@@ -1044,6 +1044,13 @@ a world is a validated, authorized experiment, on its own simulators.
 
 ## Registry, replay and reproduction
 
+The file-backed runtime registry additionally supports
+[research lineage](RAIN_RESEARCH_LINEAGE.md): assumptions, pinned evidence links,
+dependency invalidation, immutable research branches, optional raw artifact
+storage, explicit interrupted-run recovery, and bounded follow-up recommendations.
+These capabilities are available through the operator CLI. They derive from the
+existing definitions and runs; they do not create another experiment registry.
+
 Every ending lands in the lab's registry, failures and refusals included, and
 the most recent 24 records are kept in this browser's storage. A record
 (`bethesda-rain-experiment-record/v3`) holds the proposal, the validation, the

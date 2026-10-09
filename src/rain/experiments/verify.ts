@@ -42,7 +42,7 @@ function sortKeys(value: unknown): unknown {
 }
 const without = (value: Json, key: string): Json => Object.fromEntries(Object.entries(value).filter(([k]) => k !== key));
 
-function verifyRun(registry: Registry, experimentId: string, definition: Json, runDir: string): [string[], string[]] {
+export function verifyRun(registry: Registry, experimentId: string, definition: Json, runDir: string): [string[], string[]] {
   const problems: string[] = [];
   const warnings: string[] = [];
   const dirName = basename(runDir);
@@ -112,12 +112,12 @@ function verifyRun(registry: Registry, experimentId: string, definition: Json, r
     // One descriptor: a symlink is refused at open, and the bytes hashed are the file measured.
     let stored: string | null = null;
     try {
-      stored = readBoundedFile(target, 64 * 1024 * 1024);
+      stored = readBoundedFile(registry.safePath(target), 64 * 1024 * 1024);
     } catch {
       stored = null;
     }
     if (stored === null) problems.push(`${label}: stored artifact ${artifact.name} is missing`);
-    else if (sha256Bytes(stored) !== artifact.sha256)
+    else if (sha256Bytes(stored) !== artifact.sha256 || Buffer.byteLength(stored, "utf8") !== artifact.bytes)
       problems.push(`${label}: artifact ${artifact.name} does not match its recorded SHA-256`);
   }
   if (existsSync(artifactDir))

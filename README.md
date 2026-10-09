@@ -676,6 +676,14 @@ npm run rain:autonomous -- --charter                      # the charter to revie
 RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous -- --authorize <first 8 characters> --reviewed
 ```
 
+The registry also preserves [research lineage](docs/RAIN_RESEARCH_LINEAGE.md):
+reviewed assumptions, evidence-linked conclusions, historical branches, and
+the dependencies that require a conclusion to be reconsidered when a result
+changes. Its operator CLI proposes bounded follow-up investigations and can
+preserve raw run artifacts. Run `npm run rain:lineage-demo -- --approve-demo
+--out /tmp/rain-lineage-study` for a measured, replayed Bethesda investigation
+with negative results and explicit invalidation checks.
+
 Read the [R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for meetings,
 experiments, authorization, replay,
 [autonomous research](docs/RAIN_LAB_BETHESDA.md#autonomous-research) and

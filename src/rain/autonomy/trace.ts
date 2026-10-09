@@ -135,7 +135,13 @@ export type TraceBody =
       summary: string;
       seconds: number;
     }
-  | { kind: "replay"; run_id: string; ok: boolean; failed: string[] }
+  | {
+      kind: "replay";
+      run_id: string;
+      ok: boolean;
+      failed: string[];
+      artifact_sha256?: string;
+    }
   | {
       kind: "analysis";
       decision_id: string;
