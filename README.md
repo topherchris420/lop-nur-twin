@@ -1,4 +1,4 @@
-# R.A.I.N Lab
+# R.A.I.N. Lab
 
 **Explore the evidence. Take the controls. Follow the anomaly♟️.**
 
