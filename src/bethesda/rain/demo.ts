@@ -50,9 +50,7 @@ export function demoProposal(): Checked<ExperimentProposal> {
   if (!checked.ok) return checked;
   const errors: string[] = [];
   if (checked.value.origin !== "fixture") {
-    errors.push(
-      "DEMO proposal must be marked as a fixture (not rain or human)",
-    );
+    errors.push("DEMO proposal must be marked as a fixture (not rain or human)");
   }
   if (checked.value.rain_decision !== null) {
     errors.push("DEMO proposal must not claim a R.A.I.N. bounded decision");
