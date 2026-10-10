@@ -31,9 +31,7 @@ export function demoMeeting(): Checked<MeetingRecord> {
   if (m.model !== null)
     errors.push("DEMO meeting must not name a model");
   if (m.source_artifact !== null)
-    errors.push(
-      "DEMO meeting must be a recording-only artifact (no remote session reference)",
-    );
+    errors.push("DEMO meeting must be a recording-only artifact (no remote session reference)");
   if (m.rain.commit !== source.rain.commit)
     errors.push("recording and manifest disagree on the R.A.I.N. commit");
   return errors.length ? { ok: false, errors } : checked;
