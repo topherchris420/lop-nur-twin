@@ -25,6 +25,7 @@ import {
   closeSync,
   existsSync,
   fstatSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -74,8 +75,30 @@ function readBounded(path: string, limit: number): string {
 
 export class ResearchStore {
   readonly root: string;
-  constructor(root: string) {
+  readonly maxBytes: number;
+  constructor(root: string, maxBytes = 256 * 1024 * 1024) {
+    if (!Number.isSafeInteger(maxBytes) || maxBytes < 1)
+      throw new StoreError("Storage ceiling must be a positive safe integer");
     this.root = resolve(root);
+    this.maxBytes = maxBytes;
+  }
+  storageBytes(): number {
+    const walk = (path: string): number => {
+      const stat = lstatSync(path);
+      if (stat.isSymbolicLink())
+        throw new StoreError("Research storage cannot contain symbolic links");
+      return stat.isDirectory()
+        ? readdirSync(path).reduce((n, name) => n + walk(join(path, name)), 0)
+        : stat.size;
+    };
+    return existsSync(this.root) ? walk(this.root) : 0;
+  }
+  descendant(id: string, maxBytes: number): ResearchStore {
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new StoreError("Invalid descendant id");
+    return new ResearchStore(
+      this.at("descendants", id),
+      Math.min(maxBytes, this.maxBytes),
+    );
   }
 
   /** A path inside the root, or a refusal. */
@@ -99,6 +122,8 @@ export class ResearchStore {
   }
   /** Write a file that must not exist yet. */
   private writeOnce(path: string, text: string): void {
+    if (this.storageBytes() + Buffer.byteLength(text) > this.maxBytes)
+      throw new StoreError("Research storage ceiling reached");
     writeFileSync(path, text, { encoding: "utf8", flag: "wx" });
   }
 

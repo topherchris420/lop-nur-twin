@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DISCOVERY_QUESTION } from "./discoveryProtocol.js";
 import type { DiscoveryView } from "./discoveryView.js";
 import { researchArtifactHref } from "./researchProtocol.js";
+import { partnership, INCEPTION_MODES, type InceptionMode } from "./inceptionProtocol.js";
 
 const button = "rounded border border-teal-700 px-3 py-2 text-sm disabled:opacity-40";
 export function DiscoveryWorkbench() {
+  const lastCharter = useRef<string | null>(null);
+  const restoredProfile = useRef(false);
   const [view, setView] = useState<DiscoveryView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [question, setQuestion] = useState(DISCOVERY_QUESTION);
@@ -12,6 +15,14 @@ export function DiscoveryWorkbench() {
   const [reviewed, setReviewed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(false);
+  const [inception, setInception] = useState(false);
+  const [mode, setMode] = useState<InceptionMode>("independent");
+  const [profileText, setProfileText] = useState(
+    JSON.stringify(partnership().profile, null, 2),
+  );
+  const [memoryEpoch, setMemoryEpoch] = useState(0);
+  const [worldPrefix, setWorldPrefix] = useState("");
+  const [worldReviewed, setWorldReviewed] = useState(false);
   const accept = (data: unknown) => {
     const v = data as DiscoveryView;
     if (
@@ -26,6 +37,22 @@ export function DiscoveryWorkbench() {
         "Local discovery workbench unavailable. Run this checkout locally with LM Studio and RAIN_AUTONOMY_ENABLED=true.",
       );
     setView(v);
+    const config = v.charter?.research?.partnership ?? v.research?.partnership;
+    if (
+      (!restoredProfile.current ||
+        (v.charter_sha256 && lastCharter.current !== v.charter_sha256)) &&
+      config
+    ) {
+      setInception(true);
+      setMode(config.mode);
+      setMemoryEpoch(config.memory_epoch);
+      setProfileText(JSON.stringify(config.profile, null, 2));
+      setQuestion(v.question);
+      setReviewed(false);
+      setPrefix("");
+    }
+    restoredProfile.current = true;
+    lastCharter.current = v.charter_sha256;
   };
   useEffect(() => {
     const abort = new AbortController();
@@ -77,6 +104,20 @@ export function DiscoveryWorkbench() {
       setBusy(false);
     }
   };
+  const partnershipMatches = () => {
+    const configured = view?.charter?.research?.partnership;
+    if (!inception) return !configured;
+    try {
+      return (
+        !!configured &&
+        configured.mode === mode &&
+        configured.memory_epoch === memoryEpoch &&
+        JSON.stringify(configured.profile) === JSON.stringify(JSON.parse(profileText))
+      );
+    } catch {
+      return false;
+    }
+  };
   return (
     <section
       className="my-4 rounded border border-teal-800 bg-teal-950/20 p-3"
@@ -124,10 +165,92 @@ export function DiscoveryWorkbench() {
         leave this computer)
       </label>
       <div className="my-2 flex flex-wrap gap-2">
+        <label className="block text-sm">
+          <input
+            type="checkbox"
+            checked={inception}
+            disabled={view?.active}
+            onChange={(e) => {
+              setInception(e.target.checked);
+              setReviewed(false);
+              setPrefix("");
+            }}
+          />{" "}
+          Project Inception: add Christopher-Sim and Research-Collaborator
+        </label>
+        {inception && (
+          <details className="w-full">
+            <summary>Founder command interface: profile, mode and memory</summary>
+            <p className="my-2 text-sm">
+              These are computational roles, not the real Christopher or a transferred
+              ChatGPT identity. Methods are editable operator instructions. Profile
+              changes require a new charter review. Reflection, creative and institution
+              modes produce proposals only.
+            </p>
+            <label className="block text-sm">
+              Session mode{" "}
+              <select
+                value={mode}
+                disabled={view?.active}
+                onChange={(e) => setMode(e.target.value as InceptionMode)}
+              >
+                {INCEPTION_MODES.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              Versioned cognitive profile (optional customization)
+              <textarea
+                className="w-full bg-black/30 p-2"
+                rows={10}
+                value={profileText}
+                disabled={view?.active}
+                onChange={(e) => setProfileText(e.target.value)}
+              />
+            </label>
+            <button
+              className={button}
+              disabled={view?.active}
+              onClick={() => {
+                setMemoryEpoch((n) => n + 1);
+                setReviewed(false);
+                setPrefix("");
+              }}
+            >
+              Reset recalled memory for next reviewed session
+            </button>
+            <p className="text-xs">
+              Memory epoch: {memoryEpoch}. Reset excludes old memories from prompts;
+              scientific audit records remain. Uncheck Project Inception to remove these
+              participants from the next scope.
+            </p>
+          </details>
+        )}
         <button
           className={button}
           disabled={busy || view?.active}
-          onClick={() => void act("research", { question, online })}
+          onClick={() => {
+            if (!inception) {
+              void act("research", { question, online });
+              return;
+            }
+            try {
+              void act("partnership", {
+                question,
+                online,
+                partnership: {
+                  ...partnership(mode),
+                  memory_epoch: memoryEpoch,
+                  profile: JSON.parse(profileText),
+                },
+              });
+            } catch {
+              setError("The cognitive profile must be valid JSON.");
+            }
+          }}
         >
           Connect Qwen / review research program
         </button>
@@ -143,6 +266,7 @@ export function DiscoveryWorkbench() {
           disabled={
             busy ||
             !view?.charter ||
+            !partnershipMatches() ||
             view.active ||
             (!!view?.charter?.research &&
               (view.charter.research.goal !== question ||
@@ -175,6 +299,12 @@ export function DiscoveryWorkbench() {
             new research program before starting.
           </p>
         )}
+      {view?.charter && !partnershipMatches() && (
+        <p className="mt-2 text-sm text-amber-200">
+          The participant selection, profile, mode or memory epoch differs from the
+          reviewed scope. Review a new research program before starting.
+        </p>
+      )}
       {view?.charter && (
         <details className="my-3">
           <summary>Review authorization: {view.authorization}</summary>
@@ -192,6 +322,7 @@ export function DiscoveryWorkbench() {
                 ceilings: view.charter.ceilings,
                 valid_hours: view.charter.valid_hours,
                 policy: view.charter.policy_version,
+                simulator_versions: view.charter.versions,
               },
               null,
               2,
@@ -226,6 +357,88 @@ export function DiscoveryWorkbench() {
       )}
       {view && (
         <>
+          {view.observatory && (
+            <section
+              className="my-3 rounded border border-teal-800 p-3"
+              aria-label="Inception Observatory"
+            >
+              <h4 className="font-semibold">Inception Observatory</h4>
+              <p className="text-sm">
+                Generation 0: Bethesda R.A.I.N. Descendant findings concern the simulator
+                only. A world approval does not authorize its experiments: review its
+                separate charter before starting.
+              </p>
+              <ul className="my-2 list-disc pl-5 text-sm">
+                {view.observatory.labs.map((lab) => (
+                  <li key={lab.id}>
+                    {lab.parent} → {lab.id} · generation {lab.generation} · {lab.status} ·
+                    expires {lab.expires_at}
+                    {lab.status === "approved" && (
+                      <button
+                        className={button}
+                        disabled={busy || view.active}
+                        onClick={() => void act("prepare-world", { id: lab.id })}
+                      >
+                        Review child execution scope
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {view.observatory.proposals.map((p) => (
+                <details key={p.digest}>
+                  <summary>
+                    Proposed world · {p.spec.id} · generation {p.spec.generation}
+                  </summary>
+                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap text-xs">
+                    {JSON.stringify(p.spec, null, 2)}
+                  </pre>
+                  <p className="break-all text-xs">World SHA-256: {p.digest}</p>
+                  <label className="block text-sm">
+                    <input
+                      type="checkbox"
+                      checked={worldReviewed}
+                      onChange={(e) => setWorldReviewed(e.target.checked)}
+                    />{" "}
+                    I reviewed this world, its ancestry, assumptions and limits
+                  </label>
+                  <label className="block text-sm">
+                    First 8 world digest characters{" "}
+                    <input
+                      value={worldPrefix}
+                      maxLength={8}
+                      onChange={(e) => setWorldPrefix(e.target.value)}
+                      className="bg-black/30 p-1"
+                    />
+                  </label>
+                  <button
+                    className={button}
+                    disabled={
+                      busy ||
+                      view.active ||
+                      !worldReviewed ||
+                      worldPrefix !== p.digest.slice(0, 8)
+                    }
+                    onClick={() =>
+                      void act("approve-world", {
+                        digest: p.digest,
+                        prefix: worldPrefix,
+                        reviewed: worldReviewed,
+                      })
+                    }
+                  >
+                    Approve this bounded world
+                  </button>
+                </details>
+              ))}
+              <details>
+                <summary>Provenance-preserving descendant reports</summary>
+                <pre className="max-h-80 overflow-auto whitespace-pre-wrap text-xs">
+                  {JSON.stringify(view.observatory.reports, null, 2)}
+                </pre>
+              </details>
+            </section>
+          )}
           <p role="status" className="my-2 text-sm">
             {view.stage} · {view.detail}
           </p>
@@ -292,6 +505,24 @@ export function DiscoveryWorkbench() {
                   </article>
                 ))}
               </details>
+              {!!view.research.memory?.length && (
+                <details>
+                  <summary>Inspect cognitive memory and uncertainty</summary>
+                  {view.research.memory.map((m) => (
+                    <article key={m.id} className="my-2 text-sm">
+                      <p>
+                        {m.namespace} · {m.layer} · {m.status}
+                      </p>
+                      <p>{m.text}</p>
+                      <p className="break-all text-xs">
+                        Origin: {m.origin}; references:{" "}
+                        {[...m.source_ids, ...m.evidence_run_ids].join(", ") || "none"}.
+                        About computational research only.
+                      </p>
+                    </article>
+                  ))}
+                </details>
+              )}
               <details>
                 <summary>
                   Research sources and reading scope ({view.research.sources.length})

@@ -57,6 +57,8 @@
     "verify:rain-lab": "node tools/rain-lab.mjs",
     "rain:conformance": "node tools/rain-conformance.mjs",
     "rain:demo": "node scripts/run-ts.mjs scripts/export-rain-demo.ts",
+    "rain:inception:demo": "node scripts/run-ts.mjs scripts/rain-inception-demo.ts",
+    "rain:inception:test": "vitest run src/rain/research/worlds.test.ts src/rain/research/partnership.test.ts src/rain/research/program.test.ts",
     "rain:admit": "node tools/rain-admit.mjs",
     "rain:research": "node tools/rain-research.mjs",
     "rain:lineage-demo": "node tools/rain-lineage-demo.mjs",

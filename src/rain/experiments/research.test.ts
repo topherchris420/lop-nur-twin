@@ -453,7 +453,9 @@ describe("artifact and human review boundaries", () => {
       submission(definition).artifacts["measurements.json"],
     );
     rmSync(path, { recursive: true });
-    symlinkSync(outside, path, "dir");
+    // Junctions exercise the same ancestor-link rejection without requiring
+    // Windows developer mode or administrator symlink privileges.
+    symlinkSync(outside, path, process.platform === "win32" ? "junction" : "dir");
     expect(assessResearch(registry, plan).claims[0]!.status).toBe("needs_reassessment");
     expect(() =>
       registry.readArtifact(record.run_id as string, "../result.json"),

@@ -24,6 +24,10 @@ import {
   type ResearchView,
 } from "../../bethesda/rain/researchProtocol.js";
 import { UNSAFE_TEXT } from "../protocol.js";
+import type { Partnership } from "../../bethesda/rain/inceptionProtocol.js";
+import { approveWorld, descendantLabs, type ResearchWorld } from "../research/worlds.js";
+import { descendantCharter, runDescendant } from "./descendants.js";
+import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
 
 export function createDiscoveryService(
   env: Record<string, string | undefined>,
@@ -42,6 +46,7 @@ export function createDiscoveryService(
   let abort: AbortController | null = null;
   let job: ReturnType<typeof runDiscovery> | null = null;
   let preparing = false;
+  let childId: string | null = null;
   const control = { pauseRequested: false };
   let view: DiscoveryView = {
     schema: "rain-discovery-view/v1",
@@ -70,6 +75,24 @@ export function createDiscoveryService(
   const status = () =>
     structuredClone({
       ...view,
+      observatory: {
+        labs: descendantLabs(store).map((l) => ({
+          id: l.spec.id,
+          parent: l.spec.parent,
+          generation: l.spec.generation,
+          status: l.status,
+          digest: l.digest,
+          expires_at: l.expires_at,
+        })),
+        proposals: store
+          .discoveryEntries()
+          .filter((e) => e.kind === "world-proposed")
+          .map((e) => e.payload),
+        reports: store
+          .discoveryEntries()
+          .filter((e) => e.kind === "world-report")
+          .map((e) => e.payload),
+      },
       lock: store.lock(),
       events: store
         .discoveryEntries()
@@ -85,6 +108,7 @@ export function createDiscoveryService(
     if (view.active || preparing)
       throw new Error("A session or connection check is already active");
     preparing = true;
+    childId = null;
     try {
       if ((await classifyUrl(config.baseUrl)) === "remote")
         throw new Error("Only local inference endpoints are allowed");
@@ -184,7 +208,7 @@ export function createDiscoveryService(
       });
       if (runtime.mode !== "local")
         throw new Error("Native R.A.I.N. runtime is unavailable");
-      job = runDiscovery({
+      const common = {
         charter,
         authorization: auth,
         budgets: charter.ceilings,
@@ -195,10 +219,33 @@ export function createDiscoveryService(
         question,
         signal: abort.signal,
         control,
-        onUpdate: (patch) => {
+        onUpdate: (patch: Partial<DiscoveryView>) => {
+          if (childId && patch.research)
+            patch = {
+              ...patch,
+              research: {
+                ...patch.research,
+                artifacts: patch.research.artifacts.map((a) => ({
+                  ...a,
+                  path: `descendants/${childId}/${a.path}`,
+                })),
+              },
+            };
           view = { ...view, ...patch };
         },
-      });
+      };
+      job = childId
+        ? runDescendant({
+            store,
+            id: childId,
+            model,
+            authorization: auth,
+            cwd,
+            signal: abort.signal,
+            control,
+            onUpdate: common.onUpdate,
+          })
+        : runDiscovery(common);
       void job
         .catch((error) => {
           view.detail = String(error);
@@ -221,7 +268,70 @@ export function createDiscoveryService(
     prepare,
     prepareResearch: (goal: string, online: boolean) =>
       prepare(researchScope(goal, online)),
-    artifact: (path: string) => store.readResearchArtifact(path),
+    preparePartnership: (goal: string, online: boolean, partnership: Partnership) =>
+      prepare({ ...researchScope(goal, online), partnership }),
+    approveDescendant: (digest: string, prefix: string, reviewed: boolean) => {
+      if (view.active || preparing)
+        throw new Error("Stop the session before authorizing a descendant");
+      const proposal = store
+        .discoveryEntries()
+        .filter((e) => e.kind === "world-proposed")
+        .map((e) => e.payload as { spec: ResearchWorld; digest: string })
+        .find((p) => p.digest === digest);
+      if (!proposal) throw new Error("Unknown world proposal");
+      const available: ResearchWorld["inheritance"] = store
+        .discoveryEntries()
+        .filter((e) => e.kind === "research-source")
+        .map((e) => {
+          const s = e.payload as ResearchSource;
+          return { id: s.id, sha256: s.sha256, status: "source-context" };
+        });
+      // A child's source receipts are kept in its own journal, not copied as unrestricted memory.
+      for (const lab of descendantLabs(store))
+        available.push(
+          ...store
+            .descendant(lab.spec.id, lab.spec.budget.storage_bytes)
+            .discoveryEntries()
+            .filter((e) => e.kind === "research-source")
+            .map((e) => {
+              const s = e.payload as ResearchSource;
+              return { id: s.id, sha256: s.sha256, status: "source-context" as const };
+            }),
+        );
+      approveWorld(store, proposal.spec, available, {
+        operator: config.operator,
+        typedPrefix: prefix,
+        reviewed,
+        now: new Date(),
+      });
+      return status();
+    },
+    prepareDescendant: (id: string) => {
+      if (view.active || preparing || !model)
+        throw new Error("Connect an idle local model first");
+      const prepared = descendantCharter(store, id, model);
+      charter = prepared.charter;
+      childId = id;
+      store.saveCharter(charter);
+      view = {
+        ...view,
+        charter,
+        charter_sha256: prepared.digest,
+        question: charter.research!.goal,
+        authorization: "Review the descendant's separate execution charter",
+        detail: "Descendant prepared; no execution started",
+      };
+      return status();
+    },
+    artifact: (path: string) => {
+      const match = /^descendants\/([a-z][a-z0-9-]{0,63})\/(programs\/.*)$/.exec(path);
+      if (!match) return store.readResearchArtifact(path);
+      const lab = descendantLabs(store).find((l) => l.spec.id === match[1]);
+      if (!lab) throw new Error("Unknown descendant artifact namespace");
+      return store
+        .descendant(lab.spec.id, lab.spec.budget.storage_bytes)
+        .readResearchArtifact(match[2]!);
+    },
     authorize,
     start,
     pause: () => {

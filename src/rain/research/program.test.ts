@@ -19,6 +19,15 @@ import { ResearchFixtureModel, fixtureLiterature } from "./fixtures.js";
 import { verifyRecordSync } from "../../bethesda/rain/replay.js";
 import { programGraph } from "./program.js";
 import { createDiscoveryService } from "../autonomy/discoveryService.js";
+import { partnership } from "../../bethesda/rain/inceptionProtocol.js";
+import {
+  approveWorld,
+  descendantLabs,
+  worldErrors,
+  type ResearchWorld,
+} from "./worlds.js";
+import { descendantCharter, runDescendant } from "../autonomy/descendants.js";
+import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
 
 let root: string;
 beforeEach(() => {
@@ -31,7 +40,7 @@ afterEach(() => {
   rmSync(root, { recursive: true, force: true });
   delete (globalThis as { __LAB_REVISION__?: unknown }).__LAB_REVISION__;
 });
-async function input(online = true, revisions = 2) {
+async function input(online = true, revisions = 2, inception = false) {
   const store = new ResearchStore(root),
     model = new ResearchFixtureModel();
   const charter = buildDiscoveryCharter({
@@ -41,7 +50,7 @@ async function input(online = true, revisions = 2) {
       experiments: 3,
       runtime_ms: 240000,
       failed_proposals: 3,
-      model_calls: 24,
+      model_calls: inception ? 40 : 24,
       model_tokens: null,
     },
     validHours: 1,
@@ -49,6 +58,7 @@ async function input(online = true, revisions = 2) {
     research: {
       ...researchScope(DISCOVERY_QUESTION, online),
       manuscript_revisions: revisions,
+      ...(inception ? { partnership: partnership() } : {}),
     },
   });
   const auth = authorizeCharter({
@@ -80,6 +90,149 @@ async function input(online = true, revisions = 2) {
   };
 }
 describe("native research program", () => {
+  it("Inception offline demonstration: partnership, real native evidence, approved descendant, report and restart", async () => {
+    const i = await input(false, 2, true);
+    const result = await runDiscovery(i);
+    expect(result.ending).toBe("Research draft ready for human review");
+    expect(result.executed).toBe(2);
+    expect(
+      result.research!.turns.filter((t) => t.role === "Independent evidence review"),
+    ).toHaveLength(2);
+    expect(result.research!.turns.map((t) => t.perspective)).toEqual(
+      expect.arrayContaining([
+        "Christopher-Sim",
+        "Research-Collaborator",
+        "James",
+        "Jasmine",
+        "Luca",
+        "Elena",
+      ]),
+    );
+    expect(
+      result.research!.memory?.some(
+        (m) => m.layer === "critical" && m.status === "scripted",
+      ),
+    ).toBe(true);
+    expect(result.research!.turns.every((t) => t.generation === "scripted")).toBe(true);
+    const entries = i.store.discoveryEntries();
+    const proposal = entries.find((e) => e.kind === "world-proposed")!.payload as {
+      spec: ResearchWorld;
+      digest: string;
+    };
+    const available = entries
+      .filter((e) => e.kind === "research-source")
+      .map((e) => {
+        const s = e.payload as ResearchSource;
+        return { id: s.id, sha256: s.sha256, status: "source-context" as const };
+      });
+    expect(() =>
+      approveWorld(i.store, proposal.spec, available, {
+        operator: "Test.Operator",
+        typedPrefix: "00000000",
+        reviewed: false,
+        now: new Date(),
+      }),
+    ).toThrow();
+    approveWorld(i.store, proposal.spec, available, {
+      operator: "Test.Operator",
+      typedPrefix: proposal.digest.slice(0, 8),
+      reviewed: true,
+      now: new Date(),
+    });
+    const child = descendantCharter(i.store, proposal.spec.id, i.model);
+    const childAuth = authorizeCharter({
+      charter: child.charter,
+      operator: "Test.Operator",
+      reviewed: true,
+      typedPrefix: child.digest.slice(0, 8),
+      now: new Date(),
+    });
+    if (!childAuth.ok) throw new Error("child authorization");
+    const descendant = await runDescendant({
+      store: i.store,
+      id: proposal.spec.id,
+      model: new ResearchFixtureModel(),
+      authorization: childAuth.value,
+      cwd: process.cwd(),
+    });
+    expect(descendant.executed).toBe(2);
+    const childStore = i.store.descendant(
+      proposal.spec.id,
+      proposal.spec.budget.storage_bytes,
+    );
+    for (const r of [...i.store.records(), ...childStore.records()])
+      expect(verifyRecordSync(r.record!).ok).toBe(true);
+    expect(i.store.discoveryEntries().some((e) => e.kind === "world-report")).toBe(true);
+    const count = i.model.requests.length;
+    const restored = createDiscoveryService(
+      { RAIN_AUTONOMY_DIR: root },
+      process.cwd(),
+    ).status();
+    expect(restored.active).toBe(false);
+    expect(restored.observatory.labs[0]?.status).toBe("completed");
+    expect(i.model.requests).toHaveLength(count);
+    expect(descendantLabs(new ResearchStore(root))).toHaveLength(1);
+    expect(() => descendantCharter(i.store, proposal.spec.id, i.model)).toThrow(
+      "already started",
+    );
+    expect(i.store.lock()).toBeNull();
+    const artifact = descendant.research!.artifacts.find((a) =>
+      a.name.endsWith("manuscript.md"),
+    )!;
+    const service = createDiscoveryService({ RAIN_AUTONOMY_DIR: root }, process.cwd());
+    expect(service.artifact(`descendants/${proposal.spec.id}/${artifact.path}`)).toBe(
+      descendant.research!.manuscript,
+    );
+    expect(() =>
+      service.artifact(`descendants/${proposal.spec.id}/programs/../../state.json`),
+    ).toThrow();
+    const grandchild = i.store
+      .discoveryEntries()
+      .filter((e) => e.kind === "world-proposed")
+      .map((e) => e.payload as { spec: ResearchWorld; digest: string })
+      .find((p) => p.spec.generation === 2)!;
+    const childSources = childStore
+      .discoveryEntries()
+      .filter((e) => e.kind === "research-source")
+      .map((e) => {
+        const s = e.payload as ResearchSource;
+        return { id: s.id, sha256: s.sha256, status: "source-context" as const };
+      });
+    expect(
+      worldErrors(
+        grandchild.spec,
+        descendantLabs(i.store),
+        childSources,
+        new Date(Date.now() + 1000),
+      ),
+    ).toEqual([]);
+  }, 240000);
+  it("partnership reflection cannot execute and emergency cancellation cannot continue inference", async () => {
+    const i = await input(false, 2, true);
+    i.charter.research!.partnership!.mode = "reflection";
+    const auth = authorizeCharter({
+      charter: i.charter,
+      operator: "Test.Operator",
+      reviewed: true,
+      typedPrefix: charterSha256(i.charter).slice(0, 8),
+      now: new Date(),
+    });
+    if (!auth.ok) throw new Error("authorization");
+    const reflected = await runDiscovery({ ...i, authorization: auth.value });
+    expect(reflected.executed).toBe(0);
+    expect(reflected.ending).toContain("Proposal-only");
+    const abort = new AbortController();
+    const priorCalls = i.model.requests.length;
+    const cancelled = await runDiscovery({
+      ...i,
+      authorization: auth.value,
+      signal: abort.signal,
+      onUpdate: () => abort.abort(new Error("Operator emergency cancellation")),
+    });
+    expect(cancelled.executed).toBe(0);
+    expect(i.model.requests).toHaveLength(priorCalls);
+    expect(i.store.lock()).toBeNull();
+  }, 30000);
   it("collaborates over sources, runs a result-linked follow-up, and compiles an independently critiqued paper from actual measurements", async () => {
     const i = await input();
     const r = await runDiscovery(i);

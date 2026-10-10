@@ -19,6 +19,14 @@ replay and recorded follow-ups. The
 [capability map below](#from-research-meetings-to-a-research-institution) separates
 that foundation from the full institutional and recursive vision.
 
+**Project Inception (experimental):** the local research workbench now offers an
+opt-in Christopher-Sim / Research-Collaborator partnership, inspectable derived
+memory, and separately reviewed descendant Bethesda investigations. Run
+`bun run rain:inception:demo` for scripted reasoning with real replayable simulator
+experiments. See [the implementation and limitations](docs/RAIN_INCEPTION.md).
+This is not a reproduction of a person's mind or evidence of recursive scientific
+improvement.
+
 **The model may imagine the experiment. The laboratory must determine whether it
 is valid. The simulation produces the evidence. The evidence determines what can
 reasonably be concluded.**

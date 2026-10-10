@@ -63,6 +63,7 @@ import type { ResearchStore, DiscoveryEntry } from "./store.js";
 
 import { createResearchProgram } from "../research/program.js";
 import { researchScopeErrors } from "../../bethesda/rain/researchProtocol.js";
+import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
 import { searchResearchLiterature } from "./models.js";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -79,6 +80,7 @@ export function discoveryHistory(entries: readonly DiscoveryEntry[]): DiscoveryR
   return results;
 }
 export interface DiscoveryInput {
+  inheritedSources?: ResearchSource[];
   charter: Charter;
   authorization: CharterAuthorization;
   budgets: SessionBudgets;
@@ -122,6 +124,8 @@ export async function runDiscovery(input: DiscoveryInput) {
   const emit = (kind: string, payload: unknown) =>
     store.appendDiscovery(session, kind, payload);
   const guard = () => {
+    if (store.storageBytes() >= store.maxBytes)
+      throw new Error("Research storage ceiling reached");
     if (abort.signal.aborted) throw new Error(message(abort.signal.reason));
     if (performance.now() >= deadline) throw new Error("Runtime ceiling reached");
     if (Date.now() > Date.parse(authorization.expires_at))
@@ -150,6 +154,8 @@ export async function runDiscovery(input: DiscoveryInput) {
       id,
       seat,
       model: model.model,
+      provider: model.provider,
+      endpoint: model.endpoint,
       generation: model.generation ?? "model",
       request,
     });
@@ -222,6 +228,7 @@ export async function runDiscovery(input: DiscoveryInput) {
       );
     if (charter.research)
       program = createResearchProgram({
+        inheritedSources: input.inheritedSources,
         scope: charter.research,
         capabilities: charter.family,
         session,
@@ -338,6 +345,16 @@ export async function runDiscovery(input: DiscoveryInput) {
         program ? program.ownResults(verifiedHistory) : verifiedHistory
       ).slice(-6);
       const research = program ? await program.deliberate(verifiedHistory) : undefined;
+      if (
+        charter.research?.partnership &&
+        ["reflection", "creative", "institution"].includes(
+          charter.research.partnership.mode,
+        )
+      ) {
+        ending =
+          "Proposal-only session completed; no experiments authorized in this mode";
+        break;
+      }
       const offered = await call<{ candidates: Design[] }>("designer", {
         schemaName: "rain_discovery_candidates",
         schema: CANDIDATES_SCHEMA,

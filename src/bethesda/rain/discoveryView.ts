@@ -27,6 +27,21 @@ export interface DiscoveryResult {
   record_path: string;
 }
 export interface DiscoveryView {
+  observatory?: {
+    labs: {
+      id: string;
+      parent: string;
+      generation: number;
+      status: string;
+      digest: string;
+      expires_at: string;
+    }[];
+    proposals: {
+      digest: string;
+      spec: { id: string; generation: number; [key: string]: unknown };
+    }[];
+    reports: unknown[];
+  };
   research?: ResearchView;
   schema: "rain-discovery-view/v1";
   available: boolean;

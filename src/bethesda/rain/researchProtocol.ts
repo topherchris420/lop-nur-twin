@@ -1,12 +1,17 @@
 /** Pure contracts for a native research program. Data never grants execution authority. */
 import { closed, checkData } from "./discoveryProtocol.js";
 import { UNSAFE_TEXT } from "./contracts.js";
+import {
+  PARTNERSHIP_SCHEMA,
+  type Partnership,
+  type CognitiveMemory,
+} from "./inceptionProtocol.js";
 
 export const RESEARCH_SCOPE_SCHEMA = "rain-research-scope/v1" as const;
 /** Host artifact identities only. Research prose and source URLs cannot become links. */
 export function researchArtifactHref(path: unknown): string | undefined {
   return typeof path === "string" &&
-    /^programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+    /^(?:descendants\/[a-z][a-z0-9-]{0,63}\/)?programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
       path,
     )
     ? "/api/rain/discovery?artifact=" + encodeURIComponent(path)
@@ -29,6 +34,7 @@ export interface ResearchScope {
   minimum_experiments: number;
   require_confirmation: boolean;
   manuscript_revisions: number;
+  partnership?: Partnership;
 }
 const words = (maxLength: number) => ({ type: "string", minLength: 1, maxLength });
 const integer = (minimum: number, maximum: number) => ({
@@ -50,7 +56,9 @@ export const RESEARCH_SCOPE = closed({
   minimum_experiments: integer(2, 10),
   require_confirmation: { type: "boolean" },
   manuscript_revisions: integer(1, 3),
+  partnership: PARTNERSHIP_SCHEMA,
 });
+RESEARCH_SCOPE.required = RESEARCH_SCOPE.required.filter((key) => key !== "partnership");
 export function researchScope(goal: string, online: boolean): ResearchScope {
   const scope: ResearchScope = {
     schema: RESEARCH_SCOPE_SCHEMA,
@@ -165,6 +173,7 @@ export interface ResearchGraph {
   edges: { from: string; to: string; relation: string }[];
 }
 export interface ResearchView {
+  partnership?: Partnership;
   program_id: string;
   goal: string;
   sources: ResearchSource[];
@@ -175,4 +184,5 @@ export interface ResearchView {
   manuscript: string | null;
   artifacts: { name: string; path: string; sha256: string }[];
   review: ManuscriptReview | null;
+  memory?: CognitiveMemory[];
 }

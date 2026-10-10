@@ -1,5 +1,10 @@
 /** Local-only discovery workbench; never deployed as a stateless cloud function. */
 import { createDiscoveryService } from "../../src/rain/autonomy/discoveryService.js";
+import {
+  PARTNERSHIP_SCHEMA,
+  type Partnership,
+} from "../../src/bethesda/rain/inceptionProtocol.js";
+import { checkData } from "../../src/bethesda/rain/discoveryProtocol.js";
 export function createDiscoveryHandler(
   env: Record<string, string | undefined>,
   cwd: string,
@@ -38,13 +43,16 @@ export function createDiscoveryHandler(
       }
       if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405);
       const text = await request.text();
-      if (text.length > 2048) return reply({ error: "Request too large" }, 413);
+      if (text.length > 8192) return reply({ error: "Request too large" }, 413);
       const data = JSON.parse(text) as Record<string, unknown>;
       if (!data || Array.isArray(data) || typeof data !== "object")
         throw new Error("Closed control object required");
       const fields: Record<string, string[]> = {
         prepare: ["action"],
         research: ["action", "question", "online"],
+        partnership: ["action", "question", "online", "partnership"],
+        "approve-world": ["action", "digest", "prefix", "reviewed"],
+        "prepare-world": ["action", "id"],
         authorize: ["action", "prefix", "reviewed"],
         start: ["action", "question"],
         pause: ["action"],
@@ -60,6 +68,29 @@ export function createDiscoveryHandler(
       )
         throw new Error("Unknown action or fields");
       switch (action) {
+        case "approve-world":
+          if (
+            typeof data.digest !== "string" ||
+            typeof data.prefix !== "string" ||
+            data.reviewed !== true
+          )
+            throw new Error("Explicit world review required");
+          return reply(service.approveDescendant(data.digest, data.prefix, true));
+        case "prepare-world":
+          if (typeof data.id !== "string") throw new Error("Descendant id required");
+          return reply(service.prepareDescendant(data.id));
+        case "partnership": {
+          const checked = checkData<Partnership>(data.partnership, PARTNERSHIP_SCHEMA);
+          if (
+            !checked.ok ||
+            typeof data.question !== "string" ||
+            typeof data.online !== "boolean"
+          )
+            throw new Error("Invalid partnership scope");
+          return reply(
+            await service.preparePartnership(data.question, data.online, checked.value),
+          );
+        }
         case "prepare":
           return reply(await service.prepare());
         case "research":

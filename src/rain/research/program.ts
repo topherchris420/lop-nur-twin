@@ -5,6 +5,9 @@
 import { sha256Json } from "../sha256.js";
 import { TEAM } from "../meeting/perspectives.js";
 import { soulText } from "../meeting/souls.js";
+import { PARTNERSHIP_STAGES, partnerPrompt, cognitiveMemory } from "./partnership.js";
+import { PARTNERS, type Partner } from "../../bethesda/rain/inceptionProtocol.js";
+import { ROOT_LAB, WORLD_CAPABILITIES, type ResearchWorld } from "./worlds.js";
 import {
   corpusContext,
   mathematicsContext,
@@ -42,6 +45,7 @@ export type ResearchCall = <T>(
   request: StructuredRequest,
 ) => Promise<{ value: T; id: string; digest: string }>;
 interface ProgramHost {
+  inheritedSources?: ResearchSource[];
   scope: ResearchScope;
   capabilities: Envelope;
   session: string;
@@ -134,6 +138,7 @@ export function createResearchProgram(host: ProgramHost) {
   let attempts = 0,
     closed = false;
   const view: ResearchView = {
+    ...(scope.partnership ? { partnership: structuredClone(scope.partnership) } : {}),
     program_id: programId,
     goal: scope.goal,
     sources: [],
@@ -213,12 +218,19 @@ export function createResearchProgram(host: ProgramHost) {
   const context = () => ({
     capabilities: host.capabilities,
     sources: [...sources.values()]
-      .slice(-12)
-      .map((s) => ({ ...s, excerpt: s.excerpt.slice(0, 800) })),
-    omitted_sources: Math.max(0, sources.size - 12),
+      .slice(-8)
+      .map((s) => ({ ...s, excerpt: s.excerpt.slice(0, 600) })),
+    omitted_sources: Math.max(0, sources.size - 8),
     delivery_gaps: view.gaps,
     latest_review: view.review,
-    perspectives: view.turns,
+    perspectives: view.turns.slice(-8).map((t) => ({
+      perspective: t.perspective,
+      role: t.role,
+      decision_id: t.decision_id,
+      hypothesis: t.contribution.hypothesis,
+      falsification: t.contribution.falsification,
+      disagreements: t.contribution.disagreements.slice(0, 2),
+    })),
   });
   const evidence = (history: readonly DiscoveryResult[]): PaperEvidence => ({
     goal: scope.goal,
@@ -228,6 +240,115 @@ export function createResearchProgram(host: ProgramHost) {
     sources: [...sources.values()],
     results: structuredClone(ownResults(history)),
   });
+  const partnershipTurn = async (
+    name: Partner,
+    stage: string,
+    instruction: string,
+    history: readonly DiscoveryResult[],
+    independentContext?: unknown,
+  ) => {
+    const config = scope.partnership;
+    if (!config) return;
+    host.guard();
+    refresh("COLLABORATE", name + ": " + stage);
+    const runIds = new Set(ownResults(history).map((r) => r.run_id));
+    const answer = await host.call<Contribution>("research-" + name + "-" + stage, {
+      schemaName: "rain_research_contribution",
+      schema: CONTRIBUTION_SCHEMA,
+      system: partnerPrompt(name, instruction, config),
+      user: JSON.stringify({
+        goal: scope.goal,
+        stage,
+        mode: config.mode,
+        context: independentContext ?? context(),
+        results: brief(history),
+        memory: view.memory?.filter((m) => m.namespace === name),
+        profile: config.profile,
+      }),
+    });
+    const c = answer.value;
+    if (
+      c.source_ids.some((id) => !sources.has(id)) ||
+      c.evidence_run_ids.some((id) => !runIds.has(id))
+    )
+      throw new Error(name + " cited unavailable research evidence");
+    const turn = {
+      perspective: name,
+      role: stage,
+      generation: host.generation,
+      decision_id: answer.id,
+      contribution: c,
+    };
+    view.turns.push(turn);
+    host.emit("research-turn", turn);
+  };
+  const remember = (history: readonly DiscoveryResult[]) => {
+    if (scope.partnership)
+      view.memory = cognitiveMemory(
+        host.store.discoveryEntries(),
+        programId,
+        scope.partnership,
+        [...sources.values()],
+        new Set(history.map((r) => r.run_id)),
+      );
+  };
+  const proposeWorld = () => {
+    if (!scope.partnership) return;
+    const turn = [...view.turns]
+      .reverse()
+      .find((t) => t.perspective === "Research-Collaborator");
+    if (!turn) return;
+    const c = turn.contribution;
+    const spec: ResearchWorld = {
+      schema: "rain-world/v1",
+      id: "lab-" + sha256Json(turn).slice(0, 16),
+      parent: ROOT_LAB,
+      generation: 1,
+      objective: c.next_experiment.slice(0, 400),
+      simulator: "bethesda-native/v1",
+      assumptions: c.mathematical_assumptions.length
+        ? c.mathematical_assumptions
+        : ["Illustrative native simulator rules; no real-world validation."],
+      hypotheses: [c.hypothesis],
+      evaluation: [c.falsification],
+      inheritance: [...sources.values()]
+        .filter((s) => c.source_ids.includes(s.id))
+        .map((s) => ({ id: s.id, sha256: s.sha256, status: "source-context" })),
+      agents: {
+        ...structuredClone(scope.partnership),
+        mode: "independent",
+        profile: {
+          ...structuredClone(scope.partnership.profile),
+          version: scope.partnership.profile.version + 1,
+          methods: [
+            ...scope.partnership.profile.methods.slice(0, 5),
+            "Descendant specialization (untested): " + c.next_experiment.slice(0, 340),
+          ],
+        },
+      },
+      envelope: structuredClone(host.capabilities),
+      budget: {
+        experiments: 2,
+        model_calls: 40,
+        runtime_ms: 240000,
+        storage_bytes: 33554432,
+      },
+      lifetime_ms: 3600000,
+      tools: [...WORLD_CAPABILITIES["bethesda-native/v1"].tools],
+      termination: [
+        "Budget exhausted",
+        "Lifetime expired",
+        "Operator stop",
+        "Invalid output or failed replay",
+      ],
+    };
+    host.emit("world-proposed", {
+      spec,
+      digest: sha256Json(spec),
+      decision_id: turn.decision_id,
+      generation: host.generation,
+    });
+  };
   return {
     programId,
     ownResults,
@@ -249,6 +370,9 @@ export function createResearchProgram(host: ProgramHost) {
       });
       corpusContext(scope.goal).forEach(retain);
       mathematicsContext(scope.goal).forEach(retain);
+      host.inheritedSources?.forEach(retain);
+      if (scope.partnership?.profile.source_ids.some((id) => !sources.has(id)))
+        throw new Error("Profile cites an unavailable approved source");
       refresh(
         "LITERATURE",
         "Reading the pinned papers and mathematics; external search follows the reviewed scope",
@@ -262,6 +386,10 @@ export function createResearchProgram(host: ProgramHost) {
     async deliberate(history: readonly DiscoveryResult[]) {
       view.turns = [];
       const runIds = new Set(ownResults(history).map((r) => r.run_id));
+      remember(history);
+      if (scope.partnership)
+        for (const step of PARTNERSHIP_STAGES)
+          await partnershipTurn(step.name, step.stage, step.instruction, history);
       for (const member of TEAM) {
         host.guard();
         refresh(
@@ -310,13 +438,28 @@ export function createResearchProgram(host: ProgramHost) {
       }
       refresh(
         "DESIGN",
-        "The four perspectives have recorded hypotheses, disagreements and next experiments",
+        "The research participants have recorded hypotheses, disagreements and next experiments",
       );
+      if (scope.partnership?.mode === "institution") proposeWorld();
       return context();
     },
     async afterResult(
       history: readonly DiscoveryResult[],
     ): Promise<"continue" | "ready" | "exhausted"> {
+      if (scope.partnership) {
+        // Both see the same pre-review context, not the other agent's interpretation.
+        const independent = structuredClone(context());
+        for (const name of PARTNERS)
+          await partnershipTurn(
+            name,
+            "Independent evidence review",
+            "Independently interpret the measured results. Identify rejected or revised hypotheses and unresolved alternatives. Conclusions concern only this simulator.",
+            history,
+            independent,
+          );
+        remember(history);
+        proposeWorld();
+      }
       const e = evidence(history);
       view.gaps = deliveryGaps(scope, e);
       if (view.gaps.length) {
