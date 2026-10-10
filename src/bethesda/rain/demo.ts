@@ -22,20 +22,26 @@ export function demoMeeting(): Checked<MeetingRecord> {
   if (!checked.ok) return checked;
   const m = checked.value;
   const errors: string[] = [];
-  if (m.meeting_id !== source.meetingId)
+  if (m.meeting_id !== source.meetingId) {
     errors.push("recording and manifest disagree on the meeting");
-  if (m.question !== source.question)
+  }
+  if (m.question !== source.question) {
     errors.push("recording and manifest disagree on the question");
-  if (m.generation !== "scripted")
+  }
+  if (m.generation !== "scripted") {
     errors.push("DEMO meeting must be labelled scripted (no model runs)");
-  if (m.model !== null)
+  }
+  if (m.model !== null) {
     errors.push("DEMO meeting must not name a model");
-  if (m.source_artifact !== null)
+  }
+  if (m.source_artifact !== null) {
     errors.push(
       "DEMO meeting must be a recording-only artifact (no remote session reference)",
     );
-  if (m.rain.commit !== source.rain.commit)
+  }
+  if (m.rain.commit !== source.rain.commit) {
     errors.push("recording and manifest disagree on the R.A.I.N. commit");
+  }
   return errors.length ? { ok: false, errors } : checked;
 }
 
@@ -43,12 +49,14 @@ export function demoProposal(): Checked<ExperimentProposal> {
   const checked = validateProposalShape(proposalFixture);
   if (!checked.ok) return checked;
   const errors: string[] = [];
-  if (checked.value.origin !== "fixture")
+  if (checked.value.origin !== "fixture") {
     errors.push(
       "DEMO proposal must be marked as a fixture (not rain or human)",
     );
-  if (checked.value.rain_decision !== null)
+  }
+  if (checked.value.rain_decision !== null) {
     errors.push("DEMO proposal must not claim a R.A.I.N. bounded decision");
+  }
   return errors.length ? { ok: false, errors } : checked;
 }
 
