@@ -518,10 +518,50 @@ async function offline() {
     const control = await page.evaluate(() => globalThis.__jev.telemetry.control);
     check("the seat reports precision control", control === "precision", control);
 
-    // Sample the controller while it plays. Every sample with a measured error
-    // must have a clear sight line from the eye to the bound enemy's head or
-    // chest: the controller measures only what it can see.
-    //
+    // Observe the real sight queries and telemetry in the SAME controller step.
+    // Reading actor positions later mixed pre-movement telemetry with post-movement
+    // geometry, and hard-coded standing heights ignored stance and heat shimmer.
+    // The wrapper records only; every query still reaches the real collision world.
+    await page.evaluate(() => {
+      const { game } = globalThis.__combat;
+      const motor = globalThis.__jev.pilot.motor;
+      const apply = motor.apply;
+      const audit = { latest: { bound: false }, measured: 0, blind: 0 };
+      globalThis.__precisionAudit = audit;
+      motor.apply = function (input, sense, trigger, dt) {
+        const sightline = sense.sightline;
+        const seen = new Set();
+        sense.sightline = (id, point) => {
+          const visible = sightline(id, point);
+          if (visible) seen.add(id);
+          return visible;
+        };
+        try {
+          apply.call(this, input, sense, trigger, dt);
+          const m = this.telemetry;
+          const target = game.actorById.get(m.targetId);
+          audit.latest =
+            m.bound && target
+              ? {
+                  bound: true,
+                  id: m.targetId,
+                  error: m.errorDeg,
+                  gate: m.gate,
+                  alive: target.alive,
+                  team: target.team !== game.player.team,
+                  sight: seen.has(m.targetId),
+                }
+              : { bound: false };
+          if (m.bound && m.errorDeg !== null) {
+            audit.measured += 1;
+            if (!seen.has(m.targetId)) audit.blind += 1;
+          }
+        } finally {
+          sense.sightline = sightline;
+        }
+      };
+    });
+
     // Sample until the controller has had enough to show, not for a fixed
     // time. An enemy enters view by chance (bots avoid open sight lines, and
     // frame pacing is not deterministic): a fixed 20 s on this seed bound
@@ -545,38 +585,7 @@ async function offline() {
         unbound = 0;
       }
       await runFor(page, 0.25);
-      const sample = await page.evaluate(() => {
-        const { game } = globalThis.__combat;
-        const m = globalThis.__jev.telemetry.motor;
-        if (!m.bound || m.targetId === null) return { bound: false };
-        const target = game.actorById.get(m.targetId);
-        const p = game.player;
-        const eye = { x: p.position.x, y: p.position.y + 1.62, z: p.position.z };
-        const V = game.cameraForward.constructor;
-        const from = new V(eye.x, eye.y, eye.z);
-        const head = new V(
-          target.position.x,
-          target.position.y + 1.62,
-          target.position.z,
-        );
-        const chest = new V(
-          target.position.x,
-          target.position.y + 1.3,
-          target.position.z,
-        );
-        const sight =
-          game.world.hasLineOfSight(from, head, 3, target.id) ||
-          game.world.hasLineOfSight(from, chest, 3, target.id); // MASK_SIGHT: world | prop
-        return {
-          bound: true,
-          id: m.targetId,
-          error: m.errorDeg,
-          gate: m.gate,
-          alive: target.alive,
-          team: target.team !== p.team,
-          sight,
-        };
-      });
+      const sample = await page.evaluate(() => globalThis.__precisionAudit.latest);
       // A kill can resolve after the controller's step in the same frame, so a
       // sample may catch it still bound to an enemy that has just died. The
       // controller checks the body on every step; the fault would be staying
@@ -606,11 +615,11 @@ async function offline() {
       `alive, opposing; ${justKilled.length} caught in the kill frame, ` +
         `${justKilled.filter((x) => x.released).length} released next step`,
     );
-    const blind = measured.filter((x) => !x.sight).length;
+    const audit = await page.evaluate(() => globalThis.__precisionAudit);
     check(
-      "it never measures or tracks an enemy without a sight line",
-      blind <= 1,
-      `${blind} of ${measured.length} measured samples without sight`,
+      "it never measures an enemy without a sight line in the same step",
+      audit.measured > 0 && audit.blind === 0,
+      `${audit.blind} of ${audit.measured} measured steps without sight`,
     );
     const tight = measured.filter((x) => x.error < 0.5).length;
     check(
