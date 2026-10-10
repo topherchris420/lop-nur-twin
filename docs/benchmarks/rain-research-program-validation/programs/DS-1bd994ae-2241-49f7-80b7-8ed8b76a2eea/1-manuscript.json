@@ -1,0 +1,71 @@
+{
+  "title": "Illustrative urban disruption and population context",
+  "paragraphs": [
+    {
+      "section": "abstract",
+      "text": "The paired mean differences were {{metric:BX-d86316f79e28-Rmv2krau11:primary_delta_mean}} and {{metric:BX-2f0f9ad47d7c-Rmv2krfg52:primary_delta_mean}}. These exploratory measurements motivate further investigation without establishing a general behavioral law.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    },
+    {
+      "section": "introduction",
+      "text": "The paired mean differences were {{metric:BX-d86316f79e28-Rmv2krau11:primary_delta_mean}} and {{metric:BX-2f0f9ad47d7c-Rmv2krfg52:primary_delta_mean}}. These exploratory measurements motivate further investigation without establishing a general behavioral law.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    },
+    {
+      "section": "related_work",
+      "text": "The supplied manuscript excerpts and literature metadata motivate bounded experiments. Their reading scope does not establish empirical validation.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    },
+    {
+      "section": "discussion",
+      "text": "The paired mean differences were {{metric:BX-d86316f79e28-Rmv2krau11:primary_delta_mean}} and {{metric:BX-2f0f9ad47d7c-Rmv2krfg52:primary_delta_mean}}. These exploratory measurements motivate further investigation without establishing a general behavioral law.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    },
+    {
+      "section": "limitations",
+      "text": "The results describe illustrative simulator rules. Seed panels differ between protocols and absolute counts cannot identify a population interaction. There is no real-world validation or significance test.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    },
+    {
+      "section": "conclusion",
+      "text": "The paired mean differences were {{metric:BX-d86316f79e28-Rmv2krau11:primary_delta_mean}} and {{metric:BX-2f0f9ad47d7c-Rmv2krfg52:primary_delta_mean}}. These exploratory measurements motivate further investigation without establishing a general behavioral law.",
+      "source_ids": [
+        "P-0748c7f43070ea347062"
+      ],
+      "run_ids": [
+        "BX-d86316f79e28-Rmv2krau11",
+        "BX-2f0f9ad47d7c-Rmv2krfg52"
+      ]
+    }
+  ]
+}

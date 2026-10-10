@@ -1,8 +1,10 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDiscoveryHandler } from "./discovery.js";
+import { ResearchStore } from "../../src/rain/autonomy/store.js";
 const roots: string[] = [];
 const handler = () => {
   const root = mkdtempSync(join(tmpdir(), "discovery-api-"));
@@ -53,7 +55,44 @@ describe("local discovery control boundary", () => {
       { action: "start", question: "a", ceilings: {} },
       { action: "authorize", prefix: "12345678", reviewed: false },
       { action: "start", question: "a" },
+      { action: "research", question: "a", online: "yes" },
+      {
+        action: "research",
+        question: "a",
+        online: true,
+        endpoint: "https://example.invalid",
+      },
     ])
       expect((await h(request(body))).status).toBe(409);
+  });
+  it("downloads only recorded, digest-verified research artifacts", async () => {
+    const h = handler();
+    const root = roots.at(-1)!;
+    const store = new ResearchStore(root);
+    const artifact = store.saveResearchArtifact(
+      "DS-" + randomUUID(),
+      "manuscript.md",
+      "Scripted test draft",
+    );
+    const get = (path: string) =>
+      h(
+        new Request(
+          "http://localhost:5173/api/rain/discovery?artifact=" + encodeURIComponent(path),
+        ),
+      );
+    const response = await get(artifact.path);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("Scripted test draft");
+    expect(response.headers.get("content-disposition")).toBe(
+      'attachment; filename="manuscript.md"',
+    );
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    for (const path of [
+      "../secrets",
+      artifact.path.replace("manuscript.md", "review.json"),
+    ])
+      expect((await get(path)).status).toBe(409);
+    writeFileSync(join(root, artifact.path), "tampered");
+    expect((await get(artifact.path)).status).toBe(409);
   });
 });

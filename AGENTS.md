@@ -973,3 +973,23 @@ calls stay in `models.ts`. The local workbench service starts only on explicit
 operator request. Keep its loopback/same-origin restriction, shared session lock,
 cooperative stop checkpoints and no-restart-resume behavior. Scripted integration
 demonstrations must be labeled as scripted, never as Qwen discoveries.
+
+### Native research programs
+
+`src/rain/research/` extends the discovery controller; it is not a second runner.
+Read `docs/RAIN_RESEARCH_PROGRAM.md`. Research source excerpts, perspectives and
+manuscripts are model context, never simulator evidence. The optional versioned
+research scope binds the question, external literature permission and delivery
+limits into the charter digest. Only the fixed, bounded Crossref adapter in
+`autonomy/models.ts` performs approved public metadata queries; inference stays
+local. Research modules cannot start processes, fetch, write files or mutate the
+simulator. All persistence uses `autonomy/store.ts`.
+
+Keep exact source receipts and reading scope. Numeric manuscript references bind
+to actual admitted, replay-verified runs; the host writes quantitative tables and
+figures. Each metric/unit has a separate figure scale. A critic cannot replace
+validation, and rejected manuscript revisions or disagreements must remain in the
+journal. Ready means ready for human review. Research graph views do not create
+operator-reviewed claims in `experiments/research.ts`. Preserve explicit start,
+shared locks, emergency stop and incomplete checkpoints on interruption. Tests and
+demonstrations must label scripted reasoning and mock literature explicitly.

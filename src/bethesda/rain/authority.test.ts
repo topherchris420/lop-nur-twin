@@ -12,6 +12,7 @@ import { validateExperiment } from "./experiments";
 import { LIMITS } from "./contracts";
 import { proposalFrom } from "./session";
 import { unsafeText } from "./validation";
+import { researchArtifactHref } from "./researchProtocol";
 
 const origin: Origin = { rain: null, rainSource: "unavailable", model: null };
 const quick = () => ({
@@ -228,8 +229,34 @@ describe("authority, by construction", () => {
       );
   });
   it("text from R.A.I.N. is never rendered as HTML or followed as a link", () => {
-    for (const f of files.filter((f) => f.endsWith(".tsx")))
-      expect(read(f), f).not.toMatch(/dangerouslySetInnerHTML|<a\s|href=|window\.open/);
+    for (const f of files.filter((f) => f.endsWith(".tsx"))) {
+      let text = read(f);
+      expect(text, f).not.toMatch(/dangerouslySetInnerHTML|window\.open/);
+      // The workbench may download a host-named, journal-verified artifact from
+      // its fixed local endpoint. Model prose and source URLs remain plain text.
+      if (f === "DiscoveryWorkbench.tsx") {
+        const hostDownload =
+          /<a\s[^>]*href=\{researchArtifactHref\(a\.path\)\}[^>]*>[\s\S]*?<\/a>/g;
+        expect(text.match(hostDownload)).toHaveLength(1);
+        text = text.replace(hostDownload, "");
+      }
+      expect(text, f).not.toMatch(/<a\s|href=/);
+    }
+  });
+  it("artifact links accept only host identities and never external URLs or traversal", () => {
+    const path = "programs/DS-11111111-1111-1111-1111-111111111111/1-manuscript.md";
+    expect(researchArtifactHref(path)).toBe(
+      "/api/rain/discovery?artifact=" + encodeURIComponent(path),
+    );
+    for (const input of [
+      null,
+      "https://example.com",
+      "javascript:alert(1)",
+      path + "?x=1",
+      path.replace("1-manuscript.md", "../evidence.json"),
+      path.replace("programs", "/programs"),
+    ])
+      expect(researchArtifactHref(input)).toBeUndefined();
   });
   it("no source in the lab contains the invisible characters its validators ban", () => {
     const all = [

@@ -33,7 +33,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { canonicalJson, sha256Json } from "../sha256.js";
+import { canonicalJson, sha256, sha256Json } from "../sha256.js";
 import { recordDigestOK, type ExperimentRecord } from "../../bethesda/rain/record.js";
 import {
   charterIdOf,
@@ -191,6 +191,46 @@ export class ResearchStore {
     const path = this.at("reports", `${id}.md`);
     this.writeOnce(path, text);
     return this.relative(path);
+  }
+
+  /** Host-named research artifacts; write once and bind exact bytes to the journal. */
+  saveResearchArtifact(session: string, name: string, text: string) {
+    if (
+      !/^DS-[a-f0-9-]{36}$/.test(session) ||
+      !/^(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+        name,
+      )
+    )
+      throw new StoreError("Invalid research artifact identity");
+    if (Buffer.byteLength(text) > MAX_RECORD)
+      throw new StoreError("Research artifact too large");
+    this.ensure("programs", session);
+    const path = this.at("programs", session, name);
+    this.writeOnce(path, text);
+    const artifact = {
+      name,
+      path: this.relative(path).replaceAll("\\", "/"),
+      sha256: sha256(text),
+    };
+    this.appendDiscovery(session, "research-artifact", artifact);
+    return artifact;
+  }
+  readResearchArtifact(path: string): string {
+    if (
+      !/^programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+        path,
+      )
+    )
+      throw new StoreError("Invalid research artifact path");
+    const entry = this.discoveryEntries().find(
+      (e) =>
+        e.kind === "research-artifact" && (e.payload as { path?: string }).path === path,
+    );
+    if (!entry) throw new StoreError("Research artifact is not journaled");
+    const text = readBounded(this.at(path), MAX_RECORD);
+    if (sha256(text) !== (entry.payload as { sha256: string }).sha256)
+      throw new StoreError("Research artifact integrity failure");
+    return text;
   }
 
   registryDir(): string {

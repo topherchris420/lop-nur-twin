@@ -18,7 +18,15 @@ try {
   else if (args[0] === "--recover" && args[1] && args[2] === "--reviewed")
     console.log(service.recover(args[1]));
   else {
-    const view = await service.prepare();
+    const research = args.includes("--research");
+    const at = args.indexOf("--question");
+    const goal = at >= 0 ? args[at + 1] : undefined;
+    const view = research
+      ? await service.prepareResearch(
+          goal ?? service.status().question,
+          args.includes("--online"),
+        )
+      : await service.prepare();
     if (args[0] === "--charter" || !args.length)
       console.log(JSON.stringify(view, null, 2));
     else if (args[0] === "--authorize" && args[1] && args[2] === "--reviewed")
@@ -26,7 +34,7 @@ try {
     else if (args[0] === "--start") {
       process.once("SIGINT", () => service.stop());
       process.once("SIGTERM", () => service.stop());
-      await service.start(args[1]);
+      await service.start(research ? (goal ?? view.question) : args[1]);
       const timer = setInterval(() => {
         const s = service.status();
         console.log(`${s.stage}: ${s.detail}`);
@@ -40,7 +48,7 @@ try {
       }
     } else
       throw new Error(
-        "Usage: rain:discovery -- --charter | --authorize PREFIX --reviewed | --start [QUESTION] | --status | --recover DIGEST --reviewed",
+        "Usage: rain:discovery -- --charter | --authorize PREFIX --reviewed | --start [QUESTION] | --status | --recover DIGEST --reviewed. Add --research --question QUESTION [--online] for a full research program.",
       );
   }
 } catch (error) {

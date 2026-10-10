@@ -18,7 +18,24 @@ export function createDiscoveryHandler(
       return reply({ error: "Same-origin operator control required" }, 403);
     try {
       service ??= createDiscoveryService(env, cwd);
-      if (request.method === "GET") return reply(service.status());
+      if (request.method === "GET") {
+        const artifact = url.searchParams.get("artifact");
+        if (artifact !== null) {
+          if ([...url.searchParams.keys()].length !== 1)
+            throw new Error("Invalid artifact request");
+          const text = service.artifact(artifact);
+          return new Response(text, {
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "Content-Disposition":
+                'attachment; filename="' + artifact.split("/").at(-1) + '"',
+              "Cache-Control": "no-store",
+              "X-Content-Type-Options": "nosniff",
+            },
+          });
+        }
+        return reply(service.status());
+      }
       if (request.method !== "POST") return reply({ error: "Method not allowed" }, 405);
       const text = await request.text();
       if (text.length > 2048) return reply({ error: "Request too large" }, 413);
@@ -27,6 +44,7 @@ export function createDiscoveryHandler(
         throw new Error("Closed control object required");
       const fields: Record<string, string[]> = {
         prepare: ["action"],
+        research: ["action", "question", "online"],
         authorize: ["action", "prefix", "reviewed"],
         start: ["action", "question"],
         pause: ["action"],
@@ -44,6 +62,12 @@ export function createDiscoveryHandler(
       switch (action) {
         case "prepare":
           return reply(await service.prepare());
+        case "research":
+          if (typeof data.question !== "string" || typeof data.online !== "boolean")
+            throw new Error(
+              "A research question and explicit literature preference are required",
+            );
+          return reply(await service.prepareResearch(data.question, data.online));
         case "authorize":
           if (typeof data.prefix !== "string" || data.reviewed !== true)
             throw new Error("Explicit review and prefix required");

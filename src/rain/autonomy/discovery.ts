@@ -61,6 +61,10 @@ import type { RuntimeApi } from "../runtime.js";
 import type { LocalModel, StructuredRequest } from "./models.js";
 import type { ResearchStore, DiscoveryEntry } from "./store.js";
 
+import { createResearchProgram } from "../research/program.js";
+import { researchScopeErrors } from "../../bethesda/rain/researchProtocol.js";
+import { searchResearchLiterature } from "./models.js";
+
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const yieldHost = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 export function discoveryHistory(entries: readonly DiscoveryEntry[]): DiscoveryResult[] {
@@ -86,6 +90,7 @@ export interface DiscoveryInput {
   signal?: AbortSignal;
   control?: { pauseRequested: boolean };
   onUpdate?: (view: Partial<DiscoveryView>) => void;
+  literature?: typeof searchResearchLiterature;
 }
 export async function runDiscovery(input: DiscoveryInput) {
   const { store, model, runtime } = input;
@@ -110,6 +115,7 @@ export async function runDiscovery(input: DiscoveryInput) {
     executed = 0;
   let tokensKnown = true;
   let ending = "Completed bounded session";
+  let program: ReturnType<typeof createResearchProgram> | null = null;
   const history: DiscoveryResult[] = [];
   const notify = (stage: string, detail: string, rest: Partial<DiscoveryView> = {}) =>
     input.onUpdate?.({ stage, detail, ...rest });
@@ -180,6 +186,11 @@ export async function runDiscovery(input: DiscoveryInput) {
     )
       throw new Error("A generated-design family charter is required");
     const authErrors = verifyCharterAuthorization(authorization, charter);
+    if (charter.research) {
+      authErrors.push(...researchScopeErrors(charter.research));
+      if (input.question !== charter.research.goal)
+        authErrors.push("Research goal differs from the reviewed charter");
+    }
     if (authErrors.length) throw new Error(authErrors.join("; "));
     if (Date.now() < Date.parse(authorization.authorized_at))
       throw new Error("Authorization is not yet valid");
@@ -209,6 +220,22 @@ export async function runDiscovery(input: DiscoveryInput) {
       throw new Error(
         "Discovery requires a persistent registry and known producing commit",
       );
+    if (charter.research)
+      program = createResearchProgram({
+        scope: charter.research,
+        capabilities: charter.family,
+        session,
+        model: model.model,
+        generation: model.generation ?? "model",
+        charter_sha256: charterSha256(charter),
+        store,
+        call,
+        guard,
+        emit,
+        notify: (stage, detail, research) => notify(stage, detail, { research }),
+        literature: (query, limit) =>
+          (input.literature ?? searchResearchLiterature)(query, limit, abort.signal),
+      });
     emit("session-start", {
       question: input.question,
       charter,
@@ -276,6 +303,7 @@ export async function runDiscovery(input: DiscoveryInput) {
           replay_verified: false,
         });
     }
+    if (program) await program.initialize();
     const occupied = new Set(prior.flatMap((p) => p.definition.seeds));
     const rng = mulberry32(parseInt(sha256Json(session).slice(0, 8), 16));
     for (
@@ -305,7 +333,11 @@ export async function runDiscovery(input: DiscoveryInput) {
         iteration === 1 ? "QUESTION" : "REDESIGN",
         "Proposing falsifiable designs from replay-verified simulation results",
       );
-      const memory = history.filter((h) => evidenceIds.has(h.run_id)).slice(-6);
+      const verifiedHistory = history.filter((h) => evidenceIds.has(h.run_id));
+      const memory = (
+        program ? program.ownResults(verifiedHistory) : verifiedHistory
+      ).slice(-6);
+      const research = program ? await program.deliberate(verifiedHistory) : undefined;
       const offered = await call<{ candidates: Design[] }>("designer", {
         schemaName: "rain_discovery_candidates",
         schema: CANDIDATES_SCHEMA,
@@ -314,6 +346,7 @@ export async function runDiscovery(input: DiscoveryInput) {
         user: JSON.stringify({
           question: input.question,
           envelope: charter.family,
+          research,
           memory,
           recent_feedback: store
             .discoveryEntries()
@@ -348,7 +381,13 @@ export async function runDiscovery(input: DiscoveryInput) {
           prior,
           evidenceIds,
         });
-        const lineageOK = !memory.length || !!raw.parent_design_id;
+        const lineageOK =
+          (!memory.length || !!raw.parent_design_id) &&
+          (!program ||
+            !raw.parent_design_id ||
+            program
+              .ownResults(verifiedHistory)
+              .some((r) => r.design_id === raw.parent_design_id));
         if (!compiled.ok || !lineageOK) failed++;
         emit("validation", {
           design: raw,
@@ -381,6 +420,7 @@ export async function runDiscovery(input: DiscoveryInput) {
       }
       const chosen = candidates[0]!;
       const designId = `ND-${chosen.fingerprint.slice(0, 24)}-${iteration}-${session.slice(-8)}`;
+      program?.recordDesign(designId, chosen.validated.definition.hypothesis, offered.id);
       notify(
         "CRITIQUE",
         "Independent inference checks confounds, competing hypotheses and evidence limits",
@@ -611,6 +651,16 @@ export async function runDiscovery(input: DiscoveryInput) {
         critique: analysis.value,
         history: structuredClone(history),
       });
+      if (program) {
+        const delivery = await program.afterResult(history);
+        if (delivery !== "continue") {
+          ending =
+            delivery === "ready"
+              ? "Research draft ready for human review"
+              : "Manuscript revision ceiling reached; delivery incomplete";
+          break;
+        }
+      }
     }
   } catch (error) {
     ending = message(error);
@@ -619,6 +669,7 @@ export async function runDiscovery(input: DiscoveryInput) {
     clearTimeout(timer);
     input.signal?.removeEventListener("abort", stop);
     try {
+      if (program) program.close(ending, history);
       emit("session-end", {
         reason: ending,
         executed,
@@ -653,7 +704,10 @@ export async function runDiscovery(input: DiscoveryInput) {
     ending,
     report,
     history,
-    ok: ending === "Completed bounded session" || ending.startsWith("Paused"),
+    ...(program ? { research: program.view() } : {}),
+    ok: program
+      ? program.view().delivery === "ready_for_human_review"
+      : ending === "Completed bounded session" || ending.startsWith("Paused"),
   };
 }
 export function discoveryReport(

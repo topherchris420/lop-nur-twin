@@ -1,5 +1,9 @@
 # Native experimental discovery in R.A.I.N.
 
+For a continuing question-to-paper workflow, see [native research programs](RAIN_RESEARCH_PROGRAM.md).
+It adds four-perspective collaboration, optional literature retrieval and manuscript
+review to this same controller. The experiment-only controls below remain available.
+
 The model may imagine the experiment. The laboratory determines whether it is
 valid. The simulation produces the evidence. Evidence limits the conclusion.
 
@@ -86,7 +90,7 @@ seed panels; they do not establish a population interaction effect statistically
    ```
 
 3. Enter Bethesda, open R.A.I.N. Lab, then the Research Panel. Choose **Connect
-   local Qwen / review scope**. `/v1/models` supplies the actual identifier.
+   local Qwen / review experiment-only scope**. `/v1/models` supplies the actual identifier.
    If exactly one loaded identifier contains `qwen`, it is selected. If there
    are multiple or none, set `RAIN_MODEL` to an identifier shown by your server
    and restart the local development server. No Qwen version is assumed.
