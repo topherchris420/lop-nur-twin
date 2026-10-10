@@ -18,6 +18,11 @@ import {
   type Envelope,
 } from "../../bethesda/rain/discoveryProtocol.js";
 import type { DiscoveryView } from "../../bethesda/rain/discoveryView.js";
+import {
+  researchScope,
+  type ResearchScope,
+  type ResearchView,
+} from "../../bethesda/rain/researchProtocol.js";
 import { UNSAFE_TEXT } from "../protocol.js";
 
 export function createDiscoveryService(
@@ -57,6 +62,10 @@ export function createDiscoveryService(
     charter_sha256: null,
     report: null,
     lock: store.lock(),
+    research: store
+      .discoveryEntries()
+      .filter((e) => e.kind === "research-state")
+      .at(-1)?.payload as ResearchView | undefined,
   };
   const status = () =>
     structuredClone({
@@ -72,7 +81,7 @@ export function createDiscoveryService(
           detail: JSON.stringify(e.payload).slice(0, 2400),
         })),
     });
-  const prepare = async () => {
+  const prepare = async (research?: ResearchScope) => {
     if (view.active || preparing)
       throw new Error("A session or connection check is already active");
     preparing = true;
@@ -109,6 +118,7 @@ export function createDiscoveryService(
         model: { provider: model.provider, model: model.model, endpoint: model.endpoint },
         validHours: config.charterHours,
         envelope,
+        ...(research ? { research } : {}),
       });
       store.saveCharter(charter);
       const auth = store
@@ -118,6 +128,7 @@ export function createDiscoveryService(
         ...view,
         charter,
         charter_sha256: charterSha256(charter),
+        question: research?.goal ?? view.question,
         model: selected,
         authorization: auth
           ? `Approved until ${auth.expires_at}`
@@ -152,6 +163,8 @@ export function createDiscoveryService(
       throw new Error("Connect and review the current local model first");
     if (!question.trim() || question.length > 400 || UNSAFE_TEXT.test(question))
       throw new Error("Question must be 1–400 visible characters");
+    if (charter.research && charter.research.goal !== question)
+      throw new Error("Review a new research scope before changing its goal");
     const auth = store
       .authorizations(charter)
       .find((a) => Date.parse(a.expires_at) > Date.now());
@@ -206,6 +219,9 @@ export function createDiscoveryService(
   return {
     status,
     prepare,
+    prepareResearch: (goal: string, online: boolean) =>
+      prepare(researchScope(goal, online)),
+    artifact: (path: string) => store.readResearchArtifact(path),
     authorize,
     start,
     pause: () => {

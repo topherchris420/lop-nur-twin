@@ -26,6 +26,7 @@ export interface DiscoveryResult {
   record_path: string;
 }
 export interface DiscoveryView {
+  research?: import("./researchProtocol.js").ResearchView;
   schema: "rain-discovery-view/v1";
   available: boolean;
   active: boolean;

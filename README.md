@@ -109,15 +109,22 @@ researchers inhabit a world whose rules and outcomes can be inspected.
 
 That vision has several layers, with different implementation status:
 
-| Layer                         | Working foundation                                                                                       | Next capability in the vision                                                                                                                    |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Collaborating researchers** | Four-perspective research meetings; local model support; separate designer and critic calls in discovery | A sustained research program jointly directed by those perspectives across investigations                                                        |
-| **The Lab's papers**          | Seventeen pinned corpus documents; verified quotations and source provenance                             | New, reviewed papers that cite the evidence produced by the Lab                                                                                  |
-| **Internet research**         | Curated source registers and imported research snapshots                                                 | Autonomous literature retrieval with source capture, verification and revision tracking; the discovery controller has no web-browsing tool today |
-| **Mathematics**               | A pinned `openai/math` index for search, hypothesis challenges and provenance-bearing citations          | Deeper mathematical tools connected to experimental design; the current index does not execute Lean                                              |
-| **Experiments**               | Native Bethesda designs, family charters, matched controls, registry evaluation and deterministic replay | Broader validated experimental capabilities and a demonstrated live-Qwen research cycle                                                          |
-| **Scientific output**         | Quantitative reports, run artifacts, criticisms, limitations and research lineage                        | An autonomous manuscript workflow with literature review, derivations, figures and scientific review                                             |
-| **Nested laboratories**       | Connected, human-built environments: Lop Nur, Blacksite, Bethesda and its Lab                            | Researchers proposing descendant worlds and laboratories; no recursive world-generation runtime is implemented                                   |
+| Layer                         | Working capability                                                                                                      | Remaining development                                                                           |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| **Collaborating researchers** | James, Jasmine, Luca and Elena deliberate across experiments; later calls see prior contributions and measured findings | Evaluate sustained research quality with live local Qwen                                        |
+| **The Lab's papers**          | Bounded excerpts from seventeen pinned corpus documents inform hypotheses and manuscript references                     | Human review of the resulting scientific arguments                                              |
+| **Internet research**         | Opt-in, charter-bounded Crossref retrieval with response hashes and explicit metadata/abstract reading scope            | Full-text reading and broader literature synthesis                                              |
+| **Mathematics**               | Pinned `openai/math` context enters deliberation with explicit applicability assumptions                                | Formal derivation and checked proof execution; Lean is not run                                  |
+| **Experiments**               | Novel typed Bethesda protocols, family charters, matched controls, registry evaluation and replay                       | Broader validated backends and a demonstrated live-Qwen cycle                                   |
+| **Scientific output**         | Structured manuscripts, host-generated tables and figures, BibTeX, lineage and a separate critic with bounded revision  | Human scientific review and publication-quality validation                                      |
+| **Nested laboratories**       | Connected, human-built environments: Lop Nur, Blacksite, Bethesda and its Lab                                           | Researchers proposing descendant worlds and laboratories; no recursive world-generation runtime |
+
+The [native research program](docs/RAIN_RESEARCH_PROGRAM.md) now connects these
+working pieces inside the existing R.A.I.N. controller. A reviewed goal can continue
+through multiple investigations and manuscript revisions without a new prompt
+after each experiment. The [reproducible program demonstration](docs/benchmarks/rain-research-program-validation/README.md)
+uses scripted reasoning and actual simulator evidence; live-Qwen research quality
+has not yet been demonstrated.
 
 ### The “inception” direction
 
@@ -416,16 +423,19 @@ npm run dev
 ```
 
 [Enter Bethesda](#find-bethesda), open the Lab's Research Panel and choose
-**Connect local Qwen / review scope**. The host queries LM Studio's `/v1/models`;
+**Connect Qwen / review research program**. The host queries LM Studio's `/v1/models`;
 it selects a unique loaded Qwen identifier or asks you to configure `RAIN_MODEL`
 from the identifiers actually returned. No specific Qwen version is assumed.
 
-Review the parameter envelope, model, ceilings and expiry; acknowledge the
+Keep literature offline or explicitly allow bounded public literature queries.
+Review the research goal, source scope, parameter envelope, model, ceilings and expiry; acknowledge the
 review and enter the charter digest prefix. **Start bounded session** permits
 multiple experiments within that scope. **Pause** completes the current cycle;
 **Emergency stop** interrupts at a cooperative checkpoint. The workbench shows
 the question, hypothesis, design, validation, authorization, execution, findings,
-critique, uncertainties, next investigation and retained history.
+critique, uncertainties, next investigation and retained history. Research programs
+also show the four perspectives, source reading scope, manuscript review and
+downloadable evidence-bound drafts, figures and bibliography.
 
 Completed work persists under `.rain-research/`. A restart never silently resumes
 execution, and an unavailable model stops the session without remote fallback.
@@ -433,7 +443,8 @@ Run discovery locally: the deployed website cannot reach LM Studio on your
 machine. The manual workflow and original 44-design autonomous CLI remain
 available.
 
-[Full setup, Windows commands, CLI, scope controls and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md).
+[Research-to-paper setup and limits](docs/RAIN_RESEARCH_PROGRAM.md) ·
+[Experiment scope controls, Windows commands and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md).
 
 ## Five minutes in
 
@@ -1004,6 +1015,7 @@ or extend one.
 | R.A.I.N. model meetings                                                                             | **Experimental**                                             | Need a local model server and one long-lived process                                                        |
 | R.A.I.N. legacy autonomy (`npm run rain:autonomous`)                                                | **Implemented** · **experimental**                           | Preserves the 44 host-defined designs and exact-design charters; local CLI                                  |
 | Native discovery compiler, family charters, journal and workbench                                   | **Implemented** · **experimental**                           | New supported parameter combinations; real simulator execution and replay verified with a scripted designer |
+| Collaborative research, optional literature and manuscript delivery                                 | **Implemented** · **experimental**                           | Native program tested with scripted reasoning and actual simulator evidence; papers require human review    |
 | Qwen-driven multi-experiment discovery                                                              | **Implemented integration** · live demonstration **pending** | Uses local LM Studio model discovery; the archived two-study demonstration did not run Qwen                 |
 | R.A.I.N. mathematical substrate (`openai/math`, pinned): search, challenge, inspection, citations   | **Implemented**                                              | Lexical search; relations are a person's; Lean is indexed, never compiled; one commit at a time             |
 | Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                                               | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`               |
@@ -1058,24 +1070,25 @@ matched experiments that show what changed.
 
 ## Documentation
 
-| Start here                                                                                                                                                     | For                                                                |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| [White paper](docs/WHITE_PAPER.md)                                                                                                                             | The long-form argument for the reconstruction                      |
-| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                                                  | Playing, mechanics and navigation                                  |
-| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                                                  | Providers, controllers, traces and benchmarks                      |
-| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                                         | What a result can support — and how it can mislead                 |
-| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                                               | Discovery, city scenarios, geography and replay                    |
-| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                                                    | Meetings, experiments, authorization and replay                    |
-| [Native experimental discovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                                                           | Qwen setup, supported designs, charters, workbench and recovery    |
-| [Executed discovery archive](docs/benchmarks/rain-discovery-validation/README.md) · [Quantitative report](docs/benchmarks/rain-discovery-validation/REPORT.md) | Actual protocols, measurements, replay, source revision and limits |
-| [Research lineage](docs/RAIN_RESEARCH_LINEAGE.md)                                                                                                              | Assumptions, contradictory results, dependencies and follow-ups    |
-| [R.A.I.N. Lab site](https://rainlabteam.vercel.app/)                                                                                                           | R.A.I.N. itself: local-first research meetings                     |
-| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                                             | Mathematics as context: status, relation, basis                    |
-| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                                          | Sources, classifications and limits                                |
-| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md)                         | Measurements, dates, exports and revisions                         |
-| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Accessibility](docs/ACCESSIBILITY.md)                                        | Implementation, checks and what is actually tested                 |
-| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                                              | Hosting, credentials and trust boundaries                          |
-| [Government evaluation guide](docs/GOVERNMENT_EVALUATION.md)                                                                                                   | What this can and cannot be used for, in an hour                   |
+| Start here                                                                                                                                                     | For                                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| [White paper](docs/WHITE_PAPER.md)                                                                                                                             | The long-form argument for the reconstruction                                      |
+| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                                                  | Playing, mechanics and navigation                                                  |
+| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                                                  | Providers, controllers, traces and benchmarks                                      |
+| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                                         | What a result can support — and how it can mislead                                 |
+| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                                               | Discovery, city scenarios, geography and replay                                    |
+| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                                                    | Meetings, experiments, authorization and replay                                    |
+| [Native research programs](docs/RAIN_RESEARCH_PROGRAM.md)                                                                                                      | Four perspectives, literature scope, manuscript delivery, artifacts and activation |
+| [Native experimental discovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                                                           | Qwen setup, supported designs, charters, workbench and recovery                    |
+| [Executed discovery archive](docs/benchmarks/rain-discovery-validation/README.md) · [Quantitative report](docs/benchmarks/rain-discovery-validation/REPORT.md) | Actual protocols, measurements, replay, source revision and limits                 |
+| [Research lineage](docs/RAIN_RESEARCH_LINEAGE.md)                                                                                                              | Assumptions, contradictory results, dependencies and follow-ups                    |
+| [R.A.I.N. Lab site](https://rainlabteam.vercel.app/)                                                                                                           | R.A.I.N. itself: local-first research meetings                                     |
+| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                                             | Mathematics as context: status, relation, basis                                    |
+| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                                          | Sources, classifications and limits                                                |
+| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md)                         | Measurements, dates, exports and revisions                                         |
+| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Accessibility](docs/ACCESSIBILITY.md)                                        | Implementation, checks and what is actually tested                                 |
+| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                                              | Hosting, credentials and trust boundaries                                          |
+| [Government evaluation guide](docs/GOVERNMENT_EVALUATION.md)                                                                                                   | What this can and cannot be used for, in an hour                                   |
 
 ## License and attribution
 

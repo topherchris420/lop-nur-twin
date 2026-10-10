@@ -414,3 +414,67 @@ export function parseStructured(
     return { ok: false, error: "the answer is not one JSON object" };
   return { ok: true, value: value as Record<string, unknown> };
 }
+
+/** A host-fixed literature endpoint, separate from inference. The controller must
+ * admit each query under the reviewed research scope before calling this adapter.
+ * No arbitrary URL, credential, redirect, code or file operation is accepted. */
+export async function searchResearchLiterature(
+  query: string,
+  limit: number,
+  signal: AbortSignal,
+  transport: typeof fetch = fetch,
+) {
+  if (
+    !query.trim() ||
+    query.length > 200 ||
+    /[\u0000-\u001f\u007f]/.test(query) ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 8
+  )
+    throw new Error("Invalid bounded literature query");
+  const { credentialFormatsIn } = await import("../experiments/provenance.js");
+  if (credentialFormatsIn(query))
+    throw new Error("Credential-like literature query refused");
+  const { parseCrossref } = await import("../research/knowledge.js");
+  const url = new URL("https://api.crossref.org/works");
+  url.searchParams.set("query.bibliographic", query);
+  url.searchParams.set("rows", String(limit));
+  const abort = AbortSignal.any([signal, AbortSignal.timeout(20000)]);
+  const response = await transport(url.href, {
+    method: "GET",
+    signal: abort,
+    redirect: "error",
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "RAIN-Lab/1 (bounded literature research)",
+    },
+  });
+  if (
+    !response.ok ||
+    !response.headers.get("content-type")?.includes("json") ||
+    (response.url && new URL(response.url).origin !== url.origin)
+  )
+    throw new Error("Literature provider unavailable or returned an unexpected response");
+  const max = 512 * 1024;
+  const length = Number(response.headers.get("content-length") ?? 0);
+  if (length > max || !response.body)
+    throw new Error("Literature response exceeds its bound");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  try {
+    for (;;) {
+      const next = await reader.read();
+      if (next.done) break;
+      bytes += next.value.byteLength;
+      if (bytes > max) throw new Error("Literature response exceeds its bound");
+      chunks.push(next.value);
+    }
+  } finally {
+    await reader.cancel();
+    reader.releaseLock();
+  }
+  const raw = Buffer.concat(chunks).toString("utf8");
+  return parseCrossref(raw, query, url.href, new Date().toISOString(), limit);
+}

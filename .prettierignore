@@ -48,6 +48,12 @@ experiments
 # hand makes the next re-score a whole-file diff.
 docs/benchmarks/**/*.json
 
+# Research-program outputs are immutable evidence, including Markdown/SVG whose
+# exact bytes are journaled. The archive's human-written README is still checked.
+docs/benchmarks/rain-research-program-validation/programs/
+docs/benchmarks/rain-research-program-validation/reports/
+docs/benchmarks/rain-research-program-validation/REPORT.md
+
 # The model's recorded revisions: manifests kept byte for byte as each commit's
 # own generator wrote them, and the index the recorder writes beside them.
 model-history/

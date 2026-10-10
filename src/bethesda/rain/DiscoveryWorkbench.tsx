@@ -10,6 +10,7 @@ export function DiscoveryWorkbench() {
   const [prefix, setPrefix] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(false);
   const accept = (data: unknown) => {
     const v = data as DiscoveryView;
     if (
@@ -80,11 +81,13 @@ export function DiscoveryWorkbench() {
       className="my-4 rounded border border-teal-800 bg-teal-950/20 p-3"
       aria-label="Autonomous discovery workbench"
     >
-      <h3 className="font-semibold text-teal-200">Autonomous experimental discovery</h3>
+      <h3 className="font-semibold text-teal-200">Autonomous research program</h3>
       <p className="my-2 text-sm">
-        Ask how simulated disruptions change movement. R.A.I.N. can design matched-control
-        studies, vary mapped locations, populations, timing and intensity, replay its
-        measurements, and propose a follow-up. Findings describe this simulator.
+        Give the Lab a research question. James, Jasmine, Luca and Elena can examine the
+        Lab's papers and mathematics, consult public literature when you approve it,
+        design simulator experiments, critique the results and produce a paper draft with
+        measured tables, a figure, references and a reproducible evidence bundle. Current
+        execution investigates Bethesda's supported urban disruptions.
       </p>
       <p className="text-xs">
         Qwen proposes. The host validates and admits. The simulator measures. A separate
@@ -105,17 +108,43 @@ export function DiscoveryWorkbench() {
           onChange={(e) => setQuestion(e.target.value)}
         />
       </label>
+      <label className="my-2 block text-sm">
+        <input
+          type="checkbox"
+          checked={online}
+          disabled={view?.active}
+          onChange={(e) => {
+            setOnline(e.target.checked);
+            setReviewed(false);
+            setPrefix("");
+          }}
+        />{" "}
+        Allow public literature queries to Crossref (metadata and abstracts; query terms
+        leave this computer)
+      </label>
       <div className="my-2 flex flex-wrap gap-2">
+        <button
+          className={button}
+          disabled={busy || view?.active}
+          onClick={() => void act("research", { question, online })}
+        >
+          Connect Qwen / review research program
+        </button>
         <button
           className={button}
           disabled={busy || view?.active}
           onClick={() => void act("prepare")}
         >
-          Connect local Qwen / review scope
+          Review experiment-only scope
         </button>
         <button
           className={button}
-          disabled={busy || !view?.charter || view.active}
+          disabled={
+            busy ||
+            !view?.charter ||
+            view.active ||
+            (!!view?.charter?.research && view.charter.research.goal !== question)
+          }
           onClick={() => void act("start", { question })}
         >
           Start bounded session
@@ -148,6 +177,7 @@ export function DiscoveryWorkbench() {
               {
                 model: view.charter.model,
                 scope: view.charter.family,
+                research: view.charter.research ?? "Experiment-only session",
                 ceilings: view.charter.ceilings,
                 valid_hours: view.charter.valid_hours,
                 policy: view.charter.policy_version,
@@ -179,7 +209,7 @@ export function DiscoveryWorkbench() {
             disabled={busy || view.active || !reviewed || prefix.length !== 8}
             onClick={() => void act("authorize", { prefix, reviewed })}
           >
-            Approve family
+            Approve reviewed scope
           </button>
         </details>
       )}
@@ -212,6 +242,106 @@ export function DiscoveryWorkbench() {
               {view.progress.arm} · seed {view.progress.seed} · tick {view.progress.tick}/
               {view.progress.totalTicks}
             </p>
+          )}
+          {view.research && (
+            <section
+              className="my-3 rounded border border-teal-800 p-3"
+              aria-label="Research program"
+            >
+              <p className="font-semibold">{view.research.goal}</p>
+              <p className="text-sm">
+                Paper delivery: {view.research.delivery.replaceAll("_", " ")}. Human
+                scientific review is required.
+              </p>
+              {!!view.research.gaps.length && (
+                <ul className="my-2 list-disc pl-5 text-sm">
+                  {view.research.gaps.map((gap, i) => (
+                    <li key={i}>{gap}</li>
+                  ))}
+                </ul>
+              )}
+              <details open>
+                <summary>Collaborating research perspectives</summary>
+                {view.research.turns.map((turn) => (
+                  <article key={turn.decision_id} className="my-2 text-sm">
+                    <p className="font-semibold">
+                      {turn.perspective} · {turn.role} · {turn.generation}
+                    </p>
+                    <p>{turn.contribution.hypothesis}</p>
+                    <p>Falsification: {turn.contribution.falsification}</p>
+                    <p>Next experiment: {turn.contribution.next_experiment}</p>
+                    <p>
+                      Disagreements:{" "}
+                      {turn.contribution.disagreements.join("; ") || "None recorded"}
+                    </p>
+                    <p className="text-xs">
+                      Sources:{" "}
+                      {turn.contribution.source_ids.join(", ") || "No source cited"}
+                    </p>
+                  </article>
+                ))}
+              </details>
+              <details>
+                <summary>
+                  Research sources and reading scope ({view.research.sources.length})
+                </summary>
+                {view.research.sources.map((source) => (
+                  <article key={source.id} className="my-2 text-sm">
+                    <p className="font-semibold">{source.title}</p>
+                    <p>
+                      {source.kind}: {source.reading_scope}
+                    </p>
+                    <p className="whitespace-pre-wrap">{source.excerpt}</p>
+                    <p className="break-all text-xs">
+                      {source.id} · {source.locator} · SHA-256 {source.sha256}
+                    </p>
+                  </article>
+                ))}
+              </details>
+              <details>
+                <summary>Research graph and retained branches</summary>
+                <ul className="list-disc pl-5 text-sm">
+                  {view.research.graph.nodes.map((node) => (
+                    <li key={node.id}>
+                      {node.kind} · {node.label} · {node.status}
+                    </li>
+                  ))}
+                </ul>
+                <pre className="max-h-48 overflow-auto whitespace-pre-wrap text-xs">
+                  {JSON.stringify(view.research.graph.edges, null, 2)}
+                </pre>
+              </details>
+              {view.research.manuscript && (
+                <details open>
+                  <summary>Scientific paper draft</summary>
+                  <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-sm">
+                    {view.research.manuscript}
+                  </pre>
+                </details>
+              )}
+              {view.research.review && (
+                <details>
+                  <summary>Independent manuscript critique</summary>
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {JSON.stringify(view.research.review, null, 2)}
+                  </pre>
+                </details>
+              )}
+              {!!view.research.artifacts.length && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {view.research.artifacts.map((a) => (
+                    <a
+                      key={a.path}
+                      className={button}
+                      href={"/api/rain/discovery?artifact=" + encodeURIComponent(a.path)}
+                      download={a.name}
+                    >
+                      Download {a.name}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </section>
           )}
           {view.proposed && (
             <details open>

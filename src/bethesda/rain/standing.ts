@@ -64,6 +64,8 @@ import { CONFIRMATION_LENGTH } from "./authorization";
 import { canonicalJson, sha256Json } from "../../rain/sha256";
 import type { Checked } from "./validation";
 
+import { researchScopeErrors, type ResearchScope } from "./researchProtocol.js";
+
 export const CHARTER_SCHEMA = "rain-autonomy-charter/v1" as const;
 export const CHARTER_AUTHORIZATION_SCHEMA =
   "rain-autonomy-charter-authorization/v1" as const;
@@ -127,6 +129,8 @@ export interface CharterModel {
 export interface Charter {
   schema: typeof CHARTER_SCHEMA | typeof DISCOVERY_CHARTER;
   family?: Envelope;
+  /** Optional, separately versioned research services included in the reviewed digest. */
+  research?: ResearchScope;
   scope: "bethesda-simulation";
   policy_version: typeof POLICY_VERSION | typeof DISCOVERY_POLICY;
   covers: string;
@@ -296,9 +300,15 @@ export function buildCharter(input: {
 }
 
 export function buildDiscoveryCharter(
-  input: Parameters<typeof buildCharter>[0] & { envelope: Envelope },
+  input: Parameters<typeof buildCharter>[0] & {
+    envelope: Envelope;
+    research?: ResearchScope;
+  },
 ): Charter {
-  const errors = envelopeErrors(input.envelope);
+  const errors = [
+    ...envelopeErrors(input.envelope),
+    ...(input.research ? researchScopeErrors(input.research) : []),
+  ];
   if (errors.length) throw new Error(errors.join("; "));
   return {
     ...buildCharter(input),
@@ -307,6 +317,13 @@ export function buildDiscoveryCharter(
     covers:
       "Generated matched-control Bethesda experiments within this parameter envelope; host criteria, independent replay, fresh withheld seeds and per-session ceilings. No external world actions.",
     family: structuredClone(input.envelope),
+    ...(input.research
+      ? {
+          research: structuredClone(input.research),
+          covers:
+            "Native Bethesda experiments plus a research program using the pinned corpus, mathematical index, four local-model perspectives and draft manuscript artifacts. Public Crossref query text is permitted only when explicitly enabled in the research scope. No arbitrary code execution or external-world interventions.",
+        }
+      : {}),
   };
 }
 
