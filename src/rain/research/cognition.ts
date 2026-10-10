@@ -5,8 +5,14 @@ import {
   type CognitiveStrategy,
   type CognitiveArtifact,
 } from "../../bethesda/rain/cognitionProtocol.js";
-export { COGNITIVE_STRATEGIES, COGNITIVE_ARTIFACT_SCHEMA } from "../../bethesda/rain/cognitionProtocol.js";
-export type { CognitiveStrategy, CognitiveArtifact } from "../../bethesda/rain/cognitionProtocol.js";
+export {
+  COGNITIVE_STRATEGIES,
+  COGNITIVE_ARTIFACT_SCHEMA,
+} from "../../bethesda/rain/cognitionProtocol.js";
+export type {
+  CognitiveStrategy,
+  CognitiveArtifact,
+} from "../../bethesda/rain/cognitionProtocol.js";
 
 export function strategiesForStage(stage: string): CognitiveStrategy[] {
   if (stage === "Founder hypothesis")
