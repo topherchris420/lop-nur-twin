@@ -1,3 +1,4 @@
+import type { ResearchView } from "./researchProtocol.js";
 /** Read-only workbench wire view; contains no server dependencies. */
 import type { Charter } from "./standing.js";
 import type { Critique, Design } from "./discoveryProtocol.js";
@@ -26,7 +27,7 @@ export interface DiscoveryResult {
   record_path: string;
 }
 export interface DiscoveryView {
-  research?: import("./researchProtocol.js").ResearchView;
+  research?: ResearchView;
   schema: "rain-discovery-view/v1";
   available: boolean;
   active: boolean;

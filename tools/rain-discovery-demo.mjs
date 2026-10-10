@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 /** Real simulator integration demonstration with an explicitly scripted designer, never Qwen. */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync, copyFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  copyFileSync,
+  readFileSync,
+} from "node:fs";
 import { resolve, join } from "node:path";
 import "../scripts/ts-hooks.mjs";
 const { configureRuntime } = await import("../src/rain/runtime.ts");
@@ -42,13 +48,28 @@ if (args[0] === "--verify") {
       const evidence = JSON.parse(text);
       for (const result of evidence.results) {
         const record = records.find((r) => r.record.run_id === result.run_id)?.record;
+        const admitted = entries.find(
+          (entry) =>
+            entry.kind === "registry-admission" && entry.payload.run_id === result.run_id,
+        )?.payload.admission;
+        const nativeId = /^(V3D-EXP-\d+)-(RUN-\d+)$/.exec(result.registry_run_id);
+        if (!nativeId) throw new Error("Invalid native registry run identity");
+        const nativeRun = JSON.parse(
+          readFileSync(
+            join(store.registryDir(), nativeId[1], "runs", nativeId[2], "result.json"),
+            "utf8",
+          ),
+        );
         if (
           !record ||
           !result.replay ||
           sha256Json(result.measurements) !== sha256Json(record.run.measurements) ||
           sha256Json(result.per_seed) !== sha256Json(record.run.per_seed) ||
           result.verdict !== record.outcome.verdict ||
-          result.registry_run_id !== record.rain_admission.run_id
+          result.registry_run_id !== admitted?.run_id ||
+          nativeRun.run_id !== result.registry_run_id ||
+          sha256Json(nativeRun.measurements) !== sha256Json(result.measurements) ||
+          nativeRun.hypothesis_verdict !== result.verdict
         )
           throw new Error("Paper evidence differs from its native sealed record");
       }

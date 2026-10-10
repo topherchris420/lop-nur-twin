@@ -3,6 +3,15 @@ import { closed, checkData } from "./discoveryProtocol.js";
 import { UNSAFE_TEXT } from "./contracts.js";
 
 export const RESEARCH_SCOPE_SCHEMA = "rain-research-scope/v1" as const;
+/** Host artifact identities only. Research prose and source URLs cannot become links. */
+export function researchArtifactHref(path: unknown): string | undefined {
+  return typeof path === "string" &&
+    /^programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+      path,
+    )
+    ? "/api/rain/discovery?artifact=" + encodeURIComponent(path)
+    : undefined;
+}
 export const RESEARCH_SECTIONS = [
   "abstract",
   "introduction",

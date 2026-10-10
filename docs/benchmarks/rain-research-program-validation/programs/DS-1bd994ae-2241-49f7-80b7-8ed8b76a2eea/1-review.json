@@ -1,0 +1,11 @@
+{
+  "assessment": "ready_for_human_review",
+  "issues": [],
+  "unsupported_claims": [],
+  "alternative_explanations": [
+    "[scripted fixture] Different populations and seed panels can explain differing absolute counts."
+  ],
+  "next_investigations": [
+    "[scripted fixture] Consider a preregistered confirmatory replication."
+  ]
+}

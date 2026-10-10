@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DISCOVERY_QUESTION } from "./discoveryProtocol.js";
 import type { DiscoveryView } from "./discoveryView.js";
+import { researchArtifactHref } from "./researchProtocol.js";
 
 const button = "rounded border border-teal-700 px-3 py-2 text-sm disabled:opacity-40";
 export function DiscoveryWorkbench() {
@@ -333,7 +334,7 @@ export function DiscoveryWorkbench() {
                     <a
                       key={a.path}
                       className={button}
-                      href={"/api/rain/discovery?artifact=" + encodeURIComponent(a.path)}
+                      href={researchArtifactHref(a.path)}
                       download={a.name}
                     >
                       Download {a.name}

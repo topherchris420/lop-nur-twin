@@ -1,0 +1,6 @@
+{
+  "producing_local_commit": "9f53b34562dcba8a4adf91c5f5267a3e3579383b",
+  "published_source_commit": "01caf6b708ddae4eb1b39f6bd3e78f1953f1a92d",
+  "identical_tree_sha": "1af2b5d4514015e5968c727b168b344610726fd2",
+  "note": "The GitHub connector published identical file bytes with different commit metadata. Sealed producing records are unchanged. The later verification-helper fix does not change simulator execution."
+}

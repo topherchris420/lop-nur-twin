@@ -427,7 +427,7 @@ export async function searchResearchLiterature(
   if (
     !query.trim() ||
     query.length > 200 ||
-    /[\u0000-\u001f\u007f]/.test(query) ||
+    /\p{Cc}/u.test(query) ||
     !Number.isInteger(limit) ||
     limit < 1 ||
     limit > 8

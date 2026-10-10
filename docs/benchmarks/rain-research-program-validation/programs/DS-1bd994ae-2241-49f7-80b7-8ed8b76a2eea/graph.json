@@ -1,0 +1,362 @@
+{
+  "nodes": [
+    {
+      "id": "RP-0d05d82d509fc22f68157f81",
+      "kind": "goal",
+      "label": "How do different simulated urban disruptions alter collective movement patterns, and under which conditions does the same intervention produce different behavioral outcomes?",
+      "status": "open"
+    },
+    {
+      "id": "P-0748c7f43070ea347062",
+      "kind": "corpus",
+      "label": "Resonant Dynamics of Sovereign Debt",
+      "status": "Pinned author-supplied manuscript excerpt; character range 794–2594. Not independent validation."
+    },
+    {
+      "id": "P-732c235955e815158bc5",
+      "kind": "corpus",
+      "label": "Resonant Intelligence",
+      "status": "Pinned author-supplied manuscript excerpt; character range 222–2022. Not independent validation."
+    },
+    {
+      "id": "P-f34bf5c23db820e84ea9",
+      "kind": "corpus",
+      "label": "Dynamic Resonance Rooting",
+      "status": "Pinned author-supplied manuscript excerpt; character range 855–2655. Not independent validation."
+    },
+    {
+      "id": "P-903638bf475060869b48",
+      "kind": "corpus",
+      "label": "Integrated Plasma Confinement",
+      "status": "Pinned author-supplied manuscript excerpt; character range 1369–3169. Not independent validation."
+    },
+    {
+      "id": "M-a8439c3d3d73eccde7a3",
+      "kind": "mathematics",
+      "label": "One-tape time simulation in two-fifths-power space",
+      "status": "Pinned catalogue summary/abstract; status: manuscript. Applicability requires mapped assumptions; Lean was not executed."
+    },
+    {
+      "id": "M-17cf9a8ea573f59024cd",
+      "kind": "mathematics",
+      "label": "Optimal-order randomized <i>k</i>-server on arbitrary metrics",
+      "status": "Pinned catalogue summary/abstract; status: formalized. Applicability requires mapped assumptions; Lean was not executed."
+    },
+    {
+      "id": "M-e4160f94bc92952703bf",
+      "kind": "mathematics",
+      "label": "Classical capacity of generalized amplitude damping",
+      "status": "Pinned catalogue summary/abstract; status: formalized. Applicability requires mapped assumptions; Lean was not executed."
+    },
+    {
+      "id": "DD-3b3f3ad2-31b3-4c33-8c00-c23916b84e96",
+      "kind": "hypothesis",
+      "label": "James: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-c34ea504-bdc8-4af7-9ced-5ddbfde991f9",
+      "kind": "hypothesis",
+      "label": "Jasmine: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-15b9303e-540d-4a04-9e29-8e9d1f8f4819",
+      "kind": "hypothesis",
+      "label": "Luca: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-b4ad7d10-828d-4804-aaa1-53381c92e91e",
+      "kind": "hypothesis",
+      "label": "Elena: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "kind": "experiment",
+      "label": "The intervention will increase watching by at least 0.01 count on average, with every paired seed in the expected direction.",
+      "status": "exploratory"
+    },
+    {
+      "id": "BX-d86316f79e28-Rmv2krau11",
+      "kind": "measurement",
+      "label": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+      "status": "supported"
+    },
+    {
+      "id": "DD-a5b1c58a-d45e-4351-afa9-34b295b78d40",
+      "kind": "hypothesis",
+      "label": "James: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-81e37283-a38d-4229-b108-59787a7cc44d",
+      "kind": "hypothesis",
+      "label": "Jasmine: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-d5dc72a5-7a55-422c-841b-136d9a97dfee",
+      "kind": "hypothesis",
+      "label": "Luca: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "DD-3d5b0ed4-6b2b-4a4a-a575-4a83eaa46569",
+      "kind": "hypothesis",
+      "label": "Elena: [scripted fixture] The same fire changes the watching count in different populations.",
+      "status": "proposed"
+    },
+    {
+      "id": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "kind": "experiment",
+      "label": "The intervention will increase watching by at least 0.01 count on average, with every paired seed in the expected direction.",
+      "status": "exploratory"
+    },
+    {
+      "id": "BX-2f0f9ad47d7c-Rmv2krfg52",
+      "kind": "measurement",
+      "label": "[scripted fixture] Does a denser simulated population change the response to the same fire?",
+      "status": "supported"
+    },
+    {
+      "id": "DS-1bd994ae-2241-49f7-80b7-8ed8b76a2eea:1-3e95c4f9ed4d40925a5c980646ee6ad6780042d825b3ae697f9a8dbe3bff6430",
+      "kind": "manuscript",
+      "label": "Illustrative urban disruption and population context",
+      "status": "ready_for_human_review"
+    }
+  ],
+  "edges": [
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "P-732c235955e815158bc5",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "P-f34bf5c23db820e84ea9",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "P-903638bf475060869b48",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "M-a8439c3d3d73eccde7a3",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "M-17cf9a8ea573f59024cd",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "M-e4160f94bc92952703bf",
+      "to": "RP-0d05d82d509fc22f68157f81",
+      "relation": "informs"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-3b3f3ad2-31b3-4c33-8c00-c23916b84e96",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-3b3f3ad2-31b3-4c33-8c00-c23916b84e96",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-c34ea504-bdc8-4af7-9ced-5ddbfde991f9",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-c34ea504-bdc8-4af7-9ced-5ddbfde991f9",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-15b9303e-540d-4a04-9e29-8e9d1f8f4819",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-15b9303e-540d-4a04-9e29-8e9d1f8f4819",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-b4ad7d10-828d-4804-aaa1-53381c92e91e",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-b4ad7d10-828d-4804-aaa1-53381c92e91e",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "investigates"
+    },
+    {
+      "from": "DD-3b3f3ad2-31b3-4c33-8c00-c23916b84e96",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-c34ea504-bdc8-4af7-9ced-5ddbfde991f9",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-15b9303e-540d-4a04-9e29-8e9d1f8f4819",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-b4ad7d10-828d-4804-aaa1-53381c92e91e",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "relation": "investigates"
+    },
+    {
+      "from": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "to": "BX-d86316f79e28-Rmv2krau11",
+      "relation": "measures"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-a5b1c58a-d45e-4351-afa9-34b295b78d40",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-a5b1c58a-d45e-4351-afa9-34b295b78d40",
+      "relation": "motivates"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "DD-a5b1c58a-d45e-4351-afa9-34b295b78d40",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-81e37283-a38d-4229-b108-59787a7cc44d",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-81e37283-a38d-4229-b108-59787a7cc44d",
+      "relation": "motivates"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "DD-81e37283-a38d-4229-b108-59787a7cc44d",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-d5dc72a5-7a55-422c-841b-136d9a97dfee",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-d5dc72a5-7a55-422c-841b-136d9a97dfee",
+      "relation": "motivates"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "DD-d5dc72a5-7a55-422c-841b-136d9a97dfee",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DD-3d5b0ed4-6b2b-4a4a-a575-4a83eaa46569",
+      "relation": "questions"
+    },
+    {
+      "from": "P-0748c7f43070ea347062",
+      "to": "DD-3d5b0ed4-6b2b-4a4a-a575-4a83eaa46569",
+      "relation": "motivates"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "DD-3d5b0ed4-6b2b-4a4a-a575-4a83eaa46569",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "investigates"
+    },
+    {
+      "from": "DD-a5b1c58a-d45e-4351-afa9-34b295b78d40",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-81e37283-a38d-4229-b108-59787a7cc44d",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-d5dc72a5-7a55-422c-841b-136d9a97dfee",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "DD-3d5b0ed4-6b2b-4a4a-a575-4a83eaa46569",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "informs design"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "investigates"
+    },
+    {
+      "from": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "to": "BX-2f0f9ad47d7c-Rmv2krfg52",
+      "relation": "measures"
+    },
+    {
+      "from": "ND-33f6ad39e49c05a1c4eed727-1-b76a2eea",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "revises"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "ND-380da1099b48d6f64dde7557-2-b76a2eea",
+      "relation": "motivates"
+    },
+    {
+      "from": "RP-0d05d82d509fc22f68157f81",
+      "to": "DS-1bd994ae-2241-49f7-80b7-8ed8b76a2eea:1-3e95c4f9ed4d40925a5c980646ee6ad6780042d825b3ae697f9a8dbe3bff6430",
+      "relation": "reports"
+    },
+    {
+      "from": "BX-d86316f79e28-Rmv2krau11",
+      "to": "DS-1bd994ae-2241-49f7-80b7-8ed8b76a2eea:1-3e95c4f9ed4d40925a5c980646ee6ad6780042d825b3ae697f9a8dbe3bff6430",
+      "relation": "supports"
+    },
+    {
+      "from": "BX-2f0f9ad47d7c-Rmv2krfg52",
+      "to": "DS-1bd994ae-2241-49f7-80b7-8ed8b76a2eea:1-3e95c4f9ed4d40925a5c980646ee6ad6780042d825b3ae697f9a8dbe3bff6430",
+      "relation": "supports"
+    }
+  ]
+}

@@ -133,7 +133,7 @@ export function createResearchProgram(host: ProgramHost) {
   const queries = new Set<string>();
   let attempts = 0,
     closed = false;
-  let view: ResearchView = {
+  const view: ResearchView = {
     program_id: programId,
     goal: scope.goal,
     sources: [],

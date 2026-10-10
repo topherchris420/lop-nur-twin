@@ -1,0 +1,365 @@
+{
+  "created_at": "2026-10-10T15:54:23.725Z",
+  "created_by": "Scripted.Validation",
+  "criteria": {
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "primary_delta_mean",
+        "note": "No mean difference, or one in the opposite direction.",
+        "op": "<=",
+        "value": 0
+      }
+    ],
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "seeds_completed",
+        "note": "Every seed ran both arms to the end of the window.",
+        "op": ">=",
+        "value": 3
+      },
+      {
+        "id": "G2",
+        "metric": "matched_t0_seeds",
+        "note": "In every seed, control and treatment were in identical states until the intervention.",
+        "op": ">=",
+        "value": 3
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "primary_delta_mean",
+        "note": "Mean treatment − control difference is at least 0.01 count in the expected direction.",
+        "op": ">=",
+        "value": 0.01
+      },
+      {
+        "id": "S2",
+        "metric": "seeds_in_expected_direction",
+        "note": "Every seed moved in the expected direction.",
+        "op": ">=",
+        "value": 3
+      }
+    ]
+  },
+  "data_policy": {
+    "classification": "public",
+    "store_artifacts": false
+  },
+  "dependencies": [],
+  "evidence_class": "simulated",
+  "experiment_id": "V3D-EXP-0002",
+  "experiment_version": 1,
+  "hypothesis": "The intervention will increase watching by at least 0.01 count on average, with every paired seed in the expected direction.",
+  "limitations": [
+    "Simulated: this describes the Bethesda simulator (bethesda-city/4), not Bethesda. Agents follow illustrative rules that respond to the event's declared effects; no crowd, fire, weather or transit physics is modelled.",
+    "Population is the pre-registered experiment profile (60 pedestrians, 8 cars, 2 buses), not measured demand; routines and schedules are illustrative.",
+    "3 seeds: a small sample. The result is descriptive and no significance test is computed.",
+    "World observations are sampled every 100 ticks (10 simulated seconds); behaviour between samples is not measured."
+  ],
+  "metrics": [
+    {
+      "description": "Seeds whose control and treatment arms both ran to the end of the window.",
+      "deterministic": true,
+      "name": "seeds_completed",
+      "unit": "count"
+    },
+    {
+      "description": "Seeds whose control and treatment arms had identical simulator state hashes and cohorts when the intervention was applied.",
+      "deterministic": true,
+      "name": "matched_t0_seeds",
+      "unit": "count"
+    },
+    {
+      "description": "Smallest catchment cohort across seeds.",
+      "deterministic": true,
+      "name": "cohort_min",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control pedestrians watching or recording.",
+      "deterministic": true,
+      "name": "primary_delta_mean",
+      "unit": "count"
+    },
+    {
+      "description": "Smallest per-seed treatment minus control pedestrians watching or recording.",
+      "deterministic": true,
+      "name": "primary_delta_min",
+      "unit": "count"
+    },
+    {
+      "description": "Largest per-seed treatment minus control pedestrians watching or recording.",
+      "deterministic": true,
+      "name": "primary_delta_max",
+      "unit": "count"
+    },
+    {
+      "description": "Seeds whose difference has the pre-registered sign (increase).",
+      "deterministic": true,
+      "name": "seeds_in_expected_direction",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of the control arms' pedestrians watching or recording.",
+      "deterministic": true,
+      "name": "control_primary_mean",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of the treatment arms' pedestrians watching or recording.",
+      "deterministic": true,
+      "name": "treatment_primary_mean",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Mean distance from the location of the pedestrians who were outdoors in its 150 m catchment at the start of the window (the cohort) and are outdoors at its end.",
+      "deterministic": true,
+      "name": "delta_mean_cohort_mean_distance_m",
+      "unit": "m"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Cohort members inside a building, the Metro or a bus at the end of the window.",
+      "deterministic": true,
+      "name": "delta_mean_cohort_indoors",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Outdoor pedestrians within the near radius of the location, averaged over the window's samples.",
+      "deterministic": true,
+      "name": "delta_mean_pedestrians_near",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Outdoor pedestrians within 300 m of the location whose current action is leave, averaged over the window's samples.",
+      "deterministic": true,
+      "name": "delta_mean_leaving",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Outdoor pedestrians within 300 m of the location whose current action is shelter, averaged over the window's samples.",
+      "deterministic": true,
+      "name": "delta_mean_sheltering",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Outdoor pedestrians within 300 m of the location who are watching or recording, averaged over the window's samples.",
+      "deterministic": true,
+      "name": "delta_mean_watching",
+      "unit": "count"
+    },
+    {
+      "description": "Mean over seeds of treatment minus control: Cars and buses within 300 m of the location that are stopped or detouring, averaged over the window's samples.",
+      "deterministic": true,
+      "name": "delta_mean_vehicles_held",
+      "unit": "count"
+    }
+  ],
+  "parameters": {
+    "bethesda_definition_sha256": "2f0f9ad47d7c9e81b9bd10edfb62f30524f269b2f90aaf0a8a809581d9efe190",
+    "bethesda_experiment_id": "BX-2f0f9ad47d7c",
+    "discovery_protocol": {
+      "center": {
+        "x": -165.62218501274097,
+        "z": 353.3834622105975
+      },
+      "criteria": {
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "primary_delta_mean",
+            "note": "No mean difference, or one in the opposite direction.",
+            "op": "<=",
+            "value": 0
+          }
+        ],
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "seeds_completed",
+            "note": "Every seed ran both arms to the end of the window.",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "id": "G2",
+            "metric": "matched_t0_seeds",
+            "note": "In every seed, control and treatment were in identical states until the intervention.",
+            "op": ">=",
+            "value": 3
+          }
+        ],
+        "rule": "rain-criteria/v1",
+        "success": [
+          {
+            "id": "S1",
+            "metric": "primary_delta_mean",
+            "note": "Mean treatment − control difference is at least 0.01 count in the expected direction.",
+            "op": ">=",
+            "value": 0.01
+          },
+          {
+            "id": "S2",
+            "metric": "seeds_in_expected_direction",
+            "note": "Every seed moved in the expected direction.",
+            "op": ">=",
+            "value": 3
+          }
+        ]
+      },
+      "expected_direction": "increase",
+      "hypothesis": "The intervention will increase watching by at least 0.01 count on average, with every paired seed in the expected direction.",
+      "limitations": [
+        "Simulated: this describes the Bethesda simulator (bethesda-city/4), not Bethesda. Agents follow illustrative rules that respond to the event's declared effects; no crowd, fire, weather or transit physics is modelled.",
+        "Population is the pre-registered experiment profile (60 pedestrians, 8 cars, 2 buses), not measured demand; routines and schedules are illustrative.",
+        "3 seeds: a small sample. The result is descriptive and no significance test is computed.",
+        "World observations are sampled every 100 ticks (10 simulated seconds); behaviour between samples is not measured."
+      ],
+      "mathematical_basis": [],
+      "metrics": [
+        "cohort_mean_distance_m",
+        "cohort_indoors",
+        "pedestrians_near",
+        "leaving",
+        "sheltering",
+        "watching",
+        "vehicles_held"
+      ],
+      "minimum_effect": 0.01,
+      "parameters": {
+        "buses": 2,
+        "duration_ticks": 300,
+        "intensity": 1,
+        "pedestrians": 60,
+        "vehicles": 8
+      },
+      "population": {
+        "buses": 2,
+        "pedestrians": 60,
+        "statisticalPopulation": 900,
+        "vehicles": 8
+      },
+      "primary_metric": "watching",
+      "proposal": {
+        "meeting_id": null,
+        "origin": "rain",
+        "proposal_id": "ND-cf4028832047d4602ffeb50c",
+        "rain_decision": {
+          "decision_id": "DD-2f724b84-b082-4316-aae3-e887ba7e7651",
+          "envelope_hash": "5ae00abb265b6240326c01107f8dba3fc0301ff64fc5ae6a9cf545724b11d6c5"
+        },
+        "sha256": "a79f996ac42ffd9e654d0043786a6849b89029aa9abbf9da55ed2429bc06524c"
+      },
+      "question": "In the Bethesda simulator, how does fire at bethesda_row change watching relative to a matched no-event control?",
+      "radii": {
+        "catchment": 150,
+        "focus": 420,
+        "near": 30,
+        "region": 300
+      },
+      "sample_interval": 100,
+      "scenario": {
+        "effects": [
+          "an area to avoid (×1.6 radius)",
+          "something to look at from up to 140 m beyond it",
+          "closed road edges (radius)",
+          "closed sidewalks within 80% of its radius",
+          "dispatch: 2 engine, 1 police"
+        ],
+        "event": {
+          "durationTicks": 300,
+          "intensity": 1,
+          "kind": "fire",
+          "label": "Fire · Bethesda Row",
+          "place": "Bethesda Row",
+          "point": {
+            "x": -165.62218501274097,
+            "z": 353.3834622105975
+          },
+          "radius": 22
+        },
+        "id": "fire",
+        "label": "Fire",
+        "location": "bethesda_row",
+        "place": "Bethesda Row",
+        "telemetry": "minor Fire at Bethesda Row"
+      },
+      "schema": "bethesda-experiment-definition/v3",
+      "seeds": [
+        1994692712,
+        3596206292,
+        623302106
+      ],
+      "versions": {
+        "contract": "rain-bethesda/v2",
+        "data": "2e0003baeda1d8b13003cbd3982ded49114edff9cc70edfe567e7600677f0aca",
+        "observation": "bethesda-world-observation/v1",
+        "replay": "bethesda-replay/v4",
+        "sim": "bethesda-city/4",
+        "terrain": "775dd73fbbf754c0fb533b0711bcc67b4b67acaf206202869cbf11e4b76c9fd7",
+        "transit": "f0abdd90246856ef55bb84284c96acdc929beacd75e087e32060ddc64ce13e07"
+      },
+      "warmup_ticks": 100,
+      "window_ticks": 300
+    },
+    "expected_direction": "increase",
+    "location": "bethesda_row",
+    "mathematical_basis": [],
+    "minimum_effect": 0.01,
+    "place": "Bethesda Row",
+    "population": {
+      "buses": 2,
+      "pedestrians": 60,
+      "statisticalPopulation": 900,
+      "vehicles": 8
+    },
+    "primary_metric": "watching",
+    "sample_interval_ticks": 100,
+    "scenario": "fire",
+    "seeds": [
+      1994692712,
+      3596206292,
+      623302106
+    ],
+    "telemetry": "minor Fire at Bethesda Row",
+    "warmup_ticks": 100,
+    "window_ticks": 300
+  },
+  "procedure": [
+    "For each seed (1994692712, 3596206292, 623302106), build two simulators with the same population and seed and set the full-rate focus on Bethesda Row.",
+    "Warm both up for 100 ticks; record each arm's state hash and the outdoor pedestrians within 150 m (the cohort).",
+    "Inject “minor Fire at Bethesda Row” (fire, compiled by the city's scenario compiler) into the treatment arm only.",
+    "Run both arms 300 more ticks, recording a bethesda-world-observation/v1 packet every 100 ticks from simulator state.",
+    "Report the per-seed treatment minus control differences; R.A.I.N. evaluates the pre-registered criteria."
+  ],
+  "question": "In the Bethesda simulator, how does fire at bethesda_row change watching relative to a matched no-event control?",
+  "rationale": "Proposed in the R.A.I.N. Lab inside the Bethesda simulation and executed by lop-nur-twin's deterministic city simulator as matched-seed control and treatment arms. The criteria are the lab's fixed rain-criteria/v1 template for the pre-registered metric, direction and minimum effect.",
+  "runner": {
+    "adapter": "rain-bethesda/v2 (rain-experiment-submission/v1)",
+    "kind": "external",
+    "repository": "topherchris420/lop-nur-twin"
+  },
+  "schema_version": "rain-experiment/v1",
+  "seed": null,
+  "subsystem": {
+    "component": "Bethesda city simulation (bethesda-city/4)",
+    "paths": [],
+    "repository": "topherchris420/lop-nur-twin"
+  },
+  "title": "Bethesda simulation: Fire at Bethesda Row — Pedestrians watching or recording",
+  "variables": {
+    "controls": [
+      "same seed and population in both arms",
+      "same full-rate focus command at tick 0",
+      "same simulator, map, terrain and transit versions"
+    ],
+    "dependent": [
+      "Pedestrians watching or recording"
+    ],
+    "independent": [
+      "Fire injected at tick 100 (treatment) or not (control)"
+    ]
+  }
+}

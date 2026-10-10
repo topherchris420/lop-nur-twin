@@ -134,7 +134,7 @@ const plain = (v: unknown, max: number) =>
   typeof v === "string"
     ? v
         .replace(/<[^>]*>/g, " ")
-        .replace(/[\u0000-\u001f\u007f]/g, " ")
+        .replace(/\p{Cc}/gu, " ")
         .replace(/\s+/g, " ")
         .trim()
         .slice(0, max)
