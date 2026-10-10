@@ -235,8 +235,9 @@ five-second timeouts and a Windows symlink privilege error. The test fixture now
 uses a directory junction on Windows to exercise the same ancestor-link refusal;
 the final complete run used two workers and a thirty-second default timeout.
 No test was disabled. Production Vite warnings about existing extensionless
-imports and large chunks remain. No live Qwen run or browser screenshot was
-claimed by this validation.
+imports and large chunks remain. This full suite used offline fixtures; the
+separate live check below exercises actual Qwen inference. No browser screenshot
+was claimed by this validation.
 
 ### Completed offline run
 
@@ -258,6 +259,47 @@ were 7.44 and 6.11 respectively, and each met its own preregistered directional
 criterion. Different seed panels prevent treating their difference as an
 identified population effect. These values characterize illustrative simulator
 rules and do not test a real-world resonance theory.
+
+### Live LM Studio check
+
+With LM Studio serving a loaded model on localhost port 1234:
+
+```bash
+bun run rain:inception:live --model qwen/qwen3.5-9b
+```
+
+This command makes at most two sequential inference calls: a founder hypothesis
+and a collaborator challenge. It uses the native role prompts, contribution
+schema, pinned corpus and mathematical context, model adapter, journal and
+derived-memory implementation. It limits each response to 1,024 generated
+tokens, requests a concise answer, and sets a five-minute call deadline. It
+creates no experiment authorization, executes no experiment, creates no child,
+and imports no scripted model. Requests, original answers, usage, reported model
+identity, source references and derived memory are retained in its printed
+`.rain-research/inception-live-<timestamp>/` directory. Invalid, truncated or
+wrong-model responses fail the check; there is no fixture fallback.
+
+On 2026-10-10 this ran against the actually loaded `qwen/qwen3.5-9b` with a
+4,096-token context and one inference at a time. Both runs produced two
+schema-valid contributions with available source references and no invented
+evidence-run IDs. Reloading each journal restored twelve memory entries. The
+first run, `inception-live-20261010T174036864Z`, exposed a weak collaborator
+challenge that largely repeated the founder. The challenge instruction was
+revised to request an alternative mechanism, a distinguishing measurement and
+explicit recognition of simulator limitations.
+
+The retained second run, `inception-live-20261010T174250289Z`, proposed ordinary
+threshold crossings caused by noisy timing as an alternative to resonance. Its
+founder and collaborator calls respectively used 673/398 and 953/407 reported
+prompt/completion tokens, and took 83,333/124,993 milliseconds. Both recognized
+limitations of the current simulator. The collaborator nevertheless overstated
+the founder's commitment to physical resonance; human scientific review remains
+necessary. No experiment established either explanation. The report for each
+run is `reports/live-inference.md` in that run's directory.
+
+This is a compact inference-and-persistence check, not a live validation of the
+entire experiment/descendant workflow. Larger research sessions require an
+appropriately sized loaded context and separately reviewed execution charters.
 
 ### Unimplemented capabilities
 

@@ -24,7 +24,7 @@ export const PARTNERSHIP_STAGES: { name: Partner; stage: string; instruction: st
       name: "Research-Collaborator",
       stage: "Collaborator challenge",
       instruction:
-        "Offer a competing explanation and a discriminating experiment. Identify missing evidence. Agreement is not a goal.",
+        "Use your hypothesis field for a competing explanation, not a restatement of the founder's hypothesis. Ask whether a simpler mechanism can explain the same proposed observation without the founder's mechanism. Give a discriminating measurement and state what would favor each explanation. Do not assume the founder's characterization of the alternative is correct. If the available simulator cannot distinguish them, say so explicitly. Treat alternatives as untested possibilities, not established facts.",
     },
     {
       name: "Christopher-Sim",
