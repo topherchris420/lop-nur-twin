@@ -191,6 +191,15 @@ const NOTE =
   "Every question, hypothesis and interpretation attributed to the model is its text, not evidence. What ran was written by the host from a design a person authorized in the charter; every verdict is the registry's pre-registered criteria applied to simulated measurements, which describe the Bethesda simulator's rules, not Bethesda.";
 
 export async function runSession(input: SessionInput): Promise<SessionSummary> {
+  if (input.mode === "dry-run") return runSessionUnlocked(input);
+  const release = input.store.acquireLock("template-research");
+  try {
+    return await runSessionUnlocked(input);
+  } finally {
+    release();
+  }
+}
+async function runSessionUnlocked(input: SessionInput): Promise<SessionSummary> {
   const now = input.now ?? (() => new Date());
   const monotonic = input.monotonic ?? (() => performance.now());
   const hex = input.randomHex ?? defaultHex;

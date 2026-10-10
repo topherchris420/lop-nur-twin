@@ -39,6 +39,7 @@ export const ADMISSION_BUNDLE_SCHEMA = "rain-bethesda-admission-bundle/v1" as co
 
 function parameters(d: ExperimentDefinition, experimentId: string, sha: string) {
   return {
+    ...(d.parameters ? { discovery_protocol: structuredClone(d) } : {}),
     bethesda_experiment_id: experimentId,
     bethesda_definition_sha256: sha,
     scenario: d.scenario.id,

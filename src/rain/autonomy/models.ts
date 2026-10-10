@@ -73,6 +73,8 @@ export interface CallOptions {
   signal?: AbortSignal;
 }
 export interface LocalModel {
+  /** Test doubles explicitly identify scripted output; real adapters default to model. */
+  readonly generation?: "model" | "scripted";
   readonly provider: ProviderKind;
   readonly model: string;
   readonly endpoint: string;

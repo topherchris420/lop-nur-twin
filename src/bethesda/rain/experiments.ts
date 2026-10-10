@@ -1,3 +1,8 @@
+import {
+  checkParameters,
+  GENERATED_DEFINITION_SCHEMA,
+  type Parameters,
+} from "./discoveryProtocol.js";
 /**
  * Proposal → bounded Bethesda experiment definition. Host code only.
  *
@@ -115,7 +120,8 @@ export interface Criterion {
   note: string;
 }
 export interface ExperimentDefinition {
-  schema: typeof DEFINITION_SCHEMA;
+  schema: typeof DEFINITION_SCHEMA | typeof GENERATED_DEFINITION_SCHEMA;
+  parameters?: Parameters;
   question: string;
   hypothesis: string;
   proposal: {
@@ -200,7 +206,7 @@ export function currentVersions(): ExperimentDefinition["versions"] {
   };
 }
 
-function effectsOf(kind: EventKind): string[] {
+function effectsOf(kind: EventKind, intensity: 1 | 2 | 3 = 2): string[] {
   const e = EVENT_EFFECTS[kind];
   const out: string[] = [];
   if (e.avoid) out.push(`an area to avoid (×${e.avoid} radius)`);
@@ -212,7 +218,7 @@ function effectsOf(kind: EventKind): string[] {
   if (e.slowdown < 1) out.push(`traffic slowed to ${Math.round(e.slowdown * 100)}%`);
   if (e.signalsDark) out.push("dark signals (all-way stops)");
   if (e.metroClosed) out.push("Metro service closed (the entrance stays open)");
-  const units = e.dispatch(2);
+  const units = e.dispatch(intensity);
   const sent = Object.entries(units).filter(([, n]) => n > 0);
   if (sent.length) out.push(`dispatch: ${sent.map(([k, n]) => `${n} ${k}`).join(", ")}`);
   return out.length ? out : ["no declared effect"];
@@ -337,13 +343,27 @@ export function basisLines(basis: readonly MathematicalBasisEntry[]): string[] {
 export function compileFor(
   scenario: ScenarioId,
   location: LocationId,
+  parameters?: Parameters,
 ): { ok: true; event: Scenario; telemetry: string } | { ok: false; error: string } {
-  const telemetry = TELEMETRY[scenario](PHRASE[location]);
+  if (parameters) {
+    const checked = checkParameters(parameters);
+    if (!checked.ok) return { ok: false, error: checked.errors.join("; ") };
+  }
+  const base = TELEMETRY[scenario](PHRASE[location]);
+  // Use the simulator's own intensity-to-radius mapping, never model coordinates/radii.
+  const telemetry = parameters
+    ? `${["minor", "moderate", "major"][parameters.intensity - 1]} ${base}`
+    : base;
   const compiled = compileScenario(telemetry);
   if (compiled.error) return { ok: false, error: compiled.error };
   if (compiled.events.length !== 1)
     return { ok: false, error: `compiled to ${compiled.events.length} events, not one` };
   const event = compiled.events[0]!;
+  if (parameters) {
+    if (event.intensity !== parameters.intensity)
+      return { ok: false, error: "native compiler intensity mismatch" };
+    event.durationTicks = parameters.duration_ticks;
+  }
   if (event.kind !== SCENARIO_KIND[scenario])
     return {
       ok: false,
@@ -410,7 +430,7 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
   });
   if (!shape.ok) return { ok: false, errors: shape.errors, checks };
   const p = shape.value;
-  const compiled = compileFor(p.scenario, p.location);
+  const compiled = compileFor(p.scenario, p.location, p.parameters);
   checks.push({
     id: "scenario",
     label: SCENARIO_CHECK_LABEL,
@@ -434,7 +454,7 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
     id: "budget",
     label: "Seeds, window and actor limits",
     ok: true,
-    detail: `${p.seeds.length} seed(s) × 2 arms × ${p.warmup_ticks + p.observation_window_ticks} ticks = ${ticks} of ${EXPERIMENT_BOUNDS.maxTotalTicks}; ${EXPERIMENT_POPULATION.pedestrians} pedestrians per arm`,
+    detail: `${p.seeds.length} seed(s) × 2 arms × ${p.warmup_ticks + p.observation_window_ticks} ticks = ${ticks} of ${EXPERIMENT_BOUNDS.maxTotalTicks}; ${p.parameters?.pedestrians ?? EXPERIMENT_POPULATION.pedestrians} pedestrians per arm`,
   });
   checks.push({
     id: "metric",
@@ -451,16 +471,24 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
       place: event.place,
       telemetry: compiled.telemetry,
       event,
-      effects: effectsOf(event.kind),
+      effects: effectsOf(event.kind, p.parameters?.intensity),
     },
     seeds: [...p.seeds],
     primary_metric: p.primary_metric,
     window_ticks: p.observation_window_ticks,
-    population: { ...EXPERIMENT_POPULATION },
+    population: p.parameters
+      ? {
+          pedestrians: p.parameters.pedestrians,
+          vehicles: p.parameters.vehicles,
+          buses: p.parameters.buses,
+          statisticalPopulation: EXPERIMENT_POPULATION.statisticalPopulation,
+        }
+      : { ...EXPERIMENT_POPULATION },
     mathematical_basis: p.mathematical_basis.map((e) => structuredClone(e)),
   };
   const definition: ExperimentDefinition = {
-    schema: DEFINITION_SCHEMA,
+    schema: p.parameters ? GENERATED_DEFINITION_SCHEMA : DEFINITION_SCHEMA,
+    ...(p.parameters ? { parameters: { ...p.parameters } } : {}),
     question: p.question,
     hypothesis: p.hypothesis,
     proposal: {
@@ -489,7 +517,11 @@ export function validateExperiment(raw: unknown): Checked<Validated> & {
       p.expected_direction,
       p.minimum_effect,
     ),
-    limitations: limitationsFor(definitionBody),
+    limitations: p.parameters
+      ? limitationsFor(definitionBody).map((line) =>
+          line.replace("fixed experiment profile", "pre-registered experiment profile"),
+        )
+      : limitationsFor(definitionBody),
     versions: currentVersions(),
   };
   const definitionSha256 = sha256Json(definition);
@@ -529,8 +561,52 @@ export function verifyDefinition(
     errors.push("definition is not hashable JSON");
   }
   if (actual !== definitionSha256) errors.push("definition does not match its SHA-256");
-  if (definition?.schema !== DEFINITION_SCHEMA)
+  if (
+    definition?.schema !== DEFINITION_SCHEMA &&
+    definition?.schema !== GENERATED_DEFINITION_SCHEMA
+  )
     errors.push("unsupported definition schema");
+  if ((definition?.schema === GENERATED_DEFINITION_SCHEMA) !== !!definition?.parameters)
+    errors.push("parameter schema mismatch");
+  if (definition?.parameters) {
+    const p = checkParameters(definition.parameters);
+    if (!p.ok) errors.push(...p.errors);
+    else if (
+      definition.population.pedestrians !== p.value.pedestrians ||
+      definition.population.vehicles !== p.value.vehicles ||
+      definition.population.buses !== p.value.buses ||
+      definition.population.statisticalPopulation !==
+        EXPERIMENT_POPULATION.statisticalPopulation
+    )
+      errors.push("population differs from compiled parameters");
+  }
+  if (definition?.schema === GENERATED_DEFINITION_SCHEMA && definition.parameters) {
+    const rebuilt = validateExperiment({
+      schema: "rain-bethesda-experiment/v3",
+      proposal_id: definition.proposal.proposal_id,
+      origin: definition.proposal.origin,
+      question: definition.question,
+      hypothesis: definition.hypothesis,
+      scenario: definition.scenario.id,
+      location: definition.scenario.location,
+      primary_metric: definition.primary_metric,
+      expected_direction: definition.expected_direction,
+      minimum_effect: definition.minimum_effect,
+      comparison: "matched_seed_control",
+      seeds: definition.seeds,
+      warmup_ticks: definition.warmup_ticks,
+      observation_window_ticks: definition.window_ticks,
+      rain_decision: definition.proposal.rain_decision,
+      meeting_id: definition.proposal.meeting_id,
+      mathematical_basis: definition.mathematical_basis,
+      parameters: definition.parameters,
+    });
+    if (
+      !rebuilt.ok ||
+      canonicalJson(rebuilt.value.definition) !== canonicalJson(definition)
+    )
+      errors.push("generated definition does not recompile identically");
+  }
   const basis = parseBasis(definition?.mathematical_basis);
   if (!basis.ok)
     errors.push(
@@ -544,7 +620,11 @@ export function verifyDefinition(
       );
   const compiled =
     definition?.scenario &&
-    compileFor(definition.scenario.id, definition.scenario.location);
+    compileFor(
+      definition.scenario.id,
+      definition.scenario.location,
+      definition.parameters,
+    );
   if (!compiled || !compiled.ok)
     errors.push("the scenario no longer compiles in this build");
   else if (canonicalJson(compiled.event) !== canonicalJson(definition.scenario.event))

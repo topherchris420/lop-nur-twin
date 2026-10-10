@@ -22,7 +22,7 @@ import {
 import { validateExperiment, type CheckResult, type Validated } from "./experiments";
 import { authorize, type Authorization } from "./authorization";
 import { Lifecycle, terminalFor } from "./lifecycle";
-import { provenance, type RainSource } from "./provenance";
+import { provenance, type RainSource, type LabRevision } from "./provenance";
 import {
   reproductionReport,
   seal,
@@ -41,6 +41,8 @@ import {
 } from "./standing";
 
 export interface Origin {
+  /** Supplied only by the local host running this same checkout. */
+  lab?: LabRevision;
   /** Where the R.A.I.N. revision in this case's provenance comes from. */
   rain: RainRevision | null;
   rainSource: RainSource;
@@ -185,7 +187,7 @@ export function admitStanding(
   const a = standing.authorization;
   c.lifecycle.to(
     "AUTHORIZED",
-    `admitted unattended by ${POLICY_VERSION} under charter ${charterIdOf(a.charter_sha256)}, which local operator ${a.operator} authorized at ${a.authorized_at} (a standing authorization, not authenticated identity; this definition was not reviewed on its own — its design ${standing.admission.design_id} was)`,
+    `admitted unattended by ${standing.admission.policy_version} under charter ${charterIdOf(a.charter_sha256)}, which local operator ${a.operator} authorized at ${a.authorized_at} (a standing authorization, not authenticated identity; this definition was not reviewed on its own — its design ${standing.admission.design_id} was)`,
     now,
   );
   return { ok: true };
@@ -335,6 +337,8 @@ function endRecord(
     reproduction: run && c.reproduces ? reproductionReport(c.reproduces, run) : null,
     rain_admission: null,
     provenance: provenance({
+      experimentSchema: c.validated?.definition.schema,
+      lab: c.origin.lab,
       rain: c.origin.rain,
       rainSource: c.origin.rainSource,
       model: c.origin.model,

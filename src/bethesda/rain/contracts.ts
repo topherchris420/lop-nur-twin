@@ -1,3 +1,4 @@
+import type { Parameters } from "./discoveryProtocol.js";
 /**
  * `rain-bethesda/v2` — the narrow, versioned protocol between this repository's
  * Bethesda simulation and its R.A.I.N. research runtime (`src/rain/`), which
@@ -538,7 +539,9 @@ export interface Admission {
 }
 /** A structured experiment proposal. Ids from the closed vocabulary only. */
 export interface ExperimentProposal {
-  schema: typeof EXPERIMENT_PROPOSAL_SCHEMA;
+  schema: typeof EXPERIMENT_PROPOSAL_SCHEMA | "rain-bethesda-experiment/v3";
+  /** v3 only: validated simulator inputs; v2 retains its exact historical defaults. */
+  parameters?: Parameters;
   proposal_id: string;
   origin: ProposalOrigin;
   question: string;

@@ -1,3 +1,4 @@
+import { createDiscoveryHandler } from "./server/rain/discovery.js";
 import { defineConfig, loadEnv, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -227,7 +228,13 @@ function decisionApi(
         next();
         return;
       }
-      if (!isAllowedApiHost(req.headers.host, allowedHosts)) {
+      if (
+        (req.url?.split("?")[0] === "/api/rain/discovery" &&
+          !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
+            req.socket.remoteAddress ?? "",
+          )) ||
+        !isAllowedApiHost(req.headers.host, allowedHosts)
+      ) {
         res.statusCode = 403;
         res.setHeader("Content-Type", "text/plain");
         res.end("Blocked request: this host is not allowed to use the API.");
@@ -295,6 +302,12 @@ export default defineConfig(({ mode }) => ({
     jevDecisionApi(loadEnv(mode, process.cwd(), "TYPESAFE_")),
     glideDecisionApi(loadEnv(mode, process.cwd(), "FASTINO_")),
     llmDecisionApi(loadEnv(mode, process.cwd(), "LLM_")),
+    decisionApi(
+      "rain-local-discovery",
+      "/api/rain/discovery",
+      createDiscoveryHandler(loadEnv(mode, process.cwd(), "RAIN_"), process.cwd()),
+      2048,
+    ),
     rainApi(
       loadEnv(mode, process.cwd(), "RAIN_"),
       loadEnv(mode, process.cwd(), "TYPESAFE_"),
