@@ -26,8 +26,14 @@ export function demoMeeting(): Checked<MeetingRecord> {
     errors.push("recording and manifest disagree on the meeting");
   if (m.question !== source.question)
     errors.push("recording and manifest disagree on the question");
-  if (m.generation !== "scripted" || m.model !== null)
-    errors.push("the recording must be a scripted, model-free meeting");
+  if (m.generation !== "scripted")
+    errors.push("DEMO meeting must be labelled scripted (no model runs)");
+  if (m.model !== null)
+    errors.push("DEMO meeting must not name a model");
+  if (m.source_artifact !== null)
+    errors.push(
+      "DEMO meeting must be a recording-only artifact (no remote session reference)",
+    );
   if (m.rain.commit !== source.rain.commit)
     errors.push("recording and manifest disagree on the R.A.I.N. commit");
   return errors.length ? { ok: false, errors } : checked;
@@ -36,9 +42,12 @@ export function demoMeeting(): Checked<MeetingRecord> {
 export function demoProposal(): Checked<ExperimentProposal> {
   const checked = validateProposalShape(proposalFixture);
   if (!checked.ok) return checked;
-  if (checked.value.origin !== "fixture" || checked.value.rain_decision !== null)
-    return { ok: false, errors: ["the demo proposal must be labelled a fixture"] };
-  return checked;
+  const errors: string[] = [];
+  if (checked.value.origin !== "fixture")
+    errors.push("DEMO proposal must be marked as a fixture (not rain or human)");
+  if (checked.value.rain_decision !== null)
+    errors.push("DEMO proposal must not claim a R.A.I.N. bounded decision");
+  return errors.length ? { ok: false, errors } : checked;
 }
 
 /** The raw proposal, for the Experiment Bay to put through ordinary validation. */
