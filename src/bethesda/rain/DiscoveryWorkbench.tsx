@@ -144,7 +144,9 @@ export function DiscoveryWorkbench() {
             busy ||
             !view?.charter ||
             view.active ||
-            (!!view?.charter?.research && view.charter.research.goal !== question)
+            (!!view?.charter?.research &&
+              (view.charter.research.goal !== question ||
+                (view.charter.research.literature === "crossref") !== online))
           }
           onClick={() => void act("start", { question })}
         >
@@ -165,6 +167,14 @@ export function DiscoveryWorkbench() {
           Emergency stop
         </button>
       </div>
+      {view?.charter?.research &&
+        (view.charter.research.goal !== question ||
+          (view.charter.research.literature === "crossref") !== online) && (
+          <p className="mt-2 text-sm text-amber-200">
+            The question or literature choice differs from the reviewed scope. Review a
+            new research program before starting.
+          </p>
+        )}
       {view?.charter && (
         <details className="my-3">
           <summary>Review authorization: {view.authorization}</summary>
