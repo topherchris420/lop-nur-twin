@@ -1,11 +1,3 @@
-/**
- * The R.A.I.N. Lab, loaded only when its door is opened.
- *
- * One store lives as long as the Bethesda visit (the city holds it in a ref),
- * so records, a meeting and an experiment in progress survive stepping back
- * outside. Inside, the city's rendering is unmounted — its simulation keeps
- * its own fixed-rate timer — and the lab's interior and panels take over.
- */
 import {
   useEffect,
   useMemo,
@@ -114,10 +106,11 @@ export default function LabApp({
     };
     const start = async () => {
       try {
-        const response = await fetch("/api/rain/status", { signal: abort.signal });
-        if (!response.ok || abort.signal.aborted) return;
-        const status = (await response.json()) as { configured?: boolean };
-        if (!status.configured || abort.signal.aborted) return;
+        // The store owns the single runtime status fetch so the lab does not hit
+        // `/api/rain/status` twice on first load while still keeping the UI in sync.
+        await store.checkRuntime();
+        if (abort.signal.aborted) return;
+        if (store.mode() !== "LIVE") return;
         await read();
         if (!abort.signal.aborted) timer = setInterval(() => void read(), 2000);
       } catch {
@@ -129,7 +122,7 @@ export default function LabApp({
       if (timer) clearInterval(timer);
       abort.abort();
     };
-  }, []);
+  }, [store]);
   const inspectPartner = (partner: Partner | null) => {
     setSelectedPartner(partner);
     setShowPartnership(true);
@@ -375,7 +368,7 @@ export default function LabApp({
           </label>
         </section>
       )}
-      {/*
+      {/**
         A phone held upright (narrow and tall) is one column: the title, a band
         of the room with the stick at its foot, the rooms as a strip, and the
         room's panel, which gives way first when space runs short. Any other
@@ -383,7 +376,7 @@ export default function LabApp({
         keeps the panel on the right and the stick and the rooms at the left.
         The column lets drags through to the room; the panels in it take them.
       */}
-      <div className="pointer-events-none [@media(max-width:639px)_and_(min-height:501px)]:absolute [@media(max-width:639px)_and_(min-height:501px)]:inset-4 [@media(max-width:639px)_and_(min-height:501px)]:flex [@media(max-width:639px)_and_(min-height:501px)]:flex-col [@media(max-width:639px)_and_(min-height:501px)]:gap-2 [@media(min-width:640px),(max-height:500px)]:contents">
+      <div className="pointer-events-none flex h-full w-full flex-col [@media(max-width:639px)_and_(min-height:501px)]:absolute [@media(max-width:639px)_and_(min-height:501px)]:inset-4 [@media(max-width:639px)_and_(min-height:501px)]:gap-2 [@media(max-width:639px)_and_(min-height:501px)]:justify-start">
         <header
           ref={header}
           className={
@@ -431,7 +424,7 @@ export default function LabApp({
           <div
             role="status"
             className={
-              "pointer-events-auto z-10 text-center text-xs [@media(max-width:639px)_and_(min-height:501px)]:mt-auto [@media(max-width:639px)_and_(min-height:501px)]:self-center [@media(min-width:640px),(max-height:500px)]:absolute [@media(min-width:640px),(max-height:500px)]:top-36 [@media(min-width:640px)_and_(min-height:501px)]:left-4 [@media(max-height:500px)]:left-36 " +
+              "pointer-events-auto z-10 text-center text-xs [@media(max-width:639px)_and_(min-height:501px)]:mt-auto [@media(max-width:639px)_and_(min-height:501px)]:self-center [@media(min-width:640px),(max-height:500px)]:absolute [@media(min-width:640px),(max-height:500px)]:top-24 [@media(min-width:640px),(max-height:500px)]:left-4 p-2 " +
               panel
             }
           >
