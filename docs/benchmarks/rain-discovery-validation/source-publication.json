@@ -1,0 +1,7 @@
+{
+  "local_producing_commit": "acd1b97647e98c89167d748cb5121cae55f4b583",
+  "published_source_commit": "f9f2939cfb77a6c4fa52f9151f65cfe84c7f3aca",
+  "identical_source_tree": "860ea1a1683a0fddb2e204fe346686bfe8ed7556",
+  "local_commit_object": "tree 860ea1a1683a0fddb2e204fe346686bfe8ed7556\nparent 6de303f9ccab699776419741eb881979763b7e94\nauthor Codex <codex@openai.com> 1791603476 -0700\ncommitter Codex <codex@openai.com> 1791603476 -0700\n\nLoad discovery TypeScript after registering Node resolution hooks\n",
+  "statement": "GitHub tree creation returned the exact local source tree SHA. Published commit metadata differs; no sealed evidence was modified."
+}

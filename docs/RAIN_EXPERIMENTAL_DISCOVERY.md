@@ -185,5 +185,5 @@ scripted local-model fixture. Its second design branches on the actual measured
 first-run delta and cites that result. It is an integration/reproducibility
 demonstration, **not a Qwen discovery claim**. The live Qwen experiment must be run
 on the machine hosting LM Studio; no model was available in the implementation
-workspace. See the archived validation report for the actual executed protocols,
+workspace. See the [archived validation report](benchmarks/rain-discovery-validation/README.md) for the actual executed protocols,
 per-seed measurements and lineage. No real-world observations were made.
