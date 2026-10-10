@@ -282,7 +282,7 @@ _Dynamic Resonance Rooting_, Section III-D, defines the composite [2], also
 reproduced as Equation (7) in _Resonant Intelligence_ [1]:
 
 $$
-D = \operatorname{clip}_{[0,1]}
+D = \mathrm{clip}_{[0,1]}
 \left(0.35S + 0.25P + 0.25C + 0.15A\right).
 $$
 
