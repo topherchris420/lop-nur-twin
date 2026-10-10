@@ -65,7 +65,7 @@ export function createDiscoveryHandler(
     } catch (error) {
       console.error(
         "Discovery handler request failed:",
-        error instanceof Error ? error.stack ?? error.message : String(error),
+        error instanceof Error ? (error.stack ?? error.message) : String(error),
       );
       return reply({ error: "Request failed" }, 409);
     }
