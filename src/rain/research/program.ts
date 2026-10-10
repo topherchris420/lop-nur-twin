@@ -3,6 +3,8 @@
  * This module cannot execute code, alter simulator state or grant authority.
  */
 import { sha256Json } from "../sha256.js";
+import { strategiesForStage, cognitiveArtifactErrors } from "./cognition.js";
+import { METRICS, SCENARIO_LOCATIONS } from "../../bethesda/rain/contracts.js";
 import { TEAM } from "../meeting/perspectives.js";
 import { soulText } from "../meeting/souls.js";
 import { PARTNERSHIP_STAGES, partnerPrompt, cognitiveMemory } from "./partnership.js";
@@ -17,6 +19,7 @@ import {
 } from "./knowledge.js";
 import {
   CONTRIBUTION_SCHEMA,
+  COGNITIVE_CONTRIBUTION_SCHEMA,
   MANUSCRIPT_SCHEMA,
   MANUSCRIPT_REVIEW_SCHEMA,
   researchScopeErrors,
@@ -250,6 +253,16 @@ export function createResearchProgram(host: ProgramHost) {
     inheritance_rule:
       "These are predecessor simulator findings or tentative hypotheses, not child measurements or external observations. They cannot authorize execution. Cite their receipt IDs as context, never as a locally completed run.",
     capabilities: host.capabilities,
+    simulator_semantics: {
+      metrics: Object.fromEntries(
+        host.capabilities.metrics.map((id) => [id, METRICS[id]]),
+      ),
+      locations: Object.fromEntries(
+        host.capabilities.scenarios.map((id) => [id, SCENARIO_LOCATIONS[id]]),
+      ),
+      limits:
+        "Illustrative rule-based agents; no physical resonance, fire physics or crowd physics. Matched treatment-minus-control effects describe these installed rules only. Different seed panels do not identify cross-study parameter effects. maxEffect limits a proposed minimum-effect threshold; it is NOT a bound on observed measurements. No statistical significance test is available. A missing mechanism or observable requires a reviewed simulator extension, not an analogy presented as validation.",
+    },
     sources: [...sources.values()]
       .slice(-8)
       .map((s) => ({ ...s, excerpt: s.excerpt.slice(0, 600) })),
@@ -285,9 +298,16 @@ export function createResearchProgram(host: ProgramHost) {
     host.guard();
     refresh("COLLABORATE", name + ": " + stage);
     const runIds = new Set(ownResults(history).map((r) => r.run_id));
+    const strategies = config.profile.strategy_version ? strategiesForStage(stage) : [];
+    const priorPredictions = view.turns.filter(
+      (t) => t.role !== "Independent evidence review",
+    );
+    const schema = strategies.length
+      ? COGNITIVE_CONTRIBUTION_SCHEMA
+      : CONTRIBUTION_SCHEMA;
     const answer = await host.call<Contribution>("research-" + name + "-" + stage, {
       schemaName: "rain_research_contribution",
-      schema: CONTRIBUTION_SCHEMA,
+      schema,
       system: partnerPrompt(name, instruction, config),
       user: JSON.stringify({
         goal: scope.goal,
@@ -300,9 +320,30 @@ export function createResearchProgram(host: ProgramHost) {
           .slice(0, 12)
           .map((m) => ({ ...m, text: m.text.slice(0, 240) })),
         profile: config.profile,
+        ...(strategies.length
+          ? {
+              cognitive_strategies: strategies,
+              artifact_instruction:
+                "Produce one cognitive_artifact for each requested strategy. Map analogy to assumptions and observables; equations must define quantities. Artistic exploration may use rhythm, composition or harmony as a design idea, never evidence or an invented founder preference. Entrepreneurship specifies a bounded open-source application or research program. State not-applicable or missing-capability honestly. For reflection compare a supplied earlier prediction with cited measured evidence; comparison remains model-inferred. Be concise.",
+              prior_predictions: priorPredictions.map((t) => ({
+                decision_id: t.decision_id,
+                prediction: t.contribution.hypothesis,
+                falsification: t.contribution.falsification,
+              })),
+            }
+          : {}),
       }),
     });
     const c = answer.value;
+    if (strategies.length) {
+      const errors = cognitiveArtifactErrors(
+        c.cognitive_artifacts ?? [],
+        strategies,
+        new Set(priorPredictions.map((t) => t.decision_id)),
+        c.evidence_run_ids,
+      );
+      if (errors.length) throw new Error(errors.join("; "));
+    }
     if (
       c.source_ids.some((id) => !sources.has(id)) ||
       c.evidence_run_ids.some((id) => !runIds.has(id))
@@ -430,13 +471,20 @@ export function createResearchProgram(host: ProgramHost) {
         scope,
         charter_sha256: host.charter_sha256,
       });
+      if (scope.partnership?.profile.source_ids.length)
+        corpusContext(scope.goal, 12, scope.partnership.profile.source_ids).forEach(
+          retain,
+        );
       corpusContext(scope.goal).forEach(retain);
       mathematicsContext(scope.goal).forEach(retain);
       host.inheritedSources?.forEach(retain);
       for (const entry of host.store
         .discoveryEntries()
-        .filter((e) => e.kind === "operator-source")) {
-        const source = entry.payload as ResearchSource;
+        .filter((e) => ["operator-source", "operator-source-version"].includes(e.kind))) {
+        const source =
+          entry.kind === "operator-source-version"
+            ? (entry.payload as { source: ResearchSource }).source
+            : (entry.payload as ResearchSource);
         if (scope.partnership?.profile.source_ids.includes(source.id)) retain(source);
       }
       for (const finding of host.inheritedFindings ?? [])

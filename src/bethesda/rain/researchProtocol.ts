@@ -2,6 +2,10 @@
 import { closed, checkData } from "./discoveryProtocol.js";
 import { UNSAFE_TEXT } from "./contracts.js";
 import {
+  COGNITIVE_ARTIFACT_SCHEMA,
+  type CognitiveArtifact,
+} from "../../rain/research/cognition.js";
+import {
   PARTNERSHIP_SCHEMA,
   type Partnership,
   type CognitiveMemory,
@@ -104,6 +108,7 @@ export interface ResearchSource {
   doi: string | null;
 }
 export interface Contribution {
+  cognitive_artifacts?: CognitiveArtifact[];
   question: string;
   hypothesis: string;
   falsification: string;
@@ -126,6 +131,15 @@ export const CONTRIBUTION_SCHEMA = closed({
   next_experiment: words(800),
   search_queries: texts(2, 200),
   mathematical_assumptions: texts(4, 600),
+});
+export const COGNITIVE_CONTRIBUTION_SCHEMA = closed({
+  ...CONTRIBUTION_SCHEMA.properties,
+  cognitive_artifacts: {
+    type: "array",
+    minItems: 1,
+    maxItems: 2,
+    items: COGNITIVE_ARTIFACT_SCHEMA,
+  },
 });
 export interface ResearchTurn {
   provenance?: {

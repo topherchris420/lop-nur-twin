@@ -69,6 +69,45 @@ async function input() {
   };
 }
 describe("bounded native discovery sessions", () => {
+  it("retains an untestable hypothesis and extension proposal without executing or granting authority", async () => {
+    const i = await input();
+    const complete = i.model.complete.bind(i.model);
+    i.model.complete = async (request) => ({
+      ...(await complete(request)),
+      text: JSON.stringify({
+        candidates: [],
+        untestable: {
+          reason: "Fixture missing resonance observable",
+          missing_capabilities: ["Phase coupling measurement"],
+          extension_specification:
+            "Implement a separately reviewed phase observable with deterministic replay tests.",
+        },
+      }),
+    });
+    const result = await runDiscovery(i);
+    expect(result.executed).toBe(0);
+    expect(result.ok).toBe(false);
+    expect(result.ending).toContain("not testable");
+    expect(i.store.records()).toEqual([]);
+    expect(
+      i.store.discoveryEntries().find((e) => e.kind === "research-untestable")?.payload,
+    ).toMatchObject({ generation: "scripted" });
+    expect(i.store.lock()).toBeNull();
+  });
+  it("rejects ambiguous empty or mixed testable/untestable model output without repair", async () => {
+    const i = await input();
+    const complete = i.model.complete.bind(i.model);
+    i.model.complete = async (request) => ({
+      ...(await complete(request)),
+      text: JSON.stringify({ candidates: [] }),
+    });
+    const result = await runDiscovery(i);
+    expect(result.ending).toContain("requires an explanation");
+    expect(result.executed).toBe(0);
+    expect(i.store.discoveryEntries().some((e) => e.kind === "inference-answer")).toBe(
+      true,
+    );
+  });
   it("executes and replays two novel studies; second design cites and responds to the actual first result", async () => {
     const i = await input();
     const result = await runDiscovery(i);

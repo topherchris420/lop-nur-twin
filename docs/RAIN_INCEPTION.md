@@ -1,5 +1,11 @@
 # Project Inception
 
+The [scientific autonomy validation increment](RAIN_SCIENTIFIC_AUTONOMY.md) adds a
+real-inference study runner, explicit untestable outcomes, versioned opt-in source
+ingestion, cognitive artifacts and an evidence-based workflow audit. Its live-study
+status and outstanding scientific limitations are recorded separately; scripted
+demonstrations remain labeled as scripted.
+
 ## Architecture audit
 
 The implementation extends the native research workflow, not a separate agent framework.

@@ -29,6 +29,9 @@ export function archiveInstitution(store: ResearchStore, id = ROOT_LAB) {
     source_manifest: journal
       .filter((e) => e.kind === "research-source")
       .map((e) => e.payload),
+    approved_source_versions: journal
+      .filter((e) => e.kind === "operator-source-version")
+      .map((e) => e.payload),
     provenance_rule:
       "Model and scripted interpretations retain their origin. Registry/replay receipts and charter attestations are included in the journal and sealed records. Export is not publication or independent scientific validation.",
   };

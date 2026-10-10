@@ -87,8 +87,22 @@ export const DESIGN_SCHEMA = closed({
   information_value: { type: "number", minimum: 0, maximum: 1 },
 });
 export const CANDIDATES_SCHEMA = closed({
-  candidates: { type: "array", minItems: 1, maxItems: 3, items: DESIGN_SCHEMA },
+  candidates: { type: "array", minItems: 0, maxItems: 3, items: DESIGN_SCHEMA },
+  untestable: closed({
+    reason: words(1000),
+    missing_capabilities: { type: "array", minItems: 1, maxItems: 6, items: words(400) },
+    extension_specification: words(2000),
+  }),
 });
+CANDIDATES_SCHEMA.required = ["candidates"];
+export interface CandidateResponse {
+  candidates: Design[];
+  untestable?: {
+    reason: string;
+    missing_capabilities: string[];
+    extension_specification: string;
+  };
+}
 export interface Critique {
   assessment: "proceed" | "revise";
   confounds: string[];
