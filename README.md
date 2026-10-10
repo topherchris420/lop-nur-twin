@@ -2,7 +2,26 @@
 
 **A laboratory you can enter. A world that can answer back.**
 
-**Explore the evidence. Take the controls. Follow the anomaly.**
+R.A.I.N. Lab is Vers3Dynamics' project to build **a digital Bell Labs**: a
+persistent research institution inside simulated worlds, where collaborating AI
+researchers develop questions, test ideas and carry their findings into the
+next investigation.
+
+The ambition is to bring Christopher Woodyard's research papers, Internet
+research, mathematical knowledge and executable experiments into one continuing
+scientific practice—producing new ideas and papers, and eventually laboratories
+nested inside the worlds they study.
+
+The working foundation is local-first: four research perspectives, a pinned
+paper corpus and mathematical index, a native experiment registry, and a
+Bethesda discovery pipeline for typed designs, reviewed authority, simulation,
+replay and recorded follow-ups. The
+[capability map below](#from-research-meetings-to-a-research-institution) separates
+that foundation from the full institutional and recursive vision.
+
+**The model may imagine the experiment. The laboratory must determine whether it
+is valid. The simulation produces the evidence. The evidence determines what can
+reasonably be concluded.**
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -20,12 +39,13 @@
 
 You do not have to understand the whole architecture before using it. Pick the question you want to put to the system:
 
-| Your question                                                                | Go here                                                                                                                   | What actually runs                                                                        |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **How do we know a building belongs in the reconstruction?**                 | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis)                                                            | Public-source claims, classifications, uncertainties and dated revisions; no model needed |
-| **How does a model behave when the world can refuse its choices?**           | [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Evaluation](https://lop-nur-twin.vercel.app/evaluation)         | Human, scripted or model-driven policies under the simulator's own rules                  |
-| **Can a simulated city become a place to conduct research?**                 | [Find Bethesda](#find-bethesda) · [Open the Lab](#a-lab-behind-a-door)                                                    | A walkable simulated city, four research perspectives, bounded experiments and replay     |
-| **Can a local AI propose the _next_ experiment without authorizing itself?** | [Autonomous research](#why-this-is-more-than-a-digital-twin) · [Lab guide](docs/RAIN_LAB_BETHESDA.md#autonomous-research) | Experimental local CLI, `npm run rain:autonomous`, under a charter that a person approves |
+| Your question                                                      | Go here                                                                                                                            | What actually runs                                                                             |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **How do we know a building belongs in the reconstruction?**       | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis)                                                                     | Public-source claims, classifications, uncertainties and dated revisions; no model needed      |
+| **How does a model behave when the world can refuse its choices?** | [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Evaluation](https://lop-nur-twin.vercel.app/evaluation)                  | Human, scripted or model-driven policies under the simulator's own rules                       |
+| **Can a simulated city become a place to conduct research?**       | [Find Bethesda](#find-bethesda) · [Open the Lab](#a-lab-behind-a-door)                                                             | A walkable simulated city, four research perspectives, bounded experiments and replay          |
+| **Can Qwen design an experiment that was never hardcoded?**        | [Native discovery](#why-this-is-more-than-a-digital-twin) · [Local setup](#start-a-local-discovery-session)                        | Typed parameter combinations compiled into native experiments, under a reviewed family charter |
+| **What has actually been demonstrated?**                           | [Measured discovery cycle](#a-completed-result-driven-cycle) · [Full archive](docs/benchmarks/rain-discovery-validation/README.md) | Two real simulator studies and replay, with an explicitly scripted designer                    |
 
 **No credentials for the public reconstruction and scripted experiences.** A live model or experimental autonomous researcher requires setup and authorization. Simulated discoveries are not claims about the real airfield, human behavior or the physical world.
 
@@ -41,11 +61,12 @@ a research lab behind a door.
 
 That lab is not only another scene. It is the beginning of a different kind of
 system: a bounded research environment in which a local open model can observe
-a world, formulate questions, pick from experiments a person has pre-authorized,
-have the host run them on fresh simulators, inspect replayable results,
-preserve contradictions, and decide what to investigate next. The model supplies reasoning; the Lab supplies
-the world, memory, constraints, authorization, simulation, provenance and
-stopping rules.
+a world, formulate questions, propose new combinations of supported experimental
+parameters, and have the host compile and validate them against an approved
+scope. Fresh simulators produce replayable results; contradictions remain in the
+record and can motivate the next investigation. The model supplies reasoning;
+the Lab supplies the world, memory, constraints, authorization, simulation,
+provenance and stopping rules.
 
 Three worlds, one rule. **Geography comes from documented sources. Interpretation
 is labelled. Simulated lives and events are fiction.** A model can propose an
@@ -59,7 +80,11 @@ game or the city ever becomes evidence about the site.
 > [Read what happened.](#the-result-that-changed-the-experiment)
 
 **Contents** ·
-[Why this matters](#why-this-is-more-than-a-digital-twin) ·
+[Digital Bell Labs](#from-research-meetings-to-a-research-institution) ·
+[Research architecture](#why-this-is-more-than-a-digital-twin) ·
+[Mathematical foundations](#mathematical-foundations-and-implementation) ·
+[Measured discovery cycle](#a-completed-result-driven-cycle) ·
+[Local Qwen setup](#start-a-local-discovery-session) ·
 [Five minutes in](#five-minutes-in) ·
 [One loop, four scales](#one-loop-four-scales) ·
 [Quick start](#quick-start) ·
@@ -73,113 +98,342 @@ game or the city ever becomes evidence about the site.
 [Documentation](#documentation) ·
 [License](#license-and-attribution)
 
+## From research meetings to a research institution
+
+The organizing idea is **a place where researchers work together over time**.
+James, Jasmine, Luca and Elena bring distinct research perspectives to a shared
+question. The intended institution can consult the existing body of work,
+challenge its assumptions, design investigations, retain failures and turn
+surviving ideas into new papers. Its environment is part of the experiment:
+researchers inhabit a world whose rules and outcomes can be inspected.
+
+That vision has several layers, with different implementation status:
+
+| Layer                         | Working foundation                                                                                       | Next capability in the vision                                                                                                                    |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Collaborating researchers** | Four-perspective research meetings; local model support; separate designer and critic calls in discovery | A sustained research program jointly directed by those perspectives across investigations                                                        |
+| **The Lab's papers**          | Seventeen pinned corpus documents; verified quotations and source provenance                             | New, reviewed papers that cite the evidence produced by the Lab                                                                                  |
+| **Internet research**         | Curated source registers and imported research snapshots                                                 | Autonomous literature retrieval with source capture, verification and revision tracking; the discovery controller has no web-browsing tool today |
+| **Mathematics**               | A pinned `openai/math` index for search, hypothesis challenges and provenance-bearing citations          | Deeper mathematical tools connected to experimental design; the current index does not execute Lean                                              |
+| **Experiments**               | Native Bethesda designs, family charters, matched controls, registry evaluation and deterministic replay | Broader validated experimental capabilities and a demonstrated live-Qwen research cycle                                                          |
+| **Scientific output**         | Quantitative reports, run artifacts, criticisms, limitations and research lineage                        | An autonomous manuscript workflow with literature review, derivations, figures and scientific review                                             |
+| **Nested laboratories**       | Connected, human-built environments: Lop Nur, Blacksite, Bethesda and its Lab                            | Researchers proposing descendant worlds and laboratories; no recursive world-generation runtime is implemented                                   |
+
+### The “inception” direction
+
+A laboratory inside a simulated city is the first level. The longer-term
+question is whether a researcher in that laboratory could propose a new bounded
+world, place another research process inside it, and learn from what that
+descendant laboratory discovers.
+
+Each level would need its own identity, parentage, simulator specification,
+evidence record and resource budget. Permission to investigate a world would
+not imply permission to create another one. Child findings would remain claims
+about the child simulator until independently tested elsewhere.
+
+This is a proposed research direction, not a claim of consciousness, unlimited
+recursion or an implemented hierarchy of autonomous worlds. Its scientific
+target is concrete: **can a research institution construct useful experimental
+environments while preserving the lineage and limits of what it learns?**
+
 ## Why this is more than a digital twin
 
-The interesting object here is not the model. **It is the loop around the model.**
+A research system needs a place where a hypothesis can fail. Here, the model's
+explanation and the world's measured response are produced by different parts
+of the system. The host owns the experiment language, simulator, evaluation
+criteria and authorization checks. A persuasive interpretation cannot change a
+sealed measurement or make an unsupported operation executable.
 
-Lop Nur Twin now contains an experimental research runtime in which a local
-model can move through a bounded research cycle. It runs from the command line
-(`npm run rain:autonomous`, not on the deployed site), needs a local
-[Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) server, and
-runs only under a charter a person has authorized:
+The native discovery path extends the existing Vers3Dynamics architecture.
+It does not install a separate agent framework. Qwen can compose a new protocol
+from supported events, locations, populations, intensities, durations and
+measurements. The host compiles that data into the same native experiment
+definitions used by the manual Lab.
 
-```text
-observe
-  ↓
-ask what is unresolved
-  ↓
-form a hypothesis
-  ↓
-choose a permitted experiment
-  ↓
-host validates the proposal
-  ↓
-authorization policy admits it
-  ↓
-registry pre-registers its criteria
-  ↓
-fresh simulator runs it
-  ↓
-replay verifies what happened
-  ↓
-registry evaluates the result
-  ↓
-record the interpretation and uncertainty
-  ↓
-return to the research state
-  ↓
-ask the next question
+```mermaid
+flowchart TD
+    Q["Question and retained findings"] --> D["Qwen proposes typed designs"]
+    D --> V{"Host compilation and ranking"}
+    V -->|"No valid candidate"| J["Journal reasons and disagreements"]
+    J --> Q
+    V -->|"Valid candidate"| C{"Separate Qwen critic call"}
+    C -->|"Revise"| J
+    C -->|"Proceed"| H{"Current charter admission"}
+    H -->|"Denied"| S["Retain record and stop session"]
+    H -->|"Admitted"| P["Preregister criteria and host-selected seeds"]
+    P --> X["Native matched-control execution"]
+    X --> R{"Deterministic replay"}
+    R -->|"Quarantine mismatch"| S
+    R -->|"Verified"| A["Registry verdict and model analysis"]
+    A --> Q
 ```
 
-This changes the role of the model. It is no longer only something the project
-can ask a question. It can become a participant in an ongoing research process.
-Its questions and hypotheses are kept as its own labelled words: the design that
-runs, including the question and hypothesis it tests, is always one the host
-wrote, and the host's experimenter seat, not the model, runs it.
+The scientific cycle is **observe → question → hypothesize → design → validate →
+preregister → execute → replay → analyze → critique → redesign**. Every transition
+is bounded by the session's policy and resources.
 
-But the autonomy is deliberately asymmetric:
+| Responsibility               | Implemented boundary                                                                                                                                                                  |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Research intelligence**    | Local Qwen proposes falsifiable hypotheses, competing explanations, typed protocols and follow-ups. A separate inference call critiques the design and later the findings.            |
+| **Experiment compiler**      | Closed schema, native capability checks, feasible outcomes, cost ceilings, lineage checks and protocol fingerprints. No model-generated shell, JavaScript or Python is executed.      |
+| **Authorization**            | A person approves either exact legacy designs or a parameter-family envelope. Each generated design is admitted independently; the model cannot alter its charter or host rules.      |
+| **Execution and evaluation** | Fresh paired simulators, criteria fixed before execution, sealed run artifacts and native registry verdicts. All seven supported outcomes are measured.                               |
+| **Scientific memory**        | Questions, hypotheses, validation failures, approved scope, seeds, measurements, replay receipts, critiques and parent references are retained in a write-once, hash-chained journal. |
+| **Operator control**         | Local workbench and CLI, single-session lock, pause, emergency stop, explicit stale-lock recovery and no automatic restart.                                                           |
 
-| The model may                  | The Lab retains            |
-| :----------------------------- | :------------------------- |
-| Observe research state         | Definition of what can run |
-| Form questions and hypotheses  | Authorization              |
-| Rank permitted designs         | Simulation state           |
-| Analyze sealed results         | Evidence provenance        |
-| Recommend what to examine next | Registry verdicts          |
-| Stop its own research session  | Budgets and termination    |
+Source map: [protocol](src/bethesda/rain/discoveryProtocol.ts) ·
+[compiler](src/bethesda/rain/discoveryCompiler.ts) ·
+[charter policy](src/bethesda/rain/standing.ts) ·
+[controller](src/rain/autonomy/discovery.ts) ·
+[runner](src/bethesda/rain/runner.ts) ·
+[registry](src/rain/runtime.ts) ·
+[journal](src/rain/autonomy/store.ts).
 
-A charter binds the autonomous session to an exact set of experiment designs
-(by digest), the model identity, the session ceilings and an expiry; the full
-policy is described [with the lab](#a-lab-behind-a-door). The model cannot silently rewrite the
-experiment, enlarge its own budget, change the simulator, promote an
-interpretation into evidence, or grant itself new authority.
+### What can the Lab investigate?
 
-That distinction is the project's central wager:
+The current experimental language supports **eight disruptions**: Metro closure,
+fire, gas leak, festival, rally, crash, outage and storm, at their supported
+mapped locations. A study pairs one no-event control with one treatment.
+Parameters include 40–360 pedestrians, 0–70 vehicles, 0–14 buses, intensity 1–3,
+event duration, warm-up and observation window. The approved charter can narrow
+these bounds further. Each study uses 3–5 host-selected seeds.
 
-> **Inference is not evidence. Evidence is not permission. Confidence is not authority.**
+Outcomes include cohort distance, cohort indoors, nearby pedestrians, leaving,
+sheltering, watching and held vehicles. These are measurements of illustrative
+simulator rules. Unsupported behaviors, arbitrary coordinates, new measurement
+functions and multi-event protocols are rejected.
 
-The result is deliberately closer to a laboratory than to an autonomous chatbot.
-A researcher can be given room to explore without giving it the keys to the
-building.
+Novelty is checked against the local protocol history, native preregistrations
+and the **44 existing designs**, which remain usable. Renaming a question,
+changing the prediction, changing a threshold or selecting another already
+measured outcome does not create a new physical experiment. Known equivalent
+intensity and duration settings are normalized before duplicate detection.
 
-### Where the recursion could go (not implemented)
+Confirmatory replication preserves the parent's physical protocol, primary
+metric and criteria, uses withheld seeds, and is limited to one repeat per
+protocol. Other revisions remain exploratory. See the
+[complete capability and limitation reference](docs/RAIN_EXPERIMENTAL_DISCOVERY.md#supported-experiments).
 
-The current autonomous researcher is a single bounded lineage, and nothing in
-the code creates new worlds. That lineage is the foundation for a more unusual
-experiment the project has not built yet.
+## Mathematical foundations and implementation
 
-A future R.A.I.N. world could expose a typed, budgeted capability to instantiate a
-descendant world:
+The equations below have two distinct roles: **research concepts from the
+project's papers** and **calculations implemented in the Lab**. A cited equation
+is not evidence that its entire framework has been implemented or validated here.
 
-```text
-Researcher
-   │
-   ├── conducts experiments
-   │
-   └── proposes a new bounded world
-             │
-             ▼
-        Child researcher
-             │
-             └── proposes another bounded world
+### Research state: evidence and authority are separate fields
+
+In _Resonant Intelligence_, Section III-A, Equation (2), Christopher Woodyard
+defines a research ledger [1]:
+
+$$
+Z_t = (V_t,\Omega_t,R_t,d_t,W_t,E_t,\Pi_t).
+$$
+
+| Term       | Meaning in the paper                       |
+| :--------- | :----------------------------------------- |
+| $V_t$      | Data window, representation and provenance |
+| $\Omega_t$ | Selected modes                             |
+| $R_t$      | Candidate directed relations               |
+| $d_t$      | Diagnostic components                      |
+| $W_t$      | Transition hypothesis                      |
+| $E_t$      | Evidence                                   |
+| $\Pi_t$    | Authority, applicable consent and expiry   |
+
+The consequential separation is $E_t$ from $\Pi_t$: evidence quality does not
+grant permission. R.A.I.N. makes that separation concrete through run records,
+registry evaluations and separately reviewed charters. The full modal ledger is
+a research specification, not a claim that every field has a Bethesda detector.
+
+### Permission is an intersection, not a confidence score
+
+The same paper, Section VI-A, Equations (19)–(20), defines an eligible action set
+and a fallback rule [1]:
+
+$$
+\mathcal U_t^* =
+\mathcal U_{\mathrm{physical}}(t)
+\cap \mathcal U_{\mathrm{evidence}}(E_t)
+\cap \mathcal U_{\mathrm{authorized}}(\Pi_t)
+\cap \mathcal U_{\mathrm{consent}}(\Pi_t).
+$$
+
+$$
+a_t =
+\begin{cases}
+G(Z_t), & G(Z_t)\in\mathcal U_t^*,\\
+a_{\mathrm{fallback}}, & \text{otherwise}.
+\end{cases}
+$$
+
+Here $G$ proposes an action; it does not define the eligible set. At fixed
+constraints, replacing the generator with a stronger model cannot enlarge
+$\mathcal U_t^*$. The consent term concerns actions affecting participants; the
+Bethesda experiments involve simulated actors and use an operator authorization
+boundary.
+
+The Lab implements this architectural principle with schema checks, simulator
+capabilities, scientific checks, resource bounds, provenance and current charter
+admission. Failure means rejection, review or stopping. This is an execution
+boundary, not a proof of physical safety or of the model's scientific reasoning.
+
+### Resonance depth is a diagnostic, not a truth meter
+
+_Dynamic Resonance Rooting_, Section III-D, defines the composite [2], also
+reproduced as Equation (7) in _Resonant Intelligence_ [1]:
+
+$$
+D = \operatorname{clip}_{[0,1]}
+\left(0.35S + 0.25P + 0.25C + 0.15A\right).
+$$
+
+$S$ is spectral concentration, $P$ temporal persistence, $C$ phase coherence and
+$A$ amplitude stability. The weights are a versioned design choice; the formula
+makes the diagnostic's preferences inspectable.
+
+This belongs to the **research corpus and separate DRR reference framework**.
+Bethesda does not compute this score as an experimental verdict, a probability
+of truth, or a measure of intelligence. The Lab's visual Chladni instrument is
+also not an empirical resonance measurement. A future detector would need a
+defined observable, units, null model and independent validation before its
+output could enter an experiment.
+
+### What the native runner actually measures
+
+For matched seed $i$, let $Y_i^{(T)}$ and $Y_i^{(C)}$ be the selected outcome in
+the treatment and control arms. With $\rho_2$ denoting the runner's rounding to
+two decimal places, its paired summary is:
+
+$$
+\Delta_i = \rho_2\!\left(Y_i^{(T)}-Y_i^{(C)}\right),
+\qquad
+\bar{\Delta} =
+\rho_2\!\left(\frac{1}{n}\sum_{i=1}^{n}\Delta_i\right).
+$$
+
+For a preregistered increase hypothesis with minimum effect $\delta>0$, support
+requires the run guards to pass, $\bar{\Delta}\geq\delta$, and every paired
+$\Delta_i>0$. Guards require completed arms and identical pre-intervention
+states; cohort metrics also require a minimum cohort size. A nonpositive mean
+contradicts that directional hypothesis; a positive but insufficient effect
+does not establish it. Replay separately checks the recorded execution.
+
+These are **implemented descriptive criteria**, not a significance test or a
+population-level causal estimate. See
+[paired summaries](src/bethesda/rain/runner.ts) and
+[preregistered criteria](src/bethesda/rain/experiments.ts).
+
+### How the host ranks a valid next experiment
+
+The [compiler](src/bethesda/rain/discoveryCompiler.ts) estimates actor-tick cost,
+including both arms and mandatory replay:
+
+$$
+K(d)=4n(T_{\mathrm{warmup}}+T_{\mathrm{window}})
+(N_{\mathrm{pedestrians}}+N_{\mathrm{vehicles}}+N_{\mathrm{buses}}).
+$$
+
+Its current deterministic priority is:
+
+$$
+c(d)=\frac{K(d)}{K_{\max}},
+\qquad f(d)=1-c(d),
+\qquad S(d)=4I(d)+3N(d)+f(d)-c(d).
+$$
+
+$I=1$ for a validated evidence-linked follow-up and $0.5$ otherwise; $N=1$ for
+a new physical protocol and $0$ for permitted replication. $K_{\max}$ is the
+approved actor-tick ceiling. This is a transparent scheduling heuristic, not
+estimated entropy reduction or calibrated expected information gain. The
+model's own information-value estimate is recorded but cannot set the score.
+
+### Paper references and source status
+
+1. Christopher Woodyard, **Resonant Intelligence: Pattern, Agency, and Evidence
+   in Adaptive Systems**. Sections III-A, III-B and VI-A; Equations (2), (7),
+   (19) and (20).
+   [Pinned manuscript](https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md).
+2. Christopher Woodyard, **Dynamic Resonance Rooting: A Computational Framework
+   for Complex Adaptive Systems**. Section III-D, “Resonance Depth.”
+   [Pinned manuscript](https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Dynamic%20Resonance%20Rooting.md).
+
+These are author-supplied research manuscripts included in the Lab's 17-document
+[read-only corpus](src/rain/data/corpus.json). The
+[import manifest](src/rain/data/source.json) pins the source revision and corpus
+fingerprint; the corpus carries each file's hash and text. Citation establishes
+the origin of an idea, not independent empirical validation or peer-review
+status. The separate [`openai/math` index](#a-lab-behind-a-door) supplies
+mathematical context, with its own provenance and limits.
+
+## A completed result-driven cycle
+
+**Executed: two Bethesda simulator studies, each with three paired seeds and
+verified replay. Designer and critic: an explicitly scripted fixture. No live
+Qwen discovery is claimed by this archive.**
+
+The starting question asked how urban disruptions change collective movement
+and whether the same intervention behaves differently in different contexts.
+The first study tested a fire at Bethesda Row with 40 pedestrians. After reading
+its measured result, the fixture generated a child design with 60 pedestrians
+and cited the first run as its motivating evidence.
+
+Both studies used intensity 1, eight vehicles, two buses, 100 warm-up ticks,
+a 300-tick fire and a 300-tick observation window. “Watching” is the sampled
+mean count of outdoor simulated pedestrians watching or recording within
+300 metres of the event, sampled every 100 ticks.
+
+| Study                 | Pedestrians | Paired watching differences | Mean treatment − control | Replay |
+| :-------------------- | ----------: | :-------------------------- | -----------------------: | :----- |
+| Initial experiment    |          40 | 2.00, 2.00, 2.67            |                **+2.22** | Passed |
+| Evidence-linked child |          60 | 7.00, 4.67, 10.33           |                **+7.33** | Passed |
+
+Control means were zero. Both studies met their preregistered descriptive
+increase threshold of 0.01 and the requirement that all three seed differences
+be positive. The archive preserves the parent ID, motivating run, new physical
+protocol, charter, criteria, exact seeds, measurements, critiques and replay
+receipts.
+
+What this establishes is a working **result → revised design → validated
+execution → replay → retained lineage** path. It does not establish that
+population caused the difference between studies: seed panels differ, outcomes
+are absolute counts, and no factorial interaction test was performed. Both
+effects have the same direction; no behavioral reversal was demonstrated.
+These are simulator outputs, not observations of real people.
+
+[Read the quantitative report](docs/benchmarks/rain-discovery-validation/REPORT.md) ·
+[Inspect and reproduce the sealed archive](docs/benchmarks/rain-discovery-validation/README.md) ·
+[Review remaining limitations](docs/RAIN_EXPERIMENTAL_DISCOVERY.md#verification-and-honest-demonstration).
+
+## Start a local discovery session
+
+After the [quick start](#quick-start), load a Qwen model in LM Studio and start
+its local server at **http://127.0.0.1:1234**. Enable discovery in the same shell
+that starts the local development server:
+
+```sh
+export RAIN_AUTONOMY_ENABLED=true
+export RAIN_MODEL_PROVIDER=lmstudio
+npm run dev
 ```
 
-Every generation would carry explicit identity, capabilities, parentage,
-generation number, world constraints and provenance. A child would inherit a
-capability envelope, not its parent's authority. The cycle could continue only
-where the Lab explicitly permits the next generation to exist.
+[Enter Bethesda](#find-bethesda), open the Lab's Research Panel and choose
+**Connect local Qwen / review scope**. The host queries LM Studio's `/v1/models`;
+it selects a unique loaded Qwen identifier or asks you to configure `RAIN_MODEL`
+from the identifiers actually returned. No specific Qwen version is assumed.
 
-That is not a claim that intelligence becomes infinite. It is an experiment in
-whether **research processes can generate new research environments while
-remaining inspectable, reproducible and bounded**.
+Review the parameter envelope, model, ceilings and expiry; acknowledge the
+review and enter the charter digest prefix. **Start bounded session** permits
+multiple experiments within that scope. **Pause** completes the current cycle;
+**Emergency stop** interrupts at a cooperative checkpoint. The workbench shows
+the question, hypothesis, design, validation, authorization, execution, findings,
+critique, uncertainties, next investigation and retained history.
 
-The hidden Lab in Bethesda is therefore more than an Easter egg. It is the
-place where the project's different layers meet: evidence, simulation, models,
-experiments, memory and agency, all under one provenance boundary.
+Completed work persists under `.rain-research/`. A restart never silently resumes
+execution, and an unavailable model stops the session without remote fallback.
+Run discovery locally: the deployed website cannot reach LM Studio on your
+machine. The manual workflow and original 44-design autonomous CLI remain
+available.
 
-The project can be explored as a game. It can be read as a digital twin. It can
-be inspected as an evaluation harness. Increasingly, it can also be treated as
-a small artificial research world.
+[Full setup, Windows commands, CLI, scope controls and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md).
 
 ## Five minutes in
 
@@ -216,13 +470,13 @@ the model.
 ```mermaid
 flowchart LR
   subgraph LN["Lop Nur · what can be reconstructed?"]
-    S["Public sources"] --> L["Evidence ledger<br/>observed · reported ·<br/>interpreted · illustrative"]
-    L --> M["Reconstruction<br/>with a recorded history"]
+    S["Public sources"] --> L["Evidence ledger observed · reported · interpreted · illustrative"]
+    L --> M["Reconstruction with a recorded history"]
   end
   subgraph BS["Blacksite · what does an agent choose?"]
-    P["Bounded perception"] --> D["Human · script · random<br/>Jev · Glide · LLM"]
-    D --> G["Host gate<br/>legal options · staleness"]
-    G --> R["Rules decide<br/>the consequence"]
+    P["Bounded perception"] --> D["Human · script · random Jev · Glide · LLM"]
+    D --> G["Host gate legal options · staleness"]
+    G --> R["Rules decide the consequence"]
     R --> T["Decision records"]
   end
   subgraph BE["Bethesda · what happens when it is populated?"]
@@ -230,11 +484,11 @@ flowchart LR
     E --> RP["Replay verifies state"]
   end
   subgraph RL["R.A.I.N. Lab · what if research is part of the world?"]
-    H["Hypothesis"] --> A["Authorized experiment<br/>on fresh simulators"]
-    A --> SR["Sealed record:<br/>evidence only after replay"]
+    H["Hypothesis"] --> A["Authorized experiment on fresh simulators"]
+    A --> SR["Sealed record: evidence only after replay"]
   end
   M --> P
-  M -. "same instrument,<br/>other ground" .-> C
+  M -. "same instrument, other ground" .-> C
   E -.-> A
 ```
 
@@ -288,8 +542,9 @@ runs inside this repository's own server process (`/api/rain/*`). A local model
 for its meetings and the TypeSafe engine for its bounded decisions are server-side
 settings too, `RAIN_*` in `.env.example` (see the
 [lab guide](docs/RAIN_LAB_BETHESDA.md#running-live)), and so is the local model
-its [autonomous research loop](docs/RAIN_LAB_BETHESDA.md#autonomous-research)
-runs with. The LLM adapter
+its [legacy autonomous research loop](docs/RAIN_LAB_BETHESDA.md#autonomous-research)
+runs with. For generated designs, follow the
+[local discovery setup](#start-a-local-discovery-session). The LLM adapter
 supports Anthropic and OpenAI-compatible providers. Keys stay on
 the server; never prefix them with `VITE_`. Enabling a live model can spend API
 credit. Automated live runs require a separate opt-in; offline checks use test
@@ -615,10 +870,11 @@ hypotheses have somewhere to run.
 
 _The Research Panel after a question to the runtime this site's server holds. The meeting is the offline engine's, labelled scripted with no model run; the plates read "unresolved" because the corpus grounding was partial, and they say so in words beside the picture._
 
-Its interior is fictional and its pictures are not evidence; every run needs a
-person's authorization of the exact definition, runs on separate simulators
-rather than the city you are in, and is recorded so it can be re-simulated
-without contacting anything. Its results describe the simulator, not Bethesda.
+Its interior is fictional and its pictures are not evidence. Manual runs need
+a person's authorization of the exact definition; autonomous discovery runs
+must fall within a reviewed charter and pass admission for each design. Runs
+use separate simulators rather than the city you are in, and their records can
+be re-simulated without contacting a model. Its results describe the simulator, not Bethesda.
 Its DEMO is labelled as a recording; LIVE, a meeting comes from the runtime's
 scripted offline engine or, when a local model server is configured, from a
 model meeting such as Qwen's, and every turn says which wrote it. R.A.I.N. has
@@ -650,31 +906,24 @@ changes a result: mathematical substrate ≠ evidence corpus, mathematical resul
 ≠ empirical result, Lean formalization ≠ empirical validation, hypothesis ≠
 conclusion.
 
-**Human-directed, model-directed, autonomous.** Research in the lab is directed
-in one of three ways. A person proposes an experiment and authorizes its exact
-definition; or R.A.I.N. proposes one — its bounded router choosing among the
-host's options, informed by a scripted or local-model meeting — and a person
-authorizes it; or R.A.I.N. runs **autonomously**: `npm run rain:autonomous`
-puts a local open model, served by [Ollama](https://ollama.com) or
-[LM Studio](https://lmstudio.ai), in R.A.I.N.'s researcher and analyst seats
-and lets it observe the research state, propose, run, read and record
-experiments in a loop, within budgets, until one is spent or nothing worth
-running remains. Autonomy moves the person's review rather than removing it: a
-person authorizes a **charter** — the exact experiment designs the loop may
-run, by digest, with the model and the ceilings — and a deterministic policy
-admits each proposal under it, or refuses it with its reasons. The model never
-writes a definition, never decides a verdict and never touches the evidence:
-its questions, hypotheses and interpretations are kept as its words, labelled,
-beside sealed, replayable records whose verdicts are the registry's
-pre-registered criteria.
+**Manual research and two forms of autonomy.** A person can propose and
+authorize an exact experiment, or review a proposal from R.A.I.N.'s bounded
+meeting router. The original `npm run rain:autonomous` CLI remains available:
+it selects from the 44 host-defined designs under an exact-design charter,
+using the existing Ollama or LM Studio adapters.
 
-```sh
-ollama pull qwen2.5:7b      # or load a model in LM Studio and start its server
-export RAIN_MODEL_PROVIDER=ollama RAIN_MODEL=qwen2.5:7b   # lmstudio / the name LM Studio lists
-npm run rain:autonomous -- --dry-run                      # what it would run; runs and writes nothing
-npm run rain:autonomous -- --charter                      # the charter to review, with its digest
-RAIN_AUTONOMY_ENABLED=true npm run rain:autonomous -- --authorize <first 8 characters> --reviewed
-```
+The new `npm run rain:discovery` path lets local Qwen propose **new parameter
+combinations** under a reviewed family charter. The host compiles each typed
+design, checks its capabilities, scientific consistency, novelty, lineage and
+cost, and independently admits it before execution. The Research Panel's
+workbench exposes scope review, session controls and the complete discovery
+history. See [local Qwen setup](#start-a-local-discovery-session).
+
+In both paths, host code constructs the executable definition, the native
+registry evaluates preregistered criteria, and model questions, hypotheses and
+interpretations stay labelled as model statements. A separate critic call can
+preserve disagreements, but it uses the same underlying model and is not an
+independent model ensemble or an experimental replication.
 
 The registry also preserves [research lineage](docs/RAIN_RESEARCH_LINEAGE.md):
 reviewed assumptions, evidence-linked conclusions, historical branches, and
@@ -686,7 +935,8 @@ with negative results and explicit invalidation checks.
 
 Read the [R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md) for meetings,
 experiments, authorization, replay,
-[autonomous research](docs/RAIN_LAB_BETHESDA.md#autonomous-research) and
+[legacy autonomous research](docs/RAIN_LAB_BETHESDA.md#autonomous-research),
+[native experimental discovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md) and
 [the mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate).
 
 ## Measure it yourself
@@ -740,22 +990,24 @@ or extend one.
 
 ## What is built
 
-| Part                                                                                                | Status                                     | Notes                                                                                             |
-| :-------------------------------------------------------------------------------------------------- | :----------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                            | Build-gated by the evidence validator; both front doors gated by accessibility checks             |
-| Recorded model history (`model-history/`)                                                           | **Implemented**                            | Begins at the first per-subject manifest (2026-08-05); earlier entry dates are unknown            |
-| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                            | Replay re-performs a control stream; same-seed runs diverge, so it is not a state replay          |
-| Decision records and the one-decision inspector on `/evaluation`                                    | **Implemented**                            | Records are validated on load; the human seat records none                                        |
-| Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental** | Need server credentials; ten-seed runs are exploratory, not rankings                              |
-| Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                            | Offline; a result describes this build on the machine that ran it                                 |
-| Bethesda city simulation, scenarios and replay                                                      | **Implemented**                            | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model                   |
-| Jev inside Bethesda                                                                                 | **Implemented** · **experimental**         | Off by default; no live Bethesda run is claimed                                                   |
-| R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                            | On Vercel, certified pre-registrations need `RAIN_REGISTRY_SECRET`; run records stay per instance |
-| R.A.I.N. model meetings                                                                             | **Experimental**                           | Need a local model server and one long-lived process                                              |
-| R.A.I.N. autonomous research loop (`npm run rain:autonomous`, Ollama or LM Studio)                  | **Implemented** · **experimental**         | Runs only under a charter a person authorized; CLI only; small local models propose poorly        |
-| R.A.I.N. mathematical substrate (`openai/math`, pinned): search, challenge, inspection, citations   | **Implemented**                            | Lexical search; relations are a person's; Lean is indexed, never compiled; one commit at a time   |
-| Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                             | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`     |
-| Server-backed evidence API, authentication, audit log                                               | **Deferred**                               | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                                   |
+| Part                                                                                                | Status                                                       | Notes                                                                                                       |
+| :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Evidence ledger, claim inspector, evidence timeline, `/analysis`, `/compare`, release manifests     | **Implemented**                                              | Build-gated by the evidence validator; both front doors gated by accessibility checks                       |
+| Recorded model history (`model-history/`)                                                           | **Implemented**                                              | Begins at the first per-subject manifest (2026-08-05); earlier entry dates are unknown                      |
+| Blacksite: simulation, human play, scripted and random seats, replay                                | **Implemented**                                              | Replay re-performs a control stream; same-seed runs diverge, so it is not a state replay                    |
+| Decision records and the one-decision inspector on `/evaluation`                                    | **Implemented**                                              | Records are validated on load; the human seat records none                                                  |
+| Jev, Glide and LLM seats                                                                            | **Implemented** · results **experimental**                   | Need server credentials; ten-seed runs are exploratory, not rankings                                        |
+| Evaluation harness: declared experiments, outcome contracts, shadow agreement                       | **Implemented**                                              | Offline; a result describes this build on the machine that ran it                                           |
+| Bethesda city simulation, scenarios and replay                                                      | **Implemented**                                              | Illustrative rules; not a fire, weather, flooding, crowd or public-safety model                             |
+| Jev inside Bethesda                                                                                 | **Implemented** · **experimental**                           | Off by default; no live Bethesda run is claimed                                                             |
+| R.A.I.N. Lab: DEMO, offline meetings, authorized experiments, sealed records, replay                | **Implemented**                                              | On Vercel, certified pre-registrations need `RAIN_REGISTRY_SECRET`; run records stay per instance           |
+| R.A.I.N. model meetings                                                                             | **Experimental**                                             | Need a local model server and one long-lived process                                                        |
+| R.A.I.N. legacy autonomy (`npm run rain:autonomous`)                                                | **Implemented** · **experimental**                           | Preserves the 44 host-defined designs and exact-design charters; local CLI                                  |
+| Native discovery compiler, family charters, journal and workbench                                   | **Implemented** · **experimental**                           | New supported parameter combinations; real simulator execution and replay verified with a scripted designer |
+| Qwen-driven multi-experiment discovery                                                              | **Implemented integration** · live demonstration **pending** | Uses local LM Studio model discovery; the archived two-study demonstration did not run Qwen                 |
+| R.A.I.N. mathematical substrate (`openai/math`, pinned): search, challenge, inspection, citations   | **Implemented**                                              | Lexical search; relations are a person's; Lean is indexed, never compiled; one commit at a time             |
+| Parked game-mode work (`experiments/game-modes/`): killstreaks, mode-aware spawns, grid pathfinding | **Scaffolded**                                               | Outside `src/`; not built, typed or shipped. The four playable modes are in `src/game/modes/`               |
+| Server-backed evidence API, authentication, audit log                                               | **Deferred**                                                 | Recommended only — see [future backend](docs/FUTURE_BACKEND.md)                                             |
 
 ## Development and validation
 
@@ -806,21 +1058,24 @@ matched experiments that show what changed.
 
 ## Documentation
 
-| Start here                                                                                                                             | For                                                |
-| :------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
-| [White paper](docs/WHITE_PAPER.md)                                                                                                     | The long-form argument for the reconstruction      |
-| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                          | Playing, mechanics and navigation                  |
-| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                          | Providers, controllers, traces and benchmarks      |
-| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                 | What a result can support — and how it can mislead |
-| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                       | Discovery, city scenarios, geography and replay    |
-| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                            | Meetings, experiments, authorization and replay    |
-| [R.A.I.N. Lab site](https://rainlabteam.vercel.app/)                                                                                   | R.A.I.N. itself: local-first research meetings     |
-| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                     | Mathematics as context: status, relation, basis    |
-| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                  | Sources, classifications and limits                |
-| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md) | Measurements, dates, exports and revisions         |
-| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Accessibility](docs/ACCESSIBILITY.md)                | Implementation, checks and what is actually tested |
-| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                      | Hosting, credentials and trust boundaries          |
-| [Government evaluation guide](docs/GOVERNMENT_EVALUATION.md)                                                                           | What this can and cannot be used for, in an hour   |
+| Start here                                                                                                                                                     | For                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| [White paper](docs/WHITE_PAPER.md)                                                                                                                             | The long-form argument for the reconstruction                      |
+| [Blacksite](docs/BLACKSITE.md) · [Controls](docs/CONTROLS.md)                                                                                                  | Playing, mechanics and navigation                                  |
+| [Jev, Glide, LLMs and the player seat](docs/JEV_BLACKSITE.md)                                                                                                  | Providers, controllers, traces and benchmarks                      |
+| [Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                                                                                                         | What a result can support — and how it can mislead                 |
+| [The Bethesda anomaly](docs/BETHESDA_ANOMALY.md)                                                                                                               | Discovery, city scenarios, geography and replay                    |
+| [The R.A.I.N. Lab](docs/RAIN_LAB_BETHESDA.md) · [Runtime migration](docs/RAIN_MIGRATION.md)                                                                    | Meetings, experiments, authorization and replay                    |
+| [Native experimental discovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                                                           | Qwen setup, supported designs, charters, workbench and recovery    |
+| [Executed discovery archive](docs/benchmarks/rain-discovery-validation/README.md) · [Quantitative report](docs/benchmarks/rain-discovery-validation/REPORT.md) | Actual protocols, measurements, replay, source revision and limits |
+| [Research lineage](docs/RAIN_RESEARCH_LINEAGE.md)                                                                                                              | Assumptions, contradictory results, dependencies and follow-ups    |
+| [R.A.I.N. Lab site](https://rainlabteam.vercel.app/)                                                                                                           | R.A.I.N. itself: local-first research meetings                     |
+| [The mathematical substrate](docs/RAIN_LAB_BETHESDA.md#the-mathematical-substrate)                                                                             | Mathematics as context: status, relation, basis                    |
+| [Data provenance](docs/DATA_PROVENANCE.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)                                                                          | Sources, classifications and limits                                |
+| [Spatial analysis](docs/SPATIAL_ANALYSIS.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Model comparison](docs/MODEL_COMPARISON.md)                         | Measurements, dates, exports and revisions                         |
+| [Architecture](docs/SYSTEM_ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Accessibility](docs/ACCESSIBILITY.md)                                        | Implementation, checks and what is actually tested                 |
+| [Deployment](docs/DEPLOYMENT.md) · [Threat model](docs/THREAT_MODEL.md) · [Security](SECURITY.md)                                                              | Hosting, credentials and trust boundaries                          |
+| [Government evaluation guide](docs/GOVERNMENT_EVALUATION.md)                                                                                                   | What this can and cannot be used for, in an hour                   |
 
 ## License and attribution
 
