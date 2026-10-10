@@ -131,8 +131,16 @@ async function open(context, { webgl = true, phone = false } = {}) {
       ? { width: 390, height: 844, isMobile: true, hasTouch: true }
       : { width: 1100, height: 760 },
   );
-  const log = { requests: [], errors: [] };
-  page.on("request", (r) => log.requests.push(r.url()));
+  const log = { requests: [], errors: [], rainRequests: [] };
+  page.on("request", (r) => {
+    log.requests.push(r.url());
+    if (isRain(r.url()))
+      log.rainRequests.push({
+        url: r.url(),
+        method: r.method(),
+        hasBody: r.postData() !== undefined,
+      });
+  });
   page.on("pageerror", (e) => log.errors.push(String(e)));
   await page.evaluateOnNewDocument((webgl) => {
     Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 });
@@ -429,12 +437,32 @@ try {
   }
   {
     const t = await a.text();
+    // Opening the workbench polls local status. DEMO must never submit the
+    // question or start a meeting/discovery session, regardless of poll timing.
+    const readOnlyStatus = new Set([
+      "/api/rain/status",
+      "/api/rain/math-status",
+      "/api/rain/discovery",
+    ]);
+    const onlyStatusReads =
+      a.rain().includes("/api/rain/status") &&
+      a.log.rainRequests.every((r) => {
+        const url = new URL(r.url);
+        return (
+          url.origin === origin &&
+          readOnlyStatus.has(url.pathname) &&
+          !url.search &&
+          r.method === "GET" &&
+          !r.hasBody
+        );
+      });
     check(
       "DEMO: labelled as a recording, scripted, sent nowhere",
       t.includes("DEMO · PRERECORDED") &&
         t.includes("SCRIPTED · NO MODEL RAN") &&
         t.includes("your question was not sent anywhere") &&
-        JSON.stringify(a.rain()) === JSON.stringify(["/api/rain/status"]),
+        onlyStatusReads,
+      JSON.stringify(a.log.rainRequests),
     );
     const turns = await a.page.evaluate(
       () => document.querySelector('[aria-label="Meeting turns"]').innerText,
