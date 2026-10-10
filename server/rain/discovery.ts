@@ -63,10 +63,11 @@ export function createDiscoveryHandler(
           throw new Error("Unsupported action");
       }
     } catch (error) {
-      return reply(
-        { error: error instanceof Error ? error.message : String(error) },
-        409,
+      console.error(
+        "Discovery handler request failed:",
+        error instanceof Error ? error.stack ?? error.message : String(error),
       );
+      return reply({ error: "Request failed" }, 409);
     }
   };
 }
