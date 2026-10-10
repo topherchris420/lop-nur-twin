@@ -6,6 +6,7 @@ import {
   MAX_RESPONSE,
   ModelFailure,
   createLocalModel,
+  createOpenAIResearchModel,
   listsModel,
   parseStructured,
 } from "./models";
@@ -52,6 +53,65 @@ const request = {
   schemaName: "rain_test",
   schema: { type: "object", properties: { a: { type: "string" } }, required: ["a"] },
 };
+
+describe("explicit server-side OpenAI research collaborator", () => {
+  const input = {
+    model: "operator-pinned-version",
+    apiKey: "synthetic-test-credential",
+    remoteAllowed: true,
+    timeoutMs: 5000,
+    maxTokens: 512,
+  };
+  it("requires explicit consent and credentials, fixes the destination, and leaves credentials out of provenance", async () => {
+    expect(() => createOpenAIResearchModel({ ...input, remoteAllowed: false })).toThrow(
+      "consent",
+    );
+    expect(() => createOpenAIResearchModel({ ...input, apiKey: "" })).toThrow(
+      "credential",
+    );
+    let destination = "",
+      headers: HeadersInit | undefined,
+      body: Record<string, unknown> | null = null;
+    const fetchImpl = (async (url, init) => {
+      destination = String(url);
+      headers = init?.headers;
+      body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return json({
+        model: input.model,
+        choices: [{ message: { content: '{"a":"valid"}' }, finish_reason: "stop" }],
+        usage: { prompt_tokens: 20, completion_tokens: 5 },
+      });
+    }) as typeof fetch;
+    const model = createOpenAIResearchModel(input, { fetchImpl });
+    const answer = await model.complete(request);
+    expect(destination).toBe("https://api.openai.com/v1/chat/completions");
+    expect(new Headers(headers).get("Authorization")).toBe("Bearer " + input.apiKey);
+    expect(body).toMatchObject({ store: false, max_completion_tokens: 512 });
+    expect(answer.reportedModel).toBe(input.model);
+    expect(JSON.stringify({ configuration: model.configuration, answer })).not.toContain(
+      input.apiKey,
+    );
+  });
+  it("does not act on provider refusals and never follows redirects", async () => {
+    const refusal = server(() =>
+      json({ choices: [{ message: { refusal: "declined" }, finish_reason: "stop" }] }),
+    );
+    await expect(
+      createOpenAIResearchModel(input, refusal).complete(request),
+    ).rejects.toMatchObject({ code: "malformed" });
+    const moved = server(
+      () =>
+        new Response(null, {
+          status: 302,
+          headers: { Location: "https://other.invalid" },
+        }),
+    );
+    await expect(
+      createOpenAIResearchModel(input, moved).complete(request),
+    ).rejects.toMatchObject({ code: "http" });
+    expect(moved.seen).toHaveLength(1);
+  });
+});
 
 describe("provider selection", () => {
   it("defaults to Ollama on loopback and names no model", () => {

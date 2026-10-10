@@ -73,9 +73,15 @@ export interface CallOptions {
   signal?: AbortSignal;
 }
 export interface LocalModel {
+  readonly configuration?: {
+    temperature: number | null;
+    max_tokens: number;
+    context_tokens: number | null;
+    timeout_ms: number;
+  };
   /** Test doubles explicitly identify scripted output; real adapters default to model. */
   readonly generation?: "model" | "scripted";
-  readonly provider: ProviderKind;
+  readonly provider: ProviderKind | "openai";
   readonly model: string;
   readonly endpoint: string;
   listModels(options?: CallOptions): Promise<string[]>;
@@ -159,7 +165,7 @@ const text = (v: unknown): string | null => (typeof v === "string" ? v : null);
 
 async function call(
   url: string,
-  init: { method: "GET" | "POST"; body?: unknown },
+  init: { method: "GET" | "POST"; body?: unknown; headers?: Record<string, string> },
   settings: Pick<ModelSettings, "timeoutMs">,
   hooks: ModelHooks,
   options: CallOptions,
@@ -177,7 +183,10 @@ async function call(
       try {
         response = await send(url, {
           method: init.method,
-          headers: init.body === undefined ? {} : { "Content-Type": "application/json" },
+          headers: {
+            ...(init.body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...init.headers,
+          },
           body: init.body === undefined ? undefined : JSON.stringify(init.body),
           signal: controller.signal,
           redirect: "error",
@@ -238,6 +247,14 @@ class OllamaModel implements LocalModel {
   readonly provider = "ollama" as const;
   readonly model: string;
   readonly endpoint: string;
+  get configuration() {
+    return {
+      temperature: this.settings.temperature,
+      max_tokens: this.settings.maxTokens,
+      context_tokens: this.settings.contextTokens,
+      timeout_ms: this.settings.timeoutMs,
+    };
+  }
   private readonly settings: ModelSettings;
   private readonly hooks: ModelHooks;
   constructor(settings: ModelSettings, hooks: ModelHooks) {
@@ -307,6 +324,14 @@ class LmStudioModel implements LocalModel {
   readonly provider = "lmstudio" as const;
   readonly model: string;
   readonly endpoint: string;
+  get configuration() {
+    return {
+      temperature: this.settings.temperature,
+      max_tokens: this.settings.maxTokens,
+      context_tokens: this.settings.contextTokens,
+      timeout_ms: this.settings.timeoutMs,
+    };
+  }
   private readonly settings: ModelSettings;
   private readonly hooks: ModelHooks;
   constructor(settings: ModelSettings, hooks: ModelHooks) {
@@ -379,6 +404,88 @@ export function createLocalModel(
   return settings.provider === "ollama"
     ? new OllamaModel(settings, hooks)
     : new LmStudioModel(settings, hooks);
+}
+
+/** Explicitly configured server-side collaborator only. Fixed destination, no redirects,
+ * no provider fallback, no keys in journals, prompts, configuration views or browser code.
+ */
+export function createOpenAIResearchModel(
+  input: {
+    model: string;
+    apiKey: string;
+    remoteAllowed: boolean;
+    timeoutMs: number;
+    maxTokens: number;
+  },
+  hooks: ModelHooks = {},
+): LocalModel {
+  if (
+    !input.remoteAllowed ||
+    !input.apiKey.trim() ||
+    /[\r\n]/.test(input.apiKey) ||
+    !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$/.test(input.model)
+  )
+    throw new Error(
+      "Explicit remote research consent, model and server credential required",
+    );
+  return {
+    provider: "openai",
+    model: input.model,
+    endpoint: "https://api.openai.com",
+    configuration: {
+      temperature: null,
+      max_tokens: input.maxTokens,
+      context_tokens: null,
+      timeout_ms: input.timeoutMs,
+    },
+    listModels: async () => [input.model],
+    async complete(r, options = {}) {
+      const started = (hooks.monotonic ?? (() => performance.now()))();
+      const payload = (await call(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${input.apiKey}` },
+          body: {
+            model: input.model,
+            messages: messages(r),
+            max_completion_tokens: input.maxTokens,
+            stream: false,
+            store: false,
+            response_format: {
+              type: "json_schema",
+              json_schema: { name: r.schemaName, strict: true, schema: r.schema },
+            },
+          },
+        },
+        { timeoutMs: input.timeoutMs },
+        hooks,
+        options,
+      )) as {
+        model?: unknown;
+        choices?: {
+          message?: { content?: unknown; refusal?: unknown };
+          finish_reason?: unknown;
+        }[];
+        usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
+      };
+      const choice = payload.choices?.[0];
+      const content = text(choice?.message?.content);
+      if (content === null || choice?.message?.refusal)
+        throw new ModelFailure(
+          "malformed",
+          "OpenAI returned no usable structured contribution",
+        );
+      return {
+        text: content,
+        reportedModel: text(payload.model),
+        promptTokens: count(payload.usage?.prompt_tokens),
+        completionTokens: count(payload.usage?.completion_tokens),
+        latencyMs: Math.round((hooks.monotonic ?? (() => performance.now()))() - started),
+        finishReason: text(choice?.finish_reason),
+      };
+    },
+  };
 }
 
 /**

@@ -22,6 +22,11 @@ export interface Partnership {
   mode: InceptionMode;
   memory_epoch: number;
   profile: CognitiveProfile;
+  collaborator_model?: {
+    provider: "openai" | "lmstudio" | "ollama";
+    model: string;
+    endpoint: string;
+  };
 }
 const strings = (maxItems: number, maxLength: number) => ({
   type: "array",
@@ -32,6 +37,11 @@ export const PARTNERSHIP_SCHEMA = closed({
   schema: { const: "rain-partnership/v1" },
   mode: { enum: [...INCEPTION_MODES] },
   memory_epoch: { type: "integer", minimum: 0, maximum: 1000000 },
+  collaborator_model: closed({
+    provider: { enum: ["openai", "lmstudio", "ollama"] },
+    model: { type: "string", minLength: 1, maxLength: 120 },
+    endpoint: { type: "string", minLength: 1, maxLength: 200 },
+  }),
   profile: closed({
     version: { type: "integer", minimum: 1, maximum: 1000000 },
     methods: { ...strings(6, 400), minItems: 1 },
@@ -39,6 +49,9 @@ export const PARTNERSHIP_SCHEMA = closed({
     attribution: { const: "operator-configured approximation" },
   }),
 });
+PARTNERSHIP_SCHEMA.required = PARTNERSHIP_SCHEMA.required.filter(
+  (key) => key !== "collaborator_model",
+);
 export function partnership(mode: InceptionMode = "independent"): Partnership {
   return {
     schema: "rain-partnership/v1",
@@ -65,6 +78,7 @@ export interface CognitiveMemory {
   layer: "foundational" | "episodic" | "semantic" | "creative" | "critical";
   text: string;
   origin: string;
+  consolidated_origins?: string[];
   source_ids: string[];
   evidence_run_ids: string[];
   status: "source-context" | "model-inferred" | "scripted";

@@ -65,6 +65,7 @@ import { createResearchProgram } from "../research/program.js";
 import { researchScopeErrors } from "../../bethesda/rain/researchProtocol.js";
 import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
 import { searchResearchLiterature } from "./models.js";
+import type { InheritedFinding } from "../research/inheritance.js";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const yieldHost = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -81,10 +82,12 @@ export function discoveryHistory(entries: readonly DiscoveryEntry[]): DiscoveryR
 }
 export interface DiscoveryInput {
   inheritedSources?: ResearchSource[];
+  inheritedFindings?: InheritedFinding[];
   charter: Charter;
   authorization: CharterAuthorization;
   budgets: SessionBudgets;
   model: LocalModel;
+  collaboratorModel?: LocalModel;
   store: ResearchStore;
   runtime: Pick<RuntimeApi, "identity" | "preregister" | "submission">;
   question: string;
@@ -143,32 +146,49 @@ export async function runDiscovery(input: DiscoveryInput) {
   const call = async <T>(
     seat: string,
     request: StructuredRequest,
-  ): Promise<{ value: T; id: string; digest: string }> => {
+  ): Promise<{
+    value: T;
+    id: string;
+    digest: string;
+    generation: "model" | "scripted";
+    provenance: {
+      provider: string;
+      model: string;
+      endpoint: string;
+      prompt_sha256: string;
+    };
+  }> => {
     guard();
     if (modelCalls >= budgets.model_calls) throw new Error("Model-call ceiling reached");
     if (budgets.model_tokens !== null && (!tokensKnown || tokens >= budgets.model_tokens))
       throw new Error("Token ceiling reached or token accounting unavailable");
     modelCalls++;
+    const participant = seat.startsWith("research-Research-Collaborator-")
+      ? (input.collaboratorModel ?? model)
+      : model;
     const id = `DD-${randomUUID()}`;
     emit("inference-request", {
       id,
       seat,
-      model: model.model,
-      provider: model.provider,
-      endpoint: model.endpoint,
-      generation: model.generation ?? "model",
+      model: participant.model,
+      provider: participant.provider,
+      endpoint: participant.endpoint,
+      generation: participant.generation ?? "model",
+      configuration: participant.configuration ?? null,
       request,
     });
-    const answer = await model.complete(request, { signal: abort.signal });
+    const answer = await participant.complete(request, { signal: abort.signal });
     emit("inference-answer", {
       id,
       seat,
-      model: model.model,
+      model: participant.model,
+      provider: participant.provider,
+      endpoint: participant.endpoint,
       answer,
-      generation: model.generation ?? "model",
+      generation: participant.generation ?? "model",
     });
     guard();
-    if (answer.reportedModel && answer.reportedModel !== model.model)
+    if (answer.reportedModel && answer.reportedModel !== participant.model)
       throw new Error("Model identity changed during inference");
     tokensKnown =
       tokensKnown && answer.promptTokens !== null && answer.completionTokens !== null;
@@ -181,7 +201,18 @@ export async function runDiscovery(input: DiscoveryInput) {
       throw new Error(`Incomplete model response: ${answer.finishReason}`);
     const checked = checkData<T>(JSON.parse(answer.text), request.schema);
     if (!checked.ok) throw new Error(checked.errors.join("; "));
-    return { value: checked.value, id, digest: sha256Json({ request, answer }) };
+    return {
+      value: checked.value,
+      id,
+      digest: sha256Json({ request, answer }),
+      generation: participant.generation ?? "model",
+      provenance: {
+        provider: participant.provider,
+        model: participant.model,
+        endpoint: participant.endpoint,
+        prompt_sha256: sha256Json(request),
+      },
+    };
   };
   try {
     history.push(...discoveryHistory(store.discoveryEntries()));
@@ -214,6 +245,37 @@ export async function runDiscovery(input: DiscoveryInput) {
       throw new Error("Model differs from approved charter");
     if ((await classifyUrl(model.endpoint)) === "remote")
       throw new Error("Discovery requires local inference");
+    const collaborator = input.collaboratorModel;
+    const collaboratorBinding = charter.research?.partnership?.collaborator_model;
+    if (
+      !!collaborator !== !!collaboratorBinding ||
+      (collaborator &&
+        canonicalJson(collaboratorBinding) !==
+          canonicalJson({
+            provider: collaborator.provider,
+            model: collaborator.model,
+            endpoint: collaborator.endpoint,
+          }))
+    )
+      throw new Error("Collaborator differs from the reviewed charter");
+    if (
+      collaborator &&
+      collaborator.provider !== "openai" &&
+      (await classifyUrl(collaborator.endpoint)) === "remote"
+    )
+      throw new Error("Remote local-provider endpoint refused");
+    if (
+      collaborator?.provider === "openai" &&
+      collaborator.endpoint !== "https://api.openai.com"
+    )
+      throw new Error("Unsupported remote research destination");
+    if (
+      collaborator &&
+      !(await collaborator.listModels({ signal: abort.signal })).includes(
+        collaborator.model,
+      )
+    )
+      throw new Error("Approved collaborator model is unavailable");
     if (!(await model.listModels({ signal: abort.signal })).includes(model.model))
       throw new Error("Approved local model is unavailable");
     guard();
@@ -229,6 +291,7 @@ export async function runDiscovery(input: DiscoveryInput) {
     if (charter.research)
       program = createResearchProgram({
         inheritedSources: input.inheritedSources,
+        inheritedFindings: input.inheritedFindings,
         scope: charter.research,
         capabilities: charter.family,
         session,
@@ -249,6 +312,8 @@ export async function runDiscovery(input: DiscoveryInput) {
       authorization,
       budgets,
       model: model.model,
+      provider: model.provider,
+      generation: model.generation ?? "model",
     });
     notify(
       "OBSERVE",
@@ -276,7 +341,11 @@ export async function runDiscovery(input: DiscoveryInput) {
       if (record.run) evidenceIds.add(record.run_id);
     }
     // Pre-registrations reserve protocols even when a process stopped before writing a run.
-    const registry = new Registry(store.registryDir());
+    const registry = new Registry(
+      store.registryDir(),
+      () => new Date(),
+      (bytes) => store.checkWriteBudget(bytes + 65536),
+    );
     for (const id of registry.experimentIds()) {
       const definition = registry.loadDefinition(id);
       const parameters = definition.parameters as Record<string, unknown> | undefined;
@@ -588,13 +657,28 @@ export async function runDiscovery(input: DiscoveryInput) {
         },
         {
           models: [
-            {
-              role: "researcher",
-              name: model.model,
-              provider: model.provider,
-              calls: modelCalls,
-            },
-          ],
+            model,
+            ...(input.collaboratorModel ? [input.collaboratorModel] : []),
+          ].map((participant, index) => ({
+            role: index ? "collaborator" : "researcher",
+            name: participant.model,
+            provider: participant.provider,
+            calls: store
+              .discoveryEntries()
+              .filter(
+                (e) =>
+                  e.session === session &&
+                  e.kind === "inference-request" &&
+                  (e.payload as { model: string; provider: string }).model ===
+                    participant.model &&
+                  (e.payload as { provider: string }).provider === participant.provider &&
+                  (e.payload as { endpoint: string }).endpoint === participant.endpoint &&
+                  (!input.collaboratorModel ||
+                    (e.payload as { seat: string }).seat.startsWith(
+                      "research-Research-Collaborator-",
+                    ) === !!index),
+              ).length,
+          })),
         },
       );
       if (!submission.ok) throw new Error(submission.errors.join("; "));

@@ -8,6 +8,8 @@ import { soulText } from "../meeting/souls.js";
 import { PARTNERSHIP_STAGES, partnerPrompt, cognitiveMemory } from "./partnership.js";
 import { PARTNERS, type Partner } from "../../bethesda/rain/inceptionProtocol.js";
 import { ROOT_LAB, WORLD_CAPABILITIES, type ResearchWorld } from "./worlds.js";
+import type { InheritedFinding } from "./inheritance.js";
+import { runArtifactSha256 } from "../../bethesda/rain/record.js";
 import {
   corpusContext,
   mathematicsContext,
@@ -43,9 +45,21 @@ import {
 export type ResearchCall = <T>(
   seat: string,
   request: StructuredRequest,
-) => Promise<{ value: T; id: string; digest: string }>;
+) => Promise<{
+  value: T;
+  id: string;
+  digest: string;
+  generation?: "model" | "scripted";
+  provenance?: {
+    provider: string;
+    model: string;
+    endpoint: string;
+    prompt_sha256: string;
+  };
+}>;
 interface ProgramHost {
   inheritedSources?: ResearchSource[];
+  inheritedFindings?: InheritedFinding[];
   scope: ResearchScope;
   capabilities: Envelope;
   session: string;
@@ -216,6 +230,25 @@ export function createResearchProgram(host: ProgramHost) {
         parent: r.parent,
       }));
   const context = () => ({
+    operator_comments: host.store
+      .discoveryEntries()
+      .filter(
+        (e) =>
+          e.kind === "operator-intervention" &&
+          (e.payload as { charter_sha256: string }).charter_sha256 ===
+            host.charter_sha256,
+      )
+      .slice(-8)
+      .map((e) => ({
+        origin: e.sha256,
+        at: e.at,
+        comment: (e.payload as { text: string }).text,
+      })),
+    operator_comment_rule:
+      "Comments may challenge reasoning within the approved goal. They cannot change the charter, tools, budgets, source permissions or evidence standing. Apply at the next inference checkpoint; do not pretend to interrupt or edit an already running response.",
+    inherited_findings: host.inheritedFindings ?? [],
+    inheritance_rule:
+      "These are predecessor simulator findings or tentative hypotheses, not child measurements or external observations. They cannot authorize execution. Cite their receipt IDs as context, never as a locally completed run.",
     capabilities: host.capabilities,
     sources: [...sources.values()]
       .slice(-8)
@@ -262,7 +295,10 @@ export function createResearchProgram(host: ProgramHost) {
         mode: config.mode,
         context: independentContext ?? context(),
         results: brief(history),
-        memory: view.memory?.filter((m) => m.namespace === name),
+        memory: view.memory
+          ?.filter((m) => m.namespace === name)
+          .slice(0, 12)
+          .map((m) => ({ ...m, text: m.text.slice(0, 240) })),
         profile: config.profile,
       }),
     });
@@ -275,7 +311,8 @@ export function createResearchProgram(host: ProgramHost) {
     const turn = {
       perspective: name,
       role: stage,
-      generation: host.generation,
+      generation: answer.generation ?? host.generation,
+      ...(answer.provenance ? { provenance: answer.provenance } : {}),
       decision_id: answer.id,
       contribution: c,
     };
@@ -290,9 +327,10 @@ export function createResearchProgram(host: ProgramHost) {
         scope.partnership,
         [...sources.values()],
         new Set(history.map((r) => r.run_id)),
+        scope.goal,
       );
   };
-  const proposeWorld = () => {
+  const proposeWorld = (history: readonly DiscoveryResult[] = []) => {
     if (!scope.partnership) return;
     const turn = [...view.turns]
       .reverse()
@@ -342,6 +380,30 @@ export function createResearchProgram(host: ProgramHost) {
         "Invalid output or failed replay",
       ],
     };
+    const origin = host.store
+      .discoveryEntries()
+      .find(
+        (e) =>
+          e.kind === "research-turn" &&
+          (e.payload as { decision_id: string }).decision_id === turn.decision_id,
+      );
+    if (origin)
+      spec.inheritance.push({
+        id: turn.decision_id,
+        sha256: origin.sha256,
+        status: "hypothesis",
+      });
+    const result = ownResults(history).at(-1);
+    const record = result
+      ? host.store.records().find((r) => r.digestOK && r.record?.run_id === result.run_id)
+          ?.record
+      : null;
+    if (result?.replay && result.registry_run_id && record)
+      spec.inheritance.push({
+        id: result.run_id,
+        sha256: runArtifactSha256(record),
+        status: "simulated",
+      });
     host.emit("world-proposed", {
       spec,
       digest: sha256Json(spec),
@@ -371,6 +433,14 @@ export function createResearchProgram(host: ProgramHost) {
       corpusContext(scope.goal).forEach(retain);
       mathematicsContext(scope.goal).forEach(retain);
       host.inheritedSources?.forEach(retain);
+      for (const entry of host.store
+        .discoveryEntries()
+        .filter((e) => e.kind === "operator-source")) {
+        const source = entry.payload as ResearchSource;
+        if (scope.partnership?.profile.source_ids.includes(source.id)) retain(source);
+      }
+      for (const finding of host.inheritedFindings ?? [])
+        host.emit("research-inheritance", finding);
       if (scope.partnership?.profile.source_ids.some((id) => !sources.has(id)))
         throw new Error("Profile cites an unavailable approved source");
       refresh(
@@ -440,7 +510,7 @@ export function createResearchProgram(host: ProgramHost) {
         "DESIGN",
         "The research participants have recorded hypotheses, disagreements and next experiments",
       );
-      if (scope.partnership?.mode === "institution") proposeWorld();
+      if (scope.partnership?.mode === "institution") proposeWorld(history);
       return context();
     },
     async afterResult(
@@ -458,7 +528,7 @@ export function createResearchProgram(host: ProgramHost) {
             independent,
           );
         remember(history);
-        proposeWorld();
+        proposeWorld(history);
       }
       const e = evidence(history);
       view.gaps = deliveryGaps(scope, e);

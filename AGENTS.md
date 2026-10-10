@@ -982,7 +982,11 @@ manuscripts are model context, never simulator evidence. The optional versioned
 research scope binds the question, external literature permission and delivery
 limits into the charter digest. Only the fixed, bounded Crossref adapter in
 `autonomy/models.ts` performs approved public metadata queries; inference stays
-local. Research modules cannot start processes, fetch, write files or mutate the
+local by default. Project Inception may use an explicitly charter-bound server-side
+OpenAI collaborator only with operator remote consent and server-owned credentials;
+the founder, designer and controller remain local. Network adapters remain in
+`autonomy/models.ts`; keys must never enter prompts, journals or browser code.
+Research modules cannot start processes, fetch, write files or mutate the
 simulator. All persistence uses `autonomy/store.ts`.
 
 Keep exact source receipts and reading scope. Numeric manuscript references bind

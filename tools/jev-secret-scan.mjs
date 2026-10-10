@@ -43,7 +43,7 @@ const patterns = [
   {
     name: "credential variable name",
     test: (text) =>
-      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|RAIN_REGISTRY_SECRET|VITE_RAIN_/.test(
+      /TYPESAFE_API_KEY|VITE_TYPESAFE|FASTINO_API_KEY|VITE_FASTINO|LLM_API_KEY|VITE_LLM_|RAIN_OPENAI_API_KEY|RAIN_REGISTRY_SECRET|VITE_RAIN_/.test(
         text,
       ),
   },
@@ -108,6 +108,7 @@ for (const variable of [
   "FASTINO_API_KEY",
   "LLM_API_KEY",
   "RAIN_LLM_API_KEY",
+  "RAIN_OPENAI_API_KEY",
   "RAIN_REGISTRY_SECRET",
 ]) {
   const value = (process.env[variable] ?? "").trim();

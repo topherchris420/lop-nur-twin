@@ -21,6 +21,15 @@ import { createDiscoveryService } from "../src/rain/autonomy/discoveryService.js
 import { verifyRecordSync } from "../src/bethesda/rain/replay.js";
 import { labRevision } from "../src/bethesda/rain/provenance.js";
 import { execFileSync } from "node:child_process";
+import { inheritanceCatalog } from "../src/rain/research/inheritance.js";
+import {
+  compareInstitutions,
+  type ComparisonPlan,
+} from "../src/rain/research/institutionEvaluation.js";
+import { sha256Json } from "../src/rain/sha256.js";
+import type { StructuredRequest } from "../src/rain/autonomy/models.js";
+import type { DiscoveryResult } from "../src/bethesda/rain/discoveryView.js";
+const compare = process.argv.includes("--compare");
 
 const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const dirty =
@@ -50,6 +59,22 @@ const charter = buildDiscoveryCharter({
   envelope: DEFAULT_ENVELOPE,
   research: { ...researchScope(question, false), partnership: partnership() },
 });
+const comparisonPlan: ComparisonPlan = {
+  schema: "rain-inception-comparison/v1",
+  question,
+  generations: 1,
+  sessions_per_arm: 2,
+  ceilings_per_session: { experiments: 2, model_calls: 40, runtime_ms: 240000 },
+  model: { provider: model.provider, model: model.model, generation: "scripted" },
+  comparison_corpus_sha256: sha256Json([]),
+  primary_metric: "nonduplicate_protocols_per_model_call",
+};
+if (compare)
+  store.appendDiscovery("comparison", "comparison-preregistered", {
+    plan: comparisonPlan,
+    digest: sha256Json(comparisonPlan),
+    reasoning: "scripted CI fixture, not model discovery",
+  });
 // A scripted operator attestation is confined to this explicitly invoked offline fixture.
 function fixtureAuthorization(value: typeof charter) {
   const checked = authorizeCharter({
@@ -89,7 +114,21 @@ const sources = store
     const s = e.payload as ResearchSource;
     return { id: s.id, sha256: s.sha256, status: "source-context" as const };
   });
-approveWorld(store, proposal.spec, sources, {
+// Inherit one simulator finding and one tentative hypothesis with their original labels.
+const catalog = inheritanceCatalog(store);
+for (const status of ["simulated", "hypothesis"] as const) {
+  const receipt = catalog.find((r) => r.status === status);
+  if (!receipt) throw new Error("Missing inheritance receipt: " + status);
+  const ref = { id: receipt.id, sha256: receipt.sha256, status: receipt.status };
+  if (!proposal.spec.inheritance.some((r) => r.id === ref.id))
+    proposal.spec.inheritance.push(ref);
+}
+proposal.digest = sha256Json(proposal.spec);
+store.appendDiscovery("fixture-operator", "world-proposed", {
+  ...proposal,
+  origin: "scripted operator-selected inheritance",
+});
+approveWorld(store, proposal.spec, [...sources, ...catalog], {
   operator: "Scripted.Demo.Operator",
   reviewed: true,
   typedPrefix: proposal.digest.slice(0, 8),
@@ -112,6 +151,74 @@ const restarted = createDiscoveryService(
   process.cwd(),
 ).status();
 if (restarted.active || store.lock()) throw new Error("Unsafe recovery");
+let comparisonReport: string | null = null;
+if (compare) {
+  class ControlFixture extends ResearchFixtureModel {
+    override async complete(request: StructuredRequest) {
+      const answer = await super.complete(request);
+      if (request.schemaName === "rain_discovery_candidates") {
+        const context = JSON.parse(request.user) as { memory: DiscoveryResult[] };
+        const parsed = JSON.parse(answer.text) as {
+          candidates: { parameters: { pedestrians: number } }[];
+        };
+        parsed.candidates[0]!.parameters.pedestrians = 40 + context.memory.length * 20;
+        answer.text = JSON.stringify(parsed);
+      }
+      return answer;
+    }
+  }
+  const control = new ResearchStore(join(root, "nonrecursive-control"));
+  const controlCharter = structuredClone(charter);
+  controlCharter.research!.minimum_experiments = 4;
+  control.appendDiscovery("comparison", "comparison-preregistered", {
+    plan: comparisonPlan,
+    digest: sha256Json(comparisonPlan),
+    role: "nonrecursive control; same pair, no descendant",
+  });
+  const controlRuntime = await configureRuntime({
+    env: { RAIN_REGISTRY_DIR: control.registryDir() },
+    cwd: process.cwd(),
+    registryWriteGuard: (bytes) => control.checkWriteBudget(bytes + 65536),
+  });
+  if (controlRuntime.mode !== "local") throw new Error("Control runtime unavailable");
+  let controlHistory: DiscoveryResult[] = [];
+  for (let session = 0; session < 2; session++) {
+    const result = await runDiscovery({
+      store: control,
+      model: new ControlFixture(),
+      charter: controlCharter,
+      authorization: fixtureAuthorization(controlCharter),
+      budgets: controlCharter.ceilings,
+      runtime: controlRuntime.runtime,
+      operator: "Scripted.Demo.Operator",
+      question,
+    });
+    if (
+      (!result.ok && result.ending !== "Completed bounded session") ||
+      result.executed !== 2
+    )
+      throw new Error(
+        "Control did not complete its allocated investigations: " + result.ending,
+      );
+    controlHistory = result.history;
+  }
+  const comparison = compareInstitutions(
+    comparisonPlan,
+    {
+      history: [...parent.history, ...child.history],
+      entries: [...store.discoveryEntries(), ...childStore.discoveryEntries()],
+    },
+    { history: controlHistory, entries: control.discoveryEntries() },
+  );
+  for (const r of control.records())
+    if (!verifyRecordSync(r.record).ok) throw new Error("Control replay failed");
+  store.appendDiscovery("comparison", "comparison-result", comparison);
+  comparisonReport = store.saveDiscoveryReport(
+    JSON.stringify({ plan: comparisonPlan, result: comparison }, null, 2),
+    "inception-comparison",
+  );
+  console.log("Budget-matched SCRIPTED comparison:", JSON.stringify(comparison, null, 2));
+}
 console.log(
   JSON.stringify(
     {
@@ -123,6 +230,7 @@ console.log(
       restart_active: restarted.active,
       parent_report: parent.report,
       child_report: child.report,
+      comparison_report: comparisonReport,
       conclusions:
         "Simulator pipeline demonstrated; recursive scientific improvement not established",
     },

@@ -35,6 +35,7 @@ export interface ResearchScope {
   require_confirmation: boolean;
   manuscript_revisions: number;
   partnership?: Partnership;
+  world_sha256?: string;
 }
 const words = (maxLength: number) => ({ type: "string", minLength: 1, maxLength });
 const integer = (minimum: number, maximum: number) => ({
@@ -57,8 +58,11 @@ export const RESEARCH_SCOPE = closed({
   require_confirmation: { type: "boolean" },
   manuscript_revisions: integer(1, 3),
   partnership: PARTNERSHIP_SCHEMA,
+  world_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
 });
-RESEARCH_SCOPE.required = RESEARCH_SCOPE.required.filter((key) => key !== "partnership");
+RESEARCH_SCOPE.required = RESEARCH_SCOPE.required.filter(
+  (key) => !["partnership", "world_sha256"].includes(key),
+);
 export function researchScope(goal: string, online: boolean): ResearchScope {
   const scope: ResearchScope = {
     schema: RESEARCH_SCOPE_SCHEMA,
@@ -88,7 +92,7 @@ export function researchScopeErrors(raw: unknown): string[] {
 }
 export interface ResearchSource {
   id: string;
-  kind: "corpus" | "mathematics" | "literature";
+  kind: "corpus" | "mathematics" | "literature" | "operator";
   title: string;
   locator: string;
   sha256: string;
@@ -124,6 +128,12 @@ export const CONTRIBUTION_SCHEMA = closed({
   mathematical_assumptions: texts(4, 600),
 });
 export interface ResearchTurn {
+  provenance?: {
+    provider: string;
+    model: string;
+    endpoint: string;
+    prompt_sha256: string;
+  };
   perspective: string;
   role: string;
   generation: "model" | "scripted";

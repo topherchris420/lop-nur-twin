@@ -76,7 +76,18 @@ function atomicWrite(path: string, text: string): void {
   const tmp = `${path}.${process.pid}.${Date.now()}.tmp`;
   try {
     writeFileSync(tmp, text, { encoding: "utf8", flag: "wx" });
-    renameSync(tmp, path);
+    // Windows indexers/antivirus can briefly deny replacement. Retry only the
+    // same atomic rename; never rerun an experiment or replace it non-atomically.
+    for (let attempt = 0; ; attempt++) {
+      try {
+        renameSync(tmp, path);
+        break;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (process.platform !== "win32" || attempt >= 5 || !["EPERM", "EBUSY", "EACCES"].includes(code ?? "")) throw error;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+      }
+    }
   } catch (error) {
     try {
       unlinkSync(tmp);
@@ -141,8 +152,10 @@ export class Registry {
   readonly root: string;
   readonly ledgerPath: string;
   private readonly now: () => Date;
-  constructor(root: string, now: () => Date = () => new Date()) {
+  private readonly writeGuard: ((bytes: number) => void) | undefined;
+  constructor(root: string, now: () => Date = () => new Date(), writeGuard?: (bytes: number) => void) {
     this.now = now;
+    this.writeGuard = writeGuard;
     this.root = resolve(root);
     this.ledgerPath = join(this.root, "registry.json");
   }
@@ -213,6 +226,7 @@ export class Registry {
         }
       }
       ledger.allocated.push({ id: candidate, created_at: createdAt });
+      this.writeGuard?.(Buffer.byteLength(canonicalJson(ledger)));
       atomicWrite(this.ledgerPath, canonicalJson(ledger));
       return candidate;
     });
@@ -230,6 +244,7 @@ export class Registry {
     validateDefinition(draft); // refuse before an ID is consumed
     const experimentId = this.allocate(createdAt);
     const definition = assembleDefinition(fields, experimentId, createdAt);
+    this.writeGuard?.(Buffer.byteLength(canonicalJson(definition)));
     writeFileSync(join(this.experimentDir(experimentId), "experiment.json"), canonicalJson(definition), {
       encoding: "utf8",
       flag: "wx",
@@ -255,6 +270,7 @@ export class Registry {
     const path = join(this.experimentDir(experimentId), "experiment.json");
     mkdirSync(this.experimentDir(experimentId), { recursive: true });
     try {
+      if (!existsSync(path)) this.writeGuard?.(Buffer.byteLength(text));
       writeFileSync(path, text, { encoding: "utf8", flag: "wx" });
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
@@ -314,6 +330,7 @@ export class Registry {
       if (current.status !== "running")
         throw new ExperimentError(`${record.run_id} is final; run records are never overwritten`);
     }
+    this.writeGuard?.(Buffer.byteLength(canonicalJson(record)));
     atomicWrite(path, canonicalJson(record));
   }
 
@@ -346,6 +363,7 @@ export class Registry {
 
   /** Publish a complete immutable file; interruption never exposes a partial revision. */
   private writeOnce(path: string, text: string): void {
+    this.writeGuard?.(Buffer.byteLength(text));
     this.safePath(path);
     const temp = `${path}.${process.pid}.${Date.now()}.tmp`;
     const fd = openSync(temp, "wx");

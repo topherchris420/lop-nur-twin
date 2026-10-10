@@ -166,6 +166,7 @@ export interface RuntimeSecrets {
   registrySecret?: string | undefined;
 }
 export interface RuntimeOptions {
+  registryWriteGuard?: (bytes: number) => void;
   env: Env;
   secrets?: RuntimeSecrets;
   /** The checkout whose revision is reported; defaults to the working directory. */
@@ -406,6 +407,7 @@ export class RainRuntime implements RuntimeApi {
         ? resolve(cwd, registryDir)
         : (options.scratchDir ?? (() => mkdtempSync(join(tmpdir(), "rain-registry-"))))(),
       now,
+      options.registryWriteGuard,
     );
 
     let meetings: ModelMeetings | null = null;

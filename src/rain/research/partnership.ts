@@ -68,8 +68,10 @@ export function cognitiveMemory(
   config: Partnership,
   sources: readonly ResearchSource[],
   verifiedRuns: ReadonlySet<string>,
+  query = "",
 ): CognitiveMemory[] {
   const sourceIds = new Set(sources.map((s) => s.id));
+  const sourceDigests = new Map(sources.map((s) => [s.id, s.sha256]));
   const profileHash = sha256Json(config.profile);
   const sessions = new Set(
     entries
@@ -88,8 +90,29 @@ export function cognitiveMemory(
       .map((e) => e.session),
   );
   const out: CognitiveMemory[] = [];
+  const forgotten = new Set(
+    entries
+      .filter((e) => e.kind === "memory-forgotten")
+      .flatMap((e) => {
+        const p = e.payload as { id: string; ids?: string[] };
+        return p.ids ?? [p.id];
+      }),
+  );
+  const terms = new Set(query.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []);
+  const relevance = (e: DiscoveryEntry) => {
+    const words = new Set(
+      JSON.stringify((e.payload as ResearchTurn).contribution)
+        .toLowerCase()
+        .match(/[a-z0-9]{3,}/g) ?? [],
+    );
+    return [...terms].filter((t) => words.has(t)).length;
+  };
   for (const namespace of PARTNERS) {
-    for (const s of sources.slice(0, 4))
+    const foundational = [
+      ...sources.filter((s) => config.profile.source_ids.includes(s.id)),
+      ...sources.filter((s) => !config.profile.source_ids.includes(s.id)),
+    ].slice(0, 4);
+    for (const s of foundational)
       out.push({
         id: `${namespace}:${s.id}`,
         namespace,
@@ -108,13 +131,25 @@ export function cognitiveMemory(
           e.kind === "research-turn" &&
           (e.payload as ResearchTurn).perspective === namespace,
       )
-      .slice(-4);
+      .slice(-256)
+      .map((e, index) => ({ e, index, score: relevance(e) }))
+      .sort((a, b) => b.score - a.score || b.index - a.index)
+      .slice(0, 8)
+      .map(({ e }) => e);
     for (const e of turns) {
       const t = e.payload as ResearchTurn,
         c = t.contribution;
+      const historicalSources = entries
+        .filter((r) => r.session === e.session && r.kind === "research-source")
+        .map((r) => r.payload as ResearchSource);
       // Unavailable or changed evidence never re-enters a prompt as remembered knowledge.
       if (
         c.source_ids.some((id) => !sourceIds.has(id)) ||
+        c.source_ids.some((id) =>
+          historicalSources.some(
+            (s) => s.id === id && s.sha256 !== sourceDigests.get(id),
+          ),
+        ) ||
         c.evidence_run_ids.some((id) => !verifiedRuns.has(id))
       )
         continue;
@@ -138,5 +173,24 @@ export function cognitiveMemory(
         });
     }
   }
-  return out;
+  // Deterministic consolidation retains each origin; it never upgrades evidence status.
+  const consolidated = new Map<string, CognitiveMemory>();
+  for (const m of out) {
+    if (forgotten.has(m.id)) continue;
+    const key = sha256Json({
+      namespace: m.namespace,
+      layer: m.layer,
+      text: m.text,
+      status: m.status,
+      sources: m.source_ids,
+      runs: m.evidence_run_ids,
+    });
+    const existing = consolidated.get(key);
+    if (existing)
+      existing.consolidated_origins = [
+        ...new Set([...(existing.consolidated_origins ?? [existing.origin]), m.origin]),
+      ];
+    else consolidated.set(key, m);
+  }
+  return [...consolidated.values()];
 }

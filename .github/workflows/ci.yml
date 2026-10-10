@@ -113,6 +113,9 @@ jobs:
       - name: Unit tests
         run: bun run test:run
 
+      - name: Scripted Inception research and budget-matched control demonstration
+        run: bun run rain:inception:compare
+
       - name: Prove the evidence validator still rejects bad records
         run: bun run test:evidence
 

@@ -24,6 +24,8 @@ import { LabStore } from "./store";
 import { RESONANCE, ROOMS, ROOM_IDS, SPAWN, type RoomId } from "./labLayout";
 import type { ResonanceQuality } from "./ResonanceFace";
 import { resonanceView, snapshotOf } from "./resonance";
+import type { DiscoveryView } from "./discoveryView";
+import { PARTNERS, type Partner } from "./inceptionProtocol";
 
 /**
  * A small screen, either way up. The class names below spell the same query
@@ -80,6 +82,61 @@ export default function LabApp({
     visuals === "economy" ? "low" : visuals === "detail" || !coarse ? "high" : "medium";
   // A click on the instrument opens the Research Panel at what the plate shows.
   const [inspected, setInspected] = useState(0);
+  const [inception, setInception] = useState<DiscoveryView | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [showPartnership, setShowPartnership] = useState(false);
+  const [partnerColors, setPartnerColors] = useState({
+    founder: "#bd934f",
+    collaborator: "#5486bc",
+  });
+  useEffect(() => {
+    const abort = new AbortController();
+    let pending = false;
+    const read = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const response = await fetch("/api/rain/discovery", { signal: abort.signal });
+        if (!response.ok) return;
+        const v = (await response.json()) as DiscoveryView;
+        if (
+          !abort.signal.aborted &&
+          v.schema === "rain-discovery-view/v1" &&
+          Array.isArray(v.history)
+        )
+          setInception(v);
+      } catch {
+        /* Local service may be unavailable; no invented activity. */
+      } finally {
+        pending = false;
+      }
+    };
+    void read();
+    const timer = setInterval(() => void read(), 2000);
+    return () => {
+      clearInterval(timer);
+      abort.abort();
+    };
+  }, []);
+  const inspectPartner = (partner: Partner | null) => {
+    setSelectedPartner(partner);
+    setShowPartnership(true);
+  };
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      const element = event.target as HTMLElement;
+      if (
+        element.closest("input,textarea,select,button") ||
+        event.code !== "KeyE" ||
+        !nav.nearPartner
+      )
+        return;
+      setSelectedPartner(nav.nearPartner);
+      setShowPartnership(true);
+    };
+    window.addEventListener("keydown", down);
+    return () => window.removeEventListener("keydown", down);
+  }, [nav]);
   const inspectHandled = useRef(0);
   const rendering = useMemo(canRender, []);
   const touchWalk = coarse && rendering && !nav.failed;
@@ -205,16 +262,107 @@ export default function LabApp({
         nav={nav}
         quality={quality}
         auto={visuals === "auto"}
+        inception={inception}
+        onInspectPartner={inspectPartner}
+        partnerColors={partnerColors}
         onInspect={() => {
           if (store.room !== "panel") go("panel");
           setInspected((n) => n + 1);
         }}
       />
       <nav aria-label="Leave the lab" className="absolute top-4 right-4">
+        <button className={panel + " text-xs"} onClick={() => inspectPartner(null)}>
+          Inception Observatory / Researchers
+        </button>
         <button className={panel + " text-xs"} onClick={onExit}>
           Return to Bethesda
         </button>
       </nav>
+      {showPartnership && (
+        <section
+          className="absolute left-4 top-20 z-30 max-h-[70vh] w-[min(28rem,90vw)] overflow-auto rounded border border-teal-600 bg-slate-950 p-4"
+          aria-label="Researcher interaction panel"
+        >
+          <button onClick={() => setShowPartnership(false)} className={button}>
+            Close researcher panel
+          </button>
+          <h2>{selectedPartner ?? "Inception Observatory"}</h2>
+          <p className="text-xs">
+            Computational roles; customizable appearance, not an exact likeness. Approach
+            a researcher and press E, or choose below.
+          </p>
+          {PARTNERS.map((name) => (
+            <button
+              key={name}
+              className={button}
+              onClick={() => setSelectedPartner(name)}
+            >
+              {name}
+            </button>
+          ))}
+          <p>Question: {inception?.question ?? "No local research session available"}</p>
+          <p>Activity: {inception?.active ? inception.stage : "Idle"}</p>
+          {inception?.research?.turns
+            .filter((t) => !selectedPartner || t.perspective === selectedPartner)
+            .slice(-2)
+            .map((t) => (
+              <article key={t.decision_id}>
+                <h3>
+                  {t.role} ({t.generation})
+                </h3>
+                <p>{t.contribution.hypothesis}</p>
+                <p>Uncertainty / falsification: {t.contribution.falsification}</p>
+                <p>
+                  Disagreements:{" "}
+                  {t.contribution.disagreements.join("; ") || "None stated"}
+                </p>
+                <p>Sources: {t.contribution.source_ids.join(", ") || "None cited"}</p>
+                <p>
+                  Verified run references:{" "}
+                  {t.contribution.evidence_run_ids.join(", ") || "No measurement cited"}
+                </p>
+              </article>
+            ))}
+          <ul>
+            {inception?.observatory?.labs.map((lab) => (
+              <li key={lab.id}>
+                {lab.parent} → {lab.id} · generation {lab.generation} · {lab.status}
+              </li>
+            ))}
+          </ul>
+          <p>Pending world proposals: {inception?.observatory?.proposals.length ?? 0}</p>
+          <button
+            className={button}
+            onClick={() => {
+              setShowPartnership(false);
+              go("panel");
+              setInspected((n) => n + 1);
+            }}
+          >
+            Ask, intervene, review proposals or archive research
+          </button>
+          <label className="block">
+            Founder avatar color{" "}
+            <input
+              type="color"
+              value={partnerColors.founder}
+              onChange={(e) =>
+                setPartnerColors((c) => ({ ...c, founder: e.target.value }))
+              }
+            />
+          </label>
+          <label className="block">
+            Collaborator avatar color{" "}
+            <input
+              type="color"
+              value={partnerColors.collaborator}
+              onChange={(e) =>
+                setPartnerColors((c) => ({ ...c, collaborator: e.target.value }))
+              }
+            />
+          </label>
+        </section>
+      )}
       {/*
         A phone held upright (narrow and tall) is one column: the title, a band
         of the room with the stick at its foot, the rooms as a strip, and the

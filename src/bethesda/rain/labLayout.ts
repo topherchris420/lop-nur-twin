@@ -182,6 +182,16 @@ export const SEATS: Record<Perspective, Vec> = {
   Jasmine: { x: -3, z: 1.4 },
   Elena: { x: 3, z: 1.4 },
 };
+/** Computational partnership staging, not a reconstruction of real people. */
+export const INCEPTION_STATIONS = {
+  "Christopher-Sim": { x: -4.2, z: 4.7 },
+  "Research-Collaborator": { x: 4.2, z: 4.7 },
+};
+export const INCEPTION_SEATS = {
+  "Christopher-Sim": { x: -1.3, z: 2.8 },
+  "Research-Collaborator": { x: 1.3, z: 2.8 },
+};
+export const INCEPTION_OBSERVATORY = { at: { x: -10, z: 3.5 }, width: 3.2, height: 2.1 };
 /**
  * R.A.I.N.'s resonance instrument (`ResonanceFace.tsx`): a plinth carrying
  * one large Chladni plate and four small ones, between the threshold door and

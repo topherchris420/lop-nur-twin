@@ -57,6 +57,9 @@ import { canRender } from "../webgl";
 import type { LabStore } from "./store";
 import { RAINResonanceFace, type ResonanceQuality } from "./ResonanceFace";
 import { resonanceView, snapshotOf, type ResonanceView } from "./resonance";
+import { InceptionScene } from "./InceptionScene";
+import type { DiscoveryView } from "./discoveryView";
+import type { Partner } from "./inceptionProtocol";
 
 export interface LabNav {
   pos: Vec;
@@ -75,6 +78,7 @@ export interface LabNav {
   teleport: Vec | null;
   atExit: boolean;
   failed: boolean;
+  nearPartner?: Partner | null;
 }
 
 const TEAL = "#0B5D63";
@@ -1028,6 +1032,9 @@ export function LabScene({
   quality,
   auto,
   onInspect,
+  inception,
+  onInspectPartner,
+  partnerColors,
 }: {
   store: LabStore;
   nav: LabNav;
@@ -1036,6 +1043,9 @@ export function LabScene({
   auto: boolean;
   /** A click or tap on the instrument: open what R.A.I.N. is doing. */
   onInspect: () => void;
+  inception: DiscoveryView | null;
+  onInspectPartner: (partner: Partner | null) => void;
+  partnerColors: { founder: string; collaborator: string };
 }) {
   const supported = useMemo(canRender, []);
   const read = useResonance(store);
@@ -1075,6 +1085,12 @@ export function LabScene({
       <ObservationWall store={store} />
       <Systems store={store} />
       <Perspectives store={store} />
+      <InceptionScene
+        view={inception}
+        onInspect={onInspectPartner}
+        colors={partnerColors}
+        nav={nav}
+      />
       <RAINResonanceFace
         key={quality}
         read={read}

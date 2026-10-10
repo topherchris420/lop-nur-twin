@@ -3,6 +3,9 @@ import { DISCOVERY_QUESTION } from "./discoveryProtocol.js";
 import type { DiscoveryView } from "./discoveryView.js";
 import { researchArtifactHref } from "./researchProtocol.js";
 import { partnership, INCEPTION_MODES, type InceptionMode } from "./inceptionProtocol.js";
+import { SchedulePanel } from "./SchedulePanel";
+import { DescendantInspector } from "./DescendantInspector";
+import { AssessmentPanel } from "./AssessmentPanel";
 
 const button = "rounded border border-teal-700 px-3 py-2 text-sm disabled:opacity-40";
 export function DiscoveryWorkbench() {
@@ -23,6 +26,12 @@ export function DiscoveryWorkbench() {
   const [memoryEpoch, setMemoryEpoch] = useState(0);
   const [worldPrefix, setWorldPrefix] = useState("");
   const [worldReviewed, setWorldReviewed] = useState(false);
+  const [collaboratorText, setCollaboratorText] = useState("");
+  const [intervention, setIntervention] = useState("");
+  const [inspectedLab, setInspectedLab] = useState<string | null>(null);
+  const [sourceTitle, setSourceTitle] = useState("");
+  const [sourceText, setSourceText] = useState("");
+  const [sourceReviewed, setSourceReviewed] = useState(false);
   const accept = (data: unknown) => {
     const v = data as DiscoveryView;
     if (
@@ -37,6 +46,29 @@ export function DiscoveryWorkbench() {
         "Local discovery workbench unavailable. Run this checkout locally with LM Studio and RAIN_AUTONOMY_ENABLED=true.",
       );
     setView(v);
+    if (v.approved_source) {
+      setProfileText((previous) => {
+        try {
+          const profile = JSON.parse(previous) as ReturnType<
+            typeof partnership
+          >["profile"];
+          if (profile.source_ids.includes(v.approved_source!.id)) return previous;
+          return JSON.stringify(
+            {
+              ...profile,
+              version: profile.version + 1,
+              source_ids: [...profile.source_ids, v.approved_source!.id],
+            },
+            null,
+            2,
+          );
+        } catch {
+          return previous;
+        }
+      });
+      setReviewed(false);
+      setPrefix("");
+    }
     const config = v.charter?.research?.partnership ?? v.research?.partnership;
     if (
       (!restoredProfile.current ||
@@ -47,6 +79,11 @@ export function DiscoveryWorkbench() {
       setMode(config.mode);
       setMemoryEpoch(config.memory_epoch);
       setProfileText(JSON.stringify(config.profile, null, 2));
+      setCollaboratorText(
+        config.collaborator_model
+          ? JSON.stringify(config.collaborator_model, null, 2)
+          : "",
+      );
       setQuestion(v.question);
       setReviewed(false);
       setPrefix("");
@@ -104,6 +141,30 @@ export function DiscoveryWorkbench() {
       setBusy(false);
     }
   };
+  const archive = async (id: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        "/api/rain/discovery?archive=" + encodeURIComponent(id),
+      );
+      if (!response.ok)
+        throw new Error(
+          "Archive refused; inspect evidence integrity or export individual artifacts",
+        );
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const download = document.createElement("a");
+      download.href = url;
+      download.download = "rain-inception-" + id + ".json";
+      download.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const partnershipMatches = () => {
     const configured = view?.charter?.research?.partnership;
     if (!inception) return !configured;
@@ -112,6 +173,8 @@ export function DiscoveryWorkbench() {
         !!configured &&
         configured.mode === mode &&
         configured.memory_epoch === memoryEpoch &&
+        JSON.stringify(configured.collaborator_model ?? null) ===
+          JSON.stringify(collaboratorText.trim() ? JSON.parse(collaboratorText) : null) &&
         JSON.stringify(configured.profile) === JSON.stringify(JSON.parse(profileText))
       );
     } catch {
@@ -165,6 +228,27 @@ export function DiscoveryWorkbench() {
         leave this computer)
       </label>
       <div className="my-2 flex flex-wrap gap-2">
+        {inception && (
+          <label className="block w-full text-sm">
+            Optional separate collaborator model (JSON; blank shares local Qwen)
+            <textarea
+              className="block w-full bg-black/30 p-2"
+              value={collaboratorText}
+              maxLength={600}
+              disabled={view?.active}
+              placeholder={
+                '{"provider":"openai","model":"your-explicit-model-version","endpoint":"https://api.openai.com"}'
+              }
+              onChange={(e) => {
+                setCollaboratorText(e.target.value);
+                setReviewed(false);
+              }}
+            />
+            Remote inference sends supplied source excerpts, prior research and memory to
+            the provider. It requires matching server configuration, credentials, explicit
+            remote consent and a new charter approval.
+          </label>
+        )}
         <label className="block text-sm">
           <input
             type="checkbox"
@@ -215,6 +299,78 @@ export function DiscoveryWorkbench() {
               className={button}
               disabled={view?.active}
               onClick={() => {
+                setProfileText(JSON.stringify(partnership().profile, null, 2));
+                setMemoryEpoch((n) => n + 1);
+                setCollaboratorText("");
+                setReviewed(false);
+              }}
+            >
+              Reset profile and recalled memory
+            </button>
+            <details>
+              <summary>Add an explicitly approved creative or research excerpt</summary>
+              <label className="block">
+                Source title{" "}
+                <input
+                  maxLength={200}
+                  value={sourceTitle}
+                  onChange={(e) => {
+                    setSourceTitle(e.target.value);
+                    setSourceReviewed(false);
+                  }}
+                />
+              </label>
+              <label className="block">
+                Approved excerpt (poetry, art description, discussion or technical
+                writing){" "}
+                <textarea
+                  maxLength={4000}
+                  value={sourceText}
+                  onChange={(e) => {
+                    setSourceText(e.target.value);
+                    setSourceReviewed(false);
+                  }}
+                />
+              </label>
+              <label className="block">
+                <input
+                  type="checkbox"
+                  checked={sourceReviewed}
+                  onChange={(e) => setSourceReviewed(e.target.checked)}
+                />{" "}
+                I approve this supplied excerpt for research context
+              </label>
+              <button
+                className={button}
+                disabled={
+                  busy ||
+                  view?.active ||
+                  !sourceReviewed ||
+                  !sourceText.trim() ||
+                  !sourceTitle.trim()
+                }
+                onClick={() =>
+                  void act("source", {
+                    title: sourceTitle,
+                    text: sourceText,
+                    reviewed: sourceReviewed,
+                  })
+                }
+              >
+                Register and attach approved source to profile
+              </button>
+              {view?.approved_source && (
+                <p className="text-xs">
+                  Registered {view.approved_source.id} and updated the profile. Review a
+                  new charter to use this excerpt. No active prompt or permission was
+                  changed.
+                </p>
+              )}
+            </details>
+            <button
+              className={button}
+              disabled={view?.active}
+              onClick={() => {
                 setMemoryEpoch((n) => n + 1);
                 setReviewed(false);
                 setPrefix("");
@@ -245,6 +401,9 @@ export function DiscoveryWorkbench() {
                   ...partnership(mode),
                   memory_epoch: memoryEpoch,
                   profile: JSON.parse(profileText),
+                  ...(collaboratorText.trim()
+                    ? { collaborator_model: JSON.parse(collaboratorText) }
+                    : {}),
                 },
               });
             } catch {
@@ -285,7 +444,7 @@ export function DiscoveryWorkbench() {
         </button>
         <button
           className="rounded border border-red-400 bg-red-950 px-3 py-2 font-semibold text-red-100 disabled:opacity-40"
-          disabled={!view?.active}
+          disabled={!view?.active && view?.schedule?.status !== "armed"}
           onClick={() => void act("stop")}
         >
           Emergency stop
@@ -357,6 +516,35 @@ export function DiscoveryWorkbench() {
       )}
       {view && (
         <>
+          <button
+            className={button}
+            disabled={busy}
+            onClick={() => void archive("bethesda-rain")}
+          >
+            Archive parent papers, evidence, sources and history
+          </button>
+          <label className="block text-sm">
+            Intervene: challenge an assumption within the approved question
+            <textarea
+              className="block w-full bg-black/30 p-2"
+              maxLength={1200}
+              value={intervention}
+              onChange={(e) => setIntervention(e.target.value)}
+            />
+          </label>
+          <button
+            className={button}
+            disabled={busy || !view.charter?.research || !intervention.trim()}
+            onClick={() => void act("intervene", { text: intervention })}
+          >
+            Record comment for next reasoning checkpoint
+          </button>
+          <p className="text-xs">
+            The current inference finishes normally. Changing the objective or permissions
+            requires a new charter.
+          </p>
+          <SchedulePanel view={view} act={act} busy={busy} />
+          <AssessmentPanel view={view} act={act} busy={busy} />
           {view.observatory && (
             <section
               className="my-3 rounded border border-teal-800 p-3"
@@ -371,6 +559,16 @@ export function DiscoveryWorkbench() {
               <ul className="my-2 list-disc pl-5 text-sm">
                 {view.observatory.labs.map((lab) => (
                   <li key={lab.id}>
+                    <button className={button} onClick={() => setInspectedLab(lab.id)}>
+                      Inspect / enter recorded world
+                    </button>
+                    <button
+                      className={button}
+                      disabled={busy}
+                      onClick={() => void archive(lab.id)}
+                    >
+                      Archive descendant
+                    </button>
                     {lab.parent} → {lab.id} · generation {lab.generation} · {lab.status} ·
                     expires {lab.expires_at}
                     {lab.status === "approved" && (
@@ -385,6 +583,13 @@ export function DiscoveryWorkbench() {
                   </li>
                 ))}
               </ul>
+              {inspectedLab && (
+                <DescendantInspector
+                  key={inspectedLab}
+                  id={inspectedLab}
+                  onClose={() => setInspectedLab(null)}
+                />
+              )}
               {view.observatory.proposals.map((p) => (
                 <details key={p.digest}>
                   <summary>
@@ -514,6 +719,13 @@ export function DiscoveryWorkbench() {
                         {m.namespace} · {m.layer} · {m.status}
                       </p>
                       <p>{m.text}</p>
+                      <button
+                        className={button}
+                        disabled={busy || view.active}
+                        onClick={() => void act("forget-memory", { id: m.id })}
+                      >
+                        Remove this entry from recall
+                      </button>
                       <p className="break-all text-xs">
                         Origin: {m.origin}; references:{" "}
                         {[...m.source_ids, ...m.evidence_run_ids].join(", ") || "none"}.
@@ -556,9 +768,13 @@ export function DiscoveryWorkbench() {
               {view.research.manuscript && (
                 <details open>
                   <summary>Scientific paper draft</summary>
-                  <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-sm">
-                    {view.research.manuscript}
-                  </pre>
+                  <textarea
+                    readOnly
+                    rows={16}
+                    value={view.research.manuscript}
+                    aria-label="Research artifact contents"
+                    className="w-full max-h-96 overflow-auto whitespace-pre-wrap text-sm"
+                  />
                 </details>
               )}
               {view.research.review && (

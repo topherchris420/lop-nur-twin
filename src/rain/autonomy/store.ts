@@ -76,11 +76,22 @@ function readBounded(path: string, limit: number): string {
 export class ResearchStore {
   readonly root: string;
   readonly maxBytes: number;
-  constructor(root: string, maxBytes = 256 * 1024 * 1024) {
+  private readonly parentStore: ResearchStore | undefined;
+  constructor(root: string, maxBytes = 256 * 1024 * 1024, parentStore?: ResearchStore) {
     if (!Number.isSafeInteger(maxBytes) || maxBytes < 1)
       throw new StoreError("Storage ceiling must be a positive safe integer");
     this.root = resolve(root);
     this.maxBytes = maxBytes;
+    this.parentStore = parentStore;
+  }
+  checkWriteBudget(bytes: number): void {
+    if (
+      !Number.isSafeInteger(bytes) ||
+      bytes < 0 ||
+      this.storageBytes() + bytes > this.maxBytes
+    )
+      throw new StoreError("Research storage ceiling reached");
+    this.parentStore?.checkWriteBudget(bytes);
   }
   storageBytes(): number {
     const walk = (path: string): number => {
@@ -98,6 +109,7 @@ export class ResearchStore {
     return new ResearchStore(
       this.at("descendants", id),
       Math.min(maxBytes, this.maxBytes),
+      this,
     );
   }
 
@@ -122,8 +134,7 @@ export class ResearchStore {
   }
   /** Write a file that must not exist yet. */
   private writeOnce(path: string, text: string): void {
-    if (this.storageBytes() + Buffer.byteLength(text) > this.maxBytes)
-      throw new StoreError("Research storage ceiling reached");
+    this.checkWriteBudget(Buffer.byteLength(text));
     writeFileSync(path, text, { encoding: "utf8", flag: "wx" });
   }
 
@@ -391,7 +402,11 @@ export class ResearchStore {
     const trace = join(dir, "trace.jsonl");
     this.writeOnce(trace, "");
     return {
-      append: (entry) => appendFileSync(trace, JSON.stringify(entry) + "\n", "utf8"),
+      append: (entry) => {
+        const text = JSON.stringify(entry) + "\n";
+        this.checkWriteBudget(Buffer.byteLength(text));
+        appendFileSync(trace, text, "utf8");
+      },
       close: (summary) => {
         const path = join(dir, "summary.json");
         this.writeOnce(path, JSON.stringify(summary, null, 2) + "\n");
@@ -406,6 +421,7 @@ export class ResearchStore {
     this.ensure();
     const path = this.at("state.json");
     const temp = this.at(`state.json.${process.pid}.tmp`);
+    this.checkWriteBudget(Buffer.byteLength(JSON.stringify(state, null, 2) + "\n"));
     writeFileSync(temp, JSON.stringify(state, null, 2) + "\n", "utf8");
     renameSync(temp, path);
     return this.relative(path);

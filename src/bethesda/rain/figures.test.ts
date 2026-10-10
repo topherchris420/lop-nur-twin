@@ -19,7 +19,37 @@ import {
   type FigureCue,
   type RouteWalk,
 } from "./figureMotion";
-import { SEATS, STATIONS, clearWalk, routeInLab } from "./labLayout";
+import {
+  SEATS,
+  STATIONS,
+  INCEPTION_SEATS,
+  INCEPTION_STATIONS,
+  clearWalk,
+  routeInLab,
+} from "./labLayout";
+
+it("stages both computational partners on native collision-aware routes and customizes without changing Luca", () => {
+  for (const name of ["Christopher-Sim", "Research-Collaborator"] as const) {
+    const route = routeInLab(INCEPTION_STATIONS[name], INCEPTION_SEATS[name]);
+    expect(route.length).toBeGreaterThan(1);
+    for (let i = 1; i < route.length; i++)
+      expect(clearWalk(route[i - 1]!, route[i]!)).toBe(true);
+  }
+  const original = figureGeometry("Luca").geometry.getAttribute("color").array.slice();
+  const custom = buildFigure("Luca", "lab", {
+    body: "#bd934f",
+    accent: "#8c6638",
+    skin: "#bea58a",
+    hair: "#31313a",
+  });
+  expect(Array.from(custom.mesh.geometry.getAttribute("color").array)).not.toEqual(
+    Array.from(original),
+  );
+  custom.dispose();
+  expect(Array.from(figureGeometry("Luca").geometry.getAttribute("color").array)).toEqual(
+    Array.from(original),
+  );
+});
 
 const cue = (over: Partial<FigureCue> = {}): FigureCue => ({
   x: 0,

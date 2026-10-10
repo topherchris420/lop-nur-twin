@@ -5,6 +5,14 @@ import {
   type Partnership,
 } from "../../src/bethesda/rain/inceptionProtocol.js";
 import { checkData } from "../../src/bethesda/rain/discoveryProtocol.js";
+import {
+  SESSION_POLICY_SCHEMA,
+  type SessionPolicy,
+} from "../../src/bethesda/rain/scheduleProtocol.js";
+import {
+  ASSESSMENT_SCHEMA,
+  type InstitutionAssessment,
+} from "../../src/bethesda/rain/institutionProtocol.js";
 export function createDiscoveryHandler(
   env: Record<string, string | undefined>,
   cwd: string,
@@ -24,6 +32,44 @@ export function createDiscoveryHandler(
     try {
       service ??= createDiscoveryService(env, cwd);
       if (request.method === "GET") {
+        const verify = url.searchParams.get("verify"),
+          run = url.searchParams.get("run");
+        if (verify !== null) {
+          if (
+            [...url.searchParams.keys()].length !== 2 ||
+            !/^[a-z][a-z0-9-]{0,63}$/.test(verify) ||
+            !run ||
+            !/^[A-Za-z0-9-]{1,100}$/.test(run)
+          )
+            throw new Error("Invalid host replay request");
+          return reply(await service.verifyDescendant(verify, run, request.signal));
+        }
+        const archive = url.searchParams.get("archive");
+        if (archive !== null) {
+          if (
+            [...url.searchParams.keys()].length !== 1 ||
+            !/^[a-z][a-z0-9-]{0,63}$/.test(archive)
+          )
+            throw new Error("Invalid archive namespace");
+          return new Response(service.archive(archive), {
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Disposition":
+                'attachment; filename="rain-inception-' + archive + '.json"',
+              "Cache-Control": "no-store",
+              "X-Content-Type-Options": "nosniff",
+            },
+          });
+        }
+        const lab = url.searchParams.get("lab");
+        if (lab !== null) {
+          if (
+            [...url.searchParams.keys()].length !== 1 ||
+            !/^[a-z][a-z0-9-]{0,63}$/.test(lab)
+          )
+            throw new Error("Invalid descendant inspection");
+          return reply(service.descendant(lab));
+        }
         const artifact = url.searchParams.get("artifact");
         if (artifact !== null) {
           if ([...url.searchParams.keys()].length !== 1)
@@ -58,6 +104,12 @@ export function createDiscoveryHandler(
         pause: ["action"],
         stop: ["action"],
         recover: ["action", "digest", "reviewed"],
+        schedule: ["action", "policy", "prefix", "reviewed"],
+        "schedule-control": ["action", "command"],
+        "forget-memory": ["action", "id"],
+        intervene: ["action", "text"],
+        assess: ["action", "assessment", "reviewed"],
+        source: ["action", "title", "text", "reviewed"],
       };
       const action = typeof data.action === "string" ? data.action : "";
       const keys = fields[action];
@@ -68,6 +120,44 @@ export function createDiscoveryHandler(
       )
         throw new Error("Unknown action or fields");
       switch (action) {
+        case "source":
+          if (
+            typeof data.title !== "string" ||
+            typeof data.text !== "string" ||
+            data.reviewed !== true
+          )
+            throw new Error("Explicit source approval required");
+          return reply(service.registerSource(data.title, data.text));
+        case "assess": {
+          const checked = checkData<InstitutionAssessment>(
+            data.assessment,
+            ASSESSMENT_SCHEMA,
+          );
+          if (!checked.ok || data.reviewed !== true)
+            throw new Error("Explicit human assessment required");
+          return reply(service.assessInstitution(checked.value));
+        }
+        case "intervene":
+          if (typeof data.text !== "string") throw new Error("Operator comment required");
+          return reply(service.intervene(data.text));
+        case "forget-memory":
+          if (typeof data.id !== "string" || data.id.length > 200)
+            throw new Error("Memory identity required");
+          return reply(service.forgetMemory(data.id));
+        case "schedule": {
+          const checked = checkData<SessionPolicy>(data.policy, SESSION_POLICY_SCHEMA);
+          if (!checked.ok || typeof data.prefix !== "string" || data.reviewed !== true)
+            throw new Error("Explicit schedule review required");
+          return reply(service.approveSchedule(checked.value, data.prefix, true));
+        }
+        case "schedule-control":
+          if (
+            data.command !== "paused" &&
+            data.command !== "armed" &&
+            data.command !== "cancelled"
+          )
+            throw new Error("Unknown schedule control");
+          return reply(service.scheduleControl(data.command));
         case "approve-world":
           if (
             typeof data.digest !== "string" ||

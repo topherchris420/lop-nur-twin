@@ -37,7 +37,9 @@ manuscript critique and downloadable artifacts.
 
 External literature is **off by default**. The checkbox explicitly permits public
 query terms to leave the computer. It changes the charter digest and therefore
-requires review. Model inference remains local in either mode. The optional
+requires review. Model inference remains local by default in either mode. Project
+Inception additionally permits a separately charter-bound server-side collaborator
+provider with explicit remote consent; see [configuration and limits](RAIN_INCEPTION.md#collaborator-providers). The optional
 adapter queries only the fixed Crossref works API: up to three queries and five
 results per query with the default scope. It captures publisher-deposited metadata
 and available abstracts, not full papers or arbitrary websites. Redirects,

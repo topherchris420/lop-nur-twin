@@ -20,9 +20,12 @@ replay and recorded follow-ups. The
 that foundation from the full institutional and recursive vision.
 
 **Project Inception (experimental):** the local research workbench now offers an
-opt-in Christopher-Sim / Research-Collaborator partnership, inspectable derived
-memory, and separately reviewed descendant Bethesda investigations. Run
-`bun run rain:inception:demo` for scripted reasoning with real replayable simulator
+opt-in Christopher-Sim / Research-Collaborator partnership, versioned profiles,
+source curation, inspectable memory, durable bounded schedules and separately
+reviewed descendant Bethesda investigations. Procedural researchers and an
+Inception Observatory expose their work, child replay and local archives.
+LM Studio is the default; a charter-bound server-side OpenAI collaborator is optional.
+Run `bun run rain:inception:compare` for preregistered scripted reasoning with real replayable simulator
 experiments. See [the implementation and limitations](docs/RAIN_INCEPTION.md).
 This is not a reproduction of a person's mind or evidence of recursive scientific
 improvement.
@@ -117,15 +120,15 @@ researchers inhabit a world whose rules and outcomes can be inspected.
 
 That vision has several layers, with different implementation status:
 
-| Layer                         | Working capability                                                                                                      | Remaining development                                                                           |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| **Collaborating researchers** | James, Jasmine, Luca and Elena deliberate across experiments; later calls see prior contributions and measured findings | Evaluate sustained research quality with live local Qwen                                        |
-| **The Lab's papers**          | Bounded excerpts from seventeen pinned corpus documents inform hypotheses and manuscript references                     | Human review of the resulting scientific arguments                                              |
-| **Internet research**         | Opt-in, charter-bounded Crossref retrieval with response hashes and explicit metadata/abstract reading scope            | Full-text reading and broader literature synthesis                                              |
-| **Mathematics**               | Pinned `openai/math` context enters deliberation with explicit applicability assumptions                                | Formal derivation and checked proof execution; Lean is not run                                  |
-| **Experiments**               | Novel typed Bethesda protocols, family charters, matched controls, registry evaluation and replay                       | Broader validated backends and a demonstrated live-Qwen cycle                                   |
-| **Scientific output**         | Structured manuscripts, host-generated tables and figures, BibTeX, lineage and a separate critic with bounded revision  | Human scientific review and publication-quality validation                                      |
-| **Nested laboratories**       | Connected, human-built environments: Lop Nur, Blacksite, Bethesda and its Lab                                           | Researchers proposing descendant worlds and laboratories; no recursive world-generation runtime |
+| Layer                         | Working capability                                                                                                      | Remaining development                                                            |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| **Collaborating researchers** | James, Jasmine, Luca and Elena deliberate across experiments; later calls see prior contributions and measured findings | Evaluate sustained research quality with live local Qwen                         |
+| **The Lab's papers**          | Bounded excerpts from seventeen pinned corpus documents inform hypotheses and manuscript references                     | Human review of the resulting scientific arguments                               |
+| **Internet research**         | Opt-in, charter-bounded Crossref retrieval with response hashes and explicit metadata/abstract reading scope            | Full-text reading and broader literature synthesis                               |
+| **Mathematics**               | Pinned `openai/math` context enters deliberation with explicit applicability assumptions                                | Formal derivation and checked proof execution; Lean is not run                   |
+| **Experiments**               | Novel typed Bethesda protocols, family charters, matched controls, registry evaluation and replay                       | Broader validated backends and a demonstrated live-Qwen cycle                    |
+| **Scientific output**         | Structured manuscripts, host-generated tables and figures, BibTeX, lineage and a separate critic with bounded revision  | Human scientific review and publication-quality validation                       |
+| **Nested laboratories**       | Human-built environments plus declarative, separately authorized Bethesda descendants (depth two), lineage and replay   | New simulator capabilities and independently demonstrated scientific improvement |
 
 The [native research program](docs/RAIN_RESEARCH_PROGRAM.md) now connects these
 working pieces inside the existing R.A.I.N. controller. A reviewed goal can continue

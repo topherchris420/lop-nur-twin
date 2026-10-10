@@ -28,6 +28,8 @@ import {
 } from "./worlds.js";
 import { descendantCharter, runDescendant } from "../autonomy/descendants.js";
 import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
+import { inheritanceCatalog } from "./inheritance.js";
+import { sha256Json } from "../sha256.js";
 
 let root: string;
 beforeEach(() => {
@@ -119,12 +121,27 @@ describe("native research program", () => {
       spec: ResearchWorld;
       digest: string;
     };
-    const available = entries
+    const available: ResearchWorld["inheritance"] = entries
       .filter((e) => e.kind === "research-source")
       .map((e) => {
         const s = e.payload as ResearchSource;
         return { id: s.id, sha256: s.sha256, status: "source-context" as const };
       });
+    const receipts = inheritanceCatalog(i.store);
+    available.push(
+      ...receipts.map((r) => ({ id: r.id, sha256: r.sha256, status: r.status })),
+    );
+    const simulated = receipts.find((r) => r.status === "simulated");
+    const hypothesis = receipts.find((r) => r.status === "hypothesis");
+    expect(simulated).toBeDefined();
+    expect(hypothesis).toBeDefined();
+    for (const receipt of [simulated!, hypothesis!]) {
+      const ref = { id: receipt.id, sha256: receipt.sha256, status: receipt.status };
+      if (!proposal.spec.inheritance.some((r) => r.id === ref.id))
+        proposal.spec.inheritance.push(ref);
+      available.push(ref);
+    }
+    proposal.digest = sha256Json(proposal.spec);
     expect(() =>
       approveWorld(i.store, proposal.spec, available, {
         operator: "Test.Operator",
@@ -160,6 +177,17 @@ describe("native research program", () => {
       proposal.spec.id,
       proposal.spec.budget.storage_bytes,
     );
+    const inherited = childStore
+      .discoveryEntries()
+      .filter((e) => e.kind === "research-inheritance");
+    expect(inherited.map((e) => (e.payload as { status: string }).status)).toEqual(
+      expect.arrayContaining(["simulated", "hypothesis"]),
+    );
+    expect(
+      inherited.every(
+        (e) => (e.payload as { origin_lab: string }).origin_lab === "bethesda-rain",
+      ),
+    ).toBe(true);
     for (const r of [...i.store.records(), ...childStore.records()])
       expect(verifyRecordSync(r.record!).ok).toBe(true);
     expect(i.store.discoveryEntries().some((e) => e.kind === "world-report")).toBe(true);
@@ -180,6 +208,26 @@ describe("native research program", () => {
       a.name.endsWith("manuscript.md"),
     )!;
     const service = createDiscoveryService({ RAIN_AUTONOMY_DIR: root }, process.cwd());
+    const retained = childStore.records()[0]!.record!;
+    const hostReceipt = await service.verifyDescendant(
+      proposal.spec.id,
+      retained.run_id,
+      new AbortController().signal,
+    );
+    expect(hostReceipt.verification.ok).toBe(true);
+    expect(hostReceipt.record_sha256).toBe(retained.record_sha256);
+    await expect(
+      service.verifyDescendant(
+        proposal.spec.id,
+        "falsified",
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow("Unknown");
+    const stopped = new AbortController();
+    stopped.abort();
+    await expect(
+      service.verifyDescendant(proposal.spec.id, retained.run_id, stopped.signal),
+    ).rejects.toThrow("interrupted");
     expect(service.artifact(`descendants/${proposal.spec.id}/${artifact.path}`)).toBe(
       descendant.research!.manuscript,
     );
@@ -202,7 +250,7 @@ describe("native research program", () => {
       worldErrors(
         grandchild.spec,
         descendantLabs(i.store),
-        childSources,
+        [...childSources, ...inheritanceCatalog(i.store)],
         new Date(Date.now() + 1000),
       ),
     ).toEqual([]);

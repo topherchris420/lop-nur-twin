@@ -920,7 +920,8 @@ async function runSessionUnlocked(input: SessionInput): Promise<SessionSummary> 
       analysis = read.value;
       stopAfter = read.stop;
     }
-    const label = PROVIDERS[model.provider].label;
+    const label =
+      model.provider === "openai" ? "OpenAI" : PROVIDERS[model.provider].label;
     const models: SubmittedModel[] = [
       {
         role: "researcher",
@@ -1058,7 +1059,7 @@ async function runSessionUnlocked(input: SessionInput): Promise<SessionSummary> 
       emit({ kind: "model-check", ok: false, listed: [], detail: message(error) });
       throw new Stop(
         "model_unavailable",
-        `${PROVIDERS[model.provider].label} at ${model.endpoint}: ${message(error)}`,
+        `${model.provider === "openai" ? "OpenAI" : PROVIDERS[model.provider].label} at ${model.endpoint}: ${message(error)}`,
       );
     }
     if (!listsModel(listed, model)) {
@@ -1070,7 +1071,7 @@ async function runSessionUnlocked(input: SessionInput): Promise<SessionSummary> 
       kind: "model-check",
       ok: true,
       listed: listed.slice(0, 64),
-      detail: `${model.model} is served by ${PROVIDERS[model.provider].label} at ${model.endpoint}`,
+      detail: `${model.model} is served by ${model.provider === "openai" ? "OpenAI" : PROVIDERS[model.provider].label} at ${model.endpoint}`,
     });
     for (let i = 1; i <= budgets.iterations; i++) {
       iteration = i;

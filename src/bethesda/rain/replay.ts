@@ -68,10 +68,18 @@ const same = (a: unknown, b: unknown) => {
 };
 
 /** Re-run one arm from its recorded commands and compare everything it produced. */
+export interface ReplayFrame {
+  seed: number;
+  arm: ArmName;
+  tick: number;
+  pedestrians: { x: number; z: number }[];
+  vehicles: { x: number; z: number }[];
+}
 export function* replayArm(
   d: ExperimentDefinition,
   experimentId: string,
   recorded: ArmRecord,
+  observe?: (frame: ReplayFrame) => void,
 ): Generator<number, string[]> {
   const errors: string[] = [];
   const arm: ArmName = recorded.arm;
@@ -125,6 +133,18 @@ export function* replayArm(
           replayId: recorded.id,
         }),
       );
+    if (observe)
+      observe({
+        seed: recorded.seed,
+        arm,
+        tick: s.tick,
+        pedestrians: s.agents
+          .filter((a) => !a.inside && a.kind === "pedestrian")
+          .map((a) => ({ x: a.point.x, z: a.point.z })),
+        vehicles: s.agents
+          .filter((a) => !a.inside && a.kind !== "pedestrian")
+          .map((a) => ({ x: a.point.x, z: a.point.z })),
+      });
     yield s.tick;
   }
   const trace: Trace = sim.export();
@@ -210,7 +230,10 @@ function authorityErrors(r: ExperimentRecord, d: ExperimentDefinition, sha: stri
       : verifyAuthorization(r.authorization, r.experiment_id ?? "", sha);
 }
 
-function* verifyUnguarded(raw: unknown): Generator<number, Verification> {
+function* verifyUnguarded(
+  raw: unknown,
+  observe?: (frame: ReplayFrame) => void,
+): Generator<number, Verification> {
   const checks: VerificationCheck[] = [];
   const check = (id: string, ok: boolean, detail: string) => {
     checks.push({ id, ok, detail });
@@ -336,7 +359,7 @@ function* verifyUnguarded(raw: unknown): Generator<number, Verification> {
   )
     return { ok: false, checks };
   for (const arm of r.run.arms) {
-    const errors = yield* replayArm(d, r.experiment_id!, arm);
+    const errors = yield* replayArm(d, r.experiment_id!, arm, observe);
     check(
       `arm:${arm.id}`,
       !errors.length,
@@ -382,9 +405,12 @@ function* verifyUnguarded(raw: unknown): Generator<number, Verification> {
  * Verify a record by replay. Whatever the file holds, the answer is a
  * verification: a record malformed enough to throw is a failed one.
  */
-export function* verifyRecord(raw: unknown): Generator<number, Verification> {
+export function* verifyRecord(
+  raw: unknown,
+  observe?: (frame: ReplayFrame) => void,
+): Generator<number, Verification> {
   try {
-    return yield* verifyUnguarded(raw);
+    return yield* verifyUnguarded(raw, observe);
   } catch (e) {
     return {
       ok: false,

@@ -1,4 +1,5 @@
 import type { ResearchView } from "./researchProtocol.js";
+import type { ScheduleView } from "./scheduleProtocol.js";
 /** Read-only workbench wire view; contains no server dependencies. */
 import type { Charter } from "./standing.js";
 import type { Critique, Design } from "./discoveryProtocol.js";
@@ -27,6 +28,8 @@ export interface DiscoveryResult {
   record_path: string;
 }
 export interface DiscoveryView {
+  approved_source?: { id: string; title: string; sha256: string };
+  schedule?: ScheduleView | null;
   observatory?: {
     labs: {
       id: string;
@@ -41,6 +44,13 @@ export interface DiscoveryView {
       spec: { id: string; generation: number; [key: string]: unknown };
     }[];
     reports: unknown[];
+    evaluation?: unknown;
+    inheritance?: {
+      id: string;
+      sha256: string;
+      status: "source-context" | "simulated" | "hypothesis";
+      origin_lab: string;
+    }[];
   };
   research?: ResearchView;
   schema: "rain-discovery-view/v1";

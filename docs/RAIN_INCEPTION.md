@@ -21,14 +21,17 @@ Implementation and validation status will be recorded below as increments are co
 
 Christopher-Sim and Research-Collaborator are additional model-backed participants
 in the native **research program**, alongside James, Jasmine, Luca and Elena.
-They share the configured local model, with sequential inference and separate
-memory namespaces. They do not replace the existing four-character meeting engine.
+They use sequential inference and separate memory namespaces. Both can share
+one local model; an independently configured collaborator is optional. They do
+not replace the existing four-character meeting engine.
 
 The founder profile is a versioned, operator-editable set of research methods,
 not a biography or a measured psychological model. Its initial six methods come
 from the Project Inception specification: synthesis, divergence, formalization,
 artistic exploration, criticism and bounded project design. No private files,
-chat histories or creative works are collected. The existing pinned corpus and
+chat histories or creative works are collected automatically. The operator can
+review and register a bounded source excerpt, explicitly attach its immutable
+receipt to the profile, and review a new charter. The existing pinned corpus and
 mathematical catalogue provide source context. A corpus assertion is not thereby
 independently validated. Missing sources remain missing.
 
@@ -71,14 +74,17 @@ origin digest, source/run references and evidence status. None becomes a fact
 about Christopher. Historical source or run references that are unavailable in
 the current context are omitted from recalled memory.
 
-Retrieval is deliberately inexpensive: the latest four matching turns per
-participant, at most four source excerpts per participant, and bounded text
+Retrieval ranks up to 256 matching historical turns by question-word overlap,
+selects at most eight turns per participant, and limits source excerpts and text
 slices. Matching requires the same program, profile digest and memory epoch.
-This is deterministic bounded extraction, not learned semantic consolidation.
+Deterministic duplicate consolidation preserves every origin receipt and its
+uncertainty; it never promotes a hypothesis into a verified semantic fact.
 Inspect these entries in **Inspect cognitive memory and uncertainty**. Edit the
 profile in the founder interface and increment its version when revising it.
 Review the resulting new charter. **Reset recalled memory** advances its epoch;
-old entries remain in the scientific audit. Disable Project Inception to remove
+old entries remain in the scientific audit. Individual forgetting tombstones
+all consolidated origins so they cannot silently reappear. Reset the profile to
+restore defaults, or disable Project Inception to remove
 the pair from the next reviewed program. Permanent deletion requires stopping
 the service and deliberately removing its operator-owned research directory;
 there is no UI that silently deletes scientific history.
@@ -122,7 +128,12 @@ Interactive mode supports operator questions and interventions at session
 boundaries. Independent mode continues within one approved bounded session.
 Reflection, creative and institution modes deliberate and produce proposals
 without executing experiments. Institution mode records a world proposal.
-There is no automatic scheduling of another session. A running local process
+The **Bounded session schedule** panel accepts a separately reviewed, exact-charter
+policy with an expiry, interval, session count and storage ceiling. It reserves
+the full charter compute ceiling before each session; interrupted reservations
+are never refunded. Expired, exhausted, cancelled and stopped policies do not
+resume. Pause/resume are explicit actions. A process restart restores policies
+disarmed and requires a deliberate resume of a still-valid policy. A running local process
 can finish its authorized work after the operator leaves the page. A process
 restart restores records but never resumes work. An interrupted lock requires
 explicit review and proof its owner exited. A completed or stopped child cannot
@@ -164,18 +175,22 @@ graph LR
   H --> G2[Separately approved Generation 2 proposal]
 ```
 
-The present execution path inherits source-context receipts and excerpts only.
-The schema reserves simulated-result and hypothesis classifications, but the
-runner refuses these inheritance kinds until an independent replay-validation
-path is supplied. A child report returns exact world, session and run-artifact
+Inheritance supports source context, tentative hypotheses and simulator findings.
+The host resolves exact origin-laboratory receipts and uncertainty labels. A
+simulated finding must match a completed admitted registry artifact and sealed
+record, and pass independent native replay before child research begins. It is
+inherited context, never a child measurement or a real-world observation. Child
+charters bind the world's digest, preventing authorization reuse across worlds.
+A child report returns exact world, session and run-artifact
 references; its prose never changes parent authorization. Unsupported simulator
 ideas must become conventional reviewed code changes: extend the native
 capability/compiler/runner contracts, add deterministic tests and replay support,
 and approve a new charter. There is no executable-extension tool for agents.
 
 The store applies a byte ceiling to immutable writes and checks usage during
-execution, including registry files. This is a host application limit, not an OS
-disk quota: a registry write can cross it before the next check. Storage exhaustion
+execution, including registry files. Registry writes are checked before writing,
+and child usage counts against the parent store. This is a host application limit,
+not an OS disk quota or protection against unrelated external writes. Storage exhaustion
 can prevent a final journal receipt; the persistent lock/child state remains
 non-resumable automatically. Use filesystem quotas if a hard disk limit is required.
 
@@ -223,7 +238,7 @@ tool cache because it was not on PATH):
 | ----------------------------------------------------- | -------------------------------------------------------------------- |
 | `bun run format:check`                                | Passed                                                               |
 | `bun run lint`                                        | Passed; eight existing warnings in nested local worktrees, no errors |
-| `bun run test:run --maxWorkers=2 --testTimeout=30000` | 1,651 tests passed in 128 files                                      |
+| `bun run test:run --maxWorkers=2 --testTimeout=30000` | 1,658 tests passed in 130 files                                      |
 | `bun run test:evidence`                               | All 37 documented validator rules passed                             |
 | `bun run typecheck`                                   | Passed                                                               |
 | `bun run rain:conformance`                            | Passed                                                               |
@@ -236,8 +251,10 @@ uses a directory junction on Windows to exercise the same ancestor-link refusal;
 the final complete run used two workers and a thirty-second default timeout.
 No test was disabled. Production Vite warnings about existing extensionless
 imports and large chunks remain. This full suite used offline fixtures; the
-separate live check below exercises actual Qwen inference. No browser screenshot
-was claimed by this validation.
+separate live check below exercises actual Qwen inference. The subsequent browser
+inspection passed without JavaScript errors or serious/critical axe violations;
+it checked archive contents and actual descendant reconstruction. Screenshots are
+generated locally, rather than bundled as new scene assets.
 
 ### Completed offline run
 
@@ -301,25 +318,119 @@ This is a compact inference-and-persistence check, not a live validation of the
 entire experiment/descendant workflow. Larger research sessions require an
 appropriately sized loaded context and separately reviewed execution charters.
 
-### Unimplemented capabilities
+### Remaining scientific and operational limits
 
 - No consciousness, personal identity, exact likeness or psychological fidelity
   is claimed. No new scientific law or real-world finding has been established.
-- Both roles currently use the same approved local provider/model. The adapter
-  boundary is the native `LocalModel` interface; different independent providers
-  would require per-role charter binding and accounting. **OpenAI research
-  inference is not implemented or configurable in this increment.** Existing
-  game LLM or meeting provider settings do not enable it. Keep credentials out
-  of browser code; a future adapter belongs server-side with explicit remote
-  consent, credential injection, provider identity and tests.
-- No durable automatic scheduler, automatic descendant birth, live conversational
-  interruption during an inference, permanent per-memory erasure UI or autonomous
-  simulator-code generation is implemented.
-- The pair appears as research participants in the accessible workbench, not
-  new 3D avatars. The Observatory is a 2D hierarchy; entering a child's live 3D
-  world is not implemented. Existing Bethesda/Lop Nur/Blacksite scenes are unchanged.
-- The scientific comparison is descriptive. A preregistered, budget-matched,
-  nonrecursive control and blinded quality review remain required to answer the
-  project's central research question.
+- OpenAI's adapter has offline contract tests; live external-provider inference
+  has not been tested with an operator's paid credentials. The full live Qwen
+  experiment/descendant sequence remains separately authorized operator work.
+- Interventions enter the next bounded inference context. They do not rewrite
+  an in-flight response. Cancellation cooperatively stops host work and aborts
+  network requests; a provider may continue computing after disconnect.
+- Permanent scientific audit erasure remains a deliberate filesystem operation
+  with the service stopped. Forgetting removes recall, not immutable provenance.
+- Only the existing Bethesda simulator is supported. Descendant entry is a
+  read-only, bounded replay of an approved recorded investigation, with optional
+  3D reconstruction and an accessible seed/history view. Cross-runtime state hashes
+  can differ: the viewer exposes exact browser checks and, when needed, a separate
+  bounded host replay receipt bound to the sealed record. A successful host replay
+  does not relabel differing browser frames as exact verified playback. New terrain or simulator
+  behavior requires a conventional reviewed code change.
+- Scientific originality, researcher fidelity and institutional improvement
+  remain unproven. Operator quality ratings are attestations, not authenticated
+  independent reviews. Scripted comparisons exercise the machinery; real model
+  comparisons and blinded scientific review are needed to answer the research question.
 
-No new screenshots are presented as if these unimplemented 3D capabilities exist.
+## Collaborator providers
+
+The optional collaborator JSON is part of the reviewed charter, for example:
+
+```json
+{
+  "provider": "lmstudio",
+  "model": "qwen/qwen3.5-9b",
+  "endpoint": "http://127.0.0.1:1234"
+}
+```
+
+The adapter validates the actual model listing. No second simultaneously loaded
+model is required. The default remains the same local model for both roles.
+For optional OpenAI, explicitly configure the server environment:
+
+```powershell
+$env:RAIN_COLLABORATOR_PROVIDER = 'openai'
+$env:RAIN_COLLABORATOR_MODEL = 'your-supported-model-id'
+$env:RAIN_COLLABORATOR_REMOTE_ALLOWED = 'true'
+$env:RAIN_OPENAI_API_KEY = 'your-own-key'
+```
+
+The reviewed collaborator configuration must exactly match that model and the
+fixed `https://api.openai.com` configuration (the adapter calls `/v1/chat/completions`). This sends the selected
+collaborator's research context to OpenAI. It uses strict structured output,
+`store: false`, no tools, no redirects and no silent fallback. Credentials remain
+server-side. Provider, model, prompt/configuration digests and generation kind
+are retained in decisions; the real ChatGPT application and its memory are never imported.
+
+## Founder interface, embodiment and archives
+
+Two customizable procedural humanoids occupy additional Bethesda lab stations;
+labels and contrasting colors identify them without asserting an exact likeness.
+Their animation reflects host activity. Approach and press **E**, click their
+station, or use **Inception Observatory / Researchers**. The panel shows the
+question, latest contribution, uncertainty, source/evidence references and
+disagreements. **Ask / Intervene / Approve / Explore / Compare / Archive** actions
+use the native workbench. The observatory offers both a 3D genealogy display and
+an accessible 2D hierarchy. Inspect a child to replay its retained simulator
+record; this cannot start research or grant execution permission.
+
+Archive downloads contain exact source manifests, hash-chained history, sealed
+records, receipt-checked research artifacts and world specifications, with an
+archive digest. Corrupt or quarantined evidence fails export. Export is local;
+it does not publish, push or deploy.
+
+## Full live operator workflow
+
+`bun run rain:inception:operator -- --help` lists staged commands. `--prepare`
+connects and prints a concrete charter, `--authorize <digest> --reviewed` records
+operator review, and `--start` executes only that authorized scope. `--status`
+inspects progress. World approval and `--child <id>` require separate explicit
+reviews. There is no scripted fallback. Use a context large enough for structured
+multi-turn research; the earlier compact 4,096-token Qwen check does not establish
+that a full session fits that context. SIGINT performs emergency stop.
+
+## Matched offline comparison
+
+```bash
+bun run rain:inception:compare
+```
+
+CI runs a preregistered comparison: two recursive sessions (parent and child)
+against two nonrecursive sessions, with identical declared experiment/model-call/
+runtime ceilings per session. Every completed experiment is admitted and replayed.
+The report records distinct protocols, model calls, revisions, withheld-seed
+simulator replications, provenance and proposal diversity. Human assessments can
+record resolved questions and useful cross-domain connections; unrated quantities
+remain unknown. Novelty is relative to the hashed comparison history only.
+
+The completed 2026-10-10 run `inception-demo-20261010T192651347Z` produced four
+recursive and four control experiments and restored idle after restart. The
+recursive arm had 2 distinct protocols over 60 scripted calls; the control had
+4 over 58. The primary-metric difference was -0.0356321839 distinct protocols
+per call. This fixture provides no evidence that recursion improves research.
+Its parent was `DS-da9f60c0-3c01-422f-9e35-c1790d4fbca3`, child
+`lab-76f2c6aba4a6e8c7`. Reports remain in that local `.rain-research/` directory.
+
+For browser inspection against retained evidence, run
+`node tools/rain-inception-ui.mjs http://127.0.0.1:4191` with a local dev server
+pointing at the retained research directory. It captures actual views under
+`shots/rain-inception/`, checks native child replay, archive contents and serious
+accessibility violations. It grants no authorization and starts no inference.
+
+The completed inspection used `inception-demo-20261010T183258213Z`. Its archive
+contained two parent records and nine research artifacts; the archive digest was
+`0fbd31ac401eb2fcd191a3726a011b8a72c24a45b44bd0a1ff36eb227cbeb231`.
+`researchers.png`, `descendant-replay.png` and `validation.json` are actual local
+captures and receipts. The descendant screenshot shows the host-verified/browser-
+approximate distinction explicitly. Browser replay did not reproduce every early
+state hash for one seed, so no cross-runtime bitwise equivalence is claimed.

@@ -1098,8 +1098,12 @@ interface Built {
   footprint: number;
 }
 
-function buildHuman(who: Perspective, look: HumanLook): Built {
-  const e = EMBODIMENT[who];
+function buildHuman(
+  who: Perspective,
+  look: HumanLook,
+  appearance = EMBODIMENT[who],
+): Built {
+  const e = appearance;
   const fem = look.build === "feminine";
   // The garments' colours: the client's theme, except Jasmine's dress, which
   // is the lab's own in its cut and its colour.
@@ -3120,8 +3124,18 @@ export function figurePieces(who: Perspective): {
   return build(who).pieces.map((p) => ({ geometry: p.g, thin: !!p.thin }));
 }
 
-export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig {
-  const c = cached(who);
+export function buildFigure(
+  who: Perspective,
+  setting: FigureSetting,
+  appearance?: typeof EMBODIMENT.Luca,
+): FigureRig {
+  const look = LOOKS[who];
+  const custom =
+    appearance && look.archetype === "humanoid"
+      ? buildHuman(who, look, appearance)
+      : null;
+  const c = custom ? { built: custom, geometry: assemble(custom.pieces) } : cached(who);
+  if (custom) custom.pieces.length = 0;
   const { specs } = c.built;
   const bones = specs.map((s) => {
     const b = new THREE.Bone();
@@ -3179,6 +3193,7 @@ export function buildFigure(who: Perspective, setting: FigureSetting): FigureRig
       skeleton.dispose();
       solid.dispose();
       thin.dispose();
+      if (custom) c.geometry.dispose();
     },
   };
 }
