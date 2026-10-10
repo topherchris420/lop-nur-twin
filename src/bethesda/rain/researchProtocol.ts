@@ -4,7 +4,7 @@ import { UNSAFE_TEXT } from "./contracts.js";
 import {
   COGNITIVE_ARTIFACT_SCHEMA,
   type CognitiveArtifact,
-} from "../../rain/research/cognition.js";
+} from "./cognitionProtocol.js";
 import {
   PARTNERSHIP_SCHEMA,
   type Partnership,
