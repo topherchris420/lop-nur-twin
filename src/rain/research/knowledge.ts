@@ -25,7 +25,11 @@ const terms = (s: string) =>
   [...new Set(s.toLowerCase().match(/[a-z]{3,}/g) ?? [])]
     .filter((t) => !stop.has(t))
     .slice(0, 30);
-export function corpusContext(query: string, limit = 4): ResearchSource[] {
+export function corpusContext(
+  query: string,
+  limit = 4,
+  approvedIds?: readonly string[],
+): ResearchSource[] {
   const words = terms(query);
   return corpus.files
     .map((f) => {
@@ -43,9 +47,11 @@ export function corpusContext(query: string, limit = 4): ResearchSource[] {
       const start = Math.max(0, first - 120);
       return { f, score, start };
     })
-    .filter((r) => r.score > 0)
+    .filter((r) =>
+      approvedIds ? approvedIds.includes("P-" + r.f.sha256.slice(0, 20)) : r.score > 0,
+    )
     .sort((a, b) => b.score - a.score || a.f.path.localeCompare(b.f.path))
-    .slice(0, Math.min(6, Math.max(1, limit)))
+    .slice(0, Math.min(approvedIds ? 12 : 6, Math.max(1, limit)))
     .map(({ f, start }) => ({
       id: "P-" + f.sha256.slice(0, 20),
       kind: "corpus",
@@ -69,6 +75,18 @@ export function corpusContext(query: string, limit = 4): ResearchSource[] {
       year: null,
       doi: null,
     }));
+}
+export function corpusSourceManifest() {
+  return {
+    repository: origin.repositoryUrl,
+    commit: origin.commit,
+    imported_at: origin.importedAt,
+    sources: corpus.files.map((f) => ({
+      id: "P-" + f.sha256.slice(0, 20),
+      title: f.path,
+      document_sha256: f.sha256,
+    })),
+  };
 }
 export function mathematicsContext(query: string): ResearchSource[] {
   const math = MathematicalSubstrate.load(bundledIndex());

@@ -27,6 +27,8 @@ Inception Observatory expose their work, child replay and local archives.
 LM Studio is the default; a charter-bound server-side OpenAI collaborator is optional.
 Run `bun run rain:inception:compare` for preregistered scripted reasoning with real replayable simulator
 experiments. See [the implementation and limitations](docs/RAIN_INCEPTION.md).
+The [scientific autonomy validation](docs/RAIN_SCIENTIFIC_AUTONOMY.md) documents
+the real-Qwen study runner, source ingestion, cognitive artifacts and current live evidence.
 This is not a reproduction of a person's mind or evidence of recursive scientific
 improvement.
 

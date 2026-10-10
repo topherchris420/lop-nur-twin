@@ -12,6 +12,7 @@ export const INCEPTION_MODES = [
 ] as const;
 export type InceptionMode = (typeof INCEPTION_MODES)[number];
 export interface CognitiveProfile {
+  strategy_version?: 1;
   version: number;
   methods: string[];
   source_ids: string[];
@@ -43,12 +44,19 @@ export const PARTNERSHIP_SCHEMA = closed({
     endpoint: { type: "string", minLength: 1, maxLength: 200 },
   }),
   profile: closed({
+    strategy_version: { type: "integer", const: 1 },
     version: { type: "integer", minimum: 1, maximum: 1000000 },
     methods: { ...strings(6, 400), minItems: 1 },
     source_ids: strings(12, 100),
     attribution: { const: "operator-configured approximation" },
   }),
 });
+(PARTNERSHIP_SCHEMA.properties.profile as ReturnType<typeof closed>).required = [
+  "version",
+  "methods",
+  "source_ids",
+  "attribution",
+];
 PARTNERSHIP_SCHEMA.required = PARTNERSHIP_SCHEMA.required.filter(
   (key) => key !== "collaborator_model",
 );

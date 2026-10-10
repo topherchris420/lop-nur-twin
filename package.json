@@ -60,6 +60,8 @@
     "rain:inception:demo": "node scripts/run-ts.mjs scripts/rain-inception-demo.ts",
     "rain:inception:compare": "node scripts/run-ts.mjs scripts/rain-inception-demo.ts --compare",
     "rain:inception:live": "node scripts/run-ts.mjs scripts/rain-inception-live.ts",
+    "rain:inception:study": "node scripts/run-ts.mjs scripts/rain-inception-study.ts",
+    "rain:inception:source": "node scripts/run-ts.mjs scripts/rain-inception-source.ts",
     "rain:inception:operator": "node scripts/run-ts.mjs scripts/rain-inception-operator.ts",
     "rain:inception:test": "vitest run src/rain/research/worlds.test.ts src/rain/research/partnership.test.ts src/rain/research/program.test.ts",
     "rain:admit": "node tools/rain-admit.mjs",
