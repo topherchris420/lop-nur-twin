@@ -92,6 +92,7 @@ export default function LabApp({
   useEffect(() => {
     const abort = new AbortController();
     let pending = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
     const read = async () => {
       if (pending) return;
       pending = true;
@@ -111,10 +112,21 @@ export default function LabApp({
         pending = false;
       }
     };
-    void read();
-    const timer = setInterval(() => void read(), 2000);
+    const start = async () => {
+      try {
+        const response = await fetch("/api/rain/status", { signal: abort.signal });
+        if (!response.ok || abort.signal.aborted) return;
+        const status = (await response.json()) as { configured?: boolean };
+        if (!status.configured || abort.signal.aborted) return;
+        await read();
+        if (!abort.signal.aborted) timer = setInterval(() => void read(), 2000);
+      } catch {
+        /* Local service may be unavailable; no invented activity. */
+      }
+    };
+    void start();
     return () => {
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
       abort.abort();
     };
   }, []);
