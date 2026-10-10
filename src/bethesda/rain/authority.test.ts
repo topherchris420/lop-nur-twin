@@ -210,7 +210,7 @@ describe("authority, by construction", () => {
       );
       for (const spec of imports)
         expect(spec, `${f} imports ${spec}`).toMatch(
-          /\/rain\/(protocol|experiments\/evaluate|judgment\/routing|judgment\/(contracts|calibration|sensitive)|meeting\/perspectives|mathematics\/contracts|sha256|text|corpus)(\.js)?$/,
+          /\/rain\/(protocol|experiments\/(evaluate|jsonSchema)|judgment\/routing|judgment\/(contracts|calibration|sensitive)|meeting\/perspectives|mathematics\/contracts|sha256|text|corpus)(\.js)?$/,
         );
     }
   });

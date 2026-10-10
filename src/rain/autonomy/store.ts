@@ -21,6 +21,7 @@
  */
 import {
   appendFileSync,
+  unlinkSync,
   closeSync,
   existsSync,
   fstatSync,
@@ -32,7 +33,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { canonicalJson } from "../sha256.js";
+import { canonicalJson, sha256Json } from "../sha256.js";
 import { recordDigestOK, type ExperimentRecord } from "../../bethesda/rain/record.js";
 import {
   charterIdOf,
@@ -99,6 +100,97 @@ export class ResearchStore {
   /** Write a file that must not exist yet. */
   private writeOnce(path: string, text: string): void {
     writeFileSync(path, text, { encoding: "utf8", flag: "wx" });
+  }
+
+  /** One lock across template and generated research, shared by CLI and workbench.
+   * An unclean exit leaves a lock: recovery is explicit, never an automatic resume. */
+  acquireLock(owner: string): () => void {
+    this.ensure();
+    const path = this.at("session.lock");
+    const body = canonicalJson({
+      owner,
+      pid: process.pid,
+      created_at: new Date().toISOString(),
+    });
+    try {
+      this.writeOnce(path, body);
+    } catch {
+      throw new StoreError(
+        "Research session is locked. Stop its owner or review an interrupted lock before recovery.",
+      );
+    }
+    return () => {
+      if (readBounded(path, 4096) !== body) throw new StoreError("Session lock changed");
+      unlinkSync(path);
+    };
+  }
+  lock(): { owner: string; pid: number; created_at: string; sha256: string } | null {
+    const path = this.at("session.lock");
+    if (!existsSync(path)) return null;
+    const body = readBounded(path, 4096);
+    return { ...JSON.parse(body), sha256: sha256Json(JSON.parse(body)) };
+  }
+  recoverLock(digest: string): void {
+    const lock = this.lock();
+    if (!lock || digest !== lock.sha256)
+      throw new StoreError("Review the exact interrupted lock digest");
+    try {
+      process.kill(lock.pid, 0);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+        unlinkSync(this.at("session.lock"));
+        return;
+      }
+      throw new StoreError("Cannot establish that the lock owner exited");
+    }
+    throw new StoreError("The session lock owner is still running");
+  }
+  /** Individually sealed, append-only discovery journal. A broken chain fails closed. */
+  discoveryEntries(): DiscoveryEntry[] {
+    const dir = this.at("discovery");
+    if (!existsSync(dir)) return [];
+    const entries: DiscoveryEntry[] = [];
+    let previous: string | null = null;
+    for (const name of readdirSync(dir)
+      .filter((n) => /^\d{8}\.json$/.test(n))
+      .sort()) {
+      const e = JSON.parse(readBounded(join(dir, name), MAX_RECORD)) as DiscoveryEntry;
+      const { sha256, ...body } = e;
+      if (
+        e.sequence !== entries.length ||
+        e.previous !== previous ||
+        sha256Json(body) !== sha256
+      )
+        throw new StoreError("Discovery lineage integrity check failed");
+      entries.push(e);
+      previous = sha256;
+    }
+    return entries;
+  }
+  appendDiscovery(session: string, kind: string, payload: unknown): DiscoveryEntry {
+    const entries = this.discoveryEntries();
+    const body = {
+      sequence: entries.length,
+      previous: entries.at(-1)?.sha256 ?? null,
+      session,
+      kind,
+      at: new Date().toISOString(),
+      payload,
+    };
+    const e = { ...body, sha256: sha256Json(body) };
+    this.ensure("discovery");
+    this.writeOnce(
+      this.at("discovery", `${String(e.sequence).padStart(8, "0")}.json`),
+      canonicalJson(e) + "\n",
+    );
+    return e;
+  }
+  saveDiscoveryReport(text: string, id: string): string {
+    if (!/^[a-zA-Z0-9-]+$/.test(id)) throw new StoreError("Invalid report id");
+    this.ensure("reports");
+    const path = this.at("reports", `${id}.md`);
+    this.writeOnce(path, text);
+    return this.relative(path);
   }
 
   registryDir(): string {
@@ -259,4 +351,14 @@ export interface SessionLog {
   append(entry: TraceEntry): void;
   close(summary: unknown): string;
   trace: string;
+}
+
+export interface DiscoveryEntry {
+  sequence: number;
+  previous: string | null;
+  session: string;
+  kind: string;
+  at: string;
+  payload: unknown;
+  sha256: string;
 }

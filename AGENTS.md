@@ -953,3 +953,23 @@ in dev builds only; it is stripped from production.
 Then in a browser: check all three cameras (`1`/`2`/`3`), click a structure
 (dossier + fly-to), click the minimap, toggle `N`/`I`/`R`/`H`, change the
 climate month, and confirm telemetry updates without React frame-loop state.
+
+### Native generated experimental discovery
+
+`docs/RAIN_EXPERIMENTAL_DISCOVERY.md` documents the optional discovery path.
+The legacy 44-design v1 charter policy above remains intact. Generated v3
+proposals/definitions use `discoveryProtocol.ts` and `discoveryCompiler.ts`,
+with a v2 family charter and policy. For that version, the reviewed parameter
+envelope replaces enumeration of every exact design. Host-derived operational
+questions and hypotheses remain in definitions; model prose and design lineage
+are immutable journal entries. `verifyDefinition` must recompile generated
+protocols before execution. Never bypass `preflight`, native preregistration,
+replay, or the registry's evaluator. `experiments/jsonSchema.ts` is an additional
+pure browser-safe runtime import used for this closed data vocabulary.
+
+`src/rain/autonomy/discovery.ts` uses the existing runner and registry, never
+simulator mutation methods. All discovery writes go through `store.ts`; network
+calls stay in `models.ts`. The local workbench service starts only on explicit
+operator request. Keep its loopback/same-origin restriction, shared session lock,
+cooperative stop checkpoints and no-restart-resume behavior. Scripted integration
+demonstrations must be labeled as scripted, never as Qwen discoveries.

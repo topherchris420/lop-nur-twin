@@ -1,3 +1,4 @@
+import { checkParameters, GENERATED_PROPOSAL_SCHEMA } from "./discoveryProtocol.js";
 /**
  * Fail-closed validation for everything that crosses the R.A.I.N. boundary.
  *
@@ -840,6 +841,10 @@ export function validateAdmission(
  */
 export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
   const r = new Reader("proposal");
+  const generated =
+    !!v &&
+    typeof v === "object" &&
+    (v as { schema?: unknown }).schema === GENERATED_PROPOSAL_SCHEMA;
   const o = r.object(v, "", [
     "schema",
     "proposal_id",
@@ -858,9 +863,14 @@ export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
     "rain_decision",
     "meeting_id",
     "mathematical_basis",
+    ...(generated ? ["parameters"] : []),
   ]);
   if (!o) return r.done(null as never);
-  if (o.schema !== EXPERIMENT_PROPOSAL_SCHEMA) r.fail("schema", "unsupported schema");
+  if (!generated && o.schema !== EXPERIMENT_PROPOSAL_SCHEMA)
+    r.fail("schema", "unsupported schema");
+  const parameters = generated ? checkParameters(o.parameters) : null;
+  if (parameters && !parameters.ok)
+    for (const e of parameters.errors) r.fail("parameters", e);
   // The mathematics a proposal cites: every entry closed and admissible, no
   // result twice, one substrate revision. Context for the hypothesis only.
   const basis = parseBasis(o.mathematical_basis);
@@ -921,7 +931,8 @@ export function validateProposalShape(v: unknown): Checked<ExperimentProposal> {
   if (origin === "fixture" && o.rain_decision !== null)
     r.fail("rain_decision", "a fixture cannot claim a R.A.I.N. decision");
   return r.done({
-    schema: EXPERIMENT_PROPOSAL_SCHEMA,
+    schema: generated ? GENERATED_PROPOSAL_SCHEMA : EXPERIMENT_PROPOSAL_SCHEMA,
+    ...(parameters?.ok ? { parameters: parameters.value } : {}),
     proposal_id: r.pattern(o.proposal_id, "proposal_id", ID),
     origin,
     question: r.text(o.question, "question", LIMITS.question, 1),

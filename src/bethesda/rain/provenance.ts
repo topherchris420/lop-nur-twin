@@ -26,7 +26,7 @@ import {
 export interface LabRevision {
   commit: string | null;
   dirty: boolean | null;
-  source: "ci" | "git" | "unknown";
+  source: "ci" | "git" | "unknown" | "runtime-identity";
 }
 export function labRevision(): LabRevision {
   const baked: unknown = typeof __LAB_REVISION__ === "object" ? __LAB_REVISION__ : null;
@@ -56,7 +56,7 @@ export interface Provenance {
   lop_nur_twin_source: LabRevision["source"];
   rain_contract: typeof RAIN_BETHESDA_SCHEMA;
   bethesda_contract: typeof WORLD_OBSERVATION_SCHEMA;
-  experiment_schema: typeof DEFINITION_SCHEMA;
+  experiment_schema: typeof DEFINITION_SCHEMA | "bethesda-experiment-definition/v3";
   replay_schema: typeof REPLAY_SCHEMA;
   sim_version: typeof SIM_VERSION;
   bethesda_map_sha256: string;
@@ -70,6 +70,8 @@ export interface Provenance {
 }
 
 export function provenance(input: {
+  lab?: LabRevision;
+  experimentSchema?: typeof DEFINITION_SCHEMA | "bethesda-experiment-definition/v3";
   rain: RainRevision | null;
   rainSource: RainSource;
   model: string | null;
@@ -78,7 +80,7 @@ export function provenance(input: {
   seeds: number[];
   now: Date;
 }): Provenance {
-  const lab = labRevision();
+  const lab = input.lab ?? labRevision();
   return {
     rain_repository: input.rain?.repository ?? null,
     rain_commit: input.rain?.commit ?? null,
@@ -90,7 +92,7 @@ export function provenance(input: {
     lop_nur_twin_source: lab.source,
     rain_contract: RAIN_BETHESDA_SCHEMA,
     bethesda_contract: WORLD_OBSERVATION_SCHEMA,
-    experiment_schema: DEFINITION_SCHEMA,
+    experiment_schema: input.experimentSchema ?? DEFINITION_SCHEMA,
     replay_schema: REPLAY_SCHEMA,
     sim_version: SIM_VERSION,
     bethesda_map_sha256: DATA_VERSION,

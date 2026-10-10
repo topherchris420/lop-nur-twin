@@ -1,3 +1,5 @@
+import { envelopeAdmission } from "./discoveryCompiler.js";
+import { envelopeErrors, type Envelope } from "./discoveryProtocol.js";
 /**
  * Standing authorization: a person's approval, given in advance, of a closed
  * list of exact experiment designs that R.A.I.N.'s autonomous researcher may
@@ -67,6 +69,8 @@ export const CHARTER_AUTHORIZATION_SCHEMA =
   "rain-autonomy-charter-authorization/v1" as const;
 export const POLICY_ADMISSION_SCHEMA = "rain-autonomy-admission/v1" as const;
 export const STANDING_SCHEMA = "rain-autonomy-standing-authority/v1" as const;
+export const DISCOVERY_POLICY = "rain-autonomy-policy/2" as const;
+export const DISCOVERY_CHARTER = "rain-autonomy-charter/v2" as const;
 export const POLICY_VERSION = "rain-autonomy-policy/1" as const;
 
 /**
@@ -121,9 +125,10 @@ export interface CharterModel {
   endpoint: string;
 }
 export interface Charter {
-  schema: typeof CHARTER_SCHEMA;
+  schema: typeof CHARTER_SCHEMA | typeof DISCOVERY_CHARTER;
+  family?: Envelope;
   scope: "bethesda-simulation";
-  policy_version: typeof POLICY_VERSION;
+  policy_version: typeof POLICY_VERSION | typeof DISCOVERY_POLICY;
   covers: string;
   designs: CharterDesign[];
   ceilings: Ceilings;
@@ -151,7 +156,7 @@ export interface PolicyRule {
 }
 export interface PolicyAdmission {
   schema: typeof POLICY_ADMISSION_SCHEMA;
-  policy_version: typeof POLICY_VERSION;
+  policy_version: typeof POLICY_VERSION | typeof DISCOVERY_POLICY;
   session_id: string;
   iteration: number;
   /** The model decision that asked for this design, by id and SHA-256. */
@@ -287,6 +292,21 @@ export function buildCharter(input: {
     model: { ...input.model },
     valid_hours: input.validHours,
     versions: currentVersions(),
+  };
+}
+
+export function buildDiscoveryCharter(
+  input: Parameters<typeof buildCharter>[0] & { envelope: Envelope },
+): Charter {
+  const errors = envelopeErrors(input.envelope);
+  if (errors.length) throw new Error(errors.join("; "));
+  return {
+    ...buildCharter(input),
+    schema: DISCOVERY_CHARTER,
+    policy_version: DISCOVERY_POLICY,
+    covers:
+      "Generated matched-control Bethesda experiments within this parameter envelope; host criteria, independent replay, fresh withheld seeds and per-session ceilings. No external world actions.",
+    family: structuredClone(input.envelope),
   };
 }
 
@@ -466,12 +486,39 @@ export function admit(
     authErrors.join("; ") ||
       `charter ${charterIdOf(sha)} authorized by local operator ${q.authorization!.operator} at ${q.authorization!.authorized_at}, until ${q.authorization!.expires_at} (not authenticated identity)`,
   );
-  const listed = q.charter.designs.find((d) => d.design_id === q.designId) ?? null;
+  const family =
+    q.charter.schema === DISCOVERY_CHARTER &&
+    q.charter.policy_version === DISCOVERY_POLICY
+      ? q.charter.family
+      : undefined;
+  const listed =
+    q.charter.designs.find((d) => d.design_id === q.designId) ??
+    (family && q.validated
+      ? {
+          design_id: q.designId,
+          design_sha256: designSha256(q.validated.definition),
+          option: q.designId,
+          panel: "primary" as const,
+          seeds: q.validated.definition.seeds,
+          expected_direction: q.validated.definition.expected_direction,
+        }
+      : null);
+  if (family)
+    rule(
+      "family-envelope",
+      !!q.validated && envelopeAdmission(q.validated.definition, family).length === 0,
+      q.validated
+        ? envelopeAdmission(q.validated.definition, family).join("; ") ||
+            "parameters within the authorized family"
+        : "no validated design",
+    );
   rule(
-    "design-listed",
+    family ? "family-design" : "design-listed",
     !!listed,
     listed
-      ? `${q.designId} is one of the charter's ${q.charter.designs.length} designs`
+      ? family
+        ? `${q.designId} is compiled within the charter family`
+        : `${q.designId} is one of the charter's ${q.charter.designs.length} designs`
       : `${q.designId || "(none)"} is not a design the charter lists`,
   );
   const v = q.validated;
@@ -496,9 +543,11 @@ export function admit(
     !!v &&
     !!listed &&
     v.proposal.origin === "rain" &&
-    v.proposal.question === designQuestion(listed) &&
-    v.proposal.hypothesis ===
-      optionHypothesis(listed.option, listed.expected_direction) &&
+    (family
+      ? envelopeAdmission(v.definition, family).length === 0
+      : v.proposal.question === designQuestion(listed) &&
+        v.proposal.hypothesis ===
+          optionHypothesis(listed.option, listed.expected_direction)) &&
     v.proposal.rain_decision?.decision_id === q.decision.decision_id &&
     v.proposal.rain_decision?.envelope_hash === q.decision.decision_sha256 &&
     v.proposal.mathematical_basis.length === 0;
@@ -517,7 +566,7 @@ export function admit(
     !listed
       ? "nothing to compare"
       : measuredBy === null
-        ? `${listed.option} has not been measured on the ${listed.panel} seeds (${listed.seeds.join(", ")})`
+        ? `${listed.option} uses the host-selected ${listed.panel} seeds (${listed.seeds.join(", ")}); the discovery compiler checks persisted protocol history for family designs`
         : measuredBy === listed.design_id
           ? `${listed.design_id} has already run: the simulator is deterministic, so it would repeat the same result; its record replays instead`
           : `${listed.option}'s ${listed.panel} seeds were already measured by ${measuredBy}: these arms would repeat it exactly, and a hypothesis revised after seeing them must be tested on seeds it has not seen`,
@@ -539,7 +588,7 @@ export function admit(
     return { ok: false, rules };
   const body = {
     schema: POLICY_ADMISSION_SCHEMA,
-    policy_version: POLICY_VERSION,
+    policy_version: q.charter.policy_version,
     session_id: q.sessionId,
     iteration: q.iteration,
     decision_id: q.decision.decision_id,
@@ -590,8 +639,8 @@ export function verifyStanding(
   if (
     !charter ||
     typeof charter !== "object" ||
-    charter.schema !== CHARTER_SCHEMA ||
-    charter.policy_version !== POLICY_VERSION ||
+    !([CHARTER_SCHEMA, DISCOVERY_CHARTER] as string[]).includes(charter.schema) ||
+    !([POLICY_VERSION, DISCOVERY_POLICY] as string[]).includes(charter.policy_version) ||
     !Array.isArray(charter.designs)
   )
     return ["the charter is not a charter this lab can read"];
@@ -617,7 +666,7 @@ export function verifyStanding(
       "admission_sha256",
     ]) ||
     a.schema !== POLICY_ADMISSION_SCHEMA ||
-    a.policy_version !== POLICY_VERSION
+    a.policy_version !== charter.policy_version
   )
     return [...errors, "the policy admission is malformed"];
   let sha = "";
@@ -631,8 +680,15 @@ export function verifyStanding(
     errors.push("the admission names a different authorization of the charter");
   if (a.experiment_id !== experimentId || a.definition_sha256 !== definitionSha256)
     errors.push("the admission is for a different definition");
+  const family =
+    charter.schema === DISCOVERY_CHARTER && charter.policy_version === DISCOVERY_POLICY
+      ? charter.family
+      : undefined;
+  if (charter.schema === DISCOVERY_CHARTER && !family)
+    errors.push("family charter has no envelope");
+  if (family) errors.push(...envelopeAdmission(definition, family));
   const listed = charter.designs.find((d) => d.design_id === a.design_id);
-  if (!listed || listed.design_sha256 !== a.design_sha256)
+  if (!family && (!listed || listed.design_sha256 !== a.design_sha256))
     errors.push("the admitted design is not one the charter lists");
   let actual = "";
   try {
@@ -655,6 +711,7 @@ export function verifyStanding(
       "the definition's proposal does not name the decision the admission names",
     );
   if (
+    !family &&
     listed &&
     (definition.question !== designQuestion(listed) ||
       definition.hypothesis !==

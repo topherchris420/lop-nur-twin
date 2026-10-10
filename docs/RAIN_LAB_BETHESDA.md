@@ -1726,3 +1726,12 @@ key from every preview's environment.
   `src/bethesda/rain/mathematics.ts`. A second repository is a contract change:
   its identifier and path rules in `SUBSTRATES`, an indexer for its catalogue,
   and its tests — not a configuration.
+
+### Generated experimental designs
+
+The optional [native experimental discovery workbench](RAIN_EXPERIMENTAL_DISCOVERY.md)
+extends autonomous research beyond the 44 fixed designs. It uses your local Qwen
+through LM Studio, a typed compiler and a reviewed parameter-family charter.
+Open it in the Bethesda Research Panel while serving the repository locally,
+or run `npm run rain:discovery -- --charter`. The original `rain:autonomous`
+workflow above remains supported.

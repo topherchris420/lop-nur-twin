@@ -1,3 +1,4 @@
+import { DiscoveryWorkbench } from "./DiscoveryWorkbench";
 /**
  * The lab's rooms as semantic panels: the accessible front door, and the whole
  * lab when WebGL is unavailable. The 3D interior presents; these panels hold
@@ -953,6 +954,7 @@ export function ResearchPanel({
   return (
     <div>
       <h2 className="text-base">Research Panel</h2>
+      <DiscoveryWorkbench />
       <RuntimeLine store={store} />
       <Resonance store={store} inspect={inspect} />
       <form
