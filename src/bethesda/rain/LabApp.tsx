@@ -206,7 +206,6 @@ export default function LabApp({
   useEffect(() => {
     const previous = document.title;
     document.title = "R.A.I.N. Lab — Bethesda anomaly";
-    void store.checkRuntime();
     store.enterRoom("threshold");
     const timer = setInterval(() => {
       setAtExit(nav.atExit);
@@ -275,7 +274,7 @@ export default function LabApp({
           setInspected((n) => n + 1);
         }}
       />
-      <nav aria-label="Leave the lab" className="absolute top-4 right-4">
+      <nav aria-label="Leave the lab" className="rain-lab-exit absolute top-4 right-4">
         <button className={panel + " text-xs"} onClick={() => inspectPartner(null)}>
           Inception Observatory / Researchers
         </button>
@@ -376,9 +375,10 @@ export default function LabApp({
         keeps the panel on the right and the stick and the rooms at the left.
         The column lets drags through to the room; the panels in it take them.
       */}
-      <div className="pointer-events-none flex h-full w-full flex-col [@media(max-width:639px)_and_(min-height:501px)]:absolute [@media(max-width:639px)_and_(min-height:501px)]:inset-4 [@media(max-width:639px)_and_(min-height:501px)]:gap-2 [@media(max-width:639px)_and_(min-height:501px)]:justify-start">
+      <div className="rain-lab-overlay pointer-events-none flex h-full w-full flex-col [@media(max-width:639px)_and_(min-height:501px)]:absolute [@media(max-width:639px)_and_(min-height:501px)]:inset-4 [@media(max-width:639px)_and_(min-height:501px)]:gap-2 [@media(max-width:639px)_and_(min-height:501px)]:justify-start">
         <header
           ref={header}
+          data-lab-header=""
           className={
             "pointer-events-auto max-w-[60vw] shrink-0 [@media(max-width:639px)_and_(min-height:501px)]:max-w-[calc(100vw-11rem)] [@media(max-width:639px),(max-height:500px)]:p-2 [@media(min-width:640px),(max-height:500px)]:absolute [@media(min-width:640px),(max-height:500px)]:top-4 [@media(min-width:640px),(max-height:500px)]:left-4 " +
             panel
@@ -434,7 +434,7 @@ export default function LabApp({
             </button>
           </div>
         ) : null}
-        <div className="flex shrink-0 flex-col items-start gap-2 [@media(max-width:639px)_and_(min-height:501px)]:mt-auto [@media(min-width:640px),(max-height:500px)]:absolute [@media(min-width:640px),(max-height:500px)]:bottom-4 [@media(min-width:640px),(max-height:500px)]:left-4">
+        <div className="rain-lab-rooms flex shrink-0 flex-col items-start gap-2 [@media(max-width:639px)_and_(min-height:501px)]:mt-auto [@media(min-width:640px),(max-height:500px)]:absolute [@media(min-width:640px),(max-height:500px)]:bottom-4 [@media(min-width:640px),(max-height:500px)]:left-4">
           {touchWalk ? <TouchStick stick={nav.stick} /> : null}
           <section
             ref={rooms}
@@ -477,6 +477,7 @@ export default function LabApp({
         <aside
           ref={aside}
           id="lab-room-panel"
+          data-lab-panel=""
           aria-label={`${ROOMS[store.room].label} panel`}
           className={
             // With a view to keep, a phone's panel takes at most 45% of the
