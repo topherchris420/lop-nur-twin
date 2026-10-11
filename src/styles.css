@@ -436,6 +436,52 @@ body {
   }
 }
 
+/* Keep the compact lab controls inside the viewport without competing for the same lane. */
+@media (max-width: 639px) and (min-height: 501px) {
+  .rain-lab-overlay {
+    overflow: hidden;
+  }
+
+  .rain-lab-exit {
+    top: 0.5rem;
+    right: 0.5rem;
+    max-width: min(10rem, calc(100vw - 1rem));
+  }
+
+  [data-lab-header=""] {
+    max-width: calc(100vw - 12rem);
+  }
+
+  #lab-room-panel {
+    position: absolute;
+    right: 0;
+    bottom: 4.5rem;
+    left: 0;
+    width: auto;
+    max-height: 45dvh;
+  }
+}
+
+@media (max-width: 639px) and (max-height: 500px) {
+  .rain-lab-overlay {
+    overflow: hidden;
+  }
+
+  .rain-lab-exit {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  #lab-room-panel {
+    top: 4.5rem;
+    right: 0;
+    bottom: 3.5rem;
+    left: auto;
+    width: min(45vw, 520px);
+    max-height: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
