@@ -350,15 +350,25 @@ export class LabStore {
     const s = this.runtime.status;
     return s?.configured && s.reachable && s.identity ? "LIVE" : "OFFLINE";
   }
+  private runtimeCheck: Promise<void> | null = null;
+
   async checkRuntime() {
-    this.runtime = { ...this.runtime, checking: true };
-    this.emit();
-    const r = await this.client.status();
-    this.runtime = r.ok
-      ? { status: r.value, checking: false, error: null }
-      : { status: null, checking: false, error: `${r.failure} · ${r.detail}` };
-    this.emit();
-    if (this.mode() === "LIVE") await this.checkMathematics();
+    if (this.runtimeCheck) return this.runtimeCheck;
+    this.runtimeCheck = (async () => {
+      this.runtime = { ...this.runtime, checking: true };
+      this.emit();
+      const r = await this.client.status();
+      this.runtime = r.ok
+        ? { status: r.value, checking: false, error: null }
+        : { status: null, checking: false, error: `${r.failure} · ${r.detail}` };
+      this.emit();
+      if (this.mode() === "LIVE") await this.checkMathematics();
+    })();
+    try {
+      await this.runtimeCheck;
+    } finally {
+      this.runtimeCheck = null;
+    }
   }
 
   // --- The mathematical substrate -----------------------------------------------------
