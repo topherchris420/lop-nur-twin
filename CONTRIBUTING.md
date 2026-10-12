@@ -41,6 +41,18 @@ bun run verify:rain-lab             # the lab, on three previews of its own
 bun run rain:conformance            # no server
 ```
 
+If your change touches the Noeterra engine (`noeterra/`) or the civilization
+backend, you also need Rust stable with the `wasm32-unknown-unknown` target.
+Without the built engine, the civilization tests skip rather than fail, so build
+it first:
+
+```sh
+cargo fmt --manifest-path noeterra/Cargo.toml --check
+bun run noeterra:test               # the engine's Rust tests
+bun run noeterra:wasm               # the module /noeterra and the lab load
+bun run rain:civilization:demo      # preregister, run, replay and admit scripted designs
+```
+
 If you changed what the model says — a structure, a pavement, a source, a
 claim's wording — commit it, then record it with `bun run model:record` (full
 history and Bun) and commit `model-history/`; the build refuses a model that is

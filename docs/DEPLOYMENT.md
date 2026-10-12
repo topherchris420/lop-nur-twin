@@ -9,27 +9,39 @@ evaluation on an evaluator's own infrastructure. Both serve the same static
 | Setting                        | Value                                                                                                                                                                              |
 | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Install command                | `npm ci` (or `bun install --frozen-lockfile`)                                                                                                                                      |
-| Build command                  | `npm run build`                                                                                                                                                                    |
+| Build command                  | `npm run build`; on Vercel, `bash scripts/vercel-build.sh` (see below)                                                                                                             |
 | Output directory               | `dist`                                                                                                                                                                             |
 | Node version                   | **22.18 or newer** (declared in `package.json` `engines`)                                                                                                                          |
 | Framework preset               | Vite                                                                                                                                                                               |
 | Environment variables required | none for the site; see below for `/play?brain=jev` and the R.A.I.N. Lab                                                                                                            |
 | Secrets required               | none for the site; `TYPESAFE_API_KEY` for Jev, `FASTINO_API_KEY` for Glide, `LLM_API_KEY` for the LLM seat, `RAIN_LLM_API_KEY` for a model server that requires one (all optional) |
 
-`npm run build` is six steps, in this order:
+`npm run build` is eight steps, in this order:
 
 ```text
-node scripts/run-ts.mjs scripts/validate-data.ts       # data + evidence gate
-node scripts/run-ts.mjs scripts/validate-bethesda.ts   # Bethesda data + the lab's DEMO recording
-node scripts/run-ts.mjs scripts/generate-manifest.ts   # public/model-manifest.json
-vite build                                             # → dist/
-tsc --noEmit                                           # strict typecheck
-node tools/jev-secret-scan.mjs dist                    # no credential in the bundle
+node scripts/copy-noeterra-wasm.mjs                         # the Noeterra engine into public/, if built
+node scripts/run-ts.mjs scripts/validate-data.ts            # data + evidence gate
+node scripts/run-ts.mjs scripts/validate-bethesda.ts        # Bethesda data + the lab's DEMO recording
+node scripts/run-ts.mjs scripts/generate-manifest.ts        # public/model-manifest.json
+node scripts/run-ts.mjs scripts/validate-model-history.ts   # this model is its latest recorded revision
+vite build                                                  # → dist/
+tsc --noEmit                                                # strict typecheck
+node tools/jev-secret-scan.mjs dist                         # no credential in the bundle
 ```
 
 Data validation and manifest generation run **before** Vite, so a deployment
 cannot be produced from data that does not validate, and `dist/` always
 contains a manifest describing itself.
+
+The Noeterra engine served at `/noeterra/noeterra.wasm` is a build product,
+never committed. `npm run noeterra:wasm` compiles it (Rust stable with the
+`wasm32-unknown-unknown` target); the first step copies it into `public/` when
+it exists. Without it the build still succeeds and `/noeterra` says the engine
+is not part of the build — which is what the container image below serves,
+because its builder stage has no Rust. On Vercel, `scripts/vercel-build.sh`
+installs a minimal toolchain when `cargo` is missing, builds the engine and then
+runs `npm run build` (or `bun run build`), so a failed engine build fails the
+deploy rather than publishing a page that cannot run.
 
 ### Why Node 22.18
 
@@ -222,7 +234,7 @@ open http://localhost:8080/analysis
 
 Properties:
 
-- **Multi-stage.** A `node:26.5-alpine` builder runs the same
+- **Multi-stage.** A `node:26.11-alpine` builder runs the same
   validate → manifest → build → typecheck pipeline as CI; the runtime stage
   copies only `dist/`.
 - **Minimal runtime.** `nginxinc/nginx-unprivileged:1.29-alpine` — no Node, no

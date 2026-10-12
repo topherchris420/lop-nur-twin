@@ -309,6 +309,7 @@ paths to `index.html` while still serving real files as themselves.
 
 ```text
 npm run build
+  ├─ node scripts/copy-noeterra-wasm.mjs                    # the Noeterra engine into public/, if built
   ├─ node scripts/run-ts.mjs scripts/validate-data.ts      # geometry, geodesy, evidence, timeline
   ├─ node scripts/run-ts.mjs scripts/validate-bethesda.ts  # city data, corpus and DEMO hashes
   ├─ node scripts/run-ts.mjs scripts/generate-manifest.ts  # public/model-manifest.json
