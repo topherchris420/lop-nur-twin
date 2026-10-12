@@ -29,6 +29,13 @@ trivy-results.*
 # copied in and then overwritten, which only invites confusion.
 public/model-manifest.json
 
+# The Noeterra engine is a build product (hundreds of MB of Rust artifacts under
+# target/). The image's builder has no Rust, so a local copy would ship an
+# engine built from whatever source was last compiled on this machine; without
+# it, /noeterra says the engine is not part of this build.
+noeterra/target/
+public/noeterra/
+
 # Documentation and screenshots are not needed to serve the app — except the
 # archived benchmark runs, which /evaluation bundles at build time. Without
 # them the container served /evaluation with nothing to open.
