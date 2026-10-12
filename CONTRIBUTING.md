@@ -43,14 +43,15 @@ bun run rain:conformance            # no server
 
 If your change touches the Noeterra engine (`noeterra/`) or the civilization
 backend, you also need Rust stable with the `wasm32-unknown-unknown` target.
-Without the built engine, the civilization tests skip rather than fail, so build
-it first:
+Without the built engine the civilization unit tests skip rather than fail, so
+build it _before_ `bun run check`, and rebuild it after every engine change:
 
 ```sh
+bun run noeterra:wasm               # the module /noeterra and the lab load; then bun run check
 cargo fmt --manifest-path noeterra/Cargo.toml --check
 bun run noeterra:test               # the engine's Rust tests
-bun run noeterra:wasm               # the module /noeterra and the lab load
-bun run rain:civilization:demo      # preregister, run, replay and admit scripted designs
+bun run rain:civilization:demo -- --archive /tmp/civ --state /tmp/civ-state   # scripted designs, end to end
+bun run rain:civilization:verify    # the committed archive still re-simulates
 ```
 
 If you changed what the model says — a structure, a pavement, a source, a
