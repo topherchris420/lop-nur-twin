@@ -1,0 +1,407 @@
+{
+  "schema": "rain-rea-public-evidence/v1",
+  "url": "https://pothlabs.com/",
+  "finalOrigin": "https://pothlabs.com",
+  "inspectedAt": {
+    "started_at": "2026-10-11T12:38:07.930Z",
+    "ended_at": "2026-10-11T12:38:09.790Z",
+    "observation_ms": 1000
+  },
+  "inspectionEvidence": "ev_21a28c09e1d2951dab74520ebf014a30f85186e359ffcaaadf85364f3e6202b3",
+  "bundleEvidence": "ev_db3b69a95cfd204129fecf8fdbbedbf172a4db7e0f87342d59c92bb790bd784b",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "completeness": {
+    "status": "policy_filtered",
+    "conditions": ["attach_limited", "policy_filtered"],
+    "policy_filtered_sections": [
+      "console_text",
+      "json_body_shapes",
+      "metadata",
+      "resources",
+      "script_sources",
+      "scripts",
+      "storage_keys",
+      "websocket_shapes"
+    ],
+    "attach_limited_sections": [
+      "console_events",
+      "metadata",
+      "network_requests",
+      "websocket_connections",
+      "websocket_frames"
+    ],
+    "truncated_sections": [],
+    "unavailable_sections": [],
+    "excluded": [
+      {
+        "section": "console_text",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "json_body_shapes",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "metadata",
+        "reason": "disallowed_origin",
+        "count": 14
+      },
+      {
+        "section": "resources",
+        "reason": "disallowed_origin",
+        "count": 2
+      },
+      {
+        "section": "script_sources",
+        "reason": "not_approved",
+        "count": 31
+      },
+      {
+        "section": "scripts",
+        "reason": "disallowed_origin",
+        "count": 3
+      },
+      {
+        "section": "scripts",
+        "reason": "unattributed_origin",
+        "count": 1
+      },
+      {
+        "section": "scripts",
+        "reason": "unsupported_url",
+        "count": 1
+      },
+      {
+        "section": "storage_keys",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "websocket_shapes",
+        "reason": "not_approved",
+        "count": null
+      }
+    ],
+    "dropped_events": {
+      "scripts": 0,
+      "network_requests": 0,
+      "console_events": 0,
+      "websocket_connections": 0,
+      "websocket_frames": 0,
+      "webmcp_tools": 0,
+      "timeline_events": 0,
+      "total": 0
+    }
+  },
+  "bundleCompleteness": {
+    "status": "partial",
+    "parsed_scripts": 31,
+    "parse_failures": 0,
+    "visited_ast_nodes": 319825
+  },
+  "scriptInventory": [
+    {
+      "script_key": "scr_00b69bcefa36b6fd8e86c722fe3880284fb0cbb191f9e56231a5ef717cacc209",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "1044d8297f389b8a004ae5e78ed441b2d051ac6fdf8a173bf337cd50a3482d5d",
+      "bytes": 2263
+    },
+    {
+      "script_key": "scr_0b260e35af50f084b331bf0476c029106435fa2fa1e91ae5ee0c2f7c408d888a",
+      "url": "https://pothlabs.com/_next/static/chunks/4909-09e20765c3e2a673.js",
+      "artifact_sha256": "4b9bf5d141948f5dcf04902ba1f37e2fcc31a06ddd1a65a47172740fdb5a2eb1",
+      "bytes": 27389
+    },
+    {
+      "script_key": "scr_0d44d120d0d175ed516a613d2b885b2e09b8c976cab6e44f2bba3d1f3abc5883",
+      "url": "https://pothlabs.com/_next/static/chunks/4562-7462725c87d02557.js",
+      "artifact_sha256": "b8cc393ffb7b132c611c9990026099e2e5ddff32f964ac55d1206f6497fbecf7",
+      "bytes": 64660
+    },
+    {
+      "script_key": "scr_1f323addb4db0a9fc402c388083eca92dac344e4caf064b5267c1ea6c410729b",
+      "url": "https://pothlabs.com/_next/static/chunks/3609-03e2eba1f4a8609c.js",
+      "artifact_sha256": "afb4b9b638563da518f9cb02de526c51e0a540d96a012d04bb38517b47715228",
+      "bytes": 13718
+    },
+    {
+      "script_key": "scr_2ac0c1c4a1efd82ba6f73341052d8a0aaf0c4f26f2be1480d0b6557eaef7d699",
+      "url": "https://pothlabs.com/_next/static/chunks/1255-bc291008b6828956.js",
+      "artifact_sha256": "20d84f09cc52567437a07dfca9f1e76950e8d09804ae4495990f95b739180b7c",
+      "bytes": 173550
+    },
+    {
+      "script_key": "scr_3024ec12c6a4f4665223c5ba5add4df9ef50ac1fe8909d7d89f57c16553420be",
+      "url": "https://pothlabs.com/_next/static/chunks/app/not-found-cb962abcd13d988b.js",
+      "artifact_sha256": "03330622b4274fda50030df4c465cce3a5aef211ca9759cc40484500a6a66dfe",
+      "bytes": 213
+    },
+    {
+      "script_key": "scr_3164e77d7615de67e898805082dbed9d536db97044fb4b8be2e5892faea37820",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "44291011e75afa6d6609c6dcb4d76ba7a48c7e232890032c852726d4ee62d04c",
+      "bytes": 53
+    },
+    {
+      "script_key": "scr_4580da151c3aedee35996d0d4c8db2e32450695e25ca1646a2fc0050fc29191c",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "c83a707df4e8a892cea8d45f9d8050b2b8939bca192a0095d6182243476949e5",
+      "bytes": 607
+    },
+    {
+      "script_key": "scr_45961172846a1f40ae94c6d731a484ba00f7dce1a13334d2e5fff5f2a7d9e874",
+      "url": "https://pothlabs.com/_next/static/chunks/2619-3c9e02e22d10480a.js",
+      "artifact_sha256": "7fe044bde88179fcddab68e119ff3f40e55f3a0ecd8cec7fc420b14c9f350f9b",
+      "bytes": 8538
+    },
+    {
+      "script_key": "scr_472ede75ed4ee684f077c9fe36a2548fe247fcd3e4fc397e32bf688f4be9a071",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "d81e19a636941990598e892e2f216c4a6119457bdd921d45b649cfb52e6d7a5e",
+      "bytes": 2628
+    },
+    {
+      "script_key": "scr_4944bb37dc06803ee795abef6a0bdab5858aea86a1f2ee558a78883be28c1c8c",
+      "url": "https://pothlabs.com/_next/static/chunks/webpack-a8891ae8c215e746.js",
+      "artifact_sha256": "1ee008da5dca3c65b4981c62333e7b6a1f433a61c58d1b46a8cac096892d7c95",
+      "bytes": 3300
+    },
+    {
+      "script_key": "scr_6135044b3fbb9cad3d6955c6d27cde9236b87df4b1e0fcc401fe35957714c4ae",
+      "url": "https://pothlabs.com/_next/static/chunks/9da6db1e-1e3c7fb6dd58f749.js",
+      "artifact_sha256": "4b033cf666245df1a8ec60280e9a41e810020424c5ff57ddf54881d45d1859b5",
+      "bytes": 208327
+    },
+    {
+      "script_key": "scr_63900579292162d55dd7d600e87e0c373959a42ce324c8ad3156b4c4c1d36216",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "abe998ba51ab26d14ed2e4e8fe7e792f179240a81d9f99cadbfd4e1f2c6bd13d",
+      "bytes": 2249
+    },
+    {
+      "script_key": "scr_6603a032175c1bff1937e1e152e8f2668b8e6281a545c67614c99a26d1f5eacd",
+      "url": "https://pothlabs.com/_next/static/chunks/6019-a815089da82ec8c4.js",
+      "artifact_sha256": "b9f45ac09941f9e8f864813fd3d12151c517ed83b6eefaf7fcef5b2d82eba9e7",
+      "bytes": 15614
+    },
+    {
+      "script_key": "scr_6d878e9e0c74c9fec0ba850404d484fb99bae2ecce3ac3b4273655fcf68070c2",
+      "url": "https://pothlabs.com/_next/static/chunks/2445-a3c87015f2585f5c.js",
+      "artifact_sha256": "8defc4afc97072d530273936c11a13f9f5ab9aa444dbba4ba1b7f73583949957",
+      "bytes": 40542
+    },
+    {
+      "script_key": "scr_7185ee70c4438801a8d79193ee8d53cdc321990c3c80cde400ec67ce3dc12877",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "88c47a705c6e7124221c0046b8569192466710d2e4433236b67620e28e051a40",
+      "bytes": 124
+    },
+    {
+      "script_key": "scr_72e114b9f7dd5e8a6cfcbf142b06916c50375ed03c20113809b8f8ecd91a49b5",
+      "url": "https://pothlabs.com/_next/static/chunks/app/layout-ff957711a9befd29.js",
+      "artifact_sha256": "768ada67fed553a1eb8b1fe85b99869b71809909329ed2e3edbb4261e42d75ac",
+      "bytes": 11799
+    },
+    {
+      "script_key": "scr_76519ce5d68713f57f18ef3dd5b5b99487cb02e058226a8b81d28376432df78b",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "513cea8050c063a6828ccf5d8f64aca5279f6800cc5895a424d271f3ae46a7a8",
+      "bytes": 3591
+    },
+    {
+      "script_key": "scr_80b1387d9c51472c63f0ca764efa9a2796493bc990e1b873c9dc40453d349629",
+      "url": "https://pothlabs.com/_next/static/chunks/8620-b8876805535cb7a1.js",
+      "artifact_sha256": "a19efa1f98524ec487a9040305c3fe4c90eb1ad761c1cf147fae54452384ff6a",
+      "bytes": 76231
+    },
+    {
+      "script_key": "scr_85ba43be8995711c6e1547682157cc3e73895ad5850cf163f6fe890462483229",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "96747b6a3782409ff51bde7f059f40931b4c3a2d1765bd39a54b6845e6239c7e",
+      "bytes": 187
+    },
+    {
+      "script_key": "scr_8e44a07123e904928d7ae5fc03d654aa203ea7df5ea8b2f22f147431fb90f73c",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "2222511c371a2b5ce155af505dcea632cf3db21c80c7b294964fdf79a14d6c4d",
+      "bytes": 1153
+    },
+    {
+      "script_key": "scr_96d5f9715e5d7e42e565bdf9d1f5798773206eef0287758f2bb78f5e08278cea",
+      "url": "https://pothlabs.com/_next/static/chunks/app/page-6c2c0dff2ce1ead8.js",
+      "artifact_sha256": "71d99c9db3e79b39d5f6a39f4ec02327f287fe96b32eae04e7519ff4bf043d64",
+      "bytes": 169
+    },
+    {
+      "script_key": "scr_99bff051dc33a67e95aa7f1ef4a4dea1de2cff4ecf87dc7ae7de1a53f7bccf49",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "990ec9e4c63c78fee40dcf4433268767cc856decb069719695ec01497ec922f0",
+      "bytes": 1771
+    },
+    {
+      "script_key": "scr_ad54f0a5d24eda1a5aa0f8c13fad84bcaa2f63fceae2fad8c8e53ecb6db96757",
+      "url": "https://pothlabs.com/_next/static/chunks/5239-2ba2d36449599415.js",
+      "artifact_sha256": "f33c64511aaa081eafa0e92d418125cda05417fc368219ee52575b54b210ce5d",
+      "bytes": 14285
+    },
+    {
+      "script_key": "scr_c8c8b2a68a1ea60d2f42291fc5b265122836865f3bc50b6e3883cd6d62ba4b3b",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "3814cddd18b2095e01abb745a99e5ada90178e709c09879324c3b623f2d829ea",
+      "bytes": 43
+    },
+    {
+      "script_key": "scr_d4451fac2d4527659ddc89b4af275976260ff277719a3bbfd50ba46e88e8d113",
+      "url": "https://pothlabs.com/_next/static/chunks/3115-46e3819477d8f192.js",
+      "artifact_sha256": "cd105f54e02f10c6c344a7ea5e4ac8a9f319cb857a4a9503465fc2f18441972a",
+      "bytes": 123898
+    },
+    {
+      "script_key": "scr_d5de63aab34b95d81339de2f729459f133ef00083e23869988b1b63032ce441b",
+      "url": "https://pothlabs.com/_next/static/chunks/4bd1b696-f6bedae49f0827a5.js",
+      "artifact_sha256": "265b68bda6c8157c79d6f66489d2796969c2b82348ce97794c2fe6816fd58b08",
+      "bytes": 173020
+    },
+    {
+      "script_key": "scr_d621c94f40bac05cfb982da270b899a337b4f2d3c29f12da4ea811dfbe688c57",
+      "url": "https://pothlabs.com/_next/static/chunks/7506-4b903c6a9c476a59.js",
+      "artifact_sha256": "56c0a9a94815e4655213e518d3e2268c852dbe9f30d35da1d9c18f5fa2fac61f",
+      "bytes": 114590
+    },
+    {
+      "script_key": "scr_e98661c96cef05c1b3048ce6c54db54353e36b5eedea9890cce5da47844f32e4",
+      "url": "https://pothlabs.com/",
+      "artifact_sha256": "6ce333eb479753c58cf0443b47ab3ca453cd7968ffb039164d2f33021d7ab254",
+      "bytes": 47
+    },
+    {
+      "script_key": "scr_f481bf30c5b70f6de858f667a9994542d5c00aeddd29683cc1ff82f43020f059",
+      "url": "https://pothlabs.com/_next/static/chunks/1322-4733a4741a27a3d1.js",
+      "artifact_sha256": "babd9c559dea70979ec7b2329d434304c046865d8274379c7d4fc3bdb98f5fe9",
+      "bytes": 8406
+    },
+    {
+      "script_key": "scr_f48c39f99eab8614743b9e842d1ba5db9d7474e865a0db4492935ed3305475a8",
+      "url": "https://pothlabs.com/_next/static/chunks/main-app-8263f4d82b1ad462.js",
+      "artifact_sha256": "59f63ccc9742b8ef9326474b131cc163ce6ff80e95e42640e9f58a874b99cd05",
+      "bytes": 926
+    }
+  ],
+  "staticEdges": [
+    {
+      "from_script_key": "scr_d621c94f40bac05cfb982da270b899a337b4f2d3c29f12da4ea811dfbe688c57",
+      "kind": "require",
+      "specifier": "@emotion/is-prop-valid",
+      "resolved_url": null,
+      "location": {
+        "script_key": "scr_d621c94f40bac05cfb982da270b899a337b4f2d3c29f12da4ea811dfbe688c57",
+        "line": 1,
+        "column": 96276
+      }
+    }
+  ],
+  "vendorInferences": [
+    {
+      "kind": "vendor_fingerprint",
+      "value": "React",
+      "confidence": "medium",
+      "basis": [
+        {
+          "script_key": "scr_2ac0c1c4a1efd82ba6f73341052d8a0aaf0c4f26f2be1480d0b6557eaef7d699",
+          "artifact_sha256": "20d84f09cc52567437a07dfca9f1e76950e8d09804ae4495990f95b739180b7c",
+          "line": null,
+          "column": null,
+          "detector": "react-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_4944bb37dc06803ee795abef6a0bdab5858aea86a1f2ee558a78883be28c1c8c",
+          "artifact_sha256": "1ee008da5dca3c65b4981c62333e7b6a1f433a61c58d1b46a8cac096892d7c95",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_76519ce5d68713f57f18ef3dd5b5b99487cb02e058226a8b81d28376432df78b",
+          "artifact_sha256": "513cea8050c063a6828ccf5d8f64aca5279f6800cc5895a424d271f3ae46a7a8",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_99bff051dc33a67e95aa7f1ef4a4dea1de2cff4ecf87dc7ae7de1a53f7bccf49",
+          "artifact_sha256": "990ec9e4c63c78fee40dcf4433268767cc856decb069719695ec01497ec922f0",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_ad54f0a5d24eda1a5aa0f8c13fad84bcaa2f63fceae2fad8c8e53ecb6db96757",
+          "artifact_sha256": "f33c64511aaa081eafa0e92d418125cda05417fc368219ee52575b54b210ce5d",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "React",
+      "confidence": "medium",
+      "basis": [
+        {
+          "script_key": "scr_d5de63aab34b95d81339de2f729459f133ef00083e23869988b1b63032ce441b",
+          "artifact_sha256": "265b68bda6c8157c79d6f66489d2796969c2b82348ce97794c2fe6816fd58b08",
+          "line": null,
+          "column": null,
+          "detector": "react-runtime"
+        }
+      ]
+    }
+  ],
+  "sourceMaps": {
+    "status": "unavailable",
+    "requested": 0,
+    "processed": 0,
+    "items": []
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ]
+}

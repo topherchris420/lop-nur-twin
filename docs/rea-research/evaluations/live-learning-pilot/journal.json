@@ -1,0 +1,731 @@
+[
+  {
+    "at": "2026-10-11T16:23:42.197Z",
+    "kind": "validation",
+    "payload": {
+      "design": {
+        "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+        "evidence_ids": [],
+        "expected_direction": "increase",
+        "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+        "information_value": 0.5,
+        "location": "bethesda_row",
+        "minimum_effect": 0.01,
+        "observation_window_ticks": 300,
+        "parameters": {
+          "buses": 2,
+          "duration_ticks": 300,
+          "intensity": 1,
+          "pedestrians": 40,
+          "vehicles": 8
+        },
+        "parent_design_id": null,
+        "primary_metric": "watching",
+        "purpose": "exploratory",
+        "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+        "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+        "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+        "scenario": "fire",
+        "schema": "rain-discovery-design/v1",
+        "uncertainties": [
+          "Illustrative agents and short windows may show no measurable response."
+        ],
+        "warmup_ticks": 250
+      },
+      "errors": ["proposal.warmup_ticks: must be a multiple of 100"],
+      "generation": "scripted",
+      "ok": false
+    },
+    "previous": null,
+    "sequence": 0,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "5ea8783b6b39174c0f66a95c4eac7353108d910af8b660692474b9ab4ce4e74b"
+  },
+  {
+    "at": "2026-10-11T16:23:42.212Z",
+    "kind": "validation",
+    "payload": {
+      "design": {
+        "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+        "evidence_ids": [],
+        "expected_direction": "increase",
+        "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+        "information_value": 0.5,
+        "location": "bethesda_row",
+        "minimum_effect": 0.01,
+        "observation_window_ticks": 300,
+        "parameters": {
+          "buses": 2,
+          "duration_ticks": 300,
+          "intensity": 1,
+          "pedestrians": 40,
+          "vehicles": 8
+        },
+        "parent_design_id": null,
+        "primary_metric": "watching",
+        "purpose": "exploratory",
+        "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+        "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+        "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+        "scenario": "fire",
+        "schema": "rain-discovery-design/v1",
+        "uncertainties": [
+          "Illustrative agents and short windows may show no measurable response."
+        ],
+        "warmup_ticks": 750
+      },
+      "errors": ["proposal.warmup_ticks: must be a multiple of 100"],
+      "generation": "scripted",
+      "ok": false
+    },
+    "previous": "5ea8783b6b39174c0f66a95c4eac7353108d910af8b660692474b9ab4ce4e74b",
+    "sequence": 1,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "8ac79d69c7b29ea0069035c4a5b9a0e527756dfd31ded367298bad71f0bece0b"
+  },
+  {
+    "at": "2026-10-11T16:23:42.218Z",
+    "kind": "learning-proposal",
+    "payload": {
+      "evidence": [
+        "5ea8783b6b39174c0f66a95c4eac7353108d910af8b660692474b9ab4ce4e74b",
+        "8ac79d69c7b29ea0069035c4a5b9a0e527756dfd31ded367298bad71f0bece0b"
+      ],
+      "generation": "host",
+      "id": "RG-1775871063647ca2e2aeef5c",
+      "instructions": "Use 100-tick steps for warm-up and observation windows before submission; preserve matched controls and fixed evaluation criteria.",
+      "parent": null,
+      "proposer": "training-process-reviewer",
+      "schema": "rain-guidance-proposal/v1",
+      "scope": {
+        "backend": "bethesda",
+        "domain": "urban-simulation",
+        "error": "parameter-grid",
+        "scenario": null,
+        "stage": "design"
+      },
+      "version": 1
+    },
+    "previous": "8ac79d69c7b29ea0069035c4a5b9a0e527756dfd31ded367298bad71f0bece0b",
+    "sequence": 2,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "ea55860e8c743a4257699d31314d9e1221c340b92cef826a7d3fa148db5450cc"
+  },
+  {
+    "at": "2026-10-11T16:23:42.222Z",
+    "kind": "learning-plan",
+    "payload": {
+      "budget": {
+        "calls_per_arm": 4,
+        "max_tokens_per_arm": null,
+        "timeout_ms": 600000
+      },
+      "evaluator": "independent-host-compiler-scoring/v1",
+      "generation": "model",
+      "proposal": "ea55860e8c743a4257699d31314d9e1221c340b92cef826a7d3fa148db5450cc",
+      "rules": "rain-learning-scoring/v1",
+      "schema": "rain-learning-plan/v1",
+      "tasks": [
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-1"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-1",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 301,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 40,
+              "vehicles": 8
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 101
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-1: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10001, 10002, 10003],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-2"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-2",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 310,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 60,
+              "vehicles": 9
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 112
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-2: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10004, 10005, 10006],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-3"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-3",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 319,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 80,
+              "vehicles": 10
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 123
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-3: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10007, 10008, 10009],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-4"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-4",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 328,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 100,
+              "vehicles": 11
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 134
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-4: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10010, 10011, 10012],
+          "unsupported_claim_ids": ["external-confirmed"]
+        }
+      ]
+    },
+    "previous": "ea55860e8c743a4257699d31314d9e1221c340b92cef826a7d3fa148db5450cc",
+    "sequence": 3,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2"
+  },
+  {
+    "at": "2026-10-11T16:23:42.225Z",
+    "kind": "learning-model-configuration",
+    "payload": {
+      "configuration": {
+        "context_tokens": 4096,
+        "max_tokens": 1400,
+        "temperature": 0,
+        "timeout_ms": 90000
+      },
+      "limitations": [
+        "Synthetic held-out task pilot; no population intelligence estimate.",
+        "Selection scoring is a preregistered primary-metric proxy, not optimal experiment utility.",
+        "Model call ceilings are fixed; missing token usage stays null."
+      ],
+      "model": "qwen/qwen3.5-9b",
+      "plan": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2"
+    },
+    "previous": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2",
+    "sequence": 4,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "135443a66fb14e6f1ac9660b205034666694096743298412200196d82d3cc6ec"
+  },
+  {
+    "at": "2026-10-11T16:23:42.234Z",
+    "kind": "learning-evaluation-start",
+    "payload": {
+      "plan": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2"
+    },
+    "previous": "135443a66fb14e6f1ac9660b205034666694096743298412200196d82d3cc6ec",
+    "sequence": 5,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "31fe174fcd0f25180efe79c26965da86d58884254188f7e695241ead9c47c0ee"
+  },
+  {
+    "at": "2026-10-11T16:23:42.237Z",
+    "kind": "learning-model-request",
+    "payload": {
+      "generation": "model",
+      "plan": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2",
+      "request": {
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "contradiction_ids": {
+              "items": {
+                "maxLength": 128,
+                "type": "string"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            "design": {
+              "additionalProperties": false,
+              "properties": {
+                "competing_hypothesis": {
+                  "maxLength": 600,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "evidence_ids": {
+                  "items": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 8,
+                  "type": "array"
+                },
+                "expected_direction": {
+                  "enum": ["increase", "decrease"],
+                  "type": "string"
+                },
+                "hypothesis": {
+                  "maxLength": 600,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "information_value": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "location": {
+                  "enum": [
+                    "bethesda_metro",
+                    "bethesda_row",
+                    "veterans_park",
+                    "farm_womens_market",
+                    "woodmont_bethesda",
+                    "downtown"
+                  ],
+                  "type": "string"
+                },
+                "minimum_effect": {
+                  "maximum": 500,
+                  "minimum": 0.01,
+                  "type": "number"
+                },
+                "observation_window_ticks": {
+                  "maximum": 3000,
+                  "minimum": 300,
+                  "type": "integer"
+                },
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "buses": {
+                      "maximum": 14,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "duration_ticks": {
+                      "maximum": 6000,
+                      "minimum": 100,
+                      "type": "integer"
+                    },
+                    "intensity": {
+                      "maximum": 3,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "pedestrians": {
+                      "maximum": 360,
+                      "minimum": 40,
+                      "type": "integer"
+                    },
+                    "vehicles": {
+                      "maximum": 70,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "pedestrians",
+                    "vehicles",
+                    "buses",
+                    "intensity",
+                    "duration_ticks"
+                  ],
+                  "type": "object"
+                },
+                "parent_design_id": {
+                  "maxLength": 80,
+                  "type": ["string", "null"]
+                },
+                "primary_metric": {
+                  "enum": [
+                    "cohort_mean_distance_m",
+                    "cohort_indoors",
+                    "pedestrians_near",
+                    "leaving",
+                    "sheltering",
+                    "watching",
+                    "vehicles_held"
+                  ],
+                  "type": "string"
+                },
+                "purpose": {
+                  "enum": ["exploratory", "confirmatory"],
+                  "type": "string"
+                },
+                "question": {
+                  "maxLength": 400,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "rationale": {
+                  "maxLength": 1000,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "replication_plan": {
+                  "maxLength": 600,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "scenario": {
+                  "enum": [
+                    "metro_closure",
+                    "fire",
+                    "gas_leak",
+                    "festival",
+                    "rally",
+                    "crash",
+                    "outage",
+                    "storm"
+                  ],
+                  "type": "string"
+                },
+                "schema": {
+                  "const": "rain-discovery-design/v1",
+                  "type": "string"
+                },
+                "uncertainties": {
+                  "items": {
+                    "maxLength": 400,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 5,
+                  "type": "array"
+                },
+                "warmup_ticks": {
+                  "maximum": 1200,
+                  "minimum": 100,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "schema",
+                "question",
+                "hypothesis",
+                "competing_hypothesis",
+                "rationale",
+                "evidence_ids",
+                "parent_design_id",
+                "purpose",
+                "scenario",
+                "location",
+                "primary_metric",
+                "expected_direction",
+                "minimum_effect",
+                "warmup_ticks",
+                "observation_window_ticks",
+                "parameters",
+                "uncertainties",
+                "replication_plan",
+                "information_value"
+              ],
+              "type": "object"
+            },
+            "unsupported_claim_ids": {
+              "items": {
+                "maxLength": 128,
+                "type": "string"
+              },
+              "maxItems": 10,
+              "type": "array"
+            }
+          },
+          "required": ["design", "contradiction_ids", "unsupported_claim_ids"],
+          "type": "object"
+        },
+        "schemaName": "rain_learning_answer",
+        "system": "You are a R.A.I.N. experiment designer. Revise the provided proposal to answer its scientific question under the supplied envelope. Preserve matched controls and competing hypotheses, cite only provided evidence IDs, identify contradictions and unsupported claims from the question. No external facts, tools or measurements. Return schema-constrained JSON only. The unchanged host compiler independently judges your proposal.",
+        "user": "{\"evaluated_procedural_guidance\":null,\"task\":{\"claim_ids\":[\"simulator-only\",\"external-confirmed\"],\"envelope\":{\"buses\":[0,14],\"duration_ticks\":[100,6000],\"intensity\":[1,3],\"locations\":[\"bethesda_metro\",\"bethesda_row\",\"veterans_park\",\"farm_womens_market\",\"woodmont_bethesda\",\"downtown\"],\"max_actor_ticks\":8000000,\"metrics\":[\"cohort_mean_distance_m\",\"cohort_indoors\",\"pedestrians_near\",\"leaving\",\"sheltering\",\"watching\",\"vehicles_held\"],\"observation_window_ticks\":[300,3000],\"pedestrians\":[40,360],\"scenarios\":[\"metro_closure\",\"fire\",\"gas_leak\",\"festival\",\"rally\",\"crash\",\"outage\",\"storm\"],\"seeds_per_design\":3,\"vehicles\":[0,70],\"warmup_ticks\":[100,1200]},\"evidence_ids\":[],\"id\":\"heldout-grid-1\",\"input_design\":{\"competing_hypothesis\":\"[scripted fixture] A fire does not increase mean watching count.\",\"evidence_ids\":[],\"expected_direction\":\"increase\",\"hypothesis\":\"[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.\",\"information_value\":0.5,\"location\":\"bethesda_row\",\"minimum_effect\":0.01,\"observation_window_ticks\":301,\"parameters\":{\"buses\":2,\"duration_ticks\":300,\"intensity\":1,\"pedestrians\":40,\"vehicles\":8},\"parent_design_id\":null,\"primary_metric\":\"watching\",\"purpose\":\"exploratory\",\"question\":\"[scripted fixture] Does a simulated fire change nearby watching behavior?\",\"rationale\":\"[scripted fixture] Test attraction and avoidance in the existing event rules.\",\"replication_plan\":\"Freeze the protocol and evaluate withheld seeds before claiming confirmation.\",\"scenario\":\"fire\",\"schema\":\"rain-discovery-design/v1\",\"uncertainties\":[\"Illustrative agents and short windows may show no measurable response.\"],\"warmup_ticks\":101},\"prior\":[],\"question\":\"[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-1: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.\",\"seeds\":[10001,10002,10003]}}"
+      }
+    },
+    "previous": "31fe174fcd0f25180efe79c26965da86d58884254188f7e695241ead9c47c0ee",
+    "sequence": 6,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "7d4966d2aa8473e1448b5790fdc485181b9ca67f964374178e83630723682001"
+  },
+  {
+    "at": "2026-10-11T16:25:13.963Z",
+    "kind": "learning-evaluation-incomplete",
+    "payload": {
+      "completed_pairs": 0,
+      "plan": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2",
+      "reason": "no answer within 90 s"
+    },
+    "previous": "7d4966d2aa8473e1448b5790fdc485181b9ca67f964374178e83630723682001",
+    "sequence": 7,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "72844dc06056de58f3348dd47c013cde8ebfaa3a641bbcd068ea8e3d2de768bc"
+  },
+  {
+    "at": "2026-10-11T16:25:14.028Z",
+    "kind": "learning-model-failure",
+    "payload": {
+      "plan": "9c191561bd0153b3d496fff5811b4d99fdef22080db122cbd1c4fdf667fc45c2",
+      "reason": "no answer within 90 s"
+    },
+    "previous": "72844dc06056de58f3348dd47c013cde8ebfaa3a641bbcd068ea8e3d2de768bc",
+    "sequence": 8,
+    "session": "LE-3e9f2843-fcc0-40cb-ac8f-83683bca19b9",
+    "sha256": "9d9fe7f0dd7d14a626bcf32ab2b8c720910b7d22992e0fe574f65433e61b961f"
+  }
+]

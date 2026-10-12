@@ -1,0 +1,256 @@
+{
+  "schema": "rain-rea-public-evidence/v1",
+  "url": "https://www.runmirrors.com/",
+  "finalOrigin": "https://mirrors.dev",
+  "inspectedAt": {
+    "started_at": "2026-10-11T12:38:11.975Z",
+    "ended_at": "2026-10-11T12:38:13.324Z",
+    "observation_ms": 1000
+  },
+  "inspectionEvidence": "ev_ff10b2e1fdc4fb4a361b0ac638399c3e00b61c6972e0fbe3140c7361b27e513e",
+  "bundleEvidence": "ev_11058dd379ccffd1f06447eb280dae5657b3a932fa3e78e4cb5cb3d6c27b90d9",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "completeness": {
+    "status": "policy_filtered",
+    "conditions": ["attach_limited", "policy_filtered"],
+    "policy_filtered_sections": [
+      "console_text",
+      "json_body_shapes",
+      "metadata",
+      "resources",
+      "script_sources",
+      "scripts",
+      "storage_keys",
+      "websocket_shapes"
+    ],
+    "attach_limited_sections": [
+      "console_events",
+      "metadata",
+      "network_requests",
+      "websocket_connections",
+      "websocket_frames"
+    ],
+    "truncated_sections": [],
+    "unavailable_sections": [],
+    "excluded": [
+      {
+        "section": "console_text",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "json_body_shapes",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "metadata",
+        "reason": "disallowed_origin",
+        "count": 11
+      },
+      {
+        "section": "metadata",
+        "reason": "unsupported_url",
+        "count": 2
+      },
+      {
+        "section": "resources",
+        "reason": "unsupported_url",
+        "count": 3
+      },
+      {
+        "section": "script_sources",
+        "reason": "not_approved",
+        "count": 11
+      },
+      {
+        "section": "scripts",
+        "reason": "unsupported_url",
+        "count": 1
+      },
+      {
+        "section": "storage_keys",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "websocket_shapes",
+        "reason": "not_approved",
+        "count": null
+      }
+    ],
+    "dropped_events": {
+      "scripts": 0,
+      "network_requests": 0,
+      "console_events": 0,
+      "websocket_connections": 0,
+      "websocket_frames": 0,
+      "webmcp_tools": 0,
+      "timeline_events": 0,
+      "total": 0
+    }
+  },
+  "bundleCompleteness": {
+    "status": "partial",
+    "parsed_scripts": 11,
+    "parse_failures": 0,
+    "visited_ast_nodes": 135938
+  },
+  "scriptInventory": [
+    {
+      "script_key": "scr_3eacb6485119b53f40dff1cff2436626f254f7ae57309a08ff1b21997be7d8e0",
+      "url": "https://mirrors.dev/_astro/Ribbon.astro_astro_type_script_index_0_lang.C2YIuck1.js",
+      "artifact_sha256": "bb641413c82116e4ff9ecad96b7be4b75cad45e7c9bf4e9497c10deaec09c206",
+      "bytes": 7411
+    },
+    {
+      "script_key": "scr_4375bee170f8176e152f2470628da966203b0ca8e4baf1138fd83dbc415920dc",
+      "url": "https://mirrors.dev/_astro/Platform.astro_astro_type_script_index_0_lang.EmQzWQsF.js",
+      "artifact_sha256": "a6399b0e837a9a55003a6434e6fcf140973be9769d35852705a44997c344c3b6",
+      "bytes": 2111
+    },
+    {
+      "script_key": "scr_4fddce6a593ede7674084bac4d7717b2419f83d8f5b928147b3b4256493ae759",
+      "url": "https://mirrors.dev/_astro/page.CxCmc3M6.js",
+      "artifact_sha256": "e17ad2adbd8ca65d8b6fb9e09c130069dbd045bffd3e6c1891ceb2f7dac0e06f",
+      "bytes": 145874
+    },
+    {
+      "script_key": "scr_61ad2cdfdcc840ddb81aa4938cbfb991d62d98f22b8b111cf66421409a6f5f8e",
+      "url": "https://mirrors.dev/",
+      "artifact_sha256": "e133ce7df3aa59b9bed511f8723eb670a99ec554c7d863e297e61b5bb3945d81",
+      "bytes": 4967
+    },
+    {
+      "script_key": "scr_8df894ea3e9710436542ede8c16e807bc86577442d46d492cdb1393bc33a1563",
+      "url": "https://mirrors.dev/_astro/module.no-external.NBDPLGtT.js",
+      "artifact_sha256": "c3af223cfd6ba6b5865c3eb21ce8f7d7c93b024824de070411b842cec782eafc",
+      "bytes": 329513
+    },
+    {
+      "script_key": "scr_b10ab4f12d1b89a493ab4c91bfda479d8429f72170f7713a072281c04bba8cd2",
+      "url": "https://mirrors.dev/",
+      "artifact_sha256": "8950eab0c05907b78ec904829e0bd05c2f1d7e1d3e996a40e1a93230fe563648",
+      "bytes": 158
+    },
+    {
+      "script_key": "scr_b8613e70845def590b1e1dd8ab659047645ae227e945b045e536eb2094da3520",
+      "url": "https://mirrors.dev/_astro/telemetry-privacy.DsNcK_0h.js",
+      "artifact_sha256": "6f9fd7d7376d2b187eaefd6c67cedc4aaec7e814fae21690af561a3615c5c9a3",
+      "bytes": 951
+    },
+    {
+      "script_key": "scr_bdb0c40d27345d3cbbe38602ffbf379c2969cbb9b973b48bcba32f93570456b6",
+      "url": "https://mirrors.dev/_astro/preload-helper.B3nfOi5I.js",
+      "artifact_sha256": "298e58483be1903930c5a1661df3e66b3ef02723b34237990ad3a5f5e6052628",
+      "bytes": 1364
+    },
+    {
+      "script_key": "scr_bf57cc987669bd46e12a3a8c4844611557704db406a4c72fc9df78c885b5e76a",
+      "url": "https://mirrors.dev/_astro/SiteLayout.astro_astro_type_script_index_0_lang.BBldWQ08.js",
+      "artifact_sha256": "c22b1b67637951f73cfe80a289194678dff645a958ff32bd01890f63932cd72a",
+      "bytes": 2386
+    },
+    {
+      "script_key": "scr_ddb5f3f08a6ff25e5db4cf9fdac579416a058b187bf72047c87b270eb6c10751",
+      "url": "https://mirrors.dev/",
+      "artifact_sha256": "8a38a824b23e46d64207811e1c14b2ae30dfda0406b63d44366b92d8359790dd",
+      "bytes": 622
+    },
+    {
+      "script_key": "scr_dffddebefe6439ce88f491be837f776213025262defc8d14fbbf1a823bca2e9e",
+      "url": "https://mirrors.dev/",
+      "artifact_sha256": "770f4379fe59804fcf3747f7057c85c8b580a06bdb8dfabb467bc44d9baca44d",
+      "bytes": 1464
+    }
+  ],
+  "staticEdges": [
+    {
+      "from_script_key": "scr_3eacb6485119b53f40dff1cff2436626f254f7ae57309a08ff1b21997be7d8e0",
+      "kind": "static_import",
+      "specifier": "./preload-helper.B3nfOi5I.js",
+      "resolved_url": "https://mirrors.dev/_astro/preload-helper.B3nfOi5I.js",
+      "location": {
+        "script_key": "scr_3eacb6485119b53f40dff1cff2436626f254f7ae57309a08ff1b21997be7d8e0",
+        "line": 1,
+        "column": 0
+      }
+    },
+    {
+      "from_script_key": "scr_4375bee170f8176e152f2470628da966203b0ca8e4baf1138fd83dbc415920dc",
+      "kind": "static_import",
+      "specifier": "./preload-helper.B3nfOi5I.js",
+      "resolved_url": "https://mirrors.dev/_astro/preload-helper.B3nfOi5I.js",
+      "location": {
+        "script_key": "scr_4375bee170f8176e152f2470628da966203b0ca8e4baf1138fd83dbc415920dc",
+        "line": 2,
+        "column": 0
+      }
+    },
+    {
+      "from_script_key": "scr_4fddce6a593ede7674084bac4d7717b2419f83d8f5b928147b3b4256493ae759",
+      "kind": "static_import",
+      "specifier": "./telemetry-privacy.DsNcK_0h.js",
+      "resolved_url": "https://mirrors.dev/_astro/telemetry-privacy.DsNcK_0h.js",
+      "location": {
+        "script_key": "scr_4fddce6a593ede7674084bac4d7717b2419f83d8f5b928147b3b4256493ae759",
+        "line": 1,
+        "column": 0
+      }
+    },
+    {
+      "from_script_key": "scr_bf57cc987669bd46e12a3a8c4844611557704db406a4c72fc9df78c885b5e76a",
+      "kind": "static_import",
+      "specifier": "./preload-helper.B3nfOi5I.js",
+      "resolved_url": "https://mirrors.dev/_astro/preload-helper.B3nfOi5I.js",
+      "location": {
+        "script_key": "scr_bf57cc987669bd46e12a3a8c4844611557704db406a4c72fc9df78c885b5e76a",
+        "line": 1,
+        "column": 0
+      }
+    },
+    {
+      "from_script_key": "scr_bf57cc987669bd46e12a3a8c4844611557704db406a4c72fc9df78c885b5e76a",
+      "kind": "static_import",
+      "specifier": "./telemetry-privacy.DsNcK_0h.js",
+      "resolved_url": "https://mirrors.dev/_astro/telemetry-privacy.DsNcK_0h.js",
+      "location": {
+        "script_key": "scr_bf57cc987669bd46e12a3a8c4844611557704db406a4c72fc9df78c885b5e76a",
+        "line": 1,
+        "column": 49
+      }
+    }
+  ],
+  "vendorInferences": [
+    {
+      "kind": "bundle_runtime",
+      "value": "Vite",
+      "confidence": "medium",
+      "basis": [
+        {
+          "script_key": "scr_4375bee170f8176e152f2470628da966203b0ca8e4baf1138fd83dbc415920dc",
+          "artifact_sha256": "a6399b0e837a9a55003a6434e6fcf140973be9769d35852705a44997c344c3b6",
+          "line": null,
+          "column": null,
+          "detector": "vite-runtime"
+        }
+      ]
+    }
+  ],
+  "sourceMaps": {
+    "status": "unavailable",
+    "requested": 0,
+    "processed": 0,
+    "items": []
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ]
+}

@@ -1,0 +1,1146 @@
+[
+  {
+    "at": "2026-10-11T15:13:42.268Z",
+    "kind": "scientific-model-request",
+    "payload": {
+      "generation": "model",
+      "model": "qwen/qwen3.5-9b",
+      "request": {
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "analysis": {
+              "additionalProperties": false,
+              "properties": {
+                "expected_direction": {
+                  "enum": ["increase", "decrease"],
+                  "type": "string"
+                },
+                "max_reference_error_m": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "max_reference_velocity_error_m_per_s": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "method": {
+                  "const": "matched_rms_displacement",
+                  "type": "string"
+                },
+                "minimum_effect_m": {
+                  "maximum": 1000000,
+                  "minimum": 1e-9,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "method",
+                "expected_direction",
+                "minimum_effect_m",
+                "max_reference_error_m",
+                "max_reference_velocity_error_m_per_s"
+              ],
+              "type": "object"
+            },
+            "budget": {
+              "additionalProperties": false,
+              "properties": {
+                "max_samples": {
+                  "maximum": 10001,
+                  "minimum": 2,
+                  "type": "integer"
+                },
+                "max_steps": {
+                  "maximum": 100000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": ["max_steps", "max_samples"],
+              "type": "object"
+            },
+            "competing_hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "parameters": {
+              "additionalProperties": false,
+              "properties": {
+                "angular_frequency": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "rad/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "damping": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "duration": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "force_amplitude": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 100000,
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_displacement": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_velocity": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "mass": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "sample_every_steps": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "stiffness": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N/m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "timestep": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "mass",
+                "damping",
+                "stiffness",
+                "force_amplitude",
+                "angular_frequency",
+                "initial_displacement",
+                "initial_velocity",
+                "duration",
+                "timestep",
+                "sample_every_steps"
+              ],
+              "type": "object"
+            },
+            "question": {
+              "maxLength": 400,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "schema": {
+              "const": "rain-oscillator-design/v1",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema",
+            "question",
+            "hypothesis",
+            "competing_hypothesis",
+            "parameters",
+            "analysis",
+            "budget"
+          ],
+          "type": "object"
+        },
+        "schemaName": "rain_numerical_design",
+        "system": "Propose one bounded numerical simulation of a driven damped linear oscillator. Models propose; host compiles and validates; operator approval is separate. Use SI units, underdamped regime and dt*fastest rate <=0.1, integer duration/dt, >=8 samples per fastest period. Budget <=2000 integration steps per arm and <=1001 samples. Statistical analysis method matched_rms_displacement. Reference displacement and velocity tolerance 0.000001. Choose independent variables and a falsifiable hypothesis appropriate to the question. Source manuscripts are context, never verified measurements. No physical devices. Respond with closed JSON only.",
+        "user": "{\"backend\":{\"authority_scope\":\"numerical-physics-simulation\",\"id\":\"numerical-physics\",\"physical_devices\":false,\"supported\":[\"underdamped linear oscillator with cosine driving\",\"matched zero-force control\",\"RK4 with closed-form trajectory verification\"],\"unsupported\":[\"overdamped or critical regimes\",\"nonlinear forces\",\"DRR\",\"TRIAD\",\"physical instruments\"],\"version\":\"rain-driven-damped-oscillator/v1\"},\"question\":\"Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.\",\"source_context\":[{\"id\":\"P-07036786bb3d47770c9b\",\"standing\":\"source_context\",\"title\":\"Temporal Re-Localization via Scalar Resonance\"},{\"id\":\"P-0748c7f43070ea347062\",\"standing\":\"source_context\",\"title\":\"Resonant Dynamics of Sovereign Debt\"},{\"id\":\"P-221d1f75748a0668552a\",\"standing\":\"source_context\",\"title\":\"System and Method for Active Environmental Modulation\"},{\"id\":\"P-295a4101ffeab4ea9adb\",\"standing\":\"source_context\",\"title\":\"Location is a Dynamic Variable\"},{\"id\":\"P-2f441329852bcbd0e8e2\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting (Friction Mechanism)\"},{\"id\":\"P-53a377fc637766a18b4a\",\"standing\":\"source_context\",\"title\":\"Recursive Resonance Stabilization\"},{\"id\":\"P-732c235955e815158bc5\",\"standing\":\"source_context\",\"title\":\"Resonant Intelligence\"},{\"id\":\"P-84aaa4e9ebf7ca797d0f\",\"standing\":\"source_context\",\"title\":\"Coherence Depth\"},{\"id\":\"P-903638bf475060869b48\",\"standing\":\"source_context\",\"title\":\"Integrated Plasma Confinement\"},{\"id\":\"P-a317e6cf3634ca6f24df\",\"standing\":\"source_context\",\"title\":\"Project 33-N\"},{\"id\":\"P-ab52215311e922c417c2\",\"standing\":\"source_context\",\"title\":\"Geometric Dynamic Location Theory\"},{\"id\":\"P-becb9e52dd59aa8d2040\",\"standing\":\"source_context\",\"title\":\"Guarino Industries LLC\"},{\"id\":\"P-c3132881a476ea73d58b\",\"standing\":\"source_context\",\"title\":\"Bounding the Scalar Coupling Constant\"},{\"id\":\"P-c87b97158051a9d926fa\",\"standing\":\"source_context\",\"title\":\"Bidirectional Spiral Interference\"},{\"id\":\"P-e042a24533a7ba58a999\",\"standing\":\"source_context\",\"title\":\"Emergent Time and Quantum Correlations\"},{\"id\":\"P-e0d7ea645b1958e72481\",\"standing\":\"source_context\",\"title\":\"Reality Built on a Finite Set of Geometric Instructions\"},{\"id\":\"P-f34bf5c23db820e84ea9\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting\"}]}"
+      }
+    },
+    "previous": null,
+    "sequence": 0,
+    "session": "NS-9d7ca54e-ff5e-4ebe-94cb-708ae1f412f2",
+    "sha256": "6127de74e4a62eb9b16b7c69fe69ed20d05024b6393d56e2967e6ef74bc53d4b"
+  },
+  {
+    "at": "2026-10-11T15:16:42.457Z",
+    "kind": "scientific-failed",
+    "payload": {
+      "errors": ["no answer within 180 s"],
+      "stage": "model-draft"
+    },
+    "previous": "6127de74e4a62eb9b16b7c69fe69ed20d05024b6393d56e2967e6ef74bc53d4b",
+    "sequence": 1,
+    "session": "NS-9d7ca54e-ff5e-4ebe-94cb-708ae1f412f2",
+    "sha256": "a4968396d98ac249bd21aea071e67f5d46231cc4bca597c30b5602ffa70dcbbb"
+  },
+  {
+    "at": "2026-10-11T15:22:16.935Z",
+    "kind": "scientific-model-request",
+    "payload": {
+      "generation": "model",
+      "model": "qwen/qwen3.5-9b",
+      "request": {
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "analysis": {
+              "additionalProperties": false,
+              "properties": {
+                "expected_direction": {
+                  "enum": ["increase", "decrease"],
+                  "type": "string"
+                },
+                "max_reference_error_m": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "max_reference_velocity_error_m_per_s": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "method": {
+                  "const": "matched_rms_displacement",
+                  "type": "string"
+                },
+                "minimum_effect_m": {
+                  "maximum": 1000000,
+                  "minimum": 1e-9,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "method",
+                "expected_direction",
+                "minimum_effect_m",
+                "max_reference_error_m",
+                "max_reference_velocity_error_m_per_s"
+              ],
+              "type": "object"
+            },
+            "budget": {
+              "additionalProperties": false,
+              "properties": {
+                "max_samples": {
+                  "maximum": 10001,
+                  "minimum": 2,
+                  "type": "integer"
+                },
+                "max_steps": {
+                  "maximum": 100000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": ["max_steps", "max_samples"],
+              "type": "object"
+            },
+            "competing_hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "parameters": {
+              "additionalProperties": false,
+              "properties": {
+                "angular_frequency": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "rad/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "damping": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "duration": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "force_amplitude": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 100000,
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_displacement": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_velocity": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "mass": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "sample_every_steps": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "stiffness": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N/m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "timestep": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "mass",
+                "damping",
+                "stiffness",
+                "force_amplitude",
+                "angular_frequency",
+                "initial_displacement",
+                "initial_velocity",
+                "duration",
+                "timestep",
+                "sample_every_steps"
+              ],
+              "type": "object"
+            },
+            "question": {
+              "maxLength": 400,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "schema": {
+              "const": "rain-oscillator-design/v1",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema",
+            "question",
+            "hypothesis",
+            "competing_hypothesis",
+            "parameters",
+            "analysis",
+            "budget"
+          ],
+          "type": "object"
+        },
+        "schemaName": "rain_numerical_design",
+        "system": "Propose one bounded numerical simulation of a driven damped linear oscillator. Models propose; host compiles and validates; operator approval is separate. Use SI units, underdamped regime and dt*fastest rate <=0.1, integer duration/dt, >=8 samples per fastest period. Budget <=2000 integration steps per arm and <=1001 samples. Statistical analysis method matched_rms_displacement. Reference displacement and velocity tolerance 0.000001. Choose independent variables and a falsifiable hypothesis appropriate to the question. Source manuscripts are context, never verified measurements. No physical devices. Respond with closed JSON only.",
+        "user": "{\"backend\":{\"authority_scope\":\"numerical-physics-simulation\",\"id\":\"numerical-physics\",\"physical_devices\":false,\"supported\":[\"underdamped linear oscillator with cosine driving\",\"matched zero-force control\",\"RK4 with closed-form trajectory verification\"],\"unsupported\":[\"overdamped or critical regimes\",\"nonlinear forces\",\"DRR\",\"TRIAD\",\"physical instruments\"],\"version\":\"rain-driven-damped-oscillator/v1\"},\"question\":\"Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.\",\"source_context\":[{\"id\":\"P-07036786bb3d47770c9b\",\"standing\":\"source_context\",\"title\":\"Temporal Re-Localization via Scalar Resonance\"},{\"id\":\"P-0748c7f43070ea347062\",\"standing\":\"source_context\",\"title\":\"Resonant Dynamics of Sovereign Debt\"},{\"id\":\"P-221d1f75748a0668552a\",\"standing\":\"source_context\",\"title\":\"System and Method for Active Environmental Modulation\"},{\"id\":\"P-295a4101ffeab4ea9adb\",\"standing\":\"source_context\",\"title\":\"Location is a Dynamic Variable\"},{\"id\":\"P-2f441329852bcbd0e8e2\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting (Friction Mechanism)\"},{\"id\":\"P-53a377fc637766a18b4a\",\"standing\":\"source_context\",\"title\":\"Recursive Resonance Stabilization\"},{\"id\":\"P-732c235955e815158bc5\",\"standing\":\"source_context\",\"title\":\"Resonant Intelligence\"},{\"id\":\"P-84aaa4e9ebf7ca797d0f\",\"standing\":\"source_context\",\"title\":\"Coherence Depth\"},{\"id\":\"P-903638bf475060869b48\",\"standing\":\"source_context\",\"title\":\"Integrated Plasma Confinement\"},{\"id\":\"P-a317e6cf3634ca6f24df\",\"standing\":\"source_context\",\"title\":\"Project 33-N\"},{\"id\":\"P-ab52215311e922c417c2\",\"standing\":\"source_context\",\"title\":\"Geometric Dynamic Location Theory\"},{\"id\":\"P-becb9e52dd59aa8d2040\",\"standing\":\"source_context\",\"title\":\"Guarino Industries LLC\"},{\"id\":\"P-c3132881a476ea73d58b\",\"standing\":\"source_context\",\"title\":\"Bounding the Scalar Coupling Constant\"},{\"id\":\"P-c87b97158051a9d926fa\",\"standing\":\"source_context\",\"title\":\"Bidirectional Spiral Interference\"},{\"id\":\"P-e042a24533a7ba58a999\",\"standing\":\"source_context\",\"title\":\"Emergent Time and Quantum Correlations\"},{\"id\":\"P-e0d7ea645b1958e72481\",\"standing\":\"source_context\",\"title\":\"Reality Built on a Finite Set of Geometric Instructions\"},{\"id\":\"P-f34bf5c23db820e84ea9\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting\"}]}"
+      }
+    },
+    "previous": "a4968396d98ac249bd21aea071e67f5d46231cc4bca597c30b5602ffa70dcbbb",
+    "sequence": 2,
+    "session": "NS-b9aa216a-ac5b-4530-b4f0-b0763b2b992d",
+    "sha256": "e77f73d3875755fe3f251e18faf1ba217f771d1f16f0e6c96c6960d7167022e5"
+  },
+  {
+    "at": "2026-10-11T15:25:21.803Z",
+    "kind": "scientific-failed",
+    "payload": {
+      "errors": ["no answer within 180 s"],
+      "stage": "model-draft"
+    },
+    "previous": "e77f73d3875755fe3f251e18faf1ba217f771d1f16f0e6c96c6960d7167022e5",
+    "sequence": 3,
+    "session": "NS-b9aa216a-ac5b-4530-b4f0-b0763b2b992d",
+    "sha256": "0bc2f0b683240eab6e13a67bbc4db4a6f73fe3c9509d82fcc48a68935686d490"
+  },
+  {
+    "at": "2026-10-11T15:34:50.839Z",
+    "kind": "scientific-model-request",
+    "payload": {
+      "generation": "model",
+      "model": "qwen/qwen3.5-9b",
+      "request": {
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "analysis": {
+              "additionalProperties": false,
+              "properties": {
+                "expected_direction": {
+                  "enum": ["increase", "decrease"],
+                  "type": "string"
+                },
+                "max_reference_error_m": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "max_reference_velocity_error_m_per_s": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "method": {
+                  "const": "matched_rms_displacement",
+                  "type": "string"
+                },
+                "minimum_effect_m": {
+                  "maximum": 1000000,
+                  "minimum": 1e-9,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "method",
+                "expected_direction",
+                "minimum_effect_m",
+                "max_reference_error_m",
+                "max_reference_velocity_error_m_per_s"
+              ],
+              "type": "object"
+            },
+            "budget": {
+              "additionalProperties": false,
+              "properties": {
+                "max_samples": {
+                  "maximum": 10001,
+                  "minimum": 2,
+                  "type": "integer"
+                },
+                "max_steps": {
+                  "maximum": 100000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": ["max_steps", "max_samples"],
+              "type": "object"
+            },
+            "competing_hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "parameters": {
+              "additionalProperties": false,
+              "properties": {
+                "angular_frequency": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "rad/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "damping": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "duration": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "force_amplitude": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 100000,
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_displacement": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_velocity": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "mass": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "sample_every_steps": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "stiffness": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N/m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "timestep": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "mass",
+                "damping",
+                "stiffness",
+                "force_amplitude",
+                "angular_frequency",
+                "initial_displacement",
+                "initial_velocity",
+                "duration",
+                "timestep",
+                "sample_every_steps"
+              ],
+              "type": "object"
+            },
+            "question": {
+              "maxLength": 400,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "schema": {
+              "const": "rain-oscillator-design/v1",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema",
+            "question",
+            "hypothesis",
+            "competing_hypothesis",
+            "parameters",
+            "analysis",
+            "budget"
+          ],
+          "type": "object"
+        },
+        "schemaName": "rain_numerical_design",
+        "system": "Propose one bounded numerical simulation of a driven damped linear oscillator. Models propose; host compiles and validates; operator approval is separate. Use SI units, underdamped regime and dt*fastest rate <=0.1, integer duration/dt, >=8 samples per fastest period. Budget <=2000 integration steps per arm and <=1001 samples. Statistical analysis method matched_rms_displacement. Reference displacement and velocity tolerance 0.000001. Choose independent variables and a falsifiable hypothesis appropriate to the question. Source manuscripts are context, never verified measurements. No physical devices. Respond with closed JSON only.",
+        "user": "{\"backend\":{\"authority_scope\":\"numerical-physics-simulation\",\"id\":\"numerical-physics\",\"physical_devices\":false,\"supported\":[\"underdamped linear oscillator with cosine driving\",\"matched zero-force control\",\"RK4 with closed-form trajectory verification\"],\"unsupported\":[\"overdamped or critical regimes\",\"nonlinear forces\",\"DRR\",\"TRIAD\",\"physical instruments\"],\"version\":\"rain-driven-damped-oscillator/v1\"},\"question\":\"Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.\",\"source_context\":[{\"id\":\"P-07036786bb3d47770c9b\",\"standing\":\"source_context\",\"title\":\"Temporal Re-Localization via Scalar Resonance\"},{\"id\":\"P-0748c7f43070ea347062\",\"standing\":\"source_context\",\"title\":\"Resonant Dynamics of Sovereign Debt\"},{\"id\":\"P-221d1f75748a0668552a\",\"standing\":\"source_context\",\"title\":\"System and Method for Active Environmental Modulation\"},{\"id\":\"P-295a4101ffeab4ea9adb\",\"standing\":\"source_context\",\"title\":\"Location is a Dynamic Variable\"},{\"id\":\"P-2f441329852bcbd0e8e2\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting (Friction Mechanism)\"},{\"id\":\"P-53a377fc637766a18b4a\",\"standing\":\"source_context\",\"title\":\"Recursive Resonance Stabilization\"},{\"id\":\"P-732c235955e815158bc5\",\"standing\":\"source_context\",\"title\":\"Resonant Intelligence\"},{\"id\":\"P-84aaa4e9ebf7ca797d0f\",\"standing\":\"source_context\",\"title\":\"Coherence Depth\"},{\"id\":\"P-903638bf475060869b48\",\"standing\":\"source_context\",\"title\":\"Integrated Plasma Confinement\"},{\"id\":\"P-a317e6cf3634ca6f24df\",\"standing\":\"source_context\",\"title\":\"Project 33-N\"},{\"id\":\"P-ab52215311e922c417c2\",\"standing\":\"source_context\",\"title\":\"Geometric Dynamic Location Theory\"},{\"id\":\"P-becb9e52dd59aa8d2040\",\"standing\":\"source_context\",\"title\":\"Guarino Industries LLC\"},{\"id\":\"P-c3132881a476ea73d58b\",\"standing\":\"source_context\",\"title\":\"Bounding the Scalar Coupling Constant\"},{\"id\":\"P-c87b97158051a9d926fa\",\"standing\":\"source_context\",\"title\":\"Bidirectional Spiral Interference\"},{\"id\":\"P-e042a24533a7ba58a999\",\"standing\":\"source_context\",\"title\":\"Emergent Time and Quantum Correlations\"},{\"id\":\"P-e0d7ea645b1958e72481\",\"standing\":\"source_context\",\"title\":\"Reality Built on a Finite Set of Geometric Instructions\"},{\"id\":\"P-f34bf5c23db820e84ea9\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting\"}]}"
+      }
+    },
+    "previous": "0bc2f0b683240eab6e13a67bbc4db4a6f73fe3c9509d82fcc48a68935686d490",
+    "sequence": 4,
+    "session": "NS-9a19f167-45e4-44ef-b4e2-cd8082914e4a",
+    "sha256": "8ceb23c77771cc6c06933b2e290d953d432c75c41a0c012b915d0f961533c684"
+  },
+  {
+    "at": "2026-10-11T15:44:59.732Z",
+    "kind": "scientific-failed",
+    "payload": {
+      "errors": ["no answer within 600 s"],
+      "stage": "model-draft"
+    },
+    "previous": "8ceb23c77771cc6c06933b2e290d953d432c75c41a0c012b915d0f961533c684",
+    "sequence": 5,
+    "session": "NS-9a19f167-45e4-44ef-b4e2-cd8082914e4a",
+    "sha256": "dbc259ae5b1d9da1d54834c8feb1a39d642bc1a70d33b885735bdd6dbf72bb44"
+  },
+  {
+    "at": "2026-10-11T16:00:51.669Z",
+    "kind": "scientific-model-request",
+    "payload": {
+      "generation": "model",
+      "model": "qwen/qwen3.5-9b",
+      "request": {
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "analysis": {
+              "additionalProperties": false,
+              "properties": {
+                "expected_direction": {
+                  "enum": ["increase", "decrease"],
+                  "type": "string"
+                },
+                "max_reference_error_m": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "max_reference_velocity_error_m_per_s": {
+                  "maximum": 0.01,
+                  "minimum": 1e-12,
+                  "type": "number"
+                },
+                "method": {
+                  "const": "matched_rms_displacement",
+                  "type": "string"
+                },
+                "minimum_effect_m": {
+                  "maximum": 1000000,
+                  "minimum": 1e-9,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "method",
+                "expected_direction",
+                "minimum_effect_m",
+                "max_reference_error_m",
+                "max_reference_velocity_error_m_per_s"
+              ],
+              "type": "object"
+            },
+            "budget": {
+              "additionalProperties": false,
+              "properties": {
+                "max_samples": {
+                  "maximum": 10001,
+                  "minimum": 2,
+                  "type": "integer"
+                },
+                "max_steps": {
+                  "maximum": 100000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": ["max_steps", "max_samples"],
+              "type": "object"
+            },
+            "competing_hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "hypothesis": {
+              "maxLength": 600,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "parameters": {
+              "additionalProperties": false,
+              "properties": {
+                "angular_frequency": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "rad/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "damping": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "duration": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "force_amplitude": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 100000,
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_displacement": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "initial_velocity": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "m/s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": -1000,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "mass": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "kg",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "sample_every_steps": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "stiffness": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "N/m",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1000000,
+                      "minimum": 0.001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                },
+                "timestep": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "const": "s",
+                      "type": "string"
+                    },
+                    "value": {
+                      "maximum": 1,
+                      "minimum": 0.000001,
+                      "type": "number"
+                    }
+                  },
+                  "required": ["value", "unit"],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "mass",
+                "damping",
+                "stiffness",
+                "force_amplitude",
+                "angular_frequency",
+                "initial_displacement",
+                "initial_velocity",
+                "duration",
+                "timestep",
+                "sample_every_steps"
+              ],
+              "type": "object"
+            },
+            "question": {
+              "maxLength": 400,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "schema": {
+              "const": "rain-oscillator-design/v1",
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema",
+            "question",
+            "hypothesis",
+            "competing_hypothesis",
+            "parameters",
+            "analysis",
+            "budget"
+          ],
+          "type": "object"
+        },
+        "schemaName": "rain_numerical_design",
+        "system": "Propose one bounded numerical simulation of a driven damped linear oscillator. Models propose; host compiles and validates; operator approval is separate. Use SI units, underdamped regime and dt*fastest rate <=0.1, integer duration/dt, >=8 samples per fastest period. Budget <=2000 integration steps per arm and <=1001 samples. Statistical analysis method matched_rms_displacement. Reference displacement and velocity tolerance 0.000001. Choose independent variables and a falsifiable hypothesis appropriate to the question. Source manuscripts are context, never verified measurements. No physical devices. Respond with closed JSON only.",
+        "user": "{\"backend\":{\"authority_scope\":\"numerical-physics-simulation\",\"id\":\"numerical-physics\",\"physical_devices\":false,\"supported\":[\"underdamped linear oscillator with cosine driving\",\"matched zero-force control\",\"RK4 with closed-form trajectory verification\"],\"unsupported\":[\"overdamped or critical regimes\",\"nonlinear forces\",\"DRR\",\"TRIAD\",\"physical instruments\"],\"version\":\"rain-driven-damped-oscillator/v1\"},\"question\":\"Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.\",\"source_context\":[{\"id\":\"P-07036786bb3d47770c9b\",\"standing\":\"source_context\",\"title\":\"Temporal Re-Localization via Scalar Resonance\"},{\"id\":\"P-0748c7f43070ea347062\",\"standing\":\"source_context\",\"title\":\"Resonant Dynamics of Sovereign Debt\"},{\"id\":\"P-221d1f75748a0668552a\",\"standing\":\"source_context\",\"title\":\"System and Method for Active Environmental Modulation\"},{\"id\":\"P-295a4101ffeab4ea9adb\",\"standing\":\"source_context\",\"title\":\"Location is a Dynamic Variable\"},{\"id\":\"P-2f441329852bcbd0e8e2\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting (Friction Mechanism)\"},{\"id\":\"P-53a377fc637766a18b4a\",\"standing\":\"source_context\",\"title\":\"Recursive Resonance Stabilization\"},{\"id\":\"P-732c235955e815158bc5\",\"standing\":\"source_context\",\"title\":\"Resonant Intelligence\"},{\"id\":\"P-84aaa4e9ebf7ca797d0f\",\"standing\":\"source_context\",\"title\":\"Coherence Depth\"},{\"id\":\"P-903638bf475060869b48\",\"standing\":\"source_context\",\"title\":\"Integrated Plasma Confinement\"},{\"id\":\"P-a317e6cf3634ca6f24df\",\"standing\":\"source_context\",\"title\":\"Project 33-N\"},{\"id\":\"P-ab52215311e922c417c2\",\"standing\":\"source_context\",\"title\":\"Geometric Dynamic Location Theory\"},{\"id\":\"P-becb9e52dd59aa8d2040\",\"standing\":\"source_context\",\"title\":\"Guarino Industries LLC\"},{\"id\":\"P-c3132881a476ea73d58b\",\"standing\":\"source_context\",\"title\":\"Bounding the Scalar Coupling Constant\"},{\"id\":\"P-c87b97158051a9d926fa\",\"standing\":\"source_context\",\"title\":\"Bidirectional Spiral Interference\"},{\"id\":\"P-e042a24533a7ba58a999\",\"standing\":\"source_context\",\"title\":\"Emergent Time and Quantum Correlations\"},{\"id\":\"P-e0d7ea645b1958e72481\",\"standing\":\"source_context\",\"title\":\"Reality Built on a Finite Set of Geometric Instructions\"},{\"id\":\"P-f34bf5c23db820e84ea9\",\"standing\":\"source_context\",\"title\":\"Dynamic Resonance Rooting\"}]}"
+      }
+    },
+    "previous": "dbc259ae5b1d9da1d54834c8feb1a39d642bc1a70d33b885735bdd6dbf72bb44",
+    "sequence": 6,
+    "session": "NS-252c3d4e-d7ff-4b01-87ea-51164bdc9734",
+    "sha256": "2a92c5bdf136df493885894206d715c74c621e8a97dafd9e07836aa35d394aa2"
+  },
+  {
+    "at": "2026-10-11T16:23:33.914Z",
+    "kind": "scientific-failed",
+    "payload": {
+      "errors": ["no answer within 600 s"],
+      "stage": "model-draft"
+    },
+    "previous": "2a92c5bdf136df493885894206d715c74c621e8a97dafd9e07836aa35d394aa2",
+    "sequence": 7,
+    "session": "NS-252c3d4e-d7ff-4b01-87ea-51164bdc9734",
+    "sha256": "9438a3861fda3204665351d3832e8172928f006d1a55a6361b82416187a3e4ad"
+  }
+]

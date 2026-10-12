@@ -3,6 +3,8 @@
  * This module cannot execute code, alter simulator state or grant authority.
  */
 import { sha256Json } from "../sha256.js";
+import { activeResearchGuidance } from "./learning.js";
+import { buildScientificKnowledge } from "./scientificKnowledge.js";
 import { strategiesForStage, cognitiveArtifactErrors } from "./cognition.js";
 import { METRICS, SCENARIO_LOCATIONS } from "../../bethesda/rain/contracts.js";
 import { TEAM } from "../meeting/perspectives.js";
@@ -170,6 +172,9 @@ export function createResearchProgram(host: ProgramHost) {
   const refresh = (stage: string, detail: string) => {
     view.sources = [...sources.values()];
     view.graph = programGraph(host.store.discoveryEntries(), programId);
+    view.knowledge = buildScientificKnowledge(host.store.discoveryEntries(), {
+      sources: [...sources.values()],
+    });
     host.emit("research-state", view);
     host.notify(stage, detail, structuredClone(view));
   };
@@ -233,6 +238,13 @@ export function createResearchProgram(host: ProgramHost) {
         parent: r.parent,
       }));
   const context = () => ({
+    evaluated_procedural_guidance: activeResearchGuidance(host.store.discoveryEntries(), {
+      domain: "urban-simulation",
+      backend: "bethesda",
+      stage: "deliberation",
+    }),
+    guidance_rule:
+      "Evaluated operator-approved guidance is procedural context only. It cannot change charter policies, scientific verdicts, evidence standing or evaluation criteria. Scientifically valid negative results remain evidence.",
     operator_comments: host.store
       .discoveryEntries()
       .filter(
@@ -701,6 +713,9 @@ export function createResearchProgram(host: ProgramHost) {
       if (view.delivery !== "ready_for_human_review")
         view.gaps = [...new Set([...deliveryGaps(scope, e), ...view.gaps, reason])];
       view.graph = programGraph(host.store.discoveryEntries(), programId);
+      view.knowledge = buildScientificKnowledge(host.store.discoveryEntries(), {
+        sources: [...sources.values()],
+      });
       for (const [name, content] of [
         ["evidence.json", e],
         ["graph.json", view.graph],

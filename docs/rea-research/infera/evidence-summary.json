@@ -1,0 +1,236 @@
+{
+  "schema": "rain-rea-public-evidence/v1",
+  "url": "https://www.infera.bio/",
+  "finalOrigin": "https://www.infera.bio",
+  "inspectedAt": {
+    "started_at": "2026-10-11T12:38:10.331Z",
+    "ended_at": "2026-10-11T12:38:11.749Z",
+    "observation_ms": 1000
+  },
+  "inspectionEvidence": "ev_17e05c28964f725c8d8a36c1bf1dfdc6a66a06014edb904a40fa6ee94b41a919",
+  "bundleEvidence": "ev_92b3c9dce609f7419a16cb42a964279c3f61ef1c9ef7d1350fed921dcd5f563f",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "completeness": {
+    "status": "policy_filtered",
+    "conditions": ["attach_limited", "policy_filtered"],
+    "policy_filtered_sections": [
+      "console_text",
+      "json_body_shapes",
+      "metadata",
+      "resources",
+      "script_sources",
+      "scripts",
+      "storage_keys",
+      "websocket_shapes"
+    ],
+    "attach_limited_sections": [
+      "console_events",
+      "metadata",
+      "network_requests",
+      "websocket_connections",
+      "websocket_frames"
+    ],
+    "truncated_sections": [],
+    "unavailable_sections": [],
+    "excluded": [
+      {
+        "section": "console_text",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "json_body_shapes",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "metadata",
+        "reason": "disallowed_origin",
+        "count": 5
+      },
+      {
+        "section": "metadata",
+        "reason": "unsupported_url",
+        "count": 1
+      },
+      {
+        "section": "resources",
+        "reason": "unsupported_url",
+        "count": 7
+      },
+      {
+        "section": "script_sources",
+        "reason": "not_approved",
+        "count": 17
+      },
+      {
+        "section": "scripts",
+        "reason": "unsupported_url",
+        "count": 1
+      },
+      {
+        "section": "storage_keys",
+        "reason": "not_approved",
+        "count": null
+      },
+      {
+        "section": "websocket_shapes",
+        "reason": "not_approved",
+        "count": null
+      }
+    ],
+    "dropped_events": {
+      "scripts": 0,
+      "network_requests": 0,
+      "console_events": 0,
+      "websocket_connections": 0,
+      "websocket_frames": 0,
+      "webmcp_tools": 0,
+      "timeline_events": 0,
+      "total": 0
+    }
+  },
+  "bundleCompleteness": {
+    "status": "partial",
+    "parsed_scripts": 10,
+    "parse_failures": 0,
+    "visited_ast_nodes": 162814
+  },
+  "scriptInventory": [
+    {
+      "script_key": "scr_3f0476f0b5770417194dac395a36f33e94ecbda73ada7da27ccddfe28c8def04",
+      "url": "https://www.infera.bio/_next/static/chunks/0dgq26a5_oy.a.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "69a6bb99c3ffab75664c38bcf12faabd4bb9dc7e300605c030168809b21bc0b9",
+      "bytes": 50702
+    },
+    {
+      "script_key": "scr_4018835e2e405850a0887f80274e1ce7131b6de3a1c2bf6c8452c5190101a9fd",
+      "url": "https://www.infera.bio/_next/static/chunks/0d3shmwh5_nmn.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "a3ac200f3ab8bfa57cf78882057741ddb5c0fbc9e2490c5d951c099b37484206",
+      "bytes": 54646
+    },
+    {
+      "script_key": "scr_5aa5f03af696229fcf9f948b7e44760890e5f18e44299f14c265abc5f04c2132",
+      "url": "https://www.infera.bio/_next/static/chunks/0u_jvd0d2b0ng.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "39cd5f1d9e436970f18cb3769bbd93d1af44ae152dd1a4b3b1ce23243f557957",
+      "bytes": 45019
+    },
+    {
+      "script_key": "scr_5bac56b4a975fb7a4993155fc816f3d13740a29e0f603357f96c9c4c9c256b71",
+      "url": "https://www.infera.bio/_next/static/chunks/090pcy24-k3kh.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "a90a93b627b4bcfb54954805ad8994e2461341b0cf937bc62ab668fb0bdb8841",
+      "bytes": 3460
+    },
+    {
+      "script_key": "scr_68fc53e9810d5f282870eaa6fca178d3fc61320809cd704437c2ef0c2a366208",
+      "url": "https://www.infera.bio/_next/static/chunks/0mstyq17cbf8-.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "88bc49cd371493547a00af7676a006fc76bb6267dc023e7e4b80d03cb45006f5",
+      "bytes": 227537
+    },
+    {
+      "script_key": "scr_78572f18f1abfa8b5808fa50f2b58db7d31a0a750f3bdf65692f172df967526a",
+      "url": "https://www.infera.bio/_next/static/chunks/0xtbq60tn~sap.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "23e670f70967b8f28bcfe7b7b2478366ce6ce5f177d02eb1a32407823b277bfe",
+      "bytes": 149628
+    },
+    {
+      "script_key": "scr_92faa1f7fd7bf62668966737f2424674bf5a729d7afa4c5ca58420da4a0eb30c",
+      "url": "https://www.infera.bio/_next/static/chunks/01xlw8hd842-c.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "aee2d073d2a1157cfe5c98907f90b3967de4c3625f9ffb154bd1979ae2b917b0",
+      "bytes": 3377
+    },
+    {
+      "script_key": "scr_a765b16808bc5cc82ff9e3bcf291ada642d5079d9b3b69b93212a9b51b69ef6d",
+      "url": "https://www.infera.bio/_next/static/chunks/turbopack-0qlwfpvkl4oaz.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "95ed0190e91f6af3ef7055a266a4c0acb2fb128ce24d2c50db0325b2060d4b3f",
+      "bytes": 11041
+    },
+    {
+      "script_key": "scr_bc5c560eeb39329612e7873dbb27c4baa3b36482bec2793f01e54c959043c012",
+      "url": "https://www.infera.bio/_next/static/chunks/0ixqa6a2xw5x~.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "4f4bfcd9f1d829044ede6358bbbd8f4cb74cbc56cf749dc793cdfa5ba5a0f4dd",
+      "bytes": 11334
+    },
+    {
+      "script_key": "scr_e5ee5ee632fd4f72d3d54143e6a6086ab99d1930cd069a2badfb0ecfac976bb8",
+      "url": "https://www.infera.bio/_next/static/chunks/15xrurgzs99gv.js?dpl=dpl_28AXExwpzUZGS73m9MAXAcP2iQhK",
+      "artifact_sha256": "4c1829a638b5c4b5ac8f6f27e2f309a98c44aecd80c0fc5378392f3224f02915",
+      "bytes": 17474
+    }
+  ],
+  "staticEdges": [],
+  "vendorInferences": [
+    {
+      "kind": "vendor_fingerprint",
+      "value": "React",
+      "confidence": "medium",
+      "basis": [
+        {
+          "script_key": "scr_68fc53e9810d5f282870eaa6fca178d3fc61320809cd704437c2ef0c2a366208",
+          "artifact_sha256": "88bc49cd371493547a00af7676a006fc76bb6267dc023e7e4b80d03cb45006f5",
+          "line": null,
+          "column": null,
+          "detector": "react-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_68fc53e9810d5f282870eaa6fca178d3fc61320809cd704437c2ef0c2a366208",
+          "artifact_sha256": "88bc49cd371493547a00af7676a006fc76bb6267dc023e7e4b80d03cb45006f5",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "React",
+      "confidence": "medium",
+      "basis": [
+        {
+          "script_key": "scr_78572f18f1abfa8b5808fa50f2b58db7d31a0a750f3bdf65692f172df967526a",
+          "artifact_sha256": "23e670f70967b8f28bcfe7b7b2478366ce6ce5f177d02eb1a32407823b277bfe",
+          "line": null,
+          "column": null,
+          "detector": "react-runtime"
+        }
+      ]
+    },
+    {
+      "kind": "vendor_fingerprint",
+      "value": "Next.js",
+      "confidence": "high",
+      "basis": [
+        {
+          "script_key": "scr_a765b16808bc5cc82ff9e3bcf291ada642d5079d9b3b69b93212a9b51b69ef6d",
+          "artifact_sha256": "95ed0190e91f6af3ef7055a266a4c0acb2fb128ce24d2c50db0325b2060d4b3f",
+          "line": null,
+          "column": null,
+          "detector": "next-runtime"
+        }
+      ]
+    }
+  ],
+  "sourceMaps": {
+    "status": "unavailable",
+    "requested": 0,
+    "processed": 0,
+    "items": []
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
+    "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
+    "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool."
+  ]
+}

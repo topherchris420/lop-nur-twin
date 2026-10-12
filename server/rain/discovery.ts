@@ -13,6 +13,7 @@ import {
   ASSESSMENT_SCHEMA,
   type InstitutionAssessment,
 } from "../../src/bethesda/rain/institutionProtocol.js";
+import type { ProcessErrorCode } from "../../src/bethesda/rain/learningProtocol.js";
 export function createDiscoveryHandler(
   env: Record<string, string | undefined>,
   cwd: string,
@@ -110,6 +111,14 @@ export function createDiscoveryHandler(
         intervene: ["action", "text"],
         assess: ["action", "assessment", "reviewed"],
         source: ["action", "title", "text", "reviewed"],
+        "scientific-compile": ["action", "proposal"],
+        "scientific-draft": ["action", "question"],
+        "scientific-authorize": ["action", "digest", "prefix", "reviewed"],
+        "scientific-execute": ["action", "digest"],
+        "learning-propose": ["action", "code", "instructions"],
+        "learning-evaluate": ["action", "proposal"],
+        "learning-activate": ["action", "proposal", "evaluation", "digest", "reviewed"],
+        "learning-rollback": ["action", "activation", "digest", "reason", "reviewed"],
       };
       const action = typeof data.action === "string" ? data.action : "";
       const keys = fields[action];
@@ -120,6 +129,61 @@ export function createDiscoveryHandler(
       )
         throw new Error("Unknown action or fields");
       switch (action) {
+        case "scientific-compile":
+          return reply(service.scientificCompile(data.proposal));
+        case "scientific-draft":
+          if (typeof data.question !== "string")
+            throw new Error("Numerical question required");
+          return reply(await service.scientificDraft(data.question, request.signal));
+        case "scientific-authorize":
+          if (
+            typeof data.digest !== "string" ||
+            typeof data.prefix !== "string" ||
+            data.reviewed !== true
+          )
+            throw new Error("Exact numerical plan review required");
+          return reply(service.scientificAuthorize(data.digest, data.prefix, true));
+        case "scientific-execute":
+          if (typeof data.digest !== "string")
+            throw new Error("Numerical plan digest required");
+          return reply(await service.scientificExecute(data.digest, request.signal));
+        case "learning-propose":
+          if (
+            typeof data.code !== "string" ||
+            typeof data.instructions !== "string" ||
+            data.instructions.length > 2000
+          )
+            throw new Error("Bounded procedural guidance required");
+          return reply(
+            service.learningPropose(data.code as ProcessErrorCode, data.instructions),
+          );
+        case "learning-evaluate":
+          if (typeof data.proposal !== "string" || !/^[a-f0-9]{64}$/.test(data.proposal))
+            throw new Error("Proposal digest required");
+          return reply(await service.learningEvaluate(data.proposal));
+        case "learning-activate":
+          if (
+            typeof data.proposal !== "string" ||
+            typeof data.evaluation !== "string" ||
+            typeof data.digest !== "string" ||
+            data.reviewed !== true
+          )
+            throw new Error("Exact beneficial evaluation review required");
+          return reply(
+            service.learningActivate(data.proposal, data.evaluation, data.digest, true),
+          );
+        case "learning-rollback":
+          if (
+            typeof data.activation !== "string" ||
+            typeof data.digest !== "string" ||
+            typeof data.reason !== "string" ||
+            data.reason.length > 1000 ||
+            data.reviewed !== true
+          )
+            throw new Error("Exact activation review and reason required");
+          return reply(
+            service.learningRollback(data.activation, data.digest, data.reason, true),
+          );
         case "source":
           if (
             typeof data.title !== "string" ||

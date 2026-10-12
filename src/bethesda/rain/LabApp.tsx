@@ -160,6 +160,7 @@ export default function LabApp({
         h = header.current?.getBoundingClientRect(),
         a = aside.current?.getBoundingClientRect(),
         g = rooms.current?.getBoundingClientRect();
+      if (h) root.current?.style.setProperty("--rain-lab-title-height", `${h.height}px`);
       if (!r || !h || !a || !g || a.width === 0 || a.height === 0) nav.viewCenter = null;
       else if (!small.matches)
         // A wide screen: the room shows between the rooms at the lower left

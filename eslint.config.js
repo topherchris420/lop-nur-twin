@@ -51,6 +51,8 @@ export default tseslint.config(
       "src/routeTree.gen.ts",
       ".vercel/**",
       "shots/**",
+      ".claude/worktrees/**",
+      ".rain-research/**",
     ],
   },
 

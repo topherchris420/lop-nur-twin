@@ -6,6 +6,9 @@ import { partnership, INCEPTION_MODES, type InceptionMode } from "./inceptionPro
 import { SchedulePanel } from "./SchedulePanel";
 import { DescendantInspector } from "./DescendantInspector";
 import { AssessmentPanel } from "./AssessmentPanel";
+import { ScientificKnowledgeExplorer } from "./ScientificKnowledgeExplorer";
+import { LearningPanel } from "./LearningPanel";
+import { ScientificCompilerPanel } from "./ScientificCompilerPanel";
 
 const button = "rounded border border-teal-700 px-3 py-2 text-sm disabled:opacity-40";
 export function DiscoveryWorkbench() {
@@ -800,6 +803,17 @@ export function DiscoveryWorkbench() {
                 </div>
               )}
             </section>
+          )}
+          {view.knowledge && <ScientificKnowledgeExplorer graph={view.knowledge} />}
+          {view.learning && (
+            <LearningPanel view={view.learning} busy={busy || view.active} act={act} />
+          )}
+          {view.scientific && (
+            <ScientificCompilerPanel
+              view={view.scientific}
+              busy={busy || view.active}
+              act={act}
+            />
           )}
           {view.proposed && (
             <details open>

@@ -1,6 +1,7 @@
 /** Pure contracts for a native research program. Data never grants execution authority. */
 import { closed, checkData } from "./discoveryProtocol.js";
 import { UNSAFE_TEXT } from "./contracts.js";
+import type { ScientificKnowledgeGraph } from "./scientificKnowledgeProtocol.js";
 import {
   COGNITIVE_ARTIFACT_SCHEMA,
   type CognitiveArtifact,
@@ -197,6 +198,7 @@ export interface ResearchGraph {
   edges: { from: string; to: string; relation: string }[];
 }
 export interface ResearchView {
+  knowledge?: ScientificKnowledgeGraph;
   partnership?: Partnership;
   program_id: string;
   goal: string;

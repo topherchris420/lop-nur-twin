@@ -75,7 +75,12 @@
     "rain:math:search": "node scripts/run-ts.mjs scripts/math-substrate.ts search",
     "rain:math:portfolio": "node scripts/run-ts.mjs scripts/math-portfolio.ts",
     "rain:discovery": "node tools/rain-discovery.mjs",
-    "rain:discovery-demo": "node tools/rain-discovery-demo.mjs"
+    "rain:discovery-demo": "node tools/rain-discovery-demo.mjs",
+    "rain:scientific": "node scripts/run-ts.mjs scripts/rain-scientific-upgrade.ts",
+    "rain:scientific:demo": "node scripts/run-ts.mjs scripts/rain-scientific-upgrade.ts --scripted",
+    "rain:scientific:draft": "node scripts/run-ts.mjs scripts/rain-scientific-upgrade.ts --draft",
+    "rain:scientific:verify": "node scripts/run-ts.mjs scripts/verify-scientific-evidence.ts",
+    "rain:learning:live": "node scripts/run-ts.mjs scripts/rain-learning-live.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

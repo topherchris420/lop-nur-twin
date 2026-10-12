@@ -4,6 +4,9 @@ dist-ssr
 node_modules
 coverage
 .vite
+# Private generated research state and independent scratch checkouts.
+.rain-research
+.claude/worktrees
 .vercel
 
 # Lockfiles are written by their package manager, not by hand. Reformatting one

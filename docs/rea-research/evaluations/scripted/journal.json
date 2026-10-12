@@ -1,0 +1,4469 @@
+[
+  {
+    "at": "2026-10-11T15:15:26.610Z",
+    "kind": "validation",
+    "payload": {
+      "design": {
+        "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+        "evidence_ids": [],
+        "expected_direction": "increase",
+        "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+        "information_value": 0.5,
+        "location": "bethesda_row",
+        "minimum_effect": 0.01,
+        "observation_window_ticks": 300,
+        "parameters": {
+          "buses": 2,
+          "duration_ticks": 300,
+          "intensity": 1,
+          "pedestrians": 40,
+          "vehicles": 8
+        },
+        "parent_design_id": null,
+        "primary_metric": "watching",
+        "purpose": "exploratory",
+        "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+        "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+        "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+        "scenario": "fire",
+        "schema": "rain-discovery-design/v1",
+        "uncertainties": [
+          "Illustrative agents and short windows may show no measurable response."
+        ],
+        "warmup_ticks": 250
+      },
+      "errors": ["proposal.warmup_ticks: must be a multiple of 100"],
+      "generation": "scripted",
+      "ok": false,
+      "task": "training-grid-0"
+    },
+    "previous": null,
+    "sequence": 0,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "102a2a3a531e567f34c73827b01cb7843fe4d90505933b29b83d92e142222aed"
+  },
+  {
+    "at": "2026-10-11T15:15:26.625Z",
+    "kind": "validation",
+    "payload": {
+      "design": {
+        "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+        "evidence_ids": [],
+        "expected_direction": "increase",
+        "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+        "information_value": 0.5,
+        "location": "bethesda_row",
+        "minimum_effect": 0.01,
+        "observation_window_ticks": 300,
+        "parameters": {
+          "buses": 2,
+          "duration_ticks": 300,
+          "intensity": 1,
+          "pedestrians": 40,
+          "vehicles": 8
+        },
+        "parent_design_id": null,
+        "primary_metric": "watching",
+        "purpose": "exploratory",
+        "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+        "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+        "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+        "scenario": "fire",
+        "schema": "rain-discovery-design/v1",
+        "uncertainties": [
+          "Illustrative agents and short windows may show no measurable response."
+        ],
+        "warmup_ticks": 750
+      },
+      "errors": ["proposal.warmup_ticks: must be a multiple of 100"],
+      "generation": "scripted",
+      "ok": false,
+      "task": "training-grid-1"
+    },
+    "previous": "102a2a3a531e567f34c73827b01cb7843fe4d90505933b29b83d92e142222aed",
+    "sequence": 1,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "e6c297e328f761486aa300705bd5b7e20755473fbec54577c6b63f7b301dbd6b"
+  },
+  {
+    "at": "2026-10-11T15:15:26.628Z",
+    "kind": "learning-proposal",
+    "payload": {
+      "evidence": [
+        "102a2a3a531e567f34c73827b01cb7843fe4d90505933b29b83d92e142222aed",
+        "e6c297e328f761486aa300705bd5b7e20755473fbec54577c6b63f7b301dbd6b"
+      ],
+      "generation": "scripted",
+      "id": "RG-1775871063647ca2e2aeef5c",
+      "instructions": "Use 100-tick steps for warm-up and observation windows before submission; preserve matched controls and fixed evaluation criteria.",
+      "parent": null,
+      "proposer": "scripted-training-designer",
+      "schema": "rain-guidance-proposal/v1",
+      "scope": {
+        "backend": "bethesda",
+        "domain": "urban-simulation",
+        "error": "parameter-grid",
+        "scenario": null,
+        "stage": "design"
+      },
+      "version": 1
+    },
+    "previous": "e6c297e328f761486aa300705bd5b7e20755473fbec54577c6b63f7b301dbd6b",
+    "sequence": 2,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f"
+  },
+  {
+    "at": "2026-10-11T15:15:26.631Z",
+    "kind": "learning-plan",
+    "payload": {
+      "budget": {
+        "calls_per_arm": 8,
+        "max_tokens_per_arm": null,
+        "timeout_ms": 60000
+      },
+      "evaluator": "independent-host-grid-evaluator/v1",
+      "generation": "scripted",
+      "proposal": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f",
+      "rules": "rain-learning-scoring/v1",
+      "schema": "rain-learning-plan/v1",
+      "tasks": [
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-1"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-1",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 301,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 40,
+              "vehicles": 8
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 101
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-1: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10001, 10002, 10003],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-2"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-2",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 310,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 60,
+              "vehicles": 9
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 112
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-2: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10004, 10005, 10006],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-3"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-3",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 319,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 80,
+              "vehicles": 10
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 123
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-3: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10007, 10008, 10009],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-4"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-4",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 328,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 100,
+              "vehicles": 11
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 134
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-4: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10010, 10011, 10012],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-5"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-5",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 337,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 120,
+              "vehicles": 12
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 145
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-5: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10013, 10014, 10015],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-6"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-6",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 346,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 140,
+              "vehicles": 13
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 156
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-6: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10016, 10017, 10018],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-7"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-7",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 355,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 160,
+              "vehicles": 14
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 167
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-7: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10019, 10020, 10021],
+          "unsupported_claim_ids": ["external-confirmed"]
+        },
+        {
+          "claim_ids": ["simulator-only", "external-confirmed"],
+          "contradiction_ids": ["contradiction-8"],
+          "envelope": {
+            "buses": [0, 14],
+            "duration_ticks": [100, 6000],
+            "intensity": [1, 3],
+            "locations": [
+              "bethesda_metro",
+              "bethesda_row",
+              "veterans_park",
+              "farm_womens_market",
+              "woodmont_bethesda",
+              "downtown"
+            ],
+            "max_actor_ticks": 8000000,
+            "metrics": [
+              "cohort_mean_distance_m",
+              "cohort_indoors",
+              "pedestrians_near",
+              "leaving",
+              "sheltering",
+              "watching",
+              "vehicles_held"
+            ],
+            "observation_window_ticks": [300, 3000],
+            "pedestrians": [40, 360],
+            "scenarios": [
+              "metro_closure",
+              "fire",
+              "gas_leak",
+              "festival",
+              "rally",
+              "crash",
+              "outage",
+              "storm"
+            ],
+            "seeds_per_design": 3,
+            "vehicles": [0, 70],
+            "warmup_ticks": [100, 1200]
+          },
+          "evidence_ids": [],
+          "id": "heldout-grid-8",
+          "input_design": {
+            "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+            "evidence_ids": [],
+            "expected_direction": "increase",
+            "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+            "information_value": 0.5,
+            "location": "bethesda_row",
+            "minimum_effect": 0.01,
+            "observation_window_ticks": 364,
+            "parameters": {
+              "buses": 2,
+              "duration_ticks": 300,
+              "intensity": 1,
+              "pedestrians": 180,
+              "vehicles": 15
+            },
+            "parent_design_id": null,
+            "primary_metric": "watching",
+            "purpose": "exploratory",
+            "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+            "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+            "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+            "scenario": "fire",
+            "schema": "rain-discovery-design/v1",
+            "uncertainties": [
+              "Illustrative agents and short windows may show no measurable response."
+            ],
+            "warmup_ticks": 178
+          },
+          "origin_entries": [],
+          "preferred_primary_metric": "watching",
+          "prior": [],
+          "question": "[SCRIPTED HELDOUT] Test watching under this fire protocol. Synthetic contradiction contradiction-8: claim A states a positive effect and claim B states no effect. external-confirmed claims real-world confirmation despite simulator-only evidence, and is unsupported.",
+          "seeds": [10022, 10023, 10024],
+          "unsupported_claim_ids": ["external-confirmed"]
+        }
+      ]
+    },
+    "previous": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f",
+    "sequence": 3,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a"
+  },
+  {
+    "at": "2026-10-11T15:15:26.639Z",
+    "kind": "learning-evaluation-start",
+    "payload": {
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a"
+    },
+    "previous": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+    "sequence": 4,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "905bcbf11a1bf09f1ae454c1c14d587fa0871478706ca796eada9a437f33e835"
+  },
+  {
+    "at": "2026-10-11T15:15:26.641Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-1"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 301,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 40,
+            "vehicles": 8
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 101
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-1"
+    },
+    "previous": "905bcbf11a1bf09f1ae454c1c14d587fa0871478706ca796eada9a437f33e835",
+    "sequence": 5,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "b52d527796913302ad6860c8c7938bcf1d1da6dbf34c18f31ed6e4776bf903d4"
+  },
+  {
+    "at": "2026-10-11T15:15:26.656Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-1"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 40,
+            "vehicles": 8
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-1"
+    },
+    "previous": "b52d527796913302ad6860c8c7938bcf1d1da6dbf34c18f31ed6e4776bf903d4",
+    "sequence": 6,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "035beb526314e11ed51d923516aad1e8f8ec71b1c695e47c6b362ee3aebb7c2e"
+  },
+  {
+    "at": "2026-10-11T15:15:26.658Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-2"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 60,
+            "vehicles": 9
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-2"
+    },
+    "previous": "035beb526314e11ed51d923516aad1e8f8ec71b1c695e47c6b362ee3aebb7c2e",
+    "sequence": 7,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "6f750ce61a0a14bca37345142eaf6184d0784e72599c629023b0762bba0de603"
+  },
+  {
+    "at": "2026-10-11T15:15:26.660Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-2"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 310,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 60,
+            "vehicles": 9
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 112
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-2"
+    },
+    "previous": "6f750ce61a0a14bca37345142eaf6184d0784e72599c629023b0762bba0de603",
+    "sequence": 8,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "1f332d29dc5a22fce726193ef56ca49ca58c9458c5e05c4e94994ec89f2f9db4"
+  },
+  {
+    "at": "2026-10-11T15:15:26.662Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-3"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 319,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 80,
+            "vehicles": 10
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 123
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-3"
+    },
+    "previous": "1f332d29dc5a22fce726193ef56ca49ca58c9458c5e05c4e94994ec89f2f9db4",
+    "sequence": 9,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "aa41be57dfefeda609dce2ce520132a0eb0604007b96d27703d69d3fd3bf8800"
+  },
+  {
+    "at": "2026-10-11T15:15:26.663Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-3"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 80,
+            "vehicles": 10
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-3"
+    },
+    "previous": "aa41be57dfefeda609dce2ce520132a0eb0604007b96d27703d69d3fd3bf8800",
+    "sequence": 10,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "4abaa96af7a7f67a198e7e20b98dbebce1c99f8675f7c8f2a42847229f85828c"
+  },
+  {
+    "at": "2026-10-11T15:15:26.667Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-4"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 100,
+            "vehicles": 11
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-4"
+    },
+    "previous": "4abaa96af7a7f67a198e7e20b98dbebce1c99f8675f7c8f2a42847229f85828c",
+    "sequence": 11,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "49b80182e87c5933b22edfa52ec5e909860803c40b3211bcd0f1b8c5a9a2f429"
+  },
+  {
+    "at": "2026-10-11T15:15:26.671Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-4"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 328,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 100,
+            "vehicles": 11
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 134
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-4"
+    },
+    "previous": "49b80182e87c5933b22edfa52ec5e909860803c40b3211bcd0f1b8c5a9a2f429",
+    "sequence": 12,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "ba67547b027dbdebde6576d39eb1fdb41deb319a8c7782e1375bfd0e139f29d2"
+  },
+  {
+    "at": "2026-10-11T15:15:26.672Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-5"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 337,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 120,
+            "vehicles": 12
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 145
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-5"
+    },
+    "previous": "ba67547b027dbdebde6576d39eb1fdb41deb319a8c7782e1375bfd0e139f29d2",
+    "sequence": 13,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "1ad5c9bdfdd5862775cb948b6242215e72b51bf9d33d185a7ac092baf5b7921c"
+  },
+  {
+    "at": "2026-10-11T15:15:26.674Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-5"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 120,
+            "vehicles": 12
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-5"
+    },
+    "previous": "1ad5c9bdfdd5862775cb948b6242215e72b51bf9d33d185a7ac092baf5b7921c",
+    "sequence": 14,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "8c5a31b9d2a514b7857ef6edfd76b5ab7013e30da0cfa0819eafc1f3e9bccf46"
+  },
+  {
+    "at": "2026-10-11T15:15:26.676Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-6"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 140,
+            "vehicles": 13
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-6"
+    },
+    "previous": "8c5a31b9d2a514b7857ef6edfd76b5ab7013e30da0cfa0819eafc1f3e9bccf46",
+    "sequence": 15,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "ed80d8d4b87784ce14c8c119f50f3c22cec22023881f0818fe2cd5bf754be351"
+  },
+  {
+    "at": "2026-10-11T15:15:26.679Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-6"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 346,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 140,
+            "vehicles": 13
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 156
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-6"
+    },
+    "previous": "ed80d8d4b87784ce14c8c119f50f3c22cec22023881f0818fe2cd5bf754be351",
+    "sequence": 16,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "1aed15313b24e09cff11802dc0d236a2a5d2bbbbd725eaf1ce915dd19c4f30fd"
+  },
+  {
+    "at": "2026-10-11T15:15:26.681Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-7"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 355,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 160,
+            "vehicles": 14
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 167
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-7"
+    },
+    "previous": "1aed15313b24e09cff11802dc0d236a2a5d2bbbbd725eaf1ce915dd19c4f30fd",
+    "sequence": 17,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "e5b140a6671fa9d86441da0b9a13aff47e99b1a25d3b84cfeaff4718c34479ef"
+  },
+  {
+    "at": "2026-10-11T15:15:26.685Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-7"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 160,
+            "vehicles": 14
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-7"
+    },
+    "previous": "e5b140a6671fa9d86441da0b9a13aff47e99b1a25d3b84cfeaff4718c34479ef",
+    "sequence": 18,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "97b4988b2b71930136defee3593a28790500b59bde7370618e293c6a73f57535"
+  },
+  {
+    "at": "2026-10-11T15:15:26.687Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-8"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 300,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 180,
+            "vehicles": 15
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 100
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "candidate",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-8"
+    },
+    "previous": "97b4988b2b71930136defee3593a28790500b59bde7370618e293c6a73f57535",
+    "sequence": 19,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "8d9deefd7d18d7262ce72f5f6ca0d27f75ca03eac8813a0b6c505b0ece500704"
+  },
+  {
+    "at": "2026-10-11T15:15:26.690Z",
+    "kind": "learning-evaluation-answer",
+    "payload": {
+      "answer": {
+        "contradiction_ids": ["contradiction-8"],
+        "design": {
+          "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+          "evidence_ids": [],
+          "expected_direction": "increase",
+          "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+          "information_value": 0.5,
+          "location": "bethesda_row",
+          "minimum_effect": 0.01,
+          "observation_window_ticks": 364,
+          "parameters": {
+            "buses": 2,
+            "duration_ticks": 300,
+            "intensity": 1,
+            "pedestrians": 180,
+            "vehicles": 15
+          },
+          "parent_design_id": null,
+          "primary_metric": "watching",
+          "purpose": "exploratory",
+          "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+          "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+          "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+          "scenario": "fire",
+          "schema": "rain-discovery-design/v1",
+          "uncertainties": [
+            "Illustrative agents and short windows may show no measurable response."
+          ],
+          "warmup_ticks": 178
+        },
+        "tokens": null,
+        "unsupported_claim_ids": ["external-confirmed"]
+      },
+      "arm": "baseline",
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "task": "heldout-grid-8"
+    },
+    "previous": "8d9deefd7d18d7262ce72f5f6ca0d27f75ca03eac8813a0b6c505b0ece500704",
+    "sequence": 20,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "b62dad860ba8433ee8b2cb1aa4c27834564b91bb4bccbc24e8dd82d16096e469"
+  },
+  {
+    "at": "2026-10-11T15:15:26.783Z",
+    "kind": "learning-evaluation",
+    "payload": {
+      "baseline": {
+        "compiler_success": {
+          "interval95": [0, 0.32440756488388023],
+          "rate": 0,
+          "successes": 0,
+          "total": 8
+        },
+        "contradictions": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "definition_repeatability": {
+          "interval95": [0, 0.32440756488388023],
+          "rate": 0,
+          "successes": 0,
+          "total": 8
+        },
+        "evidence_references": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "experiment_selection": {
+          "interval95": [0, 0.32440756488388023],
+          "rate": 0,
+          "successes": 0,
+          "total": 8
+        },
+        "question_coverage": {
+          "interval95": [0, 0.32440756488388023],
+          "rate": 0,
+          "successes": 0,
+          "total": 8
+        },
+        "unsupported_claims": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "valid_proposals": {
+          "interval95": [0, 0.32440756488388023],
+          "rate": 0,
+          "successes": 0,
+          "total": 8
+        }
+      },
+      "beneficial": true,
+      "candidate": {
+        "compiler_success": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "contradictions": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "definition_repeatability": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "evidence_references": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "experiment_selection": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "question_coverage": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "unsupported_claims": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        },
+        "valid_proposals": {
+          "interval95": [0.6755924351161198, 1],
+          "rate": 1,
+          "successes": 8,
+          "total": 8
+        }
+      },
+      "evaluator": "independent-host-grid-evaluator/v1",
+      "generation": "scripted",
+      "limitations": [
+        "Scripted paired workflow fixtures; this does not establish improved Qwen intelligence.",
+        "The existing workflow receives the same question, evidence, seeds and budgets; only the candidate receives proposed guidance.",
+        "Evidence-reference and contradiction scores test explicit identifiers against frozen labels; they do not certify prose entailment.",
+        "Selection quality tests a predeclared distinguishing observable; question coverage is coverage of these tasks only.",
+        "Definition repeatability recompiles identical designs; it does not measure simulator replay or experimental reproducibility.",
+        "No experiments run in this procedural benchmark. Token counts remain unknown when the participant does not report them.",
+        "Wilson intervals and the paired p-value use binomial and exchangeability assumptions. Deterministic related fixtures do not establish those assumptions or justify population inference.",
+        "Activation requires a two-sided paired p <= 0.05 improvement without aggregate metric regression, plus operator review; this is a procedural gate, not proof of external scientific validity."
+      ],
+      "paired": {
+        "effect": 1,
+        "exact_two_sided_p": 0.0078125,
+        "losses": 0,
+        "ties": 0,
+        "wins": 8
+      },
+      "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+      "proposal": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f",
+      "resources": {
+        "baseline_calls": 8,
+        "baseline_tokens": null,
+        "candidate_calls": 8,
+        "candidate_tokens": null,
+        "compiler_calls": 32,
+        "execution_actor_ticks": 0
+      },
+      "sample_size": 8,
+      "schema": "rain-learning-evaluation/v1",
+      "tasks": [
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-1"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 301,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 40,
+                "vehicles": 8
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 101
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-1"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 40,
+                "vehicles": 8
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-1"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-2"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 310,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 60,
+                "vehicles": 9
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 112
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-2"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 60,
+                "vehicles": 9
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-2"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-3"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 319,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 80,
+                "vehicles": 10
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 123
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-3"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 80,
+                "vehicles": 10
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-3"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-4"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 328,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 100,
+                "vehicles": 11
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 134
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-4"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 100,
+                "vehicles": 11
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-4"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-5"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 337,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 120,
+                "vehicles": 12
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 145
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-5"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 120,
+                "vehicles": 12
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-5"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-6"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 346,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 140,
+                "vehicles": 13
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 156
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-6"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 140,
+                "vehicles": 13
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-6"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-7"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 355,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 160,
+                "vehicles": 14
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 167
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-7"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 160,
+                "vehicles": 14
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-7"
+        },
+        {
+          "baseline": {
+            "compiler_success": false,
+            "contradictions": true,
+            "definition_repeatability": false,
+            "evidence_references": true,
+            "experiment_selection": false,
+            "question_coverage": false,
+            "unsupported_claims": true,
+            "valid_proposals": false
+          },
+          "baseline_answer": {
+            "contradiction_ids": ["contradiction-8"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 364,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 180,
+                "vehicles": 15
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 178
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "baseline_compiled": false,
+          "baseline_errors": [
+            "proposal.warmup_ticks: must be a multiple of 100",
+            "proposal.observation_window_ticks: must be a multiple of 100"
+          ],
+          "candidate": {
+            "compiler_success": true,
+            "contradictions": true,
+            "definition_repeatability": true,
+            "evidence_references": true,
+            "experiment_selection": true,
+            "question_coverage": true,
+            "unsupported_claims": true,
+            "valid_proposals": true
+          },
+          "candidate_answer": {
+            "contradiction_ids": ["contradiction-8"],
+            "design": {
+              "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+              "evidence_ids": [],
+              "expected_direction": "increase",
+              "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+              "information_value": 0.5,
+              "location": "bethesda_row",
+              "minimum_effect": 0.01,
+              "observation_window_ticks": 300,
+              "parameters": {
+                "buses": 2,
+                "duration_ticks": 300,
+                "intensity": 1,
+                "pedestrians": 180,
+                "vehicles": 15
+              },
+              "parent_design_id": null,
+              "primary_metric": "watching",
+              "purpose": "exploratory",
+              "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+              "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+              "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+              "scenario": "fire",
+              "schema": "rain-discovery-design/v1",
+              "uncertainties": [
+                "Illustrative agents and short windows may show no measurable response."
+              ],
+              "warmup_ticks": 100
+            },
+            "tokens": null,
+            "unsupported_claim_ids": ["external-confirmed"]
+          },
+          "candidate_compiled": true,
+          "candidate_errors": [],
+          "id": "heldout-grid-8"
+        }
+      ]
+    },
+    "previous": "b62dad860ba8433ee8b2cb1aa4c27834564b91bb4bccbc24e8dd82d16096e469",
+    "sequence": 21,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "06c61e1866b30c8a70d6921819b1058d64dda8f517adafe79649da8afd95e56a"
+  },
+  {
+    "at": "2026-10-11T15:15:26.940Z",
+    "kind": "scientific-preregistration",
+    "payload": {
+      "plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "rms_displacement_delta_m",
+              "note": "No effect or opposite direction",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "arms_completed",
+              "note": "Both matched arms complete",
+              "op": ">=",
+              "value": 2
+            },
+            {
+              "id": "G2",
+              "metric": "reference_max_error_m",
+              "note": "Independent analytic displacement check",
+              "op": "<=",
+              "value": 0.000001
+            },
+            {
+              "id": "G3",
+              "metric": "reference_max_velocity_error_m_per_s",
+              "note": "Independent analytic velocity check",
+              "op": "<=",
+              "value": 0.000001
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "rms_displacement_delta_m",
+              "note": "Preregistered effect threshold",
+              "op": ">=",
+              "value": 0.01
+            }
+          ]
+        },
+        "definition_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+        "design": {
+          "analysis": {
+            "expected_direction": "increase",
+            "max_reference_error_m": 0.000001,
+            "max_reference_velocity_error_m_per_s": 0.000001,
+            "method": "matched_rms_displacement",
+            "minimum_effect_m": 0.01
+          },
+          "budget": {
+            "max_samples": 1001,
+            "max_steps": 2000
+          },
+          "competing_hypothesis": "Periodic driving does not increase RMS displacement over this window.",
+          "hypothesis": "Periodic driving increases RMS displacement.",
+          "parameters": {
+            "angular_frequency": {
+              "unit": "rad/s",
+              "value": 1.8
+            },
+            "damping": {
+              "unit": "kg/s",
+              "value": 0.4
+            },
+            "duration": {
+              "unit": "s",
+              "value": 10
+            },
+            "force_amplitude": {
+              "unit": "N",
+              "value": 1
+            },
+            "initial_displacement": {
+              "unit": "m",
+              "value": 0
+            },
+            "initial_velocity": {
+              "unit": "m/s",
+              "value": 0
+            },
+            "mass": {
+              "unit": "kg",
+              "value": 1
+            },
+            "sample_every_steps": 10,
+            "stiffness": {
+              "unit": "N/m",
+              "value": 4
+            },
+            "timestep": {
+              "unit": "s",
+              "value": 0.01
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "Does periodic driving increase displacement against an otherwise matched free oscillator?",
+          "schema": "rain-oscillator-design/v1"
+        },
+        "experiment_id": "NP-b47dcb3172f05aefbd51232b",
+        "ir": {
+          "backend": "numerical-physics",
+          "backend_version": "rain-driven-damped-oscillator/v1",
+          "controls": [
+            "zero-force control",
+            "matched mass, damping, stiffness, clock and initial conditions"
+          ],
+          "dependent_variables": ["RMS displacement (m)"],
+          "domain": "numerical-physics",
+          "falsification": {
+            "metric": "rms_displacement_delta_m",
+            "op": "<=",
+            "unit": "m",
+            "value": 0
+          },
+          "hypothesis": "Driving will increase RMS displacement by at least 0.01 m relative to a matched zero-force control.",
+          "independent_variables": ["cosine force amplitude (N)"],
+          "limitations": [
+            "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+            "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+            "RMS compares the complete preregistered sampled window including transients.",
+            "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+            "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+          ],
+          "observables": [
+            {
+              "description": "Fixed integration clock",
+              "id": "time",
+              "unit": "s"
+            },
+            {
+              "description": "Oscillator displacement",
+              "id": "displacement",
+              "unit": "m"
+            },
+            {
+              "description": "Oscillator velocity",
+              "id": "velocity",
+              "unit": "m/s"
+            },
+            {
+              "description": "Kinetic plus spring energy",
+              "id": "mechanical_energy",
+              "unit": "J"
+            },
+            {
+              "description": "Treatment RMS displacement minus matched control RMS",
+              "id": "rms_displacement_delta_m",
+              "unit": "m"
+            }
+          ],
+          "parameter_constraints": [
+            "SI units only",
+            "positive mass, stiffness and damping",
+            "underdamped regime",
+            "dt * fastest rate <= 0.1",
+            "sample interval resolves fastest period at >= 8 samples per period",
+            "integer duration/timestep",
+            "bounded steps and samples"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "How does cosine driving change RMS displacement against a matched zero-force oscillator?",
+          "resource_budget": {
+            "execution_steps": 2000,
+            "max_samples": 202,
+            "replay_steps": 2000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 1,
+            "method": "Difference of sampled trajectory RMS; analytic reference verifies every integration step",
+            "uncertainty": "Deterministic simulation, one matched initial condition; temporal samples are correlated. Maximum analytic error is reported; no population inference or p-value."
+          }
+        },
+        "samples_per_arm": 101,
+        "schema": "rain-numerical-plan/v1",
+        "steps": 1000
+      },
+      "receipt": {
+        "experiment_id": "V3D-EXP-0001",
+        "plan_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+        "registry_definition_sha256": "da50a9151cabbddfdeac2aa96b6496963405d3a383640155331fdc4a6c27ac3a"
+      }
+    },
+    "previous": "06c61e1866b30c8a70d6921819b1058d64dda8f517adafe79649da8afd95e56a",
+    "sequence": 22,
+    "session": "NS-d3431813-e2ad-4215-9d12-9e289d08eb5b",
+    "sha256": "f59074a2076db4aae4f75176c3ff56e0e2296d185e64f5402a0668605b910133"
+  },
+  {
+    "at": "2026-10-11T15:15:27.175Z",
+    "kind": "scripted-operator-review",
+    "payload": {
+      "generation": "scripted",
+      "operator": "Scripted.DemoOperator",
+      "plan_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+      "scope": "fixture-only"
+    },
+    "previous": "f59074a2076db4aae4f75176c3ff56e0e2296d185e64f5402a0668605b910133",
+    "sequence": 23,
+    "session": "DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5",
+    "sha256": "432db95a95aed02a28ca81057bab231cf388ad55f1914b42fb172fadb2f72244"
+  },
+  {
+    "at": "2026-10-11T15:15:27.194Z",
+    "kind": "scientific-authorization",
+    "payload": {
+      "attestation": "local-operator",
+      "authorization_sha256": "fdcc97f02cf842a7ce462dd1f96efebc02a51136f31f36c0587793bd6342ffbe",
+      "authorized_at": "2026-10-11T15:15:27.189Z",
+      "confirmed_prefix": "b47dcb31",
+      "definition_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+      "experiment_id": "NP-b47dcb3172f05aefbd51232b",
+      "expires_at": "2026-10-11T16:15:27.189Z",
+      "identity_verified": false,
+      "operator": "Scripted.DemoOperator",
+      "schema": "rain-numerical-authorization/v1",
+      "scope": "numerical-physics-simulation"
+    },
+    "previous": "432db95a95aed02a28ca81057bab231cf388ad55f1914b42fb172fadb2f72244",
+    "sequence": 24,
+    "session": "NS-d3431813-e2ad-4215-9d12-9e289d08eb5b",
+    "sha256": "c6b4061ee3ae7da63002109175e29b38f6b4ccd23c4e19fc8d7a11a0cec8035a"
+  },
+  {
+    "at": "2026-10-11T15:15:29.978Z",
+    "kind": "scientific-record",
+    "payload": {
+      "authorization": {
+        "attestation": "local-operator",
+        "authorization_sha256": "fdcc97f02cf842a7ce462dd1f96efebc02a51136f31f36c0587793bd6342ffbe",
+        "authorized_at": "2026-10-11T15:15:27.189Z",
+        "confirmed_prefix": "b47dcb31",
+        "definition_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+        "experiment_id": "NP-b47dcb3172f05aefbd51232b",
+        "expires_at": "2026-10-11T16:15:27.189Z",
+        "identity_verified": false,
+        "operator": "Scripted.DemoOperator",
+        "schema": "rain-numerical-authorization/v1",
+        "scope": "numerical-physics-simulation"
+      },
+      "evidence_class": "simulated",
+      "finished_at": "2026-10-11T15:15:29.926Z",
+      "plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "rms_displacement_delta_m",
+              "note": "No effect or opposite direction",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "arms_completed",
+              "note": "Both matched arms complete",
+              "op": ">=",
+              "value": 2
+            },
+            {
+              "id": "G2",
+              "metric": "reference_max_error_m",
+              "note": "Independent analytic displacement check",
+              "op": "<=",
+              "value": 0.000001
+            },
+            {
+              "id": "G3",
+              "metric": "reference_max_velocity_error_m_per_s",
+              "note": "Independent analytic velocity check",
+              "op": "<=",
+              "value": 0.000001
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "rms_displacement_delta_m",
+              "note": "Preregistered effect threshold",
+              "op": ">=",
+              "value": 0.01
+            }
+          ]
+        },
+        "definition_sha256": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+        "design": {
+          "analysis": {
+            "expected_direction": "increase",
+            "max_reference_error_m": 0.000001,
+            "max_reference_velocity_error_m_per_s": 0.000001,
+            "method": "matched_rms_displacement",
+            "minimum_effect_m": 0.01
+          },
+          "budget": {
+            "max_samples": 1001,
+            "max_steps": 2000
+          },
+          "competing_hypothesis": "Periodic driving does not increase RMS displacement over this window.",
+          "hypothesis": "Periodic driving increases RMS displacement.",
+          "parameters": {
+            "angular_frequency": {
+              "unit": "rad/s",
+              "value": 1.8
+            },
+            "damping": {
+              "unit": "kg/s",
+              "value": 0.4
+            },
+            "duration": {
+              "unit": "s",
+              "value": 10
+            },
+            "force_amplitude": {
+              "unit": "N",
+              "value": 1
+            },
+            "initial_displacement": {
+              "unit": "m",
+              "value": 0
+            },
+            "initial_velocity": {
+              "unit": "m/s",
+              "value": 0
+            },
+            "mass": {
+              "unit": "kg",
+              "value": 1
+            },
+            "sample_every_steps": 10,
+            "stiffness": {
+              "unit": "N/m",
+              "value": 4
+            },
+            "timestep": {
+              "unit": "s",
+              "value": 0.01
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "Does periodic driving increase displacement against an otherwise matched free oscillator?",
+          "schema": "rain-oscillator-design/v1"
+        },
+        "experiment_id": "NP-b47dcb3172f05aefbd51232b",
+        "ir": {
+          "backend": "numerical-physics",
+          "backend_version": "rain-driven-damped-oscillator/v1",
+          "controls": [
+            "zero-force control",
+            "matched mass, damping, stiffness, clock and initial conditions"
+          ],
+          "dependent_variables": ["RMS displacement (m)"],
+          "domain": "numerical-physics",
+          "falsification": {
+            "metric": "rms_displacement_delta_m",
+            "op": "<=",
+            "unit": "m",
+            "value": 0
+          },
+          "hypothesis": "Driving will increase RMS displacement by at least 0.01 m relative to a matched zero-force control.",
+          "independent_variables": ["cosine force amplitude (N)"],
+          "limitations": [
+            "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+            "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+            "RMS compares the complete preregistered sampled window including transients.",
+            "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+            "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+          ],
+          "observables": [
+            {
+              "description": "Fixed integration clock",
+              "id": "time",
+              "unit": "s"
+            },
+            {
+              "description": "Oscillator displacement",
+              "id": "displacement",
+              "unit": "m"
+            },
+            {
+              "description": "Oscillator velocity",
+              "id": "velocity",
+              "unit": "m/s"
+            },
+            {
+              "description": "Kinetic plus spring energy",
+              "id": "mechanical_energy",
+              "unit": "J"
+            },
+            {
+              "description": "Treatment RMS displacement minus matched control RMS",
+              "id": "rms_displacement_delta_m",
+              "unit": "m"
+            }
+          ],
+          "parameter_constraints": [
+            "SI units only",
+            "positive mass, stiffness and damping",
+            "underdamped regime",
+            "dt * fastest rate <= 0.1",
+            "sample interval resolves fastest period at >= 8 samples per period",
+            "integer duration/timestep",
+            "bounded steps and samples"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "How does cosine driving change RMS displacement against a matched zero-force oscillator?",
+          "resource_budget": {
+            "execution_steps": 2000,
+            "max_samples": 202,
+            "replay_steps": 2000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 1,
+            "method": "Difference of sampled trajectory RMS; analytic reference verifies every integration step",
+            "uncertainty": "Deterministic simulation, one matched initial condition; temporal samples are correlated. Maximum analytic error is reported; no population inference or p-value."
+          }
+        },
+        "samples_per_arm": 101,
+        "schema": "rain-numerical-plan/v1",
+        "steps": 1000
+      },
+      "result": {
+        "arms": [
+          {
+            "arm": "control",
+            "completed_steps": 1000,
+            "force_amplitude_n": 0,
+            "reference_max_error_m": 0,
+            "reference_max_velocity_error_m_per_s": 0,
+            "rms_displacement_m": 0,
+            "samples": [
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 0,
+                "time_s": 0,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 10,
+                "time_s": 0.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 20,
+                "time_s": 0.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 30,
+                "time_s": 0.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 40,
+                "time_s": 0.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 50,
+                "time_s": 0.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 60,
+                "time_s": 0.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 70,
+                "time_s": 0.7000000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 80,
+                "time_s": 0.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 90,
+                "time_s": 0.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 100,
+                "time_s": 1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 110,
+                "time_s": 1.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 120,
+                "time_s": 1.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 130,
+                "time_s": 1.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 140,
+                "time_s": 1.4000000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 150,
+                "time_s": 1.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 160,
+                "time_s": 1.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 170,
+                "time_s": 1.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 180,
+                "time_s": 1.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 190,
+                "time_s": 1.9000000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 200,
+                "time_s": 2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 210,
+                "time_s": 2.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 220,
+                "time_s": 2.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 230,
+                "time_s": 2.3000000000000003,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 240,
+                "time_s": 2.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 250,
+                "time_s": 2.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 260,
+                "time_s": 2.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 270,
+                "time_s": 2.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 280,
+                "time_s": 2.8000000000000003,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 290,
+                "time_s": 2.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 300,
+                "time_s": 3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 310,
+                "time_s": 3.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 320,
+                "time_s": 3.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 330,
+                "time_s": 3.3000000000000003,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 340,
+                "time_s": 3.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 350,
+                "time_s": 3.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 360,
+                "time_s": 3.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 370,
+                "time_s": 3.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 380,
+                "time_s": 3.8000000000000003,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 390,
+                "time_s": 3.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 400,
+                "time_s": 4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 410,
+                "time_s": 4.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 420,
+                "time_s": 4.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 430,
+                "time_s": 4.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 440,
+                "time_s": 4.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 450,
+                "time_s": 4.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 460,
+                "time_s": 4.6000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 470,
+                "time_s": 4.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 480,
+                "time_s": 4.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 490,
+                "time_s": 4.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 500,
+                "time_s": 5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 510,
+                "time_s": 5.1000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 520,
+                "time_s": 5.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 530,
+                "time_s": 5.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 540,
+                "time_s": 5.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 550,
+                "time_s": 5.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 560,
+                "time_s": 5.6000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 570,
+                "time_s": 5.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 580,
+                "time_s": 5.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 590,
+                "time_s": 5.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 600,
+                "time_s": 6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 610,
+                "time_s": 6.1000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 620,
+                "time_s": 6.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 630,
+                "time_s": 6.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 640,
+                "time_s": 6.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 650,
+                "time_s": 6.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 660,
+                "time_s": 6.6000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 670,
+                "time_s": 6.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 680,
+                "time_s": 6.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 690,
+                "time_s": 6.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 700,
+                "time_s": 7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 710,
+                "time_s": 7.1000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 720,
+                "time_s": 7.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 730,
+                "time_s": 7.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 740,
+                "time_s": 7.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 750,
+                "time_s": 7.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 760,
+                "time_s": 7.6000000000000005,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 770,
+                "time_s": 7.7,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 780,
+                "time_s": 7.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 790,
+                "time_s": 7.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 800,
+                "time_s": 8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 810,
+                "time_s": 8.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 820,
+                "time_s": 8.2,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 830,
+                "time_s": 8.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 840,
+                "time_s": 8.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 850,
+                "time_s": 8.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 860,
+                "time_s": 8.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 870,
+                "time_s": 8.700000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 880,
+                "time_s": 8.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 890,
+                "time_s": 8.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 900,
+                "time_s": 9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 910,
+                "time_s": 9.1,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 920,
+                "time_s": 9.200000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 930,
+                "time_s": 9.3,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 940,
+                "time_s": 9.4,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 950,
+                "time_s": 9.5,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 960,
+                "time_s": 9.6,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 970,
+                "time_s": 9.700000000000001,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 980,
+                "time_s": 9.8,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 990,
+                "time_s": 9.9,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 1000,
+                "time_s": 10,
+                "velocity_m_per_s": 0
+              }
+            ]
+          },
+          {
+            "arm": "treatment",
+            "completed_steps": 1000,
+            "force_amplitude_n": 1,
+            "reference_max_error_m": 8.020637265460095e-9,
+            "reference_max_velocity_error_m_per_s": 1.515128256190934e-8,
+            "rms_displacement_m": 0.5373464823217641,
+            "samples": [
+              {
+                "displacement_m": 0,
+                "mechanical_energy_j": 0,
+                "step": 0,
+                "time_s": 0,
+                "velocity_m_per_s": 0
+              },
+              {
+                "displacement_m": 0.004904253393133929,
+                "mechanical_energy_j": 0.004737241963183395,
+                "step": 10,
+                "time_s": 0.1,
+                "velocity_m_per_s": 0.09684150515657286
+              },
+              {
+                "displacement_m": 0.019009685005255805,
+                "mechanical_energy_j": 0.01745826013504539,
+                "step": 20,
+                "time_s": 0.2,
+                "velocity_m_per_s": 0.1829509436272319
+              },
+              {
+                "displacement_m": 0.0409360799696538,
+                "mechanical_energy_j": 0.03519078269389189,
+                "step": 30,
+                "time_s": 0.3,
+                "velocity_m_per_s": 0.2523460219909484
+              },
+              {
+                "displacement_m": 0.06875710657526646,
+                "mechanical_energy_j": 0.054494739635043345,
+                "step": 40,
+                "time_s": 0.4,
+                "velocity_m_per_s": 0.30013217163722467
+              },
+              {
+                "displacement_m": 0.10012165844209472,
+                "mechanical_energy_j": 0.07213017663805521,
+                "step": 50,
+                "time_s": 0.5,
+                "velocity_m_per_s": 0.32274288112881516
+              },
+              {
+                "displacement_m": 0.13239576163355368,
+                "mechanical_energy_j": 0.08565403245779082,
+                "step": 60,
+                "time_s": 0.6,
+                "velocity_m_per_s": 0.3181092801561542
+              },
+              {
+                "displacement_m": 0.16281761633157907,
+                "mechanical_energy_j": 0.09384638748540979,
+                "step": 70,
+                "time_s": 0.7000000000000001,
+                "velocity_m_per_s": 0.2857524631901367
+              },
+              {
+                "displacement_m": 0.1886578737414526,
+                "mechanical_energy_j": 0.09690173278883459,
+                "step": 80,
+                "time_s": 0.8,
+                "velocity_m_per_s": 0.2267957060419921
+              },
+              {
+                "displacement_m": 0.2073771498522487,
+                "mechanical_energy_j": 0.09636380038586072,
+                "step": 90,
+                "time_s": 0.9,
+                "velocity_m_per_s": 0.14389743447453596
+              },
+              {
+                "displacement_m": 0.21677304451914414,
+                "mechanical_energy_j": 0.09482609660716973,
+                "step": 100,
+                "time_s": 1,
+                "velocity_m_per_s": 0.041109389364767435
+              },
+              {
+                "displacement_m": 0.2151095472818581,
+                "mechanical_energy_j": 0.09545754120690085,
+                "step": 110,
+                "time_s": 1.1,
+                "velocity_m_per_s": -0.07633225456239269
+              },
+              {
+                "displacement_m": 0.20122263610641242,
+                "mechanical_energy_j": 0.1014381112488309,
+                "step": 120,
+                "time_s": 1.2,
+                "velocity_m_per_s": -0.20227215668798096
+              },
+              {
+                "displacement_m": 0.17459706484726983,
+                "mechanical_energy_j": 0.11539993315598987,
+                "step": 130,
+                "time_s": 1.3,
+                "velocity_m_per_s": -0.32994442880408326
+              },
+              {
+                "displacement_m": 0.13541073227049508,
+                "mechanical_energy_j": 0.13896421417412025,
+                "step": 140,
+                "time_s": 1.4000000000000001,
+                "velocity_m_per_s": -0.4523098083085461
+              },
+              {
+                "displacement_m": 0.08454456480622048,
+                "mechanical_energy_j": 0.17244554702324819,
+                "step": 150,
+                "time_s": 1.5,
+                "velocity_m_per_s": -0.5624055123248736
+              },
+              {
+                "displacement_m": 0.023557456842209966,
+                "mechanical_energy_j": 0.21476621829153447,
+                "step": 160,
+                "time_s": 1.6,
+                "velocity_m_per_s": -0.6536915338992686
+              },
+              {
+                "displacement_m": -0.04537257539689651,
+                "mechanical_energy_j": 0.26358920692416665,
+                "step": 170,
+                "time_s": 1.7,
+                "velocity_m_per_s": -0.7203774923300597
+              },
+              {
+                "displacement_m": -0.11953832794013154,
+                "mechanical_energy_j": 0.31564497700188815,
+                "step": 180,
+                "time_s": 1.8,
+                "velocity_m_per_s": -0.7577151883240077
+              },
+              {
+                "displacement_m": -0.19582032629670826,
+                "mechanical_energy_j": 0.3671989177513688,
+                "step": 190,
+                "time_s": 1.9000000000000001,
+                "velocity_m_per_s": -0.7622436846172885
+              },
+              {
+                "displacement_m": -0.27082540984049813,
+                "mechanical_energy_j": 0.41458720245104647,
+                "step": 200,
+                "time_s": 2,
+                "velocity_m_per_s": -0.7319759520920054
+              },
+              {
+                "displacement_m": -0.3410407014136996,
+                "mechanical_energy_j": 0.45474116669837483,
+                "step": 210,
+                "time_s": 2.1,
+                "velocity_m_per_s": -0.6665187869173358
+              },
+              {
+                "displacement_m": -0.40299599815672577,
+                "mechanical_energy_j": 0.48562449082608,
+                "step": 220,
+                "time_s": 2.2,
+                "velocity_m_per_s": -0.5671206957348824
+              },
+              {
+                "displacement_m": -0.4534272475163342,
+                "mechanical_energy_j": 0.5065222414701405,
+                "step": 230,
+                "time_s": 2.3000000000000003,
+                "velocity_m_per_s": -0.4366456318106537
+              },
+              {
+                "displacement_m": -0.48943372292416604,
+                "mechanical_energy_j": 0.5181435150017578,
+                "step": 240,
+                "time_s": 2.4,
+                "velocity_m_per_s": -0.2794737079975113
+              },
+              {
+                "displacement_m": -0.5086217855794886,
+                "mechanical_energy_j": 0.5225264476948789,
+                "step": 250,
+                "time_s": 2.5,
+                "velocity_m_per_s": -0.1013331748515208
+              },
+              {
+                "displacement_m": -0.5092286974094058,
+                "mechanical_energy_j": 0.5227617829181691,
+                "step": 260,
+                "time_s": 2.6,
+                "velocity_m_per_s": 0.09092909751678772
+              },
+              {
+                "displacement_m": -0.4902208082323491,
+                "mechanical_energy_j": 0.5225752962399178,
+                "step": 270,
+                "time_s": 2.7,
+                "velocity_m_per_s": 0.28962877823849864
+              },
+              {
+                "displacement_m": -0.4513615386834115,
+                "mechanical_energy_j": 0.5258271494361775,
+                "step": 280,
+                "time_s": 2.8000000000000003,
+                "velocity_m_per_s": 0.48656484096338876
+              },
+              {
+                "displacement_m": -0.39324587126500404,
+                "mechanical_energy_j": 0.5359956818377889,
+                "step": 290,
+                "time_s": 2.9,
+                "velocity_m_per_s": 0.6733662470065522
+              },
+              {
+                "displacement_m": -0.31729948921240897,
+                "mechanical_energy_j": 0.5557134663466907,
+                "step": 300,
+                "time_s": 3,
+                "velocity_m_per_s": 0.8418497902093692
+              },
+              {
+                "displacement_m": -0.2257422059156628,
+                "mechanical_energy_j": 0.5864150790272411,
+                "step": 310,
+                "time_s": 3.1,
+                "velocity_m_per_s": 0.9843739045341482
+              },
+              {
+                "displacement_m": -0.12151684313967191,
+                "mechanical_energy_j": 0.6281404327251611,
+                "step": 320,
+                "time_s": 3.2,
+                "velocity_m_per_s": 1.0941734290247573
+              },
+              {
+                "displacement_m": -0.008186181095596734,
+                "mechanical_energy_j": 0.6795169742348022,
+                "step": 330,
+                "time_s": 3.3000000000000003,
+                "velocity_m_per_s": 1.1656611403945336
+              },
+              {
+                "displacement_m": 0.11019804288785173,
+                "mechanical_energy_j": 0.7379212650702189,
+                "step": 340,
+                "time_s": 3.4,
+                "velocity_m_per_s": 1.1946832615865959
+              },
+              {
+                "displacement_m": 0.22924892305671488,
+                "mechanical_energy_j": 0.7997982846437938,
+                "step": 350,
+                "time_s": 3.5,
+                "velocity_m_per_s": 1.178718072482531
+              },
+              {
+                "displacement_m": 0.34441482435191223,
+                "mechanical_energy_j": 0.8610978111620841,
+                "step": 360,
+                "time_s": 3.6,
+                "velocity_m_per_s": 1.117009103539776
+              },
+              {
+                "displacement_m": 0.45115961532967314,
+                "mechanical_energy_j": 0.9177735493905157,
+                "step": 370,
+                "time_s": 3.7,
+                "velocity_m_per_s": 1.0106270849147854
+              },
+              {
+                "displacement_m": 0.5451453999725295,
+                "mechanical_energy_j": 0.9662836913703168,
+                "step": 380,
+                "time_s": 3.8000000000000003,
+                "velocity_m_per_s": 0.8624577405854716
+              },
+              {
+                "displacement_m": 0.6224103131842397,
+                "mechanical_energy_j": 1.0040319227600574,
+                "step": 390,
+                "time_s": 3.9,
+                "velocity_m_per_s": 0.6771155393931685
+              },
+              {
+                "displacement_m": 0.6795341068695298,
+                "mechanical_energy_j": 1.0296953133960123,
+                "step": 400,
+                "time_s": 4,
+                "velocity_m_per_s": 0.46078652019796185
+              },
+              {
+                "displacement_m": 0.713784710234592,
+                "mechanical_energy_j": 1.0433990900349728,
+                "step": 410,
+                "time_s": 4.1,
+                "velocity_m_per_s": 0.22100617595719715
+              },
+              {
+                "displacement_m": 0.7232396797795763,
+                "mechanical_energy_j": 1.0467163874704477,
+                "step": 420,
+                "time_s": 4.2,
+                "velocity_m_per_s": -0.033619002219568775
+              },
+              {
+                "displacement_m": 0.706877431017014,
+                "mechanical_energy_j": 1.0424916644927562,
+                "step": 430,
+                "time_s": 4.3,
+                "velocity_m_per_s": -0.2937354576156224
+              },
+              {
+                "displacement_m": 0.6646343253427432,
+                "mechanical_energy_j": 1.0345072640196362,
+                "step": 440,
+                "time_s": 4.4,
+                "velocity_m_per_s": -0.5495992925250709
+              },
+              {
+                "displacement_m": 0.5974250239649505,
+                "mechanical_energy_j": 1.0270312861717574,
+                "step": 450,
+                "time_s": 4.5,
+                "velocity_m_per_s": -0.7914517896280407
+              },
+              {
+                "displacement_m": 0.5071249627377186,
+                "mechanical_energy_j": 1.024299433158144,
+                "step": 460,
+                "time_s": 4.6000000000000005,
+                "velocity_m_per_s": -1.0098989825667508
+              },
+              {
+                "displacement_m": 0.39651528981187467,
+                "mechanical_energy_j": 1.029992100296381,
+                "step": 470,
+                "time_s": 4.7,
+                "velocity_m_per_s": -1.196280360272784
+              },
+              {
+                "displacement_m": 0.26919208344739054,
+                "mechanical_energy_j": 1.046769651934068,
+                "step": 480,
+                "time_s": 4.8,
+                "velocity_m_per_s": -1.3430122086954936
+              },
+              {
+                "displacement_m": 0.12944307225653337,
+                "mechanical_energy_j": 1.075923186324689,
+                "step": 490,
+                "time_s": 4.9,
+                "velocity_m_per_s": -1.4438920793565346
+              },
+              {
+                "displacement_m": -0.017903640167704515,
+                "mechanical_energy_j": 1.117185605048604,
+                "step": 500,
+                "time_s": 5,
+                "velocity_m_per_s": -1.494352384403421
+              },
+              {
+                "displacement_m": -0.16765323933240114,
+                "mechanical_energy_j": 1.168729688331891,
+                "step": 510,
+                "time_s": 5.1000000000000005,
+                "velocity_m_per_s": -1.4916530903763088
+              },
+              {
+                "displacement_m": -0.3144337578983069,
+                "mechanical_energy_j": 1.2273580540913294,
+                "step": 520,
+                "time_s": 5.2,
+                "velocity_m_per_s": -1.4350058382314876
+              },
+              {
+                "displacement_m": -0.4528943959621019,
+                "mechanical_energy_j": 1.2888667745559375,
+                "step": 530,
+                "time_s": 5.3,
+                "velocity_m_per_s": -1.325624461729779
+              },
+              {
+                "displacement_m": -0.577905109439612,
+                "mechanical_energy_j": 1.348542733336868,
+                "step": 540,
+                "time_s": 5.4,
+                "velocity_m_per_s": -1.166699706268968
+              },
+              {
+                "displacement_m": -0.6847498977374202,
+                "mechanical_energy_j": 1.4017371875226483,
+                "step": 550,
+                "time_s": 5.5,
+                "velocity_m_per_s": -0.9632988556204489
+              },
+              {
+                "displacement_m": -0.7693064368589445,
+                "mechanical_energy_j": 1.444446760978641,
+                "step": 560,
+                "time_s": 5.6000000000000005,
+                "velocity_m_per_s": -0.722193842944442
+              },
+              {
+                "displacement_m": -0.8282051995356913,
+                "mechanical_energy_j": 1.4738298894500386,
+                "step": 570,
+                "time_s": 5.7,
+                "velocity_m_per_s": -0.45162414544426255
+              },
+              {
+                "displacement_m": -0.8589619600959053,
+                "mechanical_energy_j": 1.4885923188132004,
+                "step": 580,
+                "time_s": 5.8,
+                "velocity_m_per_s": -0.16100323617617793
+              },
+              {
+                "displacement_m": -0.8600785689713251,
+                "mechanical_energy_j": 1.4891893276082637,
+                "step": 590,
+                "time_s": 5.9,
+                "velocity_m_per_s": 0.1394205006499337
+              },
+              {
+                "displacement_m": -0.8311080618007034,
+                "mechanical_energy_j": 1.4778135266575092,
+                "step": 600,
+                "time_s": 6,
+                "velocity_m_per_s": 0.43893577178732085
+              },
+              {
+                "displacement_m": -0.7726814957553785,
+                "mechanical_energy_j": 1.4581630330855226,
+                "step": 610,
+                "time_s": 6.1000000000000005,
+                "velocity_m_per_s": 0.7267594448233676
+              },
+              {
+                "displacement_m": -0.6864953304372178,
+                "mechanical_energy_j": 1.4350124448674804,
+                "step": 620,
+                "time_s": 6.2,
+                "velocity_m_per_s": 0.9924321311236056
+              },
+              {
+                "displacement_m": -0.5752596385956349,
+                "mechanical_energy_j": 1.4136349022352492,
+                "step": 630,
+                "time_s": 6.3,
+                "velocity_m_per_s": 1.2262035708974985
+              },
+              {
+                "displacement_m": -0.4426088878101905,
+                "mechanical_energy_j": 1.3991442151538662,
+                "step": 640,
+                "time_s": 6.4,
+                "velocity_m_per_s": 1.4193935042945058
+              },
+              {
+                "displacement_m": -0.29297842382020595,
+                "mechanical_energy_j": 1.3958386661896902,
+                "step": 650,
+                "time_s": 6.5,
+                "velocity_m_per_s": 1.5647146401445509
+              },
+              {
+                "displacement_m": -0.13145105781102345,
+                "mechanical_energy_j": 1.4066306828520485,
+                "step": 660,
+                "time_s": 6.6000000000000005,
+                "velocity_m_per_s": 1.6565457564780843
+              },
+              {
+                "displacement_m": 0.0364207331290491,
+                "mechanical_energy_j": 1.4326383545149495,
+                "step": 670,
+                "time_s": 6.7,
+                "velocity_m_per_s": 1.6911448281632384
+              },
+              {
+                "displacement_m": 0.20481058137800873,
+                "mechanical_energy_j": 1.4729963759742553,
+                "step": 680,
+                "time_s": 6.8,
+                "velocity_m_per_s": 1.6667943049371505
+              },
+              {
+                "displacement_m": 0.36782490482226743,
+                "mechanical_energy_j": 1.5249174351026402,
+                "step": 690,
+                "time_s": 6.9,
+                "velocity_m_per_s": 1.583873172881983
+              },
+              {
+                "displacement_m": 0.5197130054274481,
+                "mechanical_energy_j": 1.584003498835512,
+                "step": 700,
+                "time_s": 7,
+                "velocity_m_per_s": 1.4448531294319507
+              },
+              {
+                "displacement_m": 0.6550729840918712,
+                "mechanical_energy_j": 1.644773860970061,
+                "step": 710,
+                "time_s": 7.1000000000000005,
+                "velocity_m_per_s": 1.2542189856608001
+              },
+              {
+                "displacement_m": 0.7690460158436924,
+                "mechanical_energy_j": 1.7013474671099282,
+                "step": 720,
+                "time_s": 7.2,
+                "velocity_m_per_s": 1.0183161769704092
+              },
+              {
+                "displacement_m": 0.8574919514312124,
+                "mechanical_energy_j": 1.7481949322847652,
+                "step": 730,
+                "time_s": 7.3,
+                "velocity_m_per_s": 0.7451309129893184
+              },
+              {
+                "displacement_m": 0.9171398883913234,
+                "mechanical_energy_j": 1.7808640042182236,
+                "step": 740,
+                "time_s": 7.4,
+                "velocity_m_per_s": 0.4440109333368383
+              },
+              {
+                "displacement_m": 0.9457082609201128,
+                "mechanical_energy_j": 1.7965829076260464,
+                "step": 750,
+                "time_s": 7.5,
+                "velocity_m_per_s": 0.12533697045132486
+              },
+              {
+                "displacement_m": 0.941990099288462,
+                "mechanical_energy_j": 1.7946593509543103,
+                "step": 760,
+                "time_s": 7.6000000000000005,
+                "velocity_m_per_s": -0.19984322174813654
+              },
+              {
+                "displacement_m": 0.9059003652547432,
+                "mechanical_energy_j": 1.7766176140981285,
+                "step": 770,
+                "time_s": 7.7,
+                "velocity_m_per_s": -0.5202050952475846
+              },
+              {
+                "displacement_m": 0.8384836337218007,
+                "mechanical_energy_j": 1.746049126222816,
+                "step": 780,
+                "time_s": 7.8,
+                "velocity_m_per_s": -0.8245477768864414
+              },
+              {
+                "displacement_m": 0.7418818129723872,
+                "mechanical_energy_j": 1.7081891294710099,
+                "step": 790,
+                "time_s": 7.9,
+                "velocity_m_per_s": -1.1021904378396843
+              },
+              {
+                "displacement_m": 0.6192630246493686,
+                "mechanical_energy_j": 1.6692685548338666,
+                "step": 800,
+                "time_s": 8,
+                "velocity_m_per_s": -1.343350414030604
+              },
+              {
+                "displacement_m": 0.4747141488039424,
+                "mechanical_energy_j": 1.635721201407819,
+                "step": 810,
+                "time_s": 8.1,
+                "velocity_m_per_s": -1.5394896266350844
+              },
+              {
+                "displacement_m": 0.3131008293760545,
+                "mechanical_energy_j": 1.6133474091069542,
+                "step": 820,
+                "time_s": 8.2,
+                "velocity_m_per_s": -1.6836170291340058
+              },
+              {
+                "displacement_m": 0.13989988569576364,
+                "mechanical_energy_j": 1.6065435588040424,
+                "step": 830,
+                "time_s": 8.3,
+                "velocity_m_per_s": -1.7705364174558325
+              },
+              {
+                "displacement_m": -0.03898995435125166,
+                "mechanical_energy_j": 1.6177005000112423,
+                "step": 840,
+                "time_s": 8.4,
+                "velocity_m_per_s": -1.7970309217877232
+              },
+              {
+                "displacement_m": -0.21745232757769073,
+                "mechanical_energy_j": 1.6468538764501548,
+                "step": 850,
+                "time_s": 8.5,
+                "velocity_m_per_s": -1.7619777790382285
+              },
+              {
+                "displacement_m": -0.38936532648992517,
+                "mechanical_energy_j": 1.6916376647405238,
+                "step": 860,
+                "time_s": 8.6,
+                "velocity_m_per_s": -1.6663894801608126
+              },
+              {
+                "displacement_m": -0.5488139591009747,
+                "mechanical_energy_j": 1.7475530449625467,
+                "step": 870,
+                "time_s": 8.700000000000001,
+                "velocity_m_per_s": -1.5133800061811138
+              },
+              {
+                "displacement_m": -0.6902955326659905,
+                "mechanical_energy_j": 1.8085230785078346,
+                "step": 880,
+                "time_s": 8.8,
+                "velocity_m_per_s": -1.3080575168321822
+              },
+              {
+                "displacement_m": -0.808910783069462,
+                "mechanical_energy_j": 1.8676651165145497,
+                "step": 890,
+                "time_s": 8.9,
+                "velocity_m_per_s": -1.057347442028825
+              },
+              {
+                "displacement_m": -0.9005340898503036,
+                "mechanical_energy_j": 1.9181826402921374,
+                "step": 900,
+                "time_s": 9,
+                "velocity_m_per_s": -0.7697523580049731
+              },
+              {
+                "displacement_m": -0.9619568669690048,
+                "mechanical_energy_j": 1.9542605655316474,
+                "step": 910,
+                "time_s": 9.1,
+                "velocity_m_per_s": -0.45505722214684174
+              },
+              {
+                "displacement_m": -0.9909991736042231,
+                "mechanical_energy_j": 1.9718455360463591,
+                "step": 920,
+                "time_s": 9.200000000000001,
+                "velocity_m_per_s": -0.12399041799956224
+              },
+              {
+                "displacement_m": -0.9865857127522948,
+                "mechanical_energy_j": 1.9692060051406726,
+                "step": 930,
+                "time_s": 9.3,
+                "velocity_m_per_s": 0.21214743895114785
+              },
+              {
+                "displacement_m": -0.9487836377549368,
+                "mechanical_energy_j": 1.947194451310958,
+                "step": 940,
+                "time_s": 9.4,
+                "velocity_m_per_s": 0.5418739129501913
+              },
+              {
+                "displacement_m": -0.8788009234620136,
+                "mechanical_energy_j": 1.9091724465777986,
+                "step": 950,
+                "time_s": 9.5,
+                "velocity_m_per_s": 0.8539207462316665
+              },
+              {
+                "displacement_m": -0.778945432319669,
+                "mechanical_energy_j": 1.8606035205397817,
+                "step": 960,
+                "time_s": 9.6,
+                "velocity_m_per_s": 1.1376216835806443
+              },
+              {
+                "displacement_m": -0.6525461681180912,
+                "mechanical_energy_j": 1.8083630031007205,
+                "step": 970,
+                "time_s": 9.700000000000001,
+                "velocity_m_per_s": 1.3832787138169316
+              },
+              {
+                "displacement_m": -0.5038395140745163,
+                "mechanical_energy_j": 1.7598523538224127,
+                "step": 980,
+                "time_s": 9.8,
+                "velocity_m_per_s": 1.5824941339143872
+              },
+              {
+                "displacement_m": -0.3378244524251727,
+                "mechanical_energy_j": 1.7220326748910206,
+                "step": 990,
+                "time_s": 9.9,
+                "velocity_m_per_s": 1.7284570886072266
+              },
+              {
+                "displacement_m": -0.1600918187777028,
+                "mechanical_energy_j": 1.7005043612765238,
+                "step": 1000,
+                "time_s": 10,
+                "velocity_m_per_s": 1.8161748706539347
+              }
+            ]
+          }
+        ],
+        "completed": true,
+        "error": null,
+        "evaluation": {
+          "failure": [
+            {
+              "holds": false,
+              "id": "F1",
+              "metric": "rms_displacement_delta_m",
+              "observed": 0.5373464823217641,
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "guards": [
+            {
+              "holds": true,
+              "id": "G1",
+              "metric": "arms_completed",
+              "observed": 2,
+              "op": ">=",
+              "value": 2
+            },
+            {
+              "holds": true,
+              "id": "G2",
+              "metric": "reference_max_error_m",
+              "observed": 8.020637265460095e-9,
+              "op": "<=",
+              "value": 0.000001
+            },
+            {
+              "holds": true,
+              "id": "G3",
+              "metric": "reference_max_velocity_error_m_per_s",
+              "observed": 1.515128256190934e-8,
+              "op": "<=",
+              "value": 0.000001
+            }
+          ],
+          "rule": "rain-criteria/v1",
+          "success": [
+            {
+              "holds": true,
+              "id": "S1",
+              "metric": "rms_displacement_delta_m",
+              "observed": 0.5373464823217641,
+              "op": ">=",
+              "value": 0.01
+            }
+          ],
+          "summary": "All 1 success criteria held and no failure criterion triggered."
+        },
+        "measurements": {
+          "arms_completed": 2,
+          "execution_steps": 2000,
+          "reference_max_error_m": 8.020637265460095e-9,
+          "reference_max_velocity_error_m_per_s": 1.515128256190934e-8,
+          "retained_samples": 202,
+          "rms_control_m": 0,
+          "rms_displacement_delta_m": 0.5373464823217641,
+          "rms_treatment_m": 0.5373464823217641
+        },
+        "status": "passed",
+        "stop_checkpoint": null,
+        "verdict": "supported"
+      },
+      "run_id": "NR-08d74bff18cd9c9a241a0058",
+      "schema": "rain-numerical-record/v1",
+      "sha256": "2d9a97cf6c4af32ad4af13d8f9b28dbda1055e6687ec58bbd110b57736b5d55f",
+      "started_at": "2026-10-11T15:15:29.880Z"
+    },
+    "previous": "c6b4061ee3ae7da63002109175e29b38f6b4ccd23c4e19fc8d7a11a0cec8035a",
+    "sequence": 25,
+    "session": "NS-d3431813-e2ad-4215-9d12-9e289d08eb5b",
+    "sha256": "8582ed2a3d14e510a26089e9a32dfd283dbba9631f7b8e036800d46135aab137"
+  },
+  {
+    "at": "2026-10-11T15:15:30.075Z",
+    "kind": "scientific-replay",
+    "payload": {
+      "errors": [],
+      "ok": true,
+      "producing_revision": {
+        "commit": "2bc168d593f23c0a36d9bfa1e03676d14cfcb2d8",
+        "dirty": true,
+        "repository": "topherchris420/lop-nur-twin"
+      },
+      "record_sha256": "2d9a97cf6c4af32ad4af13d8f9b28dbda1055e6687ec58bbd110b57736b5d55f",
+      "registry_run_id": null,
+      "replay_sha256": "65cace4a9b4dd3dafb3c4ec04decc6ad5fad459a52b268604543749fb06482c0",
+      "run_id": "NR-08d74bff18cd9c9a241a0058"
+    },
+    "previous": "8582ed2a3d14e510a26089e9a32dfd283dbba9631f7b8e036800d46135aab137",
+    "sequence": 26,
+    "session": "NS-d3431813-e2ad-4215-9d12-9e289d08eb5b",
+    "sha256": "941f9846a629f2f6ac2e716d80cf9a248aa34f0e314b038c56148f931c6adf3a"
+  },
+  {
+    "at": "2026-10-11T15:15:32.439Z",
+    "kind": "scientific-replay",
+    "payload": {
+      "errors": [],
+      "ok": true,
+      "producing_revision": {
+        "commit": "2bc168d593f23c0a36d9bfa1e03676d14cfcb2d8",
+        "dirty": true,
+        "repository": "topherchris420/lop-nur-twin"
+      },
+      "record_sha256": "2d9a97cf6c4af32ad4af13d8f9b28dbda1055e6687ec58bbd110b57736b5d55f",
+      "registry_definition_sha256": "da50a9151cabbddfdeac2aa96b6496963405d3a383640155331fdc4a6c27ac3a",
+      "registry_experiment_id": "V3D-EXP-0001",
+      "registry_run_id": "V3D-EXP-0001-RUN-0001",
+      "replay_sha256": "65cace4a9b4dd3dafb3c4ec04decc6ad5fad459a52b268604543749fb06482c0",
+      "run_id": "NR-08d74bff18cd9c9a241a0058"
+    },
+    "previous": "941f9846a629f2f6ac2e716d80cf9a248aa34f0e314b038c56148f931c6adf3a",
+    "sequence": 27,
+    "session": "NS-d3431813-e2ad-4215-9d12-9e289d08eb5b",
+    "sha256": "adcdb774d7314e831fffd401cb186ac12b67e5ffdec8b4f97f3a7c0b59ff9572"
+  }
+]

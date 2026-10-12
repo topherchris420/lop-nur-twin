@@ -368,12 +368,18 @@ body {
 .rain-lab-overlay {
   position: absolute;
   inset: 1rem;
+  width: auto;
+  height: auto;
   gap: 0.5rem;
 }
 
 .rain-lab-exit {
   z-index: 20;
   max-width: min(28rem, calc(100vw - 2rem));
+}
+
+.rain-lab-exit button {
+  max-width: 100%;
 }
 
 .rain-lab-rooms {
@@ -385,6 +391,12 @@ body {
 }
 
 @media (max-width: 639px) and (min-height: 501px) {
+  .rain-lab-exit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 9rem;
+  }
   .rain-lab-overlay {
     inset: 1rem;
   }
@@ -432,7 +444,50 @@ body {
   }
 
   #lab-room-panel {
-    width: min(45vw, 520px);
+    width: min(44vw, 520px);
+  }
+}
+
+/* Short touch screens keep the door beside the stick and the strip beside the panel. */
+@media (max-height: 500px) {
+  .rain-lab-exit {
+    display: flex;
+    gap: 0.25rem;
+    flex-direction: row;
+    max-width: min(28rem, calc(100vw - 12rem));
+  }
+  .rain-lab-exit button {
+    padding: 0.5rem;
+    font-size: 10px;
+  }
+  [data-lab-header=""] {
+    padding: 0.375rem;
+  }
+  [data-lab-header=""] > p:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 12px;
+  }
+  .rain-lab-overlay > [role="status"] {
+    top: calc(var(--rain-lab-title-height, 6rem) + 0.5rem);
+  }
+}
+@media (pointer: coarse) and (max-height: 500px) {
+  .rain-lab-overlay > [role="status"] {
+    left: 8.5rem;
+    max-width: calc(55vw - 11.5rem);
+  }
+}
+@media (max-width: 639px) and (max-height: 500px) {
+  .rain-lab-overlay > [data-lab-header=""] {
+    max-width: min(28vw, 10rem);
+  }
+  .rain-lab-rooms {
+    max-width: calc(55vw - 3rem);
+  }
+  .rain-lab-rooms > section {
+    width: 100%;
   }
 }
 

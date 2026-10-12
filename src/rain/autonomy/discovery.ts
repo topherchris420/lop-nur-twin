@@ -62,6 +62,7 @@ import type { LocalModel, StructuredRequest } from "./models.js";
 import type { ResearchStore, DiscoveryEntry } from "./store.js";
 
 import { createResearchProgram } from "../research/program.js";
+import { activeResearchGuidance } from "../research/learning.js";
 import { researchScopeErrors } from "../../bethesda/rain/researchProtocol.js";
 import type { ResearchSource } from "../../bethesda/rain/researchProtocol.js";
 import { searchResearchLiterature } from "./models.js";
@@ -441,6 +442,16 @@ export async function runDiscovery(input: DiscoveryInput) {
             "If the question cannot be tested, return candidates: [] and untestable with reason, missing_capabilities and an independently reviewable extension_specification. Never substitute a loosely related experiment. Otherwise omit untestable. Prefer one concise candidate.",
           envelope: charter.family,
           research,
+          evaluated_procedural_guidance: activeResearchGuidance(
+            store.discoveryEntries(),
+            {
+              domain: "urban-simulation",
+              backend: "bethesda",
+              stage: "design",
+            },
+          ),
+          guidance_rule:
+            "These are evaluated, operator-approved procedural suggestions. They never change host validation, evidence standing, hypotheses, charter scope, budgets or scientific criteria. Guidance scope must match each proposed design. A valid negative result is not a process failure.",
           memory,
           recent_feedback: store
             .discoveryEntries()

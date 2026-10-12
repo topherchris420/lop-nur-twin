@@ -40,6 +40,16 @@ import type { InstitutionAssessment } from "../../bethesda/rain/institutionProto
 import { archiveInstitution } from "../research/archive.js";
 import { sha256Json } from "../sha256.js";
 import { verifyRecord } from "../../bethesda/rain/replay.js";
+import { buildScientificKnowledge } from "../research/scientificKnowledge.js";
+import {
+  learningView,
+  proposeGuidance,
+  approveGuidance,
+  rollbackGuidance,
+} from "../research/learning.js";
+import { evaluateProposal } from "../research/learningEvaluation.js";
+import { createScientificControl } from "./scientificControl.js";
+import type { ProcessErrorCode } from "../../bethesda/rain/learningProtocol.js";
 
 export function createDiscoveryService(
   env: Record<string, string | undefined>,
@@ -53,6 +63,31 @@ export function createDiscoveryService(
   if (!configured.ok) throw new Error(configured.reason);
   const config = configured.config;
   const store = new ResearchStore(config.dir);
+  const scientific = createScientificControl(store, config, async () => {
+    const configured = await configureRuntime({
+      env: { ...env, RAIN_REGISTRY_DIR: store.registryDir() },
+      cwd,
+    });
+    if (configured.mode !== "local")
+      throw new Error("Native runtime revision is unavailable");
+    return configured.runtime.identity().rain;
+  });
+  let projectionHead: string | null | undefined;
+  let projections: Pick<DiscoveryView, "knowledge" | "learning" | "scientific"> = {};
+  const project = () => {
+    const entries = store.discoveryEntries(),
+      head = entries.at(-1)?.sha256 ?? null;
+    if (head !== projectionHead) {
+      projections = {
+        knowledge: buildScientificKnowledge(entries),
+        learning: learningView(entries),
+        scientific: scientific.view(),
+      };
+      projectionHead = head;
+    }
+    // Approval expiry uses the current clock even while evidence does not change.
+    return { ...projections, scientific: scientific.view() };
+  };
   const scheduler = createSessionScheduler(store);
   let scheduleTimer: ReturnType<typeof setInterval> | null = null;
   let model: LocalModel | null = null;
@@ -127,6 +162,7 @@ export function createDiscoveryService(
   const status = () =>
     structuredClone({
       ...view,
+      ...project(),
       schedule: scheduler.state(),
       observatory: {
         labs: descendantLabs(store).map((l) => ({
@@ -420,6 +456,127 @@ export function createDiscoveryService(
     scheduleTimer.unref();
   };
   return {
+    scientificCompile: (raw: unknown) => {
+      if (view.active || preparing)
+        throw new Error(
+          "Stop the active research session before compiling a numerical plan",
+        );
+      scientific.compile(raw);
+      return status();
+    },
+    scientificDraft: async (question: string, signal?: AbortSignal) => {
+      if (view.active || preparing)
+        throw new Error("A research operation is already active");
+      preparing = true;
+      try {
+        await scientific.draft(question, signal);
+        return status();
+      } finally {
+        preparing = false;
+      }
+    },
+    scientificAuthorize: (digest: string, prefix: string, reviewed: boolean) => {
+      if (view.active || preparing)
+        throw new Error("Review numerical authorization while the host is idle");
+      scientific.authorize(digest, prefix, reviewed);
+      return status();
+    },
+    scientificExecute: async (digest: string, signal?: AbortSignal) => {
+      if (view.active || preparing)
+        throw new Error("A research operation is already active");
+      preparing = true;
+      try {
+        await scientific.execute(digest, signal);
+        return status();
+      } finally {
+        preparing = false;
+      }
+    },
+    learningPropose: (code: ProcessErrorCode, instructions: string) => {
+      if (view.active || preparing)
+        throw new Error("Review procedural proposals while the host is idle");
+      const release = store.acquireLock("operator-learning");
+      try {
+        const error = learningView(store.discoveryEntries()).recurring.find(
+          (r) => r.code === code,
+        );
+        if (!error)
+          throw new Error("No recurring procedural-error evidence for this scope");
+        proposeGuidance(store, "operator", {
+          scope: {
+            domain: "urban-simulation",
+            backend: "bethesda",
+            stage: "design",
+            scenario: null,
+            error: code,
+          },
+          instructions,
+          evidence: error.evidence,
+          proposer: config.operator,
+          generation: "host",
+        });
+        return status();
+      } finally {
+        release();
+      }
+    },
+    learningEvaluate: async (proposal: string) => {
+      if (view.active || preparing)
+        throw new Error("A research operation is already active");
+      const release = store.acquireLock("operator-learning");
+      preparing = true;
+      try {
+        await evaluateProposal(store, "operator", proposal);
+        return status();
+      } finally {
+        release();
+        preparing = false;
+      }
+    },
+    learningActivate: (
+      proposal: string,
+      evaluation: string,
+      digest: string,
+      reviewed: boolean,
+    ) => {
+      if (view.active || preparing)
+        throw new Error("Activate procedural guidance while the host is idle");
+      const release = store.acquireLock("operator-learning");
+      try {
+        approveGuidance(store, "operator", {
+          proposal,
+          evaluation,
+          operator: config.operator,
+          reviewed,
+          typedDigest: digest,
+        });
+        return status();
+      } finally {
+        release();
+      }
+    },
+    learningRollback: (
+      activation: string,
+      digest: string,
+      reason: string,
+      reviewed: boolean,
+    ) => {
+      if (view.active || preparing)
+        throw new Error("Roll back procedural guidance while the host is idle");
+      const release = store.acquireLock("operator-learning");
+      try {
+        rollbackGuidance(store, "operator", {
+          activation,
+          operator: config.operator,
+          reason,
+          reviewed,
+          typedDigest: digest,
+        });
+        return status();
+      } finally {
+        release();
+      }
+    },
     status,
     registerSource: (title: string, text: string) => {
       if (

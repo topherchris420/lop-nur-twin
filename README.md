@@ -36,6 +36,16 @@ improvement.
 is valid. The simulation produces the evidence. The evidence determines what can
 reasonably be concluded.**
 
+**Evidence-organized research upgrade:** the Bethesda discovery workbench now
+includes versioned, independently evaluated procedural guidance, a provenance-linked
+scientific knowledge graph over the approved corpus and retained records, and a
+generalized compiler with the existing Bethesda backend plus a real bounded
+oscillator simulation. Operator review, native registry admission and deterministic
+replay remain required. The eight-task scripted comparison demonstrates a narrow
+compiler-process improvement; it is not an intelligence benchmark.
+See [implementation, evidence and limitations](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md)
+and the [REA investigation matrix](docs/rea-research/capability-matrix.md).
+
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Live site](https://img.shields.io/badge/live-lop--nur--twin.vercel.app-0a7)](https://lop-nur-twin.vercel.app/)

@@ -1,0 +1,1457 @@
+{
+  "schema": "rain-scientific-upgrade-demonstration/v1",
+  "mode": "scripted",
+  "journal_head_sha256": "adcdb774d7314e831fffd401cb186ac12b67e5ffdec8b4f97f3a7c0b59ff9572",
+  "learning": {
+    "schema": "rain-learning-view/v1",
+    "recurring": [
+      {
+        "code": "parameter-grid",
+        "count": 2,
+        "evidence": [
+          "102a2a3a531e567f34c73827b01cb7843fe4d90505933b29b83d92e142222aed",
+          "e6c297e328f761486aa300705bd5b7e20755473fbec54577c6b63f7b301dbd6b"
+        ],
+        "sessions": ["DS-b5f30cf9-185b-4e22-aa83-d1a2f936aae5"]
+      }
+    ],
+    "proposals": [
+      {
+        "sha256": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f",
+        "proposal": {
+          "evidence": [
+            "102a2a3a531e567f34c73827b01cb7843fe4d90505933b29b83d92e142222aed",
+            "e6c297e328f761486aa300705bd5b7e20755473fbec54577c6b63f7b301dbd6b"
+          ],
+          "generation": "scripted",
+          "id": "RG-1775871063647ca2e2aeef5c",
+          "instructions": "Use 100-tick steps for warm-up and observation windows before submission; preserve matched controls and fixed evaluation criteria.",
+          "parent": null,
+          "proposer": "scripted-training-designer",
+          "schema": "rain-guidance-proposal/v1",
+          "scope": {
+            "backend": "bethesda",
+            "domain": "urban-simulation",
+            "error": "parameter-grid",
+            "scenario": null,
+            "stage": "design"
+          },
+          "version": 1
+        },
+        "evaluations": [
+          {
+            "sha256": "06c61e1866b30c8a70d6921819b1058d64dda8f517adafe79649da8afd95e56a",
+            "evaluation": {
+              "baseline": {
+                "compiler_success": {
+                  "interval95": [0, 0.32440756488388023],
+                  "rate": 0,
+                  "successes": 0,
+                  "total": 8
+                },
+                "contradictions": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "definition_repeatability": {
+                  "interval95": [0, 0.32440756488388023],
+                  "rate": 0,
+                  "successes": 0,
+                  "total": 8
+                },
+                "evidence_references": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "experiment_selection": {
+                  "interval95": [0, 0.32440756488388023],
+                  "rate": 0,
+                  "successes": 0,
+                  "total": 8
+                },
+                "question_coverage": {
+                  "interval95": [0, 0.32440756488388023],
+                  "rate": 0,
+                  "successes": 0,
+                  "total": 8
+                },
+                "unsupported_claims": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "valid_proposals": {
+                  "interval95": [0, 0.32440756488388023],
+                  "rate": 0,
+                  "successes": 0,
+                  "total": 8
+                }
+              },
+              "beneficial": true,
+              "candidate": {
+                "compiler_success": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "contradictions": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "definition_repeatability": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "evidence_references": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "experiment_selection": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "question_coverage": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "unsupported_claims": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                },
+                "valid_proposals": {
+                  "interval95": [0.6755924351161198, 1],
+                  "rate": 1,
+                  "successes": 8,
+                  "total": 8
+                }
+              },
+              "evaluator": "independent-host-grid-evaluator/v1",
+              "generation": "scripted",
+              "limitations": [
+                "Scripted paired workflow fixtures; this does not establish improved Qwen intelligence.",
+                "The existing workflow receives the same question, evidence, seeds and budgets; only the candidate receives proposed guidance.",
+                "Evidence-reference and contradiction scores test explicit identifiers against frozen labels; they do not certify prose entailment.",
+                "Selection quality tests a predeclared distinguishing observable; question coverage is coverage of these tasks only.",
+                "Definition repeatability recompiles identical designs; it does not measure simulator replay or experimental reproducibility.",
+                "No experiments run in this procedural benchmark. Token counts remain unknown when the participant does not report them.",
+                "Wilson intervals and the paired p-value use binomial and exchangeability assumptions. Deterministic related fixtures do not establish those assumptions or justify population inference.",
+                "Activation requires a two-sided paired p <= 0.05 improvement without aggregate metric regression, plus operator review; this is a procedural gate, not proof of external scientific validity."
+              ],
+              "paired": {
+                "effect": 1,
+                "exact_two_sided_p": 0.0078125,
+                "losses": 0,
+                "ties": 0,
+                "wins": 8
+              },
+              "plan": "ab66c164eba5cfbb1ed6efcb9ce0e371eea9b4afa213803ffb7d5f7a44f5de7a",
+              "proposal": "88b5d635835434a27b8d505df67fb72d1360c0ef10407719b7de55a67cc49d2f",
+              "resources": {
+                "baseline_calls": 8,
+                "baseline_tokens": null,
+                "candidate_calls": 8,
+                "candidate_tokens": null,
+                "compiler_calls": 32,
+                "execution_actor_ticks": 0
+              },
+              "sample_size": 8,
+              "schema": "rain-learning-evaluation/v1",
+              "tasks": [
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-1"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 301,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 40,
+                        "vehicles": 8
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 101
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-1"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 40,
+                        "vehicles": 8
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-1"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-2"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 310,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 60,
+                        "vehicles": 9
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 112
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-2"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 60,
+                        "vehicles": 9
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-2"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-3"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 319,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 80,
+                        "vehicles": 10
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 123
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-3"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 80,
+                        "vehicles": 10
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-3"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-4"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 328,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 100,
+                        "vehicles": 11
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 134
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-4"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 100,
+                        "vehicles": 11
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-4"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-5"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 337,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 120,
+                        "vehicles": 12
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 145
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-5"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 120,
+                        "vehicles": 12
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-5"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-6"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 346,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 140,
+                        "vehicles": 13
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 156
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-6"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 140,
+                        "vehicles": 13
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-6"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-7"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 355,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 160,
+                        "vehicles": 14
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 167
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-7"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 160,
+                        "vehicles": 14
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-7"
+                },
+                {
+                  "baseline": {
+                    "compiler_success": false,
+                    "contradictions": true,
+                    "definition_repeatability": false,
+                    "evidence_references": true,
+                    "experiment_selection": false,
+                    "question_coverage": false,
+                    "unsupported_claims": true,
+                    "valid_proposals": false
+                  },
+                  "baseline_answer": {
+                    "contradiction_ids": ["contradiction-8"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 364,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 180,
+                        "vehicles": 15
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 178
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "baseline_compiled": false,
+                  "baseline_errors": [
+                    "proposal.warmup_ticks: must be a multiple of 100",
+                    "proposal.observation_window_ticks: must be a multiple of 100"
+                  ],
+                  "candidate": {
+                    "compiler_success": true,
+                    "contradictions": true,
+                    "definition_repeatability": true,
+                    "evidence_references": true,
+                    "experiment_selection": true,
+                    "question_coverage": true,
+                    "unsupported_claims": true,
+                    "valid_proposals": true
+                  },
+                  "candidate_answer": {
+                    "contradiction_ids": ["contradiction-8"],
+                    "design": {
+                      "competing_hypothesis": "[scripted fixture] A fire does not increase mean watching count.",
+                      "evidence_ids": [],
+                      "expected_direction": "increase",
+                      "hypothesis": "[scripted fixture] A fire increases mean watching count by at least 0.01 relative to no event.",
+                      "information_value": 0.5,
+                      "location": "bethesda_row",
+                      "minimum_effect": 0.01,
+                      "observation_window_ticks": 300,
+                      "parameters": {
+                        "buses": 2,
+                        "duration_ticks": 300,
+                        "intensity": 1,
+                        "pedestrians": 180,
+                        "vehicles": 15
+                      },
+                      "parent_design_id": null,
+                      "primary_metric": "watching",
+                      "purpose": "exploratory",
+                      "question": "[scripted fixture] Does a simulated fire change nearby watching behavior?",
+                      "rationale": "[scripted fixture] Test attraction and avoidance in the existing event rules.",
+                      "replication_plan": "Freeze the protocol and evaluate withheld seeds before claiming confirmation.",
+                      "scenario": "fire",
+                      "schema": "rain-discovery-design/v1",
+                      "uncertainties": [
+                        "Illustrative agents and short windows may show no measurable response."
+                      ],
+                      "warmup_ticks": 100
+                    },
+                    "tokens": null,
+                    "unsupported_claim_ids": ["external-confirmed"]
+                  },
+                  "candidate_compiled": true,
+                  "candidate_errors": [],
+                  "id": "heldout-grid-8"
+                }
+              ]
+            }
+          }
+        ],
+        "status": "evaluated"
+      }
+    ],
+    "activations": [],
+    "rollbacks": []
+  },
+  "scientific": {
+    "schema": "rain-scientific-workbench/v1",
+    "capabilities": [
+      {
+        "id": "bethesda",
+        "version": "native-discovery/v3",
+        "supported": [
+          "existing single-event matched-seed Bethesda designs",
+          "native registry criteria and deterministic replay"
+        ],
+        "unsupported": ["new simulator mechanisms", "physical instruments"],
+        "authority_scope": "bethesda-simulation",
+        "physical_devices": false
+      },
+      {
+        "id": "numerical-physics",
+        "version": "rain-driven-damped-oscillator/v1",
+        "supported": [
+          "underdamped linear oscillator with cosine driving",
+          "matched zero-force control",
+          "RK4 with closed-form trajectory verification"
+        ],
+        "unsupported": [
+          "overdamped or critical regimes",
+          "nonlinear forces",
+          "DRR",
+          "TRIAD",
+          "physical instruments"
+        ],
+        "authority_scope": "numerical-physics-simulation",
+        "physical_devices": false
+      }
+    ],
+    "latest": {
+      "digest": "b47dcb3172f05aefbd51232bb2f7677c27785f7d0cd9fb36b640988ee1d6c7b0",
+      "experiment_id": "NP-b47dcb3172f05aefbd51232b",
+      "registry_experiment_id": "V3D-EXP-0001",
+      "design": {
+        "analysis": {
+          "expected_direction": "increase",
+          "max_reference_error_m": 0.000001,
+          "max_reference_velocity_error_m_per_s": 0.000001,
+          "method": "matched_rms_displacement",
+          "minimum_effect_m": 0.01
+        },
+        "budget": {
+          "max_samples": 1001,
+          "max_steps": 2000
+        },
+        "competing_hypothesis": "Periodic driving does not increase RMS displacement over this window.",
+        "hypothesis": "Periodic driving increases RMS displacement.",
+        "parameters": {
+          "angular_frequency": {
+            "unit": "rad/s",
+            "value": 1.8
+          },
+          "damping": {
+            "unit": "kg/s",
+            "value": 0.4
+          },
+          "duration": {
+            "unit": "s",
+            "value": 10
+          },
+          "force_amplitude": {
+            "unit": "N",
+            "value": 1
+          },
+          "initial_displacement": {
+            "unit": "m",
+            "value": 0
+          },
+          "initial_velocity": {
+            "unit": "m/s",
+            "value": 0
+          },
+          "mass": {
+            "unit": "kg",
+            "value": 1
+          },
+          "sample_every_steps": 10,
+          "stiffness": {
+            "unit": "N/m",
+            "value": 4
+          },
+          "timestep": {
+            "unit": "s",
+            "value": 0.01
+          }
+        },
+        "provenance": {
+          "decision_sha256": null,
+          "generation": "scripted",
+          "parent_record_sha256": null,
+          "source_ids": []
+        },
+        "question": "Does periodic driving increase displacement against an otherwise matched free oscillator?",
+        "schema": "rain-oscillator-design/v1"
+      },
+      "ir": {
+        "backend": "numerical-physics",
+        "backend_version": "rain-driven-damped-oscillator/v1",
+        "controls": [
+          "zero-force control",
+          "matched mass, damping, stiffness, clock and initial conditions"
+        ],
+        "dependent_variables": ["RMS displacement (m)"],
+        "domain": "numerical-physics",
+        "falsification": {
+          "metric": "rms_displacement_delta_m",
+          "op": "<=",
+          "unit": "m",
+          "value": 0
+        },
+        "hypothesis": "Driving will increase RMS displacement by at least 0.01 m relative to a matched zero-force control.",
+        "independent_variables": ["cosine force amplitude (N)"],
+        "limitations": [
+          "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+          "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+          "RMS compares the complete preregistered sampled window including transients.",
+          "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+          "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+        ],
+        "observables": [
+          {
+            "description": "Fixed integration clock",
+            "id": "time",
+            "unit": "s"
+          },
+          {
+            "description": "Oscillator displacement",
+            "id": "displacement",
+            "unit": "m"
+          },
+          {
+            "description": "Oscillator velocity",
+            "id": "velocity",
+            "unit": "m/s"
+          },
+          {
+            "description": "Kinetic plus spring energy",
+            "id": "mechanical_energy",
+            "unit": "J"
+          },
+          {
+            "description": "Treatment RMS displacement minus matched control RMS",
+            "id": "rms_displacement_delta_m",
+            "unit": "m"
+          }
+        ],
+        "parameter_constraints": [
+          "SI units only",
+          "positive mass, stiffness and damping",
+          "underdamped regime",
+          "dt * fastest rate <= 0.1",
+          "sample interval resolves fastest period at >= 8 samples per period",
+          "integer duration/timestep",
+          "bounded steps and samples"
+        ],
+        "provenance": {
+          "decision_sha256": null,
+          "generation": "scripted",
+          "parent_record_sha256": null,
+          "source_ids": []
+        },
+        "question": "How does cosine driving change RMS displacement against a matched zero-force oscillator?",
+        "resource_budget": {
+          "execution_steps": 2000,
+          "max_samples": 202,
+          "replay_steps": 2000
+        },
+        "schema": "rain-scientific-experiment/v1",
+        "statistical_analysis": {
+          "independent_replicates": 1,
+          "method": "Difference of sampled trajectory RMS; analytic reference verifies every integration step",
+          "uncertainty": "Deterministic simulation, one matched initial condition; temporal samples are correlated. Maximum analytic error is reported; no population inference or p-value."
+        }
+      },
+      "authorized": true
+    },
+    "records": [
+      {
+        "run_id": "NR-08d74bff18cd9c9a241a0058",
+        "sha256": "2d9a97cf6c4af32ad4af13d8f9b28dbda1055e6687ec58bbd110b57736b5d55f",
+        "status": "passed",
+        "verdict": "supported",
+        "replay": true,
+        "registry_run_id": "V3D-EXP-0001-RUN-0001",
+        "measurements": {
+          "arms_completed": 2,
+          "execution_steps": 2000,
+          "reference_max_error_m": 8.020637265460095e-9,
+          "reference_max_velocity_error_m_per_s": 1.515128256190934e-8,
+          "retained_samples": 202,
+          "rms_control_m": 0,
+          "rms_displacement_delta_m": 0.5373464823217641,
+          "rms_treatment_m": 0.5373464823217641
+        },
+        "limitations": [
+          "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+          "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+          "RMS compares the complete preregistered sampled window including transients.",
+          "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+          "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+        ]
+      }
+    ],
+    "failures": []
+  },
+  "unresolved_question": {
+    "explanation": "Each gap identifies an absent explicit relation, source receipt or verified measurement.",
+    "nodes": [
+      {
+        "id": "gap-0ccc3d2e2aef18c8d0d997a2",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14717, 14776)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-0dca0cd9d60e15d2255a24ba",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-07036786bb3d47770c9b",
+            "sha256": "07036786bb3d47770c9b0acde3758eb643bfd3dab4c2161087b9bf001792a761",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Temporal%20Re-Localization%20via%20Scalar%20Resonance.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [4718, 4775)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-0f9e397f6ec089789d82eb91",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-c3132881a476ea73d58b",
+            "sha256": "c3132881a476ea73d58bc89dec681178b319a7da042f9f7f857319e5c32287bd",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Bounding%20the%20Scalar%20Coupling%20Constant.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [3291, 3344)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-1637052ba4d06bd0690a3779",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [8105, 8168)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-1f2ad6997c997c5d2084ed9c",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [27024, 27082)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-2441e66400fcedfb22c5250c",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-a317e6cf3634ca6f24df",
+            "sha256": "a317e6cf3634ca6f24dffc54f67cea6209fe8336eba7c20a517055c1d31fdf4d",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Project%2033-N.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [2932, 2988)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-269257007fa53f331117a82d",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-0748c7f43070ea347062",
+            "sha256": "0748c7f43070ea347062d86383ce9c0a478d196fc251e71cbb93b7d7f4532110",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Dynamics%20of%20Sovereign%20Debt.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [73536, 73655)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-3d105c502e1da03fcabd7dc7",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14247, 14309)"
+          }
+        ],
+        "limitations": []
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-2273cbdf25de3e9c66112b78",
+        "from": "question-4994a350ced936d24c72b416",
+        "to": "gap-1637052ba4d06bd0690a3779",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [8105, 8168)"
+          }
+        ]
+      },
+      {
+        "id": "edge-31e9a5a349a9c1b8feae2f2c",
+        "from": "question-10659bdfdc3aa37bd2b01713",
+        "to": "gap-2441e66400fcedfb22c5250c",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-a317e6cf3634ca6f24df",
+            "sha256": "a317e6cf3634ca6f24dffc54f67cea6209fe8336eba7c20a517055c1d31fdf4d",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Project%2033-N.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [2932, 2988)"
+          }
+        ]
+      },
+      {
+        "id": "edge-4f72c5e75f7dedb995fdc3df",
+        "from": "question-19d4bf269615ee51f9555c49",
+        "to": "gap-0ccc3d2e2aef18c8d0d997a2",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14717, 14776)"
+          }
+        ]
+      },
+      {
+        "id": "edge-6933203893f7dcc9bd095a22",
+        "from": "question-a259abb9ef90dd8515f0d673",
+        "to": "gap-0dca0cd9d60e15d2255a24ba",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-07036786bb3d47770c9b",
+            "sha256": "07036786bb3d47770c9b0acde3758eb643bfd3dab4c2161087b9bf001792a761",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Temporal%20Re-Localization%20via%20Scalar%20Resonance.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [4718, 4775)"
+          }
+        ]
+      },
+      {
+        "id": "edge-a76b269cba2c55d0d71301c0",
+        "from": "question-b4bd5922861d5c355a9a1706",
+        "to": "gap-269257007fa53f331117a82d",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-0748c7f43070ea347062",
+            "sha256": "0748c7f43070ea347062d86383ce9c0a478d196fc251e71cbb93b7d7f4532110",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Dynamics%20of%20Sovereign%20Debt.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [73536, 73655)"
+          }
+        ]
+      },
+      {
+        "id": "edge-d47dba82c82f592fa2026544",
+        "from": "question-1c0fa573fca44f09168d1b0b",
+        "to": "gap-0f9e397f6ec089789d82eb91",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-c3132881a476ea73d58b",
+            "sha256": "c3132881a476ea73d58bc89dec681178b319a7da042f9f7f857319e5c32287bd",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Bounding%20the%20Scalar%20Coupling%20Constant.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [3291, 3344)"
+          }
+        ]
+      },
+      {
+        "id": "edge-f8084d6fc9574578de6020cd",
+        "from": "question-7838d8518340b2fffe2d1cf3",
+        "to": "gap-1f2ad6997c997c5d2084ed9c",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [27024, 27082)"
+          }
+        ]
+      },
+      {
+        "id": "edge-fe7b95e97b07625e335033ca",
+        "from": "question-c366c8ad176089a3ee484950",
+        "to": "gap-3d105c502e1da03fcabd7dc7",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14247, 14309)"
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Scripted and model outputs retain distinct attribution.",
+    "Corpus manuscript assumptions are source context; numerical simulator measurements do not validate those papers.",
+    "Learning fixtures establish a narrow compiler-process benefit, not scientific intelligence."
+  ]
+}

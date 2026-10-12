@@ -706,7 +706,7 @@ export function RAINResonanceFace({
               <mesh position={[0, -0.016, 0]} material={steel}>
                 <cylinderGeometry args={[0.022, 0.022, 0.02, 12]} />
               </mesh>
-              <mesh material={bronze}>
+              <mesh material={bronze} {...pointer(p)}>
                 <boxGeometry args={[SMALL, 0.005, SMALL]} />
               </mesh>
               <mesh
@@ -714,7 +714,6 @@ export function RAINResonanceFace({
                 position={[0, 0.0026, 0]}
                 geometry={smallGeometry}
                 material={sources[p].material}
-                {...pointer(p)}
               />
             </group>
           </group>
@@ -724,7 +723,8 @@ export function RAINResonanceFace({
         <mesh position={[0, -0.026, 0]} material={steel}>
           <cylinderGeometry args={[0.05, 0.05, 0.025, 20]} />
         </mesh>
-        <mesh position={[0, -0.0062, 0]} material={bronze}>
+        {/* Pick the solid plate body, independent of animated surface tessellation. */}
+        <mesh position={[0, -0.0062, 0]} material={bronze} {...pointer("main")}>
           <boxGeometry args={[MAIN.size, 0.008, MAIN.size]} />
         </mesh>
         <mesh
@@ -732,7 +732,6 @@ export function RAINResonanceFace({
           position={[0, 0, 0]}
           geometry={plateGeometry}
           material={main.material}
-          {...pointer("main")}
         />
         {/* The boundary: a thin guard round the plate, lit only while a person must decide. */}
         {[

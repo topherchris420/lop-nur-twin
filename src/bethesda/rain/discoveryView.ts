@@ -1,5 +1,8 @@
 import type { ResearchView } from "./researchProtocol.js";
 import type { ScheduleView } from "./scheduleProtocol.js";
+import type { ScientificKnowledgeGraph } from "./scientificKnowledgeProtocol.js";
+import type { LearningView } from "./learningProtocol.js";
+import type { ScientificView } from "./scientificWorkbenchProtocol.js";
 /** Read-only workbench wire view; contains no server dependencies. */
 import type { Charter } from "./standing.js";
 import type { Critique, Design } from "./discoveryProtocol.js";
@@ -28,6 +31,9 @@ export interface DiscoveryResult {
   record_path: string;
 }
 export interface DiscoveryView {
+  knowledge?: ScientificKnowledgeGraph;
+  learning?: LearningView;
+  scientific?: ScientificView;
   approved_source?: { id: string; title: string; sha256: string };
   schedule?: ScheduleView | null;
   observatory?: {
