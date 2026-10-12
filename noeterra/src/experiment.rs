@@ -234,6 +234,26 @@ pub fn validate_plan(p: &Plan) -> Result<Scenario, String> {
         Simulation::new(scenario.clone(), 0, Vec::new(), a.interventions.clone())
             .map_err(|e| format!("arm `{}`: {e}", a.id))?;
     }
+    // An intervention that leaves every starting world as it was (removing a
+    // treaty nobody signed, scaling by 1) is no treatment: its arm would be the
+    // control under another name, and any verdict about it would be about nothing.
+    for a in p.arms.iter().filter(|a| !a.interventions.is_empty()) {
+        let mut changes = false;
+        for &seed in &p.seeds {
+            let base = Simulation::new(scenario.clone(), seed, Vec::new(), Vec::new())?;
+            let arm = Simulation::new(scenario.clone(), seed, Vec::new(), a.interventions.clone())?;
+            if arm.initial_hash != base.initial_hash {
+                changes = true;
+                break;
+            }
+        }
+        if !changes {
+            return Err(format!(
+                "arm `{}`: its interventions leave the starting world unchanged",
+                a.id
+            ));
+        }
+    }
     Ok(scenario)
 }
 

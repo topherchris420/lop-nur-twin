@@ -158,12 +158,18 @@ export function admitCivilizationRecord(
   const text = canonicalJson(record);
   const metric = record.plan.design.analysis.metric;
   const seeds = record.plan.noeterra_plan.seeds;
-  const per = (arm: string) =>
-    seeds.map(
+  // A run that did not happen has no measurement: an arm missing any seed (an
+  // engine failure, say) contributes no series rather than a row of zeros.
+  const per = (arm: string): [string, number[]][] => {
+    const values = seeds.map(
       (s) =>
         record.result.experiment?.runs.find((r) => r.arm === arm && r.seed === s)
-          ?.metrics[metric] ?? 0,
+          ?.metrics[metric],
     );
+    return values.every((v): v is number => typeof v === "number")
+      ? [[`${arm}_primary`, values]]
+      : [];
+  };
   const submission = {
     schema_version: "rain-experiment-submission/v1",
     experiment_id: receipt.experiment_id,
@@ -182,7 +188,7 @@ export function admitCivilizationRecord(
         [],
     },
     measurements: record.result.measurements,
-    series: { control_primary: per("control"), treatment_primary: per("treatment") },
+    series: Object.fromEntries([...per("control"), ...per("treatment")]),
     observations: [
       "Every arm is an output of the Noeterra civilization simulator; the scenario is illustrative and no historical observation was made.",
       `Independent re-simulation reproduced every state hash: ${replay.replay_sha256}`,

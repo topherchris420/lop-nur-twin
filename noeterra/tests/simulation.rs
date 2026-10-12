@@ -346,6 +346,74 @@ fn an_experiment_is_paired_reproducible_and_verifiable() {
 }
 
 #[test]
+fn a_treatment_that_changes_nothing_is_refused() {
+    let plan = |interventions: Vec<Intervention>| Plan {
+        schema: experiment::PLAN_SCHEMA.into(),
+        scenario: ScenarioRef::Builtin {
+            id: "mediterranean-264bc".into(),
+        },
+        turns: 5,
+        seeds: vec![1, 2, 3],
+        arms: vec![
+            Arm {
+                id: "control".into(),
+                policy: Policy::Rules,
+                interventions: vec![],
+            },
+            Arm {
+                id: "treatment".into(),
+                policy: Policy::Rules,
+                interventions,
+            },
+        ],
+    };
+    // Macedon and the Gauls have no alliance to remove, and a factor of 1 scales nothing.
+    for vacuous in [
+        Intervention::RemoveTreaty {
+            kind: TreatyKind::Alliance,
+            a: "macedon".into(),
+            b: "gauls".into(),
+        },
+        Intervention::ScaleTreasury {
+            civ: "rome".into(),
+            factor: 1.0,
+        },
+    ] {
+        let err = experiment::validate_plan(&plan(vec![vacuous])).unwrap_err();
+        assert!(err.contains("leave the starting world unchanged"), "{err}");
+    }
+    // The alliance the scenario does contain can be removed.
+    experiment::validate_plan(&plan(vec![Intervention::RemoveTreaty {
+        kind: TreatyKind::Alliance,
+        a: "carthage".into(),
+        b: "syracuse".into(),
+    }]))
+    .unwrap();
+}
+
+#[test]
+fn a_save_with_an_empty_scenario_is_refused_not_a_trap() {
+    let mut s = builtin("mediterranean-264bc", 0).unwrap();
+    s.civs.clear();
+    s.provinces.clear();
+    s.links.clear();
+    s.relations.clear();
+    s.treaties.clear();
+    assert!(noeterra::scenario::build(&s, 1).is_err());
+    let save = serde_json::json!({
+        "schema": "noeterra-save/v1", "sim_version": 1, "engine": "",
+        "scenario": s, "scenario_sha256": noeterra::hash::sha256_hex(serde_json::to_string(&s).unwrap().as_bytes()),
+        "seed": 0, "interventions": [], "seats": [], "initial_hash": "", "turns": [], "final_hash": ""
+    });
+    for op in ["replay", "session_load"] {
+        let text = noeterra::api::handle(&serde_json::json!({ "op": op, "save": save }).to_string());
+        // Refused either as an error or as a failed replay report, never a trap.
+        let v: serde_json::Value = serde_json::from_str(&text).unwrap();
+        assert!(v["ok"] == false || v["result"]["ok"] == false, "{op}: {text}");
+    }
+}
+
+#[test]
 fn a_large_generated_world_runs() {
     let s = generate(21, 12, 400);
     let mut sim = Simulation::new(s, 21, Vec::new(), Vec::new()).unwrap();

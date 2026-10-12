@@ -43,7 +43,13 @@ pub fn is_local_http(url: &str) -> bool {
     let Some(rest) = url.strip_prefix("http://") else {
         return false;
     };
-    let authority = rest.split('/').next().unwrap_or("");
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or("");
+    // `http://127.0.0.1:1234@example.com` names example.com: a URL with user
+    // information (or a backslash, which URL parsers read as a path) is refused
+    // rather than parsed by hand.
+    if authority.contains(['@', '\\']) {
+        return false;
+    }
     let host = if let Some(h) = authority.strip_prefix('[') {
         h.split(']').next().unwrap_or("")
     } else {
@@ -371,6 +377,11 @@ mod tests {
             "http://172.32.0.1",
             "http://127.0.0.1.evil.com",
             "ftp://127.0.0.1",
+            "http://127.0.0.1:1234@example.com/v1",
+            "http://[::1]@example.com",
+            "http://user@127.0.0.1:1234",
+            "http://example.com?@127.0.0.1",
+            "http://127.0.0.1\\@example.com",
         ] {
             assert!(!is_local_http(bad), "{bad}");
         }

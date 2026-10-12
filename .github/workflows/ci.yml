@@ -126,6 +126,13 @@ jobs:
       - name: Civilization experiments end to end (scripted, no model)
         run: bun run rain:civilization:demo -- --archive "$RUNNER_TEMP/noeterra-archive" --state "$RUNNER_TEMP/noeterra-state"
 
+      # The archived experiments the README cites must still re-simulate to the
+      # same state hashes. A record made by an older engine version is reported
+      # and skipped (the archive is never rewritten); one made by this engine
+      # that no longer reproduces fails the run.
+      - name: Re-simulate the archived civilization experiments
+        run: bun run rain:civilization:verify
+
       - name: Scripted Inception research and budget-matched control demonstration
         run: bun run rain:inception:compare
 

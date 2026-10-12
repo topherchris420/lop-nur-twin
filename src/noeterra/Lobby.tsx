@@ -114,7 +114,7 @@ export function Lobby({ cards, engineVersion, initialScenario, onBegin }: LobbyP
   const card = cards.find((c) => c.id === scenario) ?? cards[0];
 
   return (
-    <div className="noeterra-lobby relative h-full w-full overflow-y-auto bg-black text-white">
+    <div className="noeterra-lobby relative h-full w-full overflow-x-hidden overflow-y-auto bg-black text-white">
       <svg
         className="pointer-events-none fixed inset-0 h-full w-full"
         aria-hidden="true"
@@ -145,7 +145,7 @@ export function Lobby({ cards, engineVersion, initialScenario, onBegin }: LobbyP
         <header className="mt-10 text-center">
           <h1 className="nt-display relative inline-block text-6xl font-extrabold tracking-tight sm:text-7xl">
             Noeterra
-            <span className="nt-tag absolute -top-2 -right-24 text-sm font-bold whitespace-nowrap text-amber-300">
+            <span className="nt-tag absolute -top-6 right-0 text-sm font-bold whitespace-nowrap text-amber-300 sm:-top-2 sm:-right-24">
               a R.A.I.N. world
             </span>
           </h1>

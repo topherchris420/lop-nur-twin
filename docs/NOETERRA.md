@@ -42,9 +42,11 @@ compiled to an import-free WebAssembly module and served from the site. No
 server is involved and nothing leaves the page. Visitors pick a world, pick a
 nation (or observe), issue orders, answer proposals, write letters and jump
 forward a season, a year or five years; every other nation is ruled by a
-rule-based agent with memory. The Advisor tab shows what their own court
-sees; a labelled research view reads other nations' minds, and says that it
-breaks the fog of war. Histories save to a file, load back only through
+rule-based agent with memory. The fog of war limits what the agents know,
+not what the visitor's map draws: the map shows every army and the Relations
+list every pending proposal, as a game's map does. The Advisor tab shows what
+the visitor's own court sees; a labelled research view also reads other
+nations' minds, and says that it breaks the fog of war. Histories save to a file, load back only through
 replay verification, and "Verify replay" re-simulates the whole history in
 the browser.
 
@@ -305,14 +307,14 @@ from the simulation or a model with `textContent`.
 The lab's scientific layer (`src/rain/scientific/`) gains a third backend beside
 Bethesda and the numerical oscillator, and follows the same contract:
 
-| Step          | Code                                                     | What happens                                                                                                                                                                                                                                    |
-| :------------ | :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Design        | `rain-civilization-design/v1` in `scientificProtocol.ts` | A closed design: scenario, 3–32 seeds, 8–200 seasons, one treatment (a temperament trait, withheld memory, a treaty added or removed, armies or treasury scaled), a primary metric, a direction, a minimum effect and how many seeds must agree |
-| Compile       | `compileCivilizationExperiment`                          | The host checks the design, has the engine validate it, writes the question and hypothesis itself, freezes the criteria and binds the engine version into the plan digest (`CV-…`)                                                              |
-| Preregister   | `preregisterCivilization`                                | The registry stores the exact plan with every metric and unit                                                                                                                                                                                   |
-| Authorize     | `authorizeCivilization`                                  | An operator repeats the digest's first eight characters; valid one hour                                                                                                                                                                         |
-| Execute       | `executeCivilization`                                    | The engine runs every seed with and without the treatment, then re-simulates every run to confirm each state hash (guard G2)                                                                                                                    |
-| Verify, admit | `verifyCivilizationRecord`, `admitCivilizationRecord`    | Independent re-simulation must reproduce the record exactly; the registry evaluates the frozen `rain-criteria/v1` and must agree with the record                                                                                                |
+| Step          | Code                                                     | What happens                                                                                                                                                                                                                                                                                     |
+| :------------ | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Design        | `rain-civilization-design/v1` in `scientificProtocol.ts` | A closed design: scenario, 3–32 seeds, 8–200 seasons, one treatment (a temperament trait, withheld memory, a treaty added or removed, armies or treasury scaled), a primary metric, a direction, a minimum effect and how many seeds must agree                                                  |
+| Compile       | `compileCivilizationExperiment`                          | The host checks the design, has the engine validate it (a treatment that leaves every starting world unchanged, such as removing a treaty nobody signed, is refused), writes the question and hypothesis itself, freezes the criteria and binds the engine version into the plan digest (`CV-…`) |
+| Preregister   | `preregisterCivilization`                                | The registry stores the exact plan with every metric and unit                                                                                                                                                                                                                                    |
+| Authorize     | `authorizeCivilization`                                  | An operator repeats the digest's first eight characters; valid one hour                                                                                                                                                                                                                          |
+| Execute       | `executeCivilization`                                    | The engine runs every seed with and without the treatment, then re-simulates every run to confirm each state hash (guard G2)                                                                                                                                                                     |
+| Verify, admit | `verifyCivilizationRecord`, `admitCivilizationRecord`    | Independent re-simulation must reproduce the record exactly; the registry evaluates the frozen `rain-criteria/v1` and must agree with the record                                                                                                                                                 |
 
 Criteria: G1 every matched run completes; G2 the re-simulation reproduces every
 state hash; S1 the mean paired difference reaches the preregistered effect; S2

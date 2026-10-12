@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { parseIdValue } from "@/lib/params";
+import { parseBoundedIntValue, parseIdValue } from "@/lib/params";
 import { NoeterraApp } from "@/noeterra/NoeterraApp";
 
 /**
@@ -33,14 +33,8 @@ export const Route = createFileRoute("/noeterra")({
     if (known) v.scenario = known;
     const play = parseIdValue(search["play"]);
     if (play !== null && /^[a-z][a-z0-9_]{0,23}$/.test(play)) v.play = play;
-    const raw = search["seed"];
-    const seed =
-      typeof raw === "number"
-        ? raw
-        : typeof raw === "string" && /^\d{1,10}$/.test(raw)
-          ? Number(raw)
-          : NaN;
-    if (Number.isSafeInteger(seed) && seed >= 0 && seed <= 2147483647) v.seed = seed;
+    const seed = parseBoundedIntValue(search["seed"], 0, 2147483647);
+    if (seed !== null) v.seed = seed;
     // Every key is returned, `undefined` when rejected (see AGENTS.md).
     return Object.fromEntries(KEYS.map((k) => [k, v[k]]));
   },

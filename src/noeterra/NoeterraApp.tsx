@@ -15,7 +15,7 @@ type Phase =
   | { kind: "loading" }
   | { kind: "unavailable"; reason: string }
   | { kind: "lobby" }
-  | { kind: "game"; session: number; you: number | null };
+  | { kind: "game"; session: number; you: number | null; notice?: string };
 
 export function NoeterraApp({ scenario, play, seed }: NoeterraAppProps) {
   const [engine, setEngine] = useState<BrowserEngine | null>(null);
@@ -112,8 +112,11 @@ export function NoeterraApp({ scenario, play, seed }: NoeterraAppProps) {
       engine={engine}
       session={phase.session}
       you={phase.you}
+      notice={phase.notice}
       onExit={() => setPhase({ kind: "lobby" })}
-      onReplace={(session, you) => setPhase({ kind: "game", session, you })}
+      onReplace={(session, you, notice) =>
+        setPhase({ kind: "game", session, you, notice })
+      }
     />
   );
 }

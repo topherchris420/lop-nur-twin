@@ -153,9 +153,12 @@ into a structure description; a query parameter reflected into the DOM.
   scheme is `https:`. Anything else renders as plain text.
 - `scripts/validate-data.ts` rejects a non-HTTPS or unparseable source URL at
   build time, and the evidence validator repeats the check on every record.
-- Content-Security-Policy: `script-src 'self'`, `object-src 'none'`,
-  `base-uri 'self'`, `frame-ancestors 'none'`. The production build emits no
-  inline script, which is what makes `script-src 'self'` achievable.
+- Content-Security-Policy: `script-src 'self' 'wasm-unsafe-eval'`,
+  `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`. The
+  production build emits no inline script, which is what makes
+  `script-src 'self'` achievable. `'wasm-unsafe-eval'` lets `/noeterra` compile
+  its same-origin WebAssembly engine; it does not permit `eval` or
+  `new Function` for JavaScript.
 - `X-Content-Type-Options: nosniff`; `X-Frame-Options: DENY`.
 
 **Residual risk.** `style-src 'unsafe-inline'` is required by the framework, so
