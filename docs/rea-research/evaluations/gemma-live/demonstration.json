@@ -1,0 +1,506 @@
+{
+  "schema": "rain-scientific-upgrade-demonstration/v1",
+  "mode": "execute",
+  "journal_head_sha256": "2b843d639c40534552fccb10b7caa44fb48351ea17751745c2b271ea3662205a",
+  "learning": {
+    "schema": "rain-learning-view/v1",
+    "recurring": [],
+    "proposals": [],
+    "activations": [],
+    "rollbacks": []
+  },
+  "scientific": {
+    "schema": "rain-scientific-workbench/v1",
+    "capabilities": [
+      {
+        "id": "bethesda",
+        "version": "native-discovery/v3",
+        "supported": [
+          "existing single-event matched-seed Bethesda designs",
+          "native registry criteria and deterministic replay"
+        ],
+        "unsupported": ["new simulator mechanisms", "physical instruments"],
+        "authority_scope": "bethesda-simulation",
+        "physical_devices": false
+      },
+      {
+        "id": "numerical-physics",
+        "version": "rain-driven-damped-oscillator/v1",
+        "supported": [
+          "underdamped linear oscillator with cosine driving",
+          "matched zero-force control",
+          "RK4 with closed-form trajectory verification"
+        ],
+        "unsupported": [
+          "overdamped or critical regimes",
+          "nonlinear forces",
+          "DRR",
+          "TRIAD",
+          "physical instruments"
+        ],
+        "authority_scope": "numerical-physics-simulation",
+        "physical_devices": false
+      }
+    ],
+    "latest": {
+      "digest": "e1df782557d13ff1defc68e5c7da836b7fcd23bc5a433cd0ad6d0298ec1de133",
+      "experiment_id": "NP-e1df782557d13ff1defc68e5",
+      "registry_experiment_id": "V3D-EXP-0001",
+      "design": {
+        "analysis": {
+          "expected_direction": "increase",
+          "max_reference_error_m": 0.000001,
+          "max_reference_velocity_error_m_per_s": 0.000001,
+          "method": "matched_rms_displacement",
+          "minimum_effect_m": 0.000001
+        },
+        "budget": {
+          "max_samples": 1001,
+          "max_steps": 2000
+        },
+        "competing_hypothesis": "There is no significant difference in the steady-state RMS displacement between the two oscillators.",
+        "hypothesis": "The steady-state Root Mean Square (RMS) displacement of the driven oscillator will be significantly greater than that of the matched, undriven oscillator.",
+        "parameters": {
+          "angular_frequency": {
+            "unit": "rad/s",
+            "value": 10
+          },
+          "damping": {
+            "unit": "kg/s",
+            "value": 2
+          },
+          "duration": {
+            "unit": "s",
+            "value": 5
+          },
+          "force_amplitude": {
+            "unit": "N",
+            "value": 5
+          },
+          "initial_displacement": {
+            "unit": "m",
+            "value": 0
+          },
+          "initial_velocity": {
+            "unit": "m/s",
+            "value": 0
+          },
+          "mass": {
+            "unit": "kg",
+            "value": 1
+          },
+          "sample_every_steps": 1,
+          "stiffness": {
+            "unit": "N/m",
+            "value": 100
+          },
+          "timestep": {
+            "unit": "s",
+            "value": 0.01
+          }
+        },
+        "provenance": {
+          "decision_sha256": "669055deb672c6fb4a38b25030eb71f964429197d911c54251991719dbde6abf",
+          "generation": "model",
+          "parent_record_sha256": null,
+          "source_ids": []
+        },
+        "question": "Does driving increase RMS displacement versus a matched undriven oscillator?",
+        "schema": "rain-oscillator-design/v1"
+      },
+      "ir": {
+        "backend": "numerical-physics",
+        "backend_version": "rain-driven-damped-oscillator/v1",
+        "controls": [
+          "zero-force control",
+          "matched mass, damping, stiffness, clock and initial conditions"
+        ],
+        "dependent_variables": ["RMS displacement (m)"],
+        "domain": "numerical-physics",
+        "falsification": {
+          "metric": "rms_displacement_delta_m",
+          "op": "<=",
+          "unit": "m",
+          "value": 0
+        },
+        "hypothesis": "Driving will increase RMS displacement by at least 0.000001 m relative to a matched zero-force control.",
+        "independent_variables": ["cosine force amplitude (N)"],
+        "limitations": [
+          "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+          "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+          "RMS compares the complete preregistered sampled window including transients.",
+          "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+          "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+        ],
+        "observables": [
+          {
+            "description": "Fixed integration clock",
+            "id": "time",
+            "unit": "s"
+          },
+          {
+            "description": "Oscillator displacement",
+            "id": "displacement",
+            "unit": "m"
+          },
+          {
+            "description": "Oscillator velocity",
+            "id": "velocity",
+            "unit": "m/s"
+          },
+          {
+            "description": "Kinetic plus spring energy",
+            "id": "mechanical_energy",
+            "unit": "J"
+          },
+          {
+            "description": "Treatment RMS displacement minus matched control RMS",
+            "id": "rms_displacement_delta_m",
+            "unit": "m"
+          }
+        ],
+        "parameter_constraints": [
+          "SI units only",
+          "positive mass, stiffness and damping",
+          "underdamped regime",
+          "dt * fastest rate <= 0.1",
+          "sample interval resolves fastest period at >= 8 samples per period",
+          "integer duration/timestep",
+          "bounded steps and samples"
+        ],
+        "provenance": {
+          "decision_sha256": "669055deb672c6fb4a38b25030eb71f964429197d911c54251991719dbde6abf",
+          "generation": "model",
+          "parent_record_sha256": null,
+          "source_ids": []
+        },
+        "question": "How does cosine driving change RMS displacement against a matched zero-force oscillator?",
+        "resource_budget": {
+          "execution_steps": 1000,
+          "max_samples": 1002,
+          "replay_steps": 1000
+        },
+        "schema": "rain-scientific-experiment/v1",
+        "statistical_analysis": {
+          "independent_replicates": 1,
+          "method": "Difference of sampled trajectory RMS; analytic reference verifies every integration step",
+          "uncertainty": "Deterministic simulation, one matched initial condition; temporal samples are correlated. Maximum analytic error is reported; no population inference or p-value."
+        }
+      },
+      "authorized": true
+    },
+    "records": [
+      {
+        "run_id": "NR-a8a07d1d378167287f1a9401",
+        "sha256": "7f49b3139ef1665331efa7707df9aabf5464fa68f9227f376f13cb0f4f9f1377",
+        "status": "inconclusive",
+        "verdict": "insufficient_evidence",
+        "replay": true,
+        "registry_run_id": "V3D-EXP-0001-RUN-0001",
+        "measurements": {
+          "arms_completed": 2,
+          "execution_steps": 1000,
+          "reference_max_error_m": 0.000001986569619416567,
+          "reference_max_velocity_error_m_per_s": 0.0000201099170241692,
+          "retained_samples": 1002,
+          "rms_control_m": 0,
+          "rms_displacement_delta_m": 0.14856073564305697,
+          "rms_treatment_m": 0.14856073564305697
+        },
+        "limitations": [
+          "Simulation of m x'' + b x' + k x = F cos(omega t), not physical measurements.",
+          "Linear underdamped dynamics only; no nonlinearities, thermal noise or physical equipment.",
+          "RMS compares the complete preregistered sampled window including transients.",
+          "Reference accuracy establishes numerical agreement, not empirical validity of the model.",
+          "Same-runtime replay is byte-deterministic; cross-engine floating point identity is not promised."
+        ]
+      }
+    ],
+    "failures": [
+      {
+        "stage": "validation",
+        "errors": ["numerical execution/sample resource ceiling exceeded"]
+      },
+      {
+        "stage": "model-draft",
+        "errors": ["numerical execution/sample resource ceiling exceeded"]
+      }
+    ]
+  },
+  "unresolved_question": {
+    "explanation": "Each gap identifies an absent explicit relation, source receipt or verified measurement.",
+    "nodes": [
+      {
+        "id": "gap-0ccc3d2e2aef18c8d0d997a2",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14717, 14776)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-0dca0cd9d60e15d2255a24ba",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-07036786bb3d47770c9b",
+            "sha256": "07036786bb3d47770c9b0acde3758eb643bfd3dab4c2161087b9bf001792a761",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Temporal%20Re-Localization%20via%20Scalar%20Resonance.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [4718, 4775)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-0f9e397f6ec089789d82eb91",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-c3132881a476ea73d58b",
+            "sha256": "c3132881a476ea73d58bc89dec681178b319a7da042f9f7f857319e5c32287bd",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Bounding%20the%20Scalar%20Coupling%20Constant.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [3291, 3344)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-1637052ba4d06bd0690a3779",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [8105, 8168)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-1f2ad6997c997c5d2084ed9c",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [27024, 27082)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-2441e66400fcedfb22c5250c",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-a317e6cf3634ca6f24df",
+            "sha256": "a317e6cf3634ca6f24dffc54f67cea6209fe8336eba7c20a517055c1d31fdf4d",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Project%2033-N.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [2932, 2988)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-269257007fa53f331117a82d",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-0748c7f43070ea347062",
+            "sha256": "0748c7f43070ea347062d86383ce9c0a478d196fc251e71cbb93b7d7f4532110",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Dynamics%20of%20Sovereign%20Debt.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [73536, 73655)"
+          }
+        ],
+        "limitations": []
+      },
+      {
+        "id": "gap-3d105c502e1da03fcabd7dc7",
+        "kind": "missing_evidence",
+        "label": "The current admitted experiment records do not explicitly test this source assumption.",
+        "status": "unresolved",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14247, 14309)"
+          }
+        ],
+        "limitations": []
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-2273cbdf25de3e9c66112b78",
+        "from": "question-4994a350ced936d24c72b416",
+        "to": "gap-1637052ba4d06bd0690a3779",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [8105, 8168)"
+          }
+        ]
+      },
+      {
+        "id": "edge-31e9a5a349a9c1b8feae2f2c",
+        "from": "question-10659bdfdc3aa37bd2b01713",
+        "to": "gap-2441e66400fcedfb22c5250c",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-a317e6cf3634ca6f24df",
+            "sha256": "a317e6cf3634ca6f24dffc54f67cea6209fe8336eba7c20a517055c1d31fdf4d",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Project%2033-N.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [2932, 2988)"
+          }
+        ]
+      },
+      {
+        "id": "edge-4f72c5e75f7dedb995fdc3df",
+        "from": "question-19d4bf269615ee51f9555c49",
+        "to": "gap-0ccc3d2e2aef18c8d0d997a2",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14717, 14776)"
+          }
+        ]
+      },
+      {
+        "id": "edge-6933203893f7dcc9bd095a22",
+        "from": "question-a259abb9ef90dd8515f0d673",
+        "to": "gap-0dca0cd9d60e15d2255a24ba",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-07036786bb3d47770c9b",
+            "sha256": "07036786bb3d47770c9b0acde3758eb643bfd3dab4c2161087b9bf001792a761",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Temporal%20Re-Localization%20via%20Scalar%20Resonance.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [4718, 4775)"
+          }
+        ]
+      },
+      {
+        "id": "edge-a76b269cba2c55d0d71301c0",
+        "from": "question-b4bd5922861d5c355a9a1706",
+        "to": "gap-269257007fa53f331117a82d",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-0748c7f43070ea347062",
+            "sha256": "0748c7f43070ea347062d86383ce9c0a478d196fc251e71cbb93b7d7f4532110",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Dynamics%20of%20Sovereign%20Debt.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [73536, 73655)"
+          }
+        ]
+      },
+      {
+        "id": "edge-d47dba82c82f592fa2026544",
+        "from": "question-1c0fa573fca44f09168d1b0b",
+        "to": "gap-0f9e397f6ec089789d82eb91",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-c3132881a476ea73d58b",
+            "sha256": "c3132881a476ea73d58bc89dec681178b319a7da042f9f7f857319e5c32287bd",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Bounding%20the%20Scalar%20Coupling%20Constant.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [3291, 3344)"
+          }
+        ]
+      },
+      {
+        "id": "edge-f8084d6fc9574578de6020cd",
+        "from": "question-7838d8518340b2fffe2d1cf3",
+        "to": "gap-1f2ad6997c997c5d2084ed9c",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [27024, 27082)"
+          }
+        ]
+      },
+      {
+        "id": "edge-fe7b95e97b07625e335033ca",
+        "from": "question-c366c8ad176089a3ee484950",
+        "to": "gap-3d105c502e1da03fcabd7dc7",
+        "relation": "requires",
+        "standing": "host_observed",
+        "provenance": [
+          {
+            "kind": "corpus",
+            "id": "P-732c235955e815158bc5",
+            "sha256": "732c235955e815158bc5b90d816bbbef00ff0e20451c24bd0b803a56858677af",
+            "locator": "https://github.com/topherchris420/james_library/blob/9c8811e343d21b8c143055f9cf549abdefa862f1/papers/Resonant%20Intelligence.md",
+            "detail": "Pinned author-supplied manuscript; deterministic scan for explicitly stated assumptions and delimited equations. Content is not independently validated.; quoted character range [14247, 14309)"
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Scripted and model outputs retain distinct attribution.",
+    "Corpus manuscript assumptions are source context; numerical simulator measurements do not validate those papers.",
+    "Learning fixtures establish a narrow compiler-process benefit, not scientific intelligence."
+  ]
+}

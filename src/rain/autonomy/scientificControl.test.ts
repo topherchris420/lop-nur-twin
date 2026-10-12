@@ -14,7 +14,7 @@ function testHost(root: string, enabled = true, model?: LocalModel) {
     RAIN_AUTONOMY_DIR: root,
     RAIN_AUTONOMY_ENABLED: String(enabled),
     RAIN_MODEL_PROVIDER: "lmstudio",
-    RAIN_MODEL: "qwen-test-double",
+    RAIN_MODEL: model?.model ?? "qwen-test-double",
   });
   if (!parsed.ok) throw new Error(parsed.reason);
   return {
@@ -53,40 +53,106 @@ it("uses the same lock and registry, requires reviewed approval, retains verifie
     rmSync(root, { recursive: true, force: true });
   }
 });
-it("labels the model draft by a retained answer and refuses altered model-authored designs", async () => {
-  const root = mkdtempSync(join(tmpdir(), "rain-scientific-model-"));
-  try {
-    const { provenance: _p, ...draft } = oscillatorExample();
-    const model: LocalModel = {
-      provider: "lmstudio",
-      model: "qwen-test-double",
-      endpoint: "http://127.0.0.1:1234",
-      listModels: async () => ["qwen-test-double"],
-      complete: async () => ({
-        text: JSON.stringify(draft),
-        reportedModel: "qwen-test-double",
-        promptTokens: 100,
-        completionTokens: 100,
-        latencyMs: 0,
-        finishReason: "stop",
-      }),
-    };
-    const { control, store } = testHost(root, true, model),
-      view = await control.draft(draft.question);
-    expect(view.latest?.design.provenance.generation).toBe("model");
-    expect(
-      store
+it.each([
+  "qwen-test-double",
+  "qwen/qwen-test-double",
+  "gemma-test-double",
+  "google/gemma-test-double",
+])(
+  "labels the model draft by its retained respondent %s and refuses altered model-authored designs",
+  async (reportedModel) => {
+    const root = mkdtempSync(join(tmpdir(), "rain-scientific-model-"));
+    try {
+      const { provenance: _p, ...draft } = oscillatorExample();
+      const model: LocalModel = {
+        provider: "lmstudio",
+        model: reportedModel.split("/").at(-1)!,
+        endpoint: "http://127.0.0.1:1234",
+        listModels: async () => [reportedModel.split("/").at(-1)!],
+        complete: async () => ({
+          text: JSON.stringify(draft),
+          reportedModel,
+          promptTokens: 100,
+          completionTokens: 100,
+          latencyMs: 0,
+          finishReason: "stop",
+        }),
+      };
+      const { control, store } = testHost(root, true, model),
+        view = await control.draft(draft.question);
+      expect(view.latest?.design.provenance.generation).toBe("model");
+      expect(
+        store
+          .discoveryEntries()
+          .some((e) => e.sha256 === view.latest!.design.provenance.decision_sha256),
+      ).toBe(true);
+      const edited = structuredClone(view.latest!.design);
+      edited.parameters.force_amplitude.value = 2;
+      expect(() => control.compile(edited)).toThrow("immutable answer");
+      expect(store.lock()).toBeNull();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
+it.each([
+  ["qwen-test-double", "gemma-test-double"],
+  ["qwen-test-double", "qwen-other-version"],
+  ["qwen-test-double", null],
+  ["gemma-test-double", "gemma-other-version"],
+  ["google/gemma-test-double", "other/gemma-test-double"],
+  ["gemma-test-double", ""],
+])(
+  "retains and refuses the respondent mismatch %s / %s without preregistration or receipt reuse",
+  async (selected, reportedModel) => {
+    const root = mkdtempSync(join(tmpdir(), "rain-scientific-identity-"));
+    try {
+      const { provenance: _p, ...draft } = oscillatorExample();
+      const model: LocalModel = {
+        provider: "lmstudio",
+        model: selected,
+        endpoint: "http://127.0.0.1:1234",
+        listModels: async () => [selected],
+        complete: async () => ({
+          text: JSON.stringify(draft),
+          reportedModel,
+          promptTokens: 100,
+          completionTokens: 100,
+          latencyMs: 0,
+          finishReason: "stop",
+        }),
+      };
+      const { control, store } = testHost(root, true, model);
+      await expect(control.draft(draft.question)).rejects.toThrow("respondent");
+      const answer = store
         .discoveryEntries()
-        .some((e) => e.sha256 === view.latest!.design.provenance.decision_sha256),
-    ).toBe(true);
-    const edited = structuredClone(view.latest!.design);
-    edited.parameters.force_amplitude.value = 2;
-    expect(() => control.compile(edited)).toThrow("immutable answer");
-    expect(store.lock()).toBeNull();
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
+        .find((e) => e.kind === "scientific-model-answer")!;
+      expect(
+        (answer.payload as { answer: { reportedModel: string | null } }).answer
+          .reportedModel,
+      ).toBe(reportedModel);
+      expect(store.discoveryEntries().some((e) => e.kind === "scientific-failed")).toBe(
+        true,
+      );
+      expect(control.view().latest).toBeNull();
+      expect(() =>
+        control.compile({
+          ...draft,
+          provenance: {
+            generation: "model",
+            decision_sha256: answer.sha256,
+            source_ids: [],
+            parent_record_sha256: null,
+          },
+        }),
+      ).toThrow("respondent");
+      expect(control.view().latest).toBeNull();
+      expect(store.lock()).toBeNull();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
 it("explicit enablement blocks execution and lock refusals do not wedge the operator service", async () => {
   const root = mkdtempSync(join(tmpdir(), "rain-scientific-disabled-"));
   try {

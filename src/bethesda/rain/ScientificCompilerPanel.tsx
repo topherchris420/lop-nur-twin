@@ -71,7 +71,8 @@ export function ScientificCompilerPanel({
       <p className="my-2 text-xs">
         Bethesda keeps its existing charter and runner. Numerical physics uses a
         separately reviewed simulation plan. The draft below is an editable host example.
-        Qwen drafts are labelled model proposals; neither grants execution authority.
+        Local model drafts are labelled model proposals; neither grants execution
+        authority.
       </p>
       <details>
         <summary>Backend capabilities and execution boundaries</summary>
@@ -104,7 +105,7 @@ export function ScientificCompilerPanel({
           void act("scientific-draft", { question });
         }}
       >
-        Ask local Qwen for a numerical draft
+        Ask the selected local model for a numerical draft
       </button>
       <details className="my-2">
         <summary>Specify an original numerical design</summary>

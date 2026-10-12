@@ -1,4 +1,4 @@
-/** Frozen local-Qwen pilot; no simulation, guidance activation or outcome-dependent retries. */
+/** Frozen local-model pilot; no simulation, guidance activation or outcome-dependent retries. */
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { ResearchStore } from "../src/rain/autonomy/store.js";
@@ -23,12 +23,14 @@ const option = (name: string, fallback: string) => {
   const index = args.indexOf(name);
   return index < 0 ? fallback : args[index + 1]!;
 };
-const dir = resolve(option("--dir", ".rain-research/learning-qwen-pilot"));
+const dir = resolve(option("--dir", ".rain-research/learning-local-model-pilot"));
+if (!process.env.RAIN_MODEL)
+  throw new Error("Set RAIN_MODEL to an actual local LM Studio identifier");
 const store = new ResearchStore(dir),
   session = "LE-" + randomUUID();
 const model = createLocalModel({
   provider: "lmstudio",
-  model: process.env.RAIN_MODEL ?? "qwen/qwen3.5-9b",
+  model: process.env.RAIN_MODEL,
   baseUrl: "http://127.0.0.1:1234",
   temperature: 0,
   maxTokens: 1400,
@@ -39,7 +41,7 @@ const count = Number(option("--tasks", "4"));
 if (!Number.isInteger(count) || count < 4 || count > 8)
   throw new Error("Choose 4–8 tasks before evaluation");
 if (!listsModel(await model.listModels(), model))
-  throw new Error("Configured local Qwen is not loaded");
+  throw new Error("Configured local model is not listed");
 for (const [index, warmup] of [250, 750].entries()) {
   const design = fixtureDesign();
   design.warmup_ticks = warmup;

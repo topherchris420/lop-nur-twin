@@ -2,8 +2,12 @@
 
 This upgrade extends the existing TypeScript laboratory with a Research Learning
 Engine, a reconstructible Scientific Knowledge Graph and a generalized experiment
-compiler. James, Jasmine, Luca and Elena retain their roles. Local Qwen remains
-behind the existing LM Studio adapter. The journal, native registry, host
+compiler. James, Jasmine, Luca and Elena retain their roles. The selected local
+model uses the existing LM Studio adapter. The operator replaced Qwen with Gemma;
+set `RAIN_MODEL=gemma-4-e4b-it` for the current installation. Model selection uses
+actual listed identifiers and scientific drafts require a matching retained
+respondent identity, including when recompiling a model decision receipt.
+The journal, native registry, host
 validation and operator authority remain the persistence and execution boundaries.
 
 ## Public investigation and original implementation
@@ -100,18 +104,20 @@ backend is enabled. Capability panels show these limitations.
 Enter the existing Bethesda R.A.I.N. discovery workbench to inspect learning
 history, baseline/candidate metrics and intervals, graph queries, contradictions,
 missing evidence, provenance, experiment IR, backend capabilities, approvals and
-experimental lineage. Graph search and inspection are read-only. Qwen drafting,
+experimental lineage. Graph search and inspection are read-only. Local model drafting,
 compile/preregister, reviewed authorization and execution are separate controls.
 The editable human example and actual model draft retain distinct authorship.
 
 ```sh
 # Integration fixture: explicitly scripted approval, actual numerical simulation
 bun run rain:scientific:demo --dir .rain-research/my-fixture
-# Ask local Qwen; no execution occurs
+# Set RAIN_MODEL to the exact identifier listed by your local server.
+# Current Windows PowerShell installation: $env:RAIN_MODEL='gemma-4-e4b-it'
+# Ask the selected local model; no execution occurs
 bun run rain:scientific:draft
 # After reviewing the complete plan, explicitly authorize its exact digest
 bun run rain:scientific --execute-reviewed <full-plan-sha256>
-# Frozen baseline/candidate Qwen pilot; guidance stays inactive
+# Frozen baseline/candidate local-model pilot; guidance stays inactive
 bun run rain:learning:live --tasks 4
 # Independently validate the retained public demonstration artifacts
 bun run rain:scientific:verify
@@ -158,3 +164,13 @@ graph reconstruction, service locking and browser authority boundaries. More
 activity, longer traces or additional papers are not reported as intelligence gains.
 Broader scientific improvement requires independently sampled tasks and more live
 observations than this targeted procedural demonstration.
+
+After the operator replaced Qwen with Gemma, two real local drafting replies
+produced one rejected sample budget and one compiled experiment. The operator
+approved its exact digest before execution. The two-arm simulation, analytic
+checks, deterministic replay, registry admission and reconstructed graph completed.
+The result is **inconclusive**: position and velocity reference errors exceeded
+the frozen accuracy limits. The model's steady-state wording is not supported by
+the full-window RMS test. [Retained Gemma evidence](rea-research/evaluations/gemma-live/README.md)
+includes both drafts and the actual run. This adaptive example supplies no
+independent baseline-versus-candidate estimate of live research improvement.

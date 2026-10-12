@@ -198,8 +198,9 @@ export function DiscoveryWorkbench() {
         execution investigates Bethesda's supported urban disruptions.
       </p>
       <p className="text-xs">
-        Qwen proposes. The host validates and admits. The simulator measures. A separate
-        inference critiques. Manual experiments remain available below.
+        The selected model proposes. The host validates and admits. The simulator
+        measures. A separate inference critiques. Manual experiments remain available
+        below.
       </p>
       {error && (
         <p role="alert" className="my-2 text-amber-200">
@@ -233,7 +234,7 @@ export function DiscoveryWorkbench() {
       <div className="my-2 flex flex-wrap gap-2">
         {inception && (
           <label className="block w-full text-sm">
-            Optional separate collaborator model (JSON; blank shares local Qwen)
+            Optional separate collaborator model (JSON; blank shares the local model)
             <textarea
               className="block w-full bg-black/30 p-2"
               value={collaboratorText}
@@ -414,7 +415,7 @@ export function DiscoveryWorkbench() {
             }
           }}
         >
-          Connect Qwen / review research program
+          Connect local model / review research program
         </button>
         <button
           className={button}

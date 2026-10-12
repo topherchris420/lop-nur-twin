@@ -32,6 +32,12 @@ import type { ScientificView } from "../../bethesda/rain/scientificWorkbenchProt
 import { UNSAFE_TEXT } from "../protocol.js";
 
 type Preregistration = { plan: NumericalPlan; receipt: NumericalPreregistration };
+const isSelectedModel = (selected: unknown, reported: unknown) =>
+  typeof selected === "string" &&
+  typeof reported === "string" &&
+  (selected === reported ||
+    ((!selected.includes("/") || !reported.includes("/")) &&
+      selected.split("/").at(-1) === reported.split("/").at(-1)));
 export function createScientificControl(
   store: ResearchStore,
   config: AutonomyConfig,
@@ -81,9 +87,16 @@ export function createScientificControl(
         (e) => e.kind === "scientific-model-answer" && e.sha256 === decision,
       );
       const payload = receipt?.payload as
-        { answer?: { text?: string }; generation?: string } | undefined;
+        | {
+            model?: string;
+            answer?: { text?: string; reportedModel?: string | null };
+            generation?: string;
+          }
+        | undefined;
       if (!payload?.answer?.text || payload.generation !== "model")
         throw new Error("Model design requires an existing host decision receipt");
+      if (!isSelectedModel(payload.model, payload.answer.reportedModel))
+        throw new Error("Retained respondent does not match the selected local model");
       const original: unknown = JSON.parse(payload.answer.text);
       const { provenance: _provenance, ...design } = parsed.value.design;
       if (
@@ -182,12 +195,11 @@ export function createScientificControl(
             temperature: config.temperature,
             contextTokens: config.contextTokens,
           });
-        const ids = await probe.listModels({ signal }),
-          qwen = ids.filter((id) => /qwen/i.test(id));
-        const selected = config.model ?? (qwen.length === 1 ? qwen[0] : null);
+        const ids = await probe.listModels({ signal });
+        const selected = config.model ?? (ids.length === 1 ? ids[0] : null);
         if (!selected || !ids.includes(selected))
           throw new Error(
-            "Select one actual loaded local Qwen identifier before drafting",
+            "Select one actual loaded local model identifier before drafting",
           );
         const model =
           suppliedModel ??
@@ -243,6 +255,11 @@ export function createScientificControl(
           answer,
           generation: model.generation ?? "model",
         });
+        if (
+          (model.generation ?? "model") === "model" &&
+          !isSelectedModel(selected, answer.reportedModel)
+        )
+          throw new Error("Reported respondent does not match the selected local model");
         const raw: unknown = JSON.parse(answer.text);
         if (
           !raw ||

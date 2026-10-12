@@ -2,6 +2,12 @@
 
 **A laboratory you can enter. A world that can answer back.**
 
+Local inference uses the existing LM Studio adapter with an explicitly selected
+model. This installation now uses Gemma: in PowerShell, set
+`$env:RAIN_MODEL='gemma-4-e4b-it'`. Historical Qwen runs retain their original
+attribution and outcomes. Scientific model drafts require the responding model to
+match the selected identifier before preregistration.
+
 R.A.I.N. Lab is Vers3Dynamics' project to build **a digital Bell Labs**: a
 persistent research institution inside simulated worlds, where collaborating AI
 researchers develop questions, test ideas and carry their findings into the

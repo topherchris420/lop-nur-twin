@@ -41,7 +41,7 @@ const env = {
   RAIN_AUTONOMY_DIR: dir,
   RAIN_AUTONOMY_ENABLED: "true",
   RAIN_MODEL_PROVIDER: "lmstudio",
-  RAIN_MODEL: process.env.RAIN_MODEL ?? "qwen/qwen3.5-9b",
+  RAIN_MODEL: process.env.RAIN_MODEL,
   RAIN_MODEL_TIMEOUT_MS: process.env.RAIN_MODEL_TIMEOUT_MS ?? "600000",
   RAIN_MODEL_MAX_TOKENS: process.env.RAIN_MODEL_MAX_TOKENS ?? "2048",
   RAIN_AUTONOMY_OPERATOR:
@@ -53,7 +53,8 @@ const service = createDiscoveryService(env, process.cwd()),
 try {
   if (mode === "draft") {
     const result = await service.scientificDraft(
-      "Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.",
+      value("--question") ??
+        "Does periodic driving increase RMS displacement against an otherwise matched damped oscillator? Design a bounded simulation that could refute that hypothesis.",
     );
     console.log(
       JSON.stringify(

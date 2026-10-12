@@ -230,11 +230,10 @@ export function createDiscoveryService(
         model: "discovery",
         timeoutMs: 5000,
       }).listModels();
-      const qwen = listed.filter((id) => /qwen/i.test(id));
-      const selected = config.model ?? (qwen.length === 1 ? qwen[0] : null);
+      const selected = config.model ?? (listed.length === 1 ? listed[0] : null);
       if (!selected || !listed.includes(selected))
         throw new Error(
-          `Select RAIN_MODEL from LM Studio's actual identifiers: ${listed.join(", ") || "none loaded"}. A unique loaded Qwen is selected automatically.`,
+          `Select RAIN_MODEL from LM Studio's actual identifiers: ${listed.join(", ") || "none loaded"}. A sole listed model is selected automatically.`,
         );
       model = createLocalModel({ ...settings, model: selected });
       collaboratorModel = undefined;
