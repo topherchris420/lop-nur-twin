@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   parseBooleanValue,
   parseBoundedFloatValue,
+  parseBoundedIntValue,
   parseCommaEnumValue,
   parseIdValue,
   parseIsoDateValue,
@@ -80,6 +81,33 @@ describe("readIntParam", () => {
   it("ignores an over-long value without reading it", () => {
     const long = "1".repeat(200);
     expect(withSearch(`?q=${long}`, () => readIntParam("q", 0, 3))).toBeNull();
+  });
+});
+
+describe("parseBoundedIntValue", () => {
+  it("accepts plain digits inside the range, whether the router parsed them or not", () => {
+    expect(parseBoundedIntValue("3", 0, 10)).toBe(3);
+    expect(parseBoundedIntValue(3, 0, 10)).toBe(3);
+    expect(parseBoundedIntValue("0", 0, 10)).toBe(0);
+  });
+
+  it("rejects exponents, fractions, overflow and anything out of range", () => {
+    for (const bad of [
+      "1e3",
+      1e21,
+      Infinity,
+      "2.5",
+      2.5,
+      "-5",
+      "11",
+      "",
+      " 3",
+      "0x10",
+      true,
+      null,
+    ])
+      expect(parseBoundedIntValue(bad, 0, 10)).toBeNull();
+    expect(parseBoundedIntValue("99999999999", 0, 2147483647)).toBeNull();
   });
 });
 

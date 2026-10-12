@@ -104,6 +104,22 @@ export function parseBoundedFloatValue(
   return parsed;
 }
 
+/**
+ * Parse an integer written in plain digits that must already lie inside
+ * `[min, max]`. Exponents, fractions and out-of-range values are rejected,
+ * never rounded or clamped into a different question.
+ */
+export function parseBoundedIntValue(
+  value: unknown,
+  min: number,
+  max: number,
+): number | null {
+  const raw = boundedString(value);
+  if (raw === null || !/^-?\d{1,15}$/.test(raw)) return null;
+  const parsed = Number(raw);
+  return parsed < min || parsed > max ? null : parsed;
+}
+
 /** Parse a comma-separated enum set and return it in vocabulary order. */
 export function parseCommaEnumValue<T extends string>(
   value: unknown,

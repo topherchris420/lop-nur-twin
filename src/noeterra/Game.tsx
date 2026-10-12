@@ -162,6 +162,9 @@ export interface GameProps {
   notice?: string;
 }
 
+/** Below Tailwind's `sm` breakpoint, where the two side panels would overlap. */
+const narrowScreen = () => window.matchMedia?.("(max-width: 639px)").matches === true;
+
 export function Game({ engine, session, you, onExit, onReplace, notice }: GameProps) {
   const [state, setState] = useState<GameState | null>(null);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
@@ -169,8 +172,18 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   const [tab, setTab] = useState<"realm" | "orders" | "diplomacy" | "advisor">(
     you !== null ? "orders" : "realm",
   );
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  // A phone has room for one side panel: the nation panel first, the events
+  // after each jump, and opening either closes the other.
+  const [leftOpen, setLeftOpenRaw] = useState(() => !narrowScreen());
+  const [rightOpen, setRightOpenRaw] = useState(true);
+  const setLeftOpen = (open: boolean) => {
+    setLeftOpenRaw(open);
+    if (open && narrowScreen()) setRightOpenRaw(false);
+  };
+  const setRightOpen = (open: boolean) => {
+    setRightOpenRaw(open);
+    if (open && narrowScreen()) setLeftOpenRaw(false);
+  };
   const [playback, setPlayback] = useState<{
     events: GameEvent[];
     shown: number;
@@ -359,9 +372,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           ) : (
             <Sparkles className="size-5 text-amber-200" aria-hidden="true" />
           )}
-          <div className="leading-tight">
+          <div className="min-w-0 leading-tight">
             <p className="text-sm font-semibold">Noeterra</p>
-            <p className="text-[11px] text-white/60">
+            <p className="max-w-[calc(100vw-8rem)] truncate text-[11px] text-white/60 sm:max-w-none">
               {state.scenario.name} / {youCiv ? youCiv.name : "Observer"} / {state.date}
             </p>
           </div>
@@ -379,7 +392,10 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
 
       {/* Date and jump forward */}
       <div
-        className={cn(glass, "absolute top-3 right-3 z-20 flex items-center gap-1 p-1")}
+        className={cn(
+          glass,
+          "absolute top-[4.25rem] right-3 z-20 flex items-center gap-1 p-1 sm:top-3",
+        )}
       >
         <span className="px-3 text-sm font-semibold" aria-live="polite">
           {state.date}
@@ -394,6 +410,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           <button
             key={n}
             type="button"
+            aria-label={n === 1 ? undefined : label}
             disabled={busy || Boolean(fallen)}
             onClick={() => jump(n)}
             className={cn(
@@ -402,13 +419,17 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
             )}
           >
             <Icon className="size-3.5" aria-hidden="true" />
-            {n === 1
-              ? busy
-                ? "Resolving…"
-                : you !== null
-                  ? "Jump forward"
-                  : "Next season"
-              : label}
+            {n === 1 ? (
+              busy ? (
+                "Resolving…"
+              ) : you !== null ? (
+                "Jump forward"
+              ) : (
+                "Next season"
+              )
+            ) : (
+              <span className="hidden sm:inline">{label}</span>
+            )}
           </button>
         ))}
       </div>
@@ -419,7 +440,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           aria-labelledby="nt-events"
           className={cn(
             glass,
-            "absolute top-20 left-3 z-10 flex max-h-[calc(100%-10rem)] w-[340px] max-w-[calc(100vw-1.5rem)] flex-col",
+            "absolute top-32 left-3 z-10 flex max-h-[calc(100%-13rem)] w-[340px] max-w-[calc(100vw-1.5rem)] flex-col sm:top-20 sm:max-h-[calc(100%-10rem)]",
           )}
         >
           <header className="flex items-start justify-between border-b border-white/10 px-4 py-3">
@@ -510,7 +531,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           aria-label="Nation"
           className={cn(
             glass,
-            "absolute top-16 right-3 bottom-20 z-10 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col",
+            "absolute top-32 right-3 bottom-20 z-10 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col sm:top-16",
           )}
         >
           <div
@@ -592,6 +613,30 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                     </select>
                   </label>
                 )}
+                {/* The map selects a province by pointer; this is the same choice
+                    for a keyboard or a screen reader. */}
+                <label className="flex items-center gap-2 text-xs text-white/70">
+                  Province
+                  <select
+                    value={selected ?? ""}
+                    onChange={(e) =>
+                      setSelected(e.target.value === "" ? null : Number(e.target.value))
+                    }
+                    className="flex-1 rounded-md border border-white/15 bg-black/40 px-2 py-1"
+                  >
+                    <option value="">Choose a province…</option>
+                    {[...state.provinces]
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                          {p.owner !== null
+                            ? ` — ${state.civs[p.owner]?.name ?? ""}`
+                            : " — unclaimed"}
+                        </option>
+                      ))}
+                  </select>
+                </label>
                 <Bar label="Stability" value={view.stability} />
                 <Bar label="War weariness" value={view.war_weariness} tone="bg-red-400" />
                 {(() => {
@@ -851,8 +896,8 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
       <nav aria-label="Tools" className="absolute bottom-3 left-3 z-20 flex gap-1.5">
         {(
           [
-            ["Events", ScrollText, () => setLeftOpen((o) => !o)],
-            ["Nation panel", PanelRight, () => setRightOpen((o) => !o)],
+            ["Events", ScrollText, () => setLeftOpen(!leftOpen)],
+            ["Nation panel", PanelRight, () => setRightOpen(!rightOpen)],
             [
               "Verify replay",
               ShieldCheck,
@@ -931,7 +976,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
 
       <p
         role="note"
-        className="pointer-events-none absolute right-3 bottom-3 z-10 rounded-md bg-black/50 px-2 py-1 text-[10px] tracking-wide text-amber-100/80"
+        className="pointer-events-none absolute right-3 bottom-[3.25rem] z-10 rounded-md bg-black/50 sm:bottom-3 px-2 py-1 text-[10px] tracking-wide text-amber-100/80"
       >
         Illustrative simulation of rule-based agents — not historical evidence
       </p>
@@ -1165,6 +1210,9 @@ function LetterBox({
 }) {
   const others = state.civs.filter((c) => c.alive && c.id !== you);
   const [to, setTo] = useState(others[0]?.id ?? 0);
+  // The chosen nation may have fallen since; the select would then show another,
+  // so the letter goes to what is shown, never to a power that cannot read it.
+  const recipient = others.some((c) => c.id === to) ? to : (others[0]?.id ?? null);
   const [text, setText] = useState("");
   const inbox = state.messages
     .filter((m) => m.to === you)
@@ -1194,7 +1242,7 @@ function LetterBox({
       <div className="mt-2 flex gap-1.5">
         <select
           aria-label="Recipient"
-          value={to}
+          value={recipient ?? ""}
           onChange={(e) => setTo(Number(e.target.value))}
           className="rounded-md border border-white/15 bg-black/40 px-1.5 text-xs"
         >
@@ -1214,9 +1262,10 @@ function LetterBox({
         />
         <button
           type="button"
-          disabled={!text.trim() || letters.length >= 3}
+          disabled={!text.trim() || letters.length >= 3 || recipient === null}
           onClick={() => {
-            onAdd({ to, text: text.trim() });
+            if (recipient === null) return;
+            onAdd({ to: recipient, text: text.trim() });
             setText("");
           }}
           className="rounded-md bg-white/10 px-2 text-xs font-semibold disabled:opacity-40"
