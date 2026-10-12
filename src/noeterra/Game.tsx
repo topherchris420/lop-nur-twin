@@ -157,10 +157,12 @@ export interface GameProps {
   session: number;
   you: number | null;
   onExit: () => void;
-  onReplace: (session: number, you: number | null) => void;
+  onReplace: (session: number, you: number | null, notice?: string) => void;
+  /** Shown once when the game opens, e.g. after a history is loaded. */
+  notice?: string;
 }
 
-export function Game({ engine, session, you, onExit, onReplace }: GameProps) {
+export function Game({ engine, session, you, onExit, onReplace, notice }: GameProps) {
   const [state, setState] = useState<GameState | null>(null);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
@@ -179,7 +181,7 @@ export function Game({ engine, session, you, onExit, onReplace }: GameProps) {
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
   const [letters, setLetters] = useState<{ to: number; text: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(notice ?? null);
   const [focusCiv, setFocusCiv] = useState<number | null>(you);
   const [reveal, setReveal] = useState(you === null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -904,11 +906,17 @@ export function Game({ engine, session, you, onExit, onReplace }: GameProps) {
             void f.text().then((text) => {
               try {
                 const loaded = engine.load(JSON.parse(text));
-                setToast(
+                // The save keeps the visitor's seat; hand it back to them rather
+                // than leave their nation idle under an observer.
+                const human = engine
+                  .state(loaded.session, 0, false)
+                  .seats.find((s) => s.seat.kind === "human");
+                setGeometry(null);
+                onReplace(
+                  loaded.session,
+                  human?.civ ?? null,
                   `Loaded and verified by replay: ${loaded.replay.turns_checked} seasons.`,
                 );
-                setGeometry(null);
-                onReplace(loaded.session, null);
               } catch (err) {
                 setToast(
                   err instanceof Error
