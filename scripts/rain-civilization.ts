@@ -11,11 +11,18 @@
  * and non-passing results included: a negative result is a result. Every number
  * is a simulated observation of an illustrative model, never historical evidence.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { Registry } from "../src/rain/experiments/registry.js";
 import { gitState } from "../src/rain/experiments/provenance.js";
-import { sha256 } from "../src/rain/sha256.js";
+import { canonicalJson, sha256 } from "../src/rain/sha256.js";
 import {
   authorizeCivilization,
   compileCivilizationExperiment,
@@ -120,7 +127,22 @@ function review(
     return null;
   }
   const plan = compiled.value;
-  const preregistration = preregisterCivilization(registry, plan, engine);
+  // The archive keeps every run it has: a plan that already ran is not run again
+  // over its record. Its engine version is in the digest, so a changed engine
+  // makes a new plan rather than a second run of this one.
+  const archived = join(ARCHIVE, plan.experiment_id);
+  if (existsSync(join(archived, "record.json"))) {
+    console.log(
+      `ALREADY RUN (${label}) — ${plan.experiment_id} is archived in ${archived}; --verify re-simulates it`,
+    );
+    return null;
+  }
+  // Reviewing the same plan again keeps its one preregistration; admission checks
+  // the receipt against the registry, so a stale file cannot stand in for it.
+  const pendingPath = join(pending, `${plan.definition_sha256}.json`);
+  const preregistration = existsSync(pendingPath)
+    ? (JSON.parse(readFileSync(pendingPath, "utf8")) as Pending).preregistration
+    : preregisterCivilization(registry, plan, engine);
   const entry: Pending = { design, receipt, plan, preregistration };
   write(pending, `${plan.definition_sha256}.json`, entry);
   console.log(
@@ -213,12 +235,17 @@ ${plan.ir.limitations.map((l) => `- ${l}`).join("\n")}
 `;
 }
 
-function execute(entry: Pending, operator: string, label: string) {
+function execute(
+  entry: Pending,
+  operator: string,
+  label: string,
+  reviewedDigest = entry.plan.definition_sha256,
+) {
   const plan = entry.plan;
   const now = new Date();
   const auth = authorizeCivilization(plan, engine, {
     operator,
-    typedPrefix: plan.definition_sha256.slice(0, 8),
+    typedPrefix: reviewedDigest.slice(0, 8),
     reviewed: true,
     now,
   });
@@ -257,6 +284,7 @@ function execute(entry: Pending, operator: string, label: string) {
     commit,
     dirty: git.dirty,
   });
+  rmSync(join(pending, `${plan.definition_sha256}.json`), { force: true });
   console.log(
     `${record.result.status.toUpperCase()} (${record.result.verdict}) — ${plan.design.analysis.metric}: mean paired difference ${fmt(record.result.measurements.mean_paired_delta, 3)}; re-simulation reproduced every state hash. Archived in ${dir}`,
   );
@@ -341,13 +369,44 @@ if (args.includes("--scripted")) {
   const path = join(pending, `${digest}.json`);
   if (!existsSync(path))
     throw new Error("no compiled plan with that digest is awaiting review");
-  execute(JSON.parse(readFileSync(path, "utf8")) as Pending, operator, "reviewed plan");
+  const entry = JSON.parse(readFileSync(path, "utf8")) as Pending;
+  // Run exactly what was reviewed: the plan in the file must be the digest the
+  // operator typed, built from the design archived beside it.
+  const mismatch = [
+    ...(entry.plan.definition_sha256 === digest
+      ? []
+      : ["the pending plan is not the plan with that digest"]),
+    ...(canonicalJson(entry.design) === canonicalJson(entry.plan.design)
+      ? []
+      : ["the pending design is not the design the plan was compiled from"]),
+    ...checkReceipt(entry.design, entry.receipt),
+  ];
+  if (mismatch.length) throw new Error(mismatch.join("; "));
+  if (existsSync(join(ARCHIVE, entry.plan.experiment_id, "record.json")))
+    throw new Error(`${entry.plan.experiment_id} has already run and is archived`);
+  execute(entry, operator, "reviewed plan", digest);
 } else if (args.includes("--verify")) {
   let bad = 0;
+  const current = engine.version().engine;
   for (const d of readdirSync(ARCHIVE)) {
     const path = join(ARCHIVE, d, "record.json");
     if (!existsSync(path)) continue;
-    const v = verifyCivilizationRecord(JSON.parse(readFileSync(path, "utf8")), engine);
+    const record = JSON.parse(readFileSync(path, "utf8")) as CivilizationRecord;
+    // A record made by another engine version cannot re-simulate on this one, and
+    // the archive is never rewritten; say so rather than fail forever. A record
+    // from this very engine that does not reproduce is a failure.
+    const recordedUnder = record.plan?.engine;
+    if (
+      typeof recordedUnder === "string" &&
+      /^noeterra \S+ sim\/\d+$/.test(recordedUnder) &&
+      recordedUnder !== current
+    ) {
+      console.log(
+        `skipped  ${d}: recorded under ${recordedUnder}; this engine is ${current}`,
+      );
+      continue;
+    }
+    const v = verifyCivilizationRecord(record, engine);
     console.log(
       `${v.ok ? "ok      " : "FAILED  "} ${d}${v.ok ? "" : ": " + v.errors.join("; ")}`,
     );
