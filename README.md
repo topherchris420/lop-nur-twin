@@ -13,6 +13,11 @@
 [Evaluation](https://lop-nur-twin.vercel.app/evaluation) ·
 [Meet R.A.I.N.](https://rainlabteam.vercel.app/)
 
+[![Watch the 15-second R.A.I.N. Lab film](docs/media/rain-lab-ad-poster.jpg)](docs/media/rain-lab-ad.mp4)
+
+<sub>15-second film (MP4, 9.6 MB). Music: "Supernova" by Scott Buckley, CC BY 4.0,
+[scottbuckley.com.au](https://www.scottbuckley.com.au).</sub>
+
 </div>
 
 ![Reconstructed Lop Nur runway and south hangar compound with the site map, evidence timeline, and status panels](docs/screenshot-overview.png)
