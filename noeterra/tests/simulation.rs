@@ -346,6 +346,52 @@ fn an_experiment_is_paired_reproducible_and_verifiable() {
 }
 
 #[test]
+fn a_treatment_that_changes_nothing_is_refused() {
+    let plan = |interventions: Vec<Intervention>| Plan {
+        schema: experiment::PLAN_SCHEMA.into(),
+        scenario: ScenarioRef::Builtin {
+            id: "mediterranean-264bc".into(),
+        },
+        turns: 5,
+        seeds: vec![1, 2, 3],
+        arms: vec![
+            Arm {
+                id: "control".into(),
+                policy: Policy::Rules,
+                interventions: vec![],
+            },
+            Arm {
+                id: "treatment".into(),
+                policy: Policy::Rules,
+                interventions,
+            },
+        ],
+    };
+    // Macedon and the Gauls have no alliance to remove, and a factor of 1 scales nothing.
+    for vacuous in [
+        Intervention::RemoveTreaty {
+            kind: TreatyKind::Alliance,
+            a: "macedon".into(),
+            b: "gauls".into(),
+        },
+        Intervention::ScaleTreasury {
+            civ: "rome".into(),
+            factor: 1.0,
+        },
+    ] {
+        let err = experiment::validate_plan(&plan(vec![vacuous])).unwrap_err();
+        assert!(err.contains("leave the starting world unchanged"), "{err}");
+    }
+    // The alliance the scenario does contain can be removed.
+    experiment::validate_plan(&plan(vec![Intervention::RemoveTreaty {
+        kind: TreatyKind::Alliance,
+        a: "carthage".into(),
+        b: "syracuse".into(),
+    }]))
+    .unwrap();
+}
+
+#[test]
 fn a_large_generated_world_runs() {
     let s = generate(21, 12, 400);
     let mut sim = Simulation::new(s, 21, Vec::new(), Vec::new()).unwrap();

@@ -20,6 +20,7 @@ import {
 } from "./civilizationRegistry.js";
 import { civilizationBackend } from "./backends.js";
 import { loadNoeterraEngine, NOETERRA_WASM } from "./noeterraLoader.js";
+import { NoeterraEngineError } from "./noeterraEngine.js";
 import type { CivilizationDesign, CivilizationRecord } from "./contracts.js";
 
 // The engine is built from noeterra/ (npm run noeterra:wasm) and is not committed.
@@ -224,6 +225,36 @@ suite("civilization registry admission", () => {
       expect(() =>
         admitCivilizationRecord(registry, receipt, run(p), engine, { commit: null }),
       ).toThrow(/commit/);
+    },
+    SLOW,
+  );
+
+  it(
+    "admits an engine failure without inventing measurements for it",
+    () => {
+      const dir = mkdtempSync(join(tmpdir(), "rain-civ-"));
+      directories.push(dir);
+      const registry = new Registry(dir);
+      // The same module, except that the experiment traps, as an out-of-memory run would.
+      const failing = Object.create(engine) as typeof engine;
+      failing.experiment = () => {
+        throw new NoeterraEngineError("the Noeterra engine trapped: unreachable");
+      };
+      const p = plan(civilizationExample({ turns: 16, seeds: [1, 2, 3] }));
+      const receipt = preregisterCivilization(registry, p, failing);
+      const now = new Date();
+      const record = executeCivilization(p, approval(p, now), failing, now);
+      expect(record.result.completed).toBe(false);
+      const { registry_run } = admitCivilizationRecord(
+        registry,
+        receipt,
+        record,
+        failing,
+        {
+          commit: "abcdef1",
+        },
+      );
+      expect(registry_run.series).toEqual({});
     },
     SLOW,
   );
