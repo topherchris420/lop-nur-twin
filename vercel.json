@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "dist",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "functions": {
     "api/jev/decision.ts": {
       "maxDuration": 10

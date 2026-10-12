@@ -86,8 +86,11 @@ simulation or its hashes.
 
 `npm run noeterra:wasm` builds the module; `scripts/copy-noeterra-wasm.mjs`
 (run by `npm run dev` and `npm run build`) copies it to
-`public/noeterra/noeterra.wasm`, which is ignored by git. The production
-deploy workflow and the CI browser jobs build it first. Without it the build
+`public/noeterra/noeterra.wasm`, which is ignored by git. Vercel's build
+command, `scripts/vercel-build.sh`, installs a minimal Rust toolchain when the
+build image has none, builds the module and then runs the normal build; a
+failed engine build fails the deploy. The deploy workflow and the CI browser
+jobs build it the same way. Without the module a local build
 still succeeds and `/noeterra` says the engine is not part of this build; the
 loader checks the module's magic bytes, because a host that rewrites unknown
 paths answers a missing file with HTML. The site's Content-Security-Policy
