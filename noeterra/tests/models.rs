@@ -260,7 +260,10 @@ fn the_anthropic_client_sends_a_well_formed_request_and_handles_refusal() {
     assert!(headers
         .iter()
         .any(|h| h.to_lowercase().starts_with("anthropic-version: 2023-06-01")));
-    assert!(!body.contains("placeholder-test-value"), "the key travels only as a header");
+    assert!(
+        !body.contains("placeholder-test-value"),
+        "the key travels only as a header"
+    );
 }
 
 #[test]
