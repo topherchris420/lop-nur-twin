@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as EvaluationRouteImport } from './routes/evaluation'
+import { Route as NoeterraRouteImport } from './routes/noeterra'
 import { Route as PlayRouteImport } from './routes/play'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const EvaluationRoute = EvaluationRouteImport.update({
   path: '/evaluation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NoeterraRoute = NoeterraRouteImport.update({
+  id: '/noeterra',
+  path: '/noeterra',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayRoute = PlayRouteImport.update({
   id: '/play',
   path: '/play',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/analysis': typeof AnalysisRoute
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
+  '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/analysis': typeof AnalysisRoute
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
+  '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,23 @@ export interface FileRoutesById {
   '/analysis': typeof AnalysisRoute
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
+  '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analysis' | '/compare' | '/evaluation' | '/play'
+  fullPaths:
+    '/' | '/analysis' | '/compare' | '/evaluation' | '/noeterra' | '/play'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analysis' | '/compare' | '/evaluation' | '/play'
-  id: '__root__' | '/' | '/analysis' | '/compare' | '/evaluation' | '/play'
+  to: '/' | '/analysis' | '/compare' | '/evaluation' | '/noeterra' | '/play'
+  id:
+    | '__root__'
+    | '/'
+    | '/analysis'
+    | '/compare'
+    | '/evaluation'
+    | '/noeterra'
+    | '/play'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +93,7 @@ export interface RootRouteChildren {
   AnalysisRoute: typeof AnalysisRoute
   CompareRoute: typeof CompareRoute
   EvaluationRoute: typeof EvaluationRoute
+  NoeterraRoute: typeof NoeterraRoute
   PlayRoute: typeof PlayRoute
 }
 
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EvaluationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/noeterra': {
+      id: '/noeterra'
+      path: '/noeterra'
+      fullPath: '/noeterra'
+      preLoaderRoute: typeof NoeterraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play': {
       id: '/play'
       path: '/play'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalysisRoute: AnalysisRoute,
   CompareRoute: CompareRoute,
   EvaluationRoute: EvaluationRoute,
+  NoeterraRoute: NoeterraRoute,
   PlayRoute: PlayRoute,
 }
 export const routeTree = rootRouteImport

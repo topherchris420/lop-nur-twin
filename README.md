@@ -38,6 +38,7 @@ concluded.
 | [Lop Nur reconstruction](https://lop-nur-twin.vercel.app/)     | A source-linked reconstruction of the airfield and its documented evidence.                                                                              |
 | [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Claims, source references, classifications, uncertainty, and revisions.                                                                                  |
 | [Blacksite](https://lop-nur-twin.vercel.app/play)              | Human, scripted, and model-driven play under the same simulation rules.                                                                                  |
+| [Noeterra](https://lop-nur-twin.vercel.app/noeterra)           | Rule an ancient nation among autonomous civilizations, including Loulan, the kingdom of Lop Nur, in 77 BC.                                               |
 | [Evaluation](https://lop-nur-twin.vercel.app/evaluation)       | Recorded decisions and experiment comparisons.                                                                                                           |
 | Bethesda and the Lab                                           | A walkable city, four research perspectives, and a local research workbench. Start at the live site and [read the Lab guide](docs/RAIN_LAB_BETHESDA.md). |
 
@@ -139,6 +140,38 @@ preregistered analytic accuracy limits. The drafts, measurements, journal, and
 independent verification command are in the
 [Gemma evidence record](docs/rea-research/evaluations/gemma-live/README.md).
 
+**Civilization simulation:** with rule-based agents on six matched seeds of the
+Mediterranean scenario, withholding the agents' memory of how others treated them cut
+wars declared from a mean of 6.50 to 2.83 per 40-season history, fewer in every seed. The
+lab preregistered the hypothesis, re-simulated every run and admitted the result; a
+second design with an implausible threshold was judged insufficient evidence and kept
+beside it. These describe the simulator's agents, not ancient states.
+[Archived experiments](docs/benchmarks/noeterra-civilization/README.md).
+
+## Autonomous civilizations
+
+[Noeterra](docs/NOETERRA.md) is a deterministic Rust simulation of rival civilizations, each
+ruled by an autonomous agent with its own memory, beliefs and goals. Play it at
+[/noeterra](https://lop-nur-twin.vercel.app/noeterra), where it runs in your browser as
+WebAssembly. Rule a nation of the Mediterranean in 264 BC, or Loulan, the ancient kingdom
+of Lop Nur, in 77 BC: its ruins lie about 60 km from the twin's runway, and the twin's
+Research panel and Site Index (search _loulan_) lead straight there. Every other nation
+decides for itself; Rust code validates every choice and resolves the consequences, and
+every season ends in a state hash a replay must reproduce. In the R.A.I.N. Lab the same
+engine is a third experimental substrate for preregistered, replay-verified civilization
+experiments. Model rulers (Claude, or a local model in LM Studio) run in the local
+workbench.
+
+```sh
+npm run noeterra:wasm            # build the engine the site and the lab load (needs Rust)
+npm run dev                      # then open http://localhost:5173/noeterra
+npm run noeterra:serve           # the local workbench, with model rulers
+npm run rain:civilization:demo   # preregister, run, replay and admit scripted designs
+```
+
+Its design draws on studies of [Open Historia](docs/research/OPEN_HISTORIA_ANALYSIS.md)
+and [Pax Historia](docs/research/PAX_HISTORIA_ANALYSIS.md); no code from either is used.
+
 ## Development
 
 ```sh
@@ -156,6 +189,9 @@ deterministic replay, and the public research evidence. See the
 ## Documentation
 
 - [Scientific intelligence architecture and limits](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md)
+- [Noeterra: autonomous civilizations and the civilization backend](docs/NOETERRA.md) ·
+  [Open Historia study](docs/research/OPEN_HISTORIA_ANALYSIS.md) ·
+  [Pax Historia study](docs/research/PAX_HISTORIA_ANALYSIS.md)
 - [REA investigation matrix](docs/rea-research/capability-matrix.md)
 - [Mirrors findings](docs/rea-research/mirrors/observations.md) ·
   [Poth Labs findings](docs/rea-research/poth-labs/observations.md) ·
@@ -172,7 +208,8 @@ deterministic replay, and the public research evidence. See the
 REA helped investigate the public behavior and available client code of Mirrors, Poth
 Labs, and Infera. The reports distinguish direct observation, public documentation,
 supported inference, and unknown details. They guide an original implementation; no
-proprietary code was copied.
+proprietary code was copied. The Open Historia (AGPL-3.0) and Pax Historia studies follow
+the same rule: Noeterra takes ideas from them, not code.
 
 ## License and attribution
 

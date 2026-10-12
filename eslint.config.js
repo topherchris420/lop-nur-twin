@@ -53,6 +53,8 @@ export default tseslint.config(
       "shots/**",
       ".claude/worktrees/**",
       ".rain-research/**",
+      "noeterra/target/**",
+      "public/noeterra/**",
     ],
   },
 

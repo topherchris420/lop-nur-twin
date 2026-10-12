@@ -10,6 +10,7 @@ import {
 import { resolvesBethesda } from "../bethesda/discovery";
 import { isChunkLoadError, reloadPage, STALE_BUILD_NOTICE } from "@/lib/staleBuild";
 import { closeLayer, forgetLayers, onLayersChange, pushLayer } from "@/lib/historyLayers";
+import { useNavigate } from "@tanstack/react-router";
 const Bethesda = lazy(() => import("../bethesda/App"));
 class Boundary extends Component<
   { children: ReactNode; onReturn: () => void },
@@ -127,6 +128,7 @@ export const ANOMALY_EVENT = "lop-nur:anomalous-resolution";
 /** The history layer the city occupies (see `historyLayers.ts`). */
 const LAYER = "anomaly";
 export function AnomalyGate({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [phase, setPhase] = useState<"dormant" | "resolver" | "transition" | "city">(
       "dormant",
     ),
@@ -191,7 +193,14 @@ export function AnomalyGate({ children }: { children: ReactNode }) {
     return (
       <Boundary onReturn={() => leave.current()}>
         <Suspense fallback={<Resolution />}>
-          <Bethesda onReturn={() => leave.current()} />
+          <Bethesda
+            onReturn={() => leave.current()}
+            onOpenWorlds={() => {
+              // Leave the city's history layer behind, so Back does not reopen it.
+              forgetLayers(() => false);
+              void navigate({ to: "/noeterra" });
+            }}
+          />
         </Suspense>
       </Boundary>
     );

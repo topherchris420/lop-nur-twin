@@ -934,10 +934,12 @@ export function ResearchPanel({
   store,
   go,
   inspect,
+  onOpenWorlds,
 }: {
   store: LabStore;
   go: (r: RoomId) => void;
   inspect?: Inspect;
+  onOpenWorlds?: () => void;
 }) {
   const m = store.meeting;
   const [question, setQuestion] = useState(m?.record.question ?? "");
@@ -955,6 +957,25 @@ export function ResearchPanel({
     <div>
       <h2 className="text-base">Research Panel</h2>
       <DiscoveryWorkbench />
+      {onOpenWorlds && (
+        <section
+          aria-labelledby="rain-civilizations"
+          className="mt-2 rounded border border-white/15 p-2 text-xs"
+        >
+          <h3 id="rain-civilizations" className={label}>
+            CIVILIZATIONS
+          </h3>
+          <p className="mt-1 leading-relaxed">
+            A third substrate beside this city and the oscillator: Noeterra, rival
+            civilizations ruled by autonomous agents with memory. Its histories are
+            simulated observations of an illustrative model, preregistered and replayed
+            through the registry with npm run rain:civilization.
+          </p>
+          <button type="button" className={button + " mt-2"} onClick={onOpenWorlds}>
+            Open Noeterra
+          </button>
+        </section>
+      )}
       <RuntimeLine store={store} />
       <Resonance store={store} inspect={inspect} />
       <form
@@ -2806,12 +2827,14 @@ export function RoomPanel({
   room,
   go,
   onExit,
+  onOpenWorlds,
   inspect,
 }: {
   store: LabStore;
   room: RoomId;
   go: (r: RoomId) => void;
   onExit: () => void;
+  onOpenWorlds?: () => void;
   /** Clicks on R.A.I.N.'s instrument. */
   inspect?: Inspect;
 }) {
@@ -2819,7 +2842,14 @@ export function RoomPanel({
     case "threshold":
       return <ThresholdPanel store={store} onExit={onExit} />;
     case "panel":
-      return <ResearchPanel store={store} go={go} inspect={inspect} />;
+      return (
+        <ResearchPanel
+          store={store}
+          go={go}
+          inspect={inspect}
+          onOpenWorlds={onOpenWorlds}
+        />
+      );
     case "library":
       return <EvidenceLibrary store={store} />;
     case "bay":

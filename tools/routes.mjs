@@ -112,6 +112,7 @@ for (const [path, expectedTitleFragment, settle] of [
   ["/compare", "Model manifest comparison", 2500],
   ["/evaluation", "Blacksite evaluation", 2500],
   ["/play", "Blacksite", 6000],
+  ["/noeterra", "Noeterra", 4000],
 ]) {
   const { page, errors, status } = await open(`${previewOrigin}${path}`, { settle });
   check(`${path} direct load returns 200`, status === 200, `HTTP ${status}`);
@@ -167,6 +168,9 @@ const HOSTILE = [
   "/analysis?claim=1e309&structure=7",
   "/?structure=1e309",
   `/evaluation?file=${encodeURIComponent("../../etc/passwd")}&x=${"c".repeat(300)}`,
+  // Noeterra keeps only a known scenario, a plausible nation key and a bounded seed.
+  `/noeterra?scenario=1e309&play=${encodeURIComponent("<script>alert(1)</script>")}&seed=-5`,
+  "/noeterra?scenario=tarim-77bc&play=atlantis&seed=99999999999",
 ];
 for (const path of HOSTILE) {
   const { page, errors } = await open(`${previewOrigin}${path}`, {
@@ -202,6 +206,7 @@ for (const path of HOSTILE) {
   for (const path of [
     "/analysis?claim=measurement-runway-length",
     "/compare?before=r1&after=r2",
+    "/noeterra",
   ]) {
     const { page } = await open(`${previewOrigin}${path}`, {
       settle: 2500,

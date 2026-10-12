@@ -1,0 +1,570 @@
+:root {
+  --paper: #f6f1e6;
+  --ink: #26221c;
+  --muted: #6b6255;
+  --line: #d7cdb9;
+  --sea: #cfdde3;
+  --accent: #8a3b12;
+  --model: #f1e9fb;
+  --model-ink: #4b2a7a;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+button {
+  background: #fffaf0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline dotted;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: #efe7d5;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  min-width: 14rem;
+}
+
+#date {
+  font-weight: 600;
+}
+
+.job {
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.controls input[type="number"] {
+  width: 4.2rem;
+}
+
+.inline,
+.file {
+  font-size: 0.9rem;
+}
+
+.file input {
+  max-width: 11rem;
+}
+
+.setup {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: #fbf7ee;
+}
+
+.setup h2 {
+  margin-top: 0;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+}
+
+.seatpick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem 1rem 0.2rem 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 34rem);
+  gap: 0;
+  min-height: calc(100vh - 5rem);
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mapwrap {
+  padding: 0.6rem 1rem;
+  background: var(--sea);
+}
+
+.scenario {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+#map {
+  width: 100%;
+  height: auto;
+  max-height: 72vh;
+  display: block;
+  background: var(--sea);
+}
+
+.land path {
+  fill: #e6dcc3;
+  stroke: #7d6f55;
+  stroke-width: 0.4;
+}
+
+.lanes line {
+  stroke: #6f8e99;
+  stroke-width: 0.8;
+  stroke-dasharray: 3 3;
+}
+
+.prov {
+  stroke: #5a4e3c;
+  stroke-width: 0.6;
+  cursor: pointer;
+}
+
+.prov:hover,
+.prov:focus {
+  stroke: #000;
+  stroke-width: 1.6;
+  outline: none;
+}
+
+.prov.sel {
+  stroke: #000;
+  stroke-width: 2.2;
+}
+
+.prov.hot {
+  stroke: #c0392b;
+  stroke-width: 2;
+  stroke-dasharray: 4 2;
+}
+
+.capital {
+  fill: #fff6c2;
+  stroke: #3b3020;
+  stroke-width: 0.8;
+}
+
+.army {
+  stroke: #1d1a14;
+  stroke-width: 0.8;
+}
+
+.armytext {
+  font:
+    600 7px system-ui,
+    sans-serif;
+  fill: #fff;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #1d1a14;
+  stroke-width: 1.4px;
+}
+
+.plabel {
+  font:
+    6px system-ui,
+    sans-serif;
+  fill: #2c261c;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1.6px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+  margin: 0.4rem 0;
+}
+
+.legend .key i,
+.swatch {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 1px solid #0005;
+  vertical-align: -0.1rem;
+  margin-right: 0.25rem;
+}
+
+.legend .hatch {
+  background: repeating-linear-gradient(45deg, #888 0 2px, #efe8d8 2px 4px);
+}
+
+.legend .fallen {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.province {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.5rem 0.8rem;
+  margin-top: 0.4rem;
+}
+
+.province h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.15rem 0.8rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.facts dt {
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.provenance {
+  font-size: 0.78rem;
+  color: #3e4a4f;
+}
+
+.side {
+  border-left: 1px solid var(--line);
+  padding: 0.6rem 0.9rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 4.5rem);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+
+.tabs [aria-selected="true"] {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+h3 {
+  font-size: 0.95rem;
+  margin: 0.9rem 0 0.35rem;
+}
+
+.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.data th,
+.data td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.2rem 0.3rem;
+  text-align: left;
+}
+
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+tr.fallen {
+  opacity: 0.55;
+}
+
+.small {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.note {
+  font-size: 0.85rem;
+  background: #fff8e5;
+  border-left: 3px solid #d9a400;
+  padding: 0.4rem 0.6rem;
+}
+
+.error {
+  color: #a1260d;
+  font-size: 0.85rem;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+}
+
+.chart .axis {
+  stroke: #999;
+}
+
+.chart .tick {
+  font:
+    8px system-ui,
+    sans-serif;
+  fill: var(--muted);
+}
+
+.chart .end {
+  text-anchor: end;
+}
+
+.plain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plain li {
+  padding: 0.18rem 0;
+  border-bottom: 1px dotted var(--line);
+  font-size: 0.86rem;
+}
+
+.badge {
+  display: inline-block;
+  font:
+    600 0.66rem system-ui,
+    sans-serif;
+  letter-spacing: 0.05em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  background: #e4ddcd;
+  color: #3a3226;
+}
+
+.b-live {
+  background: #5b2d91;
+  color: #fff;
+}
+
+.b-fallback {
+  background: #b9770e;
+  color: #fff;
+}
+
+.b-human {
+  background: #1e6b52;
+  color: #fff;
+}
+
+.b-random {
+  background: #7b7d7d;
+  color: #fff;
+}
+
+.model {
+  background: var(--model);
+  color: var(--model-ink);
+  border-left: 3px solid #7b4bb5;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.86rem;
+}
+
+.tag {
+  font:
+    600 0.66rem system-ui,
+    sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c4d99;
+  margin: 0 0.3rem;
+}
+
+.decision {
+  border-bottom: 1px solid var(--line);
+  padding: 0.2rem 0;
+  font-size: 0.86rem;
+}
+
+.matrix {
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+
+.matrix th,
+.matrix td {
+  border: 1px solid #fff;
+  padding: 0.15rem 0.25rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix .self {
+  background: #eee;
+  text-align: center;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.chronicle {
+  padding-left: 0;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.chronicle li {
+  padding: 0.2rem 0;
+  border-bottom: 1px dotted var(--line);
+}
+
+.when {
+  display: inline-block;
+  min-width: 7.5rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.ev-war,
+.ev-fall {
+  font-weight: 600;
+  color: #8e1b0e;
+}
+
+.ev-peace,
+.ev-treaty {
+  color: #1d5e3a;
+}
+
+.offers {
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.offer {
+  display: block;
+  font-size: 0.84rem;
+  padding: 0.1rem 0;
+}
+
+.proposal {
+  border-bottom: 1px dotted var(--line);
+  font-size: 0.86rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0.4rem 0;
+}
+
+.row input[type="text"] {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.orders textarea {
+  width: 100%;
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+q {
+  font-style: italic;
+}

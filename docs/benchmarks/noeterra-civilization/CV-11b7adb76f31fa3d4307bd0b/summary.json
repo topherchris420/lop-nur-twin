@@ -1,0 +1,11 @@
+{
+  "label": "scripted: memory and war",
+  "outcome": "passed (supported)",
+  "generation": "scripted",
+  "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+  "mean_paired_delta": -3.6666666666666665,
+  "metric": "wars_declared",
+  "replay_sha256": "f046da554aac24d6770e2942cce908844d3cf6c06a102b92cec60c595a31496e",
+  "commit": "eab7d5f7b2d0c4052832b49197abab3e00e5b2e9",
+  "dirty": true
+}

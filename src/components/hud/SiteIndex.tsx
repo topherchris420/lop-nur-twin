@@ -8,6 +8,8 @@ import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
 import { useSubjectDrawState } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
+import { resolvesLoulan } from "@/noeterra/discovery";
 import { resolvesBethesda } from "@/bethesda/discovery";
 import { ANOMALY_EVENT } from "@/components/AnomalyGate";
 
@@ -114,7 +116,17 @@ export function SiteIndex() {
             UNRESOLVED FEATURE · 39° N 77° W · outside this site
           </button>
         ) : null}
-        {groups.length > 0 || resolvesBethesda(query) ? (
+        {resolvesLoulan(query) ? (
+          // An ancient kingdom of this place, not a structure in this model.
+          <Link
+            to="/noeterra"
+            search={{ scenario: "tarim-77bc", play: "loulan" }}
+            className="hover:bg-accent mb-3 block w-full rounded px-2 py-1.5 text-left font-mono text-[10px] tracking-[0.16em]"
+          >
+            ANCIENT KINGDOM · LOULAN · ≈60 KM ESE · OPEN IN NOETERRA
+          </Link>
+        ) : null}
+        {groups.length > 0 || resolvesBethesda(query) || resolvesLoulan(query) ? (
           groups.map(([label, defs]) => (
             <div key={label} className="mb-3 last:mb-0">
               <div className="text-muted-foreground mb-1 text-[10px] font-semibold tracking-[0.18em] uppercase">

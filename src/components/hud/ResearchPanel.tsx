@@ -240,6 +240,33 @@ export function ResearchPanel() {
 
         <Separator className="my-4" />
 
+        <section aria-labelledby="deep-time-heading">
+          <h2
+            id="deep-time-heading"
+            className="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Deep Time
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            The ruins of Loulan, the oasis kingdom of Lop Nur, lie roughly 60 km
+            east-southeast of this airfield. In Noeterra you can rule it in 77 BC among
+            autonomous civilizations. It is an illustrative simulation, not evidence about
+            this site or its past.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Button asChild size="sm">
+              <Link to="/noeterra" search={{ scenario: "tarim-77bc", play: "loulan" }}>
+                Rule Loulan, 77 BC
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/noeterra">All worlds</Link>
+            </Button>
+          </div>
+        </section>
+
+        <Separator className="my-4" />
+
         <section aria-labelledby="climate-heading">
           <div className="flex items-center justify-between gap-3">
             <div>

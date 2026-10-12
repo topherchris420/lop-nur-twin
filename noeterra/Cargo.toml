@@ -1,0 +1,40 @@
+[package]
+name = "noeterra"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A deterministic, replayable civilization simulation in which every civilization is an autonomous agent with its own memory."
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "noeterra"
+path = "src/main.rs"
+required-features = ["native"]
+
+[features]
+default = ["native"]
+# The HTTP workbench, the model providers and parallel brains. The core —
+# world, resolver, brains without a network, experiments — builds without it,
+# which is how it compiles to WebAssembly for the R.A.I.N. Lab runtime.
+native = ["dep:tiny_http", "dep:ureq"]
+
+# Pure-Rust dependencies only: the Windows GNU toolchain this repository is
+# developed on has no C compiler, and nothing here needs one. TLS for the
+# Anthropic provider goes through the system `curl` (see src/brain/provider.rs).
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tiny_http = { version = "0.12", optional = true }
+ureq = { version = "2", default-features = false, features = ["json"], optional = true }
+
+[profile.release]
+debug = false
+lto = "thin"
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 2

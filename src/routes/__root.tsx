@@ -57,6 +57,11 @@ function NotFound() {
               Evaluations
             </Link>
           </li>
+          <li>
+            <Link to="/noeterra" className="underline">
+              Noeterra civilizations
+            </Link>
+          </li>
         </ul>
       </div>
     </div>

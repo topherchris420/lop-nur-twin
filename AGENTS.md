@@ -812,6 +812,73 @@ gate.
   entries marked as such that exist to be refused or flagged); `fixture.ts`
   builds an index from it in memory.
 
+## Noeterra (`noeterra/`) and the civilization backend
+
+Noeterra is a Rust crate: a civilization simulation whose rulers are autonomous
+agents, plus the workbench that plays it. Read `docs/NOETERRA.md` first. The rule
+it exists to keep: **brains propose; the resolver decides.**
+
+- **Only `noeterra/src/resolve.rs` changes the world.** Brains get an
+  `Observation` (`observe.rs`), never the `World`; a new piece of knowledge is a
+  field there, shown to every brain alike. A new action is a variant in
+  `action.rs` with a case in `well_formed`, `validate`, `offered` and
+  `describe`; the resolver re-validates every choice when it runs, and a
+  refused choice is recorded with its reason, never applied.
+- **Determinism is load-bearing.** All randomness goes through `rng.rs`
+  streams keyed by seed, turn and purpose; never `rand`, time or iteration
+  order of a hash map. Simulation code uses only `+ - * /` and `sqrt` (no
+  `powf`, `exp` or trigonometry) so native and WebAssembly builds hash
+  identically. A rule change bumps `SIM_VERSION`; older saves and lab plans are
+  then refused, as they should be.
+- **Labels are claims.** A decision is `LIVE` only from a validated model
+  answer; a failure is `FALLBACK` with its reason. Letters and notes carry
+  `generation`. Model text is never parsed for instructions or executed.
+- **Keys stay out of TypeScript and out of argv.** The Anthropic key is read by
+  `curl` from the environment through `--variable`; nothing under `src/`,
+  `server/` or `api/` handles it. LM Studio is reached only on loopback or
+  private-network `http://`.
+- **Tests never reach a model** (`noeterra/tests/models.rs` uses a scripted
+  provider and local stand-in servers). `noeterra run`/`noeterra design` with model
+  seats refuse to start without `--live`.
+- **The lab runs the engine as WebAssembly that imports nothing**
+  (`src/rain/scientific/noeterraEngine.ts`, a fresh instance per call). The
+  module is built by `npm run noeterra:wasm`, never committed; `noeterraLoader.ts`
+  is the only file that reads it. The civilization tests skip without it and CI
+  builds it first. Nothing under `src/rain` reads the environment.
+- **Civilization experiments follow the scientific layer's contract**
+  (`civilization.ts`, `civilizationRegistry.ts`): the host writes the question
+  and hypothesis, the plan binds the engine version, an operator authorizes the
+  digest, every run is re-simulated before admission, and the registry decides
+  the verdict. Only rule-based arms are admitted. `BACKEND_CAPABILITIES` is
+  indexed by position: append, never reorder. `CIVILIZATION_METRICS` must equal
+  the engine's `METRICS` (a test pins them).
+- **The archive keeps everything.** `docs/benchmarks/noeterra-civilization/` is
+  written by `npm run rain:civilization`, including refusals and non-passing
+  results; never edit or prune it by hand.
+- **The web page (`src/noeterra/`, route `/noeterra`) drives the same engine in
+  the browser** through the session ops in `noeterra/src/api.rs` and the shared
+  views in `noeterra/src/views.rs`, which the workbench also renders. It shows
+  what the engine answers and never computes an outcome itself. The module is
+  loaded from `/noeterra/noeterra.wasm` (copied by
+  `scripts/copy-noeterra-wasm.mjs`, never committed); keep the magic-byte check
+  in `engine.ts`. Browser sessions hold rule-based, random and human seats
+  only. The map is SVG, so `/noeterra` is gated by `bun run a11y` and
+  `bun run routes`.
+- **Map geography is imported, never edited.** `noeterra/data/geography-*.json`
+  come from Natural Earth through `noeterra/scripts/import-geography.mjs`, with
+  hashes in `geography.source.json`. It is display data only: nothing in
+  `model.rs`, `resolve.rs` or the state hashes may read it. The twin's airfield
+  on the Tarim map is projected from `SITE_PROFILE` (`src/lib/siteData.ts`),
+  never a copied coordinate.
+- **Entry points stay outside the HUD dock.** The twin links in from the
+  Research panel and the Site Index (`src/noeterra/discovery.ts`); the lab
+  through an `onOpenWorlds` callback threaded from `AnomalyGate`, because lab
+  files render no links. `script-src` carries `'wasm-unsafe-eval'` for this
+  page in all three CSP copies.
+- **The scenario is illustrative.** Polities and rulers follow the standard
+  record; every number is a game value and the file says so. Never present a
+  Noeterra result as evidence about history.
+
 ## Verifying changes
 
 ```sh

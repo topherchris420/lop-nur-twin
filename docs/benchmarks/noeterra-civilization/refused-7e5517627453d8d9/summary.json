@@ -1,0 +1,9 @@
+{
+  "label": "scripted: a design the host must refuse",
+  "outcome": "refused by the host compiler",
+  "generation": "scripted",
+  "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+  "errors": [
+    "the engine refused the design: arm `treatment`: unknown civilization `atlantis`"
+  ]
+}

@@ -12,6 +12,18 @@ import { executeNumerical, verifyNumericalRecord } from "./numerical.js";
 import { executeBethesda } from "./bethesda.js";
 import type { compileDesign } from "../../bethesda/rain/discoveryCompiler.js";
 import { verifyRecordSync } from "../../bethesda/rain/replay.js";
+import {
+  compileCivilizationExperiment,
+  executeCivilization,
+  verifyCivilizationRecord,
+  type CivilizationContext,
+} from "./civilization.js";
+import type { NoeterraEngine } from "./noeterraEngine.js";
+import type {
+  CivilizationAuthorization,
+  CivilizationPlan,
+  CivilizationRecord,
+} from "./contracts.js";
 
 export interface ScientificBackend<Plan, Context, Authority, Output> {
   capability: BackendCapability;
@@ -42,3 +54,19 @@ export const bethesdaBackend: ScientificBackend<
   execute: executeBethesda,
   verifyRecord: verifyRecordSync,
 };
+/** Bound to one engine instance: compile, execute and replay all run on that engine. */
+export function civilizationBackend(
+  engine: NoeterraEngine,
+): ScientificBackend<
+  CivilizationPlan,
+  Omit<CivilizationContext, "engine">,
+  CivilizationAuthorization,
+  CivilizationRecord
+> {
+  return {
+    capability: BACKEND_CAPABILITIES[2]!,
+    compile: (raw, context) => compileCivilizationExperiment(raw, { ...context, engine }),
+    execute: (plan, authority) => executeCivilization(plan, authority, engine),
+    verifyRecord: (raw) => verifyCivilizationRecord(raw, engine),
+  };
+}

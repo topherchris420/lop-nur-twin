@@ -505,3 +505,73 @@ body {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- Noeterra */
+/* The lobby borrows a starfield, rounded display type and gradient-ringed
+   controls; the game borrows a dark relief map with lettered nations and glass
+   panels. Everything is drawn: no image or font assets are loaded. */
+.nt-display {
+  font-family:
+    "Segoe UI Variable Display", "SF Pro Display", ui-rounded, "Segoe UI", system-ui,
+    sans-serif;
+  text-shadow: 0 0 40px rgb(140 120 255 / 35%);
+}
+
+.nt-tag {
+  display: inline-block;
+  transform: rotate(-12deg) translateY(-0.4rem);
+}
+
+.nt-gradient-ring {
+  background: linear-gradient(90deg, #ec4899, #8b5cf6 50%, #3b82f6);
+}
+
+.nt-jump {
+  background: linear-gradient(90deg, #db2777, #7c3aed 55%, #2563eb);
+}
+
+.nt-jump:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.nt-globe .nt-halo {
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 70%));
+}
+
+.noeterra-map text {
+  font-family:
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+}
+
+.noeterra-map .nt-army {
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.noeterra-map .nt-nation-labels text {
+  font-weight: 600;
+}
+
+.noeterra-map:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 60%);
+  outline-offset: -2px;
+}
+
+@keyframes nt-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.95;
+  }
+  50% {
+    stroke-opacity: 0.25;
+  }
+}
+
+.nt-pulse {
+  animation: nt-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nt-pulse {
+    animation: none;
+  }
+}

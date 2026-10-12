@@ -1,0 +1,40 @@
+{
+  "schema": "rain-civilization-design/v1",
+  "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+  "hypothesis": "[scripted] Withholding agents' memory of how others treated them reduces the number of wars declared.",
+  "competing_hypothesis": "[scripted] Memory does not change how often the simulated powers go to war.",
+  "parameters": {
+    "scenario": "mediterranean-264bc",
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "turns": 40,
+    "treatment": {
+      "kind": "set_trait",
+      "civ": "atlantis",
+      "trait": "honor",
+      "value": 0.5
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_paired_delta",
+    "metric": "wars_declared",
+    "expected_direction": "decrease",
+    "minimum_effect": 1,
+    "minimum_consistent_seeds": 4
+  },
+  "budget": {
+    "max_simulated_turns": 480
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

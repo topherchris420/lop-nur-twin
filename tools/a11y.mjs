@@ -63,6 +63,28 @@ const ROUTES = [
   // canvas, so every axe finding on it is a real finding about real markup
   // rather than a complaint about a WebGL surface.
   { path: "/compare", label: "Model manifest comparison", gate: true, settle: 1500 },
+  // Noeterra draws SVG, not a canvas: gated. The lobby, then a game of Loulan
+  // after one resolved season, so the map, events and panels are what axe reads.
+  { path: "/noeterra", label: "Noeterra worlds", gate: true, settle: 3000 },
+  {
+    path: "/noeterra?scenario=tarim-77bc&play=loulan&seed=3",
+    label: "Noeterra game (ruling Loulan, one season resolved)",
+    gate: true,
+    settle: 3000,
+    prepare: async (page) => {
+      await page.waitForSelector("svg.noeterra-map", { timeout: 20000 });
+      await page.evaluate(() => {
+        const go = [...document.querySelectorAll("button")].find((b) =>
+          b.textContent?.includes("Jump forward"),
+        );
+        go?.click();
+      });
+      await page.waitForFunction(
+        () => document.body.textContent?.includes("Summer 77 BC"),
+        { timeout: 20000 },
+      );
+    },
+  },
   // The same two routes in their fullest states: a measurement's claim
   // inspector open beside a structure's, and two recorded model revisions
   // compared, so axe reads the inspector, the history list and the diff tables.

@@ -42,6 +42,9 @@ import { LIMITS } from "./src/bethesda/rain/contracts.js";
  * - `connect-src` allows the opt-in `?liveTraffic=1` ADS-B feed and nothing
  *   else. Remove that origin to forbid the feature outright.
  * - WebGL and GLSL are unaffected by CSP; shaders are not scripts.
+ * - `'wasm-unsafe-eval'` lets `/noeterra` compile its engine, a same-origin
+ *   WebAssembly module that imports nothing. It permits WebAssembly
+ *   compilation only; JavaScript `eval` stays forbidden.
  */
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -49,7 +52,7 @@ export const CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",

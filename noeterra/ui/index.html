@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noeterra — autonomous civilizations</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <h1>Noeterra</h1>
+        <p class="sub">Autonomous civilizations in a deterministic, replayable world</p>
+      </div>
+      <div class="clock" aria-live="polite">
+        <span id="date">—</span>
+        <span id="job" class="job"></span>
+      </div>
+      <nav class="controls" aria-label="Simulation controls">
+        <button id="step1" type="button">Next season</button>
+        <button id="step10" type="button">Run 10</button>
+        <label class="inline"
+          >Run
+          <input id="nturns" type="number" min="1" max="400" value="40" /> seasons</label
+        >
+        <button id="stepn" type="button">Go</button>
+        <button id="stop" type="button" disabled>Stop</button>
+        <button
+          id="verify"
+          type="button"
+          title="Re-simulate the whole history and compare every state hash"
+        >
+          Verify replay
+        </button>
+        <button id="save" type="button">Save</button>
+        <label class="file"
+          >Load <input id="load" type="file" accept="application/json,.json"
+        /></label>
+        <button id="newgame" type="button" aria-expanded="false" aria-controls="setup">
+          New world…
+        </button>
+      </nav>
+    </header>
+
+    <section id="setup" class="setup" hidden aria-label="New world">
+      <h2>New world</h2>
+      <div class="grid">
+        <label
+          >Scenario
+          <select id="scenario"></select
+        ></label>
+        <label>Seed <input id="seed" type="number" min="0" value="1" /></label>
+        <label
+          >Every seat
+          <select id="defaultseat"></select
+        ></label>
+        <label class="gen"
+          >Civilizations <input id="gencivs" type="number" min="2" max="12" value="8"
+        /></label>
+        <label class="gen"
+          >Provinces <input id="genprovs" type="number" min="16" max="400" value="64"
+        /></label>
+      </div>
+      <fieldset id="seatlist">
+        <legend>Seats for this scenario's powers</legend>
+      </fieldset>
+      <p class="hint" id="providerhint"></p>
+      <button id="start" type="button">Begin</button>
+      <p class="error" id="setuperror" role="alert"></p>
+    </section>
+
+    <main class="layout">
+      <section class="mapwrap" aria-label="Map">
+        <p class="scenario" id="scenarioline"></p>
+        <svg
+          id="map"
+          role="img"
+          aria-labelledby="maptitle"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <title id="maptitle">Map of provinces coloured by owner</title>
+        </svg>
+        <div id="legend" class="legend" aria-label="Legend"></div>
+        <section id="province" class="province" aria-live="polite">
+          <p class="hint">Select a province on the map for its details.</p>
+        </section>
+        <p class="provenance" id="provenance"></p>
+      </section>
+
+      <aside class="side">
+        <div role="tablist" aria-label="Panels" class="tabs">
+          <button
+            role="tab"
+            aria-selected="true"
+            aria-controls="tab-powers"
+            id="t-powers"
+          >
+            Powers
+          </button>
+          <button
+            role="tab"
+            aria-selected="false"
+            aria-controls="tab-diplomacy"
+            id="t-diplomacy"
+          >
+            Diplomacy
+          </button>
+          <button
+            role="tab"
+            aria-selected="false"
+            aria-controls="tab-chronicle"
+            id="t-chronicle"
+          >
+            Chronicle
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="tab-minds" id="t-minds">
+            Minds
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="tab-seat" id="t-seat">
+            Your seat
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="tab-lab" id="t-lab">
+            Experiments
+          </button>
+        </div>
+
+        <section role="tabpanel" id="tab-powers" aria-labelledby="t-powers">
+          <table class="data" id="powers"></table>
+          <h3>Provinces held over time</h3>
+          <svg
+            id="chart"
+            class="chart"
+            role="img"
+            aria-label="Provinces held by each power, by season"
+          ></svg>
+          <h3>Last season's decisions</h3>
+          <div id="decisions"></div>
+        </section>
+
+        <section role="tabpanel" id="tab-diplomacy" aria-labelledby="t-diplomacy" hidden>
+          <h3>Wars</h3>
+          <ul id="wars" class="plain"></ul>
+          <h3>Treaties</h3>
+          <ul id="treaties" class="plain"></ul>
+          <h3>Opinion <span class="hint">(row's regard for column)</span></h3>
+          <div class="scroll"><table class="matrix" id="opinion"></table></div>
+          <h3>Letters this year</h3>
+          <ul id="letters" class="plain"></ul>
+        </section>
+
+        <section role="tabpanel" id="tab-chronicle" aria-labelledby="t-chronicle" hidden>
+          <label
+            >Show
+            <select id="evfilter">
+              <option value="major">Major events</option>
+              <option value="all">Everything</option>
+              <option value="war">Wars and battles</option>
+              <option value="diplomacy">Diplomacy</option>
+            </select>
+          </label>
+          <ol id="chronicle" class="chronicle" reversed></ol>
+        </section>
+
+        <section role="tabpanel" id="tab-minds" aria-labelledby="t-minds" hidden>
+          <label
+            >Power
+            <select id="mindciv"></select
+          ></label>
+          <div id="mind"></div>
+        </section>
+
+        <section role="tabpanel" id="tab-seat" aria-labelledby="t-seat" hidden>
+          <div id="seat"></div>
+        </section>
+
+        <section role="tabpanel" id="tab-lab" aria-labelledby="t-lab" hidden>
+          <p class="note">
+            Experiments run paired, seeded histories with rule-based seats and compare
+            arms seed by seed. Results are
+            <strong>simulated observations of an illustrative model</strong>, never
+            evidence about the historical world. The R.A.I.N. Lab pre-registers and admits
+            these runs through its own registry.
+          </p>
+          <div class="grid">
+            <label
+              >Seasons <input id="xturns" type="number" min="1" max="200" value="40"
+            /></label>
+            <label>Seeds <input id="xseeds" type="text" value="1,2,3,4,5,6" /></label>
+          </div>
+          <fieldset>
+            <legend>Treatment arm</legend>
+            <div class="grid">
+              <label
+                >Policy
+                <select id="xpolicy">
+                  <option value="rules">Rules (with memory)</option>
+                  <option value="amnesic">Rules without memory</option>
+                  <option value="random">Random legal choices</option>
+                </select>
+              </label>
+              <label
+                >Power
+                <select id="xciv"></select
+              ></label>
+              <label
+                >Trait
+                <select id="xtrait">
+                  <option value="">(no change)</option>
+                  <option>aggression</option>
+                  <option>expansion</option>
+                  <option>caution</option>
+                  <option>honor</option>
+                  <option>mercantile</option>
+                  <option>diplomacy</option>
+                </select>
+              </label>
+              <label
+                >Value
+                <input id="xvalue" type="number" min="0" max="1" step="0.05" value="0.1"
+              /></label>
+            </div>
+          </fieldset>
+          <button id="xrun" type="button">Run experiment</button>
+          <p class="error" id="xerror" role="alert"></p>
+          <div id="xresult"></div>
+        </section>
+      </aside>
+    </main>
+  </body>
+</html>

@@ -29,11 +29,13 @@ export default function LabApp({
   sim,
   holder,
   onExit,
+  onOpenWorlds,
   visuals = "auto",
 }: {
   sim: CitySimulation;
   holder: RefObject<unknown>;
   onExit: () => void;
+  onOpenWorlds?: () => void;
   /** The city's Visuals setting, which R.A.I.N.'s instrument follows. */
   visuals?: "auto" | "detail" | "economy";
 }) {
@@ -496,6 +498,7 @@ export default function LabApp({
             room={store.room}
             go={go}
             onExit={onExit}
+            onOpenWorlds={onOpenWorlds}
             inspect={{ count: inspected, handled: inspectHandled }}
           />
         </aside>

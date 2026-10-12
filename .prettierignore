@@ -60,3 +60,16 @@ docs/benchmarks/rain-research-program-validation/REPORT.md
 # The model's recorded revisions: manifests kept byte for byte as each commit's
 # own generator wrote them, and the index the recorder writes beside them.
 model-history/
+
+# Noeterra's Rust build output, and the civilization experiments the lab archives:
+# records are evidence whose exact bytes are hashed, written by
+# `npm run rain:civilization`, never by hand.
+noeterra/target
+docs/benchmarks/noeterra-civilization/
+
+# The Noeterra engine copied into public/ at build time (a binary build product).
+public/noeterra/
+
+# Noeterra map geography, written by noeterra/scripts/import-geography.mjs with
+# the source hashes in geography.source.json. Never reformatted by hand.
+noeterra/data/

@@ -563,7 +563,14 @@ const EXAMPLES = [
   "Close Elm Street",
   "Flash flood near the Farm Women's Market",
 ];
-export default function Bethesda({ onReturn }: { onReturn: () => void }) {
+export default function Bethesda({
+  onReturn,
+  onOpenWorlds,
+}: {
+  onReturn: () => void;
+  /** Leaves for Noeterra's civilizations, from the lab. */
+  onOpenWorlds?: () => void;
+}) {
   const [w, setWorld] = useState(() => world()),
     [version, refresh] = useState(0),
     [notes, setNotes] = useState(false),
@@ -784,6 +791,7 @@ export default function Bethesda({ onReturn }: { onReturn: () => void }) {
               sim={sim}
               holder={labHolder}
               onExit={exitLab}
+              onOpenWorlds={onOpenWorlds}
               visuals={view.quality}
             />
           </Suspense>

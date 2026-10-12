@@ -110,8 +110,21 @@ jobs:
       - name: ESLint
         run: bun run lint
 
+      # The R.A.I.N. Lab runs civilization experiments on the Noeterra engine in
+      # process, as an import-free WebAssembly module. It is built here rather than
+      # committed (the repository holds no binaries), and its tests skip only
+      # when it is absent, so this step proves it is present before they run.
+      - name: Build the Noeterra civilization engine (WebAssembly)
+        run: |
+          rustup target add wasm32-unknown-unknown
+          bun run noeterra:wasm
+          test -s noeterra/target/wasm32-unknown-unknown/release/noeterra.wasm
+
       - name: Unit tests
         run: bun run test:run
+
+      - name: Civilization experiments end to end (scripted, no model)
+        run: bun run rain:civilization:demo -- --archive "$RUNNER_TEMP/noeterra-archive" --state "$RUNNER_TEMP/noeterra-state"
 
       - name: Scripted Inception research and budget-matched control demonstration
         run: bun run rain:inception:compare
@@ -182,6 +195,13 @@ jobs:
       # the tools already request.
       - name: Install dependencies from the lockfile
         run: bun install --frozen-lockfile
+
+      # /noeterra runs this engine in the browser; build it so the browser checks
+      # exercise the game rather than its "engine not built" fallback.
+      - name: Build the Noeterra engine (WebAssembly)
+        run: |
+          rustup target add wasm32-unknown-unknown
+          bun run noeterra:wasm
 
       - name: Production build
         run: bun run build
@@ -261,6 +281,13 @@ jobs:
       - name: Install dependencies from the lockfile
         run: bun install --frozen-lockfile
 
+      # /noeterra runs this engine in the browser; build it so the browser checks
+      # exercise the game rather than its "engine not built" fallback.
+      - name: Build the Noeterra engine (WebAssembly)
+        run: |
+          rustup target add wasm32-unknown-unknown
+          bun run noeterra:wasm
+
       - name: Production build
         run: bun run build
 
@@ -297,6 +324,27 @@ jobs:
             shots/rain-lab/browser-checks.json
             shots/rain-lab/browser-failure.json
           if-no-files-found: ignore
+
+  # The Rust engine itself: unit and integration tests, including the model
+  # seats against local test doubles. No test reaches a model or spends credit.
+  noeterra:
+    name: Noeterra engine (Rust)
+    needs: default-branch-or-pr
+    if: needs.default-branch-or-pr.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Formatting
+        run: cargo fmt --manifest-path noeterra/Cargo.toml --check
+
+      - name: Tests
+        run: cargo test --manifest-path noeterra/Cargo.toml --release
+
+      - name: The core builds without the network features
+        run: cargo build --manifest-path noeterra/Cargo.toml --lib --no-default-features
 
   secrets:
     name: Secret scanning

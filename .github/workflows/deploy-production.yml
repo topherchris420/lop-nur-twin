@@ -66,6 +66,14 @@ jobs:
         if: steps.creds.outputs.ready == 'true'
         run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
 
+      # The Noeterra engine served at /noeterra/noeterra.wasm is built here, never
+      # committed; scripts/copy-noeterra-wasm.mjs places it before vite builds.
+      - name: Build the Noeterra engine (WebAssembly)
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --manifest-path noeterra/Cargo.toml --release --lib --no-default-features --target wasm32-unknown-unknown
+
       # `vercel build` runs the project's own build command, which is the full
       # validate → manifest → bundle → typecheck gate, so a deploy cannot ship
       # data that does not validate.

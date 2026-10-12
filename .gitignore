@@ -45,3 +45,10 @@ __pycache__/
 # records, session traces, charters and their authorizations, and the
 # registry. Research output of one machine, not source.
 .rain-research/
+
+# Noeterra's Rust build output, including the WebAssembly engine the R.A.I.N. Lab
+# loads (`npm run noeterra:wasm`). Binaries are built, never committed.
+noeterra/target/
+
+# The Noeterra engine copied in for /noeterra by scripts/copy-noeterra-wasm.mjs.
+public/noeterra/
