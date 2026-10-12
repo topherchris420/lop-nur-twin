@@ -407,7 +407,13 @@ fn api(shared: &Shared, method: Method, path: &str, url: &str, body: &str) -> Re
                 );
             }
             d.responses = o.responses;
-            d.messages = o.messages.into_iter().take(crate::action::MAX_MESSAGES).collect();
+            // Orders sent without letters keep the letters already queued through
+            // /api/letter, which the parley panel promised to deliver.
+            d.messages = if o.messages.is_empty() {
+                app.human.get(&o.civ).map(|q| q.messages.clone()).unwrap_or_default()
+            } else {
+                o.messages.into_iter().take(crate::action::MAX_MESSAGES).collect()
+            };
             let chosen: Vec<String> = d.actions.iter().map(|a| describe(w, o.civ, a)).collect();
             app.human.insert(o.civ, d);
             Ok(json!({ "queued": chosen }))

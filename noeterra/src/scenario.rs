@@ -108,6 +108,10 @@ pub fn builtin(id: &str, seed: u64) -> Option<Scenario> {
 }
 
 pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
+    // A save carries its own scenario, so this is reached with untrusted input.
+    if s.civs.is_empty() || s.provinces.is_empty() {
+        return Err("a scenario needs at least one civilization and one province".into());
+    }
     let civ_ix: BTreeMap<&str, CivId> = s.civs.iter().enumerate().map(|(i, c)| (c.key.as_str(), i)).collect();
     let prov_ix: BTreeMap<&str, ProvId> = s
         .provinces

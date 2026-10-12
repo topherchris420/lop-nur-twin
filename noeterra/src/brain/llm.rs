@@ -370,12 +370,16 @@ pub fn interpret_answer(obs: &Observation, text: &str, seed: u64) -> Result<(Dec
                 discarded.push(format!("[{i}] moves army #{army} a second time"));
                 continue;
             }
-            armies.push(army);
         }
+        // As in `validate`: a free action stays free in debt, and an action
+        // refused for its cost does not use up its army.
         let c = action_cost(obs, &o.action);
-        if c > budget {
+        if c > 0.0 && c > budget {
             discarded.push(format!("[{i}] costs {c:.0}; only {budget:.0} left"));
             continue;
+        }
+        if let Action::Move { army, .. } = o.action {
+            armies.push(army);
         }
         budget -= c;
         d.actions.push(o.action.clone());

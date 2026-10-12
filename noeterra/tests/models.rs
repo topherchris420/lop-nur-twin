@@ -198,6 +198,33 @@ fn interpret_answer_rejects_non_json_and_wrong_shapes() {
     assert!(d.actions.is_empty() && d.note.is_none());
 }
 
+#[test]
+fn a_model_seat_in_debt_keeps_its_free_actions() {
+    let mut s = sim();
+    let rome = s.world.civ_by_key("rome").unwrap();
+    s.world.civs[rome].treasury = -12.0;
+    let obs = observe(&s.world, rome);
+    // One free move for each of Rome's armies.
+    let mut armies = Vec::new();
+    let free: Vec<usize> = obs
+        .offered
+        .iter()
+        .filter(|o| match o.action {
+            noeterra::action::Action::Move { army, .. } if !armies.contains(&army) => {
+                armies.push(army);
+                true
+            }
+            _ => false,
+        })
+        .map(|o| o.index)
+        .take(3)
+        .collect();
+    assert!(free.len() >= 2, "Rome has armies to move");
+    let answer = format!(r#"{{"assessment":"","actions":{free:?},"responses":[],"messages":[],"memory_note":""}}"#);
+    let (d, _, discarded) = interpret_answer(&obs, &answer, 1).unwrap();
+    assert_eq!(d.actions.len(), free.len(), "discarded: {discarded:?}");
+}
+
 /// The real Anthropic client (curl) against a local stand-in: request shape,
 /// key handling and the refusal path, with no credit spent.
 #[test]
