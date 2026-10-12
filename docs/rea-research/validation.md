@@ -18,6 +18,14 @@ substitute for a completed live-Qwen scientific experiment.
 | `node tools/jev-secret-scan.mjs docs/rea-research`              | Public investigation findings and original research evidence scanned clean.                                                                                         |
 | `node tools/a11y.mjs http://127.0.0.1:4196`                     | Ten routes had no serious or critical accessibility violations, page errors or CSP violations.                                                                      |
 
+The full-history Gitleaks scan passed over 331 commits and 20.64 MB. Its initial
+75 findings were public REA script identifiers (`scr_` followed by a SHA-256
+digest), verified against REA's browser-observation schema. The existing
+`.gitleaksignore` mechanism records only their exact commit/file/rule/line
+fingerprints. No rule or path is exempted for other values or future commits.
+A synthetic credential negative control still triggered the unchanged
+`generic-api-key` rule. Redacted scanner reports remain outside the repository.
+
 The original browser assertions were retained. Layout corrections keep controls
 inside short touch screens while preserving the minimum open viewing band.
 Plate interactions now pick the existing solid bronze body rather than the
