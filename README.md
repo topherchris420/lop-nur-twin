@@ -13,10 +13,10 @@
 [Evaluation](https://lop-nur-twin.vercel.app/evaluation) ·
 [Meet R.A.I.N.](https://rainlabteam.vercel.app/)
 
-[![Watch the 15-second R.A.I.N. Lab film](docs/media/rain-lab-ad-poster.jpg)](docs/media/rain-lab-ad.mp4)
+![R.A.I.N. Lab in 15 seconds: the Lop Nur evidence ledger, the research panel, and the end card](docs/media/rain-lab-ad.webp)
 
-<sub>15-second film (MP4, 9.6 MB). Music: "Supernova" by Scott Buckley, CC BY 4.0,
-[scottbuckley.com.au](https://www.scottbuckley.com.au).</sub>
+<sub>[With sound (MP4)](docs/media/rain-lab-ad.mp4). Music: "Supernova" by Scott Buckley,
+CC BY 4.0, [scottbuckley.com.au](https://www.scottbuckley.com.au).</sub>
 
 </div>
 
