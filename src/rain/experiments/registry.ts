@@ -317,7 +317,10 @@ export class Registry {
       try {
         mkdirSync(runDir);
         return { runId: `${experimentId}-${name}`, runDir };
-      } catch {
+      } catch (error) {
+        // Only a number another run took is worth skipping: a full disk or a
+        // refused permission fails the same way at every number, forever.
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
         number += 1;
       }
     }
