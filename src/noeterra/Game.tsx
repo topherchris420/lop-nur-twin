@@ -33,6 +33,9 @@ import {
 } from "./format";
 
 const MAX_ORDERS = 6;
+// A history is replayed in full before it loads. A century of seasons saves to
+// under 2 MB; a much larger file is refused before it can freeze the page.
+const MAX_HISTORY_MB = 8;
 
 function Emblem({ civ, size = 36 }: { civ: Civ; size?: number }) {
   return (
@@ -988,8 +991,8 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
       <nav aria-label="Tools" className="absolute bottom-3 left-3 z-20 flex gap-1.5">
         {(
           [
-            ["Events", ScrollText, () => setLeftOpen(!leftOpen)],
-            ["Nation panel", PanelRight, () => setRightOpen(!rightOpen)],
+            ["Events", ScrollText, () => setLeftOpen(!leftOpen), false],
+            ["Nation panel", PanelRight, () => setRightOpen(!rightOpen), false],
             [
               "Verify replay",
               ShieldCheck,
@@ -1001,6 +1004,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                     : `Replay diverged at season ${r.first_divergence ?? "?"}: ${r.reason ?? ""}`,
                 );
               },
+              true,
             ],
             [
               "Save history",
@@ -1015,15 +1019,17 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                 a.click();
                 URL.revokeObjectURL(a.href);
               },
+              true,
             ],
-            ["Load history", Upload, () => fileRef.current?.click()],
+            ["Load history", Upload, () => fileRef.current?.click(), true],
           ] as const
-        ).map(([label, Icon, run]) => (
+        ).map(([label, Icon, run, usesEngine]) => (
           <button
             key={label}
             type="button"
             aria-label={label}
             title={label}
+            disabled={busy && usesEngine}
             onClick={() => {
               try {
                 run();
@@ -1031,7 +1037,10 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                 setToast(e instanceof Error ? e.message : "The engine refused.");
               }
             }}
-            className={cn(glass, "grid size-10 place-items-center hover:bg-white/10")}
+            className={cn(
+              glass,
+              "grid size-10 place-items-center hover:bg-white/10 disabled:opacity-40",
+            )}
           >
             <Icon className="size-4" aria-hidden="true" />
           </button>
@@ -1045,29 +1054,50 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = "";
-            if (!f) return;
-            void f.text().then((text) => {
-              try {
-                const loaded = engine.load(JSON.parse(text));
-                // The save keeps the visitor's seat; hand it back to them rather
-                // than leave their nation idle under an observer.
-                const human = engine
-                  .state(loaded.session, 0, false)
-                  .seats.find((s) => s.seat.kind === "human");
-                setGeometry(null);
-                onReplace(
-                  loaded.session,
-                  human?.civ ?? null,
-                  `Loaded and verified by replay: ${loaded.replay.turns_checked} seasons.`,
-                );
-              } catch (err) {
-                setToast(
-                  err instanceof Error
-                    ? err.message
-                    : "That file is not a Noeterra history.",
-                );
-              }
-            });
+            if (!f || busy) return;
+            if (f.size > MAX_HISTORY_MB * 2 ** 20) {
+              setToast(
+                `Refused: ${f.name} is ${fmt(f.size / 2 ** 20, 1)} MB, and a history loads here up to ${MAX_HISTORY_MB} MB.`,
+              );
+              return;
+            }
+            setBusy(true);
+            setToast("Replaying the history to verify it…");
+            void f
+              .text()
+              .then((text) => {
+                // Let the notice show before the replay takes the thread.
+                setTimeout(() => {
+                  try {
+                    const loaded = engine.load(JSON.parse(text));
+                    // The save keeps the visitor's seat; hand it back to them rather
+                    // than leave their nation idle under an observer.
+                    const human = engine
+                      .state(loaded.session, 0, false)
+                      .seats.find((s) => s.seat.kind === "human");
+                    setGeometry(null);
+                    onReplace(
+                      loaded.session,
+                      human?.civ ?? null,
+                      `Loaded and verified by replay: ${loaded.replay.turns_checked} seasons.`,
+                    );
+                  } catch (err) {
+                    setToast(
+                      err instanceof SyntaxError
+                        ? `${f.name} is not a Noeterra history: it is not JSON.`
+                        : err instanceof Error
+                          ? err.message
+                          : "That file is not a Noeterra history.",
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                }, 30);
+              })
+              .catch(() => {
+                setToast(`${f.name} could not be read.`);
+                setBusy(false);
+              });
           }}
         />
       </nav>

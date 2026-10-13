@@ -101,10 +101,12 @@ export class BrowserEngine {
   private exchange(json: string): string {
     const x = this.x;
     const bytes = new TextEncoder().encode(json);
-    const ptr = x.noeterra_alloc(bytes.length);
+    // Pointers are unsigned, but JavaScript reads an i32 or i64 result as
+    // signed: past 2 GiB of memory they would turn negative.
+    const ptr = x.noeterra_alloc(bytes.length) >>> 0;
     try {
       new Uint8Array(x.memory.buffer, ptr, bytes.length).set(bytes);
-      const packed = x.noeterra_call(ptr, bytes.length);
+      const packed = BigInt.asUintN(64, x.noeterra_call(ptr, bytes.length));
       const at = Number(packed >> 32n),
         len = Number(packed & 0xffffffffn);
       const text = new TextDecoder().decode(new Uint8Array(x.memory.buffer, at, len));
