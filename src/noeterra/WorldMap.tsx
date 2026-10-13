@@ -89,6 +89,8 @@ export interface WorldMapProps {
   focus: number[];
   you: number | null;
   onSelect: (province: number) => void;
+  /** The side panel is open; on a phone it covers the map, zoom controls included. */
+  panelOpen?: boolean;
 }
 
 export function WorldMap({
@@ -98,6 +100,7 @@ export function WorldMap({
   focus,
   you,
   onSelect,
+  panelOpen = false,
 }: WorldMapProps) {
   const base = geometry.view_box;
   const [view, setView] = useState<[number, number, number, number]>(base);
@@ -671,11 +674,16 @@ export function WorldMap({
     <>
       {map}
       {/* A touch screen has no wheel and the map takes every touch to pan, so
-          zooming needs buttons: under the date on a phone, above the note wider. */}
+          zooming needs buttons: under the date on a phone, above the note wider.
+          On a phone the open side panel covers them along with the map; they
+          leave the page then, so keyboard focus never lands on a hidden button. */}
       <div
         role="group"
         aria-label="Zoom"
-        className="absolute top-36 right-3 z-10 flex flex-col gap-1 sm:top-auto sm:bottom-10 sm:flex-row"
+        className={cn(
+          "absolute top-36 right-3 z-10 flex flex-col gap-1 sm:top-auto sm:bottom-10 sm:flex-row",
+          panelOpen && "max-sm:hidden",
+        )}
       >
         {(
           [
