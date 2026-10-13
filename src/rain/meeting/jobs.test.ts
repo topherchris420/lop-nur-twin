@@ -145,4 +145,33 @@ describe("model meeting jobs", () => {
     if (failed.kind === "meeting-failed")
       expect(failed.reason).toContain("did not answer");
   });
+
+  it("names the settings in a failure's reason, never the server or the model", async () => {
+    // Anyone may ask for a meeting's status, so a reason is published.
+    const unreachable = meetings(async () => {
+      throw new Error("refused");
+    }).jobs;
+    const stopped = meetings(
+      fetchFor(() => {
+        throw new Error("server went away");
+      }),
+    ).jobs;
+    for (const [jobs, why] of [
+      [unreachable, /did not answer/],
+      [stopped, /stopped answering.*context length/],
+    ] as const) {
+      const pending = jobs.start("q", "r".repeat(32));
+      await settle(
+        () => jobs.status(pending.job_id, "r".repeat(32)).kind !== "meeting-pending",
+      );
+      const failed = jobs.status(pending.job_id, "r".repeat(32));
+      expect(failed.kind).toBe("meeting-failed");
+      if (failed.kind !== "meeting-failed") continue;
+      expect(failed.reason).toMatch(why);
+      expect(failed.reason).toMatch(/RAIN_LLM_BASE_URL/);
+      expect(failed.reason).toMatch(/RAIN_LLM_MODEL/);
+      expect(failed.reason).not.toContain("127.0.0.1");
+      expect(failed.reason).not.toContain("stand-in-model");
+    }
+  });
 });

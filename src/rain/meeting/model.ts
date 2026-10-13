@@ -488,9 +488,10 @@ export async function holdMeeting(
       if (attempt < 2) await sleep(2000);
     }
   }
+  // A meeting's failure is published, so it names the settings, not their values.
   if (!connected)
     throw new ModelUnavailable(
-      `the model server did not answer at ${settings.baseUrl} with the model ${settings.model}`,
+      "the model server did not answer: check that RAIN_LLM_BASE_URL names a running server and RAIN_LLM_MODEL a model it serves",
     );
 
   const { context: contextBlock, papers } = libraryContext(

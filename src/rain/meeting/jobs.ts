@@ -232,8 +232,9 @@ export class ModelMeetings {
         });
       } catch (error) {
         if (!(error instanceof MeetingFailed) || !held.modelStopped) throw error;
+        // Published with the job's status: settings by name, never their values.
         throw new MeetingFailed(
-          `${error.message}: check that ${this.options.settings.baseUrl} is serving ${this.options.settings.model}, and that the model's context length is at least 16,384 tokens`,
+          `${error.message}: check that the server RAIN_LLM_BASE_URL names is serving the model RAIN_LLM_MODEL names, and that the model's context length is at least 16,384 tokens`,
         );
       }
       job.state = "done";

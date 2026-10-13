@@ -88,6 +88,28 @@ describe("R.A.I.N. route configuration", () => {
     expect(JSON.parse(text).failure).toMatch(/^misconfigured: RAIN_LLM_MODEL/);
     expect(text).not.toContain("evil.example");
   });
+  it("names the privacy rule's setting, never the model server it refused", async () => {
+    for (const [env, setting, value] of [
+      [
+        { RAIN_LLM_BASE_URL: "https://models.internal.example/v1" },
+        "RAIN_LLM_BASE_URL",
+        "models.internal.example",
+      ],
+      [{ RAIN_LLM_MODEL: "team-private:cloud" }, "RAIN_LLM_MODEL", "team-private"],
+    ] as const) {
+      const handle = createRainHandler({
+        runtime: configureRuntime({
+          env: { RAIN_MEETING_ENGINE: "model", RAIN_LLM_MODEL: "qwen2.5:7b", ...env },
+          resolveHost: async () => ["93.184.216.34"],
+          scratchDir,
+        }),
+      });
+      const text = await (await handle(get("status"), meta)).text();
+      expect(JSON.parse(text).failure).toMatch(/^misconfigured: RAIN_MEETING_PRIVACY/);
+      expect(text).toContain(setting);
+      expect(text).not.toContain(value);
+    }
+  });
   it("answers LIVE with the runtime's validated identity and caches it", async () => {
     const handle = local();
     const first = (await (await handle(get("status"), meta)).json()) as {

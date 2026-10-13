@@ -83,4 +83,20 @@ describe("meeting privacy", () => {
       ),
     ).toBe("hybrid");
   });
+
+  it("names the setting it refuses, never the host or the model", async () => {
+    // The refusal becomes the runtime's published reason (GET /api/rain/status).
+    const resolve = resolver({ "models.internal.example": ["93.184.216.34"] });
+    const refusal = (baseUrl: string, model: string) =>
+      enforceMeetingPrivacy("local", baseUrl, model, resolve).then(
+        () => "",
+        (error: Error) => error.message,
+      );
+    const host = await refusal("https://models.internal.example/v1", "qwen2.5:7b");
+    expect(host).toMatch(/RAIN_LLM_BASE_URL/);
+    expect(host).not.toContain("models.internal.example");
+    const cloud = await refusal("http://127.0.0.1:11434/v1", "team-private:cloud");
+    expect(cloud).toMatch(/RAIN_LLM_MODEL/);
+    expect(cloud).not.toContain("team-private");
+  });
 });
