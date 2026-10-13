@@ -1340,7 +1340,8 @@ function OrdersPanel({
       )}
       <p className="text-[11px] text-white/50">
         Orders are checked again when the season resolves; anything no longer possible is
-        refused and reported.
+        refused and reported. A one- or five-year jump carries them out in its first
+        season; your realm then waits.
       </p>
     </>
   );
