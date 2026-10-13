@@ -1217,8 +1217,13 @@ do the same here?" can be asked on matched seeds.
   the same text. `server/llm/handler.test.ts` fails if they diverge. The format
   instructions say how to answer and nothing about how to play.
 - **The same boundary.** Same-origin JSON under 8 KiB holding
-  `{ session, observation }`, the shared validator, the same rate limits, a
-  server-built question: not a prompt proxy. The key (`LLM_API_KEY`) is read
+  `{ session, observation }`, the shared validator, rate limits and a
+  server-built question: not a prompt proxy. The limits are its own
+  (`LLM_RATE_LIMITS` in `server/llm/handler.ts`), because a call holds a slot
+  for seconds and costs far more than Jev's: per client 3 burst and 0.5 a
+  second, per session one request in 2 s, per instance 1 a second and at most
+  four calls in flight. The seat asks at most every 2.5 s
+  (`LLM_CAPABILITIES`), so a live game never meets them. The key (`LLM_API_KEY`) is read
   only by `api/llm/decision.ts` and the Vite middleware; `secretBoundary.test.ts`
   and the build-output scan cover it as they cover TypeSafe's.
 - **Provider and model are configuration**, never code: `LLM_PROVIDER`

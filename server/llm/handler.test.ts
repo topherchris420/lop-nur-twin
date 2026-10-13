@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { isModelId } from "../../src/game/pilot/decision";
 import { isLlmModelId, validateLlmDecision } from "../../src/game/pilot/llmDecision";
+import { LLM_CAPABILITIES } from "../../src/game/pilot/capabilities";
 import { makeObservation } from "../../src/game/pilot/testing/fixtures";
 import { buildSystemOneRequest } from "../jev/question";
 import { DEFAULT_RATE_LIMITS, RateLimiter } from "../jev/rateLimit";
 import {
   DEFAULT_ANTHROPIC_MODEL,
+  LLM_RATE_LIMITS,
   createLlmDecisionHandler,
   isAllowedBaseUrl,
   readAnswerText,
@@ -500,6 +502,85 @@ describe("anthropic adapter (official SDK, fake transport)", () => {
       ),
     );
     expect((await (await call(post(decide))).json()).error.code).toBe("upstream_auth");
+  });
+});
+
+describe("its own limits, sized for an expensive model", () => {
+  /** A provider that answers only when told to, so calls stay in flight. */
+  function held() {
+    const waiting: (() => void)[] = [];
+    const up = upstream(
+      () =>
+        new Promise<Response>((resolve) =>
+          waiting.push(() => resolve(openAiReply(JSON.stringify(firstOptions())))),
+        ),
+    );
+    const handler = createLlmDecisionHandler({
+      provider: "openai-compatible",
+      apiKey: KEY,
+      model: "fake-model-1",
+      baseUrl: "http://127.0.0.1:9/v1",
+      fetchImpl: up.fetch,
+      log: () => undefined,
+    });
+    const settle = async (): Promise<void> => {
+      for (let i = 0; i < 20; i += 1) await new Promise((r) => setTimeout(r, 0));
+    };
+    return { up, handler, waiting, settle };
+  }
+  const sessionFor = (i: number) => `${"a".repeat(19)}${i}`;
+
+  it("keeps at most four provider calls in flight, however many clients ask", async () => {
+    const { up, handler, waiting, settle } = held();
+    const pending = [0, 1, 2, 3].map((i) =>
+      handler(post({ session: sessionFor(i), observation }), {
+        clientKey: `198.51.100.${i}`,
+      }),
+    );
+    await settle();
+    expect(up.calls).toHaveLength(4);
+    const fifth = await handler(post({ session: sessionFor(4), observation }), {
+      clientKey: "198.51.100.4",
+    });
+    expect(fifth.status).toBe(429);
+    expect(up.calls).toHaveLength(4);
+    for (const release of waiting) release();
+    for (const response of await Promise.all(pending)) expect(response.status).toBe(200);
+  });
+
+  it("gives one client a small burst, whatever session ids it presents", async () => {
+    const { up, handler, waiting, settle } = held();
+    const meta = { clientKey: "198.51.100.77" };
+    const pending = [0, 1, 2].map((i) =>
+      handler(post({ session: sessionFor(i), observation }), meta),
+    );
+    await settle();
+    const fourth = await handler(post({ session: sessionFor(3), observation }), meta);
+    expect(fourth.status).toBe(429);
+    expect((await fourth.json()).error.message).toMatch(/this client/);
+    expect(up.calls).toHaveLength(3);
+    for (const release of waiting) release();
+    await Promise.all(pending);
+  });
+
+  it("paces a session to its model's cost, and the seat never asks faster", () => {
+    let now = 0;
+    const limiter = new RateLimiter(LLM_RATE_LIMITS, () => now);
+    expect(limiter.admitSession(SESSION).ok).toBe(true);
+    now += 1_000;
+    expect(limiter.admitSession(SESSION).ok).toBe(false);
+    now += LLM_RATE_LIMITS.sessionMinIntervalMs;
+    expect(limiter.admitSession(SESSION).ok).toBe(true);
+    // The browser's floor sits above the server's gap, with room for jitter,
+    // and one tab at that floor never runs its client's bucket dry.
+    const floor = LLM_CAPABILITIES.minIntervalMs;
+    expect(floor - LLM_RATE_LIMITS.sessionMinIntervalMs).toBeGreaterThanOrEqual(250);
+    expect(LLM_RATE_LIMITS.perClient.refillPerSecond * (floor / 1000)).toBeGreaterThan(1);
+    let client = 0;
+    const tab = new RateLimiter(LLM_RATE_LIMITS, () => client);
+    for (let i = 0; i < 100; i += 1, client += floor) {
+      expect(tab.admitClient("203.0.113.1").ok).toBe(true);
+    }
   });
 });
 

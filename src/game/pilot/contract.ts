@@ -248,6 +248,15 @@ export const MIN_DECISION_INTERVAL_MS = 200;
 /** The server refuses a session's requests closer together than this. */
 export const SERVER_MIN_INTERVAL_MS = 150;
 
+/**
+ * The same pair for the LLM seat. A frontier model's call costs seconds and
+ * money, so its endpoint paces a session to one request in 2 s, and the
+ * browser asks no more often than every 2.5 s; the margin absorbs network
+ * jitter, as 200 ms over 150 ms does for Jev.
+ */
+export const LLM_MIN_DECISION_INTERVAL_MS = 2500;
+export const LLM_SERVER_MIN_INTERVAL_MS = 2000;
+
 /** The browser abandons a decision request after this long. */
 export const REQUEST_TIMEOUT_MS = 2200;
 

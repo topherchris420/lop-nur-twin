@@ -3,6 +3,7 @@ import {
   GLIDE_CAPABILITIES,
   HOST_CAPABILITIES,
   JEV_CAPABILITIES,
+  LLM_CAPABILITIES,
   LOCAL_POLICY_CAPABILITIES,
   negotiate,
   type Capabilities,
@@ -62,6 +63,17 @@ describe("capability negotiation", () => {
       intervalMs: 100,
     });
     expect(jev.intervalMs).toBe(JEV_CAPABILITIES.minIntervalMs);
+  });
+
+  it("runs the LLM at its own floor by default, without claiming anyone asked for less", () => {
+    const llm = negotiate(LLM_CAPABILITIES, {
+      control: "precision",
+      navigation: "places",
+      intervalMs: null,
+    });
+    expect(llm.intervalMs).toBe(LLM_CAPABILITIES.minIntervalMs);
+    expect(llm.intervalMs).toBeGreaterThan(JEV_CAPABILITIES.minIntervalMs);
+    expect(llm.notes).toEqual([]);
   });
 
   it("offers no vision: no brain reads frames, and the host sends none", () => {
