@@ -33,7 +33,17 @@ export function NoeterraApp({ scenario, play, seed }: NoeterraAppProps) {
     if (!card) return;
     const seats: Record<string, string> = {};
     if (civKey && card.civs.some((c) => c.key === civKey)) seats[civKey] = "human";
-    const session = eng.start(id, s, seats);
+    let session: number;
+    try {
+      session = eng.start(id, s, seats);
+    } catch (e) {
+      // A refusal, or an engine that stopped and has not restarted (engine.ts).
+      setPhase({
+        kind: "unavailable",
+        reason: e instanceof Error ? e.message : String(e),
+      });
+      return;
+    }
     const you = civKey ? card.civs.findIndex((c) => c.key === civKey) : -1;
     setPhase({ kind: "game", session, you: you >= 0 ? you : null });
   };
@@ -108,7 +118,7 @@ export function NoeterraApp({ scenario, play, seed }: NoeterraAppProps) {
     );
   return (
     <Game
-      key={phase.session}
+      key={`${engine.instance}:${phase.session}`}
       engine={engine}
       session={phase.session}
       you={phase.you}

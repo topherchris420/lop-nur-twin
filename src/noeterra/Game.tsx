@@ -211,8 +211,14 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
     return st;
   }, [engine, session, geometry]);
 
+  // Set when the world cannot be read at all, e.g. the engine stopped.
+  const [failure, setFailure] = useState<string | null>(null);
   useEffect(() => {
-    refresh();
+    try {
+      refresh();
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : "The engine refused.");
+    }
     // Only on a new session; later refreshes are explicit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
@@ -332,7 +338,16 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   if (!state || !geometry) {
     return (
       <div className="grid h-full place-items-center bg-[#081a20] text-slate-200">
-        Preparing the world…
+        {failure ? (
+          <div role="alert" className="max-w-md space-y-3 p-6 text-center">
+            <p>{failure}</p>
+            <button type="button" onClick={onExit} className="underline">
+              Back to the worlds
+            </button>
+          </div>
+        ) : (
+          "Preparing the world…"
+        )}
       </div>
     );
   }
@@ -1009,7 +1024,13 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
             type="button"
             aria-label={label}
             title={label}
-            onClick={run}
+            onClick={() => {
+              try {
+                run();
+              } catch (e) {
+                setToast(e instanceof Error ? e.message : "The engine refused.");
+              }
+            }}
             className={cn(glass, "grid size-10 place-items-center hover:bg-white/10")}
           >
             <Icon className="size-4" aria-hidden="true" />

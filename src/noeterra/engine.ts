@@ -2,7 +2,8 @@
  * The Noeterra engine in the visitor's browser: Rust compiled to a
  * WebAssembly module that imports nothing, so it can compute and nothing else
  * — no network, files, clock or storage. One instance lives for the page,
- * because a running history is kept in its memory.
+ * because a running history is kept in its memory; only a call that traps
+ * replaces it, and the histories with it.
  *
  * The module is built from noeterra/ at deploy time and served from this
  * origin; it is never committed. A host that rewrites unknown paths to the
@@ -31,11 +32,23 @@ function isExports(x: WebAssembly.Exports): x is WebAssembly.Exports & Exports {
 
 export class EngineUnavailable extends Error {}
 
+/** A call trapped inside the engine; the games it held are gone with it. */
+export class EngineStopped extends Error {}
+
+const STOPPED =
+  "The Noeterra engine stopped on an internal error, and the game in progress went with it. Go back to the worlds to start again; if this happens again, reload the page.";
+
 export class BrowserEngine {
-  private readonly x: Exports;
+  private x: Exports;
+  private readonly module: WebAssembly.Module;
+  /** Set while a fresh instance replaces one that trapped. */
+  private restarting: Promise<void> | null = null;
+  /** Counts instances: a fresh one numbers its sessions from 1 again. */
+  private instances = 1;
   readonly version: string;
 
-  private constructor(x: Exports) {
+  private constructor(module: WebAssembly.Module, x: Exports) {
+    this.module = module;
     this.x = x;
     this.version = this.call<{ engine: string }>({ op: "version" }).engine;
   }
@@ -60,23 +73,65 @@ export class BrowserEngine {
     const { exports } = await WebAssembly.instantiate(module, {});
     if (!isExports(exports))
       throw new EngineUnavailable("The engine module lacks its exports.");
-    return new BrowserEngine(exports);
+    return new BrowserEngine(module, exports);
   }
 
   call<T>(request: Record<string, unknown>): T {
-    const bytes = new TextEncoder().encode(JSON.stringify(request));
-    const ptr = this.x.noeterra_alloc(bytes.length);
-    new Uint8Array(this.x.memory.buffer, ptr, bytes.length).set(bytes);
-    const packed = this.x.noeterra_call(ptr, bytes.length);
-    this.x.noeterra_free(ptr, bytes.length);
-    const at = Number(packed >> 32n),
-      len = Number(packed & 0xffffffffn);
-    const text = new TextDecoder().decode(new Uint8Array(this.x.memory.buffer, at, len));
-    this.x.noeterra_free(at, len);
+    if (this.restarting) throw new EngineStopped(STOPPED);
+    let text: string;
+    try {
+      text = this.exchange(JSON.stringify(request));
+    } catch (e) {
+      if (!(e instanceof WebAssembly.RuntimeError)) throw e;
+      // A trap (a Rust panic) unwinds nothing: the engine's session table stays
+      // borrowed, so every later call would trap too, a new game included. The
+      // instance is dropped with its memory, and a fresh one from the same
+      // module serves the next game.
+      this.restart();
+      throw new EngineStopped(STOPPED);
+    }
     const answer = JSON.parse(text) as { ok: boolean; result?: T; error?: string };
     if (!answer.ok || answer.result === undefined)
       throw new Error(answer.error ?? "The engine refused.");
     return answer.result;
+  }
+
+  /** One request through the module's memory. The request buffer is freed
+   * however the call ends. */
+  private exchange(json: string): string {
+    const x = this.x;
+    const bytes = new TextEncoder().encode(json);
+    const ptr = x.noeterra_alloc(bytes.length);
+    try {
+      new Uint8Array(x.memory.buffer, ptr, bytes.length).set(bytes);
+      const packed = x.noeterra_call(ptr, bytes.length);
+      const at = Number(packed >> 32n),
+        len = Number(packed & 0xffffffffn);
+      const text = new TextDecoder().decode(new Uint8Array(x.memory.buffer, at, len));
+      x.noeterra_free(at, len);
+      return text;
+    } finally {
+      x.noeterra_free(ptr, bytes.length);
+    }
+  }
+
+  /** Replaces a trapped instance; until it is ready, or if it fails, every call
+   * reports that the engine stopped. */
+  private restart(): void {
+    this.restarting ??= WebAssembly.instantiate(this.module, {}).then(
+      (instance) => {
+        if (!isExports(instance.exports)) return;
+        this.x = instance.exports;
+        this.instances += 1;
+        this.restarting = null;
+      },
+      () => undefined,
+    );
+  }
+
+  /** Which instance holds the sessions now; a session id is unique within one. */
+  get instance(): number {
+    return this.instances;
   }
 
   scenarios(): ScenarioCard[] {
