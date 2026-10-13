@@ -219,6 +219,19 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   }, [toast]);
 
   const human = state?.humans.find((h) => h.civ === you) ?? null;
+  // A fallen player watches on: the notice says so once, and the jump buttons
+  // stay live.
+  const fallen = you !== null && state?.civs[you]?.alive === false;
+  const [watching, setWatching] = useState(false);
+  const watchOnRef = useRef<HTMLButtonElement>(null);
+  const jumpRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (fallen && !watching) watchOnRef.current?.focus();
+  }, [fallen, watching]);
+  const watchOn = () => {
+    setWatching(true);
+    jumpRef.current?.focus();
+  };
   const viewCiv: number | null =
     focusCiv ??
     (selected !== null ? (state?.provinces[selected]?.owner ?? null) : null) ??
@@ -337,7 +350,6 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         .reduce((s, a) => s + a.strength, 0),
     };
   };
-  const fallen = youCiv && !youCiv.alive;
 
   return (
     <div className="noeterra-game relative h-full w-full overflow-hidden bg-[#081a20]">
@@ -409,9 +421,10 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         ).map(([n, label, Icon]) => (
           <button
             key={n}
+            ref={n === 1 ? jumpRef : undefined}
             type="button"
             aria-label={n === 1 ? undefined : label}
-            disabled={busy || Boolean(fallen)}
+            disabled={busy}
             onClick={() => jump(n)}
             className={cn(
               "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold disabled:opacity-40",
@@ -422,7 +435,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
             {n === 1 ? (
               busy ? (
                 "Resolving…"
-              ) : you !== null ? (
+              ) : you !== null && !fallen ? (
                 "Jump forward"
               ) : (
                 "Next season"
@@ -702,7 +715,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                 toggle={toggleOffer}
                 rejected={state.last_turn?.rejected.filter((r) => r.civ === you) ?? []}
                 goals={human?.goals ?? []}
-                fallen={Boolean(fallen)}
+                fallen={fallen}
               />
             )}
 
@@ -798,11 +811,15 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
               </p>
               <button
                 type="button"
-                disabled={busy || Boolean(fallen)}
+                disabled={busy}
                 onClick={() => jump(1)}
                 className="nt-jump w-full rounded-lg py-2.5 text-sm font-bold disabled:opacity-40"
               >
-                {busy ? "Resolving the season…" : "Issue orders and jump forward"}
+                {busy
+                  ? "Resolving the season…"
+                  : fallen
+                    ? "Watch the next season"
+                    : "Issue orders and jump forward"}
               </button>
             </footer>
           )}
@@ -993,25 +1010,39 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         </div>
       )}
 
-      {fallen && (
+      {fallen && !watching && (
         <div
-          role="alert"
+          role="alertdialog"
+          aria-labelledby="nt-fallen"
+          aria-describedby="nt-fallen-text"
           className={cn(
             glass,
-            "absolute top-1/3 left-1/2 z-30 w-[380px] -translate-x-1/2 p-5 text-center",
+            "absolute top-1/3 left-1/2 z-30 w-[380px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 p-5 text-center",
           )}
         >
-          <h2 className="text-xl font-bold">Your realm has fallen</h2>
-          <p className="mt-2 text-sm text-white/75">
+          <h2 id="nt-fallen" className="text-xl font-bold">
+            Your realm has fallen
+          </h2>
+          <p id="nt-fallen-text" className="mt-2 text-sm text-white/75">
             The other nations go on. You can watch them, or choose another world.
           </p>
-          <button
-            type="button"
-            onClick={onExit}
-            className="nt-jump mt-4 rounded-lg px-4 py-2 font-semibold"
-          >
-            Back to the worlds
-          </button>
+          <div className="mt-4 flex justify-center gap-2">
+            <button
+              ref={watchOnRef}
+              type="button"
+              onClick={watchOn}
+              className="nt-jump rounded-lg px-4 py-2 font-semibold"
+            >
+              Watch on
+            </button>
+            <button
+              type="button"
+              onClick={onExit}
+              className="rounded-lg border border-white/15 px-4 py-2 font-semibold hover:bg-white/10"
+            >
+              Back to the worlds
+            </button>
+          </div>
         </div>
       )}
     </div>
