@@ -13,8 +13,22 @@ describe("the dev server's API host check", () => {
       "192.168.1.20:4173",
       "[::1]:5173",
       "[::1]",
+      "127.0.0.1:65535",
+      "localhost:1",
     ])
       expect(isAllowedApiHost(host, []), host).toBe(true);
+  });
+  it("refuses a port no URL can carry, which would otherwise crash the server", () => {
+    // The middleware rebuilds the request URL from this header, and `new URL`
+    // throws on a port above 65535.
+    for (const host of [
+      "127.0.0.1:99999",
+      "localhost:65536",
+      "[::1]:70000",
+      "127.0.0.1:0",
+      "twin.test:99999",
+    ])
+      expect(isAllowedApiHost(host, ["twin.test"]), host).toBe(false);
   });
   it("refuses a rebound name, a missing host and malformed ones", () => {
     for (const host of [

@@ -253,20 +253,27 @@ function decisionApi(
       });
       req.on("end", () => {
         const headers = new Headers();
-        for (const [key, value] of Object.entries(req.headers)) {
-          if (typeof value === "string") headers.set(key, value);
-          else if (Array.isArray(value)) headers.set(key, value.join(", "));
-        }
-        const method = req.method ?? "GET";
-        const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
-        const request = new Request(
-          `http://${req.headers.host ?? "localhost"}${req.url}`,
-          {
+        let request: Request;
+        try {
+          for (const [key, value] of Object.entries(req.headers)) {
+            if (typeof value === "string") headers.set(key, value);
+            else if (Array.isArray(value)) headers.set(key, value.join(", "));
+          }
+          const method = req.method ?? "GET";
+          const body = Buffer.concat(chunks).subarray(0, maxBodyBytes + 1);
+          request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, {
             method,
             headers,
             body: method === "GET" || method === "HEAD" ? undefined : body,
-          },
-        );
+          });
+        } catch {
+          // A URL or method `Request` refuses (`TRACE`, say) is the client's
+          // error. Thrown here, in an event listener, it would kill the server.
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "text/plain");
+          res.end("Bad request.");
+          return;
+        }
         handle(request, {
           clientKey: clientKeyFrom(headers, req.socket.remoteAddress ?? "local"),
         })
