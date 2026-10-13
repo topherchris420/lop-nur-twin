@@ -368,14 +368,7 @@ export function WorldMap({
                 strokeOpacity={owner ? 0.55 : 0.45}
                 strokeWidth={owner ? 0.5 : 0.35}
                 strokeDasharray={owner ? undefined : "1.2 1"}
-              >
-                <title>
-                  {p.name} — {owner ? owner.name : "independent"}
-                  {occupied && p.controller !== null
-                    ? `, occupied by ${state.civs[p.controller]?.name ?? ""}`
-                    : ""}
-                </title>
-              </path>
+              />
               {occupied && p.controller !== null && (
                 <path
                   d={ringPath(s.rings)}
@@ -597,18 +590,34 @@ export function WorldMap({
         })}
       </g>
 
-      {/* Hit targets on top, so labels never swallow a click. */}
+      {/* Hit targets on top, so labels never swallow a click. They carry the
+          tooltips too: only the shape under the pointer shows its title. */}
       <g fill="transparent" clipPath={clip}>
-        {geometry.shapes.map((s) => (
-          <path
-            key={s.id}
-            d={ringPath(s.rings)}
-            data-province={s.id}
-            className="cursor-pointer"
-            onPointerEnter={() => setHover(s.id)}
-            onPointerLeave={() => setHover((h) => (h === s.id ? null : h))}
-          />
-        ))}
+        {geometry.shapes.map((s) => {
+          const p = state.provinces[s.id];
+          const owner = p && p.owner !== null ? state.civs[p.owner] : undefined;
+          const occupier =
+            p && p.controller !== null && p.controller !== p.owner
+              ? state.civs[p.controller]
+              : undefined;
+          return (
+            <path
+              key={s.id}
+              d={ringPath(s.rings)}
+              data-province={s.id}
+              className="cursor-pointer"
+              onPointerEnter={() => setHover(s.id)}
+              onPointerLeave={() => setHover((h) => (h === s.id ? null : h))}
+            >
+              {p && (
+                <title>
+                  {p.name} — {owner ? owner.name : "independent"}
+                  {occupier ? `, occupied by ${occupier.name}` : ""}
+                </title>
+              )}
+            </path>
+          );
+        })}
       </g>
       {twin && (
         <g
