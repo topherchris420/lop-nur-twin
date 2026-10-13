@@ -410,6 +410,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         focus={focus}
         you={you}
         onSelect={selectProvince}
+        panelOpen={rightOpen}
       />
 
       {/* Session chip */}
