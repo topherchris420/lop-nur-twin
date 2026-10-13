@@ -7,11 +7,7 @@ import { fileURLToPath, URL } from "node:url";
 import { execFileSync } from "node:child_process";
 // `.js` like every import in the server chain, which @vercel/node runs with its
 // specifiers as written. Vite's `configLoader: "native"` cannot load it yet.
-import {
-  MAX_BODY_BYTES,
-  clientKeyFrom,
-  createJevDecisionHandler,
-} from "./server/jev/handler.js";
+import { MAX_BODY_BYTES, createJevDecisionHandler } from "./server/jev/handler.js";
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
 import { createGlideDecisionHandler } from "./server/glide/handler.js";
 import { createRainHandler } from "./server/rain/handler.js";
@@ -252,9 +248,9 @@ function decisionApi(
         size += chunk.length;
       });
       req.on("end", () => {
-        const headers = new Headers();
         let request: Request;
         try {
+          const headers = new Headers();
           for (const [key, value] of Object.entries(req.headers)) {
             if (typeof value === "string") headers.set(key, value);
             else if (Array.isArray(value)) headers.set(key, value.join(", "));
@@ -274,8 +270,11 @@ function decisionApi(
           res.end("Bad request.");
           return;
         }
+        // No proxy stands in front of this server, so a forwarding header is
+        // whatever the caller wrote, and rotating one would buy a fresh
+        // rate-limit bucket per request. The socket's peer is the caller.
         handle(request, {
-          clientKey: clientKeyFrom(headers, req.socket.remoteAddress ?? "local"),
+          clientKey: (req.socket.remoteAddress ?? "local").slice(0, 64),
         })
           .then(async (response) => {
             res.statusCode = response.status;

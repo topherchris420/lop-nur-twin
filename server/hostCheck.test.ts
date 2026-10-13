@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { isAllowedApiHost } from "./hostCheck";
 
@@ -57,5 +59,17 @@ describe("the dev server's API host check", () => {
   });
   it("leaves the check off only where the developer turned host checking off", () => {
     expect(isAllowedApiHost("evil.example:5173", true)).toBe(true);
+  });
+});
+
+describe("the dev server's client key", () => {
+  it("is the socket's peer address, never a forwarding header the caller wrote", () => {
+    // No proxy stands in front of `vite` or `vite preview`, so a rotated
+    // X-Real-IP or X-Forwarded-For would buy a fresh rate-limit bucket per
+    // request. On Vercel the platform sets them, and `clientKeyFrom` reads them.
+    const config = readFileSync(join(__dirname, "..", "vite.config.ts"), "utf8");
+    expect(config).not.toMatch(/clientKeyFrom/);
+    expect(config).not.toMatch(/x-real-ip|x-forwarded-for/i);
+    expect(config).toMatch(/clientKey: \(req\.socket\.remoteAddress \?\? "local"\)/);
   });
 });
