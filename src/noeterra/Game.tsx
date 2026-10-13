@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   BookOpen,
   ChevronsRight,
   Download,
@@ -8,7 +9,6 @@ import {
   Handshake,
   Landmark,
   ListChecks,
-  Menu,
   MoveLeft,
   PanelRight,
   ScrollText,
@@ -237,6 +237,17 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
     setWatching(true);
     jumpRef.current?.focus();
   };
+  // Leaving drops the game, so once a season has been played it asks first.
+  const [leaving, setLeaving] = useState(false);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const stayRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (leaving) stayRef.current?.focus();
+  }, [leaving]);
+  const stay = () => {
+    setLeaving(false);
+    backRef.current?.focus();
+  };
   // Choosing a province, on the map or in the list, shows its nation to an
   // observer or in the research view.
   const selectProvince = (p: number | null) => {
@@ -378,15 +389,53 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
       />
 
       {/* Session chip */}
-      <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+      <div
+        className={cn(
+          "absolute top-3 left-3 flex items-center gap-2",
+          leaving ? "z-30" : "z-20",
+        )}
+      >
         <button
+          ref={backRef}
           type="button"
-          onClick={onExit}
-          aria-label="Back to the worlds"
+          onClick={() => (state.turn > 0 ? setLeaving(true) : onExit())}
+          aria-label="Leave this game for the worlds"
+          title="Leave this game for the worlds"
           className={cn(glass, "grid size-10 place-items-center hover:bg-white/10")}
         >
-          <Menu className="size-5" aria-hidden="true" />
+          <ArrowLeft className="size-5" aria-hidden="true" />
         </button>
+        {leaving && (
+          <div
+            role="group"
+            aria-labelledby="nt-leave"
+            className={cn(
+              glass,
+              "absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] p-3 text-sm",
+            )}
+          >
+            <p id="nt-leave">Leave this game? Its history is lost unless you saved it.</p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={onExit}
+                onKeyDown={(e) => e.key === "Escape" && stay()}
+                className="nt-jump rounded-lg px-3 py-1.5 font-semibold"
+              >
+                Leave
+              </button>
+              <button
+                ref={stayRef}
+                type="button"
+                onClick={stay}
+                onKeyDown={(e) => e.key === "Escape" && stay()}
+                className="rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/10"
+              >
+                Stay
+              </button>
+            </div>
+          </div>
+        )}
         <div className={cn(glass, "flex items-center gap-2.5 px-3 py-1.5")}>
           {youCiv ? (
             <Emblem civ={youCiv} size={24} />
