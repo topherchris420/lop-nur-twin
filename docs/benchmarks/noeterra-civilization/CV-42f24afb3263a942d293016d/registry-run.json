@@ -1,0 +1,1034 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0006",
+  "run_id": "V3D-EXP-0006-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "inconclusive",
+  "hypothesis_verdict": "insufficient_evidence",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-13T11:47:27.784Z",
+  "finished_at": "2026-10-13T11:47:29.568Z",
+  "duration_ms": 1784,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19"
+  },
+  "definition": {
+    "created_at": "2026-10-13T11:47:27.777Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "note": "No effect or the opposite direction",
+          "op": ">=",
+          "value": 0
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "arms_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 12
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash",
+          "op": ">=",
+          "value": 1
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Preregistered effect threshold",
+          "op": "<=",
+          "value": -50
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "note": "Effect appears in enough seeds",
+          "op": ">=",
+          "value": 4
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0006",
+    "experiment_version": 1,
+    "hypothesis": "Withholding every agent's memory of how others have treated it will decrease wars_declared by at least 50 count on average over matched seeds, in the expected direction in at least 4 of 6 seeds.",
+    "limitations": [
+      "Noeterra is an illustrative model: its economy, warfare and diplomacy are invented rules, not estimates of how past societies worked.",
+      "Scenario figures are game values; the polities and rulers follow the standard record only as a setting.",
+      "A result characterizes the simulator and its agents' policy, not history, and is never empirical evidence.",
+      "Agents are the deterministic rule-based policy; model-driven agents are not admitted as experiments.",
+      "Native and WebAssembly builds of this engine version reproduce identical state hashes; other versions are refused.",
+      "Seeds are replicates of one model, not samples of historical societies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs that completed",
+        "deterministic": true,
+        "name": "arms_completed",
+        "unit": "count"
+      },
+      {
+        "description": "an independent re-simulation reached every recorded state hash",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "seasons simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_turns",
+        "unit": "count"
+      },
+      {
+        "description": "mean wars_declared in the control arm",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "count"
+      },
+      {
+        "description": "mean wars_declared in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "count"
+      },
+      {
+        "description": "treatment minus control wars_declared, averaged over seeds",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in wars declared over the horizon",
+        "deterministic": true,
+        "name": "delta_wars_declared",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in wars declared in breach of a non-aggression pact",
+        "deterministic": true,
+        "name": "delta_pacts_broken",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in peace settlements concluded",
+        "deterministic": true,
+        "name": "delta_peace_treaties",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in battles fought",
+        "deterministic": true,
+        "name": "delta_battles",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in soldiers lost or scattered in battle",
+        "deterministic": true,
+        "name": "delta_battle_losses",
+        "unit": "thousand soldiers"
+      },
+      {
+        "description": "mean paired change in provinces occupied by an enemy",
+        "deterministic": true,
+        "name": "delta_occupations",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in unclaimed or rebel provinces annexed",
+        "deterministic": true,
+        "name": "delta_conquests",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in provinces lost to revolt",
+        "deterministic": true,
+        "name": "delta_revolts",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in alliances, pacts and trade agreements concluded",
+        "deterministic": true,
+        "name": "delta_treaties_signed",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in alliances broken by a refused call to arms",
+        "deterministic": true,
+        "name": "delta_alliances_broken",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in civilizations that lost every province",
+        "deterministic": true,
+        "name": "delta_civs_fallen",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in civilizations alive at the end",
+        "deterministic": true,
+        "name": "delta_surviving_civs",
+        "unit": "count"
+      },
+      {
+        "description": "mean paired change in Herfindahl index of province shares among surviving civilizations",
+        "deterministic": true,
+        "name": "delta_province_hhi",
+        "unit": "index 0..1"
+      },
+      {
+        "description": "mean paired change in share of owned provinces held by the largest civilization",
+        "deterministic": true,
+        "name": "delta_largest_share",
+        "unit": "fraction"
+      },
+      {
+        "description": "mean paired change in fraction of turns that ended with no war in progress",
+        "deterministic": true,
+        "name": "delta_peace_fraction",
+        "unit": "fraction"
+      },
+      {
+        "description": "mean paired change in mean stability of surviving civilizations at the end",
+        "deterministic": true,
+        "name": "delta_mean_stability",
+        "unit": "points 0..100"
+      },
+      {
+        "description": "mean paired change in population of all provinces at the end",
+        "deterministic": true,
+        "name": "delta_total_population",
+        "unit": "thousand people"
+      },
+      {
+        "description": "mean paired change in provinces held by no civilization at the end",
+        "deterministic": true,
+        "name": "delta_unowned_provinces",
+        "unit": "count"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "mean_paired_delta",
+              "note": "No effect or the opposite direction",
+              "op": ">=",
+              "value": 0
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "arms_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 12
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash",
+              "op": ">=",
+              "value": 1
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Preregistered effect threshold",
+              "op": "<=",
+              "value": -50
+            },
+            {
+              "id": "S2",
+              "metric": "seeds_expected_direction",
+              "note": "Effect appears in enough seeds",
+              "op": ">=",
+              "value": 4
+            }
+          ]
+        },
+        "definition_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19",
+        "design": {
+          "analysis": {
+            "expected_direction": "decrease",
+            "method": "matched_seed_paired_delta",
+            "metric": "wars_declared",
+            "minimum_consistent_seeds": 4,
+            "minimum_effect": 50
+          },
+          "budget": {
+            "max_simulated_turns": 480
+          },
+          "competing_hypothesis": "[scripted] Memory does not change how often the simulated powers go to war.",
+          "hypothesis": "[scripted] Withholding agents' memory of how others treated them reduces the number of wars declared.",
+          "parameters": {
+            "scenario": "mediterranean-264bc",
+            "seeds": [
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "treatment": {
+              "kind": "withhold_memory"
+            },
+            "turns": 40
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+          "schema": "rain-civilization-design/v1"
+        },
+        "engine": "noeterra 0.1.0 sim/2",
+        "experiment_id": "CV-42f24afb3263a942d293016d",
+        "ir": {
+          "backend": "civilization",
+          "backend_version": "noeterra-civilization/v1 (noeterra 0.1.0 sim/2)",
+          "controls": [
+            "matched seeds: each seed runs once with and once without the treatment",
+            "identical scenario, horizon and rule-based agents in both arms",
+            "the engine version is bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "wars_declared"
+          ],
+          "domain": "civilization-simulation",
+          "falsification": {
+            "metric": "mean_paired_delta",
+            "op": ">=",
+            "unit": "count",
+            "value": 0
+          },
+          "hypothesis": "Withholding every agent's memory of how others have treated it will decrease wars_declared by at least 50 count on average over matched seeds, in the expected direction in at least 4 of 6 seeds.",
+          "independent_variables": [
+            "withholding every agent's memory of how others have treated it"
+          ],
+          "limitations": [
+            "Noeterra is an illustrative model: its economy, warfare and diplomacy are invented rules, not estimates of how past societies worked.",
+            "Scenario figures are game values; the polities and rulers follow the standard record only as a setting.",
+            "A result characterizes the simulator and its agents' policy, not history, and is never empirical evidence.",
+            "Agents are the deterministic rule-based policy; model-driven agents are not admitted as experiments.",
+            "Native and WebAssembly builds of this engine version reproduce identical state hashes; other versions are refused."
+          ],
+          "observables": [
+            {
+              "description": "wars declared over the horizon",
+              "id": "wars_declared",
+              "unit": "count"
+            },
+            {
+              "description": "wars declared in breach of a non-aggression pact",
+              "id": "pacts_broken",
+              "unit": "count"
+            },
+            {
+              "description": "peace settlements concluded",
+              "id": "peace_treaties",
+              "unit": "count"
+            },
+            {
+              "description": "battles fought",
+              "id": "battles",
+              "unit": "count"
+            },
+            {
+              "description": "soldiers lost or scattered in battle",
+              "id": "battle_losses",
+              "unit": "thousand soldiers"
+            },
+            {
+              "description": "provinces occupied by an enemy",
+              "id": "occupations",
+              "unit": "count"
+            },
+            {
+              "description": "unclaimed or rebel provinces annexed",
+              "id": "conquests",
+              "unit": "count"
+            },
+            {
+              "description": "provinces lost to revolt",
+              "id": "revolts",
+              "unit": "count"
+            },
+            {
+              "description": "alliances, pacts and trade agreements concluded",
+              "id": "treaties_signed",
+              "unit": "count"
+            },
+            {
+              "description": "alliances broken by a refused call to arms",
+              "id": "alliances_broken",
+              "unit": "count"
+            },
+            {
+              "description": "civilizations that lost every province",
+              "id": "civs_fallen",
+              "unit": "count"
+            },
+            {
+              "description": "civilizations alive at the end",
+              "id": "surviving_civs",
+              "unit": "count"
+            },
+            {
+              "description": "Herfindahl index of province shares among surviving civilizations",
+              "id": "province_hhi",
+              "unit": "index 0..1"
+            },
+            {
+              "description": "share of owned provinces held by the largest civilization",
+              "id": "largest_share",
+              "unit": "fraction"
+            },
+            {
+              "description": "fraction of turns that ended with no war in progress",
+              "id": "peace_fraction",
+              "unit": "fraction"
+            },
+            {
+              "description": "mean stability of surviving civilizations at the end",
+              "id": "mean_stability",
+              "unit": "points 0..100"
+            },
+            {
+              "description": "population of all provinces at the end",
+              "id": "total_population",
+              "unit": "thousand people"
+            },
+            {
+              "description": "provinces held by no civilization at the end",
+              "id": "unowned_provinces",
+              "unit": "count"
+            },
+            {
+              "description": "treatment minus control wars_declared, averaged over seeds",
+              "id": "mean_paired_delta",
+              "unit": "count"
+            }
+          ],
+          "parameter_constraints": [
+            "closed treatment vocabulary validated by the engine before execution",
+            "rule-based agents only, so every run re-simulates exactly",
+            "at most 12800 simulated seasons per experiment",
+            "3-32 distinct seeds; the effect must appear in at least half of them"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+          "resource_budget": {
+            "execution_steps": 480,
+            "max_samples": 12,
+            "replay_steps": 480
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 6,
+            "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+            "uncertainty": "Seeds are independent replicates of one illustrative model; descriptive only, no p-value or population inference, and nothing about the historical world."
+          }
+        },
+        "noeterra_plan": {
+          "arms": [
+            {
+              "id": "control",
+              "interventions": [],
+              "policy": "rules"
+            },
+            {
+              "id": "treatment",
+              "interventions": [],
+              "policy": "amnesic"
+            }
+          ],
+          "scenario": {
+            "id": "mediterranean-264bc",
+            "kind": "builtin"
+          },
+          "schema": "noeterra-experiment/v1",
+          "seeds": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "turns": 40
+        },
+        "noeterra_plan_sha256": "60f36076523ff70a47a260f13688d118b1d5fa42b200a7ce281acc0790a7ace8",
+        "scenario_sha256": "0e27def60040f7c45bab9e8c1b2aae07850882b02fcec5ffeef306c08914a52c",
+        "schema": "rain-civilization-plan/v1",
+        "simulated_turns": 480
+      }
+    },
+    "procedure": [
+      "Review and authorize the exact civilization plan digest.",
+      "Run every seed twice, with and without the treatment, under rule-based agents.",
+      "Re-simulate every run independently and require each recorded state hash.",
+      "Recompile and re-simulate again before registry admission."
+    ],
+    "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+    "rationale": "Bounded experiment on the Noeterra civilization simulator with matched seeds and independent re-simulation.",
+    "runner": {
+      "adapter": "noeterra-civilization/v1",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "noeterra-civilization",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed civilization simulation",
+    "variables": {
+      "controls": [
+        "matched seeds: each seed runs once with and once without the treatment",
+        "identical scenario, horizon and rule-based agents in both arms",
+        "the engine version is bound into the plan digest"
+      ],
+      "dependent": [
+        "wars_declared"
+      ],
+      "independent": [
+        "withholding every agent's memory of how others have treated it"
+      ]
+    }
+  },
+  "definition_sha256": "16d5846cb26f37203993a7983295e1faa6bc74920d7a7875d066f897096e38a7",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-civilization-plan/v1",
+      "design": {
+        "schema": "rain-civilization-design/v1",
+        "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+        "hypothesis": "[scripted] Withholding agents' memory of how others treated them reduces the number of wars declared.",
+        "competing_hypothesis": "[scripted] Memory does not change how often the simulated powers go to war.",
+        "parameters": {
+          "scenario": "mediterranean-264bc",
+          "seeds": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "turns": 40,
+          "treatment": {
+            "kind": "withhold_memory"
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_paired_delta",
+          "metric": "wars_declared",
+          "expected_direction": "decrease",
+          "minimum_effect": 50,
+          "minimum_consistent_seeds": 4
+        },
+        "budget": {
+          "max_simulated_turns": 480
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "civilization-simulation",
+        "backend": "civilization",
+        "backend_version": "noeterra-civilization/v1 (noeterra 0.1.0 sim/2)",
+        "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+        "hypothesis": "Withholding every agent's memory of how others have treated it will decrease wars_declared by at least 50 count on average over matched seeds, in the expected direction in at least 4 of 6 seeds.",
+        "observables": [
+          {
+            "id": "wars_declared",
+            "unit": "count",
+            "description": "wars declared over the horizon"
+          },
+          {
+            "id": "pacts_broken",
+            "unit": "count",
+            "description": "wars declared in breach of a non-aggression pact"
+          },
+          {
+            "id": "peace_treaties",
+            "unit": "count",
+            "description": "peace settlements concluded"
+          },
+          {
+            "id": "battles",
+            "unit": "count",
+            "description": "battles fought"
+          },
+          {
+            "id": "battle_losses",
+            "unit": "thousand soldiers",
+            "description": "soldiers lost or scattered in battle"
+          },
+          {
+            "id": "occupations",
+            "unit": "count",
+            "description": "provinces occupied by an enemy"
+          },
+          {
+            "id": "conquests",
+            "unit": "count",
+            "description": "unclaimed or rebel provinces annexed"
+          },
+          {
+            "id": "revolts",
+            "unit": "count",
+            "description": "provinces lost to revolt"
+          },
+          {
+            "id": "treaties_signed",
+            "unit": "count",
+            "description": "alliances, pacts and trade agreements concluded"
+          },
+          {
+            "id": "alliances_broken",
+            "unit": "count",
+            "description": "alliances broken by a refused call to arms"
+          },
+          {
+            "id": "civs_fallen",
+            "unit": "count",
+            "description": "civilizations that lost every province"
+          },
+          {
+            "id": "surviving_civs",
+            "unit": "count",
+            "description": "civilizations alive at the end"
+          },
+          {
+            "id": "province_hhi",
+            "unit": "index 0..1",
+            "description": "Herfindahl index of province shares among surviving civilizations"
+          },
+          {
+            "id": "largest_share",
+            "unit": "fraction",
+            "description": "share of owned provinces held by the largest civilization"
+          },
+          {
+            "id": "peace_fraction",
+            "unit": "fraction",
+            "description": "fraction of turns that ended with no war in progress"
+          },
+          {
+            "id": "mean_stability",
+            "unit": "points 0..100",
+            "description": "mean stability of surviving civilizations at the end"
+          },
+          {
+            "id": "total_population",
+            "unit": "thousand people",
+            "description": "population of all provinces at the end"
+          },
+          {
+            "id": "unowned_provinces",
+            "unit": "count",
+            "description": "provinces held by no civilization at the end"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "count",
+            "description": "treatment minus control wars_declared, averaged over seeds"
+          }
+        ],
+        "independent_variables": [
+          "withholding every agent's memory of how others have treated it"
+        ],
+        "dependent_variables": [
+          "wars_declared"
+        ],
+        "controls": [
+          "matched seeds: each seed runs once with and once without the treatment",
+          "identical scenario, horizon and rule-based agents in both arms",
+          "the engine version is bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "closed treatment vocabulary validated by the engine before execution",
+          "rule-based agents only, so every run re-simulates exactly",
+          "at most 12800 simulated seasons per experiment",
+          "3-32 distinct seeds; the effect must appear in at least half of them"
+        ],
+        "resource_budget": {
+          "execution_steps": 480,
+          "replay_steps": 480,
+          "max_samples": 12
+        },
+        "statistical_analysis": {
+          "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+          "independent_replicates": 6,
+          "uncertainty": "Seeds are independent replicates of one illustrative model; descriptive only, no p-value or population inference, and nothing about the historical world."
+        },
+        "falsification": {
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0,
+          "unit": "count"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "Noeterra is an illustrative model: its economy, warfare and diplomacy are invented rules, not estimates of how past societies worked.",
+          "Scenario figures are game values; the polities and rulers follow the standard record only as a setting.",
+          "A result characterizes the simulator and its agents' policy, not history, and is never empirical evidence.",
+          "Agents are the deterministic rule-based policy; model-driven agents are not admitted as experiments.",
+          "Native and WebAssembly builds of this engine version reproduce identical state hashes; other versions are refused."
+        ]
+      },
+      "engine": "noeterra 0.1.0 sim/2",
+      "noeterra_plan": {
+        "schema": "noeterra-experiment/v1",
+        "scenario": {
+          "kind": "builtin",
+          "id": "mediterranean-264bc"
+        },
+        "turns": 40,
+        "seeds": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "arms": [
+          {
+            "id": "control",
+            "policy": "rules",
+            "interventions": []
+          },
+          {
+            "id": "treatment",
+            "policy": "amnesic",
+            "interventions": []
+          }
+        ]
+      },
+      "noeterra_plan_sha256": "60f36076523ff70a47a260f13688d118b1d5fa42b200a7ce281acc0790a7ace8",
+      "scenario_sha256": "0e27def60040f7c45bab9e8c1b2aae07850882b02fcec5ffeef306c08914a52c",
+      "simulated_turns": 480,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "arms_completed",
+            "op": ">=",
+            "value": 12,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": -50,
+            "note": "Preregistered effect threshold"
+          },
+          {
+            "id": "S2",
+            "metric": "seeds_expected_direction",
+            "op": ">=",
+            "value": 4,
+            "note": "Effect appears in enough seeds"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "mean_paired_delta",
+            "op": ">=",
+            "value": 0,
+            "note": "No effect or the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19",
+      "experiment_id": "CV-42f24afb3263a942d293016d"
+    },
+    "authorization": {
+      "schema": "rain-civilization-authorization/v1",
+      "experiment_id": "CV-42f24afb3263a942d293016d",
+      "definition_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "local-operator",
+      "identity_verified": false,
+      "scope": "civilization-simulation",
+      "confirmed_prefix": "42f24afb",
+      "authorized_at": "2026-10-13T11:47:27.784Z",
+      "expires_at": "2026-10-13T12:47:27.784Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "replay_sha256": "234f808497a899f72c1cb6a3a7e9e5b2ec2033dd082d473cc8b3911c7a07c9c7",
+    "final_state_hashes": [
+      "control/7/8f17defe7d4748775bab558624bba4a9c88c70f6912134abe0ea75dcd1eb3323",
+      "control/8/10159a15d6ba16e5e3db1ea79cdb24b7f4ed105c8760bd5fc195b763a4f1fb10",
+      "control/9/2a9e406db0dfb3298c51f82d540dc86fe632a8089776a7acea0353d454da4cc5",
+      "control/10/924f8441b0bc45748d702539f1acd894307c551a18658fb911564776224034ad",
+      "control/11/40345772ba8fba8e18003debd4d6ccf66da5b12aa7a6439182763467078c4284",
+      "control/12/6228e025ba3dbe26aa2635351364de7abd244796d4a5efff26ecccee6f47bbfd",
+      "treatment/7/2dbcb7e9dbcaf13e6559de2767eedf71c45dab0afed7d2f0fc5642389be9e697",
+      "treatment/8/df0fbf5f21c33a2d04a518b141da772b7d4556f17cb66ca560865d02988fbdcc",
+      "treatment/9/e108bd06c332105179e854351fdc037ba97c0dfb3f37a7c249cb236e96a3c3e5",
+      "treatment/10/a94973320d2b88f981bf1e67cac95739c651e57492d20a33dc6dcedc3294809a",
+      "treatment/11/eb1aa557fbb48c199fe5c4da241703159649777a7ea4a1b9a246d5aab43b77f4",
+      "treatment/12/81244064a7a1a75aa5dc6c078465901a3a6b34026a28c782484473db64d46df4"
+    ]
+  },
+  "measurements": {
+    "arms_completed": 12,
+    "control_mean": 7,
+    "delta_alliances_broken": -2.1667,
+    "delta_battle_losses": -16.6883,
+    "delta_battles": -5.6667,
+    "delta_civs_fallen": 0,
+    "delta_conquests": -2.3333,
+    "delta_largest_share": -0.0274,
+    "delta_mean_stability": 2.7917,
+    "delta_occupations": -4.3333,
+    "delta_pacts_broken": -3.3333,
+    "delta_peace_fraction": 0.3375,
+    "delta_peace_treaties": -4.5,
+    "delta_province_hhi": -0.006,
+    "delta_revolts": 0,
+    "delta_surviving_civs": 0,
+    "delta_total_population": 55.7433,
+    "delta_treaties_signed": -2.5,
+    "delta_unowned_provinces": 2.3333,
+    "delta_wars_declared": -4,
+    "determinism_check": 1,
+    "mean_paired_delta": -4,
+    "seeds": 6,
+    "seeds_expected_direction": 6,
+    "seeds_opposite": 0,
+    "seeds_unchanged": 0,
+    "simulated_turns": 480,
+    "treatment_mean": 3
+  },
+  "series": {
+    "control_primary": [
+      6,
+      10,
+      6,
+      7,
+      5,
+      8
+    ],
+    "treatment_primary": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 6,
+      "mean": 7,
+      "median": 6.5,
+      "min": 5,
+      "max": 10,
+      "stdev": 1.788854382,
+      "variance": 3.2,
+      "note": "n=6 < 10: descriptive only, too small for inference"
+    },
+    "treatment_primary": {
+      "n": 6,
+      "mean": 3,
+      "median": 3,
+      "min": 3,
+      "max": 3,
+      "stdev": 0,
+      "variance": 0,
+      "note": "n=6 < 10: descriptive only, too small for inference"
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "arms_completed",
+        "op": ">=",
+        "value": 12,
+        "observed": 12,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -50,
+        "observed": -4,
+        "holds": false
+      },
+      {
+        "id": "S2",
+        "metric": "seeds_expected_direction",
+        "op": ">=",
+        "value": 4,
+        "observed": 6,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "mean_paired_delta",
+        "op": ">=",
+        "value": 0,
+        "observed": -4,
+        "holds": false
+      }
+    ],
+    "summary": "Success criteria not all met (S1) and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the Noeterra civilization simulator; the scenario is illustrative and no historical observation was made.",
+    "Independent re-simulation reproduced every state hash: 234f808497a899f72c1cb6a3a7e9e5b2ec2033dd082d473cc8b3911c7a07c9c7"
+  ],
+  "interpretation": {
+    "deterministic": "Success criteria not all met (S1) and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "Noeterra is an illustrative model: its economy, warfare and diplomacy are invented rules, not estimates of how past societies worked.",
+    "Scenario figures are game values; the polities and rulers follow the standard record only as a setting.",
+    "A result characterizes the simulator and its agents' policy, not history, and is never empirical evidence.",
+    "Agents are the deterministic rule-based policy; model-driven agents are not admitted as experiments.",
+    "Native and WebAssembly builds of this engine version reproduce identical state hashes; other versions are refused.",
+    "Seeds are replicates of one model, not samples of historical societies.",
+    "Matched seeds of one illustrative model; descriptive statistics only."
+  ],
+  "artifacts": [
+    {
+      "name": "civilization-record.json",
+      "sha256": "108ec3ba224c9d431a563a3dd22ff98ba0b4430ca67f9e833a21cf7cb8059f72",
+      "bytes": 25473,
+      "kind": "civilization-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "a85eac34f24bd9c10d329184d539183952a7a040d35bcdeb16a5f537125ebf4a",
+    "producer": {
+      "producer": "R.A.I.N.CivilizationHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "5728f5c47b5df887710f884e97f409fefe11e32d",
+      "civilization_record_sha256": "c8d499d029ceb787907feeb9906f96f53b8215d9951bc13c5867c6e592ac7911",
+      "civilization_run_id": "CR-1d83e75dd05af0eb6325921e",
+      "engine": "noeterra 0.1.0 sim/2"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "5728f5c47b5df887710f884e97f409fefe11e32d",
+        "branch": "chore/health-pass",
+        "dirty": true,
+        "changed_paths": 2,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "24.19.0",
+        "os": "win32",
+        "os_release": "10.0.26200",
+        "machine": "arm64",
+        "cpu_count": 8
+      }
+    },
+    "recorded_at": "2026-10-13T11:47:32.780Z"
+  }
+}

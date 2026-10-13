@@ -1,0 +1,12 @@
+{
+  "label": "scripted: an implausible threshold on fresh seeds, to show a non-passing result is kept",
+  "outcome": "inconclusive (insufficient_evidence)",
+  "generation": "scripted",
+  "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+  "mean_paired_delta": -4,
+  "metric": "wars_declared",
+  "replay_sha256": "234f808497a899f72c1cb6a3a7e9e5b2ec2033dd082d473cc8b3911c7a07c9c7",
+  "engine_wasm_sha256": "b84ed02831c0325335a433d113afb04894c807f75b838c6e0d399e8b28250645",
+  "commit": "5728f5c47b5df887710f884e97f409fefe11e32d",
+  "dirty": false
+}

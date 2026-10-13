@@ -1,0 +1,1442 @@
+{
+  "schema": "rain-civilization-record/v1",
+  "run_id": "CR-1d83e75dd05af0eb6325921e",
+  "plan": {
+    "schema": "rain-civilization-plan/v1",
+    "design": {
+      "schema": "rain-civilization-design/v1",
+      "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+      "hypothesis": "[scripted] Withholding agents' memory of how others treated them reduces the number of wars declared.",
+      "competing_hypothesis": "[scripted] Memory does not change how often the simulated powers go to war.",
+      "parameters": {
+        "scenario": "mediterranean-264bc",
+        "seeds": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "turns": 40,
+        "treatment": {
+          "kind": "withhold_memory"
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_paired_delta",
+        "metric": "wars_declared",
+        "expected_direction": "decrease",
+        "minimum_effect": 50,
+        "minimum_consistent_seeds": 4
+      },
+      "budget": {
+        "max_simulated_turns": 480
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "civilization-simulation",
+      "backend": "civilization",
+      "backend_version": "noeterra-civilization/v1 (noeterra 0.1.0 sim/2)",
+      "question": "In the Noeterra simulation of mediterranean-264bc, how does withholding every agent's memory of how others have treated it change wars declared over the horizon over 40 seasons, against matched-seed controls?",
+      "hypothesis": "Withholding every agent's memory of how others have treated it will decrease wars_declared by at least 50 count on average over matched seeds, in the expected direction in at least 4 of 6 seeds.",
+      "observables": [
+        {
+          "id": "wars_declared",
+          "unit": "count",
+          "description": "wars declared over the horizon"
+        },
+        {
+          "id": "pacts_broken",
+          "unit": "count",
+          "description": "wars declared in breach of a non-aggression pact"
+        },
+        {
+          "id": "peace_treaties",
+          "unit": "count",
+          "description": "peace settlements concluded"
+        },
+        {
+          "id": "battles",
+          "unit": "count",
+          "description": "battles fought"
+        },
+        {
+          "id": "battle_losses",
+          "unit": "thousand soldiers",
+          "description": "soldiers lost or scattered in battle"
+        },
+        {
+          "id": "occupations",
+          "unit": "count",
+          "description": "provinces occupied by an enemy"
+        },
+        {
+          "id": "conquests",
+          "unit": "count",
+          "description": "unclaimed or rebel provinces annexed"
+        },
+        {
+          "id": "revolts",
+          "unit": "count",
+          "description": "provinces lost to revolt"
+        },
+        {
+          "id": "treaties_signed",
+          "unit": "count",
+          "description": "alliances, pacts and trade agreements concluded"
+        },
+        {
+          "id": "alliances_broken",
+          "unit": "count",
+          "description": "alliances broken by a refused call to arms"
+        },
+        {
+          "id": "civs_fallen",
+          "unit": "count",
+          "description": "civilizations that lost every province"
+        },
+        {
+          "id": "surviving_civs",
+          "unit": "count",
+          "description": "civilizations alive at the end"
+        },
+        {
+          "id": "province_hhi",
+          "unit": "index 0..1",
+          "description": "Herfindahl index of province shares among surviving civilizations"
+        },
+        {
+          "id": "largest_share",
+          "unit": "fraction",
+          "description": "share of owned provinces held by the largest civilization"
+        },
+        {
+          "id": "peace_fraction",
+          "unit": "fraction",
+          "description": "fraction of turns that ended with no war in progress"
+        },
+        {
+          "id": "mean_stability",
+          "unit": "points 0..100",
+          "description": "mean stability of surviving civilizations at the end"
+        },
+        {
+          "id": "total_population",
+          "unit": "thousand people",
+          "description": "population of all provinces at the end"
+        },
+        {
+          "id": "unowned_provinces",
+          "unit": "count",
+          "description": "provinces held by no civilization at the end"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "count",
+          "description": "treatment minus control wars_declared, averaged over seeds"
+        }
+      ],
+      "independent_variables": [
+        "withholding every agent's memory of how others have treated it"
+      ],
+      "dependent_variables": [
+        "wars_declared"
+      ],
+      "controls": [
+        "matched seeds: each seed runs once with and once without the treatment",
+        "identical scenario, horizon and rule-based agents in both arms",
+        "the engine version is bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "closed treatment vocabulary validated by the engine before execution",
+        "rule-based agents only, so every run re-simulates exactly",
+        "at most 12800 simulated seasons per experiment",
+        "3-32 distinct seeds; the effect must appear in at least half of them"
+      ],
+      "resource_budget": {
+        "execution_steps": 480,
+        "replay_steps": 480,
+        "max_samples": 12
+      },
+      "statistical_analysis": {
+        "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+        "independent_replicates": 6,
+        "uncertainty": "Seeds are independent replicates of one illustrative model; descriptive only, no p-value or population inference, and nothing about the historical world."
+      },
+      "falsification": {
+        "metric": "mean_paired_delta",
+        "op": ">=",
+        "value": 0,
+        "unit": "count"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "Noeterra is an illustrative model: its economy, warfare and diplomacy are invented rules, not estimates of how past societies worked.",
+        "Scenario figures are game values; the polities and rulers follow the standard record only as a setting.",
+        "A result characterizes the simulator and its agents' policy, not history, and is never empirical evidence.",
+        "Agents are the deterministic rule-based policy; model-driven agents are not admitted as experiments.",
+        "Native and WebAssembly builds of this engine version reproduce identical state hashes; other versions are refused."
+      ]
+    },
+    "engine": "noeterra 0.1.0 sim/2",
+    "noeterra_plan": {
+      "schema": "noeterra-experiment/v1",
+      "scenario": {
+        "kind": "builtin",
+        "id": "mediterranean-264bc"
+      },
+      "turns": 40,
+      "seeds": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "arms": [
+        {
+          "id": "control",
+          "policy": "rules",
+          "interventions": []
+        },
+        {
+          "id": "treatment",
+          "policy": "amnesic",
+          "interventions": []
+        }
+      ]
+    },
+    "noeterra_plan_sha256": "60f36076523ff70a47a260f13688d118b1d5fa42b200a7ce281acc0790a7ace8",
+    "scenario_sha256": "0e27def60040f7c45bab9e8c1b2aae07850882b02fcec5ffeef306c08914a52c",
+    "simulated_turns": 480,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "arms_completed",
+          "op": ">=",
+          "value": 12,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -50,
+          "note": "Preregistered effect threshold"
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "op": ">=",
+          "value": 4,
+          "note": "Effect appears in enough seeds"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0,
+          "note": "No effect or the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19",
+    "experiment_id": "CV-42f24afb3263a942d293016d"
+  },
+  "authorization": {
+    "schema": "rain-civilization-authorization/v1",
+    "experiment_id": "CV-42f24afb3263a942d293016d",
+    "definition_sha256": "42f24afb3263a942d293016d922cacea3bafdbfd4828635249409c5997c3ca19",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "local-operator",
+    "identity_verified": false,
+    "scope": "civilization-simulation",
+    "confirmed_prefix": "42f24afb",
+    "authorized_at": "2026-10-13T11:47:27.784Z",
+    "expires_at": "2026-10-13T12:47:27.784Z",
+    "authorization_sha256": "0df4aedda047ebde29b37eacc60272e2b2cb855bbe3891b993ce8819443fda11"
+  },
+  "started_at": "2026-10-13T11:47:27.784Z",
+  "finished_at": "2026-10-13T11:47:29.568Z",
+  "result": {
+    "experiment": {
+      "engine": "noeterra 0.1.0 sim/2",
+      "evidence_class": "simulated",
+      "paired": [
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 6,
+          "increased": 0,
+          "mean_delta": -4,
+          "metric": "wars_declared",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 6,
+          "increased": 0,
+          "mean_delta": -3.3333,
+          "metric": "pacts_broken",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 6,
+          "increased": 0,
+          "mean_delta": -4.5,
+          "metric": "peace_treaties",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 5,
+          "increased": 1,
+          "mean_delta": -5.6667,
+          "metric": "battles",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 5,
+          "increased": 1,
+          "mean_delta": -16.6883,
+          "metric": "battle_losses",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 5,
+          "increased": 0,
+          "mean_delta": -4.3333,
+          "metric": "occupations",
+          "unchanged": 1
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 5,
+          "increased": 0,
+          "mean_delta": -2.3333,
+          "metric": "conquests",
+          "unchanged": 1
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 0,
+          "mean_delta": 0,
+          "metric": "revolts",
+          "unchanged": 6
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 4,
+          "increased": 2,
+          "mean_delta": -2.5,
+          "metric": "treaties_signed",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 5,
+          "increased": 0,
+          "mean_delta": -2.1667,
+          "metric": "alliances_broken",
+          "unchanged": 1
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 0,
+          "mean_delta": 0,
+          "metric": "civs_fallen",
+          "unchanged": 6
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 0,
+          "mean_delta": 0,
+          "metric": "surviving_civs",
+          "unchanged": 6
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 3,
+          "increased": 2,
+          "mean_delta": -0.006,
+          "metric": "province_hhi",
+          "unchanged": 1
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 3,
+          "increased": 2,
+          "mean_delta": -0.0274,
+          "metric": "largest_share",
+          "unchanged": 1
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 6,
+          "mean_delta": 0.3375,
+          "metric": "peace_fraction",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 6,
+          "mean_delta": 2.7917,
+          "metric": "mean_stability",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 6,
+          "mean_delta": 55.7433,
+          "metric": "total_population",
+          "unchanged": 0
+        },
+        {
+          "arm": "treatment",
+          "baseline": "control",
+          "decreased": 0,
+          "increased": 5,
+          "mean_delta": 2.3333,
+          "metric": "unowned_provinces",
+          "unchanged": 1
+        }
+      ],
+      "plan_sha256": "60f36076523ff70a47a260f13688d118b1d5fa42b200a7ce281acc0790a7ace8",
+      "runs": [
+        {
+          "arm": "control",
+          "final_hash": "8f17defe7d4748775bab558624bba4a9c88c70f6912134abe0ea75dcd1eb3323",
+          "initial_hash": "d93e26cab4c1b2472a57efc51055bfff552368ac84a5dee0be82afc3da1be28c",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 1,
+            "battle_losses": 52.76,
+            "battles": 12,
+            "civs_fallen": 0,
+            "conquests": 15,
+            "largest_share": 0.1754,
+            "mean_stability": 49.82,
+            "occupations": 17,
+            "pacts_broken": 3,
+            "peace_fraction": 0.4,
+            "peace_treaties": 7,
+            "province_hhi": 0.132,
+            "provinces.carthage": 9,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 6,
+            "provinces.macedon": 7,
+            "provinces.numidia": 3,
+            "provinces.rome": 10,
+            "provinces.seleucid": 6,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16083.32,
+            "treaties_signed": 23,
+            "unowned_provinces": 6,
+            "wars_declared": 6
+          },
+          "seed": 7
+        },
+        {
+          "arm": "control",
+          "final_hash": "10159a15d6ba16e5e3db1ea79cdb24b7f4ed105c8760bd5fc195b763a4f1fb10",
+          "initial_hash": "0aa4abf2dfb149e5ee7661f96fb710a418579b09bb466468d646a7823276fd36",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 1,
+            "battle_losses": 84.15,
+            "battles": 14,
+            "civs_fallen": 0,
+            "conquests": 15,
+            "largest_share": 0.2456,
+            "mean_stability": 43.5,
+            "occupations": 18,
+            "pacts_broken": 7,
+            "peace_fraction": 0.225,
+            "peace_treaties": 10,
+            "province_hhi": 0.1616,
+            "provinces.carthage": 10,
+            "provinces.egypt": 7,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 6,
+            "provinces.numidia": 2,
+            "provinces.rome": 14,
+            "provinces.seleucid": 11,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16027.99,
+            "treaties_signed": 14,
+            "unowned_provinces": 6,
+            "wars_declared": 10
+          },
+          "seed": 8
+        },
+        {
+          "arm": "control",
+          "final_hash": "2a9e406db0dfb3298c51f82d540dc86fe632a8089776a7acea0353d454da4cc5",
+          "initial_hash": "2dd7ad5f8bda0a6d18d863b74eb8a1c5cc540a20ee27dbf8553ae8026ea9bd4b",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 1,
+            "battle_losses": 57.33,
+            "battles": 18,
+            "civs_fallen": 0,
+            "conquests": 13,
+            "largest_share": 0.2364,
+            "mean_stability": 46.55,
+            "occupations": 10,
+            "pacts_broken": 1,
+            "peace_fraction": 0.2,
+            "peace_treaties": 6,
+            "province_hhi": 0.1537,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 5,
+            "provinces.numidia": 4,
+            "provinces.rome": 13,
+            "provinces.seleucid": 6,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16092.97,
+            "treaties_signed": 19,
+            "unowned_provinces": 8,
+            "wars_declared": 6
+          },
+          "seed": 9
+        },
+        {
+          "arm": "control",
+          "final_hash": "924f8441b0bc45748d702539f1acd894307c551a18658fb911564776224034ad",
+          "initial_hash": "95db482773d7f957245f5ce081b26df91242e8eb4320ec7a558c894329a6f0d8",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 3,
+            "battle_losses": 93.16,
+            "battles": 14,
+            "civs_fallen": 0,
+            "conquests": 8,
+            "largest_share": 0.2,
+            "mean_stability": 46.13,
+            "occupations": 13,
+            "pacts_broken": 2,
+            "peace_fraction": 0.325,
+            "peace_treaties": 10,
+            "province_hhi": 0.1544,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 3,
+            "provinces.numidia": 3,
+            "provinces.rome": 10,
+            "provinces.seleucid": 7,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16081.99,
+            "treaties_signed": 18,
+            "unowned_provinces": 13,
+            "wars_declared": 7
+          },
+          "seed": 10
+        },
+        {
+          "arm": "control",
+          "final_hash": "40345772ba8fba8e18003debd4d6ccf66da5b12aa7a6439182763467078c4284",
+          "initial_hash": "cf92d715dc2f8442b44cf3ad9c2feb71cd641d3e9d8dd03129516aab27d36c1d",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 1,
+            "battle_losses": 25.33,
+            "battles": 8,
+            "civs_fallen": 0,
+            "conquests": 16,
+            "largest_share": 0.2586,
+            "mean_stability": 47.57,
+            "occupations": 8,
+            "pacts_broken": 3,
+            "peace_fraction": 0.4,
+            "peace_treaties": 6,
+            "province_hhi": 0.1629,
+            "provinces.carthage": 10,
+            "provinces.egypt": 11,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 5,
+            "provinces.numidia": 3,
+            "provinces.rome": 15,
+            "provinces.seleucid": 7,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16342.47,
+            "treaties_signed": 12,
+            "unowned_provinces": 5,
+            "wars_declared": 5
+          },
+          "seed": 11
+        },
+        {
+          "arm": "control",
+          "final_hash": "6228e025ba3dbe26aa2635351364de7abd244796d4a5efff26ecccee6f47bbfd",
+          "initial_hash": "bc2ba61e81af113f5375edeaf943dcd6b7698c61d4a1d5507b5815110fbcec0d",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 7,
+            "battle_losses": 42.23,
+            "battles": 16,
+            "civs_fallen": 0,
+            "conquests": 10,
+            "largest_share": 0.1923,
+            "mean_stability": 46.92,
+            "occupations": 10,
+            "pacts_broken": 4,
+            "peace_fraction": 0.2,
+            "peace_treaties": 10,
+            "province_hhi": 0.1464,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 2,
+            "provinces.macedon": 5,
+            "provinces.numidia": 2,
+            "provinces.rome": 9,
+            "provinces.seleucid": 8,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16269.01,
+            "treaties_signed": 15,
+            "unowned_provinces": 11,
+            "wars_declared": 8
+          },
+          "seed": 12
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "2dbcb7e9dbcaf13e6559de2767eedf71c45dab0afed7d2f0fc5642389be9e697",
+          "initial_hash": "d93e26cab4c1b2472a57efc51055bfff552368ac84a5dee0be82afc3da1be28c",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 0,
+            "battle_losses": 30.02,
+            "battles": 6,
+            "civs_fallen": 0,
+            "conquests": 13,
+            "largest_share": 0.1818,
+            "mean_stability": 52.19,
+            "occupations": 7,
+            "pacts_broken": 0,
+            "peace_fraction": 0.75,
+            "peace_treaties": 3,
+            "province_hhi": 0.1339,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 6,
+            "provinces.macedon": 5,
+            "provinces.numidia": 3,
+            "provinces.rome": 9,
+            "provinces.seleucid": 6,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16214.96,
+            "treaties_signed": 13,
+            "unowned_provinces": 8,
+            "wars_declared": 3
+          },
+          "seed": 7
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "df0fbf5f21c33a2d04a518b141da772b7d4556f17cb66ca560865d02988fbdcc",
+          "initial_hash": "0aa4abf2dfb149e5ee7661f96fb710a418579b09bb466468d646a7823276fd36",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 0,
+            "battle_losses": 55.26,
+            "battles": 9,
+            "civs_fallen": 0,
+            "conquests": 11,
+            "largest_share": 0.1887,
+            "mean_stability": 47.61,
+            "occupations": 11,
+            "pacts_broken": 0,
+            "peace_fraction": 0.6,
+            "peace_treaties": 3,
+            "province_hhi": 0.1449,
+            "provinces.carthage": 10,
+            "provinces.egypt": 8,
+            "provinces.epirus": 3,
+            "provinces.gauls": 2,
+            "provinces.macedon": 6,
+            "provinces.numidia": 2,
+            "provinces.rome": 9,
+            "provinces.seleucid": 10,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16041.73,
+            "treaties_signed": 16,
+            "unowned_provinces": 10,
+            "wars_declared": 3
+          },
+          "seed": 8
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "e108bd06c332105179e854351fdc037ba97c0dfb3f37a7c249cb236e96a3c3e5",
+          "initial_hash": "2dd7ad5f8bda0a6d18d863b74eb8a1c5cc540a20ee27dbf8553ae8026ea9bd4b",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 1,
+            "battle_losses": 26.67,
+            "battles": 7,
+            "civs_fallen": 0,
+            "conquests": 10,
+            "largest_share": 0.1923,
+            "mean_stability": 49.86,
+            "occupations": 6,
+            "pacts_broken": 0,
+            "peace_fraction": 0.625,
+            "peace_treaties": 3,
+            "province_hhi": 0.1464,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 5,
+            "provinces.numidia": 4,
+            "provinces.rome": 10,
+            "provinces.seleucid": 6,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16186.35,
+            "treaties_signed": 14,
+            "unowned_provinces": 11,
+            "wars_declared": 3
+          },
+          "seed": 9
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "a94973320d2b88f981bf1e67cac95739c651e57492d20a33dc6dcedc3294809a",
+          "initial_hash": "95db482773d7f957245f5ce081b26df91242e8eb4320ec7a558c894329a6f0d8",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 0,
+            "battle_losses": 90.94,
+            "battles": 13,
+            "civs_fallen": 0,
+            "conquests": 8,
+            "largest_share": 0.2,
+            "mean_stability": 47.75,
+            "occupations": 11,
+            "pacts_broken": 0,
+            "peace_fraction": 0.575,
+            "peace_treaties": 6,
+            "province_hhi": 0.1544,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 3,
+            "provinces.numidia": 3,
+            "provinces.rome": 10,
+            "provinces.seleucid": 7,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16086.72,
+            "treaties_signed": 14,
+            "unowned_provinces": 13,
+            "wars_declared": 3
+          },
+          "seed": 10
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "eb1aa557fbb48c199fe5c4da241703159649777a7ea4a1b9a246d5aab43b77f4",
+          "initial_hash": "cf92d715dc2f8442b44cf3ad9c2feb71cd641d3e9d8dd03129516aab27d36c1d",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 0,
+            "battle_losses": 31.2,
+            "battles": 9,
+            "civs_fallen": 0,
+            "conquests": 12,
+            "largest_share": 0.1852,
+            "mean_stability": 50.02,
+            "occupations": 8,
+            "pacts_broken": 0,
+            "peace_fraction": 0.725,
+            "peace_treaties": 3,
+            "province_hhi": 0.1488,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 1,
+            "provinces.macedon": 5,
+            "provinces.numidia": 3,
+            "provinces.rome": 10,
+            "provinces.seleucid": 9,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16381.42,
+            "treaties_signed": 15,
+            "unowned_provinces": 9,
+            "wars_declared": 3
+          },
+          "seed": 11
+        },
+        {
+          "arm": "treatment",
+          "final_hash": "81244064a7a1a75aa5dc6c078465901a3a6b34026a28c782484473db64d46df4",
+          "initial_hash": "bc2ba61e81af113f5375edeaf943dcd6b7698c61d4a1d5507b5815110fbcec0d",
+          "metrics": {
+            "alive.carthage": 1,
+            "alive.egypt": 1,
+            "alive.epirus": 1,
+            "alive.gauls": 1,
+            "alive.macedon": 1,
+            "alive.numidia": 1,
+            "alive.rome": 1,
+            "alive.seleucid": 1,
+            "alive.syracuse": 1,
+            "alliances_broken": 0,
+            "battle_losses": 20.74,
+            "battles": 4,
+            "civs_fallen": 0,
+            "conquests": 9,
+            "largest_share": 0.1961,
+            "mean_stability": 49.81,
+            "occupations": 7,
+            "pacts_broken": 0,
+            "peace_fraction": 0.5,
+            "peace_treaties": 4,
+            "province_hhi": 0.1465,
+            "provinces.carthage": 10,
+            "provinces.egypt": 10,
+            "provinces.epirus": 3,
+            "provinces.gauls": 2,
+            "provinces.macedon": 5,
+            "provinces.numidia": 2,
+            "provinces.rome": 9,
+            "provinces.seleucid": 7,
+            "provinces.syracuse": 3,
+            "revolts": 0,
+            "surviving_civs": 9,
+            "total_population": 16321.03,
+            "treaties_signed": 14,
+            "unowned_provinces": 12,
+            "wars_declared": 3
+          },
+          "seed": 12
+        }
+      ],
+      "scenario_sha256": "0e27def60040f7c45bab9e8c1b2aae07850882b02fcec5ffeef306c08914a52c",
+      "schema": "noeterra-experiment-result/v1",
+      "summary": {
+        "control": {
+          "alive.carthage": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.egypt": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.epirus": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.gauls": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.macedon": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.numidia": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.rome": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.seleucid": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.syracuse": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alliances_broken": {
+            "max": 7,
+            "mean": 2.3333,
+            "min": 1
+          },
+          "battle_losses": {
+            "max": 93.16,
+            "mean": 59.16,
+            "min": 25.33
+          },
+          "battles": {
+            "max": 18,
+            "mean": 13.6667,
+            "min": 8
+          },
+          "civs_fallen": {
+            "max": 0,
+            "mean": 0,
+            "min": 0
+          },
+          "conquests": {
+            "max": 16,
+            "mean": 12.8333,
+            "min": 8
+          },
+          "largest_share": {
+            "max": 0.2586,
+            "mean": 0.218,
+            "min": 0.1754
+          },
+          "mean_stability": {
+            "max": 49.82,
+            "mean": 46.7483,
+            "min": 43.5
+          },
+          "occupations": {
+            "max": 18,
+            "mean": 12.6667,
+            "min": 8
+          },
+          "pacts_broken": {
+            "max": 7,
+            "mean": 3.3333,
+            "min": 1
+          },
+          "peace_fraction": {
+            "max": 0.4,
+            "mean": 0.2917,
+            "min": 0.2
+          },
+          "peace_treaties": {
+            "max": 10,
+            "mean": 8.1667,
+            "min": 6
+          },
+          "province_hhi": {
+            "max": 0.1629,
+            "mean": 0.1518,
+            "min": 0.132
+          },
+          "provinces.carthage": {
+            "max": 10,
+            "mean": 9.8333,
+            "min": 9
+          },
+          "provinces.egypt": {
+            "max": 11,
+            "mean": 9.6667,
+            "min": 7
+          },
+          "provinces.epirus": {
+            "max": 3,
+            "mean": 3,
+            "min": 3
+          },
+          "provinces.gauls": {
+            "max": 6,
+            "mean": 2,
+            "min": 1
+          },
+          "provinces.macedon": {
+            "max": 7,
+            "mean": 5.1667,
+            "min": 3
+          },
+          "provinces.numidia": {
+            "max": 4,
+            "mean": 2.8333,
+            "min": 2
+          },
+          "provinces.rome": {
+            "max": 15,
+            "mean": 11.8333,
+            "min": 9
+          },
+          "provinces.seleucid": {
+            "max": 11,
+            "mean": 7.5,
+            "min": 6
+          },
+          "provinces.syracuse": {
+            "max": 3,
+            "mean": 3,
+            "min": 3
+          },
+          "revolts": {
+            "max": 0,
+            "mean": 0,
+            "min": 0
+          },
+          "surviving_civs": {
+            "max": 9,
+            "mean": 9,
+            "min": 9
+          },
+          "total_population": {
+            "max": 16342.47,
+            "mean": 16149.625,
+            "min": 16027.99
+          },
+          "treaties_signed": {
+            "max": 23,
+            "mean": 16.8333,
+            "min": 12
+          },
+          "unowned_provinces": {
+            "max": 13,
+            "mean": 8.1667,
+            "min": 5
+          },
+          "wars_declared": {
+            "max": 10,
+            "mean": 7,
+            "min": 5
+          }
+        },
+        "treatment": {
+          "alive.carthage": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.egypt": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.epirus": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.gauls": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.macedon": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.numidia": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.rome": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.seleucid": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alive.syracuse": {
+            "max": 1,
+            "mean": 1,
+            "min": 1
+          },
+          "alliances_broken": {
+            "max": 1,
+            "mean": 0.1667,
+            "min": 0
+          },
+          "battle_losses": {
+            "max": 90.94,
+            "mean": 42.4717,
+            "min": 20.74
+          },
+          "battles": {
+            "max": 13,
+            "mean": 8,
+            "min": 4
+          },
+          "civs_fallen": {
+            "max": 0,
+            "mean": 0,
+            "min": 0
+          },
+          "conquests": {
+            "max": 13,
+            "mean": 10.5,
+            "min": 8
+          },
+          "largest_share": {
+            "max": 0.2,
+            "mean": 0.1907,
+            "min": 0.1818
+          },
+          "mean_stability": {
+            "max": 52.19,
+            "mean": 49.54,
+            "min": 47.61
+          },
+          "occupations": {
+            "max": 11,
+            "mean": 8.3333,
+            "min": 6
+          },
+          "pacts_broken": {
+            "max": 0,
+            "mean": 0,
+            "min": 0
+          },
+          "peace_fraction": {
+            "max": 0.75,
+            "mean": 0.6292,
+            "min": 0.5
+          },
+          "peace_treaties": {
+            "max": 6,
+            "mean": 3.6667,
+            "min": 3
+          },
+          "province_hhi": {
+            "max": 0.1544,
+            "mean": 0.1458,
+            "min": 0.1339
+          },
+          "provinces.carthage": {
+            "max": 10,
+            "mean": 10,
+            "min": 10
+          },
+          "provinces.egypt": {
+            "max": 10,
+            "mean": 9.6667,
+            "min": 8
+          },
+          "provinces.epirus": {
+            "max": 3,
+            "mean": 3,
+            "min": 3
+          },
+          "provinces.gauls": {
+            "max": 6,
+            "mean": 2.1667,
+            "min": 1
+          },
+          "provinces.macedon": {
+            "max": 6,
+            "mean": 4.8333,
+            "min": 3
+          },
+          "provinces.numidia": {
+            "max": 4,
+            "mean": 2.8333,
+            "min": 2
+          },
+          "provinces.rome": {
+            "max": 10,
+            "mean": 9.5,
+            "min": 9
+          },
+          "provinces.seleucid": {
+            "max": 10,
+            "mean": 7.5,
+            "min": 6
+          },
+          "provinces.syracuse": {
+            "max": 3,
+            "mean": 3,
+            "min": 3
+          },
+          "revolts": {
+            "max": 0,
+            "mean": 0,
+            "min": 0
+          },
+          "surviving_civs": {
+            "max": 9,
+            "mean": 9,
+            "min": 9
+          },
+          "total_population": {
+            "max": 16381.42,
+            "mean": 16205.3683,
+            "min": 16041.73
+          },
+          "treaties_signed": {
+            "max": 16,
+            "mean": 14.3333,
+            "min": 13
+          },
+          "unowned_provinces": {
+            "max": 13,
+            "mean": 10.5,
+            "min": 8
+          },
+          "wars_declared": {
+            "max": 3,
+            "mean": 3,
+            "min": 3
+          }
+        }
+      }
+    },
+    "completed": true,
+    "measurements": {
+      "arms_completed": 12,
+      "determinism_check": 1,
+      "seeds": 6,
+      "simulated_turns": 480,
+      "control_mean": 7,
+      "treatment_mean": 3,
+      "mean_paired_delta": -4,
+      "seeds_expected_direction": 6,
+      "seeds_opposite": 0,
+      "seeds_unchanged": 0,
+      "delta_wars_declared": -4,
+      "delta_pacts_broken": -3.3333,
+      "delta_peace_treaties": -4.5,
+      "delta_battles": -5.6667,
+      "delta_battle_losses": -16.6883,
+      "delta_occupations": -4.3333,
+      "delta_conquests": -2.3333,
+      "delta_revolts": 0,
+      "delta_treaties_signed": -2.5,
+      "delta_alliances_broken": -2.1667,
+      "delta_civs_fallen": 0,
+      "delta_surviving_civs": 0,
+      "delta_province_hhi": -0.006,
+      "delta_largest_share": -0.0274,
+      "delta_peace_fraction": 0.3375,
+      "delta_mean_stability": 2.7917,
+      "delta_total_population": 55.7433,
+      "delta_unowned_provinces": 2.3333
+    },
+    "status": "inconclusive",
+    "verdict": "insufficient_evidence",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "arms_completed",
+          "op": ">=",
+          "value": 12,
+          "observed": 12,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -50,
+          "observed": -4,
+          "holds": false
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "op": ">=",
+          "value": 4,
+          "observed": 6,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0,
+          "observed": -4,
+          "holds": false
+        }
+      ],
+      "summary": "Success criteria not all met (S1) and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "c8d499d029ceb787907feeb9906f96f53b8215d9951bc13c5867c6e592ac7911"
+}

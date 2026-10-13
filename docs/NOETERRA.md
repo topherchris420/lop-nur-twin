@@ -362,21 +362,26 @@ record, and fails if no record re-simulates at all.
 
 ### First results (simulated)
 
-On the built-in scenario, 40 seasons, six matched seeds, rule-based agents:
+On the built-in scenario, 40 seasons, six matched seeds, rule-based agents, on
+the current engine (sim/2):
 
 - **Withholding memory reduced wars declared** from a mean of 6.50 to 2.83 per
   history (paired difference −3.67; fewer wars in all six seeds). Remembered
   grievances and broken pacts feed cycles of retaliation in this model. The lab
-  passed the preregistered hypothesis (`CV-11b7adb7…`). Battles fell too (mean
-  paired change −7.67), but battles was a secondary observation, not a
+  passed the preregistered hypothesis (`CV-e39cbe63…`). Battles fell too (mean
+  paired change −7.50), but battles was a secondary observation, not a
   preregistered test.
-- **The same data against an implausible threshold** (a fall of 50 wars) was
-  judged insufficient evidence, not a pass, and was kept (`CV-bb09bfed…`). The
-  host now refuses a new threshold on seeds already run, so the demo re-tests
-  that threshold on fresh seeds instead.
+- **Six fresh seeds against an implausible threshold** (a fall of 50 wars) were
+  judged insufficient evidence, not a pass, and kept (`CV-42f24afb…`). The
+  effect itself replicated: 7.00 to 3.00 wars, fewer in all six.
 - **Lowering Rome's aggression to 0.1** appeared to reduce wars declared (by 2.17
   on average) in an exploratory run that was neither preregistered nor archived.
   It is a lead to test through the lab, not a result.
+
+The first engine (sim/1) let an occupation outlive its war. Its two records stay
+in the archive, which `--verify` reports as made by another engine: the same
+memory result (`CV-11b7adb7…`, −3.67), and the same data against the implausible
+threshold (`CV-bb09bfed…`), a re-test on spent seeds the host now refuses.
 
 These describe the simulator's agents and rules, not ancient states.
 
