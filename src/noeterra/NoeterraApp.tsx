@@ -113,6 +113,7 @@ export function NoeterraApp({ scenario, play, seed }: NoeterraAppProps) {
         cards={cards}
         engineVersion={engine.version}
         initialScenario={scenario}
+        initialSeed={seed}
         onBegin={(id, civ, s) => begin(engine, cards, id, civ, s)}
       />
     );
