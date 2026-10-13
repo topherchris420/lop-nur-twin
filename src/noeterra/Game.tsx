@@ -917,6 +917,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           className={cn(
             glass,
             "absolute bottom-20 left-1/2 z-20 w-[420px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 p-3",
+            // Below xl the card reaches under the nation panel: it sits above
+            // the panel's "Issue orders" footer rather than over it.
+            rightOpen && you !== null && "max-xl:bottom-44",
           )}
         >
           <div className="flex items-start justify-between">
