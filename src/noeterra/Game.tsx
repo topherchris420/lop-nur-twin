@@ -196,7 +196,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
   const [letters, setLetters] = useState<{ to: number; text: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(notice ?? null);
+  const [toast, setToast] = useState<string | null>(null);
   const [focusCiv, setFocusCiv] = useState<number | null>(you);
   const [reveal, setRevealRaw] = useState(you === null);
   // A player looks at other nations through the research view; leaving it
@@ -231,6 +231,12 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
     const t = setTimeout(() => setToast(null), 6000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // The opening notice goes into the live region once the page has drawn it.
+  const ready = state !== null && geometry !== null;
+  useEffect(() => {
+    if (ready && notice) setToast(notice);
+  }, [ready, notice]);
 
   const human = state?.humans.find((h) => h.civ === you) ?? null;
   // A fallen player watches on: the notice says so once, and the jump buttons
@@ -1109,17 +1115,17 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         Illustrative simulation of rule-based agents — not historical evidence
       </p>
 
-      {toast && (
-        <div
-          role="status"
-          className={cn(
-            glass,
-            "absolute top-20 left-1/2 z-30 max-w-lg -translate-x-1/2 px-4 py-2 text-sm",
-          )}
-        >
-          {toast}
-        </div>
-      )}
+      {/* One live region that is always there, so a screen reader hears each
+          message: a region that mounts with its text is often skipped. */}
+      <div
+        role="status"
+        className={cn(
+          "absolute top-20 left-1/2 z-30 max-w-lg -translate-x-1/2 text-sm",
+          toast && cn(glass, "px-4 py-2"),
+        )}
+      >
+        {toast}
+      </div>
 
       {fallen && !watching && (
         <div
