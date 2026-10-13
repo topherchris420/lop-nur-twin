@@ -82,6 +82,7 @@
     "rain:scientific:verify": "node scripts/run-ts.mjs scripts/verify-scientific-evidence.ts",
     "noeterra:wasm": "cargo build --manifest-path noeterra/Cargo.toml --release --lib --no-default-features --target wasm32-unknown-unknown",
     "noeterra:test": "cargo test --manifest-path noeterra/Cargo.toml --release",
+    "noeterra:lint": "cargo clippy --manifest-path noeterra/Cargo.toml --all-targets -- -D warnings && cargo clippy --manifest-path noeterra/Cargo.toml --lib --no-default-features -- -D warnings",
     "noeterra:serve": "cargo run --manifest-path noeterra/Cargo.toml --release -- serve",
     "rain:civilization": "node scripts/run-ts.mjs scripts/rain-civilization.ts",
     "rain:civilization:demo": "node scripts/run-ts.mjs scripts/rain-civilization.ts --scripted",

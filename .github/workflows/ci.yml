@@ -347,6 +347,13 @@ jobs:
       - name: Formatting
         run: cargo fmt --manifest-path noeterra/Cargo.toml --check
 
+      # Both feature sets: the WebAssembly build compiles code the native one
+      # skips, and the reverse.
+      - name: Lints
+        run: |
+          cargo clippy --manifest-path noeterra/Cargo.toml --all-targets -- -D warnings
+          cargo clippy --manifest-path noeterra/Cargo.toml --lib --no-default-features -- -D warnings
+
       - name: Tests
         run: cargo test --manifest-path noeterra/Cargo.toml --release
 

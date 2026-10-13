@@ -1139,8 +1139,8 @@ fn upkeep_world(w: &mut World) {
         }
         b
     };
-    for a in 0..n {
-        for b in 0..n {
+    for (a, border_row) in border.iter().enumerate() {
+        for (b, &bordering) in border_row.iter().enumerate() {
             if a == b || !w.civs[a].alive || !w.civs[b].alive {
                 continue;
             }
@@ -1158,7 +1158,7 @@ fn upkeep_world(w: &mut World) {
             if (0..n).any(|e| e != a && e != b && w.at_war(a, e) && w.at_war(b, e)) {
                 d += 1.0;
             }
-            if border[a][b] && !w.treaties.iter().any(|t| t.involves(a, b)) {
+            if bordering && !w.treaties.iter().any(|t| t.involves(a, b)) {
                 d -= 0.4 * w.civs[b].personality.aggression;
             }
             w.opinion[a][b] = clamp(w.opinion[a][b] + d, -100.0, 100.0);
