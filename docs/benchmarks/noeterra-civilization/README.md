@@ -1,8 +1,10 @@
 # Noeterra civilization experiments
 
 Every civilization experiment the R.A.I.N. Lab compiled, ran or refused, written by
-`npm run rain:civilization`. Nothing here is edited by hand, and nothing is left
-out: refusals, failures and inconclusive results stay beside the successes.
+`npm run rain:civilization`. Nothing here is edited by hand: refusals, failures,
+inconclusive results and runs the registry would not admit stay beside the
+successes. Two earlier runs (registry V3D-EXP-0001 and 0002) were overwritten by
+re-runs before commit 5e174c4 stopped that, and are lost; every run since is kept.
 
 All results are **simulated observations of an illustrative model** — the Noeterra
 engine's rule-based agents in an invented economy — and are not evidence about

@@ -137,6 +137,22 @@ export function verifyCivilizationPreregistration(
  * Failed and inconclusive results are admitted like any other: a negative
  * result is a result. The registry decides the verdict.
  */
+/**
+ * What the host's replay showed, in words that hold for this record: a replay that
+ * reaches the same engine failure reproduced no state hash, and one whose engine
+ * failed its own determinism check (G2) proved only that the failure repeats.
+ */
+export function replayObservation(
+  record: CivilizationRecord,
+  replaySha256: string | null,
+): string {
+  if (!record.result.experiment)
+    return `The engine did not complete the experiment, so there was no state hash to reproduce; an independent re-simulation reached the same failure: ${replaySha256}`;
+  if (record.result.measurements.determinism_check !== 1)
+    return `The engine's own determinism check failed (G2); an independent re-simulation reproduced the recorded result, failure included: ${replaySha256}`;
+  return `Independent re-simulation reproduced every state hash: ${replaySha256}`;
+}
+
 export function admitCivilizationRecord(
   registry: Registry,
   receipt: CivilizationPreregistration,
@@ -191,7 +207,7 @@ export function admitCivilizationRecord(
     series: Object.fromEntries([...per("control"), ...per("treatment")]),
     observations: [
       "Every arm is an output of the Noeterra civilization simulator; the scenario is illustrative and no historical observation was made.",
-      `Independent re-simulation reproduced every state hash: ${replay.replay_sha256}`,
+      replayObservation(record, replay.replay_sha256),
     ],
     limitations: [
       "Matched seeds of one illustrative model; descriptive statistics only.",

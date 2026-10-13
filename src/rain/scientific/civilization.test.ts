@@ -3,20 +3,23 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Registry } from "../experiments/registry.js";
-import { sha256Json } from "../sha256.js";
+import { sha256, sha256Json } from "../sha256.js";
 import { BACKEND_CAPABILITIES, CIVILIZATION_METRICS } from "./contracts.js";
 import { civilizationExample } from "./civilizationExample.js";
 import {
   authorizeCivilization,
+  civilizationReceiptErrors,
   CivilizationRunRefused,
   compileCivilizationExperiment,
   executeCivilization,
+  exposedSeedErrors,
   verifyCivilizationPlan,
   verifyCivilizationRecord,
 } from "./civilization.js";
 import {
   admitCivilizationRecord,
   preregisterCivilization,
+  replayObservation,
 } from "./civilizationRegistry.js";
 import { civilizationBackend } from "./backends.js";
 import { loadNoeterraEngine, NOETERRA_WASM } from "./noeterraLoader.js";
@@ -130,6 +133,119 @@ suite("civilization compiler", () => {
     refused((d) => Object.assign(d.parameters, { agents: "gpt" }));
     refused((d) => (d.parameters.turns = 5000));
     refused((d) => ((d.analysis as { metric: string }).metric = "happiness"));
+  });
+
+  it("refuses seeds an equivalent protocol already ran, whatever the metric or threshold", () => {
+    const first = plan();
+    const retest = plan(
+      civilizationExample({
+        turns: 24,
+        seeds: [3, 4, 5, 6],
+        metric: "battles",
+        minimumEffect: 2,
+      }),
+    );
+    expect(exposedSeedErrors(retest, [first]).join(" ")).toMatch(
+      /seeds 3, 4 were already exposed/,
+    );
+    // Fresh seeds are a replication, another treatment is another question, and
+    // reviewing the same plan again is not a second test.
+    expect(
+      exposedSeedErrors(plan(civilizationExample({ turns: 24, seeds: [5, 6, 7] })), [
+        first,
+      ]),
+    ).toEqual([]);
+    const otherTreatment = civilizationExample({
+      turns: 24,
+      seeds: [1, 2, 3, 4],
+      treatment: { kind: "scale_treasury", civ: "rome", factor: 2 },
+    });
+    expect(exposedSeedErrors(plan(otherTreatment), [first])).toEqual([]);
+    expect(exposedSeedErrors(first, [first])).toEqual([]);
+  });
+});
+
+describe("a model design and its receipt", () => {
+  // The shape noeterra/src/design.rs `propose` writes: the model's prose stays in
+  // the receipt, and the design is derived field by field from the answer.
+  const answer = {
+    question: "Does memory drive war?",
+    hypothesis: "Without memory, fewer wars.",
+    competing_hypothesis: "Memory changes nothing.",
+    rationale: "Earlier runs suggest it.",
+    parameters: {
+      seeds: [1, 2, 3, 4],
+      turns: 30,
+      treatment: { kind: "withhold_memory" },
+    },
+    analysis: {
+      metric: "wars_declared",
+      expected_direction: "decrease",
+      minimum_effect: 1,
+      minimum_consistent_seeds: 3,
+    },
+  };
+  const receipt = JSON.stringify(
+    {
+      schema: "noeterra-design-receipt/v1",
+      generation: "model",
+      answer: `Here is the design.\n${JSON.stringify(answer)}\nGood luck.`,
+    },
+    null,
+    2,
+  );
+  const design = (): CivilizationDesign => ({
+    schema: "rain-civilization-design/v1",
+    question: "Does memory drive war?",
+    hypothesis: "Without memory, fewer wars.",
+    competing_hypothesis: "Memory changes nothing.",
+    parameters: {
+      scenario: "mediterranean-264bc",
+      seeds: [1, 2, 3, 4],
+      turns: 30,
+      treatment: { kind: "withhold_memory" },
+    },
+    analysis: {
+      method: "matched_seed_paired_delta",
+      metric: "wars_declared",
+      expected_direction: "decrease",
+      minimum_effect: 1,
+      minimum_consistent_seeds: 3,
+    },
+    budget: { max_simulated_turns: 240 },
+    provenance: {
+      generation: "model",
+      decision_sha256: sha256(receipt),
+      source_ids: [],
+      parent_record_sha256: null,
+    },
+  });
+
+  it("accepts exactly the design the receipt's answer produces", () => {
+    expect(civilizationReceiptErrors(design(), receipt)).toEqual([]);
+  });
+
+  it("refuses a design edited after the model proposed it", () => {
+    const edits: ((d: CivilizationDesign) => void)[] = [
+      (d) => (d.parameters.seeds = [1, 2, 3, 5]),
+      (d) => (d.parameters.turns = 40),
+      (d) => (d.analysis.minimum_effect = 0.5),
+      (d) => (d.analysis.minimum_consistent_seeds = 2),
+      (d) => (d.hypothesis = "Without memory, far fewer wars."),
+    ];
+    for (const edit of edits) {
+      const d = design();
+      edit(d);
+      expect(civilizationReceiptErrors(d, receipt).join(" ")).toMatch(
+        /not the design the receipt's answer produces/,
+      );
+    }
+    expect(
+      civilizationReceiptErrors(design(), receipt.replace("Good luck", "Bye")),
+    ).not.toEqual([]);
+    expect(civilizationReceiptErrors(design(), null)).toEqual([
+      "a model design needs its receipt",
+    ]);
   });
 });
 
@@ -245,6 +361,10 @@ suite("civilization registry admission", () => {
       const now = new Date();
       const record = executeCivilization(p, approval(p, now), failing, now);
       expect(record.result.completed).toBe(false);
+      // Nothing was checked or simulated, so nothing is recorded as zero.
+      expect(record.result.measurements.determinism_check).toBeNull();
+      expect(record.result.measurements.simulated_turns).toBeNull();
+      expect(replayObservation(record, "x")).toMatch(/no state hash to reproduce/);
       const { registry_run } = admitCivilizationRecord(
         registry,
         receipt,
