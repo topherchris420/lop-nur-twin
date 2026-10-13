@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Scan, ZoomIn, ZoomOut } from "lucide-react";
 import { SITE_PROFILE } from "@/lib/siteData";
+import { cn } from "@/lib/utils";
+import { glass } from "./format";
 import type { GameState, Geometry, Pt } from "./types";
 
 /** "Kingdom of Loulan" → "Loulan"; the map names nations, not titles. */
@@ -100,6 +103,7 @@ export function WorldMap({
   const [view, setView] = useState<[number, number, number, number]>(base);
   const svgRef = useRef<SVGSVGElement>(null);
   const drag = useRef<{
+    pointer: number;
     x: number;
     y: number;
     vx: number;
@@ -187,7 +191,7 @@ export function WorldMap({
     .split(/[ ,]/)
     .map(Number);
 
-  return (
+  const map = (
     <svg
       ref={svgRef}
       // A map you can pan, zoom and click is a group of controls, not an image.
@@ -199,8 +203,11 @@ export function WorldMap({
       viewBox={view.join(" ")}
       preserveAspectRatio="xMidYMid meet"
       onPointerDown={(e) => {
+        // One finger (or the mouse) pans; a second finger would yank the view.
+        if (!e.isPrimary) return;
         (e.target as Element).setPointerCapture?.(e.pointerId);
         drag.current = {
+          pointer: e.pointerId,
           x: e.clientX,
           y: e.clientY,
           vx: view[0],
@@ -210,7 +217,7 @@ export function WorldMap({
       }}
       onPointerMove={(e) => {
         const d = drag.current;
-        if (!d) return;
+        if (!d || d.pointer !== e.pointerId) return;
         const svg = svgRef.current;
         if (!svg) return;
         const k = view[2] / svg.clientWidth;
@@ -221,11 +228,16 @@ export function WorldMap({
       }}
       onPointerUp={(e) => {
         const d = drag.current;
+        if (!d || d.pointer !== e.pointerId) return;
         drag.current = null;
-        if (d && !d.moved) {
+        if (!d.moved) {
           const id = (e.target as Element).getAttribute("data-province");
           if (id !== null) onSelect(Number(id));
         }
+      }}
+      // The browser took the touch (a system gesture, a palm): drop the drag.
+      onPointerCancel={(e) => {
+        if (drag.current?.pointer === e.pointerId) drag.current = null;
       }}
       onKeyDown={(e) => {
         const step = view[2] * 0.08;
@@ -241,8 +253,8 @@ export function WorldMap({
       }}
     >
       <title id="nt-map-title">
-        Map of {state.scenario.name}, {state.date}. Drag to pan, scroll or press plus and
-        minus to zoom.
+        Map of {state.scenario.name}, {state.date}. Drag to pan; scroll, press plus and
+        minus, or use the zoom buttons to zoom.
       </title>
       <defs>
         <radialGradient id="nt-sea" cx="50%" cy="45%" r="75%">
@@ -644,5 +656,37 @@ export function WorldMap({
         </g>
       )}
     </svg>
+  );
+
+  return (
+    <>
+      {map}
+      {/* A touch screen has no wheel and the map takes every touch to pan, so
+          zooming needs buttons: under the date on a phone, above the note wider. */}
+      <div
+        role="group"
+        aria-label="Zoom"
+        className="absolute top-36 right-3 z-10 flex flex-col gap-1 sm:top-auto sm:bottom-10 sm:flex-row"
+      >
+        {(
+          [
+            ["Zoom in", ZoomIn, () => zoom(1 / 1.25)],
+            ["Zoom out", ZoomOut, () => zoom(1.25)],
+            ["Show the whole map", Scan, () => setView(base)],
+          ] as const
+        ).map(([label, Icon, run]) => (
+          <button
+            key={label}
+            type="button"
+            aria-label={label}
+            title={label}
+            onClick={run}
+            className={cn(glass, "grid size-9 place-items-center hover:bg-white/10")}
+          >
+            <Icon className="size-4" aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+    </>
   );
 }

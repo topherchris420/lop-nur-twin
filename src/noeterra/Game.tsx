@@ -28,11 +28,10 @@ import {
   emblemPath,
   eventHeading,
   fmt,
+  glass,
   seasonOf,
 } from "./format";
 
-const glass =
-  "rounded-xl border border-white/10 bg-[#0d1316]/85 text-slate-100 shadow-2xl backdrop-blur-md";
 const MAX_ORDERS = 6;
 
 function Emblem({ civ, size = 36 }: { civ: Civ; size?: number }) {
