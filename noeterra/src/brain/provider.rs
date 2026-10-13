@@ -58,12 +58,11 @@ pub fn is_local_http(url: &str) -> bool {
     if host == "localhost" || host == "::1" {
         return true;
     }
-    let parts: Vec<u8> = host.split('.').filter_map(|p| p.parse().ok()).collect();
-    if parts.len() != 4 || host.split('.').count() != 4 {
-        return false;
-    }
-    matches!(parts.as_slice(), [127, ..] | [10, ..] | [192, 168, ..])
-        || matches!(parts.as_slice(), [172, b, ..] if (16..=31).contains(b))
+    // The standard parser refuses `010.0.0.1` and `+127.0.0.1`, which URL parsers
+    // read as octal or otherwise differently: a hand split would call `010` ten
+    // while the connection went to 8.0.0.1.
+    host.parse::<std::net::Ipv4Addr>()
+        .is_ok_and(|ip| ip.is_loopback() || ip.is_private())
 }
 
 /// One local model server answers one question at a time. Seats queue here,
@@ -382,6 +381,11 @@ mod tests {
             "http://user@127.0.0.1:1234",
             "http://example.com?@127.0.0.1",
             "http://127.0.0.1\\@example.com",
+            // Leading zeros are octal to URL parsers: 010.0.0.1 is 8.0.0.1.
+            "http://010.0.0.1:1234/v1",
+            "http://0127.0.0.1",
+            "http://+127.0.0.1",
+            "http://0x7f.0.0.1",
         ] {
             assert!(!is_local_http(bad), "{bad}");
         }

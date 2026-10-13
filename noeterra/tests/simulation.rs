@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use noeterra::action::{offered, validate, Action, Decision};
+use noeterra::action::{offered, validate, Action, Decision, Response};
 use noeterra::experiment::{self, Arm, Plan, Policy, ScenarioRef};
 use noeterra::hash::world_hash;
 use noeterra::model::*;
@@ -28,6 +28,14 @@ fn check_invariants(w: &World) {
         }
         if let Some(o) = p.owner {
             assert!(w.civs[o].alive, "{} owned by a fallen power", p.key);
+        }
+        // Peace returns occupations: no power holds another's land without a war.
+        if let (Some(o), Some(h)) = (p.owner, p.controller) {
+            assert!(
+                o == h || w.at_war(o, h),
+                "{} held by a power not at war with its owner",
+                p.key
+            );
         }
     }
     for a in &w.armies {
@@ -382,6 +390,9 @@ fn a_treatment_that_changes_nothing_is_refused() {
         let err = experiment::validate_plan(&plan(vec![vacuous])).unwrap_err();
         assert!(err.contains("leave the starting world unchanged"), "{err}");
     }
+    // A second arm with no interventions is the control again.
+    let err = experiment::validate_plan(&plan(vec![])).unwrap_err();
+    assert!(err.contains("repeats arm `control`"), "{err}");
     // The alliance the scenario does contain can be removed.
     experiment::validate_plan(&plan(vec![Intervention::RemoveTreaty {
         kind: TreatyKind::Alliance,
@@ -389,6 +400,101 @@ fn a_treatment_that_changes_nothing_is_refused() {
         b: "syracuse".into(),
     }]))
     .unwrap();
+}
+
+#[test]
+fn a_fallen_human_seat_watches_on_and_only_a_new_fall_ends_a_jump() {
+    // Rule-based rulers never cede a capital, so the fall is played by hand: two
+    // visitors' seats, Wusun taking the only province of a disarmed Kucha and
+    // offering a peace that cedes it.
+    let s = builtin("tarim-77bc", 4).unwrap();
+    let key = |k: &str| s.civs.iter().position(|c| c.key == k).unwrap();
+    let (wusun, kucha) = (key("wusun"), key("kucha"));
+    let mut seats = vec![Seat::Rules; s.civs.len()];
+    seats[wusun] = Seat::Human;
+    seats[kucha] = Seat::Human;
+    let disarm = vec![Intervention::ScaleArmies {
+        civ: "kucha".into(),
+        factor: 0.0,
+    }];
+    let mut sim = Simulation::new(s, 4, seats, disarm).unwrap();
+    let brains = offline_brains(&sim.seats);
+    let cap = sim.world.civs[kucha].capital;
+    let ili = sim.world.provinces.iter().position(|p| p.key == "ili").unwrap();
+    let offer = |w: &World| {
+        w.proposals
+            .iter()
+            .find(|p| p.from == wusun && p.to == kucha)
+            .map(|p| p.id)
+    };
+    for _ in 0..30 {
+        if offer(&sim.world).is_some() {
+            break;
+        }
+        let w = &sim.world;
+        let action = match w.wars.iter().find(|x| x.opposes(wusun, kucha)) {
+            None => Some(Action::DeclareWar { target: kucha }),
+            Some(war) if w.provinces[cap].controller == Some(wusun) => Some(Action::Propose {
+                to: kucha,
+                terms: Terms::Peace {
+                    war: war.id,
+                    cede: vec![cap],
+                    concede: vec![],
+                    tribute: 0.0,
+                },
+            }),
+            Some(_) => w
+                .armies
+                .iter()
+                .find(|a| a.owner == wusun && a.location == ili)
+                .map(|a| Action::Move { army: a.id, to: cap }),
+        };
+        let mut orders = BTreeMap::from([(
+            wusun,
+            Decision {
+                actions: action.into_iter().collect(),
+                ..Default::default()
+            },
+        )]);
+        sim.step(&brains, &mut orders);
+    }
+    let proposal = offer(&sim.world).expect("Wusun offers a peace that cedes Kucha");
+    let at = u64::from(sim.world.turn);
+
+    let call = |v: serde_json::Value| {
+        let out: serde_json::Value = serde_json::from_str(&noeterra::api::handle(&v.to_string())).unwrap();
+        assert_eq!(out["ok"], true, "{out}");
+        out["result"].clone()
+    };
+    let id = call(serde_json::json!({ "op": "session_load", "save": sim.save() }))["session"].clone();
+    call(serde_json::json!({ "op": "session_orders", "session": id, "civ": kucha,
+        "responses": [{ "proposal": proposal, "accept": true }] }));
+    // The jump in which a ruling seat falls stops on that season...
+    let fell = call(serde_json::json!({ "op": "session_advance", "session": id, "turns": 40 }));
+    assert_eq!(fell["turn"].as_u64().unwrap(), at + 1);
+    let st = call(serde_json::json!({ "op": "session_state", "session": id }));
+    assert_eq!(st["civs"][kucha]["alive"], false);
+    // ...and a seat that fell before the jump watches the whole of it.
+    let after = call(serde_json::json!({ "op": "session_advance", "session": id, "turns": 4 }));
+    assert_eq!(after["turn"].as_u64().unwrap(), at + 5);
+    // Where a jump stops changes no outcome: the same seasons played natively
+    // reach the same hash, and the session replays.
+    let mut accept = BTreeMap::from([(
+        kucha,
+        Decision {
+            responses: vec![Response { proposal, accept: true }],
+            ..Default::default()
+        },
+    )]);
+    sim.step(&brains, &mut accept);
+    for _ in 0..4 {
+        sim.step(&brains, &mut BTreeMap::new());
+    }
+    assert_eq!(after["hash"], sim.turns.last().unwrap().hash);
+    assert_eq!(
+        call(serde_json::json!({ "op": "session_verify", "session": id }))["ok"],
+        true
+    );
 }
 
 #[test]
@@ -421,4 +527,36 @@ fn a_large_generated_world_runs() {
     run_offline(&mut sim, 50);
     check_invariants(&sim.world);
     println!("400 provinces x 12 civs x 50 turns in {:?}", t.elapsed());
+}
+
+#[test]
+fn a_scenario_with_impossible_figures_is_refused() {
+    let base = builtin("mediterranean-264bc", 0).unwrap();
+    assert!(noeterra::scenario::build(&base, 1).is_ok());
+    type Mutation = Box<dyn Fn(&mut noeterra::scenario::Scenario)>;
+    let mutations: Vec<(&str, Mutation)> = vec![
+        // A huge tech makes battle odds inf/inf, and NaN then passes every treasury check.
+        ("tech", Box::new(|s| s.civs[0].tech = 1e300)),
+        ("treasury", Box::new(|s| s.civs[0].treasury = -1.0)),
+        ("trait", Box::new(|s| s.civs[0].personality.aggression = 7.0)),
+        ("stability", Box::new(|s| s.civs[0].stability = 400.0)),
+        ("army", Box::new(|s| s.civs[0].armies[0].strength = 1e300)),
+        ("population", Box::new(|s| s.provinces[0].pop = 1e300)),
+        (
+            "self treaty",
+            Box::new(|s| {
+                let k = s.civs[0].key.clone();
+                s.treaties.push(noeterra::scenario::TreatySpec {
+                    kind: TreatyKind::Trade,
+                    a: k.clone(),
+                    b: k,
+                });
+            }),
+        ),
+    ];
+    for (what, mutate) in mutations {
+        let mut s = base.clone();
+        mutate(&mut s);
+        assert!(noeterra::scenario::build(&s, 1).is_err(), "{what} accepted");
+    }
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   BookOpen,
   ChevronsRight,
   Download,
@@ -8,7 +9,6 @@ import {
   Handshake,
   Landmark,
   ListChecks,
-  Menu,
   MoveLeft,
   PanelRight,
   ScrollText,
@@ -28,12 +28,14 @@ import {
   emblemPath,
   eventHeading,
   fmt,
+  glass,
   seasonOf,
 } from "./format";
 
-const glass =
-  "rounded-xl border border-white/10 bg-[#0d1316]/85 text-slate-100 shadow-2xl backdrop-blur-md";
 const MAX_ORDERS = 6;
+// A history is replayed in full before it loads. A century of seasons saves to
+// under 2 MB; a much larger file is refused before it can freeze the page.
+const MAX_HISTORY_MB = 8;
 
 function Emblem({ civ, size = 36 }: { civ: Civ; size?: number }) {
   return (
@@ -194,9 +196,15 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
   const [letters, setLetters] = useState<{ to: number; text: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(notice ?? null);
+  const [toast, setToast] = useState<string | null>(null);
   const [focusCiv, setFocusCiv] = useState<number | null>(you);
-  const [reveal, setReveal] = useState(you === null);
+  const [reveal, setRevealRaw] = useState(you === null);
+  // A player looks at other nations through the research view; leaving it
+  // brings the panel back to their own.
+  const setReveal = (on: boolean) => {
+    setRevealRaw(on);
+    if (!on) setFocusCiv(you);
+  };
   const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
@@ -206,8 +214,14 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
     return st;
   }, [engine, session, geometry]);
 
+  // Set when the world cannot be read at all, e.g. the engine stopped.
+  const [failure, setFailure] = useState<string | null>(null);
   useEffect(() => {
-    refresh();
+    try {
+      refresh();
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : "The engine refused.");
+    }
     // Only on a new session; later refreshes are explicit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
@@ -218,7 +232,44 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
     return () => clearTimeout(t);
   }, [toast]);
 
+  // The opening notice goes into the live region once the page has drawn it.
+  const ready = state !== null && geometry !== null;
+  useEffect(() => {
+    if (ready && notice) setToast(notice);
+  }, [ready, notice]);
+
   const human = state?.humans.find((h) => h.civ === you) ?? null;
+  // A fallen player watches on: the notice says so once, and the jump buttons
+  // stay live.
+  const fallen = you !== null && state?.civs[you]?.alive === false;
+  const [watching, setWatching] = useState(false);
+  const watchOnRef = useRef<HTMLButtonElement>(null);
+  const jumpRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (fallen && !watching) watchOnRef.current?.focus();
+  }, [fallen, watching]);
+  const watchOn = () => {
+    setWatching(true);
+    jumpRef.current?.focus();
+  };
+  // Leaving drops the game, so once a season has been played it asks first.
+  const [leaving, setLeaving] = useState(false);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const stayRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (leaving) stayRef.current?.focus();
+  }, [leaving]);
+  const stay = () => {
+    setLeaving(false);
+    backRef.current?.focus();
+  };
+  // Choosing a province, on the map or in the list, shows its nation to an
+  // observer or in the research view.
+  const selectProvince = (p: number | null) => {
+    setSelected(p);
+    const owner = p === null ? null : (state?.provinces[p]?.owner ?? null);
+    if ((you === null || reveal) && owner !== null) setFocusCiv(owner);
+  };
   const viewCiv: number | null =
     focusCiv ??
     (selected !== null ? (state?.provinces[selected]?.owner ?? null) : null) ??
@@ -296,7 +347,16 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   if (!state || !geometry) {
     return (
       <div className="grid h-full place-items-center bg-[#081a20] text-slate-200">
-        Preparing the world…
+        {failure ? (
+          <div role="alert" className="max-w-md space-y-3 p-6 text-center">
+            <p>{failure}</p>
+            <button type="button" onClick={onExit} className="underline">
+              Back to the worlds
+            </button>
+          </div>
+        ) : (
+          "Preparing the world…"
+        )}
       </div>
     );
   }
@@ -337,7 +397,6 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         .reduce((s, a) => s + a.strength, 0),
     };
   };
-  const fallen = youCiv && !youCiv.alive;
 
   return (
     <div className="noeterra-game relative h-full w-full overflow-hidden bg-[#081a20]">
@@ -350,22 +409,57 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         selected={selected}
         focus={focus}
         you={you}
-        onSelect={(p) => {
-          setSelected(p);
-          if (you === null) setFocusCiv(state.provinces[p]?.owner ?? null);
-        }}
+        onSelect={selectProvince}
       />
 
       {/* Session chip */}
-      <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+      <div
+        className={cn(
+          "absolute top-3 left-3 flex items-center gap-2",
+          leaving ? "z-30" : "z-20",
+        )}
+      >
         <button
+          ref={backRef}
           type="button"
-          onClick={onExit}
-          aria-label="Back to the worlds"
+          onClick={() => (state.turn > 0 ? setLeaving(true) : onExit())}
+          aria-label="Leave this game for the worlds"
+          title="Leave this game for the worlds"
           className={cn(glass, "grid size-10 place-items-center hover:bg-white/10")}
         >
-          <Menu className="size-5" aria-hidden="true" />
+          <ArrowLeft className="size-5" aria-hidden="true" />
         </button>
+        {leaving && (
+          <div
+            role="group"
+            aria-labelledby="nt-leave"
+            className={cn(
+              glass,
+              "absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] p-3 text-sm",
+            )}
+          >
+            <p id="nt-leave">Leave this game? Its history is lost unless you saved it.</p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={onExit}
+                onKeyDown={(e) => e.key === "Escape" && stay()}
+                className="nt-jump rounded-lg px-3 py-1.5 font-semibold"
+              >
+                Leave
+              </button>
+              <button
+                ref={stayRef}
+                type="button"
+                onClick={stay}
+                onKeyDown={(e) => e.key === "Escape" && stay()}
+                className="rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/10"
+              >
+                Stay
+              </button>
+            </div>
+          </div>
+        )}
         <div className={cn(glass, "flex items-center gap-2.5 px-3 py-1.5")}>
           {youCiv ? (
             <Emblem civ={youCiv} size={24} />
@@ -409,9 +503,10 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         ).map(([n, label, Icon]) => (
           <button
             key={n}
+            ref={n === 1 ? jumpRef : undefined}
             type="button"
             aria-label={n === 1 ? undefined : label}
-            disabled={busy || Boolean(fallen)}
+            disabled={busy}
             onClick={() => jump(n)}
             className={cn(
               "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold disabled:opacity-40",
@@ -422,7 +517,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
             {n === 1 ? (
               busy ? (
                 "Resolving…"
-              ) : you !== null ? (
+              ) : you !== null && !fallen ? (
                 "Jump forward"
               ) : (
                 "Next season"
@@ -596,7 +691,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                     )}
                   </div>
                 </div>
-                {you === null && (
+                {(you === null || reveal) && (
                   <label className="flex items-center gap-2 text-xs text-white/70">
                     Nation
                     <select
@@ -620,7 +715,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                   <select
                     value={selected ?? ""}
                     onChange={(e) =>
-                      setSelected(e.target.value === "" ? null : Number(e.target.value))
+                      selectProvince(
+                        e.target.value === "" ? null : Number(e.target.value),
+                      )
                     }
                     className="flex-1 rounded-md border border-white/15 bg-black/40 px-2 py-1"
                   >
@@ -702,7 +799,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                 toggle={toggleOffer}
                 rejected={state.last_turn?.rejected.filter((r) => r.civ === you) ?? []}
                 goals={human?.goals ?? []}
-                fallen={Boolean(fallen)}
+                fallen={fallen}
               />
             )}
 
@@ -798,11 +895,15 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
               </p>
               <button
                 type="button"
-                disabled={busy || Boolean(fallen)}
+                disabled={busy}
                 onClick={() => jump(1)}
                 className="nt-jump w-full rounded-lg py-2.5 text-sm font-bold disabled:opacity-40"
               >
-                {busy ? "Resolving the season…" : "Issue orders and jump forward"}
+                {busy
+                  ? "Resolving the season…"
+                  : fallen
+                    ? "Watch the next season"
+                    : "Issue orders and jump forward"}
               </button>
             </footer>
           )}
@@ -816,6 +917,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           className={cn(
             glass,
             "absolute bottom-20 left-1/2 z-20 w-[420px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 p-3",
+            // Below xl the card reaches under the nation panel: it sits above
+            // the panel's "Issue orders" footer rather than over it.
+            rightOpen && you !== null && "max-xl:bottom-44",
           )}
         >
           <div className="flex items-start justify-between">
@@ -896,8 +1000,8 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
       <nav aria-label="Tools" className="absolute bottom-3 left-3 z-20 flex gap-1.5">
         {(
           [
-            ["Events", ScrollText, () => setLeftOpen(!leftOpen)],
-            ["Nation panel", PanelRight, () => setRightOpen(!rightOpen)],
+            ["Events", ScrollText, () => setLeftOpen(!leftOpen), false],
+            ["Nation panel", PanelRight, () => setRightOpen(!rightOpen), false],
             [
               "Verify replay",
               ShieldCheck,
@@ -909,6 +1013,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                     : `Replay diverged at season ${r.first_divergence ?? "?"}: ${r.reason ?? ""}`,
                 );
               },
+              true,
             ],
             [
               "Save history",
@@ -923,17 +1028,28 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                 a.click();
                 URL.revokeObjectURL(a.href);
               },
+              true,
             ],
-            ["Load history", Upload, () => fileRef.current?.click()],
+            ["Load history", Upload, () => fileRef.current?.click(), true],
           ] as const
-        ).map(([label, Icon, run]) => (
+        ).map(([label, Icon, run, usesEngine]) => (
           <button
             key={label}
             type="button"
             aria-label={label}
             title={label}
-            onClick={run}
-            className={cn(glass, "grid size-10 place-items-center hover:bg-white/10")}
+            disabled={busy && usesEngine}
+            onClick={() => {
+              try {
+                run();
+              } catch (e) {
+                setToast(e instanceof Error ? e.message : "The engine refused.");
+              }
+            }}
+            className={cn(
+              glass,
+              "grid size-10 place-items-center hover:bg-white/10 disabled:opacity-40",
+            )}
           >
             <Icon className="size-4" aria-hidden="true" />
           </button>
@@ -947,29 +1063,50 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = "";
-            if (!f) return;
-            void f.text().then((text) => {
-              try {
-                const loaded = engine.load(JSON.parse(text));
-                // The save keeps the visitor's seat; hand it back to them rather
-                // than leave their nation idle under an observer.
-                const human = engine
-                  .state(loaded.session, 0, false)
-                  .seats.find((s) => s.seat.kind === "human");
-                setGeometry(null);
-                onReplace(
-                  loaded.session,
-                  human?.civ ?? null,
-                  `Loaded and verified by replay: ${loaded.replay.turns_checked} seasons.`,
-                );
-              } catch (err) {
-                setToast(
-                  err instanceof Error
-                    ? err.message
-                    : "That file is not a Noeterra history.",
-                );
-              }
-            });
+            if (!f || busy) return;
+            if (f.size > MAX_HISTORY_MB * 2 ** 20) {
+              setToast(
+                `Refused: ${f.name} is ${fmt(f.size / 2 ** 20, 1)} MB, and a history loads here up to ${MAX_HISTORY_MB} MB.`,
+              );
+              return;
+            }
+            setBusy(true);
+            setToast("Replaying the history to verify it…");
+            void f
+              .text()
+              .then((text) => {
+                // Let the notice show before the replay takes the thread.
+                setTimeout(() => {
+                  try {
+                    const loaded = engine.load(JSON.parse(text));
+                    // The save keeps the visitor's seat; hand it back to them rather
+                    // than leave their nation idle under an observer.
+                    const human = engine
+                      .state(loaded.session, 0, false)
+                      .seats.find((s) => s.seat.kind === "human");
+                    setGeometry(null);
+                    onReplace(
+                      loaded.session,
+                      human?.civ ?? null,
+                      `Loaded and verified by replay: ${loaded.replay.turns_checked} seasons.`,
+                    );
+                  } catch (err) {
+                    setToast(
+                      err instanceof SyntaxError
+                        ? `${f.name} is not a Noeterra history: it is not JSON.`
+                        : err instanceof Error
+                          ? err.message
+                          : "That file is not a Noeterra history.",
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                }, 30);
+              })
+              .catch(() => {
+                setToast(`${f.name} could not be read.`);
+                setBusy(false);
+              });
           }}
         />
       </nav>
@@ -981,37 +1118,51 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         Illustrative simulation of rule-based agents — not historical evidence
       </p>
 
-      {toast && (
-        <div
-          role="status"
-          className={cn(
-            glass,
-            "absolute top-20 left-1/2 z-30 max-w-lg -translate-x-1/2 px-4 py-2 text-sm",
-          )}
-        >
-          {toast}
-        </div>
-      )}
+      {/* One live region that is always there, so a screen reader hears each
+          message: a region that mounts with its text is often skipped. */}
+      <div
+        role="status"
+        className={cn(
+          "absolute top-20 left-1/2 z-30 max-w-lg -translate-x-1/2 text-sm",
+          toast && cn(glass, "px-4 py-2"),
+        )}
+      >
+        {toast}
+      </div>
 
-      {fallen && (
+      {fallen && !watching && (
         <div
-          role="alert"
+          role="alertdialog"
+          aria-labelledby="nt-fallen"
+          aria-describedby="nt-fallen-text"
           className={cn(
             glass,
-            "absolute top-1/3 left-1/2 z-30 w-[380px] -translate-x-1/2 p-5 text-center",
+            "absolute top-1/3 left-1/2 z-30 w-[380px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 p-5 text-center",
           )}
         >
-          <h2 className="text-xl font-bold">Your realm has fallen</h2>
-          <p className="mt-2 text-sm text-white/75">
+          <h2 id="nt-fallen" className="text-xl font-bold">
+            Your realm has fallen
+          </h2>
+          <p id="nt-fallen-text" className="mt-2 text-sm text-white/75">
             The other nations go on. You can watch them, or choose another world.
           </p>
-          <button
-            type="button"
-            onClick={onExit}
-            className="nt-jump mt-4 rounded-lg px-4 py-2 font-semibold"
-          >
-            Back to the worlds
-          </button>
+          <div className="mt-4 flex justify-center gap-2">
+            <button
+              ref={watchOnRef}
+              type="button"
+              onClick={watchOn}
+              className="nt-jump rounded-lg px-4 py-2 font-semibold"
+            >
+              Watch on
+            </button>
+            <button
+              type="button"
+              onClick={onExit}
+              className="rounded-lg border border-white/15 px-4 py-2 font-semibold hover:bg-white/10"
+            >
+              Back to the worlds
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -1189,7 +1340,8 @@ function OrdersPanel({
       )}
       <p className="text-[11px] text-white/50">
         Orders are checked again when the season resolves; anything no longer possible is
-        refused and reported.
+        refused and reported. A one- or five-year jump carries them out in its first
+        season; your realm then waits.
       </p>
     </>
   );
@@ -1419,6 +1571,11 @@ function MindPanel({
           />
           Research view: read other nations&apos; minds (breaks the fog of war)
         </label>
+      )}
+      {you !== null && reveal && (
+        <p className="text-[11px] text-white/50">
+          Choose a nation on the map or in the Realm tab.
+        </p>
       )}
       {!mind ? (
         <p className="text-sm text-white/65">

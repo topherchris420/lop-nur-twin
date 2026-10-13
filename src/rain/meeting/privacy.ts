@@ -95,7 +95,8 @@ export async function classifyUrl(
 
 /**
  * Fail closed when privacy is `local` and the meeting would be hosted.
- * Returns the effective mode; throws `PrivacyError` otherwise.
+ * Returns the effective mode; throws `PrivacyError` otherwise. The message is
+ * the runtime's published reason, so it names settings, never their values.
  */
 export async function enforceMeetingPrivacy(
   privacy: Privacy,
@@ -106,18 +107,11 @@ export async function enforceMeetingPrivacy(
   if (privacy !== "local") return privacy;
   if (model.trim().endsWith(":cloud"))
     throw new PrivacyError(
-      `RAIN_MEETING_PRIVACY=local refuses the meeting model '${model}': Ollama ':cloud' models run on a hosted service. Set RAIN_LLM_MODEL to a local model, or set RAIN_MEETING_PRIVACY=hybrid.`,
+      "RAIN_MEETING_PRIVACY=local refuses the meeting model RAIN_LLM_MODEL names: Ollama ':cloud' models run on a hosted service. Set RAIN_LLM_MODEL to a local model, or set RAIN_MEETING_PRIVACY=hybrid.",
     );
-  if ((await classifyUrl(baseUrl, resolve)) === "remote") {
-    let host = "(invalid URL)";
-    try {
-      host = new URL(baseUrl).hostname || host;
-    } catch {
-      /* reported as invalid */
-    }
+  if ((await classifyUrl(baseUrl, resolve)) === "remote")
     throw new PrivacyError(
-      `RAIN_MEETING_PRIVACY=local refuses the meeting endpoint host ${host}: it is not loopback or private-network. Point RAIN_LLM_BASE_URL at a local server, or set RAIN_MEETING_PRIVACY=hybrid.`,
+      "RAIN_MEETING_PRIVACY=local refuses the meeting endpoint RAIN_LLM_BASE_URL names: its host is not loopback or private-network. Point RAIN_LLM_BASE_URL at a local server, or set RAIN_MEETING_PRIVACY=hybrid.",
     );
-  }
   return privacy;
 }

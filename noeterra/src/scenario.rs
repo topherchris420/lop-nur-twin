@@ -107,6 +107,11 @@ pub fn builtin(id: &str, seed: u64) -> Option<Scenario> {
     }
 }
 
+/// The largest starting population, treasury, manpower or army a scenario may
+/// name. Far above any real scenario; it exists so a crafted save cannot start a
+/// world whose arithmetic overflows to infinity and then NaN.
+const MAX_FIGURE: f64 = 100_000.0;
+
 pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
     // A save carries its own scenario, so this is reached with untrusted input.
     if s.civs.is_empty() || s.provinces.is_empty() {
@@ -140,7 +145,11 @@ pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
             None => None,
         };
         let claims = p.claims.iter().map(|k| civ(k)).collect::<Result<Vec<_>, _>>()?;
-        if !(1.0..=10.0).contains(&p.dev) || p.pop <= 0.0 || p.fort > 3 {
+        if !(1.0..=10.0).contains(&p.dev)
+            || !(p.pop > 0.0 && p.pop <= MAX_FIGURE)
+            || p.fort > 3
+            || p.natives.is_some_and(|n| !(0.0..=1000.0).contains(&n))
+        {
             return Err(format!("province `{}` has out-of-range figures", p.key));
         }
         provinces.push(Province {
@@ -211,6 +220,16 @@ pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
         if provinces[capital].owner != Some(i) {
             return Err(format!("`{}` does not own its capital", c.key));
         }
+        let t = &c.personality;
+        let traits = [t.aggression, t.expansion, t.caution, t.honor, t.mercantile, t.diplomacy];
+        if !(0.0..=MAX_FIGURE).contains(&c.treasury)
+            || !(0.0..=MAX_FIGURE).contains(&c.manpower)
+            || !(0.0..=100.0).contains(&c.stability)
+            || !(0.1..=10.0).contains(&c.tech)
+            || traits.iter().any(|v| !(0.0..=1.0).contains(v))
+        {
+            return Err(format!("`{}` has out-of-range figures", c.key));
+        }
         civs.push(Civ {
             id: i,
             key: c.key.clone(),
@@ -233,6 +252,9 @@ pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
         });
         for a in &c.armies {
             let at = prov(&a.at)?;
+            if !(0.5..=MAX_FIGURE).contains(&a.strength) {
+                return Err(format!("`{}` starts an army of out-of-range strength", c.key));
+            }
             if provinces[at].controller != Some(i) {
                 return Err(format!("`{}` starts an army outside its land", c.key));
             }
@@ -256,10 +278,14 @@ pub fn build(s: &Scenario, seed: u64) -> Result<World, String> {
     }
     let mut treaties = Vec::new();
     for t in &s.treaties {
+        let (a, b) = (civ(&t.a)?, civ(&t.b)?);
+        if a == b || treaties.iter().any(|x: &Treaty| x.kind == t.kind && x.involves(a, b)) {
+            return Err(format!("self or duplicate treaty between `{}` and `{}`", t.a, t.b));
+        }
         treaties.push(Treaty {
             kind: t.kind,
-            a: civ(&t.a)?,
-            b: civ(&t.b)?,
+            a,
+            b,
             since: 0,
             expires: None,
         });

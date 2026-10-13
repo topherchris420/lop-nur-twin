@@ -329,7 +329,7 @@ civilization tests skip and the backend reports itself unavailable. CI builds it
 and checks it is present.
 
 ```sh
-npm run rain:civilization:demo      # scripted designs: a pass, a non-pass and a refusal
+npm run rain:civilization:demo      # scripted designs: a pass, a non-pass and two refusals
 npm run rain:civilization:verify    # re-simulate every archived record
 
 # A model proposes; a person reviews; only then does anything run:
@@ -340,29 +340,48 @@ npm run rain:civilization -- --execute-reviewed <the full plan digest it printed
 ```
 
 A model's design names its receipt — the exact question and answer — by the
-SHA-256 of the receipt's bytes, and the host refuses a design whose receipt does
-not match. The model's own words stay in the design and receipt; the plan's
-question and hypothesis are the host's.
+SHA-256 of the receipt's bytes, and must be exactly the design that answer
+produces: the host refuses a receipt that does not match, and a design whose
+seeds, horizon, treatment or threshold were edited after the model proposed
+them. The model's own words stay in the design and receipt; the plan's question
+and hypothesis are the host's.
+
+Seeds that an equivalent protocol (same engine, scenario, horizon and arms) has
+already run are spent. The host refuses a new metric, threshold or hypothesis on
+them, because its outcome there is already known, and a model designing the next
+experiment is shown the lab's prior results. Fresh seeds are a replication.
 
 Every outcome is archived in
 [`docs/benchmarks/noeterra-civilization/`](benchmarks/noeterra-civilization/):
-passed, failed, inconclusive and refused alike, with the design, any receipt,
-the plan, the preregistration, the sealed record, the registry's run and a
-report.
+passed, failed, inconclusive, refused and not admitted alike, with the design,
+any receipt, the plan, the preregistration, the sealed record, the registry's
+run and a report. A run is archived before the registry is asked to admit it,
+so a run that does not reproduce is kept as evidence of that. `--verify`
+re-simulates every record this engine can, checks each summary against its
+record, and fails if no record re-simulates at all.
 
 ### First results (simulated)
 
-On the built-in scenario, 40 seasons, six matched seeds, rule-based agents:
+On the built-in scenario, 40 seasons, six matched seeds, rule-based agents, on
+the current engine (sim/2):
 
 - **Withholding memory reduced wars declared** from a mean of 6.50 to 2.83 per
-  history (paired difference −3.67; fewer wars in all six seeds) and battles
-  fell with it. Remembered grievances and broken pacts feed cycles of
-  retaliation in this model. The lab passed the preregistered hypothesis
-  (`CV-11b7adb7…`).
-- **The same data against an implausible threshold** (a fall of 50 wars) was
-  judged insufficient evidence, not a pass, and was kept.
-- **Lowering Rome's aggression to 0.1** reduced wars declared by 2.17 on average
-  (fewer in six of six seeds) and battles by 5.17.
+  history (paired difference −3.67; fewer wars in all six seeds). Remembered
+  grievances and broken pacts feed cycles of retaliation in this model. The lab
+  passed the preregistered hypothesis (`CV-e39cbe63…`). Battles fell too (mean
+  paired change −7.50), but battles was a secondary observation, not a
+  preregistered test.
+- **Six fresh seeds against an implausible threshold** (a fall of 50 wars) were
+  judged insufficient evidence, not a pass, and kept (`CV-42f24afb…`). The
+  effect itself replicated: 7.00 to 3.00 wars, fewer in all six.
+- **Lowering Rome's aggression to 0.1** appeared to reduce wars declared (by 2.17
+  on average) in an exploratory run that was neither preregistered nor archived.
+  It is a lead to test through the lab, not a result.
+
+The first engine (sim/1) let an occupation outlive its war. Its two records stay
+in the archive, which `--verify` reports as made by another engine: the same
+memory result (`CV-11b7adb7…`, −3.67), and the same data against the implausible
+threshold (`CV-bb09bfed…`), a re-test on spent seeds the host now refuses.
 
 These describe the simulator's agents and rules, not ancient states.
 

@@ -1,0 +1,9 @@
+{
+  "label": "scripted: a new threshold on seeds the first design already ran, which the host must refuse",
+  "outcome": "refused by the host compiler",
+  "generation": "scripted",
+  "question": "[scripted] Do remembered grievances drive cycles of war among the simulated Mediterranean powers?",
+  "errors": [
+    "seeds 1, 2, 3, 4, 5, 6 were already exposed to an equivalent protocol (CV-e39cbe630deb5e6bb1e8b99c); a new metric, threshold or wording on them is not a preregistered test, so choose fresh seeds"
+  ]
+}

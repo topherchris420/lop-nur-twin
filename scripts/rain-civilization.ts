@@ -22,17 +22,20 @@ import {
 import { join, resolve } from "node:path";
 import { Registry } from "../src/rain/experiments/registry.js";
 import { gitState } from "../src/rain/experiments/provenance.js";
-import { canonicalJson, sha256 } from "../src/rain/sha256.js";
+import { canonicalJson, sha256, sha256Bytes, sha256Json } from "../src/rain/sha256.js";
 import {
   authorizeCivilization,
+  civilizationReceiptErrors,
   compileCivilizationExperiment,
   describeTreatment,
   executeCivilization,
+  exposedSeedErrors,
   verifyCivilizationRecord,
 } from "../src/rain/scientific/civilization.js";
 import {
   admitCivilizationRecord,
   preregisterCivilization,
+  replayObservation,
 } from "../src/rain/scientific/civilizationRegistry.js";
 import { civilizationExample } from "../src/rain/scientific/civilizationExample.js";
 import { loadNoeterraEngine } from "../src/rain/scientific/noeterraLoader.js";
@@ -53,6 +56,8 @@ const root = process.cwd();
 const loaded = loadNoeterraEngine(root);
 if (!loaded.engine) throw new Error(loaded.reason);
 const engine = loaded.engine;
+// The engine string names a version; these bytes are the module that ran.
+const engineWasmSha256 = sha256Bytes(new Uint8Array(readFileSync(loaded.path)));
 const ARCHIVE = resolve(value("--archive") ?? "docs/benchmarks/noeterra-civilization");
 const STATE = resolve(value("--state") ?? ".rain-research/civilization");
 const registry = new Registry(join(STATE, "registry"));
@@ -77,27 +82,44 @@ function fmt(x: number | null | undefined, d = 2): string {
   return typeof x === "number" ? x.toFixed(d) : "—";
 }
 
-function checkReceipt(design: CivilizationDesign, text: string | null): string[] {
-  if (design.provenance.generation !== "model")
-    return text ? ["a receipt accompanies a non-model design"] : [];
-  if (!text) return ["a model design needs its receipt"];
-  const errors: string[] = [];
-  if (sha256(text) !== design.provenance.decision_sha256)
-    errors.push("the receipt's SHA-256 does not match the design's decision_sha256");
-  try {
-    const r = JSON.parse(text) as {
-      schema?: string;
-      generation?: string;
-      answer?: string;
-    };
-    if (r.schema !== "noeterra-design-receipt/v1" || r.generation !== "model")
-      errors.push("not a noeterra-design-receipt/v1 from a model");
-    if (typeof r.answer !== "string" || !r.answer.includes(design.question.slice(0, 40)))
-      errors.push("the design's words do not come from the receipt's answer");
-  } catch {
-    errors.push("the receipt is not JSON");
-  }
-  return errors;
+/** Every plan the lab has run or reserved: the archive's and those awaiting review. */
+function priorPlans(): CivilizationPlan[] {
+  const plans: CivilizationPlan[] = [];
+  const read = (path: string, pick: (x: unknown) => unknown) => {
+    try {
+      const p = pick(JSON.parse(readFileSync(path, "utf8"))) as CivilizationPlan;
+      if (p?.noeterra_plan && Array.isArray(p.noeterra_plan.seeds)) plans.push(p);
+    } catch {
+      // Not a plan; nothing to compare against.
+    }
+  };
+  for (const d of readdirSync(ARCHIVE, { withFileTypes: true }))
+    if (d.isDirectory() && existsSync(join(ARCHIVE, d.name, "plan.json")))
+      read(join(ARCHIVE, d.name, "plan.json"), (x) => x);
+  for (const f of readdirSync(pending))
+    if (f.endsWith(".json")) read(join(pending, f), (x) => (x as Pending).plan);
+  return plans;
+}
+
+function refuse(
+  design: CivilizationDesign,
+  receipt: string | null,
+  label: string,
+  why: string[],
+): null {
+  const dir = join(ARCHIVE, `refused-${sha256(JSON.stringify(design)).slice(0, 16)}`);
+  mkdirSync(dir, { recursive: true });
+  write(dir, "design.json", design);
+  if (receipt) write(dir, "receipt.json", receipt);
+  write(dir, "summary.json", {
+    label,
+    outcome: "refused by the host compiler",
+    generation: design.provenance.generation,
+    question: design.question,
+    errors: why,
+  });
+  console.log(`REFUSED (${label}):\n  - ${why.join("\n  - ")}\n  archived in ${dir}`);
+  return null;
 }
 
 /** Compiles and preregisters; archives a refusal. Returns the pending entry or null. */
@@ -106,26 +128,10 @@ function review(
   receipt: string | null,
   label: string,
 ): Pending | null {
-  const errors = checkReceipt(design, receipt);
-  const compiled = errors.length
-    ? null
-    : compileCivilizationExperiment(design, { engine });
-  if (!compiled || !compiled.ok) {
-    const why = compiled && !compiled.ok ? compiled.errors : errors;
-    const dir = join(ARCHIVE, `refused-${sha256(JSON.stringify(design)).slice(0, 16)}`);
-    mkdirSync(dir, { recursive: true });
-    write(dir, "design.json", design);
-    if (receipt) write(dir, "receipt.json", receipt);
-    write(dir, "summary.json", {
-      label,
-      outcome: "refused by the host compiler",
-      generation: design.provenance.generation,
-      question: design.question,
-      errors: why,
-    });
-    console.log(`REFUSED (${label}):\n  - ${why.join("\n  - ")}\n  archived in ${dir}`);
-    return null;
-  }
+  const errors = civilizationReceiptErrors(design, receipt);
+  if (errors.length) return refuse(design, receipt, label, errors);
+  const compiled = compileCivilizationExperiment(design, { engine });
+  if (!compiled.ok) return refuse(design, receipt, label, compiled.errors);
   const plan = compiled.value;
   // The archive keeps every run it has: a plan that already ran is not run again
   // over its record. Its engine version is in the digest, so a changed engine
@@ -137,6 +143,8 @@ function review(
     );
     return null;
   }
+  const exposed = exposedSeedErrors(plan, priorPlans());
+  if (exposed.length) return refuse(design, receipt, label, exposed);
   // Reviewing the same plan again keeps its one preregistration; admission checks
   // the receipt against the registry, so a stale file cannot stand in for it.
   const pendingPath = join(pending, `${plan.definition_sha256}.json`);
@@ -253,13 +261,8 @@ function execute(
   const record = executeCivilization(plan, auth.value, engine, now);
   const git = gitState(root, ["docs/benchmarks/noeterra-civilization", ".rain-research"]);
   const commit = git.commit ?? "";
-  const admitted = admitCivilizationRecord(
-    registry,
-    entry.preregistration,
-    record,
-    engine,
-    { commit: git.commit },
-  );
+  // The record is archived before admission is tried: a run the registry refuses
+  // (one that does not reproduce, say) is the anomaly most worth keeping.
   const dir = join(ARCHIVE, plan.experiment_id);
   mkdirSync(dir, { recursive: true });
   write(dir, "design.json", entry.design);
@@ -267,26 +270,46 @@ function execute(
   write(dir, "plan.json", plan);
   write(dir, "preregistration.json", entry.preregistration);
   write(dir, "record.json", record);
-  write(dir, "registry-run.json", admitted.registry_run);
-  write(
-    dir,
-    "report.md",
-    report(entry, record, admitted.registry_run, commit, git.dirty),
-  );
+  rmSync(join(pending, `${plan.definition_sha256}.json`), { force: true });
+  let admitted: ReturnType<typeof admitCivilizationRecord> | null = null,
+    refusal = "";
+  try {
+    admitted = admitCivilizationRecord(registry, entry.preregistration, record, engine, {
+      commit: git.commit,
+    });
+  } catch (e) {
+    refusal = e instanceof Error ? e.message : String(e);
+  }
+  if (admitted) {
+    write(dir, "registry-run.json", admitted.registry_run);
+    write(
+      dir,
+      "report.md",
+      report(entry, record, admitted.registry_run, commit, git.dirty),
+    );
+  }
   write(dir, "summary.json", {
     label,
-    outcome: `${record.result.status} (${record.result.verdict})`,
+    outcome: admitted
+      ? `${record.result.status} (${record.result.verdict})`
+      : "not admitted by the registry",
     generation: entry.design.provenance.generation,
     question: plan.ir.question,
     mean_paired_delta: record.result.measurements.mean_paired_delta,
     metric: plan.design.analysis.metric,
-    replay_sha256: admitted.replay.replay_sha256,
+    replay_sha256: admitted?.replay.replay_sha256 ?? null,
+    ...(admitted ? {} : { errors: [refusal] }),
+    engine_wasm_sha256: engineWasmSha256,
     commit,
     dirty: git.dirty,
   });
-  rmSync(join(pending, `${plan.definition_sha256}.json`), { force: true });
+  if (!admitted) {
+    console.error(`NOT ADMITTED (${label}): ${refusal}\n  archived in ${dir}`);
+    process.exitCode = 1;
+    return;
+  }
   console.log(
-    `${record.result.status.toUpperCase()} (${record.result.verdict}) — ${plan.design.analysis.metric}: mean paired difference ${fmt(record.result.measurements.mean_paired_delta, 3)}; re-simulation reproduced every state hash. Archived in ${dir}`,
+    `${record.result.status.toUpperCase()} (${record.result.verdict}) — ${plan.design.analysis.metric}: mean paired difference ${fmt(record.result.measurements.mean_paired_delta, 3)}. ${replayObservation(record, admitted.replay.replay_sha256)}. Archived in ${dir}`,
   );
 }
 
@@ -315,8 +338,10 @@ function index() {
     `# Noeterra civilization experiments
 
 Every civilization experiment the R.A.I.N. Lab compiled, ran or refused, written by
-\`npm run rain:civilization\`. Nothing here is edited by hand, and nothing is left
-out: refusals, failures and inconclusive results stay beside the successes.
+\`npm run rain:civilization\`. Nothing here is edited by hand: refusals, failures,
+inconclusive results and runs the registry would not admit stay beside the
+successes. Two earlier runs (registry V3D-EXP-0001 and 0002) were overwritten by
+re-runs before commit 5e174c4 stopped that, and are lost; every run since is kept.
 
 All results are **simulated observations of an illustrative model** — the Noeterra
 engine's rule-based agents in an invented economy — and are not evidence about
@@ -330,6 +355,12 @@ ${lines.join("\n")}
   );
 }
 
+// Scripted mode authorizes its own plans with no person reviewing them, so its
+// records name the script, never someone who could be mistaken for a reviewer.
+if (args.includes("--scripted") && value("--operator"))
+  throw new Error(
+    "--scripted runs are authorized by Scripted.DemoOperator; drop --operator",
+  );
 const operator =
   value("--operator") ??
   (args.includes("--scripted") ? "Scripted.DemoOperator" : "R.A.I.N.Operator");
@@ -337,8 +368,12 @@ if (args.includes("--scripted")) {
   const designs: [string, CivilizationDesign][] = [
     ["scripted: memory and war", civilizationExample()],
     [
-      "scripted: an implausible threshold, to show a non-passing result is kept",
-      civilizationExample({ minimumEffect: 50 }),
+      "scripted: an implausible threshold on fresh seeds, to show a non-passing result is kept",
+      civilizationExample({ minimumEffect: 50, seeds: [7, 8, 9, 10, 11, 12] }),
+    ],
+    [
+      "scripted: a new threshold on seeds the first design already ran, which the host must refuse",
+      civilizationExample({ minimumEffect: 2 }),
     ],
     [
       "scripted: a design the host must refuse",
@@ -379,19 +414,59 @@ if (args.includes("--scripted")) {
     ...(canonicalJson(entry.design) === canonicalJson(entry.plan.design)
       ? []
       : ["the pending design is not the design the plan was compiled from"]),
-    ...checkReceipt(entry.design, entry.receipt),
+    ...civilizationReceiptErrors(entry.design, entry.receipt),
   ];
   if (mismatch.length) throw new Error(mismatch.join("; "));
   if (existsSync(join(ARCHIVE, entry.plan.experiment_id, "record.json")))
     throw new Error(`${entry.plan.experiment_id} has already run and is archived`);
   execute(entry, operator, "reviewed plan", digest);
 } else if (args.includes("--verify")) {
-  let bad = 0;
+  let bad = 0,
+    resimulated = 0,
+    skipped = 0;
+  const fail = (d: string, why: string[]) => {
+    console.log(`FAILED   ${d}: ${why.join("; ")}`);
+    bad++;
+  };
   const current = engine.version().engine;
-  for (const d of readdirSync(ARCHIVE)) {
-    const path = join(ARCHIVE, d, "record.json");
-    if (!existsSync(path)) continue;
+  for (const d of readdirSync(ARCHIVE, { withFileTypes: true })) {
+    if (!d.isDirectory()) continue;
+    const path = join(ARCHIVE, d.name, "record.json");
+    if (!existsSync(path)) {
+      // Only a refusal has no record; anything else claims a result it cannot show.
+      if (!d.name.startsWith("refused-")) fail(d.name, ["no record.json"]);
+      continue;
+    }
     const record = JSON.parse(readFileSync(path, "utf8")) as CivilizationRecord;
+    // The index lists what summary.json says, so it must say what the record does.
+    const summary = existsSync(join(ARCHIVE, d.name, "summary.json"))
+      ? (JSON.parse(
+          readFileSync(join(ARCHIVE, d.name, "summary.json"), "utf8"),
+        ) as Record<string, unknown>)
+      : null;
+    const { sha256: sealed, ...body } = record;
+    const shown = [
+      ...(sha256Json(body) === sealed ? [] : ["record digest mismatch"]),
+      ...(summary === null
+        ? ["no summary.json"]
+        : [
+            ...(summary.outcome ===
+              `${record.result.status} (${record.result.verdict})` ||
+            (summary.outcome === "not admitted by the registry" &&
+              !existsSync(join(ARCHIVE, d.name, "registry-run.json")))
+              ? []
+              : ["summary outcome is not the record's"]),
+            ...(summary.metric === record.plan.design.analysis.metric &&
+            summary.question === record.plan.ir.question &&
+            summary.mean_paired_delta === record.result.measurements.mean_paired_delta
+              ? []
+              : ["summary metric, question or effect is not the record's"]),
+          ]),
+    ];
+    if (shown.length) {
+      fail(d.name, shown);
+      continue;
+    }
     // A record made by another engine version cannot re-simulate on this one, and
     // the archive is never rewritten; say so rather than fail forever. A record
     // from this very engine that does not reproduce is a failure.
@@ -402,15 +477,25 @@ if (args.includes("--scripted")) {
       recordedUnder !== current
     ) {
       console.log(
-        `skipped  ${d}: recorded under ${recordedUnder}; this engine is ${current}`,
+        `skipped  ${d.name}: recorded under ${recordedUnder}; this engine is ${current}`,
       );
+      skipped++;
       continue;
     }
     const v = verifyCivilizationRecord(record, engine);
+    if (!v.ok) fail(d.name, v.errors);
+    else {
+      console.log(`ok       ${d.name}`);
+      resimulated++;
+    }
+  }
+  console.log(`${resimulated} re-simulated, ${skipped} skipped, ${bad} failed`);
+  // An archive this engine can re-simulate none of is checked by nothing.
+  if (skipped && !resimulated) {
     console.log(
-      `${v.ok ? "ok      " : "FAILED  "} ${d}${v.ok ? "" : ": " + v.errors.join("; ")}`,
+      `No archived record re-simulates on ${current}. Archive a run made by this engine (npm run rain:civilization:demo) so the cited results stay checkable.`,
     );
-    if (!v.ok) bad++;
+    bad++;
   }
   if (bad) process.exitCode = 1;
 } else {

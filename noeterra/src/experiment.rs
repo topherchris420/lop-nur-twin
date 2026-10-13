@@ -229,6 +229,19 @@ pub fn validate_plan(p: &Plan) -> Result<Scenario, String> {
     if ids.len() != p.arms.len() || p.arms.iter().any(|a| a.id.is_empty() || a.id.len() > 40) {
         return Err("arm ids must be unique, non-empty and short".into());
     }
+    // Two arms with the same policy and interventions are one arm under two names:
+    // a comparison between them would be about nothing.
+    for (i, a) in p.arms.iter().enumerate() {
+        if let Some(b) = p.arms[..i]
+            .iter()
+            .find(|b| b.policy == a.policy && b.interventions == a.interventions)
+        {
+            return Err(format!(
+                "arm `{}` repeats arm `{}`: same policy and interventions",
+                a.id, b.id
+            ));
+        }
+    }
     let scenario = scenario_of(&p.scenario)?;
     for a in &p.arms {
         Simulation::new(scenario.clone(), 0, Vec::new(), a.interventions.clone())

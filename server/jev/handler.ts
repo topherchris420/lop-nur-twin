@@ -532,7 +532,11 @@ export function createSystemOneDecisionHandler(
   };
 }
 
-/** Client address as the platform reports it. Vercel overwrites these headers. */
+/**
+ * Client address as the platform reports it. Vercel overwrites these headers;
+ * where nothing does (`vite`, `vite preview`), the caller writes them, so the
+ * dev middleware keys on its socket instead.
+ */
 export function clientKeyFrom(headers: Headers, fallback: string): string {
   const real = headers.get("x-real-ip")?.trim();
   if (real) return real.slice(0, 64);

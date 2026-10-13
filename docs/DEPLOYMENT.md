@@ -137,8 +137,10 @@ Optional, and off unless configured. Set `LLM_PROVIDER` (`anthropic` or
 variables are in `.env.example`. Never `VITE_`-prefixed. Check with
 `curl -s https://<deployment>/api/llm/decision`, which reports the provider and
 model and never the key. Without configuration it answers 503 and the game
-shows LLM UNAVAILABLE. Its rate limits are the Jev endpoint's, per instance; add
-a Firewall rule for `/api/llm/decision` too if it is enabled in production.
+shows LLM UNAVAILABLE. Its rate limits are its own and tighter than Jev's,
+because each call costs more (`LLM_RATE_LIMITS` in `server/llm/handler.ts`), and
+are per instance too; add a Firewall rule for `/api/llm/decision` if it is
+enabled in production.
 
 ### The R.A.I.N. Lab route
 

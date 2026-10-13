@@ -280,7 +280,11 @@ passes a strict validator — every field typed, bounded and from a closed
 vocabulary, unknown fields rejected — and the server recomputes the legal
 options and writes every word of the question itself. (c) Per-client token
 bucket, per-session minimum interval, per-instance budget and concurrency cap,
-and a 1.8 s upstream timeout. (d) Answers are validated against the options
+and a 1.8 s upstream timeout. The LLM endpoint's call is the expensive one —
+up to 25 s and three retries inside it — so its limits are its own
+(`LLM_RATE_LIMITS`): 3 burst and 0.5 a second per client, one request in 2 s
+per session, and per instance 1 a second with at most four calls in flight,
+where Jev allows sixteen. (d) Answers are validated against the options
 offered, then become ordinary input: the rig, controller, weapon runtime and
 damage resolver decide every consequence, exactly as for a keyboard.
 

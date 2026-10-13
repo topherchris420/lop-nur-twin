@@ -1,6 +1,7 @@
 import {
   OBSERVATION_SCHEMA_VERSION,
   ACTION_CONTRACT_VERSION,
+  LLM_SERVER_MIN_INTERVAL_MS,
 } from "../../src/game/pilot/contract.js";
 import {
   LLM_DECISION_SCHEMA,
@@ -21,7 +22,7 @@ import {
   readBody,
   type RequestMeta,
 } from "../jev/handler.js";
-import { DEFAULT_RATE_LIMITS, RateLimiter } from "../jev/rateLimit.js";
+import { RateLimiter, type RateLimitConfig } from "../jev/rateLimit.js";
 import { buildLlmPrompt, type ConfidenceMode } from "./prompt.js";
 import {
   AnthropicAdapter,
@@ -68,6 +69,26 @@ export interface LlmServerConfig {
   sleep?: (ms: number) => Promise<void>;
   log?: (event: Record<string, unknown>) => void;
 }
+
+/**
+ * This endpoint's own limits. Jev's (`DEFAULT_RATE_LIMITS`) are sized for a
+ * sub-second classifier; here one request can hold a provider call for up to
+ * 25 s and retry it up to three times inside that deadline, so Jev's numbers
+ * would let one anonymous client keep sixteen frontier-model calls running. A
+ * live game asks at most every 2.5 s (`LLM_CAPABILITIES`), one request in
+ * flight, and less often whenever the model is slower than that. The
+ * per-client bucket allows that one tab (0.4 a second) with room for the
+ * menu's status check; the session gap sits under the browser's interval so
+ * jitter never trips it; and the instance-wide bucket and four calls in
+ * flight bound what all clients together can spend.
+ */
+export const LLM_RATE_LIMITS: RateLimitConfig = {
+  perClient: { capacity: 3, refillPerSecond: 0.5 },
+  global: { capacity: 4, refillPerSecond: 1 },
+  sessionMinIntervalMs: LLM_SERVER_MIN_INTERVAL_MS,
+  maxInFlight: 4,
+  maxTrackedKeys: 5000,
+};
 
 /** The default Claude model when the operator names none. */
 export const DEFAULT_ANTHROPIC_MODEL = "claude-opus-5-5";
@@ -209,7 +230,7 @@ export type LlmDecisionHandler = (
 export function createLlmDecisionHandler(config: LlmServerConfig): LlmDecisionHandler {
   const resolved = resolveLlmConfig(config);
   const adapter = makeAdapter(config, resolved);
-  const limiter = config.limiter ?? new RateLimiter(DEFAULT_RATE_LIMITS);
+  const limiter = config.limiter ?? new RateLimiter(LLM_RATE_LIMITS);
   const now = config.now ?? (() => Date.now());
   const sleep =
     config.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));

@@ -249,14 +249,14 @@ impl Simulation {
         let n = w.civs.len();
         let observations: Vec<_> = (0..n).map(|c| observe(w, c)).collect();
         let mut outputs: Vec<Option<BrainOutput>> = vec![None; n];
-        for c in 0..n {
+        for (c, out) in outputs.iter_mut().enumerate() {
             if !w.civs[c].alive {
-                outputs[c] = Some(BrainOutput::plain(Decision::default(), Label::Rules));
+                *out = Some(BrainOutput::plain(Decision::default(), Label::Rules));
             } else if self.seats[c] == Seat::Human {
                 let d = human.remove(&c).unwrap_or_default();
                 let mut o = BrainOutput::plain(d, Label::Human);
                 o.generation = Generation::Human;
-                outputs[c] = Some(o);
+                *out = Some(o);
             }
         }
         let seed = w.seed;

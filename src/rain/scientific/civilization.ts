@@ -9,7 +9,7 @@
  * hashes. Every measurement is a simulated observation of an illustrative
  * model — never evidence about the historical world.
  */
-import { canonicalJson, sha256Json } from "../sha256.js";
+import { canonicalJson, sha256, sha256Json } from "../sha256.js";
 import { evaluate, type Criterion } from "../experiments/evaluate.js";
 import { schemaErrors } from "../experiments/jsonSchema.js";
 import type { Checked } from "../../bethesda/rain/validation.js";
@@ -18,6 +18,7 @@ import {
   boundedData,
   closed,
   CIVILIZATION_BACKEND,
+  CIVILIZATION_DESIGN,
   CIVILIZATION_METRICS,
   CIVILIZATION_RECORD,
   parseCivilizationDesign,
@@ -292,6 +293,129 @@ export function compileCivilizationExperiment(
   };
 }
 
+/**
+ * What a plan tests, apart from its seeds and its wording: the engine, scenario,
+ * horizon and both arms. Two plans with the same fingerprint ask the simulator
+ * the same question, whatever metric or threshold they name.
+ */
+export function civilizationProtocolFingerprint(plan: CivilizationPlan): string {
+  const { seeds: _seeds, ...protocol } = plan.noeterra_plan;
+  return sha256Json({ engine: plan.engine, protocol });
+}
+
+/**
+ * Refuses seeds an equivalent protocol has already run or reserved. Its outcome
+ * on them is known (and a model designing the next experiment is shown prior
+ * results), so a new metric, threshold or hypothesis on the same seeds would be
+ * chosen after the data, not before it. Fresh seeds are a replication.
+ */
+export function exposedSeedErrors(
+  plan: CivilizationPlan,
+  prior: readonly CivilizationPlan[],
+): string[] {
+  const fingerprint = civilizationProtocolFingerprint(plan);
+  const errors: string[] = [];
+  for (const p of prior) {
+    if (
+      p.definition_sha256 === plan.definition_sha256 ||
+      civilizationProtocolFingerprint(p) !== fingerprint
+    )
+      continue;
+    const shared = plan.noeterra_plan.seeds.filter((s) =>
+      p.noeterra_plan.seeds.includes(s),
+    );
+    if (shared.length)
+      errors.push(
+        `seeds ${shared.join(", ")} were already exposed to an equivalent protocol (${p.experiment_id}); a new metric, threshold or wording on them is not a preregistered test, so choose fresh seeds`,
+      );
+  }
+  return errors;
+}
+
+/**
+ * The design `noeterra design` derives from a receipt's answer (noeterra/src/design.rs,
+ * `propose`), rebuilt here so a design can be held to it field by field.
+ */
+function designFromReceiptAnswer(answerText: string, decisionSha256: string): unknown {
+  const start = answerText.indexOf("{"),
+    end = answerText.lastIndexOf("}");
+  if (start < 0 || end < start) return null;
+  const answer = JSON.parse(answerText.slice(start, end + 1)) as Record<string, unknown>;
+  const field = (o: unknown, k: string): unknown =>
+    o !== null && typeof o === "object" && !Array.isArray(o)
+      ? ((o as Record<string, unknown>)[k] ?? null)
+      : null;
+  const p = field(answer, "parameters"),
+    a = field(answer, "analysis");
+  const seeds = field(p, "seeds"),
+    turns = field(p, "turns");
+  const seedCount = Array.isArray(seeds) ? seeds.length : 0;
+  const turnCount =
+    typeof turns === "number" && Number.isSafeInteger(turns) && turns >= 0 ? turns : 0;
+  return {
+    schema: CIVILIZATION_DESIGN,
+    question: field(answer, "question"),
+    hypothesis: field(answer, "hypothesis"),
+    competing_hypothesis: field(answer, "competing_hypothesis"),
+    parameters: {
+      scenario: "mediterranean-264bc",
+      seeds,
+      turns,
+      treatment: field(p, "treatment"),
+    },
+    analysis: {
+      method: "matched_seed_paired_delta",
+      metric: field(a, "metric"),
+      expected_direction: field(a, "expected_direction"),
+      minimum_effect: field(a, "minimum_effect"),
+      minimum_consistent_seeds: field(a, "minimum_consistent_seeds"),
+    },
+    budget: { max_simulated_turns: 2 * seedCount * turnCount },
+    provenance: {
+      generation: "model",
+      decision_sha256: decisionSha256,
+      source_ids: [],
+      parent_record_sha256: null,
+    },
+  };
+}
+
+/**
+ * Holds a design to its receipt. A model's design must be exactly the design its
+ * receipt's answer produces: a seed, horizon, treatment or threshold edited by
+ * hand afterwards is no longer the model's proposal.
+ */
+export function civilizationReceiptErrors(
+  design: CivilizationDesign,
+  text: string | null,
+): string[] {
+  if (design.provenance.generation !== "model")
+    return text ? ["a receipt accompanies a non-model design"] : [];
+  if (!text) return ["a model design needs its receipt"];
+  const errors: string[] = [];
+  const digest = sha256(text);
+  if (digest !== design.provenance.decision_sha256)
+    errors.push("the receipt's SHA-256 does not match the design's decision_sha256");
+  let r: { schema?: unknown; generation?: unknown; answer?: unknown };
+  try {
+    r = JSON.parse(text) as typeof r;
+  } catch {
+    return [...errors, "the receipt is not JSON"];
+  }
+  if (r.schema !== "noeterra-design-receipt/v1" || r.generation !== "model")
+    errors.push("not a noeterra-design-receipt/v1 from a model");
+  let rebuilt: unknown = null;
+  try {
+    rebuilt =
+      typeof r.answer === "string" ? designFromReceiptAnswer(r.answer, digest) : null;
+  } catch {
+    rebuilt = null;
+  }
+  if (rebuilt === null || canonicalJson(rebuilt) !== canonicalJson(design))
+    errors.push("the design is not the design the receipt's answer produces");
+  return errors;
+}
+
 /** Recompiles against the given engine; a different engine version is refused. */
 export function verifyCivilizationPlan(raw: unknown, engine: NoeterraEngine): string[] {
   const errors = boundedData(raw);
@@ -401,11 +525,14 @@ export function civilizationMeasurements(
   const metric = plan.design.analysis.metric,
     sign = plan.design.analysis.expected_direction === "increase" ? 1 : -1;
   const seeds = plan.noeterra_plan.seeds;
+  // Without an experiment nothing was checked or counted: unknown, not zero.
   const out: Record<string, number | null> = {
     arms_completed: experiment ? experiment.runs.length : 0,
-    determinism_check: deterministic ? 1 : 0,
+    determinism_check: experiment ? (deterministic ? 1 : 0) : null,
     seeds: seeds.length,
-    simulated_turns: experiment ? experiment.runs.length * plan.noeterra_plan.turns : 0,
+    simulated_turns: experiment
+      ? experiment.runs.length * plan.noeterra_plan.turns
+      : null,
     control_mean: null,
     treatment_mean: null,
     mean_paired_delta: null,

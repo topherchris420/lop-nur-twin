@@ -130,14 +130,9 @@ pub fn propose(
         max_tokens: 8000,
     };
     let resp = provider.complete(&req)?;
-    let body = {
-        let t = &resp.text;
-        let (a, b) = (
-            t.find('{').ok_or("no JSON in the answer")?,
-            t.rfind('}').ok_or("no JSON in the answer")?,
-        );
-        &t[a..=b]
-    };
+    // An answer like `} sorry {` has both braces in the wrong order; the shared
+    // extractor refuses it rather than slicing backwards and panicking.
+    let body = crate::brain::llm::extract_json(&resp.text).ok_or("no JSON in the answer")?;
     let answer: Value = serde_json::from_str(body).map_err(|e| format!("the answer is not JSON: {e}"))?;
     let receipt = json!({
         "schema": RECEIPT_SCHEMA,

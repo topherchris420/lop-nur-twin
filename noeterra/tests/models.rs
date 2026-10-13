@@ -315,3 +315,14 @@ fn a_model_design_proposal_is_bound_to_its_receipt() {
     assert_eq!(r["schema"], "noeterra-design-receipt/v1");
     assert!(r["request"]["user"].as_str().unwrap().contains("Why do wars recur?"));
 }
+
+#[test]
+fn a_design_answer_with_braces_out_of_order_is_refused_not_a_panic() {
+    for text in ["} sorry {", "no json at all", "{ unterminated"] {
+        let p = Scripted {
+            answers: Mutex::new(vec![Ok(text.to_string())]),
+        };
+        let out = noeterra::design::propose(&p, "Q?", "", "2026-10-12T00:00:00Z");
+        assert!(out.is_err(), "{text}");
+    }
+}

@@ -68,6 +68,10 @@ export const CATEGORY_STYLE: Record<Category, string> = {
   Expansion: "bg-teal-500/15 text-teal-200 ring-teal-400/30",
 };
 
+/** The frosted panel every control over the map sits on. */
+export const glass =
+  "rounded-xl border border-white/10 bg-[#0d1316]/85 text-slate-100 shadow-2xl backdrop-blur-md";
+
 export const TRAITS = [
   "aggression",
   "expansion",

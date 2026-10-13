@@ -266,16 +266,21 @@ fn dispatch(r: Request) -> Result<Value, String> {
         Request::SessionAdvance { session, turns } => with(session, |s| {
             let brains = offline_brains(&s.sim.seats);
             let first = s.sim.world.events.len();
+            // A human seat that falls ends the jump there, so its player sees the
+            // fall; one that fell before this call is only watching, and goes on.
+            let ruling: Vec<CivId> = s
+                .sim
+                .world
+                .civs
+                .iter()
+                .enumerate()
+                .filter(|(c, civ)| s.sim.seats[*c] == Seat::Human && civ.alive)
+                .map(|(c, _)| c)
+                .collect();
             for _ in 0..turns.clamp(1, MAX_ADVANCE) {
                 let mut human = std::mem::take(&mut s.human);
                 s.sim.step(&brains, &mut human);
-                if s.sim
-                    .world
-                    .civs
-                    .iter()
-                    .enumerate()
-                    .any(|(c, civ)| s.sim.seats[c] == Seat::Human && !civ.alive)
-                {
+                if ruling.iter().any(|&c| !s.sim.world.civs[c].alive) {
                     break;
                 }
             }

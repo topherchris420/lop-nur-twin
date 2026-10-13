@@ -1,5 +1,6 @@
 import {
   CONTROL_MODES,
+  LLM_MIN_DECISION_INTERVAL_MS,
   MAX_DECISION_AGE_MS,
   MIN_DECISION_INTERVAL_MS,
   REQUEST_TIMEOUT_MS,
@@ -99,13 +100,15 @@ export const JEV_CAPABILITIES: Capabilities = {
  * A conventional LLM behind `/api/llm/decision`. The server builds it the
  * same question Jev gets for every interface, so it is offered the same ones;
  * its cadence is bound by its own latency (typically far above Jev's), with
- * one request in flight, exactly as for Jev. It has no memory beyond the
- * observation: each request is a fresh conversation.
+ * one request in flight, exactly as for Jev — and never shorter than 2.5 s,
+ * because its endpoint paces a session for a model whose every call costs
+ * seconds and money (`LLM_RATE_LIMITS` in `server/llm/handler.ts`). It has no
+ * memory beyond the observation: each request is a fresh conversation.
  */
 export const LLM_CAPABILITIES: Capabilities = {
   control: ["precision", "direct"],
   navigation: ["places", "steps"],
-  minIntervalMs: MIN_DECISION_INTERVAL_MS,
+  minIntervalMs: LLM_MIN_DECISION_INTERVAL_MS,
   inference: "remote",
   memory: false,
   vision: false,
@@ -195,7 +198,8 @@ function pick<T extends string>(
  * The interface a seat runs. Asked-for modes are granted when both sides
  * support them; otherwise the first mode both support, noted. The interval
  * is never shorter than either side's floor, and defaults to the contract's
- * 200 ms so results stay comparable with every benchmark before this one.
+ * 200 ms so results stay comparable with every benchmark before this one —
+ * or to the floor, when that is longer, which is a default and not a refusal.
  */
 export function negotiate(
   brain: Capabilities,
@@ -225,7 +229,7 @@ export function negotiate(
   );
   const floor = Math.max(brain.minIntervalMs, host.minIntervalMs);
   const wanted = request.intervalMs ?? MIN_DECISION_INTERVAL_MS;
-  if (wanted < floor)
+  if (request.intervalMs !== null && wanted < floor)
     notes.push(`interval ${wanted} ms below the floor; using ${floor} ms`);
   const cap = (
     wantedMs: number | undefined,

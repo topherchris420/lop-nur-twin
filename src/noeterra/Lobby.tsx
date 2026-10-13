@@ -103,13 +103,21 @@ export interface LobbyProps {
   cards: ScenarioCard[];
   engineVersion: string;
   initialScenario?: string;
+  /** From `?seed=`, already bounded by the route. */
+  initialSeed?: number;
   onBegin: (scenario: string, play: string | null, seed: number) => void;
 }
 
-export function Lobby({ cards, engineVersion, initialScenario, onBegin }: LobbyProps) {
+export function Lobby({
+  cards,
+  engineVersion,
+  initialScenario,
+  initialSeed,
+  onBegin,
+}: LobbyProps) {
   const [scenario, setScenario] = useState(initialScenario ?? cards[0]?.id ?? "");
   const [play, setPlay] = useState<string | null>(null);
-  const [seed, setSeed] = useState(1);
+  const [seed, setSeed] = useState(initialSeed ?? 1);
   const sky = useMemo(() => stars(260), []);
   const card = cards.find((c) => c.id === scenario) ?? cards[0];
 
