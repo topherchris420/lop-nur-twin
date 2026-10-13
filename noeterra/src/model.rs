@@ -9,7 +9,7 @@ pub type CivId = usize;
 pub type ProvId = usize;
 
 pub const SAVE_SCHEMA: &str = "noeterra-save/v1";
-pub const SIM_VERSION: u32 = 1;
+pub const SIM_VERSION: u32 = 2;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

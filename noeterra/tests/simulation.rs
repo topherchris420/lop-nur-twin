@@ -29,6 +29,14 @@ fn check_invariants(w: &World) {
         if let Some(o) = p.owner {
             assert!(w.civs[o].alive, "{} owned by a fallen power", p.key);
         }
+        // Peace returns occupations: no power holds another's land without a war.
+        if let (Some(o), Some(h)) = (p.owner, p.controller) {
+            assert!(
+                o == h || w.at_war(o, h),
+                "{} held by a power not at war with its owner",
+                p.key
+            );
+        }
     }
     for a in &w.armies {
         assert!(a.strength >= 0.5 && a.strength.is_finite());
@@ -382,6 +390,9 @@ fn a_treatment_that_changes_nothing_is_refused() {
         let err = experiment::validate_plan(&plan(vec![vacuous])).unwrap_err();
         assert!(err.contains("leave the starting world unchanged"), "{err}");
     }
+    // A second arm with no interventions is the control again.
+    let err = experiment::validate_plan(&plan(vec![])).unwrap_err();
+    assert!(err.contains("repeats arm `control`"), "{err}");
     // The alliance the scenario does contain can be removed.
     experiment::validate_plan(&plan(vec![Intervention::RemoveTreaty {
         kind: TreatyKind::Alliance,
@@ -421,4 +432,36 @@ fn a_large_generated_world_runs() {
     run_offline(&mut sim, 50);
     check_invariants(&sim.world);
     println!("400 provinces x 12 civs x 50 turns in {:?}", t.elapsed());
+}
+
+#[test]
+fn a_scenario_with_impossible_figures_is_refused() {
+    let base = builtin("mediterranean-264bc", 0).unwrap();
+    assert!(noeterra::scenario::build(&base, 1).is_ok());
+    type Mutation = Box<dyn Fn(&mut noeterra::scenario::Scenario)>;
+    let mutations: Vec<(&str, Mutation)> = vec![
+        // A huge tech makes battle odds inf/inf, and NaN then passes every treasury check.
+        ("tech", Box::new(|s| s.civs[0].tech = 1e300)),
+        ("treasury", Box::new(|s| s.civs[0].treasury = -1.0)),
+        ("trait", Box::new(|s| s.civs[0].personality.aggression = 7.0)),
+        ("stability", Box::new(|s| s.civs[0].stability = 400.0)),
+        ("army", Box::new(|s| s.civs[0].armies[0].strength = 1e300)),
+        ("population", Box::new(|s| s.provinces[0].pop = 1e300)),
+        (
+            "self treaty",
+            Box::new(|s| {
+                let k = s.civs[0].key.clone();
+                s.treaties.push(noeterra::scenario::TreatySpec {
+                    kind: TreatyKind::Trade,
+                    a: k.clone(),
+                    b: k,
+                });
+            }),
+        ),
+    ];
+    for (what, mutate) in mutations {
+        let mut s = base.clone();
+        mutate(&mut s);
+        assert!(noeterra::scenario::build(&s, 1).is_err(), "{what} accepted");
+    }
 }

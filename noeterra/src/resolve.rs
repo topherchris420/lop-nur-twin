@@ -225,7 +225,13 @@ fn refuse_proposal(w: &mut World, p: &Proposal) {
     let (fname, tname) = (w.civs[from].name.clone(), w.civs[to].name.clone());
     match &p.terms {
         Terms::JoinWar { war } => {
-            if !w.wars.iter().any(|x| x.id == *war) {
+            // Only an open call can be refused: not one whose ally already joined
+            // the war at another's call, whose caller has left it, or whose
+            // alliance is already gone. Acceptance checks the same.
+            let Some(wr) = w.wars.iter().find(|x| x.id == *war) else {
+                return;
+            };
+            if wr.side_of(to).is_some() || wr.side_of(from).is_none() || !w.allied(from, to) {
                 return;
             }
             w.treaties
@@ -836,8 +842,10 @@ fn sieges(w: &mut World) {
             }
             Some(h) => {
                 let owner = w.provinces[p].owner;
-                w.provinces[p].controller = Some(taker);
-                let liberated = owner == Some(taker);
+                // An army frees, never occupies, the land of a power it is not at
+                // war with: an ally retaking a province returns it to its owner.
+                let liberated = owner == Some(taker) || owner.is_some_and(|o| !w.at_war(taker, o));
+                w.provinces[p].controller = if liberated { owner } else { Some(taker) };
                 w.provinces[p].unrest = if liberated {
                     (w.provinces[p].unrest - 10.0).max(0.0)
                 } else {
@@ -1089,6 +1097,19 @@ fn upkeep_world(w: &mut World) {
         }
     }
     w.wars.retain(|wr| !wr.attackers.is_empty() && !wr.defenders.is_empty());
+    // Peace returns occupations. A separate peace in a coalition war, or a war that
+    // ended around an ally's occupation, can leave land held by a power that is no
+    // longer at war with its owner; it goes home.
+    for p in 0..w.provinces.len() {
+        if let (Some(o), Some(h)) = (w.provinces[p].owner, w.provinces[p].controller) {
+            if o != h && !w.at_war(o, h) {
+                let prov = &mut w.provinces[p];
+                prov.controller = Some(o);
+                prov.siege_by = None;
+                prov.siege = 0.0;
+            }
+        }
+    }
     // A capital lost by treaty moves to the most populous remaining province.
     for c in 0..n {
         let cap = w.civs[c].capital;
@@ -1193,5 +1214,55 @@ fn round_state(w: &mut World) {
     }
     for wr in w.wars.iter_mut() {
         wr.score = round2(wr.score);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::scenario::{build, builtin};
+
+    fn call(from: CivId, to: CivId) -> Proposal {
+        Proposal {
+            id: 1,
+            from,
+            to,
+            turn: 0,
+            terms: Terms::JoinWar { war: 99 },
+        }
+    }
+
+    #[test]
+    fn refusing_a_call_to_arms_breaks_only_an_open_one() {
+        let mut w = build(&builtin("mediterranean-264bc", 1).unwrap(), 1).unwrap();
+        let (caller, ally, enemy) = (0, 1, 2);
+        w.wars.clear();
+        w.treaties.clear();
+        // The ally already fights on the caller's side, at another ally's call.
+        w.wars.push(War {
+            id: 99,
+            attackers: vec![enemy],
+            defenders: vec![caller, ally],
+            started: 0,
+            score: 0.0,
+            battles: 0,
+        });
+        w.treaties.push(Treaty {
+            kind: TreatyKind::Alliance,
+            a: ally,
+            b: caller,
+            since: 0,
+            expires: None,
+        });
+        let prestige = w.civs[ally].prestige;
+        refuse_proposal(&mut w, &call(caller, ally));
+        assert!(w.allied(caller, ally), "an ally already in the war broke nothing");
+        assert_eq!(w.civs[ally].prestige, prestige);
+
+        // The same call while it is still open does break the alliance.
+        w.wars[0].defenders.retain(|&c| c != ally);
+        refuse_proposal(&mut w, &call(caller, ally));
+        assert!(!w.allied(caller, ally));
+        assert!(w.civs[ally].prestige < prestige);
     }
 }

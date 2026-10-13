@@ -323,7 +323,7 @@ learning {:.2}; war weariness {:.0}; field armies {:.1}k; {} provinces; capital 
     s
 }
 
-fn extract_json(text: &str) -> Option<&str> {
+pub(crate) fn extract_json(text: &str) -> Option<&str> {
     let start = text.find('{')?;
     let end = text.rfind('}')?;
     (end > start).then(|| &text[start..=end])
