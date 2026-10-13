@@ -196,7 +196,13 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(notice ?? null);
   const [focusCiv, setFocusCiv] = useState<number | null>(you);
-  const [reveal, setReveal] = useState(you === null);
+  const [reveal, setRevealRaw] = useState(you === null);
+  // A player looks at other nations through the research view; leaving it
+  // brings the panel back to their own.
+  const setReveal = (on: boolean) => {
+    setRevealRaw(on);
+    if (!on) setFocusCiv(you);
+  };
   const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
@@ -231,6 +237,13 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   const watchOn = () => {
     setWatching(true);
     jumpRef.current?.focus();
+  };
+  // Choosing a province, on the map or in the list, shows its nation to an
+  // observer or in the research view.
+  const selectProvince = (p: number | null) => {
+    setSelected(p);
+    const owner = p === null ? null : (state?.provinces[p]?.owner ?? null);
+    if ((you === null || reveal) && owner !== null) setFocusCiv(owner);
   };
   const viewCiv: number | null =
     focusCiv ??
@@ -362,10 +375,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
         selected={selected}
         focus={focus}
         you={you}
-        onSelect={(p) => {
-          setSelected(p);
-          if (you === null) setFocusCiv(state.provinces[p]?.owner ?? null);
-        }}
+        onSelect={selectProvince}
       />
 
       {/* Session chip */}
@@ -609,7 +619,7 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                     )}
                   </div>
                 </div>
-                {you === null && (
+                {(you === null || reveal) && (
                   <label className="flex items-center gap-2 text-xs text-white/70">
                     Nation
                     <select
@@ -633,7 +643,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
                   <select
                     value={selected ?? ""}
                     onChange={(e) =>
-                      setSelected(e.target.value === "" ? null : Number(e.target.value))
+                      selectProvince(
+                        e.target.value === "" ? null : Number(e.target.value),
+                      )
                     }
                     className="flex-1 rounded-md border border-white/15 bg-black/40 px-2 py-1"
                   >
@@ -1450,6 +1462,11 @@ function MindPanel({
           />
           Research view: read other nations&apos; minds (breaks the fog of war)
         </label>
+      )}
+      {you !== null && reveal && (
+        <p className="text-[11px] text-white/50">
+          Choose a nation on the map or in the Realm tab.
+        </p>
       )}
       {!mind ? (
         <p className="text-sm text-white/65">
