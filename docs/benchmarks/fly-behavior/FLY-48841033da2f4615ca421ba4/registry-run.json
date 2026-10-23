@@ -1,0 +1,994 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0003",
+  "run_id": "V3D-EXP-0003-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "passed",
+  "hypothesis_verdict": "supported",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-22T23:42:42.936Z",
+  "finished_at": "2026-10-22T23:42:43.810Z",
+  "duration_ms": 874,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "48841033da2f4615ca421ba453bdb70024b6877f624308c0a5141203cf57d9a7"
+  },
+  "definition": {
+    "created_at": "2026-10-22T23:42:42.925Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "note": "No effect or the opposite direction",
+          "op": "<=",
+          "value": 0
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 24
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash and measurement",
+          "op": ">=",
+          "value": 1
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Preregistered effect threshold",
+          "op": ">=",
+          "value": 0.3
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "note": "Effect appears in enough seeds",
+          "op": ">=",
+          "value": 8
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0003",
+    "experiment_version": 1,
+    "hypothesis": "A 4 cm sphere approaching the standing fly at 1 m/s will increase escape_probability by at least 0.3 fraction on average over matched seeds, compared with the same sphere receding along the same line at the same speed, in the expected direction in at least 8 of 12 seeds.",
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+      "Seeds are replicates of one model, not samples of real flies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs (seed x arm x block) that completed",
+        "deterministic": true,
+        "name": "runs_completed",
+        "unit": "count"
+      },
+      {
+        "description": "a second simulation reached every recorded state hash and measurement",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "fly-seconds simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_seconds",
+        "unit": "s"
+      },
+      {
+        "description": "mean escape_probability in the control arm",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "mean escape_probability in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment minus control escape_probability, averaged over seeds",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "fraction"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of single-stimulus trials answered by an escape takeoff",
+        "deterministic": true,
+        "name": "control_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of single-stimulus trials answered by an escape takeoff",
+        "deterministic": true,
+        "name": "treatment_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: mean time from stimulus onset to the escape decision, over escapes",
+        "deterministic": true,
+        "name": "control_escape_latency_s",
+        "unit": "s"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean time from stimulus onset to the escape decision, over escapes",
+        "deterministic": true,
+        "name": "treatment_escape_latency_s",
+        "unit": "s"
+      },
+      {
+        "description": "control arm, mean over seeds: mean time the stimulus still had to run at the escape decision, over escapes",
+        "deterministic": true,
+        "name": "control_escape_lead_s",
+        "unit": "s"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean time the stimulus still had to run at the escape decision, over escapes",
+        "deterministic": true,
+        "name": "treatment_escape_lead_s",
+        "unit": "s"
+      },
+      {
+        "description": "control arm, mean over seeds: mean angular size of the stimulus at the escape decision",
+        "deterministic": true,
+        "name": "control_size_at_escape_deg",
+        "unit": "deg"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean angular size of the stimulus at the escape decision",
+        "deterministic": true,
+        "name": "treatment_size_at_escape_deg",
+        "unit": "deg"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of escapes that took the short (fast) takeoff",
+        "deterministic": true,
+        "name": "control_short_mode_fraction",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of escapes that took the short (fast) takeoff",
+        "deterministic": true,
+        "name": "treatment_short_mode_fraction",
+        "unit": "fraction"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "mean_paired_delta",
+              "note": "No effect or the opposite direction",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "runs_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 24
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash and measurement",
+              "op": ">=",
+              "value": 1
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Preregistered effect threshold",
+              "op": ">=",
+              "value": 0.3
+            },
+            {
+              "id": "S2",
+              "metric": "seeds_expected_direction",
+              "note": "Effect appears in enough seeds",
+              "op": ">=",
+              "value": 8
+            }
+          ]
+        },
+        "definition_sha256": "48841033da2f4615ca421ba453bdb70024b6877f624308c0a5141203cf57d9a7",
+        "design": {
+          "analysis": {
+            "expected_direction": "increase",
+            "method": "matched_seed_paired_delta",
+            "metric": "escape_probability",
+            "minimum_consistent_seeds": 8,
+            "minimum_effect": 0.3
+          },
+          "budget": {
+            "max_simulated_seconds": 16000
+          },
+          "competing_hypothesis": "[scripted] Any moving object in view triggers the escape proxy, approaching or not.",
+          "hypothesis": "[scripted] A sphere approaching at 1 m/s raises the escape probability over the same sphere receding along the same line.",
+          "parameters": {
+            "seeds": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "treatment": {
+              "approach_speed_m_s": 1,
+              "control": "receding",
+              "kind": "visual_threat"
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+          "schema": "rain-fly-design/v1"
+        },
+        "experiment": {
+          "arms": [
+            {
+              "approach_speed_m_s": 1,
+              "config": {},
+              "id": "control",
+              "isi_s": 120,
+              "light_intensity": 2,
+              "noise": 0,
+              "stimulus": "receding"
+            },
+            {
+              "approach_speed_m_s": 1,
+              "config": {},
+              "id": "treatment",
+              "isi_s": 120,
+              "light_intensity": 2,
+              "noise": 0,
+              "stimulus": "approaching"
+            }
+          ],
+          "blocks": [
+            {
+              "arena": {
+                "ambient": 0.6,
+                "pillars": [],
+                "size": [
+                  4,
+                  2.5,
+                  4
+                ]
+              },
+              "duration_s": 0.3,
+              "fixed_config": {
+                "groomHz": 0,
+                "takeoffHz": 0,
+                "walkStartHz": 0
+              },
+              "id": "escape",
+              "light_at": null,
+              "start_half_width_m": 0.8,
+              "stimulus": {
+                "azimuth_deg": [
+                  -180,
+                  180
+                ],
+                "elevation_deg": [
+                  10,
+                  40
+                ],
+                "end_distance_m": 0.08,
+                "max_wait_s": 0,
+                "onset_s": 1,
+                "radius_m": 0.04,
+                "settle_s": 0,
+                "speed_m_s": 1,
+                "start_distance_m": 1
+              },
+              "tick_s": 0.005,
+              "trials": 6
+            }
+          ],
+          "protocol": "visual_threat",
+          "schema": "digital-fly-experiment/v1",
+          "seeds": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        "experiment_id": "FLY-48841033da2f4615ca421ba4",
+        "fly": "digital-fly/2 reduced-order-fsm/v1",
+        "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+        "ir": {
+          "backend": "digital-fly",
+          "backend_version": "digital-fly-behavior/v1 (digital-fly/2 reduced-order-fsm/v1)",
+          "controls": [
+            "baseline arm: the same sphere receding along the same line at the same speed",
+            "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+            "fixed apparatus settings, both arms — escape block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+            "the fly's version, controller and full parameter table are bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "escape_probability"
+          ],
+          "domain": "fly-behavior-simulation",
+          "falsification": {
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "unit": "fraction",
+            "value": 0
+          },
+          "hypothesis": "A 4 cm sphere approaching the standing fly at 1 m/s will increase escape_probability by at least 0.3 fraction on average over matched seeds, compared with the same sphere receding along the same line at the same speed, in the expected direction in at least 8 of 12 seeds.",
+          "independent_variables": [
+            "a 4 cm sphere approaching the standing fly at 1 m/s"
+          ],
+          "limitations": [
+            "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+            "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+            "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+            "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+            "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+            "A result characterizes the simulator and is never empirical evidence about Drosophila."
+          ],
+          "observables": [
+            {
+              "description": "fraction of single-stimulus trials answered by an escape takeoff",
+              "id": "escape_probability",
+              "unit": "fraction"
+            },
+            {
+              "description": "mean time from stimulus onset to the escape decision, over escapes",
+              "id": "escape_latency_s",
+              "unit": "s"
+            },
+            {
+              "description": "mean time the stimulus still had to run at the escape decision, over escapes",
+              "id": "escape_lead_s",
+              "unit": "s"
+            },
+            {
+              "description": "mean angular size of the stimulus at the escape decision",
+              "id": "size_at_escape_deg",
+              "unit": "deg"
+            },
+            {
+              "description": "fraction of escapes that took the short (fast) takeoff",
+              "id": "short_mode_fraction",
+              "unit": "fraction"
+            },
+            {
+              "description": "treatment minus control escape_probability, averaged over seeds",
+              "id": "mean_paired_delta",
+              "unit": "fraction"
+            }
+          ],
+          "parameter_constraints": [
+            "six closed protocols with host-built arenas and stimuli",
+            "controller configurations override model parameters only; FlyBody and published values are fixed",
+            "the integration settings (physics, sensing and decision periods) are never varied",
+            "at most 16000 simulated fly-seconds per experiment",
+            "8-16 distinct seeds; the effect must appear in at least half of them"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the digital fly simulator, how does a 4 cm sphere approaching the standing fly at 1 m/s change fraction of single-stimulus trials answered by an escape takeoff, against the same sphere receding along the same line at the same speed on matched seeds?",
+          "resource_budget": {
+            "execution_steps": 64000,
+            "max_samples": 24,
+            "replay_steps": 64000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 12,
+            "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+            "uncertainty": "Seeds are independent replicates of one reduced-order model; descriptive only, with no p-value or population inference, and nothing about real flies."
+          }
+        },
+        "schema": "rain-fly-plan/v1",
+        "simulated_seconds": 320
+      }
+    },
+    "procedure": [
+      "Review and authorize the exact fly plan digest.",
+      "Run every seed in both arms on the host-built arenas and stimuli of the protocol.",
+      "Simulate every run a second time and require each state hash and measurement.",
+      "Recompile and re-simulate again before registry admission."
+    ],
+    "question": "In the digital fly simulator, how does a 4 cm sphere approaching the standing fly at 1 m/s change fraction of single-stimulus trials answered by an escape takeoff, against the same sphere receding along the same line at the same speed on matched seeds?",
+    "rationale": "Bounded experiment on the digital fly's reduced-order controller in a closed arena, with matched seeds and independent re-simulation.",
+    "runner": {
+      "adapter": "digital-fly-behavior/v1",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "digital-fly",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed digital fly behaviour",
+    "variables": {
+      "controls": [
+        "baseline arm: the same sphere receding along the same line at the same speed",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "fixed apparatus settings, both arms — escape block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+        "the fly's version, controller and full parameter table are bound into the plan digest"
+      ],
+      "dependent": [
+        "escape_probability"
+      ],
+      "independent": [
+        "a 4 cm sphere approaching the standing fly at 1 m/s"
+      ]
+    }
+  },
+  "definition_sha256": "817c5c1ad3b76b37a95b661604225fc84439ed60e075e31e3007a44a319633ce",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-fly-plan/v1",
+      "design": {
+        "schema": "rain-fly-design/v1",
+        "question": "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+        "hypothesis": "[scripted] A sphere approaching at 1 m/s raises the escape probability over the same sphere receding along the same line.",
+        "competing_hypothesis": "[scripted] Any moving object in view triggers the escape proxy, approaching or not.",
+        "parameters": {
+          "seeds": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "treatment": {
+            "kind": "visual_threat",
+            "approach_speed_m_s": 1,
+            "control": "receding"
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_paired_delta",
+          "metric": "escape_probability",
+          "expected_direction": "increase",
+          "minimum_effect": 0.3,
+          "minimum_consistent_seeds": 8
+        },
+        "budget": {
+          "max_simulated_seconds": 16000
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "fly-behavior-simulation",
+        "backend": "digital-fly",
+        "backend_version": "digital-fly-behavior/v1 (digital-fly/2 reduced-order-fsm/v1)",
+        "question": "In the digital fly simulator, how does a 4 cm sphere approaching the standing fly at 1 m/s change fraction of single-stimulus trials answered by an escape takeoff, against the same sphere receding along the same line at the same speed on matched seeds?",
+        "hypothesis": "A 4 cm sphere approaching the standing fly at 1 m/s will increase escape_probability by at least 0.3 fraction on average over matched seeds, compared with the same sphere receding along the same line at the same speed, in the expected direction in at least 8 of 12 seeds.",
+        "observables": [
+          {
+            "id": "escape_probability",
+            "unit": "fraction",
+            "description": "fraction of single-stimulus trials answered by an escape takeoff"
+          },
+          {
+            "id": "escape_latency_s",
+            "unit": "s",
+            "description": "mean time from stimulus onset to the escape decision, over escapes"
+          },
+          {
+            "id": "escape_lead_s",
+            "unit": "s",
+            "description": "mean time the stimulus still had to run at the escape decision, over escapes"
+          },
+          {
+            "id": "size_at_escape_deg",
+            "unit": "deg",
+            "description": "mean angular size of the stimulus at the escape decision"
+          },
+          {
+            "id": "short_mode_fraction",
+            "unit": "fraction",
+            "description": "fraction of escapes that took the short (fast) takeoff"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "fraction",
+            "description": "treatment minus control escape_probability, averaged over seeds"
+          }
+        ],
+        "independent_variables": [
+          "a 4 cm sphere approaching the standing fly at 1 m/s"
+        ],
+        "dependent_variables": [
+          "escape_probability"
+        ],
+        "controls": [
+          "baseline arm: the same sphere receding along the same line at the same speed",
+          "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+          "fixed apparatus settings, both arms — escape block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+          "the fly's version, controller and full parameter table are bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "six closed protocols with host-built arenas and stimuli",
+          "controller configurations override model parameters only; FlyBody and published values are fixed",
+          "the integration settings (physics, sensing and decision periods) are never varied",
+          "at most 16000 simulated fly-seconds per experiment",
+          "8-16 distinct seeds; the effect must appear in at least half of them"
+        ],
+        "resource_budget": {
+          "execution_steps": 64000,
+          "replay_steps": 64000,
+          "max_samples": 24
+        },
+        "statistical_analysis": {
+          "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+          "independent_replicates": 12,
+          "uncertainty": "Seeds are independent replicates of one reduced-order model; descriptive only, with no p-value or population inference, and nothing about real flies."
+        },
+        "falsification": {
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": 0,
+          "unit": "fraction"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+          "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+          "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+          "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+          "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+          "A result characterizes the simulator and is never empirical evidence about Drosophila."
+        ]
+      },
+      "fly": "digital-fly/2 reduced-order-fsm/v1",
+      "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+      "experiment": {
+        "schema": "digital-fly-experiment/v1",
+        "protocol": "visual_threat",
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "blocks": [
+          {
+            "id": "escape",
+            "arena": {
+              "size": [
+                4,
+                2.5,
+                4
+              ],
+              "ambient": 0.6,
+              "pillars": []
+            },
+            "fixed_config": {
+              "takeoffHz": 0,
+              "walkStartHz": 0,
+              "groomHz": 0
+            },
+            "start_half_width_m": 0.8,
+            "tick_s": 0.005,
+            "duration_s": 0.3,
+            "trials": 6,
+            "light_at": null,
+            "stimulus": {
+              "radius_m": 0.04,
+              "start_distance_m": 1,
+              "end_distance_m": 0.08,
+              "elevation_deg": [
+                10,
+                40
+              ],
+              "azimuth_deg": [
+                -180,
+                180
+              ],
+              "onset_s": 1,
+              "speed_m_s": 1,
+              "settle_s": 0,
+              "max_wait_s": 0
+            }
+          }
+        ],
+        "arms": [
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "stimulus": "receding",
+            "approach_speed_m_s": 1,
+            "isi_s": 120,
+            "id": "control"
+          },
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "stimulus": "approaching",
+            "approach_speed_m_s": 1,
+            "isi_s": 120,
+            "id": "treatment"
+          }
+        ]
+      },
+      "simulated_seconds": 320,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "runs_completed",
+            "op": ">=",
+            "value": 24,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash and measurement"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": ">=",
+            "value": 0.3,
+            "note": "Preregistered effect threshold"
+          },
+          {
+            "id": "S2",
+            "metric": "seeds_expected_direction",
+            "op": ">=",
+            "value": 8,
+            "note": "Effect appears in enough seeds"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": 0,
+            "note": "No effect or the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "48841033da2f4615ca421ba453bdb70024b6877f624308c0a5141203cf57d9a7",
+      "experiment_id": "FLY-48841033da2f4615ca421ba4"
+    },
+    "authorization": {
+      "schema": "rain-fly-authorization/v1",
+      "experiment_id": "FLY-48841033da2f4615ca421ba4",
+      "definition_sha256": "48841033da2f4615ca421ba453bdb70024b6877f624308c0a5141203cf57d9a7",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "local-operator",
+      "identity_verified": false,
+      "scope": "fly-behavior-simulation",
+      "confirmed_prefix": "48841033",
+      "authorized_at": "2026-10-22T23:42:42.936Z",
+      "expires_at": "2026-10-23T00:42:42.936Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "replay_sha256": "ce0c94a2b9f3c312345ee47503f3d072c95ce42e4aa6b55f33cf5fb4e1761dd2",
+    "final_state_hashes": [
+      "escape/control/1/df3eccab739fdbb1b5b8ee2679b7bd5e80d56acc85a1cc8d911febb9ef650d8b",
+      "escape/treatment/1/f5be0ca82fd20bf2e7260d9fc87a601123ee7a3cee2d6e18e9da036ba37e7867",
+      "escape/control/2/f4c0d41fb068a4e7b11639f52f0ab537fe6dcf0218c49fbf0521fd65e666f74e",
+      "escape/treatment/2/fc521165b0e9f11fa95d5532e28dab94e9e24c3691c8bcb88854e1836a993f6a",
+      "escape/control/3/7a1671cc1fa1b4c98c26c8fc30d7a38397255d72e3c78a96bed981fc1889b8c7",
+      "escape/treatment/3/dd8fc6cca94a9e3d4d3a5d84f5a0fb6156febb95281e6ee6b7d4a3a2f8fd7eca",
+      "escape/control/4/5a12a095caf0864d49c9adb2c7fe78c31b3923551fea27fb0ed7d52d42259ad5",
+      "escape/treatment/4/a73c9a06c1d2e42504ba31a029ffa5bfa51a890080321120223aac7d792a8df9",
+      "escape/control/5/3d5605711fc781548f1597483ba0f5e6f28e40ce4d5083b36112ee1e32f49f51",
+      "escape/treatment/5/318697bd228d924c78b7fb41f2aad029b4566efb43043e0f72d2ccee95858e8b",
+      "escape/control/6/08db298b1e88d7ab1cdee59dd88310a0048507c2fa0676e4c4ed46fb555ef082",
+      "escape/treatment/6/bd22777b31818052cc888ebcc338892c82e0272f7382cb8f37870289130628db",
+      "escape/control/7/49aaa0ca7c60cda42229a1b12f66ec4dc31667c080b382acd5b0545ff39dfea1",
+      "escape/treatment/7/52efd0ec1ab0040eb1599fced90d1787708c2a455415352060a0963c4a291d7c",
+      "escape/control/8/82c7ef6253100f1982226bf747b2d6bc94301441e847c1db11fe2eddc5a0e669",
+      "escape/treatment/8/33e2c38ab707b8dbea9f793b21557ebb4f2fcb3ecda4f73492bbc64eb953bf62",
+      "escape/control/9/317430f7de62c1ba2436717331fb43d72838cd5e7fd3b331d41207a739ce0922",
+      "escape/treatment/9/07d1ef1a13962dbfe24085053d5d765077864fe9c6539d2252f20d87f22f2d99",
+      "escape/control/10/36a74fe31643fd112aa85b1ea8f5d6981bcdcd77e9d3ca862f56378ef90cc1e4",
+      "escape/treatment/10/04d0acbe55002bf35b2039800232207fffbd3f9c8fae8d0223ae56787449f98b",
+      "escape/control/11/2a0d7fd301265f3f1075d267175b67199d098fda7c8ad873f24e66695255cd15",
+      "escape/treatment/11/c50bd215feb86c7b5a3aa447420a8fb4ec8cde81e709adb84a9aa0903a8ebfca",
+      "escape/control/12/9402977043be0f5044046d0aa624694b46c4f2e2578f2f6d7ba9da28440f2f21",
+      "escape/treatment/12/395eabf303f690253a1e2c879687bd3151806c48aaa240b9a4798448716f45c0"
+    ]
+  },
+  "measurements": {
+    "control_escape_latency_s": null,
+    "control_escape_lead_s": null,
+    "control_escape_probability": 0,
+    "control_mean": 0,
+    "control_short_mode_fraction": null,
+    "control_size_at_escape_deg": null,
+    "determinism_check": 1,
+    "mean_paired_delta": 0.9305555555555557,
+    "runs_completed": 24,
+    "seeds": 12,
+    "seeds_expected_direction": 12,
+    "seeds_opposite": 0,
+    "seeds_unchanged": 0,
+    "simulated_seconds": 319.68,
+    "treatment_escape_latency_s": 0.9073611111111112,
+    "treatment_escape_lead_s": 0.01263888888888879,
+    "treatment_escape_probability": 0.9305555555555557,
+    "treatment_mean": 0.9305555555555557,
+    "treatment_short_mode_fraction": 0.04722222222222222,
+    "treatment_size_at_escape_deg": 50.2836910724215
+  },
+  "series": {
+    "control_primary": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "treatment_primary": [
+      1,
+      1,
+      0.8333333333333334,
+      0.8333333333333334,
+      1,
+      1,
+      0.8333333333333334,
+      1,
+      0.8333333333333334,
+      1,
+      1,
+      0.8333333333333334
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 12,
+      "mean": 0,
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "stdev": 0,
+      "variance": 0,
+      "note": null
+    },
+    "treatment_primary": {
+      "n": 12,
+      "mean": 0.930555556,
+      "median": 1,
+      "min": 0.833333333,
+      "max": 1,
+      "stdev": 0.085821442,
+      "variance": 0.00736532,
+      "note": null
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 24,
+        "observed": 24,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": ">=",
+        "value": 0.3,
+        "observed": 0.9305555555555557,
+        "holds": true
+      },
+      {
+        "id": "S2",
+        "metric": "seeds_expected_direction",
+        "op": ">=",
+        "value": 8,
+        "observed": 12,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": 0,
+        "observed": 0.9305555555555557,
+        "holds": false
+      }
+    ],
+    "summary": "All 2 success criteria held and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the digital fly simulator (a reduced-order controller that simulates no neurons) in a closed arena; no animal was observed.",
+    "Independent re-simulation reproduced every state hash and measurement: ce0c94a2b9f3c312345ee47503f3d072c95ce42e4aa6b55f33cf5fb4e1761dd2"
+  ],
+  "interpretation": {
+    "deterministic": "All 2 success criteria held and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+    "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+    "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+    "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+    "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+    "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+    "Seeds are replicates of one model, not samples of real flies.",
+    "Matched seeds of one model; descriptive statistics only."
+  ],
+  "artifacts": [
+    {
+      "name": "fly-record.json",
+      "sha256": "059dacb09126256d60b4ad34d66733eda0340805c8d31eae4fe0c1a5eead7440",
+      "bytes": 17202,
+      "kind": "fly-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "15a13e4cca2a45c7d44acbd4d12f291b323c595924a6f8e90e0a89d96178df84",
+    "producer": {
+      "producer": "R.A.I.N.FlyHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+      "fly_record_sha256": "d22e3df814cd9db72eb107e393ab37e997fcaa144b4ffe6a85333dd84f3aae83",
+      "fly_run_id": "FR-cae65c8663b20f2287a66625",
+      "fly": "digital-fly/2 reduced-order-fsm/v1",
+      "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+        "branch": "feat/digital-fly",
+        "dirty": true,
+        "changed_paths": 25,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "24.19.0",
+        "os": "win32",
+        "os_release": "10.0.26200",
+        "machine": "arm64",
+        "cpu_count": 8
+      }
+    },
+    "recorded_at": "2026-10-22T23:42:45.098Z"
+  }
+}

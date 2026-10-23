@@ -1,0 +1,14 @@
+{
+  "label": "scripted: noisy sensing",
+  "protocol": "noisy_sensing",
+  "outcome": "failed (not_supported)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does relative sensory noise of 0.4 change collision episodes per metre flown in pillar clutter, against noiseless sensing on matched seeds?",
+  "mean_paired_delta": 0,
+  "metric": "collision_episodes_per_m",
+  "replay_sha256": "d5649eebc2672cb58fd33ccf6fcf05befe9f1f1dd92b612696d8e52e562f4452",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}

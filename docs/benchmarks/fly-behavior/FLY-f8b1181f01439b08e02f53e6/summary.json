@@ -1,0 +1,14 @@
+{
+  "label": "scripted: light preference",
+  "protocol": "light_preference",
+  "outcome": "passed (supported)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does a point light of relative intensity 2 above one quadrant of the arena change mean horizontal distance from the fly to the point below the light position, against no point light (ambient only) on matched seeds?",
+  "mean_paired_delta": -0.173556976497287,
+  "metric": "mean_light_distance_m",
+  "replay_sha256": "2e2388c1f84fa14c06cd053a821c814d157d6d6497df38bfc41edf3cf3c42d9f",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}

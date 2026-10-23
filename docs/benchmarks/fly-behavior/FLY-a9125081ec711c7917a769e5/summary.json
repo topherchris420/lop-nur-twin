@@ -1,0 +1,14 @@
+{
+  "label": "scripted: obstacle avoidance",
+  "protocol": "obstacle_avoidance",
+  "outcome": "inconclusive (insufficient_evidence)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does turning away from surfaces whose time to contact falls below 0.45 s change collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter, against avoidance off (avoidTtcS = 0) on matched seeds?",
+  "mean_paired_delta": -0.028400040755503134,
+  "metric": "cruise_collision_episodes_per_m",
+  "replay_sha256": "1911873426c10cd423495cdf57ca398def5c99fbd68cc85f4a9ceca506565eea",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}

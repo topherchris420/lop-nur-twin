@@ -1,0 +1,42 @@
+{
+  "schema": "rain-fly-design/v1",
+  "question": "[scripted] Does the simulated fly's time-to-contact avoidance rule reduce collisions in pillar clutter?",
+  "hypothesis": "[scripted] Saccading away from surfaces under 0.45 s to contact reduces collision episodes per metre flown.",
+  "competing_hypothesis": "[scripted] Spontaneous saccades and the arena layout alone set the collision rate; the avoidance rule changes little.",
+  "parameters": {
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "treatment": {
+      "kind": "obstacle_avoidance",
+      "avoid_ttc_s": 0.45
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_paired_delta",
+    "metric": "cruise_collision_episodes_per_m",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.1,
+    "minimum_consistent_seeds": 8
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

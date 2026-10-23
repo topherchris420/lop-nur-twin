@@ -1,0 +1,746 @@
+{
+  "schema": "rain-fly-record/v1",
+  "run_id": "FR-1fdc77df1befc8697b8ebd35",
+  "plan": {
+    "schema": "rain-fly-plan/v1",
+    "design": {
+      "schema": "rain-fly-design/v1",
+      "question": "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats quickly?",
+      "hypothesis": "[scripted] Repeating the stimulus every 4 s lowers the escape probability over the later presentations, compared with every 120 s.",
+      "competing_hypothesis": "[scripted] The stimulus stays above the escape threshold however often it repeats.",
+      "parameters": {
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "treatment": {
+          "kind": "adaptation",
+          "isi_s": 4
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_paired_delta",
+        "metric": "late_escape_probability",
+        "expected_direction": "decrease",
+        "minimum_effect": 0.2,
+        "minimum_consistent_seeds": 8
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v1 (digital-fly/2 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does repeating a looming stimulus every 4 s change fraction of the second half of repeated presentations answered by an escape, against the same stimulus every 120 s on matched seeds?",
+      "hypothesis": "Repeating a looming stimulus every 4 s will decrease late_escape_probability by at least 0.2 fraction on average over matched seeds, compared with the same stimulus every 120 s, in the expected direction in at least 8 of 12 seeds.",
+      "observables": [
+        {
+          "id": "repeat_escape_probability",
+          "unit": "fraction",
+          "description": "fraction of repeated presentations answered by an escape"
+        },
+        {
+          "id": "late_escape_probability",
+          "unit": "fraction",
+          "description": "fraction of the second half of repeated presentations answered by an escape"
+        },
+        {
+          "id": "presentations",
+          "unit": "count",
+          "description": "repeated presentations delivered (each waits for the fly to have stood for a set time)"
+        },
+        {
+          "id": "mean_isi_s",
+          "unit": "s",
+          "description": "mean interval between successive presentations as delivered"
+        },
+        {
+          "id": "repeat_size_at_escape_deg",
+          "unit": "deg",
+          "description": "mean angular size of the repeated stimulus at the escape decision"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "fraction",
+          "description": "treatment minus control late_escape_probability, averaged over seeds"
+        }
+      ],
+      "independent_variables": [
+        "repeating a looming stimulus every 4 s"
+      ],
+      "dependent_variables": [
+        "late_escape_probability"
+      ],
+      "controls": [
+        "baseline arm: the same stimulus every 120 s",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "fixed apparatus settings, both arms — repeat block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+        "the fly's version, controller and full parameter table are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "six closed protocols with host-built arenas and stimuli",
+        "controller configurations override model parameters only; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 distinct seeds; the effect must appear in at least half of them"
+      ],
+      "resource_budget": {
+        "execution_steps": 2664800,
+        "replay_steps": 2664800,
+        "max_samples": 24
+      },
+      "statistical_analysis": {
+        "method": "Matched-seed paired difference of the primary metric; per-seed sign counts; frozen rain-criteria/v1",
+        "independent_replicates": 12,
+        "uncertainty": "Seeds are independent replicates of one reduced-order model; descriptive only, with no p-value or population inference, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "mean_paired_delta",
+        "op": ">=",
+        "value": 0,
+        "unit": "fraction"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/2 reduced-order-fsm/v1",
+    "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+    "experiment": {
+      "schema": "digital-fly-experiment/v1",
+      "protocol": "adaptation",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "blocks": [
+        {
+          "id": "repeat",
+          "arena": {
+            "size": [
+              4,
+              2.5,
+              4
+            ],
+            "ambient": 0.6,
+            "pillars": []
+          },
+          "fixed_config": {
+            "takeoffHz": 0,
+            "walkStartHz": 0,
+            "groomHz": 0
+          },
+          "start_half_width_m": 0.5,
+          "tick_s": 0.005,
+          "duration_s": 0.3,
+          "trials": 6,
+          "light_at": null,
+          "stimulus": {
+            "radius_m": 0.04,
+            "start_distance_m": 1,
+            "end_distance_m": 0.08,
+            "elevation_deg": [
+              10,
+              30
+            ],
+            "azimuth_deg": [
+              -90,
+              90
+            ],
+            "onset_s": 1,
+            "speed_m_s": 0.5,
+            "settle_s": 1,
+            "max_wait_s": 30
+          }
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "stimulus": "approaching",
+          "approach_speed_m_s": 1,
+          "isi_s": 120,
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "stimulus": "approaching",
+          "approach_speed_m_s": 1,
+          "isi_s": 4,
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 13324,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.2,
+          "note": "Preregistered effect threshold"
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "op": ">=",
+          "value": 8,
+          "note": "Effect appears in enough seeds"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0,
+          "note": "No effect or the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "f51180d4bb06123a30f4c2891239d1b5870eb5e984574aa109d6c0186e39f176",
+    "experiment_id": "FLY-f51180d4bb06123a30f4c289"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v1",
+    "experiment_id": "FLY-f51180d4bb06123a30f4c289",
+    "definition_sha256": "f51180d4bb06123a30f4c2891239d1b5870eb5e984574aa109d6c0186e39f176",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "local-operator",
+    "identity_verified": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "f51180d4",
+    "authorized_at": "2026-10-22T23:42:57.394Z",
+    "expires_at": "2026-10-23T00:42:57.394Z",
+    "authorization_sha256": "c856d6542a348a7d4cb04ba6c97e682945f11b65745c302f6b79bd86b9aec505"
+  },
+  "started_at": "2026-10-22T23:42:57.394Z",
+  "finished_at": "2026-10-22T23:43:08.653Z",
+  "result": {
+    "runs": [
+      {
+        "arm": "control",
+        "seed": 1,
+        "block": "repeat",
+        "final_hashes": [
+          "cc329d87e8ab2630"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.4418862180064
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1,
+        "block": "repeat",
+        "final_hashes": [
+          "28e575bc1a00baba"
+        ],
+        "simulated_s": 46.925,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "mean_isi_s": 8.756,
+          "repeat_size_at_escape_deg": 57.68837724360186
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2,
+        "block": "repeat",
+        "final_hashes": [
+          "348ec11f36ebf496"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800643
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2,
+        "block": "repeat",
+        "final_hashes": [
+          "83cbc7d2bb8c0552"
+        ],
+        "simulated_s": 85.86,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 16.543,
+          "repeat_size_at_escape_deg": 58.07364770300211
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3,
+        "block": "repeat",
+        "final_hashes": [
+          "0c90617dfe2a1bd6"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.4418862180064
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3,
+        "block": "repeat",
+        "final_hashes": [
+          "eae4f5ed5d404d7c"
+        ],
+        "simulated_s": 64.535,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 12.278,
+          "repeat_size_at_escape_deg": 58.07364770300169
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 4,
+        "block": "repeat",
+        "final_hashes": [
+          "a8a9efdd211e0bf2"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800638
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 4,
+        "block": "repeat",
+        "final_hashes": [
+          "2f8de5c775891928"
+        ],
+        "simulated_s": 54.59,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "mean_isi_s": 10.289,
+          "repeat_size_at_escape_deg": 57.688377243602346
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 5,
+        "block": "repeat",
+        "final_hashes": [
+          "755f738e6fd443a0"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.4418862180064
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 5,
+        "block": "repeat",
+        "final_hashes": [
+          "2beb0397c46a75e2"
+        ],
+        "simulated_s": 40.48,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "mean_isi_s": 7.4670000000000005,
+          "repeat_size_at_escape_deg": 57.688377243601884
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 6,
+        "block": "repeat",
+        "final_hashes": [
+          "ff0223998d600524"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800643
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 6,
+        "block": "repeat",
+        "final_hashes": [
+          "72accc42f3d919b0"
+        ],
+        "simulated_s": 62.97,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.3333333333333333,
+          "mean_isi_s": 11.965,
+          "repeat_size_at_escape_deg": 56.611744567837285
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 7,
+        "block": "repeat",
+        "final_hashes": [
+          "15ea9bec1071aed5"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.4418862180064
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 7,
+        "block": "repeat",
+        "final_hashes": [
+          "2670ee6f539a95b2"
+        ],
+        "simulated_s": 109.685,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 21.308,
+          "repeat_size_at_escape_deg": 57.14127917374023
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 8,
+        "block": "repeat",
+        "final_hashes": [
+          "c82e48222776e981"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800641
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 8,
+        "block": "repeat",
+        "final_hashes": [
+          "a4ba5d0b879ab421"
+        ],
+        "simulated_s": 44.715,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.3333333333333333,
+          "mean_isi_s": 8.314,
+          "repeat_size_at_escape_deg": 56.61174456783722
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 9,
+        "block": "repeat",
+        "final_hashes": [
+          "e5964a4424a63ce5"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800641
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 9,
+        "block": "repeat",
+        "final_hashes": [
+          "9f0e4910aa2537cd"
+        ],
+        "simulated_s": 42.64,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "mean_isi_s": 7.898999999999999,
+          "repeat_size_at_escape_deg": 57.68837724360169
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 10,
+        "block": "repeat",
+        "final_hashes": [
+          "58223744b39590f6"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.4418862180064
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 10,
+        "block": "repeat",
+        "final_hashes": [
+          "804f8ed53f6d35c1"
+        ],
+        "simulated_s": 99.705,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 19.312,
+          "repeat_size_at_escape_deg": 56.614323618749445
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 11,
+        "block": "repeat",
+        "final_hashes": [
+          "f3fb3bbdeb2e9f61"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.441886218006424
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 11,
+        "block": "repeat",
+        "final_hashes": [
+          "789d3892b2a338b3"
+        ],
+        "simulated_s": 85.84,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 16.538999999999998,
+          "repeat_size_at_escape_deg": 57.74116304522528
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 12,
+        "block": "repeat",
+        "final_hashes": [
+          "17e34f662bb25a47"
+        ],
+        "simulated_s": 603.145,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 1,
+          "late_escape_probability": 1,
+          "mean_isi_s": 120,
+          "repeat_size_at_escape_deg": 48.44188621800641
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 12,
+        "block": "repeat",
+        "final_hashes": [
+          "b044e21df456c5bf"
+        ],
+        "simulated_s": 58.29,
+        "metrics": {
+          "presentations": 6,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "mean_isi_s": 11.029,
+          "repeat_size_at_escape_deg": 56.56953500848825
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 24,
+      "determinism_check": 1,
+      "seeds": 12,
+      "simulated_seconds": 8033.975,
+      "control_mean": 1,
+      "treatment_mean": 0.7499999999999999,
+      "mean_paired_delta": -0.25000000000000006,
+      "seeds_expected_direction": 7,
+      "seeds_opposite": 0,
+      "seeds_unchanged": 5,
+      "control_repeat_escape_probability": 1,
+      "treatment_repeat_escape_probability": 0.8750000000000001,
+      "control_late_escape_probability": 1,
+      "treatment_late_escape_probability": 0.7499999999999999,
+      "control_presentations": 6,
+      "treatment_presentations": 6,
+      "control_mean_isi_s": 120,
+      "treatment_mean_isi_s": 12.641583333333331,
+      "control_repeat_size_at_escape_deg": 48.4418862180064,
+      "treatment_repeat_size_at_escape_deg": 57.34921619685744
+    },
+    "status": "inconclusive",
+    "verdict": "insufficient_evidence",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "observed": 24,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.2,
+          "observed": -0.25000000000000006,
+          "holds": true
+        },
+        {
+          "id": "S2",
+          "metric": "seeds_expected_direction",
+          "op": ">=",
+          "value": 8,
+          "observed": 7,
+          "holds": false
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0,
+          "observed": -0.25000000000000006,
+          "holds": false
+        }
+      ],
+      "summary": "Success criteria not all met (S2) and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "17b02fa0411bd915adb6f2f07a218b055cbe69c84f6ae0883cf03c55439d80ce"
+}
