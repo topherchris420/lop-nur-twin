@@ -1,0 +1,9 @@
+{
+  "label": "scripted: a new threshold on seeds the visual-threat design already ran, which the host must refuse",
+  "outcome": "refused by the host compiler",
+  "generation": "scripted",
+  "question": "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+  "errors": [
+    "seeds 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 were already exposed to an equivalent protocol (FLY-48841033da2f4615ca421ba4); a new metric, threshold or wording on them is not a preregistered test, so choose fresh seeds"
+  ]
+}

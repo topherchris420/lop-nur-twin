@@ -409,3 +409,18 @@ These describe the simulator's agents and rules, not ancient states.
   For many model seats, use the Anthropic provider or a faster local model.
 - The workbench runs on a person's machine; the deployed site does not include
   it and cannot reach a local model server.
+- The experiment protocol trusts its designer further than it should:
+  - A design names its own seeds. The engine is public and deterministic, so a
+    designer can run candidate seeds before preregistering and keep the
+    favourable ones. The spent-seed rule refuses only seeds that an equivalent
+    protocol already ran in this archive.
+  - `--execute-reviewed` takes the digest on its command line, so any process
+    that can read the printed digest can authorize a plan.
+  - Admission checks that a record binds the preregistered plan, not that the
+    preregistration came first.
+  - S2 can be met by half the seeds, and no rule fixes the false-positive rate.
+  - F1 counts no difference as a refutation, so a metric stuck at its floor or
+    ceiling reads as "not supported" rather than as no information.
+
+  All four archived records were authorized by `Scripted.DemoOperator`, under
+  these rules.

@@ -5,6 +5,7 @@ import { useRendererToneMapping } from "@/components/scene/Atmosphere";
 import type { CitySimulation } from "./simulation";
 import type { ViewControl } from "./Scene";
 import { groundAt } from "./terrain";
+import { SUN } from "./furniture";
 
 /** A local analytic sky, not a downloaded HDRI or a measured Bethesda light probe. */
 export function CityAtmosphere({
@@ -86,7 +87,7 @@ export function CityAtmosphere({
     }
     if (fill.current) fill.current.intensity = flash ? 2.6 : storm ? 0.7 : 0.85;
     if (!sun.current) return;
-    sun.current.intensity = storm ? 0.7 : 3.2;
+    sun.current.intensity = storm ? SUN.stormIntensity : SUN.clearIntensity;
     // Shadow texels cover the viewed block, not the entire 1.4 km city.
     // Quantisation avoids crawling under small camera motion.
     const p = view.mode === "orbit" ? view.target : camera.position;
@@ -94,7 +95,7 @@ export function CityAtmosphere({
       z = Math.round(p.z / 4) * 4;
     const extent = view.mode === "orbit" ? 230 : 75;
     const y = groundAt({ x, z });
-    sun.current.position.set(x - 160, y + 230, z + 100);
+    sun.current.position.set(x + SUN.offset.x, y + SUN.offset.y, z + SUN.offset.z);
     target.position.set(x, y, z);
     target.updateMatrixWorld();
     const shadow = sun.current.shadow.camera;

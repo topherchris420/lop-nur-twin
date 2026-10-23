@@ -1,0 +1,29 @@
+{
+  "schema": "rain-fly-design/v2",
+  "question": "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+  "hypothesis": "[scripted] A sphere approaching at 1 m/s raises the escape probability over the same sphere receding along the same line.",
+  "competing_hypothesis": "[scripted] Any moving object in view triggers the escape proxy, approaching or not.",
+  "parameters": {
+    "seed_count": 12,
+    "treatment": {
+      "kind": "visual_threat",
+      "approach_speed_m_s": 1,
+      "control": "receding"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "escape_probability",
+    "expected_direction": "increase",
+    "minimum_effect": 0.05
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

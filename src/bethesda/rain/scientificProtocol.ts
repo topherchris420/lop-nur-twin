@@ -3,12 +3,14 @@ import { schemaErrors } from "../../rain/experiments/jsonSchema.js";
 import { UNSAFE_TEXT } from "./contracts.js";
 import type { Checked } from "./validation.js";
 import type { Criterion, Evaluation } from "../../rain/experiments/evaluate.js";
+import { PARAMS } from "../fly/params.js";
 
 export const SCIENTIFIC_IR = "rain-scientific-experiment/v1" as const;
 export const NUMERICAL_DESIGN = "rain-oscillator-design/v1" as const;
 export const NUMERICAL_BACKEND = "rain-driven-damped-oscillator/v1" as const;
 export const NUMERICAL_RECORD = "rain-numerical-record/v1" as const;
-export type ScientificBackendId = "bethesda" | "numerical-physics" | "civilization";
+export type ScientificBackendId =
+  "bethesda" | "numerical-physics" | "civilization" | "digital-fly";
 export interface Quantity<U extends string = string> {
   value: number;
   unit: U;
@@ -49,7 +51,11 @@ export interface NumericalDesign {
 }
 export interface ScientificExperimentIR {
   schema: typeof SCIENTIFIC_IR;
-  domain: "urban-simulation" | "numerical-physics" | "civilization-simulation";
+  domain:
+    | "urban-simulation"
+    | "numerical-physics"
+    | "civilization-simulation"
+    | "fly-behavior-simulation";
   backend: ScientificBackendId;
   backend_version: string;
   question: string;
@@ -314,6 +320,28 @@ export const BACKEND_CAPABILITIES: readonly BackendCapability[] = [
       "physical instruments",
     ],
     authority_scope: "civilization-simulation",
+    physical_devices: false,
+  },
+  {
+    id: "digital-fly",
+    // FLY_BACKEND, written out: this list is built before the fly section below.
+    version: "digital-fly-behavior/v2",
+    supported: [
+      "matched-seed paired arms of the digital fly in closed arenas",
+      "six fixed protocols: obstacle avoidance, light preference, visual threat, noisy sensing, adaptation to repeated looms and controller comparison",
+      "seeds drawn by the host after preregistration, never by the design",
+      "an exact one-sided sign test on untied seeds at a host-fixed alpha of 0.05",
+      "controller configurations that override model parameters only, within their ranges; FlyBody and published values stay fixed",
+      "every run re-simulates exactly from its plan on the JavaScript engine that made it",
+    ],
+    unsupported: [
+      "neural simulation: the controller is a reduced-order state machine",
+      "inference about real Drosophila",
+      "odour, temperature, humidity, airflow and food",
+      "re-simulation on another JavaScript engine",
+      "physical instruments",
+    ],
+    authority_scope: "fly-behavior-simulation",
     physical_devices: false,
   },
 ];
@@ -595,4 +623,581 @@ export function parseCivilizationDesign(raw: unknown): Checked<CivilizationDesig
   return errors.length
     ? { ok: false, errors }
     : { ok: true, value: structuredClone(raw) as CivilizationDesign };
+}
+
+// --------------------------------------------------------------- digital fly
+// The digital fly (src/bethesda/fly/) moves FlyBody's anatomy with a
+// reduced-order controller: a state machine over FlyBody, published and model
+// parameters that simulates no neurons. Its experiments run in closed arenas
+// and characterize that simulator only. They are never evidence about
+// Drosophila, and the vocabulary below says so wherever it can.
+//
+// This section is part of the fly's source digest (FLY_SOURCE): editing it
+// changes the fly's identity, so records made before the edit are listed as
+// made by other code rather than failing re-simulation.
+
+export const FLY_DESIGN = "rain-fly-design/v2" as const;
+export const FLY_BACKEND = "digital-fly-behavior/v2" as const;
+export const FLY_EXPERIMENT = "digital-fly-experiment/v2" as const;
+export const FLY_PLAN = "rain-fly-plan/v2" as const;
+export const FLY_AUTHORIZATION = "rain-fly-authorization/v2" as const;
+export const FLY_RECORD = "rain-fly-record/v2" as const;
+/**
+ * Records made under digital-fly-behavior/v1, before the integrity rules: from
+ * an uncommitted tree, on seeds the designer chose, authorized by a script.
+ * They stay in the archive, which keeps everything that ran, and are
+ * exploratory only: verification checks what it still can and never counts
+ * them as evidence.
+ */
+export const FLY_LEGACY_RECORD = "rain-fly-record/v1" as const;
+export const FLY_BLOCKS = ["clutter", "light", "escape", "repeat"] as const;
+export type FlyBlockId = (typeof FLY_BLOCKS)[number];
+
+/** The host's decision rule: an exact one-sided sign test on untied matched seeds. */
+export const FLY_ALPHA = 0.05;
+/**
+ * Fewest seeds that must differ between the arms before the sign test decides
+ * (host-fixed); at six, only a unanimous result reaches alpha.
+ */
+export const FLY_MIN_UNTIED_PAIRS = 6;
+export const FLY_SEED_COUNT = { min: 8, max: 16 } as const;
+
+/**
+ * What each block measures, per seed and arm. A design may test a `primary`
+ * metric; the others are reported but never tested. A primary metric can still
+ * be undefined in one run (a per-metre rate below 0.5 m flown, a per-second
+ * rate below 1 s of flight, a probability with nothing delivered): that seed
+ * then drops out of the paired test rather than voiding it.
+ *
+ * `floor` and `ceiling` bound the metric: a control arm pinned at one of them
+ * in every seed can move one way only, so guard G3 holds the result
+ * inconclusive. `minimum_effect` is the host's smallest mean paired difference
+ * worth calling an effect, set from the apparatus before any pilot: 0.1 for a
+ * probability, 10 cm for a distance in the 4 m arena, 0.01 per metre for a
+ * collision rate. A design may raise it, never lower it.
+ */
+export const FLY_METRICS = [
+  {
+    id: "collision_episodes_per_m",
+    block: "clutter",
+    unit: "1/m",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.01,
+    description: "collision episodes per metre flown in pillar clutter",
+  },
+  {
+    id: "cruise_collision_episodes_per_m",
+    block: "clutter",
+    unit: "1/m",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.01,
+    description:
+      "collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter",
+  },
+  {
+    id: "collision_episodes",
+    block: "clutter",
+    unit: "count",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 1,
+    description:
+      "collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)",
+  },
+  {
+    id: "flown_m",
+    block: "clutter",
+    unit: "m",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 1,
+    description: "distance flown in pillar clutter",
+  },
+  {
+    id: "saccades_per_flight_s",
+    block: "clutter",
+    unit: "1/s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.1,
+    description: "body saccades per second of flight in pillar clutter",
+  },
+  {
+    id: "contact_s",
+    block: "clutter",
+    unit: "s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.1,
+    description:
+      "time spent pressed against a surface while flying or landing in pillar clutter",
+  },
+  {
+    id: "escape_probability",
+    block: "escape",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.1,
+    description: "fraction of single-stimulus trials answered by an escape takeoff",
+  },
+  {
+    id: "escape_latency_s",
+    block: "escape",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean time from stimulus onset to the escape decision, over escapes",
+  },
+  {
+    id: "escape_lead_s",
+    block: "escape",
+    unit: "s",
+    primary: false,
+    floor: null,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "mean time the stimulus still had to run at the escape decision, over escapes",
+  },
+  {
+    id: "size_at_escape_deg",
+    block: "escape",
+    unit: "deg",
+    primary: false,
+    floor: 0,
+    ceiling: 180,
+    minimum_effect: null,
+    description: "mean angular size of the stimulus at the escape decision",
+  },
+  {
+    id: "short_mode_fraction",
+    block: "escape",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "fraction of escapes that took the short (fast) takeoff",
+  },
+  {
+    id: "mean_light_distance_m",
+    block: "light",
+    unit: "m",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.1,
+    description:
+      "mean horizontal distance from the fly to the point below the light position",
+  },
+  {
+    id: "time_near_light",
+    block: "light",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.05,
+    description:
+      "fraction of time within 1 m (horizontally) of the point below the light position",
+  },
+  {
+    id: "active_fraction",
+    block: "light",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.05,
+    description:
+      "fraction of time walking, taking off or flying rather than resting or grooming",
+  },
+  {
+    id: "repeat_escape_probability",
+    block: "repeat",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.1,
+    description: "fraction of repeated presentations answered by an escape",
+  },
+  {
+    id: "late_escape_probability",
+    block: "repeat",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.1,
+    description:
+      "fraction of the second half of repeated presentations answered by an escape",
+  },
+  {
+    id: "presentations",
+    block: "repeat",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "repeated presentations delivered (each waits for the fly to have stood for a set time)",
+  },
+  {
+    id: "mean_isi_s",
+    block: "repeat",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean interval between successive presentations as delivered",
+  },
+  {
+    id: "repeat_size_at_escape_deg",
+    block: "repeat",
+    unit: "deg",
+    primary: false,
+    floor: 0,
+    ceiling: 180,
+    minimum_effect: null,
+    description: "mean angular size of the repeated stimulus at the escape decision",
+  },
+] as const;
+export type FlyMetricId = (typeof FLY_METRICS)[number]["id"];
+
+/**
+ * The six protocols. `caveat` says plainly what a protocol cannot show as
+ * designed; it travels into every plan's limitations. Redesigns that remove
+ * these caveats are planned, not built.
+ */
+export const FLY_PROTOCOLS = [
+  {
+    id: "obstacle_avoidance",
+    title: "Obstacle avoidance",
+    blocks: ["clutter"],
+    independent: "the avoidance time-to-contact threshold (avoidTtcS)",
+    baseline: "avoidance off (avoidTtcS = 0) on the same seeds",
+    caveat:
+      "As designed it cannot discriminate: collisions in this clutter are rare even with avoidance off, so most seeds tie and the sign test seldom has enough untied seeds.",
+  },
+  {
+    id: "light_preference",
+    title: "Light preference",
+    blocks: ["light"],
+    independent: "a point light above one quadrant of the arena",
+    baseline: "no point light, ambient only; distance is measured to the same point",
+    caveat: null,
+  },
+  {
+    id: "visual_threat",
+    title: "Visual threat",
+    blocks: ["escape"],
+    independent: "a sphere approaching the fly at a set speed",
+    baseline:
+      "the same sphere receding along the same line, or held still at its closest point",
+    caveat:
+      "An implementation check of the escape proxy's expansion gate, not a test of threat discrimination: the proxy's drive is zero unless the stimulus expands, so the receding or held control cannot escape by construction, and guard G3 holds a control pinned at zero inconclusive.",
+  },
+  {
+    id: "noisy_sensing",
+    title: "Noisy sensing",
+    blocks: ["escape", "clutter"],
+    independent: "relative sensory noise",
+    baseline: "noiseless sensing on the same seeds",
+    caveat:
+      "As designed it cannot discriminate on its clutter metrics: with avoidance on, collisions are near zero in both arms, so the control sits at its floor or the seeds tie.",
+  },
+  {
+    id: "adaptation",
+    title: "Adaptation to repeated looms",
+    blocks: ["repeat"],
+    independent: "a short interval between repeated looming stimuli",
+    baseline: "a 120 s interval on the same seeds",
+    caveat:
+      "The interval is not fixed: each presentation waits for the fly to have stood still, so the delivered interval depends on the fly's response (mean_isi_s reports it) and is longer than the nominal one.",
+  },
+  {
+    id: "controller_comparison",
+    title: "Controller comparison",
+    blocks: ["escape", "clutter", "light"],
+    independent: "a second controller configuration (model parameters only)",
+    baseline: "a first controller configuration on the same seeds",
+    caveat: null,
+  },
+] as const satisfies readonly {
+  id: string;
+  title: string;
+  blocks: readonly FlyBlockId[];
+  independent: string;
+  baseline: string;
+  caveat: string | null;
+}[];
+export type FlyProtocolId = (typeof FLY_PROTOCOLS)[number]["id"];
+
+/** Overrides of the fly's parameters by name; the compiler admits model parameters only. */
+export type FlyControllerConfig = Record<string, number>;
+export type FlyTreatment =
+  | { kind: "obstacle_avoidance"; avoid_ttc_s: number }
+  | { kind: "light_preference"; light_intensity: number }
+  | {
+      kind: "visual_threat";
+      approach_speed_m_s: number;
+      control: "receding" | "stationary";
+    }
+  | { kind: "noisy_sensing"; noise: number }
+  | { kind: "adaptation"; isi_s: number }
+  | {
+      kind: "controller_comparison";
+      baseline: FlyControllerConfig;
+      treatment: FlyControllerConfig;
+    };
+
+export interface FlyDesign {
+  schema: typeof FLY_DESIGN;
+  question: string;
+  hypothesis: string;
+  competing_hypothesis: string;
+  /** How many seeds, never which: the host draws them after preregistration. */
+  parameters: { seed_count: number; treatment: FlyTreatment };
+  analysis: {
+    method: "matched_seed_sign_test";
+    metric: FlyMetricId;
+    expected_direction: "increase" | "decrease";
+    /** At least the metric's host minimum (FLY_METRICS). */
+    minimum_effect: number;
+  };
+  budget: { max_simulated_seconds: number };
+  provenance: ScientificProvenance;
+}
+
+/** A host-built block: the arena, its fixed settings and how the fly is observed. */
+export interface FlyBlockSpec {
+  id: FlyBlockId;
+  arena: {
+    size: [number, number, number];
+    ambient: number;
+    pillars: { x: number; z: number; r: number }[];
+  };
+  /** Model parameters the apparatus fixes in both arms, so the block measures what it names. */
+  fixed_config: FlyControllerConfig;
+  /** Half-width of the square around the arena centre where the fly is placed (m). */
+  start_half_width_m: number;
+  /** How often the host observes the fly (s); the fly itself steps every 5 ms. */
+  tick_s: number;
+  /** Free-behaviour blocks: run length (s). Stimulus blocks: time kept after each stimulus (s). */
+  duration_s: number;
+  /** Escape: trials per seed. Repeat: presentations per seed. Otherwise 1. */
+  trials: number;
+  light_at: [number, number, number] | null;
+  stimulus: {
+    radius_m: number;
+    start_distance_m: number;
+    end_distance_m: number;
+    elevation_deg: [number, number];
+    /** Direction it comes from, relative to the fly's heading (anticlockwise positive). */
+    azimuth_deg: [number, number];
+    onset_s: number;
+    speed_m_s: number;
+    /** Repeat: how long the fly must have stood before a presentation, and the longest wait. */
+    settle_s: number;
+    max_wait_s: number;
+  } | null;
+}
+export interface FlyArm {
+  id: "control" | "treatment";
+  config: FlyControllerConfig;
+  noise: number;
+  /** Light block: point-light intensity, 0 for none. */
+  light_intensity: number;
+  /** Escape block: what the stimulus does, and its speed (m/s). */
+  stimulus: "approaching" | "receding" | "stationary";
+  approach_speed_m_s: number;
+  /** Repeat block: interval between presentation onsets (s). */
+  isi_s: number;
+}
+export interface FlyExperiment {
+  schema: typeof FLY_EXPERIMENT;
+  protocol: FlyProtocolId;
+  /** How many matched seeds; which ones is decided after preregistration. */
+  seed_count: number;
+  blocks: FlyBlockSpec[];
+  arms: FlyArm[];
+}
+export interface FlyRun {
+  arm: "control" | "treatment";
+  seed: number;
+  block: FlyBlockId;
+  /** The fly's state hash at the end of every trial (one entry for a free-behaviour block). */
+  final_hashes: string[];
+  simulated_s: number;
+  /** Commands the fly's own gate refused during the run; any refusal voids the result (G5). */
+  gate_refusals: number;
+  metrics: Record<string, number | null>;
+}
+export interface FlyPlan {
+  schema: typeof FLY_PLAN;
+  design: FlyDesign;
+  ir: ScientificExperimentIR;
+  /** The fly model and controller versions the plan binds. */
+  fly: string;
+  /** Digest of the fly's version, controller, parameter table and source digest. */
+  fly_sha256: string;
+  /** SHA-256 of the source files that decide what the experiment does (FLY_SOURCE). */
+  fly_source_sha256: string;
+  experiment: FlyExperiment;
+  /** Upper bound on simulated fly-seconds over both arms, every seed and block. */
+  simulated_seconds: number;
+  criteria: { guards: Criterion[]; success: Criterion[]; failure: Criterion[] };
+  definition_sha256: string;
+  experiment_id: string;
+}
+/** The registry's receipt for a preregistered plan. */
+export interface FlyPreregistration {
+  /** The registry's id (V3D-EXP-...). */
+  experiment_id: string;
+  registry_definition_sha256: string;
+  plan_sha256: string;
+  /** When the registry recorded the definition: nothing may be authorized or run before it. */
+  created_at: string;
+}
+/** How an authorization was given: a person at a terminal, or the demonstration script. */
+export type FlyAuthorizationChannel = "terminal" | "script";
+/** The only operator the demonstration script may name: never someone mistaken for a reviewer. */
+export const FLY_SCRIPT_OPERATOR = "Scripted.DemoOperator";
+export interface FlyAuthorization {
+  schema: typeof FLY_AUTHORIZATION;
+  experiment_id: string;
+  definition_sha256: string;
+  /** The preregistration it follows: the registry id, its receipt digest and time. */
+  registry_experiment_id: string;
+  preregistration_sha256: string;
+  registered_at: string;
+  /** 32 random bytes from a CSPRNG, drawn at authorization; with the receipt it fixes the seeds. */
+  nonce: string;
+  channel: FlyAuthorizationChannel;
+  operator: string;
+  attestation: "local-operator" | "demonstration-script";
+  identity_verified: false;
+  /** A design declared human: the operator attested at the terminal that a person wrote it. */
+  human_design_attested: boolean;
+  scope: "fly-behavior-simulation";
+  confirmed_prefix: string;
+  authorized_at: string;
+  expires_at: string;
+  authorization_sha256: string;
+}
+export interface FlyResult {
+  runs: FlyRun[];
+  completed: boolean;
+  measurements: Record<string, number | null>;
+  status: "passed" | "failed" | "inconclusive" | "error";
+  verdict: "supported" | "not_supported" | "insufficient_evidence" | "not_evaluated";
+  evaluation: Evaluation | null;
+  error: string | null;
+}
+/** The JavaScript engine a record was made on: re-simulation is exact only there. */
+export interface FlyEngine {
+  runtime: string;
+  version: string;
+  js: string;
+}
+/** The source tree an experiment ran from, as git reported it. */
+export interface FlyCodeState {
+  commit: string | null;
+  dirty: boolean | null;
+}
+export interface FlyRecord {
+  schema: typeof FLY_RECORD;
+  run_id: string;
+  plan: FlyPlan;
+  preregistration: FlyPreregistration;
+  authorization: FlyAuthorization;
+  /** Drawn from SHA-256(receipt digest ‖ nonce ‖ counter); the record carries them for reading. */
+  seeds: number[];
+  engine: FlyEngine;
+  code: FlyCodeState;
+  /** Run from uncommitted or unknown code: kept, never admitted as evidence. */
+  development: boolean;
+  started_at: string;
+  finished_at: string;
+  result: FlyResult;
+  evidence_class: "simulated";
+  sha256: string;
+}
+
+const flyConfig = {
+  type: "object",
+  maxProperties: 16,
+  propertyNames: { type: "string", enum: Object.keys(PARAMS) },
+  additionalProperties: number(0, 1000),
+};
+export const FLY_DESIGN_SCHEMA = closed({
+  schema: { const: FLY_DESIGN, type: "string" },
+  question: words(400),
+  hypothesis: words(600),
+  competing_hypothesis: words(600),
+  parameters: closed({
+    seed_count: integer(FLY_SEED_COUNT.min, FLY_SEED_COUNT.max),
+    treatment: {
+      oneOf: [
+        closed({
+          kind: { const: "obstacle_avoidance", type: "string" },
+          avoid_ttc_s: number(0.05, 2),
+        }),
+        closed({
+          kind: { const: "light_preference", type: "string" },
+          light_intensity: number(0.25, 8),
+        }),
+        closed({
+          kind: { const: "visual_threat", type: "string" },
+          approach_speed_m_s: number(0.1, 4),
+          control: { type: "string", enum: ["receding", "stationary"] },
+        }),
+        closed({
+          kind: { const: "noisy_sensing", type: "string" },
+          noise: number(0.01, 1),
+        }),
+        closed({ kind: { const: "adaptation", type: "string" }, isi_s: number(3, 60) }),
+        closed({
+          kind: { const: "controller_comparison", type: "string" },
+          baseline: flyConfig,
+          treatment: flyConfig,
+        }),
+      ],
+    },
+  }),
+  analysis: closed({
+    method: { const: "matched_seed_sign_test", type: "string" },
+    metric: {
+      type: "string",
+      enum: FLY_METRICS.filter((m) => m.primary).map((m) => m.id),
+    },
+    expected_direction: { type: "string", enum: ["increase", "decrease"] },
+    minimum_effect: number(0.000001, 1000000),
+  }),
+  budget: closed({ max_simulated_seconds: integer(1, 200000) }),
+  provenance: PROVENANCE_SCHEMA,
+});
+
+export function parseFlyDesign(raw: unknown): Checked<FlyDesign> {
+  const bounded = boundedData(raw, 5000);
+  if (bounded.length) return { ok: false, errors: bounded };
+  const errors = schemaErrors(raw, FLY_DESIGN_SCHEMA);
+  return errors.length
+    ? { ok: false, errors }
+    : { ok: true, value: structuredClone(raw) as FlyDesign };
 }

@@ -1,0 +1,14 @@
+{
+  "label": "scripted: controller comparison",
+  "protocol": "controller_comparison",
+  "outcome": "passed (supported)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does controller configuration B (avoidTtcS = 0.3, phototaxisGain = 1.5) change mean horizontal distance from the fly to the point below the light position, against controller configuration A (the default parameters) on matched seeds?",
+  "mean_paired_delta": -0.1261476077427223,
+  "metric": "mean_light_distance_m",
+  "replay_sha256": "b3d5fcc6ce544e1cdc7de12c2c2679581eb1c507a1a6f7ac3060d5dabd4409be",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}

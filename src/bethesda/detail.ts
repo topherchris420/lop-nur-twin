@@ -12,6 +12,13 @@ import {
   type Point,
 } from "./model";
 import { architecturalStone, surfaceMaterial } from "./materials";
+import {
+  PLANTER,
+  STREET_BENCH,
+  STREET_LAMP,
+  streetLamps,
+  type BoxSize,
+} from "./furniture";
 export interface CityBuilder {
   add(g: THREE.BufferGeometry, material: THREE.Material): void;
   box(
@@ -237,88 +244,70 @@ export function detailBuilding(b: Building, builder: CityBuilder, m: DetailMater
   }
 }
 export function detailStreet(builder: CityBuilder, m: DetailMaterials) {
-  const { box, add } = builder,
-    placed: Point[] = [];
-  for (const way of pathWays) {
-    if (way.crossing) continue;
-    for (let i = 1; i < way.points.length; i++) {
-      const a = way.points[i - 1]!,
-        b = way.points[i]!,
-        length = distance(a, b);
-      if (distance(lerp(a, b, 0.5), row.point) > 220 || length < 8) continue;
-      const angle = Math.atan2(b.x - a.x, b.z - a.z);
-      for (let t = 6; t < length; t += 24) {
-        const p = lerp(a, b, t / length);
-        p.x += Math.cos(angle) * (way.width / 2 + 0.35);
-        p.z -= Math.sin(angle) * (way.width / 2 + 0.35);
-        if (buildingAt(p) || placed.some((q) => distance(p, q) < 17)) continue;
-        placed.push(p);
-        // Slim, fluted street lamp with an enclosed globe; no per-lamp light draw.
-        const pole = new THREE.CylinderGeometry(0.055, 0.09, 4.6, 8);
-        pole.translate(p.x, 2.3, p.z);
-        add(pole, m.dark);
-        box(p, 0.22, 0.26, 0.44, 0.26, m.dark);
-        box(p, 4.55, 0.46, 0.12, 0.46, m.dark);
-        const globe = new THREE.SphereGeometry(0.23, 8, 6);
-        globe.scale(1, 1.45, 1);
-        globe.translate(p.x, 4.91, p.z);
-        add(globe, m.canvas);
-        box(p, 5.23, 0.35, 0.1, 0.35, m.dark);
-        if (placed.length % 2 === 0) {
-          const q = { x: p.x + Math.sin(angle) * 2.1, z: p.z + Math.cos(angle) * 2.1 };
-          if (buildingAt(q)) continue;
-          // Slatted bench aligned to the sidewalk, kept out of its walking centre.
-          for (let k = 0; k < 4; k++) {
-            box(
-              {
-                x: q.x + Math.cos(angle) * (k - 0.5) * 0.09,
-                z: q.z - Math.sin(angle) * (k - 0.5) * 0.09,
-              },
-              0.51,
-              0.075,
-              0.055,
-              1.65,
-              m.wood,
-              angle,
-            );
-          }
-          for (const side of [-1, 1])
-            box(
-              {
-                x: q.x + Math.sin(angle) * 0.63 * side,
-                z: q.z + Math.cos(angle) * 0.63 * side,
-              },
-              0.26,
-              0.38,
-              0.48,
-              0.07,
-              m.dark,
-              angle,
-            );
-          box(
-            { x: q.x + Math.cos(angle) * 0.23, z: q.z - Math.sin(angle) * 0.23 },
-            0.85,
-            0.07,
-            0.5,
-            1.65,
-            m.wood,
-            angle,
-          );
-          const planter = {
-            x: q.x + Math.sin(angle) * 1.75,
-            z: q.z + Math.cos(angle) * 1.75,
-          };
-          if (!buildingAt(planter)) {
-            box(planter, 0.42, 0.7, 0.7, 0.7, m.dark, angle);
-            box(planter, 0.79, 0.72, 0.08, 0.72, m.trim, angle);
-            box(planter, 0.82, 0.6, 0.02, 0.6, m.soil, angle);
-            const shrub = new THREE.SphereGeometry(0.38, 10, 7);
-            shrub.scale(1, 0.8, 1);
-            shrub.translate(planter.x, 1.02, planter.z);
-            add(shrub, m.awning);
-          }
-        }
-      }
+  const { box, add } = builder;
+  const part = (p: Point, s: BoxSize, material: THREE.Material, angle = 0) =>
+    box(p, s.y, s.w, s.h, s.d, material, angle);
+  const L = STREET_LAMP,
+    B = STREET_BENCH;
+  for (const { point: p, angle, bench } of streetLamps()) {
+    // Slim, fluted street lamp with an enclosed globe; no per-lamp light draw.
+    const pole = new THREE.CylinderGeometry(
+      L.poleTopRadius,
+      L.poleBottomRadius,
+      L.poleHeight,
+      8,
+    );
+    pole.translate(p.x, L.poleHeight / 2, p.z);
+    add(pole, m.dark);
+    part(p, L.base, m.dark);
+    part(p, L.collar, m.dark);
+    const globe = new THREE.SphereGeometry(L.globeRadius, 8, 6);
+    globe.scale(1, L.globeStretch, 1);
+    globe.translate(p.x, L.globeY, p.z);
+    add(globe, m.canvas);
+    part(p, L.cap, m.dark);
+    if (!bench) continue;
+    // Slatted bench aligned to the sidewalk, kept out of its walking centre.
+    const q = bench.point;
+    for (let k = 0; k < B.slats; k++) {
+      part(
+        {
+          x: q.x + Math.cos(angle) * (k - 0.5) * B.slatPitch,
+          z: q.z - Math.sin(angle) * (k - 0.5) * B.slatPitch,
+        },
+        B.slat,
+        m.wood,
+        angle,
+      );
+    }
+    for (const side of [-1, 1])
+      part(
+        {
+          x: q.x + Math.sin(angle) * B.legSpread * side,
+          z: q.z + Math.cos(angle) * B.legSpread * side,
+        },
+        B.leg,
+        m.dark,
+        angle,
+      );
+    part(
+      {
+        x: q.x + Math.cos(angle) * B.backOffset,
+        z: q.z - Math.sin(angle) * B.backOffset,
+      },
+      B.back,
+      m.wood,
+      angle,
+    );
+    const planter = bench.planter;
+    if (planter) {
+      part(planter, PLANTER.body, m.dark, angle);
+      part(planter, PLANTER.rim, m.trim, angle);
+      part(planter, PLANTER.soil, m.soil, angle);
+      const shrub = new THREE.SphereGeometry(PLANTER.shrubRadius, 10, 7);
+      shrub.scale(1, PLANTER.shrubStretch, 1);
+      shrub.translate(planter.x, PLANTER.shrubY, planter.z);
+      add(shrub, m.awning);
     }
   }
   // Signature ring-light concept documented by The Lighting Practice.

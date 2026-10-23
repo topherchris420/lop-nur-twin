@@ -1,0 +1,9 @@
+{
+  "label": "scripted: a controller configuration that overrides a published value, which the host must refuse",
+  "outcome": "refused by the host compiler",
+  "generation": "scripted",
+  "question": "[scripted] Does a controller with stronger phototaxis and later avoidance stay closer to the light than the default?",
+  "errors": [
+    "configuration B: saccadeMs is a published value and cannot be overridden"
+  ]
+}

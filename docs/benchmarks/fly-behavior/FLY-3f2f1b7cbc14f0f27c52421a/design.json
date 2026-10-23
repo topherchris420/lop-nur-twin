@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v2",
+  "question": "[scripted] Does sensory noise make the simulated fly collide more often in clutter?",
+  "hypothesis": "[scripted] Relative sensory noise of 0.4 raises collision episodes per metre flown.",
+  "competing_hypothesis": "[scripted] Noise on distance estimates averages out over a fan of rays and leaves the collision rate unchanged.",
+  "parameters": {
+    "seed_count": 12,
+    "treatment": {
+      "kind": "noisy_sensing",
+      "noise": 0.4
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "collision_episodes_per_m",
+    "expected_direction": "increase",
+    "minimum_effect": 0.05
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

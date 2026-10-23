@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v2",
+  "question": "[scripted] Does a point light draw the simulated fly toward the quadrant below it?",
+  "hypothesis": "[scripted] With a point light on, the fly's mean horizontal distance to the point below it falls.",
+  "competing_hypothesis": "[scripted] The phototaxis term is too weak against the fly's other drives to move where it spends its time.",
+  "parameters": {
+    "seed_count": 12,
+    "treatment": {
+      "kind": "light_preference",
+      "light_intensity": 2
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "mean_light_distance_m",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.1
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

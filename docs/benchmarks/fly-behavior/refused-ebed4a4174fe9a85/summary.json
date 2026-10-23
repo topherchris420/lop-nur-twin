@@ -1,0 +1,10 @@
+{
+  "label": "scripted: a minimum effect below the host's minimum for its metric, which the host must refuse",
+  "outcome": "refused by the host compiler",
+  "protocol": "visual_threat",
+  "generation": "scripted",
+  "question": "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+  "errors": [
+    "minimum_effect 0.05 is below the host's minimum effect for escape_probability (0.1 fraction); a design may raise it, never lower it"
+  ]
+}

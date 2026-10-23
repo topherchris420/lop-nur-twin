@@ -407,6 +407,18 @@ did not answer or has not been checked yet, and the city never waits on it. Disc
 protocol, LIVE configuration and every boundary are in
 [the R.A.I.N. Lab guide](RAIN_LAB_BETHESDA.md).
 
+## The digital fly
+
+One adult fruit fly lives on a bench near the arrival point: FlyBody's body
+model at its true size (about 3 mm), driven by a reduced-order behavioural
+controller that rests, grooms, walks, takes off, flies, escapes looming
+things and lands. **Fly** in the city controls shows where it is and opens its
+panel, which can take the camera up close. It is not a neural simulation, and
+what it does describes the simulator, not a fly. It reads the city and never
+changes it: it is not in the city's state hash or its replays. Sources,
+licences, what is simulated and what is only drawn, and its limitations are in
+[the digital fly guide](DIGITAL_FLY.md).
+
 ## Replay and verification
 
 Traces (`bethesda-replay/v4`, simulator `bethesda-city/4`) carry the simulator

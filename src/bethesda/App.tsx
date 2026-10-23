@@ -67,6 +67,9 @@ import { stepFor, walkIntent } from "./walkInput";
 import { canRender } from "./webgl";
 import type { LabStore } from "./rain/store";
 import { EMBODIMENT } from "./rain/embodiment";
+import { CityFly } from "./fly/cityFly";
+import { FlyPanel } from "./fly/FlyPanel";
+import type { FlyViewControl } from "./fly/FlyView";
 
 /** The R.A.I.N. Lab loads only when its door is opened. */
 const LabApp = lazy(() => import("./rain/LabApp"));
@@ -194,7 +197,22 @@ function world(sim?: CitySimulation, replayOf: ReplayOrigin | null = null) {
     evidence: false,
     selected: null,
   };
+  view.fly = placeFly(city);
   return { sim: city, broker: new CityDecisionBroker(city), view, replayOf };
+}
+/** The city's one digital fly; without a surface to stand on there is none. */
+function placeFly(city: CitySimulation): FlyViewControl | undefined {
+  try {
+    return {
+      city: new CityFly(city),
+      marker: false,
+      inspect: false,
+      slow: false,
+      drawn: "loading",
+    };
+  } catch {
+    return undefined;
+  }
 }
 class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -578,6 +596,7 @@ export default function Bethesda({
     [text, setText] = useState(""),
     [compiled, setCompiled] = useState<Compiled | null>(null),
     [selected, setSelected] = useState<string | null>(null),
+    [flyOpen, setFlyOpen] = useState(false),
     [message, setMessage] = useState(
       "The telemetry has resolved into somewhere ordinary.",
     ),
@@ -611,6 +630,7 @@ export default function Bethesda({
     pushLayer(LAB_LAYER);
     entered.current = { by, mode: view.mode };
     view.keys.clear();
+    if (view.fly) view.fly.inspect = false;
     insideRef.current = true;
     nearRef.current = false;
     setNearLab(false);
@@ -665,7 +685,12 @@ export default function Bethesda({
         nearRef.current = near;
         setNearLab(near);
       }
-      if (!sim.paused && view.mode === "walk" && !insideRef.current) {
+      if (
+        !sim.paused &&
+        view.mode === "walk" &&
+        !insideRef.current &&
+        !view.fly?.inspect
+      ) {
         // Keys or the touch stick; either way the step is a recorded command.
         const intent = walkIntent(view.keys, view.stick);
         if (intent) {
@@ -690,6 +715,8 @@ export default function Bethesda({
         if (distance(focus, sim.focus) > 40) sim.setFocus(focus);
       }
       sim.step();
+      // The fly reads the tick just taken; it never writes to the city.
+      view.fly?.city.tick();
     }, 100);
     const provider = setInterval(() => void broker.poll(), 2500);
     return () => {
@@ -841,6 +868,24 @@ export default function Bethesda({
                 setSelected(null);
               }}
             />
+          ) : flyOpen && view.fly ? (
+            <FlyPanel
+              control={view.fly}
+              panel={panel}
+              button={button}
+              viewer={() =>
+                view.mode === "orbit"
+                  ? view.target
+                  : view.mode === "seat"
+                    ? sim.agents[0]!.point
+                    : sim.player
+              }
+              canDraw={rendering && !view.failed}
+              onClose={() => {
+                if (view.fly) view.fly.marker = view.fly.inspect = false;
+                setFlyOpen(false);
+              }}
+            />
           ) : null}
           {/*
             A phone is one column: the title at the top, then the map (or the
@@ -938,6 +983,7 @@ export default function Bethesda({
                       view.mode = mode;
                       view.relocate = mode === "orbit";
                       view.keys.clear();
+                      if (view.fly) view.fly.inspect = false;
                       render();
                     }}
                   >
@@ -973,6 +1019,26 @@ export default function Bethesda({
                 >
                   Evidence view
                 </button>
+                {view.fly ? (
+                  <button
+                    className={button}
+                    aria-pressed={flyOpen}
+                    onClick={() => {
+                      const open = !flyOpen;
+                      if (view.fly) {
+                        view.fly.marker = open;
+                        if (!open) view.fly.inspect = false;
+                      }
+                      if (open) {
+                        view.selected = null;
+                        setSelected(null);
+                      }
+                      setFlyOpen(open);
+                    }}
+                  >
+                    Fly
+                  </button>
+                ) : null}
               </div>
               {view.mode === "walk" ? (
                 <p className="mt-2 text-xs text-slate-300">

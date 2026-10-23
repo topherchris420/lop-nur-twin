@@ -38,6 +38,7 @@ import {
 } from "./streetscape";
 import { groundAt } from "./terrain";
 import { signalRigs } from "./signals";
+import { BENCH, LAMP, PICNIC_TABLE, treeShape, type BoxSize } from "./furniture";
 
 const downtown = places.find((p) => p.name === "Downtown Bethesda")?.point ?? row.point;
 const SUFFIX: Record<string, string> = {
@@ -718,45 +719,53 @@ export function buildLandmarks(
   // --- Mapped trees, lamps and benches ---------------------------------------
   for (const t of mappedTrees) {
     if (buildingAt(t.point)) continue;
-    const r = mulberry32(Number(t.osmId) % 2147483647);
-    const h = 4 + r() * 3;
-    cylinder(t.point, 0, 0.28, 0.16, h, m.wood, 6);
-    for (let k = 0; k < 5; k++) {
-      const crown = new THREE.IcosahedronGeometry(1.4 + r() * 0.7, 1);
-      crown.translate(
-        t.point.x + Math.cos(k * 1.3) * 1.1,
-        h + 0.4 + r(),
-        t.point.z + Math.sin(k * 1.3) * 1.1,
-      );
+    const tree = treeShape(t.osmId);
+    cylinder(
+      t.point,
+      0,
+      tree.trunkBottomRadius,
+      tree.trunkTopRadius,
+      tree.trunkHeight,
+      m.wood,
+      6,
+    );
+    for (const c of tree.crowns) {
+      const crown = new THREE.IcosahedronGeometry(c.r, 1);
+      crown.translate(t.point.x + c.dx, c.y, t.point.z + c.dz);
       add(crown, m.awning);
     }
     count("mapped trees");
   }
   for (const lamp of mappedLamps) {
     if (buildingAt(lamp.point)) continue;
-    cylinder(lamp.point, 0, 0.09, 0.055, 4.6, m.dark, 8);
-    const globe = new THREE.SphereGeometry(0.23, 8, 6);
-    globe.scale(1, 1.45, 1);
-    globe.translate(lamp.point.x, 4.9, lamp.point.z);
+    cylinder(
+      lamp.point,
+      0,
+      LAMP.poleBottomRadius,
+      LAMP.poleTopRadius,
+      LAMP.poleHeight,
+      m.dark,
+      8,
+    );
+    const globe = new THREE.SphereGeometry(LAMP.globeRadius, 8, 6);
+    globe.scale(1, LAMP.globeStretch, 1);
+    globe.translate(lamp.point.x, LAMP.globeY, lamp.point.z);
     add(globe, m.canvas);
     count("mapped lamps");
   }
+  const furniture = (p: Point, b: BoxSize) => box(p, b.y, b.w, b.h, b.d, m.wood);
   for (const bench of mappedBenches) {
     if (buildingAt(bench.point)) continue;
     if (bench.kind === "picnic_table") {
-      box(bench.point, 0.75, 1.8, 0.06, 0.8, m.wood);
+      furniture(bench.point, PICNIC_TABLE.top);
       for (const s of [-1, 1])
-        box(
-          { x: bench.point.x, z: bench.point.z + s * 0.65 },
-          0.45,
-          1.8,
-          0.05,
-          0.3,
-          m.wood,
+        furniture(
+          { x: bench.point.x, z: bench.point.z + s * PICNIC_TABLE.seat.dz },
+          PICNIC_TABLE.seat,
         );
     } else {
-      box(bench.point, 0.48, 1.6, 0.07, 0.45, m.wood);
-      box({ x: bench.point.x, z: bench.point.z - 0.22 }, 0.8, 1.6, 0.45, 0.06, m.wood);
+      furniture(bench.point, BENCH.seat);
+      furniture({ x: bench.point.x, z: bench.point.z + BENCH.back.dz }, BENCH.back);
     }
     count("mapped benches");
   }

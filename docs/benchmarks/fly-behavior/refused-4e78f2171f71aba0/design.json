@@ -1,0 +1,41 @@
+{
+  "schema": "rain-fly-design/v1",
+  "question": "[scripted] Does a controller with stronger phototaxis and later avoidance stay closer to the light than the default?",
+  "hypothesis": "[scripted] Configuration B (phototaxisGain 1.5, avoidTtcS 0.3) lowers the mean distance to the light.",
+  "competing_hypothesis": "[scripted] Steering gain matters less than how often the fly flies, which both configurations share.",
+  "parameters": {
+    "seeds": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "treatment": {
+      "kind": "controller_comparison",
+      "baseline": {},
+      "treatment": {
+        "saccadeMs": 40
+      }
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_paired_delta",
+    "metric": "mean_light_distance_m",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.1,
+    "minimum_consistent_seeds": 6
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

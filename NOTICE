@@ -104,3 +104,36 @@ the repository says, its manuscripts were produced by an internal OpenAI model,
 some with human assistance (each such note is kept with its manuscript), and
 its Lean formalizations build on third-party libraries it lists (mathlib4 and
 others), each under its own licence; none of them is included here.
+
+FlyBody (the digital fly's body model)
+--------------------------------------
+
+`src/bethesda/fly/data/flybody-skeleton.json`, `flybody-lod0.json` and
+`flybody-lod1.json` are derived from TuragaLab/flybody
+(https://github.com/TuragaLab/flybody, commit
+d015e9bfe441bd90ae431bac24c55cb74bdbce26): `flybody/fruitfly/assets/fruitfly.xml`
+and the OBJ meshes it names. FlyBody is licensed under the Apache License,
+Version 2.0, reproduced in full in `src/bethesda/fly/data/LICENSE.md`; it
+carries no NOTICE file. The files were modified: visual meshes only, transformed
+into their body frames, merged, welded and decimated to two levels of detail,
+quantised, with texture coordinates and normals dropped and the skeleton
+transcribed from the MJCF. `flybody.source.json` lists every modification with
+per-file hashes. FlyBody's figshare datasets (trained policies and reference
+trajectories, GPL-3.0) are not included. Cite: Vaxenburg R, Siwanowicz I,
+Merel J, et al. Whole-body physics simulation of fruit fly locomotion. Nature
+643, 1312-1320 (2025). https://doi.org/10.1038/s41586-025-09029-4
+
+Virtual Fly Brain (the digital fly's neuroanatomical reference)
+---------------------------------------------------------------
+
+`src/bethesda/fly/data/vfb-reference.json` holds identifiers, labels,
+definitions, licence metadata and class-level connectivity counts retrieved
+from the Virtual Fly Brain API (https://v3-cached.virtualflybrain.org) by
+`scripts/import-vfb-reference.ts`, with each response's hash and the retrieval
+time. FBbt class labels and definitions are from the FlyBase Drosophila anatomy
+ontology, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+VFB reports the JRC2018Unisex template (VFB_00101567) and its painted neuropil
+domains under CC-BY-NC-SA 4.0; none of their geometry is included, and the
+fly's panel links to VFB instead. Cite: Court R, Costa M, Pilgrim C, et al.
+Virtual Fly Brain - an interactive atlas of the Drosophila nervous system.
+Front. Physiol. 14:1076533 (2023). https://doi.org/10.3389/fphys.2023.1076533

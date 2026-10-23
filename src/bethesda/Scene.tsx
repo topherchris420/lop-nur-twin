@@ -25,6 +25,7 @@ import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evi
 import { groundAt, minimumGround } from "./terrain";
 import { LookDrag, type Stick } from "./walkInput";
 import { canRender } from "./webgl";
+import { FlyView, type FlyViewControl } from "./fly/FlyView";
 export interface ViewControl {
   mode: "orbit" | "walk" | "seat";
   target: Point;
@@ -50,6 +51,8 @@ export interface ViewControl {
   samples?: Record<string, Point>;
   /** The lab's perspectives on outings, if the lab has been opened. Drawn only. */
   presence?: () => readonly PresenceMark[];
+  /** The city's digital fly, if one could be placed. Drawn only. */
+  fly?: FlyViewControl;
 }
 const NO_MARKS: readonly PresenceMark[] = [];
 function StaticCity({ view }: { view: ViewControl }) {
@@ -230,12 +233,17 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
   }
   const stats = useRef({ elapsed: 0, frames: 0 });
   const quality = useRef(view.quality);
+  /** The walker's view direction, held while the fly's close-up has the camera. */
+  const held = useRef<{ yaw: number; pitch: number } | null>(null);
   useEffect(() => {
     view.ready = true;
     const canvas = gl.domElement;
     const look = new LookDrag();
+    // While the fly's close-up is open it owns the pointer: no look-drag, no
+    // building selection, no pointer lock (FlyView turns the close-up itself).
+    const flyOwns = () => view.fly?.inspect === true;
     const down = (e: PointerEvent) => {
-      if (view.mode === "orbit" || !look.begin(e)) return;
+      if (flyOwns() || view.mode === "orbit" || !look.begin(e)) return;
       canvas.setPointerCapture(e.pointerId);
     };
     let press: { id: number; x: number; y: number } | null = null;
@@ -243,6 +251,7 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
       ndc = new THREE.Vector2();
     const select = (e: PointerEvent) => {
       if (
+        flyOwns() ||
         !press ||
         press.id !== e.pointerId ||
         Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5
@@ -288,12 +297,14 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
     const move = (e: PointerEvent) => {
       if (view.mode === "orbit") return;
       const turn = look.turn(e, document.pointerLockElement === canvas);
+      if (flyOwns()) return;
       if (!turn) return;
       view.yaw += turn.yaw;
       view.pitch = Math.max(-1.3, Math.min(1.3, view.pitch + turn.pitch));
     };
     const lock = () => {
-      if (view.mode !== "orbit") void canvas.requestPointerLock()?.catch(() => {});
+      if (!flyOwns() && view.mode !== "orbit")
+        void canvas.requestPointerLock()?.catch(() => {});
     };
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointerup", up);
@@ -329,6 +340,17 @@ function Camera({ sim, view }: { sim: CitySimulation; view: ViewControl }) {
         setShadows(false);
       }
       stats.current = { elapsed: 0, frames: 0 };
+    }
+    // The fly's close-up owns the camera while it is open; the walker's view
+    // direction is held and given back unchanged when it closes.
+    if (view.fly?.inspect) {
+      held.current ??= { yaw: view.yaw, pitch: view.pitch };
+      return;
+    }
+    if (held.current) {
+      view.yaw = held.current.yaw;
+      view.pitch = held.current.pitch;
+      held.current = null;
     }
     if (view.mode !== "orbit") {
       const p = view.mode === "seat" ? sim.agents[0]!.point : sim.player;
@@ -423,6 +445,7 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       <EvidenceCity view={view} />
       <LabDoor />
       <CityPresence read={() => view.presence?.() ?? NO_MARKS} />
+      {view.fly ? <FlyView control={view.fly} /> : null}
       <Camera sim={sim} view={view} />
     </Canvas>
   );

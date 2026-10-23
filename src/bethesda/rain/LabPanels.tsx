@@ -45,6 +45,7 @@ import { CONFIRMATION_LENGTH } from "./authorization";
 import { engineName, suggestion, type LabStore } from "./store";
 import { resonanceView, snapshotOf } from "./resonance";
 import { CYMATICS_SOURCE } from "./chladni";
+import { FLY_PROTOCOLS } from "./scientificProtocol";
 import { TOOL_NAMES, SENSOR, REGION_RADIUS, type ToolName } from "./tools";
 import { positionAt } from "./presence";
 import { LOCATION_IDS, type Perspective } from "./contracts";
@@ -976,6 +977,31 @@ export function ResearchPanel({
           </button>
         </section>
       )}
+      <section
+        aria-labelledby="rain-digital-fly"
+        className="mt-2 rounded border border-white/15 p-2 text-xs"
+      >
+        <h3 id="rain-digital-fly" className={label}>
+          DIGITAL FLY
+        </h3>
+        <p className="mt-1 leading-relaxed">
+          One fly on FlyBody&apos;s anatomy, moved by a reduced-order controller that
+          simulates no neurons. Six protocols run it in a closed arena with npm run
+          rain:fly: a plan is preregistered first, a person at a terminal authorizes it
+          once, and only then does the host draw its seeds. An exact sign test on the
+          matched seeds decides, and the registry admits a record only when it
+          re-simulates from committed code. Results describe the simulator, never real
+          flies.
+        </p>
+        <ul className="mt-1 list-disc pl-4 text-[11px] text-slate-300">
+          {FLY_PROTOCOLS.map((p) => (
+            <li key={p.id}>
+              {p.title}: {p.independent}, against {p.baseline}.
+              {p.caveat && <span className="text-slate-400"> {p.caveat}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
       <RuntimeLine store={store} />
       <Resonance store={store} inspect={inspect} />
       <form

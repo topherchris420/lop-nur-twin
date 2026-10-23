@@ -1,0 +1,903 @@
+{
+  "schema": "vfb-reference/v1",
+  "retrievedAt": "2026-10-22T23:24:04.044Z",
+  "importer": "scripts/import-vfb-reference.ts",
+  "api": "https://v3-cached.virtualflybrain.org",
+  "template": "VFB_00101567",
+  "citation": {
+    "short": "Court R, Costa M, Pilgrim C, et al. Virtual Fly Brain — an interactive atlas of the Drosophila nervous system. Front. Physiol. 14:1076533 (2023)",
+    "doi": "10.3389/fphys.2023.1076533"
+  },
+  "licensing": {
+    "terms": "FBbt class labels and definitions: FlyBase Drosophila anatomy ontology, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Each term's own licences are listed as VFB reported them.",
+    "geometry": "Not bundled. VFB reports the JRC2018 template and painted domains under CC-BY-NC-SA 4.0, which this Apache-2.0 repository cannot carry; the panel links to VFB."
+  },
+  "evidence": "Anatomy and connectivity here are published or measured data as VFB serves them. The digital fly does not simulate any of these neurons or neuropils; its controller only cites them as functional associations.",
+  "domains": {
+    "ME": "VFB_00102107",
+    "LO": "VFB_00102109",
+    "LOP": "VFB_00102110",
+    "EB": "VFB_00102135",
+    "PB": "VFB_00102137",
+    "FB": "VFB_00102134",
+    "NO": "VFB_00102282",
+    "LAL": "VFB_00102140",
+    "AL": "VFB_00102201",
+    "CA": "VFB_00102114",
+    "LH": "VFB_00102159"
+  },
+  "groups": [
+    {
+      "id": "vision",
+      "label": "Vision",
+      "modelled": "Proxy: the simulated eyes are FlyBody's two eye cameras with a 4.6° acuity limit, ray-cast occlusion and a looming (giant-fiber) proxy. No photoreceptor, optic-lobe or projection-neuron activity is simulated.",
+      "terms": [
+        "FBbt_00004508",
+        "FBbt_00004510",
+        "FBbt_00006007",
+        "VFB_00102107",
+        "VFB_00102109",
+        "VFB_00102110",
+        "FBbt_00003731",
+        "FBbt_00003907",
+        "FBbt_00003874",
+        "FBbt_00111763"
+      ]
+    },
+    {
+      "id": "olfaction",
+      "label": "Olfaction",
+      "modelled": "Not modelled: the fly has no odour input. Listed so the panel can say where olfaction would be processed.",
+      "terms": [
+        "VFB_00102201",
+        "VFB_00102114",
+        "VFB_00102159"
+      ]
+    },
+    {
+      "id": "navigation",
+      "label": "Navigation and heading",
+      "modelled": "Proxy: heading is a state variable steered by rules; no central-complex activity is simulated.",
+      "terms": [
+        "FBbt_00003632",
+        "VFB_00102135",
+        "VFB_00102137",
+        "VFB_00102134",
+        "VFB_00102282",
+        "VFB_00102140"
+      ]
+    },
+    {
+      "id": "motor",
+      "label": "Motor control",
+      "modelled": "Proxy: escape, walking, grooming and flight are modes of a state machine with published timings; no descending or ventral nerve cord neurons are simulated.",
+      "terms": [
+        "FBbt_00004020",
+        "FBbt_00111308",
+        "FBbt_00004052"
+      ]
+    }
+  ],
+  "terms": [
+    {
+      "id": "FBbt_00003624",
+      "label": "adult brain",
+      "symbol": "",
+      "definition": "Portion of the adult central nervous system found in the head, consisting of the cerebral and gnathal ganglia (Ito et al., 2014). (Ito et al., 2014)",
+      "types": [
+        "FBbt_00005095"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003624",
+      "sha256": "df23314f32e5052812e6fea3d46636971d104111bb629df124e73f665a9372e7"
+    },
+    {
+      "id": "FBbt_00003632",
+      "label": "adult central complex",
+      "symbol": "",
+      "definition": "A midline crossing complex of the synaptic neuropil domains of the adult brain: the ellipsoid body, the fan-shaped body, the three paired noduli, the asymmetrical bodies and the protocerebral bridge. It is closely associated with another paired synaptic neuropil domain, the lateral complex. It lies in the middle of the brain between the pedunculi of the mushroom bodies and is bounded ventrally by the esophagus, dorsally by the pars intercerebralis and laterally by the antenno-glomerular tracts. (Hanesch et al., 1989, Ito et al., 2014, Wolff and Rubin, 2018)",
+      "types": [
+        "FBbt_00041000"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_block"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003632",
+      "sha256": "ac66625764167dcfbde98cae3f679d0f21350d8ea679e5c67474232d52f961cf"
+    },
+    {
+      "id": "FBbt_00003668",
+      "label": "protocerebral bridge",
+      "symbol": "",
+      "definition": "A handle bar-shaped synaptic neuropil located just posterior to the fan-shaped body. Its lateral edge ends at the posterior end of the inferior clamp (ICL) near the medial equatorial fascicle (MEF). A row of 18 connected slices (9 on each side of the midline, numbered 1-9 from medial to lateral) that forms a dorso-posteriorly located part of the central complex embedded in the cortex between the calyces of the two mushroom bodies. (Ito and Awasaki, 2008, Wolff et al., 2015, Ito et al., 2014, Boyan and Williams, 2011, Hanesch et al., 1989)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003668",
+      "sha256": "fb2cd391472115d3a9aa01b24bde082eb73eb271de5598cf5a7cade95b49740d"
+    },
+    {
+      "id": "FBbt_00003678",
+      "label": "ellipsoid body",
+      "symbol": "",
+      "definition": "A doughnut shaped synaptic neuropil domain of the central complex of the adult brain that lies just anterior to the fan-shaped body. Its hole (the ellipsoid body canal) points anteriorly and has an axon tract (the anterior bundle) running through it. It is divided into concentric layers and into 16 radial segments, 8 per hemisphere, numbered 1-8 from superior medial to inferior medial (Ito et al., 2014). (Ito et al., 2014)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003678",
+      "sha256": "79e610690140c0cd85ec9752be70fcb175821226a076688064dcc6f858a775cd"
+    },
+    {
+      "id": "FBbt_00003679",
+      "label": "fan-shaped body",
+      "symbol": "",
+      "definition": "The largest synaptic neuropil domain of the adult central complex, located posterior to the ellipsoid body and anterior to the protocerebral bridge (Hanesch et al., 1989; Wolff et al., 2015). The fan-shaped body is composed of a rough 2-dimensional grid of layers and columns (Hanesch et al., 1989; Wolff et al., 2015; Hulse et al., 2021). Eight horizontal layers, numbered bottom to top, form a fan shape and can be divided into vertical columns (sometimes called staves, slices or segments) (Ito et al., 2014; Wolff et al., 2015). An additional, much narrower, 9th layer, which lacks a columnar organization, sits dorsal to layer 8 (Wolff et al., 2015). The number of columns varies for different neuronal types (Scheffer et al., 2020). (Lin et al., 2013, Kahsai and Winther, 2011, Hulse et al., 2021, Hanesch et al., 1989, Wolff et al., 2015, Ito et al., 2014)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003679",
+      "sha256": "e8992a23c0d0dd776019dbdc1b6d3ef11e03413986a9d8b4282e79ff7b29d6d2"
+    },
+    {
+      "id": "FBbt_00003680",
+      "label": "nodulus",
+      "symbol": "",
+      "definition": "Paired synaptic neuropil domain of the adult brain located just caudal to the ellipsoid body and ventral to the fan-shaped body, on either side of the midline (Hanesch et al., 1989. There are three of these structures, stacked on top of each other from dorsal to ventral, and at least two can be further divided into compartments (Wolff et al., 2015; Wolff and Rubin, 2018. There is asymmetry between the noduli, with one set always lying slightly more anterior than the other (Ito et al., 2014. (Hanesch et al., 1989, Wolff and Rubin, 2018, Ito et al., 2014, Wolff et al., 2015)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003680",
+      "sha256": "94548549a4ce5ed015d37b9d1a254a817f55df9a4dcfdfe275c2855941832d01"
+    },
+    {
+      "id": "FBbt_00003681",
+      "label": "adult lateral accessory lobe",
+      "symbol": "",
+      "definition": "A bilaterally paired synaptic neuropil domain of the adult brain with a roughly pyramidal shape that is located inferior-lateral to the ellipsoid body and anterior-inferior to the bulb (lateral triangle). It lies behind the antennal lobe and in front of the ventral complex. (Ito et al., 2014, Chiang et al., 2011, Pereanu et al., 2010)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003681",
+      "sha256": "0dd573b4ad03c55f72c904cff3e7b2a6aac7917987b5fdac5f54f77c48a4b88a"
+    },
+    {
+      "id": "FBbt_00003731",
+      "label": "T4 neuron",
+      "symbol": "T4",
+      "definition": "T neuron with its cell body posterior to the lobula plate and a cell body fiber that projects through the lobula plate and via the second optic chiasma, with little or no arborization, to medulla layer 10 (Fischbach and Dittrich, 1989; Shinomiya et al., 2019). It forms a fine arborization in medulla layers M9 and M10 and its axon then doubles back across the second optic chiasma to form bleb-type arborizations in a single layer of the lobula plate (Fischbach and Dittrich, 1989; Shinomiya et al., 2019). It is a cholinergic neuron (Mauss et al., 2014; Shinomiya et al., 2014). There are a large number of these cells, which are generated from neuroblasts that amplify by symmetric division (type III) before generating the T4 (and T5) neurons (Mora et al., 2018). (Shinomiya et al., 2014, Mauss et al., 2014, Fischbach and Dittrich, 1989, Shinomiya et al., 2019, Takemura et al., 2013, Mora et a…",
+      "types": [
+        "FBbt_00003726",
+        "FBbt_00058205",
+        "FBbt_00047096"
+      ],
+      "tags": [
+        "Adult",
+        "Cholinergic",
+        "Nervous_system",
+        "Visual_system",
+        "secondary_neuron"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003731",
+      "sha256": "b133527c7ca5e2df495eea838c3704121bd50c39acca60d45c4643a7816e8be2"
+    },
+    {
+      "id": "FBbt_00003748",
+      "label": "medulla",
+      "symbol": "",
+      "definition": "The second optic neuropil, sandwiched between the lamina and the lobula complex. It is divided into 10 layers: 1-6 make up the outer (distal) medulla, the seventh (or serpentine) layer exhibits a distinct architecture and layers 8-10 make up the inner (proximal) medulla (Ito et al., 2014). (Ito et al., 2014, Nériec and Desplan, 2016)",
+      "types": [
+        "FBbt_00025991",
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003748",
+      "sha256": "8e9eda7dda10e4d518f5dbc9705e18ad7de60bdfe03f863269f9b983e07aca6c"
+    },
+    {
+      "id": "FBbt_00003852",
+      "label": "lobula",
+      "symbol": "",
+      "definition": "Anterior domain of the adult lobula complex. It can be divided into six layers and houses many columnar neurons. (Ito et al., 2014, Nériec and Desplan, 2016)",
+      "types": [
+        "FBbt_00025991",
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003852",
+      "sha256": "8739a6019ca3e3d5fdaf3c659f7ca1485870a68ae2d13e868f2d372196effd65"
+    },
+    {
+      "id": "FBbt_00003874",
+      "label": "lobula columnar neuron LC4",
+      "symbol": "LC4",
+      "definition": "Lobula columnar neuron whose cell body is in an extended region of the lateral cell body rind (Wu et al., 2016). It has its main dendritic arbors in lobula layers 2 and 4 (Wu et al., 2016; Tanaka and Clark, 2022). Its arbors span approximately 40 optic columns, overlapping with other LC4 cells (Wu et al., 2016). It projects to an optic glomerulus in the PVLP that is medial to the one from LC12 and ventral to LPLC2 and LPLC1 (Wu et al., 2016). There are an estimated 66 neurons of this type (Wu et al., 2016). It has been reported as being both glutamatergic (Raghu and Borst, 2011) and cholinergic (Davis et al., 2020). (Tanaka and Clark, 2022, Davis et al., 2020, Wu et al., 2016, Fischbach and Dittrich, 1989, Otsuna and Ito, 2006, Raghu and Borst, 2011)",
+      "types": [
+        "FBbt_00058205",
+        "FBbt_00058208",
+        "FBbt_00003870",
+        "FBbt_00110137"
+      ],
+      "tags": [
+        "Adult",
+        "Cholinergic",
+        "Glutamatergic",
+        "Nervous_system",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003874",
+      "sha256": "938d66b9a488afca439928eeb354d719649e8cc80791ffdc260e3f31ccd49e57"
+    },
+    {
+      "id": "FBbt_00003885",
+      "label": "lobula plate",
+      "symbol": "",
+      "definition": "Posterior domain of the adult lobula complex. It is divided into 4 layers and houses many large tangential neurons. (Nériec and Desplan, 2016)",
+      "types": [
+        "FBbt_00025991",
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003885",
+      "sha256": "c317630aff6731648e727c182e1a7e17f30b2c8e8654bcfe0e50d4c7cddb7d13"
+    },
+    {
+      "id": "FBbt_00003907",
+      "label": "lobula plate tangential neuron",
+      "symbol": "LPT",
+      "definition": "Tangential neuron of the optic lobe that projects and arborizes along the plane of one or more layers of the lobula plate. (Fischbach and Dittrich, 1989)",
+      "types": [
+        "FBbt_00007579"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Neuron"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00003907",
+      "sha256": "64c8df196413bc0197b2f7895ebb4ba4905abb843d82b092e2987f951a159c63"
+    },
+    {
+      "id": "FBbt_00004020",
+      "label": "giant fiber neuron",
+      "symbol": "DNp01",
+      "definition": "Large adult descending neuron that controls jump escape behavior (Thomas and Wyman, 1984).There is one of these cells per hemisphere (Koto et al., 1981; Namiki et al., 2018; Sturner et al., 2025) and its large cell body is located posterior to the lower protocerebrum (Koto et al., 1981). It can be identified by its large descending axon (Power, 1948), which is several times larger than any other axon in the cervical connective (Koto et al., 1981). It enters the cervical connective via the posterior cerebro-cervical fascicle (Ito et al., 2014) and descends on the ipsilateral side (Koto et al., 1981; Namiki et al., 2018), in the dorsal cervical fasciculus (Power, 1948). In the brain, it has dendritic arborization in the ipsilateral zones A and B of the antennal mechanosensory and motor center (Kamikouchi et al., 2009; Matsuo et al., 2016), where it receives substantial input from zone A a…",
+      "types": [
+        "FBbt_00004037",
+        "FBbt_00110127",
+        "FBbt_00047517",
+        "FBbt_00052517",
+        "FBbt_00001366"
+      ],
+      "tags": [
+        "Adult",
+        "Auditory_system",
+        "Nervous_system",
+        "primary_neuron"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00004020",
+      "sha256": "612e2a6fd53b063e88cad012e9b42151f599d530b6c1dae951181c3be1d2f9f8"
+    },
+    {
+      "id": "FBbt_00004052",
+      "label": "adult ventral nerve cord",
+      "symbol": "",
+      "definition": "The region of the adult central nervous system posterior to the brain, containing all of the thoracic and abdominal neuromeres (Court et al., 2020. It exists as a single consolidated ganglion located in the ventral part of the thorax (Court et al., 2020. It is connected to the brain by descending and ascending neurons that pass through the neck connective (Court et al., 2020. (Court et al., 2020, Power, 1948, Ito et al., 2014)",
+      "types": [
+        "FBbt_00005137",
+        "FBbt_00025993",
+        "FBbt_00005097"
+      ],
+      "tags": [
+        "Adult",
+        "Ganglion",
+        "Nervous_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00004052",
+      "sha256": "79d3308fdab80159023275e3a23ae06a3343a073962d953217e058278760739d"
+    },
+    {
+      "id": "FBbt_00004508",
+      "label": "eye",
+      "symbol": "",
+      "definition": "A bilaterally paired compound sense organ of the adult head that functions in visual perception.",
+      "types": [
+        "FBbt_00004113",
+        "FBbt_00025991",
+        "FBbt_00007235",
+        "FBbt_00005162",
+        "FBbt_00025993"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Sense_organ",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00004508",
+      "sha256": "6830b9197cf31b405d2b7d0c7764ae2d976a3e2799b5efb12b2c4af7e710d2b1"
+    },
+    {
+      "id": "FBbt_00004510",
+      "label": "ommatidium",
+      "symbol": "",
+      "definition": "One of the facets of the compound eye. It is composed of eight light-sensing photoreceptor cells (photoreceptor cell R1-R8) and accessory cells. There are around 800 ommatidia in each compound eye. (Wernet and Desplan, 2004, Zombori and Steinmann, 1999)",
+      "types": [
+        "FBbt_00007241",
+        "FBbt_00007231",
+        "FBbt_00005162"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Sense_organ",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00004510",
+      "sha256": "dddac7f0a804b068423511c459f31d2fedde1e0ada5d30d7e1b18b68cbbae306"
+    },
+    {
+      "id": "FBbt_00006007",
+      "label": "outer photoreceptor cell",
+      "symbol": "",
+      "definition": "An eye photoreceptor cell whose rhabdomere is part of the outer trapezoid of rhabdomeres of each ommatidium. There are six of these per ommatidium. Each has a single axon that projects along a single lamina optic cartridge within which it makes extensive synaptic connections before terminating in the proximal lamina. It is strongly presynaptic to lamina monopolar neurons L1 and L2 and the lamina intrinsic (amacrine) neuron (Rivera-Alba et al., 2011). (Meinertzhagen and O'Neil, 1991, Rivera-Alba et al., 2011, Wolff and Ready, 1993)",
+      "types": [
+        "FBbt_00006009"
+      ],
+      "tags": [
+        "Adult",
+        "Histaminergic",
+        "Nervous_system",
+        "Sensory_neuron",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00006007",
+      "sha256": "d9a2dd3b00324b6a5ba1fa5576dcd28c7e650bf4d7ab7a661c56cdd9d8df9154"
+    },
+    {
+      "id": "FBbt_00007053",
+      "label": "adult lateral horn",
+      "symbol": "",
+      "definition": "Dorsolateral horn-shaped synaptic neuropil domain of the adult protocerebrum that houses the terminals of various antennal lobe projection neurons (Ito et al., 2014). It is not separated from other neuropils by a glial sheath, but by the extent of arborization and synapsing of these antennal lobe projection neurons (Ito et al., 2014). (Pereanu et al., 2010)",
+      "types": [
+        "FBbt_00040007"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00007053",
+      "sha256": "72e82d6170505d9ed6321555792c3a02a5d9318f3f6893625a75e954a4a59edc"
+    },
+    {
+      "id": "FBbt_00007385",
+      "label": "calyx of adult mushroom body",
+      "symbol": "",
+      "definition": "Mushroom body calyx of the mature adult mushroom body.",
+      "types": [
+        "FBbt_00003685"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00007385",
+      "sha256": "18f8019fc51b75757ad6e2d617994cbe4b1ee0029028b818b702fb3a62d7c5cb"
+    },
+    {
+      "id": "FBbt_00007401",
+      "label": "adult antennal lobe",
+      "symbol": "",
+      "definition": "The adult antennal lobe is a bilaterally paired synaptic neuropil domain of the deutocerebrum lying in front of the protocerebral synaptic neuropil domains. It is divided into approximately 50 glomeruli and is clearly separated from adjacent neuropil domains by an extensive glial sheath. The two antennal lobes are connected by the antennal commissure and receive olfactory receptor neuron axons from the antennal nerve and subesophageal tract. It is also connected to the antennal lobe tracts and the broad root. (Ito et al., 2014, Laissue et al., 1999, Stocker et al., 1990, Pereanu et al., 2010)",
+      "types": [
+        "FBbt_00003924"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00007401",
+      "sha256": "22284a894e86aeaf9900f5b43e1b2a3daed173a28fbc48ef1a17e577e95adc1c"
+    },
+    {
+      "id": "FBbt_00111308",
+      "label": "adult moonwalker descending neuron",
+      "symbol": "MDN",
+      "definition": "Descending neuron whose soma is located on the midline, near the medial posterior protocerebrum of the adult brain (Bidaye et al., 2014). It arborizes bilaterally in the medial ventral protocerebrum and subesophageal zone (Bidaye et al., 2014). Axonal terminals are located in the subesophageal zone and bilaterally in the thoracic neuromeres (Bidaye et al., 2014). It is cholinergic (Cheong et al., 2024). This neuron is involved in triggering backward walking (Bidaye et al., 2014) and can do this in response to visual (Sen et al., 2017), odor (Israel et al., 2022) and mechanosensory (Dahlhoff et al., 2025) stimuli. It develops from a larval mooncrawler descending neuron (Carreira-Rosario et al., 2018). There are two of these cells per hemisphere (Bidaye et al., 2014). (Israel et al., 2022, Carreira-Rosario et al., 2018, Sen et al., 2017, Bidaye et al., 2014)",
+      "types": [
+        "FBbt_00058205",
+        "FBbt_00047517",
+        "FBbt_00047097"
+      ],
+      "tags": [
+        "Adult",
+        "Cholinergic",
+        "Nervous_system",
+        "primary_neuron"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00111308",
+      "sha256": "9a5acac830fe984925e3ddb257c6a2ae37d6fe89f479dd7985c9c8be455240fe"
+    },
+    {
+      "id": "FBbt_00111763",
+      "label": "lobula plate-lobula columnar neuron LPLC2",
+      "symbol": "LPLC2",
+      "definition": "Lobula plate-lobula columnar neuron whose cell body lies in the dorsal area of the lateral cell body rind (Wu et al., 2016). It has a distinct dendritic arbor in each lobula plate layer, extending outwards from the main fiber in the direction of motion detection for the layer (Klapoetke et al., 2017). This arrangement allows it to detect looming (expansion) stimuli (Klapoetke et al., 2017). In the lobula, it has its main dendritic arbors in layers 4 and 5B, with minor processes in layer 5A, and presynaptic sites in layer 4 (Wu et al., 2016; Tanaka and Clark, 2022). Its arbors span approximately 25 lobula optic columns, overlapping with other LPLC2 cells (Wu et al., 2016). It projects to an optic glomerulus of the PVLP, anterior to LPLC1 and dorsal to LC4 (Wu et al., 2016). Its activity elicits a jump escape response (Wu et al., 2016; Klapoetke et al., 2017). There are approximately 80 o…",
+      "types": [
+        "FBbt_00058205",
+        "FBbt_00003880",
+        "FBbt_00110137"
+      ],
+      "tags": [
+        "Adult",
+        "Cholinergic",
+        "Nervous_system",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=FBbt_00111763",
+      "sha256": "066a74ebf7588bb1ab249d84670028657e70685c8e4617a9bd7e63242c62f56d"
+    },
+    {
+      "id": "VFB_00101567",
+      "label": "JRC2018Unisex",
+      "symbol": "JRC2018U",
+      "definition": "Janelia 2018 unisex, averaged adult brain template",
+      "types": [
+        "FBbt_00003624"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system"
+      ],
+      "isTemplate": true,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00101567",
+      "sha256": "101a23fe0714ffe186d63c9d25d0d05c9260d5575764b26a4eeffe1ce2b9ce51"
+    },
+    {
+      "id": "VFB_00102107",
+      "label": "ME on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003748"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102107",
+      "sha256": "e6fdce97632e0071ac08be9b532218fbe3b65771ef58dc1e29462a4375e783e2"
+    },
+    {
+      "id": "VFB_00102109",
+      "label": "LO on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003852"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102109",
+      "sha256": "8892ab6044e77feba295659d8a88c5677c66593a6a25f9605fb8100c8b225703"
+    },
+    {
+      "id": "VFB_00102110",
+      "label": "LOP on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003885"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain",
+        "Visual_system"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102110",
+      "sha256": "2c3935c6d5410626d8990a35033631b97e19988c1d557ee773eadcd8514c4e9c"
+    },
+    {
+      "id": "VFB_00102114",
+      "label": "CA on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00007385"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102114",
+      "sha256": "e5874254276344e7938702f0e72a52807cee4adf267aaeb734220d9290b4e7e2"
+    },
+    {
+      "id": "VFB_00102134",
+      "label": "FB on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003679"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102134",
+      "sha256": "821bde50f5833cba988c88bf9f5a80a54cbf05f07ff160d73811a1309aa7a1f4"
+    },
+    {
+      "id": "VFB_00102135",
+      "label": "EB on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003678"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102135",
+      "sha256": "0bc88608e9f9a0e513b448f04ef6c4fc5a0e6e7244c803374cde45fdec5a94dc"
+    },
+    {
+      "id": "VFB_00102137",
+      "label": "PB on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003668"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102137",
+      "sha256": "7b463c1f60f62dc33cc81f74ef13856577b89ef9b6cd5245e1f3562478a45daa"
+    },
+    {
+      "id": "VFB_00102140",
+      "label": "LAL on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003681"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102140",
+      "sha256": "1e12c554f531f35090d17040806473b8bbff31ad733e87d9acbe877802d088d8"
+    },
+    {
+      "id": "VFB_00102159",
+      "label": "LH on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00007053"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102159",
+      "sha256": "35cb9476cfbb34d5f013439b701d0b79763700801bb5fdc9244a92f4aff20245"
+    },
+    {
+      "id": "VFB_00102201",
+      "label": "AL on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00007401"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102201",
+      "sha256": "b3fc439f3d6b62eb21f4ad2057b6da00ef99d04793fb39de48a683d930aaa83b"
+    },
+    {
+      "id": "VFB_00102282",
+      "label": "NO on JRC2018Unisex adult brain",
+      "symbol": "",
+      "definition": "",
+      "types": [
+        "FBbt_00003680"
+      ],
+      "tags": [
+        "Adult",
+        "Nervous_system",
+        "Synaptic_neuropil_domain"
+      ],
+      "isTemplate": false,
+      "isPaintedDomain": false,
+      "licenses": [
+        {
+          "label": "CC-BY-NC-SA_4.0",
+          "iri": "http://virtualflybrain.org/reports/VFBlicense_CC_BY_NC_SA_4_0",
+          "source": "JRC 2018 templates & ROIs"
+        }
+      ],
+      "query": "https://v3-cached.virtualflybrain.org/get_term_info?id=VFB_00102282",
+      "sha256": "032d7667e686b5a6298ac51a847062a2bd476a7dd3cf179c6802bbc43010bfe7"
+    }
+  ],
+  "connectivity": [
+    {
+      "upstream": "FBbt_00111763",
+      "downstream": "FBbt_00004020",
+      "query": "https://v3-cached.virtualflybrain.org/query_connectivity?upstream_type=FBbt_00111763&downstream_type=FBbt_00004020&group_by_class=true",
+      "sha256": "45d8de86d53e4b069c808a7c7195f6eb540ed81de2e8de4f6228e717198469f3",
+      "excludedDatasets": [
+        "hb",
+        "fafb"
+      ],
+      "connections": [
+        {
+          "upstreamClass": "FBbt_00111763",
+          "downstreamClass": "FBbt_00004020",
+          "totalUpstream": 574,
+          "connectedUpstream": 275,
+          "percentConnected": 48,
+          "totalWeight": 5680,
+          "averageWeight": 20
+        }
+      ]
+    },
+    {
+      "upstream": "FBbt_00003874",
+      "downstream": "FBbt_00004020",
+      "query": "https://v3-cached.virtualflybrain.org/query_connectivity?upstream_type=FBbt_00003874&downstream_type=FBbt_00004020&group_by_class=true",
+      "sha256": "aed3c7992ca4c31c9fa4a36544ab10abc83f6e6c30f4f86c3789a9b731d92ae0",
+      "excludedDatasets": [
+        "hb",
+        "fafb"
+      ],
+      "connections": [
+        {
+          "upstreamClass": "FBbt_00003874",
+          "downstreamClass": "FBbt_00004020",
+          "totalUpstream": 349,
+          "connectedUpstream": 215,
+          "percentConnected": 62,
+          "totalWeight": 7119,
+          "averageWeight": 33
+        }
+      ]
+    }
+  ]
+}

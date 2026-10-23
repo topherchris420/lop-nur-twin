@@ -1,0 +1,1430 @@
+{
+  "schema": "flybody-skeleton/v1",
+  "units": "cm",
+  "frame": "MuJoCo body frames: x anterior, y the fly's left, z dorsal; quaternions [w, x, y, z]",
+  "bodies": [
+    {
+      "name": "thorax",
+      "parent": null,
+      "pos": [0,0,0],
+      "quat": [1,0,0,0],
+      "joints": []
+    },
+    {
+      "name": "head",
+      "parent": "thorax",
+      "pos": [0.0567,3.81e-7,-0.00305],
+      "quat": [0.7017383004118204,-0.08696756714505467,0.08696756714505467,-0.7017383004118204],
+      "joints": [
+        {
+          "name": "head_abduct",
+          "axis": [0,0,1],
+          "range": [-0.2,0.2],
+          "rest": 0
+        },
+        {
+          "name": "head_twist",
+          "axis": [0,1,0],
+          "range": [-3,3],
+          "rest": 0
+        },
+        {
+          "name": "head",
+          "axis": [1,0,0],
+          "range": [-0.5,0.3],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "rostrum",
+      "parent": "head",
+      "pos": [0,0.0368,-0.0235],
+      "quat": [2.2008529958357936e-7,-1.2104691477096866e-7,0.19207444327294199,-0.9813803585976879],
+      "joints": [
+        {
+          "name": "rostrum",
+          "axis": [1,0,0],
+          "range": [-1.24,0.183],
+          "rest": 0.8
+        }
+      ]
+    },
+    {
+      "name": "haustellum",
+      "parent": "rostrum",
+      "pos": [0,0.0377,0],
+      "quat": [2.3297053109159835e-7,-1.5598026974373108e-7,-0.3469561128274018,0.937881365510383],
+      "joints": [
+        {
+          "name": "haustellum_abduct",
+          "axis": [0,0,1],
+          "range": [-0.0873,0.0873],
+          "rest": 0
+        },
+        {
+          "name": "haustellum",
+          "axis": [1,0,0],
+          "range": [-1.59,0.7],
+          "rest": 0.8
+        }
+      ]
+    },
+    {
+      "name": "labrum_left",
+      "parent": "haustellum",
+      "pos": [-0.00263,0.0182,0],
+      "quat": [0.7408797501576396,-0.014197695617055982,-0.5909040922309919,0.3189482325240041],
+      "joints": [
+        {
+          "name": "labrum_left",
+          "axis": [1,0,0],
+          "range": [-0.00524,1.05],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "labrum_right",
+      "parent": "haustellum",
+      "pos": [0.00263,0.0182,0],
+      "quat": [0.6987804400846876,0.002739139350260435,0.6417983441121166,-0.3159007425847801],
+      "joints": [
+        {
+          "name": "labrum_right",
+          "axis": [1,0,0],
+          "range": [-0.00524,1.05],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "antenna_left",
+      "parent": "head",
+      "pos": [-0.00795,0.0378,0.0129],
+      "quat": [0.7844695484514196,-0.5896013166704936,-0.012791350598953083,0.19187025898429624],
+      "joints": [
+        {
+          "name": "antenna_abduct_left",
+          "axis": [0,0,1],
+          "range": [-0.4,0.8],
+          "rest": 0
+        },
+        {
+          "name": "antenna_twist_left",
+          "axis": [0,1,0],
+          "range": [-0.1,0.09],
+          "rest": 0
+        },
+        {
+          "name": "antenna_left",
+          "axis": [1,0,0],
+          "range": [-0.2,0.5],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "antenna_right",
+      "parent": "head",
+      "pos": [0.00861,0.038,0.0129],
+      "quat": [0.5896013166704936,0.7844695484514196,-0.19187025898429624,-0.012791350598953083],
+      "joints": [
+        {
+          "name": "antenna_abduct_right",
+          "axis": [0,0,1],
+          "range": [-0.4,0.8],
+          "rest": 0
+        },
+        {
+          "name": "antenna_twist_right",
+          "axis": [0,1,0],
+          "range": [-0.1,0.09],
+          "rest": 0
+        },
+        {
+          "name": "antenna_right",
+          "axis": [1,0,0],
+          "range": [-0.2,0.5],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "wing_left",
+      "parent": "thorax",
+      "pos": [-0.00694,0.0432,0.0091],
+      "quat": [0,-0.4030737692502769,0,-0.9151674909776758],
+      "joints": [
+        {
+          "name": "wing_yaw_left",
+          "axis": [0,0,1],
+          "range": [-1.5,1.5],
+          "rest": 1.5
+        },
+        {
+          "name": "wing_roll_left",
+          "axis": [1,0,0],
+          "range": [-1,1.5],
+          "rest": 0.7
+        },
+        {
+          "name": "wing_pitch_left",
+          "axis": [0,1,0],
+          "range": [-1.27,2.92],
+          "rest": -1
+        }
+      ]
+    },
+    {
+      "name": "wing_right",
+      "parent": "thorax",
+      "pos": [-0.00694,-0.0432,0.0091],
+      "quat": [0,0.9151674909776758,0,-0.4030737692502769],
+      "joints": [
+        {
+          "name": "wing_yaw_right",
+          "axis": [0,0,1],
+          "range": [-1.5,1.5],
+          "rest": 1.5
+        },
+        {
+          "name": "wing_roll_right",
+          "axis": [1,0,0],
+          "range": [-1,1.5],
+          "rest": 0.7
+        },
+        {
+          "name": "wing_pitch_right",
+          "axis": [0,1,0],
+          "range": [-1.27,2.92],
+          "rest": -1
+        }
+      ]
+    },
+    {
+      "name": "abdomen",
+      "parent": "thorax",
+      "pos": [-0.0447,-0.000555,0.00428],
+      "quat": [-0.7039046625697453,-0.08588836720843909,-0.08528844846193079,-0.6999052042596899],
+      "joints": [
+        {
+          "name": "abdomen_abduct",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_2",
+      "parent": "abdomen",
+      "pos": [0,0.0119,0],
+      "quat": [0.9813793047807188,-0.19207423702130277,-0.0002691040091600544,0.0014405567776597707],
+      "joints": [
+        {
+          "name": "abdomen_abduct_2",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_2",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_3",
+      "parent": "abdomen_2",
+      "pos": [0,0.0212,0],
+      "quat": [0.9958610422155264,-0.09088731800942906,0.00006689066638977782,0.0005249267541798708],
+      "joints": [
+        {
+          "name": "abdomen_abduct_3",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_3",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_4",
+      "parent": "abdomen_3",
+      "pos": [0,0.0313,0],
+      "quat": [0.9994481960728993,-0.03321489500462488,0.00014706595077348969,-0.00022910273964033427],
+      "joints": [
+        {
+          "name": "abdomen_abduct_4",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_4",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_5",
+      "parent": "abdomen_4",
+      "pos": [0,0.0262,0],
+      "quat": [0.9993221588645165,-0.03681186731352773,-0.0000472152211195247,-0.00032710545140009694],
+      "joints": [
+        {
+          "name": "abdomen_abduct_5",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_5",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_6",
+      "parent": "abdomen_5",
+      "pos": [0,0.0213,0],
+      "quat": [0.9978071487326584,-0.06618720766142483,0.00015596985491211896,-0.00035093217355226764],
+      "joints": [
+        {
+          "name": "abdomen_abduct_6",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_6",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "abdomen_7",
+      "parent": "abdomen_6",
+      "pos": [0,0.0182,0],
+      "quat": [0.9947866237582765,-0.10197812625461729,-0.000001789616137213382,-0.00018695989813346503],
+      "joints": [
+        {
+          "name": "abdomen_abduct_7",
+          "axis": [0,0,1],
+          "range": [-0.1,0.1],
+          "rest": 0
+        },
+        {
+          "name": "abdomen_7",
+          "axis": [1,0,0],
+          "range": [-0.15,0.1],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "haltere_left",
+      "parent": "thorax",
+      "pos": [-0.0386,0.0247,-0.00866],
+      "quat": [0.2908119055260152,-0.2038681399563818,0.8254660960978989,0.43871624235711576],
+      "joints": [
+        {
+          "name": "haltere_left",
+          "axis": [1,0,0],
+          "range": [-0.2,0.2],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "haltere_right",
+      "parent": "thorax",
+      "pos": [-0.0386,-0.0247,-0.00866],
+      "quat": [-0.4380173020251517,-0.8290327474402985,0.20600813748214897,-0.28001106065534814],
+      "joints": [
+        {
+          "name": "haltere_right",
+          "axis": [1,0,0],
+          "range": [-0.2,0.2],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T1_left",
+      "parent": "thorax",
+      "pos": [0.0317,0.0209,-0.0272],
+      "quat": [-0.5320962090319542,0.787142324263436,-0.3110562424980033,-0.02290414132863111],
+      "joints": [
+        {
+          "name": "coxa_abduct_T1_left",
+          "axis": [0,0,1],
+          "range": [-1,0.7],
+          "rest": 0
+        },
+        {
+          "name": "coxa_twist_T1_left",
+          "axis": [0,1,0],
+          "range": [-0.8,0.8],
+          "rest": 0
+        },
+        {
+          "name": "coxa_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.2,1.7],
+          "rest": 0.0584
+        }
+      ]
+    },
+    {
+      "name": "femur_T1_left",
+      "parent": "coxa_T1_left",
+      "pos": [0,0.0437,0],
+      "quat": [0,0,0.2519334983335015,0.9677445491540851],
+      "joints": [
+        {
+          "name": "femur_twist_T1_left",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0
+        },
+        {
+          "name": "femur_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.15,2],
+          "rest": -0.142
+        }
+      ]
+    },
+    {
+      "name": "tibia_T1_left",
+      "parent": "femur_T1_left",
+      "pos": [0,0.0697,0],
+      "quat": [0.18592518016944362,0.16193483434112832,0.676727671907061,-0.6937208335354509],
+      "joints": [
+        {
+          "name": "tibia_T1_left",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -1.29
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T1_left",
+      "parent": "tibia_T1_left",
+      "pos": [0,-0.051,0.00175],
+      "quat": [0.039003565330647444,0.9980912358970807,0.006740616162270866,0.047404333248017655],
+      "joints": [
+        {
+          "name": "tarsus_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.7,1.2],
+          "rest": -0.242
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T1_left",
+      "parent": "tarsus_T1_left",
+      "pos": [-0.000165,0.0235,0.00174],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T1_left",
+      "parent": "tarsus2_T1_left",
+      "pos": [0.000113,0.0136,0.000556],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T1_left",
+      "parent": "tarsus3_T1_left",
+      "pos": [-0.000255,0.00909,0.0002],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T1_left",
+      "parent": "tarsus4_T1_left",
+      "pos": [-0.0000712,0.00906,-0.00081],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T1_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T1_right",
+      "parent": "thorax",
+      "pos": [0.0317,-0.0209,-0.0272],
+      "quat": [0.3189266553029507,0.010997470872515541,-0.54287515307054,-0.7768213516313252],
+      "joints": [
+        {
+          "name": "coxa_abduct_T1_right",
+          "axis": [0,0,1],
+          "range": [-1,0.7],
+          "rest": 0
+        },
+        {
+          "name": "coxa_twist_T1_right",
+          "axis": [0,1,0],
+          "range": [-0.8,0.8],
+          "rest": 0
+        },
+        {
+          "name": "coxa_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.2,1.7],
+          "rest": 0.0584
+        }
+      ]
+    },
+    {
+      "name": "femur_T1_right",
+      "parent": "coxa_T1_right",
+      "pos": [0,-0.0436,0],
+      "quat": [0,0,0.26108538888553173,0.9653157098641307],
+      "joints": [
+        {
+          "name": "femur_twist_T1_right",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0
+        },
+        {
+          "name": "femur_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.15,2],
+          "rest": -0.142
+        }
+      ]
+    },
+    {
+      "name": "tibia_T1_right",
+      "parent": "femur_T1_right",
+      "pos": [0,-0.0698,0],
+      "quat": [0.16294452683131358,0.14794963172413747,0.6877658555824768,-0.6917644942777238],
+      "joints": [
+        {
+          "name": "tibia_T1_right",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -1.29
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T1_right",
+      "parent": "tibia_T1_right",
+      "pos": [0,0.0515,-0.00175],
+      "quat": [-0.07447362983266557,-0.994647807832245,0.013295292305697344,0.07037508107677393],
+      "joints": [
+        {
+          "name": "tarsus_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.7,1.2],
+          "rest": -0.242
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T1_right",
+      "parent": "tarsus_T1_right",
+      "pos": [-0.000965,-0.0227,-0.00161],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T1_right",
+      "parent": "tarsus2_T1_right",
+      "pos": [0.000143,-0.0136,-0.00168],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T1_right",
+      "parent": "tarsus3_T1_right",
+      "pos": [0.000437,-0.00899,-0.00063],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T1_right",
+      "parent": "tarsus4_T1_right",
+      "pos": [0.000765,-0.00899,0.000134],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T1_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T2_left",
+      "parent": "thorax",
+      "pos": [-0.0144,0.0241,-0.0425],
+      "quat": [-0.371070725398912,0.9171748118350468,-0.12602401994680032,-0.07221376381078558],
+      "joints": [
+        {
+          "name": "coxa_abduct_T2_left",
+          "axis": [0,0,1],
+          "range": [-0.5,0.3],
+          "rest": -0.292
+        },
+        {
+          "name": "coxa_twist_T2_left",
+          "axis": [0,1,0],
+          "range": [-0.75,0.8],
+          "rest": -0.742
+        },
+        {
+          "name": "coxa_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.2,0.9],
+          "rest": 0.408
+        }
+      ]
+    },
+    {
+      "name": "femur_T2_left",
+      "parent": "coxa_T2_left",
+      "pos": [0,0.0281,0],
+      "quat": [0,0,0.1279713376301968,0.9917778666340252],
+      "joints": [
+        {
+          "name": "femur_twist_T2_left",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0.608
+        },
+        {
+          "name": "femur_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.15,2],
+          "rest": 0.208
+        }
+      ]
+    },
+    {
+      "name": "tibia_T2_left",
+      "parent": "femur_T2_left",
+      "pos": [0,0.083,0],
+      "quat": [0.10703722545717957,0.08342901498251193,0.6562282233636431,-0.7422581428899743],
+      "joints": [
+        {
+          "name": "tibia_T2_left",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -1.34
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T2_left",
+      "parent": "tibia_T2_left",
+      "pos": [0,-0.0668,0.00175],
+      "quat": [-0.14805156349472384,0.9783407371475671,-0.021607525483013753,-0.14304982148476697],
+      "joints": [
+        {
+          "name": "tarsus_T2_left",
+          "axis": [1,0,0],
+          "range": [-1,1.8],
+          "rest": 0.608
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T2_left",
+      "parent": "tarsus_T2_left",
+      "pos": [0.000471,0.0342,0.00136],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T2_left",
+      "parent": "tarsus2_T2_left",
+      "pos": [0.0000242,0.0178,0.000203],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T2_left",
+      "parent": "tarsus3_T2_left",
+      "pos": [-0.0000311,0.00991,0.000292],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T2_left",
+      "parent": "tarsus4_T2_left",
+      "pos": [0.000036,0.00991,-0.000254],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T2_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T2_right",
+      "parent": "thorax",
+      "pos": [-0.0144,-0.0241,-0.0425],
+      "quat": [0.12601040825952306,-0.07090585671111257,-0.3740308943576319,-0.9160756663946279],
+      "joints": [
+        {
+          "name": "coxa_abduct_T2_right",
+          "axis": [0,0,1],
+          "range": [-0.5,0.3],
+          "rest": -0.292
+        },
+        {
+          "name": "coxa_twist_T2_right",
+          "axis": [0,1,0],
+          "range": [-0.75,0.8],
+          "rest": -0.742
+        },
+        {
+          "name": "coxa_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.2,0.9],
+          "rest": 0.408
+        }
+      ]
+    },
+    {
+      "name": "femur_T2_right",
+      "parent": "coxa_T2_right",
+      "pos": [0,-0.0282,0],
+      "quat": [0,0,0.13399752106879015,0.9909816670087389],
+      "joints": [
+        {
+          "name": "femur_twist_T2_right",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0.608
+        },
+        {
+          "name": "femur_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.15,2],
+          "rest": 0.208
+        }
+      ]
+    },
+    {
+      "name": "tibia_T2_right",
+      "parent": "femur_T2_right",
+      "pos": [0,-0.084,0],
+      "quat": [0.09023849312257146,0.1030439555612512,0.6592812302414034,-0.7393153704831519],
+      "joints": [
+        {
+          "name": "tibia_T2_right",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -1.34
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T2_right",
+      "parent": "tibia_T2_right",
+      "pos": [0,0.0665,-0.00175],
+      "quat": [0.15000833769512006,-0.9820545841107194,0.017200956055707102,0.11300628106365712],
+      "joints": [
+        {
+          "name": "tarsus_T2_right",
+          "axis": [1,0,0],
+          "range": [-1,1.8],
+          "rest": 0.608
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T2_right",
+      "parent": "tarsus_T2_right",
+      "pos": [-0.000367,-0.0339,-0.00103],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T2_right",
+      "parent": "tarsus2_T2_right",
+      "pos": [0.0000172,-0.0177,-0.000553],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T2_right",
+      "parent": "tarsus3_T2_right",
+      "pos": [0.0000507,-0.00988,-0.000293],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T2_right",
+      "parent": "tarsus4_T2_right",
+      "pos": [-0.0000966,-0.00988,0.000252],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T2_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T3_left",
+      "parent": "thorax",
+      "pos": [-0.0377,0.0192,-0.0402],
+      "quat": [0.6812094223433081,-0.5291626790302643,-0.08822712342243724,0.49815314585457765],
+      "joints": [
+        {
+          "name": "coxa_abduct_T3_left",
+          "axis": [0,0,1],
+          "range": [-0.9,0.25],
+          "rest": 0
+        },
+        {
+          "name": "coxa_twist_T3_left",
+          "axis": [0,1,0],
+          "range": [-0.15,0.8],
+          "rest": 0.00841
+        },
+        {
+          "name": "coxa_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.3,1.3],
+          "rest": 0.158
+        }
+      ]
+    },
+    {
+      "name": "femur_T3_left",
+      "parent": "coxa_T3_left",
+      "pos": [-0.00398,0.0232,-0.00668],
+      "quat": [0,0,-0.6680801744316864,-0.7440892960736147],
+      "joints": [
+        {
+          "name": "femur_twist_T3_left",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0.558
+        },
+        {
+          "name": "femur_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.7,1.5],
+          "rest": 0.258
+        }
+      ]
+    },
+    {
+      "name": "tibia_T3_left",
+      "parent": "femur_T3_left",
+      "pos": [0,0.0779,1.6e-7],
+      "quat": [-0.11704384112929214,-0.10403896989270411,-0.7112664191703136,0.6852566766971377],
+      "joints": [
+        {
+          "name": "tibia_T3_left",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -0.292
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T3_left",
+      "parent": "tibia_T3_left",
+      "pos": [0,-0.0715,0.00175],
+      "quat": [-0.2299537839336773,0.9628064953397009,-0.03299336899917978,-0.13797227036020637],
+      "joints": [
+        {
+          "name": "tarsus_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.8,1.2],
+          "rest": 0.258
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T3_left",
+      "parent": "tarsus_T3_left",
+      "pos": [0.00027,0.0337,0.00102],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T3_left",
+      "parent": "tarsus2_T3_left",
+      "pos": [-0.0000797,0.0197,0.00158],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T3_left",
+      "parent": "tarsus3_T3_left",
+      "pos": [0.00008,0.0111,-0.0000278],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T3_left",
+      "parent": "tarsus4_T3_left",
+      "pos": [0.000222,0.0111,-0.00108],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T3_left",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "coxa_T3_right",
+      "parent": "thorax",
+      "pos": [-0.0377,-0.0192,-0.0402],
+      "quat": [-0.08538279027153081,-0.5048982328702935,-0.6728643776667474,-0.5338923888173004],
+      "joints": [
+        {
+          "name": "coxa_abduct_T3_right",
+          "axis": [0,0,1],
+          "range": [-0.9,0.25],
+          "rest": 0
+        },
+        {
+          "name": "coxa_twist_T3_right",
+          "axis": [0,1,0],
+          "range": [-0.15,0.8],
+          "rest": 0.00841
+        },
+        {
+          "name": "coxa_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.3,1.3],
+          "rest": 0.158
+        }
+      ]
+    },
+    {
+      "name": "femur_T3_right",
+      "parent": "coxa_T3_right",
+      "pos": [0.00383,-0.0232,0.0066],
+      "quat": [0,0,0.660695489552803,0.750654028221112],
+      "joints": [
+        {
+          "name": "femur_twist_T3_right",
+          "axis": [0,1,0],
+          "range": [-1,1],
+          "rest": 0.558
+        },
+        {
+          "name": "femur_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.7,1.5],
+          "rest": 0.258
+        }
+      ]
+    },
+    {
+      "name": "tibia_T3_right",
+      "parent": "femur_T3_right",
+      "pos": [0,-0.077,1.96e-7],
+      "quat": [-0.12107133202803706,-0.11106543681910838,-0.7084173807921508,0.6864044113325077],
+      "joints": [
+        {
+          "name": "tibia_T3_right",
+          "axis": [1,0,0],
+          "range": [-1.35,1.3],
+          "rest": -0.292
+        }
+      ]
+    },
+    {
+      "name": "tarsus_T3_right",
+      "parent": "tibia_T3_right",
+      "pos": [0,0.0721,-0.00175],
+      "quat": [0.22295210499944954,-0.9647927413653309,0.03129327751785996,0.13597079049293784],
+      "joints": [
+        {
+          "name": "tarsus_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.8,1.2],
+          "rest": 0.258
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T3_right",
+      "parent": "tarsus_T3_right",
+      "pos": [-0.00073,-0.0338,-0.00122],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus2_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus3_T3_right",
+      "parent": "tarsus2_T3_right",
+      "pos": [0.000185,-0.0197,-0.00157],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus3_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "tarsus4_T3_right",
+      "parent": "tarsus3_T3_right",
+      "pos": [0.0000198,-0.011,0.0000195],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus4_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    },
+    {
+      "name": "claw_T3_right",
+      "parent": "tarsus4_T3_right",
+      "pos": [0.000043,-0.011,0.00125],
+      "quat": [1,0,0,0],
+      "joints": [
+        {
+          "name": "tarsus5_T3_right",
+          "axis": [1,0,0],
+          "range": [-0.36,0.36],
+          "rest": 0
+        }
+      ]
+    }
+  ],
+  "tendons": [
+    {
+      "name": "abduct_abdomen",
+      "joints": [
+        {
+          "joint": "abdomen_abduct",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_2",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_3",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_4",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_5",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_6",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_abduct_7",
+          "coef": 1
+        }
+      ]
+    },
+    {
+      "name": "abdomen",
+      "joints": [
+        {
+          "joint": "abdomen",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_2",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_3",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_4",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_5",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_6",
+          "coef": 1
+        },
+        {
+          "joint": "abdomen_7",
+          "coef": 1
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T1_left",
+      "joints": [
+        {
+          "joint": "tarsus2_T1_left",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T1_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T1_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T1_left",
+          "coef": 0.5
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T1_right",
+      "joints": [
+        {
+          "joint": "tarsus2_T1_right",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T1_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T1_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T1_right",
+          "coef": 0.5
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T2_left",
+      "joints": [
+        {
+          "joint": "tarsus2_T2_left",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T2_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T2_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T2_left",
+          "coef": 0.5
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T2_right",
+      "joints": [
+        {
+          "joint": "tarsus2_T2_right",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T2_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T2_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T2_right",
+          "coef": 0.5
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T3_left",
+      "joints": [
+        {
+          "joint": "tarsus2_T3_left",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T3_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T3_left",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T3_left",
+          "coef": 0.5
+        }
+      ]
+    },
+    {
+      "name": "tarsus2_T3_right",
+      "joints": [
+        {
+          "joint": "tarsus2_T3_right",
+          "coef": 1
+        },
+        {
+          "joint": "tarsus3_T3_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus4_T3_right",
+          "coef": 0.5
+        },
+        {
+          "joint": "tarsus5_T3_right",
+          "coef": 0.5
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "body",
+      "rgba": [0.674,0.35,0.143,1],
+      "shininess": 0.6
+    },
+    {
+      "name": "red",
+      "rgba": [0.8,0.0279,0.00154,1],
+      "shininess": 0.692
+    },
+    {
+      "name": "ocelli",
+      "rgba": [0.128,0.0488,0.0154,1],
+      "shininess": 1
+    },
+    {
+      "name": "black",
+      "rgba": [0,0,0,1],
+      "shininess": 0.727
+    },
+    {
+      "name": "bristle-brown",
+      "rgba": [0,0,0,1],
+      "shininess": 0.907
+    },
+    {
+      "name": "lower",
+      "rgba": [0.799,0.61,0.386,1],
+      "shininess": 0.6
+    },
+    {
+      "name": "brown",
+      "rgba": [0.202,0.0782,0.0262,1],
+      "shininess": 0.6
+    },
+    {
+      "name": "membrane",
+      "rgba": [0.539,0.686,0.8,0.4],
+      "shininess": 0.907
+    },
+    {
+      "name": "blue",
+      "rgba": [0.2,0.3,1,1],
+      "shininess": 0.6
+    },
+    {
+      "name": "pink",
+      "rgba": [0.6,0.3,1,1],
+      "shininess": 0.5
+    }
+  ],
+  "sites": [
+    {
+      "name": "hover_up_dir",
+      "body": "thorax",
+      "pos": [0.0262,0,0.0262],
+      "quat": [0.915,0,0.403,0]
+    }
+  ],
+  "eyes": [
+    {
+      "name": "eye_right",
+      "body": "head",
+      "pos": [0.0219,0.0131,0],
+      "quat": [0.474,0.688,-0.344,-0.429],
+      "fovyDeg": 140
+    },
+    {
+      "name": "eye_left",
+      "body": "head",
+      "pos": [-0.0219,0.0131,0],
+      "quat": [0.474,0.688,0.344,0.429],
+      "fovyDeg": 140
+    }
+  ],
+  "measures": {
+    "bodyLengthCm": 0.296927,
+    "wingLengthCm": 0.264524,
+    "standingHeightCm": 0.131888,
+    "method": "measured by the importer from the full-resolution meshes with every joint at zero (MuJoCo qpos0): body length is the head-to-abdomen extent along the thorax x axis, wing length the farthest membrane vertex from the left wing hinge, standing height the thorax origin above the lowest claw vertex"
+  }
+}

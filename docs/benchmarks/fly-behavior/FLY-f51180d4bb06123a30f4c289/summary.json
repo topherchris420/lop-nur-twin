@@ -1,0 +1,14 @@
+{
+  "label": "scripted: adaptation to repeated looms",
+  "protocol": "adaptation",
+  "outcome": "inconclusive (insufficient_evidence)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does repeating a looming stimulus every 4 s change fraction of the second half of repeated presentations answered by an escape, against the same stimulus every 120 s on matched seeds?",
+  "mean_paired_delta": -0.25000000000000006,
+  "metric": "late_escape_probability",
+  "replay_sha256": "7c82e17111f1d42ef6621f82168c04d7eac00bb85880e670fe9cef3c781426ed",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}

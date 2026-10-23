@@ -1,0 +1,14 @@
+{
+  "label": "scripted: visual threat",
+  "protocol": "visual_threat",
+  "outcome": "passed (supported)",
+  "generation": "scripted",
+  "question": "In the digital fly simulator, how does a 4 cm sphere approaching the standing fly at 1 m/s change fraction of single-stimulus trials answered by an escape takeoff, against the same sphere receding along the same line at the same speed on matched seeds?",
+  "mean_paired_delta": 0.9305555555555557,
+  "metric": "escape_probability",
+  "replay_sha256": "ce0c94a2b9f3c312345ee47503f3d072c95ce42e4aa6b55f33cf5fb4e1761dd2",
+  "fly": "digital-fly/2 reduced-order-fsm/v1",
+  "fly_sha256": "c1374e61ce7a9d2e89b12759ab33401b9b6ea8074e21404390d9810078642daa",
+  "commit": "b8400fdf3f676d6ee9e090760921eff7c419df22",
+  "dirty": true
+}
