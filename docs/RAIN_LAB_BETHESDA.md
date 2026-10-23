@@ -1015,6 +1015,145 @@ changing the key voids the certificates of experiments not yet reported.
 `src/rain/experiments/verify.ts` re-derives every evaluation, statistic and
 digest from what is stored and reports any edit.
 
+### The digital fly backend
+
+The digital fly (`src/bethesda/fly/`, described in `docs/DIGITAL_FLY.md`) is a
+fourth experiment substrate beside the city, the oscillator and Noeterra:
+`digital-fly-behavior/v2` in `src/rain/scientific/fly.ts`. A
+`rain-fly-design/v2` is a closed object naming one of six protocols and how
+many seeds to run (8 to 16), never which. The host builds the arenas, the
+stimuli and both arms, writes the question and hypothesis, and freezes the
+criteria. It binds the fly's version, its controller, its full parameter table
+and the digest of the code that runs the experiment into a `FLY-<digest>` plan
+(`rain-fly-plan/v2`).
+
+The order is enforced, not assumed:
+
+1. **Preregistration.** The registry stores the plan as a definition with its
+   `created_at` and hands back a receipt. A plan is registered once.
+2. **Authorization** (`rain-fly-authorization/v2`). It binds the plan and the
+   receipt, cannot be dated before the receipt, and holds a 32-byte nonce from
+   the platform's random generator. A person at a terminal gives it with
+   `--execute-reviewed`, typing the plan digest's first eight characters and a
+   role label; a design declared human also needs their attestation. The
+   identity behind the label is not verified. A plan is authorized once, and an
+   authorization runs once: both are recorded in a ledger under
+   `.rain-research/fly/authorizations`.
+3. **Seeds.** The host derives them from SHA-256 of the receipt's digest and the
+   nonce, after preregistration, so neither the design nor the operator chooses
+   them. It draws again if this fly already ran any of them in an archived
+   record, and execution refuses such a seed.
+4. **Execution**, on the real clock. Every run is simulated twice; the guard G2
+   requires the second simulation to reach the same state hashes and
+   measurements. The record (`rain-fly-record/v2`) seals the plan, the receipt,
+   the authorization, the seeds, the JavaScript engine and its version, and the
+   commit and tree state it ran from.
+5. **Admission.** The registry re-evaluates the frozen criteria with
+   `rain-criteria/v1`. Before anything is written, admission re-simulates the
+   record and refuses a run that started before its preregistration, a
+   _development record_ (run from uncommitted or unknown code), and a record
+   whose commit does not hold the code it names. A development record is
+   archived but never admitted.
+
+The decision is an exact one-sided sign test on the seeds whose arms differ, at
+alpha 0.05 fixed by the host, with at least six untied seeds. A seed whose
+metric is undefined in either arm drops out; it does not void the others. Each
+primary metric has a host minimum effect, which a design may raise but never
+lower. The criteria:
+
+| id  | criterion                                                                                        |
+| :-- | :----------------------------------------------------------------------------------------------- |
+| G1  | every matched run completed                                                                      |
+| G2  | the second simulation reproduced every state hash and measurement                                |
+| G3  | the control arm is not at the metric's floor in every seed, nor at its ceiling in every seed     |
+| G4  | at least six seeds differ between the arms                                                       |
+| G5  | the fly's gate refused no command in any run (reports count the refusals per arm)                |
+| S1  | the mean paired difference reaches the minimum effect in the expected direction                  |
+| S2  | the sign test finds the expected direction at alpha 0.05 (its p-value is reported)               |
+| F1  | the sign test finds the opposite direction at alpha 0.05, which makes the result _not supported_ |
+
+| protocol              | independent variable                                       | baseline (same seeds)                                   | measures                                                                                    |
+| :-------------------- | :--------------------------------------------------------- | :------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
+| obstacle avoidance    | avoidance threshold `avoidTtcS`                            | avoidance off                                           | collision episodes per metre (all, and in cruise), contact time, saccades per flight second |
+| light preference      | a point light above one quadrant                           | ambient only                                            | distance to the point below the light, time within 1 m, time active                         |
+| visual threat         | a sphere of 4 cm radius approaching at a set speed         | the sphere receding, or held still at its closest point | escape probability; latency, lead time, angular size and short-mode share at escape         |
+| noisy sensing         | relative sensory noise                                     | noiseless sensing                                       | the escape and clutter measures                                                             |
+| adaptation            | the looming stimulus repeated, nominally every few seconds | the stimulus nominally every 120 s                      | escape probability over all and over the later presentations                                |
+| controller comparison | a second `ControllerConfig`                                | a first one                                             | the escape, clutter and light measures                                                      |
+
+The six protocols are kept as they were designed. Three have known limits,
+which every plan and report states:
+
+- **Obstacle avoidance and noisy sensing cannot discriminate as designed.**
+  Collisions in the clutter are rare, so most seeds tie or the control sits at
+  its floor, and G3 or G4 leaves the result inconclusive.
+- **Visual threat checks the implementation's expansion gate**, not threat
+  discrimination. The escape proxy's drive is zero unless the stimulus expands,
+  so the receding or held control cannot escape by construction, and G3 makes
+  every visual-threat result inconclusive.
+- **Adaptation's interval depends on the response.** Each presentation waits
+  for the fly to stand still, so the delivered interval (`mean_isi_s`) is longer
+  than the nominal one and can differ between the arms.
+
+These protocols are to be redesigned, with pilots that size the thresholds
+and a dose series for approach speed. Until then the demonstration's
+thresholds are the script's choices, each at or above the host minimum, not
+sized from pilots.
+
+A `ControllerConfig` may override only parameters of kind `model`, within
+their ranges. The compiler refuses a FlyBody or published value, a value
+outside its range, the integration settings (the physics, sensing and decision
+periods), and any setting a block's apparatus fixes in both arms, such as
+spontaneous takeoff during escape trials. No design names a controller or code.
+The fly's own controller cannot get past its command validation, and neither
+the controller nor a model can authorize a run.
+
+```sh
+npm run rain:fly -- --design d.json               # compile and preregister; prints the digest, runs nothing
+npm run rain:fly -- --execute-reviewed <digest>   # at a terminal: authorize once, draw the seeds, run
+npm run rain:fly:demo                             # the scripted designs, authorized by the script; two refused
+npm run rain:fly:verify                           # check every archived folder; re-simulate what this code can
+node scripts/run-ts.mjs scripts/fly-source.ts     # regenerate the source digest after changing fly code
+```
+
+`--execute-reviewed` reads its answers from a terminal only, never from a pipe.
+The demonstration (`--scripted`) runs only the host's own designs, and its
+authorizations name `Scripted.DemoOperator` on the `script` channel; its
+reports say they demonstrate the pipeline and were not reviewed by a person.
+Every command but `--verify` refuses to run while
+`src/rain/scientific/flySource.ts` is stale, and `validate:bethesda` fails.
+
+Every outcome, refusals included, is archived under
+`docs/benchmarks/fly-behavior/`; the registry and the ledger live in
+`.rain-research/fly`. Every file of a record's folder derives from its
+`record.json`. `--verify` regenerates the report and summary byte for byte,
+checks `registry-run.json` against the record and the plan's preregistered
+definition, and refuses extra files. It then re-simulates the record on the
+JavaScript engine that made it. A record made by other code (another fly
+version, parameter table or source digest) is listed as such. One made on
+another JavaScript runtime, or that differs only under another version of the
+engine, is reported as not re-simulable on this engine, which is neither a pass
+nor a failure. `--verify` exits 0 when everything held; 1 after any failure, or
+when no admitted record re-simulates here; and 3 when nothing failed but
+another engine's records were left unchecked.
+
+The six records made before these rules (`rain-fly-record/v1`, under
+digital-fly/2) are kept, because the archive keeps everything that ran. They
+ran from an uncommitted tree, on seeds their designs chose, authorized by a
+script, so they are exploratory only. `--verify` reports them as legacy: it
+checks their seal, summary and files, and neither fails nor passes them as
+evidence.
+
+The registry and the authorization ledger are local files. Whoever deletes
+`.rain-research/fly` can register and authorize a plan again and draw new
+seeds, and an authorization abandoned after its seeds were seen is recorded
+only there. What ran is shown by the archive, committed to git. Only an
+external append-only log would close this.
+
+Every result is a simulated observation of a reduced-order controller that
+simulates no neurons. It describes that simulator in a box with a relative
+light proxy. It is never evidence about Drosophila.
+
 ## Observation tools and the perspectives in the city
 
 The lab looks at the live city only through seven typed, read-only tools
@@ -1652,6 +1791,10 @@ bun run rain:math:inspect -- 017
 npm run rain:autonomous -- --dry-run   # with a local model, or tools/stand-in-model.mjs:
                             # what the autonomous loop would run; executes and writes nothing
 npm run rain:autonomous -- --verify    # replay every record in the research state
+npm run rain:fly:verify     # check every archived digital-fly folder against its record and
+                            # re-simulate what this code and engine can; exit 3 when only
+                            # another engine's records were left unchecked
+node scripts/run-ts.mjs scripts/fly-source.ts --check   # the fly's source digest is current
 bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFFLINE,
                             # DEMO, authorization, run, replay, tampered import, a fresh
                             # browser, outings, tools, axe in every room, CSP, no WebGL;

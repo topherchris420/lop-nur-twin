@@ -546,6 +546,62 @@ scripts. Its autonomous researcher adds `src/rain/autonomy/`,
   classes from height provenance; the field notes print the computed tally.
   Do not write a fidelity sentence the tally does not support.
 
+### The digital fly (`src/bethesda/fly/`)
+
+One adult _Drosophila_ in the city: FlyBody's anatomy at true size, a
+reduced-order behavioural controller, a panel, and the R.A.I.N. Lab's fourth
+experiment backend. Read `docs/DIGITAL_FLY.md` first. Outside `src/bethesda/`
+it adds `scripts/import-flybody.ts`, `scripts/mjcf.ts`, `scripts/decimate.ts`,
+`scripts/import-vfb-reference.ts`, `scripts/rain-fly.ts`,
+`src/rain/scientific/fly*.ts`, `docs/benchmarks/fly-behavior/`, its checks in
+`scripts/validate-bethesda.ts` and the `import:flybody`/`import:vfb`/`rain:fly*`
+scripts.
+
+- **Not a neural simulation, and never worded as one.** No neuron or synapse
+  is simulated; the VFB regions are a reference layer.
+  `REDUCED_ORDER_DESCRIPTOR.simulatesNeurons` is false and the build validator
+  fails if it is not.
+- **Imported data only.** `src/bethesda/fly/data/` is written by the two
+  importers with real retrieval times and hashes; never hand-edit it. FlyBody's
+  figshare release (trained policies, trajectories) is GPL-3.0 and VFB's
+  template and painted-domain geometry is CC-BY-NC-SA: neither may be added.
+- **Every number has a class.** `params.ts` marks each parameter `flybody`,
+  `published` or `model`, with its source. Experiments override `model` values
+  only.
+- **One gate.** Every command passes `validateCommand`. Another controller is a
+  `FlyNeuralAdapter`, never a second path to the body.
+- **Read-only toward the city.** The fly is not a recorded command and not in
+  the city's state hash; `cityFly.test.ts` compares the hash with and without
+  it. The city must never read the fly.
+- **It touches what is drawn.** Street furniture and trees are placed and sized
+  only in `src/bethesda/furniture.ts`, which the city builder and the fly's
+  world both read. A drawn street item the fly should touch goes there and into
+  `fly/bethesdaWorld.ts`.
+- **One fly.** No second drawn fly in the city or the lab, and no swarm.
+- **Versioned behaviour, fingerprinted code.**
+  - A behaviour or parameter change in `src/bethesda/fly/` bumps `FLY_VERSION`.
+  - Any change to code the experiments run changes the fly's source digest
+    (`src/rain/scientific/flySource.ts`, generated; `flySourceDigest.ts` lists
+    what it covers). That code includes the fly's simulation modules,
+    `fly/arena.ts`, the rig in `src/rain/scientific/fly.ts`, and the fly
+    section of `scientificProtocol.ts`.
+  - Regenerate the digest with `npm run rain:fly:source`. The build, the tests
+    and every `rain:fly` mode except `--verify` refuse a stale one.
+  - Commit, then run `npm run rain:fly:demo` from the clean commit. A dirty tree
+    makes development records, which the registry never admits.
+  - Older records stay in the archive. They are listed as made by other code,
+    or as legacy for those from before the integrity rules. Never rewrite or
+    delete one.
+- **The host draws the seeds and a person authorizes.**
+  - A design gives a seed count, never seeds. The host draws the seeds after
+    preregistration, from the receipt and a random nonce held in the
+    authorization. A plan is authorized once and run once.
+  - `--execute-reviewed` runs only at a terminal and asks the person there.
+  - Only the demonstration's own scripted designs are authorized by a script,
+    as `Scripted.DemoOperator`.
+  - Never add a path that lets a design, a model or a script choose seeds or
+    stand in for a person's authorization.
+
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
 A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet
@@ -932,6 +988,9 @@ bun run verify:rain-lab       # the hidden lab end to end on three previews of i
                               # meeting against tools/stand-in-model.mjs
 bun run rain:conformance      # the lab's drafts and submissions through the runtime's
                               # validators, evaluator and registry
+bun run rain:fly:verify       # check every archived digital-fly folder and re-simulate
+                              # each record this engine and source can (exit 3: only
+                              # records from another engine were left unchecked)
 node tools/rain-figures.mjs   # (dev server) the four perspectives close up, walking,
                               # and at the table -> shots/rain-figures/
 bun run routes                # 140 checks: deep links, refreshes, hostile

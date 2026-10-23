@@ -1,0 +1,1020 @@
+/**
+ * One digital fly: a reduced-order body, its senses and a decision maker,
+ * advanced on a fixed clock.
+ *
+ * Rates are fixed by the parameter table and independent of rendering: the
+ * body integrates every `physicsStepMs` (5 ms), the eyes sample every
+ * `sensePeriodMs` (10 ms) and the controller decides every
+ * `decisionPeriodMs` (50 ms) on the sample from `visualLatencyMs` before.
+ * `advance(dt)` runs however many steps `dt` holds and carries the remainder,
+ * so a fly stepped 0.1 s at a time and one stepped 0.005 s at a time follow
+ * the same trajectory. Three seeded streams (body, senses, controller) come
+ * from one seed, so a seed and the world's own history replay exactly.
+ *
+ * What is simulated: the fly's centre of mass, heading, mode and the timing
+ * of its gait, saccades, takeoffs and landings, with collisions against the
+ * world. What is only drawn: body pitch and roll (derived from the thrust the
+ * motion needs), the leg placement (inverse kinematics on FlyBody's legs) and
+ * the wingbeat (FlyBody's prototype pattern). See docs/DIGITAL_FLY.md.
+ *
+ * The decision maker sees frozen copies of the body, the senses, the landing
+ * sites and the parameters, and every command it returns goes through
+ * `validateCommand`; a refusal puts the body in a safe hold for its mode.
+ */
+import { canonicalHash } from "../../game/pilot/hash.js";
+import { mulberry32 } from "../../lib/noise.js";
+import { ReducedOrderController } from "./controller.js";
+import {
+  coordination,
+  dutyFactor,
+  stanceCount,
+  stepPeriodS,
+  type GaitParams,
+} from "./gait.js";
+import {
+  LIMITS,
+  PERCHED,
+  siteHolding,
+  validateCommand,
+  type BodySnapshot,
+  type FlyNeuralAdapter,
+  type GateContext,
+  type GroomRoutine,
+  type Mode,
+  type MotorCommand,
+} from "./neural.js";
+import { resolveParams, type ControllerConfig, type ResolvedParams } from "./params.js";
+import { Senses, type SenseFrame } from "./senses.js";
+import { SKELETON } from "./skeleton.js";
+import { degToRad, forward, left, type V3, wrapAngle } from "./units.js";
+import type { FlyWorld, LandingSite, Perch, SurfaceKind } from "./world.js";
+
+export const FLY_VERSION = "digital-fly/3";
+const G = 9.81;
+/** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
+const DRAW_DRAG = 3;
+/** A surface whose normal points at least this far up is a top the fly can stand on. */
+const WALKABLE_NORMAL_Y = 0.7;
+/** The feet must come this close to the landing point before a touchdown is tried (m). */
+const TOUCHDOWN_REACH_M = 0.0015;
+/** A touchdown needs the feet within this of the surface under them; farther, it is aborted (m). */
+const TOUCHDOWN_GAP_M = 0.002;
+/** A contact lasts while the surface stays within the standing height plus this (m). */
+const CONTACT_SLOP_M = 0.001;
+/** The share of its speed along a surface the fly keeps when it first hits it. Not fitted. */
+const CONTACT_KEEP = 0.3;
+/** A takeoff prepared in less than this is short-mode: no wing raise (s). A model boundary. */
+const SHORT_MODE_BELOW_S = 0.1;
+
+export interface FlyCounts {
+  takeoffs: number;
+  escapes: number;
+  landings: number;
+  saccades: number;
+  /** Contacts with a surface, each counted once, when it begins. */
+  collisions: number;
+  /** Seconds spent in contact with a surface while airborne. */
+  contactS: number;
+  groomBouts: number;
+  rejected: number;
+  walkedM: number;
+  flownM: number;
+}
+
+/** A surface the airborne fly is touching, and its outward normal there. */
+export interface Contact {
+  id: string;
+  kind: SurfaceKind;
+  normal: V3;
+}
+
+export interface FlyState {
+  t: number;
+  step: number;
+  mode: Mode;
+  sub: string;
+  modeT: number;
+  p: V3;
+  v: V3;
+  yaw: number;
+  yawRate: number;
+  pitch: number;
+  roll: number;
+  perch: Perch | null;
+  edge: boolean;
+  gaitClock: number;
+  walkSpeed: number;
+  wingHz: number;
+  ampL: number;
+  ampR: number;
+  /** 0 folded over the abdomen .. 1 beating. */
+  wingsOpen: number;
+  /** 0 tucked for flight .. 1 extended to stand or land. */
+  legs: number;
+  saccade: { from: number; delta: number; t0: number; dur: number } | null;
+  takeoff: { heading: number; prepare: number; short: boolean } | null;
+  /** The landing target: the point on the site's surface the feet are to touch. */
+  target: { id: string; point: V3; radius: number; site: LandingSite } | null;
+  contact: Contact | null;
+  groom: GroomRoutine | null;
+  responsiveness: number;
+  flightT: number;
+  flightBout: number;
+  counts: FlyCounts;
+}
+
+export interface DecisionRecord {
+  t: number;
+  from: string;
+  to: string;
+  reason: string;
+  kind: "decision" | "event" | "refused";
+}
+
+/** Where and how a fly starts. */
+export interface FlyStart {
+  /** At rest the fly settles onto the surface below this point; in flight it starts exactly here. */
+  p: V3;
+  yaw: number;
+  /**
+   * `"rest"` (the default) perches the fly. `"flight"` starts it airborne in
+   * cruise: wings open and beating, legs tucked, a fresh flight bout.
+   */
+  mode?: "rest" | "flight";
+  /** Initial world-frame velocity (m/s). Flight only, within the body's flight limit. */
+  v?: V3;
+}
+
+export interface DigitalFlyOptions {
+  seed: number;
+  world: FlyWorld;
+  start: FlyStart;
+  config?: ControllerConfig;
+  /** Relative sensory noise, 0 for none. */
+  noise?: number;
+  /** Builds the decision maker from its random stream; defaults to the reduced-order controller. */
+  adapter?: (rng: () => number) => FlyNeuralAdapter;
+  logSize?: number;
+}
+
+const NO_SITES: readonly LandingSite[] = Object.freeze([]);
+
+export class DigitalFly {
+  /** The resolved parameters, frozen. */
+  readonly params: ResolvedParams;
+  readonly world: FlyWorld;
+  readonly adapter: FlyNeuralAdapter;
+  readonly seed: number;
+  readonly noise: number;
+  /** Height of the thorax above the surface it stands on (m): FlyBody's zero-pose height × `standingCrouch`. */
+  readonly standingHeight: number;
+  state: FlyState;
+  readonly log: DecisionRecord[] = [];
+  /** The sensory sample the last decision used, and the command it produced. */
+  lastFrame: SenseFrame | null = null;
+  lastCommand: MotorCommand | null = null;
+  /** The decision maker's own copy of the parameters: frozen, and not the one the gate reads. */
+  private adapterParams: ResolvedParams;
+  private senses: Senses;
+  private frames: SenseFrame[] = [];
+  private command: MotorCommand;
+  private bodyRng: () => number;
+  private pendingUs = 0;
+  private stepUs: number;
+  private senseEvery: number;
+  private decideEvery: number;
+  private latencyFrames: number;
+  private logSize: number;
+  private gait: GaitParams;
+  private surface: GateContext["surface"];
+
+  constructor(o: DigitalFlyOptions) {
+    this.seed = o.seed >>> 0;
+    this.world = o.world;
+    this.params = resolveParams(o.config);
+    this.adapterParams = Object.freeze({ ...this.params });
+    this.noise = o.noise ?? 0;
+    if (!Number.isFinite(this.noise) || this.noise < 0 || this.noise > 1)
+      throw new Error("sensory noise must be in [0, 1]");
+    const P = this.params;
+    this.standingHeight = (SKELETON.measures.standingHeightCm / 100) * P.standingCrouch;
+    this.surface = (x, z, maxY) => this.world.perchAt(x, z, maxY);
+    this.bodyRng = mulberry32(this.seed ^ 0x9e3779b9);
+    const senseRng = mulberry32(this.seed ^ 0x85ebca6b);
+    const ctrlRng = mulberry32(this.seed ^ 0xc2b2ae35);
+    this.adapter = (o.adapter ?? ((rng) => new ReducedOrderController(rng)))(ctrlRng);
+    this.senses = new Senses(o.world, P, this.noise, senseRng);
+    this.stepUs = Math.max(1000, Math.round(P.physicsStepMs * 1000));
+    this.senseEvery = Math.max(1, Math.round((P.sensePeriodMs * 1000) / this.stepUs));
+    this.decideEvery = Math.max(1, Math.round((P.decisionPeriodMs * 1000) / this.stepUs));
+    this.latencyFrames = Math.max(
+      0,
+      Math.round(P.visualLatencyMs / (this.senseEvery * (this.stepUs / 1000))),
+    );
+    this.logSize = o.logSize ?? 200;
+    this.gait = {
+      stanceLegsAt1: P.stanceLegsAt1,
+      stanceLegsAt4: P.stanceLegsAt4,
+      swingMs: P.swingMs,
+      stepPeriodFloorMs: P.stepPeriodFloorMs,
+      walkSpeedMinCmS: P.walkSpeedMinCmS,
+      walkSpeedMaxCmS: P.walkSpeedMaxCmS,
+    };
+    const start = o.start;
+    const startMode = start.mode ?? "rest";
+    if (startMode !== "rest" && startMode !== "flight")
+      throw new Error(`a fly starts at rest or in flight, not ${String(startMode)}`);
+    if (!isV3(start.p) || !Number.isFinite(start.yaw))
+      throw new Error("the start needs a finite position and heading");
+    if (start.v !== undefined && !isV3(start.v))
+      throw new Error("the start velocity must be a finite 3-vector (m/s)");
+    const v0: V3 =
+      start.v === undefined ? [0, 0, 0] : [start.v[0], start.v[1], start.v[2]];
+    if (Math.hypot(...v0) > LIMITS.flightSpeed)
+      throw new Error(
+        `the start velocity exceeds the flight limit (${LIMITS.flightSpeed} m/s)`,
+      );
+    let perch: Perch | null = null;
+    let p0: V3;
+    if (startMode === "rest") {
+      if (v0[0] !== 0 || v0[1] !== 0 || v0[2] !== 0)
+        throw new Error(
+          'a fly placed at rest starts still; give a velocity with mode "flight"',
+        );
+      perch = o.world.perchAt(start.p[0], start.p[2], start.p[1]);
+      if (!perch) throw new Error("no surface below the fly's start");
+      p0 = [start.p[0], perch.y + this.standingHeight, start.p[2]];
+    } else {
+      if (o.world.solid(start.p)) throw new Error("the fly's start is inside a solid");
+      p0 = [start.p[0], start.p[1], start.p[2]];
+    }
+    const flying = startMode === "flight";
+    this.state = {
+      t: 0,
+      step: 0,
+      mode: startMode,
+      sub: flying ? "cruise" : "",
+      modeT: 0,
+      p: p0,
+      v: v0,
+      yaw: wrapAngle(start.yaw),
+      yawRate: 0,
+      pitch: 0,
+      roll: 0,
+      perch,
+      edge: false,
+      gaitClock: 0,
+      walkSpeed: 0,
+      wingHz: P.wingbeatHz,
+      ampL: 1,
+      ampR: 1,
+      wingsOpen: flying ? 1 : 0,
+      legs: flying ? 0 : 1,
+      saccade: null,
+      takeoff: null,
+      target: null,
+      contact: null,
+      groom: null,
+      responsiveness: 1,
+      flightT: 0,
+      flightBout: flying ? this.drawFlightBout() : 0,
+      counts: {
+        takeoffs: 0,
+        escapes: 0,
+        landings: 0,
+        saccades: 0,
+        collisions: 0,
+        contactS: 0,
+        groomBouts: 0,
+        rejected: 0,
+        walkedM: 0,
+        flownM: 0,
+      },
+    };
+    // Placed in flight, the drawn attitude is the one holding that velocity.
+    if (flying) this.drawAttitude([0, 0, 0]);
+    this.command = flying
+      ? { mode: "flight", velocity: [...v0], reason: "placed in flight" }
+      : { mode: "rest", reason: "placed" };
+    this.adapter.start?.(frozen(this.snapshot()));
+  }
+
+  /** A flight bout's length, drawn from the body's stream at the start of every flight. */
+  private drawFlightBout(): number {
+    const P = this.params;
+    return Math.min(20, Math.max(1.5, -Math.log(1 - this.bodyRng()) * P.flightBoutMeanS));
+  }
+
+  get gaitParams(): GaitParams {
+    return this.gait;
+  }
+
+  /** Advance by `dt` seconds of simulated time. */
+  advance(dt: number): void {
+    if (!(dt >= 0) || !Number.isFinite(dt))
+      throw new Error("dt must be finite and non-negative");
+    this.pendingUs += Math.round(dt * 1e6);
+    while (this.pendingUs >= this.stepUs) {
+      this.pendingUs -= this.stepUs;
+      this.step();
+    }
+  }
+
+  private record(kind: DecisionRecord["kind"], from: string, to: string, reason: string) {
+    this.log.push({ t: round(this.state.t, 3), from, to, reason, kind });
+    if (this.log.length > this.logSize)
+      this.log.splice(0, this.log.length - this.logSize);
+  }
+
+  private label(mode = this.state.mode, sub = this.state.sub) {
+    return sub ? `${mode}/${sub}` : mode;
+  }
+
+  /** A fresh copy of the body as a decision maker may see it. */
+  private snapshot(): BodySnapshot {
+    const s = this.state;
+    const home = this.world.home;
+    return {
+      t: s.t,
+      mode: s.mode,
+      sub: s.sub,
+      modeT: s.modeT,
+      p: [...s.p],
+      v: [...s.v],
+      yaw: s.yaw,
+      altitude: this.lastFrame?.altitude ?? 0,
+      walkSpeed: s.walkSpeed,
+      flightT: s.flightT,
+      flightBout: s.flightBout,
+      responsiveness: s.responsiveness,
+      groom: s.groom,
+      edge: s.edge,
+      target: s.target ? { id: s.target.id, point: [...s.target.point] } : null,
+      standingHeight: this.standingHeight,
+      home: { center: [...home.center], radius: home.radius, ceiling: home.ceiling },
+    };
+  }
+
+  private setMode(mode: Mode, sub: string, reason: string, kind: DecisionRecord["kind"]) {
+    const s = this.state;
+    const from = this.label();
+    s.mode = mode;
+    s.sub = sub;
+    s.modeT = 0;
+    this.record(kind, from, this.label(), reason);
+  }
+
+  private step(): void {
+    const s = this.state;
+    const P = this.params;
+    const h = this.stepUs / 1e6;
+    if (s.step % this.senseEvery === 0) {
+      this.frames.push(
+        frozen(
+          this.senses.sample({
+            t: s.t,
+            p: s.p,
+            v: s.v,
+            yaw: s.yaw,
+            flying: !PERCHED.has(s.mode) && s.takeoff === null,
+          }),
+        ),
+      );
+      if (this.frames.length > this.latencyFrames + 1) this.frames.shift();
+    }
+    if (s.step % this.decideEvery === 0) this.decide(this.decideEvery * h);
+    this.integrate(h);
+    s.responsiveness +=
+      (1 - s.responsiveness) * (1 - Math.exp(-h / P.habituationRecoveryS));
+    s.t = round(s.t + h, 6);
+    s.modeT += h;
+    s.step++;
+  }
+
+  /**
+   * The landing sites on offer: the tops in range with a clear line from the
+   * fly, the point of the surface directly under it, and the site already
+   * being approached. Frozen, so a decision maker cannot add to them.
+   */
+  private offeredSites(): readonly LandingSite[] {
+    const s = this.state;
+    if (s.mode !== "flight" && s.mode !== "land") return NO_SITES;
+    const all: LandingSite[] = [];
+    this.world.landingSites(s.p, this.params.landingSearchM, all);
+    const out: LandingSite[] = [];
+    for (const site of all) {
+      const d: V3 = [
+        site.center[0] - s.p[0],
+        site.center[1] - s.p[1],
+        site.center[2] - s.p[2],
+      ];
+      const dist = Math.hypot(...d);
+      if (dist < 1e-3) continue;
+      const dir: V3 = [d[0] / dist, d[1] / dist, d[2] / dist];
+      const hit = this.world.raycast(s.p, dir, dist, true);
+      if (!hit || hit.t >= dist - 0.01) out.push(frozenSite(site));
+    }
+    const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
+    if (below)
+      out.push(
+        frozenSite({
+          id: below.id,
+          kind: below.kind,
+          center: [s.p[0], below.y, s.p[2]],
+          half: [0, 0],
+          angle: 0,
+          below: true,
+        }),
+      );
+    // The site being approached stays on offer while the fly approaches it.
+    if (s.target) out.push(s.target.site);
+    return Object.freeze(out);
+  }
+
+  private decide(dt: number): void {
+    const frame = this.frames[0];
+    if (!frame) return;
+    this.lastFrame = frame;
+    const sites = this.offeredSites();
+    let raw: unknown;
+    try {
+      raw = this.adapter.decide({
+        body: frozen(this.snapshot()),
+        frame,
+        sites,
+        params: this.adapterParams,
+        dt,
+      });
+    } catch (e) {
+      this.refuse(`the decision maker failed: ${describe(e)}`);
+      return;
+    }
+    // Checked against a fresh snapshot, not the copy the decision maker held.
+    const verdict = validateCommand(raw, this.snapshot(), this.params, {
+      sites,
+      surface: this.surface,
+    });
+    if (!verdict.ok) {
+      this.refuse(`command refused: ${verdict.reason}`);
+      return;
+    }
+    this.lastCommand = verdict.command;
+    this.apply(verdict.command, sites);
+  }
+
+  /** Count and log a refusal, and hold safely: the last accepted command does not keep running. */
+  private refuse(reason: string): void {
+    const s = this.state;
+    const from = this.label();
+    s.counts.rejected++;
+    this.command = this.hold();
+    if (s.mode === "flight" && s.sub === "cruise") s.sub = "hover";
+    this.record("refused", from, this.label(), reason);
+  }
+
+  /** The safe hold for the body's mode: hover in the air, stop walking, stay put when perched. */
+  private hold(): MotorCommand {
+    const s = this.state;
+    switch (s.mode) {
+      case "flight":
+        return {
+          mode: "flight",
+          hover: true,
+          velocity: [0, 0, 0],
+          reason: "hold: hover",
+        };
+      case "land":
+        return { mode: "land", hover: true, velocity: [0, 0, 0], reason: "hold: hover" };
+      case "walk":
+        return { mode: "walk", walkSpeed: 0, yawRate: 0, reason: "hold: stop" };
+      case "groom":
+        return s.groom
+          ? { mode: "groom", groom: s.groom, reason: "hold" }
+          : { mode: "groom", reason: "hold" };
+      default:
+        return { mode: s.mode, reason: "hold" };
+    }
+  }
+
+  /** Take a validated landing target, with its point moved onto the real surface. */
+  private setTarget(
+    land: { id: string; point: V3 },
+    sites: readonly LandingSite[],
+  ): void {
+    const s = this.state;
+    const ctx: GateContext = { sites, surface: this.surface };
+    // The gate has already found this site and this surface.
+    const site = siteHolding(ctx, land.id, land.point)!;
+    const top = this.world.perchAt(
+      land.point[0],
+      land.point[2],
+      land.point[1] + LIMITS.landPointTolM,
+    )!;
+    s.target = {
+      id: land.id,
+      point: [land.point[0], top.y, land.point[2]],
+      radius: Math.max(0.01, Math.min(site.half[0], site.half[1])),
+      site,
+    };
+  }
+
+  private apply(cmd: MotorCommand, sites: readonly LandingSite[]): void {
+    const s = this.state;
+    const P = this.params;
+    this.command = cmd;
+    if (cmd.mode !== s.mode) {
+      switch (cmd.mode) {
+        case "escape":
+        case "takeoff": {
+          const prepare = cmd.prepare ?? P.takeoffPrepMs / 1000;
+          s.takeoff = {
+            heading: cmd.heading ?? s.yaw,
+            prepare,
+            short: prepare < SHORT_MODE_BELOW_S,
+          };
+          if (cmd.mode === "escape") {
+            s.counts.escapes++;
+            s.responsiveness *= 1 - P.habituationStep;
+          }
+          s.walkSpeed = 0;
+          s.groom = null;
+          this.setMode(cmd.mode, "prepare", cmd.reason, "decision");
+          return;
+        }
+        case "groom":
+          s.groom = cmd.groom ?? "eyes";
+          s.counts.groomBouts++;
+          s.walkSpeed = 0;
+          this.setMode("groom", s.groom, cmd.reason, "decision");
+          return;
+        case "walk":
+          s.groom = null;
+          this.setMode("walk", "", cmd.reason, "decision");
+          break;
+        case "rest":
+          s.groom = null;
+          s.walkSpeed = 0;
+          this.setMode("rest", "", cmd.reason, "decision");
+          return;
+        case "land":
+          this.setTarget(cmd.land!, sites);
+          s.saccade = null;
+          this.setMode("land", "approach", cmd.reason, "decision");
+          break;
+        case "flight":
+          s.target = null;
+          this.setMode("flight", "cruise", cmd.reason, "decision");
+          break;
+      }
+    } else if (s.mode === "land" && cmd.land && s.target) {
+      const t = s.target;
+      const p = cmd.land.point;
+      if (cmd.land.id !== t.id || p[0] !== t.point[0] || p[2] !== t.point[2]) {
+        const from = this.label();
+        this.setTarget(cmd.land, sites);
+        s.sub = "approach";
+        this.record("decision", from, this.label(), `new landing target: ${cmd.reason}`);
+      }
+    }
+    if (s.mode === "groom" && cmd.groom && cmd.groom !== s.groom) {
+      const from = this.label();
+      s.groom = cmd.groom;
+      s.sub = cmd.groom;
+      this.record("decision", from, this.label(), cmd.reason);
+    }
+    if (s.mode === "flight") {
+      if (cmd.saccade !== undefined && s.sub !== "saccade") {
+        s.saccade = { from: s.yaw, delta: cmd.saccade, t0: s.t, dur: P.saccadeMs / 1000 };
+        s.counts.saccades++;
+        const from = this.label();
+        s.sub = "saccade";
+        this.record("decision", from, this.label(), cmd.reason);
+      } else if (cmd.hover && s.sub === "cruise") {
+        const from = this.label();
+        s.sub = "hover";
+        this.record("decision", from, this.label(), cmd.reason);
+      } else if (!cmd.hover && s.sub === "hover") {
+        const from = this.label();
+        s.sub = "cruise";
+        this.record("decision", from, this.label(), "hover ends");
+      }
+    }
+  }
+
+  private integrate(h: number): void {
+    const s = this.state;
+    const cmd = this.command;
+    const ease = (x: number, target: number, tau: number) =>
+      x + (target - x) * (1 - Math.exp(-h / tau));
+    switch (s.mode) {
+      case "rest":
+      case "groom":
+        s.v = [0, 0, 0];
+        s.walkSpeed = 0;
+        s.yawRate = 0;
+        s.pitch = ease(s.pitch, 0, 0.05);
+        s.roll = ease(s.roll, 0, 0.05);
+        s.wingsOpen = ease(s.wingsOpen, 0, 0.04);
+        s.legs = ease(s.legs, 1, 0.03);
+        return;
+      case "walk":
+        this.walk(h, cmd);
+        return;
+      case "takeoff":
+      case "escape":
+        this.prepareTakeoff();
+        return;
+      case "flight":
+      case "land":
+        this.fly(h, cmd);
+        return;
+    }
+  }
+
+  private walk(h: number, cmd: MotorCommand): void {
+    const s = this.state;
+    const target = s.edge ? 0 : (cmd.walkSpeed ?? s.walkSpeed);
+    s.walkSpeed += (target - s.walkSpeed) * (1 - Math.exp(-h / 0.1));
+    s.yawRate = cmd.yawRate ?? 0;
+    s.yaw = wrapAngle(s.yaw + s.yawRate * h);
+    s.wingsOpen = 0;
+    s.legs = 1;
+    s.pitch = 0;
+    s.roll = 0;
+    const speed = s.walkSpeed / 100;
+    if (speed > 1e-4)
+      s.gaitClock = (s.gaitClock + h / stepPeriodS(s.walkSpeed, this.gait)) % 1;
+    const f = forward(s.yaw);
+    const nx = s.p[0] + f[0] * speed * h,
+      nz = s.p[2] + f[2] * speed * h;
+    const perch = this.world.perchAt(nx, nz, s.p[1] + 0.004);
+    const ok =
+      perch !== null &&
+      Math.abs(perch.y - (s.perch?.y ?? perch.y)) <= 0.004 &&
+      !this.world.solid([nx, perch.y + this.standingHeight, nz]);
+    if (!ok) {
+      s.edge = true;
+      s.v = [0, 0, 0];
+      return;
+    }
+    s.edge = false;
+    s.perch = perch;
+    s.v = [f[0] * speed, 0, f[2] * speed];
+    s.p = [nx, perch.y + this.standingHeight, nz];
+    s.counts.walkedM += speed * h;
+  }
+
+  private prepareTakeoff(): void {
+    const s = this.state;
+    const P = this.params;
+    const t = s.takeoff!;
+    s.v = [0, 0, 0];
+    s.legs = 1;
+    // Long-mode takeoffs raise the wings during preparation; short-mode ones do not (von Reyn et al. 2014).
+    s.wingsOpen = t.short ? 0 : Math.min(1, s.modeT / t.prepare);
+    // Postural adjustment leans the body toward the jump direction (Card & Dickinson 2008); drawn as a pitch.
+    s.pitch = -0.15 * Math.min(1, s.modeT / t.prepare);
+    if (s.modeT < t.prepare) return;
+    const elevation = degToRad(50);
+    const f = forward(t.heading);
+    const v = P.jumpSpeedCmS / 100;
+    s.v = [
+      f[0] * v * Math.cos(elevation),
+      v * Math.sin(elevation),
+      f[2] * v * Math.cos(elevation),
+    ];
+    s.yaw = wrapAngle(t.heading);
+    s.perch = null;
+    s.contact = null;
+    s.counts.takeoffs++;
+    s.flightT = 0;
+    s.flightBout = this.drawFlightBout();
+    const reason =
+      s.mode === "escape" ? `${t.short ? "short" : "long"}-mode jump` : "jump";
+    s.takeoff = null;
+    this.setMode("flight", "cruise", reason, "event");
+    this.command = { mode: "flight", velocity: s.v, reason };
+  }
+
+  /**
+   * The drawn attitude and wingbeat for an acceleration `a` at the current
+   * velocity: pitch and roll from the thrust the motion needs (gravity,
+   * acceleration and a nominal drag), the beat frequency from that load.
+   */
+  private drawAttitude(a: V3): void {
+    const s = this.state;
+    const P = this.params;
+    const T: V3 = [
+      a[0] + DRAW_DRAG * s.v[0],
+      a[1] + G + DRAW_DRAG * s.v[1],
+      a[2] + DRAW_DRAG * s.v[2],
+    ];
+    const f = forward(s.yaw),
+      l = left(s.yaw);
+    const tForward = T[0] * f[0] + T[2] * f[2],
+      tRight = -(T[0] * l[0] + T[2] * l[2]);
+    s.pitch = degToRad(P.bodyPitchHoverDeg) - Math.atan2(tForward, T[1]);
+    s.roll = Math.atan2(tRight, T[1]);
+    const load = Math.hypot(...T) / G;
+    s.wingHz =
+      P.wingbeatHz *
+      (1 + P.wingbeatRelRange * Math.max(-1, Math.min(1, (load - 1) / 0.5)));
+  }
+
+  private fly(h: number, cmd: MotorCommand): void {
+    const s = this.state;
+    const P = this.params;
+    // Heading: a saccade follows a smooth, bell-shaped velocity profile; otherwise the commanded rate.
+    const yaw0 = s.yaw;
+    if (s.saccade) {
+      const u = Math.min(1, (s.t + h - s.saccade.t0) / s.saccade.dur);
+      const profile = u * u * (3 - 2 * u);
+      s.yaw = wrapAngle(s.saccade.from + s.saccade.delta * profile);
+      if (u >= 1) {
+        s.saccade = null;
+        if (s.mode === "flight" && s.sub === "saccade") s.sub = "cruise";
+      }
+    } else s.yaw = wrapAngle(s.yaw + (cmd.yawRate ?? 0) * h);
+    const yawRate = wrapAngle(s.yaw - yaw0) / h;
+    const yawAcc = (yawRate - s.yawRate) / h;
+    s.yawRate = yawRate;
+    // Desired velocity: in cruise the horizontal speed is carried along the current heading.
+    let vd: V3 = cmd.velocity ? [...cmd.velocity] : [0, 0, 0];
+    if (s.mode === "flight" && s.sub !== "hover") {
+      const speed = Math.hypot(vd[0], vd[2]);
+      const f = forward(s.yaw);
+      vd = [f[0] * speed, vd[1], f[2] * speed];
+    }
+    if (s.mode === "flight" && s.sub === "hover") vd = [0, vd[1], 0];
+    // A contact lasts while its surface stays within reach; its normal follows a curved surface.
+    this.keepContact();
+    // An exponential approach to the desired velocity, stable for any time
+    // constant (0 follows at once), and at most maxAccelG per second.
+    const k = 1 - Math.exp(-h / P.velocityTauS);
+    let dv: V3 = [(vd[0] - s.v[0]) * k, (vd[1] - s.v[1]) * k, (vd[2] - s.v[2]) * k];
+    const dvMax = P.maxAccelG * G * h;
+    const dn = Math.hypot(...dv);
+    if (dn > dvMax)
+      dv = [(dv[0] * dvMax) / dn, (dv[1] * dvMax) / dn, (dv[2] * dvMax) / dn];
+    s.v = [s.v[0] + dv[0], s.v[1] + dv[1], s.v[2] + dv[2]];
+    // In contact, the fly cannot push into the surface: it slides along it.
+    if (s.contact) s.v = slide(s.v, s.contact.normal);
+    this.drawAttitude([dv[0] / h, dv[1] / h, dv[2] / h]);
+    const steer = Math.max(-1, Math.min(1, yawAcc / 300));
+    s.ampL = 1 - 0.15 * steer;
+    s.ampR = 1 + 0.15 * steer;
+    s.wingsOpen = 1;
+    s.flightT += h;
+    // Legs: tucked in cruise; extended once the landing target looms past the published retinal size.
+    let legsTarget = 0;
+    if (s.mode === "land" && s.target) {
+      const d = Math.hypot(
+        s.target.point[0] - s.p[0],
+        s.target.point[1] - s.p[1],
+        s.target.point[2] - s.p[2],
+      );
+      const size = 2 * Math.atan2(s.target.radius, Math.max(1e-4, d));
+      if (size >= degToRad(P.legExtensionDeg)) legsTarget = 1;
+      if (s.sub === "approach" && legsTarget === 1) {
+        const from = this.label();
+        s.sub = "legs extended";
+        this.record(
+          "event",
+          from,
+          this.label(),
+          `landing target subtends ${((size * 180) / Math.PI).toFixed(0)}° ≥ ${P.legExtensionDeg}°: legs extend`,
+        );
+      }
+    }
+    s.legs += (legsTarget - s.legs) * (1 - Math.exp(-h / 0.04));
+    this.move(h);
+    if (s.contact && (s.mode === "flight" || s.mode === "land")) s.counts.contactS += h;
+  }
+
+  /** End the contact if its surface has moved out of reach; else follow its normal. */
+  private keepContact(): void {
+    const s = this.state;
+    const c = s.contact;
+    if (!c) return;
+    const back = this.world.raycast(
+      s.p,
+      [-c.normal[0], -c.normal[1], -c.normal[2]],
+      this.standingHeight + CONTACT_SLOP_M,
+      false,
+    );
+    if (back && back.id === c.id)
+      s.contact = { id: c.id, kind: c.kind, normal: [...back.normal] };
+    else s.contact = null;
+  }
+
+  /** Move by the velocity for one step, with contacts, sliding and touchdowns. */
+  private move(h: number): void {
+    const s = this.state;
+    const P = this.params;
+    const step: V3 = [s.v[0] * h, s.v[1] * h, s.v[2] * h];
+    const dist = Math.hypot(...step);
+    const margin = this.standingHeight;
+    const dir: V3 =
+      dist > 0 ? [step[0] / dist, step[1] / dist, step[2] / dist] : [0, 0, 0];
+    const hit = dist > 0 ? this.world.raycast(s.p, dir, dist + margin, false) : null;
+    if (!hit) {
+      s.p = [s.p[0] + step[0], s.p[1] + step[1], s.p[2] + step[2]];
+      s.counts.flownM += dist;
+      this.reachTarget();
+      return;
+    }
+    const speed = Math.hypot(...s.v);
+    const landing = s.mode === "land";
+    const onset = !s.contact || s.contact.id !== hit.id;
+    // The thorax stops the standing height short of the surface along its path.
+    const stop = Math.max(0, hit.t - margin);
+    const at: V3 = [
+      s.p[0] + dir[0] * stop,
+      s.p[1] + dir[1] * stop,
+      s.p[2] + dir[2] * stop,
+    ];
+    // A slow touch on a top the fly can stand on: a touchdown if the feet are on it there.
+    const gentle = hit.normal[1] > WALKABLE_NORMAL_Y && speed <= P.touchdownSpeedMS;
+    let failed: string | null = null;
+    if (gentle) {
+      // In cruise the touch is a collision before the fly settles; landing, it is the touchdown.
+      if (!landing && onset) this.collision(hit, speed);
+      failed = this.settle(
+        at,
+        landing
+          ? `touchdown on ${hit.kind} at ${speed.toFixed(2)} m/s`
+          : `settled on ${hit.kind} after contact`,
+      );
+      if (failed === null) {
+        s.counts.flownM += stop;
+        return;
+      }
+    }
+    // A contact: slide the rest of the step along the surface.
+    let p = at;
+    let moved = stop;
+    const along = slide(dir, hit.normal);
+    const alongLength = Math.hypot(...along);
+    const rest = dist - stop;
+    if (rest > 0 && alongLength > 1e-9) {
+      const sd: V3 = [
+        along[0] / alongLength,
+        along[1] / alongLength,
+        along[2] / alongLength,
+      ];
+      const reach = rest * alongLength;
+      const block = this.world.raycast(p, sd, reach + margin, false);
+      const go = block ? Math.max(0, Math.min(reach, block.t - margin)) : reach;
+      p = [p[0] + sd[0] * go, p[1] + sd[1] * go, p[2] + sd[2] * go];
+      moved += go;
+    }
+    s.p = p;
+    s.counts.flownM += moved;
+    s.contact = { id: hit.id, kind: hit.kind, normal: [...hit.normal] };
+    const v = slide(s.v, hit.normal);
+    s.v = onset ? [v[0] * CONTACT_KEEP, v[1] * CONTACT_KEEP, v[2] * CONTACT_KEEP] : v;
+    if (!onset) {
+      // Still touching the same surface: no new collision, and a landing may still finish.
+      this.reachTarget();
+      return;
+    }
+    if (landing || !gentle) this.collision(hit, speed);
+    if (landing)
+      // A contact that is not a touchdown ends the approach; the controller
+      // waits `landRetryS` before choosing again.
+      this.abortLanding(
+        failed
+          ? `landing aborted after contact with ${hit.kind}: ${failed}`
+          : `landing aborted after contact with ${hit.kind}`,
+      );
+  }
+
+  /** Count and log the start of a contact. */
+  private collision(hit: { id: string; kind: SurfaceKind }, speed: number): void {
+    this.state.counts.collisions++;
+    this.record(
+      "event",
+      this.label(),
+      this.label(),
+      `collision with ${hit.kind} (${hit.id}) at ${speed.toFixed(2)} m/s`,
+    );
+  }
+
+  /** Touch down when the feet have reached the landing point, slowly enough. */
+  private reachTarget(): void {
+    const s = this.state;
+    const target = s.target;
+    if (s.mode !== "land" || !target) return;
+    const d = Math.hypot(
+      target.point[0] - s.p[0],
+      target.point[1] - (s.p[1] - this.standingHeight),
+      target.point[2] - s.p[2],
+    );
+    if (d >= TOUCHDOWN_REACH_M || Math.hypot(...s.v) > this.params.touchdownSpeedMS)
+      return;
+    const failed = this.settle(s.p, `touchdown on ${target.id}`);
+    if (failed !== null) this.abortLanding(`touchdown aborted: ${failed}`);
+  }
+
+  /**
+   * Stand the fly with its thorax at `p`'s x and z if its feet are on a
+   * walkable top there, within `TOUCHDOWN_GAP_M` of it. Returns null on
+   * touchdown, or why not: the fly is never moved more than that gap to meet
+   * a surface.
+   */
+  private settle(p: V3, reason: string): string | null {
+    const s = this.state;
+    const feetY = p[1] - this.standingHeight;
+    const perch = this.world.perchAt(p[0], p[2], feetY + TOUCHDOWN_GAP_M);
+    if (!perch) return "no surface under the fly";
+    const gap = feetY - perch.y;
+    if (gap > TOUCHDOWN_GAP_M)
+      return `the feet are ${(gap * 1000).toFixed(1)} mm above the ${perch.kind}`;
+    s.p = [p[0], perch.y + this.standingHeight, p[2]];
+    s.v = [0, 0, 0];
+    s.perch = perch;
+    s.target = null;
+    s.saccade = null;
+    s.contact = null;
+    s.counts.landings++;
+    s.walkSpeed = 0;
+    this.setMode("rest", "", reason, "event");
+    this.command = { mode: "rest", reason };
+    return null;
+  }
+
+  /** Give up the approach and fly on; the controller chooses again after `landRetryS`. */
+  private abortLanding(reason: string): void {
+    const s = this.state;
+    s.target = null;
+    this.setMode("flight", "cruise", reason, "event");
+    this.command = { mode: "flight", velocity: [0, 0.1, 0], reason: "landing aborted" };
+  }
+
+  /** Legs in stance and the coordination pattern, for the panel and the renderer. */
+  gaitNow(): { stance: number; pattern: string; duty: number } {
+    const s = this.state;
+    if (s.mode !== "walk" || s.walkSpeed < 0.05)
+      return { stance: 6, pattern: "standing", duty: 1 };
+    return {
+      stance: stanceCount(s.gaitClock, s.walkSpeed, this.gait),
+      pattern: coordination(s.gaitClock, s.walkSpeed, this.gait),
+      duty: dutyFactor(s.walkSpeed, this.gait),
+    };
+  }
+
+  /** A hash of everything that decides the future: body, clocks and the controller's own state. */
+  stateHash(): string {
+    const ctrl = (this.adapter as { state?: unknown }).state ?? null;
+    return canonicalHash({
+      version: FLY_VERSION,
+      seed: this.seed,
+      state: this.state,
+      controller: ctrl,
+      pendingUs: this.pendingUs,
+      frames: this.frames.length,
+    });
+  }
+}
+
+/** `v` without its component into a surface with outward normal `n`. */
+function slide(v: V3, n: V3): V3 {
+  const into = v[0] * n[0] + v[1] * n[1] + v[2] * n[2];
+  return into < 0 ? [v[0] - n[0] * into, v[1] - n[1] * into, v[2] - n[2] * into] : v;
+}
+
+/** Freeze a value and everything it holds. */
+function frozen<T>(value: T): T {
+  if (typeof value === "object" && value !== null && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const v of Object.values(value)) frozen(v);
+  }
+  return value;
+}
+
+function frozenSite(site: LandingSite): LandingSite {
+  return frozen({
+    ...site,
+    center: [site.center[0], site.center[1], site.center[2]],
+    half: [site.half[0], site.half[1]],
+  });
+}
+
+/** A thrown value as a short line for the log; never throws itself. */
+function describe(e: unknown): string {
+  try {
+    const text = e instanceof Error ? e.message : String(e);
+    return text.slice(0, 200) || "no message";
+  } catch {
+    return "unprintable error";
+  }
+}
+
+function isV3(v: unknown): v is V3 {
+  return Array.isArray(v) && v.length === 3 && v.every((x) => Number.isFinite(x));
+}
+
+function round(x: number, digits: number): number {
+  const k = 10 ** digits;
+  return Math.round(x * k) / k;
+}

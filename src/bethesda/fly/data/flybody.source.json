@@ -1,0 +1,480 @@
+{
+  "schema": "flybody-source/v1",
+  "repository": "TuragaLab/flybody",
+  "repositoryUrl": "https://github.com/TuragaLab/flybody",
+  "commit": "d015e9bfe441bd90ae431bac24c55cb74bdbce26",
+  "commitDate": "2025-07-30T18:49:01-04:00",
+  "importedAt": "2026-10-22T22:30:44.112Z",
+  "importer": "scripts/import-flybody.ts",
+  "license": "Apache-2.0",
+  "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "citation": {
+    "text": "Vaxenburg R, Siwanowicz I, Merel J, et al. Whole-body physics simulation of fruit fly locomotion. Nature 643, 1312–1320 (2025).",
+    "doi": "10.1038/s41586-025-09029-4"
+  },
+  "excluded": "The FlyBody figshare datasets (doi:10.25378/janelia.25309105: trained policies, reference flight and walking trajectories, grooming poses) are GPL-3.0 and are not imported. Neither is drosophila.blend, the collision, inertial or fluid geoms, the actuators or the sensors.",
+  "modifications": [
+    "Visual mesh geoms only, transformed from OBJ file coordinates into their body frames by the MJCF mesh scale and geom pos/quat.",
+    "Meshes merged per body and material, welded at identical positions, and reduced by quadric edge collapse to two levels of detail.",
+    "Positions quantised to 0.000025 cm and stored as integer differences; indices renumbered by first use.",
+    "Texture coordinates and normals dropped (FlyBody's materials are untextured; normals are recomputed when drawn).",
+    "Skeleton transcribed from the MJCF with default classes resolved; body quaternions normalised as MuJoCo does on load."
+  ],
+  "sourceTriangles": 272550,
+  "lods": [
+    {
+      "name": "lod0",
+      "budget": 40000,
+      "triangles": 39965,
+      "parts": 84
+    },
+    {
+      "name": "lod1",
+      "budget": 5000,
+      "triangles": 5161,
+      "parts": 84
+    }
+  ],
+  "inputs": [
+    {
+      "path": "flybody/fruitfly/assets/abdomen_1_body.obj",
+      "sha256": "28495aff516e88a9cd30a5b25e9dcc0666115f4455d7d62386dc7844a0ab8216",
+      "bytes": 801892
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_1_lower.obj",
+      "sha256": "493fe42a1cfd025044c9202511205fc9a274f20d191e193a135f053f99a37a49",
+      "bytes": 262605
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_2_body.obj",
+      "sha256": "69d979e75ca94a3778c2cb8519a9cfe9edc4d8d4b95710dd60308fa2a249929d",
+      "bytes": 337850
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_2_lower.obj",
+      "sha256": "fb93dff87b2088e49403943c100705f35518646606385488f1625ae9948669f3",
+      "bytes": 279777
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_3_body.obj",
+      "sha256": "487cee91af4266424434e2db710e132933033561a7624a6725d33cc54b345130",
+      "bytes": 406382
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_3_lower.obj",
+      "sha256": "99ef856e625216a6538055dff1c0c86804467a35d3f6c24c5fb46d00a9e8c618",
+      "bytes": 330350
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_4_body.obj",
+      "sha256": "412a9ce8ca999596ec8ed6208019ee6f1c61a749108c25a5f79de402f24d258d",
+      "bytes": 405270
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_4_lower.obj",
+      "sha256": "58f41453f548c391d413f397e76ab714ed05af390d1142d466340ceee610416a",
+      "bytes": 330050
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_5_body.obj",
+      "sha256": "06f182d11c2a7fdb001a442e7e06a6485184acde1070af38b65a21766de6aa7d",
+      "bytes": 395552
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_5_lower.obj",
+      "sha256": "e4c746638826b94db34a1fa6c9e353ef2842e609b9f9f7e791b71bb320a7e809",
+      "bytes": 356331
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_6_body.obj",
+      "sha256": "90420c62464f08b96cbe54623d87bd8137643d202aa5f5f8f4ef66174377e938",
+      "bytes": 405033
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_6_lower.obj",
+      "sha256": "0ca2c2248e560188d21a3fe50eb52329993681f7dedc41c2cf8628279f1061fa",
+      "bytes": 329954
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_7_body.obj",
+      "sha256": "78e9e9cb9e3753d47dbb14ee8f680861cdd11c9a461b97b4c5c25fc1f208eb1a",
+      "bytes": 405088
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_7_lower.obj",
+      "sha256": "0cdd0fc55ef2658e29613e31460377c0c015899e9320653aaeaa1cb9bf449549",
+      "bytes": 329858
+    },
+    {
+      "path": "flybody/fruitfly/assets/abdomen_8_body.obj",
+      "sha256": "fd6aeb93aed1da862c0c856ae0b6c01d92df400e8cd3518a3f71aa5905380dc2",
+      "bytes": 919241
+    },
+    {
+      "path": "flybody/fruitfly/assets/antenna_left_black.obj",
+      "sha256": "665d7de4b479c2796178e15a8c4feb97deb7da4f66c4b1681a0084f7bfa997ae",
+      "bytes": 870334
+    },
+    {
+      "path": "flybody/fruitfly/assets/antenna_left_body.obj",
+      "sha256": "eb3368b427f22496b4969baf315c07386e914ee402df06c3f9926c7361c5a7f8",
+      "bytes": 2099391
+    },
+    {
+      "path": "flybody/fruitfly/assets/antenna_right_black.obj",
+      "sha256": "10b3f7a1015fad9889997991516e306db653d609975fd8c15c281acb6ae0ff5b",
+      "bytes": 865216
+    },
+    {
+      "path": "flybody/fruitfly/assets/antenna_right_body.obj",
+      "sha256": "2d0919eb806f46d10e4b9dbc424abe8dce50cd525e93555ad3be144e034137f1",
+      "bytes": 2086872
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T1_left_body.obj",
+      "sha256": "2e9346156cbe3951067af3a0c4f66b88f0f63b3c9e7235a2e1c61f89452bd64a",
+      "bytes": 1127420
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T1_right_body.obj",
+      "sha256": "2a26965950c4c1d3c9092141fd79f49e82f240a24e6ca633e8a6b3d913116940",
+      "bytes": 1124744
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T2_left_body.obj",
+      "sha256": "384f7ec1fd475afb3fa6200fa06d88f7608b6531d02853ed52f12adc9621ff7d",
+      "bytes": 1275519
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T2_right_body.obj",
+      "sha256": "b82e0bd116ef38e2db5461d5c71828f00b8d80a85eb368e52678e14e5a95091c",
+      "bytes": 1270477
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T3_left_body.obj",
+      "sha256": "9860918eb6c284748281bdbc1a6e3a8f6fb7c6d195349010b14f6b6ec90efdb3",
+      "bytes": 885161
+    },
+    {
+      "path": "flybody/fruitfly/assets/coxa_T3_right_body.obj",
+      "sha256": "d83913fe913ab4bdde18a9543921a31a2b09c61af93844a6ac4515ddffcd0819",
+      "bytes": 879229
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T1_left_body.obj",
+      "sha256": "143e72a646b7e612a22698c3ec3f493cf8593f5811ff870ea1f970f87f182da9",
+      "bytes": 1176349
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T1_right_body.obj",
+      "sha256": "36832cd3daa2250bfa04bcfdf69f6bef5c3d16e278c8c4ff057bc903c962195e",
+      "bytes": 1161912
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T2_left_body.obj",
+      "sha256": "50d0d5469c0c28a365361c931ef4845e97d5e1e955c5f95e0ede2e7782ce75eb",
+      "bytes": 1644522
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T2_right_body.obj",
+      "sha256": "49089ceaa11a25d804209bf164c7a2174d09fdfe81891058136173752b474670",
+      "bytes": 1635666
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T3_left_body.obj",
+      "sha256": "5fec2478a4764075b8b0d58fa5ce1515c27184ddaa7a3341bb328be792053f04",
+      "bytes": 1683321
+    },
+    {
+      "path": "flybody/fruitfly/assets/femur_T3_right_body.obj",
+      "sha256": "e88ac5b4bb396263ee309b595a7f308c84dabf59a10a7e664151a7b8a8729849",
+      "bytes": 1671437
+    },
+    {
+      "path": "flybody/fruitfly/assets/fruitfly.xml",
+      "sha256": "342d2517f461c3b88586e7ca133a0c4dd5f9bc805ed7a4f3867b607d92555934",
+      "bytes": 66705
+    },
+    {
+      "path": "flybody/fruitfly/assets/haltere_left_body.obj",
+      "sha256": "e48756ba2fa962a0f7cbef8c49bc08c7a793df1d98b49aac4b7fe86c94793f52",
+      "bytes": 665575
+    },
+    {
+      "path": "flybody/fruitfly/assets/haltere_right_body.obj",
+      "sha256": "8925587fb64391cf3f091610925cdd9705a4aab06252a3e533e6d0031f20c7e5",
+      "bytes": 662381
+    },
+    {
+      "path": "flybody/fruitfly/assets/haustellum_black.obj",
+      "sha256": "1abe2f91b8e88c38e60ddfd299aa9254ced8673cd551a6ff6a1156464271f53d",
+      "bytes": 1351160
+    },
+    {
+      "path": "flybody/fruitfly/assets/haustellum_body.obj",
+      "sha256": "23c6875c45cfdc3976d51b90d3cec2e5831c32d214f20bebd63528dafb1cac88",
+      "bytes": 1906450
+    },
+    {
+      "path": "flybody/fruitfly/assets/head_black.obj",
+      "sha256": "e71342e3d15546e399ecb05a44eaceae235de67e0ace9beebf071ca56f03ce8e",
+      "bytes": 12604625
+    },
+    {
+      "path": "flybody/fruitfly/assets/head_body.obj",
+      "sha256": "accc1f43588f722ec17389e1ad1a646cee294535c917bbe80202a08db9099f51",
+      "bytes": 6280982
+    },
+    {
+      "path": "flybody/fruitfly/assets/head_ocelli.obj",
+      "sha256": "a760e6dc64ee9bc7a6a0b2ec9b261bb6285a6b9f4259efeda84b5a9426bb9e4f",
+      "bytes": 6277193
+    },
+    {
+      "path": "flybody/fruitfly/assets/head_red.obj",
+      "sha256": "44dcce17ed4b89a12b9d8066da2e32f96cecddaef368dfd97b4a5a806fca6896",
+      "bytes": 31688879
+    },
+    {
+      "path": "flybody/fruitfly/assets/labrum_left_lower.obj",
+      "sha256": "676f724acfbae5fce322bc8d2e6a498620bd4420503b95a86d335a6cb9fdbf03",
+      "bytes": 511199
+    },
+    {
+      "path": "flybody/fruitfly/assets/labrum_right_lower.obj",
+      "sha256": "d6d047a00dfa9e49c67d1712f43cf4be201abb7447e00415f11c9558dd67faac",
+      "bytes": 525539
+    },
+    {
+      "path": "flybody/fruitfly/assets/rostrum_body.obj",
+      "sha256": "f1efd81656046c5ec2c4645c94d983d5ae6010e3104ea2e8eb6ddd21df18cc5d",
+      "bytes": 2160578
+    },
+    {
+      "path": "flybody/fruitfly/assets/rostrum_bristle-brown.obj",
+      "sha256": "33aa1c59a0206f537d8faac96d2b1991f0648e2a9d4551bee0c385fae6c05f73",
+      "bytes": 1580165
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T1_left_brown.obj",
+      "sha256": "c321922dfcdda08d9306a9f652a99d45a2af8113b069490d5f10eac1af8a3aaa",
+      "bytes": 814395
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T1_right_brown.obj",
+      "sha256": "3a6242d04a5a851c79bcabcd686e5d1c1b2ecae1983d4c646ff5b8a6e05188ec",
+      "bytes": 838342
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T2_left_brown.obj",
+      "sha256": "26b9b4fcc27e4c5b9ad8d0d2cce02421a5441486825a502c5b5932714959855b",
+      "bytes": 859097
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T2_right_brown.obj",
+      "sha256": "ce229f024d9284f385ed84abe46d560e1c362028e135c24fc518c7165e476d20",
+      "bytes": 884652
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T3_left_brown.obj",
+      "sha256": "95c03716ac1dd052f8b831f8c5425d70665753bf3ab310f132f4319fadb62ff0",
+      "bytes": 928210
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsal_claw_T3_right_brown.obj",
+      "sha256": "8020ee7e647f18f2b4aa601e5318fbf5326a21f2ebcdab5dbf45b42fd584a533",
+      "bytes": 965755
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_1_left_body.obj",
+      "sha256": "cd9324a2b33738c6eeaebcc140ce5445d753a86d798cc1d862d70ed4542cb400",
+      "bytes": 352025
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_1_right_body.obj",
+      "sha256": "047ba77e93ec344fed92a36c44548e2e4397aa68dadb93f377a78a59bd6c27b8",
+      "bytes": 355722
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_2_left_body.obj",
+      "sha256": "f2d859903532758c4ba2cb2187c96a7a1fcd15927dfa4ee8f09e1530f441939d",
+      "bytes": 318902
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_2_right_body.obj",
+      "sha256": "c45e542611761252d51f86f5ef9cd044ff0aca9c213c1b580cf114b0408fcdef",
+      "bytes": 322548
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_3_left_body.obj",
+      "sha256": "970d3d8ef3688877d73c8888a1b9df9be948c76a7c4e07e782a6b761d71fde9b",
+      "bytes": 319350
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_3_right_body.obj",
+      "sha256": "25af19dbfbd0a24ca44992e70caf59510b68a4392dbde408da3c257d12ec7668",
+      "bytes": 323028
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_4_left_body.obj",
+      "sha256": "bc15db76a0744558b527c95a7ff8ee00cba6dcd584937bdc6e8b30aa6499acb2",
+      "bytes": 320165
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T1_4_right_body.obj",
+      "sha256": "8efe724b45847b363bcdd5996862281e58c7d862aebef05c21f13067b617ba2d",
+      "bytes": 323964
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_1_left_body.obj",
+      "sha256": "535680b981aad279bc019788a2cba3b8c8c99ee3aa999798f7175aa4315dda88",
+      "bytes": 603566
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_1_right_body.obj",
+      "sha256": "766a3fda65be31abae48e678e47b9fc3dcde6a3a0fb536f9eb263289dfaf8f8c",
+      "bytes": 616594
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_2_left_body.obj",
+      "sha256": "10d3721348e4e5a75a583bde24b17e935977fe4f31b052020316f00daab0a08e",
+      "bytes": 424147
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_2_right_body.obj",
+      "sha256": "2f9b0f7542359f842d8ef730a1036fad5686b2feb0c745ab13471235e3f35a80",
+      "bytes": 429383
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_3_left_body.obj",
+      "sha256": "cf02ab7fb49c4eed1202ea19e858608d7f08469e1489742e8f4c40d880a42246",
+      "bytes": 354296
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_3_right_body.obj",
+      "sha256": "2819191064e5682810979cfe74c76f16debbd3168c21bea76f346fa4b209874d",
+      "bytes": 358815
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_4_left_body.obj",
+      "sha256": "e991837d008207ae5d6f47c129622f3d8b6c406137931333927b08f3599bce8f",
+      "bytes": 321751
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T2_4_right_body.obj",
+      "sha256": "1f478b9a634d9e56e45baa51a3841c2ac14057345b56adf53b5e8d0ae545ec88",
+      "bytes": 325428
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_1_left_body.obj",
+      "sha256": "4a0f7f0701e923b09d4de0c62ec95be9a03d481e9a336be3417fc3782255010c",
+      "bytes": 847774
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_1_right_body.obj",
+      "sha256": "31e4f0d239181e11b0ace28cdca28373435f61c80b41cf338a79595451745cf6",
+      "bytes": 862529
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_2_left_body.obj",
+      "sha256": "09d715ea0a5b2c03a844623da1a600ce1fea0a7cd15b1108f3aa02c58a65f52c",
+      "bytes": 487713
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_2_right_body.obj",
+      "sha256": "8f2c7b1ce3e436b03298dc399c80962fb785d9f81b4c1770e628584a5c90700f",
+      "bytes": 495578
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_3_left_body.obj",
+      "sha256": "799db08014f308aac818593271107141087a59527c2ce49beaff6deb5e921781",
+      "bytes": 350840
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_3_right_body.obj",
+      "sha256": "4d854399eb596dc73f1ec2338d40291e01c43ddf0b2f51c90b368b8175fd0f75",
+      "bytes": 355382
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_4_left_body.obj",
+      "sha256": "c5b4fd3428a6496d27e592911b67ebfda7505153b1e3a4465f7a66728f1dcfb8",
+      "bytes": 357002
+    },
+    {
+      "path": "flybody/fruitfly/assets/tarsus_T3_4_right_body.obj",
+      "sha256": "d8e2b6a7bf187dd5f2532541ef2e057fb742ece5f8df445f8c2d6e407379f309",
+      "bytes": 357007
+    },
+    {
+      "path": "flybody/fruitfly/assets/thorax_black.obj",
+      "sha256": "3108735120f0d3a11398679e54aebad4feadc41c307a6180d7253a223f199e04",
+      "bytes": 12900544
+    },
+    {
+      "path": "flybody/fruitfly/assets/thorax_body.obj",
+      "sha256": "385ffd2b7e8a81cc602c586c40c4e7f3b8530c1192ae1f8d478d200149095bbc",
+      "bytes": 9614590
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T1_left_body.obj",
+      "sha256": "1992a08ce598367159734ab86b5c37cc9933f8308d8f3097d34b8651118dc69d",
+      "bytes": 526840
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T1_right_body.obj",
+      "sha256": "85d3e75e510f98a127148a92fed6228cb42840daf62f0a3bac4265bb6e8abb8c",
+      "bytes": 525417
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T2_left_body.obj",
+      "sha256": "94dd162836d902cc51ee57ae3391c012616e36a854caa2149e561e4d48358318",
+      "bytes": 672868
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T2_right_body.obj",
+      "sha256": "9e59bb9ab0bb2f4257e4eb4dd266ec21e390ddb3e1b6a3c55ee0a5419ad13503",
+      "bytes": 681781
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T3_left_body.obj",
+      "sha256": "92f982bcb79aeebfb05541998d3fbc0b6a18d2702202df0201b93320efaf8f89",
+      "bytes": 1202812
+    },
+    {
+      "path": "flybody/fruitfly/assets/tibia_T3_right_body.obj",
+      "sha256": "820d80798d0da73f39af0463805b9ca6c650bd24eaacd616bd9f688fabc07081",
+      "bytes": 1163517
+    },
+    {
+      "path": "flybody/fruitfly/assets/wing_left_brown.obj",
+      "sha256": "e466816f052304346a6cb544ad40b0b386a9202cd22ff3e09b457d6cd91c3d48",
+      "bytes": 2886986
+    },
+    {
+      "path": "flybody/fruitfly/assets/wing_left_membrane.obj",
+      "sha256": "6119af49be241ac260ea1386fe2ceb48d29399c0d1e03ec5c75ad85f7d486cbe",
+      "bytes": 226433
+    },
+    {
+      "path": "flybody/fruitfly/assets/wing_right_brown.obj",
+      "sha256": "a2882dd551bf6db0c2381f95acf49b8c816180fbf6ce1c2b1bbde54b7f4fdd81",
+      "bytes": 2867328
+    },
+    {
+      "path": "flybody/fruitfly/assets/wing_right_membrane.obj",
+      "sha256": "330462d72f45768a34800791e567aa99f48d2846ec8feaa489ff3b6681c37f48",
+      "bytes": 224913
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6",
+      "bytes": 11558
+    }
+  ],
+  "outputs": {
+    "flybody-skeleton.json": "e412333429c70dfe518a907b7aa270cd59627affa91b170a12b58d835262400d",
+    "flybody-lod0.json": "d8cff9cc2c5a6548eee9151d9829e269b1affeccdf33d67397f92590e5fb5cf4",
+    "flybody-lod1.json": "4953455a6ab0154eabb00b624dc467312d8d5958905ffa8425879d0034bc273f"
+  }
+}

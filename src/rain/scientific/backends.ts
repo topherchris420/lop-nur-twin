@@ -23,7 +23,18 @@ import type {
   CivilizationAuthorization,
   CivilizationPlan,
   CivilizationRecord,
+  FlyAuthorization,
+  FlyPlan,
+  FlyPreregistration,
+  FlyRecord,
 } from "./contracts.js";
+import {
+  compileFlyExperiment,
+  executeFly,
+  verifyFlyRecord,
+  type FlyContext,
+  type FlyHost,
+} from "./fly.js";
 
 export interface ScientificBackend<Plan, Context, Authority, Output> {
   capability: BackendCapability;
@@ -68,5 +79,26 @@ export function civilizationBackend(
     compile: (raw, context) => compileCivilizationExperiment(raw, { ...context, engine }),
     execute: (plan, authority) => executeCivilization(plan, authority, engine),
     verifyRecord: (raw) => verifyCivilizationRecord(raw, engine),
+  };
+}
+/** What runs a preregistered fly plan: its registry receipt and the authorization that binds it. */
+export interface FlyAuthority {
+  preregistration: FlyPreregistration;
+  authorization: FlyAuthorization;
+}
+/**
+ * The digital fly in closed arenas: compile, execute and replay all run the
+ * same fly. Bound to one host (registry, authorization ledger, archive, source
+ * tree; registryFlyHost in flyRegistry.ts), which execution cannot do without.
+ */
+export function flyBackend(
+  host: FlyHost,
+): ScientificBackend<FlyPlan, FlyContext, FlyAuthority, FlyRecord> {
+  return {
+    capability: BACKEND_CAPABILITIES[3]!,
+    compile: compileFlyExperiment,
+    execute: (plan, authority) =>
+      executeFly(plan, authority.preregistration, authority.authorization, host),
+    verifyRecord: (raw) => verifyFlyRecord(raw, host.evidence),
   };
 }

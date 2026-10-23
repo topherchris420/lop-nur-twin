@@ -67,9 +67,19 @@ model-history/
 noeterra/target
 docs/benchmarks/noeterra-civilization/
 
+# Digital-fly experiments the lab archives: records are evidence whose exact
+# bytes are hashed, written by `npm run rain:fly`, never by hand.
+docs/benchmarks/fly-behavior/
+
 # The Noeterra engine copied into public/ at build time (a binary build product).
 public/noeterra/
 
 # Noeterra map geography, written by noeterra/scripts/import-geography.mjs with
 # the source hashes in geography.source.json. Never reformatted by hand.
 noeterra/data/
+
+# The digital fly's imported data: FlyBody's skeleton and meshes and the Virtual
+# Fly Brain reference, written by `scripts/import-flybody.ts` and
+# `scripts/import-vfb-reference.ts` and hashed by the build validator. Formatting
+# one would change bytes its manifest records.
+src/bethesda/fly/data/

@@ -87,6 +87,12 @@
     "rain:civilization": "node scripts/run-ts.mjs scripts/rain-civilization.ts",
     "rain:civilization:demo": "node scripts/run-ts.mjs scripts/rain-civilization.ts --scripted",
     "rain:civilization:verify": "node scripts/run-ts.mjs scripts/rain-civilization.ts --verify",
+    "import:flybody": "node scripts/run-ts.mjs scripts/import-flybody.ts",
+    "import:vfb": "node scripts/run-ts.mjs scripts/import-vfb-reference.ts",
+    "rain:fly": "node scripts/run-ts.mjs scripts/rain-fly.ts",
+    "rain:fly:demo": "node scripts/run-ts.mjs scripts/rain-fly.ts --scripted",
+    "rain:fly:verify": "node scripts/run-ts.mjs scripts/rain-fly.ts --verify",
+    "rain:fly:source": "node scripts/run-ts.mjs scripts/fly-source.ts",
     "rain:learning:live": "node scripts/run-ts.mjs scripts/rain-learning-live.ts"
   },
   "dependencies": {

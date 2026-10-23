@@ -22,6 +22,18 @@ import {
 import { OFFLINE_ENGINE, REPOSITORY } from "../src/rain/protocol.ts";
 import mathIndex from "../src/rain/mathematics/data/openai-math.json" with { type: "json" };
 import { indexErrors } from "../src/rain/mathematics/substrateIndex.ts";
+import flybodySource from "../src/bethesda/fly/data/flybody.source.json" with { type: "json" };
+import { parseSkeleton } from "../src/bethesda/fly/skeleton.ts";
+import { decodePart, parseMeshFile } from "../src/bethesda/fly/meshCodec.ts";
+import { parseVfbReference } from "../src/bethesda/fly/reference.ts";
+import { REDUCED_ORDER_DESCRIPTOR } from "../src/bethesda/fly/controller.ts";
+import {
+  changedFlySources,
+  computeFlySource,
+  workingTreeReader,
+} from "../src/rain/scientific/flySourceDigest.ts";
+import { FLY_SOURCE } from "../src/rain/scientific/flySource.ts";
+import { fileURLToPath } from "node:url";
 const fail = (s: string): never => {
   throw new Error("Bethesda data: " + s);
 };
@@ -232,6 +244,76 @@ if (sha256(FENCED.exec(mathLicense)?.[1] ?? "") !== mathIndex.license.sha256)
   fail("the mathematical substrate's licence differs from the one its index hashed");
 if (mathIndex.license.spdx !== "Apache-2.0")
   fail("the mathematical substrate's licence is not the one its repository declares");
+// The digital fly. FlyBody's skeleton and meshes are exactly what
+// `scripts/import-flybody.ts` wrote from the pinned commit, under the licence it
+// hashed; every mesh decodes, belongs to a body of the skeleton and adds up to
+// the triangle counts the manifest records. The Virtual Fly Brain reference
+// (`scripts/import-vfb-reference.ts`) parses and holds every term the
+// controller's region links cite. Never hand-edited.
+const flyData = (name: string) =>
+  readText(new URL(`../src/bethesda/fly/data/${name}`, import.meta.url));
+if (
+  flybodySource.schema !== "flybody-source/v1" ||
+  flybodySource.license !== "Apache-2.0" ||
+  !/^[0-9a-f]{40}$/.test(flybodySource.commit) ||
+  Number.isNaN(Date.parse(flybodySource.importedAt)) ||
+  Date.parse(flybodySource.importedAt) > Date.now()
+)
+  fail("FlyBody import manifest is incomplete");
+for (const [name, hash] of Object.entries(flybodySource.outputs))
+  if (sha256(flyData(name)) !== hash)
+    fail(`FlyBody ${name} differs from its import manifest`);
+if (
+  sha256(FENCED.exec(flyData("LICENSE.md").toString("utf8"))?.[1] ?? "") !==
+  flybodySource.licenseSha256
+)
+  fail("FlyBody licence text differs from its import manifest");
+const flySkeleton = parseSkeleton(
+  JSON.parse(flyData("flybody-skeleton.json").toString("utf8")),
+);
+const flyBodies = new Set(flySkeleton.bodies.map((b) => b.name));
+const flyMaterials = new Set(flySkeleton.materials.map((m) => m.name));
+for (const lod of flybodySource.lods) {
+  const mesh = parseMeshFile(
+    JSON.parse(flyData(`flybody-${lod.name}.json`).toString("utf8")),
+  );
+  let triangles = 0;
+  for (const part of mesh.parts) {
+    if (!flyBodies.has(part.body) || !flyMaterials.has(part.material))
+      fail(
+        `FlyBody ${lod.name} part names an unknown body or material: ${part.body}/${part.material}`,
+      );
+    triangles += decodePart(part, mesh.quantumCm).indices.length / 3;
+  }
+  if (
+    triangles !== mesh.triangles ||
+    triangles !== lod.triangles ||
+    mesh.parts.length !== lod.parts
+  )
+    fail(`FlyBody ${lod.name} triangle or part count differs from its manifest`);
+}
+const vfb = parseVfbReference(JSON.parse(flyData("vfb-reference.json").toString("utf8")));
+if (Date.parse(vfb.retrievedAt) > Date.now())
+  fail("VFB reference retrieved in the future");
+const vfbIds = new Set(vfb.terms.map((t) => t.id));
+for (const region of REDUCED_ORDER_DESCRIPTOR.regions)
+  for (const id of region.vfb)
+    if (!vfbIds.has(id))
+      fail(`controller links ${id}, which the VFB reference does not hold`);
+if (REDUCED_ORDER_DESCRIPTOR.simulatesNeurons)
+  fail("the reduced-order controller must not claim to simulate neurons");
+// Every fly plan and record binds the source digest in flySource.ts; a stale
+// one would name code that did not make them.
+const flySource = computeFlySource(
+  workingTreeReader(fileURLToPath(new URL("..", import.meta.url))),
+);
+if (flySource.sha256 !== FLY_SOURCE.sha256)
+  fail(
+    `the digital fly's source digest is stale (${changedFlySources(FLY_SOURCE, flySource).join(", ")} changed): run node scripts/run-ts.mjs scripts/fly-source.ts`,
+  );
+console.log(
+  `[validate:bethesda] digital fly: FlyBody ${flybodySource.commit.slice(0, 12)} (${flySkeleton.bodies.length} bodies, ${flybodySource.lods.map((l) => `${l.name} ${l.triangles}`).join(", ")} triangles) and VFB reference (${vfb.terms.length} terms, retrieved ${vfb.retrievedAt}) verified; experiment source digest ${FLY_SOURCE.sha256.slice(0, 12)} current`,
+);
 console.log(
   `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified; R.A.I.N. corpus ${rainCorpus.files.length} papers ${rainFingerprint.slice(0, 12)} verified; demo recording ${demoSource.meetingId} at ${demoSource.rain.repository} ${demoSource.rain.commit.slice(0, 12)} verified; mathematical substrate ${mathIndex.repository} ${mathIndex.commit.slice(0, 12)} (${mathIndex.counts.families} families, index ${mathIndex.content_sha256.slice(0, 12)}) verified`,
 );

@@ -26,6 +26,7 @@ import {
 import { groundAt } from "./terrain";
 import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
 import { signalRigs } from "./signals";
+import { STREET_TREE, streetTrees } from "./furniture";
 function texture(style: "brick" | "stone" | "glass") {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -67,7 +68,6 @@ export function createCityGeometry() {
     { material: THREE.Material; parts: THREE.BufferGeometry[] }
   >();
   const detail = createDetailMaterials();
-  const rng = mulberry32(393977);
   const material = (color: string, roughness = 1) =>
     new THREE.MeshStandardMaterial({ color, roughness });
   const ground = material("#929984"),
@@ -340,60 +340,43 @@ export function createCityGeometry() {
       }
   }
   buildingBase = null;
-  const planted: Point[] = [];
-  for (const w of pathWays) {
-    if (w.crossing) continue;
-    for (let i = 1; i < w.points.length; i++) {
-      const a = w.points[i - 1]!,
-        b = w.points[i]!,
-        d = distance(a, b),
-        heading = Math.atan2(b.x - a.x, b.z - a.z);
-      for (let t = 10; t < d; t += 30) {
-        const p = lerp(a, b, t / d);
-        p.x += Math.cos(heading) * 2.5;
-        p.z -= Math.sin(heading) * 2.5;
-        if (buildingAt(p) || planted.some((v) => distance(v, p) < 14)) continue;
-        planted.push(p);
-        const h = 4.5 + rng() * 3;
-        const stem = new THREE.CylinderGeometry(0.15, 0.25, h, 5);
-        stem.translate(p.x, h / 2, p.z);
-        add(stem, trunk);
-        const close = distance(p, row.point) < 240;
-        for (let branch = 0; branch < (close ? 7 : 3); branch++) {
-          const angle = branch * 2.4,
-            radius = close ? 1.6 : 1;
-          const x = p.x + Math.cos(angle) * radius,
-            z = p.z + Math.sin(angle) * radius;
-          const crown = new THREE.IcosahedronGeometry(close ? 1.1 : 1.6 + rng() * 0.8, 1);
-          crown.scale(1, 0.85 + rng() * 0.3, 1);
-          crown.translate(x, h + 0.6 + rng() * 1.2, z);
-          add(crown, foliage[branch % foliage.length]!);
-          if (close)
-            for (let k = 0; k < 3; k++) {
-              const leaves = new THREE.PlaneGeometry(4.8, 4.1);
-              leaves.rotateX((rng() - 0.5) * 0.8);
-              leaves.rotateY((k * Math.PI) / 3 + branch);
-              leaves.translate(x, h + 1, z);
-              add(leaves, leafCards);
-            }
-          if (close) {
-            const direction = new THREE.Vector3(x - p.x, 1.5, z - p.z);
-            const limb = new THREE.CylinderGeometry(0.04, 0.1, direction.length(), 5);
-            limb.applyQuaternion(
-              new THREE.Quaternion().setFromUnitVectors(
-                new THREE.Vector3(0, 1, 0),
-                direction.normalize(),
-              ),
-            );
-            limb.translate((p.x + x) / 2, h - 0.05, (p.z + z) / 2);
-            add(limb, trunk);
-          }
-        }
-        if (close) {
-          box(p, 0.18, 1.8, 0.08, 1.8, detail.dark);
-          box(p, 0.225, 1.55, 0.025, 1.55, detail.soil);
-        }
+  for (const { point: p, trunkHeight: h, close, crowns } of streetTrees()) {
+    const stem = new THREE.CylinderGeometry(
+      STREET_TREE.trunkTopRadius,
+      STREET_TREE.trunkBottomRadius,
+      h,
+      5,
+    );
+    stem.translate(p.x, h / 2, p.z);
+    add(stem, trunk);
+    crowns.forEach(({ x, z, y, r, stretch, leafTilts }, branch) => {
+      const crown = new THREE.IcosahedronGeometry(r, 1);
+      crown.scale(1, stretch, 1);
+      crown.translate(x, y, z);
+      add(crown, foliage[branch % foliage.length]!);
+      leafTilts.forEach((tilt, k) => {
+        const leaves = new THREE.PlaneGeometry(4.8, 4.1);
+        leaves.rotateX(tilt);
+        leaves.rotateY((k * Math.PI) / 3 + branch);
+        leaves.translate(x, h + 1, z);
+        add(leaves, leafCards);
+      });
+      if (close) {
+        const direction = new THREE.Vector3(x - p.x, 1.5, z - p.z);
+        const limb = new THREE.CylinderGeometry(0.04, 0.1, direction.length(), 5);
+        limb.applyQuaternion(
+          new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            direction.normalize(),
+          ),
+        );
+        limb.translate((p.x + x) / 2, h - 0.05, (p.z + z) / 2);
+        add(limb, trunk);
       }
+    });
+    if (close) {
+      box(p, 0.18, 1.8, 0.08, 1.8, detail.dark);
+      box(p, 0.225, 1.55, 0.025, 1.55, detail.soil);
     }
   }
   detailStreet({ add, box }, detail);

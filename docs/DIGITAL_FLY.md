@@ -1,0 +1,528 @@
+# The digital fly
+
+One adult _Drosophila melanogaster_ lives in Bethesda: FlyBody's anatomy at its
+true size, driven by a reduced-order behavioural controller, sensing the city it
+is in and inspectable from a panel. It is also an experiment substrate for the
+R.A.I.N. Lab, in enclosed arenas (see [the lab guide](RAIN_LAB_BETHESDA.md)).
+
+It is **not a neural simulation**. No neuron, synapse, connectome or muscle is
+simulated. The brain regions the panel names are a reference layer: where, in a
+real fly, the functions the controller imitates are known to be processed.
+Everything the simulator reports describes the simulator, not a fly.
+
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/3`). Importers:
+`scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
+and `scripts/import-vfb-reference.ts`. Experiments:
+`src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
+
+## Sources and licences
+
+| Material                                                                    | Source                                                                                                                           | Licence                             | In the repository                                                                                              |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Body model: MJCF skeleton, visual meshes, materials, eye cameras            | [TuragaLab/flybody](https://github.com/TuragaLab/flybody) at `d015e9bf…` (Vaxenburg et al. 2025, doi:10.1038/s41586-025-09029-4) | Apache-2.0                          | Derived JSON in `src/bethesda/fly/data/`, with `LICENSE.md` and the modification list in `flybody.source.json` |
+| FlyBody trained policies, reference trajectories, grooming poses (figshare) | doi:10.25378/janelia.25309105                                                                                                    | GPL-3.0                             | **Not imported**                                                                                               |
+| JRC2018Unisex template (VFB_00101567) and painted neuropil domains          | [Virtual Fly Brain](https://virtualflybrain.org/reports/VFB_00101567)                                                            | CC-BY-NC-SA 4.0 (as VFB reports it) | **No geometry.** Ids, labels and licence metadata only; the panel links to VFB                                 |
+| FBbt anatomy classes: labels and definitions                                | FlyBase anatomy ontology via VFB (Court et al. 2023, doi:10.3389/fphys.2023.1076533)                                             | CC BY 4.0                           | `data/vfb-reference.json`                                                                                      |
+| LPLC2→GF and LC4→GF class connectivity                                      | VFB `query_connectivity`, as returned (datasets VFB excluded are recorded)                                                       | VFB terms                           | `data/vfb-reference.json`                                                                                      |
+
+FlyBody's modifications, as `flybody.source.json` records them: visual mesh
+geoms only, transformed into their body frames; merged per body and material,
+welded and reduced by quadric edge collapse to two levels of detail (39 965 and
+5 161 triangles from 272 550); positions quantised to 0.25 µm; texture
+coordinates and normals dropped (FlyBody's materials are untextured); skeleton
+transcribed from the MJCF with default classes resolved. The collision,
+inertial and fluid geoms, actuators, sensors and `drosophila.blend` are not
+imported. The importer measured the body at 0.2969 cm (the paper: 0.297 cm),
+the wing at 0.2645 cm and the standing height at 0.1319 cm (from the thorax
+down to the lowest claw tip in FlyBody's zero pose; the fly stands lower, see
+[Contacts and landings](#contacts-and-landings)).
+
+Three of the fly's parameters come from FlyBody's code at the same commit and
+link to the file: the eye cameras' 150° field, which FlyBody's walker sets
+(`flybody/fruitfly/fruitfly.py`), and the 47.5° hover body pitch and the
+wingbeat's ±5 % range (`flybody/tasks/constants.py`). The other FlyBody values
+cite the paper.
+
+Re-import (never hand-edit the data; the build validator checks every hash):
+
+```sh
+git clone https://github.com/TuragaLab/flybody <checkout>   # then check out the pinned commit
+npm run import:flybody -- --from <checkout>
+npm run import:vfb
+```
+
+## Why a reduced-order controller
+
+The full FlyBody stack is MuJoCo physics at sub-millisecond steps over 102
+hinge joints, driven by reinforcement-learned policy networks. Those networks
+are in the GPL-3.0 figshare release, which this Apache-2.0 repository cannot
+carry, and stepping that model in every browser frame for one fly in a city
+would cost far more than the city itself. So the fly keeps FlyBody's
+**anatomy** exactly (skeleton, joints, ranges, meshes, colours, eye cameras),
+the values FlyBody gives its model (the 150° eye field, the 47.5° hover pitch,
+the 218 Hz wingbeat and its ±5 % range) and the figures it reports for its
+trained policies (the walking speed range, the stance counts, the 30 cm/s
+cruise), and replaces the **dynamics** with a stable reduced-order model. That
+reduction is the main limitation, and the panel says so. FlyBody's values
+describe its model of a fly, not measurements of one.
+
+## What is simulated, and what is only drawn
+
+The fly advances on a fixed clock independent of rendering: the body every
+5 ms, the eyes every 10 ms, the controller every 50 ms on the sample from
+30 ms before. Stepping 0.1 s at a time and 0.005 s at a time give the same
+trajectory; one seed gives one fly (three derived `mulberry32` streams: body,
+senses, controller).
+
+**Simulated** (state, hashed, replayed):
+
+- the centre of mass and its velocity: an exponential approach to the
+  commanded velocity (time constant 80 ms; any value from 0, which follows at
+  once, is stable) limited to 1.5 g, with contacts, touchdowns and perch
+  continuity (see [Contacts and landings](#contacts-and-landings));
+- heading, with saccades as 80 ms bell-shaped turns (mean amplitude 90°,
+  Tammero & Dickinson 2002) and a refractory period;
+- mode: rest, groom (eyes → antennae → abdomen → wings → notum, the anterior to
+  posterior order of Seeds et al. 2014), walk, takeoff (long-mode wing raising
+  over 200 ms, Card & Dickinson 2008; short mode 40 ms, and any preparation
+  under 100 ms is short-mode), escape, flight (cruise, saccade, hover) and land
+  (approach, legs extended at a 60° target size, van Breugel & Dickinson 2012);
+- the gait clock: step period, duty factor and inter-leg phase lag from the
+  walking speed, between FlyBody's 3.9 and 3.1 legs in stance at 1 and 4 cm/s,
+  shifting from tetrapod to tripod coordination as speed rises;
+- habituation of the escape proxy (Engel & Wu 1996): each escape removes 22 %
+  of the responsiveness left, which recovers toward full with a 30 s time
+  constant.
+
+**Derived for drawing** (computed from the simulated state, never fed back):
+body pitch and roll from the thrust the motion needs; wingbeat frequency
+within FlyBody's ±5 % from that load; left/right stroke amplitude from yaw
+acceleration.
+
+**Drawn only** (`pose.ts`, `FlyView.tsx`): leg placement by damped
+least-squares inverse kinematics on FlyBody's own leg chains (coxa, femur,
+tibia within the MJCF's ranges) on the simulator's per-leg phases, so the
+drawn tripod or tetrapod is the simulated one; grooming leg movements; the
+wing stroke, FlyBody's own prototype pattern (`pattern_generators.py`, which
+FlyBody calls an approximation; the trained flight pattern is GPL and not
+used); halteres in antiphase.
+
+**Not simulated at all**: aerodynamics and wing forces, leg contact forces,
+muscles, neurons, haltere sensing, olfaction, temperature, humidity, wind,
+taste and sound.
+
+## Contacts and landings
+
+The body moves by ray casts against the static world, stopping its thorax its
+standing height short of any surface on its path. Moving things are not in
+those casts (see [Senses and the world](#senses-and-the-world)).
+
+- **Standing height.** The thorax stands 1.06 mm above the surface: 0.8
+  (`standingCrouch`) of the 1.32 mm from the thorax down to the lowest claw
+  tip in FlyBody's zero pose. That pose (every joint at 0, the MJCF's
+  reference configuration) is not a measured stance; at 0.8 the drawn legs
+  bend to reach the surface. It is a drawing choice, not fitted to FlyBody's
+  walking policy or to a fly, and it is also the clearance for contacts and
+  touchdowns.
+- **Contacts.** Meeting a surface is a collision, counted and logged once, when
+  the contact begins. While the contact lasts (the surface stays within the
+  standing height plus 1 mm), the part of the velocity into the surface is
+  removed and the fly slides along it; at the first touch it keeps 30 % of its
+  speed along the surface. `contactS` counts the airborne seconds in contact,
+  and the panel shows them beside the collisions.
+- **Landing targets.** A landing names a site the body offered and a point on
+  its top, which the gate checks (see [The decision gate](#the-decision-gate)).
+  The body moves the point onto the surface under it, and the approach brings
+  the feet, not the thorax, to it. A decision maker may change the target
+  during the approach.
+- **Touchdown.** It is tried when the feet come within 1.5 mm of the target at
+  no more than the touchdown speed (0.15 m/s), or when a landing fly meets a
+  top (a surface whose normal is at least 0.7 vertical) that slowly. The body
+  then needs a walkable surface within 2 mm under the feet and stands the fly
+  on it, so a touchdown never moves the fly more than 2 mm to meet a surface.
+  If there is none, or it is farther, the landing is aborted with the reason
+  logged, and the fly climbs away at 0.1 m/s and flies on; any other contact
+  while landing aborts it the same way. The controller waits `landRetryS`
+  before it chooses a site again.
+- **A touch while cruising.** A slow touch on a top while not landing counts as
+  a collision, and the fly then settles on that top by the same 2 mm rule.
+
+## Senses and the world
+
+The eyes are FlyBody's two eye cameras (`eye_left`, `eye_right`, whose axes the
+importer reads from the MJCF), sampled by ray casts with occlusion and a 4.6°
+acuity limit. The MJCF declares them 140° wide; FlyBody's walker
+(`fruitfly.py`) sets both to 150° (vertically, on square 32 × 32 images) when
+it builds the fly, and the simulator uses that 150° (`eyeFovDeg`). Aimed 67°
+either side of straight ahead and 5° up, and treated as circular cones, they
+see to about 142° either side at eye level, leaving a blind sector of about 76°
+behind, and straight ahead from about 37° below the horizon to 63° above it.
+Nothing more than about 80° above or 70° below the horizon is seen, where a
+real fly's eyes still see. Glass is invisible but solid.
+
+From each sample the controller gets: the strongest looming object (angular
+size, expansion rate and a giant-fiber **proxy** — a weighted sum of expansion
+rate and a size tuning, after Ache et al. 2019 and von Reyn et al. 2014), the
+number of moving things in view, times to contact ahead-left, ahead-right and
+ahead, clearance, a relative light level and its bearing, the surface below
+and the altitude. Nothing is special-cased by what it is: a pedestrian, a car,
+the visitor and an arena stimulus are all moving things that loom or do not.
+Moving things are seen, never touched: they can set off an escape, but the
+body's ray casts and the solidity and landing tests leave them out, so they
+pass through the fly, and one that contains the fly is not seen at all.
+
+| World input                                       | In Bethesda                                                                                                                                                                                                                                                                                                                                                                                                              | In a lab arena                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| Surfaces and obstacles                            | OSM building footprints and heights, bare-earth terrain, the mapped benches, picnic tables, lamps and trees, and the procedural footpath trees and sidewalk lamps, benches and planters, each placed where the renderer draws it (`furniture.ts`): benches, tables and planters as their drawn boxes (a street bench's slats as one slab), and poles, trunks, lamp globes, crowns and shrubs as the simpler shapes below | walls, ceiling, pillars, platforms                 |
+| Moving things                                     | city pedestrians and vehicles and the visitor, interpolated between city ticks; seen, never touched                                                                                                                                                                                                                                                                                                                      | looming spheres on a schedule; seen, never touched |
+| Light                                             | **proxy**: open sun or building shade along the renderer's sun direction, dimmed in a storm by the renderer's storm/clear ratio                                                                                                                                                                                                                                                                                          | point lights and ambient                           |
+| Windows                                           | **unsupported**: not in the map data; facades are opaque                                                                                                                                                                                                                                                                                                                                                                 | glass panes: invisible, solid                      |
+| Awnings, rooftop units, courtyards, facade relief | **unsupported**: drawn, not solid; a courtyard is roof to the fly and a facade a flat wall                                                                                                                                                                                                                                                                                                                               | none                                               |
+| Odour, temperature, wind, food                    | **unsupported**                                                                                                                                                                                                                                                                                                                                                                                                          | **unsupported**                                    |
+
+The street furniture and trees are placed and sized in one module,
+`src/bethesda/furniture.ts`, which the city builder draws from and the fly's
+world is built from, so each stands where it is drawn. Not all of them have
+their drawn shape; `BETHESDA_INPUTS.proxies` lists each difference:
+
+- lamp poles and tree trunks are upright cylinders at the drawn base radius,
+  where the drawn ones taper (trunks from 25–28 cm to 15–16 cm, poles from
+  9 cm to 5.5 cm);
+- a street bench's four slats are one slab, so the 1.5 cm gaps between them
+  are solid;
+- a lamp globe is a flat-topped cylinder around the drawn ellipsoid, so near
+  its rim the fly stands up to 33 cm above the drawn globe;
+- tree crowns and planter shrubs are spheres, but the renderer stretches
+  street-tree crowns to 0.85–1.15 of their height and shrubs to 0.8: a fly on a
+  shrub stands 7.6 cm above its drawn top, and the top the fly finds on a large
+  crown can be 36 cm above or below the drawn one. Mapped tree crowns are drawn
+  as faceted icosahedra inside the fly's spheres, and leaf cards are not solid.
+
+Drawn but not in the fly's world at all, so the fly can pass through them
+(`BETHESDA_INPUTS.unsupported`): awnings and rooftop units; facade relief on
+the detailed blocks (ledges, pilasters, window frames, sills, rails), so
+facades are flat walls; and the other street objects: traffic-signal poles and
+mast arms, bus stops and shelters, bike-share docks, street-name blades and
+signs, monuments and art, the metro entrance, construction fencing, the
+Bethesda Lane ring lights, tree pits and limbs. The other way round, the inner
+courtyards of buildings are open in the drawing but solid roof to the fly.
+
+Every world query is bounded: a ray or perch query with an input that is not
+a finite number finds nothing, a point that is not finite counts as solid, and
+a ray over the terrain samples it at most 4 096 times, however far it reaches.
+
+The city fly reads the city and never writes to it. It is not a recorded
+command, not in the city's state hash and not in a city replay; a replayed
+city gets a fly placed fresh. `cityFly.test.ts` checks that a city run with
+the fly and one without end with the same state hash. The fly is placed on the
+mapped bench or picnic table nearest the arrival point and tethered to an 18 m
+home range around it (a simulator constraint, named as such). There is exactly
+one fly in the city; the lab's experiments use their own arena flies, which
+never appear in the city.
+
+## In the city
+
+- The fly advances one city tick after each `sim.step()`, so it pauses with
+  the city and keeps going while the visitor is in the lab. If it ever throws,
+  it stops and says so; the city carries on.
+- **Drawn at true size.** FlyBody's full mesh within 25 cm of the camera, the
+  reduced one within 4 m, nothing beyond (a 3 mm fly is under a pixel there).
+  Each level is its own chunk, fetched the first time it is needed.
+- The drawing runs one city tick behind and interpolates between the last two
+  states. A 218 Hz wingbeat cannot be shown at display frame rates, so a
+  beating wing is drawn as a translucent sweep unless **Wings at 1/100 speed**
+  is on.
+- **Fly** in the city controls opens the panel and a screen-space locator ring
+  (a marker, not the fly). **Inspect up close** takes the camera to 1.2 cm from
+  the fly with a near plane small enough for it, orbits slowly (not under
+  reduced motion; drag to turn) and gives the camera back on leaving. While it
+  is open the close-up owns the pointer: the walker neither moves nor turns, a
+  click selects nothing in the city, pointer lock is released and not
+  requested, and the walker's heading and pitch come back unchanged when it
+  closes.
+- The panel separates **this run's simulation observations** (behaviour,
+  movement, sensory input, recent decisions, counts, with each collision
+  counted once and the seconds spent touching) from **the model's biological
+  evidence** (FlyBody, VFB regions and connectivity, every parameter with its
+  class, source and, where it can vary, range). Confidence is "not reported":
+  the controller has no calibrated estimate. Evidence classes: _FlyBody model_
+  (FlyBody's body, joints and meshes, and the constants its code sets or its
+  trained policies report: a model of a fly, not measurements of one),
+  _measured_ (VFB's connectome counts), _published_ (values reported for real
+  flies), _model_ (this simulator's choices), _simulated_ (this run),
+  _unsupported_ (not sensed at all).
+
+## Experiments and the lab
+
+The R.A.I.N. Lab runs the fly as a fourth experiment backend
+(`digital-fly-behavior/v2`). It has six protocols: obstacle avoidance, light
+preference, visual threat, noisy sensing, adaptation and controller
+comparison. Each is a preregistered design with a baseline arm on the same
+seeds, run in enclosed arenas.
+
+- A design says how many seeds to run, never which. The host draws them after
+  preregistration.
+- A person at a terminal authorizes the exact plan, once. The demonstration's
+  own designs are authorized by its script, and their records say so.
+- Each run is simulated twice as a determinism check, and the result is judged
+  by a sign test. `npm run rain:fly:verify` re-simulates each record.
+
+The backend section of
+[the lab guide](RAIN_LAB_BETHESDA.md#the-digital-fly-backend) has the
+protocols, criteria, measures and commands; the archive is
+`docs/benchmarks/fly-behavior/`.
+
+A design may set model parameters only, each within its range (see
+[Parameters](#parameters)). A change to the fly's behaviour or parameters bumps
+`FLY_VERSION`. Any change to the code the experiments run changes the source
+digest each plan binds. Records made by other code are listed as such, never
+re-run against different rules.
+
+The lab has no 3D fly of its own. Its presence there is the backend and the
+DIGITAL FLY section of the lab's panels, which lists the protocols. A second
+drawn fly would break "one fly in Bethesda", and each arena run has its own
+fly, which is never drawn.
+
+## Parameters
+
+`params.ts` holds the rates, thresholds, time constants, speeds and sizes the
+behaviour is built on: 58 values, each with a kind, a unit, an inclusive range
+and, where there is one, a source. 10 are FlyBody's (its model's values: 7
+cite the paper and 3 the code file at the pinned commit), 6 are published
+values for real flies (each with its DOI), and 42 are model choices (some
+informed by a cited paper, which the note says). FlyBody and published values
+are fixed. Experiments may override **model** values only, each within its
+range; `resolveParams` refuses a FlyBody or published value, an unknown name,
+a number that is not finite, a value outside the range, and a cruise band whose
+floor is above its ceiling, and it returns a frozen table. Two model values are
+fixed as well: `standingCrouch` (the drawn legs are solved for it) and
+`homeRadiusM`. The ranges keep every run well defined: the velocity time
+constant may be 0 (the body then follows at once), but the approach time
+constant, the acceleration limit, the landing timeout and the touchdown speed
+may not, and a short-mode preparation stays under the 100 ms from which the
+body counts a takeoff as long-mode. A test runs the fly at both ends of every
+model value's range.
+
+The table is not every number in the fly. The ones below are fixed where they
+are used; all are model choices and none is fitted. Numerical tolerances (such
+as the millimetre a ray starts above the point it is cast from) and the log's
+default length of 200 records are not listed.
+
+The body (`fly.ts`):
+
+- gravity, 9.81 m/s²;
+- the drawn attitude's drag, 3 /s, and the wingbeat frequency reaching the ends
+  of its ±5 % range at ±0.5 g of load away from 1 g (drawing only);
+- the left/right stroke amplitudes, ±15 % at 300 rad/s² of yaw acceleration
+  (drawing only);
+- easing at rest and while grooming of the drawn pitch and roll (50 ms), the
+  wings (40 ms) and the legs (30 ms), and the legs' extension for landing
+  (40 ms);
+- walking: the speed follows its command with a 100 ms time constant, and a
+  step goes ahead only onto a top within 4 mm of the current one;
+- the takeoff: a drawn nose-down lean of 0.15 rad during the preparation, a
+  50° jump elevation, and short-mode below 100 ms of preparation;
+- flight bouts: exponential with mean `flightBoutMeanS`, clamped to 1.5–20 s;
+- contacts and touchdowns: a walkable top's normal at least 0.7 vertical; a
+  contact lasting while its surface is within the standing height plus 1 mm;
+  30 % of the speed along a surface kept at the first touch; the feet within
+  1.5 mm of the target and a surface within 2 mm under them for a touchdown;
+  a 0.1 m/s climb after an abort;
+- the sites on offer: visible when the line to a site is clear to within 1 cm
+  of it; a target's size, for extending the legs, taken from its smaller
+  half-width and at least 1 cm;
+- the gait reads as standing below 0.05 cm/s.
+
+The controller (`controller.ts`):
+
+- light scales the takeoff and walking-start rates and phototaxis, floored at
+  0.2 of full;
+- the home tether turns at 1.2 rad/s per metre outside the home range, counting
+  at most 2 m;
+- spontaneous takeoff headings within ±0.3 rad of the current heading; a
+  walking bout's speed from the lower 80 % of the walking range;
+- walking turns: ±3 rad/s for 0.4–0.8 s at an edge, up to ±2 rad/s for
+  0.15–0.45 s spontaneously, and at most ±6 rad/s in all;
+- cruise: no slower than 0.4 of the cruise speed in clutter; altitude held
+  with a gain of 1.5 /s, at most ±0.3 m/s, and 0.3 m below the home range's
+  ceiling (gain 2 /s, at most 0.3 m/s down); yaw rate at most ±3 rad/s;
+- saccades: amplitudes clamped to 30–170°, and 0.7 of the cruise speed during
+  an avoidance saccade;
+- a hover pause lasting 0.5–1.5 times `hoverMeanS`;
+- landing: sites nearer than 5 cm are skipped; a site scores the cosine of its
+  bearing, plus up to 0.5 at random, minus its distance over `landingSearchM`;
+  the point is drawn within 60 % of the site's half-widths from its centre; the
+  approach turns at 4 /s times the bearing error (at most ±6 rad/s), and not at
+  all within 3 cm horizontally; an abandoned landing leaves at 0.15 m/s forward
+  and 0.1 m/s up;
+- starting values the first decision replaces: a 1 m cruise altitude and a
+  2 cm/s walking speed.
+
+The senses (`senses.ts`):
+
+- the ray fan: seven rays at 0°, ±12°, ±30° and ±60°, level and, in flight,
+  also pitched 0.35 rad down, reaching 3 m in flight and 5 cm perched; a
+  downward ray that meets a top is not an obstacle ahead;
+- expansion measured only between samples less than 0.1 s apart;
+- sensing noise: relative, with a standard deviation of 0.58 times the noise
+  level (the sum of four uniform draws).
+
+The world queries (`world.ts`):
+
+- landing sites: a box's whole top; on a cylinder, a square of half-width 0.7
+  of its radius; on a sphere, the square inscribed in the cap that is flat to
+  2 mm;
+- light: the sun traced up to 400 m; a point light's inverse-square falloff
+  floored at 0.05 m²; a direction reported only when one source gives more
+  than half the light;
+- terrain rays: a sample every 0.25 m, at most 4 096 per ray, and 24
+  bisections on a hit;
+- the primitives near a ray's origin listed once for reaches of 0.5, 3 and
+  13 m (a speed-up only; a test checks it finds what a check of every
+  primitive finds).
+
+The gate (`neural.ts`, `LIMITS`): 1.5 m/s, 4π rad/s, a 180° saccade, 10–500 ms
+of preparation, 3 mm for a landing point, and 500 characters for a reason and
+200 for a site id.
+
+## The decision gate
+
+Every command from a decision maker passes `validateCommand` before the body
+sees it, and the gate never throws: it reads the command once into a plain
+copy, and anything malformed (not an object, an unknown field, a wrong type, a
+getter that throws) is refused. An accepted command:
+
+- makes a transition the body's current mode allows (`COMMANDABLE`);
+- carries only the fields that mode uses, each finite and in range: a velocity
+  up to 1.5 m/s and a hover flag when airborne, a yaw rate up to 4π rad/s when
+  walking, flying or landing, a saccade up to 180° in flight, a walking speed
+  from 0 to the body's 4 cm/s when walking, and a heading and a preparation of
+  10–500 ms when taking off or escaping;
+- names one of the five grooming routines when grooming;
+- gives a reason of at most 500 characters;
+- for a landing, names a site the body offered with this decision and a point
+  on its top: inside the site's rectangle and within 3 mm of the surface there.
+
+In flight and while landing, the body offers the flat tops within
+`landingSearchM` that it has a clear line to, the surface straight below the
+fly, and the site it is approaching. A refused command, or a decision maker
+that throws, is counted and logged, and the body holds in a way that suits its
+mode: it hovers in flight or while landing, stops when walking, keeps grooming,
+and stays put at rest; a takeoff or escape under way completes. Apart from
+that, it never keeps running the last accepted command. Decision makers get
+frozen copies of the body, the frame, the sites and the parameters, so none
+can widen the gate by writing to them.
+
+`FlyNeuralAdapter` is the seam for other controllers (a connectome-constrained
+model, say). Tests drive the fly with adapters that send malformed or
+out-of-range commands, throw, write to their inputs, or take off and then
+misbehave, and check that the fly holds. Neither the controller nor an LLM can
+reach the body around the gate, and the R.A.I.N. backend's own authorization
+and verification apply on top (see the lab guide).
+
+## Performance
+
+Measured on this ARM laptop (Node 24, 400 s of city time with the
+360-pedestrian profile, after a warm-up): the fly costs about 0.16 ms per 0.1 s
+city tick, about a third of the city's own step (0.51 ms). Sensing dominates it: each sample
+casts its short rays against a list of the primitives near the fly, made once
+per sample, instead of against the whole neighbourhood; a test checks that the
+lists never miss a surface a check of every primitive finds. The leg solver takes about 0.4–1 ms
+per frame and runs only while the fly is at least 4 pixels long on screen
+(within about 0.5–1 m depending on the screen, or in the close-up); further off the fly keeps its
+last pose. The reduced mesh
+is 90 KB (31 KB gzipped) and the full one 547 KB (194 KB gzipped), each loaded
+on first need. When the view unmounts, the fly and its locator ring are taken
+out of the scene and their geometry and materials disposed, and a mesh that
+finishes loading afterwards is dropped. A new city, with a new fly, restarts
+the drawing's interpolation, so the drawn fly does not slide over from where
+the old one was. Without WebGL the city's existing fallback applies and the
+fly still runs. No React state changes per frame: the panel reads the fly four
+times a second.
+
+## Tests
+
+`src/bethesda/fly/fly.test.ts` and `cityFly.test.ts`:
+
+- scale and frames;
+- FlyBody's 67 bodies and 102 hinges;
+- the codec, and the meshes against their manifest;
+- gait duty, stance counts and coordination;
+- the 150° eye field and its blind sector;
+- world queries: a ray or perch query with input that is not finite finds
+  nothing and every terrain march ends; a crown is offered as a site only where
+  it is flat to 2 mm;
+- parameter provenance, override refusals, ranges (refused outside, frozen
+  once resolved), and runs at both ends of every model parameter's range;
+- the command gate: impossible transitions, out-of-range values and missing
+  reasons; malformed commands of every kind refused without throwing; only the
+  known grooming routines; landings only on an offered site at a point on its
+  top; frozen inputs no decision maker can widen; a decision maker that takes
+  off, or walks, and then misbehaves, after which the fly hovers, or stops; a
+  landing target changed during the approach; and a rogue adapter that never
+  moves the fly;
+- determinism across seeds and step sizes;
+- a fly placed in flight with a velocity, and impossible starts refused;
+- the velocity tracker within the acceleration limit at time constants from 0
+  to 2 s;
+- bounded dynamics that never enter a solid;
+- state alternation, and landings at the simulator's crouch of FlyBody's
+  height;
+- a contact counted once, when it begins, while the fly slides along the
+  surface;
+- touchdowns on tree crowns that move the fly no more than its own step plus
+  the 2 mm gap, and a touchdown aborted, not snapped, when its surface is not
+  there;
+- an escape away from a looming stimulus; repeated looms that stop setting off
+  escapes, each escape taking 22 % of the responsiveness left, and a fresh
+  escape after a rest;
+- glass seen through but hit;
+- no landing stuck among obstacles;
+- the drawn pose: feet on the surface and lifted in swing, joints within
+  FlyBody's ranges;
+- the city hash with and without the fly, home range, same city same fly, and
+  pausing;
+- the drawn street trees, lamps and benches near the fly are solid to it, and
+  the per-sample ray lists find the nearest surface a full check finds;
+- a visitor walking straight at the fly makes it escape through the looming
+  pathway, and one standing 3 m away for 20 s does not.
+
+`scripts/validate-bethesda.ts` checks:
+
+- every FlyBody output hash and the licence hash;
+- that every mesh decodes and its counts match;
+- that the VFB reference holds every term the controller cites;
+- that the controller does not claim to simulate neurons;
+- that the fly's source digest, which every fly plan and record binds
+  (`src/rain/scientific/flySource.ts`), matches the code; after a change to the
+  fly, `node scripts/run-ts.mjs scripts/fly-source.ts` rewrites it.
+
+## Limitations
+
+- Reduced-order dynamics, not FlyBody's physics or trained policies (above).
+- The giant-fiber, phototaxis and avoidance responses are proxies with
+  published timings, not models of the circuits that produce them.
+- Light is a proxy without day, night or spectrum; storms only dim it.
+- Moving things are seen, never touched: people and vehicles pass through the
+  fly. People are two spheres (legs and torso), smaller to the fly than a real
+  body, so a visitor walking at it gets within about a metre before it
+  escapes.
+- Facade windows are not mapped, so a city fly cannot hit or see a window.
+- The legs are placed, not pressed: no ground reaction forces, and a foot can
+  slide slightly while turning.
+- The wing stroke is FlyBody's prototype pattern, not a measured or trained
+  one.
+- The fly stands 0.8 of FlyBody's zero-pose height above a surface, a drawing
+  choice (see [Contacts and landings](#contacts-and-landings)).
+- The fly lands on furniture, lamp and tree tops and the ground, not on walls
+  or ceilings.
+- The city's solids are not all the drawn shapes. Tree crowns and planter
+  shrubs are spheres the renderer stretches (crowns to 0.85–1.15 of their
+  height, shrubs to 0.8), so a fly on a shrub stands 7.6 cm above its drawn top
+  and a large crown's top can be 36 cm off; lamp globes are flat-topped
+  cylinders, trunks and poles untapered cylinders, and a street bench's slats
+  one slab (see [Senses and the world](#senses-and-the-world)).
+- Awnings, rooftop units, facade relief, bus shelters, signal masts, signs,
+  bike docks, artworks, construction fencing and the other objects listed above
+  are drawn but not in the fly's world, so it can pass through them, and
+  courtyards are solid roof to it.

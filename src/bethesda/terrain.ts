@@ -37,3 +37,4 @@ export function elevationAt(p: Point): number {
 }
 export const groundAt = (p: Point) => elevationAt(p) - VERTICAL_OFFSET;
 export const minimumGround = Math.min(...grid.elevations) - VERTICAL_OFFSET;
+export const maximumGround = Math.max(...grid.elevations) - VERTICAL_OFFSET;
