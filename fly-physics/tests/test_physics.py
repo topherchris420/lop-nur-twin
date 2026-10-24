@@ -66,6 +66,25 @@ def test_mujoco_puts_the_claws_where_pose_ts_does():
 
 
 @needs_flybody
+def test_the_compiled_filters_are_read_from_the_model():
+    """template_task's joint filter is in the compiled model; its adhesion filter is not.
+
+    Pinned for dm_control 1.0.50 and MuJoCo 3.17.0: if a version changes either,
+    this fails, and the README's account of the compiled model must be checked."""
+    from fly_physics.replay import _actuator_lags, _lead_steps
+    from flybody.fly_envs import template_task
+
+    env = template_task(random_state=np.random.RandomState(0), time_limit=1.0)
+    env.reset()
+    lags = _actuator_lags(env.physics.model.ptr)
+    assert lags["joint_filter_s"] == pytest.approx(0.01)
+    assert lags["adhesion_filter_s"] == 0.0
+    assert 0.009 < lags["joint_lag_s"] < 0.02
+    steps, seconds = _lead_steps("model", lags["joint_filter_s"] + lags["joint_lag_s"])
+    assert steps == 12 and seconds == pytest.approx(0.024)
+
+
+@needs_flybody
 @needs_trace
 def test_a_replay_is_deterministic_and_stands():
     tr = _short(load(TRACE), 0.1)

@@ -126,12 +126,21 @@ class Recording:
     body_parts_touching: dict = field(default_factory=dict)
 
 
-FILTERED = (mujoco.mjtDyn.mjDYN_FILTER, mujoco.mjtDyn.mjDYN_FILTEREXACT)
+# MuJoCo's enums compare as integers only one way round (a NumPy integer `in` a
+# tuple of enum members is False), so every type field is compared as an int.
+FILTERED = {int(mujoco.mjtDyn.mjDYN_FILTER), int(mujoco.mjtDyn.mjDYN_FILTEREXACT)}
+NO_DYNAMICS = int(mujoco.mjtDyn.mjDYN_NONE)
+JOINT = int(mujoco.mjtTrn.mjTRN_JOINT)
+CAPSULE, SPHERE, BOX = (
+    int(mujoco.mjtGeom.mjGEOM_CAPSULE),
+    int(mujoco.mjtGeom.mjGEOM_SPHERE),
+    int(mujoco.mjtGeom.mjGEOM_BOX),
+)
 
 
 def _time_constant(m, a: int) -> float:
     """An actuator's activation filter time constant (s), or 0 without one."""
-    return float(m.actuator_dynprm[a, 0]) if m.actuator_dyntype[a] in FILTERED else 0.0
+    return float(m.actuator_dynprm[a, 0]) if int(m.actuator_dyntype[a]) in FILTERED else 0.0
 
 
 def _actuator_lags(m) -> dict:
@@ -145,7 +154,7 @@ def _actuator_lags(m) -> dict:
         if not any(s in name for s in ("coxa", "femur", "tibia", "tarsus")):
             continue
         filters.append(_time_constant(m, a))
-        if m.actuator_trntype[a] == mujoco.mjtTrn.mjTRN_JOINT:
+        if int(m.actuator_trntype[a]) == JOINT:
             j = m.actuator_trnid[a, 0]
             kp = float(m.actuator_gainprm[a, 0])
             joints.append(float(m.dof_damping[m.jnt_dofadr[j]]) / (kp + float(m.jnt_stiffness[j])))
@@ -180,11 +189,12 @@ def _bottom(m, d, g: int) -> float | None:
     size = m.geom_size[g]
     R = d.geom_xmat[g].reshape(3, 3)
     z = d.geom_xpos[g][2]
-    if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_CAPSULE:
+    kind = int(m.geom_type[g])
+    if kind == CAPSULE:
         return float(z - size[0] - size[1] * abs(R[2, 2]))
-    if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_SPHERE:
+    if kind == SPHERE:
         return float(z - size[0])
-    if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_BOX:
+    if kind == BOX:
         return float(z - np.abs(R[2, :]) @ size)
     return None
 
@@ -275,7 +285,7 @@ def replay(trace: Trace, options: Options | None = None, seed: int = 0) -> Recor
     a0 = action(0)
     for i in range(m.nu):
         name = (mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_ACTUATOR, i) or "").split("/")[-1]
-        if m.actuator_dyntype[i] != mujoco.mjtDyn.mjDYN_NONE and name in index:
+        if int(m.actuator_dyntype[i]) != NO_DYNAMICS and name in index:
             d.act[m.actuator_actadr[i]] = a0[index[name]]
     mujoco.mj_forward(m, d)
     walker = {
