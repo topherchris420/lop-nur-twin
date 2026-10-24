@@ -137,3 +137,19 @@ domains under CC-BY-NC-SA 4.0; none of their geometry is included, and the
 fly's panel links to VFB instead. Cite: Court R, Costa M, Pilgrim C, et al.
 Virtual Fly Brain - an interactive atlas of the Drosophila nervous system.
 Front. Physiol. 14:1076533 (2023). https://doi.org/10.3389/fphys.2023.1076533
+
+Grooming ethograms (the digital fly's grooming calibration)
+-----------------------------------------------------------
+
+`src/bethesda/fly/data/grooming-reference.json` holds summary statistics that
+`scripts/import-fly-grooming.ts` computed from the per-frame ethograms of dusted
+and undusted Canton S flies (`CantonS_dusted.mat`, `CantonS_undusted.mat`) and
+constants read from the model code (`groomingmodel.m`) of the dataset Zhang N,
+Guo L, Simpson JH. Spatial comparisons of mechanosensory information govern the
+grooming sequence in Drosophila. Mendeley Data, V1 (2020),
+https://doi.org/10.17632/fxz8dgywcd.1, licensed CC BY 4.0
+(https://creativecommons.org/licenses/by/4.0/). The ethograms were reduced to
+summary statistics; no per-frame data are kept, and the file records each
+source file's hash and the retrieval time. The paper it accompanies: Zhang N,
+Guo L, Simpson JH. Curr Biol 30:988-1001 (2020),
+https://doi.org/10.1016/j.cub.2020.01.045.
