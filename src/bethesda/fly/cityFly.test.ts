@@ -14,6 +14,7 @@ import { groundAt } from "../terrain";
 import { bounds, buildingAt, buildings, inBounds, inside } from "../model";
 import { BethesdaFlyWorld } from "./bethesdaWorld";
 import { CITY_START_RESERVE, CityFly } from "./cityFly";
+import { People } from "./people";
 import { PARAMS } from "./params";
 import type { V3 } from "./units";
 import {
@@ -302,6 +303,21 @@ describe("the fly in Bethesda", () => {
     expect(a.placedOn).toBe(b.placedOn);
     expect(a.fly.stateHash()).toBe(b.fly.stateHash());
   });
+  it("has the same people looking at the same fly, for the same city, whoever else watches", () => {
+    const run = (panel: boolean) => {
+      const sim = new CitySimulation({ ...config, pedestrians: 140 });
+      const city = new CityFly(sim);
+      for (let k = 0; k < 3000; k++) {
+        sim.step();
+        city.tick();
+        // Reading the people, as the panel and the renderer do, changes nothing.
+        if (panel) city.people.pose("p1", city.fly.state.t);
+      }
+      expect(city.failed).toBeNull();
+      return city.stateHash();
+    };
+    expect(run(true)).toBe(run(false));
+  }, 60_000);
   it("catches up over several city ticks at once, with the city interpolated across them", () => {
     const sim = new CitySimulation(config);
     const city = new CityFly(sim);
@@ -372,8 +388,13 @@ describe("the fly in Bethesda", () => {
     const sim = new CitySimulation(config);
     const kept = new BethesdaFlyWorld(sim),
       every = new BethesdaFlyWorld(sim);
+    // With people attached the kept list covers how far they can see the fly too.
+    const folk = new People({ seed: 1, sight: () => true, where: () => null });
+    kept.attachPeople(folk);
+    every.attachPeople(folk);
     const rng = mulberry32(5);
-    let found = 0;
+    let found = 0,
+      people = 0;
     for (let k = 0; k < 300; k++) {
       sim.step();
       // The fly a metre over someone's path, somewhere in the city.
@@ -396,9 +417,13 @@ describe("the fly in Bethesda", () => {
         every.movers(near, PARAMS.visualRangeM.value, b, t);
         expect(a).toEqual(b);
         found += a.length;
+        const seen = kept.peopleNear(t, near, folk.range);
+        expect(seen).toEqual(every.peopleNear(t, near, folk.range));
+        people += seen.length;
       }
     }
     expect(found).toBeGreaterThan(100);
+    expect(people).toBeGreaterThan(100);
   }, 60_000);
   it("forages: in its first half hour it smells food, finds it and feeds", () => {
     const sim = new CitySimulation(config);

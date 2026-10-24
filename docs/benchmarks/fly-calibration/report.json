@@ -1,6 +1,6 @@
 {
   "schema": "fly-calibration-report/v1",
-  "flyVersion": "digital-fly/6",
+  "flyVersion": "digital-fly/7",
   "subjects": [
     { "id": "reduced-order-fsm/v1", "label": "Reduced-order behavioural controller" },
     { "id": "circuit-informed/v1", "label": "Circuit-informed controller" }

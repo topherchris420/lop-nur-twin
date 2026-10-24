@@ -59,7 +59,7 @@ import {
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/6";
+export const FLY_VERSION = "digital-fly/7";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;

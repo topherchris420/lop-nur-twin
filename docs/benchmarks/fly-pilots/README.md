@@ -22,10 +22,10 @@ the redesign added (FLY_METRICS) come from `floors`;
 
 | pilot | fly version | flySource digest | fly identity | engine | code | runs digest | outputs digest |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| adaptation | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `45c53de92b37` | `e2882f456e4a` |
-| noisy_sensing | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `33a39fa29ff7` | `3bf02c19ae9d` |
-| obstacle_avoidance | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `0941978f5aa1` | `97b352b3a0b4` |
-| visual_threat | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `4798d6fb32ee` | `0e4e54818d99` |
+| adaptation | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `73752965e854` | `e2882f456e4a` |
+| noisy_sensing | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `65ae5b4d32af` | `3bf02c19ae9d` |
+| obstacle_avoidance | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `358e3f7e0d50` | `97b352b3a0b4` |
+| visual_threat | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `9d5eec4ec291` | `0e4e54818d99` |
 
 `npm run rain:fly -- --pilot --check` re-runs every pilot exactly from its
 recorded definition and compares the digests of its runs (final state hashes,

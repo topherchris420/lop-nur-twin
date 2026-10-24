@@ -50,9 +50,11 @@ import {
 import { mappedBenches, mappedLamps, mappedTrees, storefronts } from "../streetscape";
 import { groundAt, maximumGround } from "../terrain";
 import type { CitySimulation } from "../simulation";
+import { agentHeading } from "../facing";
 import { LIMITS } from "./neural.js";
+import type { People, PersonView } from "./people.js";
 import { PARAMS } from "./params.js";
-import type { V3 } from "./units.js";
+import { type V3, yawOf } from "./units.js";
 import {
   ODOUR_LENGTH_M,
   PrimitiveWorld,
@@ -79,6 +81,7 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "procedural footpath trees and sidewalk lamps, benches and planters (drawn, not mapped)",
     "pedestrians, vehicles and the visitor (city simulator), seen only",
     "food at the door of every mapped place that sells or serves food or drink (OSM)",
+    "people who see the fly, notice it, follow it with their eyes and sometimes swat at it (`people.ts`); the fly sees their hands",
   ],
   proxies: [
     "light: open sun or building shade, relative units, dimmed in storms by the renderer's sun ratio",
@@ -86,6 +89,7 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "tree crowns, lamp globes and planter shrubs are smooth ellipsoids through the corners of the faceted shapes the renderer draws: their tops are drawn corners and match, and elsewhere the drawn faces lie inside them by up to 6.6 % of the radius (crowns, icosahedra; 16 cm on the largest), 10 % (globes) and 7 % (shrubs)",
     "lamp poles and tree trunks are round tapered cylinders through the corners of the drawn ones: the drawn faces lie inside by up to 19 % of the radius (five-sided street-tree trunks), 13 % (six-sided mapped trunks) and 8 % (eight-sided poles)",
     `food: each mapped food place stands for a patch ${FOOD_PATCH_RADIUS_M * 200} cm across on the ground ${FOOD_DOOR_M} m out from its building's wall (its bins, spills, tables), the same at every place; its odour falls off as e^(−d/${ODOUR_LENGTH_M} m) in still air, with no wind or plume, and does not pass through buildings or other solids (nor flow round them)`,
+    "people see the fly by its size against their acuity, not its contrast or motion; a swatting hand is a 5 cm sphere, seen and never touched",
   ],
   // Senses the fly lacks everywhere are `UNSUPPORTED_SENSES`; these are this world's gaps.
   unsupported: [
@@ -201,13 +205,15 @@ export function homeSeat(
 /** Room to spare round the fly's sight when keeping the moving things a span needs (m). */
 const MOVERS_SPARE_M = 2;
 
-/** A mover's position at a city tick, and the ground under it once asked for. */
+/** A mover's position at a city tick, the ground under it once asked for, and a pedestrian's facing (yaw). */
 interface Located {
   x: number;
   z: number;
   g?: number;
+  heading?: number;
 }
-const located = (p: Point): Located => ({ x: p.x, z: p.z });
+const located = (p: Point, heading?: number): Located =>
+  heading === undefined ? { x: p.x, z: p.z } : { x: p.x, z: p.z, heading };
 /** The ground under a mover, found the first time it is needed. */
 const groundOf = (l: Located): number => (l.g ??= groundAt(l));
 
@@ -235,6 +241,8 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
   private moving: { id: string; a: Located; b: Located }[] = [];
   private around: V3 | null = null;
   private covered = 0;
+  /** The people who may notice the fly and swat at it; their hands are moving things too. */
+  private people: People | null = null;
   private t0 = 0;
   private t1 = 0.1;
   private weather: { stormy: boolean };
@@ -490,7 +498,9 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
   private index(around: V3 | null, span: number): void {
     this.moving = [];
     this.around = around && [around[0], around[1], around[2]];
-    this.covered = PARAMS.visualRangeM.value + LIMITS.flightSpeed * span + MOVERS_SPARE_M;
+    // The farther of the fly's sight and how far people can see it.
+    const sight = Math.max(PARAMS.visualRangeM.value, this.people?.range ?? 0);
+    this.covered = sight + LIMITS.flightSpeed * span + MOVERS_SPARE_M;
     for (const [id, b] of this.curr) {
       const a = this.prev.get(id) ?? b;
       if (around) {
@@ -515,10 +525,81 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
     const out = new Map<string, Located>();
     for (const a of this.sim.agents) {
       if (a.inside || a.riding !== 0) continue;
-      out.set(`${a.kind === "pedestrian" ? "p" : "v"}${a.id}`, located(a.point));
+      if (a.kind !== "pedestrian") {
+        out.set(`v${a.id}`, located(a.point));
+        continue;
+      }
+      // The way the renderer turns them, in the yaw `units.ts` measures.
+      const h = agentHeading(a, this.sim.events, a.point.x, a.point.z);
+      out.set(`p${a.id}`, located(a.point, yawOf(Math.sin(h), Math.cos(h))));
     }
     out.set("player", located(this.sim.player));
     return out;
+  }
+
+  /** The people who notice the fly (the city's pedestrians): their swatting hands are moving things too. */
+  attachPeople(people: People): void {
+    this.people = people;
+  }
+
+  /** A pedestrian at time `t` of the span, or null when the city has no such pedestrian outdoors. */
+  personAt(id: string, t: number): PersonView | null {
+    const b = this.curr.get(id);
+    if (!b || !id.startsWith("p")) return null;
+    return this.interpolated(id, this.prev.get(id) ?? b, b, t);
+  }
+
+  /** The pedestrians within `radius` (horizontally) of `near` at time `t`, in the city's order. */
+  peopleNear(t: number, near: V3, radius: number): PersonView[] {
+    const out: PersonView[] = [];
+    const u = this.share(t);
+    for (const { id, a, b } of this.kept(near, radius)) {
+      if (!id.startsWith("p")) continue;
+      if (
+        Math.hypot(a.x + (b.x - a.x) * u - near[0], a.z + (b.z - a.z) * u - near[2]) >
+        radius
+      )
+        continue;
+      out.push(this.interpolated(id, a, b, t));
+    }
+    return out;
+  }
+
+  /**
+   * The moving things a query within `reach` of `near` may find: the list
+   * kept for the span when the query lies inside the disc it covers (a mover
+   * stays inside the box its path spans), else every one, in the same order.
+   */
+  private kept(
+    near: V3,
+    reach: number,
+  ): readonly { id: string; a: Located; b: Located }[] {
+    const inside =
+      !this.around ||
+      Math.hypot(near[0] - this.around[0], near[2] - this.around[2]) + reach <=
+        this.covered;
+    return inside
+      ? this.moving
+      : [...this.curr].map(([id, b]) => ({ id, a: this.prev.get(id) ?? b, b }));
+  }
+
+  /** How far through the span time `t` is, 0 to 1. */
+  private share(t: number): number {
+    return this.t1 > this.t0
+      ? Math.min(1, Math.max(0, (t - this.t0) / (this.t1 - this.t0)))
+      : 1;
+  }
+
+  private interpolated(id: string, a: Located, b: Located, t: number): PersonView {
+    const u = this.share(t);
+    const ga = groundOf(a);
+    return {
+      id,
+      x: a.x + (b.x - a.x) * u,
+      z: a.z + (b.z - a.z) * u,
+      g: ga + (groundOf(b) - ga) * u,
+      heading: b.heading ?? a.heading ?? 0,
+    };
   }
 
   /**
@@ -536,22 +617,9 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
   }
 
   override movers(near: V3, radius: number, out: Mover[], t: number): void {
-    const u =
-      this.t1 > this.t0
-        ? Math.min(1, Math.max(0, (t - this.t0) / (this.t1 - this.t0)))
-        : 1;
+    const u = this.share(t);
     const reach = radius + 2;
-    // The list kept for the span holds everything a query inside the covered
-    // disc can find (a mover stays inside the box its path spans); any other
-    // query looks at every moving thing.
-    const kept =
-      !this.around ||
-      Math.hypot(near[0] - this.around[0], near[2] - this.around[2]) + reach <=
-        this.covered;
-    const list = kept
-      ? this.moving
-      : [...this.curr].map(([id, b]) => ({ id, a: this.prev.get(id) ?? b, b }));
-    for (const { id, a, b } of list) {
+    for (const { id, a, b } of this.kept(near, reach)) {
       const x = a.x + (b.x - a.x) * u,
         z = a.z + (b.z - a.z) * u;
       if (Math.hypot(x - near[0], z - near[2]) > reach) continue;
@@ -565,5 +633,7 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
         out.push({ id: `${id}:torso`, kind, center: [x, g + 1.3, z], radius: 0.38 });
       }
     }
+    // The hands of people swatting at the fly.
+    this.people?.hands(t, near, radius, out);
   }
 }

@@ -11,8 +11,9 @@ import { REDUCED_ORDER_DESCRIPTOR, ReducedOrderController } from "./controller";
 import source from "./data/flybody.source.json" with { type: "json" };
 import { FLY_VERSION } from "./fly";
 import type { FlyViewControl } from "./FlyView";
-import { CITATIONS, citationUrl, PARAMS, type Param, type ParamName } from "./params";
+import { CITATIONS, citationUrl, PARAMS, type Param } from "./params";
 import { doiUrl, VFB_REFERENCE, VFB_TERMS, vfbUrl } from "./reference";
+import { PEOPLE_PARAMS, perceive } from "./people";
 import { UNSUPPORTED_SENSES } from "./senses";
 import { SKELETON } from "./skeleton";
 import { radToDeg } from "./units";
@@ -61,6 +62,47 @@ function Row({
         ) : null}
       </dd>
     </div>
+  );
+}
+
+/** A parameter table: each value, its range where it can vary, its kind, source and note. */
+function ParamTable({ params }: { params: Readonly<Record<string, Param>> }) {
+  return (
+    <table className="mt-1 w-full text-left">
+      <thead>
+        <tr className="text-slate-300">
+          <th className="pr-2 font-normal">Parameter</th>
+          <th className="pr-2 font-normal">Value</th>
+          <th className="font-normal">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(params).map(([name, p]) => (
+          <tr key={name} className="align-top">
+            <td className="pr-2 font-mono text-[10px]">{name}</td>
+            <td className="pr-2">
+              {Number(p.value.toPrecision(4))} {p.unit}
+              {p.min !== p.max ? (
+                <span className="block text-slate-300">
+                  range {Number(p.min.toPrecision(4))}–{Number(p.max.toPrecision(4))}
+                </span>
+              ) : null}
+            </td>
+            <td>
+              {KIND_LABEL[p.kind]}
+              {p.source ? (
+                <>
+                  {" · "}
+                  <Link href={citationUrl(p.source)}>{p.source.short}</Link>
+                </>
+              ) : null}
+              {" · "}
+              <span className="text-slate-300">{p.note}</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -122,6 +164,23 @@ export function FlyPanel({
     (best, place) => Math.min(best ?? Infinity, byEstimate(place.at)),
     null,
   );
+  // The nearest person, and what they can make of the fly as it is now.
+  const folk = city.people;
+  const nearestPerson = city.world
+    .peopleNear(s.t, s.p, folk.range)
+    .map((person) => ({ person, d: Math.hypot(person.x - s.p[0], person.z - s.p[2]) }))
+    .sort((a, b) => a.d - b.d)[0]?.person;
+  const known = nearestPerson ? folk.state.persons[nearestPerson.id] : undefined;
+  const seenBy = nearestPerson
+    ? perceive(
+        folk.params,
+        nearestPerson,
+        { p: s.p, flying },
+        known !== undefined && known.aware && s.t >= known.lookFrom,
+        (a, b) => city.clearLine(a, b),
+      )
+    : null;
+  const peopleRecent = folk.log.slice(-3).reverse();
   return (
     <section
       aria-label="Digital fly"
@@ -286,6 +345,41 @@ export function FlyPanel({
               "Not reported by this controller."
             )}
           </Row>
+          <Row label="People" evidence="simulated">
+            {seenBy ? (
+              <>
+                The nearest person is {seenBy.distance.toFixed(1)} m from it
+                {known?.aware
+                  ? " and has noticed it"
+                  : seenBy.inSight
+                    ? " and could see it now"
+                    : !seenBy.inField
+                      ? ": it is outside their field of view"
+                      : !seenBy.resolved
+                        ? `: too small for them there (it spans ${seenBy.sizeArcmin.toFixed(1)}′, ${seenBy.eccentricityDeg.toFixed(0)}° from where they look, where they need ${seenBy.neededArcmin.toFixed(1)}′)`
+                        : ": something stands between them"}
+                .{" "}
+              </>
+            ) : (
+              `No one is near enough to see it (a person resolves it at most ${folk.range.toFixed(0)} m away). `
+            )}
+            Noticed {folk.state.counts.noticed}{" "}
+            {folk.state.counts.noticed === 1 ? "time" : "times"}, swatted at{" "}
+            {folk.state.counts.swats} {folk.state.counts.swats === 1 ? "time" : "times"}
+            {folk.state.counts.reached
+              ? ` (${folk.state.counts.reached} reached it: a hand is seen, never felt)`
+              : ""}
+            .
+            {peopleRecent.length ? (
+              <ul>
+                {peopleRecent.map((e, i) => (
+                  <li key={`${e.t}-${i}`}>
+                    {e.t.toFixed(1)} s · person {e.id.slice(1)} {e.what}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </Row>
           <Row label="Not sensed" evidence="unsupported">
             {[...new Set([...UNSUPPORTED_SENSES, ...inputs.unsupported])].join(", ")}
           </Row>
@@ -392,45 +486,17 @@ export function FlyPanel({
         </details>
         <details className="mt-2">
           <summary className="cursor-pointer">Parameters and their sources</summary>
-          <table className="mt-1 w-full text-left">
-            <thead>
-              <tr className="text-slate-300">
-                <th className="pr-2 font-normal">Parameter</th>
-                <th className="pr-2 font-normal">Value</th>
-                <th className="font-normal">Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(Object.keys(PARAMS) as ParamName[]).map((name) => {
-                const p: Param = PARAMS[name];
-                return (
-                  <tr key={name} className="align-top">
-                    <td className="pr-2 font-mono text-[10px]">{name}</td>
-                    <td className="pr-2">
-                      {Number(p.value.toPrecision(4))} {p.unit}
-                      {p.min !== p.max ? (
-                        <span className="block text-slate-300">
-                          range {Number(p.min.toPrecision(4))}–
-                          {Number(p.max.toPrecision(4))}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td>
-                      {KIND_LABEL[p.kind]}
-                      {p.source ? (
-                        <>
-                          {" · "}
-                          <Link href={citationUrl(p.source)}>{p.source.short}</Link>
-                        </>
-                      ) : null}
-                      {" · "}
-                      <span className="text-slate-300">{p.note}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <ParamTable params={PARAMS} />
+        </details>
+        <details className="mt-2">
+          <summary className="cursor-pointer">
+            People&apos;s parameters and their sources
+          </summary>
+          <p className="mt-1 text-slate-300">
+            How the city&apos;s people see the fly and swat at it. Published here means
+            reported for real people.
+          </p>
+          <ParamTable params={PEOPLE_PARAMS} />
         </details>
         <p className="mt-2 text-slate-300">
           Inputs this world gives the fly: {inputs.supported.join("; ")}. Proxies:{" "}

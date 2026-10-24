@@ -611,6 +611,13 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 - **Read-only toward the city.** The fly is not a recorded command and not in
   the city's state hash; `cityFly.test.ts` compares the hash with and without
   it. The city must never read the fly.
+- **People see the fly; the city never does.** `fly/people.ts` is a layer
+  stepped with the fly: the pedestrians near it see it through a bounded
+  model of human sight, notice it, follow it and sometimes swat, and the fly
+  sees their hands as moving things. The city simulator never reads it, and
+  its pedestrians walk on as the simulator moves them; only the renderer
+  reads it, to turn a head and draw an arm. Its numbers follow the fly's
+  rules: published values with a DOI, model values named as model choices.
 - **It touches what is drawn.** Street furniture, trees, and the rooftop units
   and awnings on buildings are placed and sized only in
   `src/bethesda/furniture.ts`, which the city builder and the fly's world both

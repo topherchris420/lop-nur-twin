@@ -144,7 +144,7 @@ export function citationUrl(c: Citation): string {
 }
 
 /** A FlyBody or published value: fixed, so its range is the value itself. */
-const fixed = (
+export const fixed = (
   value: number,
   unit: string,
   kind: "flybody" | "published",
@@ -156,7 +156,7 @@ const fixed = (
     : { value, unit, kind, min: value, max: value, note };
 
 /** A model value and the inclusive range an experiment may set it in. */
-const model = (
+export const model = (
   value: number,
   unit: string,
   [min, max]: readonly [number, number],

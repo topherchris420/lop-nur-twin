@@ -11,6 +11,7 @@ import { distance } from "./model";
 import { DT, type CitySimulation } from "./simulation";
 import type { ViewControl } from "./Scene";
 import { groundAt } from "./terrain";
+import { agentHeading } from "./facing";
 import { cityFoot, type FootTarget } from "./locomotion";
 
 const clothes = [
@@ -25,6 +26,9 @@ const clothes = [
 ];
 const skins = ["#bd9679", "#996e55", "#6c5042", "#d0ac8b", "#89654e"];
 const hairColors = ["#393029", "#655244", "#a18c68", "#9b9d94"];
+/** How far a figure's head turns toward the fly it watches (rad), and its arm's length per unit of height (m). */
+const HEAD_TURN = (80 * Math.PI) / 180;
+const ARM_LENGTH = 0.57;
 const carColors = [
   "#deddd4",
   "#293945",
@@ -281,15 +285,7 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
       const edge = (a.kind === "pedestrian" ? sidewalks : roads).edges[a.edge]!;
       const surface = a.kind === "pedestrian" ? (edge.crossing ? 0.14 : 0.2) : 0.13;
       const ground = groundAt({ x, z }) + surface;
-      let heading = edge.heading;
-      if (a.kind === "pedestrian" && ["watch", "record"].includes(a.action)) {
-        // `at` is where the simulator tracks the event (a procession's moving
-        // middle), not the compiled `point` where it started.
-        const event = sim.events.find(
-          (e) => e.kind !== "storm" && distance(e.at, a.point) < 100,
-        );
-        if (event) heading = Math.atan2(event.at.x - x, event.at.z - z);
-      }
+      const heading = agentHeading(a, sim.events, x, z);
       const sin = Math.sin(heading),
         cos = Math.cos(heading);
       let pitch = 0,
@@ -360,6 +356,32 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
           width = variation.width,
           detailed = distance(a.point, eye) < (view.tier === 0 ? 35 : 80),
           shirt = clothes[a.color]!;
+        // What this person makes of the city's fly (`fly/people.ts`) at the
+        // time drawn: where they look and the hand they swat with. The
+        // simulator never sees it; only the drawing turns a head and an arm.
+        const city = view.fly?.city;
+        const reaction = city?.people.pose(
+          `p${a.id}`,
+          city.fly.state.t - (1 - alpha) * DT,
+        );
+        const terrain = ground - surface;
+        // A world point in this figure's frame, from its feet on the terrain.
+        const toFigure = (p: readonly number[]) => {
+          const dx = p[0]! - x,
+            dz = p[2]! - z;
+          return { x: cos * dx - sin * dz, y: p[1]! - terrain, z: sin * dx + cos * dz };
+        };
+        let turn = 0;
+        if (reaction?.look) {
+          const at = toFigure(reaction.look);
+          turn = THREE.MathUtils.clamp(Math.atan2(at.x, at.z), -HEAD_TURN, HEAD_TURN);
+        }
+        // An offset from the head's axis, turned with the head.
+        const headTurned = (lx: number, lz: number) =>
+          [
+            lx * Math.cos(turn) + lz * Math.sin(turn),
+            -lx * Math.sin(turn) + lz * Math.cos(turn),
+          ] as const;
         const travel =
           (motion.travel -
             (1 - alpha) * Math.hypot(motion.x - motion.fromX, motion.z - motion.fromZ)) /
@@ -409,11 +431,12 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
           variation.skin,
         );
         if (detailed) {
+          const [hairX, hairZ] = headTurned(0, -0.017);
           local(
             "hair",
-            0,
+            hairX,
             (hip + 0.8) * height,
-            -0.012,
+            0.005 + hairZ,
             0.222 * height,
             0.24 * height,
             0.235 * height,
@@ -430,16 +453,21 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
             0.055 * height,
             variation.skin,
           );
-          for (const side of [-1, 1])
+          for (const side of [-1, 1]) {
+            const [faceX, faceZ] = headTurned(
+              side * 0.041 * height,
+              0.099 * height - 0.005,
+            );
             local(
               "face",
-              side * 0.041 * height,
+              faceX,
               (hip + 0.785) * height,
-              0.099 * height,
+              0.005 + faceZ,
               0.016,
               0.012,
               0.009,
             );
+          }
         }
         for (let i = 0; i < 2; i++) {
           const side = i ? 1 : -1,
@@ -504,6 +532,59 @@ export function Actors({ sim, view }: { sim: CitySimulation; view: ViewControl }
             ? Math.sin((travel / 1.1) * Math.PI * 2) * 0.16 * side
             : 0;
           const recording = a.action === "record" && side > 0;
+          if (reaction?.hand && reaction.side === side) {
+            // The swatting arm, from the shoulder toward the hand, as long as the arm.
+            const shoulderX = side * 0.235 * width,
+              shoulderY = (hip + 0.49) * height;
+            const at = toFigure(reaction.hand);
+            let dx = at.x - shoulderX,
+              dy = at.y - shoulderY,
+              dz = at.z;
+            const len = Math.hypot(dx, dy, dz),
+              arm = ARM_LENGTH * height;
+            if (len > arm) {
+              dx *= arm / len;
+              dy *= arm / len;
+              dz *= arm / len;
+            }
+            const elbowX = shoulderX + dx / 2,
+              elbowY = shoulderY + dy / 2 - 0.04 * height,
+              elbowZ = dz / 2;
+            segment(
+              "sleeve",
+              shoulderX,
+              shoulderY,
+              0,
+              elbowX,
+              elbowY,
+              elbowZ,
+              0.055 * width,
+              shirt,
+            );
+            segment(
+              "skin",
+              elbowX,
+              elbowY,
+              elbowZ,
+              shoulderX + dx,
+              shoulderY + dy,
+              dz,
+              0.04 * width,
+              variation.skin,
+            );
+            if (detailed)
+              local(
+                "hand",
+                shoulderX + dx,
+                shoulderY + dy,
+                dz,
+                0.075,
+                0.105,
+                0.07,
+                variation.skin,
+              );
+            continue;
+          }
           const shoulderX = side * 0.235 * width,
             elbowY = (hip + (recording ? 0.31 : 0.15)) * height,
             handY = (hip + (recording ? 0.46 : -0.08)) * height,

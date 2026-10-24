@@ -60,7 +60,8 @@ export interface Perch {
   kind: SurfaceKind;
   id: string;
 }
-export type MoverKind = "person" | "vehicle" | "player" | "stimulus";
+/** A person's body, a vehicle, the visitor, an arena's stimulus, or a person's hand swatting at the fly. */
+export type MoverKind = "person" | "vehicle" | "player" | "stimulus" | "hand";
 export interface Mover {
   id: string;
   kind: MoverKind;

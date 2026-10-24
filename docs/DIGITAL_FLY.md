@@ -10,7 +10,7 @@ simulated. The brain regions the panel names are a reference layer: where, in a
 real fly, the functions the controller imitates are known to be processed.
 Everything the simulator reports describes the simulator, not a fly.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/6`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/7`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
@@ -128,7 +128,10 @@ senses, controller).
 - the energy reserve, drawn on at each mode's metabolic power and refilled by
   feeding, and what the controller believes and remembers: its path-integrated
   position, the places it fed, the squares it has been in (see
-  [Energy, food, shelter and navigation](#energy-food-shelter-and-navigation)).
+  [Energy, food, shelter and navigation](#energy-food-shelter-and-navigation));
+- in the city, the people near the fly: what each makes of it, whether they
+  have noticed it, and their swats (see
+  [People who notice the fly](#people-who-notice-the-fly)).
 
 **Derived for drawing** (computed from the simulated state, never fed back):
 body pitch and roll that turn the hover thrust axis (FlyBody's 47.5° body
@@ -219,7 +222,7 @@ pass through the fly, and one that contains the fly is not seen at all.
 | World input            | In Bethesda                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | In a lab arena                                     |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | Surfaces and obstacles | OSM building footprints and heights, with their courtyards open and the rooftop units and shop awnings drawn on them; bare-earth terrain; the mapped benches, picnic tables, lamps and trees; and the procedural footpath trees and sidewalk lamps, benches and planters; each placed where the renderer draws it (`furniture.ts`): benches (slat by slat), tables, planters, rooftop units and awnings as their drawn boxes, poles and trunks as tapered cylinders, and lamp globes, crowns and shrubs as ellipsoids (below) | walls, ceiling, pillars, platforms                 |
-| Moving things          | city pedestrians and vehicles and the visitor, interpolated between city ticks; seen, never touched                                                                                                                                                                                                                                                                                                                                                                                                                           | looming spheres on a schedule; seen, never touched |
+| Moving things          | city pedestrians and vehicles and the visitor, interpolated between city ticks, and the hands of people swatting at the fly; seen, never touched                                                                                                                                                                                                                                                                                                                                                                              | looming spheres on a schedule; seen, never touched |
 | Light                  | **proxy**: open sun or building shade along the renderer's sun direction, dimmed in a storm by the renderer's storm/clear ratio                                                                                                                                                                                                                                                                                                                                                                                               | point lights and ambient                           |
 | Windows                | **unsupported**: not in the map data; facades are opaque                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | glass panes: invisible, solid                      |
 | Facade relief          | **unsupported**: drawn, not solid; a facade is a flat wall                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | none                                               |
@@ -390,6 +393,78 @@ its random draws come from a stream of its own, so a world with no food, no
 landmarks and no room for long flights draws nothing from the controller's
 main stream on its account.
 
+## People who notice the fly
+
+`digital-fly/7` makes perception run both ways. The fly sees the city's
+people as moving things (above); the people now see the fly through a
+bounded model of human sight (`people.ts`), the counterpart of the fly's own
+senses, and may do something about it. Neither knows what the other will do:
+a person sees where the fly is and whether it flies, never what it will do
+next, and the fly sees a hand coming at it, a moving thing like any other,
+which its own escape pathway answers or not. What happens between them comes
+from the two models running together.
+
+**What a person sees.** The pedestrians near the fly look at it twenty times
+a second as it advances. A person sees it only when it is inside their field
+of view (214° across, Strasburger, Rentschler & Jüttner 2011; 50° up and 70°
+down, model choices), when it spans at least their acuity at its
+eccentricity, and when nothing stands between them (glass is seen through).
+Their acuity is 1′ at the fovea, the 20/20 standard (as Ashraf, Chapiro &
+Mantiuk 2025 describe it; their observers resolved finer), and grows
+linearly with eccentricity, by the foveal value every 2.72° (E2, Kurzawski
+et al. 2023). The fly spans its body length perched and twice its wing
+length in flight, so a flying fly is resolved straight ahead out to about
+18 m, a perched one to about 10 m, and 30° to the side only within about
+1.5 m. It is a resolution bound, like the fly's own interommatidial angle:
+a fly's contrast and motion, which make small things easier to detect, are
+not modelled.
+
+**What a person does.** Seeing the fly is not noticing it: a person notices
+a flying fly in sight at 2 per second, a still one at a quarter of that
+(`noticeHz`, `stillNoticeShare`, model choices). Having noticed it they look
+at it after their reaction time (213 ms, the simple visual reaction time of
+Woods et al. 2015 corrected for its test's hardware delays) and follow it
+with their eyes while it stays in sight and within 130° of the way they walk
+(a model choice); out of sight for 2 s (`forgetS`) it is forgotten. When the
+fly they are looking at comes within reach in front of them (within 0.6 m of
+the shoulder on its side, `reachM`), they swat at it with probability 0.3
+(`swatP`, a model choice: swatting is a typical response to biting insects,
+Wynne et al. 2022, but no rate for a fly passing someone is published), once
+each time it comes within reach and at most once every 3 s after a swat.
+After the reaction time the hand on its side leaves their hip for where they
+last saw the fly, without predicting where it is going, in 335 ms (the
+duration of the slaps at a fictive mosquito in Wynne et al. 2022; longer if
+that would need a peak above their measured 8.01 m/s) along a minimum-jerk
+path, and comes back the same way.
+
+**What the fly sees.** A swatting hand is a moving thing of 5 cm radius
+(`handRadiusM`) in the fly's world. A fast one looms, the giant-fiber proxy
+may cross its threshold, and the fly makes an evasive saccade in flight or
+an escape jump when perched, as it would from anything else; a hand that
+does not loom enough leaves it be. Like every moving thing the hand is never
+touched: a swat that reaches the fly is counted ("reached"), not felt. In a
+test room where a person stands beside the hovering fly, a swat sometimes
+sets off the fly's evasive saccade and sometimes misses because the fly has
+already moved on during the half second it takes; with `swatP` 0 nothing
+looms at all.
+
+**Where it lives.** The people are a layer stepped with the fly, never part
+of the city simulator: the city never reads them, its pedestrians walk on
+as it moves them, and their draws come from a stream of their own, with
+their state in the city fly's hash. The renderer reads them only to turn a
+watcher's head toward the fly (by at most 80°) and to draw the swatting arm
+(at most 0.57 of the figure's height long). The panel's _People_ row says
+what the nearest person can make of the fly at that moment (in sight, too
+small at their eccentricity, outside their field, or hidden), how often it
+has been noticed and swatted at, and the last few things people did.
+
+**How often.** Rarely, because a fruit fly is small. In four two-hour runs of
+the 360-pedestrian city (city seeds 393977, 1, 2 and 3) people noticed the
+fly twice and never swatted at it: people seldom pass within a metre or two
+of the doors where it feeds, and a fly on the ground beside them is far
+below their acuity where they are looking. The visitor is not modelled: the
+visitor is the person at the screen, and the fly sees them as it sees anyone.
+
 ## In the city
 
 - The fly advances by the city's ticks: 0.1 s after each `sim.step()`, or,
@@ -417,8 +492,8 @@ main stream on its account.
   requested, and the walker's heading and pitch come back unchanged when it
   closes.
 - The panel separates **this run's simulation observations** (behaviour,
-  movement, sensory input, energy, navigation and memory, recent decisions,
-  counts, with each collision counted once and the seconds spent touching) from **the model's biological
+  movement, sensory input, energy, navigation and memory, what the nearest
+  person can see of the fly and what people did, recent decisions, counts, with each collision counted once and the seconds spent touching) from **the model's biological
   evidence** (FlyBody, VFB regions and connectivity, every parameter with its
   class, source and, where it can vary, range). Confidence is "not reported":
   the controller has no calibrated estimate. Evidence classes: _FlyBody model_
@@ -605,7 +680,9 @@ each within its range; `resolveParams` refuses a FlyBody or published value,
 an unknown name, a number that is not finite, a value outside the range, and a
 cruise band whose floor is above its ceiling, and it returns a frozen table.
 One model value is fixed as well: `standingCrouch` (the drawn legs are
-solved for it). The ranges keep every run well defined: the
+solved for it). The city's people have a table of their own in `people.ts`:
+14 values, 6 published for real people (each with its DOI) and 8 model
+choices, resolved the same way. The ranges keep every run well defined: the
 velocity time constant may be 0 (the body then follows at once), but the
 approach time constant, the acceleration limit, the landing timeout and the
 touchdown speed may not, and a short-mode preparation stays under the 100 ms
@@ -677,6 +754,19 @@ The controller (`controller.ts`):
 - long flights: steering at 2 /s times the goal's bearing; the dispersal speed
   beyond 5 m of the goal; a goal reached within 3 m; a 3 s detour after an
   avoidance saccade; given up after 20 s without coming a metre closer.
+
+The people (`people.ts`), and how they are drawn (`Actors.tsx`):
+
+- a field of view 50° up and 70° down from straight ahead; head and eyes
+  following the fly to 130° either side of the way a person walks; a swat
+  only at a fly within 90° of the way they face;
+- a person's hand resting 0.25 m to the side, 0.9 m up and 0.1 m ahead of
+  their feet, their shoulders 0.2 m to each side and 1.4 m up;
+- the fly's size to a person: its body length perched, twice its wing length
+  in flight;
+- the people look at the fly twenty times a second; the log keeps 40 events;
+- drawn: a watcher's head turned toward the fly by at most 80°, and a
+  swatting arm at most 0.57 of the figure's height long, bent at its middle.
 
 Navigation (`navigation.ts`):
 
@@ -794,7 +884,9 @@ against the city's 0.79–0.82 ms, and `digital-fly/6` 0.67–0.69 ms against
 0.87–0.90 ms. The difference is the whole city in its world (rays toward the
 sun cross more of it, and every city tick lists the city's moving things,
 keeping those whose path comes within sight of the fly) and its smell (a ray
-from the fly to each food patch within 30 m, every sample).
+from the fly to each food patch within 30 m, every sample). Measured the same
+way against `digital-fly/6` (0.65–0.69 ms), `digital-fly/7` took
+0.76–0.78 ms: its people look at the fly twenty times a second.
 Sensing dominates it: each sample casts its short rays against lists of the
 primitives near the fly, kept until it has moved 25 cm, instead of against the
 whole neighbourhood; a test checks that the lists never miss a surface a check
@@ -904,6 +996,25 @@ frame: the panel reads the fly four times a second.
   extent, never back along a heading that stalled, and none in an arena too
   small for one.
 
+`src/bethesda/fly/people.test.ts`:
+
+- a person sees the fly in front of them and not behind (the 214° field), as
+  far as their acuity reaches for a flying and for a perched fly, larger the
+  farther it is from where they look, and not behind something, casting no
+  line of sight they do not need; once they look at it, as far round as head
+  and eyes turn and no farther;
+- they notice only a fly in sight, look at it after their reaction time and
+  forget it out of sight; a still fly is noticed less readily;
+- they swat only at a fly within reach in front of them, after their reaction
+  time, in at least a slap's 335 ms and at a peak speed no higher than a
+  slap's; the hand ends where they saw the fly and comes back, and a swat that
+  reached a fly holding still is counted;
+- the same seed and fly give the same people; published values are fixed and
+  sourced, model values in range;
+- a person beside a hovering fly: with swatting, the fly turns away from the
+  looming hand through its giant-fiber proxy; without, nothing looms;
+- in the city, the same people for the same city, whoever reads them.
+
 `src/bethesda/fly/calibration/calibration.test.ts`:
 
 - every observation named once, in a rebuilt paradigm, with its words or its
@@ -961,6 +1072,11 @@ frame: the panel reads the fly four times a second.
   place is recognized by a landmark's identity, not by its appearance.
 - Shade is preferred for rest by a published index, chosen through the landing
   rule; the fly does not seek shade on foot, nor avoid heat (there is none).
+- People see the fly by its size against their acuity, not its contrast or
+  motion; noticing is a rate, not a model of attention; they neither stop,
+  step aside nor turn their bodies (the city walks them on); a swat is aimed
+  where the fly was seen, and its hand, like every moving thing, is never
+  felt. The swatting rate and the other model values are not measured.
 - Moving things are seen, never touched: people and vehicles pass through the
   fly. People are two spheres (legs and torso), smaller to the fly than a real
   body, so a visitor walking at it gets within about a metre before it
