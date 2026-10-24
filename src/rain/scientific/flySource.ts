@@ -10,7 +10,7 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
+  sha256: "0f6eef0366d07c5e8abedbad54bb5eaf3b922b10a7c2ff0447b1bf9ca16b25d7",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
@@ -19,15 +19,15 @@ export const FLY_SOURCE: {
     "src/bethesda/fly/data/flybody-skeleton.json":
       "e412333429c70dfe518a907b7aa270cd59627affa91b170a12b58d835262400d",
     "src/bethesda/fly/fly.ts":
-      "9aff11886e5da2721b647a47d8c90ed978e6ec9d105e0041d1f6dc293f4806c9",
+      "ee97aff43c3a4d1f264bc2132ac348e99b0d422cdfd25ad6126e2475647e4c8a",
     "src/bethesda/fly/gait.ts":
       "c3876855201f3995843e6b2c98827150259b83e80ba76fc9ef7caec5e2449c4c",
     "src/bethesda/fly/kinematics.ts":
       "4739358834ce8a0018179db53670299946e24c063c3ab9a5504eba51a5596a33",
     "src/bethesda/fly/neural.ts":
-      "f92a522a072add5344628d497d9d97491fe039008235fa1e3c44729a718b89ea",
+      "2f608aac0a5a1f6edeb000733b51afe25a9b102510d4ed7295a26e208ba86aba",
     "src/bethesda/fly/params.ts":
-      "b7e2983aed20ded5fe851bfff5d5a5f7130d98dba7e63a7115f9928a59d93665",
+      "7a4a277abb8e698cfe5f00a8dfd45d02b4a08d6aa081fe64049c3016cabb8b0f",
     "src/bethesda/fly/senses.ts":
       "2c060571b0db694ec76e037d3acdb6fd56b7dc3ed57e2e912a2cfe2fb96ff6f7",
     "src/bethesda/fly/skeleton.ts":

@@ -400,6 +400,13 @@ export const PARAMS = {
     "postural adjustment before a visually evoked takeoff, which also sets its direction away from the threat",
     CITATIONS.card2008,
   ),
+  longModeSequenceMs: fixed(
+    13.2,
+    "ms",
+    "published",
+    "mean duration of a long-mode takeoff from the first wing motion to the loss of tarsal contact (the paper's µ ≈ 13.2 ms; short-mode ones last about 5.4 ms). The body raises the wings over this long before a long-mode jump",
+    CITATIONS.vonReyn2014,
+  ),
   shortModePrepMs: model(
     40,
     "ms",

@@ -2,13 +2,13 @@
   "schema": "rain-fly-pilot/v1",
   "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
   "protocol": "adaptation",
-  "fly_version": "digital-fly/4",
-  "fly": "digital-fly/4 reduced-order-fsm/v1",
-  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
-  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
-  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "fly_version": "digital-fly/5",
+  "fly": "digital-fly/5 reduced-order-fsm/v1",
+  "fly_sha256": "aeefc422fb7ee9ac538fe71c558eefcf8aacb8bf84fcf56b45b9085e6e296fa7",
+  "fly_source_sha256": "0f6eef0366d07c5e8abedbad54bb5eaf3b922b10a7c2ff0447b1bf9ca16b25d7",
+  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
   "code": {
-    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "commit": "84f2fc289c25a791d3f853fb4cdf8d3f23fa2b52",
     "dirty": true
   },
   "definition": {
@@ -2327,8 +2327,8 @@
     "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
   },
   "floors": [],
-  "runs_sha256": "2e5ea8bfc31c20b5cb34df455a58c47115fbd794bca3c57443ed34482640f847",
+  "runs_sha256": "3baf95cf3d89793d1d30c765dd15f90f673c49bdc2f97b6bd38c1dd7f2d3e993",
   "outputs_sha256": "e2882f456e4ae1a37e820b4f210e636214cc6241dad083bbdeaa154c1ac18c21",
-  "generated_at": "2026-10-24T02:09:52.966Z",
-  "sha256": "f7bd5ecfd04b7adf77a678319b06295656020365c862c27950383f7a394f3ecf"
+  "generated_at": "2026-10-24T15:42:17.742Z",
+  "sha256": "990b1de19aa29369dd7fe7da3b978481fafbebd5d32ee27066d2a9b83dba9e03"
 }

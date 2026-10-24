@@ -78,8 +78,20 @@ export interface MotorCommand {
   walkSpeed?: number;
   /** Takeoff or escape heading (rad). */
   heading?: number;
-  /** Escape preparation (s): short-mode or long-mode. */
+  /**
+   * Takeoff or escape preparation: seconds from now to the jump. Sent while a
+   * takeoff is already under way, a shorter one brings the jump forward, never
+   * later.
+   */
   prepare?: number;
+  /**
+   * Whether the wings rise before the jump (a long-mode takeoff) or stay
+   * folded (short mode). Without it, a takeoff prepared in under 0.1 s is
+   * short-mode; a takeoff brought forward before its wings began to rise is
+   * short-mode unless this says otherwise; once they are rising it stays
+   * long-mode.
+   */
+  wings?: boolean;
   /**
    * The landing site being approached (one of the offered sites, by id), and
    * the point on its top where the feet will touch.
@@ -188,6 +200,7 @@ const FIELDS: ReadonlySet<string> = new Set([
   "walkSpeed",
   "heading",
   "prepare",
+  "wings",
   "land",
   "groom",
   "reason",
@@ -271,6 +284,7 @@ function check(
     walkSpeed: raw.walkSpeed,
     heading: raw.heading,
     prepare: raw.prepare,
+    wings: raw.wings,
     land: raw.land,
     groom: raw.groom,
     reason: raw.reason,
@@ -331,6 +345,11 @@ function check(
       return no("preparation time out of bounds");
     if (!LAUNCH.has(mode)) return no("a preparation outside a takeoff");
     cmd.prepare = f.prepare;
+  }
+  if (f.wings !== undefined) {
+    if (typeof f.wings !== "boolean") return no("wings is not true or false");
+    if (!LAUNCH.has(mode)) return no("a wing raise outside a takeoff");
+    cmd.wings = f.wings;
   }
   if (LAUNCH.has(mode) && body.mode !== mode && cmd.heading === undefined)
     return no("a takeoff needs a heading");

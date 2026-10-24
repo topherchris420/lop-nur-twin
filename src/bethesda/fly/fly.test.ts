@@ -532,6 +532,17 @@ describe("the command gate", () => {
     standingHeight: 0.001,
     home: { center: [0, 0, 0], radius: 1, ceiling: 2 },
   };
+  it("takes a wing raise only with a takeoff, and only as true or false", () => {
+    const go = { mode: "escape", heading: 0, prepare: 0.0132, reason: "x" };
+    expect(validateCommand({ ...go, wings: true }, body, P)).toEqual({
+      ok: true,
+      command: { ...go, wings: true },
+    });
+    expect(validateCommand({ ...go, wings: 1 }, body, P).ok).toBe(false);
+    expect(validateCommand({ mode: "walk", wings: true, reason: "x" }, body, P).ok).toBe(
+      false,
+    );
+  });
   it("refuses impossible transitions, out-of-range values and missing reasons", () => {
     expect(validateCommand({ mode: "flight", reason: "x" }, body, P).ok).toBe(false);
     expect(
@@ -959,11 +970,11 @@ describe("the digital fly in an arena", () => {
           ];
           if (s.modeT > 0.01)
             expect(tilt[0]! * to[0] + tilt[1]! * to[2]).toBeGreaterThan(0);
-          // The wings stay folded for a short-mode jump, and rise only at the very end of a long one.
+          // The wings stay folded for a short-mode jump, and rise only over the last 13.2 ms of a long one.
           expect(short).toBe(prepare < 0.1);
           if (short) expect(s.wingsOpen).toBe(0);
           else if (s.wingsOpen > 0)
-            expect(s.modeT).toBeGreaterThan(prepare - 0.03 - 1e-9);
+            expect(s.modeT).toBeGreaterThan(prepare - P.longModeSequenceMs / 1000 - 1e-9);
         }
         if (before.mode === "escape" && s.mode === "flight")
           jump = { v: [...s.v] as V3, heading: wrapAngle(yaw0! + turn), t: s.t };
@@ -979,6 +990,102 @@ describe("the digital fly in an arena", () => {
       expect(v[1]).toBeGreaterThan(0);
       // Only in the air does the heading turn to where the jump is going.
       expect(Math.abs(wrapAngle(turned! - heading))).toBeLessThan(0.01);
+      expect(fly.state.counts.rejected).toBe(0);
+    }
+  });
+  it("brings a takeoff's jump forward, never later, and keeps the wings folded if they had not begun to rise", () => {
+    // [when the second command comes (s into a 200 ms long-mode takeoff), its
+    // prepare and wings, the jump's time, short mode]
+    for (const [at, prepare, wings, jumpAt, short] of [
+      [0.06, 0.01, undefined, 0.07, true], // before the wing raise: short mode
+      [0.06, 0.02, true, 0.08, false], // before it, but asking for the wings: long mode
+      [0.19, 0.01, undefined, 0.2, false], // the wings are rising: stays long, no sooner
+      [0.06, 0.3, undefined, 0.2, false], // later than planned: ignored
+    ] as const) {
+      let committed: number | null = null,
+        sent = false;
+      const commander: FlyNeuralAdapter = {
+        ...adapter("commander", ({ body }) => {
+          if (body.mode === "rest" && body.t > 0.5 && committed === null)
+            return {
+              mode: "escape",
+              heading: body.yaw + 1,
+              prepare: 0.2,
+              reason: "long-mode",
+            };
+          return { mode: body.mode, reason: "carry on" };
+        }),
+        interrupt: ({ body }) => {
+          if (body.mode !== "escape") return null;
+          committed ??= body.t - body.modeT;
+          if (sent || body.modeT < at - 1e-9) return null;
+          sent = true;
+          return wings === undefined
+            ? { mode: "escape", prepare, reason: "giant-fiber spike" }
+            : { mode: "escape", prepare, wings, reason: "wing raise" };
+        },
+      };
+      const fly = new DigitalFly({
+        seed: 5,
+        world: arenaWorld(ROOM),
+        start: { p: [0, 0.5, 0], yaw: 0 },
+        adapter: () => commander,
+      });
+      let jumped: { t: number; short: boolean } | null = null,
+        wingsBefore = 0;
+      stepwise(fly, 1.2, (before, f) => {
+        const s = f.state;
+        if (s.mode === "escape") wingsBefore = Math.max(wingsBefore, s.wingsOpen);
+        if (before.mode === "escape" && s.mode === "flight" && !jumped)
+          jumped = {
+            t: s.t,
+            short: /short-mode jump/.test(f.log[f.log.length - 1]!.reason),
+          };
+      });
+      expect(sent).toBe(true);
+      expect(jumped).not.toBeNull();
+      // The jump comes within one physics step of the time asked for.
+      expect(jumped!.t - committed!).toBeCloseTo(jumpAt, 2);
+      expect(jumped!.short).toBe(short);
+      if (short) expect(wingsBefore).toBe(0);
+      else expect(wingsBefore).toBeGreaterThan(0);
+      expect(fly.state.counts.rejected).toBe(0);
+    }
+  });
+  it("takes a takeoff's mode from the command when it says, and from the preparation when it does not", () => {
+    // [prepare, wings, short mode]
+    for (const [prepare, wings, short] of [
+      [0.0132, true, false],
+      [0.2, false, true],
+      [0.04, undefined, true],
+      [0.2, undefined, false],
+    ] as const) {
+      let asked = false;
+      const commander = adapter("commander", ({ body }) => {
+        if (body.mode === "rest" && body.t > 0.5 && !asked) {
+          asked = true;
+          return wings === undefined
+            ? { mode: "escape", heading: body.yaw, prepare, reason: "test" }
+            : { mode: "escape", heading: body.yaw, prepare, wings, reason: "test" };
+        }
+        return { mode: body.mode, reason: "carry on" };
+      });
+      const fly = new DigitalFly({
+        seed: 6,
+        world: arenaWorld(ROOM),
+        start: { p: [0, 0.5, 0], yaw: 0 },
+        adapter: () => commander,
+      });
+      let seen: boolean | null = null,
+        wingsUp = 0;
+      stepwise(fly, 1, (_, f) => {
+        if (f.state.takeoff) {
+          seen = f.state.takeoff.short;
+          wingsUp = Math.max(wingsUp, f.state.wingsOpen);
+        }
+      });
+      expect(seen).toBe(short);
+      expect(wingsUp > 0).toBe(!short);
       expect(fly.state.counts.rejected).toBe(0);
     }
   });

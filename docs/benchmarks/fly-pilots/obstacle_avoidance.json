@@ -2,13 +2,13 @@
   "schema": "rain-fly-pilot/v1",
   "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
   "protocol": "obstacle_avoidance",
-  "fly_version": "digital-fly/4",
-  "fly": "digital-fly/4 reduced-order-fsm/v1",
-  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
-  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
-  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "fly_version": "digital-fly/5",
+  "fly": "digital-fly/5 reduced-order-fsm/v1",
+  "fly_sha256": "aeefc422fb7ee9ac538fe71c558eefcf8aacb8bf84fcf56b45b9085e6e296fa7",
+  "fly_source_sha256": "0f6eef0366d07c5e8abedbad54bb5eaf3b922b10a7c2ff0447b1bf9ca16b25d7",
+  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
   "code": {
-    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "commit": "84f2fc289c25a791d3f853fb4cdf8d3f23fa2b52",
     "dirty": true
   },
   "definition": {
@@ -3090,8 +3090,8 @@
       "host_minimum_effect": 0.08
     }
   ],
-  "runs_sha256": "ae79c18f77c5dc93610b56face4f22aa2e665f97cb87e302520d0085f6d0a588",
+  "runs_sha256": "0895cdcdd9cc0eb9fba4d2034381dd3c12dfd054ec12c1805177836c8797d945",
   "outputs_sha256": "57f61338d4fea28555043e3781d3559ef098fb531bf7d90d930b55a39e1856a9",
-  "generated_at": "2026-10-24T02:05:05.166Z",
-  "sha256": "6235d793ba7d35ee1816c424480ca08e6bc477b81ef77d0be9634e2ae582fd64"
+  "generated_at": "2026-10-24T15:40:07.691Z",
+  "sha256": "30f2c6c4d9d5a7ea47583a2f7c739ecca4bee1381bb3e39b405dd3f71cadfa28"
 }

@@ -58,7 +58,7 @@ import {
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/4";
+export const FLY_VERSION = "digital-fly/5";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
@@ -70,12 +70,13 @@ const TOUCHDOWN_REACH_M = 0.0015;
 const TOUCHDOWN_GAP_M = 0.002;
 /** A contact lasts while the surface stays within the standing height plus this (m). */
 const CONTACT_SLOP_M = 0.001;
-/** A takeoff prepared in less than this is short-mode: no wing raise (s). A model boundary. */
+/**
+ * A takeoff prepared in less than this is short-mode: no wing raise (s). A
+ * model boundary, for commands that do not say (`MotorCommand.wings`).
+ */
 const SHORT_MODE_BELOW_S = 0.1;
 /** How far the drawn body leans toward the jump by the end of a takeoff's preparation (rad). Drawing only. */
 const LAUNCH_LEAN_RAD = 0.15;
-/** A long-mode takeoff raises its wings over the last this-much of its preparation (s). Drawing only. */
-const WING_RAISE_S = 0.03;
 /** A walking step goes ahead only onto a top within this of the current one (m). */
 const STEP_HEIGHT_M = 0.004;
 
@@ -653,7 +654,7 @@ export class DigitalFly {
           s.takeoff = {
             heading: cmd.heading ?? s.yaw,
             prepare,
-            short: prepare < SHORT_MODE_BELOW_S,
+            short: cmd.wings === undefined ? prepare < SHORT_MODE_BELOW_S : !cmd.wings,
           };
           if (cmd.mode === "escape") {
             s.counts.escapes++;
@@ -698,7 +699,7 @@ export class DigitalFly {
         s.sub = "approach";
         this.record("decision", from, this.label(), `new landing target: ${cmd.reason}`);
       }
-    }
+    } else if (s.takeoff && cmd.prepare !== undefined) this.bringForward(cmd);
     if (s.mode === "groom" && cmd.groom && cmd.groom !== s.groom) {
       const from = this.label();
       s.groom = cmd.groom;
@@ -728,6 +729,36 @@ export class DigitalFly {
         this.record("decision", from, this.label(), "hover ends");
       }
     }
+  }
+
+  /** How long before a long-mode jump the wings begin to rise (s): the published sequence, or the whole preparation if shorter. */
+  private wingRaiseS(prepare: number): number {
+    return Math.min(this.params.longModeSequenceMs / 1000, prepare);
+  }
+
+  /**
+   * A takeoff under way, brought forward: the jump comes `cmd.prepare` from
+   * now when that is sooner than planned, never later. This is how a
+   * giant-fiber spike cuts the long-mode program short (von Reyn et al.
+   * 2014): if the wings have not begun to rise, the fly jumps with them
+   * folded, a short-mode takeoff, unless the command asks for them; once they
+   * are rising it stays long-mode.
+   */
+  private bringForward(cmd: MotorCommand): void {
+    const s = this.state;
+    const t = s.takeoff!;
+    const at = s.modeT + cmd.prepare!;
+    if (at >= t.prepare) return;
+    const raising = !t.short && s.modeT >= t.prepare - this.wingRaiseS(t.prepare);
+    const from = this.label();
+    t.prepare = at;
+    t.short = !raising && cmd.wings !== true;
+    this.record(
+      "decision",
+      from,
+      this.label(),
+      `jump brought forward to ${Math.round(at * 1000)} ms, ${t.short ? "wings folded (short mode)" : "wings rising (long mode)"}: ${cmd.reason}`,
+    );
   }
 
   private integrate(h: number): void {
@@ -809,12 +840,12 @@ export class DigitalFly {
     const lean = LAUNCH_LEAN_RAD * Math.min(1, s.modeT / t.prepare);
     s.pitch = -lean * Math.cos(toward);
     s.roll = -lean * Math.sin(toward);
-    // A long-mode takeoff raises the wings at the end of its preparation, just
-    // before the jump; a short-mode one jumps with them still folded (von Reyn
-    // et al. 2014). How long the raise takes is a drawing choice.
+    // A long-mode takeoff raises the wings at the end of its preparation, over
+    // the published duration of the long-mode sequence, just before the jump;
+    // a short-mode one jumps with them still folded (von Reyn et al. 2014).
     s.wingsOpen = t.short
       ? 0
-      : Math.min(1, Math.max(0, 1 - (t.prepare - s.modeT) / WING_RAISE_S));
+      : Math.min(1, Math.max(0, 1 - (t.prepare - s.modeT) / this.wingRaiseS(t.prepare)));
     if (s.modeT < t.prepare) return;
     // The jump: along the heading the posture aimed, at the jump's elevation.
     const elevation = degToRad(P.jumpElevationDeg);
