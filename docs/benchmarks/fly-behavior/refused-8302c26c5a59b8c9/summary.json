@@ -1,0 +1,10 @@
+{
+  "label": "scripted: a minimum effect below the host's minimum for its metric, which the host must refuse",
+  "outcome": "refused by the host compiler",
+  "protocol": "visual_threat",
+  "generation": "scripted",
+  "question": "[scripted] Does a faster looming approach (smaller l/v) make the simulated fly escape later, closer to collision?",
+  "errors": [
+    "minimum_effect 0.01 is below the host's minimum effect for escape_ttc_s (0.02 s); a design may raise it, never lower it"
+  ]
+}
