@@ -102,6 +102,40 @@ export const CITATIONS = {
     short: "Seelig & Jayaraman 2015, Nature 521:186",
     doi: "10.1038/nature14446",
   },
+  lehmann1997: {
+    short: "Lehmann & Dickinson 1997, J Exp Biol 200:1133",
+    doi: "10.1242/jeb.200.7.1133",
+  },
+  warren2019: {
+    short: "Warren, Giraldo & Dickinson 2019, J Exp Biol 222:jeb186148",
+    doi: "10.1242/jeb.186148",
+  },
+  qi2015: { short: "Qi et al. 2015, Mol Brain 8:87", doi: "10.1186/s13041-015-0179-x" },
+  yu2016: { short: "Yu et al. 2016, eLife 5:e15693", doi: "10.7554/eLife.15693" },
+  meyerhof2024: {
+    short: "Meyerhof et al. 2024, PNAS 121:e2400964121",
+    doi: "10.1073/pnas.2400964121",
+  },
+  leitch2021: {
+    short: "Leitch et al. 2021, PNAS 118:e2013342118",
+    doi: "10.1073/pnas.2013342118",
+  },
+  giraldo2018: {
+    short: "Giraldo et al. 2018, Curr Biol 28:2845",
+    doi: "10.1016/j.cub.2018.07.002",
+  },
+  ofstad2011: {
+    short: "Ofstad, Zuker & Reiser 2011, Nature 474:204",
+    doi: "10.1038/nature10131",
+  },
+  corfas2019: {
+    short: "Corfas, Sharma & Dickinson 2019, Curr Biol 29:1660",
+    doi: "10.1016/j.cub.2019.03.004",
+  },
+  behbahani2021: {
+    short: "Behbahani et al. 2021, Curr Biol 31:4398",
+    doi: "10.1016/j.cub.2021.08.006",
+  },
 } as const satisfies Record<string, Citation>;
 
 /** Where a citation links to: the DOI resolver, or the pinned code file. */
@@ -110,7 +144,7 @@ export function citationUrl(c: Citation): string {
 }
 
 /** A FlyBody or published value: fixed, so its range is the value itself. */
-const fixed = (
+export const fixed = (
   value: number,
   unit: string,
   kind: "flybody" | "published",
@@ -122,7 +156,7 @@ const fixed = (
     : { value, unit, kind, min: value, max: value, note };
 
 /** A model value and the inclusive range an experiment may set it in. */
-const model = (
+export const model = (
   value: number,
   unit: string,
   [min, max]: readonly [number, number],
@@ -313,7 +347,7 @@ export const PARAMS = {
     0.3,
     "m/s",
     [0.05, 1],
-    "fastest climb or sink while holding the cruise height, and fastest sink away from the home range's ceiling (not fitted). At most 1 m/s, so with the cruise speed the command stays under the 1.5 m/s flight limit",
+    "fastest climb or sink while holding the cruise height, and fastest sink away from the extent's ceiling (not fitted). At most 1 m/s, so with the cruise speed the command stays under the 1.5 m/s flight limit",
   ),
   velocityTauS: model(
     0.08,
@@ -399,6 +433,13 @@ export const PARAMS = {
     "published",
     "postural adjustment before a visually evoked takeoff, which also sets its direction away from the threat",
     CITATIONS.card2008,
+  ),
+  longModeSequenceMs: fixed(
+    13.2,
+    "ms",
+    "published",
+    "mean duration of a long-mode takeoff from the first wing motion to the loss of tarsal contact (the paper's µ ≈ 13.2 ms; short-mode ones last about 5.4 ms). The body raises the wings over this long before a long-mode jump",
+    CITATIONS.vonReyn2014,
   ),
   shortModePrepMs: model(
     40,
@@ -504,6 +545,151 @@ export const PARAMS = {
     CITATIONS.benzer1967,
   ),
 
+  // --- Energy and feeding --------------------------------------------------
+  flightPowerMw: model(
+    0.196,
+    "mW",
+    [0.05, 0.5],
+    "metabolic power in flight: the cited hovering flight cost, 664 W per kg of flight muscle (its Table 2), times its flight-muscle share of body mass, 0.30, and FlyBody's 0.983 mg. Derived from published figures, not measured on this fly",
+    CITATIONS.lehmann1997,
+  ),
+  restPowerMw: model(
+    0.025,
+    "mW",
+    [0.005, 0.1],
+    "metabolic power at rest and feeding: the same paper's resting rate, 85 W per kg of flight muscle, scaled the same way. Derived",
+    CITATIONS.lehmann1997,
+  ),
+  walkPowerMw: model(
+    0.05,
+    "mW",
+    [0.025, 0.2],
+    "metabolic power walking, grooming or preparing a takeoff: not measured in the sources used; twice the resting rate, a model choice",
+  ),
+  reserveJ: model(
+    1.41,
+    "J",
+    [0.2, 5],
+    "the carbohydrate reserve that powers flight, when full: two hours of flight at `flightPowerMw`, as the cited review says a well-fed fly can fly for about 2 h (citing Götz 1987; another paper says up to 3 h). Derived; the fat a fly also stores is not modelled, so the reserve is all the energy there is",
+    CITATIONS.warren2019,
+  ),
+  startReserve: model(
+    1,
+    "fraction",
+    [0, 1],
+    "share of a full reserve a fly is placed with (not measured): full by default, in the arenas and the lab; the city's fly is placed at 0.6 (`CITY_START_RESERVE`), somewhat hungry, so that it forages",
+  ),
+  flightReserveFloor: model(
+    0.05,
+    "fraction",
+    [0, 0.5],
+    "below this share of a full reserve the fly no longer takes off on its own, though it still escapes (not fitted)",
+  ),
+  feedIntakeMw: model(
+    2.25,
+    "mW",
+    [0.1, 10],
+    "energy taken in while feeding: the cited meal of 0.21 µL of 100 mM sucrose by a 24-h starved fly (0.12 J at 16.5 J/mg) over the 52.8 s a 36-h starved fly spends feeding. Derived; the city's food is not sucrose of known strength",
+    CITATIONS.qi2015,
+  ),
+  mealS: fixed(
+    52.8,
+    "s",
+    "published",
+    "mean duration of a feeding bout of 36-h starved flies on sucrose; a meal here lasts an exponential draw of this mean, and ends sooner when the reserve is full",
+    CITATIONS.qi2015,
+  ),
+  starvedActivityGain: fixed(
+    0.6,
+    "fraction",
+    "published",
+    "a starved fly's locomotor activity rises about 60 %: the rates of spontaneous walking and takeoff are multiplied by 1 + this × hunger (hunger = 1 − reserve/full; the linear scaling is a model choice)",
+    CITATIONS.yu2016,
+  ),
+  hungerSeek: model(
+    0.2,
+    "fraction",
+    [0, 1],
+    "hunger above which the fly is drawn by food odour, lands on food it finds and returns to food it remembers (not fitted)",
+  ),
+  odourDetect: model(
+    0.01,
+    "relative odour",
+    [0.001, 1],
+    "odour level the fly responds to; with the world's e^(−d/5 m) odour that is about 23 m from one patch (not fitted)",
+  ),
+
+  // --- Rest and shelter -----------------------------------------------------
+  shadePreference: fixed(
+    0.98,
+    "preference index",
+    "published",
+    "flies' daytime sleep is nearly all in the shade (the cited control preference index, 0.98): when a flight bout ends, a site in shade is preferred over one in sun by this index, which weighs its score",
+    CITATIONS.meyerhof2024,
+  ),
+
+  // --- Navigation and memory ------------------------------------------------
+  exploreShare: model(
+    0.3,
+    "fraction",
+    [0, 1],
+    "share of a fly's spontaneous takeoffs that start a long flight to a new place rather than a short hop (not fitted)",
+  ),
+  dispersalCmS: fixed(
+    100,
+    "cm/s",
+    "published",
+    "speed of a long flight in open air: the preferred groundspeed of dispersing flies outdoors in still air, about 1 m/s (a model estimate in the cited release-recapture study). Clutter still slows the fly",
+    CITATIONS.leitch2021,
+  ),
+  exploreDistanceM: model(
+    60,
+    "m",
+    [1, 1000],
+    "mean distance of a long flight's goal (an exponential draw, kept inside the fly's extent; not fitted)",
+  ),
+  compassNoiseDeg: model(
+    3,
+    "deg per √s",
+    [0, 60],
+    "drift of the fly's heading estimate with the sun in view, a celestial compass the cited flies hold for hours; without it (in shade, in a storm, indoors) the drift is ten times this (not fitted)",
+    CITATIONS.giraldo2018,
+  ),
+  odometryNoise: model(
+    0.1,
+    "fraction",
+    [0, 1],
+    "error of the distance the fly integrates, per unit travelled (path integration is published for walking flies near food; its error is not)",
+    CITATIONS.behbahani2021,
+  ),
+  placeMemoryS: model(
+    7200,
+    "s",
+    [60, 86400],
+    "how long a place is remembered: flies keep visual place memories for at least 2 hours (and headings for up to 2 h), so a remembered place is forgotten after this",
+    CITATIONS.ofstad2011,
+  ),
+  landmarkRangeM: model(
+    8,
+    "m",
+    [0.5, 12],
+    "a remembered landmark (a post, pole or trunk) seen within this distance tells the fly where it is (not fitted); at most the visual range",
+  ),
+  localSearchS: model(
+    120,
+    "s",
+    [0, 1800],
+    "after leaving food still hungry, the fly keeps its walking near the food for this long (flies search locally for minutes after food; not fitted)",
+    CITATIONS.corfas2019,
+  ),
+  localSearchM: model(
+    0.045,
+    "m",
+    [0.005, 1],
+    "the local search turns the fly back to the food once it is this far from it: about 15 body lengths, the cited mean excursion just after food",
+    CITATIONS.behbahani2021,
+  ),
+
   // --- Sensing and timing -------------------------------------------------
   visualLatencyMs: model(
     30,
@@ -534,12 +720,6 @@ export const PARAMS = {
     "m",
     [0.5, 50],
     "farthest distance the simulator evaluates objects at",
-  ),
-  homeRadiusM: model(
-    18,
-    "m",
-    [18, 18],
-    "the fly is tethered to a home range around where it was placed: a simulator constraint so one fly stays near the viewer, not biology. Fixed: the city world is built around it, and an arena's home is the arena",
   ),
 } as const satisfies Record<string, Param>;
 

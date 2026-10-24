@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats every 10 s on a fixed schedule?",
+  "hypothesis": "[scripted] Repeating the stimuli every 10 s lowers the fraction answered by an escape, compared with the same stimuli every 90 s.",
+  "competing_hypothesis": "[scripted] Responsiveness recovers within 10 s, so the interval leaves the escape probability unchanged.",
+  "parameters": {
+    "seed_count": 13,
+    "treatment": {
+      "kind": "adaptation",
+      "isi_s": 10
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "repeat_escape_probability",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.13
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

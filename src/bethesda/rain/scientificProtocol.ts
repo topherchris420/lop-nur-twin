@@ -738,7 +738,7 @@ export const FLY_METRICS = [
     floor: 0,
     ceiling: 1,
     // The obstacle-avoidance pilot's floor: its avoidance-off control varies most.
-    minimum_effect: 0.08,
+    minimum_effect: 0.09,
     description:
       "fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry",
   },

@@ -28,19 +28,20 @@
 import type { ResolvedParams } from "./params.js";
 import type { SenseFrame } from "./senses.js";
 import type { V3 } from "./units.js";
-import type { LandingSite, Perch } from "./world.js";
+import type { FoodPatch, Home, LandingSite, Perch } from "./world.js";
 
 export const MODES = [
   "rest",
   "groom",
   "walk",
+  "feed",
   "takeoff",
   "escape",
   "flight",
   "land",
 ] as const;
 export type Mode = (typeof MODES)[number];
-export const PERCHED: ReadonlySet<Mode> = new Set(["rest", "groom", "walk"]);
+export const PERCHED: ReadonlySet<Mode> = new Set(["rest", "groom", "walk", "feed"]);
 /** The body sites a fly grooms, front to back (the order of Seeds et al. 2014's dust cascade). */
 export const GROOM_SITES = ["eyes", "antennae", "abdomen", "wings", "notum"] as const;
 /**
@@ -55,9 +56,10 @@ export type FlightSub = (typeof FLIGHT_SUBS)[number];
 
 /** Transitions a command may ask for. Touchdown and the end of a jump are physical, not commanded. */
 export const COMMANDABLE: Readonly<Record<Mode, readonly Mode[]>> = {
-  rest: ["rest", "groom", "walk", "takeoff", "escape"],
+  rest: ["rest", "groom", "walk", "feed", "takeoff", "escape"],
   groom: ["groom", "rest", "escape"],
-  walk: ["walk", "rest", "takeoff", "escape"],
+  walk: ["walk", "rest", "feed", "takeoff", "escape"],
+  feed: ["feed", "rest", "walk", "takeoff", "escape"],
   takeoff: ["takeoff"],
   escape: ["escape"],
   flight: ["flight", "land"],
@@ -78,8 +80,20 @@ export interface MotorCommand {
   walkSpeed?: number;
   /** Takeoff or escape heading (rad). */
   heading?: number;
-  /** Escape preparation (s): short-mode or long-mode. */
+  /**
+   * Takeoff or escape preparation: seconds from now to the jump. Sent while a
+   * takeoff is already under way, a shorter one brings the jump forward, never
+   * later.
+   */
   prepare?: number;
+  /**
+   * Whether the wings rise before the jump (a long-mode takeoff) or stay
+   * folded (short mode). Without it, a takeoff prepared in under 0.1 s is
+   * short-mode; a takeoff brought forward before its wings began to rise is
+   * short-mode unless this says otherwise; once they are rising it stays
+   * long-mode.
+   */
+  wings?: boolean;
   /**
    * The landing site being approached (one of the offered sites, by id), and
    * the point on its top where the feet will touch.
@@ -109,7 +123,12 @@ export interface BodySnapshot {
   target: { id: string; point: V3 } | null;
   /** Height of the thorax (the body's position) above the surface it stands on (m). */
   standingHeight: number;
-  home: { center: V3; radius: number; ceiling: number };
+  /** The energy reserve as a share of full (0–1): the fly's own sense of how fed it is. */
+  reserve: number;
+  /** What food the feet are on, tasted by the tarsi when perched; null otherwise. */
+  onFood: string | null;
+  /** The extent the fly is kept within (`world.ts`'s `Home`). */
+  home: Home;
 }
 
 export interface DecisionInput {
@@ -135,6 +154,15 @@ export interface AdapterDescriptor {
   fidelity: string;
   simulatesNeurons: boolean;
   regions: RegionLink[];
+}
+
+/**
+ * Seeded streams a decision maker may draw from besides its main one, each
+ * the fly's own: `navigation` for path integration and long flights, so
+ * their draws never shift the main stream's.
+ */
+export interface AdapterStreams {
+  navigation: () => number;
 }
 
 export interface FlyNeuralAdapter {
@@ -174,6 +202,8 @@ export interface GateContext {
   sites: readonly LandingSite[];
   /** The world's surface: the highest walkable top at (x, z) at or below `maxY`. */
   surface: (x: number, z: number, maxY: number) => Perch | null;
+  /** The food patch under the feet at `p`, or null; without it nothing can be eaten. */
+  food?: (p: V3) => FoodPatch | null;
 }
 
 export type Validation =
@@ -188,6 +218,7 @@ const FIELDS: ReadonlySet<string> = new Set([
   "walkSpeed",
   "heading",
   "prepare",
+  "wings",
   "land",
   "groom",
   "reason",
@@ -229,7 +260,13 @@ function onTop(site: LandingSite, point: V3, ctx: GateContext): boolean {
     w = dx * s + dz * c;
   if (Math.abs(u) > site.half[0] + tol || Math.abs(w) > site.half[1] + tol) return false;
   const top = ctx.surface(point[0], point[2], point[1] + tol);
-  return top !== null && top.id === site.id && Math.abs(top.y - point[1]) <= tol;
+  // A food patch lies on a surface of its own kind (the ground, a top) rather than being one.
+  const same =
+    top !== null &&
+    (site.food === undefined
+      ? top.id === site.id
+      : top.kind === site.kind && Math.abs(top.y - site.center[1]) <= tol);
+  return same && Math.abs(top.y - point[1]) <= tol;
 }
 
 /**
@@ -271,6 +308,7 @@ function check(
     walkSpeed: raw.walkSpeed,
     heading: raw.heading,
     prepare: raw.prepare,
+    wings: raw.wings,
     land: raw.land,
     groom: raw.groom,
     reason: raw.reason,
@@ -332,6 +370,11 @@ function check(
     if (!LAUNCH.has(mode)) return no("a preparation outside a takeoff");
     cmd.prepare = f.prepare;
   }
+  if (f.wings !== undefined) {
+    if (typeof f.wings !== "boolean") return no("wings is not true or false");
+    if (!LAUNCH.has(mode)) return no("a wing raise outside a takeoff");
+    cmd.wings = f.wings;
+  }
   if (LAUNCH.has(mode) && body.mode !== mode && cmd.heading === undefined)
     return no("a takeoff needs a heading");
   if (f.groom !== undefined) {
@@ -363,5 +406,9 @@ function check(
   }
   if (mode === "land" && body.mode === "flight" && !cmd.land)
     return no("landing without a target");
+  if (mode === "feed" && body.mode !== "feed") {
+    const feet: V3 = [body.p[0], body.p[1] - body.standingHeight, body.p[2]];
+    if (!ctx?.food?.(feet)) return no("no food under the fly");
+  }
   return { ok: true, command: cmd };
 }

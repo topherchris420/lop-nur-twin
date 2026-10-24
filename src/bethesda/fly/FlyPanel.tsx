@@ -7,12 +7,13 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "../../lib/safeUrl";
-import { REDUCED_ORDER_DESCRIPTOR } from "./controller";
+import { REDUCED_ORDER_DESCRIPTOR, ReducedOrderController } from "./controller";
 import source from "./data/flybody.source.json" with { type: "json" };
 import { FLY_VERSION } from "./fly";
 import type { FlyViewControl } from "./FlyView";
-import { CITATIONS, citationUrl, PARAMS, type Param, type ParamName } from "./params";
+import { CITATIONS, citationUrl, PARAMS, type Param } from "./params";
 import { doiUrl, VFB_REFERENCE, VFB_TERMS, vfbUrl } from "./reference";
+import { PEOPLE_PARAMS, perceive } from "./people";
 import { UNSUPPORTED_SENSES } from "./senses";
 import { SKELETON } from "./skeleton";
 import { radToDeg } from "./units";
@@ -64,6 +65,47 @@ function Row({
   );
 }
 
+/** A parameter table: each value, its range where it can vary, its kind, source and note. */
+function ParamTable({ params }: { params: Readonly<Record<string, Param>> }) {
+  return (
+    <table className="mt-1 w-full text-left">
+      <thead>
+        <tr className="text-slate-300">
+          <th className="pr-2 font-normal">Parameter</th>
+          <th className="pr-2 font-normal">Value</th>
+          <th className="font-normal">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(params).map(([name, p]) => (
+          <tr key={name} className="align-top">
+            <td className="pr-2 font-mono text-[10px]">{name}</td>
+            <td className="pr-2">
+              {Number(p.value.toPrecision(4))} {p.unit}
+              {p.min !== p.max ? (
+                <span className="block text-slate-300">
+                  range {Number(p.min.toPrecision(4))}–{Number(p.max.toPrecision(4))}
+                </span>
+              ) : null}
+            </td>
+            <td>
+              {KIND_LABEL[p.kind]}
+              {p.source ? (
+                <>
+                  {" · "}
+                  <Link href={citationUrl(p.source)}>{p.source.short}</Link>
+                </>
+              ) : null}
+              {" · "}
+              <span className="text-slate-300">{p.note}</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 const compass = (yaw: number) => {
   // yaw 0 = east, π/2 = north; compass bearing clockwise from north.
   const b = (90 - radToDeg(yaw) + 360) % 360;
@@ -111,6 +153,34 @@ export function FlyPanel({
   const inputs = city.world.inputs;
   const at = viewer();
   const away = Math.hypot(s.p[0] - at.x, s.p[2] - at.z);
+  const reserve = s.reserve / PARAMS.reserveJ.value;
+  const hungry = 1 - reserve > PARAMS.hungerSeek.value;
+  // What the built-in controller believes and remembers; another controller reports none.
+  const nav =
+    fly.adapter instanceof ReducedOrderController ? fly.adapter.state.nav : null;
+  const byEstimate = (q: readonly number[]) =>
+    nav ? Math.hypot(q[0]! - nav.est[0], q[1]! - nav.est[1]) : 0;
+  const nearestPlace = nav?.places.reduce<number | null>(
+    (best, place) => Math.min(best ?? Infinity, byEstimate(place.at)),
+    null,
+  );
+  // The nearest person, and what they can make of the fly as it is now.
+  const folk = city.people;
+  const nearestPerson = city.world
+    .peopleNear(s.t, s.p, folk.range)
+    .map((person) => ({ person, d: Math.hypot(person.x - s.p[0], person.z - s.p[2]) }))
+    .sort((a, b) => a.d - b.d)[0]?.person;
+  const known = nearestPerson ? folk.state.persons[nearestPerson.id] : undefined;
+  const seenBy = nearestPerson
+    ? perceive(
+        folk.params,
+        nearestPerson,
+        { p: s.p, flying },
+        known !== undefined && known.aware && s.t >= known.lookFrom,
+        (a, b) => city.clearLine(a, b),
+      )
+    : null;
+  const peopleRecent = folk.log.slice(-3).reverse();
   return (
     <section
       aria-label="Digital fly"
@@ -227,10 +297,88 @@ export function FlyPanel({
                 {flying
                   ? ` Time to contact ahead ${seconds(f.ttcFront)}, left ${seconds(f.ttcLeft)}, right ${seconds(f.ttcRight)}.`
                   : ""}
+                {` Food odour ${f.odour.toFixed(3)} (relative proxy); ${f.landmarks.length} ${f.landmarks.length === 1 ? "landmark" : "landmarks"} in view`}
+                {f.shadeBearing !== null
+                  ? `; shade on the ground ${radToDeg(f.shadeBearing).toFixed(0)}° from heading`
+                  : ""}
+                .
               </>
             ) : (
               "not yet sampled"
             )}
+          </Row>
+          <Row label="Energy" evidence="simulated">
+            Reserve {(reserve * 100).toFixed(0)} % of full ({s.reserve.toFixed(2)} of{" "}
+            {PARAMS.reserveJ.value} J)
+            {hungry ? ": hungry, so drawn to food odour and food" : ": fed"}
+            {reserve < PARAMS.flightReserveFloor.value
+              ? ", too low to take off on its own"
+              : ""}
+            . Fed {s.counts.meals} {s.counts.meals === 1 ? "time" : "times"} (
+            {s.counts.feedS.toFixed(0)} s, {s.counts.fedJ.toFixed(3)} J taken in); spent{" "}
+            {s.counts.spentJ.toFixed(3)} J.
+          </Row>
+          <Row label="Navigation" evidence="simulated">
+            {nav ? (
+              <>
+                {nav.goal
+                  ? `${nav.goal.kind === "return" ? "Flying back to food it remembers" : "On a long flight toward a place it has not been"}, ${byEstimate(nav.goal.at).toFixed(0)} m to go by its own estimate. `
+                  : ""}
+                Its path integration puts it{" "}
+                {Math.hypot(nav.est[0] - s.p[0], nav.est[1] - s.p[2]).toFixed(1)} m from
+                where it is
+                {nav.compass
+                  ? " (heading held to the sky or the brightest light)"
+                  : " (no compass in view: its heading drifts)"}
+                . It remembers {nav.places.length} food{" "}
+                {nav.places.length === 1 ? "place" : "places"}
+                {nearestPlace !== null && nearestPlace !== undefined
+                  ? `, the nearest ${nearestPlace.toFixed(0)} m away by its estimate`
+                  : ""}
+                , and has been in {nav.visited.length} of its 10 m squares
+                {nav.search && s.t < nav.search.until
+                  ? "; searching near food it left"
+                  : ""}
+                .
+              </>
+            ) : (
+              "Not reported by this controller."
+            )}
+          </Row>
+          <Row label="People" evidence="simulated">
+            {seenBy ? (
+              <>
+                The nearest person is {seenBy.distance.toFixed(1)} m from it
+                {known?.aware
+                  ? " and has noticed it"
+                  : seenBy.inSight
+                    ? " and could see it now"
+                    : !seenBy.inField
+                      ? ": it is outside their field of view"
+                      : !seenBy.resolved
+                        ? `: too small for them there (it spans ${seenBy.sizeArcmin.toFixed(1)}′, ${seenBy.eccentricityDeg.toFixed(0)}° from where they look, where they need ${seenBy.neededArcmin.toFixed(1)}′)`
+                        : ": something stands between them"}
+                .{" "}
+              </>
+            ) : (
+              `No one is near enough to see it (a person resolves it at most ${folk.range.toFixed(0)} m away). `
+            )}
+            Noticed {folk.state.counts.noticed}{" "}
+            {folk.state.counts.noticed === 1 ? "time" : "times"}, swatted at{" "}
+            {folk.state.counts.swats} {folk.state.counts.swats === 1 ? "time" : "times"}
+            {folk.state.counts.reached
+              ? ` (${folk.state.counts.reached} reached it: a hand is seen, never felt)`
+              : ""}
+            .
+            {peopleRecent.length ? (
+              <ul>
+                {peopleRecent.map((e, i) => (
+                  <li key={`${e.t}-${i}`}>
+                    {e.t.toFixed(1)} s · person {e.id.slice(1)} {e.what}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Row>
           <Row label="Not sensed" evidence="unsupported">
             {[...new Set([...UNSUPPORTED_SENSES, ...inputs.unsupported])].join(", ")}
@@ -338,45 +486,17 @@ export function FlyPanel({
         </details>
         <details className="mt-2">
           <summary className="cursor-pointer">Parameters and their sources</summary>
-          <table className="mt-1 w-full text-left">
-            <thead>
-              <tr className="text-slate-300">
-                <th className="pr-2 font-normal">Parameter</th>
-                <th className="pr-2 font-normal">Value</th>
-                <th className="font-normal">Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(Object.keys(PARAMS) as ParamName[]).map((name) => {
-                const p: Param = PARAMS[name];
-                return (
-                  <tr key={name} className="align-top">
-                    <td className="pr-2 font-mono text-[10px]">{name}</td>
-                    <td className="pr-2">
-                      {Number(p.value.toPrecision(4))} {p.unit}
-                      {p.min !== p.max ? (
-                        <span className="block text-slate-300">
-                          range {Number(p.min.toPrecision(4))}–
-                          {Number(p.max.toPrecision(4))}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td>
-                      {KIND_LABEL[p.kind]}
-                      {p.source ? (
-                        <>
-                          {" · "}
-                          <Link href={citationUrl(p.source)}>{p.source.short}</Link>
-                        </>
-                      ) : null}
-                      {" · "}
-                      <span className="text-slate-300">{p.note}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <ParamTable params={PARAMS} />
+        </details>
+        <details className="mt-2">
+          <summary className="cursor-pointer">
+            People&apos;s parameters and their sources
+          </summary>
+          <p className="mt-1 text-slate-300">
+            How the city&apos;s people see the fly and swat at it. Published here means
+            reported for real people.
+          </p>
+          <ParamTable params={PEOPLE_PARAMS} />
         </details>
         <p className="mt-2 text-slate-300">
           Inputs this world gives the fly: {inputs.supported.join("; ")}. Proxies:{" "}

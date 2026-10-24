@@ -2,13 +2,13 @@
   "schema": "rain-fly-pilot/v1",
   "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
   "protocol": "obstacle_avoidance",
-  "fly_version": "digital-fly/4",
-  "fly": "digital-fly/4 reduced-order-fsm/v1",
-  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
-  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
-  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "fly_version": "digital-fly/7",
+  "fly": "digital-fly/7 reduced-order-fsm/v1",
+  "fly_sha256": "247197565afacdeda5b29bdca1a24744fd547120e39f1a35621689f2e9c90905",
+  "fly_source_sha256": "d77a3a3961b0700f93c794a7dd8e0f3d3a9c0fd68661cfc324711c1ebf407c6c",
+  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
   "code": {
-    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "commit": "c099a8b816d238c15dded3173c5c720782da9d6e",
     "dirty": true
   },
   "definition": {
@@ -773,9 +773,9 @@
             "collision_episodes": 0,
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
-            "near_miss_fraction": 0.1064279155188246,
-            "flown_m": 19.180863133697063,
-            "saccades_per_flight_s": 0.6884889479405959,
+            "near_miss_fraction": 0.10348214285714286,
+            "flown_m": 19.118350713476353,
+            "saccades_per_flight_s": 0.689573177981248,
             "contact_s": 0
           }
         },
@@ -866,13 +866,13 @@
         {
           "seed": 3602842389,
           "metrics": {
-            "collision_episodes": 1,
-            "collision_episodes_per_m": 0.04346077334513508,
-            "cruise_collision_episodes_per_m": 0.04346077334513508,
-            "near_miss_fraction": 0.11216457960644007,
-            "flown_m": 23.009254622753698,
-            "saccades_per_flight_s": 0.561892453784399,
-            "contact_s": 0.005
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.09214467538258826,
+            "cruise_collision_episodes_per_m": 0.09214467538258826,
+            "near_miss_fraction": 0.13677581863979849,
+            "flown_m": 21.704998055459228,
+            "saccades_per_flight_s": 0.6276496173540312,
+            "contact_s": 0.01
           }
         },
         {
@@ -1022,13 +1022,13 @@
         {
           "seed": 4023885916,
           "metrics": {
-            "collision_episodes": 2,
-            "collision_episodes_per_m": 0.11647235799630033,
-            "cruise_collision_episodes_per_m": 0.058236178998150166,
-            "near_miss_fraction": 0.05905297532656023,
-            "flown_m": 17.171456252852103,
-            "saccades_per_flight_s": 0.661956590923548,
-            "contact_s": 0.01
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.061628426292249176,
+            "cruise_collision_episodes_per_m": 0.061628426292249176,
+            "near_miss_fraction": 0.06284313725490195,
+            "flown_m": 16.226278361512648,
+            "saccades_per_flight_s": 0.6279434850862919,
+            "contact_s": 0.005
           }
         },
         {
@@ -1059,9 +1059,9 @@
       "metrics": {
         "collision_episodes_per_m": {
           "control_mean": 0.17865355975879235,
-          "treatment_mean": 0.0307151384057166,
-          "mean_difference": -0.14793842135307575,
-          "sd_difference": 0.1061492006946958,
+          "treatment_mean": 0.03052263747863541,
+          "mean_difference": -0.14813092228015692,
+          "sd_difference": 0.10531316004873703,
           "increase": 1,
           "decrease": 30,
           "tie": 1,
@@ -1071,9 +1071,9 @@
         },
         "cruise_collision_episodes_per_m": {
           "control_mean": 0.17865355975879235,
-          "treatment_mean": 0.028895257812024407,
-          "mean_difference": -0.14975830194676795,
-          "sd_difference": 0.10407748826726922,
+          "treatment_mean": 0.03052263747863541,
+          "mean_difference": -0.14813092228015692,
+          "sd_difference": 0.10531316004873703,
           "increase": 1,
           "decrease": 30,
           "tie": 1,
@@ -1085,19 +1085,19 @@
           "control_mean": 3.5,
           "treatment_mean": 0.59375,
           "mean_difference": -2.90625,
-          "sd_difference": 1.9896405089459526,
+          "sd_difference": 1.973360895985945,
           "increase": 1,
-          "decrease": 27,
-          "tie": 4,
+          "decrease": 28,
+          "tie": 3,
           "undefined": 0,
           "control_at_floor": 1,
           "control_at_ceiling": 0
         },
         "near_miss_fraction": {
           "control_mean": 0.16867272258259478,
-          "treatment_mean": 0.08278420783668372,
-          "mean_difference": -0.08588851474591107,
-          "sd_difference": 0.06790805820221152,
+          "treatment_mean": 0.0835796962210593,
+          "mean_difference": -0.0850930263615355,
+          "sd_difference": 0.06794114999477752,
           "increase": 2,
           "decrease": 29,
           "tie": 1,
@@ -1107,11 +1107,11 @@
         },
         "flown_m": {
           "control_mean": 19.98092438432783,
-          "treatment_mean": 20.440557872117218,
-          "mean_difference": 0.45963348778938634,
-          "sd_difference": 2.076092794001689,
-          "increase": 22,
-          "decrease": 9,
+          "treatment_mean": 20.368309532153013,
+          "mean_difference": 0.387385147825179,
+          "sd_difference": 2.070295554530232,
+          "increase": 21,
+          "decrease": 10,
           "tie": 1,
           "undefined": 0,
           "control_at_floor": 0,
@@ -1119,9 +1119,9 @@
         },
         "saccades_per_flight_s": {
           "control_mean": 0.5137530651515305,
-          "treatment_mean": 0.533425794441117,
-          "mean_difference": 0.019672729289586514,
-          "sd_difference": 0.05648694772690683,
+          "treatment_mean": 0.5344516784340241,
+          "mean_difference": 0.02069861328249364,
+          "sd_difference": 0.06143664344698598,
           "increase": 21,
           "decrease": 10,
           "tie": 1,
@@ -1131,12 +1131,12 @@
         },
         "contact_s": {
           "control_mean": 0.017500000000000005,
-          "treatment_mean": 0.00296875,
+          "treatment_mean": 0.0029687500000000005,
           "mean_difference": -0.014531250000000004,
-          "sd_difference": 0.009948202544729763,
+          "sd_difference": 0.009866804479929724,
           "increase": 1,
-          "decrease": 27,
-          "tie": 4,
+          "decrease": 28,
+          "tie": 3,
           "undefined": 0,
           "control_at_floor": 1,
           "control_at_ceiling": 0
@@ -1505,9 +1505,9 @@
             "collision_episodes": 0,
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
-            "near_miss_fraction": 0.05598885793871866,
-            "flown_m": 17.098371254432667,
-            "saccades_per_flight_s": 0.5810200129115405,
+            "near_miss_fraction": 0.04085820895522388,
+            "flown_m": 17.832155984158053,
+            "saccades_per_flight_s": 0.5514588008977125,
             "contact_s": 0
           }
         },
@@ -1575,9 +1575,9 @@
         },
         "near_miss_fraction": {
           "control_mean": 0.16867272258259478,
-          "treatment_mean": 0.07660037565381367,
-          "mean_difference": -0.0920723469287811,
-          "sd_difference": 0.07581936607411655,
+          "treatment_mean": 0.07612754287307946,
+          "mean_difference": -0.09254517970951531,
+          "sd_difference": 0.07600610506022874,
           "increase": 2,
           "decrease": 29,
           "tie": 1,
@@ -1587,9 +1587,9 @@
         },
         "flown_m": {
           "control_mean": 19.98092438432783,
-          "treatment_mean": 20.320611275749147,
-          "mean_difference": 0.3396868914213124,
-          "sd_difference": 2.413646043802344,
+          "treatment_mean": 20.343542048553065,
+          "mean_difference": 0.36261766422523073,
+          "sd_difference": 2.418414259676855,
           "increase": 18,
           "decrease": 13,
           "tie": 1,
@@ -1599,9 +1599,9 @@
         },
         "saccades_per_flight_s": {
           "control_mean": 0.5137530651515305,
-          "treatment_mean": 0.5442778776514201,
-          "mean_difference": 0.03052481249988968,
-          "sd_difference": 0.06493776415832586,
+          "treatment_mean": 0.543354089775988,
+          "mean_difference": 0.029601024624457555,
+          "sd_difference": 0.06699887915147608,
           "increase": 22,
           "decrease": 9,
           "tie": 1,
@@ -1877,9 +1877,9 @@
             "collision_episodes": 0,
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
-            "near_miss_fraction": 0.05654250238777459,
-            "flown_m": 17.97889391339472,
-            "saccades_per_flight_s": 0.7074864934396544,
+            "near_miss_fraction": 0.0833810888252149,
+            "flown_m": 17.451515274491285,
+            "saccades_per_flight_s": 0.716099212290842,
             "contact_s": 0
           }
         },
@@ -1961,9 +1961,9 @@
             "collision_episodes": 0,
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
-            "near_miss_fraction": 0.052819548872180454,
-            "flown_m": 21.21844674220904,
-            "saccades_per_flight_s": 0.5208648779601641,
+            "near_miss_fraction": 0.05339074273412271,
+            "flown_m": 20.048872334748943,
+            "saccades_per_flight_s": 0.5103376079560125,
             "contact_s": 0
           }
         },
@@ -2055,9 +2055,9 @@
         },
         "near_miss_fraction": {
           "control_mean": 0.16867272258259478,
-          "treatment_mean": 0.0491739702232046,
-          "mean_difference": -0.11949875235939011,
-          "sd_difference": 0.06645173839132397,
+          "treatment_mean": 0.0500305258575603,
+          "mean_difference": -0.11864219672503441,
+          "sd_difference": 0.06526623800042892,
           "increase": 1,
           "decrease": 31,
           "tie": 0,
@@ -2067,11 +2067,11 @@
         },
         "flown_m": {
           "control_mean": 19.98092438432783,
-          "treatment_mean": 20.784484511718276,
-          "mean_difference": 0.8035601273904361,
-          "sd_difference": 2.277545953468735,
-          "increase": 22,
-          "decrease": 10,
+          "treatment_mean": 20.731454729019415,
+          "mean_difference": 0.7505303446915758,
+          "sd_difference": 2.250189511287834,
+          "increase": 21,
+          "decrease": 11,
           "tie": 0,
           "undefined": 0,
           "control_at_floor": 0,
@@ -2079,9 +2079,9 @@
         },
         "saccades_per_flight_s": {
           "control_mean": 0.5137530651515305,
-          "treatment_mean": 0.5481803743423007,
-          "mean_difference": 0.034427309190770014,
-          "sd_difference": 0.06080412366857234,
+          "treatment_mean": 0.5481205446187706,
+          "mean_difference": 0.03436747946723989,
+          "sd_difference": 0.06070802428274661,
           "increase": 23,
           "decrease": 9,
           "tie": 0,
@@ -2358,8 +2358,8 @@
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
             "near_miss_fraction": 0,
-            "flown_m": 16.83924380179492,
-            "saccades_per_flight_s": 0.7915045181715875,
+            "flown_m": 17.024901349543757,
+            "saccades_per_flight_s": 0.8034210185304931,
             "contact_s": 0
           }
         },
@@ -2418,8 +2418,8 @@
             "collision_episodes_per_m": 0,
             "cruise_collision_episodes_per_m": 0,
             "near_miss_fraction": 0,
-            "flown_m": 23.35901430854957,
-            "saccades_per_flight_s": 0.47655024118094663,
+            "flown_m": 24.463661770422746,
+            "saccades_per_flight_s": 0.47804335742083887,
             "contact_s": 0
           }
         },
@@ -2547,9 +2547,9 @@
         },
         "flown_m": {
           "control_mean": 19.98092438432783,
-          "treatment_mean": 19.876877092105573,
-          "mean_difference": -0.104047292222264,
-          "sd_difference": 2.921301896019742,
+          "treatment_mean": 19.91719912365626,
+          "mean_difference": -0.06372526067157608,
+          "sd_difference": 2.9346221769816236,
           "increase": 18,
           "decrease": 14,
           "tie": 0,
@@ -2559,9 +2559,9 @@
         },
         "saccades_per_flight_s": {
           "control_mean": 0.5137530651515305,
-          "treatment_mean": 0.5728820336169799,
-          "mean_difference": 0.059128968465449204,
-          "sd_difference": 0.07130669452733467,
+          "treatment_mean": 0.5733010841356924,
+          "mean_difference": 0.05954801898416163,
+          "sd_difference": 0.07203877560356836,
           "increase": 28,
           "decrease": 4,
           "tie": 0,
@@ -2640,13 +2640,13 @@
       {
         "seed": 73397429,
         "metrics": {
-          "collision_episodes": 3,
-          "collision_episodes_per_m": 0.14422382968742328,
-          "cruise_collision_episodes_per_m": 0.14422382968742328,
-          "near_miss_fraction": 0.1322943722943723,
-          "flown_m": 20.801000822831487,
-          "saccades_per_flight_s": 0.5347897821016553,
-          "contact_s": 0.015
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.2077363373342055,
+          "cruise_collision_episodes_per_m": 0.2077363373342055,
+          "near_miss_fraction": 0.2070555032925682,
+          "flown_m": 19.255177266193993,
+          "saccades_per_flight_s": 0.5181027570468222,
+          "contact_s": 0.02
         }
       },
       {
@@ -2688,13 +2688,13 @@
       {
         "seed": 1043787298,
         "metrics": {
-          "collision_episodes": 2,
-          "collision_episodes_per_m": 0.09078851454611293,
-          "cruise_collision_episodes_per_m": 0.09078851454611293,
-          "near_miss_fraction": 0.0884297520661157,
-          "flown_m": 22.029218233151816,
-          "saccades_per_flight_s": 0.4078939475736471,
-          "contact_s": 0.01
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.021553610503282274,
+          "flown_m": 18.89507596010138,
+          "saccades_per_flight_s": 0.45655968846512457,
+          "contact_s": 0
         }
       },
       {
@@ -2928,13 +2928,13 @@
       {
         "seed": 2655811014,
         "metrics": {
-          "collision_episodes": 2,
-          "collision_episodes_per_m": 0.11316160793077408,
-          "cruise_collision_episodes_per_m": 0.11316160793077408,
-          "near_miss_fraction": 0.10096463022508038,
-          "flown_m": 17.67383865050316,
-          "saccades_per_flight_s": 0.5341204582190715,
-          "contact_s": 0.01
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0,
+          "flown_m": 21.552569151915502,
+          "saccades_per_flight_s": 0.6902129954166425,
+          "contact_s": 0
         }
       },
       {
@@ -2977,9 +2977,9 @@
     "metrics": {
       "collision_episodes_per_m": {
         "control_mean": 0.17865355975879235,
-        "treatment_mean": 0.17326833006511724,
-        "mean_difference": -0.005385229693675124,
-        "sd_difference": 0.15690657375201675,
+        "treatment_mean": 0.16887965460167648,
+        "mean_difference": -0.009773905157115898,
+        "sd_difference": 0.1624386941651943,
         "increase": 16,
         "decrease": 16,
         "tie": 0,
@@ -2989,9 +2989,9 @@
       },
       "cruise_collision_episodes_per_m": {
         "control_mean": 0.17865355975879235,
-        "treatment_mean": 0.16863427755670243,
-        "mean_difference": -0.010019282202089908,
-        "sd_difference": 0.15662477089539895,
+        "treatment_mean": 0.16424560209326167,
+        "mean_difference": -0.014407957665530682,
+        "sd_difference": 0.16203699744562064,
         "increase": 16,
         "decrease": 16,
         "tie": 0,
@@ -3001,21 +3001,21 @@
       },
       "collision_episodes": {
         "control_mean": 3.5,
-        "treatment_mean": 3.4375,
-        "mean_difference": -0.0625,
-        "sd_difference": 3.110206921858125,
+        "treatment_mean": 3.34375,
+        "mean_difference": -0.15625,
+        "sd_difference": 3.223996468020158,
         "increase": 15,
-        "decrease": 15,
-        "tie": 2,
+        "decrease": 14,
+        "tie": 3,
         "undefined": 0,
         "control_at_floor": 1,
         "control_at_ceiling": 0
       },
       "near_miss_fraction": {
         "control_mean": 0.16867272258259478,
-        "treatment_mean": 0.1594293407595032,
-        "mean_difference": -0.009243381823091572,
-        "sd_difference": 0.10910660978020716,
+        "treatment_mean": 0.15652060198482454,
+        "mean_difference": -0.012152120597770256,
+        "sd_difference": 0.11379543692150206,
         "increase": 14,
         "decrease": 18,
         "tie": 0,
@@ -3025,9 +3025,9 @@
       },
       "flown_m": {
         "control_mean": 19.98092438432783,
-        "treatment_mean": 19.67054601864251,
-        "mean_difference": -0.3103783656853189,
-        "sd_difference": 4.170896357267256,
+        "treatment_mean": 19.6455074146339,
+        "mean_difference": -0.33541696969393103,
+        "sd_difference": 4.119187632168033,
         "increase": 14,
         "decrease": 18,
         "tie": 0,
@@ -3037,9 +3037,9 @@
       },
       "saccades_per_flight_s": {
         "control_mean": 0.5137530651515305,
-        "treatment_mean": 0.5152791877275054,
-        "mean_difference": 0.001526122575974967,
-        "sd_difference": 0.12549742746682988,
+        "treatment_mean": 0.5211564143848246,
+        "mean_difference": 0.0074033492332941965,
+        "sd_difference": 0.13067931689910303,
         "increase": 15,
         "decrease": 17,
         "tie": 0,
@@ -3049,12 +3049,12 @@
       },
       "contact_s": {
         "control_mean": 0.017500000000000005,
-        "treatment_mean": 0.01718750000000001,
-        "mean_difference": -0.00031250000000000017,
-        "sd_difference": 0.015551034609290627,
+        "treatment_mean": 0.016718750000000004,
+        "mean_difference": -0.0007812499999999997,
+        "sd_difference": 0.01611998234010079,
         "increase": 15,
-        "decrease": 15,
-        "tie": 2,
+        "decrease": 14,
+        "tie": 3,
         "undefined": 0,
         "control_at_floor": 1,
         "control_at_ceiling": 0
@@ -3085,13 +3085,13 @@
     {
       "metric": "near_miss_fraction",
       "resolution": 0,
-      "divergence_bound": 0.07715002364785896,
-      "floor": 0.08,
-      "host_minimum_effect": 0.08
+      "divergence_bound": 0.08046552511528011,
+      "floor": 0.09,
+      "host_minimum_effect": 0.09
     }
   ],
-  "runs_sha256": "ae79c18f77c5dc93610b56face4f22aa2e665f97cb87e302520d0085f6d0a588",
-  "outputs_sha256": "57f61338d4fea28555043e3781d3559ef098fb531bf7d90d930b55a39e1856a9",
-  "generated_at": "2026-10-24T02:05:05.166Z",
-  "sha256": "6235d793ba7d35ee1816c424480ca08e6bc477b81ef77d0be9634e2ae582fd64"
+  "runs_sha256": "358e3f7e0d5076f8fc8241a01839e39f396883404e12b6747a1870b393ab7af4",
+  "outputs_sha256": "97b352b3a0b41929cbe5cdb66f9b38ed6079cc0bb3be1c6f38dce7732ec2a414",
+  "generated_at": "2026-10-24T20:03:33.854Z",
+  "sha256": "e063caa9340428c7d8cc07044651dcad240ae6adb271c1d62f9207f999b0ec87"
 }

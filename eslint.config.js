@@ -55,6 +55,8 @@ export default tseslint.config(
       ".rain-research/**",
       "noeterra/target/**",
       "public/noeterra/**",
+      // The FlyBody physics backend's environment, checkout and traces (fly-physics/).
+      ".fly-physics/**",
     ],
   },
 

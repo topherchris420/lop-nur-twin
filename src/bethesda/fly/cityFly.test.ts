@@ -11,12 +11,14 @@ import {
 import { CitySimulation, DT } from "../simulation";
 import { parseScenario } from "../scenarios";
 import { groundAt } from "../terrain";
-import { buildingAt, buildings, inside } from "../model";
-import { PARAMS } from "./params";
+import { bounds, buildingAt, buildings, inBounds, inside } from "../model";
 import { BethesdaFlyWorld } from "./bethesdaWorld";
-import { CityFly } from "./cityFly";
+import { CITY_START_RESERVE, CityFly } from "./cityFly";
+import { People } from "./people";
+import { PARAMS } from "./params";
 import type { V3 } from "./units";
 import {
+  PrimitiveWorld,
   rayBox,
   rayCylinder,
   raySphere,
@@ -49,32 +51,30 @@ describe("the fly in Bethesda", () => {
     expect(fly.fly.state.t).toBeCloseTo(90, 6);
     expect(host.stateHash()).toBe(plain.stateHash());
   }, 60_000);
-  it("starts on a mapped bench or table, stays near it and out of solids", () => {
+  it("starts on a mapped bench or table, stays inside the city's edge and out of solids", () => {
     const sim = new CitySimulation(config);
     const city = new CityFly(sim);
     expect(["bench", "table"]).toContain(city.fly.state.perch?.kind);
-    const home = city.world.home;
-    let maxRange = 0;
+    const edge = city.world.home.bounds!;
+    // The edge is inside the mapped area, which holds the whole drawn city.
+    expect(edge.min.x).toBeGreaterThan(bounds.min.x);
+    expect(edge.max.z).toBeLessThan(bounds.max.z);
     for (let k = 0; k < 3000; k++) {
       sim.step();
       city.tick();
       const p = city.fly.state.p;
       expect(p.every(Number.isFinite)).toBe(true);
       expect(city.world.solid(p)).toBe(false);
-      maxRange = Math.max(
-        maxRange,
-        Math.hypot(p[0] - home.center[0], p[2] - home.center[2]),
-      );
+      expect(inBounds({ x: p[0], z: p[2] })).toBe(true);
     }
     expect(city.failed).toBeNull();
-    expect(maxRange).toBeLessThan(PARAMS.homeRadiusM.value + 6);
     expect(city.fly.state.counts.rejected).toBe(0);
   }, 60_000);
   it("can touch the street trees, lamps and benches the city draws near it", () => {
     const city = new CityFly(new CitySimulation(config));
-    const home = city.world.home.center;
+    const home = city.fly.state.p;
     const near = (p: { x: number; z: number }) =>
-      Math.hypot(p.x - home[0], p.z - home[2]) < PARAMS.homeRadiusM.value;
+      Math.hypot(p.x - home[0], p.z - home[2]) < 18;
     let checked = 0;
     for (const t of streetTrees().filter((t) => near(t.point))) {
       const g = groundAt(t.point);
@@ -108,7 +108,9 @@ describe("the fly in Bethesda", () => {
     const city = new CityFly(new CitySimulation(config));
     const world = city.world;
     const spec = (world as unknown as { spec: PrimitiveWorldSpec }).spec;
-    const home = world.home.center;
+    // The ground under the bench the fly starts on.
+    const p = city.fly.state.p;
+    const home: V3 = [p[0], groundAt({ x: p[0], z: p[2] }), p[2]];
     const rng = mulberry32(7);
     let primitiveHits = 0;
     for (let k = 0; k < 4000; k++) {
@@ -195,7 +197,7 @@ describe("the fly in Bethesda", () => {
     {
       const { b, k, out } = awning!;
       const a = awnings(b)[k]!;
-      const world = new BethesdaFlyWorld(sim, a.point);
+      const world = new BethesdaFlyWorld(sim);
       const y = groundAt(b.center) + a.y;
       const at = (m: number): V3 => [
         a.point.x + out * Math.sin(a.angle) * m,
@@ -212,7 +214,7 @@ describe("the fly in Bethesda", () => {
     const unitOn = buildings.find((b) => rooftopUnit(b))!;
     {
       const unit = rooftopUnit(unitOn)!;
-      const world = new BethesdaFlyWorld(sim, unit.point);
+      const world = new BethesdaFlyWorld(sim);
       const base = groundAt(unitOn.center);
       const top = world.perchAt(unit.point.x, unit.point.z, base + unitOn.height + 3);
       expect(top?.id).toBe(`building ${unitOn.id} rooftop unit`);
@@ -227,7 +229,7 @@ describe("the fly in Bethesda", () => {
         z: hole.reduce((s, p) => s + p.z, 0) / hole.length,
       };
       expect(inside(c, hole)).toBe(true);
-      const world = new BethesdaFlyWorld(sim, c);
+      const world = new BethesdaFlyWorld(sim);
       const base = groundAt(yard.center);
       expect(world.solid([c.x, base + yard.height / 2, c.z])).toBe(false);
       expect(world.perchAt(c.x, c.z, base + yard.height + 1)?.id).not.toBe(
@@ -301,6 +303,21 @@ describe("the fly in Bethesda", () => {
     expect(a.placedOn).toBe(b.placedOn);
     expect(a.fly.stateHash()).toBe(b.fly.stateHash());
   });
+  it("has the same people looking at the same fly, for the same city, whoever else watches", () => {
+    const run = (panel: boolean) => {
+      const sim = new CitySimulation({ ...config, pedestrians: 140 });
+      const city = new CityFly(sim);
+      for (let k = 0; k < 3000; k++) {
+        sim.step();
+        city.tick();
+        // Reading the people, as the panel and the renderer do, changes nothing.
+        if (panel) city.people.pose("p1", city.fly.state.t);
+      }
+      expect(city.failed).toBeNull();
+      return city.stateHash();
+    };
+    expect(run(true)).toBe(run(false));
+  }, 60_000);
   it("catches up over several city ticks at once, with the city interpolated across them", () => {
     const sim = new CitySimulation(config);
     const city = new CityFly(sim);
@@ -334,6 +351,103 @@ describe("the fly in Bethesda", () => {
     expect(torso?.center[0]).toBeCloseTo((p0.x + p1.x) / 2, 9);
     expect(torso?.center[2]).toBeCloseTo((p0.z + p1.z) / 2, 9);
   });
+  it("answers every query through its grid as a scan of every primitive does", () => {
+    const sim = new CitySimulation(config);
+    const spec = (new BethesdaFlyWorld(sim) as unknown as { spec: PrimitiveWorldSpec })
+      .spec;
+    const grid = new PrimitiveWorld(spec),
+      scan = new PrimitiveWorld(spec, { grid: false });
+    const edge = grid.home.bounds!;
+    const rng = mulberry32(11);
+    for (let k = 0; k < 600; k++) {
+      // Anywhere in the city, from the ground to above its roofs.
+      const x = edge.min.x + rng() * (edge.max.x - edge.min.x),
+        z = edge.min.z + rng() * (edge.max.z - edge.min.z);
+      const p: V3 = [x, groundAt({ x, z }) + rng() * 30, z];
+      expect(grid.perchAt(x, z, p[1])).toEqual(scan.perchAt(x, z, p[1]));
+      expect(grid.solid(p)).toBe(scan.solid(p));
+      const u = rng() * 2 - 1,
+        a = rng() * 2 * Math.PI,
+        r = Math.sqrt(1 - u * u);
+      const d: V3 = [r * Math.cos(a), u, r * Math.sin(a)];
+      const reach = [0.4, 3, 12, 60][k % 4]!;
+      expect(grid.raycast(p, d, reach)).toEqual(scan.raycast(p, d, reach));
+      const sites: unknown[] = [],
+        scanned: unknown[] = [];
+      grid.landingSites(p, 4, sites as never[]);
+      scan.landingSites(p, 4, scanned as never[]);
+      expect(sites).toEqual(scanned);
+      const marks: unknown[] = [],
+        scannedMarks: unknown[] = [];
+      grid.landmarks(p, 8, marks as never[]);
+      scan.landmarks(p, 8, scannedMarks as never[]);
+      expect(marks).toEqual(scannedMarks);
+    }
+  }, 60_000);
+  it("finds the moving things near the fly that a look at every one of them finds", () => {
+    const sim = new CitySimulation(config);
+    const kept = new BethesdaFlyWorld(sim),
+      every = new BethesdaFlyWorld(sim);
+    // With people attached the kept list covers how far they can see the fly too.
+    const folk = new People({ seed: 1, sight: () => true, where: () => null });
+    kept.attachPeople(folk);
+    every.attachPeople(folk);
+    const rng = mulberry32(5);
+    let found = 0,
+      people = 0;
+    for (let k = 0; k < 300; k++) {
+      sim.step();
+      // The fly a metre over someone's path, somewhere in the city.
+      const agent = sim.agents[(k * 7) % sim.agents.length]!;
+      const at: V3 = [agent.point.x, groundAt(agent.point) + 1, agent.point.z];
+      kept.sync(k * DT, (k + 1) * DT, at);
+      every.sync(k * DT, (k + 1) * DT);
+      for (let j = 0; j < 4; j++) {
+        // Where the fly's eyes can be in the span, and once from far off.
+        const far = j === 3 ? 30 : 0.1;
+        const near: V3 = [
+          at[0] + (rng() - 0.5) * far,
+          at[1],
+          at[2] + (rng() - 0.5) * far,
+        ];
+        const t = (k + rng()) * DT;
+        const a: Mover[] = [],
+          b: Mover[] = [];
+        kept.movers(near, PARAMS.visualRangeM.value, a, t);
+        every.movers(near, PARAMS.visualRangeM.value, b, t);
+        expect(a).toEqual(b);
+        found += a.length;
+        const seen = kept.peopleNear(t, near, folk.range);
+        expect(seen).toEqual(every.peopleNear(t, near, folk.range));
+        people += seen.length;
+      }
+    }
+    expect(found).toBeGreaterThan(100);
+    expect(people).toBeGreaterThan(100);
+  }, 60_000);
+  it("forages: in its first half hour it smells food, finds it and feeds", () => {
+    const sim = new CitySimulation(config);
+    const city = new CityFly(sim);
+    expect(city.fly.state.reserve).toBeCloseTo(
+      CITY_START_RESERVE * PARAMS.reserveJ.value,
+      12,
+    );
+    let fedAt = -1;
+    for (let k = 0; k < 18000 && fedAt < 0; k++) {
+      sim.step();
+      city.tick();
+      if (city.fly.state.mode === "feed") fedAt = city.fly.state.t;
+      expect(inBounds({ x: city.fly.state.p[0], z: city.fly.state.p[2] })).toBe(true);
+    }
+    expect(fedAt).toBeGreaterThan(0);
+    expect(city.failed).toBeNull();
+    expect(city.fly.state.counts.rejected).toBe(0);
+    // On a patch at a food shop's door.
+    const p = city.fly.state.p;
+    expect(
+      city.world.foodAt([p[0], p[1] - city.fly.standingHeight, p[2]]),
+    ).not.toBeNull();
+  }, 60_000);
   it("advances only on ticks the city takes, so pausing the city pauses it", () => {
     const sim = new CitySimulation(config);
     const city = new CityFly(sim);

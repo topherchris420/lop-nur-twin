@@ -549,30 +549,75 @@ scripts. Its autonomous researcher adds `src/rain/autonomy/`,
 ### The digital fly (`src/bethesda/fly/`)
 
 One adult _Drosophila_ in the city: FlyBody's anatomy at true size, a
-reduced-order behavioural controller, a panel, and the R.A.I.N. Lab's fourth
-experiment backend. Read `docs/DIGITAL_FLY.md` first. Outside `src/bethesda/`
-it adds `scripts/import-flybody.ts`, `scripts/mjcf.ts`, `scripts/decimate.ts`,
-`scripts/import-vfb-reference.ts`, `scripts/rain-fly.ts`,
-`src/rain/scientific/fly*.ts`, `docs/benchmarks/fly-behavior/`,
-`docs/benchmarks/fly-pilots/`, its checks in `scripts/validate-bethesda.ts` and
-the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
+reduced-order behavioural controller, a circuit-informed one that replaces two
+of its proxies, a calibration against published recordings of real flies, a
+panel, and the R.A.I.N. Lab's fourth experiment backend. Read
+`docs/DIGITAL_FLY.md` first. Outside `src/bethesda/` it adds
+`scripts/import-flybody.ts`, `scripts/mjcf.ts`, `scripts/decimate.ts`,
+`scripts/import-vfb-reference.ts`, `scripts/import-fly-grooming.ts`,
+`scripts/fly-calibration.ts`, `scripts/rain-fly.ts`,
+`scripts/fly-physics-plan.ts` (with its test) and `scripts/fly-physics-trace.ts`,
+`src/rain/scientific/fly*.ts`, the physics backend `fly-physics/`,
+`docs/benchmarks/fly-behavior/`, `docs/benchmarks/fly-pilots/`,
+`docs/benchmarks/fly-calibration/` and `docs/benchmarks/fly-physics/`, its
+checks in `scripts/validate-bethesda.ts`, its entries in `NOTICE`, the
+`.fly-physics/` lines of `.gitignore` and `eslint.config.js`, its lines in
+`.prettierignore`, the `scripts/**/*.test.ts` include in `vitest.config.ts`,
+and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 
 - **Not a neural simulation, and never worded as one.** No neuron or synapse
-  is simulated; the VFB regions are a reference layer.
-  `REDUCED_ORDER_DESCRIPTOR.simulatesNeurons` is false and the build validator
-  fails if it is not.
-- **Imported data only.** `src/bethesda/fly/data/` is written by the two
+  is simulated; the VFB regions are a reference layer, and the circuit models
+  (`fly/circuits/`) are published functions of the stimulus and of dust, with
+  thresholds. `REDUCED_ORDER_DESCRIPTOR.simulatesNeurons` and
+  `CIRCUIT_DESCRIPTOR.simulatesNeurons` are false and the build validator
+  fails if either is not.
+- **Imported data only.** `src/bethesda/fly/data/` is written by the three
   importers with real retrieval times and hashes; never hand-edit it. FlyBody's
   figshare release (trained policies, trajectories) is GPL-3.0 and VFB's
   template and painted-domain geometry is CC-BY-NC-SA: neither may be added.
+  The grooming ethograms are CC BY 4.0: their summaries keep the dataset's
+  attribution, in the file and in `NOTICE`, and no per-frame data are kept.
 - **Every number has a class.** `params.ts` marks each parameter `flybody`,
-  `published` or `model`, with its source. Experiments override `model` values
-  only.
+  `published` or `model`, with its source; `circuits/params.ts` marks the
+  circuit models' `published`, `imported` (read from an importer's data),
+  `fitted` or `model`. Experiments override `model` values only. A `fitted`
+  value is the one `docs/benchmarks/fly-calibration/fit.json` records, written
+  by `node scripts/run-ts.mjs scripts/fly-calibration.ts --fit`, and a test
+  holds it there; never type one in or tune one by hand.
+- **The calibration says what it can show.**
+  - Every observation in `calibration/observations.ts` carries its paper's
+    words verbatim (or, for the ethograms, the field of the imported data) and
+    a role: `held-out`, `design` (a parameter came from it) or `fit` (a fitted
+    value was set to it). Never read a value off a figure, and never set or
+    change a parameter from a held-out observation without making it a fit
+    target, named in the parameter's `fit`, and refitting.
+  - Every paradigm names how it differs from the experiment
+    (`approximations`); a new approximation is written there before it runs.
+  - After a change to the fly, its controllers or the paradigms, run
+    `node scripts/run-ts.mjs scripts/fly-calibration.ts --fit --check` (refit
+    and commit if it fails), then the report from a clean commit, and commit
+    what it writes. `--check` reproduces it byte for byte; never edit
+    `docs/benchmarks/fly-calibration/` by hand. The report names the commit it
+    ran from, and a report from a working tree is not a result.
+- **Physics is a separate backend.** `fly-physics/` runs FlyBody's MuJoCo
+  model on the browser fly's plan, open loop, and never feeds back into
+  `src/bethesda/fly/`. It never fetches FlyBody's GPL figshare release and
+  imports FlyBody only from a checkout verified against `flybody.source.json`.
+  Every departure from `template_task` is a named option its results record.
+  A change to the fly's gait, pose or body changes the traces: rerun the whole
+  matrix from a clean commit and commit it; never edit a result or its README.
 - **One gate.** Every command passes `validateCommand`. Another controller is a
   `FlyNeuralAdapter`, never a second path to the body.
 - **Read-only toward the city.** The fly is not a recorded command and not in
   the city's state hash; `cityFly.test.ts` compares the hash with and without
   it. The city must never read the fly.
+- **People see the fly; the city never does.** `fly/people.ts` is a layer
+  stepped with the fly: the pedestrians near it see it through a bounded
+  model of human sight, notice it, follow it and sometimes swat, and the fly
+  sees their hands as moving things. The city simulator never reads it, and
+  its pedestrians walk on as the simulator moves them; only the renderer
+  reads it, to turn a head and draw an arm. Its numbers follow the fly's
+  rules: published values with a DOI, model values named as model choices.
 - **It touches what is drawn.** Street furniture, trees, and the rooftop units
   and awnings on buildings are placed and sized only in
   `src/bethesda/furniture.ts`, which the city builder and the fly's world both

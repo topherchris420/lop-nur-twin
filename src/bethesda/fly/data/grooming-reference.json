@@ -1,0 +1,1242 @@
+{
+  "schema": "fly-grooming-reference/v1",
+  "retrievedAt": "2026-10-24T14:34:28.248Z",
+  "importer": "scripts/import-fly-grooming.ts",
+  "dataset": {
+    "doi": "10.17632/fxz8dgywcd.1",
+    "title": "Spatial comparisons of mechanosensory information govern the grooming sequence in Drosophila",
+    "published": "2020-01-08T22:13:20.247Z",
+    "api": "https://data.mendeley.com/public-api/datasets/fxz8dgywcd?version=1",
+    "sha256": "2a0f6b69f9ce015ef0ece1bd9fde833b2acf0daf511fe976453497f10f3bf5ca",
+    "folder": "Figure 1"
+  },
+  "paper": {
+    "short": "Zhang, Guo & Simpson 2020, Curr Biol 30:988",
+    "doi": "10.1016/j.cub.2020.01.045",
+    "pmcid": "PMC7184881",
+    "fullText": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=7184881&rettype=xml",
+    "sha256": "f1c8f060c512d6061244af8795072cadbcd19cc85f9e4aa37b753a58e118c42f",
+    "quotes": {
+      "frames": "30 Hz videos were recorded for 50,000 frames (27.78 min)",
+      "temperature": "Dust-induced grooming assays were performed in 21–23°C",
+      "flies": "4–7 days male flies were anesthetized on ice",
+      "dusting": "Flies were tapped into dusting chamber and shaken for 10 times",
+      "control": "As undusted control, flies with the same genotype were shaken in chambers without dust",
+      "bristles": "the head has ~1200, the abdomen has ~600, and the wings have ~400",
+      "removal": "A simulation with dr = 0.2% generates a similar speed of grooming progression to what we observed in real flies",
+      "activity": "σ(t)=d(t)/5",
+      "bouts": "It was drawn from duration distributions of different grooming modules we got from two manually labeled dusted Canton S ethograms"
+    }
+  },
+  "model": {
+    "file": {
+      "name": "groomingmodel.m",
+      "sha256": "be6e31502cbc6077edea1b059b0ba0e96805ccb3f9b05d07afc7c5f3f350d66d",
+      "bytes": 5419
+    },
+    "initialDust": {
+      "head": 1200,
+      "abdomen": 600,
+      "wings": 400,
+      "eachLegPair": 200
+    },
+    "dustRemovalRate": 0.004,
+    "legRubRemovalFactor": 10,
+    "activitySdOverDust": 0.2,
+    "activityAbsolute": true,
+    "boutLengthGamma": {
+      "1": {
+        "shape": 1.74571,
+        "scaleFrames": 32.9363
+      },
+      "2": {
+        "shape": 2.80388,
+        "scaleFrames": 8.36872
+      },
+      "3": {
+        "shape": 2.20865,
+        "scaleFrames": 9.68763
+      },
+      "4": {
+        "shape": 3.26172,
+        "scaleFrames": 10.5877
+      },
+      "5": {
+        "shape": 2.17277,
+        "scaleFrames": 8.4282
+      }
+    }
+  },
+  "licence": {
+    "name": "CC BY 4.0",
+    "url": "http://creativecommons.org/licenses/by/4.0",
+    "attribution": "Zhang N, Guo L, Simpson JH. Spatial comparisons of mechanosensory information govern the grooming sequence in Drosophila. Mendeley Data, V1 (2020), doi:10.17632/fxz8dgywcd.1",
+    "changes": "Per-frame ethograms reduced to the summary statistics in this file by scripts/import-fly-grooming.ts; no per-frame data are kept."
+  },
+  "paradigm": "Canton S males, 4–7 days old, shaken 10 times in a dusting chamber with Reactive Yellow 86 dust or, as the undusted control, in chambers without dust, then filmed alone at 30 Hz for 50 000 frames (27.78 min) at 21–23 °C; frames labelled by the Automatic Behavior Recognition System classifier (Zhang, Guo & Simpson 2020, STAR Methods).",
+  "frameHz": 30,
+  "labels": {
+    "1": "front leg rubbing",
+    "2": "head cleaning",
+    "3": "abdominal cleaning",
+    "4": "back leg rubbing",
+    "5": "wing cleaning",
+    "6": "walking",
+    "7": "standing"
+  },
+  "groups": {
+    "grooming": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "anterior": [
+      1,
+      2
+    ],
+    "posterior": [
+      3,
+      4,
+      5
+    ]
+  },
+  "method": "Reduced by src/bethesda/fly/calibration/ethogram.ts, as the calibration reduces simulated flies: fractions per fly, then across flies (mean, SD with n − 1, quartiles); episodes are maximal runs of grooming labels (1–5), motifs maximal runs of anterior (1–2) or posterior (3–5) labels, actions maximal runs of one label, and transitions the shares of successive actions within an episode that stay in the anterior or the posterior motif; runs touching the start or end of a recording are left out of durations; quantiles interpolate linearly between order statistics; intervals are successive 150 s windows from the first frame, the last, partial one left out. No run is filtered by length and no label is changed.",
+  "conditions": {
+    "dusted": {
+      "file": {
+        "name": "CantonS_dusted.mat",
+        "sha256": "98933139d144a681689339a351af6ad6a9fa61ab1b15a289bf0403acf7efe326",
+        "bytes": 286800,
+        "matrix": "CantonS_dusted"
+      },
+      "flies": 44,
+      "frames": 50000,
+      "summary": {
+        "timeFraction": {
+          "1": {
+            "n": 44,
+            "mean": 0.20113,
+            "sd": 0.09058,
+            "q25": 0.14769,
+            "median": 0.17353,
+            "q75": 0.23462
+          },
+          "2": {
+            "n": 44,
+            "mean": 0.2097,
+            "sd": 0.08141,
+            "q25": 0.15431,
+            "median": 0.18132,
+            "q75": 0.26272
+          },
+          "3": {
+            "n": 44,
+            "mean": 0.05788,
+            "sd": 0.03108,
+            "q25": 0.03701,
+            "median": 0.05231,
+            "q75": 0.07496
+          },
+          "4": {
+            "n": 44,
+            "mean": 0.23064,
+            "sd": 0.07882,
+            "q25": 0.17092,
+            "median": 0.22829,
+            "q75": 0.29378
+          },
+          "5": {
+            "n": 44,
+            "mean": 0.02557,
+            "sd": 0.02002,
+            "q25": 0.01199,
+            "median": 0.01822,
+            "q75": 0.03476
+          },
+          "6": {
+            "n": 44,
+            "mean": 0.08458,
+            "sd": 0.0411,
+            "q25": 0.05561,
+            "median": 0.07645,
+            "q75": 0.10525
+          },
+          "7": {
+            "n": 44,
+            "mean": 0.19052,
+            "sd": 0.13284,
+            "q25": 0.08275,
+            "median": 0.16824,
+            "q75": 0.29466
+          }
+        },
+        "grooming": {
+          "n": 44,
+          "mean": 0.72491,
+          "sd": 0.13147,
+          "q25": 0.61445,
+          "median": 0.75925,
+          "q75": 0.8181
+        },
+        "anterior": {
+          "n": 44,
+          "mean": 0.41083,
+          "sd": 0.15921,
+          "q25": 0.31331,
+          "median": 0.36417,
+          "q75": 0.48777
+        },
+        "posterior": {
+          "n": 44,
+          "mean": 0.31408,
+          "sd": 0.10889,
+          "q25": 0.22133,
+          "median": 0.28917,
+          "q75": 0.41679
+        },
+        "episodes": {
+          "durationS": {
+            "runs": 5118,
+            "mean": 10.3143,
+            "q10": 0.6333,
+            "q25": 1.1333,
+            "median": 2.5333,
+            "q75": 8.0667,
+            "q90": 28.9533
+          },
+          "perMinute": {
+            "n": 44,
+            "mean": 4.1875,
+            "sd": 1.5312,
+            "q25": 3.096,
+            "median": 4.248,
+            "q75": 5.454
+          }
+        },
+        "motifs": {
+          "anterior": {
+            "runs": 2037,
+            "mean": 14.7457,
+            "q10": 1.2333,
+            "q25": 2.7333,
+            "median": 7,
+            "q75": 18.5,
+            "q90": 37.4533
+          },
+          "posterior": {
+            "runs": 6026,
+            "mean": 3.8131,
+            "q10": 0.5667,
+            "q25": 0.9,
+            "median": 1.6,
+            "q75": 3.5667,
+            "q90": 8.6667
+          }
+        },
+        "transitions": {
+          "anteriorToAnterior": 0.98503,
+          "posteriorToPosterior": 0.97286,
+          "transitions": 150126
+        },
+        "actions": {
+          "1": {
+            "runs": 46854,
+            "mean": 0.3147,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1333,
+            "q75": 0.3667,
+            "q90": 0.8333
+          },
+          "2": {
+            "runs": 46629,
+            "mean": 0.3298,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1667,
+            "q75": 0.4,
+            "q90": 0.9
+          },
+          "3": {
+            "runs": 20545,
+            "mean": 0.2065,
+            "q10": 0.0333,
+            "q25": 0.0333,
+            "median": 0.1,
+            "q75": 0.2333,
+            "q90": 0.5333
+          },
+          "4": {
+            "runs": 30439,
+            "mean": 0.555,
+            "q10": 0.0333,
+            "q25": 0.1,
+            "median": 0.3,
+            "q75": 0.7667,
+            "q90": 1.3333
+          },
+          "5": {
+            "runs": 10777,
+            "mean": 0.1737,
+            "q10": 0.0333,
+            "q25": 0.0333,
+            "median": 0.1,
+            "q75": 0.2,
+            "q90": 0.4
+          },
+          "6": {
+            "runs": 2941,
+            "mean": 2.1057,
+            "q10": 0.2333,
+            "q25": 0.4333,
+            "median": 1.0667,
+            "q75": 2.5667,
+            "q90": 5.2667
+          },
+          "7": {
+            "runs": 2411,
+            "mean": 5.7941,
+            "q10": 0.5,
+            "q25": 0.6667,
+            "median": 1.1,
+            "q75": 2.7667,
+            "q90": 13.4
+          }
+        },
+        "intervals": {
+          "lengthS": 150,
+          "count": 11,
+          "anterior": [
+            {
+              "n": 44,
+              "mean": 0.76572,
+              "sd": 0.1747,
+              "q25": 0.63672,
+              "median": 0.79244,
+              "q75": 0.92394
+            },
+            {
+              "n": 44,
+              "mean": 0.54749,
+              "sd": 0.24282,
+              "q25": 0.40211,
+              "median": 0.52833,
+              "q75": 0.71017
+            },
+            {
+              "n": 44,
+              "mean": 0.53265,
+              "sd": 0.23517,
+              "q25": 0.37572,
+              "median": 0.49011,
+              "q75": 0.69806
+            },
+            {
+              "n": 44,
+              "mean": 0.40647,
+              "sd": 0.26124,
+              "q25": 0.22772,
+              "median": 0.34011,
+              "q75": 0.55306
+            },
+            {
+              "n": 44,
+              "mean": 0.40679,
+              "sd": 0.25095,
+              "q25": 0.22317,
+              "median": 0.33167,
+              "q75": 0.58289
+            },
+            {
+              "n": 44,
+              "mean": 0.36974,
+              "sd": 0.23141,
+              "q25": 0.19328,
+              "median": 0.34311,
+              "q75": 0.45667
+            },
+            {
+              "n": 44,
+              "mean": 0.34336,
+              "sd": 0.20918,
+              "q25": 0.19072,
+              "median": 0.32544,
+              "q75": 0.45911
+            },
+            {
+              "n": 44,
+              "mean": 0.36051,
+              "sd": 0.24701,
+              "q25": 0.17317,
+              "median": 0.33667,
+              "q75": 0.49722
+            },
+            {
+              "n": 44,
+              "mean": 0.23122,
+              "sd": 0.22382,
+              "q25": 0.02856,
+              "median": 0.14156,
+              "q75": 0.38389
+            },
+            {
+              "n": 44,
+              "mean": 0.29424,
+              "sd": 0.22154,
+              "q25": 0.11628,
+              "median": 0.27278,
+              "q75": 0.40456
+            },
+            {
+              "n": 44,
+              "mean": 0.27871,
+              "sd": 0.21325,
+              "q25": 0.08283,
+              "median": 0.25689,
+              "q75": 0.474
+            }
+          ],
+          "posterior": [
+            {
+              "n": 44,
+              "mean": 0.17215,
+              "sd": 0.14449,
+              "q25": 0.04539,
+              "median": 0.16211,
+              "q75": 0.25189
+            },
+            {
+              "n": 44,
+              "mean": 0.30858,
+              "sd": 0.18757,
+              "q25": 0.15578,
+              "median": 0.30733,
+              "q75": 0.42717
+            },
+            {
+              "n": 44,
+              "mean": 0.29206,
+              "sd": 0.17327,
+              "q25": 0.15622,
+              "median": 0.27056,
+              "q75": 0.42156
+            },
+            {
+              "n": 44,
+              "mean": 0.36468,
+              "sd": 0.19176,
+              "q25": 0.21611,
+              "median": 0.35367,
+              "q75": 0.50928
+            },
+            {
+              "n": 44,
+              "mean": 0.3778,
+              "sd": 0.2005,
+              "q25": 0.21911,
+              "median": 0.37544,
+              "q75": 0.53917
+            },
+            {
+              "n": 44,
+              "mean": 0.3285,
+              "sd": 0.18067,
+              "q25": 0.18233,
+              "median": 0.33956,
+              "q75": 0.471
+            },
+            {
+              "n": 44,
+              "mean": 0.33929,
+              "sd": 0.18616,
+              "q25": 0.19206,
+              "median": 0.35433,
+              "q75": 0.49733
+            },
+            {
+              "n": 44,
+              "mean": 0.30819,
+              "sd": 0.18651,
+              "q25": 0.15911,
+              "median": 0.31378,
+              "q75": 0.45144
+            },
+            {
+              "n": 44,
+              "mean": 0.3478,
+              "sd": 0.22171,
+              "q25": 0.14544,
+              "median": 0.37256,
+              "q75": 0.48272
+            },
+            {
+              "n": 44,
+              "mean": 0.2932,
+              "sd": 0.20284,
+              "q25": 0.09878,
+              "median": 0.295,
+              "q75": 0.48767
+            },
+            {
+              "n": 44,
+              "mean": 0.31804,
+              "sd": 0.25015,
+              "q25": 0.12233,
+              "median": 0.287,
+              "q75": 0.43822
+            }
+          ],
+          "walking": [
+            {
+              "n": 44,
+              "mean": 0.0438,
+              "sd": 0.04565,
+              "q25": 0.00906,
+              "median": 0.02233,
+              "q75": 0.06933
+            },
+            {
+              "n": 44,
+              "mean": 0.0822,
+              "sd": 0.08315,
+              "q25": 0.02422,
+              "median": 0.05144,
+              "q75": 0.12228
+            },
+            {
+              "n": 44,
+              "mean": 0.09878,
+              "sd": 0.09118,
+              "q25": 0.02678,
+              "median": 0.07667,
+              "q75": 0.13828
+            },
+            {
+              "n": 44,
+              "mean": 0.12322,
+              "sd": 0.10564,
+              "q25": 0.03122,
+              "median": 0.08689,
+              "q75": 0.21294
+            },
+            {
+              "n": 44,
+              "mean": 0.08889,
+              "sd": 0.08058,
+              "q25": 0.02311,
+              "median": 0.06944,
+              "q75": 0.14756
+            },
+            {
+              "n": 44,
+              "mean": 0.11377,
+              "sd": 0.09463,
+              "q25": 0.03522,
+              "median": 0.07856,
+              "q75": 0.18311
+            },
+            {
+              "n": 44,
+              "mean": 0.08245,
+              "sd": 0.08762,
+              "q25": 0.00689,
+              "median": 0.05756,
+              "q75": 0.12472
+            },
+            {
+              "n": 44,
+              "mean": 0.06947,
+              "sd": 0.07951,
+              "q25": 0.01,
+              "median": 0.046,
+              "q75": 0.10583
+            },
+            {
+              "n": 44,
+              "mean": 0.08497,
+              "sd": 0.08929,
+              "q25": 0.00344,
+              "median": 0.06578,
+              "q75": 0.12506
+            },
+            {
+              "n": 44,
+              "mean": 0.07037,
+              "sd": 0.08472,
+              "q25": 0,
+              "median": 0.02667,
+              "q75": 0.11317
+            },
+            {
+              "n": 44,
+              "mean": 0.07492,
+              "sd": 0.10461,
+              "q25": 0,
+              "median": 0.04378,
+              "q75": 0.11356
+            }
+          ],
+          "standing": [
+            {
+              "n": 44,
+              "mean": 0.01833,
+              "sd": 0.03298,
+              "q25": 0,
+              "median": 0.00744,
+              "q75": 0.02311
+            },
+            {
+              "n": 44,
+              "mean": 0.06173,
+              "sd": 0.09044,
+              "q25": 0.00539,
+              "median": 0.02289,
+              "q75": 0.07083
+            },
+            {
+              "n": 44,
+              "mean": 0.07651,
+              "sd": 0.11357,
+              "q25": 0.00994,
+              "median": 0.02356,
+              "q75": 0.08789
+            },
+            {
+              "n": 44,
+              "mean": 0.10563,
+              "sd": 0.09849,
+              "q25": 0.02217,
+              "median": 0.07644,
+              "q75": 0.18306
+            },
+            {
+              "n": 44,
+              "mean": 0.12652,
+              "sd": 0.14763,
+              "q25": 0.01472,
+              "median": 0.06667,
+              "q75": 0.18089
+            },
+            {
+              "n": 44,
+              "mean": 0.18798,
+              "sd": 0.22113,
+              "q25": 0.02656,
+              "median": 0.11056,
+              "q75": 0.274
+            },
+            {
+              "n": 44,
+              "mean": 0.2349,
+              "sd": 0.24162,
+              "q25": 0.04006,
+              "median": 0.15533,
+              "q75": 0.39356
+            },
+            {
+              "n": 44,
+              "mean": 0.26183,
+              "sd": 0.27749,
+              "q25": 0.07906,
+              "median": 0.13567,
+              "q75": 0.36528
+            },
+            {
+              "n": 44,
+              "mean": 0.33601,
+              "sd": 0.30984,
+              "q25": 0.06767,
+              "median": 0.24,
+              "q75": 0.56222
+            },
+            {
+              "n": 44,
+              "mean": 0.34219,
+              "sd": 0.31301,
+              "q25": 0.08994,
+              "median": 0.23,
+              "q75": 0.56444
+            },
+            {
+              "n": 44,
+              "mean": 0.32832,
+              "sd": 0.32396,
+              "q25": 0.04094,
+              "median": 0.206,
+              "q75": 0.64561
+            }
+          ]
+        }
+      }
+    },
+    "undusted": {
+      "file": {
+        "name": "CantonS_undusted.mat",
+        "sha256": "ef1ce53d28af6f5e2dfbc212ae09e8ed2728870400eb6a14731e95b93b2059ac",
+        "bytes": 228379,
+        "matrix": "CantonS_undusted"
+      },
+      "flies": 55,
+      "frames": 50000,
+      "summary": {
+        "timeFraction": {
+          "1": {
+            "n": 55,
+            "mean": 0.06415,
+            "sd": 0.02726,
+            "q25": 0.04456,
+            "median": 0.06296,
+            "q75": 0.07498
+          },
+          "2": {
+            "n": 55,
+            "mean": 0.05555,
+            "sd": 0.02368,
+            "q25": 0.03949,
+            "median": 0.05324,
+            "q75": 0.07089
+          },
+          "3": {
+            "n": 55,
+            "mean": 0.01687,
+            "sd": 0.01456,
+            "q25": 0.00894,
+            "median": 0.01234,
+            "q75": 0.01936
+          },
+          "4": {
+            "n": 55,
+            "mean": 0.09761,
+            "sd": 0.04184,
+            "q25": 0.06013,
+            "median": 0.09576,
+            "q75": 0.12919
+          },
+          "5": {
+            "n": 55,
+            "mean": 0.09737,
+            "sd": 0.0415,
+            "q25": 0.06514,
+            "median": 0.0932,
+            "q75": 0.12471
+          },
+          "6": {
+            "n": 55,
+            "mean": 0.20541,
+            "sd": 0.12225,
+            "q25": 0.12502,
+            "median": 0.18188,
+            "q75": 0.25824
+          },
+          "7": {
+            "n": 55,
+            "mean": 0.46303,
+            "sd": 0.19252,
+            "q25": 0.33687,
+            "median": 0.47616,
+            "q75": 0.58148
+          }
+        },
+        "grooming": {
+          "n": 55,
+          "mean": 0.33156,
+          "sd": 0.12228,
+          "q25": 0.22843,
+          "median": 0.32766,
+          "q75": 0.41257
+        },
+        "anterior": {
+          "n": 55,
+          "mean": 0.1197,
+          "sd": 0.04776,
+          "q25": 0.08439,
+          "median": 0.11844,
+          "q75": 0.14897
+        },
+        "posterior": {
+          "n": 55,
+          "mean": 0.21186,
+          "sd": 0.0884,
+          "q25": 0.13747,
+          "median": 0.20316,
+          "q75": 0.26663
+        },
+        "episodes": {
+          "durationS": {
+            "runs": 7645,
+            "mean": 3.9713,
+            "q10": 0.5,
+            "q25": 0.8,
+            "median": 1.4,
+            "q75": 3.7,
+            "q90": 9.6667
+          },
+          "perMinute": {
+            "n": 55,
+            "mean": 5.004,
+            "sd": 1.9944,
+            "q25": 3.366,
+            "median": 4.788,
+            "q75": 6.624
+          }
+        },
+        "motifs": {
+          "anterior": {
+            "runs": 2016,
+            "mean": 5.4413,
+            "q10": 0.8333,
+            "q25": 1.4667,
+            "median": 2.6667,
+            "q75": 6.2667,
+            "q90": 13.3333
+          },
+          "posterior": {
+            "runs": 7960,
+            "mean": 2.4362,
+            "q10": 0.5,
+            "q25": 0.7333,
+            "median": 1.1333,
+            "q75": 2.3,
+            "q90": 5.4333
+          }
+        },
+        "transitions": {
+          "anteriorToAnterior": 0.96769,
+          "posteriorToPosterior": 0.97866,
+          "transitions": 92482
+        },
+        "actions": {
+          "1": {
+            "runs": 17012,
+            "mean": 0.3455,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1667,
+            "q75": 0.4333,
+            "q90": 0.9
+          },
+          "2": {
+            "runs": 16509,
+            "mean": 0.3084,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1333,
+            "q75": 0.3333,
+            "q90": 0.8667
+          },
+          "3": {
+            "runs": 12561,
+            "mean": 0.1231,
+            "q10": 0.0333,
+            "q25": 0.0333,
+            "median": 0.0667,
+            "q75": 0.1333,
+            "q90": 0.2667
+          },
+          "4": {
+            "runs": 29488,
+            "mean": 0.3028,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1667,
+            "q75": 0.4,
+            "q90": 0.7667
+          },
+          "5": {
+            "runs": 24557,
+            "mean": 0.3633,
+            "q10": 0.0333,
+            "q25": 0.0667,
+            "median": 0.1333,
+            "q75": 0.3667,
+            "q90": 0.9
+          },
+          "6": {
+            "runs": 6047,
+            "mean": 3.0966,
+            "q10": 0.2,
+            "q25": 0.4333,
+            "median": 1.3667,
+            "q75": 3.9667,
+            "q90": 8.2133
+          },
+          "7": {
+            "runs": 1956,
+            "mean": 21.6994,
+            "q10": 0.6833,
+            "q25": 1.3333,
+            "median": 4.1667,
+            "q75": 15.6833,
+            "q90": 65.1667
+          }
+        },
+        "intervals": {
+          "lengthS": 150,
+          "count": 11,
+          "anterior": [
+            {
+              "n": 55,
+              "mean": 0.15135,
+              "sd": 0.09255,
+              "q25": 0.08111,
+              "median": 0.13644,
+              "q75": 0.20067
+            },
+            {
+              "n": 55,
+              "mean": 0.1752,
+              "sd": 0.12563,
+              "q25": 0.07456,
+              "median": 0.15689,
+              "q75": 0.268
+            },
+            {
+              "n": 55,
+              "mean": 0.17634,
+              "sd": 0.1387,
+              "q25": 0.05778,
+              "median": 0.16156,
+              "q75": 0.28067
+            },
+            {
+              "n": 55,
+              "mean": 0.15851,
+              "sd": 0.11705,
+              "q25": 0.05789,
+              "median": 0.16222,
+              "q75": 0.23133
+            },
+            {
+              "n": 55,
+              "mean": 0.10859,
+              "sd": 0.11041,
+              "q25": 0.01444,
+              "median": 0.08044,
+              "q75": 0.16622
+            },
+            {
+              "n": 55,
+              "mean": 0.09682,
+              "sd": 0.11492,
+              "q25": 0.00344,
+              "median": 0.05556,
+              "q75": 0.14133
+            },
+            {
+              "n": 55,
+              "mean": 0.08677,
+              "sd": 0.0986,
+              "q25": 0.01756,
+              "median": 0.05467,
+              "q75": 0.11511
+            },
+            {
+              "n": 55,
+              "mean": 0.10364,
+              "sd": 0.11211,
+              "q25": 0.00889,
+              "median": 0.06578,
+              "q75": 0.15922
+            },
+            {
+              "n": 55,
+              "mean": 0.10571,
+              "sd": 0.13175,
+              "q25": 0.005,
+              "median": 0.05311,
+              "q75": 0.15844
+            },
+            {
+              "n": 55,
+              "mean": 0.08451,
+              "sd": 0.12649,
+              "q25": 0.00678,
+              "median": 0.03289,
+              "q75": 0.10778
+            },
+            {
+              "n": 55,
+              "mean": 0.07406,
+              "sd": 0.08638,
+              "q25": 0,
+              "median": 0.03778,
+              "q75": 0.12056
+            }
+          ],
+          "posterior": [
+            {
+              "n": 55,
+              "mean": 0.26281,
+              "sd": 0.10445,
+              "q25": 0.188,
+              "median": 0.26378,
+              "q75": 0.31844
+            },
+            {
+              "n": 55,
+              "mean": 0.31479,
+              "sd": 0.1511,
+              "q25": 0.20344,
+              "median": 0.32133,
+              "q75": 0.41033
+            },
+            {
+              "n": 55,
+              "mean": 0.30072,
+              "sd": 0.18949,
+              "q25": 0.193,
+              "median": 0.29156,
+              "q75": 0.42367
+            },
+            {
+              "n": 55,
+              "mean": 0.24352,
+              "sd": 0.17738,
+              "q25": 0.12622,
+              "median": 0.20156,
+              "q75": 0.33633
+            },
+            {
+              "n": 55,
+              "mean": 0.23053,
+              "sd": 0.19067,
+              "q25": 0.06822,
+              "median": 0.20244,
+              "q75": 0.33989
+            },
+            {
+              "n": 55,
+              "mean": 0.21395,
+              "sd": 0.18212,
+              "q25": 0.08067,
+              "median": 0.19333,
+              "q75": 0.309
+            },
+            {
+              "n": 55,
+              "mean": 0.18322,
+              "sd": 0.17802,
+              "q25": 0.03311,
+              "median": 0.12844,
+              "q75": 0.26933
+            },
+            {
+              "n": 55,
+              "mean": 0.1546,
+              "sd": 0.1572,
+              "q25": 0.03289,
+              "median": 0.09244,
+              "q75": 0.26444
+            },
+            {
+              "n": 55,
+              "mean": 0.15438,
+              "sd": 0.15847,
+              "q25": 0.01989,
+              "median": 0.13533,
+              "q75": 0.21133
+            },
+            {
+              "n": 55,
+              "mean": 0.1448,
+              "sd": 0.13424,
+              "q25": 0.03067,
+              "median": 0.11,
+              "q75": 0.21544
+            },
+            {
+              "n": 55,
+              "mean": 0.12979,
+              "sd": 0.11763,
+              "q25": 0.02333,
+              "median": 0.10911,
+              "q75": 0.21078
+            }
+          ],
+          "walking": [
+            {
+              "n": 55,
+              "mean": 0.503,
+              "sd": 0.17115,
+              "q25": 0.36478,
+              "median": 0.52044,
+              "q75": 0.603
+            },
+            {
+              "n": 55,
+              "mean": 0.25897,
+              "sd": 0.18464,
+              "q25": 0.14433,
+              "median": 0.19911,
+              "q75": 0.35122
+            },
+            {
+              "n": 55,
+              "mean": 0.18778,
+              "sd": 0.16236,
+              "q25": 0.07344,
+              "median": 0.16644,
+              "q75": 0.23667
+            },
+            {
+              "n": 55,
+              "mean": 0.18346,
+              "sd": 0.18752,
+              "q25": 0.05211,
+              "median": 0.14444,
+              "q75": 0.24878
+            },
+            {
+              "n": 55,
+              "mean": 0.14298,
+              "sd": 0.14329,
+              "q25": 0.02867,
+              "median": 0.10378,
+              "q75": 0.17833
+            },
+            {
+              "n": 55,
+              "mean": 0.17358,
+              "sd": 0.17321,
+              "q25": 0.06011,
+              "median": 0.12489,
+              "q75": 0.22333
+            },
+            {
+              "n": 55,
+              "mean": 0.18721,
+              "sd": 0.17964,
+              "q25": 0.03567,
+              "median": 0.13711,
+              "q75": 0.30089
+            },
+            {
+              "n": 55,
+              "mean": 0.13271,
+              "sd": 0.13524,
+              "q25": 0.02178,
+              "median": 0.11111,
+              "q75": 0.18989
+            },
+            {
+              "n": 55,
+              "mean": 0.15664,
+              "sd": 0.16071,
+              "q25": 0.00167,
+              "median": 0.09778,
+              "q75": 0.26467
+            },
+            {
+              "n": 55,
+              "mean": 0.19119,
+              "sd": 0.19688,
+              "q25": 0.04033,
+              "median": 0.12778,
+              "q75": 0.28322
+            },
+            {
+              "n": 55,
+              "mean": 0.14679,
+              "sd": 0.17447,
+              "q25": 0.00411,
+              "median": 0.072,
+              "q75": 0.24911
+            }
+          ],
+          "standing": [
+            {
+              "n": 55,
+              "mean": 0.08284,
+              "sd": 0.14772,
+              "q25": 0.00556,
+              "median": 0.02422,
+              "q75": 0.09011
+            },
+            {
+              "n": 55,
+              "mean": 0.25103,
+              "sd": 0.22463,
+              "q25": 0.05278,
+              "median": 0.16756,
+              "q75": 0.42667
+            },
+            {
+              "n": 55,
+              "mean": 0.33516,
+              "sd": 0.28894,
+              "q25": 0.09644,
+              "median": 0.22911,
+              "q75": 0.541
+            },
+            {
+              "n": 55,
+              "mean": 0.41451,
+              "sd": 0.28159,
+              "q25": 0.19811,
+              "median": 0.37911,
+              "q75": 0.56767
+            },
+            {
+              "n": 55,
+              "mean": 0.5179,
+              "sd": 0.30153,
+              "q25": 0.27333,
+              "median": 0.58,
+              "q75": 0.74889
+            },
+            {
+              "n": 55,
+              "mean": 0.51565,
+              "sd": 0.31096,
+              "q25": 0.25522,
+              "median": 0.53911,
+              "q75": 0.80111
+            },
+            {
+              "n": 55,
+              "mean": 0.5428,
+              "sd": 0.32664,
+              "q25": 0.24344,
+              "median": 0.55822,
+              "q75": 0.85011
+            },
+            {
+              "n": 55,
+              "mean": 0.60905,
+              "sd": 0.29678,
+              "q25": 0.33122,
+              "median": 0.66622,
+              "q75": 0.86444
+            },
+            {
+              "n": 55,
+              "mean": 0.58327,
+              "sd": 0.32213,
+              "q25": 0.262,
+              "median": 0.61133,
+              "q75": 0.87056
+            },
+            {
+              "n": 55,
+              "mean": 0.57949,
+              "sd": 0.30066,
+              "q25": 0.349,
+              "median": 0.59444,
+              "q75": 0.87033
+            },
+            {
+              "n": 55,
+              "mean": 0.64936,
+              "sd": 0.28776,
+              "q25": 0.48822,
+              "median": 0.64156,
+              "q75": 0.88256
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -80,7 +80,7 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "noisy_sensing", noise: 0.4 },
     metric: "escape_ttc_s",
     direction: "increase",
-    minimumEffect: 0.23, // PILOT-SIZED: docs/benchmarks/fly-pilots/noisy_sensing.json
+    minimumEffect: 0.24, // PILOT-SIZED: docs/benchmarks/fly-pilots/noisy_sensing.json
     seedCount: 9, // PILOT-SIZED: docs/benchmarks/fly-pilots/noisy_sensing.json
     question:
       "[scripted] Does sensory noise change when the simulated fly escapes from a looming stimulus?",

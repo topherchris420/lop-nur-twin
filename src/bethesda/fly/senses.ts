@@ -33,14 +33,15 @@ import {
   type V3,
   wrapAngle,
 } from "./units.js";
-import type { FlyWorld, Mover, Perch } from "./world.js";
+import type { FlyWorld, Landmark, Mover, Perch } from "./world.js";
 
+/** What the fly cannot sense at all, or only in part: its smell is one food-odour level, its taste food or none. */
 export const UNSUPPORTED_SENSES = [
-  "olfaction (odour)",
+  "olfaction beyond one food-odour level (no other odours, no plumes)",
+  "taste beyond whether food is underfoot",
   "temperature",
   "humidity",
   "airflow / wind",
-  "taste / food",
   "sound",
 ] as const;
 
@@ -108,7 +109,36 @@ export interface SenseFrame {
   /** The surface under the fly and the fly's height above it. */
   below: Perch | null;
   altitude: number;
+  /** Food odour at the antennae, relative units (the world's still-air proxy). */
+  odour: number;
+  /** Whether the fly is under an open sky (a world with a sun), sun or shade: the celestial compass. */
+  sky: boolean;
+  /**
+   * Landmarks in view within `landmarkRangeM`: upright objects the fly can
+   * recognize a place by, each with its bearing (+ left) and distance. Looked
+   * for every `LANDMARK_EVERY` samples; the samples between repeat the list.
+   */
+  landmarks: readonly SeenLandmark[];
+  /**
+   * In flight under a sun: the bearing (+ left) of the nearest ground in
+   * shade the eyes see within `landingSearchM` (shade is darker), or null.
+   * Looked for with the landmarks; the samples between repeat it.
+   */
+  shadeBearing: number | null;
 }
+
+export interface SeenLandmark {
+  id: string;
+  bearing: number;
+  distance: number;
+}
+
+/** Landmarks are looked for every this many samples (10 Hz at the default 10 ms period). */
+export const LANDMARK_EVERY = 10;
+/** Shade is looked for on the ground at these shares of `landingSearchM`, nearer first... */
+const SHADE_RINGS = [0.5, 1];
+/** ...in these directions (deg, + left), the nearest to straight ahead first. */
+const SHADE_DEG = [0, 45, -45, 90, -90, 135, -135, 180];
 
 export interface SenseInput {
   t: number;
@@ -129,6 +159,10 @@ export class Senses {
   private sizes = new Map<string, number>();
   private lastT = -Infinity;
   private moverBuf: Mover[] = [];
+  private landmarkBuf: Landmark[] = [];
+  private seen: readonly SeenLandmark[] = Object.freeze([]);
+  private shade: number | null = null;
+  private samples = 0;
   private world: FlyWorld;
   private params: ResolvedParams;
   /** Relative noise on distances, angles and light; 0 is noiseless. */
@@ -251,6 +285,11 @@ export class Senses {
       lightElevation = Math.asin(Math.max(-1, Math.min(1, t[1])));
     }
     const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
+    if (this.samples++ % LANDMARK_EVERY === 0) {
+      this.seen = this.lookForLandmarks(s, fwd, lft);
+      this.shade =
+        s.flying && light.sunlit !== undefined ? this.lookForShade(s, fwd, lft) : null;
+    }
     return {
       t: s.t,
       looming,
@@ -264,6 +303,82 @@ export class Senses {
       lightElevation,
       below,
       altitude: below ? s.p[1] - below.y : Infinity,
+      odour: Math.max(0, this.jitter(this.world.odour(s.p))),
+      sky: light.sunlit !== undefined,
+      landmarks: this.seen,
+      shadeBearing: this.shade,
     };
+  }
+
+  /**
+   * The bearing of the nearest shaded ground point in an eye's field with a
+   * clear line to it, on two rings round the fly, or null.
+   */
+  private lookForShade(s: SenseInput, fwd: V3, lft: V3): number | null {
+    for (const ring of SHADE_RINGS) {
+      const r = ring * this.params.landingSearchM;
+      for (const deg of SHADE_DEG) {
+        const a = degToRad(deg);
+        const x = s.p[0] + (fwd[0] * Math.cos(a) + lft[0] * Math.sin(a)) * r,
+          z = s.p[2] + (fwd[2] * Math.cos(a) + lft[2] * Math.sin(a)) * r;
+        const top = this.world.perchAt(x, z, s.p[1]);
+        if (!top) continue;
+        const at: V3 = [x, top.y + 0.01, z];
+        if (this.world.light(at).sunlit !== false) continue;
+        const d: V3 = [at[0] - s.p[0], at[1] - s.p[1], at[2] - s.p[2]];
+        const dist = Math.hypot(...d);
+        if (dist < 1e-3) continue;
+        if (!inVisualField(a, Math.asin(Math.max(-1, Math.min(1, d[1] / dist)))))
+          continue;
+        const hit = this.world.raycast(
+          s.p,
+          [d[0] / dist, d[1] / dist, d[2] / dist],
+          dist,
+          true,
+        );
+        if (hit && hit.t < dist - 0.05) continue;
+        return this.jitterAngle(a);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The landmarks in an eye's field with a clear line to them (at half their
+   * height, or eye level if lower), nearest first.
+   */
+  private lookForLandmarks(s: SenseInput, fwd: V3, lft: V3): readonly SeenLandmark[] {
+    const range = Math.min(this.params.landmarkRangeM, this.params.visualRangeM);
+    const all = this.landmarkBuf;
+    all.length = 0;
+    this.world.landmarks(s.p, range, all);
+    const out: SeenLandmark[] = [];
+    for (const l of all) {
+      const at: V3 = [l.base[0], Math.max(l.base[1] + l.height / 2, s.p[1]), l.base[2]];
+      const d: V3 = [at[0] - s.p[0], at[1] - s.p[1], at[2] - s.p[2]];
+      const dist = Math.hypot(...d);
+      if (dist < 1e-3 || dist > range) continue;
+      const bearing = Math.atan2(
+        d[0] * lft[0] + d[2] * lft[2],
+        d[0] * fwd[0] + d[2] * fwd[2],
+      );
+      const elevation = Math.asin(Math.max(-1, Math.min(1, d[1] / dist)));
+      if (!inVisualField(bearing, elevation)) continue;
+      const hit = this.world.raycast(
+        s.p,
+        [d[0] / dist, d[1] / dist, d[2] / dist],
+        dist,
+        true,
+      );
+      // The landmark itself is what a clear line ends on.
+      if (hit && hit.t < dist - 0.3 && hit.id !== l.id) continue;
+      out.push({
+        id: l.id,
+        bearing: this.jitterAngle(bearing),
+        distance: this.jitter(dist),
+      });
+    }
+    out.sort((a, b) => a.distance - b.distance || (a.id < b.id ? -1 : 1));
+    return Object.freeze(out.map((x) => Object.freeze(x)));
   }
 }

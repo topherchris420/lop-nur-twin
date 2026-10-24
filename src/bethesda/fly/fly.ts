@@ -38,6 +38,7 @@ import {
   PERCHED,
   siteHolding,
   validateCommand,
+  type AdapterStreams,
   type BodySnapshot,
   type DecisionInput,
   type FlyNeuralAdapter,
@@ -58,7 +59,7 @@ import {
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/4";
+export const FLY_VERSION = "digital-fly/7";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
@@ -70,12 +71,13 @@ const TOUCHDOWN_REACH_M = 0.0015;
 const TOUCHDOWN_GAP_M = 0.002;
 /** A contact lasts while the surface stays within the standing height plus this (m). */
 const CONTACT_SLOP_M = 0.001;
-/** A takeoff prepared in less than this is short-mode: no wing raise (s). A model boundary. */
+/**
+ * A takeoff prepared in less than this is short-mode: no wing raise (s). A
+ * model boundary, for commands that do not say (`MotorCommand.wings`).
+ */
 const SHORT_MODE_BELOW_S = 0.1;
 /** How far the drawn body leans toward the jump by the end of a takeoff's preparation (rad). Drawing only. */
 const LAUNCH_LEAN_RAD = 0.15;
-/** A long-mode takeoff raises its wings over the last this-much of its preparation (s). Drawing only. */
-const WING_RAISE_S = 0.03;
 /** A walking step goes ahead only onto a top within this of the current one (m). */
 const STEP_HEIGHT_M = 0.004;
 
@@ -92,6 +94,12 @@ export interface FlyCounts {
   rejected: number;
   walkedM: number;
   flownM: number;
+  /** Feeding bouts begun, seconds spent feeding and energy taken in (J). */
+  meals: number;
+  feedS: number;
+  fedJ: number;
+  /** Energy spent (J). */
+  spentJ: number;
 }
 
 /** A surface the airborne fly is touching, and its outward normal there. */
@@ -142,6 +150,8 @@ export interface FlyState {
   contact: Contact | null;
   groom: GroomRoutine | null;
   responsiveness: number;
+  /** The carbohydrate reserve that powers flight (J); full is `reserveJ`. */
+  reserve: number;
   flightT: number;
   flightBout: number;
   counts: FlyCounts;
@@ -177,7 +187,7 @@ export interface DigitalFlyOptions {
   /** Relative sensory noise, 0 for none. */
   noise?: number;
   /** Builds the decision maker from its random stream; defaults to the reduced-order controller. */
-  adapter?: (rng: () => number) => FlyNeuralAdapter;
+  adapter?: (rng: () => number, streams: AdapterStreams) => FlyNeuralAdapter;
   logSize?: number;
 }
 
@@ -251,6 +261,7 @@ export class DigitalFly {
   private logSize: number;
   private gait: GaitParams;
   private surface: GateContext["surface"];
+  private food: NonNullable<GateContext["food"]>;
 
   constructor(o: DigitalFlyOptions) {
     this.seed = o.seed >>> 0;
@@ -263,10 +274,14 @@ export class DigitalFly {
     const P = this.params;
     this.standingHeight = (SKELETON.measures.standingHeightCm / 100) * P.standingCrouch;
     this.surface = (x, z, maxY) => this.world.perchAt(x, z, maxY);
+    this.food = (p) => this.world.foodAt(p);
     this.bodyRng = mulberry32(this.seed ^ 0x9e3779b9);
     const senseRng = mulberry32(this.seed ^ 0x85ebca6b);
     const ctrlRng = mulberry32(this.seed ^ 0xc2b2ae35);
-    this.adapter = (o.adapter ?? ((rng) => new ReducedOrderController(rng)))(ctrlRng);
+    const streams: AdapterStreams = { navigation: mulberry32(this.seed ^ 0x27d4eb2f) };
+    this.adapter = (
+      o.adapter ?? ((rng, st) => new ReducedOrderController(rng, st.navigation))
+    )(ctrlRng, streams);
     this.senses = new Senses(o.world, P, this.noise, senseRng);
     this.stepUs = Math.max(1000, Math.round(P.physicsStepMs * 1000));
     this.senseEvery = Math.max(1, Math.round((P.sensePeriodMs * 1000) / this.stepUs));
@@ -340,6 +355,7 @@ export class DigitalFly {
       contact: null,
       groom: null,
       responsiveness: 1,
+      reserve: P.reserveJ * P.startReserve,
       flightT: 0,
       flightBout: flying ? this.drawFlightBout() : 0,
       counts: {
@@ -353,6 +369,10 @@ export class DigitalFly {
         rejected: 0,
         walkedM: 0,
         flownM: 0,
+        meals: 0,
+        feedS: 0,
+        fedJ: 0,
+        spentJ: 0,
       },
     };
     // Placed in flight, the drawn attitude is the one holding that velocity.
@@ -415,7 +435,24 @@ export class DigitalFly {
       edge: s.edge,
       target: s.target ? { id: s.target.id, point: [...s.target.point] } : null,
       standingHeight: this.standingHeight,
-      home: { center: [...home.center], radius: home.radius, ceiling: home.ceiling },
+      reserve: s.reserve / this.params.reserveJ,
+      onFood: PERCHED.has(s.mode)
+        ? (this.world.foodAt([s.p[0], s.p[1] - this.standingHeight, s.p[2]])?.kind ??
+          null)
+        : null,
+      home: {
+        center: [...home.center],
+        radius: home.radius,
+        ceiling: home.ceiling,
+        ...(home.bounds
+          ? {
+              bounds: {
+                min: { ...home.bounds.min },
+                max: { ...home.bounds.max },
+              },
+            }
+          : {}),
+      },
     };
   }
 
@@ -455,6 +492,7 @@ export class DigitalFly {
     }
     if (deciding) this.decide(this.decideEvery * h);
     this.integrate(h);
+    this.metabolize(h);
     s.responsiveness +=
       (1 - s.responsiveness) * (1 - Math.exp(-h / P.habituationRecoveryS));
     s.t = round(s.t + h, 6);
@@ -498,10 +536,18 @@ export class DigitalFly {
       if (!inVisualField(bearing, elevation, size / 2)) continue;
       const dir: V3 = [d[0] / dist, d[1] / dist, d[2] / dist];
       const hit = this.world.raycast(eyes.p, dir, dist, true);
-      if (!hit || hit.t >= dist - 0.01) out.push(frozenSite(site));
+      if (hit && hit.t < dist - 0.01) continue;
+      // Whether the sun is on it, which the eyes see as its brightness.
+      const sunlit = this.world.light([
+        site.center[0],
+        site.center[1] + 0.01,
+        site.center[2],
+      ]).sunlit;
+      out.push(frozenSite(sunlit === undefined ? site : { ...site, sunlit }));
     }
     const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
-    if (below)
+    if (below) {
+      const sunlit = this.world.light([s.p[0], below.y + 0.01, s.p[2]]).sunlit;
       out.push(
         frozenSite({
           id: below.id,
@@ -510,8 +556,10 @@ export class DigitalFly {
           half: [0, 0],
           angle: 0,
           below: true,
+          ...(sunlit === undefined ? {} : { sunlit }),
         }),
       );
+    }
     // The site being approached stays on offer while the fly approaches it.
     if (s.target) out.push(s.target.site);
     return Object.freeze(out);
@@ -539,6 +587,7 @@ export class DigitalFly {
     const verdict = validateCommand(raw, this.snapshot(), this.params, {
       sites,
       surface: this.surface,
+      food: this.food,
     });
     if (!verdict.ok) {
       this.refuse(`command refused: ${verdict.reason}`);
@@ -575,6 +624,7 @@ export class DigitalFly {
     const verdict = validateCommand(raw, this.snapshot(), this.params, {
       sites,
       surface: this.surface,
+      food: this.food,
     });
     if (!verdict.ok) {
       this.refuse(`interrupt refused: ${verdict.reason}`);
@@ -653,7 +703,7 @@ export class DigitalFly {
           s.takeoff = {
             heading: cmd.heading ?? s.yaw,
             prepare,
-            short: prepare < SHORT_MODE_BELOW_S,
+            short: cmd.wings === undefined ? prepare < SHORT_MODE_BELOW_S : !cmd.wings,
           };
           if (cmd.mode === "escape") {
             s.counts.escapes++;
@@ -679,6 +729,12 @@ export class DigitalFly {
           s.walkSpeed = 0;
           this.setMode("rest", "", cmd.reason, "decision");
           return;
+        case "feed":
+          s.groom = null;
+          s.walkSpeed = 0;
+          s.counts.meals++;
+          this.setMode("feed", "", cmd.reason, "decision");
+          return;
         case "land":
           this.setTarget(cmd.land!, sites);
           s.saccade = null;
@@ -698,7 +754,7 @@ export class DigitalFly {
         s.sub = "approach";
         this.record("decision", from, this.label(), `new landing target: ${cmd.reason}`);
       }
-    }
+    } else if (s.takeoff && cmd.prepare !== undefined) this.bringForward(cmd);
     if (s.mode === "groom" && cmd.groom && cmd.groom !== s.groom) {
       const from = this.label();
       s.groom = cmd.groom;
@@ -730,6 +786,36 @@ export class DigitalFly {
     }
   }
 
+  /** How long before a long-mode jump the wings begin to rise (s): the published sequence, or the whole preparation if shorter. */
+  private wingRaiseS(prepare: number): number {
+    return Math.min(this.params.longModeSequenceMs / 1000, prepare);
+  }
+
+  /**
+   * A takeoff under way, brought forward: the jump comes `cmd.prepare` from
+   * now when that is sooner than planned, never later. This is how a
+   * giant-fiber spike cuts the long-mode program short (von Reyn et al.
+   * 2014): if the wings have not begun to rise, the fly jumps with them
+   * folded, a short-mode takeoff, unless the command asks for them; once they
+   * are rising it stays long-mode.
+   */
+  private bringForward(cmd: MotorCommand): void {
+    const s = this.state;
+    const t = s.takeoff!;
+    const at = s.modeT + cmd.prepare!;
+    if (at >= t.prepare) return;
+    const raising = !t.short && s.modeT >= t.prepare - this.wingRaiseS(t.prepare);
+    const from = this.label();
+    t.prepare = at;
+    t.short = !raising && cmd.wings !== true;
+    this.record(
+      "decision",
+      from,
+      this.label(),
+      `jump brought forward to ${Math.round(at * 1000)} ms, ${t.short ? "wings folded (short mode)" : "wings rising (long mode)"}: ${cmd.reason}`,
+    );
+  }
+
   private integrate(h: number): void {
     const s = this.state;
     const cmd = this.command;
@@ -738,6 +824,7 @@ export class DigitalFly {
     switch (s.mode) {
       case "rest":
       case "groom":
+      case "feed":
         s.v = [0, 0, 0];
         s.walkSpeed = 0;
         s.yawRate = 0;
@@ -757,6 +844,32 @@ export class DigitalFly {
       case "land":
         this.fly(h, cmd);
         return;
+    }
+  }
+
+  /**
+   * The energy budget over one step: the mode's metabolic power is drawn from
+   * the reserve, and a feeding fly takes in `feedIntakeMw` until the reserve
+   * is full. Nothing here moves the body: an empty reserve stops voluntary
+   * takeoffs (the controller's rule), not flight already under way.
+   */
+  private metabolize(h: number): void {
+    const s = this.state;
+    const P = this.params;
+    const power =
+      s.mode === "flight" || s.mode === "land"
+        ? P.flightPowerMw
+        : s.mode === "rest" || s.mode === "feed"
+          ? P.restPowerMw
+          : P.walkPowerMw;
+    const spent = Math.min(s.reserve, (power / 1000) * h);
+    s.reserve -= spent;
+    s.counts.spentJ += spent;
+    if (s.mode === "feed") {
+      const taken = Math.min(P.reserveJ - s.reserve, (P.feedIntakeMw / 1000) * h);
+      s.reserve += taken;
+      s.counts.fedJ += taken;
+      s.counts.feedS += h;
     }
   }
 
@@ -809,12 +922,12 @@ export class DigitalFly {
     const lean = LAUNCH_LEAN_RAD * Math.min(1, s.modeT / t.prepare);
     s.pitch = -lean * Math.cos(toward);
     s.roll = -lean * Math.sin(toward);
-    // A long-mode takeoff raises the wings at the end of its preparation, just
-    // before the jump; a short-mode one jumps with them still folded (von Reyn
-    // et al. 2014). How long the raise takes is a drawing choice.
+    // A long-mode takeoff raises the wings at the end of its preparation, over
+    // the published duration of the long-mode sequence, just before the jump;
+    // a short-mode one jumps with them still folded (von Reyn et al. 2014).
     s.wingsOpen = t.short
       ? 0
-      : Math.min(1, Math.max(0, 1 - (t.prepare - s.modeT) / WING_RAISE_S));
+      : Math.min(1, Math.max(0, 1 - (t.prepare - s.modeT) / this.wingRaiseS(t.prepare)));
     if (s.modeT < t.prepare) return;
     // The jump: along the heading the posture aimed, at the jump's elevation.
     const elevation = degToRad(P.jumpElevationDeg);

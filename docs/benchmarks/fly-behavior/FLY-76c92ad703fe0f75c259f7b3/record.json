@@ -1,0 +1,766 @@
+{
+  "schema": "rain-fly-record/v2",
+  "run_id": "FR-2f4a685c4c6371925fae01a7",
+  "plan": {
+    "schema": "rain-fly-plan/v2",
+    "design": {
+      "schema": "rain-fly-design/v3",
+      "question": "[scripted] Does a point light draw the simulated fly toward the quadrant below it?",
+      "hypothesis": "[scripted] With a point light on, the fly's mean horizontal distance to the point below it falls.",
+      "competing_hypothesis": "[scripted] The phototaxis term is too weak against the fly's other drives to move where it spends its time.",
+      "parameters": {
+        "seed_count": 12,
+        "treatment": {
+          "kind": "light_preference",
+          "light_intensity": 2
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_sign_test",
+        "metric": "mean_light_distance_m",
+        "expected_direction": "decrease",
+        "minimum_effect": 0.1
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v3 (digital-fly/6 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does a point light of relative intensity 2 above one quadrant of the arena change mean horizontal distance from the fly to the point below the light position, against no point light (ambient only) on matched seeds?",
+      "hypothesis": "A point light of relative intensity 2 above one quadrant of the arena will decrease mean_light_distance_m by at least 0.1 m on average over 12 matched seeds drawn after preregistration, compared with no point light (ambient only), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+      "observables": [
+        {
+          "id": "mean_light_distance_m",
+          "unit": "m",
+          "description": "mean horizontal distance from the fly to the point below the light position"
+        },
+        {
+          "id": "time_near_light",
+          "unit": "fraction",
+          "description": "fraction of time within 1 m (horizontally) of the point below the light position"
+        },
+        {
+          "id": "active_fraction",
+          "unit": "fraction",
+          "description": "fraction of time walking, taking off or flying rather than resting or grooming"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "m",
+          "description": "treatment minus control mean_light_distance_m, averaged over the seeds where both are defined"
+        },
+        {
+          "id": "sign_test_p_expected",
+          "unit": "probability",
+          "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+        },
+        {
+          "id": "sign_test_p_opposite",
+          "unit": "probability",
+          "description": "the same test in the opposite direction"
+        }
+      ],
+      "independent_variables": [
+        "a point light of relative intensity 2 above one quadrant of the arena"
+      ],
+      "dependent_variables": [
+        "mean_light_distance_m"
+      ],
+      "controls": [
+        "baseline arm: no point light (ambient only)",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "six closed protocols with host-built arenas and stimuli",
+        "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 seeds, drawn by the host after preregistration",
+        "a minimum effect at or above the host's 0.1 m for mean_light_distance_m"
+      ],
+      "resource_budget": {
+        "execution_steps": 576000,
+        "replay_steps": 576000,
+        "max_samples": 24
+      },
+      "statistical_analysis": {
+        "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+        "independent_replicates": 12,
+        "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "unit": "probability"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+        "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/6 reduced-order-fsm/v1",
+    "fly_sha256": "ad5cea56d67036ecf47acddc8bcad249ff0eea83de3593c3b9850b524eb4f46d",
+    "fly_source_sha256": "167ae70ac8ff41678590d70cf73640164392e6c73b9b1613b5f075575b715d87",
+    "experiment": {
+      "schema": "digital-fly-experiment/v3",
+      "protocol": "light_preference",
+      "seed_count": 12,
+      "blocks": [
+        {
+          "id": "light",
+          "arena": {
+            "size": [
+              4,
+              2.5,
+              4
+            ],
+            "ambient": 0.3,
+            "pillars": []
+          },
+          "fixed_config": {},
+          "start_half_width_m": 0.3,
+          "tick_s": 0.05,
+          "duration_s": 120,
+          "trials": 1,
+          "light_at": [
+            1,
+            2.3,
+            -1
+          ],
+          "near_miss_m": null,
+          "stimulus": null
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 0,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 2880,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "note": "Enough seeds differ between the arms for the sign test"
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "note": "The fly's gate refused no command in any run"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.1,
+          "note": "Mean paired difference beyond the minimum effect"
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test in the expected direction"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test finds the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "76c92ad703fe0f75c259f7b329dadf94678d2f13994b9be3877ccaa0c4915aeb",
+    "experiment_id": "FLY-76c92ad703fe0f75c259f7b3"
+  },
+  "preregistration": {
+    "experiment_id": "V3D-EXP-0002",
+    "registry_definition_sha256": "87d2a5b545951e5e098c270847d14b576529b500351ed574cb2a8d83068fcb8e",
+    "plan_sha256": "76c92ad703fe0f75c259f7b329dadf94678d2f13994b9be3877ccaa0c4915aeb",
+    "created_at": "2026-10-24T19:25:12.889Z"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v2",
+    "experiment_id": "FLY-76c92ad703fe0f75c259f7b3",
+    "definition_sha256": "76c92ad703fe0f75c259f7b329dadf94678d2f13994b9be3877ccaa0c4915aeb",
+    "registry_experiment_id": "V3D-EXP-0002",
+    "preregistration_sha256": "73a7698a29e0d0181c6dc817b0f823d253a5cfe933774a5a4838aa80a49421f7",
+    "registered_at": "2026-10-24T19:25:12.889Z",
+    "nonce": "af75cd78e77a754beabedc2a6daed5b49bac28be0f163dd876882f868de5434e",
+    "channel": "script",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "demonstration-script",
+    "identity_verified": false,
+    "human_design_attested": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "76c92ad7",
+    "authorized_at": "2026-10-24T19:25:12.907Z",
+    "expires_at": "2026-10-24T20:25:12.907Z",
+    "authorization_sha256": "aa1a590d5732b4c20d76257b38da3e2ae3118ae2de8457f35cdfbf1045676ae1"
+  },
+  "seeds": [
+    526966025,
+    1877375629,
+    2620642602,
+    655981031,
+    473082344,
+    925811485,
+    1660440956,
+    442104326,
+    2965889078,
+    2854984004,
+    507512829,
+    2780915418
+  ],
+  "engine": {
+    "runtime": "node",
+    "version": "22.22.0",
+    "js": "V8 12.4.254.21-node.33"
+  },
+  "code": {
+    "commit": "300a2aa64e7d8771297c525e8b7159a56e84aeb6",
+    "dirty": false
+  },
+  "development": false,
+  "started_at": "2026-10-24T19:25:12.908Z",
+  "finished_at": "2026-10-24T19:25:19.285Z",
+  "result": {
+    "runs": [
+      {
+        "arm": "control",
+        "seed": 526966025,
+        "block": "light",
+        "final_hashes": [
+          "fa327febf85222ee"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.8097410848520852,
+          "time_near_light": 0,
+          "active_fraction": 0.2704166666666667
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 526966025,
+        "block": "light",
+        "final_hashes": [
+          "a0705bae76fb8857"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.9814955607414981,
+          "time_near_light": 0,
+          "active_fraction": 0.27958333333333335
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1877375629,
+        "block": "light",
+        "final_hashes": [
+          "4685e5775cb7d7ac"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.3912751327185946,
+          "time_near_light": 0,
+          "active_fraction": 0.11625
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1877375629,
+        "block": "light",
+        "final_hashes": [
+          "9e9f70b3cea70e07"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.4466679315049142,
+          "time_near_light": 0,
+          "active_fraction": 0.19541666666666666
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2620642602,
+        "block": "light",
+        "final_hashes": [
+          "ed957bca85dc5593"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.1141093811786733,
+          "time_near_light": 0.22333333333333333,
+          "active_fraction": 0.27625
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2620642602,
+        "block": "light",
+        "final_hashes": [
+          "460aedbcacc4cc80"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 0.8751156532504692,
+          "time_near_light": 0.5254166666666666,
+          "active_fraction": 0.32375
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 655981031,
+        "block": "light",
+        "final_hashes": [
+          "3bbfabacfe6bba7c"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.6758220964874746,
+          "time_near_light": 0,
+          "active_fraction": 0.15375
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 655981031,
+        "block": "light",
+        "final_hashes": [
+          "88b9253bfed90da6"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.682346842467484,
+          "time_near_light": 0,
+          "active_fraction": 0.22791666666666666
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 473082344,
+        "block": "light",
+        "final_hashes": [
+          "78efd61c8ad2bfcf"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 0.7976567210640519,
+          "time_near_light": 0.73125,
+          "active_fraction": 0.19291666666666665
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 473082344,
+        "block": "light",
+        "final_hashes": [
+          "d28e1703c3f9e3b5"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 0.7737301870939516,
+          "time_near_light": 0.7316666666666667,
+          "active_fraction": 0.16958333333333334
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 925811485,
+        "block": "light",
+        "final_hashes": [
+          "8febb116c17677a1"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.8327305027672807,
+          "time_near_light": 0,
+          "active_fraction": 0.27416666666666667
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 925811485,
+        "block": "light",
+        "final_hashes": [
+          "505ade807f4a0606"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.6621471126180252,
+          "time_near_light": 0.0375,
+          "active_fraction": 0.5720833333333334
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1660440956,
+        "block": "light",
+        "final_hashes": [
+          "966e1b855a7ac306"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.3184588265767283,
+          "time_near_light": 0,
+          "active_fraction": 0.19458333333333333
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1660440956,
+        "block": "light",
+        "final_hashes": [
+          "6ba54189de236a21"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.4843424985795564,
+          "time_near_light": 0,
+          "active_fraction": 0.3425
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 442104326,
+        "block": "light",
+        "final_hashes": [
+          "602befde847f02ce"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.5173720182552684,
+          "time_near_light": 0,
+          "active_fraction": 0.04583333333333333
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 442104326,
+        "block": "light",
+        "final_hashes": [
+          "1fddd9a64bfb1dbe"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 0.8804239763808349,
+          "time_near_light": 0.8545833333333334,
+          "active_fraction": 0.30666666666666664
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2965889078,
+        "block": "light",
+        "final_hashes": [
+          "14445e9a8c7f6392"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.367236309036046,
+          "time_near_light": 0,
+          "active_fraction": 0.3045833333333333
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2965889078,
+        "block": "light",
+        "final_hashes": [
+          "a135100a8b106799"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 0.5847860293939454,
+          "time_near_light": 0.9304166666666667,
+          "active_fraction": 0.39958333333333335
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2854984004,
+        "block": "light",
+        "final_hashes": [
+          "b6844c3be9d6bc34"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.489865590301097,
+          "time_near_light": 0,
+          "active_fraction": 0.13916666666666666
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2854984004,
+        "block": "light",
+        "final_hashes": [
+          "0f26c8a056785b1f"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.5393023423451409,
+          "time_near_light": 0,
+          "active_fraction": 0.25083333333333335
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 507512829,
+        "block": "light",
+        "final_hashes": [
+          "0bff39162d47c527"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.3892337273402438,
+          "time_near_light": 0,
+          "active_fraction": 0.17083333333333334
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 507512829,
+        "block": "light",
+        "final_hashes": [
+          "9ce1ebdfcdf368f8"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.044942446002929,
+          "time_near_light": 0.40541666666666665,
+          "active_fraction": 0.36333333333333334
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2780915418,
+        "block": "light",
+        "final_hashes": [
+          "551310a1d9da43ab"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.6494971536439418,
+          "time_near_light": 0,
+          "active_fraction": 0.12833333333333333
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2780915418,
+        "block": "light",
+        "final_hashes": [
+          "80fa5b1551890483"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "mean_light_distance_m": 1.8340512924419943,
+          "time_near_light": 0,
+          "active_fraction": 0.30333333333333334
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 24,
+      "determinism_check": 1,
+      "seeds": 12,
+      "simulated_seconds": 2880,
+      "gate_refusals": 0,
+      "control_gate_refusals": 0,
+      "treatment_gate_refusals": 0,
+      "control_mean": 1.446083212018457,
+      "treatment_mean": 1.315779322735062,
+      "mean_paired_delta": -0.1303038892833952,
+      "seeds_expected_direction": 6,
+      "seeds_opposite": 6,
+      "seeds_unchanged": 0,
+      "seeds_undefined": 0,
+      "untied_pairs": 12,
+      "sign_test_p_expected": 0.61279296875,
+      "sign_test_p_opposite": 0.61279296875,
+      "control_informative": 1,
+      "control_mean_light_distance_m": 1.446083212018457,
+      "treatment_mean_light_distance_m": 1.315779322735062,
+      "control_time_near_light": 0.07954861111111111,
+      "treatment_time_near_light": 0.2904166666666667,
+      "control_active_fraction": 0.1889236111111111,
+      "treatment_active_fraction": 0.3112152777777778
+    },
+    "status": "inconclusive",
+    "verdict": "insufficient_evidence",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "observed": 24,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "observed": 12,
+          "holds": true
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "observed": 0,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.1,
+          "observed": -0.1303038892833952,
+          "holds": true
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.61279296875,
+          "holds": false
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.61279296875,
+          "holds": false
+        }
+      ],
+      "summary": "Success criteria not all met (S2) and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "f50c0b77b7ef1335b3ff9ccc1c137117bb392115ad37355c5c832fd636fd16eb"
+}
