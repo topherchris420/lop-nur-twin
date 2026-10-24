@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does sensory noise change when the simulated fly escapes from a looming stimulus?",
+  "hypothesis": "[scripted] Sensory noise of 0.4 makes the fly escape earlier in the approach, with more time to collision: noisy size and expansion estimates cross the escape threshold early.",
+  "competing_hypothesis": "[scripted] Noise averages out over the approach and leaves the time to collision at the escape unchanged.",
+  "parameters": {
+    "seed_count": 9,
+    "treatment": {
+      "kind": "noisy_sensing",
+      "noise": 0.4
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "escape_ttc_s",
+    "expected_direction": "increase",
+    "minimum_effect": 0.24
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}
