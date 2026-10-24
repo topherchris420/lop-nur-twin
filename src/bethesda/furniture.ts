@@ -3,9 +3,10 @@
  * sizes and placements are written down. The mapped items (OSM benches, picnic
  * tables, lamps and trees) are drawn by `landmarks.ts`; the procedural ones
  * (footpath trees, and the lamps, benches and planters along the Row's
- * sidewalks) by `geometry.ts` and `detail.ts`; `Atmosphere.tsx` places its
- * light from `SUN`. The digital fly (`fly/bethesdaWorld.ts`) lands on, bumps
- * into and is shaded by the same numbers, so what it touches is what is drawn.
+ * sidewalks) by `geometry.ts` and `detail.ts`, as are the rooftop units and
+ * shop awnings on the buildings; `Atmosphere.tsx` places its light from
+ * `SUN`. The digital fly (`fly/bethesdaWorld.ts`) lands on, bumps into and is
+ * shaded by the same numbers, so what it touches is what is drawn.
  *
  * Heights are above the ground at the item's own point (the city builder lifts
  * each piece onto `groundAt` of its centre). The sizes are illustrative: OSM
@@ -13,7 +14,16 @@
  * are not mapped at all.
  */
 import { mulberry32 } from "../lib/noise";
-import { buildingAt, distance, lerp, pathWays, row, type Point } from "./model";
+import {
+  buildingAt,
+  buildings,
+  distance,
+  lerp,
+  pathWays,
+  row,
+  type Building,
+  type Point,
+} from "./model";
 
 /** A box as the city builder takes it: centre height, width (x), height, depth (z). */
 export interface BoxSize {
@@ -242,4 +252,68 @@ export function streetLamps(): readonly StreetLamp[] {
   }
   lamps = placed;
   return lamps;
+}
+
+/**
+ * The buildings drawn with facade detail (`detail.ts`): the arrival blocks, so
+ * the expensive silhouette and frame geometry stays local to them.
+ */
+export const detailedBuildings = new Set(
+  buildings
+    .filter(
+      (b) =>
+        distance(b.center, row.point) < 205 && !["house", "detached"].includes(b.type),
+    )
+    .map((b) => b.id),
+);
+
+/**
+ * A box `geometry.ts` draws on a building: centred on `point`, `y` above the
+ * building's base (the ground at its centre), `w` wide along its own x once
+ * turned by `angle` about +y (Three's rotateY), `h` high and `d` deep.
+ */
+export interface BuildingBox {
+  point: Point;
+  y: number;
+  w: number;
+  h: number;
+  d: number;
+  angle: number;
+}
+
+/** The rooftop plant on a building over 14 m tall, on its centre. */
+export function rooftopUnit(b: Building): BuildingBox | null {
+  return b.height > 14 && buildingAt(b.center)?.id === b.id
+    ? { point: b.center, y: b.height + 0.6, w: 3.5, h: 1.2, d: 2.5, angle: 0 }
+    : null;
+}
+
+/**
+ * The shop awnings on a plain building under 18 m (not a house, and not one
+ * of the detailed blocks): one along the middle 65 % of every wall 10–65 m
+ * long, 3.3 m up, centred on the wall line, so it reaches 0.6 m out.
+ */
+export function awnings(b: Building): BuildingBox[] {
+  const out: BuildingBox[] = [];
+  if (
+    detailedBuildings.has(b.id) ||
+    !(b.height < 18) ||
+    ["house", "detached"].includes(b.type)
+  )
+    return out;
+  for (let i = 1; i < b.ring.length; i++) {
+    const a = b.ring[i - 1]!,
+      e = b.ring[i]!,
+      d = distance(a, e);
+    if (d > 10 && d < 65)
+      out.push({
+        point: lerp(a, e, 0.5),
+        y: 3.3,
+        w: d * 0.65,
+        h: 0.18,
+        d: 1.2,
+        angle: Math.atan2(e.x - a.x, e.z - a.z) + Math.PI / 2,
+      });
+  }
+  return out;
 }

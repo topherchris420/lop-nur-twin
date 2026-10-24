@@ -1,0 +1,2334 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "adaptation",
+  "fly_version": "digital-fly/4",
+  "fly": "digital-fly/4 reduced-order-fsm/v1",
+  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
+  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "code": {
+    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "dirty": true
+  },
+  "definition": {
+    "protocol": "adaptation",
+    "demonstration": {
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 10
+      },
+      "metric": "repeat_escape_probability",
+      "direction": "decrease"
+    },
+    "blocks": [
+      {
+        "id": "repeat",
+        "arena": {
+          "size": [
+            4,
+            1,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "walkStartHz": 0,
+          "groomHz": 0,
+          "flightBoutMeanS": 0.5
+        },
+        "start_half_width_m": 0.5,
+        "tick_s": 0.005,
+        "duration_s": 0.3,
+        "trials": 12,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": {
+          "radius_m": 0.04,
+          "start_distance_m": 1,
+          "final_size_deg": [
+            30,
+            55
+          ],
+          "elevation_deg": [
+            10,
+            30
+          ],
+          "azimuth_deg": [
+            -90,
+            90
+          ],
+          "onset_s": 1,
+          "l_over_v_ms": 80
+        }
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "adaptation",
+          "isi_s": 5
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 5,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "adaptation",
+          "isi_s": 10
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 10,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "adaptation",
+          "isi_s": 20
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 20,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "adaptation",
+          "isi_s": 40
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 40,
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "the same stimuli every 90 s on the same schedule",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.3333333333333333,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 44.37019484338
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 47.16489763665104
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 45.62575768649732
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.10754554014163
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 47.008402814724384
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.276054253714555
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.14475825081828
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 45.731992915177486
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 45.972098994159374
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.293698610598085
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 1,
+          "repeat_size_at_escape_deg": 46.64146118302395
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.200609193226505
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.08979803055594
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 47.67692394701487
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 43.86817132733988
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.73691119987567
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 45.45103158273738
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 44.75111086156145
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.25,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.83714068749291
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 46.301394050978445
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.32129229769888
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.310835049520776
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.94048656411865
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 1,
+          "repeat_size_at_escape_deg": 47.579956745727756
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 45.678597312176365
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.769890449608376
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 47.89938038478058
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 45.65025069504078
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 44.79185043002774
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.8278202552847
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.25,
+          "late_escape_probability": 0.16666666666666666,
+          "repeat_size_at_escape_deg": 44.59541193908321
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.3333333333333333,
+          "late_escape_probability": 0.16666666666666666,
+          "repeat_size_at_escape_deg": 48.1926244810828
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "repeating a looming stimulus every 5 s on a fixed schedule",
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 5
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 45.882127697113766
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.4,
+            "repeat_size_at_escape_deg": 50.68628261377419
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 50.367096673611236
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 50.81007773389538
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.4,
+            "late_escape_probability": 0.4,
+            "repeat_size_at_escape_deg": 50.91945135471215
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 47.74946296610085
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.25,
+            "repeat_size_at_escape_deg": 50.42392357507813
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 48.097670515999205
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.18656797178547
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 51.0100878754086
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.4,
+            "repeat_size_at_escape_deg": 50.34656061296125
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 50.10489521392976
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 48.707623251707616
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.3,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 50.998081982671145
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 45.92440503882253
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "presentations": 8,
+            "airborne_presentations": 4,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 49.189801764150545
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.75,
+            "repeat_size_at_escape_deg": 47.62193047470599
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.25,
+            "repeat_size_at_escape_deg": 46.494746723523065
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 46.0347679222467
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 48.705885454383214
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 49.22882224171206
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.049071319789306
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "presentations": 8,
+            "airborne_presentations": 4,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.55452312738643
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "presentations": 8,
+            "airborne_presentations": 4,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 51.05667088954305
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 47.62357047409745
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.3,
+            "late_escape_probability": 0.4,
+            "repeat_size_at_escape_deg": 49.14794342653638
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.4444444444444444,
+            "late_escape_probability": 0.4,
+            "repeat_size_at_escape_deg": 50.77863673330321
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 47.63275548970949
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 47.63661126606146
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 51.196043203515444
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "presentations": 10,
+            "airborne_presentations": 2,
+            "repeat_escape_probability": 0.2,
+            "late_escape_probability": 0,
+            "repeat_size_at_escape_deg": 44.71259350655614
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "presentations": 9,
+            "airborne_presentations": 3,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.2,
+            "repeat_size_at_escape_deg": 48.82396075198551
+          }
+        }
+      ],
+      "metrics": {
+        "repeat_escape_probability": {
+          "control_mean": 0.5677083333333333,
+          "treatment_mean": 0.3447916666666667,
+          "mean_difference": -0.22291666666666662,
+          "sd_difference": 0.1389121844262729,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_escape_probability": {
+          "control_mean": 0.5625,
+          "treatment_mean": 0.29322916666666665,
+          "mean_difference": -0.26927083333333335,
+          "sd_difference": 0.22675478106264269,
+          "increase": 3,
+          "decrease": 25,
+          "tie": 4,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 2
+        }
+      }
+    },
+    {
+      "label": "repeating a looming stimulus every 10 s on a fixed schedule",
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 10
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 46.29995032562874
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 50.243639512504856
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 49.20871700759102
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.43179775648243
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 50.933956473406056
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 47.882265360553944
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.531611875067334
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 47.54824307863589
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.96387385686929
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.87036580294963
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 49.053638505602656
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 48.884149918449666
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 50.78677132222421
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 50.43499058486908
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 45.70721173581372
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.860294932633096
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.41605164459993
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 46.58165571085825
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.16666666666666666,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.56247029500028
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 47.96386346489387
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.647849918110374
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.04907131978993
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.09748067074323
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 50.79187529968294
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 48.26297082880024
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.37623899767095
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.708918182096355
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 47.00042910088104
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 47.75956967903783
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 50.74557802355301
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 44.595411939080606
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 48.90825515338799
+          }
+        }
+      ],
+      "metrics": {
+        "repeat_escape_probability": {
+          "control_mean": 0.5677083333333333,
+          "treatment_mean": 0.3619791666666668,
+          "mean_difference": -0.20572916666666666,
+          "sd_difference": 0.13715029658388125,
+          "increase": 0,
+          "decrease": 28,
+          "tie": 4,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_escape_probability": {
+          "control_mean": 0.5625,
+          "treatment_mean": 0.3020833333333333,
+          "mean_difference": -0.26041666666666663,
+          "sd_difference": 0.17929321612283677,
+          "increase": 0,
+          "decrease": 26,
+          "tie": 6,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 2
+        }
+      }
+    },
+    {
+      "label": "repeating a looming stimulus every 20 s on a fixed schedule",
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 20
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 44.915716979884564
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.27425121301801
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.061301970419805
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.10860045646383
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 49.367891218758366
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 47.48170017906391
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 49.466159919596805
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 46.807727571576464
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.0696134020476
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 49.06273165302303
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.3385095099024
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.044822274741136
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 49.22316521165573
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 49.03390594663178
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 44.96380845201168
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.714842009299005
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 46.95799545129467
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 46.39542701789865
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.949899410208126
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 47.263321145774626
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.836800732723034
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 46.94026826686222
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.69215169672709
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.75,
+            "late_escape_probability": 0.8333333333333334,
+            "repeat_size_at_escape_deg": 50.570955419883845
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.45698431599862
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 49.10092635852321
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.64657984423026
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 46.20256919219646
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 46.9408259495924
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 48.478304033587314
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 44.59541193908061
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 48.372437515982995
+          }
+        }
+      ],
+      "metrics": {
+        "repeat_escape_probability": {
+          "control_mean": 0.5677083333333333,
+          "treatment_mean": 0.46354166666666663,
+          "mean_difference": -0.10416666666666669,
+          "sd_difference": 0.0922634532351103,
+          "increase": 0,
+          "decrease": 22,
+          "tie": 10,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_escape_probability": {
+          "control_mean": 0.5625,
+          "treatment_mean": 0.4635416666666667,
+          "mean_difference": -0.09895833333333333,
+          "sd_difference": 0.1108728403999431,
+          "increase": 0,
+          "decrease": 16,
+          "tie": 16,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 2
+        }
+      }
+    },
+    {
+      "label": "repeating a looming stimulus every 40 s on a fixed schedule",
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 40
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 44.91571697988487
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.5107854146319
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.75,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 46.10786582501458
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.8333333333333334,
+            "repeat_size_at_escape_deg": 47.45638101854357
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.8333333333333334,
+            "late_escape_probability": 0.8333333333333334,
+            "repeat_size_at_escape_deg": 47.98713207553475
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 47.013584147436426
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 46.84250758232738
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 46.292426770472204
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 47.00551833973079
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.227755036097655
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.8333333333333334,
+            "repeat_size_at_escape_deg": 47.770591802869404
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 47.20404084310233
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 47.08209852292255
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 48.15053972991673
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 44.26016756948783
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 48.13722109651518
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 46.086654675488205
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 45.59513805550717
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.771197112993754
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 46.86182790627218
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.6666666666666666,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 47.20650564454312
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.6666666666666666,
+            "repeat_size_at_escape_deg": 46.31083504952418
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.21031395854207
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.8333333333333334,
+            "late_escape_probability": 1,
+            "repeat_size_at_escape_deg": 48.981041383973164
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 46.294511264283464
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.3765820964864
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 47.90477816242311
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.5833333333333334,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 45.70907758874474
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.3333333333333333,
+            "repeat_size_at_escape_deg": 46.11522901179826
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.4166666666666667,
+            "late_escape_probability": 0.5,
+            "repeat_size_at_escape_deg": 47.91787017829259
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.25,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 44.595411939078986
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "presentations": 12,
+            "airborne_presentations": 0,
+            "repeat_escape_probability": 0.3333333333333333,
+            "late_escape_probability": 0.16666666666666666,
+            "repeat_size_at_escape_deg": 48.37243751598299
+          }
+        }
+      ],
+      "metrics": {
+        "repeat_escape_probability": {
+          "control_mean": 0.5677083333333333,
+          "treatment_mean": 0.5390625000000001,
+          "mean_difference": -0.02864583333333333,
+          "sd_difference": 0.04021322536956786,
+          "increase": 0,
+          "decrease": 11,
+          "tie": 21,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_escape_probability": {
+          "control_mean": 0.5625,
+          "treatment_mean": 0.546875,
+          "mean_difference": -0.015625,
+          "sd_difference": 0.049357430180049844,
+          "increase": 0,
+          "decrease": 3,
+          "tie": 29,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 2
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 44.991230891471176
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.574683820884104
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.02689885496731
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 44.93778235934599
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 44.431694154156666
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 45.43448348063953
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.77484908855216
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.5449776649597
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 46.70323732174194
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.465932050991924
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.3333333333333333,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 46.64134121766752
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.4166666666666667,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.894797583741166
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 45.52183811140272
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.77500265229839
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.04761753308558
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.697667873093145
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.88575760386679
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 48.021457147245364
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 46.57968387608797
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.34571705553336
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 45.90969797920304
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 45.073372473072915
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.3333333333333333,
+          "repeat_size_at_escape_deg": 47.10095175015031
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.992825214823526
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.58726789913948
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 46.878282350087574
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 45.969024273550176
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 45.90606502573121
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.6666666666666666,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 48.34571944287877
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.5833333333333334,
+          "late_escape_probability": 0.5,
+          "repeat_size_at_escape_deg": 46.475219209060796
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.8333333333333334,
+          "late_escape_probability": 0.8333333333333334,
+          "repeat_size_at_escape_deg": 44.69387672740104
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "presentations": 12,
+          "airborne_presentations": 0,
+          "repeat_escape_probability": 0.75,
+          "late_escape_probability": 0.6666666666666666,
+          "repeat_size_at_escape_deg": 47.198458862759345
+        }
+      }
+    ],
+    "metrics": {
+      "repeat_escape_probability": {
+        "control_mean": 0.5677083333333333,
+        "treatment_mean": 0.6093749999999999,
+        "mean_difference": 0.04166666666666667,
+        "sd_difference": 0.2643718463041773,
+        "increase": 16,
+        "decrease": 11,
+        "tie": 5,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "late_escape_probability": {
+        "control_mean": 0.5625,
+        "treatment_mean": 0.6145833333333334,
+        "mean_difference": 0.052083333333333336,
+        "sd_difference": 0.30946102990886926,
+        "increase": 13,
+        "decrease": 11,
+        "tie": 8,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 2
+      }
+    }
+  },
+  "sized": {
+    "metric": "repeat_escape_probability",
+    "direction": "decrease",
+    "treatment": {
+      "kind": "adaptation",
+      "isi_s": 10
+    },
+    "outcomes": {
+      "expected": 28,
+      "opposite": 0,
+      "uninformative": 4
+    },
+    "seed_count": 13,
+    "pass_probability": 0.9254,
+    "minimum_effect": 0.13,
+    "host_minimum_effect": 0.1,
+    "design_minimum_effect": 0.13,
+    "s1_probability": 0.9534,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [],
+  "runs_sha256": "2e5ea8bfc31c20b5cb34df455a58c47115fbd794bca3c57443ed34482640f847",
+  "outputs_sha256": "e2882f456e4ae1a37e820b4f210e636214cc6241dad083bbdeaa154c1ac18c21",
+  "generated_at": "2026-10-24T02:09:52.966Z",
+  "sha256": "f7bd5ecfd04b7adf77a678319b06295656020365c862c27950383f7a394f3ecf"
+}

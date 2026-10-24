@@ -4,13 +4,23 @@ import { createHash } from "node:crypto";
 import manifest from "./data/flybody.source.json" with { type: "json" };
 import lod1 from "./data/flybody-lod1.json" with { type: "json" };
 import { ARENA_INPUTS, arenaWorld, type ArenaSpec } from "./arena";
+import type { ReducedOrderController } from "./controller";
 import { DigitalFly } from "./fly";
-import { coordination, dutyFactor, stanceCount, stepPeriodS, legPhases } from "./gait";
+import {
+  coordination,
+  dutyFactor,
+  legPhases,
+  phaseLag,
+  stanceCount,
+  stepPeriodS,
+  steppingSpeedCmS,
+} from "./gait";
 import { forwardKinematics, restAngles } from "./kinematics";
 import { decodePart, encodePart, type EncodedPart } from "./meshCodec";
 import {
   COMMANDABLE,
   GROOM_ROUTINES,
+  GROOM_SITES,
   LIMITS,
   validateCommand,
   type BodySnapshot,
@@ -27,7 +37,7 @@ import {
 } from "./params";
 import { clawPoints, PoseSolver, type PoseInput } from "./pose";
 import { EYES, inVisualField, UNSUPPORTED_SENSES } from "./senses";
-import { SKELETON } from "./skeleton";
+import { FOOT_RADIUS_CM, SKELETON } from "./skeleton";
 import { bodyToWorld, forward, left, type V3, wrapAngle, yawOf } from "./units";
 import {
   LANDING_SITE_FLATNESS_M,
@@ -320,6 +330,100 @@ describe("the world's queries", () => {
       expect(top.id).toBe("crown");
       expect(site!.center[1] - top.y).toBeLessThanOrEqual(LANDING_SITE_FLATNESS_M + 1e-9);
     }
+  });
+  const open = {
+    home: { center: [0, 0, 0] as V3, radius: 6, ceiling: 8 },
+    ground: () => 0,
+  };
+  it("squashes a sphere as the renderer does, and stands only on its gentle top", () => {
+    // A shrub: 0.4 m across, drawn at 0.8 of its height.
+    const world = new PrimitiveWorld({
+      ...open,
+      id: "shrub",
+      inputs: ARENA_INPUTS,
+      spheres: [
+        { kind: "obstacle", id: "shrub", center: [0, 1, 0], r: 0.4, stretch: 0.8 },
+      ],
+    });
+    expect(world.raycast([0, 3, 0], [0, -1, 0], 5)?.point[1]).toBeCloseTo(1.32, 9);
+    expect(world.raycast([-2, 1, 0], [1, 0, 0], 5)?.point[0]).toBeCloseTo(-0.4, 9);
+    expect(world.solid([0, 1.31, 0])).toBe(true);
+    expect(world.solid([0, 1.33, 0])).toBe(false);
+    // A hit off the axis has the ellipsoid's normal, not a sphere's.
+    const hit = world.raycast([0.2, 3, 0], [0, -1, 0], 5)!;
+    const y = 1 + 0.8 * Math.sqrt(0.4 ** 2 - 0.2 ** 2);
+    expect(hit.point[1]).toBeCloseTo(y, 9);
+    const n = Math.hypot(0.2, (y - 1) / 0.64);
+    expect(hit.normal[0]).toBeCloseTo(0.2 / n, 9);
+    expect(hit.normal[1]).toBeCloseTo((y - 1) / 0.64 / n, 9);
+    // It stands on the top, not on the steep side near the rim.
+    expect(world.perchAt(0.1, 0, 3)?.id).toBe("shrub");
+    expect(world.perchAt(0.39, 0, 3)?.id).toBe("ground");
+    // Its landing site is the cap within 2 mm of its squashed top.
+    const sites: LandingSite[] = [];
+    world.landingSites([0, 2, 0], 5, sites);
+    const site = sites.find((s) => s.id === "shrub")!;
+    expect(site.center[1]).toBeCloseTo(1.32, 9);
+    const corner = world.perchAt(site.half[0], site.half[1], 10)!;
+    expect(corner.id).toBe("shrub");
+    expect(site.center[1] - corner.y).toBeLessThanOrEqual(LANDING_SITE_FLATNESS_M + 1e-9);
+  });
+  it("tapers a trunk: its side leans in, and only the narrow top is stood on", () => {
+    // 25 cm across at the ground, 15 cm at 4 m.
+    const world = new PrimitiveWorld({
+      ...open,
+      id: "trunk",
+      inputs: ARENA_INPUTS,
+      cylinders: [
+        { kind: "obstacle", id: "trunk", x: 0, z: 0, r: 0.25, r1: 0.15, y0: 0, y1: 4 },
+      ],
+    });
+    expect(world.raycast([-2, 0.4, 0], [1, 0, 0], 5)?.point[0]).toBeCloseTo(-0.24, 9);
+    expect(world.raycast([-2, 3.6, 0], [1, 0, 0], 5)?.point[0]).toBeCloseTo(-0.16, 9);
+    // Straight down beside the narrow top, onto the side where it is 20 cm across.
+    const side = world.raycast([0.2, 5, 0], [0, -1, 0], 6)!;
+    expect(side.point[1]).toBeCloseTo(2, 9);
+    expect(side.normal[0]).toBeCloseTo(1 / Math.hypot(1, 0.025), 9);
+    expect(side.normal[1]).toBeCloseTo(0.025 / Math.hypot(1, 0.025), 9);
+    expect(world.raycast([0.1, 5, 0], [0, -1, 0], 6)?.point[1]).toBeCloseTo(4, 9);
+    expect(world.solid([0.2, 1, 0])).toBe(true);
+    expect(world.solid([0.2, 3, 0])).toBe(false);
+    expect(world.perchAt(0.1, 0, 5)?.id).toBe("trunk");
+    expect(world.perchAt(0.2, 0, 5)?.id).toBe("ground");
+  });
+  it("keeps a courtyard open from the ground up, walled by its building", () => {
+    const square = (h: number) => [
+      { x: -h, z: -h },
+      { x: h, z: -h },
+      { x: h, z: h },
+      { x: -h, z: h },
+    ];
+    const world = new PrimitiveWorld({
+      ...open,
+      id: "yard",
+      inputs: ARENA_INPUTS,
+      prisms: [
+        {
+          kind: "wall",
+          id: "block",
+          ring: square(10),
+          holes: [square(3)],
+          y0: 0,
+          y1: 8,
+          min: { x: -10, z: -10 },
+          max: { x: 10, z: 10 },
+        },
+      ],
+    });
+    expect(world.solid([0, 4, 0])).toBe(false);
+    expect(world.solid([6, 4, 0])).toBe(true);
+    expect(world.perchAt(0, 0, 9)?.id).toBe("ground");
+    expect(world.perchAt(6, 0, 9)?.id).toBe("block");
+    const wall = world.raycast([0, 4, 0], [1, 0, 0], 20)!;
+    expect([wall.id, wall.t]).toEqual(["block", 3]);
+    expect(wall.normal[0]).toBe(-1);
+    expect(world.raycast([0, 12, 0], [0, -1, 0], 20)?.point[1]).toBeCloseTo(0, 9);
+    expect(world.raycast([6, 12, 0], [0, -1, 0], 20)?.point[1]).toBeCloseTo(8, 9);
   });
 });
 
@@ -811,6 +915,186 @@ describe("the digital fly in an arena", () => {
     expect(forward(heading!)[2]).toBeGreaterThan(0.7);
     expect(fly.state.responsiveness).toBeLessThan(1);
   });
+  it("aims an escape with its posture: the yaw holds, the body leans toward the jump, which goes that way", () => {
+    // A short-mode escape to the right and a long-mode one back and to the left.
+    for (const [prepare, turn] of [
+      [0.04, -Math.PI / 2],
+      [0.2, 2.5],
+    ] as const) {
+      let asked = false;
+      const jumper = adapter("jumper", ({ body }) => {
+        if (body.mode === "rest" && body.t > 0.5 && !asked) {
+          asked = true;
+          return {
+            mode: "escape",
+            heading: wrapAngle(body.yaw + turn),
+            prepare,
+            reason: "test escape",
+          };
+        }
+        return { mode: body.mode, reason: "carry on" };
+      });
+      const fly = new DigitalFly({
+        seed: 4,
+        world: arenaWorld(ROOM),
+        start: { p: [0, 0.5, 0], yaw: 0.3 },
+        adapter: () => jumper,
+      });
+      let yaw0: number | null = null;
+      let jump: { v: V3; heading: number; t: number } | null = null;
+      let turned: number | null = null;
+      stepwise(fly, 1.5, (before, f) => {
+        const s = f.state;
+        if (s.mode === "escape" && s.takeoff) {
+          const { heading, short } = s.takeoff;
+          yaw0 ??= s.yaw;
+          expect(s.yaw).toBe(yaw0);
+          // Nose down tilts it forward, the right wing down tilts it right.
+          const fw = forward(s.yaw),
+            lf = left(s.yaw),
+            to = forward(heading);
+          const tilt = [
+            -s.pitch * fw[0] - s.roll * lf[0],
+            -s.pitch * fw[2] - s.roll * lf[2],
+          ];
+          if (s.modeT > 0.01)
+            expect(tilt[0]! * to[0] + tilt[1]! * to[2]).toBeGreaterThan(0);
+          // The wings stay folded for a short-mode jump, and rise only at the very end of a long one.
+          expect(short).toBe(prepare < 0.1);
+          if (short) expect(s.wingsOpen).toBe(0);
+          else if (s.wingsOpen > 0)
+            expect(s.modeT).toBeGreaterThan(prepare - 0.03 - 1e-9);
+        }
+        if (before.mode === "escape" && s.mode === "flight")
+          jump = { v: [...s.v] as V3, heading: wrapAngle(yaw0! + turn), t: s.t };
+        if (jump && turned === null && s.t >= jump.t + P.saccadeMs / 1000 + 0.01)
+          turned = s.yaw;
+      });
+      expect(jump).not.toBeNull();
+      const { v, heading } = jump!;
+      const to = forward(heading);
+      expect((v[0] * to[0] + v[2] * to[2]) / Math.hypot(v[0], v[2])).toBeGreaterThan(
+        0.99,
+      );
+      expect(v[1]).toBeGreaterThan(0);
+      // Only in the air does the heading turn to where the jump is going.
+      expect(Math.abs(wrapAngle(turned! - heading))).toBeLessThan(0.01);
+      expect(fly.state.counts.rejected).toBe(0);
+    }
+  });
+  it("acts on an interrupt between decisions, through the same gate", () => {
+    let offers = 0;
+    const reflex: FlyNeuralAdapter = {
+      ...adapter("reflex", ({ body }) => ({ mode: body.mode, reason: "carry on" })),
+      interrupt: ({ body }) => {
+        if (body.t < 0.12 || body.mode !== "rest") return null;
+        offers++;
+        // The first is refused (an escape needs a heading); the next is taken at once.
+        return offers === 1
+          ? { mode: "escape", reason: "no heading" }
+          : { mode: "escape", heading: 1, prepare: 0.2, reason: "a threat" };
+      },
+    };
+    const fly = new DigitalFly({
+      seed: 3,
+      world: arenaWorld(ROOM),
+      start: { p: [0, 0.5, 0], yaw: 0 },
+      adapter: () => reflex,
+    });
+    let escapedAt = -1;
+    stepwise(fly, 0.3, (before, f) => {
+      if (before.mode === "rest" && f.state.mode === "escape") escapedAt = f.state.t;
+    });
+    expect(offers).toBe(2);
+    expect(fly.state.counts.rejected).toBe(1);
+    expect(
+      fly.log.some((r) => r.reason === "interrupt refused: a takeoff needs a heading"),
+    ).toBe(true);
+    // Taken 10 ms after the refusal, before the next decision at 150 ms.
+    expect(escapedAt).toBeGreaterThan(0.12);
+    expect(escapedAt).toBeLessThan(0.15);
+  });
+  it("is offered only the landing sites its eyes resolve: in view, unhidden and large enough", () => {
+    const table = (id: string, x: number, z: number, half = 0.2) => ({
+      kind: "table" as const,
+      id,
+      center: [x, 0.5, z] as V3,
+      half: [half, 0.5, half] as V3,
+      angle: 0,
+    });
+    const world = new PrimitiveWorld({
+      id: "sites",
+      home: { center: [0, 0, 0], radius: 6, ceiling: 4 },
+      ground: () => 0,
+      inputs: ARENA_INPUTS,
+      boxes: [
+        table("ahead", 1.5, 0),
+        table("behind", -1.5, 0),
+        table("hidden", 1.5, 1.5),
+        // A screen across the line of sight to "hidden".
+        {
+          kind: "wall",
+          id: "screen",
+          center: [0.75, 1, 0.75],
+          half: [0.3, 1, 0.02],
+          angle: Math.PI / 4,
+        },
+        table("speck", 3, -1, 0.002),
+      ],
+    });
+    const seen = new Set<string>();
+    const looker = adapter("looker", ({ sites }) => {
+      for (const s of sites) seen.add(s.id);
+      return { mode: "flight", hover: true, reason: "look" };
+    });
+    const fly = new DigitalFly({
+      seed: 8,
+      world,
+      start: { p: [0, 1.2, 0], yaw: 0, mode: "flight" },
+      adapter: () => looker,
+    });
+    run(fly, 0.5);
+    expect(seen.has("ahead")).toBe(true);
+    // Behind it (the blind sector), behind the screen, and narrower than an ommatidium.
+    for (const id of ["behind", "hidden", "speck"]) expect(seen.has(id)).toBe(false);
+  });
+  it("grooms a site, rubs the legs that cleaned it, then moves one site back or stops", () => {
+    const fly = new DigitalFly({
+      seed: 21,
+      world: arenaWorld(ROOM),
+      start: { p: [0, 0.5, 0], yaw: 0 },
+      config: { takeoffHz: 0, walkStartHz: 0, groomHz: 1, groomPhaseS: 0.3 },
+    });
+    const bouts: string[][] = [];
+    let bout: string[] | null = null;
+    stepwise(fly, 120, (_, f) => {
+      const s = f.state;
+      if (s.mode !== "groom") bout = null;
+      else {
+        if (!bout) bouts.push((bout = []));
+        if (bout[bout.length - 1] !== s.groom) bout.push(s.groom!);
+      }
+    });
+    // The bout still running at the end is cut short.
+    if (fly.state.mode === "groom") bouts.pop();
+    expect(bouts.length).toBeGreaterThan(20);
+    const sites: readonly string[] = GROOM_SITES;
+    for (const b of bouts) {
+      expect(b.length % 2).toBe(0);
+      b.forEach((routine, i) => {
+        if (i % 2 === 1)
+          expect(routine).toBe(
+            sites.indexOf(b[i - 1]!) <= 1 ? "front legs" : "hind legs",
+          );
+        else if (i > 0) expect(sites.indexOf(routine)).toBe(sites.indexOf(b[i - 2]!) + 1);
+        else expect(sites).toContain(routine);
+      });
+    }
+    // Bouts start at different sites, and some stop before the notum.
+    expect(new Set(bouts.map((b) => b[0])).size).toBeGreaterThanOrEqual(3);
+    expect(bouts.some((b) => b[b.length - 2] !== "notum")).toBe(true);
+    expect(fly.state.counts.rejected).toBe(0);
+  }, 60_000);
   it("never stays stuck on a landing among obstacles", () => {
     const pillars = [];
     for (const x of [-1.2, -0.4, 0.4, 1.2])
@@ -823,10 +1107,11 @@ describe("the digital fly in an arena", () => {
         config: { takeoffHz: 0.5, avoidTtcS: 0 },
         logSize: 100_000,
       });
-      let bout = 0;
+      const ctrl = (fly.adapter as ReducedOrderController).state;
       run(fly, 60, (f) => {
-        bout = f.state.mode === "land" ? bout + 0.1 : 0;
-        expect(bout).toBeLessThanOrEqual(P.landTimeoutS + 0.2);
+        // No approach outlasts the time it needs from where it began, plus landTimeoutS.
+        if (f.state.mode === "land")
+          expect(f.state.t).toBeLessThanOrEqual(ctrl.landBy + 0.15);
       });
       expect(fly.state.counts.landings).toBeGreaterThan(0);
       // A contact during an approach ends it at once.
@@ -1165,6 +1450,64 @@ describe("the drawn pose", () => {
       }
     }
     expect(lifted).toBeGreaterThan(0);
+  });
+  it("holds stance feet still on the ground as the body walks and turns, and steps to turn on the spot", () => {
+    // The body moves as the simulator moves it; a stance claw, carried into the
+    // ground's frame, must not slide (it slid at up to 10 cm/s before).
+    for (const [v, w] of [
+      [1, 0],
+      [4, 0],
+      [0, 3],
+      [2, 2],
+    ] as const) {
+      const solver = new PoseSolver(gait);
+      const dt = 1 / 240;
+      const stepping = steppingSpeedCmS(v, w, FOOT_RADIUS_CM);
+      const duty = dutyFactor(stepping, gait);
+      const prev: ([number, number] | null)[] = Array(6).fill(null);
+      const swinging: boolean[] = Array(6).fill(false);
+      let x = 0,
+        y = 0,
+        h = 0,
+        clock = 0.123,
+        slip = 0,
+        swings = 0;
+      for (let k = 0; k < 480; k++) {
+        const claws = clawPoints(
+          solver.solve({
+            ...rest,
+            mode: "walk",
+            walkSpeed: v,
+            yawRate: w,
+            gaitClock: clock,
+          }),
+        );
+        const phases = legPhases(clock, phaseLag(stepping, gait));
+        claws.forEach((c, i) => {
+          if (phases[i]! >= duty) {
+            if (!swinging[i]) swings++;
+            swinging[i] = true;
+            prev[i] = null;
+            return;
+          }
+          swinging[i] = false;
+          const g: [number, number] = [
+            x + c[0] * Math.cos(h) - c[1] * Math.sin(h),
+            y + c[0] * Math.sin(h) + c[1] * Math.cos(h),
+          ];
+          const p = prev[i];
+          if (p && k > 20)
+            slip = Math.max(slip, Math.hypot(g[0] - p[0], g[1] - p[1]) / dt);
+          prev[i] = g;
+        });
+        x += v * dt * Math.cos(h + (w * dt) / 2);
+        y += v * dt * Math.sin(h + (w * dt) / 2);
+        h += w * dt;
+        clock = (clock + dt / stepPeriodS(stepping, gait)) % 1;
+      }
+      expect(slip).toBeLessThan(0.05);
+      expect(swings).toBeGreaterThan(6);
+    }
   });
   it("folds the wings at rest and keeps every joint in FlyBody's range", () => {
     const angles = solver.solve({

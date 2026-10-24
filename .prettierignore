@@ -71,6 +71,10 @@ docs/benchmarks/noeterra-civilization/
 # bytes are hashed, written by `npm run rain:fly`, never by hand.
 docs/benchmarks/fly-behavior/
 
+# Digital-fly pilots: exploratory sizing runs, never evidence, written by
+# `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.
+docs/benchmarks/fly-pilots/
+
 # The Noeterra engine copied into public/ at build time (a binary build product).
 public/noeterra/
 

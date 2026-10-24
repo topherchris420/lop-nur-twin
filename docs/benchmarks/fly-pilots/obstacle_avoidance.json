@@ -1,0 +1,3097 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "obstacle_avoidance",
+  "fly_version": "digital-fly/4",
+  "fly": "digital-fly/4 reduced-order-fsm/v1",
+  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
+  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "code": {
+    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "dirty": true
+  },
+  "definition": {
+    "protocol": "obstacle_avoidance",
+    "demonstration": {
+      "treatment": {
+        "kind": "obstacle_avoidance",
+        "avoid_ttc_s": 0.45
+      },
+      "metric": "cruise_collision_episodes_per_m",
+      "direction": "decrease"
+    },
+    "blocks": [
+      {
+        "id": "clutter",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 1.2,
+              "r": 0.15
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0.5
+        },
+        "start_half_width_m": 0.25,
+        "tick_s": 0.005,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": 0.05,
+        "stimulus": null
+      }
+    ],
+    "control": {
+      "config": {
+        "avoidTtcS": 0
+      },
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "obstacle_avoidance",
+          "avoid_ttc_s": 0.15
+        },
+        "arm": {
+          "config": {
+            "avoidTtcS": 0.15
+          },
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "obstacle_avoidance",
+          "avoid_ttc_s": 0.3
+        },
+        "arm": {
+          "config": {
+            "avoidTtcS": 0.3
+          },
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "obstacle_avoidance",
+          "avoid_ttc_s": 0.45
+        },
+        "arm": {
+          "config": {
+            "avoidTtcS": 0.45
+          },
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "obstacle_avoidance",
+          "avoid_ttc_s": 0.9
+        },
+        "arm": {
+          "config": {
+            "avoidTtcS": 0.9
+          },
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "avoidance off (avoidTtcS = 0)",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.23857702758918184,
+          "cruise_collision_episodes_per_m": 0.23857702758918184,
+          "near_miss_fraction": 0.2302045728038508,
+          "flown_m": 20.95759197993597,
+          "saccades_per_flight_s": 0.4650544778102328,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.19163584736196426,
+          "cruise_collision_episodes_per_m": 0.19163584736196426,
+          "near_miss_fraction": 0.18276199804113613,
+          "flown_m": 20.872921507450265,
+          "saccades_per_flight_s": 0.571871090724992,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.04741878621596105,
+          "cruise_collision_episodes_per_m": 0.04741878621596105,
+          "near_miss_fraction": 0.052307692307692305,
+          "flown_m": 21.088688256288652,
+          "saccades_per_flight_s": 0.47643355453466807,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.21578847949439928,
+          "cruise_collision_episodes_per_m": 0.21578847949439928,
+          "near_miss_fraction": 0.14584286803966437,
+          "flown_m": 18.53667076839391,
+          "saccades_per_flight_s": 0.5847624402587001,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.2437401312590867,
+          "cruise_collision_episodes_per_m": 0.2437401312590867,
+          "near_miss_fraction": 0.22874583795782463,
+          "flown_m": 16.410920841542293,
+          "saccades_per_flight_s": 0.5028374398390256,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.24942256122195972,
+          "cruise_collision_episodes_per_m": 0.24942256122195972,
+          "near_miss_fraction": 0.2571043165467626,
+          "flown_m": 20.046302048636765,
+          "saccades_per_flight_s": 0.5928853754941107,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.18668471490762023,
+          "cruise_collision_episodes_per_m": 0.18668471490762023,
+          "near_miss_fraction": 0.15260586319218242,
+          "flown_m": 21.426499764479246,
+          "saccades_per_flight_s": 0.5397200202395517,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.1262813057231189,
+          "cruise_collision_episodes_per_m": 0.1262813057231189,
+          "near_miss_fraction": 0.18452830188679245,
+          "flown_m": 23.75648543401762,
+          "saccades_per_flight_s": 0.6151437199419016,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.15221938891343662,
+          "cruise_collision_episodes_per_m": 0.15221938891343662,
+          "near_miss_fraction": 0.1495511669658887,
+          "flown_m": 19.708396029010636,
+          "saccades_per_flight_s": 0.5937537109607224,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06991247264770241,
+          "flown_m": 20.071685221413528,
+          "saccades_per_flight_s": 0.45656144012521177,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.1716545575164569,
+          "cruise_collision_episodes_per_m": 0.1716545575164569,
+          "near_miss_fraction": 0.13280977312390924,
+          "flown_m": 23.302614610838464,
+          "saccades_per_flight_s": 0.50592034445647,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.20286211449933816,
+          "cruise_collision_episodes_per_m": 0.20286211449933816,
+          "near_miss_fraction": 0.20463871543264942,
+          "flown_m": 19.717826612780623,
+          "saccades_per_flight_s": 0.5851444948650841,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.14371448845329532,
+          "cruise_collision_episodes_per_m": 0.14371448845329532,
+          "near_miss_fraction": 0.12425373134328359,
+          "flown_m": 20.874722042899293,
+          "saccades_per_flight_s": 0.5263465699748847,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.17652718902037792,
+          "cruise_collision_episodes_per_m": 0.17652718902037792,
+          "near_miss_fraction": 0.11697722567287784,
+          "flown_m": 22.65939894130557,
+          "saccades_per_flight_s": 0.4561136775627438,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.20748738814958276,
+          "cruise_collision_episodes_per_m": 0.20748738814958276,
+          "near_miss_fraction": 0.1990089197224975,
+          "flown_m": 24.097850209552867,
+          "saccades_per_flight_s": 0.4760825209703433,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.14807201403048853,
+          "cruise_collision_episodes_per_m": 0.14807201403048853,
+          "near_miss_fraction": 0.17832369942196533,
+          "flown_m": 20.26041193295507,
+          "saccades_per_flight_s": 0.4711133151500175,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.14054331571810275,
+          "cruise_collision_episodes_per_m": 0.14054331571810275,
+          "near_miss_fraction": 0.19864099660249152,
+          "flown_m": 21.345732343595074,
+          "saccades_per_flight_s": 0.46617028164453156,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "collision_episodes": 8,
+          "collision_episodes_per_m": 0.4799708174323643,
+          "cruise_collision_episodes_per_m": 0.4799708174323643,
+          "near_miss_fraction": 0.3164730728616684,
+          "flown_m": 16.667680011873493,
+          "saccades_per_flight_s": 0.5151051092857624,
+          "contact_s": 0.04
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.11835212588832918,
+          "cruise_collision_episodes_per_m": 0.11835212588832918,
+          "near_miss_fraction": 0.11180358829084042,
+          "flown_m": 16.898724758751648,
+          "saccades_per_flight_s": 0.4973171050909372,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.048516562927489904,
+          "cruise_collision_episodes_per_m": 0.048516562927489904,
+          "near_miss_fraction": 0.06773547094188377,
+          "flown_m": 20.61151779227525,
+          "saccades_per_flight_s": 0.49354593773727784,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.22351840107578141,
+          "cruise_collision_episodes_per_m": 0.22351840107578141,
+          "near_miss_fraction": 0.27943067033976127,
+          "flown_m": 17.89561835065134,
+          "saccades_per_flight_s": 0.6008637416285924,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "collision_episodes": 6,
+          "collision_episodes_per_m": 0.3103079038541581,
+          "cruise_collision_episodes_per_m": 0.3103079038541581,
+          "near_miss_fraction": 0.23946689595872742,
+          "flown_m": 19.335633818789052,
+          "saccades_per_flight_s": 0.40825848594426967,
+          "contact_s": 0.03
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.25266429291235953,
+          "cruise_collision_episodes_per_m": 0.25266429291235953,
+          "near_miss_fraction": 0.1842557251908397,
+          "flown_m": 15.831283296478546,
+          "saccades_per_flight_s": 0.6095400099226724,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "collision_episodes": 7,
+          "collision_episodes_per_m": 0.29300789713117287,
+          "cruise_collision_episodes_per_m": 0.29300789713117287,
+          "near_miss_fraction": 0.23,
+          "flown_m": 23.89014107993909,
+          "saccades_per_flight_s": 0.4870817450233643,
+          "contact_s": 0.035
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.04856229933741174,
+          "cruise_collision_episodes_per_m": 0.04856229933741174,
+          "near_miss_fraction": 0.04808259587020649,
+          "flown_m": 20.59210567959276,
+          "saccades_per_flight_s": 0.44932904244339156,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.08790096902970645,
+          "cruise_collision_episodes_per_m": 0.08790096902970645,
+          "near_miss_fraction": 0.16886517943743937,
+          "flown_m": 22.752877722247778,
+          "saccades_per_flight_s": 0.42404446736580037,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.19856168629839152,
+          "cruise_collision_episodes_per_m": 0.19856168629839152,
+          "near_miss_fraction": 0.17341772151898735,
+          "flown_m": 20.14487323596225,
+          "saccades_per_flight_s": 0.5278785879248366,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.1686969530258098,
+          "cruise_collision_episodes_per_m": 0.1686969530258098,
+          "near_miss_fraction": 0.16199740596627757,
+          "flown_m": 17.78336802290089,
+          "saccades_per_flight_s": 0.401397457816033,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.2602960718493433,
+          "cruise_collision_episodes_per_m": 0.2602960718493433,
+          "near_miss_fraction": 0.20190156599552572,
+          "flown_m": 19.208895333979335,
+          "saccades_per_flight_s": 0.42208455306688814,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.12028322403788375,
+          "cruise_collision_episodes_per_m": 0.12028322403788375,
+          "near_miss_fraction": 0.16977611940298507,
+          "flown_m": 16.627422618553116,
+          "saccades_per_flight_s": 0.6787625636339654,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.2188108947468712,
+          "cruise_collision_episodes_per_m": 0.2188108947468712,
+          "near_miss_fraction": 0.19663120567375886,
+          "flown_m": 13.710469048949845,
+          "saccades_per_flight_s": 0.41937094358456306,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.04483450265991125,
+          "cruise_collision_episodes_per_m": 0.04483450265991125,
+          "near_miss_fraction": 0.03947175348495965,
+          "flown_m": 22.304250982450387,
+          "saccades_per_flight_s": 0.6196038598274308,
+          "contact_s": 0.005
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "turning away from surfaces whose time to contact falls below 0.15 s",
+      "treatment": {
+        "kind": "obstacle_avoidance",
+        "avoid_ttc_s": 0.15
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07087845968712395,
+            "flown_m": 21.67613703641405,
+            "saccades_per_flight_s": 0.4281266216917356,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07799385875127943,
+            "flown_m": 22.471874535956044,
+            "saccades_per_flight_s": 0.5542452830188982,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.09381145429530019,
+            "cruise_collision_episodes_per_m": 0.09381145429530019,
+            "near_miss_fraction": 0.04653696498054475,
+            "flown_m": 21.3193582278811,
+            "saccades_per_flight_s": 0.45336787564772596,
+            "contact_s": 0.01
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04950419527078566,
+            "flown_m": 17.91898298113536,
+            "saccades_per_flight_s": 0.623736644527911,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0318534961154273,
+            "flown_m": 16.78353875792814,
+            "saccades_per_flight_s": 0.5163881517606729,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.051521786421194704,
+            "cruise_collision_episodes_per_m": 0.051521786421194704,
+            "near_miss_fraction": 0.07298797409805735,
+            "flown_m": 19.409264885051158,
+            "saccades_per_flight_s": 0.6417241796827907,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05171909290416971,
+            "flown_m": 21.509254061839222,
+            "saccades_per_flight_s": 0.6345848757272191,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.16042726347914546,
+            "flown_m": 23.64849149430949,
+            "saccades_per_flight_s": 0.5003490807540475,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.1064279155188246,
+            "flown_m": 19.180863133697063,
+            "saccades_per_flight_s": 0.6884889479405959,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06991247264770241,
+            "flown_m": 20.071685221413528,
+            "saccades_per_flight_s": 0.45656144012521177,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07238955823293172,
+            "flown_m": 21.88601564726609,
+            "saccades_per_flight_s": 0.5224102107450537,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.10635631154879141,
+            "flown_m": 19.73748001822019,
+            "saccades_per_flight_s": 0.6578947368421332,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.10112554112554113,
+            "flown_m": 23.021988665869713,
+            "saccades_per_flight_s": 0.5701129262142963,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04601930795673222,
+            "cruise_collision_episodes_per_m": 0.04601930795673222,
+            "near_miss_fraction": 0.09394299287410926,
+            "flown_m": 21.730009519921712,
+            "saccades_per_flight_s": 0.3444756315386525,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.1236569274269557,
+            "flown_m": 26.02952132716626,
+            "saccades_per_flight_s": 0.4669425872864923,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04882880942464079,
+            "cruise_collision_episodes_per_m": 0.04882880942464079,
+            "near_miss_fraction": 0.16864406779661018,
+            "flown_m": 20.479712935522933,
+            "saccades_per_flight_s": 0.5494840954881384,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04346077334513508,
+            "cruise_collision_episodes_per_m": 0.04346077334513508,
+            "near_miss_fraction": 0.11216457960644007,
+            "flown_m": 23.009254622753698,
+            "saccades_per_flight_s": 0.561892453784399,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07349524815205913,
+            "flown_m": 16.861331498346054,
+            "saccades_per_flight_s": 0.5559802627006196,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.10886941412932723,
+            "cruise_collision_episodes_per_m": 0.10886941412932723,
+            "near_miss_fraction": 0.09891732283464567,
+            "flown_m": 18.370632523329068,
+            "saccades_per_flight_s": 0.5483994388470776,
+            "contact_s": 0.01
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04849508381622346,
+            "cruise_collision_episodes_per_m": 0.04849508381622346,
+            "near_miss_fraction": 0.10140421263791374,
+            "flown_m": 20.620646904943833,
+            "saccades_per_flight_s": 0.5566801619433156,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "collision_episodes": 3,
+            "collision_episodes_per_m": 0.1607612299876421,
+            "cruise_collision_episodes_per_m": 0.1607612299876421,
+            "near_miss_fraction": 0.1297039159503343,
+            "flown_m": 18.661215768445,
+            "saccades_per_flight_s": 0.629168239587264,
+            "contact_s": 0.015
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04425389992083658,
+            "cruise_collision_episodes_per_m": 0.04425389992083658,
+            "near_miss_fraction": 0.06940671908506076,
+            "flown_m": 22.59687850763088,
+            "saccades_per_flight_s": 0.48185359852376275,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04963403446922614,
+            "cruise_collision_episodes_per_m": 0.04963403446922614,
+            "near_miss_fraction": 0.09791666666666667,
+            "flown_m": 20.147465558537565,
+            "saccades_per_flight_s": 0.5699662673025852,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.12580194074001783,
+            "cruise_collision_episodes_per_m": 0.12580194074001783,
+            "near_miss_fraction": 0.1296511627906977,
+            "flown_m": 15.89800593087191,
+            "saccades_per_flight_s": 0.5366326302451195,
+            "contact_s": 0.01
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.020988900100908172,
+            "flown_m": 21.415766628439656,
+            "saccades_per_flight_s": 0.4315659679408206,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.044954336480354566,
+            "cruise_collision_episodes_per_m": 0.044954336480354566,
+            "near_miss_fraction": 0.06778593913955928,
+            "flown_m": 22.24479501409188,
+            "saccades_per_flight_s": 0.4735595895817029,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.029039634146341465,
+            "flown_m": 21.1318939611939,
+            "saccades_per_flight_s": 0.5625132668224095,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09130998702983138,
+            "flown_m": 17.000075921920097,
+            "saccades_per_flight_s": 0.44694459428209876,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08138479001135074,
+            "flown_m": 22.786600679351352,
+            "saccades_per_flight_s": 0.4640080260847757,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.11647235799630033,
+            "cruise_collision_episodes_per_m": 0.058236178998150166,
+            "near_miss_fraction": 0.05905297532656023,
+            "flown_m": 17.171456252852103,
+            "saccades_per_flight_s": 0.661956590923548,
+            "contact_s": 0.01
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03079136690647482,
+            "flown_m": 16.94222046106224,
+            "saccades_per_flight_s": 0.3183699458770398,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05172413793103448,
+            "flown_m": 22.3654332243897,
+            "saccades_per_flight_s": 0.6612410986776316,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.0307151384057166,
+          "mean_difference": -0.14793842135307575,
+          "sd_difference": 0.1061492006946958,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.028895257812024407,
+          "mean_difference": -0.14975830194676795,
+          "sd_difference": 0.10407748826726922,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 3.5,
+          "treatment_mean": 0.59375,
+          "mean_difference": -2.90625,
+          "sd_difference": 1.9896405089459526,
+          "increase": 1,
+          "decrease": 27,
+          "tie": 4,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.16867272258259478,
+          "treatment_mean": 0.08278420783668372,
+          "mean_difference": -0.08588851474591107,
+          "sd_difference": 0.06790805820221152,
+          "increase": 2,
+          "decrease": 29,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 19.98092438432783,
+          "treatment_mean": 20.440557872117218,
+          "mean_difference": 0.45963348778938634,
+          "sd_difference": 2.076092794001689,
+          "increase": 22,
+          "decrease": 9,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5137530651515305,
+          "treatment_mean": 0.533425794441117,
+          "mean_difference": 0.019672729289586514,
+          "sd_difference": 0.05648694772690683,
+          "increase": 21,
+          "decrease": 10,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0.017500000000000005,
+          "treatment_mean": 0.00296875,
+          "mean_difference": -0.014531250000000004,
+          "sd_difference": 0.009948202544729763,
+          "increase": 1,
+          "decrease": 27,
+          "tie": 4,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "turning away from surfaces whose time to contact falls below 0.3 s",
+      "treatment": {
+        "kind": "obstacle_avoidance",
+        "avoid_ttc_s": 0.3
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01751918158567775,
+            "flown_m": 20.335733859554285,
+            "saccades_per_flight_s": 0.45373298501302245,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09239350912778904,
+            "flown_m": 22.583852986788727,
+            "saccades_per_flight_s": 0.5743421438199957,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "collision_episodes": 2,
+            "collision_episodes_per_m": 0.09465775701258394,
+            "cruise_collision_episodes_per_m": 0.09465775701258394,
+            "near_miss_fraction": 0.0864367816091954,
+            "flown_m": 21.12874911808989,
+            "saccades_per_flight_s": 0.502217235668177,
+            "contact_s": 0.01
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04250847457627119,
+            "flown_m": 18.561832574227463,
+            "saccades_per_flight_s": 0.6243821218586744,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.054051054384017756,
+            "flown_m": 16.791611810761587,
+            "saccades_per_flight_s": 0.5450763824140435,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06763224181360201,
+            "flown_m": 14.35176153650832,
+            "saccades_per_flight_s": 0.5643153526969795,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.049978159289995355,
+            "cruise_collision_episodes_per_m": 0.049978159289995355,
+            "near_miss_fraction": 0.06478454680534919,
+            "flown_m": 20.008740101802434,
+            "saccades_per_flight_s": 0.6417348971011975,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.1422177009155646,
+            "flown_m": 23.072152986664175,
+            "saccades_per_flight_s": 0.4779668920494596,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06179981634527089,
+            "flown_m": 18.988614905619258,
+            "saccades_per_flight_s": 0.6207777980646507,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06991247264770241,
+            "flown_m": 20.071685221413528,
+            "saccades_per_flight_s": 0.45656144012521177,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.044636951156000235,
+            "cruise_collision_episodes_per_m": 0.044636951156000235,
+            "near_miss_fraction": 0.0823943661971831,
+            "flown_m": 22.402963780055956,
+            "saccades_per_flight_s": 0.5286964694824955,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03738396624472574,
+            "flown_m": 19.31952124413048,
+            "saccades_per_flight_s": 0.602338490610638,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09731601731601731,
+            "flown_m": 23.006599680492233,
+            "saccades_per_flight_s": 0.5701129262142963,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04456880100594596,
+            "cruise_collision_episodes_per_m": 0.04456880100594596,
+            "near_miss_fraction": 0.10878859857482186,
+            "flown_m": 22.4372201501806,
+            "saccades_per_flight_s": 0.42627883650952886,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.10094936708860759,
+            "flown_m": 25.90311089557134,
+            "saccades_per_flight_s": 0.46645935139942674,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.12893309222423147,
+            "flown_m": 20.820693464034076,
+            "saccades_per_flight_s": 0.5465434036862972,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09227513227513227,
+            "flown_m": 21.924595585237856,
+            "saccades_per_flight_s": 0.48384095279449657,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06614853195164076,
+            "flown_m": 20.70968689374373,
+            "saccades_per_flight_s": 0.5320353180892481,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09587727708533078,
+            "flown_m": 16.9763089338927,
+            "saccades_per_flight_s": 0.6308733653150809,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0589041095890411,
+            "flown_m": 19.841458986812466,
+            "saccades_per_flight_s": 0.5194805194804903,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.040687679083094556,
+            "flown_m": 16.903700869554815,
+            "saccades_per_flight_s": 0.7034156239431356,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07162270183852917,
+            "flown_m": 20.098561392220514,
+            "saccades_per_flight_s": 0.516534725731339,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.14153969526864474,
+            "flown_m": 19.738237089486642,
+            "saccades_per_flight_s": 0.695394436844563,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.17225636523266022,
+            "flown_m": 18.08793400013839,
+            "saccades_per_flight_s": 0.6803134301160374,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03282828282828283,
+            "flown_m": 20.509667023284464,
+            "saccades_per_flight_s": 0.48118445404072285,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09155908639523337,
+            "flown_m": 22.523678776776208,
+            "saccades_per_flight_s": 0.5122533325572255,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03837579617834395,
+            "flown_m": 20.36899142220413,
+            "saccades_per_flight_s": 0.5188496991776247,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0700750469043152,
+            "flown_m": 21.21024391520419,
+            "saccades_per_flight_s": 0.5081362289032891,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05178117048346056,
+            "flown_m": 21.233919582484376,
+            "saccades_per_flight_s": 0.41338845179354883,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05598885793871866,
+            "flown_m": 17.098371254432667,
+            "saccades_per_flight_s": 0.5810200129115405,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.044368266405484816,
+            "flown_m": 20.944058885113435,
+            "saccades_per_flight_s": 0.4078857919782516,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07190283400809716,
+            "flown_m": 22.30530189749169,
+            "saccades_per_flight_s": 0.630749014454758,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.007307552139516421,
+          "mean_difference": -0.1713460076192759,
+          "sd_difference": 0.10083593816731175,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.007307552139516421,
+          "mean_difference": -0.1713460076192759,
+          "sd_difference": 0.10083593816731175,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 3.5,
+          "treatment_mean": 0.15625,
+          "mean_difference": -3.34375,
+          "sd_difference": 1.8770150462558812,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.16867272258259478,
+          "treatment_mean": 0.07660037565381367,
+          "mean_difference": -0.0920723469287811,
+          "sd_difference": 0.07581936607411655,
+          "increase": 2,
+          "decrease": 29,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 19.98092438432783,
+          "treatment_mean": 20.320611275749147,
+          "mean_difference": 0.3396868914213124,
+          "sd_difference": 2.413646043802344,
+          "increase": 18,
+          "decrease": 13,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5137530651515305,
+          "treatment_mean": 0.5442778776514201,
+          "mean_difference": 0.03052481249988968,
+          "sd_difference": 0.06493776415832586,
+          "increase": 22,
+          "decrease": 9,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0.017500000000000005,
+          "treatment_mean": 0.00078125,
+          "mean_difference": -0.016718750000000004,
+          "sd_difference": 0.009385075231279407,
+          "increase": 1,
+          "decrease": 30,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "turning away from surfaces whose time to contact falls below 0.45 s",
+      "treatment": {
+        "kind": "obstacle_avoidance",
+        "avoid_ttc_s": 0.45
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03598074608904934,
+            "flown_m": 23.096894383303596,
+            "saccades_per_flight_s": 0.38288149200272265,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04206755373592631,
+            "flown_m": 22.1098888668666,
+            "saccades_per_flight_s": 0.5940005940006227,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0245662100456621,
+            "flown_m": 17.332992002734944,
+            "saccades_per_flight_s": 0.5228924882030275,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.028,
+            "flown_m": 23.608437243938,
+            "saccades_per_flight_s": 0.6123698714024658,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05463510848126233,
+            "flown_m": 18.217735231536874,
+            "saccades_per_flight_s": 0.6236316592582437,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08651079136690648,
+            "flown_m": 20.11814683278933,
+            "saccades_per_flight_s": 0.6338028169014457,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06484641638225255,
+            "flown_m": 18.498013427977146,
+            "saccades_per_flight_s": 0.5298502864888263,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.030119521912350598,
+            "flown_m": 26.081573461371068,
+            "saccades_per_flight_s": 0.5936186000495823,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08446428571428571,
+            "flown_m": 19.277541436451763,
+            "saccades_per_flight_s": 0.6526640560104748,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.028721374045801527,
+            "flown_m": 19.253500958334612,
+            "saccades_per_flight_s": 0.5438477226376688,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.049193548387096775,
+            "flown_m": 23.69425069480065,
+            "saccades_per_flight_s": 0.549095607235213,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.017569786535303777,
+            "flown_m": 20.16518704667581,
+            "saccades_per_flight_s": 0.6280139060222654,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.1277056277056277,
+            "flown_m": 22.97396739082954,
+            "saccades_per_flight_s": 0.5701129262142963,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.034379457917261054,
+            "flown_m": 19.856551933002493,
+            "saccades_per_flight_s": 0.4219409282699809,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05581151832460733,
+            "flown_m": 26.112858717028907,
+            "saccades_per_flight_s": 0.48675258587316483,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06,
+            "flown_m": 19.25446438653345,
+            "saccades_per_flight_s": 0.5191771042896846,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04860710854947166,
+            "flown_m": 23.895627255245444,
+            "saccades_per_flight_s": 0.5519882843303431,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03632773938795657,
+            "flown_m": 18.64502097439624,
+            "saccades_per_flight_s": 0.5515649050795167,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04794117647058824,
+            "flown_m": 17.31270356838695,
+            "saccades_per_flight_s": 0.6177707676130122,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05878995433789954,
+            "flown_m": 19.881195941808556,
+            "saccades_per_flight_s": 0.5594405594405281,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05654250238777459,
+            "flown_m": 17.97889391339472,
+            "saccades_per_flight_s": 0.7074864934396544,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04316546762589928,
+            "flown_m": 20.048571723751586,
+            "saccades_per_flight_s": 0.5053057099545707,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09246190858059343,
+            "flown_m": 20.364673896292512,
+            "saccades_per_flight_s": 0.6805377363753684,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.10122914837576821,
+            "flown_m": 20.378058006888985,
+            "saccades_per_flight_s": 0.6166375799884061,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.010707070707070707,
+            "flown_m": 20.489105360145317,
+            "saccades_per_flight_s": 0.45650832819248066,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0451837140019861,
+            "flown_m": 22.372442319817715,
+            "saccades_per_flight_s": 0.4792238910642575,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.028980891719745223,
+            "flown_m": 20.38623584477735,
+            "saccades_per_flight_s": 0.5188496991776247,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.052819548872180454,
+            "flown_m": 21.21844674220904,
+            "saccades_per_flight_s": 0.5208648779601641,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.021755725190839695,
+            "flown_m": 21.151722070938405,
+            "saccades_per_flight_s": 0.40005334044536983,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.027705223880597016,
+            "flown_m": 18.130497161556683,
+            "saccades_per_flight_s": 0.5678233438485775,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05263157894736842,
+            "flown_m": 19.686476578165763,
+            "saccades_per_flight_s": 0.3826362316928175,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.024146341463414635,
+            "flown_m": 23.511829003034542,
+            "saccades_per_flight_s": 0.5604275854912406,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0,
+          "mean_difference": -0.17865355975879235,
+          "sd_difference": 0.09446285579156957,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0,
+          "mean_difference": -0.17865355975879235,
+          "sd_difference": 0.09446285579156957,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 3.5,
+          "treatment_mean": 0,
+          "mean_difference": -3.5,
+          "sd_difference": 1.7597653802562394,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.16867272258259478,
+          "treatment_mean": 0.0491739702232046,
+          "mean_difference": -0.11949875235939011,
+          "sd_difference": 0.06645173839132397,
+          "increase": 1,
+          "decrease": 31,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 19.98092438432783,
+          "treatment_mean": 20.784484511718276,
+          "mean_difference": 0.8035601273904361,
+          "sd_difference": 2.277545953468735,
+          "increase": 22,
+          "decrease": 10,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5137530651515305,
+          "treatment_mean": 0.5481803743423007,
+          "mean_difference": 0.034427309190770014,
+          "sd_difference": 0.06080412366857234,
+          "increase": 23,
+          "decrease": 9,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0.017500000000000005,
+          "treatment_mean": 0,
+          "mean_difference": -0.017500000000000005,
+          "sd_difference": 0.008798826901281198,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "turning away from surfaces whose time to contact falls below 0.9 s",
+      "treatment": {
+        "kind": "obstacle_avoidance",
+        "avoid_ttc_s": 0.9
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 17.90344729188183,
+            "saccades_per_flight_s": 0.44091016455387466,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.120905690505822,
+            "saccades_per_flight_s": 0.6328728777460162,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.017592592592592594,
+            "flown_m": 18.080303542810917,
+            "saccades_per_flight_s": 0.5509296938583871,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 23.56071187560168,
+            "saccades_per_flight_s": 0.6029487964578124,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.00387523629489603,
+            "flown_m": 18.63670902214128,
+            "saccades_per_flight_s": 0.6128447251579031,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 15.390156660603886,
+            "saccades_per_flight_s": 0.7785467128026625,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.04678404040612729,
+            "cruise_collision_episodes_per_m": 0.04678404040612729,
+            "near_miss_fraction": 0.012446351931330472,
+            "flown_m": 21.374810540498558,
+            "saccades_per_flight_s": 0.6245907419534691,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 25.955457617573646,
+            "saccades_per_flight_s": 0.6153846153847018,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 19.626606836036533,
+            "saccades_per_flight_s": 0.6213035426250344,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01316793893129771,
+            "flown_m": 21.22939364621365,
+            "saccades_per_flight_s": 0.574094007893817,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 26.07340282389415,
+            "saccades_per_flight_s": 0.5246864998164378,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.007677543186180422,
+            "flown_m": 20.600756773309982,
+            "saccades_per_flight_s": 0.6832893790458201,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 22.902058361500714,
+            "saccades_per_flight_s": 0.5490885130683689,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.015201900237529691,
+            "flown_m": 24.131091340020465,
+            "saccades_per_flight_s": 0.47055984555986197,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0008368200836820083,
+            "flown_m": 24.95293274339742,
+            "saccades_per_flight_s": 0.42916031396468973,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.72250046859001,
+            "saccades_per_flight_s": 0.5468613648263786,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.612229110269748,
+            "saccades_per_flight_s": 0.5321035828308189,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.00700888450148075,
+            "flown_m": 19.061658064934466,
+            "saccades_per_flight_s": 0.5517772359809971,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 16.286576925636073,
+            "saccades_per_flight_s": 0.6426032266884901,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.006641604010025063,
+            "flown_m": 19.856504136230853,
+            "saccades_per_flight_s": 0.45935412026721484,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 16.83924380179492,
+            "saccades_per_flight_s": 0.7915045181715875,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 11.127029840801816,
+            "saccades_per_flight_s": 0.5719557195570977,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 14.793627321419025,
+            "saccades_per_flight_s": 0.6893967778192861,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.253592910827916,
+            "saccades_per_flight_s": 0.584104890324991,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.493773409627163,
+            "saccades_per_flight_s": 0.45650832819248066,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 23.35901430854957,
+            "saccades_per_flight_s": 0.47655024118094663,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.793353599920383,
+            "saccades_per_flight_s": 0.5928001724510352,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.226706332475107,
+            "saccades_per_flight_s": 0.565371024735051,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.20882237930324,
+            "saccades_per_flight_s": 0.43278333784146245,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 15.440091106363138,
+            "saccades_per_flight_s": 0.7168458781361499,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 16.65520901449944,
+            "saccades_per_flight_s": 0.526662277814242,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03175519630484989,
+            "flown_m": 14.791389450144784,
+            "saccades_per_flight_s": 0.4838319490362645,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.0014620012626914778,
+          "mean_difference": -0.17719155849610088,
+          "sd_difference": 0.0946962977765027,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0.17865355975879235,
+          "treatment_mean": 0.0014620012626914778,
+          "mean_difference": -0.17719155849610088,
+          "sd_difference": 0.0946962977765027,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 3.5,
+          "treatment_mean": 0.03125,
+          "mean_difference": -3.46875,
+          "sd_difference": 1.7594789367969876,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.16867272258259478,
+          "treatment_mean": 0.0036313771273082697,
+          "mean_difference": -0.16504134545528648,
+          "sd_difference": 0.07086483530276777,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 19.98092438432783,
+          "treatment_mean": 19.876877092105573,
+          "mean_difference": -0.104047292222264,
+          "sd_difference": 2.921301896019742,
+          "increase": 18,
+          "decrease": 14,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5137530651515305,
+          "treatment_mean": 0.5728820336169799,
+          "mean_difference": 0.059128968465449204,
+          "sd_difference": 0.07130669452733467,
+          "increase": 28,
+          "decrease": 4,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0.017500000000000005,
+          "treatment_mean": 0.00015625,
+          "mean_difference": -0.017343750000000005,
+          "sd_difference": 0.00879739468398494,
+          "increase": 0,
+          "decrease": 31,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 1,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.07323298193229226,
+          "cruise_collision_episodes_per_m": 0.07323298193229226,
+          "near_miss_fraction": 0.16432681242807826,
+          "flown_m": 13.65504959124227,
+          "saccades_per_flight_s": 0.589970501474798,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "collision_episodes": 6,
+          "collision_episodes_per_m": 0.27750548684292714,
+          "cruise_collision_episodes_per_m": 0.27750548684292714,
+          "near_miss_fraction": 0.19384023099133782,
+          "flown_m": 21.62119411857288,
+          "saccades_per_flight_s": 0.6541000178391224,
+          "contact_s": 0.03
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.29672931310348527,
+          "cruise_collision_episodes_per_m": 0.29672931310348527,
+          "near_miss_fraction": 0.24952153110047848,
+          "flown_m": 16.850374328390785,
+          "saccades_per_flight_s": 0.4378019323670688,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.28936758747529856,
+          "cruise_collision_episodes_per_m": 0.28936758747529856,
+          "near_miss_fraction": 0.1398972602739726,
+          "flown_m": 17.27906032470488,
+          "saccades_per_flight_s": 0.7048672297502784,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.14422382968742328,
+          "cruise_collision_episodes_per_m": 0.14422382968742328,
+          "near_miss_fraction": 0.1322943722943723,
+          "flown_m": 20.801000822831487,
+          "saccades_per_flight_s": 0.5347897821016553,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "collision_episodes": 7,
+          "collision_episodes_per_m": 0.36878192906618174,
+          "cruise_collision_episodes_per_m": 0.36878192906618174,
+          "near_miss_fraction": 0.3548790658882402,
+          "flown_m": 18.98140729868512,
+          "saccades_per_flight_s": 0.5243838489774855,
+          "contact_s": 0.035
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.1431121573164546,
+          "cruise_collision_episodes_per_m": 0.1431121573164546,
+          "near_miss_fraction": 0.18946135831381733,
+          "flown_m": 20.96257967355139,
+          "saccades_per_flight_s": 0.3407378284515949,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.166836058458969,
+          "cruise_collision_episodes_per_m": 0.166836058458969,
+          "near_miss_fraction": 0.12414654454621149,
+          "flown_m": 17.981724260992465,
+          "saccades_per_flight_s": 0.47950131862864565,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.09078851454611293,
+          "cruise_collision_episodes_per_m": 0.09078851454611293,
+          "near_miss_fraction": 0.0884297520661157,
+          "flown_m": 22.029218233151816,
+          "saccades_per_flight_s": 0.4078939475736471,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.21643334798626152,
+          "cruise_collision_episodes_per_m": 0.21643334798626152,
+          "near_miss_fraction": 0.17224523612261805,
+          "flown_m": 23.101800376517687,
+          "saccades_per_flight_s": 0.5428419372007135,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.15276706259699555,
+          "cruise_collision_episodes_per_m": 0.15276706259699555,
+          "near_miss_fraction": 0.13695150115473442,
+          "flown_m": 19.637740943635848,
+          "saccades_per_flight_s": 0.5617226160224352,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "collision_episodes": 6,
+          "collision_episodes_per_m": 0.28685333287284287,
+          "cruise_collision_episodes_per_m": 0.28685333287284287,
+          "near_miss_fraction": 0.23796296296296296,
+          "flown_m": 20.916612471989986,
+          "saccades_per_flight_s": 0.4380771963059661,
+          "contact_s": 0.03
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.19818234597041876,
+          "cruise_collision_episodes_per_m": 0.19818234597041876,
+          "near_miss_fraction": 0.23374613003095976,
+          "flown_m": 20.18343248695346,
+          "saccades_per_flight_s": 0.4224914569742193,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.11265734842446778,
+          "cruise_collision_episodes_per_m": 0.11265734842446778,
+          "near_miss_fraction": 0.0914672216441207,
+          "flown_m": 17.75294757040123,
+          "saccades_per_flight_s": 0.5238063259686724,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.04864401150996728,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.07520765619357168,
+          "flown_m": 20.557515076549507,
+          "saccades_per_flight_s": 0.5688084044344226,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.23124238607085315,
+          "cruise_collision_episodes_per_m": 0.17343178955313984,
+          "near_miss_fraction": 0.14050202084662838,
+          "flown_m": 17.29786683127544,
+          "saccades_per_flight_s": 0.5409904286308261,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.05742608076106668,
+          "cruise_collision_episodes_per_m": 0.05742608076106668,
+          "near_miss_fraction": 0.07070135746606335,
+          "flown_m": 17.413690552219833,
+          "saccades_per_flight_s": 0.6429458610359233,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.08664349981925008,
+          "cruise_collision_episodes_per_m": 0.08664349981925008,
+          "near_miss_fraction": 0.145676500508647,
+          "flown_m": 23.083093413496307,
+          "saccades_per_flight_s": 0.5110040067359964,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.16768609997573067,
+          "cruise_collision_episodes_per_m": 0.16768609997573067,
+          "near_miss_fraction": 0.1445966514459665,
+          "flown_m": 17.89057053884724,
+          "saccades_per_flight_s": 0.39770919503650254,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.16196303471563234,
+          "cruise_collision_episodes_per_m": 0.16196303471563234,
+          "near_miss_fraction": 0.2264367816091954,
+          "flown_m": 18.522745052704586,
+          "saccades_per_flight_s": 0.42840042840042675,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.22615663739341008,
+          "cruise_collision_episodes_per_m": 0.22615663739341008,
+          "near_miss_fraction": 0.18005226480836237,
+          "flown_m": 22.108570668665653,
+          "saccades_per_flight_s": 0.49524019149292936,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "collision_episodes": 4,
+          "collision_episodes_per_m": 0.22419916617446561,
+          "cruise_collision_episodes_per_m": 0.22419916617446561,
+          "near_miss_fraction": 0.29063444108761327,
+          "flown_m": 17.84127955626432,
+          "saccades_per_flight_s": 0.39391790750798833,
+          "contact_s": 0.02
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.09310501296585508,
+          "cruise_collision_episodes_per_m": 0.09310501296585508,
+          "near_miss_fraction": 0.15562579013906447,
+          "flown_m": 21.48112047128409,
+          "saccades_per_flight_s": 0.43472533263072716,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.026255924170616115,
+          "flown_m": 20.02477856429695,
+          "saccades_per_flight_s": 0.4726126999515416,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.30462235600730686,
+          "cruise_collision_episodes_per_m": 0.30462235600730686,
+          "near_miss_fraction": 0.22113752122241087,
+          "flown_m": 16.413765770625407,
+          "saccades_per_flight_s": 0.7077668094617313,
+          "contact_s": 0.025
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.12781251348732472,
+          "cruise_collision_episodes_per_m": 0.12781251348732472,
+          "near_miss_fraction": 0.09113814074717637,
+          "flown_m": 23.47188016373305,
+          "saccades_per_flight_s": 0.5197899182414422,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.1451843024258998,
+          "cruise_collision_episodes_per_m": 0.1451843024258998,
+          "near_miss_fraction": 0.08854838709677419,
+          "flown_m": 20.663390944287254,
+          "saccades_per_flight_s": 0.472319859402514,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0,
+          "flown_m": 12.32774334382748,
+          "saccades_per_flight_s": 0.5362828892239572,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "collision_episodes": 2,
+          "collision_episodes_per_m": 0.11316160793077408,
+          "cruise_collision_episodes_per_m": 0.11316160793077408,
+          "near_miss_fraction": 0.10096463022508038,
+          "flown_m": 17.67383865050316,
+          "saccades_per_flight_s": 0.5341204582190715,
+          "contact_s": 0.01
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "collision_episodes": 9,
+          "collision_episodes_per_m": 0.4106186072333449,
+          "cruise_collision_episodes_per_m": 0.4106186072333449,
+          "near_miss_fraction": 0.28387533875338755,
+          "flown_m": 21.91814944929057,
+          "saccades_per_flight_s": 0.6703910614526515,
+          "contact_s": 0.045
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "collision_episodes": 3,
+          "collision_episodes_per_m": 0.11947458812477563,
+          "cruise_collision_episodes_per_m": 0.11947458812477563,
+          "near_miss_fraction": 0.12403240324032404,
+          "flown_m": 25.109942181737352,
+          "saccades_per_flight_s": 0.6144227659804603,
+          "contact_s": 0.015
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "collision_episodes": 5,
+          "collision_episodes_per_m": 0.20917536120796312,
+          "cruise_collision_episodes_per_m": 0.1673402889663705,
+          "near_miss_fraction": 0.22718311492520005,
+          "flown_m": 23.903388865330925,
+          "saccades_per_flight_s": 0.384499849804761,
+          "contact_s": 0.025
+        }
+      }
+    ],
+    "metrics": {
+      "collision_episodes_per_m": {
+        "control_mean": 0.17865355975879235,
+        "treatment_mean": 0.17326833006511724,
+        "mean_difference": -0.005385229693675124,
+        "sd_difference": 0.15690657375201675,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 1,
+        "control_at_ceiling": 0
+      },
+      "cruise_collision_episodes_per_m": {
+        "control_mean": 0.17865355975879235,
+        "treatment_mean": 0.16863427755670243,
+        "mean_difference": -0.010019282202089908,
+        "sd_difference": 0.15662477089539895,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 1,
+        "control_at_ceiling": 0
+      },
+      "collision_episodes": {
+        "control_mean": 3.5,
+        "treatment_mean": 3.4375,
+        "mean_difference": -0.0625,
+        "sd_difference": 3.110206921858125,
+        "increase": 15,
+        "decrease": 15,
+        "tie": 2,
+        "undefined": 0,
+        "control_at_floor": 1,
+        "control_at_ceiling": 0
+      },
+      "near_miss_fraction": {
+        "control_mean": 0.16867272258259478,
+        "treatment_mean": 0.1594293407595032,
+        "mean_difference": -0.009243381823091572,
+        "sd_difference": 0.10910660978020716,
+        "increase": 14,
+        "decrease": 18,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "flown_m": {
+        "control_mean": 19.98092438432783,
+        "treatment_mean": 19.67054601864251,
+        "mean_difference": -0.3103783656853189,
+        "sd_difference": 4.170896357267256,
+        "increase": 14,
+        "decrease": 18,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "saccades_per_flight_s": {
+        "control_mean": 0.5137530651515305,
+        "treatment_mean": 0.5152791877275054,
+        "mean_difference": 0.001526122575974967,
+        "sd_difference": 0.12549742746682988,
+        "increase": 15,
+        "decrease": 17,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "contact_s": {
+        "control_mean": 0.017500000000000005,
+        "treatment_mean": 0.01718750000000001,
+        "mean_difference": -0.00031250000000000017,
+        "sd_difference": 0.015551034609290627,
+        "increase": 15,
+        "decrease": 15,
+        "tie": 2,
+        "undefined": 0,
+        "control_at_floor": 1,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "cruise_collision_episodes_per_m",
+    "direction": "decrease",
+    "treatment": {
+      "kind": "obstacle_avoidance",
+      "avoid_ttc_s": 0.45
+    },
+    "outcomes": {
+      "expected": 31,
+      "opposite": 0,
+      "uninformative": 1
+    },
+    "seed_count": 10,
+    "pass_probability": 0.9077,
+    "minimum_effect": 0.12,
+    "host_minimum_effect": 0.01,
+    "design_minimum_effect": 0.12,
+    "s1_probability": 0.9567,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "near_miss_fraction",
+      "resolution": 0,
+      "divergence_bound": 0.07715002364785896,
+      "floor": 0.08,
+      "host_minimum_effect": 0.08
+    }
+  ],
+  "runs_sha256": "ae79c18f77c5dc93610b56face4f22aa2e665f97cb87e302520d0085f6d0a588",
+  "outputs_sha256": "57f61338d4fea28555043e3781d3559ef098fb531bf7d90d930b55a39e1856a9",
+  "generated_at": "2026-10-24T02:05:05.166Z",
+  "sha256": "6235d793ba7d35ee1816c424480ca08e6bc477b81ef77d0be9634e2ae582fd64"
+}

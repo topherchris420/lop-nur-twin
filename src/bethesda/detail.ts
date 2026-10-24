@@ -1,16 +1,7 @@
 /** Illustrative Row architecture, derived from footprint edges, never a survey. */
 import * as THREE from "three";
 import { mulberry32 } from "../lib/noise";
-import {
-  buildingAt,
-  buildings,
-  distance,
-  lerp,
-  pathWays,
-  row,
-  type Building,
-  type Point,
-} from "./model";
+import { buildingAt, distance, lerp, pathWays, type Building, type Point } from "./model";
 import { architecturalStone, surfaceMaterial } from "./materials";
 import {
   PLANTER,
@@ -31,15 +22,8 @@ export interface CityBuilder {
     angle?: number,
   ): void;
 }
-// Keep the expensive silhouette and frame geometry local to the arrival blocks.
-export const detailedBuildings = new Set(
-  buildings
-    .filter(
-      (b) =>
-        distance(b.center, row.point) < 205 && !["house", "detached"].includes(b.type),
-    )
-    .map((b) => b.id),
-);
+// The arrival blocks that get this detail (placed in `furniture.ts`).
+export { detailedBuildings } from "./furniture";
 export function createDetailMaterials() {
   return {
     brick: surfaceMaterial("brick"),

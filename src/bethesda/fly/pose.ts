@@ -6,14 +6,19 @@
  * own leg chain (coxa 3, femur 2, tibia 1 hinge, within the MJCF's ranges;
  * the tarsus follows at zero). The standing footprint is FlyBody's `qpos0`
  * stance lowered into the 0.8 crouch the simulator stands at. Walking moves
- * each foot through a stance (sliding back at the stride the simulated speed
- * and step period give, so a planted foot stays near its spot on the ground)
- * and a swing (lifted forward), on the simulator's per-leg phases: the drawn
- * tripod or tetrapod is the simulated one. A turn in place sweeps the planted
- * feet against the turn. Grooming moves the front legs to the head (eyes,
- * antennae) or the hind legs to the abdomen (abdomen, wings, notum) in small
- * circles. In flight the legs blend from FlyBody's retracted spring
- * references toward the zero pose as the simulator extends them to land.
+ * each foot through a stance and a swing on the simulator's per-leg phases,
+ * so the drawn tripod or tetrapod is the simulated one. A stance foot stays
+ * where it touched down: in the thorax frame it moves exactly as a point
+ * fixed on the ground does while the body walks and turns at the simulated
+ * speed and yaw rate, centred on its standing spot at mid-stance. A swing
+ * carries it, lifted, from where it left the ground to where it will next
+ * touch down. The gait runs at the feet's speed over the ground, so a fly
+ * turning on the spot steps round instead of skating. Grooming moves the
+ * front legs to the head (eyes, antennae) or the hind legs to the abdomen
+ * (abdomen, wings, notum) in small circles, and rubs the front or the hind
+ * legs against each other after a site. In flight the legs blend from
+ * FlyBody's retracted spring references toward the zero pose as the
+ * simulator extends them to land.
  *
  * Wings. Folded at their spring references at rest; in flight FlyBody's
  * prototype stroke (`wing.ts`) at the simulator's beat frequency and per-side
@@ -38,13 +43,15 @@ import {
   legPhases,
   phaseLag,
   stepPeriodS,
+  steppingSpeedCmS,
+  STEPPING_MIN_CMS,
   strideCm,
   type GaitParams,
   type Leg,
 } from "./gait.js";
 import type { GroomRoutine, Mode } from "./neural.js";
 import { PARAMS } from "./params.js";
-import { SKELETON, type Skeleton } from "./skeleton.js";
+import { FOOT_RADIUS_CM, SKELETON, type Skeleton } from "./skeleton.js";
 import { strokeAt, type WingAngles } from "./wing.js";
 
 /** What the pose needs from the (interpolated) simulated state. */
@@ -108,6 +115,9 @@ export class PoseSolver {
   readonly footZ: number;
   private headPoint: Vec3;
   private abdomenPoint: Vec3;
+  /** Where the two front, and the two hind, legs rub each other: on the midline (thorax frame, cm). */
+  private frontRub: Vec3;
+  private hindRub: Vec3;
   private out = new Map<string, number[]>();
 
   constructor(gait: GaitParams, skeleton: Skeleton = SKELETON) {
@@ -151,6 +161,12 @@ export class PoseSolver {
     const zero = this.frames();
     this.headPoint = zero.get("head")!.p;
     this.abdomenPoint = zero.get("abdomen_3")?.p ?? zero.get("abdomen")!.p;
+    // Below the head, halfway down to the surface; and behind the hind legs'
+    // standing spots, just above the surface, where FlyBody's hind legs can
+    // reach the midline. Drawing choices.
+    this.frontRub = [this.headPoint[0] + 0.02, 0, (this.headPoint[2] + this.footZ) / 2];
+    const hind = this.chains.filter((c) => c.leg.startsWith("T3"));
+    this.hindRub = [Math.min(...hind.map((c) => c.zero[0])) - 0.07, 0, this.footZ + 0.01];
     // Settle the standing pose once, so the first drawn frame already stands.
     for (const chain of this.chains)
       for (let k = 0; k < 6; k++)
@@ -225,67 +241,86 @@ export class PoseSolver {
     }
   }
 
+  /**
+   * Where a grooming leg reaches, or null for a leg that stands: the front
+   * legs to the head or the hind legs to the abdomen in small circles, or the
+   * two front or two hind legs rubbing each other near the midline.
+   */
+  private groomTarget(s: PoseInput, segment: number, left: boolean): Vec3 | null {
+    const g = s.groom;
+    const side = left ? 1 : -1;
+    // The two sides move in antiphase.
+    const w = 2 * Math.PI * 5 * s.time + (left ? 0 : Math.PI);
+    if (segment === 0 && (g === "eyes" || g === "antennae")) {
+      const at = this.headPoint;
+      return [
+        at[0] + 0.035 + 0.008 * Math.cos(w),
+        at[1] + side * 0.012,
+        at[2] - 0.01 + 0.008 * Math.sin(w),
+      ];
+    }
+    if (segment === 2 && (g === "abdomen" || g === "wings" || g === "notum")) {
+      const at = this.abdomenPoint;
+      return [
+        at[0] - 0.02 + 0.008 * Math.cos(w),
+        at[1] + side * 0.03,
+        at[2] + (g === "abdomen" ? -0.01 : 0.03) + 0.008 * Math.sin(w),
+      ];
+    }
+    // Leg rubbing: the tarsi meet just either side of the midline and slide
+    // past each other front to back.
+    const rub =
+      segment === 0 && g === "front legs"
+        ? this.frontRub
+        : segment === 2 && g === "hind legs"
+          ? this.hindRub
+          : null;
+    return rub ? [rub[0] + 0.01 * Math.cos(w), side * 0.004, rub[2]] : null;
+  }
+
   /** Joint angles per body for this state. The map is reused between calls. */
   solve(s: PoseInput): ReadonlyMap<string, readonly number[]> {
     const out = this.out;
     out.clear();
     const perched = s.mode !== "flight" && s.mode !== "land";
     const speed = s.mode === "walk" ? s.walkSpeed : 0;
-    const walking = speed > 0.05;
-    const duty = walking ? dutyFactor(speed, this.gait) : 1;
-    const stride = walking ? strideCm(speed, this.gait) : 0;
-    const period = walking ? stepPeriodS(speed, this.gait) : 1;
-    const phases = walking ? legPhases(s.gaitClock, phaseLag(speed, this.gait)) : null;
-    const lift = clamp(stride * 0.25, 0.008, 0.025);
+    const turn = s.mode === "walk" ? s.yawRate : 0;
+    // The gait runs at the feet's speed over the ground (gait.ts), as the simulator's does.
+    const stepping = steppingSpeedCmS(speed, turn, FOOT_RADIUS_CM);
+    const walking = stepping >= STEPPING_MIN_CMS;
+    const duty = walking ? dutyFactor(stepping, this.gait) : 1;
+    const period = walking ? stepPeriodS(stepping, this.gait) : 1;
+    const phases = walking ? legPhases(s.gaitClock, phaseLag(stepping, this.gait)) : null;
+    const lift = clamp(strideCm(stepping, this.gait) * 0.25, 0.008, 0.025);
+    // Half a stance (s): a foot touches down this long before mid-stance and lifts this long after.
+    const half = 0.5 * duty * period;
     this.chains.forEach((chain, i) => {
       const segment = i % 3,
         left = i < 3;
       if (perched && s.legs > 0.5) {
-        const target: Vec3 = [chain.zero[0], chain.zero[1], this.footZ];
-        const groomer =
-          s.mode === "groom" &&
-          ((segment === 0 && (s.groom === "eyes" || s.groom === "antennae")) ||
-            (segment === 2 &&
-              (s.groom === "abdomen" || s.groom === "wings" || s.groom === "notum")));
-        if (groomer) {
-          const at = segment === 0 ? this.headPoint : this.abdomenPoint;
-          const w = 2 * Math.PI * 5 * s.time + (left ? 0 : Math.PI);
-          const side = left ? 1 : -1;
-          const reachOut =
-            segment === 0
-              ? [at[0] + 0.035, at[1] + side * 0.012, at[2] - 0.01]
-              : [
-                  at[0] - 0.02,
-                  at[1] + side * 0.03,
-                  at[2] + (s.groom === "abdomen" ? -0.01 : 0.03),
-                ];
-          target[0] = reachOut[0]! + 0.008 * Math.cos(w);
-          target[1] = reachOut[1]!;
-          target[2] = reachOut[2]! + 0.008 * Math.sin(w);
-        } else if (phases) {
+        const x0 = chain.zero[0],
+          y0 = chain.zero[1];
+        let target: Vec3 = [x0, y0, this.footZ];
+        const groom = s.mode === "groom" ? this.groomTarget(s, segment, left) : null;
+        if (groom) target = groom;
+        else if (phases) {
           const ph = phases[i]!;
-          let dx: number, dz: number, u: number;
           if (ph < duty) {
-            u = ph / duty;
-            dx = stride * (0.5 - u);
-            dz = 0;
+            // Stance: held on the ground, centred on the standing spot.
+            const [x, y] = planted(x0, y0, speed, turn, (ph / duty) * 2 * half - half);
+            target = [x, y, this.footZ];
           } else {
-            u = (ph - duty) / (1 - duty);
-            dx = stride * (u - 0.5);
-            dz = lift * Math.sin(Math.PI * u);
+            // Swing: from where the foot lifted to where it next touches down.
+            const u = (ph - duty) / (1 - duty);
+            const [ax, ay] = planted(x0, y0, speed, turn, half);
+            const [bx, by] = planted(x0, y0, speed, turn, -half);
+            const e = (1 - Math.cos(Math.PI * u)) / 2;
+            target = [
+              ax + (bx - ax) * e,
+              ay + (by - ay) * e,
+              this.footZ + lift * Math.sin(Math.PI * u),
+            ];
           }
-          target[0] += dx;
-          target[2] += dz;
-        }
-        if (s.mode === "walk" && Math.abs(s.yawRate) > 1e-3) {
-          // A planted foot sweeps against the turn about the thorax's vertical.
-          const a = -s.yawRate * period * 0.5 * (phases ? 0.5 - (phases[i]! % 1) : 0.5);
-          const c = Math.cos(a),
-            sn = Math.sin(a);
-          const x = target[0],
-            y = target[1];
-          target[0] = x * c - y * sn;
-          target[1] = x * sn + y * c;
         }
         this.reach(chain, target);
         let k = 0;
@@ -347,6 +382,31 @@ export class PoseSolver {
     }
     return out;
   }
+}
+
+/**
+ * Where a foot that is at (x0, y0) in the thorax frame at mid-stance is `tau`
+ * seconds later (earlier, if negative), in the thorax frame, while the body
+ * walks forward at `speed` (cm/s) and turns at `turn` (rad/s, + left): the
+ * same point on the ground, seen from the moved body.
+ */
+function planted(
+  x0: number,
+  y0: number,
+  speed: number,
+  turn: number,
+  tau: number,
+): [number, number] {
+  const th = turn * tau;
+  // Where the thorax has gone, in its mid-stance frame.
+  const straight = Math.abs(th) < 1e-9;
+  const X = straight ? speed * tau : (speed / turn) * Math.sin(th);
+  const Y = straight ? 0 : (speed / turn) * (1 - Math.cos(th));
+  const dx = x0 - X,
+    dy = y0 - Y;
+  const c = Math.cos(th),
+    sn = Math.sin(th);
+  return [dx * c + dy * sn, -dx * sn + dy * c];
 }
 
 function solve3(A: number[], b: number[]): number[] {

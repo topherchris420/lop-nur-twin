@@ -13,7 +13,15 @@
  *                                       never by a person
  *   --verify                            check every archived folder against its
  *                                       record and re-simulate what this code can
+ *   --pilot [--protocol p] [--check | --readme]
+ *                                       run the redesigned protocols' pilots on the
+ *                                       public pilot seeds and write them, labelled
+ *                                       not evidence, to docs/benchmarks/fly-pilots/;
+ *                                       --check re-runs each kept pilot exactly from
+ *                                       its recorded definition and compares; --readme
+ *                                       only rewrites the pilots' index
  *   --archive <dir> --state <dir>       where records, and the registry and ledger, live
+ *   --pilots <dir>                      where pilots live
  *
  * Every outcome is archived under docs/benchmarks/fly-behavior/, refusals and
  * non-passing results included: a negative result is a result. A record is
@@ -23,8 +31,9 @@
  * never evidence about Drosophila.
  *
  * Exit status: 0 when everything held; 1 after a refusal, a failure or a run
- * that was not admitted; 3 from --verify when nothing failed but records made
- * on another JavaScript engine could not be re-simulated here.
+ * that was not admitted (or from --pilot --check, a pilot this code no longer
+ * reproduces); 3 from --verify when nothing failed but records made on another
+ * JavaScript engine could not be re-simulated here.
  */
 import {
   existsSync,
@@ -45,9 +54,7 @@ import {
   describeFlyBaseline,
   describeFlyTreatment,
   executeFly,
-  flyIdentity,
   flyReceiptErrors,
-  verifyFlyRecord,
   type FlyAuthorizationInput,
   type FlyContext,
 } from "../src/rain/scientific/fly.js";
@@ -60,10 +67,10 @@ import {
 } from "../src/rain/scientific/flyRegistry.js";
 import {
   archivedFlyRuns,
-  checkFlyFolder,
   flyArchiveReadme,
   flyFolderFiles,
   flyJsonText,
+  verifyFlyArchive,
   type FlyAdmission,
 } from "../src/rain/scientific/flyArchive.js";
 import {
@@ -74,9 +81,17 @@ import {
 import { FLY_SOURCE } from "../src/rain/scientific/flySource.js";
 import { flyExample } from "../src/rain/scientific/flyExample.js";
 import {
+  checkFlyPilot,
+  FLY_PILOT_SERIES,
+  flyPilotReadme,
+  runFlyPilot,
+  type FlyPilot,
+} from "../src/rain/scientific/flyPilot.js";
+import {
   FLY_PROTOCOLS,
   FLY_SCRIPT_OPERATOR,
   type FlyDesign,
+  type FlyProtocolId,
   type FlyPlan,
   type FlyPreregistration,
   type FlyRecord,
@@ -88,14 +103,17 @@ const value = (flag: string) => {
   return i < 0 ? undefined : args[i + 1];
 };
 const root = process.cwd();
-const identity = flyIdentity();
 const ARCHIVE = resolve(value("--archive") ?? "docs/benchmarks/fly-behavior");
 const STATE = resolve(value("--state") ?? ".rain-research/fly");
+const PILOTS = resolve(value("--pilots") ?? "docs/benchmarks/fly-pilots");
 const registry = new Registry(join(STATE, "registry"));
 const ledger = new FlyAuthorizationLedger(join(STATE, "authorizations"));
 const pending = join(STATE, "pending");
-mkdirSync(pending, { recursive: true });
-mkdirSync(ARCHIVE, { recursive: true });
+/** Only the modes that write make the archive and state folders; --verify and --pilot read them. */
+const ensureFolders = () => {
+  mkdirSync(pending, { recursive: true });
+  mkdirSync(ARCHIVE, { recursive: true });
+};
 /** Evidence this host holds independently; it holds none, so designs citing sources or a parent are refused. */
 const EVIDENCE: FlyContext = {};
 const locations = [
@@ -352,6 +370,8 @@ async function main() {
   if (args.includes("--verify")) return verify();
   const stale = staleSource();
   if (stale) throw new Error(stale);
+  if (args.includes("--pilot")) return pilot();
+  ensureFolders();
   if (args.includes("--scripted")) {
     // The host's own designs, authorized by this script and labelled so: a
     // demonstration of the pipeline, never a person's review. The last two
@@ -365,7 +385,7 @@ async function main() {
       ["scripted: controller comparison", flyExample("controller_comparison"), false],
       [
         "scripted: a minimum effect below the host's minimum for its metric, which the host must refuse",
-        flyExample("visual_threat", { minimumEffect: 0.05 }),
+        flyExample("visual_threat", { minimumEffect: 0.01 }),
         true,
       ],
       [
@@ -457,91 +477,102 @@ async function main() {
     );
 }
 
+/**
+ * Runs the pilots of the redesigned protocols on the public pilot seeds and
+ * writes them, with their README, to PILOTS (one protocol with --protocol).
+ * They are exploratory and never evidence: nothing is preregistered,
+ * authorized or admitted, and their seeds are excluded from every archived
+ * run. With --check, re-runs each kept pilot exactly from its recorded
+ * definition, writes nothing, and fails unless its runs and outputs are
+ * identical and this code would still run the same definition.
+ */
+function pilot() {
+  const only = value("--protocol");
+  const protocols = (Object.keys(FLY_PILOT_SERIES) as FlyProtocolId[]).filter(
+    (p) => !only || p === only,
+  );
+  if (!protocols.length) throw new Error(`no pilot for ${only}`);
+  const kept = () =>
+    readdirSync(PILOTS)
+      .filter((n) => n.endsWith(".json"))
+      .sort()
+      .map((n) => JSON.parse(readFileSync(join(PILOTS, n), "utf8")) as FlyPilot);
+  const readme = join(PILOTS, "README.md");
+  // The index alone, from the kept pilots: nothing runs.
+  if (args.includes("--readme")) {
+    writeFileSync(readme, flyPilotReadme(kept()));
+    return;
+  }
+  const check = args.includes("--check");
+  const code = sourceTree();
+  const short = (h: string | undefined) => (h ? h.slice(0, 12) : "none");
+  let failed = 0;
+  for (const protocol of protocols) {
+    const t0 = performance.now();
+    const path = join(PILOTS, `${protocol}.json`);
+    const wall = () => `${((performance.now() - t0) / 1000).toFixed(1)} s`;
+    if (check) {
+      if (!existsSync(path)) {
+        console.log(`MISSING  ${protocol}: no pilot in ${PILOTS}`);
+        failed++;
+        continue;
+      }
+      const kept = JSON.parse(readFileSync(path, "utf8")) as FlyPilot;
+      const c = checkFlyPilot(kept, code);
+      const ok = c.intact && c.same_runs && c.same_outputs && c.current_definition;
+      const why = [
+        ...(c.intact ? [] : ["the file is not what the pilot tool wrote"]),
+        ...(c.same_runs
+          ? []
+          : [`runs ${short(kept.runs_sha256)} became ${short(c.rerun.runs_sha256)}`]),
+        ...(c.same_outputs
+          ? []
+          : [
+              `outputs ${short(kept.outputs_sha256)} became ${short(c.rerun.outputs_sha256)}`,
+            ]),
+        ...(c.current_definition
+          ? []
+          : [
+              "this code's pilot would run another definition (apparatus, arms or seeds)",
+            ]),
+      ];
+      console.log(
+        `${ok ? "same    " : "CHANGED "} ${protocol}: ${ok ? `runs ${short(kept.runs_sha256)} and outputs ${short(kept.outputs_sha256)} reproduced exactly` : why.join("; ")}; ran on ${kept.fly_version} source ${short(kept.fly_source_sha256)}, re-run on ${c.rerun.fly_version} source ${short(c.rerun.fly_source_sha256)}; ${wall()}`,
+      );
+      if (!ok) failed++;
+      continue;
+    }
+    const p = runFlyPilot(protocol, code);
+    mkdirSync(PILOTS, { recursive: true });
+    writeFileSync(path, flyJsonText(p));
+    const s = p.sized;
+    console.log(
+      `PILOT    ${protocol} (not evidence) on ${p.fly_version} source ${short(p.fly_source_sha256)}: ${s.metric} ${s.direction}, pilot seeds ${s.outcomes.expected} expected / ${s.outcomes.opposite} opposite / ${s.outcomes.uninformative} uninformative -> seed count ${s.seed_count ?? "none"} (pass ${fmt(s.pass_probability, 4)}), minimum effect ${s.minimum_effect ?? "—"} (host ${s.host_minimum_effect}, design ${s.design_minimum_effect ?? "—"}); floors ${p.floors.map((f) => `${f.metric} ${f.floor}`).join(", ") || "none"}; runs ${short(p.runs_sha256)}, outputs ${short(p.outputs_sha256)}; ${wall()}; ${path}`,
+    );
+  }
+  if (check) {
+    if (
+      existsSync(PILOTS) &&
+      (!existsSync(readme) || readFileSync(readme, "utf8") !== flyPilotReadme(kept()))
+    ) {
+      console.log(
+        "CHANGED  README.md: not the index the kept pilots imply; npm run rain:fly -- --pilot --readme writes it",
+      );
+      failed++;
+    }
+    process.exitCode = failed ? 1 : 0;
+    return;
+  }
+  writeFileSync(readme, flyPilotReadme(kept()));
+}
+
 /** Checks every folder against its record and re-simulates what this code and engine can. */
 function verify() {
-  let failed = 0,
-    resimulated = 0,
-    admitted = 0,
-    otherCode = 0,
-    otherEngine = 0,
-    legacy = 0,
-    refusals = 0;
-  const fail = (what: string, why: string[]) => {
-    console.log(`FAILED   ${what}: ${why.join("; ")}`);
-    failed++;
-  };
-  const stale = staleSource();
-  // A stale digest gives this code the wrong identity, so every comparison below would mislead.
-  if (stale) fail("source digest", [stale]);
-  const dirs = readdirSync(ARCHIVE, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name)
-    .sort();
-  for (const d of dirs) {
-    const check = checkFlyFolder(join(ARCHIVE, d));
-    if (check.errors.length) {
-      fail(d, check.errors);
-      continue;
-    }
-    if (check.kind === "refused") {
-      console.log(`refused  ${d}`);
-      refusals++;
-      continue;
-    }
-    if (check.kind === "legacy") {
-      console.log(
-        `legacy   ${d}: made under digital-fly/2 before the integrity rules (uncommitted tree, seeds chosen by the design, authorized by a script); seal, summary and files checked; exploratory only, not evidence`,
-      );
-      legacy++;
-      continue;
-    }
-    const record = check.record!;
-    const v = verifyFlyRecord(record, EVIDENCE);
-    if (v.status === "ok") {
-      const run = check.admission?.registry_run;
-      const standing = run
-        ? record.authorization.channel === "script"
-          ? "admitted; script-authorized demonstration"
-          : "admitted"
-        : record.development
-          ? "development record, not admitted"
-          : "not admitted";
-      console.log(
-        `ok       ${d}: re-simulated exactly (${standing})${v.note ? `; ${v.note}` : ""}`,
-      );
-      resimulated++;
-      if (run) admitted++;
-    } else if (v.status === "other_code") {
-      console.log(`other    ${d}: ${v.note}`);
-      otherCode++;
-    } else if (v.status === "not_resimulable") {
-      console.log(`engine   ${d}: ${v.note}`);
-      otherEngine++;
-    } else fail(d, v.errors);
-  }
-  const readme = join(ARCHIVE, "README.md");
-  if (
-    dirs.length &&
-    (!existsSync(readme) || readFileSync(readme, "utf8") !== flyArchiveReadme(ARCHIVE))
-  )
-    fail("README.md", [
-      "not the index the archive's folders imply; npm run rain:fly writes it",
-    ]);
-  console.log(
-    `${resimulated} re-simulated (${admitted} admitted), ${otherCode} made by other code, ${otherEngine} not re-simulable on this engine, ${legacy} legacy, ${refusals} refusals, ${failed} failed`,
-  );
-  // An archive whose results this fly can check none of is checked by nothing.
-  if (!admitted && !otherEngine && resimulated + otherCode + legacy > 0) {
-    console.log(
-      `No admitted record re-simulates on ${identity.fly} (source ${identity.source_sha256.slice(0, 12)}). Run the demonstration from a clean commit (npm run rain:fly:demo) so the archive holds checkable results.`,
-    );
-    failed++;
-  }
-  if (otherEngine && !failed)
-    console.log(
-      "Some records were made on another JavaScript engine; re-simulate them there (the record names it).",
-    );
-  process.exitCode = failed ? 1 : otherEngine ? 3 : 0;
+  // A stale digest gives this code the wrong identity, so every comparison would mislead.
+  const v = verifyFlyArchive(ARCHIVE, { stale: staleSource(), context: EVIDENCE });
+  for (const line of v.lines) console.log(line.text);
+  for (const line of v.summary) console.log(line);
+  process.exitCode = v.exit_code;
 }
 
 try {
@@ -551,5 +582,6 @@ try {
   process.exitCode = 1;
 } finally {
   // The index always lists what the archive holds, even after an error.
-  if (!args.includes("--verify")) index();
+  if (!args.includes("--verify") && !args.includes("--pilot") && existsSync(ARCHIVE))
+    index();
 }

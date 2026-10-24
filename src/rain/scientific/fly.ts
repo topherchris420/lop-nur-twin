@@ -59,6 +59,8 @@ import {
   FLY_EXPERIMENT,
   FLY_METRICS,
   FLY_MIN_UNTIED_PAIRS,
+  FLY_PILOT,
+  FLY_PILOT_SEED_COUNT,
   FLY_PLAN,
   FLY_PROTOCOLS,
   FLY_RECORD,
@@ -92,8 +94,12 @@ const HOUR = 3600000;
 /** The longest a run may take from start to finish (wall clock). */
 export const MAX_RUN_MS = HOUR;
 const PHYSICS_STEP_S = 0.005;
-/** The adaptation baseline: four habituation recovery time constants (1.8% left). */
-export const BASELINE_ISI_S = 120;
+/**
+ * The adaptation baseline: three habituation recovery time constants, so an
+ * escape's fall in responsiveness is 95% recovered by the next presentation,
+ * and an experiment fits the simulation budget at the seed count its pilot sized.
+ */
+export const BASELINE_ISI_S = 90;
 /** The simulator's integration settings: not controller parameters, never varied. */
 const INTEGRATION: readonly ParamName[] = [
   "physicsStepMs",
@@ -111,7 +117,13 @@ const STILL: FlyControllerConfig = { takeoffHz: 0, walkStartHz: 0, groomHz: 0 };
 /**
  * The fixed apparatus. A plan copies the blocks it uses, so changing any value
  * here makes every earlier plan fail recompilation rather than silently mean
- * something else (and changes the fly's source digest).
+ * something else (and changes the fly's source digest). The v3 values were
+ * chosen with pilots (docs/benchmarks/fly-pilots/): clutter in which a fly
+ * without avoidance collides in 31 of 32 pilot seeds; an escape stimulus that
+ * stops at 90 degrees, past the size at which the fly commits to an escape at
+ * every l/v from 20 ms on (50 to 57 degrees on average); and a repeated
+ * stimulus whose final sizes leave a fully recovered fly answering some
+ * presentations and not others in every pilot seed.
  */
 export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
   clutter: {
@@ -119,15 +131,18 @@ export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
     arena: {
       size: ROOM,
       ambient: 0.6,
-      pillars: GRID.flatMap((x) => GRID.map((z) => ({ x, z, r: 0.05 }))),
+      // Gaps of 50 cm: with 5 cm pillars a fly without avoidance went whole
+      // runs without touching one, so most seeds tied.
+      pillars: GRID.flatMap((x) => GRID.map((z) => ({ x, z, r: 0.15 }))),
     },
     // Raised from the default so that flight fills most of the run.
     fixed_config: { takeoffHz: 0.5 },
     start_half_width_m: 0.25,
     tick_s: PHYSICS_STEP_S,
-    duration_s: 60,
+    duration_s: 120,
     trials: 1,
     light_at: null,
+    near_miss_m: 0.05,
     stimulus: null,
   },
   light: {
@@ -139,6 +154,7 @@ export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
     duration_s: 120,
     trials: 1,
     light_at: [1, 2.3, -1],
+    near_miss_m: null,
     stimulus: null,
   },
   escape: {
@@ -150,37 +166,41 @@ export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
     duration_s: 0.3,
     trials: 6,
     light_at: null,
+    near_miss_m: null,
     stimulus: {
       radius_m: 0.04,
       start_distance_m: 1,
-      end_distance_m: 0.08,
+      final_size_deg: [90, 90],
       elevation_deg: [10, 40],
       azimuth_deg: [-180, 180],
       onset_s: 1,
-      speed_m_s: 1,
-      settle_s: 0,
-      max_wait_s: 0,
+      l_over_v_ms: 40,
     },
   },
   repeat: {
     id: "repeat",
-    arena: { size: ROOM, ambient: 0.6, pillars: [] },
-    fixed_config: STILL,
+    // A low ceiling keeps the flight after an escape short, so the schedule
+    // seldom finds the fly still in the air.
+    arena: { size: [4, 1, 4], ambient: 0.6, pillars: [] },
+    fixed_config: { ...STILL, flightBoutMeanS: 0.5 },
     start_half_width_m: 0.5,
     tick_s: PHYSICS_STEP_S,
     duration_s: 0.3,
-    trials: 6,
+    // Twelve presentations whose final sizes straddle the sizes at which a
+    // fully recovered fly escapes at this l/v (46 degrees on average in the
+    // pilot), so the control answers 25 to 83% of them in every pilot seed and a
+    // fall in responsiveness changes some presentations in most seeds.
+    trials: 12,
     light_at: null,
+    near_miss_m: null,
     stimulus: {
       radius_m: 0.04,
       start_distance_m: 1,
-      end_distance_m: 0.08,
+      final_size_deg: [30, 55],
       elevation_deg: [10, 30],
       azimuth_deg: [-90, 90],
       onset_s: 1,
-      speed_m_s: 0.5,
-      settle_s: 1,
-      max_wait_s: 30,
+      l_over_v_ms: 80,
     },
   },
 };
@@ -228,6 +248,10 @@ const configText = (c: FlyControllerConfig) =>
         .join(", ")
     : "the default parameters";
 const STIMULUS_RADIUS_CM = Math.round(FLY_APPARATUS.escape.stimulus!.radius_m * 100);
+/** A looming approach's speed (m/s) from its l/v (ms) and the sphere's radius. */
+const speedOf = (radiusM: number, lOverVMs: number) => radiusM / (lOverVMs / 1000);
+const looming = (lOverVMs: number) =>
+  `l/v = ${lOverVMs} ms (${speedOf(FLY_APPARATUS.escape.stimulus!.radius_m, lOverVMs).toFixed(2)} m/s)`;
 
 export function describeFlyTreatment(t: FlyTreatment): string {
   switch (t.kind) {
@@ -236,11 +260,11 @@ export function describeFlyTreatment(t: FlyTreatment): string {
     case "light_preference":
       return `a point light of relative intensity ${t.light_intensity} above one quadrant of the arena`;
     case "visual_threat":
-      return `a sphere of ${STIMULUS_RADIUS_CM} cm radius approaching the standing fly at ${t.approach_speed_m_s} m/s`;
+      return `a sphere of ${STIMULUS_RADIUS_CM} cm radius approaching the standing fly at ${looming(t.treatment_l_over_v_ms)}`;
     case "noisy_sensing":
-      return `relative sensory noise of ${t.noise}`;
+      return `sensory noise of ${t.noise} (standard deviation ${(t.noise / Math.sqrt(3)).toFixed(2)}: relative on sizes, distances and light levels, in radians on directions)`;
     case "adaptation":
-      return `repeating a looming stimulus nominally every ${t.isi_s} s`;
+      return `repeating a looming stimulus every ${t.isi_s} s on a fixed schedule`;
     case "controller_comparison":
       return `controller configuration B (${configText(t.treatment)})`;
   }
@@ -253,13 +277,11 @@ export function describeFlyBaseline(t: FlyTreatment): string {
     case "light_preference":
       return "no point light (ambient only)";
     case "visual_threat":
-      return t.control === "receding"
-        ? "the same sphere receding along the same line at the same speed"
-        : "the same sphere held still at its closest point for as long";
+      return `the same sphere on the same lines approaching at ${looming(t.control_l_over_v_ms)}`;
     case "noisy_sensing":
       return "noiseless sensing";
     case "adaptation":
-      return `the same stimulus nominally every ${BASELINE_ISI_S} s`;
+      return `the same stimuli every ${BASELINE_ISI_S} s on the same schedule`;
     case "controller_comparison":
       return `controller configuration A (${configText(t.baseline)})`;
   }
@@ -270,8 +292,7 @@ function armsOf(t: FlyTreatment): FlyArm[] {
     config: {},
     noise: 0,
     light_intensity: LIGHT_INTENSITY,
-    stimulus: "approaching",
-    approach_speed_m_s: FLY_APPARATUS.escape.stimulus!.speed_m_s,
+    l_over_v_ms: FLY_APPARATUS.escape.stimulus!.l_over_v_ms,
     isi_s: BASELINE_ISI_S,
   };
   const arms = (control: Partial<FlyArm>, treatment: Partial<FlyArm>): FlyArm[] => [
@@ -285,8 +306,8 @@ function armsOf(t: FlyTreatment): FlyArm[] {
       return arms({ light_intensity: 0 }, { light_intensity: t.light_intensity });
     case "visual_threat":
       return arms(
-        { stimulus: t.control, approach_speed_m_s: t.approach_speed_m_s },
-        { approach_speed_m_s: t.approach_speed_m_s },
+        { l_over_v_ms: t.control_l_over_v_ms },
+        { l_over_v_ms: t.treatment_l_over_v_ms },
       );
     case "noisy_sensing":
       return arms({ noise: 0 }, { noise: t.noise });
@@ -300,10 +321,21 @@ function armsOf(t: FlyTreatment): FlyArm[] {
   }
 }
 
-const approachS = (block: FlyBlockSpec, speed: number) =>
-  (block.stimulus!.start_distance_m - block.stimulus!.end_distance_m) / speed;
+type Stimulus = NonNullable<FlyBlockSpec["stimulus"]>;
+/** Where an approach stops: the distance at which the sphere subtends `sizeDeg`. */
+const endDistance = (stim: Stimulus, sizeDeg: number) =>
+  stim.radius_m / Math.sin(rad(sizeDeg) / 2);
+/** How long an approach at `lOverVMs` runs before it stops at `sizeDeg` (s). */
+const approachS = (stim: Stimulus, lOverVMs: number, sizeDeg: number) =>
+  (stim.start_distance_m - endDistance(stim, sizeDeg)) / speedOf(stim.radius_m, lOverVMs);
+/** The longest approach the block's range of final sizes allows. */
+const longestApproachS = (stim: Stimulus, lOverVMs: number) =>
+  approachS(stim, lOverVMs, stim.final_size_deg[1]);
 
-/** The most fly-seconds one run of `block` can take in `arm`. */
+/**
+ * The fly-seconds one run of `block` takes in `arm`, at most: the repeated
+ * block runs to the end of its fixed schedule whatever the fly does.
+ */
 function runSeconds(block: FlyBlockSpec, arm: FlyArm): number {
   const s = block.stimulus;
   switch (block.id) {
@@ -313,13 +345,13 @@ function runSeconds(block: FlyBlockSpec, arm: FlyArm): number {
     case "escape":
       return (
         block.trials *
-        (s!.onset_s + approachS(block, arm.approach_speed_m_s) + block.duration_s)
+        (s!.onset_s + longestApproachS(s!, arm.l_over_v_ms) + block.duration_s)
       );
     case "repeat":
       return (
         s!.onset_s +
-        block.trials * (arm.isi_s + s!.max_wait_s) +
-        approachS(block, s!.speed_m_s) +
+        (block.trials - 1) * arm.isi_s +
+        longestApproachS(s!, s!.l_over_v_ms) +
         block.duration_s
       );
   }
@@ -406,9 +438,13 @@ export function compileFlyExperiment(
       canonicalJson(resolveParams(t.treatment))
     )
       errors.push("the two controller configurations set the same parameter values");
+  if (t.kind === "visual_threat" && t.control_l_over_v_ms === t.treatment_l_over_v_ms)
+    errors.push("the two arms must approach at different l/v");
   if (t.kind === "adaptation") {
     const repeat = FLY_APPARATUS.repeat;
-    const window = approachS(repeat, repeat.stimulus!.speed_m_s) + repeat.duration_s;
+    const window =
+      longestApproachS(repeat.stimulus!, repeat.stimulus!.l_over_v_ms) +
+      repeat.duration_s;
     if (t.isi_s <= window)
       errors.push(
         `the interval must exceed one presentation (${window.toFixed(2)} s) so presentations do not overlap`,
@@ -735,6 +771,28 @@ export function deriveFlySeeds(
   return seeds;
 }
 
+/**
+ * The pilot seeds: the first FLY_PILOT_SEED_COUNT distinct 32-bit integers
+ * read, eight per digest, from SHA-256("rain-fly-pilot/v1|" + counter). Public
+ * and fixed, so a pilot can be rerun by anyone; never drawn for an archived
+ * run (authorization redraws, execution refuses, verification flags them).
+ */
+export const FLY_PILOT_SEEDS: readonly number[] = Object.freeze(
+  (() => {
+    const seeds: number[] = [];
+    for (let counter = 0; seeds.length < FLY_PILOT_SEED_COUNT; counter++) {
+      const block = sha256(`${FLY_PILOT}|${counter}`);
+      for (let i = 0; i < 64 && seeds.length < FLY_PILOT_SEED_COUNT; i += 8) {
+        const seed = Number.parseInt(block.slice(i, i + 8), 16);
+        if (!seeds.includes(seed)) seeds.push(seed);
+      }
+    }
+    return seeds;
+  })(),
+);
+const PILOT_SEEDS = new Set(FLY_PILOT_SEEDS);
+export const isFlyPilotSeed = (seed: number) => PILOT_SEEDS.has(seed);
+
 /** 32 bytes from the platform CSPRNG (Web Crypto, in Node and browsers alike). */
 function randomNonce(): string {
   const bytes = new Uint8Array(32);
@@ -866,13 +924,16 @@ export function authorizeFly(
   let nonce = randomNonce();
   for (
     let tries = 1;
-    deriveFlySeeds(receiptSha256, nonce, plan.experiment.seed_count).some((s) =>
-      host.seen(identity.fly_sha256, s),
+    deriveFlySeeds(receiptSha256, nonce, plan.experiment.seed_count).some(
+      (s) => isFlyPilotSeed(s) || host.seen(identity.fly_sha256, s),
     );
     tries++
   ) {
     if (tries >= 64)
-      return { ok: false, errors: ["could not draw seeds this fly has not already run"] };
+      return {
+        ok: false,
+        errors: ["could not draw seeds that are neither pilot seeds nor already run"],
+      };
     nonce = randomNonce();
   }
   const body = {
@@ -1114,7 +1175,19 @@ function sealed(fly: DigitalFly): string {
   return fly.stateHash();
 }
 
-/** Free flight in pillar clutter: collisions, distance and saccades. */
+/**
+ * The horizontal distance from `p` to the nearest pillar or wall surface (m),
+ * from the arena's own geometry: the host's measure, not what the fly senses.
+ */
+function clearanceAt(block: FlyBlockSpec, p: V3): number {
+  const [sx, , sz] = block.arena.size;
+  let c = Math.min(sx / 2 - Math.abs(p[0]), sz / 2 - Math.abs(p[2]));
+  for (const q of block.arena.pillars)
+    c = Math.min(c, Math.hypot(p[0] - q.x, p[2] - q.z) - q.r);
+  return c;
+}
+
+/** Free flight in pillar clutter: collisions, near misses, distance and saccades. */
 function runClutter(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
   const salt = BLOCK_SALT.clutter;
   const fly = placeFly(
@@ -1131,7 +1204,10 @@ function runClutter(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
     lastContact = -Infinity,
     contacts = 0,
     contactS = 0,
-    flightS = 0;
+    flightS = 0,
+    // Whole ticks, so the fraction does not depend on summing floats.
+    cruiseTicks = 0,
+    nearTicks = 0;
   for (let i = 0; i < ticks; i++) {
     // A contact can turn a landing approach into cruise, or slow flight into a
     // touchdown, within its own step: an episode is classified by the mode the
@@ -1149,9 +1225,15 @@ function runClutter(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
       contactS += block.tick_s;
     }
     if (s.mode === "flight" || s.mode === "land") flightS += block.tick_s;
+    // Cruising flight only: a landing approach closes on a surface on purpose.
+    if (s.mode === "flight") {
+      cruiseTicks++;
+      if (clearanceAt(block, s.p) < block.near_miss_m!) nearTicks++;
+    }
   }
   const c = fly.state.counts;
   const perMetre = (n: number) => (c.flownM >= 0.5 ? finite(n / c.flownM) : null);
+  const cruiseS = cruiseTicks * block.tick_s;
   return {
     arm: arm.id,
     seed,
@@ -1163,6 +1245,7 @@ function runClutter(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
       collision_episodes: episodes,
       collision_episodes_per_m: perMetre(episodes),
       cruise_collision_episodes_per_m: perMetre(cruiseEpisodes),
+      near_miss_fraction: cruiseS >= 1 ? nearTicks / cruiseTicks : null,
       flown_m: finite(c.flownM),
       saccades_per_flight_s: flightS >= 1 ? finite(c.saccades / flightS) : null,
       contact_s: Math.round(contactS * 1000) / 1000,
@@ -1208,13 +1291,17 @@ function runLight(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
   };
 }
 
-/** The line a stimulus runs along: from `azimuth` and `elevation` relative to the fly. */
+/**
+ * The line a stimulus runs along, aimed at `p` from `azimuth` and
+ * `elevation` relative to the fly: from its start distance to `end`.
+ */
 function stimulusLine(
   p: V3,
   yaw: number,
   azimuth: number,
   elevation: number,
-  stim: NonNullable<FlyBlockSpec["stimulus"]>,
+  stim: Stimulus,
+  end: number,
 ): { near: V3; far: V3 } {
   const a = yaw + azimuth;
   const dir: V3 = [
@@ -1223,7 +1310,7 @@ function stimulusLine(
     -Math.cos(elevation) * Math.sin(a),
   ];
   const at = (d: number): V3 => [p[0] + dir[0] * d, p[1] + dir[1] * d, p[2] + dir[2] * d];
-  return { near: at(stim.end_distance_m), far: at(stim.start_distance_m) };
+  return { near: at(end), far: at(stim.start_distance_m) };
 }
 
 const between = (r: () => number, [lo, hi]: [number, number]) => lo + (hi - lo) * r();
@@ -1240,13 +1327,19 @@ function sizeSeen(world: StimulusWorld, s: Presentation, fly: DigitalFly): numbe
   return d > s.radius ? deg(2 * Math.asin(s.radius / d)) : 180;
 }
 
-/** Single stimulus trials, each on a fresh fly standing still. */
+/**
+ * Single stimulus trials, each on a fresh fly standing still: a sphere
+ * approaches on a line aimed at the fly at the arm's l/v and stops at the
+ * block's final size. Matched seeds give both arms the same flies, lines and
+ * final sizes, so only the l/v differs.
+ */
 function runEscape(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
   const salt = BLOCK_SALT.escape,
     stim = block.stimulus!;
+  const speed = speedOf(stim.radius_m, arm.l_over_v_ms);
   const hashes: string[] = [];
   const latency: number[] = [],
-    lead: number[] = [],
+    ttc: number[] = [],
     size: number[] = [];
   let escapes = 0,
     short = 0,
@@ -1256,24 +1349,32 @@ function runEscape(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
     const geometry = mulberry32(derive(seed, salt, trial, 0));
     const world = new StimulusWorld(arenaOf(block, 0));
     const fly = placeFly(block, arm, world, geometry, derive(seed, salt, trial, 1));
+    const azimuth = rad(between(geometry, stim.azimuth_deg)),
+      elevation = rad(between(geometry, stim.elevation_deg)),
+      final = between(geometry, stim.final_size_deg);
+    const end = endDistance(stim, final);
     const { near, far } = stimulusLine(
       fly.state.p,
       fly.state.yaw,
-      rad(between(geometry, stim.azimuth_deg)),
-      rad(between(geometry, stim.elevation_deg)),
+      azimuth,
+      elevation,
       stim,
+      end,
     );
-    const dur = approachS(block, arm.approach_speed_m_s);
     const shown: Presentation = {
       id: `stimulus-${trial}`,
       t0: stim.onset_s,
-      dur,
-      from: arm.stimulus === "approaching" ? far : near,
-      to: arm.stimulus === "receding" ? far : near,
+      dur: approachS(stim, arm.l_over_v_ms, final),
+      from: far,
+      to: near,
       radius: stim.radius_m,
     };
     world.shown.push(shown);
-    const ticks = Math.round((stim.onset_s + dur + block.duration_s) / block.tick_s);
+    // When the centre would reach the fly, had it kept coming.
+    const arrival = shown.t0 + stim.start_distance_m / speed;
+    const ticks = Math.round(
+      (stim.onset_s + shown.dur + block.duration_s) / block.tick_s,
+    );
     let escaped = false;
     for (let i = 0; i < ticks; i++) {
       fly.advance(block.tick_s);
@@ -1282,7 +1383,7 @@ function runEscape(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
         escapes++;
         const t = fly.state.t;
         latency.push(t - shown.t0);
-        lead.push(shown.t0 + shown.dur - t);
+        ttc.push(arrival - t);
         const seen = sizeSeen(world, shown, fly);
         if (seen !== null) size.push(seen);
         if (fly.state.takeoff?.short) short++;
@@ -1301,8 +1402,8 @@ function runEscape(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
     gate_refusals: refused,
     metrics: {
       escape_probability: escapes / block.trials,
+      escape_ttc_s: finite(mean(ttc)),
       escape_latency_s: finite(mean(latency)),
-      escape_lead_s: finite(mean(lead)),
       size_at_escape_deg: finite(mean(size)),
       short_mode_fraction: escapes ? short / escapes : null,
     },
@@ -1310,87 +1411,89 @@ function runEscape(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
 }
 
 /**
- * Repeated presentations to one fly. Each waits until the fly has stood for
- * `settle_s` (it may still be flying from its last escape), is aimed at where
- * it stands, and comes from a direction whose start lies inside the arena. The
- * delivered interval therefore depends on the fly's response.
+ * Repeated presentations to one fly on a fixed schedule: presentation k falls
+ * due at onset + k x the arm's interval, whatever the fly did. A presentation
+ * due while the fly is still in the air is skipped and counted, never delayed,
+ * so the interval is the design's and never the fly's. Each presentation's
+ * final size and candidate directions come from its own stream, so both arms
+ * see the same sequence; it is aimed at where the fly stands, from the first
+ * candidate direction whose whole line stays inside the arena (else the one
+ * with the most room).
  */
 function runRepeat(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
   const salt = BLOCK_SALT.repeat,
     stim = block.stimulus!;
-  const geometry = mulberry32(derive(seed, salt, 0));
   const world = new StimulusWorld(arenaOf(block, 0));
-  const fly = placeFly(block, arm, world, geometry, derive(seed, salt, 1));
+  const fly = placeFly(
+    block,
+    arm,
+    world,
+    mulberry32(derive(seed, salt, 0)),
+    derive(seed, salt, 1),
+  );
   const [sx, sy, sz] = block.arena.size;
   const margin = (q: V3) =>
     Math.min(sx / 2 - Math.abs(q[0]), sz / 2 - Math.abs(q[2]), sy - q[1], q[1]);
-  const dur = approachS(block, stim.speed_m_s);
-  const delivered: {
-    index: number;
-    onset: number;
-    escaped: boolean;
-    size: number | null;
-  }[] = [];
-  let due = stim.onset_s,
-    index = 0,
-    standingSince: number | null = 0,
+  const shown: { index: number; escaped: boolean; size: number | null }[] = [];
+  let index = 0,
+    airborne = 0,
     active: Presentation | null = null,
     escapesBefore = 0;
-  const limit = runSeconds(block, arm) + 1;
-  while (fly.state.t < limit && (index < block.trials || active)) {
+  // Whole ticks: the schedule's onsets fall on the same steps in every run.
+  const ticks = Math.round(runSeconds(block, arm) / block.tick_s);
+  const dueTick = (k: number) =>
+    Math.round((stim.onset_s + k * arm.isi_s) / block.tick_s);
+  for (let i = 1; i <= ticks; i++) {
     fly.advance(block.tick_s);
-    const s = fly.state,
-      t = s.t;
-    if (PERCHED.has(s.mode)) standingSince ??= t;
-    else standingSince = null;
+    const s = fly.state;
     if (active) {
-      const current = delivered[delivered.length - 1]!;
+      const current = shown[shown.length - 1]!;
       if (!current.escaped && s.counts.escapes > escapesBefore) {
         current.escaped = true;
         current.size = sizeSeen(world, active, fly);
       }
-      if (t > active.t0 + active.dur + block.duration_s) active = null;
+      if (s.t > active.t0 + active.dur + block.duration_s) active = null;
+    }
+    if (index >= block.trials || i < dueTick(index)) continue;
+    const draw = mulberry32(derive(seed, salt, 2, index));
+    const final = between(draw, stim.final_size_deg);
+    if (!PERCHED.has(s.mode)) {
+      airborne++;
+      index++;
       continue;
     }
-    if (index >= block.trials || t < due) continue;
-    if (standingSince !== null && t - standingSince >= stim.settle_s) {
-      // Up to eight directions from the stream; the first whose whole line
-      // stays inside the arena, else the one with the most room.
-      let best: { near: V3; far: V3; room: number } | null = null;
-      for (let k = 0; k < 8; k++) {
-        const line = stimulusLine(
-          s.p,
-          s.yaw,
-          rad(between(geometry, stim.azimuth_deg)),
-          rad(between(geometry, stim.elevation_deg)),
-          stim,
-        );
-        const room = Math.min(margin(line.near), margin(line.far));
-        if (!best || room > best.room) best = { ...line, room };
-        if (room >= 0.15) break;
-      }
-      active = {
-        id: `stimulus-${index}`,
-        t0: t,
-        dur,
-        from: best!.far,
-        to: best!.near,
-        radius: stim.radius_m,
-      };
-      world.shown.push(active);
-      delivered.push({ index, onset: t, escaped: false, size: null });
-      escapesBefore = s.counts.escapes;
-      due = t + arm.isi_s;
-      index++;
-    } else if (t - due >= stim.max_wait_s) {
-      // The fly never settled in time: this presentation is not delivered.
-      due = t + arm.isi_s;
-      index++;
+    const end = endDistance(stim, final);
+    let best: { near: V3; far: V3; room: number } | null = null;
+    for (let k = 0; k < 8; k++) {
+      const line = stimulusLine(
+        s.p,
+        s.yaw,
+        rad(between(draw, stim.azimuth_deg)),
+        rad(between(draw, stim.elevation_deg)),
+        stim,
+        end,
+      );
+      const room = Math.min(margin(line.near), margin(line.far));
+      if (!best || room > best.room) best = { ...line, room };
+      if (room >= 0.15) break;
     }
+    active = {
+      id: `stimulus-${index}`,
+      t0: s.t,
+      dur: approachS(stim, stim.l_over_v_ms, final),
+      from: best!.far,
+      to: best!.near,
+      radius: stim.radius_m,
+    };
+    world.shown.push(active);
+    shown.push({ index, escaped: false, size: null });
+    escapesBefore = s.counts.escapes;
+    index++;
   }
-  const late = delivered.filter((d) => d.index >= Math.ceil(block.trials / 2));
-  const onsets = delivered.map((d) => d.onset);
-  const sizes = delivered.flatMap((d) => (d.escaped && d.size !== null ? [d.size] : []));
+  const late = shown.filter((d) => d.index >= Math.ceil(block.trials / 2));
+  const sizes = shown.flatMap((d) => (d.escaped && d.size !== null ? [d.size] : []));
+  const answered = (xs: typeof shown) =>
+    xs.length ? xs.filter((d) => d.escaped).length / xs.length : null;
   return {
     arm: arm.id,
     seed,
@@ -1399,17 +1502,10 @@ function runRepeat(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
     simulated_s: fly.state.t,
     gate_refusals: fly.state.counts.rejected,
     metrics: {
-      presentations: delivered.length,
-      repeat_escape_probability: delivered.length
-        ? delivered.filter((d) => d.escaped).length / delivered.length
-        : null,
-      late_escape_probability: late.length
-        ? late.filter((d) => d.escaped).length / late.length
-        : null,
-      mean_isi_s:
-        onsets.length > 1
-          ? finite((onsets[onsets.length - 1]! - onsets[0]!) / (onsets.length - 1))
-          : null,
+      presentations: shown.length,
+      airborne_presentations: airborne,
+      repeat_escape_probability: answered(shown),
+      late_escape_probability: answered(late),
       repeat_size_at_escape_deg: finite(mean(sizes)),
     },
   };
@@ -1437,6 +1533,20 @@ export function runFlyExperiment(
     for (const seed of seeds)
       for (const arm of experiment.arms) runs.push(RUNNERS[block.id](block, arm, seed));
   return runs;
+}
+
+/**
+ * Every block for one arm on `seeds`: what a pilot runs for each dose of a
+ * series. Like `runFlyExperiment`, it makes no record.
+ */
+export function runFlyArm(
+  blocks: readonly FlyBlockSpec[],
+  arm: FlyArm,
+  seeds: readonly number[],
+): FlyRun[] {
+  return blocks.flatMap((block) =>
+    seeds.map((seed) => RUNNERS[block.id](block, arm, seed)),
+  );
 }
 
 // ------------------------------------------------------------------ analysis
@@ -1632,6 +1742,11 @@ export function executeFly(
     auth.nonce,
     plan.experiment.seed_count,
   );
+  const pilots = seeds.filter(isFlyPilotSeed);
+  if (pilots.length)
+    throw new FlyRunRefused([
+      `seeds ${pilots.join(", ")} are pilot seeds, which never feed an archived run`,
+    ]);
   const reused = seeds.filter((s) => host.seen(plan.fly_sha256, s));
   if (reused.length)
     throw new FlyRunRefused([`this fly has already run seeds ${reused.join(", ")}`]);
@@ -1753,6 +1868,8 @@ export function flyRecordIntegrityErrors(raw: unknown): string[] {
       )
     )
       errors.push("the seeds are not the ones the receipt and nonce fix");
+    if (r.seeds.some(isFlyPilotSeed))
+      errors.push("the seeds include a pilot seed, which never feeds an archived run");
     if (
       runIdOf(
         r.plan.definition_sha256,

@@ -1,0 +1,2723 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "visual_threat",
+  "fly_version": "digital-fly/4",
+  "fly": "digital-fly/4 reduced-order-fsm/v1",
+  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
+  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "code": {
+    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "dirty": true
+  },
+  "definition": {
+    "protocol": "visual_threat",
+    "demonstration": {
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 40
+      },
+      "metric": "escape_ttc_s",
+      "direction": "decrease"
+    },
+    "blocks": [
+      {
+        "id": "escape",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "walkStartHz": 0,
+          "groomHz": 0
+        },
+        "start_half_width_m": 0.8,
+        "tick_s": 0.005,
+        "duration_s": 0.3,
+        "trials": 6,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": {
+          "radius_m": 0.04,
+          "start_distance_m": 1,
+          "final_size_deg": [
+            90,
+            90
+          ],
+          "elevation_deg": [
+            10,
+            40
+          ],
+          "azimuth_deg": [
+            -180,
+            180
+          ],
+          "onset_s": 1,
+          "l_over_v_ms": 40
+        }
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 160,
+      "isi_s": 90,
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 10
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 10,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 20
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 20,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 40
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 80
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 80,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 320
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 320,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "the same sphere on the same lines approaching at l/v = 160 ms (0.25 m/s)",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37833333333333313,
+          "escape_latency_s": 3.6216666666666675,
+          "size_at_escape_deg": 50.137050753077546,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3499999999999998,
+          "escape_latency_s": 3.65,
+          "size_at_escape_deg": 56.07015348987422,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.36999999999999983,
+          "escape_latency_s": 3.6300000000000003,
+          "size_at_escape_deg": 51.875314750266966,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.38166666666666654,
+          "escape_latency_s": 3.6183333333333336,
+          "size_at_escape_deg": 49.59322381603902,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37333333333333324,
+          "escape_latency_s": 3.626666666666667,
+          "size_at_escape_deg": 51.102368532252264,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.29833333333333334,
+          "escape_latency_s": 3.7016666666666667,
+          "size_at_escape_deg": 67.34609836560507,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37833333333333313,
+          "escape_latency_s": 3.6216666666666675,
+          "size_at_escape_deg": 50.13705075307755,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342564,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.38166666666666654,
+          "escape_latency_s": 3.6183333333333336,
+          "size_at_escape_deg": 49.59322381603902,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.38333333333333314,
+          "escape_latency_s": 3.616666666666667,
+          "size_at_escape_deg": 49.345610065042344,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37333333333333324,
+          "escape_latency_s": 3.626666666666667,
+          "size_at_escape_deg": 51.10236853225226,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342564,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.375,
+          "escape_latency_s": 3.625,
+          "size_at_escape_deg": 50.60075060819381,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3683333333333332,
+          "escape_latency_s": 3.6316666666666664,
+          "size_at_escape_deg": 52.31118064416742,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3716666666666664,
+          "escape_latency_s": 3.628333333333334,
+          "size_at_escape_deg": 51.47376130728514,
+          "short_mode_fraction": 0
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "a sphere of 4 cm radius approaching the standing fly at l/v = 10 ms (4.00 m/s)",
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 10
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999953,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 0.6666666666666666,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999949,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999953,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.002999999999999936,
+            "escape_latency_s": 0.24700000000000005,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0.2
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 0.16666666666666666,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999955,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999963,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999966,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 0.6666666666666666,
+            "escape_ttc_s": 0.0024999999999999467,
+            "escape_latency_s": 0.24750000000000005,
+            "size_at_escape_deg": 89.9999999999995,
+            "short_mode_fraction": 0.25
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.9999999999995,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.002999999999999936,
+            "escape_latency_s": 0.24700000000000005,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0.2
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.9999999999996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999955,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0033333333333332624,
+            "escape_latency_s": 0.24666666666666673,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.9999999999995,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 0.6666666666666666,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999953,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0016666666666665941,
+            "escape_latency_s": 0.2483333333333334,
+            "size_at_escape_deg": 89.99999999999955,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.9999999999995,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0033333333333332624,
+            "escape_latency_s": 0.24666666666666673,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999949,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.9999999999995,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999962,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0033333333333332624,
+            "escape_latency_s": 0.24666666666666673,
+            "size_at_escape_deg": 89.99999999999956,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999959,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.004999999999999893,
+            "escape_latency_s": 0.2450000000000001,
+            "size_at_escape_deg": 89.99999999999957,
+            "short_mode_fraction": 0
+          }
+        }
+      ],
+      "metrics": {
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 0.8958333333333334,
+          "mean_difference": -0.10416666666666666,
+          "sd_difference": 0.17325680692819373,
+          "increase": 0,
+          "decrease": 13,
+          "tie": 19,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.3780729166666664,
+          "treatment_mean": 0.004536458333333235,
+          "mean_difference": -0.37353645833333315,
+          "sd_difference": 0.016548653930413822,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "a sphere of 4 cm radius approaching the standing fly at l/v = 20 ms (2.00 m/s)",
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 20
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.036666666666666625,
+            "escape_latency_s": 0.4633333333333334,
+            "size_at_escape_deg": 58.97966660207164,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.03499999999999996,
+            "escape_latency_s": 0.465,
+            "size_at_escape_deg": 60.220479937988785,
+            "short_mode_fraction": 0.2
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.036666666666666625,
+            "escape_latency_s": 0.4633333333333334,
+            "size_at_escape_deg": 58.97966660207167,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.038333333333333254,
+            "escape_latency_s": 0.4616666666666667,
+            "size_at_escape_deg": 58.97966660207163,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.034999999999999955,
+            "escape_latency_s": 0.465,
+            "size_at_escape_deg": 61.80036814133951,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 0.5,
+            "escape_ttc_s": 0.011666666666666714,
+            "escape_latency_s": 0.4883333333333333,
+            "size_at_escape_deg": 77.59186664082843,
+            "short_mode_fraction": 0.6666666666666666
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.036666666666666625,
+            "escape_latency_s": 0.4633333333333334,
+            "size_at_escape_deg": 58.97966660207165,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.775599922486094,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.031666666666666586,
+            "escape_latency_s": 0.46833333333333343,
+            "size_at_escape_deg": 65.18373328165725,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.038333333333333254,
+            "escape_latency_s": 0.4616666666666667,
+            "size_at_escape_deg": 58.97966660207169,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.775599922486094,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.034999999999999955,
+            "escape_latency_s": 0.465,
+            "size_at_escape_deg": 61.80036814133951,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248609,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.775599922486066,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248609,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.031666666666666586,
+            "escape_latency_s": 0.46833333333333343,
+            "size_at_escape_deg": 65.18373328165724,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.041666666666666595,
+            "escape_latency_s": 0.4583333333333334,
+            "size_at_escape_deg": 58.97966660207164,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04333333333333326,
+            "escape_latency_s": 0.4566666666666667,
+            "size_at_escape_deg": 55.59630146175391,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.775599922486066,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248607,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248606,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.036666666666666625,
+            "escape_latency_s": 0.4633333333333334,
+            "size_at_escape_deg": 58.97966660207167,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04333333333333326,
+            "escape_latency_s": 0.4566666666666667,
+            "size_at_escape_deg": 55.59630146175394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04499999999999993,
+            "escape_latency_s": 0.45500000000000007,
+            "size_at_escape_deg": 52.77559992248609,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.036666666666666625,
+            "escape_latency_s": 0.4633333333333334,
+            "size_at_escape_deg": 58.97966660207167,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        }
+      ],
+      "metrics": {
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 0.9791666666666667,
+          "mean_difference": -0.020833333333333332,
+          "sd_difference": 0.09226345323511034,
+          "increase": 0,
+          "decrease": 2,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.3780729166666664,
+          "treatment_mean": 0.040260416666666604,
+          "mean_difference": -0.3378124999999999,
+          "sd_difference": 0.010821436809576432,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s)",
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 40
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08666666666666663,
+            "escape_latency_s": 0.9133333333333334,
+            "size_at_escape_deg": 56.50177061727828,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.07333333333333329,
+            "escape_latency_s": 0.9266666666666667,
+            "size_at_escape_deg": 63.20141649382262,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08499999999999996,
+            "escape_latency_s": 0.9150000000000001,
+            "size_at_escape_deg": 56.501770617278254,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0883333333333333,
+            "escape_latency_s": 0.9116666666666667,
+            "size_at_escape_deg": 56.501770617278275,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08666666666666663,
+            "escape_latency_s": 0.9133333333333334,
+            "size_at_escape_deg": 56.501770617278275,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04333333333333326,
+            "escape_latency_s": 0.9566666666666667,
+            "size_at_escape_deg": 83.30035412345572,
+            "short_mode_fraction": 0.8333333333333334
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08666666666666663,
+            "escape_latency_s": 0.9133333333333334,
+            "size_at_escape_deg": 56.50177061727829,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073395,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08166666666666662,
+            "escape_latency_s": 0.9183333333333334,
+            "size_at_escape_deg": 63.2014164938226,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.0883333333333333,
+            "escape_latency_s": 0.9116666666666667,
+            "size_at_escape_deg": 56.50177061727829,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073395,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08666666666666663,
+            "escape_latency_s": 0.9133333333333334,
+            "size_at_escape_deg": 56.50177061727828,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073395,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.802124740733916,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.802124740733944,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073392,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073392,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073392,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08166666666666662,
+            "escape_latency_s": 0.9183333333333334,
+            "size_at_escape_deg": 63.20141649382263,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073392,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.802124740733916,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073392,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073391,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.802124740733916,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08499999999999996,
+            "escape_latency_s": 0.9150000000000001,
+            "size_at_escape_deg": 56.50177061727829,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.80212474073394,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09499999999999997,
+            "escape_latency_s": 0.9050000000000001,
+            "size_at_escape_deg": 49.802124740733944,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.08499999999999996,
+            "escape_latency_s": 0.915,
+            "size_at_escape_deg": 56.501770617278275,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        }
+      ],
+      "metrics": {
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 1,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.3780729166666664,
+          "treatment_mean": 0.08947916666666658,
+          "mean_difference": -0.28859374999999987,
+          "sd_difference": 0.00717309507888696,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "a sphere of 4 cm radius approaching the standing fly at l/v = 80 ms (0.50 m/s)",
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 80
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18666666666666654,
+            "escape_latency_s": 1.8133333333333335,
+            "size_at_escape_deg": 51.53003072267037,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.16833333333333322,
+            "escape_latency_s": 1.8316666666666668,
+            "size_at_escape_deg": 60.55853064519073,
+            "short_mode_fraction": 0.3333333333333333
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1833333333333332,
+            "escape_latency_s": 1.8166666666666667,
+            "size_at_escape_deg": 53.632178348191964,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18833333333333316,
+            "escape_latency_s": 1.8116666666666668,
+            "size_at_escape_deg": 50.725888839057326,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18499999999999983,
+            "escape_latency_s": 1.8150000000000002,
+            "size_at_escape_deg": 52.481972879601216,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12833333333333327,
+            "escape_latency_s": 1.8716666666666668,
+            "size_at_escape_deg": 77.30111643219126,
+            "short_mode_fraction": 0.5
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18666666666666654,
+            "escape_latency_s": 1.8133333333333335,
+            "size_at_escape_deg": 51.530030722670375,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800749,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1833333333333332,
+            "escape_latency_s": 1.8166666666666667,
+            "size_at_escape_deg": 52.31975647827966,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18999999999999986,
+            "escape_latency_s": 1.8099999999999998,
+            "size_at_escape_deg": 50.035753857229786,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18499999999999983,
+            "escape_latency_s": 1.8150000000000002,
+            "size_at_escape_deg": 52.481972879601194,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.441886218007475,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800745,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.441886218007475,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.441886218007454,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800745,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1816666666666665,
+            "escape_latency_s": 1.8183333333333334,
+            "size_at_escape_deg": 53.009891460107205,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.441886218007454,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800745,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800745,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18166666666666656,
+            "escape_latency_s": 1.8183333333333334,
+            "size_at_escape_deg": 55.06130846430202,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19499999999999984,
+            "escape_latency_s": 1.805,
+            "size_at_escape_deg": 48.44188621800746,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1833333333333332,
+            "escape_latency_s": 1.8166666666666667,
+            "size_at_escape_deg": 53.632178348191964,
+            "short_mode_fraction": 0.16666666666666666
+          }
+        }
+      ],
+      "metrics": {
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 1,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.3780729166666664,
+          "treatment_mean": 0.1886458333333333,
+          "mean_difference": -0.18942708333333322,
+          "sd_difference": 0.004391450128305073,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "a sphere of 4 cm radius approaching the standing fly at l/v = 320 ms (0.13 m/s)",
+      "treatment": {
+        "kind": "visual_threat",
+        "control_l_over_v_ms": 160,
+        "treatment_l_over_v_ms": 320
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7433333333333326,
+            "escape_latency_s": 7.256666666666668,
+            "size_at_escape_deg": 50.999283391233554,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.6999999999999996,
+            "escape_latency_s": 7.300000000000001,
+            "size_at_escape_deg": 55.05794625873299,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.726666666666666,
+            "escape_latency_s": 7.273333333333334,
+            "size_at_escape_deg": 52.48318671860715,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473713996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7333333333333328,
+            "escape_latency_s": 7.266666666666668,
+            "size_at_escape_deg": 51.82927545850229,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.6333333333333332,
+            "escape_latency_s": 7.366666666666667,
+            "size_at_escape_deg": 62.0969332272232,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7433333333333326,
+            "escape_latency_s": 7.256666666666668,
+            "size_at_escape_deg": 50.999283391233575,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473714,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473713996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7333333333333328,
+            "escape_latency_s": 7.266666666666668,
+            "size_at_escape_deg": 51.82927545850229,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473714,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473713996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473714,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473714,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371398,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371397,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473713996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.87549847371397,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7249999999999993,
+            "escape_latency_s": 7.275000000000001,
+            "size_at_escape_deg": 52.66196232751003,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473714,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7449999999999992,
+            "escape_latency_s": 7.255000000000002,
+            "size_at_escape_deg": 50.875498473713996,
+            "short_mode_fraction": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7299999999999992,
+            "escape_latency_s": 7.2700000000000005,
+            "size_at_escape_deg": 52.144680961073156,
+            "short_mode_fraction": 0
+          }
+        }
+      ],
+      "metrics": {
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 1,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.3780729166666664,
+          "treatment_mean": 0.7376041666666656,
+          "mean_difference": 0.3595312499999994,
+          "sd_difference": 0.005441681280752233,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.38333333333333314,
+          "escape_latency_s": 3.616666666666667,
+          "size_at_escape_deg": 49.345610065042344,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.36666666666666653,
+          "escape_latency_s": 3.633333333333334,
+          "size_at_escape_deg": 52.786384088674225,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.35666666666666663,
+          "escape_latency_s": 3.643333333333333,
+          "size_at_escape_deg": 54.431799878124075,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3683333333333332,
+          "escape_latency_s": 3.6316666666666664,
+          "size_at_escape_deg": 52.31118064416742,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.36999999999999983,
+          "escape_latency_s": 3.6300000000000003,
+          "size_at_escape_deg": 51.875314750266945,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37833333333333313,
+          "escape_latency_s": 3.6216666666666675,
+          "size_at_escape_deg": 50.13705075307755,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.38166666666666654,
+          "escape_latency_s": 3.6183333333333336,
+          "size_at_escape_deg": 49.59322381603903,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342564,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3616666666666665,
+          "escape_latency_s": 3.638333333333333,
+          "size_at_escape_deg": 54.51781040920232,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.36666666666666653,
+          "escape_latency_s": 3.633333333333334,
+          "size_at_escape_deg": 52.786384088674225,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342563,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3499999999999999,
+          "escape_latency_s": 3.65,
+          "size_at_escape_deg": 56.507928328028974,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.1122506134256,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3766666666666665,
+          "escape_latency_s": 3.6233333333333335,
+          "size_at_escape_deg": 50.43672547137792,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342564,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.37499999999999983,
+          "escape_latency_s": 3.625,
+          "size_at_escape_deg": 50.75766640287543,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      }
+    ],
+    "metrics": {
+      "escape_probability": {
+        "control_mean": 1,
+        "treatment_mean": 1,
+        "mean_difference": 0,
+        "sd_difference": 0,
+        "increase": 0,
+        "decrease": 0,
+        "tie": 32,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 32
+      },
+      "escape_ttc_s": {
+        "control_mean": 0.3780729166666664,
+        "treatment_mean": 0.3792187499999998,
+        "mean_difference": 0.0011458333333333286,
+        "sd_difference": 0.02039676998464339,
+        "increase": 11,
+        "decrease": 9,
+        "tie": 12,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "escape_ttc_s",
+    "direction": "decrease",
+    "treatment": {
+      "kind": "visual_threat",
+      "control_l_over_v_ms": 160,
+      "treatment_l_over_v_ms": 40
+    },
+    "outcomes": {
+      "expected": 32,
+      "opposite": 0,
+      "uninformative": 0
+    },
+    "seed_count": 9,
+    "pass_probability": 0.9272,
+    "minimum_effect": 0.28,
+    "host_minimum_effect": 0.02,
+    "design_minimum_effect": 0.28,
+    "s1_probability": 0.9993,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "escape_ttc_s",
+      "resolution": 0.01,
+      "divergence_bound": 0.014422694370443573,
+      "floor": 0.02,
+      "host_minimum_effect": 0.02
+    }
+  ],
+  "runs_sha256": "e0fabd6dca4e1a6eedb000a6388bb3cc50ea1af505ccf41425d724783a678cd9",
+  "outputs_sha256": "0e4e54818d992c22fab3d48697b840cbf5ec7f08db49a842766e5b7160e33ada",
+  "generated_at": "2026-10-24T02:04:51.182Z",
+  "sha256": "c26e34c5819019fc3c7c135c43428cb5997544e34579a4c8d1db701205da51f0"
+}

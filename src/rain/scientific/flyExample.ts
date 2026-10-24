@@ -11,18 +11,25 @@ interface Example {
   metric: FlyMetricId;
   direction: "increase" | "decrease";
   minimumEffect: number;
+  seedCount: number;
   question: string;
   hypothesis: string;
   competing: string;
 }
 
 /**
- * One scripted demonstration per protocol. The thresholds are the script's
- * choices, not a model's, each at or above the host's minimum effect for its
- * metric (FLY_METRICS). They were not sized from pilots: that, with the
- * protocol redesigns, is later work, and pilots must run on seeds that are
- * then discarded. Some of these designs cannot discriminate as designed; each
- * protocol's caveat (FLY_PROTOCOLS) says which and why.
+ * One scripted demonstration per protocol. The treatment, metric and
+ * direction are the script's choices, not a model's. For the four redesigned
+ * protocols the minimum effect and the seed count are the pilot's
+ * (docs/benchmarks/fly-pilots/<protocol>.json, `sized`): the seed count is
+ * the smallest that passes G3, G4 and the sign test with margin under the
+ * pilot's outcomes, and the minimum effect the pilot's mean paired difference
+ * less 1.645 standard errors at that seed count, rounded down (or the host's
+ * minimum effect for the metric, if larger). Pilots run on
+ * the public pilot seeds, which the host never draws for an archived run, and
+ * fly.test.ts checks these numbers against the pilot files. Light preference
+ * and controller comparison were not redesigned; their thresholds are still
+ * the script's, at or above the host's minimum effect for the metric.
  */
 const EXAMPLES: Record<FlyProtocolId, Example> = {
   obstacle_avoidance: {
@@ -30,7 +37,8 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     // Cruise only: the avoidance rule does not act during a landing approach.
     metric: "cruise_collision_episodes_per_m",
     direction: "decrease",
-    minimumEffect: 0.1,
+    minimumEffect: 0.12, // PILOT-SIZED: docs/benchmarks/fly-pilots/obstacle_avoidance.json
+    seedCount: 10, // PILOT-SIZED: docs/benchmarks/fly-pilots/obstacle_avoidance.json
     question:
       "[scripted] Does the simulated fly's time-to-contact avoidance rule reduce collisions in pillar clutter?",
     hypothesis:
@@ -43,6 +51,7 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     metric: "mean_light_distance_m",
     direction: "decrease",
     minimumEffect: 0.1,
+    seedCount: 12,
     question:
       "[scripted] Does a point light draw the simulated fly toward the quadrant below it?",
     hypothesis:
@@ -53,42 +62,45 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
   visual_threat: {
     treatment: {
       kind: "visual_threat",
-      approach_speed_m_s: 1,
-      control: "receding",
+      control_l_over_v_ms: 160,
+      treatment_l_over_v_ms: 40,
     },
-    metric: "escape_probability",
-    direction: "increase",
-    minimumEffect: 0.3,
+    metric: "escape_ttc_s",
+    direction: "decrease",
+    minimumEffect: 0.28, // PILOT-SIZED: docs/benchmarks/fly-pilots/visual_threat.json
+    seedCount: 9, // PILOT-SIZED: docs/benchmarks/fly-pilots/visual_threat.json
     question:
-      "[scripted] Does an approaching sphere make the simulated fly escape where the same sphere receding does not?",
+      "[scripted] Does a faster looming approach (smaller l/v) make the simulated fly escape later, closer to collision?",
     hypothesis:
-      "[scripted] A sphere approaching at 1 m/s raises the escape probability over the same sphere receding along the same line.",
+      "[scripted] At l/v = 40 ms the fly escapes with less time to collision than at l/v = 160 ms, as an angular-size threshold predicts.",
     competing:
-      "[scripted] Any moving object in view triggers the escape proxy, approaching or not.",
+      "[scripted] The escape proxy fires at a fixed time before collision whatever the approach speed.",
   },
   noisy_sensing: {
     treatment: { kind: "noisy_sensing", noise: 0.4 },
-    metric: "collision_episodes_per_m",
+    metric: "escape_ttc_s",
     direction: "increase",
-    minimumEffect: 0.05,
+    minimumEffect: 0.23, // PILOT-SIZED: docs/benchmarks/fly-pilots/noisy_sensing.json
+    seedCount: 9, // PILOT-SIZED: docs/benchmarks/fly-pilots/noisy_sensing.json
     question:
-      "[scripted] Does sensory noise make the simulated fly collide more often in clutter?",
+      "[scripted] Does sensory noise change when the simulated fly escapes from a looming stimulus?",
     hypothesis:
-      "[scripted] Relative sensory noise of 0.4 raises collision episodes per metre flown.",
+      "[scripted] Sensory noise of 0.4 makes the fly escape earlier in the approach, with more time to collision: noisy size and expansion estimates cross the escape threshold early.",
     competing:
-      "[scripted] Noise on distance estimates averages out over a fan of rays and leaves the collision rate unchanged.",
+      "[scripted] Noise averages out over the approach and leaves the time to collision at the escape unchanged.",
   },
   adaptation: {
-    treatment: { kind: "adaptation", isi_s: 4 },
-    metric: "late_escape_probability",
+    treatment: { kind: "adaptation", isi_s: 10 },
+    metric: "repeat_escape_probability",
     direction: "decrease",
-    minimumEffect: 0.2,
+    minimumEffect: 0.13, // PILOT-SIZED: docs/benchmarks/fly-pilots/adaptation.json
+    seedCount: 13, // PILOT-SIZED: docs/benchmarks/fly-pilots/adaptation.json
     question:
-      "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats quickly?",
+      "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats every 10 s on a fixed schedule?",
     hypothesis:
-      "[scripted] Repeating the stimulus every 4 s lowers the escape probability over the later presentations, compared with every 120 s.",
+      "[scripted] Repeating the stimuli every 10 s lowers the fraction answered by an escape, compared with the same stimuli every 90 s.",
     competing:
-      "[scripted] The stimulus stays above the escape threshold however often it repeats.",
+      "[scripted] Responsiveness recovers within 10 s, so the interval leaves the escape probability unchanged.",
   },
   controller_comparison: {
     treatment: {
@@ -99,6 +111,7 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     metric: "mean_light_distance_m",
     direction: "decrease",
     minimumEffect: 0.1,
+    seedCount: 12,
     question:
       "[scripted] Does a controller with stronger phototaxis and later avoidance stay closer to the light than the default?",
     hypothesis:
@@ -131,7 +144,7 @@ export function flyExample(
     competing_hypothesis: e.competing,
     // How many seeds, never which: the host draws them after preregistration.
     parameters: {
-      seed_count: overrides.seedCount ?? 12,
+      seed_count: overrides.seedCount ?? e.seedCount,
       treatment: structuredClone(overrides.treatment ?? e.treatment),
     },
     analysis: {
