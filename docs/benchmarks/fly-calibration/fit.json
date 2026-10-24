@@ -1,0 +1,59 @@
+{
+  "schema": "fly-calibration-fit/v1",
+  "flyVersion": "digital-fly/5",
+  "controller": "circuit-informed/v1",
+  "giantFiber": {
+    "method": "Each trial run once with the giant fiber silenced, recording the peak modelled potential up to the wing raise; expected short-mode share per (median, spread) = mean of Φ(ln(peak/median)/spread); binomial negative log-likelihood of the three counts minimized over the grid; the optimum run again in full and every trial's mode checked against its prediction.",
+    "trialsPerRv": 500,
+    "grid": { "medianMv": [0.5, 10, 0.01], "lnSd": [0, 2, 0.01] },
+    "medianMv": 3.73,
+    "lnSd": 0.42,
+    "nll": 240.188954,
+    "deviance": 1.17264,
+    "profile95": { "medianMv": [3.32, 7.07], "lnSd": [0.25, 1.41] },
+    "rows": [
+      {
+        "rv": 8,
+        "observed": { "k": 40, "n": 108 },
+        "expected": 0.34724,
+        "simulated": { "k": 188, "n": 500 }
+      },
+      {
+        "rv": 14,
+        "observed": { "k": 28, "n": 115 },
+        "expected": 0.28135,
+        "simulated": { "k": 141, "n": 500 }
+      },
+      {
+        "rv": 40,
+        "observed": { "k": 43, "n": 202 },
+        "expected": 0.20479,
+        "simulated": { "k": 106, "n": 500 }
+      }
+    ],
+    "modesPredicted": 1500,
+    "trials": 1500
+  },
+  "grooming": {
+    "method": "Bisection over whole dust units in the parameter's range on the dusted chamber paradigm's flies (the same seeds at every step), keeping the end whose share is nearer the target.",
+    "flies": 44,
+    "target": 0.72491,
+    "steps": [
+      { "groomDriveDust": 1, "share": 1 },
+      { "groomDriveDust": 2000, "share": 0.16837 },
+      { "groomDriveDust": 1000, "share": 0.32628 },
+      { "groomDriveDust": 500, "share": 0.70162 },
+      { "groomDriveDust": 250, "share": 0.99718 },
+      { "groomDriveDust": 375, "share": 0.87943 },
+      { "groomDriveDust": 437, "share": 0.78888 },
+      { "groomDriveDust": 468, "share": 0.74514 },
+      { "groomDriveDust": 484, "share": 0.72671 },
+      { "groomDriveDust": 492, "share": 0.70915 },
+      { "groomDriveDust": 488, "share": 0.71591 },
+      { "groomDriveDust": 486, "share": 0.72079 },
+      { "groomDriveDust": 485, "share": 0.72042 }
+    ],
+    "groomDriveDust": 484,
+    "share": 0.72671
+  }
+}

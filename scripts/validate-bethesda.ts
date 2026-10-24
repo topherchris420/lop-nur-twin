@@ -27,6 +27,8 @@ import { parseSkeleton } from "../src/bethesda/fly/skeleton.ts";
 import { decodePart, parseMeshFile } from "../src/bethesda/fly/meshCodec.ts";
 import { parseVfbReference } from "../src/bethesda/fly/reference.ts";
 import { REDUCED_ORDER_DESCRIPTOR } from "../src/bethesda/fly/controller.ts";
+import { CIRCUIT_DESCRIPTOR } from "../src/bethesda/fly/circuits/controller.ts";
+import { parseGroomingReference } from "../src/bethesda/fly/calibration/groomingReference.ts";
 import {
   changedFlySources,
   computeFlySource,
@@ -296,12 +298,21 @@ const vfb = parseVfbReference(JSON.parse(flyData("vfb-reference.json").toString(
 if (Date.parse(vfb.retrievedAt) > Date.now())
   fail("VFB reference retrieved in the future");
 const vfbIds = new Set(vfb.terms.map((t) => t.id));
-for (const region of REDUCED_ORDER_DESCRIPTOR.regions)
-  for (const id of region.vfb)
-    if (!vfbIds.has(id))
-      fail(`controller links ${id}, which the VFB reference does not hold`);
-if (REDUCED_ORDER_DESCRIPTOR.simulatesNeurons)
-  fail("the reduced-order controller must not claim to simulate neurons");
+for (const descriptor of [REDUCED_ORDER_DESCRIPTOR, CIRCUIT_DESCRIPTOR]) {
+  for (const region of descriptor.regions)
+    for (const id of region.vfb)
+      if (!vfbIds.has(id))
+        fail(`${descriptor.id} links ${id}, which the VFB reference does not hold`);
+  if (descriptor.simulatesNeurons)
+    fail(`${descriptor.id} must not claim to simulate neurons`);
+}
+// The grooming ethograms' summaries are what the importer wrote: parsed
+// strictly, retrieved in the past, under the dataset's CC BY 4.0.
+const grooming = parseGroomingReference(
+  JSON.parse(flyData("grooming-reference.json").toString("utf8")),
+);
+if (Date.parse(grooming.retrievedAt) > Date.now())
+  fail("grooming reference retrieved in the future");
 // Every fly plan and record binds the source digest in flySource.ts; a stale
 // one would name code that did not make them.
 const flySource = computeFlySource(
@@ -312,7 +323,7 @@ if (flySource.sha256 !== FLY_SOURCE.sha256)
     `the digital fly's source digest is stale (${changedFlySources(FLY_SOURCE, flySource).join(", ")} changed): run node scripts/run-ts.mjs scripts/fly-source.ts`,
   );
 console.log(
-  `[validate:bethesda] digital fly: FlyBody ${flybodySource.commit.slice(0, 12)} (${flySkeleton.bodies.length} bodies, ${flybodySource.lods.map((l) => `${l.name} ${l.triangles}`).join(", ")} triangles) and VFB reference (${vfb.terms.length} terms, retrieved ${vfb.retrievedAt}) verified; experiment source digest ${FLY_SOURCE.sha256.slice(0, 12)} current`,
+  `[validate:bethesda] digital fly: FlyBody ${flybodySource.commit.slice(0, 12)} (${flySkeleton.bodies.length} bodies, ${flybodySource.lods.map((l) => `${l.name} ${l.triangles}`).join(", ")} triangles) and VFB reference (${vfb.terms.length} terms, retrieved ${vfb.retrievedAt}) and grooming ethograms (${grooming.conditions.dusted.flies} + ${grooming.conditions.undusted.flies} flies, retrieved ${grooming.retrievedAt}) verified; experiment source digest ${FLY_SOURCE.sha256.slice(0, 12)} current`,
 );
 console.log(
   `[validate:bethesda] ${raw.features.length} real OSM features, ${streetscapeFeatures} streetscape features and 4225 real DTM samples; bounds, license and checksums verified; R.A.I.N. corpus ${rainCorpus.files.length} papers ${rainFingerprint.slice(0, 12)} verified; demo recording ${demoSource.meetingId} at ${demoSource.rain.repository} ${demoSource.rain.commit.slice(0, 12)} verified; mathematical substrate ${mathIndex.repository} ${mathIndex.commit.slice(0, 12)} (${mathIndex.counts.families} families, index ${mathIndex.content_sha256.slice(0, 12)}) verified`,

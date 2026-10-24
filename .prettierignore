@@ -87,8 +87,13 @@ public/noeterra/
 # the source hashes in geography.source.json. Never reformatted by hand.
 noeterra/data/
 
-# The digital fly's imported data: FlyBody's skeleton and meshes and the Virtual
-# Fly Brain reference, written by `scripts/import-flybody.ts` and
-# `scripts/import-vfb-reference.ts` and hashed by the build validator. Formatting
+# The digital fly's imported data: FlyBody's skeleton and meshes, the Virtual
+# Fly Brain reference and the grooming ethograms' summaries, written by
+# `scripts/import-flybody.ts`, `scripts/import-vfb-reference.ts` and
+# `scripts/import-fly-grooming.ts` and hashed by the build validator. Formatting
 # one would change bytes its manifest records.
 src/bethesda/fly/data/
+
+# The digital fly's calibration against published recordings: written by
+# `scripts/fly-calibration.ts` and checked byte for byte by its `--check`.
+docs/benchmarks/fly-calibration/

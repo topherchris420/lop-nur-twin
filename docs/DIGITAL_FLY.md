@@ -10,20 +10,21 @@ simulated. The brain regions the panel names are a reference layer: where, in a
 real fly, the functions the controller imitates are known to be processed.
 Everything the simulator reports describes the simulator, not a fly.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/4`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/5`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
 
 ## Sources and licences
 
-| Material                                                                    | Source                                                                                                                           | Licence                             | In the repository                                                                                              |
-| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Body model: MJCF skeleton, visual meshes, materials, eye cameras            | [TuragaLab/flybody](https://github.com/TuragaLab/flybody) at `d015e9bf…` (Vaxenburg et al. 2025, doi:10.1038/s41586-025-09029-4) | Apache-2.0                          | Derived JSON in `src/bethesda/fly/data/`, with `LICENSE.md` and the modification list in `flybody.source.json` |
-| FlyBody trained policies, reference trajectories, grooming poses (figshare) | doi:10.25378/janelia.25309105                                                                                                    | GPL-3.0                             | **Not imported**                                                                                               |
-| JRC2018Unisex template (VFB_00101567) and painted neuropil domains          | [Virtual Fly Brain](https://virtualflybrain.org/reports/VFB_00101567)                                                            | CC-BY-NC-SA 4.0 (as VFB reports it) | **No geometry.** Ids, labels and licence metadata only; the panel links to VFB                                 |
-| FBbt anatomy classes: labels and definitions                                | FlyBase anatomy ontology via VFB (Court et al. 2023, doi:10.3389/fphys.2023.1076533)                                             | CC BY 4.0                           | `data/vfb-reference.json`                                                                                      |
-| LPLC2→GF and LC4→GF class connectivity                                      | VFB `query_connectivity`, as returned (datasets VFB excluded are recorded)                                                       | VFB terms                           | `data/vfb-reference.json`                                                                                      |
+| Material                                                                            | Source                                                                                                                           | Licence                             | In the repository                                                                                              |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Body model: MJCF skeleton, visual meshes, materials, eye cameras                    | [TuragaLab/flybody](https://github.com/TuragaLab/flybody) at `d015e9bf…` (Vaxenburg et al. 2025, doi:10.1038/s41586-025-09029-4) | Apache-2.0                          | Derived JSON in `src/bethesda/fly/data/`, with `LICENSE.md` and the modification list in `flybody.source.json` |
+| FlyBody trained policies, reference trajectories, grooming poses (figshare)         | doi:10.25378/janelia.25309105                                                                                                    | GPL-3.0                             | **Not imported**                                                                                               |
+| JRC2018Unisex template (VFB_00101567) and painted neuropil domains                  | [Virtual Fly Brain](https://virtualflybrain.org/reports/VFB_00101567)                                                            | CC-BY-NC-SA 4.0 (as VFB reports it) | **No geometry.** Ids, labels and licence metadata only; the panel links to VFB                                 |
+| FBbt anatomy classes: labels and definitions                                        | FlyBase anatomy ontology via VFB (Court et al. 2023, doi:10.3389/fphys.2023.1076533)                                             | CC BY 4.0                           | `data/vfb-reference.json`                                                                                      |
+| LPLC2→GF and LC4→GF class connectivity                                              | VFB `query_connectivity`, as returned (datasets VFB excluded are recorded)                                                       | VFB terms                           | `data/vfb-reference.json`                                                                                      |
+| Grooming ethograms of dusted and undusted flies, and the grooming model's constants | Zhang, Guo & Simpson 2020, Mendeley Data doi:10.17632/fxz8dgywcd.1                                                               | CC BY 4.0                           | Summary statistics and constants only, in `data/grooming-reference.json` (no per-frame data)                   |
 
 FlyBody's modifications, as `flybody.source.json` records them: visual mesh
 geoms only, transformed into their body frames; merged per body and material,
@@ -97,7 +98,12 @@ senses, controller).
   the jump: the postural adjustment that aims the jump away from a threat
   (Card & Dickinson 2008). A long-mode takeoff raises its wings before the
   jump, a short-mode one jumps with them folded (von Reyn et al. 2014); the
-  raise is drawn over the last 30 ms, a drawing choice. The jump leaves along
+  raise takes the last `longModeSequenceMs` (13.2 ms, the paper's mean
+  long-mode sequence) of the preparation. A command may say which mode it
+  wants (`wings`), and a later, shorter `prepare` brings the jump forward
+  (never later): with the wings already rising it stays long-mode, otherwise
+  it becomes short-mode, as a giant-fiber spike cuts a long-mode takeoff short
+  in the paper. The jump leaves along
   the aimed heading at `jumpElevationDeg` above the horizontal, and in the air
   the heading turns to it in one saccade-length turn while the jump's
   direction holds;
@@ -345,6 +351,121 @@ DIGITAL FLY section of the lab's panels, which lists the protocols. A second
 drawn fly would break "one fly in Bethesda", and each arena run has its own
 fly, which is never drawn.
 
+## The circuit-informed controller
+
+`src/bethesda/fly/circuits/` replaces two of the reduced-order controller's
+proxies, one at a time, with published circuit models, so each replacement can
+be compared with the proxy it replaced. It is a `FlyNeuralAdapter`
+(`CIRCUIT_DESCRIPTOR`, `circuit-informed/v1`): everything else is the
+reduced-order controller's, every command passes the same gate, and it
+simulates no neuron (`simulatesNeurons` is false; the build checks).
+
+- **Looming escape** (`giantFiber.ts`). The giant fiber's membrane potential is
+  Ache et al. 2019's fitted function of the looming object's angular size and
+  expansion: an LPLC2 term (a Gaussian in log size), an LC4 term (expansion
+  rate), a size-dependent tonic inhibition and an LC4-linked inhibition, each
+  at its published delay and with every constant the paper's. Three choices
+  are this model's and are named where they are made: LC4 is not driven by a
+  shrinking object, LPLC2 only while the object expands, and nothing
+  contributes when nothing is seen. The fiber spikes when the potential first
+  reaches the trial's threshold, a log-normal draw whose median and spread are
+  fitted (below). A GF-independent pathway starts the long-mode wing raise
+  28.6 ms (von Reyn et al. 2014's delay for GF-silenced flies) after the
+  object reaches a trial's wing-raise angle, 49° ± 4° (Fotowat et al. 2009).
+  Whichever acts first sets the mode: a spike commits a short-mode jump 10 ms
+  later (the fly's sample period; the measured spike-to-jump time is 2 ms),
+  the wing raise a long-mode one after the 13.2 ms sequence, and a spike during
+  a long-mode takeoff brings its jump forward. The fiber can be silenced
+  (`silenceGiantFiber`), as with Kir2.1 in the paper.
+- **Grooming** (`grooming.ts`). Zhang, Guo & Simpson 2020's dust model, with
+  the constants of the authors' deposited code (imported, not typed): dust on
+  the head, abdomen, wings and two leg pairs, each part's sensory activity
+  drawn as |N(d, (d/5)²)| at every bout, the strongest winning; a winning body
+  part moves a share of its dust to the legs that clean it, winning legs rub
+  ten times that share off, and each bout lasts a gamma-distributed time the
+  authors fitted per action. The front-to-back order is not scripted: it comes
+  from the head carrying the most dust (its bristle count). What the authors'
+  model leaves open, when a dusted fly stops to walk or stand, is one fitted
+  threshold on the winning activity. A clean fly's spontaneous grooming stays
+  the reduced-order controller's. The text gives 0.2% for the dust moved per
+  bout, the code 0.4%; the model uses the text's and its range spans both.
+
+The circuits apply their own published delays, so a fly running this
+controller has no sensing latency of its own and the reduced-order controller
+inside it is handed each sample 30 ms late, as before. Its three fitted values
+come from the calibration's fit; everything else in `circuits/params.ts` is
+published, imported or a stated model choice.
+
+## Calibration against real flies
+
+`src/bethesda/fly/calibration/` sets the fly beside published recordings of
+real flies. `observations.ts` holds every published value used: each with its
+paper's words, quoted verbatim (checked against the full texts when written),
+or, for the grooming ethograms, the imported data it was computed from; and
+each with a role: `held-out` (nothing was set from it), `design` (a parameter
+came from it, so agreement is by construction) or `fit` (the circuit-informed
+controller's fitted values were set to it). `paradigms.ts` rebuilds each
+experiment from the fly's own world primitives and runs it through the fly's
+body, senses and gate, and each paradigm lists how it differs from the
+experiment; every comparison inherits those differences.
+
+The paradigms: von Reyn et al. 2014's looming disk over standing flies at five
+r/v (escape probability, short-mode share, takeoff before contact, neural
+delays), Fotowat et al. 2009's lateral loom (takeoff timing), Card & Dickinson
+2008's threats from three directions (escape direction), Zacarias et al.
+2018's repeated looms over walking flies (jumping, freezing, habituation),
+Zhang, Guo & Simpson 2020's dusted and undusted flies in a chamber (grooming
+fractions, time course, episodes and motifs, the order of cleaning), free
+flight in Censi et al. 2013's and Tammero & Dickinson 2002's arenas (saccade
+rate, flight speed), van Breugel & Dickinson 2012's tunnel with a post
+(landing, fly-bys, saccades), Liu, Davis & Roman 2007's and Soibam et al.
+2012's open fields (wall following, activity, speed, turning) and the gait
+against Mendes et al. 2013 and DeAngelis et al. 2019.
+
+`fit.ts` sets the three fitted values. The giant fiber's threshold median and
+spread are fitted to von Reyn et al.'s short-mode counts at r/v 8, 14 and
+40 ms by maximum likelihood over a grid. Because nothing before a trial's first
+escape command depends on the threshold, each trial is run once with the fiber
+silenced, recording its peak potential before the wing raise, and the
+short-mode share any threshold would give is computed exactly from those
+peaks; the fitted pair is then run in full and every trial's mode must be the
+one predicted. The grooming threshold is bisected to the dusted flies' mean
+fraction of time grooming. The fitted values are in `circuits/params.ts`, and
+a test holds them to `fit.json`.
+
+`node scripts/run-ts.mjs scripts/fly-calibration.ts` runs every paradigm on
+both controllers and writes `docs/benchmarks/fly-calibration/` (the report,
+its README with every row, quote and approximation, and the fit); `--check`
+reproduces it byte for byte, and `--fit` refits. It is seeded, and both
+controllers meet the same trials and flies.
+
+## Physics backend
+
+`fly-physics/` (Python) runs FlyBody's own MuJoCo model on the browser fly's
+walking plan. The browser keeps its reduced-order body for drawing and for the
+lab's experiments, and nothing flows back. `scripts/fly-physics-trace.ts` runs
+a `DigitalFly` in an empty arena under a scripted walking plan (every command
+through the gate). It samples, on FlyBody's 2 ms control clock, the thorax
+path, each leg's stance and the joint and tendon targets `pose.ts` solves for
+FlyBody's 48 leg actuators (`fly-physics-trace/v1`, deterministic).
+`python -m fly_physics` fetches FlyBody by git at the commit
+`data/flybody.source.json` pins, and verifies the checkout and every file the
+importer read. It then replays the plan open loop in FlyBody's
+`template_task()`, sending the targets to the leg actuators with adhesion on in
+stance. Through FlyBody's MJCF the plan's angles reach the claw positions
+`pose.ts` draws to within 10⁻⁷ cm.
+
+Physics does not follow the plan closely. On a flat floor the body covers
+30–47 % of the planned speed and drifts in heading (up to 148° in 2 s).
+Turning on the spot is almost lost, swing claws drag, and the fly falls off a
+wall or a ceiling within 0.1 s of its first step. FlyBody's leg servos lag the
+plan by about 24 ms (a 10 ms actuator filter plus the joints' damping over
+gain). Even unloaded, the claws miss their planned positions by 0.18–0.31 mm,
+while the plan lifts a swing foot at most 0.25 mm. The results are in
+`docs/benchmarks/fly-physics/`; they describe two simulators, never a fly.
+FlyBody's trained policies (GPL-3.0) are not fetched or used: this is FlyBody's
+physics with the browser's plan as controller, not FlyBody's controller.
+
 ## Parameters
 
 `params.ts` holds the rates, thresholds, gains, time constants, speeds and
@@ -382,8 +503,8 @@ The body (`fly.ts`):
   (40 ms);
 - walking: a step goes ahead only onto a top within 4 mm of the current one;
 - the takeoff: a drawn lean of 0.15 rad toward the jump's heading, reached at
-  the end of the preparation; a long-mode takeoff's wings raised over its last
-  30 ms (drawing only); short-mode below 100 ms of preparation;
+  the end of the preparation; short-mode below 100 ms of preparation unless
+  the command says otherwise;
 - the drawn thrust, never less than 0.1 g upward, so the drawn fly never turns
   over (drawing only);
 - flight bouts: exponential with mean `flightBoutMeanS`, clamped to 1.5–20 s;
@@ -554,8 +675,10 @@ frame: the panel reads the fly four times a second.
   escapes, each escape taking 22 % of the responsiveness left, and a fresh
   escape after a rest;
 - an escape's posture, short- and long-mode: the yaw held while preparing, the
-  lean toward the jump, the wings folded or raised only in the last 30 ms, the
-  jump along the aimed heading, and the heading turned to it in the air;
+  lean toward the jump, the wings folded or raised only over the last 13.2 ms,
+  the jump along the aimed heading, and the heading turned to it in the air;
+  a jump brought forward but never put back, and a takeoff's mode taken from
+  the command when it says, a wing raise only with a takeoff;
 - an interrupt between decisions refused by the gate, and the next taken at
   once, before the next decision;
 - landing sites through the eyes: a table ahead offered, one behind, one
@@ -580,21 +703,44 @@ frame: the panel reads the fly four times a second.
 - a visitor walking straight at the fly makes it escape through the looming
   pathway, and one standing 3 m away for 20 s does not.
 
+`src/bethesda/fly/calibration/calibration.test.ts`:
+
+- every observation named once, in a rebuilt paradigm, with its words or its
+  data, and a fit target exactly when a fitted value names it;
+- the fitted values the ones `fit.json` records, made by this fly version;
+- each trial's mode predicted from its peak potential and threshold draw, the
+  fit's shortcut, checked against full runs;
+- the report made by this fly version, with every observation set beside both
+  controllers;
+- paradigms replayed exactly from their seeds; a clean fly's grooming left to
+  the reduced-order controller; a silenced giant fiber leaving every takeoff
+  long-mode;
+- the ethogram reduction, censored runs left out, simulated and recorded flies
+  summarized the same way; the comparison classes;
+- the giant fiber spiking on a fast loom unless silenced; the dust model
+  grooming the head first and moving its dust to the front legs, and a fly
+  dusted only on its wings grooming its wings.
+
 `scripts/validate-bethesda.ts` checks:
 
 - every FlyBody output hash and the licence hash;
 - that every mesh decodes and its counts match;
-- that the VFB reference holds every term the controller cites;
-- that the controller does not claim to simulate neurons;
+- that the VFB reference holds every term either controller cites;
+- that neither controller claims to simulate neurons;
+- the grooming reference, parsed strictly, retrieved in the past;
 - that the fly's source digest, which every fly plan and record binds
   (`src/rain/scientific/flySource.ts`), matches the code; after a change to the
   fly, `node scripts/run-ts.mjs scripts/fly-source.ts` rewrites it.
 
 ## Limitations
 
-- Reduced-order dynamics, not FlyBody's physics or trained policies (above).
-- The giant-fiber, phototaxis and avoidance responses are proxies with
-  published timings, not models of the circuits that produce them.
+- Reduced-order dynamics, not FlyBody's physics or trained policies (above);
+  FlyBody's physics runs only in the separate backend, on the plan.
+- The reduced-order controller's giant-fiber, phototaxis and avoidance
+  responses are proxies with published timings, not models of the circuits
+  that produce them. The circuit-informed controller replaces the escape and
+  dust-grooming proxies with published circuit models; the city's fly still
+  runs the reduced-order controller.
 - The escape proxy's size term reaches the escape threshold by itself at its
   peak, an object 60 degrees across at the default parameters. A standing fly
   therefore escapes from almost every looming object that grows to that size,
