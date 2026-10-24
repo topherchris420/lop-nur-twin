@@ -75,6 +75,11 @@ docs/benchmarks/fly-behavior/
 # `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.
 docs/benchmarks/fly-pilots/
 
+# FlyBody physics on the digital fly's plan: results and the README written from
+# them by `python -m fly_physics run` (fly-physics/), each result sealed by its
+# own SHA-256.
+docs/benchmarks/fly-physics/
+
 # The Noeterra engine copied into public/ at build time (a binary build product).
 public/noeterra/
 

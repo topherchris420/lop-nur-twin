@@ -25,8 +25,9 @@ export default defineConfig({
   test: {
     environment: "node",
     // `server/` is the Jev decision endpoint; its tests use injected fetch and
-    // clocks and never reach TypeSafe.
-    include: ["src/**/*.test.ts", "server/**/*.test.ts"],
+    // clocks and never reach TypeSafe. `scripts/fly-physics-plan.test.ts` checks
+    // the plans the FlyBody physics backend (fly-physics/) replays.
+    include: ["src/**/*.test.ts", "server/**/*.test.ts", "scripts/**/*.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
