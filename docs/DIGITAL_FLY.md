@@ -15,6 +15,10 @@ Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/7`). Importers:
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
 
+Next development: [fly priorities and acceptance criteria](FLY_PRIORITIES.md).
+Reliable movement in physical simulation comes first; independent recordings
+guide the locomotion, aerodynamic and sensory milestones.
+
 ## Sources and licences
 
 | Material                                                                            | Source                                                                                                                           | Licence                             | In the repository                                                                                              |

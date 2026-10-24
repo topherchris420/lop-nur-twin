@@ -13,6 +13,14 @@ back into it.
 Everything it writes describes two simulators, the digital fly's kinematic plan
 and FlyBody's physics. It is never evidence about _Drosophila_.
 
+The [development priorities](../docs/FLY_PRIORITIES.md) put reliable physical
+locomotion first, then aerodynamic forces and landing, then richer sensing,
+with independent biological comparison guiding every stage. Run
+`python -m fly_physics.readiness` from this directory to assess the initial
+five-plan flat-floor gate against the current fly. It reads existing results;
+it does not run the physics. Its thresholds are engineering choices, and a
+pass covers only that initial suite.
+
 ## What it uses, and what it does not
 
 - **FlyBody's Apache-2.0 code and model**, fetched by git at the commit the
