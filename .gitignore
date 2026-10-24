@@ -37,9 +37,15 @@ shots/
 # Scratch worktrees for parallel agents; each is its own checkout.
 .claude/worktrees/
 
-# Python bytecode from the data importers under scripts/.
+# Python bytecode from the data importers under scripts/ and from fly-physics/.
 __pycache__/
 *.pyc
+
+# The FlyBody physics backend's working files (fly-physics/README.md): its
+# virtual environment, the FlyBody checkout it fetches by git, and the traces
+# scripts/fly-physics-trace.ts writes. All derived; none is source.
+.fly-physics/
+.pytest_cache/
 
 # R.A.I.N.'s autonomous research state (`npm run rain:autonomous`): sealed
 # records, session traces, charters and their authorizations, and the
