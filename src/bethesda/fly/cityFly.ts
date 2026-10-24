@@ -5,9 +5,11 @@
  * and advanced one city tick (0.1 s) after each `sim.step()`, so it is paused
  * when the city is paused and keeps going while the visitor is in the lab.
  * Its seed derives from the city's, so a given city configuration always
- * holds the same fly. It reads the city and never writes to it: it is not a
- * recorded command, not in the city's state hash and not in a city replay. A
- * replayed city gets a fly placed fresh at the replay's tick.
+ * holds the same fly. Its code is a chunk of its own, so the page places it
+ * at whatever tick the city has reached when that code arrives (App.tsx). It
+ * reads the city and never writes to it: it is not a recorded command, not in
+ * the city's state hash and not in a city replay. A replayed city gets a fly
+ * placed fresh at the replay's tick.
  */
 import { arrival } from "../model";
 import { BENCH, PICNIC_TABLE } from "../furniture";
@@ -56,17 +58,21 @@ export class CityFly {
     return this.sim.paused;
   }
 
-  /** Advance with the city: once per tick the city actually took. */
+  /**
+   * Advance with the city: once per tick the city actually took. Only the
+   * city's present is known, so after several ticks at once the people and
+   * vehicles move from where the fly last saw them to where they are now
+   * across all of those ticks, not within the first.
+   */
   tick(): void {
     if (this.failed || this.sim.tick === this.lastTick) return;
     const ticks = this.sim.tick - this.lastTick;
     this.lastTick = this.sim.tick;
+    if (ticks <= 0) return;
     try {
-      for (let k = 0; k < ticks; k++) {
-        const t = this.fly.state.t;
-        this.world.sync(t, t + DT);
-        this.fly.advance(DT);
-      }
+      const t = this.fly.state.t;
+      this.world.sync(t, t + ticks * DT);
+      for (let k = 0; k < ticks; k++) this.fly.advance(DT);
     } catch (e) {
       this.failed = e instanceof Error ? e.message : String(e);
     }

@@ -67,12 +67,17 @@ import { stepFor, walkIntent } from "./walkInput";
 import { canRender } from "./webgl";
 import type { LabStore } from "./rain/store";
 import { EMBODIMENT } from "./rain/embodiment";
-import { CityFly } from "./fly/cityFly";
-import { FlyPanel } from "./fly/FlyPanel";
-import type { FlyViewControl } from "./fly/FlyView";
 
 /** The R.A.I.N. Lab loads only when its door is opened. */
 const LabApp = lazy(() => import("./rain/LabApp"));
+/**
+ * The digital fly is code of its own (its skeleton, references and
+ * controller): the city starts without it and places the fly when that code
+ * arrives (`placeFly`), and the fly's panel loads the first time it opens.
+ */
+const FlyPanel = lazy(() =>
+  import("./fly/FlyPanel").then((m) => ({ default: m.FlyPanel })),
+);
 /** The lab's history layer, above the city's (see `historyLayers.ts`). */
 const LAB_LAYER = "rain-lab";
 class LabBoundary extends Component<
@@ -197,22 +202,28 @@ function world(sim?: CitySimulation, replayOf: ReplayOrigin | null = null) {
     evidence: false,
     selected: null,
   };
-  view.fly = placeFly(city);
+  placeFly(city, view);
   return { sim: city, broker: new CityDecisionBroker(city), view, replayOf };
 }
-/** The city's one digital fly; without a surface to stand on there is none. */
-function placeFly(city: CitySimulation): FlyViewControl | undefined {
-  try {
-    return {
-      city: new CityFly(city),
-      marker: false,
-      inspect: false,
-      slow: false,
-      drawn: "loading",
-    };
-  } catch {
-    return undefined;
-  }
+/**
+ * The city's one digital fly, placed at whatever tick the city has reached
+ * when the fly's code arrives; without a surface to stand on (or without its
+ * code) there is none, and the city carries on.
+ */
+function placeFly(city: CitySimulation, view: ViewControl): void {
+  import("./fly/cityFly")
+    .then(({ CityFly }) => {
+      view.fly = {
+        city: new CityFly(city),
+        marker: false,
+        inspect: false,
+        slow: false,
+        drawn: "loading",
+      };
+    })
+    .catch(() => {
+      view.fly = undefined;
+    });
 }
 class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -869,23 +880,31 @@ export default function Bethesda({
               }}
             />
           ) : flyOpen && view.fly ? (
-            <FlyPanel
-              control={view.fly}
-              panel={panel}
-              button={button}
-              viewer={() =>
-                view.mode === "orbit"
-                  ? view.target
-                  : view.mode === "seat"
-                    ? sim.agents[0]!.point
-                    : sim.player
+            <Suspense
+              fallback={
+                <p role="status" className={panel}>
+                  The fly&apos;s panel is loading…
+                </p>
               }
-              canDraw={rendering && !view.failed}
-              onClose={() => {
-                if (view.fly) view.fly.marker = view.fly.inspect = false;
-                setFlyOpen(false);
-              }}
-            />
+            >
+              <FlyPanel
+                control={view.fly}
+                panel={panel}
+                button={button}
+                viewer={() =>
+                  view.mode === "orbit"
+                    ? view.target
+                    : view.mode === "seat"
+                      ? sim.agents[0]!.point
+                      : sim.player
+                }
+                canDraw={rendering && !view.failed}
+                onClose={() => {
+                  if (view.fly) view.fly.marker = view.fly.inspect = false;
+                  setFlyOpen(false);
+                }}
+              />
+            </Suspense>
           ) : null}
           {/*
             A phone is one column: the title at the top, then the map (or the

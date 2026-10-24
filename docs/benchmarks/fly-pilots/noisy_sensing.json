@@ -1,0 +1,4215 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "noisy_sensing",
+  "fly_version": "digital-fly/4",
+  "fly": "digital-fly/4 reduced-order-fsm/v1",
+  "fly_sha256": "02776ebf688fc2989a8fe4f6871b30825e567d27ea64b5aecfd3ecf2760b448c",
+  "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "code": {
+    "commit": "07219f5d5479aad5b7e53b5d41f4115f1528aa34",
+    "dirty": true
+  },
+  "definition": {
+    "protocol": "noisy_sensing",
+    "demonstration": {
+      "treatment": {
+        "kind": "noisy_sensing",
+        "noise": 0.4
+      },
+      "metric": "escape_ttc_s",
+      "direction": "increase"
+    },
+    "blocks": [
+      {
+        "id": "escape",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "walkStartHz": 0,
+          "groomHz": 0
+        },
+        "start_half_width_m": 0.8,
+        "tick_s": 0.005,
+        "duration_s": 0.3,
+        "trials": 6,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": {
+          "radius_m": 0.04,
+          "start_distance_m": 1,
+          "final_size_deg": [
+            90,
+            90
+          ],
+          "elevation_deg": [
+            10,
+            40
+          ],
+          "azimuth_deg": [
+            -180,
+            180
+          ],
+          "onset_s": 1,
+          "l_over_v_ms": 40
+        }
+      },
+      {
+        "id": "clutter",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 1.2,
+              "r": 0.15
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0.5
+        },
+        "start_half_width_m": 0.25,
+        "tick_s": 0.005,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": 0.05,
+        "stimulus": null
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "noisy_sensing",
+          "noise": 0.1
+        },
+        "arm": {
+          "config": {},
+          "noise": 0.1,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "noisy_sensing",
+          "noise": 0.2
+        },
+        "arm": {
+          "config": {},
+          "noise": 0.2,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "noisy_sensing",
+          "noise": 0.4
+        },
+        "arm": {
+          "config": {},
+          "noise": 0.4,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "noisy_sensing",
+          "noise": 0.8
+        },
+        "arm": {
+          "config": {},
+          "noise": 0.8,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "noiseless sensing",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.03598074608904934,
+          "flown_m": 23.096894383303596,
+          "saccades_per_flight_s": 0.38288149200272265,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.07333333333333329,
+          "escape_latency_s": 0.9266666666666667,
+          "size_at_escape_deg": 63.20141649382262,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04206755373592631,
+          "flown_m": 22.1098888668666,
+          "saccades_per_flight_s": 0.5940005940006227,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.9150000000000001,
+          "size_at_escape_deg": 56.501770617278254,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0245662100456621,
+          "flown_m": 17.332992002734944,
+          "saccades_per_flight_s": 0.5228924882030275,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0883333333333333,
+          "escape_latency_s": 0.9116666666666667,
+          "size_at_escape_deg": 56.501770617278275,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.028,
+          "flown_m": 23.608437243938,
+          "saccades_per_flight_s": 0.6123698714024658,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.501770617278275,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05463510848126233,
+          "flown_m": 18.217735231536874,
+          "saccades_per_flight_s": 0.6236316592582437,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.04333333333333326,
+          "escape_latency_s": 0.9566666666666667,
+          "size_at_escape_deg": 83.30035412345572,
+          "short_mode_fraction": 0.8333333333333334,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.08651079136690648,
+          "flown_m": 20.11814683278933,
+          "saccades_per_flight_s": 0.6338028169014457,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.50177061727829,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06484641638225255,
+          "flown_m": 18.498013427977146,
+          "saccades_per_flight_s": 0.5298502864888263,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073395,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.030119521912350598,
+          "flown_m": 26.081573461371068,
+          "saccades_per_flight_s": 0.5936186000495823,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08166666666666662,
+          "escape_latency_s": 0.9183333333333334,
+          "size_at_escape_deg": 63.2014164938226,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.08446428571428571,
+          "flown_m": 19.277541436451763,
+          "saccades_per_flight_s": 0.6526640560104748,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0883333333333333,
+          "escape_latency_s": 0.9116666666666667,
+          "size_at_escape_deg": 56.50177061727829,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.028721374045801527,
+          "flown_m": 19.253500958334612,
+          "saccades_per_flight_s": 0.5438477226376688,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.049193548387096775,
+          "flown_m": 23.69425069480065,
+          "saccades_per_flight_s": 0.549095607235213,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073395,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.017569786535303777,
+          "flown_m": 20.16518704667581,
+          "saccades_per_flight_s": 0.6280139060222654,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.1277056277056277,
+          "flown_m": 22.97396739082954,
+          "saccades_per_flight_s": 0.5701129262142963,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073395,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.034379457917261054,
+          "flown_m": 19.856551933002493,
+          "saccades_per_flight_s": 0.4219409282699809,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733916,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05581151832460733,
+          "flown_m": 26.112858717028907,
+          "saccades_per_flight_s": 0.48675258587316483,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06,
+          "flown_m": 19.25446438653345,
+          "saccades_per_flight_s": 0.5191771042896846,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733944,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04860710854947166,
+          "flown_m": 23.895627255245444,
+          "saccades_per_flight_s": 0.5519882843303431,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.03632773938795657,
+          "flown_m": 18.64502097439624,
+          "saccades_per_flight_s": 0.5515649050795167,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04794117647058824,
+          "flown_m": 17.31270356838695,
+          "saccades_per_flight_s": 0.6177707676130122,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05878995433789954,
+          "flown_m": 19.881195941808556,
+          "saccades_per_flight_s": 0.5594405594405281,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08166666666666662,
+          "escape_latency_s": 0.9183333333333334,
+          "size_at_escape_deg": 63.20141649382263,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05654250238777459,
+          "flown_m": 17.97889391339472,
+          "saccades_per_flight_s": 0.7074864934396544,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04316546762589928,
+          "flown_m": 20.048571723751586,
+          "saccades_per_flight_s": 0.5053057099545707,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.09246190858059343,
+          "flown_m": 20.364673896292512,
+          "saccades_per_flight_s": 0.6805377363753684,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733916,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.10122914837576821,
+          "flown_m": 20.378058006888985,
+          "saccades_per_flight_s": 0.6166375799884061,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.010707070707070707,
+          "flown_m": 20.489105360145317,
+          "saccades_per_flight_s": 0.45650832819248066,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073391,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0451837140019861,
+          "flown_m": 22.372442319817715,
+          "saccades_per_flight_s": 0.4792238910642575,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.028980891719745223,
+          "flown_m": 20.38623584477735,
+          "saccades_per_flight_s": 0.5188496991776247,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733916,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.052819548872180454,
+          "flown_m": 21.21844674220904,
+          "saccades_per_flight_s": 0.5208648779601641,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.9150000000000001,
+          "size_at_escape_deg": 56.50177061727829,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.021755725190839695,
+          "flown_m": 21.151722070938405,
+          "saccades_per_flight_s": 0.40005334044536983,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.027705223880597016,
+          "flown_m": 18.130497161556683,
+          "saccades_per_flight_s": 0.5678233438485775,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733944,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05263157894736842,
+          "flown_m": 19.686476578165763,
+          "saccades_per_flight_s": 0.3826362316928175,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.915,
+          "size_at_escape_deg": 56.501770617278275,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.024146341463414635,
+          "flown_m": 23.511829003034542,
+          "saccades_per_flight_s": 0.5604275854912406,
+          "contact_s": 0
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "sensory noise of 0.1 (standard deviation 0.06: relative on sizes, distances and light levels, in radians on directions)",
+      "treatment": {
+        "kind": "noisy_sensing",
+        "noise": 0.1
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14833333333333334,
+            "escape_latency_s": 0.8516666666666667,
+            "size_at_escape_deg": 38.82465061378644,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04018205461638492,
+            "flown_m": 20.86875257537501,
+            "saccades_per_flight_s": 0.40724903278351676,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.10666666666666665,
+            "escape_latency_s": 0.8933333333333332,
+            "size_at_escape_deg": 52.08665901487569,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02761998041136141,
+            "flown_m": 23.872390669331782,
+            "saccades_per_flight_s": 0.5690059131987631,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12666666666666668,
+            "escape_latency_s": 0.8733333333333334,
+            "size_at_escape_deg": 44.062612058023895,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.013734939759036145,
+            "flown_m": 21.905071943613343,
+            "saccades_per_flight_s": 0.4990507187415857,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.11499999999999999,
+            "escape_latency_s": 0.8850000000000001,
+            "size_at_escape_deg": 46.65913528232568,
+            "short_mode_fraction": 0,
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.0429981447759762,
+            "cruise_collision_episodes_per_m": 0.0429981447759762,
+            "near_miss_fraction": 0.041220338983050844,
+            "flown_m": 23.25681736293695,
+            "saccades_per_flight_s": 0.5905886835589025,
+            "contact_s": 0.005
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12333333333333334,
+            "escape_latency_s": 0.8766666666666666,
+            "size_at_escape_deg": 43.6678096187133,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.023135135135135137,
+            "flown_m": 15.273717033313583,
+            "saccades_per_flight_s": 0.6542750929366928,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04833333333333326,
+            "escape_latency_s": 0.9516666666666668,
+            "size_at_escape_deg": 80.74509508569601,
+            "short_mode_fraction": 0.8333333333333334,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06323529411764706,
+            "flown_m": 19.229231886069496,
+            "saccades_per_flight_s": 0.5725772065541967,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12333333333333334,
+            "escape_latency_s": 0.8766666666666666,
+            "size_at_escape_deg": 43.56147577055844,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02834507042253521,
+            "flown_m": 18.254572802126045,
+            "saccades_per_flight_s": 0.5642633228840128,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.13333333333333333,
+            "escape_latency_s": 0.8666666666666666,
+            "size_at_escape_deg": 35.709387117033764,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04296116504854369,
+            "flown_m": 18.66933617381163,
+            "saccades_per_flight_s": 0.5931365626323288,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.09833333333333331,
+            "escape_latency_s": 0.9016666666666667,
+            "size_at_escape_deg": 54.97184714173668,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02837465564738292,
+            "flown_m": 18.97834171561802,
+            "saccades_per_flight_s": 0.6451220254397351,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.10999999999999999,
+            "escape_latency_s": 0.89,
+            "size_at_escape_deg": 48.191616087432315,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08387404580152671,
+            "flown_m": 22.089626098715566,
+            "saccades_per_flight_s": 0.6116207951070685,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12833333333333333,
+            "escape_latency_s": 0.8716666666666667,
+            "size_at_escape_deg": 37.374107217075455,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05824949698189135,
+            "flown_m": 22.440218366422886,
+            "saccades_per_flight_s": 0.5051988486166068,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.135,
+            "escape_latency_s": 0.8650000000000001,
+            "size_at_escape_deg": 36.57830127256807,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01846026490066225,
+            "flown_m": 17.864646815423388,
+            "saccades_per_flight_s": 0.7079008938748856,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12,
+            "escape_latency_s": 0.88,
+            "size_at_escape_deg": 45.82441009205309,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06439135381114904,
+            "flown_m": 18.741820552043105,
+            "saccades_per_flight_s": 0.6130790190735216,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1366666666666667,
+            "escape_latency_s": 0.8633333333333333,
+            "size_at_escape_deg": 34.68368142627765,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07567164179104478,
+            "flown_m": 18.626191887616017,
+            "saccades_per_flight_s": 0.43539107448287834,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14500000000000002,
+            "escape_latency_s": 0.855,
+            "size_at_escape_deg": 32.92161482662775,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08238702201622249,
+            "flown_m": 23.839695969160022,
+            "saccades_per_flight_s": 0.5074608832236019,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14,
+            "escape_latency_s": 0.86,
+            "size_at_escape_deg": 35.00690122169626,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.09864376130198915,
+            "flown_m": 23.40712795943349,
+            "saccades_per_flight_s": 0.5708326472364664,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.135,
+            "escape_latency_s": 0.8650000000000001,
+            "size_at_escape_deg": 36.33565548379726,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05100864553314121,
+            "flown_m": 23.883854156931754,
+            "saccades_per_flight_s": 0.5519882843303431,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12666666666666668,
+            "escape_latency_s": 0.8733333333333334,
+            "size_at_escape_deg": 38.71603267412171,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05241796200345423,
+            "flown_m": 20.57314759176578,
+            "saccades_per_flight_s": 0.6162624821683816,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14500000000000002,
+            "escape_latency_s": 0.8549999999999999,
+            "size_at_escape_deg": 32.965802557277975,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08330223880597015,
+            "flown_m": 19.458760094886028,
+            "saccades_per_flight_s": 0.5804813157576681,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.13,
+            "escape_latency_s": 0.87,
+            "size_at_escape_deg": 36.840403196923404,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0851024208566108,
+            "flown_m": 20.264343760521022,
+            "saccades_per_flight_s": 0.6391702846116964,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.11166666666666665,
+            "escape_latency_s": 0.8883333333333333,
+            "size_at_escape_deg": 52.81638068486249,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05119388729703916,
+            "flown_m": 16.78389339531727,
+            "saccades_per_flight_s": 0.7058025110281118,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12666666666666668,
+            "escape_latency_s": 0.8733333333333334,
+            "size_at_escape_deg": 38.51248541435178,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07529812606473595,
+            "flown_m": 18.50035112186873,
+            "saccades_per_flight_s": 0.5691249703581029,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.11666666666666665,
+            "escape_latency_s": 0.8833333333333334,
+            "size_at_escape_deg": 42.07323185676509,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0711971197119712,
+            "flown_m": 15.736105827043048,
+            "saccades_per_flight_s": 0.7752474562192114,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14833333333333334,
+            "escape_latency_s": 0.8516666666666666,
+            "size_at_escape_deg": 32.536428037694755,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.08563714902807776,
+            "flown_m": 16.053492932059566,
+            "saccades_per_flight_s": 0.6112647358462217,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.13,
+            "escape_latency_s": 0.8700000000000001,
+            "size_at_escape_deg": 36.69451258880546,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.008282828282828282,
+            "flown_m": 20.47347193025355,
+            "saccades_per_flight_s": 0.45650832819248066,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.135,
+            "escape_latency_s": 0.8650000000000001,
+            "size_at_escape_deg": 34.81884817931576,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03406156901688183,
+            "flown_m": 22.617482788264258,
+            "saccades_per_flight_s": 0.5002617648770036,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1516666666666667,
+            "escape_latency_s": 0.8483333333333333,
+            "size_at_escape_deg": 31.882200106377837,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0456140350877193,
+            "flown_m": 20.251940232055983,
+            "saccades_per_flight_s": 0.6117908787542344,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.16000000000000003,
+            "escape_latency_s": 0.8399999999999999,
+            "size_at_escape_deg": 29.90288158510937,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.058458646616541356,
+            "flown_m": 21.22422585924776,
+            "saccades_per_flight_s": 0.5208648779601641,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12166666666666666,
+            "escape_latency_s": 0.8783333333333333,
+            "size_at_escape_deg": 43.939939810054994,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.026423200859291084,
+            "flown_m": 23.87891438506194,
+            "saccades_per_flight_s": 0.45523520485587105,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1366666666666667,
+            "escape_latency_s": 0.8633333333333333,
+            "size_at_escape_deg": 35.98197712772381,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.07332695984703633,
+            "flown_m": 15.963921717189718,
+            "saccades_per_flight_s": 0.7097038351302831,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.13166666666666668,
+            "escape_latency_s": 0.8683333333333335,
+            "size_at_escape_deg": 35.73539071951573,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05263157894736842,
+            "flown_m": 19.671210282670103,
+            "saccades_per_flight_s": 0.3826362316928175,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.12666666666666668,
+            "escape_latency_s": 0.8733333333333334,
+            "size_at_escape_deg": 43.27876613934854,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05804878048780488,
+            "flown_m": 21.839138944574298,
+            "saccades_per_flight_s": 0.6482465462275079,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0.0013436920242492563,
+          "mean_difference": 0.0013436920242492563,
+          "sd_difference": 0.007601069937383428,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0.0013436920242492563,
+          "mean_difference": 0.0013436920242492563,
+          "sd_difference": 0.007601069937383428,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 0,
+          "treatment_mean": 0.03125,
+          "mean_difference": 0.03125,
+          "sd_difference": 0.1767766952966369,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.0491739702232046,
+          "treatment_mean": 0.053202855287251084,
+          "mean_difference": 0.004028885064046491,
+          "sd_difference": 0.02832341400362986,
+          "increase": 19,
+          "decrease": 12,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 20.784484511718276,
+          "treatment_mean": 20.140369213460037,
+          "mean_difference": -0.644115298258233,
+          "sd_difference": 2.5686946539769555,
+          "increase": 10,
+          "decrease": 22,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5481803743423007,
+          "treatment_mean": 0.5744169508860897,
+          "mean_difference": 0.02623657654378893,
+          "sd_difference": 0.04723469803920209,
+          "increase": 18,
+          "decrease": 10,
+          "tie": 4,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0,
+          "treatment_mean": 0.00015625,
+          "mean_difference": 0.00015625,
+          "sd_difference": 0.0008838834764831847,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 1,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.08947916666666658,
+          "treatment_mean": 0.12723958333333335,
+          "mean_difference": 0.0377604166666667,
+          "sd_difference": 0.012332093624122471,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "sensory noise of 0.2 (standard deviation 0.12: relative on sizes, distances and light levels, in radians on directions)",
+      "treatment": {
+        "kind": "noisy_sensing",
+        "noise": 0.2
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19166666666666668,
+            "escape_latency_s": 0.8083333333333332,
+            "size_at_escape_deg": 32.966304475035614,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01288723667905824,
+            "flown_m": 21.85111884532494,
+            "saccades_per_flight_s": 0.4708344232278134,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1583333333333333,
+            "escape_latency_s": 0.8416666666666668,
+            "size_at_escape_deg": 44.53898204626975,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.021547502448579822,
+            "flown_m": 23.748025687264224,
+            "saccades_per_flight_s": 0.5915508677940211,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19999999999999998,
+            "escape_latency_s": 0.7999999999999999,
+            "size_at_escape_deg": 32.49043858634823,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04296296296296296,
+            "flown_m": 21.56887116454756,
+            "saccades_per_flight_s": 0.4495159059474745,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.16000000000000003,
+            "escape_latency_s": 0.84,
+            "size_at_escape_deg": 36.38407694172338,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06727688787185354,
+            "flown_m": 18.856380554308576,
+            "saccades_per_flight_s": 0.7481018311747064,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1666666666666667,
+            "escape_latency_s": 0.8333333333333334,
+            "size_at_escape_deg": 36.71558749378814,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02361111111111111,
+            "flown_m": 15.322542134441266,
+            "saccades_per_flight_s": 0.6335493160546306,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.04833333333333326,
+            "escape_latency_s": 0.9516666666666668,
+            "size_at_escape_deg": 80.74509508569601,
+            "short_mode_fraction": 1,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03102517985611511,
+            "flown_m": 19.339314154525606,
+            "saccades_per_flight_s": 0.6437768240343639,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.17666666666666672,
+            "escape_latency_s": 0.8233333333333333,
+            "size_at_escape_deg": 34.33170051014968,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.041545064377682406,
+            "flown_m": 18.74291016795001,
+            "saccades_per_flight_s": 0.6238378021714602,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.20166666666666666,
+            "escape_latency_s": 0.7983333333333333,
+            "size_at_escape_deg": 25.512913798523247,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.044354018311291966,
+            "flown_m": 20.39299317336822,
+            "saccades_per_flight_s": 0.7015384615384737,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.13,
+            "escape_latency_s": 0.8700000000000001,
+            "size_at_escape_deg": 48.41288548768895,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03617998163452709,
+            "flown_m": 18.930214749120506,
+            "saccades_per_flight_s": 0.5790316619440775,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.20000000000000004,
+            "escape_latency_s": 0.7999999999999998,
+            "size_at_escape_deg": 33.70962672695489,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01612595419847328,
+            "flown_m": 22.297394642603827,
+            "saccades_per_flight_s": 0.5407947331295866,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19833333333333333,
+            "escape_latency_s": 0.8016666666666667,
+            "size_at_escape_deg": 25.649769230045578,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.018913676042677012,
+            "flown_m": 21.41090793227765,
+            "saccades_per_flight_s": 0.5339028296850237,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.23000000000000007,
+            "escape_latency_s": 0.77,
+            "size_at_escape_deg": 22.33939110156256,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04312553373185312,
+            "flown_m": 19.755725852202485,
+            "saccades_per_flight_s": 0.7076306168180596,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.20333333333333328,
+            "escape_latency_s": 0.7966666666666667,
+            "size_at_escape_deg": 34.37239190333097,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.018097014925373134,
+            "flown_m": 21.038854420406484,
+            "saccades_per_flight_s": 0.5727979426033438,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.22166666666666668,
+            "escape_latency_s": 0.7783333333333334,
+            "size_at_escape_deg": 21.2673438759749,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0681283422459893,
+            "flown_m": 21.91372883244238,
+            "saccades_per_flight_s": 0.5225104805881431,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.23500000000000001,
+            "escape_latency_s": 0.765,
+            "size_at_escape_deg": 20.51259812111368,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.014020857473928158,
+            "flown_m": 21.163035036090484,
+            "saccades_per_flight_s": 0.4758230452674789,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.22166666666666668,
+            "escape_latency_s": 0.7783333333333333,
+            "size_at_escape_deg": 21.710614148527345,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03074866310160428,
+            "flown_m": 17.879873829523188,
+            "saccades_per_flight_s": 0.5802110980803739,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.25166666666666665,
+            "escape_latency_s": 0.7483333333333334,
+            "size_at_escape_deg": 19.386304263105224,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04909819639278557,
+            "flown_m": 19.538502746404554,
+            "saccades_per_flight_s": 0.5081764284318019,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.20000000000000004,
+            "escape_latency_s": 0.8000000000000002,
+            "size_at_escape_deg": 24.986690040066964,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03180515759312321,
+            "flown_m": 18.748443260009886,
+            "saccades_per_flight_s": 0.5267118133935292,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.21333333333333337,
+            "escape_latency_s": 0.7866666666666667,
+            "size_at_escape_deg": 22.478170591228196,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0230410447761194,
+            "flown_m": 20.492978897617462,
+            "saccades_per_flight_s": 0.5064483834874554,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18333333333333338,
+            "escape_latency_s": 0.8166666666666665,
+            "size_at_escape_deg": 27.1006578366338,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.028,
+            "flown_m": 19.427018185665318,
+            "saccades_per_flight_s": 0.5567338282078187,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14333333333333334,
+            "escape_latency_s": 0.8566666666666666,
+            "size_at_escape_deg": 46.535135700205906,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.030945558739255013,
+            "flown_m": 16.51671183124797,
+            "saccades_per_flight_s": 0.6530285866595219,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19833333333333333,
+            "escape_latency_s": 0.8016666666666667,
+            "size_at_escape_deg": 25.324885159421243,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.10584652862362973,
+            "flown_m": 14.181287614302711,
+            "saccades_per_flight_s": 0.6347139718446051,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.23166666666666666,
+            "escape_latency_s": 0.7683333333333334,
+            "size_at_escape_deg": 24.5567927819037,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.00897119341563786,
+            "flown_m": 17.908675768964066,
+            "saccades_per_flight_s": 0.6392473766735238,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19666666666666666,
+            "escape_latency_s": 0.8033333333333333,
+            "size_at_escape_deg": 25.900395020401536,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06405919661733615,
+            "flown_m": 19.6261205105248,
+            "saccades_per_flight_s": 0.5726556907659075,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18833333333333335,
+            "escape_latency_s": 0.8116666666666669,
+            "size_at_escape_deg": 26.864091139639658,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.06038562664329535,
+            "flown_m": 22.064619752319288,
+            "saccades_per_flight_s": 0.5417607223476792,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.21000000000000008,
+            "escape_latency_s": 0.7899999999999999,
+            "size_at_escape_deg": 22.18271988778649,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.029287863590772317,
+            "flown_m": 22.70941400665432,
+            "saccades_per_flight_s": 0.48331958033717143,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18000000000000005,
+            "escape_latency_s": 0.8199999999999998,
+            "size_at_escape_deg": 26.59506550783632,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05119617224880383,
+            "flown_m": 22.53018701437784,
+            "saccades_per_flight_s": 0.5455712451862093,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.19333333333333338,
+            "escape_latency_s": 0.8066666666666666,
+            "size_at_escape_deg": 25.123458883347812,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.037142857142857144,
+            "flown_m": 17.15238607702417,
+            "saccades_per_flight_s": 0.40516206482585815,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.1466666666666667,
+            "escape_latency_s": 0.8533333333333334,
+            "size_at_escape_deg": 38.25314804970002,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.019978517722878626,
+            "flown_m": 22.172237252382942,
+            "saccades_per_flight_s": 0.47199105701155564,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.18833333333333335,
+            "escape_latency_s": 0.8116666666666666,
+            "size_at_escape_deg": 25.95565861982345,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.036473880597014924,
+            "flown_m": 17.968852289523962,
+            "saccades_per_flight_s": 0.6182965299684511,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.22999999999999998,
+            "escape_latency_s": 0.77,
+            "size_at_escape_deg": 22.159351168679922,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.017797695262483995,
+            "flown_m": 18.75833072970308,
+            "saccades_per_flight_s": 0.38215624311010427,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.22999999999999998,
+            "escape_latency_s": 0.77,
+            "size_at_escape_deg": 30.03380678569364,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02284023668639053,
+            "flown_m": 16.459441794152195,
+            "saccades_per_flight_s": 0.5130597014924257,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.0491739702232046,
+          "treatment_mean": 0.035856866032045756,
+          "mean_difference": -0.013317104191158844,
+          "sd_difference": 0.03638614980537455,
+          "increase": 10,
+          "decrease": 22,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 20.784484511718276,
+          "treatment_mean": 19.70209684085225,
+          "mean_difference": -1.0823876708660194,
+          "sd_difference": 2.8151622070854008,
+          "increase": 11,
+          "decrease": 21,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5481803743423007,
+          "treatment_mean": 0.5604512832438328,
+          "mean_difference": 0.012270908901532247,
+          "sd_difference": 0.06792229859047166,
+          "increase": 16,
+          "decrease": 16,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 1,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.08947916666666658,
+          "treatment_mean": 0.19151041666666668,
+          "mean_difference": 0.10203125000000003,
+          "sd_difference": 0.031032802551967328,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions)",
+      "treatment": {
+        "kind": "noisy_sensing",
+        "noise": 0.4
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4100000000000001,
+            "escape_latency_s": 0.59,
+            "size_at_escape_deg": 24.751900931554392,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.00040053404539385846,
+            "flown_m": 19.759095800020287,
+            "saccades_per_flight_s": 0.4398722951400682,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.36499999999999994,
+            "escape_latency_s": 0.635,
+            "size_at_escape_deg": 26.483802328281307,
+            "short_mode_fraction": 0.2,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.030166503428011752,
+            "flown_m": 22.708698900984224,
+            "saccades_per_flight_s": 0.6259246614317133,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.31166666666666665,
+            "escape_latency_s": 0.6883333333333335,
+            "size_at_escape_deg": 27.335182773552802,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.01662781662781663,
+            "flown_m": 23.296787448931514,
+            "saccades_per_flight_s": 0.5861419300817295,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.32166666666666666,
+            "escape_latency_s": 0.6783333333333333,
+            "size_at_escape_deg": 26.341212574542922,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0288135593220339,
+            "flown_m": 22.27984666695886,
+            "saccades_per_flight_s": 0.6709451575263916,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.3383333333333334,
+            "escape_latency_s": 0.6616666666666666,
+            "size_at_escape_deg": 28.460257030784202,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.024972253052164262,
+            "flown_m": 18.606164035460843,
+            "saccades_per_flight_s": 0.5022056328469257,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.07499999999999991,
+            "escape_latency_s": 0.9250000000000002,
+            "size_at_escape_deg": 77.59764144514084,
+            "short_mode_fraction": 0.8333333333333334,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.028327338129496404,
+            "flown_m": 21.39204092144321,
+            "saccades_per_flight_s": 0.6467718143651987,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.29,
+            "escape_latency_s": 0.71,
+            "size_at_escape_deg": 26.409197426952712,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.015294117647058824,
+            "flown_m": 20.81270257994544,
+            "saccades_per_flight_s": 0.6805660581182669,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4516666666666666,
+            "escape_latency_s": 0.5483333333333335,
+            "size_at_escape_deg": 11.529645434765664,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.024382470119521913,
+            "flown_m": 25.45859330220955,
+            "saccades_per_flight_s": 0.6726346505763202,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.2816666666666666,
+            "escape_latency_s": 0.7183333333333334,
+            "size_at_escape_deg": 40.18519041514554,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.027394957983193278,
+            "flown_m": 22.159835901778585,
+            "saccades_per_flight_s": 0.5725087766676392,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.28833333333333333,
+            "escape_latency_s": 0.7116666666666666,
+            "size_at_escape_deg": 27.362983125687336,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.016253716551040635,
+            "flown_m": 23.014555210853086,
+            "saccades_per_flight_s": 0.5879586077140505,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4283333333333334,
+            "escape_latency_s": 0.5716666666666667,
+            "size_at_escape_deg": 11.970084828437587,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03308395677472984,
+            "flown_m": 22.707789377598726,
+            "saccades_per_flight_s": 0.5916523235801112,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.46833333333333327,
+            "escape_latency_s": 0.5316666666666667,
+            "size_at_escape_deg": 10.676740214716895,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.014822695035460992,
+            "flown_m": 25.052842786862293,
+            "saccades_per_flight_s": 0.6545247581105607,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.22999999999999998,
+            "escape_latency_s": 0.77,
+            "size_at_escape_deg": 33.281521342691356,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.05079840319361278,
+            "flown_m": 19.251189995727685,
+            "saccades_per_flight_s": 0.6064907413381352,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4566666666666666,
+            "escape_latency_s": 0.5433333333333333,
+            "size_at_escape_deg": 10.936754876126683,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.033847980997624705,
+            "flown_m": 19.678058792499225,
+            "saccades_per_flight_s": 0.5449972051424813,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.3916666666666666,
+            "escape_latency_s": 0.6083333333333334,
+            "size_at_escape_deg": 12.39458805688448,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.017492984097287185,
+            "flown_m": 26.38629815162319,
+            "saccades_per_flight_s": 0.44800000000006107,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4183333333333333,
+            "escape_latency_s": 0.5816666666666667,
+            "size_at_escape_deg": 11.979965113707303,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.193964308416295,
+            "saccades_per_flight_s": 0.4891725824733261,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.42333333333333334,
+            "escape_latency_s": 0.5766666666666667,
+            "size_at_escape_deg": 11.518149349897827,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.016848816029143898,
+            "flown_m": 20.324499546880826,
+            "saccades_per_flight_s": 0.6133493686109672,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.3383333333333334,
+            "escape_latency_s": 0.6616666666666667,
+            "size_at_escape_deg": 15.987661669692583,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.033933393339333935,
+            "flown_m": 17.83553022888948,
+            "saccades_per_flight_s": 0.640462137385407,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.38999999999999996,
+            "escape_latency_s": 0.61,
+            "size_at_escape_deg": 13.420787872252092,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.003078358208955224,
+            "flown_m": 20.52727054267726,
+            "saccades_per_flight_s": 0.481757828564742,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.3433333333333333,
+            "escape_latency_s": 0.6566666666666667,
+            "size_at_escape_deg": 15.97883654279259,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.007990867579908675,
+            "flown_m": 19.758906000504513,
+            "saccades_per_flight_s": 0.5194805194804903,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.27333333333333326,
+            "escape_latency_s": 0.7266666666666667,
+            "size_at_escape_deg": 38.65252065399702,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.00977859778597786,
+            "flown_m": 18.521071932422466,
+            "saccades_per_flight_s": 0.6066608889439221,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4133333333333334,
+            "escape_latency_s": 0.5866666666666666,
+            "size_at_escape_deg": 11.691578955304392,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.02839090143218197,
+            "flown_m": 18.78601978790542,
+            "saccades_per_flight_s": 0.49212021793898325,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.3716666666666666,
+            "escape_latency_s": 0.6283333333333334,
+            "size_at_escape_deg": 18.866372237470227,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.013094367227505486,
+            "flown_m": 21.362596883334877,
+            "saccades_per_flight_s": 0.6955257967404809,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4216666666666667,
+            "escape_latency_s": 0.5783333333333333,
+            "size_at_escape_deg": 11.30891991816092,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.007692307692307693,
+            "flown_m": 20.21195304302087,
+            "saccades_per_flight_s": 0.6002604904015482,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.43500000000000005,
+            "escape_latency_s": 0.565,
+            "size_at_escape_deg": 14.849299474416938,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.014524421593830335,
+            "flown_m": 18.203400937752708,
+            "saccades_per_flight_s": 0.5411730291062516,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.41,
+            "escape_latency_s": 0.59,
+            "size_at_escape_deg": 12.03994670353555,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.03316782522343595,
+            "flown_m": 22.930906770653152,
+            "saccades_per_flight_s": 0.5153163469797145,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4483333333333334,
+            "escape_latency_s": 0.5516666666666667,
+            "size_at_escape_deg": 11.015466739095551,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.012372748629600626,
+            "flown_m": 20.753154534574904,
+            "saccades_per_flight_s": 0.6211518552825894,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.535,
+            "escape_latency_s": 0.465,
+            "size_at_escape_deg": 8.707846506761145,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.011666666666666667,
+            "flown_m": 19.866741819136706,
+            "saccades_per_flight_s": 0.5618711616359385,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.4050000000000001,
+            "escape_latency_s": 0.595,
+            "size_at_escape_deg": 12.27805463658479,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.061180904522613065,
+            "flown_m": 19.9936904062057,
+            "saccades_per_flight_s": 0.47889443798313086,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.34833333333333333,
+            "escape_latency_s": 0.6516666666666667,
+            "size_at_escape_deg": 17.532246451150275,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.0023941068139963165,
+            "flown_m": 17.45881340075948,
+            "saccades_per_flight_s": 0.5838304353344271,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4766666666666666,
+            "escape_latency_s": 0.5233333333333333,
+            "size_at_escape_deg": 10.381240296768087,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 19.236675664052548,
+            "saccades_per_flight_s": 0.47547547547547664,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.48166666666666674,
+            "escape_latency_s": 0.5183333333333334,
+            "size_at_escape_deg": 21.936997149742563,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 1,
+            "collision_episodes_per_m": 0.052919657843052595,
+            "cruise_collision_episodes_per_m": 0.052919657843052595,
+            "near_miss_fraction": 0.039511201629327905,
+            "flown_m": 18.89656964460669,
+            "saccades_per_flight_s": 0.6067647818228603,
+            "contact_s": 0.005
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0.0016537393075953936,
+          "mean_difference": 0.0016537393075953936,
+          "sd_difference": 0.009354962229723589,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0.0016537393075953936,
+          "mean_difference": 0.0016537393075953936,
+          "sd_difference": 0.009354962229723589,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 0,
+          "treatment_mean": 0.03125,
+          "mean_difference": 0.03125,
+          "sd_difference": 0.1767766952966369,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.0491739702232046,
+          "treatment_mean": 0.020572024105601015,
+          "mean_difference": -0.02860194611760359,
+          "sd_difference": 0.029566655194943548,
+          "increase": 4,
+          "decrease": 28,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 20.784484511718276,
+          "treatment_mean": 20.857070791396577,
+          "mean_difference": 0.07258627967831344,
+          "sd_difference": 2.381430233839704,
+          "increase": 15,
+          "decrease": 17,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5481803743423007,
+          "treatment_mean": 0.5735769364624972,
+          "mean_difference": 0.025396562120196628,
+          "sd_difference": 0.06842379982547922,
+          "increase": 23,
+          "decrease": 9,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0,
+          "treatment_mean": 0.00015625,
+          "mean_difference": 0.00015625,
+          "sd_difference": 0.0008838834764831844,
+          "increase": 1,
+          "decrease": 0,
+          "tie": 31,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 0.9895833333333334,
+          "mean_difference": -0.010416666666666664,
+          "sd_difference": 0.04098911473649705,
+          "increase": 0,
+          "decrease": 2,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.08947916666666658,
+          "treatment_mean": 0.3763020833333333,
+          "mean_difference": 0.28682291666666665,
+          "sd_difference": 0.0823178551632259,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "sensory noise of 0.8 (standard deviation 0.46: relative on sizes, distances and light levels, in radians on directions)",
+      "treatment": {
+        "kind": "noisy_sensing",
+        "noise": 0.8
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5900000000000001,
+            "escape_latency_s": 0.41,
+            "size_at_escape_deg": 22.878975436919465,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.95638225186404,
+            "saccades_per_flight_s": 1.2102874432677226,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.611,
+            "escape_latency_s": 0.389,
+            "size_at_escape_deg": 22.87491322488379,
+            "short_mode_fraction": 0.2,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 18.06998099792011,
+            "saccades_per_flight_s": 1.5368309485955762,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5,
+            "escape_latency_s": 0.5,
+            "size_at_escape_deg": 24.771276636610782,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.004437140509449466,
+            "flown_m": 20.04597132127002,
+            "saccades_per_flight_s": 1.6877159200318648,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5499999999999999,
+            "escape_latency_s": 0.45,
+            "size_at_escape_deg": 23.08579495823055,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.011975591151792525,
+            "flown_m": 24.65015865600168,
+            "saccades_per_flight_s": 1.5879974669982282,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5599999999999999,
+            "escape_latency_s": 0.44,
+            "size_at_escape_deg": 25.619211291379198,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.04783068783068783,
+            "flown_m": 17.60104380469084,
+            "saccades_per_flight_s": 1.5080888401424557,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.14333333333333328,
+            "escape_latency_s": 0.8566666666666668,
+            "size_at_escape_deg": 76.08419035056427,
+            "short_mode_fraction": 0.8333333333333334,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.007284172661870504,
+            "flown_m": 18.79222404061173,
+            "saccades_per_flight_s": 1.7011081162025257,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.6166666666666666,
+            "escape_latency_s": 0.3833333333333333,
+            "size_at_escape_deg": 20.991159084849574,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 22.290437298101352,
+            "saccades_per_flight_s": 1.650703077236883,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7983333333333332,
+            "escape_latency_s": 0.2016666666666667,
+            "size_at_escape_deg": 5.778043189905522,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 22.547257600983926,
+            "saccades_per_flight_s": 1.5176715176717543,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.4566666666666666,
+            "escape_latency_s": 0.5433333333333333,
+            "size_at_escape_deg": 38.14978004050143,
+            "short_mode_fraction": 0.5,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 18.892904986550846,
+            "saccades_per_flight_s": 1.5534953645702851,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.585,
+            "escape_latency_s": 0.41500000000000004,
+            "size_at_escape_deg": 22.928645824743594,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 18.49089874282761,
+            "saccades_per_flight_s": 1.4588494357279198,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.8116666666666666,
+            "escape_latency_s": 0.18833333333333335,
+            "size_at_escape_deg": 5.759127181002117,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.003976311336717428,
+            "flown_m": 25.086223453555288,
+            "saccades_per_flight_s": 1.3403056302992629,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.755,
+            "escape_latency_s": 0.24500000000000002,
+            "size_at_escape_deg": 6.137287784406653,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.08092539302332,
+            "saccades_per_flight_s": 1.5671641791046917,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.425,
+            "escape_latency_s": 0.5750000000000001,
+            "size_at_escape_deg": 29.38041253976733,
+            "short_mode_fraction": 0.6666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.42045740376794,
+            "saccades_per_flight_s": 1.407494289770994,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7433333333333333,
+            "escape_latency_s": 0.25666666666666665,
+            "size_at_escape_deg": 6.300643769750127,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.264739889940575,
+            "saccades_per_flight_s": 1.1986189824766698,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7916666666666666,
+            "escape_latency_s": 0.20833333333333334,
+            "size_at_escape_deg": 5.872569849293481,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 22.42169923357364,
+            "saccades_per_flight_s": 1.1449698849067245,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.8583333333333334,
+            "escape_latency_s": 0.1416666666666667,
+            "size_at_escape_deg": 5.367869706311956,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 16.73936486237325,
+            "saccades_per_flight_s": 1.6057312252964653,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.84,
+            "escape_latency_s": 0.16000000000000003,
+            "size_at_escape_deg": 5.481037299543566,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.443480915404123,
+            "saccades_per_flight_s": 1.557892394146936,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.6266666666666668,
+            "escape_latency_s": 0.3733333333333333,
+            "size_at_escape_deg": 11.401949249997024,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.74109373852907,
+            "saccades_per_flight_s": 1.558717600519656,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.63,
+            "escape_latency_s": 0.36999999999999994,
+            "size_at_escape_deg": 9.596043527761454,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 21.581045544670225,
+            "saccades_per_flight_s": 1.5176212691811901,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7566666666666667,
+            "escape_latency_s": 0.24333333333333332,
+            "size_at_escape_deg": 10.089588919935181,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.757249818687907,
+            "saccades_per_flight_s": 1.5661252900233091,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5233333333333333,
+            "escape_latency_s": 0.47666666666666674,
+            "size_at_escape_deg": 34.05305539542873,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 18.045274364122996,
+            "saccades_per_flight_s": 1.7568474348807859,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.71,
+            "escape_latency_s": 0.29000000000000004,
+            "size_at_escape_deg": 6.567622183498215,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 23.135168235627255,
+            "saccades_per_flight_s": 1.5811899994868879,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.665,
+            "escape_latency_s": 0.33499999999999996,
+            "size_at_escape_deg": 14.354780897546808,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 13.490874632964665,
+            "saccades_per_flight_s": 1.5464403583212936,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7866666666666667,
+            "escape_latency_s": 0.21333333333333335,
+            "size_at_escape_deg": 6.063717607019716,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 17.169172718738867,
+            "saccades_per_flight_s": 1.4189638607639414,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.6933333333333334,
+            "escape_latency_s": 0.3066666666666667,
+            "size_at_escape_deg": 11.540696255216048,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.33426934348681,
+            "saccades_per_flight_s": 1.2645590682195638,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.85,
+            "escape_latency_s": 0.15000000000000002,
+            "size_at_escape_deg": 5.4194957894602735,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 19.973389933919062,
+            "saccades_per_flight_s": 1.4610879671557584,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.8266666666666667,
+            "escape_latency_s": 0.17333333333333334,
+            "size_at_escape_deg": 5.584401809079562,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 19.537808628895316,
+            "saccades_per_flight_s": 1.7495343981038902,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.8333333333333334,
+            "escape_latency_s": 0.16666666666666666,
+            "size_at_escape_deg": 5.605370881426395,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0.001636520241171404,
+            "flown_m": 19.797743122425924,
+            "saccades_per_flight_s": 1.5099198220870589,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "escape_probability": 0.8333333333333334,
+            "escape_ttc_s": 0.8370000000000001,
+            "escape_latency_s": 0.16299999999999998,
+            "size_at_escape_deg": 5.525778539175876,
+            "short_mode_fraction": 0,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.503165264963556,
+            "saccades_per_flight_s": 1.3563962170234047,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.5949999999999999,
+            "escape_latency_s": 0.405,
+            "size_at_escape_deg": 12.845251401285674,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 15.95434305895277,
+            "saccades_per_flight_s": 1.5935730277886808,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7566666666666667,
+            "escape_latency_s": 0.24333333333333332,
+            "size_at_escape_deg": 6.175482343270652,
+            "short_mode_fraction": 0.16666666666666666,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 19.968552417165835,
+            "saccades_per_flight_s": 1.3981725639296294,
+            "contact_s": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "escape_probability": 1,
+            "escape_ttc_s": 0.7233333333333333,
+            "escape_latency_s": 0.27666666666666667,
+            "size_at_escape_deg": 19.450896192542384,
+            "short_mode_fraction": 0.3333333333333333,
+            "collision_episodes": 0,
+            "collision_episodes_per_m": 0,
+            "cruise_collision_episodes_per_m": 0,
+            "near_miss_fraction": 0,
+            "flown_m": 20.85565241652891,
+            "saccades_per_flight_s": 1.5930169121660371,
+            "contact_s": 0
+          }
+        }
+      ],
+      "metrics": {
+        "collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "cruise_collision_episodes_per_m": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "collision_episodes": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "near_miss_fraction": {
+          "control_mean": 0.0491739702232046,
+          "treatment_mean": 0.0024106382416152865,
+          "mean_difference": -0.046763331981589315,
+          "sd_difference": 0.027359872025443068,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "flown_m": {
+          "control_mean": 20.784484511718276,
+          "treatment_mean": 20.01996731537935,
+          "mean_difference": -0.7645171963389105,
+          "sd_difference": 2.4511185406343134,
+          "increase": 11,
+          "decrease": 21,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "saccades_per_flight_s": {
+          "control_mean": 0.5481803743423007,
+          "treatment_mean": 1.5033465783155633,
+          "mean_difference": 0.9551662039732634,
+          "sd_difference": 0.12306861595450956,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "contact_s": {
+          "control_mean": 0,
+          "treatment_mean": 0,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 32,
+          "control_at_ceiling": 0
+        },
+        "escape_probability": {
+          "control_mean": 1,
+          "treatment_mean": 0.9895833333333334,
+          "mean_difference": -0.010416666666666664,
+          "sd_difference": 0.04098911473649705,
+          "increase": 0,
+          "decrease": 2,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 32
+        },
+        "escape_ttc_s": {
+          "control_mean": 0.08947916666666658,
+          "treatment_mean": 0.6703020833333333,
+          "mean_difference": 0.5808229166666665,
+          "sd_difference": 0.14908129615382085,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733944,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0730310262529833,
+          "flown_m": 13.015793593118786,
+          "saccades_per_flight_s": 0.6050928649465123,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04956268221574344,
+          "flown_m": 22.04248221051624,
+          "saccades_per_flight_s": 0.7185628742515268,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04673097534833869,
+          "flown_m": 19.117921708676104,
+          "saccades_per_flight_s": 0.42678047479325376,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.032757130509939496,
+          "flown_m": 20.21762756752007,
+          "saccades_per_flight_s": 0.7139457401237841,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0541991341991342,
+          "flown_m": 23.15031329634671,
+          "saccades_per_flight_s": 0.5628924009526574,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0883333333333333,
+          "escape_latency_s": 0.9116666666666667,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04233128834355828,
+          "flown_m": 19.417730485608843,
+          "saccades_per_flight_s": 0.5368098159509112,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733944,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05333333333333334,
+          "flown_m": 18.166140177150957,
+          "saccades_per_flight_s": 0.5490734385723014,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.020029784065524945,
+          "flown_m": 25.17081924233846,
+          "saccades_per_flight_s": 0.5019789554977402,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.915,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04759238521836506,
+          "flown_m": 20.099961729284193,
+          "saccades_per_flight_s": 0.40483186418542405,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.07666666666666662,
+          "escape_latency_s": 0.9233333333333333,
+          "size_at_escape_deg": 63.20141649382262,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.07533385703063629,
+          "flown_m": 23.629467484481815,
+          "saccades_per_flight_s": 0.6436542953543705,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0833333333333333,
+          "escape_latency_s": 0.9166666666666669,
+          "size_at_escape_deg": 57.558912139106944,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05087719298245614,
+          "flown_m": 16.934056173734735,
+          "saccades_per_flight_s": 0.5681818181817777,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.915,
+          "size_at_escape_deg": 56.50177061727826,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.048498635122838946,
+          "flown_m": 20.541376505273355,
+          "saccades_per_flight_s": 0.5613050342045602,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0608875128998968,
+          "flown_m": 22.72148428402754,
+          "saccades_per_flight_s": 0.5201867943489071,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0883333333333333,
+          "escape_latency_s": 0.9116666666666667,
+          "size_at_escape_deg": 56.50177061727829,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0534102833158447,
+          "flown_m": 15.624402293321312,
+          "saccades_per_flight_s": 0.6927906473261664,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06542904290429043,
+          "flown_m": 26.17453883613202,
+          "saccades_per_flight_s": 0.4431751034076108,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073395,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0757094211123723,
+          "flown_m": 16.42299121474239,
+          "saccades_per_flight_s": 0.5776590367534769,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0833333333333333,
+          "escape_latency_s": 0.9166666666666669,
+          "size_at_escape_deg": 56.50177061727828,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.02702394526795895,
+          "flown_m": 17.491938398156034,
+          "saccades_per_flight_s": 0.6722689075629245,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08499999999999996,
+          "escape_latency_s": 0.915,
+          "size_at_escape_deg": 56.501770617278275,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.049565217391304345,
+          "flown_m": 24.643115488136807,
+          "saccades_per_flight_s": 0.5679603541400435,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 1,
+          "collision_episodes_per_m": 0.05253876663533592,
+          "cruise_collision_episodes_per_m": 0.05253876663533592,
+          "near_miss_fraction": 0.0362533692722372,
+          "flown_m": 19.033564433304214,
+          "saccades_per_flight_s": 0.37995031418962594,
+          "contact_s": 0.005
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.029023508137432187,
+          "flown_m": 19.872620452302318,
+          "saccades_per_flight_s": 0.49721794720021495,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09333333333333331,
+          "escape_latency_s": 0.9066666666666667,
+          "size_at_escape_deg": 50.85926626256259,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.0374869109947644,
+          "flown_m": 22.36809462249404,
+          "saccades_per_flight_s": 0.4827419744146921,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.07066541705716964,
+          "flown_m": 22.303883392918458,
+          "saccades_per_flight_s": 0.4683038263849611,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.035398230088495575,
+          "flown_m": 22.249551687120377,
+          "saccades_per_flight_s": 0.4421901417609425,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08999999999999997,
+          "escape_latency_s": 0.9100000000000001,
+          "size_at_escape_deg": 54.161728098895615,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.02100567721005677,
+          "flown_m": 22.944474286142658,
+          "saccades_per_flight_s": 0.47780845190068266,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.04940577249575552,
+          "flown_m": 16.003631520267167,
+          "saccades_per_flight_s": 0.7395800689439054,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.07499999999999996,
+          "escape_latency_s": 0.9250000000000002,
+          "size_at_escape_deg": 63.20141649382265,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.05688622754491018,
+          "flown_m": 24.353201105279453,
+          "saccades_per_flight_s": 0.5313607001459457,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073392,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.044639865996649916,
+          "flown_m": 21.92506603389809,
+          "saccades_per_flight_s": 0.5025125628141295,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733944,
+          "short_mode_fraction": 0,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0,
+          "flown_m": 12.32774334382748,
+          "saccades_per_flight_s": 0.5362828892239572,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08666666666666663,
+          "escape_latency_s": 0.9133333333333334,
+          "size_at_escape_deg": 56.50177061727826,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.006719022687609075,
+          "flown_m": 19.45452699911157,
+          "saccades_per_flight_s": 0.6575471144249782,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08999999999999997,
+          "escape_latency_s": 0.9100000000000001,
+          "size_at_escape_deg": 54.16172809889563,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06986301369863014,
+          "flown_m": 21.675665356748638,
+          "saccades_per_flight_s": 0.7715566677094294,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08166666666666662,
+          "escape_latency_s": 0.9183333333333334,
+          "size_at_escape_deg": 60.86137397543994,
+          "short_mode_fraction": 0.3333333333333333,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.07614761476147615,
+          "flown_m": 22.321815888322867,
+          "saccades_per_flight_s": 0.6630086877000994,
+          "contact_s": 0
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08999999999999997,
+          "escape_latency_s": 0.91,
+          "size_at_escape_deg": 54.16172809889562,
+          "short_mode_fraction": 0.16666666666666666,
+          "collision_episodes": 0,
+          "collision_episodes_per_m": 0,
+          "cruise_collision_episodes_per_m": 0,
+          "near_miss_fraction": 0.06705336426914153,
+          "flown_m": 22.1711858183433,
+          "saccades_per_flight_s": 0.4789024074553318,
+          "contact_s": 0
+        }
+      }
+    ],
+    "metrics": {
+      "collision_episodes_per_m": {
+        "control_mean": 0,
+        "treatment_mean": 0.0016418364573542476,
+        "mean_difference": 0.0016418364573542476,
+        "sd_difference": 0.009287629540755895,
+        "increase": 1,
+        "decrease": 0,
+        "tie": 31,
+        "undefined": 0,
+        "control_at_floor": 32,
+        "control_at_ceiling": 0
+      },
+      "cruise_collision_episodes_per_m": {
+        "control_mean": 0,
+        "treatment_mean": 0.0016418364573542476,
+        "mean_difference": 0.0016418364573542476,
+        "sd_difference": 0.009287629540755895,
+        "increase": 1,
+        "decrease": 0,
+        "tie": 31,
+        "undefined": 0,
+        "control_at_floor": 32,
+        "control_at_ceiling": 0
+      },
+      "collision_episodes": {
+        "control_mean": 0,
+        "treatment_mean": 0.03125,
+        "mean_difference": 0.03125,
+        "sd_difference": 0.1767766952966369,
+        "increase": 1,
+        "decrease": 0,
+        "tie": 31,
+        "undefined": 0,
+        "control_at_floor": 32,
+        "control_at_ceiling": 0
+      },
+      "near_miss_fraction": {
+        "control_mean": 0.0491739702232046,
+        "treatment_mean": 0.04771408880402651,
+        "mean_difference": -0.0014598814191781066,
+        "sd_difference": 0.033726112348537486,
+        "increase": 18,
+        "decrease": 14,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "flown_m": {
+        "control_mean": 20.784484511718276,
+        "treatment_mean": 20.424599550895216,
+        "mean_difference": -0.35988496082304966,
+        "sd_difference": 3.908959314195091,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "saccades_per_flight_s": {
+        "control_mean": 0.5481803743423007,
+        "treatment_mean": 0.5592535679632139,
+        "mean_difference": 0.011073193620913347,
+        "sd_difference": 0.15442963407767385,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "contact_s": {
+        "control_mean": 0,
+        "treatment_mean": 0.00015625,
+        "mean_difference": 0.00015625,
+        "sd_difference": 0.0008838834764831845,
+        "increase": 1,
+        "decrease": 0,
+        "tie": 31,
+        "undefined": 0,
+        "control_at_floor": 32,
+        "control_at_ceiling": 0
+      },
+      "escape_probability": {
+        "control_mean": 1,
+        "treatment_mean": 1,
+        "mean_difference": 0,
+        "sd_difference": 0,
+        "increase": 0,
+        "decrease": 0,
+        "tie": 32,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 32
+      },
+      "escape_ttc_s": {
+        "control_mean": 0.08947916666666658,
+        "treatment_mean": 0.09026041666666662,
+        "mean_difference": 0.0007812500000000011,
+        "sd_difference": 0.01175454137053171,
+        "increase": 11,
+        "decrease": 10,
+        "tie": 11,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "escape_ttc_s",
+    "direction": "increase",
+    "treatment": {
+      "kind": "noisy_sensing",
+      "noise": 0.4
+    },
+    "outcomes": {
+      "expected": 32,
+      "opposite": 0,
+      "uninformative": 0
+    },
+    "seed_count": 9,
+    "pass_probability": 0.9272,
+    "minimum_effect": 0.23,
+    "host_minimum_effect": 0.02,
+    "design_minimum_effect": 0.23,
+    "s1_probability": 0.9663,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "near_miss_fraction",
+      "resolution": 0,
+      "divergence_bound": 0.023847962744710214,
+      "floor": 0.03,
+      "host_minimum_effect": 0.08
+    },
+    {
+      "metric": "escape_ttc_s",
+      "resolution": 0.01,
+      "divergence_bound": 0.008311715912840786,
+      "floor": 0.01,
+      "host_minimum_effect": 0.02
+    }
+  ],
+  "runs_sha256": "18f56246cf648cb218b71fef96e06d003c1d9c23122a31219634d9f6704b0c0c",
+  "outputs_sha256": "0a6be334925daa0b9d17ee2570df8b9ca96eeaeee0511d668d7b84c3345dc709",
+  "generated_at": "2026-10-24T02:07:22.382Z",
+  "sha256": "f679139c1a4bdcef81f62367eaee2786f9d0a0a518ac25406744608987ead8e6"
+}

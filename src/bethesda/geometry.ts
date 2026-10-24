@@ -12,7 +12,6 @@ import {
 import {
   bounds,
   buildings,
-  buildingAt,
   crossings,
   distance,
   lerp,
@@ -26,7 +25,7 @@ import {
 import { groundAt } from "./terrain";
 import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
 import { signalRigs } from "./signals";
-import { STREET_TREE, streetTrees } from "./furniture";
+import { awnings, rooftopUnit, STREET_TREE, streetTrees } from "./furniture";
 function texture(style: "brick" | "stone" | "glass") {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -319,25 +318,11 @@ export function createCityGeometry() {
       add(s, m);
     }
     g.dispose();
-    if (b.height > 14 && buildingAt(b.center)?.id === b.id)
-      box(b.center, b.height + 0.6, 3.5, 1.2, 2.5, metal);
+    // Rooftop units and awnings are placed in `furniture.ts`, which the fly's world reads too.
+    const unit = rooftopUnit(b);
+    if (unit) box(unit.point, unit.y, unit.w, unit.h, unit.d, metal, unit.angle);
     if (detailed) detailBuilding(b, { add, box }, detail);
-    if (!detailed && b.height < 18 && !["house", "detached"].includes(b.type))
-      for (let i = 1; i < b.ring.length; i++) {
-        const a = b.ring[i - 1]!,
-          e = b.ring[i]!,
-          d = distance(a, e);
-        if (d > 10 && d < 65)
-          box(
-            lerp(a, e, 0.5),
-            3.3,
-            d * 0.65,
-            0.18,
-            1.2,
-            metal,
-            Math.atan2(e.x - a.x, e.z - a.z) + Math.PI / 2,
-          );
-      }
+    for (const a of awnings(b)) box(a.point, a.y, a.w, a.h, a.d, metal, a.angle);
   }
   buildingBase = null;
   for (const { point: p, trunkHeight: h, close, crowns } of streetTrees()) {

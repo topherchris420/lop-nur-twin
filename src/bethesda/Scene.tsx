@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -25,7 +25,10 @@ import { buildingClass, EVIDENCE_TINT, type EvidenceClassification } from "./evi
 import { groundAt, minimumGround } from "./terrain";
 import { LookDrag, type Stick } from "./walkInput";
 import { canRender } from "./webgl";
-import { FlyView, type FlyViewControl } from "./fly/FlyView";
+import type { FlyViewControl } from "./fly/FlyView";
+
+/** The fly's drawing (FlyBody's skeleton and the leg solver) loads with the fly. */
+const FlyView = lazy(() => import("./fly/FlyView").then((m) => ({ default: m.FlyView })));
 export interface ViewControl {
   mode: "orbit" | "walk" | "seat";
   target: Point;
@@ -445,7 +448,11 @@ export function CityScene({ sim, view }: { sim: CitySimulation; view: ViewContro
       <EvidenceCity view={view} />
       <LabDoor />
       <CityPresence read={() => view.presence?.() ?? NO_MARKS} />
-      {view.fly ? <FlyView control={view.fly} /> : null}
+      {view.fly ? (
+        <Suspense fallback={null}>
+          <FlyView control={view.fly} />
+        </Suspense>
+      ) : null}
       <Camera sim={sim} view={view} />
     </Canvas>
   );

@@ -1019,8 +1019,8 @@ digest from what is stored and reports any edit.
 
 The digital fly (`src/bethesda/fly/`, described in `docs/DIGITAL_FLY.md`) is a
 fourth experiment substrate beside the city, the oscillator and Noeterra:
-`digital-fly-behavior/v2` in `src/rain/scientific/fly.ts`. A
-`rain-fly-design/v2` is a closed object naming one of six protocols and how
+`digital-fly-behavior/v3` in `src/rain/scientific/fly.ts`. A
+`rain-fly-design/v3` is a closed object naming one of six protocols and how
 many seeds to run (8 to 16), never which. The host builds the arenas, the
 stimuli and both arms, writes the question and hypothesis, and freezes the
 criteria. It binds the fly's version, its controller, its full parameter table
@@ -1042,7 +1042,8 @@ The order is enforced, not assumed:
 3. **Seeds.** The host derives them from SHA-256 of the receipt's digest and the
    nonce, after preregistration, so neither the design nor the operator chooses
    them. It draws again if this fly already ran any of them in an archived
-   record, and execution refuses such a seed.
+   record, or if one is a pilot seed (see _Pilots_ below), and execution
+   refuses such a seed.
 4. **Execution**, on the real clock. Every run is simulated twice; the guard G2
    requires the second simulation to reach the same state hashes and
    measurements. The record (`rain-fly-record/v2`) seals the plan, the receipt,
@@ -1072,33 +1073,97 @@ lower. The criteria:
 | S2  | the sign test finds the expected direction at alpha 0.05 (its p-value is reported)               |
 | F1  | the sign test finds the opposite direction at alpha 0.05, which makes the result _not supported_ |
 
-| protocol              | independent variable                                       | baseline (same seeds)                                   | measures                                                                                    |
-| :-------------------- | :--------------------------------------------------------- | :------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
-| obstacle avoidance    | avoidance threshold `avoidTtcS`                            | avoidance off                                           | collision episodes per metre (all, and in cruise), contact time, saccades per flight second |
-| light preference      | a point light above one quadrant                           | ambient only                                            | distance to the point below the light, time within 1 m, time active                         |
-| visual threat         | a sphere of 4 cm radius approaching at a set speed         | the sphere receding, or held still at its closest point | escape probability; latency, lead time, angular size and short-mode share at escape         |
-| noisy sensing         | relative sensory noise                                     | noiseless sensing                                       | the escape and clutter measures                                                             |
-| adaptation            | the looming stimulus repeated, nominally every few seconds | the stimulus nominally every 120 s                      | escape probability over all and over the later presentations                                |
-| controller comparison | a second `ControllerConfig`                                | a first one                                             | the escape, clutter and light measures                                                      |
+| protocol              | independent variable                                                                   | baseline (same seeds)                            | measures                                                                                                                                                                   |
+| :-------------------- | :------------------------------------------------------------------------------------- | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| obstacle avoidance    | avoidance threshold `avoidTtcS`                                                        | avoidance off                                    | collision episodes per metre (all, and in cruise), the fraction of cruising flight within 5 cm of a pillar or wall (near misses), contact time, saccades per flight second |
+| light preference      | a point light above one quadrant                                                       | ambient only                                     | distance to the point below the light, time within 1 m, time active                                                                                                        |
+| visual threat         | a sphere of 4 cm radius approaching at a set l/v (radius over speed, 10 to 400 ms)     | the same sphere on the same lines at another l/v | time to collision at the escape decision; escape probability, latency, angular size and short-mode share at escape                                                         |
+| noisy sensing         | sensory noise: relative on sizes, distances and light levels, in radians on directions | noiseless sensing                                | the escape and clutter measures                                                                                                                                            |
+| adaptation            | a looming stimulus repeated at a short interval, on a fixed schedule                   | the same stimuli every 90 s                      | escape probability over all and over the later presentations; presentations skipped while the fly was airborne                                                             |
+| controller comparison | a second `ControllerConfig`                                                            | a first one                                      | the escape, clutter and light measures                                                                                                                                     |
 
-The six protocols are kept as they were designed. Three have known limits,
-which every plan and report states:
+Under `digital-fly-behavior/v3` (digital-fly/4 on) four protocols were
+redesigned so that their primary measure can discriminate, and pilots sized
+their demonstrations. What each can and cannot show is in its caveat, which
+every plan and report states:
 
-- **Obstacle avoidance and noisy sensing cannot discriminate as designed.**
-  Collisions in the clutter are rare, so most seeds tie or the control sits at
-  its floor, and G3 or G4 leaves the result inconclusive.
-- **Visual threat checks the implementation's expansion gate**, not threat
-  discrimination. The escape proxy's drive is zero unless the stimulus expands,
-  so the receding or held control cannot escape by construction, and G3 makes
-  every visual-threat result inconclusive.
-- **Adaptation's interval depends on the response.** Each presentation waits
-  for the fly to stand still, so the delivered interval (`mean_isi_s`) is longer
-  than the nominal one and can differ between the arms.
+- **Obstacle avoidance** flies for 120 s among 16 pillars of 15 cm radius with
+  50 cm gaps, about 20 m a run in the pilot. Without avoidance the fly collided
+  in 31 of 32 pilot seeds, so the control is off its floor and the seeds
+  differ. The near-miss fraction (time
+  in cruise within 5 cm of a pillar or wall) is a continuous clearance measure beside
+  the collision counts.
+- **Visual threat** is a dose series in approach speed: both arms see the same
+  expanding sphere on the same lines, at different l/v. The escape proxy's size
+  term peaks at its threshold, at 60 degrees, and the sphere stops at 90, so
+  with any expansion at all the proxy crosses the threshold before the sphere
+  stops: at 40 ms and slower the fly escaped from every stimulus in the pilot,
+  and escape probability sits at its ceiling. The time to collision at the escape decision
+  carries the dose-response instead: 0.04 s at 20 ms, 0.09 s at 40 ms, 0.19 s at
+  80 ms, 0.38 s at 160 ms and 0.74 s at 320 ms in the pilot. That a receding or
+  held sphere never sets off an escape (the expansion gate) is a test in
+  `src/rain/scientific/fly.test.ts`, not an experiment.
+- **Noisy sensing** is decided on the same escape timing: with noise the fly
+  escaped earlier in the approach at every noise level and in every pilot
+  seed, as noisy size and expansion estimates cross the threshold early. With
+  avoidance on, collisions stay near zero in both arms, and the fall in near
+  misses is smaller than the host's minimum effect for them, so the clutter
+  measures cannot discriminate.
+- **Adaptation** presents twelve looming stimuli on a fixed schedule: the k-th
+  falls due at onset plus k intervals, whatever the fly did. One that falls due
+  while the fly is in the air is skipped and counted
+  (`airborne_presentations`), never delayed, so the interval is the design's.
+  Final sizes of 30 to 55 degrees straddle the size at which a recovered fly
+  escapes, so the control, every 90 s (three recovery time constants),
+  answered 25 to 83% of the presentations in every pilot seed. This controller's
+  responsiveness falls only after an escape, so the protocol measures
+  habituation that follows responses.
 
-These protocols are to be redesigned, with pilots that size the thresholds
-and a dose series for approach speed. Until then the demonstration's
-thresholds are the script's choices, each at or above the host minimum, not
-sized from pilots.
+Light preference and controller comparison were not redesigned; their
+demonstration thresholds are the script's choices, at or above the host
+minimum.
+
+**Pilots.** `npm run rain:fly -- --pilot` runs, for each redesigned protocol,
+its demonstration's control and a dose series on 32 pilot seeds, and a null
+arm: the control again on 32 other pilot seeds, paired in order, so that every
+random stream differs. The pilot seeds are a fixed public domain, the first 64
+distinct 32-bit integers from SHA-256 of `rain-fly-pilot/v1|n`. Authorization
+never draws one, execution refuses one, and `--verify` flags a record that
+holds one, so a pilot seed never feeds an archived run, and the archived runs'
+seeds are still drawn by the host after preregistration. From each pilot the
+tool sizes:
+
+- the seed count: the smallest of 8 to 16 whose chance of passing G3, G4 and
+  the sign test is at least 0.9, with the share of seeds in the expected
+  direction at its one-sided 95% lower bound;
+- the minimum effect: the pilot's mean paired difference less 1.645 standard
+  errors (pilot and experiment), rounded down to two significant figures, or
+  the host's minimum effect for the metric if that is larger;
+- the host minimum effect for the two metrics the redesign added: the larger
+  of the simulator's resolution (one 10 ms sensory sample for a timing) and
+  twice the null arm's standard deviation over √8, rounded up to one
+  significant figure, the largest any pilot found. That is 0.08 for the
+  near-miss fraction (from obstacle avoidance) and 0.02 s for the time to
+  collision (from visual threat).
+
+| protocol           | demonstration                                                                 | pilot (32 seeds) | seeds | minimum effect |
+| :----------------- | :---------------------------------------------------------------------------- | :--------------- | ----: | -------------: |
+| obstacle avoidance | `avoidTtcS` 0.45 s against off: cruise collision episodes per metre, decrease | 31 down, 1 tied  |    10 |     0.12 per m |
+| visual threat      | l/v 40 against 160 ms: time to collision at the escape, decrease              | 32 down          |     9 |         0.28 s |
+| noisy sensing      | noise 0.4 against none: time to collision at the escape, increase             | 32 up            |     9 |         0.23 s |
+| adaptation         | every 10 s against every 90 s: escape probability, decrease                   | 28 down, 4 tied  |    13 |           0.13 |
+
+Pilots are exploratory and never evidence: never preregistered, authorized or
+admitted. They are kept in `docs/benchmarks/fly-pilots/`, whose README says
+so. Each file records its definition (the apparatus, the arms and the seeds),
+the fly's version and identity, the source digest, the engine, the code state,
+a digest of every run and a digest of everything it produced.
+`npm run rain:fly -- --pilot --check` re-runs each kept pilot from its
+recorded definition, writes nothing, and fails unless the runs and outputs are
+identical and this code's pilot would run the same definition, so a change to
+the fly that changes what a pilot measured is caught. `fly.test.ts` checks
+that the demonstrations and the host minimum effects are the ones the kept
+pilots sized.
 
 A `ControllerConfig` may override only parameters of kind `model`, within
 their ranges. The compiler refuses a FlyBody or published value, a value
@@ -1113,6 +1178,8 @@ npm run rain:fly -- --design d.json               # compile and preregister; pri
 npm run rain:fly -- --execute-reviewed <digest>   # at a terminal: authorize once, draw the seeds, run
 npm run rain:fly:demo                             # the scripted designs, authorized by the script; two refused
 npm run rain:fly:verify                           # check every archived folder; re-simulate what this code can
+npm run rain:fly -- --pilot                       # re-run the pilots, rewrite docs/benchmarks/fly-pilots/ (not evidence)
+npm run rain:fly -- --pilot --check               # re-run each kept pilot exactly and compare; writes nothing
 node scripts/run-ts.mjs scripts/fly-source.ts     # regenerate the source digest after changing fly code
 ```
 
@@ -1130,19 +1197,32 @@ Every outcome, refusals included, is archived under
 checks `registry-run.json` against the record and the plan's preregistered
 definition, and refuses extra files. It then re-simulates the record on the
 JavaScript engine that made it. A record made by other code (another fly
-version, parameter table or source digest) is listed as such. One made on
+version, parameter table or source digest) is not re-simulated: its seal, its
+JSON files byte for byte and its registry run are checked, and its report and
+summary, which that code rendered, for the facts they state (outcome, digests,
+measurements and provenance) and byte for byte against their pins. Later code
+renders a report and summary otherwise, so `npm run rain:fly` pins each
+record's two files in `renderings.json`, beside the folders, as it writes
+them. The folders archived before `renderings.json` existed were pinned as
+committed: the digital-fly/3 and /4 records once the code that made them had
+reproduced every file, the legacy ones as they stand. A pin is never changed
+or removed, and `--verify` fails a record without pins and a pin without its
+folder. From digital-fly/4 on, the six records admitted under digital-fly/3
+(commit 063c8a5) are records of other code. One made on
 another JavaScript runtime, or that differs only under another version of the
 engine, is reported as not re-simulable on this engine, which is neither a pass
 nor a failure. `--verify` exits 0 when everything held; 1 after any failure, or
 when no admitted record re-simulates here; and 3 when nothing failed but
-another engine's records were left unchecked.
+another engine's records were left unchecked. Until the demonstration runs
+again from a clean commit, nothing in the archive re-simulates on
+digital-fly/4, so `--verify` exits 1.
 
 The six records made before these rules (`rain-fly-record/v1`, under
 digital-fly/2) are kept, because the archive keeps everything that ran. They
 ran from an uncommitted tree, on seeds their designs chose, authorized by a
 script, so they are exploratory only. `--verify` reports them as legacy: it
-checks their seal, summary and files, and neither fails nor passes them as
-evidence.
+checks their seal, summary and files, their report and summary against their
+pins, and neither fails nor passes them as evidence.
 
 The registry and the authorization ledger are local files. Whoever deletes
 `.rain-research/fly` can register and authorize a plan again and draw new
@@ -1795,6 +1875,7 @@ npm run rain:fly:verify     # check every archived digital-fly folder against it
                             # re-simulate what this code and engine can; exit 3 when only
                             # another engine's records were left unchecked
 node scripts/run-ts.mjs scripts/fly-source.ts --check   # the fly's source digest is current
+npm run rain:fly -- --pilot --check   # the kept digital-fly pilots re-run exactly (minutes)
 bun run verify:rain-lab     # tools/rain-lab.mjs on three previews of dist/: OFFLINE,
                             # DEMO, authorization, run, replay, tampered import, a fresh
                             # browser, outings, tools, axe in every room, CSP, no WebGL;

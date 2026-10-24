@@ -29,6 +29,8 @@ import {
   dutyFactor,
   stanceCount,
   stepPeriodS,
+  steppingSpeedCmS,
+  STEPPING_MIN_CMS,
   type GaitParams,
 } from "./gait.js";
 import {
@@ -37,6 +39,7 @@ import {
   siteHolding,
   validateCommand,
   type BodySnapshot,
+  type DecisionInput,
   type FlyNeuralAdapter,
   type GateContext,
   type GroomRoutine,
@@ -44,27 +47,37 @@ import {
   type MotorCommand,
 } from "./neural.js";
 import { resolveParams, type ControllerConfig, type ResolvedParams } from "./params.js";
-import { Senses, type SenseFrame } from "./senses.js";
-import { SKELETON } from "./skeleton.js";
-import { degToRad, forward, left, type V3, wrapAngle } from "./units.js";
-import type { FlyWorld, LandingSite, Perch, SurfaceKind } from "./world.js";
+import { inVisualField, Senses, type SenseFrame } from "./senses.js";
+import { FOOT_RADIUS_CM, SKELETON } from "./skeleton.js";
+import { degToRad, forward, left, radToDeg, type V3, wrapAngle } from "./units.js";
+import {
+  WALKABLE_NORMAL_Y,
+  type FlyWorld,
+  type LandingSite,
+  type Perch,
+  type SurfaceKind,
+} from "./world.js";
 
-export const FLY_VERSION = "digital-fly/3";
+export const FLY_VERSION = "digital-fly/4";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
-/** A surface whose normal points at least this far up is a top the fly can stand on. */
-const WALKABLE_NORMAL_Y = 0.7;
+/** The drawn thrust never points less upward than this share of gravity, so the drawn fly never turns over. */
+const DRAW_THRUST_FLOOR_G = 0.1;
 /** The feet must come this close to the landing point before a touchdown is tried (m). */
 const TOUCHDOWN_REACH_M = 0.0015;
 /** A touchdown needs the feet within this of the surface under them; farther, it is aborted (m). */
 const TOUCHDOWN_GAP_M = 0.002;
 /** A contact lasts while the surface stays within the standing height plus this (m). */
 const CONTACT_SLOP_M = 0.001;
-/** The share of its speed along a surface the fly keeps when it first hits it. Not fitted. */
-const CONTACT_KEEP = 0.3;
 /** A takeoff prepared in less than this is short-mode: no wing raise (s). A model boundary. */
 const SHORT_MODE_BELOW_S = 0.1;
+/** How far the drawn body leans toward the jump by the end of a takeoff's preparation (rad). Drawing only. */
+const LAUNCH_LEAN_RAD = 0.15;
+/** A long-mode takeoff raises its wings over the last this-much of its preparation (s). Drawing only. */
+const WING_RAISE_S = 0.03;
+/** A walking step goes ahead only onto a top within this of the current one (m). */
+const STEP_HEIGHT_M = 0.004;
 
 export interface FlyCounts {
   takeoffs: number;
@@ -111,7 +124,18 @@ export interface FlyState {
   wingsOpen: number;
   /** 0 tucked for flight .. 1 extended to stand or land. */
   legs: number;
-  saccade: { from: number; delta: number; t0: number; dur: number } | null;
+  /**
+   * A turn of the heading under way. `launch` marks the turn the body makes
+   * after a jump, toward where the jump is carrying it: the velocity keeps the
+   * jump's direction while it lasts.
+   */
+  saccade: {
+    from: number;
+    delta: number;
+    t0: number;
+    dur: number;
+    launch: boolean;
+  } | null;
   takeoff: { heading: number; prepare: number; short: boolean } | null;
   /** The landing target: the point on the site's surface the feet are to touch. */
   target: { id: string; point: V3; radius: number; site: LandingSite } | null;
@@ -159,6 +183,42 @@ export interface DigitalFlyOptions {
 
 const NO_SITES: readonly LandingSite[] = Object.freeze([]);
 
+/** Where the eyes were when a sensory sample was taken. */
+interface EyePose {
+  p: V3;
+  yaw: number;
+}
+
+/**
+ * What the fast pathway gets for a sample between decisions: a decision's
+ * input whose body is frozen only when first read. Freezing is the costly
+ * part, and most samples are answered from the frame alone.
+ */
+class SampleInput implements DecisionInput {
+  readonly frame: SenseFrame;
+  readonly sites: readonly LandingSite[];
+  readonly params: ResolvedParams;
+  readonly dt: number;
+  private made: BodySnapshot | null = null;
+  private readonly make: () => BodySnapshot;
+  constructor(
+    make: () => BodySnapshot,
+    frame: SenseFrame,
+    sites: readonly LandingSite[],
+    params: ResolvedParams,
+    dt: number,
+  ) {
+    this.make = make;
+    this.frame = frame;
+    this.sites = sites;
+    this.params = params;
+    this.dt = dt;
+  }
+  get body(): BodySnapshot {
+    return (this.made ??= this.make());
+  }
+}
+
 export class DigitalFly {
   /** The resolved parameters, frozen. */
   readonly params: ResolvedParams;
@@ -177,6 +237,10 @@ export class DigitalFly {
   private adapterParams: ResolvedParams;
   private senses: Senses;
   private frames: SenseFrame[] = [];
+  /** Where the eyes were for each of `frames`, for the landing sites they could see. */
+  private framePoses: EyePose[] = [];
+  /** A frozen copy of the body now, for the fast pathway's inputs. */
+  private readonly frozenSnapshot = (): BodySnapshot => frozen(this.snapshot());
   private command: MotorCommand;
   private bodyRng: () => number;
   private pendingUs = 0;
@@ -368,6 +432,7 @@ export class DigitalFly {
     const s = this.state;
     const P = this.params;
     const h = this.stepUs / 1e6;
+    const deciding = s.step % this.decideEvery === 0;
     if (s.step % this.senseEvery === 0) {
       this.frames.push(
         frozen(
@@ -380,9 +445,15 @@ export class DigitalFly {
           }),
         ),
       );
-      if (this.frames.length > this.latencyFrames + 1) this.frames.shift();
+      this.framePoses.push({ p: [s.p[0], s.p[1], s.p[2]], yaw: s.yaw });
+      if (this.frames.length > this.latencyFrames + 1) {
+        this.frames.shift();
+        this.framePoses.shift();
+      }
+      // Every sample between decisions goes to the decision maker's fast pathway.
+      if (!deciding) this.interrupt(this.senseEvery * h);
     }
-    if (s.step % this.decideEvery === 0) this.decide(this.decideEvery * h);
+    if (deciding) this.decide(this.decideEvery * h);
     this.integrate(h);
     s.responsiveness +=
       (1 - s.responsiveness) * (1 - Math.exp(-h / P.habituationRecoveryS));
@@ -392,26 +463,41 @@ export class DigitalFly {
   }
 
   /**
-   * The landing sites on offer: the tops in range with a clear line from the
-   * fly, the point of the surface directly under it, and the site already
-   * being approached. Frozen, so a decision maker cannot add to them.
+   * The landing sites on offer: the tops within `landingSearchM` that the
+   * eyes saw in the sample the decision uses (inside an eye's field, at least
+   * one ommatidium across and with a clear line to them, from where the eyes
+   * were then), the point of the surface directly under the fly, and the site
+   * already being approached. Frozen, so a decision maker cannot add to them.
    */
-  private offeredSites(): readonly LandingSite[] {
+  private offeredSites(eyes: EyePose): readonly LandingSite[] {
     const s = this.state;
+    const P = this.params;
     if (s.mode !== "flight" && s.mode !== "land") return NO_SITES;
     const all: LandingSite[] = [];
-    this.world.landingSites(s.p, this.params.landingSearchM, all);
+    this.world.landingSites(eyes.p, P.landingSearchM, all);
     const out: LandingSite[] = [];
+    const fwd = forward(eyes.yaw),
+      lft = left(eyes.yaw);
+    const acuity = degToRad(P.interommatidialDeg);
     for (const site of all) {
       const d: V3 = [
-        site.center[0] - s.p[0],
-        site.center[1] - s.p[1],
-        site.center[2] - s.p[2],
+        site.center[0] - eyes.p[0],
+        site.center[1] - eyes.p[1],
+        site.center[2] - eyes.p[2],
       ];
       const dist = Math.hypot(...d);
       if (dist < 1e-3) continue;
+      // A top narrower than one ommatidium is not resolved, as for a moving thing.
+      const size = 2 * Math.atan2(Math.min(site.half[0], site.half[1]), dist);
+      if (size < acuity) continue;
+      const bearing = Math.atan2(
+        d[0] * lft[0] + d[2] * lft[2],
+        d[0] * fwd[0] + d[2] * fwd[2],
+      );
+      const elevation = Math.asin(Math.max(-1, Math.min(1, d[1] / dist)));
+      if (!inVisualField(bearing, elevation, size / 2)) continue;
       const dir: V3 = [d[0] / dist, d[1] / dist, d[2] / dist];
-      const hit = this.world.raycast(s.p, dir, dist, true);
+      const hit = this.world.raycast(eyes.p, dir, dist, true);
       if (!hit || hit.t >= dist - 0.01) out.push(frozenSite(site));
     }
     const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
@@ -435,7 +521,7 @@ export class DigitalFly {
     const frame = this.frames[0];
     if (!frame) return;
     this.lastFrame = frame;
-    const sites = this.offeredSites();
+    const sites = this.offeredSites(this.framePoses[0]!);
     let raw: unknown;
     try {
       raw = this.adapter.decide({
@@ -458,6 +544,43 @@ export class DigitalFly {
       this.refuse(`command refused: ${verdict.reason}`);
       return;
     }
+    this.lastCommand = verdict.command;
+    this.apply(verdict.command, sites);
+  }
+
+  /**
+   * Offer a sensory sample that falls between decisions to the decision
+   * maker's fast pathway, if it has one. A command it returns passes the same
+   * gate as a decision; null lets the current command run on.
+   */
+  private interrupt(dt: number): void {
+    const frame = this.frames[0];
+    if (!frame) return;
+    const s = this.state;
+    // No new sites between decisions: only the one being approached stays on offer.
+    const sites = s.target ? Object.freeze([s.target.site]) : NO_SITES;
+    let raw: unknown;
+    try {
+      const fast = this.adapter.interrupt;
+      if (typeof fast !== "function") return;
+      raw = fast.call(
+        this.adapter,
+        new SampleInput(this.frozenSnapshot, frame, sites, this.adapterParams, dt),
+      );
+    } catch (e) {
+      this.refuse(`the decision maker's interrupt failed: ${describe(e)}`);
+      return;
+    }
+    if (raw === null || raw === undefined) return;
+    const verdict = validateCommand(raw, this.snapshot(), this.params, {
+      sites,
+      surface: this.surface,
+    });
+    if (!verdict.ok) {
+      this.refuse(`interrupt refused: ${verdict.reason}`);
+      return;
+    }
+    this.lastFrame = frame;
     this.lastCommand = verdict.command;
     this.apply(verdict.command, sites);
   }
@@ -584,7 +707,13 @@ export class DigitalFly {
     }
     if (s.mode === "flight") {
       if (cmd.saccade !== undefined && s.sub !== "saccade") {
-        s.saccade = { from: s.yaw, delta: cmd.saccade, t0: s.t, dur: P.saccadeMs / 1000 };
+        s.saccade = {
+          from: s.yaw,
+          delta: cmd.saccade,
+          t0: s.t,
+          dur: P.saccadeMs / 1000,
+          launch: false,
+        };
         s.counts.saccades++;
         const from = this.label();
         s.sub = "saccade";
@@ -634,7 +763,8 @@ export class DigitalFly {
   private walk(h: number, cmd: MotorCommand): void {
     const s = this.state;
     const target = s.edge ? 0 : (cmd.walkSpeed ?? s.walkSpeed);
-    s.walkSpeed += (target - s.walkSpeed) * (1 - Math.exp(-h / 0.1));
+    s.walkSpeed +=
+      (target - s.walkSpeed) * (1 - Math.exp(-h / this.params.walkSpeedTauS));
     s.yawRate = cmd.yawRate ?? 0;
     s.yaw = wrapAngle(s.yaw + s.yawRate * h);
     s.wingsOpen = 0;
@@ -642,15 +772,17 @@ export class DigitalFly {
     s.pitch = 0;
     s.roll = 0;
     const speed = s.walkSpeed / 100;
-    if (speed > 1e-4)
-      s.gaitClock = (s.gaitClock + h / stepPeriodS(s.walkSpeed, this.gait)) % 1;
+    // The legs step at the speed the feet pass over the ground, so a turn on the spot is stepped.
+    const stepping = steppingSpeedCmS(s.walkSpeed, s.yawRate, FOOT_RADIUS_CM);
+    if (stepping >= STEPPING_MIN_CMS)
+      s.gaitClock = (s.gaitClock + h / stepPeriodS(stepping, this.gait)) % 1;
     const f = forward(s.yaw);
     const nx = s.p[0] + f[0] * speed * h,
       nz = s.p[2] + f[2] * speed * h;
-    const perch = this.world.perchAt(nx, nz, s.p[1] + 0.004);
+    const perch = this.world.perchAt(nx, nz, s.p[1] + STEP_HEIGHT_M);
     const ok =
       perch !== null &&
-      Math.abs(perch.y - (s.perch?.y ?? perch.y)) <= 0.004 &&
+      Math.abs(perch.y - (s.perch?.y ?? perch.y)) <= STEP_HEIGHT_M &&
       !this.world.solid([nx, perch.y + this.standingHeight, nz]);
     if (!ok) {
       s.edge = true;
@@ -670,12 +802,22 @@ export class DigitalFly {
     const t = s.takeoff!;
     s.v = [0, 0, 0];
     s.legs = 1;
-    // Long-mode takeoffs raise the wings during preparation; short-mode ones do not (von Reyn et al. 2014).
-    s.wingsOpen = t.short ? 0 : Math.min(1, s.modeT / t.prepare);
-    // Postural adjustment leans the body toward the jump direction (Card & Dickinson 2008); drawn as a pitch.
-    s.pitch = -0.15 * Math.min(1, s.modeT / t.prepare);
+    // The body does not turn to jump: the postural adjustment aims the jump,
+    // leaning the body toward where it will go, away from a threat (Card &
+    // Dickinson 2008). Drawn as pitch and roll toward the jump's heading.
+    const toward = wrapAngle(t.heading - s.yaw);
+    const lean = LAUNCH_LEAN_RAD * Math.min(1, s.modeT / t.prepare);
+    s.pitch = -lean * Math.cos(toward);
+    s.roll = -lean * Math.sin(toward);
+    // A long-mode takeoff raises the wings at the end of its preparation, just
+    // before the jump; a short-mode one jumps with them still folded (von Reyn
+    // et al. 2014). How long the raise takes is a drawing choice.
+    s.wingsOpen = t.short
+      ? 0
+      : Math.min(1, Math.max(0, 1 - (t.prepare - s.modeT) / WING_RAISE_S));
     if (s.modeT < t.prepare) return;
-    const elevation = degToRad(50);
+    // The jump: along the heading the posture aimed, at the jump's elevation.
+    const elevation = degToRad(P.jumpElevationDeg);
     const f = forward(t.heading);
     const v = P.jumpSpeedCmS / 100;
     s.v = [
@@ -683,23 +825,39 @@ export class DigitalFly {
       v * Math.sin(elevation),
       f[2] * v * Math.cos(elevation),
     ];
-    s.yaw = wrapAngle(t.heading);
     s.perch = null;
     s.contact = null;
     s.counts.takeoffs++;
     s.flightT = 0;
     s.flightBout = this.drawFlightBout();
-    const reason =
-      s.mode === "escape" ? `${t.short ? "short" : "long"}-mode jump` : "jump";
+    const jump = s.mode === "escape" ? `${t.short ? "short" : "long"}-mode jump` : "jump";
     s.takeoff = null;
-    this.setMode("flight", "cruise", reason, "event");
-    this.command = { mode: "flight", velocity: s.v, reason };
+    if (Math.abs(toward) > 1e-6) {
+      // In the air the heading turns to where the jump is going, in one
+      // saccade-length turn, and the jump's direction holds while it does.
+      s.saccade = {
+        from: s.yaw,
+        delta: toward,
+        t0: s.t,
+        dur: P.saccadeMs / 1000,
+        launch: true,
+      };
+      this.setMode(
+        "flight",
+        "saccade",
+        `${jump}; the heading turns ${Math.round(radToDeg(toward))}° to its direction`,
+        "event",
+      );
+    } else this.setMode("flight", "cruise", jump, "event");
+    this.command = { mode: "flight", velocity: [...s.v], reason: jump };
   }
 
   /**
    * The drawn attitude and wingbeat for an acceleration `a` at the current
-   * velocity: pitch and roll from the thrust the motion needs (gravity,
-   * acceleration and a nominal drag), the beat frequency from that load.
+   * velocity: the pitch and roll that, at the current heading, turn the wing
+   * thrust axis (FlyBody's `hover_up_dir`, vertical at the hover pitch) onto
+   * the thrust the motion needs (gravity, acceleration and a nominal drag);
+   * the beat frequency from that load.
    */
   private drawAttitude(a: V3): void {
     const s = this.state;
@@ -711,10 +869,21 @@ export class DigitalFly {
     ];
     const f = forward(s.yaw),
       l = left(s.yaw);
-    const tForward = T[0] * f[0] + T[2] * f[2],
-      tRight = -(T[0] * l[0] + T[2] * l[2]);
-    s.pitch = degToRad(P.bodyPitchHoverDeg) - Math.atan2(tForward, T[1]);
-    s.roll = Math.atan2(tRight, T[1]);
+    // The thrust in the heading's frame: forward, left, up.
+    const up = Math.max(T[1], DRAW_THRUST_FLOOR_G * G);
+    const tf = T[0] * f[0] + T[2] * f[2],
+      tl = T[0] * l[0] + T[2] * l[2];
+    const n = Math.hypot(tf, tl, up);
+    // The thrust axis in the body: forward and up, vertical once pitched up to the hover pitch.
+    const hover = degToRad(P.bodyPitchHoverDeg);
+    const hx = Math.sin(hover),
+      hz = Math.cos(hover);
+    // Roll swings the axis sideways (by at most hz), then pitch turns it in the
+    // body's vertical plane onto the rest of the thrust.
+    const sinRoll = Math.max(-1, Math.min(1, -tl / n / hz));
+    s.roll = Math.asin(sinRoll);
+    s.pitch =
+      Math.atan2(up / n, tf / n) - Math.atan2(hz * Math.sqrt(1 - sinRoll * sinRoll), hx);
     const load = Math.hypot(...T) / G;
     s.wingHz =
       P.wingbeatHz *
@@ -738,11 +907,12 @@ export class DigitalFly {
     const yawRate = wrapAngle(s.yaw - yaw0) / h;
     const yawAcc = (yawRate - s.yawRate) / h;
     s.yawRate = yawRate;
-    // Desired velocity: in cruise the horizontal speed is carried along the current heading.
+    // Desired velocity: in cruise the horizontal speed is carried along the
+    // current heading; while the heading turns after a jump, along the jump's.
     let vd: V3 = cmd.velocity ? [...cmd.velocity] : [0, 0, 0];
     if (s.mode === "flight" && s.sub !== "hover") {
       const speed = Math.hypot(vd[0], vd[2]);
-      const f = forward(s.yaw);
+      const f = forward(s.saccade?.launch ? s.saccade.from + s.saccade.delta : s.yaw);
       vd = [f[0] * speed, vd[1], f[2] * speed];
     }
     if (s.mode === "flight" && s.sub === "hover") vd = [0, vd[1], 0];
@@ -872,7 +1042,8 @@ export class DigitalFly {
     s.counts.flownM += moved;
     s.contact = { id: hit.id, kind: hit.kind, normal: [...hit.normal] };
     const v = slide(s.v, hit.normal);
-    s.v = onset ? [v[0] * CONTACT_KEEP, v[1] * CONTACT_KEEP, v[2] * CONTACT_KEEP] : v;
+    const keep = P.contactKeep;
+    s.v = onset ? [v[0] * keep, v[1] * keep, v[2] * keep] : v;
     if (!onset) {
       // Still touching the same surface: no new collision, and a landing may still finish.
       this.reachTarget();
@@ -954,12 +1125,13 @@ export class DigitalFly {
   /** Legs in stance and the coordination pattern, for the panel and the renderer. */
   gaitNow(): { stance: number; pattern: string; duty: number } {
     const s = this.state;
-    if (s.mode !== "walk" || s.walkSpeed < 0.05)
+    const stepping = steppingSpeedCmS(s.walkSpeed, s.yawRate, FOOT_RADIUS_CM);
+    if (s.mode !== "walk" || stepping < STEPPING_MIN_CMS)
       return { stance: 6, pattern: "standing", duty: 1 };
     return {
-      stance: stanceCount(s.gaitClock, s.walkSpeed, this.gait),
-      pattern: coordination(s.gaitClock, s.walkSpeed, this.gait),
-      duty: dutyFactor(s.walkSpeed, this.gait),
+      stance: stanceCount(s.gaitClock, stepping, this.gait),
+      pattern: coordination(s.gaitClock, stepping, this.gait),
+      duty: dutyFactor(stepping, this.gait),
     };
   }
 

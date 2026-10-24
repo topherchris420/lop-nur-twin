@@ -16,6 +16,10 @@ import { evaluate } from "../experiments/evaluate.js";
 import { Registry } from "../experiments/registry.js";
 import { sha256, sha256Json } from "../sha256.js";
 import { resolveParams } from "../../bethesda/fly/params.js";
+import { arenaWorld } from "../../bethesda/fly/arena.js";
+import { DigitalFly, FLY_VERSION } from "../../bethesda/fly/fly.js";
+import type { V3 } from "../../bethesda/fly/units.js";
+import type { Mover } from "../../bethesda/fly/world.js";
 import {
   BACKEND_CAPABILITIES,
   FLY_ALPHA,
@@ -23,8 +27,11 @@ import {
   FLY_LEGACY_RECORD,
   FLY_METRICS,
   FLY_MIN_UNTIED_PAIRS,
+  FLY_PILOT,
+  FLY_PILOT_SEED_COUNT,
   FLY_PROTOCOLS,
   FLY_SCRIPT_OPERATOR,
+  type FlyArm,
   type FlyCodeState,
   type FlyDesign,
   type FlyPlan,
@@ -39,12 +46,16 @@ import {
   currentFlyEngine,
   deriveFlySeeds,
   executeFly,
+  flyIdentity,
   flyMeasurements,
+  FLY_PILOT_SEEDS,
   flyPlanBody,
   flyPreregistrationSha256,
   flyReceiptErrors,
   FlyRunRefused,
   isDevelopmentCode,
+  isFlyPilotSeed,
+  runFlyArm,
   signTestTail,
   verifyFlyAuthorization,
   verifyFlyPlan,
@@ -57,7 +68,34 @@ import {
   preregisterFly,
   registryFlyHost,
 } from "./flyRegistry.js";
-import { checkFlyFolder, flyArchiveReadme, flyFolderFiles } from "./flyArchive.js";
+import {
+  checkFlyFolder,
+  flyArchiveReadme,
+  flyFolderFiles,
+  flyJsonText,
+  FLY_RENDERINGS,
+  pinFlyRenderings,
+  readFlyRenderings,
+  verifyFlyArchive,
+} from "./flyArchive.js";
+import {
+  checkFlyPilot,
+  flyPilotDefinition,
+  flyPilotFloors,
+  flyPilotIntact,
+  flyPilotReadme,
+  FLY_PILOT_SEEDS_USED,
+  FLY_PILOT_SERIES,
+  FLY_PILOT_SIZED_METRICS,
+  FLY_PILOT_STATUS,
+  lowerBound,
+  roundDown2,
+  roundUp1,
+  signTestPower,
+  sizeFlyDesign,
+  upperBound,
+  type FlyPilot,
+} from "./flyPilot.js";
 import {
   computeFlySource,
   flySourceAtCommitErrors,
@@ -76,6 +114,19 @@ const scratch = (into = directories) => {
   into.push(dir);
   return dir;
 };
+/** Writes into `archive` the pins `from` holds for the given folders. */
+function copyPins(from: string, archive: string, names: string[]) {
+  const { folders } = readFlyRenderings(from);
+  writeFileSync(
+    join(archive, "renderings.json"),
+    flyJsonText({
+      schema: FLY_RENDERINGS,
+      folders: Object.fromEntries(
+        names.filter((n) => Object.hasOwn(folders, n)).map((n) => [n, folders[n]!]),
+      ),
+    }),
+  );
+}
 
 const CLEAN: FlyCodeState = { commit: "a".repeat(40), dirty: false };
 /** A lab in a scratch directory: a registry, an authorization ledger and a source tree. */
@@ -176,7 +227,7 @@ function rebuild(record: FlyRecord, edit: (plan: Record<string, unknown>) => voi
 }
 
 describe("the digital-fly backend's design vocabulary", () => {
-  it("is registered append-only at its v2 contract, with no devices and no neural claim", () => {
+  it("is registered append-only at its v3 contract, with no devices and no neural claim", () => {
     expect(BACKEND_CAPABILITIES[3]).toMatchObject({
       id: "digital-fly",
       authority_scope: "fly-behavior-simulation",
@@ -208,7 +259,7 @@ describe("the digital-fly backend's design vocabulary", () => {
       );
       if (protocol.caveat) expect(p.ir.limitations).toContain(protocol.caveat);
       // How many seeds, never which: the host draws them after preregistration.
-      expect(p.experiment.seed_count).toBe(12);
+      expect(p.experiment.seed_count).toBe(design.parameters.seed_count);
       expect(Object.keys(p.experiment)).not.toContain("seeds");
       expect(p.fly_source_sha256).toBe(FLY_SOURCE.sha256);
       expect(p.experiment.blocks.map((b) => b.id)).toEqual([...protocol.blocks]);
@@ -235,13 +286,18 @@ describe("the digital-fly backend's design vocabulary", () => {
     }
   });
 
-  it("says plainly which protocols cannot discriminate as designed", () => {
+  it("says plainly what each redesigned protocol can and cannot show", () => {
     const caveat = (id: string) => FLY_PROTOCOLS.find((p) => p.id === id)!.caveat ?? "";
-    expect(caveat("obstacle_avoidance")).toMatch(/cannot discriminate/);
-    expect(caveat("noisy_sensing")).toMatch(/cannot discriminate/);
-    expect(caveat("adaptation")).toMatch(/depends on the fly's response/);
-    expect(caveat("visual_threat")).toMatch(/implementation check .* expansion gate/);
-    expect(caveat("visual_threat")).toMatch(/G3/);
+    // In clutter dense enough, and flown long enough, collisions happen.
+    expect(caveat("obstacle_avoidance")).toBe("");
+    expect(caveat("noisy_sensing")).toMatch(/collision metrics cannot discriminate/);
+    expect(caveat("noisy_sensing")).toMatch(/escape timing discriminates/);
+    expect(caveat("visual_threat")).toMatch(
+      /Escape probability cannot carry the dose-response/,
+    );
+    expect(caveat("visual_threat")).toMatch(/escape_ttc_s/);
+    expect(caveat("adaptation")).toMatch(/habituation that follows responses/);
+    expect(caveat("adaptation")).toMatch(/skipped and counted .*never delayed/);
   });
 
   it("refuses anything outside the closed schema, chosen seeds included", () => {
@@ -276,6 +332,18 @@ describe("the digital-fly backend's design vocabulary", () => {
           },
         },
       },
+      // The dose series is l/v from 10 to 400 ms.
+      {
+        ...base,
+        parameters: {
+          ...base.parameters,
+          treatment: {
+            kind: "visual_threat",
+            control_l_over_v_ms: 160,
+            treatment_l_over_v_ms: 5,
+          },
+        },
+      },
       // The decision rule is the host's: no other method, no seed-count rule.
       { ...base, analysis: { ...base.analysis, method: "matched_seed_paired_delta" } },
       { ...base, analysis: { ...base.analysis, minimum_consistent_seeds: 2 } },
@@ -285,10 +353,28 @@ describe("the digital-fly backend's design vocabulary", () => {
     ])
       refused(raw);
     // The host owns the minimum effects; a design may raise one, never lower it.
-    expect(refused(threat({ minimumEffect: 0.05 }))).toMatch(
-      /below the host's minimum effect for escape_probability \(0\.1 fraction\)/,
+    expect(refused(threat({ minimumEffect: 0.01 }))).toMatch(
+      /below the host's minimum effect for escape_ttc_s \(0\.02 s\)/,
     );
-    expect(compileFlyExperiment(threat({ minimumEffect: 0.1 })).ok).toBe(true);
+    expect(compileFlyExperiment(threat({ minimumEffect: 0.02 })).ok).toBe(true);
+    expect(
+      refused(
+        threat({
+          treatment: {
+            kind: "visual_threat",
+            control_l_over_v_ms: 40,
+            treatment_l_over_v_ms: 40,
+          },
+        }),
+      ),
+    ).toMatch(/the two arms must approach at different l\/v/);
+    // A 90 s schedule of twelve presentations fits the budget at 13 seeds, not 16.
+    expect(compileFlyExperiment(flyExample("adaptation", { seedCount: 13 })).ok).toBe(
+      true,
+    );
+    expect(refused(flyExample("adaptation", { seedCount: 16 }))).toMatch(
+      /exceeds the budget/,
+    );
     expect(
       refused(flyExample("obstacle_avoidance", { metric: "escape_probability" })),
     ).toMatch(/not measured by the obstacle_avoidance protocol/);
@@ -423,7 +509,9 @@ describe("the exact sign test and the frozen criteria", () => {
   });
 
   it("decides on matched seeds, and its guards hold back what cannot be compared", () => {
-    const p = plan(); // escape_probability, increase, minimum effect 0.3
+    const p = plan(
+      threat({ metric: "escape_probability", direction: "increase", minimumEffect: 0.3 }),
+    );
     const seeds = [11, 12, 13, 14, 15, 16, 17, 18];
     const runs = (
       control: (number | null)[],
@@ -635,7 +723,7 @@ describe("seeds, authorization and the code a record names", () => {
     const never = lab({ seen: () => true });
     const r1 = preregisterFly(never.registry, p);
     expect(errorsOf(authorizeFly(p, r1, scripted(p), never.host))).toMatch(
-      /could not draw seeds this fly has not already run/,
+      /could not draw seeds that are neither pilot seeds nor already run/,
     );
     const some = lab({ seen: (_fly, seed) => seed % 7 === 0 });
     const r2 = preregisterFly(some.registry, p);
@@ -732,14 +820,15 @@ describe("running, verifying and admitting a fly experiment", { timeout: 300000 
     expect(m.determinism_check).toBe(1);
     expect(typeof m.gate_refusals).toBe("number");
     expect(record.result.runs.every((r) => r.final_hashes.length === 6)).toBe(true);
-    // The escape proxy is gated on expansion, so the receding control never
-    // escapes; G3 holds a control pinned at zero inconclusive, by design.
-    expect(m.control_escape_probability).toBe(0);
-    expect(m.control_informative).toBe(0);
-    expect(record.result.status).toBe("inconclusive");
-    expect(record.result.evaluation!.guards.find((g) => g.id === "G3")!.holds).toBe(
-      false,
-    );
+    // A looming dose series: the fly escapes from both approaches, so the
+    // timing carries the comparison. A timing has no floor or ceiling to pin a
+    // control at, and a continuous one leaves no seed tied.
+    expect(m.control_escape_probability).toBeGreaterThan(0.9);
+    expect(m.control_informative).toBe(1);
+    expect(m.untied_pairs).toBe(8);
+    expect(record.result.evaluation!.guards.every((g) => g.holds === true)).toBe(true);
+    // At l/v = 40 ms the fly escapes with less time to collision than at 160 ms.
+    expect(m.treatment_mean).toBeLessThan(m.control_mean!);
     // An authorization runs once.
     expect(() => executeFly(p, receipt, authorization, host)).toThrow(/already used/);
   });
@@ -910,6 +999,7 @@ describe("running, verifying and admitting a fly experiment", { timeout: 300000 
       FLY_PROTOCOLS.find((p) => p.id === "visual_threat")!.caveat,
     );
     write(files);
+    pinFlyRenderings(archive, record.plan.experiment_id, files);
     expect(checkFlyFolder(dir)).toMatchObject({ kind: "record", errors: [] });
     const renamed = join(archive, "FLY-000000000000000000000000");
     cpSync(dir, renamed, { recursive: true });
@@ -920,15 +1010,21 @@ describe("running, verifying and admitting a fly experiment", { timeout: 300000 
       write({ ...files, [name]: edit(files[name]!) });
       return checkFlyFolder(dir).errors.join("\n");
     };
-    expect(edited("report.md", (t) => t.replace("INCONCLUSIVE", "PASSED"))).toMatch(
-      /report\.md is not what record\.json implies/,
+    const status = record.result.status;
+    const other = status === "passed" ? "failed" : "passed";
+    const report = edited("report.md", (t) =>
+      t.replace(status.toUpperCase(), other.toUpperCase()),
     );
-    expect(edited("summary.json", (t) => t.replace('"inconclusive', '"passed'))).toMatch(
+    expect(report).toMatch(/report\.md is not what record\.json implies/);
+    expect(report).toMatch(
+      /report\.md is not the file pinned when this folder was written/,
+    );
+    expect(edited("summary.json", (t) => t.replace(`"${status}`, `"${other}`))).toMatch(
       /summary\.json is not what record\.json implies/,
     );
     expect(
       edited("registry-run.json", (t) =>
-        t.replace('"status": "inconclusive"', '"status": "passed"'),
+        t.replace(`"status": "${status}"`, `"status": "${other}"`),
       ),
     ).toMatch(/registry-run\.json/);
     write({ ...files, "notes.md": "hand-written\n" });
@@ -956,13 +1052,23 @@ describe("the archive's records from before the integrity rules", () => {
       })
     : [];
 
-  it("are kept, and checked for what can still be checked: seal, summary and files", () => {
+  it("are kept, and checked for what can still be checked: seal, files, and the report and summary against their pins", () => {
     expect(legacy.length).toBeGreaterThan(0);
     for (const d of legacy)
       expect(checkFlyFolder(join(ARCHIVE, d)), d).toMatchObject({
         kind: "legacy",
         errors: [],
       });
+    // A report edit the record cannot show is caught by the folder's pin.
+    const pinned = scratch();
+    cpSync(join(ARCHIVE, legacy[0]!), join(pinned, legacy[0]!), { recursive: true });
+    copyPins(ARCHIVE, pinned, [legacy[0]!]);
+    expect(checkFlyFolder(join(pinned, legacy[0]!)).errors).toEqual([]);
+    const reportPath = join(pinned, legacy[0]!, "report.md");
+    writeFileSync(reportPath, readFileSync(reportPath, "utf8") + "\nAdded by hand.\n");
+    expect(checkFlyFolder(join(pinned, legacy[0]!)).errors).toEqual([
+      "report.md is not the file pinned when this folder was written",
+    ]);
     const copy = join(scratch(), legacy[0]!);
     cpSync(join(ARCHIVE, legacy[0]!), copy, { recursive: true });
     const summary = JSON.parse(readFileSync(join(copy, "summary.json"), "utf8"));
@@ -994,3 +1100,520 @@ describe("the archive's records from before the integrity rules", () => {
     expect(readme).toMatch(/exploratory only, not evidence/);
   });
 });
+
+describe("the expansion gate (an implementation check, not an experiment)", () => {
+  const RADIUS = 0.04;
+  /** An arena with one sphere whose centre follows `path` (null: not showing). */
+  function sphereWorld(path: (t: number) => V3 | null) {
+    const inner = arenaWorld({ size: [4, 2.5, 4], ambient: 0.6 }, "expansion-gate");
+    return new Proxy(inner, {
+      get(target, prop) {
+        if (prop === "movers")
+          return (near: V3, r: number, out: Mover[], t: number) => {
+            target.movers(near, r, out, t);
+            const c = path(t);
+            if (c)
+              out.push({ id: "sphere", kind: "stimulus", center: c, radius: RADIUS });
+          };
+        const v = Reflect.get(target, prop, target) as unknown;
+        return typeof v === "function" ? v.bind(target) : v;
+      },
+    });
+  }
+  /** Escapes by a standing, noiseless fly while a sphere moves from `from` to `to` m away. */
+  function escapes(from: number, to: number, seconds: number, seed: number): number {
+    let line: { p: V3; dir: V3 } | null = null;
+    const onset = 1;
+    const world = sphereWorld((t) => {
+      if (!line || t < onset || t > onset + seconds) return null;
+      const d = from + ((to - from) * (t - onset)) / seconds;
+      return [
+        line.p[0] + line.dir[0] * d,
+        line.p[1] + line.dir[1] * d,
+        line.p[2] + line.dir[2] * d,
+      ];
+    });
+    const fly = new DigitalFly({
+      seed,
+      world,
+      start: { p: [0, 0.5, 0], yaw: 0.3 * seed },
+      config: { takeoffHz: 0, walkStartHz: 0, groomHz: 0 },
+      noise: 0,
+      logSize: 16,
+    });
+    const before = fly.state.counts.escapes;
+    while (fly.state.t < onset + seconds + 0.5) {
+      if (!line && fly.state.t >= onset - 0.01) {
+        // Ahead of the fly, 20 degrees up: wherever it stands when the sphere appears.
+        const a = fly.state.yaw,
+          el = (20 * Math.PI) / 180;
+        line = {
+          p: [...fly.state.p] as V3,
+          dir: [Math.cos(el) * Math.cos(a), Math.sin(el), -Math.cos(el) * Math.sin(a)],
+        };
+      }
+      fly.advance(0.005);
+    }
+    return fly.state.counts.escapes - before;
+  }
+  const near = RADIUS / Math.sin(Math.PI / 4); // 90 degrees across
+
+  it("never fires for a receding or a held sphere, and does for the same sphere approaching", () => {
+    for (const seed of [1, 2, 3]) {
+      // l/v = 40 ms: 1 m/s.
+      expect(
+        escapes(1, near, 1 - near, seed),
+        `approaching, seed ${seed}`,
+      ).toBeGreaterThan(0);
+      expect(escapes(near, 1, 1 - near, seed), `receding, seed ${seed}`).toBe(0);
+      // Held at the size the proxy's size term weights most (60 degrees).
+      const held = RADIUS / Math.sin(Math.PI / 6);
+      expect(escapes(held, held, 2, seed), `held, seed ${seed}`).toBe(0);
+    }
+  });
+});
+
+describe("the redesigned protocols' apparatus", { timeout: 120000 }, () => {
+  const seeds = [101, 202];
+  it("times the escape by the approach: more time to collision at a slower l/v", () => {
+    const e = plan(threat()).experiment; // control 160 ms, treatment 40 ms
+    const ttc = (arm: FlyArm) =>
+      runFlyArm(e.blocks, arm, seeds).map((r) => r.metrics.escape_ttc_s);
+    const slow = ttc(e.arms[0]!),
+      fast = ttc(e.arms[1]!);
+    slow.forEach((t, i) => {
+      expect(t).not.toBeNull();
+      expect(t!).toBeGreaterThan(fast[i]!);
+    });
+  });
+
+  it("presents repeated stimuli on a fixed schedule that never waits for the fly", () => {
+    const e = plan(flyExample("adaptation")).experiment;
+    const block = e.blocks[0]!,
+      stim = block.stimulus!;
+    const approach =
+      (stim.start_distance_m -
+        stim.radius_m / Math.sin((stim.final_size_deg[1] * Math.PI) / 360)) /
+      (stim.radius_m / (stim.l_over_v_ms / 1000));
+    // Two pilot seeds (a test is not an archived run): at a 5 s interval the
+    // pilot found the fly still in the air when some presentations fell due.
+    const pilotSeeds = FLY_PILOT_SEEDS.slice(0, 2);
+    for (const arm of [e.arms[1]!, { ...e.arms[1]!, isi_s: 5 }]) {
+      const runs = runFlyArm(e.blocks, arm, pilotSeeds);
+      if (arm.isi_s === 5)
+        expect(runs.some((r) => r.metrics.airborne_presentations! > 0)).toBe(true);
+      const length =
+        stim.onset_s + (block.trials - 1) * arm.isi_s + approach + block.duration_s;
+      for (const r of runs) {
+        // Every presentation falls due: shown, or skipped while the fly is airborne.
+        expect(r.metrics.presentations! + r.metrics.airborne_presentations!).toBe(
+          block.trials,
+        );
+        expect(r.simulated_s).toBeCloseTo(length, 1);
+      }
+    }
+  });
+});
+
+describe("pilots: exploratory sizing, never evidence", { timeout: 300000 }, () => {
+  const PILOTS = join(ROOT, "docs/benchmarks/fly-pilots");
+  const kept = (
+    existsSync(PILOTS) ? readdirSync(PILOTS).filter((n) => n.endsWith(".json")) : []
+  ).map((n) => JSON.parse(readFileSync(join(PILOTS, n), "utf8")) as FlyPilot);
+  const pilotOf = (protocol: string) => kept.find((p) => p.protocol === protocol);
+
+  it("draws on a fixed public seed domain that no archived run ever uses", () => {
+    expect(FLY_PILOT_SEEDS).toHaveLength(FLY_PILOT_SEED_COUNT);
+    expect(new Set(FLY_PILOT_SEEDS).size).toBe(FLY_PILOT_SEED_COUNT);
+    expect(FLY_PILOT_SEEDS[0]).toBe(
+      Number.parseInt(sha256(`${FLY_PILOT}|0`).slice(0, 8), 16),
+    );
+    expect(FLY_PILOT_SEEDS.every(isFlyPilotSeed)).toBe(true);
+    expect(isFlyPilotSeed(FLY_PILOT_SEEDS[0]! + 1)).toBe(false);
+    // A record whose seeds include a pilot seed is flagged, whatever else is wrong.
+    const { record } = run();
+    const onPilot = structuredClone(record);
+    onPilot.seeds[0] = FLY_PILOT_SEEDS[0]!;
+    expect(verifyFlyRecord(reseal(onPilot)).errors).toContain(
+      "the seeds include a pilot seed, which never feeds an archived run",
+    );
+  });
+
+  it("keeps one pilot per redesigned protocol, labelled not evidence, intact and on this fly", () => {
+    expect(kept.map((p) => p.protocol).sort()).toEqual(
+      Object.keys(FLY_PILOT_SERIES).sort(),
+    );
+    for (const p of kept) {
+      expect(p.schema).toBe(FLY_PILOT);
+      expect(p.status).toBe(FLY_PILOT_STATUS);
+      expect(flyPilotIntact(p), p.protocol).toBe(true);
+      expect(p.fly_version).toBe(FLY_VERSION);
+      expect(p.definition.seeds).toEqual(FLY_PILOT_SEEDS.slice(0, FLY_PILOT_SEEDS_USED));
+      expect(p.definition.null_seeds).toEqual(
+        FLY_PILOT_SEEDS.slice(FLY_PILOT_SEEDS_USED, 2 * FLY_PILOT_SEEDS_USED),
+      );
+      // This code's pilot would run exactly what the kept one ran.
+      expect(p.definition, p.protocol).toEqual(flyPilotDefinition(p.protocol));
+    }
+    const readme = readFileSync(join(PILOTS, "README.md"), "utf8");
+    expect(readme).toMatch(/^# Digital fly pilots: not evidence/);
+    // The index is the one the kept pilots imply (`--pilot --readme` writes it).
+    expect(readme).toBe(flyPilotReadme(kept));
+  });
+
+  it("gives the demonstrations their seed counts and minimum effects", () => {
+    for (const p of kept) {
+      const design = flyExample(p.protocol);
+      expect(design.parameters.treatment).toEqual(p.sized.treatment);
+      expect(design.analysis.metric).toBe(p.sized.metric);
+      expect(design.analysis.expected_direction).toBe(p.sized.direction);
+      expect(design.parameters.seed_count, p.protocol).toBe(p.sized.seed_count);
+      expect(design.analysis.minimum_effect, p.protocol).toBe(
+        p.sized.design_minimum_effect,
+      );
+      expect(p.sized.pass_probability!).toBeGreaterThanOrEqual(0.9);
+      expect(compileFlyExperiment(design).ok).toBe(true);
+    }
+  });
+
+  it("gives the host its minimum effects for the metrics the redesign added", () => {
+    const floors = flyPilotFloors(kept);
+    for (const id of FLY_PILOT_SIZED_METRICS) {
+      expect(floors[id], id).toBeGreaterThan(0);
+      expect(FLY_METRICS.find((m) => m.id === id)!.minimum_effect, id).toBe(floors[id]);
+    }
+    // What each pilot recorded as in force (its README's "in force" and "host
+    // minimum effect" columns) is what is in force now.
+    const inForce = (id: string) => FLY_METRICS.find((m) => m.id === id)!.minimum_effect;
+    for (const p of kept) {
+      expect(p.sized.host_minimum_effect, p.protocol).toBe(inForce(p.sized.metric));
+      for (const f of p.floors)
+        expect(f.host_minimum_effect, `${p.protocol} ${f.metric}`).toBe(
+          inForce(f.metric),
+        );
+    }
+  });
+
+  it("re-runs a pilot exactly from its recorded definition", () => {
+    const c = checkFlyPilot(pilotOf("visual_threat")!, CLEAN);
+    expect(c).toMatchObject({
+      intact: true,
+      same_runs: true,
+      same_outputs: true,
+      current_definition: true,
+    });
+    // An edit to the kept file is caught by its seal and output digest.
+    const edited = structuredClone(pilotOf("visual_threat")!);
+    edited.sized.seed_count = 8;
+    expect(flyPilotIntact(edited)).toBe(false);
+  });
+
+  it("sizes conservatively: exact sign-test power, one-sided bounds, rounding", () => {
+    expect(lowerBound(32, 32)).toBeCloseTo(0.05 ** (1 / 32), 6);
+    expect(upperBound(0, 32)).toBeCloseTo(1 - 0.05 ** (1 / 32), 6);
+    expect(lowerBound(0, 32)).toBe(0);
+    // Six untied seeds, all in the expected direction: exactly what passes.
+    expect(signTestPower(6, 1, 0)).toBeCloseTo(1, 12);
+    expect(signTestPower(16, 0.5, 0.5)).toBeLessThan(0.1);
+    expect(roundDown2(0.23573)).toBe(0.23);
+    expect(roundDown2(0.0296)).toBe(0.029);
+    expect(roundUp1(0.0144)).toBe(0.02);
+    expect(roundUp1(0.0772)).toBe(0.08);
+    const pilot = {
+      control_mean: 0.4,
+      treatment_mean: 0.1,
+      mean_difference: -0.3,
+      sd_difference: 0.01,
+      increase: 0,
+      decrease: 32,
+      tie: 0,
+      undefined: 0,
+      control_at_floor: 0,
+      control_at_ceiling: 0,
+    };
+    const d = Array.from({ length: 32 }, (_, i) => -0.3 + (i % 2 ? 0.01 : -0.01));
+    const sized = sizeFlyDesign(
+      "escape_ttc_s",
+      "decrease",
+      threat().parameters.treatment,
+      pilot,
+      d,
+    );
+    expect(sized.seed_count).toBe(9);
+    expect(sized.minimum_effect).toBe(0.29);
+    // A control pinned at a bound in every pilot seed can never pass G3.
+    const pinned = sizeFlyDesign(
+      "escape_probability",
+      "decrease",
+      threat().parameters.treatment,
+      { ...pilot, control_at_ceiling: 32 },
+      d,
+    );
+    expect(pinned.seed_count).toBeNull();
+    expect(pinned.design_minimum_effect).toBeNull();
+  });
+});
+
+describe(
+  "verifying an archive of this code's records, other code's, legacy records and refusals",
+  { timeout: 300000 },
+  () => {
+    const REAL = join(ROOT, "docs/benchmarks/fly-behavior");
+    const here = flyIdentity().fly_sha256;
+    /** Copies of the real archive's folders that this code does not re-simulate. */
+    function archiveOfOthers() {
+      const archive = scratch();
+      const kinds = { other: 0, legacy: 0, refused: 0 };
+      const copied: string[] = [];
+      for (const d of readdirSync(REAL, { withFileTypes: true })) {
+        if (!d.isDirectory()) continue;
+        const recordPath = join(REAL, d.name, "record.json");
+        if (existsSync(recordPath)) {
+          const r = JSON.parse(readFileSync(recordPath, "utf8"));
+          if (r.schema === FLY_LEGACY_RECORD) kinds.legacy++;
+          else if (r.plan?.fly_sha256 !== here) kinds.other++;
+          else continue;
+        } else kinds.refused++;
+        cpSync(join(REAL, d.name), join(archive, d.name), { recursive: true });
+        copied.push(d.name);
+      }
+      copyPins(REAL, archive, copied);
+      return { archive, kinds };
+    }
+    const index = (archive: string) =>
+      writeFileSync(join(archive, "README.md"), flyArchiveReadme(archive));
+    const folder = (
+      archive: string,
+      record: FlyRecord,
+      admission: Parameters<typeof flyFolderFiles>[1],
+    ) => {
+      const dir = join(archive, record.plan.experiment_id);
+      mkdirSync(dir);
+      const files = flyFolderFiles(record, admission);
+      for (const [name, text] of Object.entries(files))
+        writeFileSync(join(dir, name), text);
+      pinFlyRenderings(archive, record.plan.experiment_id, files);
+      return dir;
+    };
+
+    it("holds every committed record's folder as it was written, its report and summary as pinned", () => {
+      const records = readdirSync(REAL, { withFileTypes: true })
+        .filter((d) => d.isDirectory() && existsSync(join(REAL, d.name, "record.json")))
+        .map((d) => d.name)
+        .sort();
+      expect(records.length).toBeGreaterThan(0);
+      expect(Object.keys(readFlyRenderings(REAL).folders)).toEqual(records);
+      for (const d of records)
+        expect(checkFlyFolder(join(REAL, d)).errors, d).toEqual([]);
+    });
+
+    it("pins a folder's report and summary once, and never changes a pin", () => {
+      const archive = scratch();
+      const files = {
+        "report.md": "# report\n",
+        "summary.json": "{}\n",
+        "plan.json": "{}\n",
+      };
+      pinFlyRenderings(archive, "FLY-b", files);
+      pinFlyRenderings(archive, "FLY-a", files);
+      pinFlyRenderings(archive, "FLY-a", files);
+      const pins = { "report.md": sha256("# report\n"), "summary.json": sha256("{}\n") };
+      expect(readFlyRenderings(archive)).toEqual({
+        schema: FLY_RENDERINGS,
+        folders: { "FLY-a": pins, "FLY-b": pins },
+      });
+      expect(Object.keys(readFlyRenderings(archive).folders)).toEqual(["FLY-a", "FLY-b"]);
+      expect(() =>
+        pinFlyRenderings(archive, "FLY-a", { ...files, "report.md": "# edited\n" }),
+      ).toThrow(/a pin is never changed/);
+      expect(() =>
+        pinFlyRenderings(archive, "FLY-c", { "report.md": "# report\n" }),
+      ).toThrow(/no summary\.json to pin/);
+      for (const text of ["[]\n", "null\n", '{"schema": "rain-fly-renderings/v1"}\n']) {
+        writeFileSync(join(archive, "renderings.json"), text);
+        expect(() => readFlyRenderings(archive)).toThrow(/not rain-fly-renderings\/v1/);
+      }
+      expect(verifyFlyArchive(archive).lines[0]).toMatchObject({
+        status: "failed",
+        folder: "renderings.json",
+      });
+    });
+
+    it("checks other code's records without re-simulating them, and fails an archive it can check none of", () => {
+      const { archive, kinds } = archiveOfOthers();
+      expect(kinds.other).toBeGreaterThan(0);
+      expect(kinds.legacy).toBeGreaterThan(0);
+      expect(kinds.refused).toBeGreaterThan(0);
+      index(archive);
+      const v = verifyFlyArchive(archive);
+      expect(v.counts).toEqual({
+        resimulated: 0,
+        admitted: 0,
+        other_code: kinds.other,
+        other_engine: 0,
+        legacy: kinds.legacy,
+        refusals: kinds.refused,
+        failed: 0,
+      });
+      for (const line of v.lines.filter((l) => l.status === "other"))
+        expect(line.text).toMatch(
+          /^other +FLY-[0-9a-f]+: made by .*; seal, files and registry run checked, the report and summary against their pins; not re-simulated \(.+\)$/,
+        );
+      // Nothing here re-simulates on this fly, so nothing here is checked by it.
+      expect(v.summary.join(" ")).toMatch(
+        /No admitted record re-simulates on digital-fly\//,
+      );
+      expect(v.exit_code).toBe(1);
+    });
+
+    it("catches by its pins an edit to a record of other code that the facts it states cannot show", () => {
+      const { archive } = archiveOfOthers();
+      const other = readdirSync(archive)
+        .filter((d) => existsSync(join(archive, d, "record.json")))
+        .find((d) => {
+          const r = JSON.parse(readFileSync(join(archive, d, "record.json"), "utf8"));
+          return r.schema !== FLY_LEGACY_RECORD && r.plan.fly_sha256 !== here;
+        })!;
+      const dir = join(archive, other);
+      expect(checkFlyFolder(dir).errors).toEqual([]);
+      // Each edit leaves the outcome, the digests and every stated fact as they were.
+      const edits: [string, (t: string) => string][] = [
+        ["report.md", (t) => t.replace(/^(\| \d+ \| )[^|]+\|/m, "$1 9.999 |")],
+        [
+          "report.md",
+          (t) =>
+            t.replace(/— (holds|does not hold)$/m, (_m, w: string) =>
+              w === "holds" ? "— does not hold" : "— holds",
+            ),
+        ],
+        [
+          "report.md",
+          (t) => t.replace(/^> Authorized by the demonstration script.*\n/m, ""),
+        ],
+        [
+          "summary.json",
+          (t) =>
+            t.replace(
+              /"authorized_by": "[^"]*"/,
+              '"authorized_by": "a person at the terminal"',
+            ),
+        ],
+      ];
+      for (const [name, edit] of edits) {
+        const path = join(dir, name);
+        const before = readFileSync(path, "utf8");
+        const after = edit(before);
+        expect(after).not.toBe(before);
+        writeFileSync(path, after);
+        expect(checkFlyFolder(dir).errors).toEqual([
+          `${name} is not the file pinned when this folder was written`,
+        ]);
+        writeFileSync(path, before);
+      }
+
+      // A folder whose pins are gone, and a pin whose folder is gone, fail the archive.
+      index(archive);
+      expect(verifyFlyArchive(archive).counts.failed).toBe(0);
+      const pins = readFileSync(join(archive, "renderings.json"), "utf8");
+      const { [other]: _gone, ...rest } = readFlyRenderings(archive).folders;
+      writeFileSync(
+        join(archive, "renderings.json"),
+        flyJsonText({ schema: FLY_RENDERINGS, folders: rest }),
+      );
+      expect(
+        verifyFlyArchive(archive).lines.find((x) => x.folder === other),
+      ).toMatchObject({
+        status: "failed",
+        text: expect.stringMatching(
+          /renderings\.json pins no report or summary for this folder/,
+        ),
+      });
+      writeFileSync(join(archive, "renderings.json"), pins);
+      const files = { "report.md": "# report\n", "summary.json": "{}\n" };
+      pinFlyRenderings(archive, "FLY-000000000000000000000000", files);
+      expect(verifyFlyArchive(archive).lines).toContainEqual(
+        expect.objectContaining({
+          status: "failed",
+          folder: "renderings.json",
+          text: expect.stringMatching(
+            /pins FLY-000000000000000000000000, which the archive does not hold/,
+          ),
+        }),
+      );
+    });
+
+    it("re-simulates this code's records beside them, and tells another engine and edits apart", () => {
+      const { archive, kinds } = archiveOfOthers();
+      const { record } = run();
+      folder(archive, record, { registry_run: admit().registry_run, error: null });
+      index(archive);
+      const mixed = verifyFlyArchive(archive);
+      expect(mixed.counts).toEqual({
+        resimulated: 1,
+        admitted: 1,
+        other_code: kinds.other,
+        other_engine: 0,
+        legacy: kinds.legacy,
+        refusals: kinds.refused,
+        failed: 0,
+      });
+      expect(
+        mixed.lines.find((l) => l.folder === record.plan.experiment_id),
+      ).toMatchObject({
+        status: "ok",
+      });
+      expect(mixed.exit_code).toBe(0);
+
+      // A record made on another JavaScript engine: not re-simulated here, not failed.
+      const l = lab({ into: shared });
+      const p = plan(threat({ minimumEffect: 0.29 }));
+      const receipt = preregisterFly(l.registry, p);
+      const a = authorizeFly(p, receipt, scripted(p), l.host);
+      if (!a.ok) throw new Error(a.errors.join("; "));
+      const bun = reseal({
+        ...executeFly(p, receipt, a.value, l.host),
+        engine: { runtime: "bun", version: "1.2.0", js: "JavaScriptCore" },
+      });
+      folder(archive, bun, { registry_run: null, error: "not admitted: a test record" });
+      index(archive);
+      const elsewhere = verifyFlyArchive(archive);
+      expect(elsewhere.counts).toMatchObject({ other_engine: 1, failed: 0 });
+      expect(elsewhere.exit_code).toBe(3);
+
+      // An edit to a record of other code is caught by the facts its files state, and its pins.
+      const other = mixed.lines.find((x) => x.status === "other")!.folder;
+      const summaryPath = join(archive, other, "summary.json");
+      const summary = readFileSync(summaryPath, "utf8");
+      const s = JSON.parse(summary);
+      writeFileSync(
+        summaryPath,
+        JSON.stringify({ ...s, mean_paired_delta: 99 }, null, 2) + "\n",
+      );
+      const caught = verifyFlyArchive(archive);
+      expect(caught.lines.find((x) => x.folder === other)).toMatchObject({
+        status: "failed",
+      });
+      expect(caught.lines.find((x) => x.folder === other)!.text).toMatch(
+        /summary\.json does not state the record's mean_paired_delta/,
+      );
+      expect(caught.exit_code).toBe(1);
+      writeFileSync(summaryPath, summary);
+      const reportPath = join(archive, other, "report.md");
+      const report = readFileSync(reportPath, "utf8");
+      writeFileSync(reportPath, report.replace(/^# (\S+): \w+/, "# $1: PASSED-BY-HAND"));
+      expect(
+        verifyFlyArchive(archive).lines.find((x) => x.folder === other)!.text,
+      ).toMatch(/report\.md does not report the record's outcome and digests/);
+      writeFileSync(reportPath, report);
+      expect(verifyFlyArchive(archive).exit_code).toBe(3);
+
+      // A stale index, or a stale source digest, fails the archive.
+      writeFileSync(join(archive, "README.md"), "# hand-written\n");
+      expect(verifyFlyArchive(archive).lines.map((x) => x.folder)).toContain("README.md");
+      index(archive);
+      const stale = verifyFlyArchive(archive, { stale: "flySource.ts is stale" });
+      expect(stale.lines[0]).toMatchObject({ status: "failed", folder: "source digest" });
+      expect(stale.exit_code).toBe(1);
+    });
+  },
+);

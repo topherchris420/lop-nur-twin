@@ -141,8 +141,18 @@ export class Senses {
     this.rng = rng;
   }
 
+  /** A size, distance or level with relative noise. */
   private jitter(x: number): number {
     return this.noise > 0 ? x * (1 + this.noise * gauss(this.rng)) : x;
+  }
+
+  /**
+   * A direction (rad) with additive noise of the same standard deviation in
+   * radians whatever the direction: relative noise on an angle would leave
+   * straight ahead noiseless and scatter a bearing behind the most.
+   */
+  private jitterAngle(a: number): number {
+    return this.noise > 0 ? wrapAngle(a + this.noise * gauss(this.rng)) : a;
   }
 
   sample(s: SenseInput): SenseFrame {
@@ -235,11 +245,10 @@ export class Senses {
       lightElevation: number | null = null;
     if (light.toward) {
       const t = light.toward;
-      lightBearing = this.jitter(
+      lightBearing = this.jitterAngle(
         Math.atan2(t[0] * lft[0] + t[2] * lft[2], t[0] * fwd[0] + t[2] * fwd[2]),
       );
       lightElevation = Math.asin(Math.max(-1, Math.min(1, t[1])));
-      lightBearing = wrapAngle(lightBearing);
     }
     const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
     return {

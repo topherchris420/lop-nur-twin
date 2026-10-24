@@ -48,6 +48,23 @@ export function stepPeriodS(speedCmS: number, g: GaitParams): number {
   return Math.max(g.stepPeriodFloorMs, g.swingMs / (1 - duty)) / 1000;
 }
 
+/**
+ * How fast the feet pass over the ground (cm/s): the walking speed plus the
+ * turn rate (rad/s) times the feet's distance from the thorax's vertical axis.
+ * The gait runs at this speed, so a fly turning on the spot steps round
+ * instead of standing still.
+ */
+export function steppingSpeedCmS(
+  walkSpeedCmS: number,
+  yawRate: number,
+  footRadiusCm: number,
+): number {
+  return Math.abs(walkSpeedCmS) + Math.abs(yawRate) * footRadiusCm;
+}
+
+/** Below this stepping speed (cm/s) the legs stand still. */
+export const STEPPING_MIN_CMS = 0.05;
+
 /** Stride length (cm): how far the body moves during one full step cycle. */
 export function strideCm(speedCmS: number, g: GaitParams): number {
   return speedCmS * stepPeriodS(speedCmS, g);

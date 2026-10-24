@@ -9,7 +9,7 @@
  * fails at import time, not as a twisted leg on screen.
  */
 import data from "./data/flybody-skeleton.json" with { type: "json" };
-import type { BodyDef, Quat, Vec3 } from "./kinematics.js";
+import { forwardKinematics, type BodyDef, type Quat, type Vec3 } from "./kinematics.js";
 
 export interface MaterialDef {
   name: string;
@@ -129,6 +129,22 @@ export function parseSkeleton(raw: unknown): Skeleton {
 }
 
 export const SKELETON: Skeleton = parseSkeleton(data);
+
+/**
+ * The six claws' mean distance from the thorax's vertical axis in FlyBody's
+ * zero pose (cm): how far a turn on the spot carries the feet, so how fast the
+ * fly must step to turn without them sliding.
+ */
+export const FOOT_RADIUS_CM = (() => {
+  const frames = forwardKinematics(SKELETON.bodies);
+  const claws = SKELETON.bodies.filter((b) => b.name.startsWith("claw_"));
+  if (claws.length !== 6) throw new Error("flybody skeleton: six claws expected");
+  const sum = claws.reduce((acc, b) => {
+    const p = frames.get(b.name)!.p;
+    return acc + Math.hypot(p[0], p[1]);
+  }, 0);
+  return sum / claws.length;
+})();
 
 export const bodyIndex = (s: Skeleton = SKELETON) =>
   new Map(s.bodies.map((b, i) => [b.name, i] as const));

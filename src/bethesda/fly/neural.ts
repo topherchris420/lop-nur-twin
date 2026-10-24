@@ -4,8 +4,10 @@
  *
  * A `FlyNeuralAdapter` receives a delayed sensory frame, a snapshot of the
  * body, the landing sites on offer and the fly's parameters, all frozen
- * copies, and returns a `MotorCommand`. Every command passes
- * `validateCommand` before the body acts on it. The gate never throws: it
+ * copies, and returns a `MotorCommand`; it may also answer every sensory
+ * sample between decisions (`interrupt`), for a reflex that cannot wait for
+ * the next decision. Every command passes `validateCommand` before the body
+ * acts on it. The gate never throws: it
  * reads the command once into a plain copy, checks its whole shape and every
  * value, and either accepts that copy or refuses. A refused command (or a
  * decision maker that throws) is counted and logged, and the body switches
@@ -39,8 +41,15 @@ export const MODES = [
 ] as const;
 export type Mode = (typeof MODES)[number];
 export const PERCHED: ReadonlySet<Mode> = new Set(["rest", "groom", "walk"]);
-export const GROOM_ROUTINES = ["eyes", "antennae", "abdomen", "wings", "notum"] as const;
+/** The body sites a fly grooms, front to back (the order of Seeds et al. 2014's dust cascade). */
+export const GROOM_SITES = ["eyes", "antennae", "abdomen", "wings", "notum"] as const;
+/**
+ * Every grooming routine: a body site, or the legs rubbing each other after one
+ * (the front pair after the head, the hind pair after the abdomen, wings or notum).
+ */
+export const GROOM_ROUTINES = [...GROOM_SITES, "front legs", "hind legs"] as const;
 export type GroomRoutine = (typeof GROOM_ROUTINES)[number];
+export type GroomSite = (typeof GROOM_SITES)[number];
 export const FLIGHT_SUBS = ["cruise", "hover", "saccade", "approach"] as const;
 export type FlightSub = (typeof FLIGHT_SUBS)[number];
 
@@ -134,6 +143,15 @@ export interface FlyNeuralAdapter {
   start?(body: BodySnapshot): void;
   /** Must be deterministic given its inputs and the random stream it was built with. */
   decide(input: DecisionInput): MotorCommand;
+  /**
+   * An optional fast pathway, for a reflex such as the giant-fiber escape: called
+   * with every sensory sample that falls between decisions, on the same delayed
+   * frame `decide` would get. It offers no new landing sites (only the one being
+   * approached). Null (or nothing) lets the current command run on; a command
+   * returned here passes the same gate as a decision. Deterministic like
+   * `decide`.
+   */
+  interrupt?(input: DecisionInput): MotorCommand | null;
 }
 
 /** Hard limits the body enforces whatever the adapter. Model bounds, wider than any behaviour asked of it. */

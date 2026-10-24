@@ -10,34 +10,34 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "3b221211c38cbbdba6fce0480406056979e03e623b8dc5837b79fca196070b77",
+  sha256: "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
     "src/bethesda/fly/controller.ts":
-      "667698375eb5b4a067b0a55d7259d2a10ae1ef64b212323878b59df36b655c87",
+      "4c4dc39342150e3969c9892c63de74a12e432dcc509e1f807a832770aadf0e26",
     "src/bethesda/fly/data/flybody-skeleton.json":
       "e412333429c70dfe518a907b7aa270cd59627affa91b170a12b58d835262400d",
     "src/bethesda/fly/fly.ts":
-      "2f3afce27f276e3978e3a970d9e6ca981f3f3f3702d86e7a727ba19dca665cf4",
+      "9aff11886e5da2721b647a47d8c90ed978e6ec9d105e0041d1f6dc293f4806c9",
     "src/bethesda/fly/gait.ts":
-      "496ad3611e9a7da8c1e4d9fd3ed9f3b67940f6728533328ce1b5e83f7a4f32e2",
+      "c3876855201f3995843e6b2c98827150259b83e80ba76fc9ef7caec5e2449c4c",
     "src/bethesda/fly/kinematics.ts":
       "4739358834ce8a0018179db53670299946e24c063c3ab9a5504eba51a5596a33",
     "src/bethesda/fly/neural.ts":
-      "97956108e4e7f6b287af0bc88bcdf4cfd5b58a19c34cd255dc9d2a7ab9572619",
+      "f92a522a072add5344628d497d9d97491fe039008235fa1e3c44729a718b89ea",
     "src/bethesda/fly/params.ts":
-      "941d45b369e89189fba02c3d3bc71ab21f36206cb2cbc995f26684da0492a81a",
+      "b7e2983aed20ded5fe851bfff5d5a5f7130d98dba7e63a7115f9928a59d93665",
     "src/bethesda/fly/senses.ts":
-      "881e0d32402f44a8626787e0623974c2c0d5545b9a9a731ac8b1a3e6bda21f11",
+      "2c060571b0db694ec76e037d3acdb6fd56b7dc3ed57e2e912a2cfe2fb96ff6f7",
     "src/bethesda/fly/skeleton.ts":
-      "4fda1006206f1c603e2d69abce41adb15a23befb3772b4c9c149ebbd85e9cb75",
+      "58bd8216a5f677f3f52b3a5df553cc1895f2935377ef16272a4ee132b35c72d1",
     "src/bethesda/fly/units.ts":
       "3a36a0929fe380d878ec494bfb35044cfd45185151fbc2d2baf5a3254d97268a",
     "src/bethesda/fly/world.ts":
-      "61d98c420f907d5ca35ffd06fb1ddc2643cf29887bd6a35803f7b75b59a317de",
+      "0710509c909ace39be677b69dc5f34a9c5dd000c1e5a2602b1492b899d4e08fd",
     "src/bethesda/rain/scientificProtocol.ts#digital-fly":
-      "7390f74a2f54c03e5a2418be93aaa831984c1028884e650a3e7589cd7e6ecc77",
+      "daa932362e93e72ff7da2a71ab00feeedfbf57f4e80431d48eba8087bd73f143",
     "src/game/pilot/hash.ts":
       "a19b8d4bb48660b51b50c122f7a4fb788640bb3afba209c885092128fecda525",
     "src/lib/canonicalJson.ts":
@@ -45,6 +45,6 @@ export const FLY_SOURCE: {
     "src/lib/noise.ts":
       "4928be463689d7f5b8cb5586d0144a3e994823228db82fcdb2436b6d2143226e",
     "src/rain/scientific/fly.ts":
-      "8b5712d1528f4ca875b6c4e3eeeba57f598e6e6edbf215a151bd3c1acf8ce731",
+      "de440aff3faec166362ee405baef1441abf30a4687d7d3731e3e9725f2fabef7",
   },
 };

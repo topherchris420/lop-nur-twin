@@ -18,14 +18,15 @@
  * the range ends where it does when that is not obvious; a model value whose
  * range is a single number is fixed too, and its note says what ties it.
  *
- * What the table covers: the rates, thresholds, time constants, speeds and
- * sizes the behaviour is built on. It is not every number in the fly. The
+ * What the table covers: the rates, thresholds, gains, time constants, speeds
+ * and sizes the behaviour is built on. It is not every number in the fly. The
  * body, its senses, the world queries and the controller also use fixed
- * constants written where they are used (turn durations and spreads, steering
- * and climb gains, ray fans, the drawn attitude's drag, contact tolerances);
- * those are model choices too, none fitted, and docs/DIGITAL_FLY.md lists
- * each of them except numerical tolerances. The inspection panel prints this
- * table with each value's kind, source and, where it can vary, range.
+ * constants written where they are used (turn durations and spreads, the
+ * grooming start weights, steering gains, site scoring, ray fans, the drawn
+ * attitude's drag and lean, contact tolerances); those are model choices too,
+ * none fitted, and docs/DIGITAL_FLY.md lists each of them except numerical
+ * tolerances. The inspection panel prints this table with each value's kind,
+ * source and, where it can vary, range.
  */
 export type ParamKind = "flybody" | "published" | "model";
 /** A paper (by DOI) or a file of FlyBody's code at the pinned commit (by URL). */
@@ -229,6 +230,12 @@ export const PARAMS = {
     "swing duration, held constant across speed as the cited study reports qualitatively; the value is set so the 60 ms period floor and the FlyBody duty factor at 4 cm/s agree. Within its range the step period stays between the 60 ms floor and 0.17 s at FlyBody's duty factors",
     CITATIONS.mendes2013,
   ),
+  walkSpeedTauS: model(
+    0.1,
+    "s",
+    [0, 1],
+    "time constant of the walking speed's approach to its command (not fitted); 0 follows at once",
+  ),
 
   // --- Flight ---------------------------------------------------------------
   cruiseCmS: fixed(
@@ -283,6 +290,30 @@ export const PARAMS = {
     [0.05, 3],
     "clearance below which cruise speed is scaled down in proportion; slower flight in a cluttered visual landscape is published, the scale is not. Clearance is measured along a 3 m ray fan, so above 3 m every surface the fan sees would slow the fly",
     CITATIONS.tammero2002a,
+  ),
+  clutterSlowFloor: model(
+    0.4,
+    "fraction",
+    [0.05, 1],
+    "the least share of the cruise speed clutter slows the fly to (not fitted); 1 turns the slowing off",
+  ),
+  avoidSpeedShare: model(
+    0.7,
+    "fraction",
+    [0, 1],
+    "share of the cruise speed held through a saccade away from a surface ahead (not fitted)",
+  ),
+  altitudeGain: model(
+    1.5,
+    "1/s",
+    [0.1, 5],
+    "climb or sink rate per metre between the preferred cruise height and the height above the surface below (not fitted). The range ends at 5/s, a time constant of 0.2 s, still well above the 50 ms decision period and the 30 ms sensory latency",
+  ),
+  climbMaxMS: model(
+    0.3,
+    "m/s",
+    [0.05, 1],
+    "fastest climb or sink while holding the cruise height, and fastest sink away from the home range's ceiling (not fitted). At most 1 m/s, so with the cruise speed the command stays under the 1.5 m/s flight limit",
   ),
   velocityTauS: model(
     0.08,
@@ -340,7 +371,7 @@ export const PARAMS = {
     5,
     "s",
     [0.5, 60],
-    "a landing approach not completed in this time is abandoned",
+    "a landing approach is abandoned when it has run this much longer than the approach law needs from the distance it began at (cruise speed down to `approachTauS`, then the slowing tail), so every site within `landingSearchM` can be reached",
   ),
   landRetryS: model(
     1.5,
@@ -353,6 +384,12 @@ export const PARAMS = {
     "m/s",
     [0.01, 1.5],
     "contact with a walkable top slower than this is a landing; faster is a collision. At most the 1.5 m/s flight limit",
+  ),
+  contactKeep: model(
+    0.3,
+    "fraction",
+    [0, 1],
+    "share of its speed along a surface the airborne fly keeps when it first touches it (not fitted); 1 slides on at full speed, 0 stops dead",
   ),
 
   // --- Escape ---------------------------------------------------------------
@@ -422,6 +459,12 @@ export const PARAMS = {
     [5, 150],
     "launch speed of the leg-driven jump that starts a takeoff; a visual approximation, not a measurement. At most the 1.5 m/s flight limit",
   ),
+  jumpElevationDeg: model(
+    50,
+    "deg",
+    [0, 90],
+    "elevation of the jump above the horizontal, along the takeoff's heading (not fitted): 0 launches level, 90 straight up",
+  ),
 
   // --- Perched behaviour ----------------------------------------------------
   groomHz: model(
@@ -430,11 +473,29 @@ export const PARAMS = {
     RATE,
     "rate of spontaneous grooming bouts at rest (no dust is simulated)",
   ),
-  groomPhaseS: model(1.6, "s", [0.1, 30], "mean length of one grooming subroutine"),
+  groomPhaseS: model(
+    1.6,
+    "s",
+    [0.1, 30],
+    "mean length of one grooming subroutine, a body site or the leg rubbing after it",
+  ),
+  groomStopP: model(
+    0.5,
+    "probability",
+    [0, 1],
+    "chance a spontaneous grooming bout ends after a site (and the leg rubbing that follows it) instead of moving on to the next site back (not fitted). At 0 every bout runs on to the notum, the full anterior-to-posterior order flies show when dusted all over",
+    CITATIONS.seeds2014,
+  ),
   walkStartHz: model(0.25, "1/s", RATE, "rate of starting a walking bout at rest"),
   walkStopHz: model(0.35, "1/s", RATE, "rate of stopping while walking"),
   walkTurnHz: model(1.2, "1/s", RATE, "rate of walking turns"),
   takeoffHz: model(0.03, "1/s", RATE, "rate of voluntary takeoff from rest or walking"),
+  activityFloor: model(
+    0.2,
+    "fraction",
+    [0, 1],
+    "the light level scales the rates of voluntary takeoff and walking and the phototaxis gain, but never below this share of full (not fitted); at 0 a fly in the dark never takes off or starts walking on its own",
+  ),
   phototaxisGain: model(
     0.6,
     "rad/s per unit light contrast",

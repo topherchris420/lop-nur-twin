@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { mulberry32 } from "../../lib/noise";
-import { STREET_LAMP, streetLamps, streetTrees } from "../furniture";
-import { CitySimulation } from "../simulation";
+import {
+  awnings,
+  rooftopUnit,
+  STREET_BENCH,
+  STREET_LAMP,
+  streetLamps,
+  streetTrees,
+} from "../furniture";
+import { CitySimulation, DT } from "../simulation";
 import { parseScenario } from "../scenarios";
 import { groundAt } from "../terrain";
-import { buildingAt } from "../model";
+import { buildingAt, buildings, inside } from "../model";
 import { PARAMS } from "./params";
+import { BethesdaFlyWorld } from "./bethesdaWorld";
 import { CityFly } from "./cityFly";
 import type { V3 } from "./units";
 import {
@@ -13,6 +21,7 @@ import {
   rayCylinder,
   raySphere,
   type Hit,
+  type Mover,
   type PrimitiveWorldSpec,
 } from "./world";
 
@@ -79,8 +88,16 @@ describe("the fly in Bethesda", () => {
       expect(city.world.solid([l.point.x, g + 2, l.point.z])).toBe(true);
       expect(city.world.solid([l.point.x, g + STREET_LAMP.globeY, l.point.z])).toBe(true);
       if (l.bench) {
+        // The seat's slats are solid and the gaps between them open, as drawn:
+        // the bench's point falls between the first two slats.
         const q = l.bench.point;
-        expect(city.world.perchAt(q.x, q.z, groundAt(q) + 1)?.kind).toBe("bench");
+        const across = (d: number) => ({
+          x: q.x + Math.cos(l.angle) * d,
+          z: q.z - Math.sin(l.angle) * d,
+        });
+        const slat = across(0.5 * STREET_BENCH.slatPitch);
+        expect(city.world.perchAt(slat.x, slat.z, groundAt(q) + 1)?.kind).toBe("bench");
+        expect(city.world.perchAt(q.x, q.z, groundAt(q) + 1)?.kind).not.toBe("bench");
       }
       checked++;
     }
@@ -125,6 +142,100 @@ describe("the fly in Bethesda", () => {
       }
     }
     expect(primitiveHits).toBeGreaterThan(100);
+    // And from origins a few centimetres apart, as a flying fly casts them, so
+    // the lists made for one origin serve the next.
+    const o: V3 = [home[0], home[1] + 1, home[2]];
+    let drifted = 0;
+    for (let k = 0; k < 3000; k++) {
+      o[0] += (rng() - 0.5) * 0.1;
+      o[1] = Math.min(home[1] + 6, Math.max(home[1] + 0.2, o[1] + (rng() - 0.5) * 0.1));
+      o[2] += (rng() - 0.5) * 0.1;
+      const u = rng() * 2 - 1,
+        a = rng() * 2 * Math.PI,
+        s = Math.sqrt(1 - u * u);
+      const d: V3 = [s * Math.cos(a), u, s * Math.sin(a)];
+      const maxT = [0.05, 0.4, 3, 12][k % 4]! * (0.5 + rng());
+      const hit = world.raycast([...o] as V3, d, maxT);
+      let brute: Hit | null = null;
+      for (const h of [
+        ...(spec.boxes ?? []).map((b) => rayBox(o, d, b, maxT)),
+        ...(spec.cylinders ?? []).map((c) => rayCylinder(o, d, c, maxT)),
+        ...(spec.spheres ?? []).map((sp) => raySphere(o, d, sp, maxT)),
+      ])
+        if (h && (!brute || h.t < brute.t)) brute = h;
+      const found = brute;
+      if (!found) continue;
+      drifted++;
+      expect(hit).not.toBeNull();
+      expect(hit!.t).toBeLessThanOrEqual(found.t);
+      if (hit!.t === found.t) expect(hit!.id).toBe(found.id);
+    }
+    expect(drifted).toBeGreaterThan(50);
+  }, 60_000);
+  it("touches the rooftop units and awnings drawn on buildings, and not their courtyards", () => {
+    const sim = new CitySimulation(config);
+    // An awning over open ground: the side of its wall outside the building, with nothing there.
+    let awning: { b: (typeof buildings)[number]; k: number; out: number } | null = null;
+    for (const b of buildings) {
+      awnings(b).forEach((a, k) => {
+        if (awning) return;
+        const n = { x: Math.sin(a.angle), z: Math.cos(a.angle) };
+        for (const out of [-1, 1]) {
+          const p = (m: number) => ({
+            x: a.point.x + out * n.x * m,
+            z: a.point.z + out * n.z * m,
+          });
+          if (!buildingAt(p(0.3)) && !buildingAt(p(0.8)) && inside(p(-0.3), b.ring))
+            awning = { b, k, out };
+        }
+      });
+      if (awning) break;
+    }
+    expect(awning).not.toBeNull();
+    {
+      const { b, k, out } = awning!;
+      const a = awnings(b)[k]!;
+      const world = new BethesdaFlyWorld(sim, a.point);
+      const y = groundAt(b.center) + a.y;
+      const at = (m: number): V3 => [
+        a.point.x + out * Math.sin(a.angle) * m,
+        y,
+        a.point.z + out * Math.cos(a.angle) * m,
+      ];
+      // It reaches 0.6 m out from the wall, 3.3 m up, and the fly can stand on it.
+      expect(world.solid(at(0.3))).toBe(true);
+      expect(world.solid(at(0.7))).toBe(false);
+      const top = world.perchAt(at(0.3)[0], at(0.3)[2], y + 0.5);
+      expect(top?.id).toBe(`building ${b.id} awning ${k}`);
+      expect(top?.y).toBeCloseTo(y + a.h / 2, 9);
+    }
+    const unitOn = buildings.find((b) => rooftopUnit(b))!;
+    {
+      const unit = rooftopUnit(unitOn)!;
+      const world = new BethesdaFlyWorld(sim, unit.point);
+      const base = groundAt(unitOn.center);
+      const top = world.perchAt(unit.point.x, unit.point.z, base + unitOn.height + 3);
+      expect(top?.id).toBe(`building ${unitOn.id} rooftop unit`);
+      expect(top?.y).toBeCloseTo(base + unit.y + unit.h / 2, 9);
+    }
+    // A courtyard is open from the ground to the sky, walled by its building.
+    const yard = buildings.find((b) => b.holes.length > 0)!;
+    {
+      const hole = yard.holes[0]!;
+      const c = {
+        x: hole.reduce((s, p) => s + p.x, 0) / hole.length,
+        z: hole.reduce((s, p) => s + p.z, 0) / hole.length,
+      };
+      expect(inside(c, hole)).toBe(true);
+      const world = new BethesdaFlyWorld(sim, c);
+      const base = groundAt(yard.center);
+      expect(world.solid([c.x, base + yard.height / 2, c.z])).toBe(false);
+      expect(world.perchAt(c.x, c.z, base + yard.height + 1)?.id).not.toBe(
+        `building ${yard.id}`,
+      );
+      const wall = world.raycast([c.x, base + yard.height / 2, c.z], [1, 0, 0], 500);
+      expect(wall?.id).toBe(`building ${yard.id}`);
+    }
   }, 60_000);
   it("escapes a visitor who walks straight at it, and not one who stands nearby", () => {
     // Settle the fly on its perch, then pick an approach line clear of buildings.
@@ -189,6 +300,39 @@ describe("the fly in Bethesda", () => {
     expect(a.seed).toBe(b.seed);
     expect(a.placedOn).toBe(b.placedOn);
     expect(a.fly.stateHash()).toBe(b.fly.stateHash());
+  });
+  it("catches up over several city ticks at once, with the city interpolated across them", () => {
+    const sim = new CitySimulation(config);
+    const city = new CityFly(sim);
+    const [fx, , fz] = city.fly.state.p;
+    // The visitor 2 m away, on a line toward the fly clear of buildings.
+    const a = [...Array(8).keys()]
+      .map((k) => (k * Math.PI) / 4)
+      .find((a) =>
+        [0.5, 1, 1.5, 2].every(
+          (m) => !buildingAt({ x: fx + Math.cos(a) * m, z: fz + Math.sin(a) * m }),
+        ),
+      )!;
+    sim.player = { x: fx + Math.cos(a) * 2, z: fz + Math.sin(a) * 2 };
+    sim.step();
+    city.tick();
+    const t0 = city.fly.state.t;
+    const p0 = { ...sim.player };
+    // A frame three ticks late: the visitor walked 30 cm toward the fly meanwhile.
+    for (let k = 0; k < 3; k++) {
+      sim.movePlayer(-Math.cos(a) * 0.1, -Math.sin(a) * 0.1);
+      sim.step();
+    }
+    city.tick();
+    const p1 = { ...sim.player };
+    expect(Math.hypot(p1.x - p0.x, p1.z - p0.z)).toBeCloseTo(0.3, 9);
+    expect(city.fly.state.t).toBeCloseTo(t0 + 3 * DT, 9);
+    expect(city.failed).toBeNull();
+    const out: Mover[] = [];
+    city.world.movers([fx, 0, fz], 20, out, t0 + 1.5 * DT);
+    const torso = out.find((m) => m.id === "player:torso");
+    expect(torso?.center[0]).toBeCloseTo((p0.x + p1.x) / 2, 9);
+    expect(torso?.center[2]).toBeCloseTo((p0.z + p1.z) / 2, 9);
   });
   it("advances only on ticks the city takes, so pausing the city pauses it", () => {
     const sim = new CitySimulation(config);

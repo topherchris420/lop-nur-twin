@@ -5,7 +5,9 @@
  * writes it. The simulated state advances in 0.1 s ticks, so the drawing runs
  * one tick behind and interpolates between the last two (position, heading,
  * pitch, roll, leg extension, wing opening); the leg and wing joints are posed
- * every frame by `pose.ts`.
+ * every frame by `pose.ts`, but only while the fly is in view and at least a
+ * few pixels long. The close-up's slow turn stops whenever the visitor asks
+ * for reduced motion, a preference read as it changes.
  *
  * Level of detail by distance: FlyBody's mesh decimated to 40 000 triangles
  * within 25 cm, to 5 000 within 4 m, and nothing beyond (a 3 mm fly is under
@@ -21,12 +23,12 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { CityFly } from "./cityFly";
 import type { FlyState } from "./fly";
-import { stepPeriodS, type GaitParams } from "./gait";
+import { stepPeriodS, steppingSpeedCmS, STEPPING_MIN_CMS, type GaitParams } from "./gait";
 import { bodyLocal, type BodyDef } from "./kinematics";
 import { decodePart, parseMeshFile, type MeshFile } from "./meshCodec";
 import { resolveParams } from "./params";
 import { PoseSolver, type PoseInput } from "./pose";
-import { SKELETON } from "./skeleton";
+import { FOOT_RADIUS_CM, SKELETON } from "./skeleton";
 import { wrapAngle } from "./units";
 import { strokeAt } from "./wing";
 
@@ -104,9 +106,10 @@ const snapshot = (s: FlyState): Snapshot => ({
   ampR: s.ampR,
 });
 
-const reducedMotion = () =>
-  typeof window !== "undefined" &&
-  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const reducedMotionQuery = () =>
+  typeof window !== "undefined"
+    ? window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    : undefined;
 
 // As text, parsed on arrival: each level is its own chunk, fetched when first needed.
 const LOADERS: Record<number, () => Promise<unknown>> = {
@@ -218,8 +221,21 @@ export function FlyView({ control }: { control: FlyViewControl }) {
     az: 0.6,
     el: 0.35,
     dragged: false,
-    reduced: reducedMotion(),
+    /** The visitor's reduced-motion preference, kept current while mounted. */
+    reduced: !!reducedMotionQuery()?.matches,
   });
+
+  useEffect(() => {
+    const query = reducedMotionQuery();
+    if (!query) return;
+    const L = live.current;
+    const update = () => {
+      L.reduced = query.matches;
+    };
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
 
   const attach = (file: MeshFile) => {
     const level = Number(file.lod.slice(3));
@@ -345,6 +361,9 @@ export function FlyView({ control }: { control: FlyViewControl }) {
       Y: new THREE.Vector3(0, 1, 0),
       Z: new THREE.Vector3(0, 0, 1),
       at: new THREE.Vector3(),
+      view: new THREE.Matrix4(),
+      frustum: new THREE.Frustum(),
+      bounds: new THREE.Sphere(new THREE.Vector3(), BODY_M),
     }),
     [],
   );
@@ -444,6 +463,14 @@ export function FlyView({ control }: { control: FlyViewControl }) {
     const pixels =
       (BODY_M / (distance * 2 * Math.tan((fov * Math.PI) / 360))) * state.size.height;
     if (!c.inspect && pixels < POSE_MIN_PX) return;
+    // Nor is a pose solved for a fly outside the view.
+    if (!c.inspect) {
+      camera.updateMatrixWorld();
+      q.view.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      q.frustum.setFromProjectionMatrix(q.view);
+      q.bounds.center.copy(p);
+      if (!q.frustum.intersectsSphere(q.bounds)) return;
+    }
 
     const beating =
       (b.mode === "flight" || b.mode === "land") &&
@@ -452,9 +479,11 @@ export function FlyView({ control }: { control: FlyViewControl }) {
       L.wingPhase =
         (L.wingPhase + 2 * Math.PI * b.wingHz * dt * (c.slow ? SLOW : 1)) % (2 * Math.PI);
     const walkSpeed = lerp(a.walkSpeed, b.walkSpeed);
+    // The gait clock runs at the feet's speed over the ground, turning included (gait.ts).
+    const stepping = steppingSpeedCmS(walkSpeed, b.yawRate, FOOT_RADIUS_CM);
     const gaitClock =
-      b.mode === "walk" && a.mode === "walk" && walkSpeed > 0.05
-        ? (a.gaitClock + (alpha * 0.1) / stepPeriodS(walkSpeed, GAIT)) % 1
+      b.mode === "walk" && a.mode === "walk" && stepping >= STEPPING_MIN_CMS
+        ? (a.gaitClock + (alpha * 0.1) / stepPeriodS(stepping, GAIT)) % 1
         : b.gaitClock;
     const input: PoseInput = {
       mode: b.mode,

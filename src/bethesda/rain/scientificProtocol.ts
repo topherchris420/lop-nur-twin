@@ -325,11 +325,11 @@ export const BACKEND_CAPABILITIES: readonly BackendCapability[] = [
   {
     id: "digital-fly",
     // FLY_BACKEND, written out: this list is built before the fly section below.
-    version: "digital-fly-behavior/v2",
+    version: "digital-fly-behavior/v3",
     supported: [
       "matched-seed paired arms of the digital fly in closed arenas",
-      "six fixed protocols: obstacle avoidance, light preference, visual threat, noisy sensing, adaptation to repeated looms and controller comparison",
-      "seeds drawn by the host after preregistration, never by the design",
+      "six fixed protocols: obstacle avoidance, light preference, a looming dose series (visual threat), noisy sensing, adaptation to repeated looms and controller comparison",
+      "seeds drawn by the host after preregistration, never by the design; pilot seeds never",
       "an exact one-sided sign test on untied seeds at a host-fixed alpha of 0.05",
       "controller configurations that override model parameters only, within their ranges; FlyBody and published values stay fixed",
       "every run re-simulates exactly from its plan on the JavaScript engine that made it",
@@ -636,12 +636,28 @@ export function parseCivilizationDesign(raw: unknown): Checked<CivilizationDesig
 // changes the fly's identity, so records made before the edit are listed as
 // made by other code rather than failing re-simulation.
 
-export const FLY_DESIGN = "rain-fly-design/v2" as const;
-export const FLY_BACKEND = "digital-fly-behavior/v2" as const;
-export const FLY_EXPERIMENT = "digital-fly-experiment/v2" as const;
+/** v3: the redesigned protocols (a looming dose series, pilot-sized apparatus, a fixed schedule). */
+export const FLY_DESIGN = "rain-fly-design/v3" as const;
+export const FLY_BACKEND = "digital-fly-behavior/v3" as const;
+export const FLY_EXPERIMENT = "digital-fly-experiment/v3" as const;
+/**
+ * The envelopes keep their v2 shape, so a record made under
+ * digital-fly-behavior/v2 is still checked for integrity (seal, receipt,
+ * authorization, seeds) by this code even though only its own code could
+ * re-simulate it.
+ */
 export const FLY_PLAN = "rain-fly-plan/v2" as const;
 export const FLY_AUTHORIZATION = "rain-fly-authorization/v2" as const;
 export const FLY_RECORD = "rain-fly-record/v2" as const;
+/**
+ * Pilot runs size the protocols' apparatus, minimum effects and seed counts.
+ * They are exploratory: never preregistered, authorized or admitted, kept in
+ * docs/benchmarks/fly-pilots/ as not evidence, and their seeds come from this
+ * public domain, SHA-256("rain-fly-pilot/v1|" + counter), which the host
+ * excludes from every archived run.
+ */
+export const FLY_PILOT = "rain-fly-pilot/v1" as const;
+export const FLY_PILOT_SEED_COUNT = 64;
 /**
  * Records made under digital-fly-behavior/v1, before the integrity rules: from
  * an uncommitted tree, on seeds the designer chose, authorized by a script.
@@ -666,15 +682,20 @@ export const FLY_SEED_COUNT = { min: 8, max: 16 } as const;
  * What each block measures, per seed and arm. A design may test a `primary`
  * metric; the others are reported but never tested. A primary metric can still
  * be undefined in one run (a per-metre rate below 0.5 m flown, a per-second
- * rate below 1 s of flight, a probability with nothing delivered): that seed
- * then drops out of the paired test rather than voiding it.
+ * rate below 1 s of flight, a probability with nothing shown, a timing with no
+ * escape): that seed then drops out of the paired test rather than voiding it.
  *
  * `floor` and `ceiling` bound the metric: a control arm pinned at one of them
  * in every seed can move one way only, so guard G3 holds the result
  * inconclusive. `minimum_effect` is the host's smallest mean paired difference
- * worth calling an effect, set from the apparatus before any pilot: 0.1 for a
- * probability, 10 cm for a distance in the 4 m arena, 0.01 per metre for a
- * collision rate. A design may raise it, never lower it.
+ * worth calling an effect. A design may raise it, never lower it. For the
+ * metrics kept from v2 it was set from the apparatus: 0.1 for a probability,
+ * 10 cm for a distance in the 4 m arena, 0.01 per metre for a collision rate.
+ * For the metrics the redesign added it is the largest floor any pilot found
+ * (docs/benchmarks/fly-pilots/): the larger of the simulator's resolution and
+ * twice the standard error, at the smallest seed count, of the paired
+ * differences between two independent runs of a control arm, an upper bound on
+ * what divergence alone produces. fly.test.ts checks these against the pilots.
  */
 export const FLY_METRICS = [
   {
@@ -708,6 +729,18 @@ export const FLY_METRICS = [
     minimum_effect: 1,
     description:
       "collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)",
+  },
+  {
+    id: "near_miss_fraction",
+    block: "clutter",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    // The obstacle-avoidance pilot's floor: its avoidance-off control varies most.
+    minimum_effect: 0.08,
+    description:
+      "fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry",
   },
   {
     id: "flown_m",
@@ -751,6 +784,18 @@ export const FLY_METRICS = [
     description: "fraction of single-stimulus trials answered by an escape takeoff",
   },
   {
+    id: "escape_ttc_s",
+    block: "escape",
+    unit: "s",
+    primary: true,
+    floor: null,
+    ceiling: null,
+    // The visual-threat pilot's floor (the noisy-sensing pilot found the 10 ms sample period).
+    minimum_effect: 0.02,
+    description:
+      "mean time to collision at the escape decision, over escapes: how long the sphere's centre would still have taken to reach the fly at its approach speed (negative once it would have passed)",
+  },
+  {
     id: "escape_latency_s",
     block: "escape",
     unit: "s",
@@ -759,17 +804,6 @@ export const FLY_METRICS = [
     ceiling: null,
     minimum_effect: null,
     description: "mean time from stimulus onset to the escape decision, over escapes",
-  },
-  {
-    id: "escape_lead_s",
-    block: "escape",
-    unit: "s",
-    primary: false,
-    floor: null,
-    ceiling: null,
-    minimum_effect: null,
-    description:
-      "mean time the stimulus still had to run at the escape decision, over escapes",
   },
   {
     id: "size_at_escape_deg",
@@ -832,7 +866,8 @@ export const FLY_METRICS = [
     floor: 0,
     ceiling: 1,
     minimum_effect: 0.1,
-    description: "fraction of repeated presentations answered by an escape",
+    description:
+      "fraction of the presentations shown to the standing fly that it answered by an escape",
   },
   {
     id: "late_escape_probability",
@@ -842,8 +877,7 @@ export const FLY_METRICS = [
     floor: 0,
     ceiling: 1,
     minimum_effect: 0.1,
-    description:
-      "fraction of the second half of repeated presentations answered by an escape",
+    description: "the same fraction over the second half of the schedule's presentations",
   },
   {
     id: "presentations",
@@ -853,18 +887,18 @@ export const FLY_METRICS = [
     floor: 0,
     ceiling: null,
     minimum_effect: null,
-    description:
-      "repeated presentations delivered (each waits for the fly to have stood for a set time)",
+    description: "presentations shown, each on the schedule while the fly stood",
   },
   {
-    id: "mean_isi_s",
+    id: "airborne_presentations",
     block: "repeat",
-    unit: "s",
+    unit: "count",
     primary: false,
     floor: 0,
     ceiling: null,
     minimum_effect: null,
-    description: "mean interval between successive presentations as delivered",
+    description:
+      "presentations the schedule skipped because the fly was still in the air when they were due",
   },
   {
     id: "repeat_size_at_escape_deg",
@@ -881,8 +915,10 @@ export type FlyMetricId = (typeof FLY_METRICS)[number]["id"];
 
 /**
  * The six protocols. `caveat` says plainly what a protocol cannot show as
- * designed; it travels into every plan's limitations. Redesigns that remove
- * these caveats are planned, not built.
+ * designed; it travels into every plan's limitations. The v3 redesign chose
+ * the apparatus of four of them with pilots so that their primary measures
+ * discriminate (docs/benchmarks/fly-pilots/); what is left is what the pilots
+ * showed.
  */
 export const FLY_PROTOCOLS = [
   {
@@ -891,8 +927,7 @@ export const FLY_PROTOCOLS = [
     blocks: ["clutter"],
     independent: "the avoidance time-to-contact threshold (avoidTtcS)",
     baseline: "avoidance off (avoidTtcS = 0) on the same seeds",
-    caveat:
-      "As designed it cannot discriminate: collisions in this clutter are rare even with avoidance off, so most seeds tie and the sign test seldom has enough untied seeds.",
+    caveat: null,
   },
   {
     id: "light_preference",
@@ -904,31 +939,32 @@ export const FLY_PROTOCOLS = [
   },
   {
     id: "visual_threat",
-    title: "Visual threat",
+    title: "Visual threat: looming dose series",
     blocks: ["escape"],
-    independent: "a sphere approaching the fly at a set speed",
-    baseline:
-      "the same sphere receding along the same line, or held still at its closest point",
+    independent:
+      "the approach speed of a looming sphere, as l/v (its radius over its speed)",
+    baseline: "the same sphere on the same lines, approaching at another l/v",
     caveat:
-      "An implementation check of the escape proxy's expansion gate, not a test of threat discrimination: the proxy's drive is zero unless the stimulus expands, so the receding or held control cannot escape by construction, and guard G3 holds a control pinned at zero inconclusive.",
+      "Escape probability cannot carry the dose-response here: the proxy's size term alone reaches the threshold before the sphere stops, so the fly escapes from nearly every looming stimulus, and a control at an l/v of 40 ms or more sits at its ceiling. The timing (escape_ttc_s) carries it.",
   },
   {
     id: "noisy_sensing",
     title: "Noisy sensing",
     blocks: ["escape", "clutter"],
-    independent: "relative sensory noise",
+    independent:
+      "sensory noise (relative on sizes, distances and light levels, in radians on directions)",
     baseline: "noiseless sensing on the same seeds",
     caveat:
-      "As designed it cannot discriminate on its clutter metrics: with avoidance on, collisions are near zero in both arms, so the control sits at its floor or the seeds tie.",
+      "Collisions stay near zero in both arms with avoidance on, so the collision metrics cannot discriminate. Near misses fall with noise, but in the pilot by less than the host's minimum effect for them, which the more variable avoidance-off arm of obstacle avoidance sets; the escape timing discriminates.",
   },
   {
     id: "adaptation",
     title: "Adaptation to repeated looms",
     blocks: ["repeat"],
-    independent: "a short interval between repeated looming stimuli",
-    baseline: "a 120 s interval on the same seeds",
+    independent: "a short interval between repeated looming stimuli, on a fixed schedule",
+    baseline: "a 90 s interval on the same seeds",
     caveat:
-      "The interval is not fixed: each presentation waits for the fly to have stood still, so the delivered interval depends on the fly's response (mean_isi_s reports it) and is longer than the nominal one.",
+      "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
   },
   {
     id: "controller_comparison",
@@ -955,8 +991,9 @@ export type FlyTreatment =
   | { kind: "light_preference"; light_intensity: number }
   | {
       kind: "visual_threat";
-      approach_speed_m_s: number;
-      control: "receding" | "stationary";
+      /** l/v of each arm's approach (ms): the sphere's radius over its speed. */
+      control_l_over_v_ms: number;
+      treatment_l_over_v_ms: number;
     }
   | { kind: "noisy_sensing"; noise: number }
   | { kind: "adaptation"; isi_s: number }
@@ -1003,18 +1040,23 @@ export interface FlyBlockSpec {
   /** Escape: trials per seed. Repeat: presentations per seed. Otherwise 1. */
   trials: number;
   light_at: [number, number, number] | null;
+  /** Clutter: a cruising fly closer than this to a pillar or wall is a near miss (m). */
+  near_miss_m: number | null;
   stimulus: {
     radius_m: number;
     start_distance_m: number;
-    end_distance_m: number;
+    /**
+     * The angular size at which a presentation stops, drawn per trial or
+     * presentation from this range (deg); equal ends fix it. It then vanishes.
+     */
+    final_size_deg: [number, number];
     elevation_deg: [number, number];
     /** Direction it comes from, relative to the fly's heading (anticlockwise positive). */
     azimuth_deg: [number, number];
+    /** The first presentation (s after the fly is placed). */
     onset_s: number;
-    speed_m_s: number;
-    /** Repeat: how long the fly must have stood before a presentation, and the longest wait. */
-    settle_s: number;
-    max_wait_s: number;
+    /** The approach's l/v (ms) unless an arm sets its own: radius over speed. */
+    l_over_v_ms: number;
   } | null;
 }
 export interface FlyArm {
@@ -1023,10 +1065,9 @@ export interface FlyArm {
   noise: number;
   /** Light block: point-light intensity, 0 for none. */
   light_intensity: number;
-  /** Escape block: what the stimulus does, and its speed (m/s). */
-  stimulus: "approaching" | "receding" | "stationary";
-  approach_speed_m_s: number;
-  /** Repeat block: interval between presentation onsets (s). */
+  /** Escape block: the approach's l/v (ms), radius over speed. */
+  l_over_v_ms: number;
+  /** Repeat block: interval between scheduled presentation onsets (s). */
   isi_s: number;
 }
 export interface FlyExperiment {
@@ -1164,8 +1205,8 @@ export const FLY_DESIGN_SCHEMA = closed({
         }),
         closed({
           kind: { const: "visual_threat", type: "string" },
-          approach_speed_m_s: number(0.1, 4),
-          control: { type: "string", enum: ["receding", "stationary"] },
+          control_l_over_v_ms: number(10, 400),
+          treatment_l_over_v_ms: number(10, 400),
         }),
         closed({
           kind: { const: "noisy_sensing", type: "string" },

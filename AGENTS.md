@@ -553,9 +553,9 @@ reduced-order behavioural controller, a panel, and the R.A.I.N. Lab's fourth
 experiment backend. Read `docs/DIGITAL_FLY.md` first. Outside `src/bethesda/`
 it adds `scripts/import-flybody.ts`, `scripts/mjcf.ts`, `scripts/decimate.ts`,
 `scripts/import-vfb-reference.ts`, `scripts/rain-fly.ts`,
-`src/rain/scientific/fly*.ts`, `docs/benchmarks/fly-behavior/`, its checks in
-`scripts/validate-bethesda.ts` and the `import:flybody`/`import:vfb`/`rain:fly*`
-scripts.
+`src/rain/scientific/fly*.ts`, `docs/benchmarks/fly-behavior/`,
+`docs/benchmarks/fly-pilots/`, its checks in `scripts/validate-bethesda.ts` and
+the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 
 - **Not a neural simulation, and never worded as one.** No neuron or synapse
   is simulated; the VFB regions are a reference layer.
@@ -573,10 +573,11 @@ scripts.
 - **Read-only toward the city.** The fly is not a recorded command and not in
   the city's state hash; `cityFly.test.ts` compares the hash with and without
   it. The city must never read the fly.
-- **It touches what is drawn.** Street furniture and trees are placed and sized
-  only in `src/bethesda/furniture.ts`, which the city builder and the fly's
-  world both read. A drawn street item the fly should touch goes there and into
-  `fly/bethesdaWorld.ts`.
+- **It touches what is drawn.** Street furniture, trees, and the rooftop units
+  and awnings on buildings are placed and sized only in
+  `src/bethesda/furniture.ts`, which the city builder and the fly's world both
+  read (`detailedBuildings` lives there too; `detail.ts` re-exports it). A drawn
+  item the fly should touch goes there and into `fly/bethesdaWorld.ts`.
 - **One fly.** No second drawn fly in the city or the lab, and no swarm.
 - **Versioned behaviour, fingerprinted code.**
   - A behaviour or parameter change in `src/bethesda/fly/` bumps `FLY_VERSION`.
@@ -587,11 +588,21 @@ scripts.
     section of `scientificProtocol.ts`.
   - Regenerate the digest with `npm run rain:fly:source`. The build, the tests
     and every `rain:fly` mode except `--verify` refuse a stale one.
+  - After a change to code the experiments run, run
+    `npm run rain:fly -- --pilot --check`. If it fails because what the fly
+    does in the arenas changed, run `npm run rain:fly -- --pilot` and re-size
+    the demonstrations from what it writes. Never edit a pilot file, a
+    demonstration threshold or a pilot-sized host minimum by hand.
   - Commit, then run `npm run rain:fly:demo` from the clean commit. A dirty tree
     makes development records, which the registry never admits.
   - Older records stay in the archive. They are listed as made by other code,
     or as legacy for those from before the integrity rules. Never rewrite or
     delete one.
+  - `docs/benchmarks/fly-behavior/renderings.json` pins the SHA-256 of every
+    record's report and summary. `npm run rain:fly` adds a folder's pins when
+    it writes the folder, and `--verify` checks the folder against them,
+    because later code renders those files otherwise. Never write, change or
+    remove a pin by hand.
 - **The host draws the seeds and a person authorizes.**
   - A design gives a seed count, never seeds. The host draws the seeds after
     preregistration, from the receipt and a random nonce held in the
@@ -601,6 +612,12 @@ scripts.
     as `Scripted.DemoOperator`.
   - Never add a path that lets a design, a model or a script choose seeds or
     stand in for a person's authorization.
+  - Pilots size, they never decide. They run only on the public pilot seeds
+    (`FLY_PILOT_SEEDS`), which authorization never draws and execution refuses.
+    A pilot is never preregistered, authorized or admitted, and its seeds never
+    feed an archived run. Every pilot-sized number in `flyExample.ts` and
+    `FLY_METRICS` traces to a file in `docs/benchmarks/fly-pilots/`, and
+    `fly.test.ts` checks it.
 
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
