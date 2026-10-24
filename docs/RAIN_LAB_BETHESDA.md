@@ -1200,8 +1200,15 @@ JavaScript engine that made it. A record made by other code (another fly
 version, parameter table or source digest) is not re-simulated: its seal, its
 JSON files byte for byte and its registry run are checked, and its report and
 summary, which that code rendered, for the facts they state (outcome, digests,
-measurements and provenance). From digital-fly/4 on, the six records admitted
-under digital-fly/3 (commit 063c8a5) are records of other code. One made on
+measurements and provenance) and byte for byte against their pins. Later code
+renders a report and summary otherwise, so `npm run rain:fly` pins each
+record's two files in `renderings.json`, beside the folders, as it writes
+them. The folders archived before `renderings.json` existed were pinned as
+committed: the digital-fly/3 and /4 records once the code that made them had
+reproduced every file, the legacy ones as they stand. A pin is never changed
+or removed, and `--verify` fails a record without pins and a pin without its
+folder. From digital-fly/4 on, the six records admitted under digital-fly/3
+(commit 063c8a5) are records of other code. One made on
 another JavaScript runtime, or that differs only under another version of the
 engine, is reported as not re-simulable on this engine, which is neither a pass
 nor a failure. `--verify` exits 0 when everything held; 1 after any failure, or
@@ -1214,8 +1221,8 @@ The six records made before these rules (`rain-fly-record/v1`, under
 digital-fly/2) are kept, because the archive keeps everything that ran. They
 ran from an uncommitted tree, on seeds their designs chose, authorized by a
 script, so they are exploratory only. `--verify` reports them as legacy: it
-checks their seal, summary and files, and neither fails nor passes them as
-evidence.
+checks their seal, summary and files, their report and summary against their
+pins, and neither fails nor passes them as evidence.
 
 The registry and the authorization ledger are local files. Whoever deletes
 `.rain-research/fly` can register and authorize a plan again and draw new

@@ -70,6 +70,7 @@ import {
   flyArchiveReadme,
   flyFolderFiles,
   flyJsonText,
+  pinFlyRenderings,
   verifyFlyArchive,
   type FlyAdmission,
 } from "../src/rain/scientific/flyArchive.js";
@@ -303,6 +304,8 @@ function execute(entry: Pending, input: FlyAuthorizationInput, label: string) {
   }
   const { "record.json": _record, ...rest } = flyFolderFiles(record, admission);
   writeNew(dir, { ...rest, ...(entry.receipt ? { "receipt.json": entry.receipt } : {}) });
+  // Pinned by the code that rendered them: later code renders them otherwise.
+  pinFlyRenderings(ARCHIVE, plan.experiment_id, rest);
   const m = record.result.measurements;
   const outcome = `${record.result.status.toUpperCase()} (${record.result.verdict}) — ${plan.design.analysis.metric}: mean paired difference ${fmt(m.mean_paired_delta)} over ${m.untied_pairs ?? "—"} untied seeds, sign test p = ${fmt(m.sign_test_p_expected, 4)}; gate refusals ${m.gate_refusals ?? "—"}; ${wall.toFixed(1)} s wall, determinism replay included`;
   if (!admission.registry_run) {

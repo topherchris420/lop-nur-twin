@@ -336,8 +336,9 @@ changes what the pilots measured: `npm run rain:fly -- --pilot --check`
 re-runs each kept pilot exactly and fails on any difference, and the pilots
 are then run again and the demonstrations re-sized from them. Records made by
 other code are checked without re-simulation (their seal, their files, their
-registry run and the facts their reports state), never re-run against
-different rules.
+registry run, the facts their reports state, and their report and summary byte
+for byte against the digests pinned in the archive's `renderings.json` when
+they were written), never re-run against different rules.
 
 The lab has no 3D fly of its own. Its presence there is the backend and the
 DIGITAL FLY section of the lab's panels, which lists the protocols. A second

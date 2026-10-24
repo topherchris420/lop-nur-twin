@@ -72,6 +72,10 @@ import {
   checkFlyFolder,
   flyArchiveReadme,
   flyFolderFiles,
+  flyJsonText,
+  FLY_RENDERINGS,
+  pinFlyRenderings,
+  readFlyRenderings,
   verifyFlyArchive,
 } from "./flyArchive.js";
 import {
@@ -110,6 +114,19 @@ const scratch = (into = directories) => {
   into.push(dir);
   return dir;
 };
+/** Writes into `archive` the pins `from` holds for the given folders. */
+function copyPins(from: string, archive: string, names: string[]) {
+  const { folders } = readFlyRenderings(from);
+  writeFileSync(
+    join(archive, "renderings.json"),
+    flyJsonText({
+      schema: FLY_RENDERINGS,
+      folders: Object.fromEntries(
+        names.filter((n) => Object.hasOwn(folders, n)).map((n) => [n, folders[n]!]),
+      ),
+    }),
+  );
+}
 
 const CLEAN: FlyCodeState = { commit: "a".repeat(40), dirty: false };
 /** A lab in a scratch directory: a registry, an authorization ledger and a source tree. */
@@ -982,6 +999,7 @@ describe("running, verifying and admitting a fly experiment", { timeout: 300000 
       FLY_PROTOCOLS.find((p) => p.id === "visual_threat")!.caveat,
     );
     write(files);
+    pinFlyRenderings(archive, record.plan.experiment_id, files);
     expect(checkFlyFolder(dir)).toMatchObject({ kind: "record", errors: [] });
     const renamed = join(archive, "FLY-000000000000000000000000");
     cpSync(dir, renamed, { recursive: true });
@@ -994,9 +1012,13 @@ describe("running, verifying and admitting a fly experiment", { timeout: 300000 
     };
     const status = record.result.status;
     const other = status === "passed" ? "failed" : "passed";
-    expect(
-      edited("report.md", (t) => t.replace(status.toUpperCase(), other.toUpperCase())),
-    ).toMatch(/report\.md is not what record\.json implies/);
+    const report = edited("report.md", (t) =>
+      t.replace(status.toUpperCase(), other.toUpperCase()),
+    );
+    expect(report).toMatch(/report\.md is not what record\.json implies/);
+    expect(report).toMatch(
+      /report\.md is not the file pinned when this folder was written/,
+    );
     expect(edited("summary.json", (t) => t.replace(`"${status}`, `"${other}`))).toMatch(
       /summary\.json is not what record\.json implies/,
     );
@@ -1030,13 +1052,23 @@ describe("the archive's records from before the integrity rules", () => {
       })
     : [];
 
-  it("are kept, and checked for what can still be checked: seal, summary and files", () => {
+  it("are kept, and checked for what can still be checked: seal, files, and the report and summary against their pins", () => {
     expect(legacy.length).toBeGreaterThan(0);
     for (const d of legacy)
       expect(checkFlyFolder(join(ARCHIVE, d)), d).toMatchObject({
         kind: "legacy",
         errors: [],
       });
+    // A report edit the record cannot show is caught by the folder's pin.
+    const pinned = scratch();
+    cpSync(join(ARCHIVE, legacy[0]!), join(pinned, legacy[0]!), { recursive: true });
+    copyPins(ARCHIVE, pinned, [legacy[0]!]);
+    expect(checkFlyFolder(join(pinned, legacy[0]!)).errors).toEqual([]);
+    const reportPath = join(pinned, legacy[0]!, "report.md");
+    writeFileSync(reportPath, readFileSync(reportPath, "utf8") + "\nAdded by hand.\n");
+    expect(checkFlyFolder(join(pinned, legacy[0]!)).errors).toEqual([
+      "report.md is not the file pinned when this folder was written",
+    ]);
     const copy = join(scratch(), legacy[0]!);
     cpSync(join(ARCHIVE, legacy[0]!), copy, { recursive: true });
     const summary = JSON.parse(readFileSync(join(copy, "summary.json"), "utf8"));
@@ -1332,6 +1364,7 @@ describe(
     function archiveOfOthers() {
       const archive = scratch();
       const kinds = { other: 0, legacy: 0, refused: 0 };
+      const copied: string[] = [];
       for (const d of readdirSync(REAL, { withFileTypes: true })) {
         if (!d.isDirectory()) continue;
         const recordPath = join(REAL, d.name, "record.json");
@@ -1342,7 +1375,9 @@ describe(
           else continue;
         } else kinds.refused++;
         cpSync(join(REAL, d.name), join(archive, d.name), { recursive: true });
+        copied.push(d.name);
       }
+      copyPins(REAL, archive, copied);
       return { archive, kinds };
     }
     const index = (archive: string) =>
@@ -1354,10 +1389,55 @@ describe(
     ) => {
       const dir = join(archive, record.plan.experiment_id);
       mkdirSync(dir);
-      for (const [name, text] of Object.entries(flyFolderFiles(record, admission)))
+      const files = flyFolderFiles(record, admission);
+      for (const [name, text] of Object.entries(files))
         writeFileSync(join(dir, name), text);
+      pinFlyRenderings(archive, record.plan.experiment_id, files);
       return dir;
     };
+
+    it("holds every committed record's folder as it was written, its report and summary as pinned", () => {
+      const records = readdirSync(REAL, { withFileTypes: true })
+        .filter((d) => d.isDirectory() && existsSync(join(REAL, d.name, "record.json")))
+        .map((d) => d.name)
+        .sort();
+      expect(records.length).toBeGreaterThan(0);
+      expect(Object.keys(readFlyRenderings(REAL).folders)).toEqual(records);
+      for (const d of records)
+        expect(checkFlyFolder(join(REAL, d)).errors, d).toEqual([]);
+    });
+
+    it("pins a folder's report and summary once, and never changes a pin", () => {
+      const archive = scratch();
+      const files = {
+        "report.md": "# report\n",
+        "summary.json": "{}\n",
+        "plan.json": "{}\n",
+      };
+      pinFlyRenderings(archive, "FLY-b", files);
+      pinFlyRenderings(archive, "FLY-a", files);
+      pinFlyRenderings(archive, "FLY-a", files);
+      const pins = { "report.md": sha256("# report\n"), "summary.json": sha256("{}\n") };
+      expect(readFlyRenderings(archive)).toEqual({
+        schema: FLY_RENDERINGS,
+        folders: { "FLY-a": pins, "FLY-b": pins },
+      });
+      expect(Object.keys(readFlyRenderings(archive).folders)).toEqual(["FLY-a", "FLY-b"]);
+      expect(() =>
+        pinFlyRenderings(archive, "FLY-a", { ...files, "report.md": "# edited\n" }),
+      ).toThrow(/a pin is never changed/);
+      expect(() =>
+        pinFlyRenderings(archive, "FLY-c", { "report.md": "# report\n" }),
+      ).toThrow(/no summary\.json to pin/);
+      for (const text of ["[]\n", "null\n", '{"schema": "rain-fly-renderings/v1"}\n']) {
+        writeFileSync(join(archive, "renderings.json"), text);
+        expect(() => readFlyRenderings(archive)).toThrow(/not rain-fly-renderings\/v1/);
+      }
+      expect(verifyFlyArchive(archive).lines[0]).toMatchObject({
+        status: "failed",
+        folder: "renderings.json",
+      });
+    });
 
     it("checks other code's records without re-simulating them, and fails an archive it can check none of", () => {
       const { archive, kinds } = archiveOfOthers();
@@ -1377,13 +1457,89 @@ describe(
       });
       for (const line of v.lines.filter((l) => l.status === "other"))
         expect(line.text).toMatch(
-          /^other +FLY-[0-9a-f]+: made by .*; seal, files and registry run checked, not re-simulated \(.+\)$/,
+          /^other +FLY-[0-9a-f]+: made by .*; seal, files and registry run checked, the report and summary against their pins; not re-simulated \(.+\)$/,
         );
       // Nothing here re-simulates on this fly, so nothing here is checked by it.
       expect(v.summary.join(" ")).toMatch(
         /No admitted record re-simulates on digital-fly\//,
       );
       expect(v.exit_code).toBe(1);
+    });
+
+    it("catches by its pins an edit to a record of other code that the facts it states cannot show", () => {
+      const { archive } = archiveOfOthers();
+      const other = readdirSync(archive)
+        .filter((d) => existsSync(join(archive, d, "record.json")))
+        .find((d) => {
+          const r = JSON.parse(readFileSync(join(archive, d, "record.json"), "utf8"));
+          return r.schema !== FLY_LEGACY_RECORD && r.plan.fly_sha256 !== here;
+        })!;
+      const dir = join(archive, other);
+      expect(checkFlyFolder(dir).errors).toEqual([]);
+      // Each edit leaves the outcome, the digests and every stated fact as they were.
+      const edits: [string, (t: string) => string][] = [
+        ["report.md", (t) => t.replace(/^(\| \d+ \| )[^|]+\|/m, "$1 9.999 |")],
+        [
+          "report.md",
+          (t) =>
+            t.replace(/— (holds|does not hold)$/m, (_m, w: string) =>
+              w === "holds" ? "— does not hold" : "— holds",
+            ),
+        ],
+        [
+          "report.md",
+          (t) => t.replace(/^> Authorized by the demonstration script.*\n/m, ""),
+        ],
+        [
+          "summary.json",
+          (t) =>
+            t.replace(
+              /"authorized_by": "[^"]*"/,
+              '"authorized_by": "a person at the terminal"',
+            ),
+        ],
+      ];
+      for (const [name, edit] of edits) {
+        const path = join(dir, name);
+        const before = readFileSync(path, "utf8");
+        const after = edit(before);
+        expect(after).not.toBe(before);
+        writeFileSync(path, after);
+        expect(checkFlyFolder(dir).errors).toEqual([
+          `${name} is not the file pinned when this folder was written`,
+        ]);
+        writeFileSync(path, before);
+      }
+
+      // A folder whose pins are gone, and a pin whose folder is gone, fail the archive.
+      index(archive);
+      expect(verifyFlyArchive(archive).counts.failed).toBe(0);
+      const pins = readFileSync(join(archive, "renderings.json"), "utf8");
+      const { [other]: _gone, ...rest } = readFlyRenderings(archive).folders;
+      writeFileSync(
+        join(archive, "renderings.json"),
+        flyJsonText({ schema: FLY_RENDERINGS, folders: rest }),
+      );
+      expect(
+        verifyFlyArchive(archive).lines.find((x) => x.folder === other),
+      ).toMatchObject({
+        status: "failed",
+        text: expect.stringMatching(
+          /renderings\.json pins no report or summary for this folder/,
+        ),
+      });
+      writeFileSync(join(archive, "renderings.json"), pins);
+      const files = { "report.md": "# report\n", "summary.json": "{}\n" };
+      pinFlyRenderings(archive, "FLY-000000000000000000000000", files);
+      expect(verifyFlyArchive(archive).lines).toContainEqual(
+        expect.objectContaining({
+          status: "failed",
+          folder: "renderings.json",
+          text: expect.stringMatching(
+            /pins FLY-000000000000000000000000, which the archive does not hold/,
+          ),
+        }),
+      );
     });
 
     it("re-simulates this code's records beside them, and tells another engine and edits apart", () => {
@@ -1424,7 +1580,7 @@ describe(
       expect(elsewhere.counts).toMatchObject({ other_engine: 1, failed: 0 });
       expect(elsewhere.exit_code).toBe(3);
 
-      // An edit to a record of other code is caught by the facts its files state.
+      // An edit to a record of other code is caught by the facts its files state, and its pins.
       const other = mixed.lines.find((x) => x.status === "other")!.folder;
       const summaryPath = join(archive, other, "summary.json");
       const summary = readFileSync(summaryPath, "utf8");

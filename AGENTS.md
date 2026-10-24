@@ -598,6 +598,11 @@ the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
   - Older records stay in the archive. They are listed as made by other code,
     or as legacy for those from before the integrity rules. Never rewrite or
     delete one.
+  - `docs/benchmarks/fly-behavior/renderings.json` pins the SHA-256 of every
+    record's report and summary. `npm run rain:fly` adds a folder's pins when
+    it writes the folder, and `--verify` checks the folder against them,
+    because later code renders those files otherwise. Never write, change or
+    remove a pin by hand.
 - **The host draws the seeds and a person authorizes.**
   - A design gives a seed count, never seeds. The host draws the seeds after
     preregistration, from the receipt and a random nonce held in the

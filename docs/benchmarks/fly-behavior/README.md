@@ -18,7 +18,15 @@ Drosophila.
   checks every file of its folder. A record of other code (another fly
   version, parameters or source; the fly column gives its version) is not
   re-simulated: its seal, its JSON files, its registry run and the facts its
-  summary and report state are checked.
+  summary and report state are checked, and its summary and report byte for
+  byte against their pins.
+- **Pins.** renderings.json holds the SHA-256 of every record's report and
+  summary, pinned by `npm run rain:fly` when it writes the folder. Later code
+  renders those two files otherwise, so a record of other code is checked
+  against its pins. Folders archived before renderings.json existed were
+  pinned as committed: those of digital-fly/3 and /4 after the code that wrote
+  them had reproduced every file, the legacy ones as they stand. A pin is
+  never changed or removed.
 - **Script-authorized records** were authorized by the demonstration script
   (Scripted.DemoOperator), not by a person: they demonstrate the pipeline on the
   host's own designs. Their reports say so.
@@ -26,7 +34,8 @@ Drosophila.
   these integrity rules: from an uncommitted tree, on seeds the designer chose,
   authorized by a script. They are kept because the archive keeps everything
   that ran, and they are **exploratory only, not evidence**. Verification checks
-  their seal, summary and files, and neither fails nor passes them as evidence.
+  their seal and files, their report and summary against their pins, and
+  neither fails nor passes them as evidence.
 - **Protocols.** digital-fly-behavior/v3 (digital-fly/4 on) redesigned four
   protocols so that each can discriminate: obstacle avoidance in clutter dense
   enough, and flown long enough, that collisions happen; visual threat as a
