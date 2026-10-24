@@ -14,7 +14,16 @@
  * it reaches `startDeg`.
  */
 import type { V3 } from "../units.js";
-import type { FlyWorld, Hit, LandingSite, LightSample, Mover, Perch } from "../world.js";
+import type {
+  FlyWorld,
+  FoodPatch,
+  Hit,
+  Landmark,
+  LandingSite,
+  LightSample,
+  Mover,
+  Perch,
+} from "../world.js";
 
 export interface Loom {
   id: string;
@@ -102,6 +111,15 @@ export class StimulusWorld implements FlyWorld {
   }
   landingSites(near: V3, radius: number, out: LandingSite[]): void {
     this.inner.landingSites(near, radius, out);
+  }
+  foodAt(p: V3): FoodPatch | null {
+    return this.inner.foodAt(p);
+  }
+  odour(p: V3): number {
+    return this.inner.odour(p);
+  }
+  landmarks(near: V3, radius: number, out: Landmark[]): void {
+    this.inner.landmarks(near, radius, out);
   }
   movers(near: V3, radius: number, out: Mover[], t: number): void {
     this.inner.movers(near, radius, out, t);

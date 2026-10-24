@@ -72,6 +72,8 @@ export interface LightSample {
   level: number;
   /** Unit direction toward the strongest contribution, or null if none dominates. */
   toward: V3 | null;
+  /** In a world with a sun: whether the sun reaches the point (false: in shade). Absent without one. */
+  sunlit?: boolean;
 }
 /**
  * A top a fly may land on. Every point of its rectangle (centre ± `half`,
@@ -91,19 +93,92 @@ export interface LandingSite {
    * directly under it (zero extent), so a fly that sees no top can descend.
    */
   below?: boolean;
+  /** Set on a food patch: what the food stands for. */
+  food?: string;
+  /** Set by the eyes on an offered site in a world with a sun: whether the sun is on it. */
+  sunlit?: boolean;
 }
 /** How far a landing site's flat rectangle may stand off the surface it stands for (m). */
 export const LANDING_SITE_FLATNESS_M = 0.002;
+/**
+ * The extent the fly is kept within, a simulator constraint: an arena's floor
+ * circle, or the edge of the modelled city, past which the world is empty.
+ * The controller turns the fly back once it is outside: outside `bounds`
+ * when the world gives them, else farther than `radius` from `center`. Its
+ * `ceiling` is the top of the air the fly may use.
+ */
 export interface Home {
   center: V3;
   radius: number;
   ceiling: number;
+  bounds?: { min: { x: number; z: number }; max: { x: number; z: number } };
+}
+
+/** How far outside the fly's extent it is (m, 0 inside), and the point it would turn back toward. */
+export function outsideExtent(
+  home: Home,
+  x: number,
+  z: number,
+): { away: number; toward: { x: number; z: number } } {
+  const b = home.bounds;
+  if (b) {
+    const qx = Math.min(Math.max(x, b.min.x), b.max.x),
+      qz = Math.min(Math.max(z, b.min.z), b.max.z);
+    const away = Math.hypot(x - qx, z - qz);
+    return {
+      away,
+      toward: away > 0 ? { x: qx, z: qz } : { x: home.center[0], z: home.center[2] },
+    };
+  }
+  const away = Math.hypot(x - home.center[0], z - home.center[2]) - home.radius;
+  return { away, toward: { x: home.center[0], z: home.center[2] } };
 }
 export interface WorldInputs {
   supported: string[];
   proxies: string[];
   unsupported: string[];
 }
+
+/**
+ * Food a fly can find: a patch on a surface (fermenting fruit, a spilled
+ * drink), smelt from a distance and eaten standing on it.
+ */
+export interface FoodPatch {
+  id: string;
+  /** What it stands for, in words (the city's: an OSM shop or amenity category). */
+  kind: string;
+  /** Its centre, on the surface it lies on, and that surface's kind. */
+  center: V3;
+  surface: SurfaceKind;
+  /** Its radius (m): a fly standing within it, on that surface, can feed. */
+  radius: number;
+}
+
+/** A fixed, distinctive object a fly can recognize a place by: an upright post, pole or trunk. */
+export interface Landmark {
+  id: string;
+  /** Its foot, on the ground, and its height (m). */
+  base: V3;
+  height: number;
+}
+
+/**
+ * Odour from food falls off as e^(−d / ODOUR_LENGTH_M) with the distance d
+ * from each patch, the patches adding: a still-air proxy with no wind and no
+ * plume, so it holds no direction except its gradient. It does not pass
+ * through solid things: a patch adds nothing where the line to the air just
+ * above it is blocked (no odour flows round a building in this proxy). A
+ * model choice.
+ */
+export const ODOUR_LENGTH_M = 5;
+/** Beyond this many lengths a patch adds nothing (e^−6 ≈ 0.25 % of its strength). */
+const ODOUR_REACH = 6 * ODOUR_LENGTH_M;
+/** Odour reaches a point that has a clear line to this height above a patch (m). */
+const ODOUR_SOURCE_M = 0.3;
+/** A standing fly is on a patch's surface within this height of its centre (m). */
+const FOOD_HEIGHT_M = 0.01;
+/** Upright cylinders at least this tall are landmarks (m). */
+const LANDMARK_MIN_HEIGHT_M = 1;
 
 export interface FlyWorld {
   readonly id: string;
@@ -126,8 +201,14 @@ export interface FlyWorld {
    */
   movers(near: V3, radius: number, out: Mover[], t: number): void;
   light(p: V3): LightSample;
-  /** Candidate tops to land on within `radius`, in a stable order. */
+  /** Candidate tops to land on within `radius`, in a stable order (food patches among them). */
   landingSites(near: V3, radius: number, out: LandingSite[]): void;
+  /** The food patch a fly standing at `p` stands on, or null. */
+  foodAt(p: V3): FoodPatch | null;
+  /** Food odour at `p`, relative units, 0 where there is none (see `ODOUR_LENGTH_M`). */
+  odour(p: V3): number;
+  /** Landmarks within `radius` of `near` (horizontally), in a stable order. Static, like `raycast`. */
+  landmarks(near: V3, radius: number, out: Landmark[]): void;
 }
 
 // --- Primitives ------------------------------------------------------------
@@ -566,11 +647,159 @@ export interface PrimitiveWorldSpec {
   movers?: (near: V3, radius: number, out: Mover[], t: number) => void;
   /** Multiplies every light (storms, outages); defaults to 1. */
   dimming?: () => number;
+  /** Food patches, each also offered as a landing site. */
+  food?: FoodPatch[];
 }
 
-/** A world assembled from primitives. Lists are scanned linearly: keep them local. */
 /** A bounding sphere: centre x, y, z and radius. */
 type Bound = readonly [number, number, number, number];
+
+/** A footprint in the x–z plane: the extent of a primitive seen from above. */
+interface Rect {
+  x0: number;
+  z0: number;
+  x1: number;
+  z1: number;
+}
+
+/** Side of a cell of the primitives' grid (m). */
+const GRID_CELL_M = 4;
+/** Footprints are widened this much (m) so one that only touches a cell's edge is listed in it too. */
+const GRID_EDGE_M = 1e-6;
+
+/**
+ * A uniform grid over the x–z plane listing each primitive in every cell its
+ * footprint covers. A query returns the primitives listed in the cells it
+ * touches, once each and in ascending order: every primitive a linear scan
+ * could accept, in the spec's order, so the queries built on it find exactly
+ * what a scan of every primitive finds, ties included. Null stands for every
+ * primitive, when a query would touch more cells than there are primitives.
+ */
+export class FootprintGrid {
+  private readonly cells = new Map<number, number[]>();
+  private readonly seen: Int32Array;
+  private stamp = 0;
+  private readonly lo: { x: number; z: number };
+  private readonly hi: { x: number; z: number };
+  private readonly width: number;
+  private readonly count: number;
+  constructor(count: number, rects: readonly Rect[]) {
+    this.count = count;
+    this.seen = new Int32Array(count);
+    const c = (v: number) => Math.floor(v / GRID_CELL_M);
+    let lx = Infinity,
+      lz = Infinity,
+      hx = -Infinity,
+      hz = -Infinity;
+    for (const r of rects) {
+      lx = Math.min(lx, c(r.x0 - GRID_EDGE_M));
+      lz = Math.min(lz, c(r.z0 - GRID_EDGE_M));
+      hx = Math.max(hx, c(r.x1 + GRID_EDGE_M));
+      hz = Math.max(hz, c(r.z1 + GRID_EDGE_M));
+    }
+    this.lo = { x: lx, z: lz };
+    this.hi = { x: hx, z: hz };
+    this.width = Number.isFinite(hz - lz) ? hz - lz + 1 : 0;
+    rects.forEach((r, i) => {
+      for (let cx = c(r.x0 - GRID_EDGE_M); cx <= c(r.x1 + GRID_EDGE_M); cx++)
+        for (let cz = c(r.z0 - GRID_EDGE_M); cz <= c(r.z1 + GRID_EDGE_M); cz++) {
+          const k = this.key(cx, cz);
+          const list = this.cells.get(k);
+          if (list) list.push(i);
+          else this.cells.set(k, [i]);
+        }
+    });
+  }
+  private key(cx: number, cz: number): number {
+    return (cx - this.lo.x) * this.width + (cz - this.lo.z);
+  }
+  private begin(): number {
+    if (++this.stamp > 0x7fffffff) {
+      this.seen.fill(0);
+      this.stamp = 1;
+    }
+    return this.stamp;
+  }
+  private collect(stamp: number, cx: number, cz: number, out: number[]): void {
+    if (cx < this.lo.x || cx > this.hi.x || cz < this.lo.z || cz > this.hi.z) return;
+    const list = this.cells.get(this.key(cx, cz));
+    if (!list) return;
+    for (const i of list)
+      if (this.seen[i] !== stamp) {
+        this.seen[i] = stamp;
+        out.push(i);
+      }
+  }
+  /** Primitives whose footprint may meet the rectangle. */
+  rect(x0: number, z0: number, x1: number, z1: number): number[] | null {
+    const c = (v: number) => Math.floor(v / GRID_CELL_M);
+    const cx0 = Math.max(c(x0), this.lo.x),
+      cx1 = Math.min(c(x1), this.hi.x),
+      cz0 = Math.max(c(z0), this.lo.z),
+      cz1 = Math.min(c(z1), this.hi.z);
+    if (cx1 < cx0 || cz1 < cz0) return [];
+    if ((cx1 - cx0 + 1) * (cz1 - cz0 + 1) > this.count) return null;
+    const stamp = this.begin(),
+      out: number[] = [];
+    for (let cx = cx0; cx <= cx1; cx++)
+      for (let cz = cz0; cz <= cz1; cz++) this.collect(stamp, cx, cz, out);
+    return out.sort((a, b) => a - b);
+  }
+  /**
+   * Primitives whose footprint may meet the segment's shadow on the ground:
+   * the cells it crosses, walked in order, both side cells where it passes
+   * through a corner.
+   */
+  segment(x0: number, z0: number, x1: number, z1: number): number[] | null {
+    const c = (v: number) => Math.floor(v / GRID_CELL_M);
+    let cx = c(x0),
+      cz = c(z0);
+    const ex = c(x1),
+      ez = c(z1);
+    const steps = Math.abs(ex - cx) + Math.abs(ez - cz);
+    if (steps + 1 > this.count) return null;
+    const stamp = this.begin(),
+      out: number[] = [];
+    this.collect(stamp, cx, cz, out);
+    const dx = x1 - x0,
+      dz = z1 - z0;
+    const sx = Math.sign(dx),
+      sz = Math.sign(dz);
+    let tx = dx !== 0 ? ((sx > 0 ? cx + 1 : cx) * GRID_CELL_M - x0) / dx : Infinity;
+    let tz = dz !== 0 ? ((sz > 0 ? cz + 1 : cz) * GRID_CELL_M - z0) / dz : Infinity;
+    const ddx = dx !== 0 ? GRID_CELL_M / Math.abs(dx) : Infinity,
+      ddz = dz !== 0 ? GRID_CELL_M / Math.abs(dz) : Infinity;
+    for (let k = 0; k < steps && (cx !== ex || cz !== ez); k++) {
+      if (Math.abs(tx - tz) <= 1e-12) {
+        // Through a corner: both neighbours, then the diagonal cell.
+        this.collect(stamp, cx + sx, cz, out);
+        this.collect(stamp, cx, cz + sz, out);
+        cx += sx;
+        cz += sz;
+        tx += ddx;
+        tz += ddz;
+        k++;
+      } else if (tx < tz) {
+        cx += sx;
+        tx += ddx;
+      } else {
+        cz += sz;
+        tz += ddz;
+      }
+      this.collect(stamp, cx, cz, out);
+    }
+    // Rounding can stop the walk a cell short; the end cell is always looked in.
+    this.collect(stamp, ex, ez, out);
+    return out.sort((a, b) => a - b);
+  }
+}
+
+const boundRect = (b: Bound): Rect => ({
+  x0: b[0] - b[3],
+  z0: b[2] - b[3],
+  x1: b[0] + b[3],
+  z1: b[2] + b[3],
+});
 
 /**
  * Can the segment o + t·d, t in [0, maxT], touch the sphere? A cheap reject
@@ -604,6 +833,11 @@ interface Local {
   spheres: number[];
 }
 
+/**
+ * A world assembled from primitives. They are listed on a grid over the
+ * ground (`FootprintGrid`), so a query looks only at the primitives near it;
+ * `{ grid: false }` scans every one instead, with the same results.
+ */
 export class PrimitiveWorld implements FlyWorld {
   readonly id: string;
   readonly home: Home;
@@ -615,10 +849,18 @@ export class PrimitiveWorld implements FlyWorld {
   private boxBounds: Bound[];
   private cylinderBounds: Bound[];
   private sphereBounds: Bound[];
+  private grids: {
+    boxes: FootprintGrid;
+    cylinders: FootprintGrid;
+    spheres: FootprintGrid;
+    prisms: FootprintGrid;
+  } | null;
+  /** Food patches, listed by the reach of their odour. */
+  private foodGrid: FootprintGrid;
   /** Candidate lists for the last ray origin, one per `LOCAL_REACH`; a cache only. */
   private localAt: V3 = [NaN, NaN, NaN];
   private local: (Local | null)[] = LOCAL_REACH.map(() => null);
-  constructor(spec: PrimitiveWorldSpec) {
+  constructor(spec: PrimitiveWorldSpec, options: { grid?: boolean } = {}) {
     this.spec = spec;
     this.id = spec.id;
     this.home = spec.home;
@@ -637,20 +879,123 @@ export class PrimitiveWorld implements FlyWorld {
       ...s.center,
       s.r * Math.max(1, s.stretch ?? 1),
     ]);
-    this.top = Math.max(
-      spec.groundMax ?? Infinity,
-      ...(spec.boxes ?? []).map((b) => b.center[1] + b.half[1]),
-      ...(spec.cylinders ?? []).map((c) => c.y1),
-      ...(spec.spheres ?? []).map((s) => s.center[1] + s.r * (s.stretch ?? 1)),
-      ...(spec.prisms ?? []).map((p) => p.y1),
+    let top = spec.groundMax ?? Infinity;
+    for (const b of spec.boxes ?? []) top = Math.max(top, b.center[1] + b.half[1]);
+    for (const c of spec.cylinders ?? []) top = Math.max(top, c.y1);
+    for (const s of spec.spheres ?? [])
+      top = Math.max(top, s.center[1] + s.r * (s.stretch ?? 1));
+    for (const p of spec.prisms ?? []) top = Math.max(top, p.y1);
+    this.top = top;
+    const prisms = spec.prisms ?? [];
+    this.grids =
+      options.grid === false
+        ? null
+        : {
+            boxes: new FootprintGrid(
+              this.boxBounds.length,
+              this.boxBounds.map(boundRect),
+            ),
+            cylinders: new FootprintGrid(
+              this.cylinderBounds.length,
+              this.cylinderBounds.map(boundRect),
+            ),
+            spheres: new FootprintGrid(
+              this.sphereBounds.length,
+              this.sphereBounds.map(boundRect),
+            ),
+            prisms: new FootprintGrid(
+              prisms.length,
+              prisms.map((p) => ({ x0: p.min.x, z0: p.min.z, x1: p.max.x, z1: p.max.z })),
+            ),
+          };
+    const food = spec.food ?? [];
+    this.foodGrid = new FootprintGrid(
+      food.length,
+      food.map((f) => ({
+        x0: f.center[0] - ODOUR_REACH,
+        z0: f.center[2] - ODOUR_REACH,
+        x1: f.center[0] + ODOUR_REACH,
+        z1: f.center[2] + ODOUR_REACH,
+      })),
+    );
+  }
+  foodAt(p: V3): FoodPatch | null {
+    if (!finite3(p)) return null;
+    const food = this.spec.food ?? [];
+    let found: FoodPatch | null = null;
+    for (const i of this.foodGrid.rect(p[0], p[2], p[0], p[2]) ?? food.keys()) {
+      const f = food[i]!;
+      if (
+        !found &&
+        Math.hypot(p[0] - f.center[0], p[2] - f.center[2]) <= f.radius &&
+        Math.abs(p[1] - f.center[1]) <= FOOD_HEIGHT_M
+      )
+        found = f;
+    }
+    return found;
+  }
+  odour(p: V3): number {
+    if (!finite3(p)) return 0;
+    const food = this.spec.food ?? [];
+    let c = 0;
+    for (const i of this.foodGrid.rect(p[0], p[2], p[0], p[2]) ?? food.keys()) {
+      const f = food[i]!;
+      const d = Math.hypot(p[0] - f.center[0], p[1] - f.center[1], p[2] - f.center[2]);
+      if (d >= ODOUR_REACH) continue;
+      // Odour does not pass through solid things: a patch adds nothing at a
+      // point with no clear line to the air just above it.
+      const to: V3 = [
+        f.center[0] - p[0],
+        f.center[1] + ODOUR_SOURCE_M - p[1],
+        f.center[2] - p[2],
+      ];
+      const reach = Math.hypot(...to);
+      if (reach > 0.01) {
+        const hit = this.raycast(p, [to[0] / reach, to[1] / reach, to[2] / reach], reach);
+        if (hit && hit.t < reach - 0.01) continue;
+      }
+      c += Math.exp(-d / ODOUR_LENGTH_M);
+    }
+    return c;
+  }
+  landmarks(near: V3, radius: number, out: Landmark[]): void {
+    const cylinders = this.spec.cylinders ?? [];
+    this.each(
+      "cylinders",
+      cylinders.length,
+      (g) =>
+        g.rect(near[0] - radius, near[2] - radius, near[0] + radius, near[2] + radius),
+      (i) => {
+        const c = cylinders[i]!;
+        if (c.y1 - c.y0 < LANDMARK_MIN_HEIGHT_M) return;
+        if (Math.hypot(c.x - near[0], c.z - near[2]) > radius) return;
+        out.push({ id: c.id, base: [c.x, c.y0, c.z], height: c.y1 - c.y0 });
+      },
     );
   }
   ground(x: number, z: number) {
     return this.spec.ground(x, z);
   }
-  /** Prisms near a point; subclasses may index them. */
-  protected prismsNear(_x: number, _z: number, _r: number): readonly Prism[] {
-    return this.spec.prisms ?? [];
+  /** Calls `f` with each index the grid lists for a query, or every index without one. */
+  private each(
+    kind: "boxes" | "cylinders" | "spheres" | "prisms",
+    count: number,
+    query: (g: FootprintGrid) => number[] | null,
+    f: (i: number) => void,
+  ): void {
+    const list = this.grids ? query(this.grids[kind]) : null;
+    if (list) for (const i of list) f(i);
+    else for (let i = 0; i < count; i++) f(i);
+  }
+  /** Calls `f` with each primitive of `kind` whose footprint may hold the point (x, z). */
+  private atPoint(
+    kind: "boxes" | "cylinders" | "spheres" | "prisms",
+    count: number,
+    x: number,
+    z: number,
+    f: (i: number) => void,
+  ): void {
+    this.each(kind, count, (g) => g.rect(x, z, x, z), f);
   }
   perchAt(x: number, z: number, maxY: number): Perch | null {
     if (!Number.isFinite(x) || !Number.isFinite(z) || Number.isNaN(maxY)) return null;
@@ -663,21 +1008,28 @@ export class PrimitiveWorld implements FlyWorld {
       if (y <= maxY + 1e-6 && (!best || y > best.y) && WALKABLE.has(kind))
         best = { y, kind, id };
     };
-    for (const b of this.spec.boxes ?? []) {
+    const boxes = this.spec.boxes ?? [],
+      cylinders = this.spec.cylinders ?? [],
+      spheres = this.spec.spheres ?? [],
+      prisms = this.spec.prisms ?? [];
+    this.atPoint("boxes", boxes.length, x, z, (i) => {
+      const b = boxes[i]!;
       const top = b.center[1] + b.half[1];
       const probe: V3 = [x, top - 1e-4, z];
       if (insideBox(probe, b)) consider(top, b.kind, b.id);
-    }
-    for (const c of this.spec.cylinders ?? []) {
+    });
+    this.atPoint("cylinders", cylinders.length, x, z, (i) => {
+      const c = cylinders[i]!;
       const top = c.r1 ?? c.r;
       if ((x - c.x) ** 2 + (z - c.z) ** 2 <= top * top) consider(c.y1, c.kind, c.id);
-    }
-    for (const s of this.spec.spheres ?? []) {
+    });
+    this.atPoint("spheres", spheres.length, x, z, (i) => {
+      const s = spheres[i]!;
       const dx = x - s.center[0],
         dz = z - s.center[2];
       const rho2 = dx * dx + dz * dz;
       const h2 = s.r * s.r - rho2;
-      if (h2 < 0) continue;
+      if (h2 < 0) return;
       // The top surface, where it is no steeper than a walkable slope: its
       // normal is along (dx, h/st, dz), h the height on the unstretched sphere.
       const st = s.stretch ?? 1;
@@ -685,9 +1037,11 @@ export class PrimitiveWorld implements FlyWorld {
       const ny2 = WALKABLE_NORMAL_Y * WALKABLE_NORMAL_Y;
       if (up2 >= ny2 * (rho2 + up2))
         consider(s.center[1] + st * Math.sqrt(h2), s.kind, s.id);
-    }
-    for (const p of this.prismsNear(x, z, 0))
+    });
+    this.atPoint("prisms", prisms.length, x, z, (i) => {
+      const p = prisms[i]!;
       if (insideFootprint(x, z, p)) consider(p.y1, "roof", p.id);
+    });
     return best;
   }
   raycast(o: V3, d: V3, maxT: number, visible = false): Hit | null {
@@ -702,32 +1056,38 @@ export class PrimitiveWorld implements FlyWorld {
     const near = this.near(o, maxT * dLength);
     const boxes = this.spec.boxes ?? [],
       cylinders = this.spec.cylinders ?? [],
-      spheres = this.spec.spheres ?? [];
-    // In the spec's order either way, so ties resolve as without the lists.
-    const each = (n: number, local: number[] | undefined, f: (i: number) => void) => {
+      spheres = this.spec.spheres ?? [],
+      prisms = this.spec.prisms ?? [];
+    // The ray's shadow on the ground, for the grid.
+    const ex = o[0] + d[0] * maxT,
+      ez = o[2] + d[2] * maxT;
+    const along = (g: FootprintGrid) => g.segment(o[0], o[2], ex, ez);
+    // In the spec's order either way, so ties resolve as a scan of every primitive.
+    const each = (
+      kind: "boxes" | "cylinders" | "spheres",
+      n: number,
+      local: number[] | undefined,
+      f: (i: number) => void,
+    ) => {
       if (local) for (const i of local) f(i);
-      else for (let i = 0; i < n; i++) f(i);
+      else this.each(kind, n, along, f);
     };
-    each(boxes.length, near?.boxes, (i) => {
+    each("boxes", boxes.length, near?.boxes, (i) => {
       const reach = best ? best.t : maxT;
       if (mayHit(o, d, dLength, reach, this.boxBounds[i]!))
         take(rayBox(o, d, boxes[i]!, reach));
     });
-    each(cylinders.length, near?.cylinders, (i) => {
+    each("cylinders", cylinders.length, near?.cylinders, (i) => {
       const reach = best ? best.t : maxT;
       if (mayHit(o, d, dLength, reach, this.cylinderBounds[i]!))
         take(rayCylinder(o, d, cylinders[i]!, reach));
     });
-    each(spheres.length, near?.spheres, (i) => {
+    each("spheres", spheres.length, near?.spheres, (i) => {
       take(raySphere(o, d, spheres[i]!, best ? best.t : maxT));
     });
-    const reach = maxT;
-    for (const p of this.prismsNear(
-      o[0] + (d[0] * reach) / 2,
-      o[2] + (d[2] * reach) / 2,
-      reach,
-    ))
-      take(rayPrism(o, d, p, best ? best.t : maxT));
+    this.each("prisms", prisms.length, along, (i) => {
+      take(rayPrism(o, d, prisms[i]!, best ? best.t : maxT));
+    });
     const tg = rayGround(
       o,
       d,
@@ -775,17 +1135,23 @@ export class PrimitiveWorld implements FlyWorld {
     // From the point the lists are made for, with room for the slack.
     const c = this.localAt;
     const r = LOCAL_REACH[tier]! + LOCAL_SLACK;
-    const within = (bounds: Bound[]) => {
+    const within = (kind: "boxes" | "cylinders" | "spheres", bounds: Bound[]) => {
       const out: number[] = [];
-      bounds.forEach((b, i) => {
-        if (Math.hypot(b[0] - c[0], b[1] - c[1], b[2] - c[2]) <= r + b[3]) out.push(i);
-      });
+      this.each(
+        kind,
+        bounds.length,
+        (g) => g.rect(c[0] - r, c[2] - r, c[0] + r, c[2] + r),
+        (i) => {
+          const b = bounds[i]!;
+          if (Math.hypot(b[0] - c[0], b[1] - c[1], b[2] - c[2]) <= r + b[3]) out.push(i);
+        },
+      );
       return out;
     };
     const local = {
-      boxes: within(this.boxBounds),
-      cylinders: within(this.cylinderBounds),
-      spheres: within(this.sphereBounds),
+      boxes: within("boxes", this.boxBounds),
+      cylinders: within("cylinders", this.cylinderBounds),
+      spheres: within("spheres", this.sphereBounds),
     };
     this.local[tier] = local;
     return local;
@@ -794,12 +1160,28 @@ export class PrimitiveWorld implements FlyWorld {
     if (!finite3(p)) return true;
     if (p[1] < this.spec.ground(p[0], p[2])) return true;
     if (this.spec.ceiling !== undefined && p[1] > this.spec.ceiling) return true;
-    for (const b of this.spec.boxes ?? []) if (insideBox(p, b)) return true;
-    for (const c of this.spec.cylinders ?? []) if (insideCylinder(p, c)) return true;
-    for (const s of this.spec.spheres ?? []) if (insideSphere(p, s)) return true;
-    for (const pr of this.prismsNear(p[0], p[2], 0))
-      if (p[1] >= pr.y0 && p[1] <= pr.y1 && insideFootprint(p[0], p[2], pr)) return true;
-    return false;
+    const boxes = this.spec.boxes ?? [],
+      cylinders = this.spec.cylinders ?? [],
+      spheres = this.spec.spheres ?? [],
+      prisms = this.spec.prisms ?? [];
+    let hit = false;
+    this.atPoint("boxes", boxes.length, p[0], p[2], (i) => {
+      hit ||= insideBox(p, boxes[i]!);
+    });
+    if (hit) return true;
+    this.atPoint("cylinders", cylinders.length, p[0], p[2], (i) => {
+      hit ||= insideCylinder(p, cylinders[i]!);
+    });
+    if (hit) return true;
+    this.atPoint("spheres", spheres.length, p[0], p[2], (i) => {
+      hit ||= insideSphere(p, spheres[i]!);
+    });
+    if (hit) return true;
+    this.atPoint("prisms", prisms.length, p[0], p[2], (i) => {
+      const pr = prisms[i]!;
+      hit ||= p[1] >= pr.y0 && p[1] <= pr.y1 && insideFootprint(p[0], p[2], pr);
+    });
+    return hit;
   }
   movers(near: V3, radius: number, out: Mover[], t: number): void {
     this.spec.movers?.(near, radius, out, t);
@@ -809,6 +1191,7 @@ export class PrimitiveWorld implements FlyWorld {
     let level = this.spec.ambient ?? 0;
     let bestPart = 0;
     let toward: V3 | null = null;
+    let sunlit: boolean | undefined;
     const sun = this.spec.sun;
     if (sun) {
       const reach =
@@ -816,6 +1199,7 @@ export class PrimitiveWorld implements FlyWorld {
           ? Math.min(400, Math.max(0, this.top - p[1]) / sun.toward[1] + 0.01)
           : 400;
       const lit = !this.raycast([p[0], p[1] + 1e-3, p[2]], sun.toward, reach, true);
+      sunlit = lit;
       const part = lit ? sun.level : sun.shade;
       level += part;
       if (lit) {
@@ -836,13 +1220,24 @@ export class PrimitiveWorld implements FlyWorld {
         toward = [dx / d, dy / d, dz / d];
       }
     }
-    return { level: level * dim, toward: bestPart > 0.5 * level ? toward : null };
+    const out: LightSample = {
+      level: level * dim,
+      toward: bestPart > 0.5 * level ? toward : null,
+    };
+    if (sunlit !== undefined) out.sunlit = sunlit;
+    return out;
   }
   landingSites(near: V3, radius: number, out: LandingSite[]): void {
     const r2 = radius * radius;
     const within = (c: V3) => (c[0] - near[0]) ** 2 + (c[2] - near[2]) ** 2 <= r2;
-    for (const b of this.spec.boxes ?? []) {
-      if (!WALKABLE.has(b.kind)) continue;
+    const area = (g: FootprintGrid) =>
+      g.rect(near[0] - radius, near[2] - radius, near[0] + radius, near[2] + radius);
+    const boxes = this.spec.boxes ?? [],
+      cylinders = this.spec.cylinders ?? [],
+      spheres = this.spec.spheres ?? [];
+    this.each("boxes", boxes.length, area, (i) => {
+      const b = boxes[i]!;
+      if (!WALKABLE.has(b.kind)) return;
       const c: V3 = [b.center[0], b.center[1] + b.half[1], b.center[2]];
       if (within(c))
         out.push({
@@ -852,9 +1247,10 @@ export class PrimitiveWorld implements FlyWorld {
           half: [b.half[0], b.half[2]],
           angle: b.angle,
         });
-    }
-    for (const cy of this.spec.cylinders ?? []) {
-      if (!WALKABLE.has(cy.kind)) continue;
+    });
+    this.each("cylinders", cylinders.length, area, (i) => {
+      const cy = cylinders[i]!;
+      if (!WALKABLE.has(cy.kind)) return;
       const c: V3 = [cy.x, cy.y1, cy.z];
       const top = cy.r1 ?? cy.r;
       if (within(c))
@@ -865,9 +1261,10 @@ export class PrimitiveWorld implements FlyWorld {
           half: [top * 0.7, top * 0.7],
           angle: 0,
         });
-    }
-    for (const s of this.spec.spheres ?? []) {
-      if (!WALKABLE.has(s.kind)) continue;
+    });
+    this.each("spheres", spheres.length, area, (i) => {
+      const s = spheres[i]!;
+      if (!WALKABLE.has(s.kind)) return;
       const st = s.stretch ?? 1;
       const c: V3 = [s.center[0], s.center[1] + s.r * st, s.center[2]];
       // The crown's cap within the flatness tolerance of the plane through its
@@ -882,6 +1279,21 @@ export class PrimitiveWorld implements FlyWorld {
           center: c,
           half: [rho / Math.SQRT2, rho / Math.SQRT2],
           angle: 0,
+        });
+    });
+    // Food patches, which lie on the ground or on a top: the square inscribed in each.
+    const food = this.spec.food ?? [];
+    for (const i of this.foodGrid.rect(near[0], near[2], near[0], near[2]) ??
+      food.keys()) {
+      const f = food[i]!;
+      if (within(f.center))
+        out.push({
+          id: f.id,
+          kind: f.surface,
+          center: [...f.center],
+          half: [f.radius / Math.SQRT2, f.radius / Math.SQRT2],
+          angle: 0,
+          food: f.kind,
         });
     }
   }

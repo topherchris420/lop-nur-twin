@@ -12,7 +12,7 @@
 import { mulberry32 } from "../../../lib/noise.js";
 import { arenaWorld, type ArenaSpec } from "../arena.js";
 import { DigitalFly, type FlyStart } from "../fly.js";
-import type { FlyNeuralAdapter, Mode } from "../neural.js";
+import type { AdapterStreams, FlyNeuralAdapter, Mode } from "../neural.js";
 import type { ControllerConfig } from "../params.js";
 import { forward, type V3, wrapAngle, yawOf } from "../units.js";
 import type { FlyWorld } from "../world.js";
@@ -35,7 +35,10 @@ export interface Setting {
 export interface Subject {
   id: string;
   label: string;
-  adapter: (seed: number, setting: Setting) => (rng: () => number) => FlyNeuralAdapter;
+  adapter: (
+    seed: number,
+    setting: Setting,
+  ) => (rng: () => number, streams?: AdapterStreams) => FlyNeuralAdapter;
   /** Overrides of the fly's model parameters the subject runs with (none for the defaults). */
   config?: ControllerConfig;
 }

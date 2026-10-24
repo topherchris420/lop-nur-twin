@@ -105,7 +105,7 @@ function watched(base: Subject): {
       ...base,
       adapter: (seed, setting) => {
         const make = base.adapter(seed, setting);
-        return (rng) => (c = make(rng) as CircuitController);
+        return (rng, streams) => (c = make(rng, streams) as CircuitController);
       },
     },
     controller: () => {

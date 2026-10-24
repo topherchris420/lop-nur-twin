@@ -59,10 +59,10 @@ export function chamber(width: number, height: number, id = "chamber"): Primitiv
 }
 
 /**
- * The reduced-order controller keeps a flying fly 0.3 m below its home
- * range's ceiling (`vertical` in `controller.ts`), a rule sized for the city.
- * An arena's home range therefore reaches this far above its lid, so the rule
- * holds the fly below the lid instead of pressing it toward the floor.
+ * The reduced-order controller keeps a flying fly 0.3 m below its extent's
+ * ceiling (`vertical` in `controller.ts`), a rule sized for the city. An
+ * arena's extent therefore reaches this far above its lid, so the rule holds
+ * the fly below the lid instead of pressing it toward the floor.
  */
 const HOME_ABOVE_LID_M = 0.3;
 
@@ -122,7 +122,7 @@ export function roundArena(
 /**
  * A closed rectangular tunnel, `length` along x, with optional upright posts
  * (round cylinders from the floor, whose tops a fly may land on), still air
- * and uniform light. The whole tunnel is inside the home range.
+ * and uniform light. The whole tunnel is inside the fly's extent.
  */
 export function tunnel(
   length: number,

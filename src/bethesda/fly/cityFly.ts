@@ -18,6 +18,9 @@ import { groundAt } from "../terrain";
 import { BethesdaFlyWorld, homeSeat } from "./bethesdaWorld.js";
 import { DigitalFly } from "./fly.js";
 
+/** The city's fly is placed somewhat hungry, so that it forages (a model choice; `startReserve`). */
+export const CITY_START_RESERVE = 0.6;
+
 export class CityFly {
   readonly fly: DigitalFly;
   readonly world: BethesdaFlyWorld;
@@ -42,7 +45,7 @@ export class CityFly {
     this.placedOn = seat
       ? `${seat.kind === "picnic_table" ? "picnic table" : "bench"} (OSM ${seat.osmId})`
       : "the ground at the arrival point";
-    this.world = new BethesdaFlyWorld(sim, at);
+    this.world = new BethesdaFlyWorld(sim);
     this.seed = (Math.imul(sim.config.seed, 0x9e3779b1) ^ 0x0f1e5) >>> 0;
     this.placedAtTick = sim.tick;
     this.lastTick = sim.tick;
@@ -50,6 +53,7 @@ export class CityFly {
       seed: this.seed,
       world: this.world,
       start: { p: [at.x, groundAt(at) + top + 0.002, at.z], yaw: Math.PI / 2 },
+      config: { startReserve: CITY_START_RESERVE },
     });
   }
 
@@ -71,7 +75,7 @@ export class CityFly {
     if (ticks <= 0) return;
     try {
       const t = this.fly.state.t;
-      this.world.sync(t, t + ticks * DT);
+      this.world.sync(t, t + ticks * DT, this.fly.state.p);
       for (let k = 0; k < ticks; k++) this.fly.advance(DT);
     } catch (e) {
       this.failed = e instanceof Error ? e.message : String(e);

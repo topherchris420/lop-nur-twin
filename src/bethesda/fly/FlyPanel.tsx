@@ -7,7 +7,7 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "../../lib/safeUrl";
-import { REDUCED_ORDER_DESCRIPTOR } from "./controller";
+import { REDUCED_ORDER_DESCRIPTOR, ReducedOrderController } from "./controller";
 import source from "./data/flybody.source.json" with { type: "json" };
 import { FLY_VERSION } from "./fly";
 import type { FlyViewControl } from "./FlyView";
@@ -111,6 +111,17 @@ export function FlyPanel({
   const inputs = city.world.inputs;
   const at = viewer();
   const away = Math.hypot(s.p[0] - at.x, s.p[2] - at.z);
+  const reserve = s.reserve / PARAMS.reserveJ.value;
+  const hungry = 1 - reserve > PARAMS.hungerSeek.value;
+  // What the built-in controller believes and remembers; another controller reports none.
+  const nav =
+    fly.adapter instanceof ReducedOrderController ? fly.adapter.state.nav : null;
+  const byEstimate = (q: readonly number[]) =>
+    nav ? Math.hypot(q[0]! - nav.est[0], q[1]! - nav.est[1]) : 0;
+  const nearestPlace = nav?.places.reduce<number | null>(
+    (best, place) => Math.min(best ?? Infinity, byEstimate(place.at)),
+    null,
+  );
   return (
     <section
       aria-label="Digital fly"
@@ -227,9 +238,52 @@ export function FlyPanel({
                 {flying
                   ? ` Time to contact ahead ${seconds(f.ttcFront)}, left ${seconds(f.ttcLeft)}, right ${seconds(f.ttcRight)}.`
                   : ""}
+                {` Food odour ${f.odour.toFixed(3)} (relative proxy); ${f.landmarks.length} ${f.landmarks.length === 1 ? "landmark" : "landmarks"} in view`}
+                {f.shadeBearing !== null
+                  ? `; shade on the ground ${radToDeg(f.shadeBearing).toFixed(0)}° from heading`
+                  : ""}
+                .
               </>
             ) : (
               "not yet sampled"
+            )}
+          </Row>
+          <Row label="Energy" evidence="simulated">
+            Reserve {(reserve * 100).toFixed(0)} % of full ({s.reserve.toFixed(2)} of{" "}
+            {PARAMS.reserveJ.value} J)
+            {hungry ? ": hungry, so drawn to food odour and food" : ": fed"}
+            {reserve < PARAMS.flightReserveFloor.value
+              ? ", too low to take off on its own"
+              : ""}
+            . Fed {s.counts.meals} {s.counts.meals === 1 ? "time" : "times"} (
+            {s.counts.feedS.toFixed(0)} s, {s.counts.fedJ.toFixed(3)} J taken in); spent{" "}
+            {s.counts.spentJ.toFixed(3)} J.
+          </Row>
+          <Row label="Navigation" evidence="simulated">
+            {nav ? (
+              <>
+                {nav.goal
+                  ? `${nav.goal.kind === "return" ? "Flying back to food it remembers" : "On a long flight toward a place it has not been"}, ${byEstimate(nav.goal.at).toFixed(0)} m to go by its own estimate. `
+                  : ""}
+                Its path integration puts it{" "}
+                {Math.hypot(nav.est[0] - s.p[0], nav.est[1] - s.p[2]).toFixed(1)} m from
+                where it is
+                {nav.compass
+                  ? " (heading held to the sky or the brightest light)"
+                  : " (no compass in view: its heading drifts)"}
+                . It remembers {nav.places.length} food{" "}
+                {nav.places.length === 1 ? "place" : "places"}
+                {nearestPlace !== null && nearestPlace !== undefined
+                  ? `, the nearest ${nearestPlace.toFixed(0)} m away by its estimate`
+                  : ""}
+                , and has been in {nav.visited.length} of its 10 m squares
+                {nav.search && s.t < nav.search.until
+                  ? "; searching near food it left"
+                  : ""}
+                .
+              </>
+            ) : (
+              "Not reported by this controller."
             )}
           </Row>
           <Row label="Not sensed" evidence="unsupported">

@@ -41,7 +41,9 @@ import { SKELETON } from "../../bethesda/fly/skeleton.js";
 import type { V3 } from "../../bethesda/fly/units.js";
 import type {
   FlyWorld,
+  FoodPatch,
   Hit,
+  Landmark,
   LandingSite,
   LightSample,
   Mover,
@@ -1084,6 +1086,15 @@ class StimulusWorld implements FlyWorld {
   }
   landingSites(near: V3, radius: number, out: LandingSite[]): void {
     this.inner.landingSites(near, radius, out);
+  }
+  foodAt(p: V3): FoodPatch | null {
+    return this.inner.foodAt(p);
+  }
+  odour(p: V3): number {
+    return this.inner.odour(p);
+  }
+  landmarks(near: V3, radius: number, out: Landmark[]): void {
+    this.inner.landmarks(near, radius, out);
   }
   /** Where a presentation's sphere is at `t`, or null when it is not showing. */
   at(s: Presentation, t: number): V3 | null {

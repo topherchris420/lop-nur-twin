@@ -1,6 +1,6 @@
 {
   "schema": "fly-calibration-fit/v1",
-  "flyVersion": "digital-fly/5",
+  "flyVersion": "digital-fly/6",
   "controller": "circuit-informed/v1",
   "giantFiber": {
     "method": "Each trial run once with the giant fiber silenced, recording the peak modelled potential up to the wing raise; expected short-mode share per (median, spread) = mean of Φ(ln(peak/median)/spread); binomial negative log-likelihood of the three counts minimized over the grid; the optimum run again in full and every trial's mode checked against its prediction.",
@@ -40,20 +40,20 @@
     "target": 0.72491,
     "steps": [
       { "groomDriveDust": 1, "share": 1 },
-      { "groomDriveDust": 2000, "share": 0.16837 },
-      { "groomDriveDust": 1000, "share": 0.32628 },
-      { "groomDriveDust": 500, "share": 0.70162 },
+      { "groomDriveDust": 2000, "share": 0.17292 },
+      { "groomDriveDust": 1000, "share": 0.32207 },
+      { "groomDriveDust": 500, "share": 0.70093 },
       { "groomDriveDust": 250, "share": 0.99718 },
-      { "groomDriveDust": 375, "share": 0.87943 },
-      { "groomDriveDust": 437, "share": 0.78888 },
-      { "groomDriveDust": 468, "share": 0.74514 },
-      { "groomDriveDust": 484, "share": 0.72671 },
-      { "groomDriveDust": 492, "share": 0.70915 },
-      { "groomDriveDust": 488, "share": 0.71591 },
-      { "groomDriveDust": 486, "share": 0.72079 },
-      { "groomDriveDust": 485, "share": 0.72042 }
+      { "groomDriveDust": 375, "share": 0.87982 },
+      { "groomDriveDust": 437, "share": 0.78917 },
+      { "groomDriveDust": 468, "share": 0.74627 },
+      { "groomDriveDust": 484, "share": 0.72746 },
+      { "groomDriveDust": 492, "share": 0.709 },
+      { "groomDriveDust": 488, "share": 0.71833 },
+      { "groomDriveDust": 486, "share": 0.72101 },
+      { "groomDriveDust": 485, "share": 0.72069 }
     ],
     "groomDriveDust": 484,
-    "share": 0.72671
+    "share": 0.72746
   }
 }

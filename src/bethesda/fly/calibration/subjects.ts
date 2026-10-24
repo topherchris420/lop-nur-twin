@@ -16,7 +16,7 @@ import type { Subject } from "./paradigms.js";
 export const REDUCED_ORDER: Subject = {
   id: REDUCED_ORDER_DESCRIPTOR.id,
   label: REDUCED_ORDER_DESCRIPTOR.label,
-  adapter: () => (rng) => new ReducedOrderController(rng),
+  adapter: () => (rng, streams) => new ReducedOrderController(rng, streams?.navigation),
 };
 
 /**

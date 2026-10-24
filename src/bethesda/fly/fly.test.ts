@@ -123,6 +123,9 @@ const wrapWorld = (base: FlyWorld, over: Partial<FlyWorld>): FlyWorld => ({
   solid: over.solid ?? ((p) => base.solid(p)),
   movers: over.movers ?? ((n, r, out, t) => base.movers(n, r, out, t)),
   light: over.light ?? ((p) => base.light(p)),
+  foodAt: over.foodAt ?? ((p) => base.foodAt(p)),
+  odour: over.odour ?? ((p) => base.odour(p)),
+  landmarks: over.landmarks ?? ((n, r, out) => base.landmarks(n, r, out)),
   landingSites: over.landingSites ?? ((n, r, out) => base.landingSites(n, r, out)),
 });
 /** A controller that never leaves rest on its own, so only a stimulus can start a takeoff. */
@@ -285,8 +288,10 @@ describe("sensing limits", () => {
     expect(inVisualField(Math.PI / 2, 0)).toBe(true);
     expect(inVisualField(Math.PI, 0)).toBe(false);
   });
-  it("names the senses it does not have", () => {
-    expect(UNSUPPORTED_SENSES).toContain("olfaction (odour)");
+  it("names the senses it does not have, or has only in part", () => {
+    expect(UNSUPPORTED_SENSES).toContain(
+      "olfaction beyond one food-odour level (no other odours, no plumes)",
+    );
     expect(UNSUPPORTED_SENSES).toContain("temperature");
   });
 });
@@ -447,8 +452,8 @@ describe("parameters keep their provenance", () => {
       "physicsStepMs",
     ] as const)
       expect(() => resolveParams({ [name]: 0 }), name).toThrow(`${name} must be within`);
-    expect(() => resolveParams({ homeRadiusM: 30 })).toThrow(
-      "homeRadiusM is fixed at 18 m",
+    expect(() => resolveParams({ standingCrouch: 0.9 })).toThrow(
+      "standingCrouch is fixed at 0.8 fraction",
     );
     expect(() => resolveParams({ cruiseAltMinM: 3, cruiseAltMaxM: 2 })).toThrow(
       /must not exceed/,
@@ -530,6 +535,8 @@ describe("the command gate", () => {
     edge: false,
     target: null,
     standingHeight: 0.001,
+    reserve: 1,
+    onFood: null,
     home: { center: [0, 0, 0], radius: 1, ceiling: 2 },
   };
   it("takes a wing raise only with a takeoff, and only as true or false", () => {

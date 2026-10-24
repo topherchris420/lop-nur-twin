@@ -1142,7 +1142,7 @@ tool sizes:
 - the host minimum effect for the two metrics the redesign added: the larger
   of the simulator's resolution (one 10 ms sensory sample for a timing) and
   twice the null arm's standard deviation over √8, rounded up to one
-  significant figure, the largest any pilot found. That is 0.08 for the
+  significant figure, the largest any pilot found. That is 0.09 for the
   near-miss fraction (from obstacle avoidance) and 0.02 s for the time to
   collision (from visual threat).
 
@@ -1150,7 +1150,7 @@ tool sizes:
 | :----------------- | :---------------------------------------------------------------------------- | :--------------- | ----: | -------------: |
 | obstacle avoidance | `avoidTtcS` 0.45 s against off: cruise collision episodes per metre, decrease | 31 down, 1 tied  |    10 |     0.12 per m |
 | visual threat      | l/v 40 against 160 ms: time to collision at the escape, decrease              | 32 down          |     9 |         0.28 s |
-| noisy sensing      | noise 0.4 against none: time to collision at the escape, increase             | 32 up            |     9 |         0.23 s |
+| noisy sensing      | noise 0.4 against none: time to collision at the escape, increase             | 32 up            |     9 |         0.24 s |
 | adaptation         | every 10 s against every 90 s: escape probability, decrease                   | 28 down, 4 tied  |    13 |           0.13 |
 
 Pilots are exploratory and never evidence: never preregistered, authorized or

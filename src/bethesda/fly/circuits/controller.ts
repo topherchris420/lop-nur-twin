@@ -28,6 +28,7 @@ import { ReducedOrderController } from "../controller.js";
 import {
   PERCHED,
   type AdapterDescriptor,
+  type AdapterStreams,
   type BodySnapshot,
   type DecisionInput,
   type FlyNeuralAdapter,
@@ -98,9 +99,9 @@ export class CircuitController implements FlyNeuralAdapter {
   private frames: SenseFrame[] = [];
   private latency: number;
 
-  constructor(rng: () => number, o: CircuitOptions) {
+  constructor(rng: () => number, o: CircuitOptions, streams?: AdapterStreams) {
     this.circuitParams = resolveCircuitParams(o.config);
-    this.inner = new ReducedOrderController(rng);
+    this.inner = new ReducedOrderController(rng, streams?.navigation);
     this.escape = new EscapeCircuit(
       this.circuitParams,
       mulberry32((o.seed ^ 0x6a09e667) >>> 0),
@@ -210,7 +211,9 @@ export class CircuitController implements FlyNeuralAdapter {
       }
       return null;
     }
-    if (body.mode === "walk") return { mode: "rest", reason: "dust: stops to groom" };
+    // Grooming starts from rest: a walking or feeding fly stops first.
+    if (body.mode === "walk" || body.mode === "feed")
+      return { mode: "rest", reason: "dust: stops to groom" };
     this.grooms = true;
     const bout = G.state.bout!;
     return {
@@ -251,5 +254,5 @@ export class CircuitController implements FlyNeuralAdapter {
 /** The adapter factory for a fly with seed `seed`. */
 export const circuitAdapter =
   (o: CircuitOptions) =>
-  (rng: () => number): CircuitController =>
-    new CircuitController(rng, o);
+  (rng: () => number, streams?: AdapterStreams): CircuitController =>
+    new CircuitController(rng, o, streams);

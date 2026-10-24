@@ -1,6 +1,6 @@
 {
   "schema": "fly-calibration-report/v1",
-  "flyVersion": "digital-fly/5",
+  "flyVersion": "digital-fly/6",
   "subjects": [
     { "id": "reduced-order-fsm/v1", "label": "Reduced-order behavioural controller" },
     { "id": "circuit-informed/v1", "label": "Circuit-informed controller" }
@@ -99,7 +99,7 @@
         "The arena's height is not stated here; 1 m is a model choice.",
         "The authors' detectors (their Text S1) are not reproduced; 300°/s is Tammero & Dickinson's and van Breugel & Dickinson's threshold.",
         "The checkerboard wall is a plain lit wall: the fly's senses have no texture.",
-        "The fly's preferred cruise height, a model value sized for the city (0.3–2.5 m), is set to 0.1–0.6 m for the arena, and its home range's ceiling sits 0.3 m above the lid, where the controller's rule of keeping 0.3 m below it holds the fly under the lid."
+        "The fly's preferred cruise height, a model value sized for the city (0.3–2.5 m), is set to 0.1–0.6 m for the arena, and its extent's ceiling sits 0.3 m above the lid, where the controller's rule of keeping 0.3 m below it holds the fly under the lid."
       ]
     },
     "tammero2002a": {
@@ -112,7 +112,7 @@
       "rebuilt": "As the 1 m-radius arena, in a round arena 1 m across and 0.6 m high, the fly released 0.3 m up; positions at 30 Hz and every airborne sample kept.",
       "approximations": [
         "The checkerboard lining is a plain lit wall: the fly's senses have no texture.",
-        "The fly's preferred cruise height is set to 0.1–0.4 m for the arena, its home range's ceiling 0.3 m above the lid."
+        "The fly's preferred cruise height is set to 0.1–0.4 m for the arena, its extent's ceiling 0.3 m above the lid."
       ]
     },
     "vanBreugel2012": {
@@ -127,7 +127,7 @@
         "The simulated fly lands only on tops, so it lands on the post's 1.9 cm top; the real flies landed on its side as well. Its leg extension is set beside the retinal size of that top.",
         "The fly is released inside the section; the real flies entered it on their own.",
         "The checkerboard is a plain lit surface: the fly's senses have no texture.",
-        "The fly's preferred cruise height is set to 0.05–0.25 m for the tunnel, its home range's ceiling 0.3 m above the lid."
+        "The fly's preferred cruise height is set to 0.05–0.25 m for the tunnel, its extent's ceiling 0.3 m above the lid."
       ]
     },
     "liu2007": {
@@ -545,9 +545,9 @@
         "n": 6000
       },
       "simulated": {
-        "value": 0.90833,
+        "value": 0.90917,
         "n": 1200,
-        "interval": { "lo": 0.89068, "hi": 0.92338 }
+        "interval": { "lo": 0.89158, "hi": 0.92415 }
       },
       "agreement": "outside"
     },
@@ -590,7 +590,7 @@
       "subject": "circuit-informed/v1",
       "role": "held-out",
       "published": { "value": null, "unit": "", "spread": null, "n": null, "sign": -1 },
-      "simulated": { "value": -0.00241, "n": 1, "interval": null },
+      "simulated": { "value": -0.00234, "n": 1, "interval": null },
       "agreement": "agrees"
     },
     {
@@ -604,9 +604,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.16261,
+        "value": 0.16996,
         "n": 44,
-        "interval": { "lo": 0.15524, "hi": 0.16998 }
+        "interval": { "lo": 0.16339, "hi": 0.17653 }
       },
       "agreement": "outside"
     },
@@ -621,9 +621,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.72671,
+        "value": 0.72746,
         "n": 44,
-        "interval": { "lo": 0.72119, "hi": 0.73223 }
+        "interval": { "lo": 0.72191, "hi": 0.73301 }
       },
       "agreement": "inside"
     },
@@ -638,9 +638,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.06724,
+        "value": 0.07019,
         "n": 44,
-        "interval": { "lo": 0.06409, "hi": 0.07039 }
+        "interval": { "lo": 0.0665, "hi": 0.07388 }
       },
       "agreement": "outside"
     },
@@ -655,9 +655,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.46357,
+        "value": 0.46476,
         "n": 44,
-        "interval": { "lo": 0.45963, "hi": 0.46751 }
+        "interval": { "lo": 0.46027, "hi": 0.46925 }
       },
       "agreement": "within-spread"
     },
@@ -672,9 +672,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.09538,
+        "value": 0.09977,
         "n": 44,
-        "interval": { "lo": 0.08912, "hi": 0.10164 }
+        "interval": { "lo": 0.09402, "hi": 0.10552 }
       },
       "agreement": "outside"
     },
@@ -689,9 +689,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.26314,
+        "value": 0.2627,
         "n": 44,
-        "interval": { "lo": 0.25891, "hi": 0.26737 }
+        "interval": { "lo": 0.25892, "hi": 0.26648 }
       },
       "agreement": "within-spread"
     },
@@ -706,9 +706,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.25427,
+        "value": 0.25055,
         "n": 44,
-        "interval": { "lo": 0.24602, "hi": 0.26252 }
+        "interval": { "lo": 0.24393, "hi": 0.25717 }
       },
       "agreement": "outside"
     },
@@ -723,9 +723,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.04013,
+        "value": 0.03956,
         "n": 44,
-        "interval": { "lo": 0.0378, "hi": 0.04246 }
+        "interval": { "lo": 0.03721, "hi": 0.04191 }
       },
       "agreement": "outside"
     },
@@ -740,9 +740,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.58312,
+        "value": 0.57949,
         "n": 44,
-        "interval": { "lo": 0.57525, "hi": 0.59099 }
+        "interval": { "lo": 0.572, "hi": 0.58698 }
       },
       "agreement": "outside"
     },
@@ -757,9 +757,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.23316,
+        "value": 0.23298,
         "n": 44,
-        "interval": { "lo": 0.22855, "hi": 0.23777 }
+        "interval": { "lo": 0.22813, "hi": 0.23783 }
       },
       "agreement": "within-spread"
     },
@@ -808,9 +808,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.07489,
+        "value": 0.07452,
         "n": 44,
-        "interval": { "lo": 0.05894, "hi": 0.09084 }
+        "interval": { "lo": 0.05891, "hi": 0.09013 }
       },
       "agreement": "within-spread"
     },
@@ -825,9 +825,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.11391,
+        "value": 0.11258,
         "n": 44,
-        "interval": { "lo": 0.09983, "hi": 0.12799 }
+        "interval": { "lo": 0.09929, "hi": 0.12587 }
       },
       "agreement": "within-spread"
     },
@@ -876,9 +876,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.10438,
+        "value": 0.10333,
         "n": 44,
-        "interval": { "lo": 0.08483, "hi": 0.12393 }
+        "interval": { "lo": 0.08407, "hi": 0.12259 }
       },
       "agreement": "within-spread"
     },
@@ -893,9 +893,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 0.17506,
+        "value": 0.18081,
         "n": 44,
-        "interval": { "lo": 0.15813, "hi": 0.19199 }
+        "interval": { "lo": 0.1636, "hi": 0.19802 }
       },
       "agreement": "within-spread"
     },
@@ -910,9 +910,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 1.7018,
+        "value": 1.7607,
         "n": 44,
-        "interval": { "lo": 1.63254, "hi": 1.77106 }
+        "interval": { "lo": 1.69135, "hi": 1.83005 }
       },
       "agreement": "outside"
     },
@@ -927,9 +927,9 @@
         "n": 44
       },
       "simulated": {
-        "value": 17.5451,
+        "value": 17.5435,
         "n": 44,
-        "interval": { "lo": 17.41187, "hi": 17.67833 }
+        "interval": { "lo": 17.40548, "hi": 17.68152 }
       },
       "agreement": "outside"
     },
@@ -943,7 +943,7 @@
         "spread": { "kind": "iqr", "lo": 1.1333, "hi": 8.0667 },
         "n": 5118
       },
-      "simulated": { "value": 4.5667, "n": 2080, "interval": null },
+      "simulated": { "value": 4.5667, "n": 2152, "interval": null },
       "agreement": "within-spread"
     },
     {
@@ -956,7 +956,7 @@
         "spread": { "kind": "iqr", "lo": 1.1333, "hi": 8.0667 },
         "n": 5118
       },
-      "simulated": { "value": 0.9, "n": 21444, "interval": null },
+      "simulated": { "value": 0.9, "n": 21442, "interval": null },
       "agreement": "outside"
     },
     {
@@ -969,7 +969,7 @@
         "spread": { "kind": "iqr", "lo": 2.7333, "hi": 18.5 },
         "n": 2037
       },
-      "simulated": { "value": 3.5, "n": 1172, "interval": null },
+      "simulated": { "value": 3.5, "n": 1216, "interval": null },
       "agreement": "within-spread"
     },
     {
@@ -982,7 +982,7 @@
         "spread": { "kind": "iqr", "lo": 2.7333, "hi": 18.5 },
         "n": 2037
       },
-      "simulated": { "value": 1.1, "n": 14689, "interval": null },
+      "simulated": { "value": 1.1, "n": 14688, "interval": null },
       "agreement": "outside"
     },
     {
@@ -995,7 +995,7 @@
         "spread": { "kind": "iqr", "lo": 0.9, "hi": 3.5667 },
         "n": 6026
       },
-      "simulated": { "value": 4.4, "n": 1319, "interval": null },
+      "simulated": { "value": 4.3667, "n": 1358, "interval": null },
       "agreement": "outside"
     },
     {
@@ -1008,7 +1008,7 @@
         "spread": { "kind": "iqr", "lo": 0.9, "hi": 3.5667 },
         "n": 6026
       },
-      "simulated": { "value": 0.7667, "n": 18555, "interval": null },
+      "simulated": { "value": 0.7667, "n": 18553, "interval": null },
       "agreement": "outside"
     },
     {
@@ -1022,9 +1022,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.16267,
+        "value": 0.16273,
         "n": 55,
-        "interval": { "lo": 0.15627, "hi": 0.16907 }
+        "interval": { "lo": 0.15677, "hi": 0.16869 }
       },
       "agreement": "outside"
     },
@@ -1039,9 +1039,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.16267,
+        "value": 0.16273,
         "n": 55,
-        "interval": { "lo": 0.15627, "hi": 0.16907 }
+        "interval": { "lo": 0.15677, "hi": 0.16869 }
       },
       "agreement": "outside"
     },
@@ -1056,9 +1056,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.25425,
+        "value": 0.25537,
         "n": 55,
-        "interval": { "lo": 0.24799, "hi": 0.26051 }
+        "interval": { "lo": 0.24944, "hi": 0.2613 }
       },
       "agreement": "within-spread"
     },
@@ -1073,9 +1073,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.25425,
+        "value": 0.25537,
         "n": 55,
-        "interval": { "lo": 0.24799, "hi": 0.26051 }
+        "interval": { "lo": 0.24944, "hi": 0.2613 }
       },
       "agreement": "within-spread"
     },
@@ -1090,9 +1090,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.58308,
+        "value": 0.58189,
         "n": 55,
-        "interval": { "lo": 0.57706, "hi": 0.5891 }
+        "interval": { "lo": 0.57581, "hi": 0.58797 }
       },
       "agreement": "within-spread"
     },
@@ -1107,9 +1107,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 0.58308,
+        "value": 0.58189,
         "n": 55,
-        "interval": { "lo": 0.57706, "hi": 0.5891 }
+        "interval": { "lo": 0.57581, "hi": 0.58797 }
       },
       "agreement": "within-spread"
     },
@@ -1124,9 +1124,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 1.7496,
+        "value": 1.7588,
         "n": 55,
-        "interval": { "lo": 1.6826, "hi": 1.8166 }
+        "interval": { "lo": 1.69989, "hi": 1.81771 }
       },
       "agreement": "outside"
     },
@@ -1141,9 +1141,9 @@
         "n": 55
       },
       "simulated": {
-        "value": 1.7496,
+        "value": 1.7588,
         "n": 55,
-        "interval": { "lo": 1.6826, "hi": 1.8166 }
+        "interval": { "lo": 1.69989, "hi": 1.81771 }
       },
       "agreement": "outside"
     },
@@ -1157,7 +1157,7 @@
         "spread": { "kind": "iqr", "lo": 0.8, "hi": 3.7 },
         "n": 7645
       },
-      "simulated": { "value": 4.4667, "n": 2673, "interval": null },
+      "simulated": { "value": 4.4667, "n": 2687, "interval": null },
       "agreement": "outside"
     },
     {
@@ -1170,7 +1170,7 @@
         "spread": { "kind": "iqr", "lo": 0.8, "hi": 3.7 },
         "n": 7645
       },
-      "simulated": { "value": 4.4667, "n": 2673, "interval": null },
+      "simulated": { "value": 4.4667, "n": 2687, "interval": null },
       "agreement": "outside"
     },
     {
@@ -1266,9 +1266,9 @@
         "n": null
       },
       "simulated": {
-        "value": 78.15021,
-        "n": 2671,
-        "interval": { "lo": 76.59595, "hi": 79.70446 }
+        "value": 78.24235,
+        "n": 2652,
+        "interval": { "lo": 76.6813, "hi": 79.80341 }
       },
       "agreement": "within-spread"
     },
@@ -1283,9 +1283,9 @@
         "n": null
       },
       "simulated": {
-        "value": 78.24064,
-        "n": 2670,
-        "interval": { "lo": 76.68474, "hi": 79.79655 }
+        "value": 78.24235,
+        "n": 2652,
+        "interval": { "lo": 76.6813, "hi": 79.80341 }
       },
       "agreement": "within-spread"
     },
@@ -1294,7 +1294,7 @@
       "subject": "reduced-order-fsm/v1",
       "role": "held-out",
       "published": { "value": 0.2, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 0.11761, "n": 1, "interval": null },
+      "simulated": { "value": 0.11747, "n": 1, "interval": null },
       "agreement": "no-interval"
     },
     {
@@ -1302,7 +1302,7 @@
       "subject": "circuit-informed/v1",
       "role": "held-out",
       "published": { "value": 0.2, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 0.11765, "n": 1, "interval": null },
+      "simulated": { "value": 0.11747, "n": 1, "interval": null },
       "agreement": "no-interval"
     },
     {
@@ -1316,9 +1316,9 @@
         "n": 177
       },
       "simulated": {
-        "value": 0.18564,
-        "n": 27,
-        "interval": { "lo": 0.15692, "hi": 0.21436 }
+        "value": 0.18768,
+        "n": 25,
+        "interval": { "lo": 0.15921, "hi": 0.21615 }
       },
       "agreement": "outside"
     },
@@ -1333,9 +1333,9 @@
         "n": 177
       },
       "simulated": {
-        "value": 0.18564,
-        "n": 27,
-        "interval": { "lo": 0.15692, "hi": 0.21436 }
+        "value": 0.18768,
+        "n": 25,
+        "interval": { "lo": 0.15921, "hi": 0.21615 }
       },
       "agreement": "outside"
     },
@@ -1350,11 +1350,11 @@
         "n": 1047
       },
       "simulated": {
-        "value": 0.20267,
-        "n": 8,
-        "interval": { "lo": 0.14459, "hi": 0.26075 }
+        "value": 0.19165,
+        "n": 10,
+        "interval": { "lo": 0.14301, "hi": 0.24029 }
       },
-      "agreement": "within-spread"
+      "agreement": "outside"
     },
     {
       "observation": "landing.flyby-speed",
@@ -1367,118 +1367,118 @@
         "n": 1047
       },
       "simulated": {
-        "value": 0.20267,
+        "value": 0.19165,
+        "n": 10,
+        "interval": { "lo": 0.14301, "hi": 0.24029 }
+      },
+      "agreement": "outside"
+    },
+    {
+      "observation": "landing.share",
+      "subject": "reduced-order-fsm/v1",
+      "role": "held-out",
+      "published": { "value": 0.14, "unit": "fraction", "spread": null, "n": 1224 },
+      "simulated": {
+        "value": 0.71429,
+        "n": 35,
+        "interval": { "lo": 0.54945, "hi": 0.83673 }
+      },
+      "agreement": "no-interval"
+    },
+    {
+      "observation": "landing.share",
+      "subject": "circuit-informed/v1",
+      "role": "held-out",
+      "published": { "value": 0.14, "unit": "fraction", "spread": null, "n": 1224 },
+      "simulated": {
+        "value": 0.71429,
+        "n": 35,
+        "interval": { "lo": 0.54945, "hi": 0.83673 }
+      },
+      "agreement": "no-interval"
+    },
+    {
+      "observation": "landing.leg-extension",
+      "subject": "reduced-order-fsm/v1",
+      "role": "design",
+      "published": {
+        "value": 61,
+        "unit": "deg",
+        "spread": { "kind": "sd", "value": 22 },
+        "n": 36
+      },
+      "simulated": {
+        "value": 61.4492,
+        "n": 25,
+        "interval": { "lo": 59.03194, "hi": 63.86646 }
+      },
+      "agreement": "inside"
+    },
+    {
+      "observation": "landing.leg-extension",
+      "subject": "circuit-informed/v1",
+      "role": "design",
+      "published": {
+        "value": 61,
+        "unit": "deg",
+        "spread": { "kind": "sd", "value": 22 },
+        "n": 36
+      },
+      "simulated": {
+        "value": 61.4492,
+        "n": 25,
+        "interval": { "lo": 59.03194, "hi": 63.86646 }
+      },
+      "agreement": "inside"
+    },
+    {
+      "observation": "landing.touchdown-speed",
+      "subject": "reduced-order-fsm/v1",
+      "role": "held-out",
+      "published": {
+        "value": 0.071,
+        "unit": "m/s",
+        "spread": { "kind": "sd", "value": 0.032 },
+        "n": 30
+      },
+      "simulated": {
+        "value": 0.04127,
+        "n": 25,
+        "interval": { "lo": 0.03982, "hi": 0.04271 }
+      },
+      "agreement": "within-spread"
+    },
+    {
+      "observation": "landing.touchdown-speed",
+      "subject": "circuit-informed/v1",
+      "role": "held-out",
+      "published": {
+        "value": 0.071,
+        "unit": "m/s",
+        "spread": { "kind": "sd", "value": 0.032 },
+        "n": 30
+      },
+      "simulated": {
+        "value": 0.04127,
+        "n": 25,
+        "interval": { "lo": 0.03982, "hi": 0.04271 }
+      },
+      "agreement": "within-spread"
+    },
+    {
+      "observation": "landing.avoidance-size",
+      "subject": "reduced-order-fsm/v1",
+      "role": "held-out",
+      "published": {
+        "value": 33,
+        "unit": "deg",
+        "spread": { "kind": "sd", "value": 17 },
+        "n": null
+      },
+      "simulated": {
+        "value": 82.09104,
         "n": 8,
-        "interval": { "lo": 0.14459, "hi": 0.26075 }
-      },
-      "agreement": "within-spread"
-    },
-    {
-      "observation": "landing.share",
-      "subject": "reduced-order-fsm/v1",
-      "role": "held-out",
-      "published": { "value": 0.14, "unit": "fraction", "spread": null, "n": 1224 },
-      "simulated": {
-        "value": 0.77143,
-        "n": 35,
-        "interval": { "lo": 0.60983, "hi": 0.87934 }
-      },
-      "agreement": "no-interval"
-    },
-    {
-      "observation": "landing.share",
-      "subject": "circuit-informed/v1",
-      "role": "held-out",
-      "published": { "value": 0.14, "unit": "fraction", "spread": null, "n": 1224 },
-      "simulated": {
-        "value": 0.77143,
-        "n": 35,
-        "interval": { "lo": 0.60983, "hi": 0.87934 }
-      },
-      "agreement": "no-interval"
-    },
-    {
-      "observation": "landing.leg-extension",
-      "subject": "reduced-order-fsm/v1",
-      "role": "design",
-      "published": {
-        "value": 61,
-        "unit": "deg",
-        "spread": { "kind": "sd", "value": 22 },
-        "n": 36
-      },
-      "simulated": {
-        "value": 62.20157,
-        "n": 27,
-        "interval": { "lo": 59.70706, "hi": 64.69609 }
-      },
-      "agreement": "inside"
-    },
-    {
-      "observation": "landing.leg-extension",
-      "subject": "circuit-informed/v1",
-      "role": "design",
-      "published": {
-        "value": 61,
-        "unit": "deg",
-        "spread": { "kind": "sd", "value": 22 },
-        "n": 36
-      },
-      "simulated": {
-        "value": 62.20157,
-        "n": 27,
-        "interval": { "lo": 59.70706, "hi": 64.69609 }
-      },
-      "agreement": "inside"
-    },
-    {
-      "observation": "landing.touchdown-speed",
-      "subject": "reduced-order-fsm/v1",
-      "role": "held-out",
-      "published": {
-        "value": 0.071,
-        "unit": "m/s",
-        "spread": { "kind": "sd", "value": 0.032 },
-        "n": 30
-      },
-      "simulated": {
-        "value": 0.04288,
-        "n": 27,
-        "interval": { "lo": 0.03973, "hi": 0.04604 }
-      },
-      "agreement": "within-spread"
-    },
-    {
-      "observation": "landing.touchdown-speed",
-      "subject": "circuit-informed/v1",
-      "role": "held-out",
-      "published": {
-        "value": 0.071,
-        "unit": "m/s",
-        "spread": { "kind": "sd", "value": 0.032 },
-        "n": 30
-      },
-      "simulated": {
-        "value": 0.04288,
-        "n": 27,
-        "interval": { "lo": 0.03973, "hi": 0.04604 }
-      },
-      "agreement": "within-spread"
-    },
-    {
-      "observation": "landing.avoidance-size",
-      "subject": "reduced-order-fsm/v1",
-      "role": "held-out",
-      "published": {
-        "value": 33,
-        "unit": "deg",
-        "spread": { "kind": "sd", "value": 17 },
-        "n": null
-      },
-      "simulated": {
-        "value": 70.60094,
-        "n": 6,
-        "interval": { "lo": 25.081, "hi": 116.12088 }
+        "interval": { "lo": 45.63866, "hi": 118.54341 }
       },
       "agreement": "outside"
     },
@@ -1493,9 +1493,9 @@
         "n": null
       },
       "simulated": {
-        "value": 70.60094,
-        "n": 6,
-        "interval": { "lo": 25.081, "hi": 116.12088 }
+        "value": 82.09104,
+        "n": 8,
+        "interval": { "lo": 45.63866, "hi": 118.54341 }
       },
       "agreement": "outside"
     },
@@ -1505,9 +1505,9 @@
       "role": "held-out",
       "published": { "value": 0.9, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.54637,
+        "value": 0.53678,
         "n": 24,
-        "interval": { "lo": 0.50549, "hi": 0.58725 }
+        "interval": { "lo": 0.49786, "hi": 0.57571 }
       },
       "agreement": "no-interval"
     },
@@ -1517,9 +1517,9 @@
       "role": "held-out",
       "published": { "value": 0.9, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.54637,
+        "value": 0.53678,
         "n": 24,
-        "interval": { "lo": 0.50549, "hi": 0.58725 }
+        "interval": { "lo": 0.49786, "hi": 0.57571 }
       },
       "agreement": "no-interval"
     },
@@ -1529,9 +1529,9 @@
       "role": "held-out",
       "published": { "value": 0.04, "unit": "m", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.03502,
+        "value": 0.03478,
         "n": 24,
-        "interval": { "lo": 0.03393, "hi": 0.03612 }
+        "interval": { "lo": 0.0337, "hi": 0.03586 }
       },
       "agreement": "no-interval"
     },
@@ -1541,9 +1541,9 @@
       "role": "held-out",
       "published": { "value": 0.04, "unit": "m", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.03502,
+        "value": 0.03478,
         "n": 24,
-        "interval": { "lo": 0.03393, "hi": 0.03612 }
+        "interval": { "lo": 0.0337, "hi": 0.03586 }
       },
       "agreement": "no-interval"
     },
@@ -1601,9 +1601,9 @@
       "role": "held-out",
       "published": { "value": 0.652, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.24042,
+        "value": 0.24424,
         "n": 24,
-        "interval": { "lo": 0.2084, "hi": 0.27243 }
+        "interval": { "lo": 0.21195, "hi": 0.27652 }
       },
       "agreement": "no-interval"
     },
@@ -1613,9 +1613,9 @@
       "role": "held-out",
       "published": { "value": 0.652, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.24042,
+        "value": 0.24424,
         "n": 24,
-        "interval": { "lo": 0.2084, "hi": 0.27243 }
+        "interval": { "lo": 0.21195, "hi": 0.27652 }
       },
       "agreement": "no-interval"
     },
@@ -1630,9 +1630,9 @@
         "n": 24
       },
       "simulated": {
-        "value": 0.01436,
+        "value": 0.01451,
         "n": 24,
-        "interval": { "lo": 0.0132, "hi": 0.01552 }
+        "interval": { "lo": 0.01337, "hi": 0.01564 }
       },
       "agreement": "no-interval"
     },
@@ -1647,9 +1647,9 @@
         "n": 24
       },
       "simulated": {
-        "value": 0.01436,
+        "value": 0.01451,
         "n": 24,
-        "interval": { "lo": 0.0132, "hi": 0.01552 }
+        "interval": { "lo": 0.01337, "hi": 0.01564 }
       },
       "agreement": "no-interval"
     },
@@ -1659,9 +1659,9 @@
       "role": "held-out",
       "published": { "value": 0.507, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.2866,
+        "value": 0.27938,
         "n": 24,
-        "interval": { "lo": 0.23445, "hi": 0.33874 }
+        "interval": { "lo": 0.22837, "hi": 0.33038 }
       },
       "agreement": "no-interval"
     },
@@ -1671,9 +1671,9 @@
       "role": "held-out",
       "published": { "value": 0.507, "unit": "fraction", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.2866,
+        "value": 0.27938,
         "n": 24,
-        "interval": { "lo": 0.23445, "hi": 0.33874 }
+        "interval": { "lo": 0.22837, "hi": 0.33038 }
       },
       "agreement": "no-interval"
     },
@@ -1683,9 +1683,9 @@
       "role": "held-out",
       "published": { "value": 0.0088, "unit": "m/s", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.01556,
+        "value": 0.01554,
         "n": 24,
-        "interval": { "lo": 0.01424, "hi": 0.01689 }
+        "interval": { "lo": 0.01421, "hi": 0.01686 }
       },
       "agreement": "no-interval"
     },
@@ -1695,9 +1695,9 @@
       "role": "held-out",
       "published": { "value": 0.0088, "unit": "m/s", "spread": null, "n": 24 },
       "simulated": {
-        "value": 0.01556,
+        "value": 0.01554,
         "n": 24,
-        "interval": { "lo": 0.01424, "hi": 0.01689 }
+        "interval": { "lo": 0.01421, "hi": 0.01686 }
       },
       "agreement": "no-interval"
     },
@@ -1707,9 +1707,9 @@
       "role": "held-out",
       "published": { "value": 0.9, "unit": "fraction", "spread": null, "n": null },
       "simulated": {
-        "value": 0.48343,
+        "value": 0.48888,
         "n": 30,
-        "interval": { "lo": 0.45359, "hi": 0.51326 }
+        "interval": { "lo": 0.46013, "hi": 0.51763 }
       },
       "agreement": "no-interval"
     },
@@ -1719,9 +1719,9 @@
       "role": "held-out",
       "published": { "value": 0.9, "unit": "fraction", "spread": null, "n": null },
       "simulated": {
-        "value": 0.48343,
+        "value": 0.48888,
         "n": 30,
-        "interval": { "lo": 0.45359, "hi": 0.51326 }
+        "interval": { "lo": 0.46013, "hi": 0.51763 }
       },
       "agreement": "no-interval"
     },
@@ -1730,7 +1730,7 @@
       "subject": "reduced-order-fsm/v1",
       "role": "held-out",
       "published": { "value": 0.6, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1738,7 +1738,7 @@
       "subject": "circuit-informed/v1",
       "role": "held-out",
       "published": { "value": 0.6, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1746,7 +1746,7 @@
       "subject": "reduced-order-fsm/v1",
       "role": "held-out",
       "published": { "value": 0.72, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1754,7 +1754,7 @@
       "subject": "circuit-informed/v1",
       "role": "held-out",
       "published": { "value": 0.72, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1762,7 +1762,7 @@
       "subject": "reduced-order-fsm/v1",
       "role": "held-out",
       "published": { "value": 0.8, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1770,7 +1770,7 @@
       "subject": "circuit-informed/v1",
       "role": "held-out",
       "published": { "value": 0.8, "unit": "fraction", "spread": null, "n": null },
-      "simulated": { "value": 1, "n": 11609, "interval": { "lo": 0.99967, "hi": 1 } },
+      "simulated": { "value": 1, "n": 11665, "interval": { "lo": 0.99967, "hi": 1 } },
       "agreement": "no-interval"
     },
     {
@@ -1841,11 +1841,11 @@
     "reduced-order-fsm/v1": {
       "held-out": {
         "no-interval": 26,
-        "outside": 17,
+        "outside": 18,
         "disagrees": 1,
         "not-produced": 3,
         "agrees": 1,
-        "within-spread": 10
+        "within-spread": 9
       },
       "design": { "agrees": 2, "no-interval": 1, "inside": 1 },
       "fit": {}
@@ -1854,9 +1854,9 @@
       "held-out": {
         "no-interval": 28,
         "agrees": 2,
-        "outside": 12,
+        "outside": 13,
         "not-produced": 1,
-        "within-spread": 11
+        "within-spread": 10
       },
       "design": { "agrees": 2, "no-interval": 1, "inside": 1 },
       "fit": { "inside": 4 }

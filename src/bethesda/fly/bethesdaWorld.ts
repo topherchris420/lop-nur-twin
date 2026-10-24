@@ -16,10 +16,12 @@
  * the simulator never reads the fly, so the city's outcomes, replays and
  * `SIM_VERSION` are untouched by it.
  *
- * Only the neighbourhood of the fly's home range is assembled (the fly is
- * tethered to it; see `homeRadiusM`), which keeps each ray to a few dozen
- * primitives. The city ticks at 10 Hz and the fly senses at 100 Hz, so agent
- * positions are interpolated between the city states around each sample.
+ * The whole mapped city is assembled, so the fly may go anywhere in it; the
+ * world's grid (`world.ts`) keeps each ray to the primitives near it. The
+ * fly is kept within the map's bounds, past which the model has no city
+ * (`CITY_EDGE_M`). The city ticks at 10 Hz and the fly senses at 100 Hz, so
+ * agent positions are interpolated between the city states around each
+ * sample.
  *
  * Proxies, named as such in `inputs`: light is open sun or building shade
  * (the renderer's sun direction), dimmed in a storm by the renderer's own
@@ -28,7 +30,7 @@
  * ones (leaf cards are not solid). Facade windows are not in the map data, so
  * facades are opaque walls.
  */
-import { buildingAt, buildings, inside, type Building, type Point } from "../model";
+import { bounds, buildingAt, buildings, inside, type Point } from "../model";
 import {
   awnings,
   BENCH,
@@ -44,22 +46,29 @@ import {
   streetTrees,
   treeShape,
   type BoxSize,
-  type BuildingBox,
 } from "../furniture";
-import { mappedBenches, mappedLamps, mappedTrees } from "../streetscape";
+import { mappedBenches, mappedLamps, mappedTrees, storefronts } from "../streetscape";
 import { groundAt, maximumGround } from "../terrain";
 import type { CitySimulation } from "../simulation";
+import { LIMITS } from "./neural.js";
 import { PARAMS } from "./params.js";
 import type { V3 } from "./units.js";
 import {
+  ODOUR_LENGTH_M,
   PrimitiveWorld,
   type Box,
   type Cylinder,
+  type FoodPatch,
   type Mover,
   type Prism,
   type Sphere,
   type WorldInputs,
 } from "./world.js";
+
+/** A food place's patch lies this far out from its building's wall (m), on the ground: a model choice. */
+const FOOD_DOOR_M = 0.4;
+/** Its radius (m): a model choice. */
+const FOOD_PATCH_RADIUS_M = 0.25;
 
 export const BETHESDA_INPUTS: WorldInputs = {
   supported: [
@@ -69,12 +78,14 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "mapped benches, picnic tables, lamps and trees",
     "procedural footpath trees and sidewalk lamps, benches and planters (drawn, not mapped)",
     "pedestrians, vehicles and the visitor (city simulator), seen only",
+    "food at the door of every mapped place that sells or serves food or drink (OSM)",
   ],
   proxies: [
     "light: open sun or building shade, relative units, dimmed in storms by the renderer's sun ratio",
     "moving things are seen, never touched: a pedestrian is two spheres, a vehicle one, and they pass through the fly",
     "tree crowns, lamp globes and planter shrubs are smooth ellipsoids through the corners of the faceted shapes the renderer draws: their tops are drawn corners and match, and elsewhere the drawn faces lie inside them by up to 6.6 % of the radius (crowns, icosahedra; 16 cm on the largest), 10 % (globes) and 7 % (shrubs)",
     "lamp poles and tree trunks are round tapered cylinders through the corners of the drawn ones: the drawn faces lie inside by up to 19 % of the radius (five-sided street-tree trunks), 13 % (six-sided mapped trunks) and 8 % (eight-sided poles)",
+    `food: each mapped food place stands for a patch ${FOOD_PATCH_RADIUS_M * 200} cm across on the ground ${FOOD_DOOR_M} m out from its building's wall (its bins, spills, tables), the same at every place; its odour falls off as e^(−d/${ODOUR_LENGTH_M} m) in still air, with no wind or plume, and does not pass through buildings or other solids (nor flow round them)`,
   ],
   // Senses the fly lacks everywhere are `UNSUPPORTED_SENSES`; these are this world's gaps.
   unsupported: [
@@ -84,6 +95,89 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "other drawn street objects: traffic-signal poles and mast arms, bus stops and shelters, bike-share docks, street-name blades and signs, monuments and art, the metro entrance, construction fencing, the Bethesda Lane ring lights, tree pits and limbs",
   ],
 };
+
+/**
+ * The places that sell or serve food or drink: their OSM categories. A fly is
+ * drawn to fermenting fruit, yeast, sugar and alcohol; where in such a place
+ * it would find them is not mapped (see `FOOD_DOOR_M`).
+ */
+export const FOOD_CATEGORIES: ReadonlySet<string> = new Set([
+  "restaurant",
+  "fast_food",
+  "cafe",
+  "bakery",
+  "pub",
+  "bar",
+  "ice_cream",
+  "supermarket",
+  "convenience",
+  "alcohol",
+  "wine",
+  "deli",
+  "grocery",
+  "marketplace",
+  "chocolate",
+  "butcher",
+  "health_food",
+]);
+
+/** The nearest point of a ring's edges to `p`, and its distance. */
+function nearestOnRing(p: Point, ring: Point[]): { q: Point; d: number } {
+  let best = { q: ring[0]!, d: Infinity };
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i]!,
+      b = ring[(i + 1) % ring.length]!;
+    const ex = b.x - a.x,
+      ez = b.z - a.z;
+    const L2 = ex * ex + ez * ez;
+    const u =
+      L2 > 0 ? Math.min(1, Math.max(0, ((p.x - a.x) * ex + (p.z - a.z) * ez) / L2)) : 0;
+    const q = { x: a.x + ex * u, z: a.z + ez * u };
+    const d = Math.hypot(p.x - q.x, p.z - q.z);
+    if (d < best.d) best = { q, d };
+  }
+  return best;
+}
+
+/**
+ * Each food place's patch: at the storefront when it is mapped outside every
+ * building, else just outside the nearest wall of the building it is in.
+ * A place whose patch would still land in a building is left out.
+ */
+export function foodPatches(): FoodPatch[] {
+  const out: FoodPatch[] = [];
+  for (const s of storefronts) {
+    if (!FOOD_CATEGORIES.has(s.category)) continue;
+    let at: Point = s.point;
+    const inBuilding = buildingAt(at);
+    if (inBuilding) {
+      const { q, d } = nearestOnRing(at, inBuilding.ring);
+      if (!(d > 0)) continue;
+      at = {
+        x: q.x + ((q.x - at.x) / d) * FOOD_DOOR_M,
+        z: q.z + ((q.z - at.z) / d) * FOOD_DOOR_M,
+      };
+      if (buildingAt(at)) continue;
+    }
+    out.push({
+      id: `food ${s.category} ${s.osmId}`,
+      kind: s.category,
+      center: [at.x, groundAt(at), at.z],
+      surface: "ground",
+      radius: FOOD_PATCH_RADIUS_M,
+    });
+  }
+  return out;
+}
+
+/**
+ * The fly is turned back this far inside the map's bounds (m): past them the
+ * model has no buildings, furniture or people, so there is nothing to fly to.
+ * A simulator constraint, not biology.
+ */
+export const CITY_EDGE_M = 20;
+/** The top of the fly's air: this far above the tallest roof on the highest ground (m). */
+const CITY_CEILING_ABOVE_M = 10;
 
 const SUN_DIR: V3 = (() => {
   const n = Math.hypot(SUN.offset.x, SUN.offset.y, SUN.offset.z);
@@ -104,13 +198,18 @@ export function homeSeat(
   return best && { point: best.point, kind: best.kind, osmId: best.osmId };
 }
 
-/** A mover's position at a city tick, with the ground under it. */
+/** Room to spare round the fly's sight when keeping the moving things a span needs (m). */
+const MOVERS_SPARE_M = 2;
+
+/** A mover's position at a city tick, and the ground under it once asked for. */
 interface Located {
   x: number;
   z: number;
-  g: number;
+  g?: number;
 }
-const located = (p: Point): Located => ({ x: p.x, z: p.z, g: groundAt(p) });
+const located = (p: Point): Located => ({ x: p.x, z: p.z });
+/** The ground under a mover, found the first time it is needed. */
+const groundOf = (l: Located): number => (l.g ??= groundAt(l));
 
 const boxAt = (p: Point, b: BoxSize, kind: Box["kind"], id: string, angle = 0): Box => {
   const base = groundAt(p);
@@ -127,26 +226,24 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
   private sim: CitySimulation;
   private prev = new Map<string, Located>();
   private curr = new Map<string, Located>();
+  /**
+   * The moving things of the span being simulated, each from where it was to
+   * where it is, in the city's order: those whose path comes within `covered`
+   * of `around` (where the fly was when the span began), or all of them
+   * without an `around`.
+   */
+  private moving: { id: string; a: Located; b: Located }[] = [];
+  private around: V3 | null = null;
+  private covered = 0;
   private t0 = 0;
   private t1 = 0.1;
   private weather: { stormy: boolean };
 
-  constructor(sim: CitySimulation, home: Point) {
-    const homeY = groundAt(home);
-    const reach = PARAMS.homeRadiusM.value + PARAMS.visualRangeM.value + 10;
-    const near = (p: Point) => Math.hypot(p.x - home.x, p.z - home.z) <= reach;
+  constructor(sim: CitySimulation) {
     const weather = { stormy: false };
     const prisms: Prism[] = [];
-    const nearBuilding = (b: Building) =>
-      b.ring.some((p) => Math.hypot(p.x - home.x, p.z - home.z) <= reach + 60) ||
-      inside(home, b.ring);
-    // A box on a building, any part of which comes within reach.
-    const nearBox = (f: BuildingBox) =>
-      Math.hypot(f.point.x - home.x, f.point.z - home.z) <=
-      reach + Math.hypot(f.w, f.d) / 2;
     const boxes: Box[] = [];
     for (const b of buildings) {
-      if (!nearBuilding(b)) continue;
       const base = groundAt(b.center);
       const xs = b.ring.map((p) => p.x),
         zs = b.ring.map((p) => p.z);
@@ -163,7 +260,7 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       // What `geometry.ts` draws on the building, from the same placement and
       // on the same base (the ground at the building's centre).
       const unit = rooftopUnit(b);
-      if (unit && nearBox(unit))
+      if (unit)
         boxes.push({
           kind: "obstacle",
           id: `building ${b.id} rooftop unit`,
@@ -172,7 +269,6 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
           angle: unit.angle,
         });
       awnings(b).forEach((a, k) => {
-        if (!nearBox(a)) return;
         // Drawn centred on the wall line: the half inside the building is
         // hidden by it, so the fly's awning is the half that reaches out.
         const nx = Math.sin(a.angle),
@@ -196,7 +292,7 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
     const cylinders: Cylinder[] = [];
     const spheres: Sphere[] = [];
     for (const b of mappedBenches) {
-      if (!near(b.point) || buildingAt(b.point)) continue;
+      if (buildingAt(b.point)) continue;
       if (b.kind === "picnic_table") {
         boxes.push(boxAt(b.point, PICNIC_TABLE.top, "table", `picnic table ${b.osmId}`));
         for (const s of [-1, 1]) {
@@ -217,7 +313,7 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       }
     }
     for (const l of mappedLamps) {
-      if (!near(l.point) || buildingAt(l.point)) continue;
+      if (buildingAt(l.point)) continue;
       const g = groundAt(l.point);
       cylinders.push({
         kind: "pole",
@@ -238,7 +334,7 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       });
     }
     for (const t of mappedTrees) {
-      if (!near(t.point) || buildingAt(t.point)) continue;
+      if (buildingAt(t.point)) continue;
       const tree = treeShape(t.osmId);
       const g = groundAt(t.point);
       cylinders.push({
@@ -263,7 +359,6 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
     }
     // The procedural items, as `geometry.ts` and `detail.ts` draw them.
     streetTrees().forEach((t, n) => {
-      if (!near(t.point)) return;
       const g = groundAt(t.point);
       cylinders.push({
         kind: "pole",
@@ -286,7 +381,6 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       });
     });
     streetLamps().forEach(({ point: p, angle, bench }, n) => {
-      if (!near(p)) return;
       const g = groundAt(p),
         L = STREET_LAMP;
       cylinders.push({
@@ -356,12 +450,18 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
         stretch: PLANTER.shrubStretch,
       });
     });
+    const min = { x: bounds.min.x + CITY_EDGE_M, z: bounds.min.z + CITY_EDGE_M },
+      max = { x: bounds.max.x - CITY_EDGE_M, z: bounds.max.z - CITY_EDGE_M };
+    const centre = { x: (min.x + max.x) / 2, z: (min.z + max.z) / 2 };
+    let tallest = 0;
+    for (const b of buildings) tallest = Math.max(tallest, b.height);
     super({
       id: "bethesda",
       home: {
-        center: [home.x, homeY, home.z],
-        radius: PARAMS.homeRadiusM.value,
-        ceiling: homeY + 8,
+        center: [centre.x, groundAt(centre), centre.z],
+        radius: Math.min(max.x - min.x, max.z - min.z) / 2,
+        ceiling: maximumGround + tallest + CITY_CEILING_ABOVE_M,
+        bounds: { min, max },
       },
       inputs: BETHESDA_INPUTS,
       ground: (x, z) => groundAt({ x, z }),
@@ -373,27 +473,48 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       prisms,
       sun: { toward: SUN_DIR, level: 1, shade: 0.35 },
       dimming: () => (weather.stormy ? SUN.stormIntensity / SUN.clearIntensity : 1),
+      food: foodPatches(),
     });
     this.sim = sim;
     this.weather = weather;
     this.curr = this.snapshot();
     this.prev = this.curr;
+    this.index(null, 0);
   }
 
-  protected override prismsNear(x: number, z: number, r: number): readonly Prism[] {
-    const all = this.spec.prisms ?? [];
-    return all.filter(
-      (p) => x + r >= p.min.x && x - r <= p.max.x && z + r >= p.min.z && z - r <= p.max.z,
-    );
+  /**
+   * The moving things a query may need over the span: with `around`, those
+   * whose path comes within the visual range of anywhere the fly can fly to
+   * in `span` seconds, with `MOVERS_SPARE_M` to spare.
+   */
+  private index(around: V3 | null, span: number): void {
+    this.moving = [];
+    this.around = around && [around[0], around[1], around[2]];
+    this.covered = PARAMS.visualRangeM.value + LIMITS.flightSpeed * span + MOVERS_SPARE_M;
+    for (const [id, b] of this.curr) {
+      const a = this.prev.get(id) ?? b;
+      if (around) {
+        // The nearest point of the box the mover's path spans.
+        const dx = Math.max(
+            Math.min(a.x, b.x) - around[0],
+            0,
+            around[0] - Math.max(a.x, b.x),
+          ),
+          dz = Math.max(
+            Math.min(a.z, b.z) - around[2],
+            0,
+            around[2] - Math.max(a.z, b.z),
+          );
+        if (Math.hypot(dx, dz) > this.covered) continue;
+      }
+      this.moving.push({ id, a, b });
+    }
   }
 
   private snapshot(): Map<string, Located> {
     const out = new Map<string, Located>();
-    const c = this.home.center;
-    const range = this.home.radius + PARAMS.visualRangeM.value + 20;
     for (const a of this.sim.agents) {
       if (a.inside || a.riding !== 0) continue;
-      if (Math.hypot(a.point.x - c[0], a.point.z - c[2]) > range) continue;
       out.set(`${a.kind === "pedestrian" ? "p" : "v"}${a.id}`, located(a.point));
     }
     out.set("player", located(this.sim.player));
@@ -405,12 +526,13 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
    * once for several taken together: the positions the city has just reached
    * become the end of the interpolation, the last ones its start.
    */
-  sync(tStart: number, tEnd: number): void {
+  sync(tStart: number, tEnd: number, around?: V3): void {
     this.prev = this.curr;
     this.curr = this.snapshot();
     this.t0 = tStart;
     this.t1 = tEnd;
     this.weather.stormy = this.sim.events.some((e) => e.kind === "storm");
+    this.index(around ?? null, tEnd - tStart);
   }
 
   override movers(near: V3, radius: number, out: Mover[], t: number): void {
@@ -418,12 +540,23 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
       this.t1 > this.t0
         ? Math.min(1, Math.max(0, (t - this.t0) / (this.t1 - this.t0)))
         : 1;
-    for (const [id, b] of this.curr) {
-      const a = this.prev.get(id) ?? b;
+    const reach = radius + 2;
+    // The list kept for the span holds everything a query inside the covered
+    // disc can find (a mover stays inside the box its path spans); any other
+    // query looks at every moving thing.
+    const kept =
+      !this.around ||
+      Math.hypot(near[0] - this.around[0], near[2] - this.around[2]) + reach <=
+        this.covered;
+    const list = kept
+      ? this.moving
+      : [...this.curr].map(([id, b]) => ({ id, a: this.prev.get(id) ?? b, b }));
+    for (const { id, a, b } of list) {
       const x = a.x + (b.x - a.x) * u,
         z = a.z + (b.z - a.z) * u;
-      if (Math.hypot(x - near[0], z - near[2]) > radius + 2) continue;
-      const g = a.g + (b.g - a.g) * u;
+      if (Math.hypot(x - near[0], z - near[2]) > reach) continue;
+      const ga = groundOf(a);
+      const g = ga + (groundOf(b) - ga) * u;
       if (id.startsWith("v"))
         out.push({ id, kind: "vehicle", center: [x, g + 0.75, z], radius: 1.0 });
       else {

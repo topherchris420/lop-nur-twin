@@ -156,7 +156,7 @@ export const PARADIGMS = {
       "The arena's height is not stated here; 1 m is a model choice.",
       "The authors' detectors (their Text S1) are not reproduced; 300°/s is Tammero & Dickinson's and van Breugel & Dickinson's threshold.",
       "The checkerboard wall is a plain lit wall: the fly's senses have no texture.",
-      "The fly's preferred cruise height, a model value sized for the city (0.3–2.5 m), is set to 0.1–0.6 m for the arena, and its home range's ceiling sits 0.3 m above the lid, where the controller's rule of keeping 0.3 m below it holds the fly under the lid.",
+      "The fly's preferred cruise height, a model value sized for the city (0.3–2.5 m), is set to 0.1–0.6 m for the arena, and its extent's ceiling sits 0.3 m above the lid, where the controller's rule of keeping 0.3 m below it holds the fly under the lid.",
     ],
   },
   tammero2002a: {
@@ -168,7 +168,7 @@ export const PARADIGMS = {
       "As the 1 m-radius arena, in a round arena 1 m across and 0.6 m high, the fly released 0.3 m up; positions at 30 Hz and every airborne sample kept.",
     approximations: [
       "The checkerboard lining is a plain lit wall: the fly's senses have no texture.",
-      "The fly's preferred cruise height is set to 0.1–0.4 m for the arena, its home range's ceiling 0.3 m above the lid.",
+      "The fly's preferred cruise height is set to 0.1–0.4 m for the arena, its extent's ceiling 0.3 m above the lid.",
     ],
   },
   vanBreugel2012: {
@@ -182,7 +182,7 @@ export const PARADIGMS = {
       "The simulated fly lands only on tops, so it lands on the post's 1.9 cm top; the real flies landed on its side as well. Its leg extension is set beside the retinal size of that top.",
       "The fly is released inside the section; the real flies entered it on their own.",
       "The checkerboard is a plain lit surface: the fly's senses have no texture.",
-      "The fly's preferred cruise height is set to 0.05–0.25 m for the tunnel, its home range's ceiling 0.3 m above the lid.",
+      "The fly's preferred cruise height is set to 0.05–0.25 m for the tunnel, its extent's ceiling 0.3 m above the lid.",
     ],
   },
   liu2007: {

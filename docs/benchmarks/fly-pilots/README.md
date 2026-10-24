@@ -22,10 +22,10 @@ the redesign added (FLY_METRICS) come from `floors`;
 
 | pilot | fly version | flySource digest | fly identity | engine | code | runs digest | outputs digest |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| adaptation | digital-fly/5 | `0f6eef0366d0` | `aeefc422fb7e` | node 22.22.0 (V8 12.4.254.21-node.33) | `84f2fc289c25` + uncommitted changes | `3baf95cf3d89` | `e2882f456e4a` |
-| noisy_sensing | digital-fly/5 | `0f6eef0366d0` | `aeefc422fb7e` | node 22.22.0 (V8 12.4.254.21-node.33) | `84f2fc289c25` + uncommitted changes | `ac00f227ac1c` | `0a6be334925d` |
-| obstacle_avoidance | digital-fly/5 | `0f6eef0366d0` | `aeefc422fb7e` | node 22.22.0 (V8 12.4.254.21-node.33) | `84f2fc289c25` + uncommitted changes | `0895cdcdd9cc` | `57f61338d4fe` |
-| visual_threat | digital-fly/5 | `0f6eef0366d0` | `aeefc422fb7e` | node 22.22.0 (V8 12.4.254.21-node.33) | `84f2fc289c25` + uncommitted changes | `33576fc20398` | `0e4e54818d99` |
+| adaptation | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `45c53de92b37` | `e2882f456e4a` |
+| noisy_sensing | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `33a39fa29ff7` | `3bf02c19ae9d` |
+| obstacle_avoidance | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `0941978f5aa1` | `97b352b3a0b4` |
+| visual_threat | digital-fly/6 | `167ae70ac8ff` | `ad5cea56d670` | node 22.22.0 (V8 12.4.254.21-node.33) | `163f389e4b9f` + uncommitted changes | `4798d6fb32ee` | `0e4e54818d99` |
 
 `npm run rain:fly -- --pilot --check` re-runs every pilot exactly from its
 recorded definition and compares the digests of its runs (final state hashes,
@@ -38,7 +38,7 @@ sized; any difference fails the check.
 | protocol | demonstration dose | metric | pilot seeds expected / opposite / uninformative | seed count | pass probability | sized minimum effect | host minimum effect | design minimum effect | S1 probability |
 | :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
 | adaptation | repeating a looming stimulus every 10 s on a fixed schedule | repeat_escape_probability (decrease) | 28 / 0 / 4 | 13 | 0.9254 | 0.13 | 0.1 | 0.13 | 0.9534 |
-| noisy_sensing | sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | escape_ttc_s (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.23 | 0.02 | 0.23 | 0.9663 |
+| noisy_sensing | sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | escape_ttc_s (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.24 | 0.02 | 0.24 | 0.9679 |
 | obstacle_avoidance | turning away from surfaces whose time to contact falls below 0.45 s | cruise_collision_episodes_per_m (decrease) | 31 / 0 / 1 | 10 | 0.9077 | 0.12 | 0.01 | 0.12 | 0.9567 |
 | visual_threat | a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s) | escape_ttc_s (decrease) | 32 / 0 / 0 | 9 | 0.9272 | 0.28 | 0.02 | 0.28 | 0.9993 |
 
@@ -49,16 +49,16 @@ sized; any difference fails the check.
 
 | metric | pilot | resolution | divergence bound | floor | in force |
 | :--- | :--- | ---: | ---: | ---: | ---: |
-| near_miss_fraction | noisy_sensing | 0 | 0.0238 | 0.03 | 0.08 |
+| near_miss_fraction | noisy_sensing | 0 | 0.0264 | 0.03 | 0.09 |
 | escape_ttc_s | noisy_sensing | 0.01 | 0.00831 | 0.01 | 0.02 |
-| near_miss_fraction | obstacle_avoidance | 0 | 0.0772 | 0.08 | 0.08 |
+| near_miss_fraction | obstacle_avoidance | 0 | 0.0805 | 0.09 | 0.09 |
 | escape_ttc_s | visual_threat | 0.01 | 0.0144 | 0.02 | 0.02 |
 
 The floor is the larger of the simulator's resolution (an escape is decided on
 a sensory sample, so a timing resolves to one sample period) and twice the
 standard error of the mean null paired difference over 8 seeds
 (the divergence bound), rounded up to one significant figure. The host uses the
-largest floor any pilot found: near_miss_fraction 0.08, escape_ttc_s 0.02.
+largest floor any pilot found: near_miss_fraction 0.09, escape_ttc_s 0.02.
 
 ## Dose series (pilot means over 32 seeds; never tested)
 
@@ -80,10 +80,10 @@ Control: noiseless sensing (gate refusals 0).
 
 | arm | control mean | arm mean | mean difference | up / down / tie / undefined | gate refusals |
 | :--- | ---: | ---: | ---: | :--- | ---: |
-| sensory noise of 0.1 (standard deviation 0.06: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.127 | 0.038 | 32 / 0 / 0 / 0 | 0 |
-| sensory noise of 0.2 (standard deviation 0.12: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.192 | 0.102 | 32 / 0 / 0 / 0 | 0 |
-| sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.376 | 0.287 | 32 / 0 / 0 / 0 | 0 |
-| sensory noise of 0.8 (standard deviation 0.46: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.670 | 0.581 | 32 / 0 / 0 / 0 | 0 |
+| sensory noise of 0.1 (standard deviation 0.06: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.128 | 0.039 | 32 / 0 / 0 / 0 | 0 |
+| sensory noise of 0.2 (standard deviation 0.12: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.199 | 0.109 | 32 / 0 / 0 / 0 | 0 |
+| sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.386 | 0.297 | 32 / 0 / 0 / 0 | 0 |
+| sensory noise of 0.8 (standard deviation 0.46: relative on sizes, distances and light levels, in radians on directions) | 0.089 | 0.680 | 0.590 | 32 / 0 / 0 / 0 | 0 |
 | null: the control again on the next 32 pilot seeds, paired in order | 0.089 | 0.090 | 0.001 | 11 / 10 / 11 / 0 | 0 |
 
 ### obstacle_avoidance: cruise_collision_episodes_per_m
@@ -92,11 +92,11 @@ Control: avoidance off (avoidTtcS = 0) (gate refusals 0).
 
 | arm | control mean | arm mean | mean difference | up / down / tie / undefined | gate refusals |
 | :--- | ---: | ---: | ---: | :--- | ---: |
-| turning away from surfaces whose time to contact falls below 0.15 s | 0.179 | 0.029 | -0.150 | 1 / 30 / 1 / 0 | 0 |
+| turning away from surfaces whose time to contact falls below 0.15 s | 0.179 | 0.031 | -0.148 | 1 / 30 / 1 / 0 | 0 |
 | turning away from surfaces whose time to contact falls below 0.3 s | 0.179 | 0.007 | -0.171 | 1 / 30 / 1 / 0 | 0 |
 | turning away from surfaces whose time to contact falls below 0.45 s | 0.179 | 0.000 | -0.179 | 0 / 31 / 1 / 0 | 0 |
 | turning away from surfaces whose time to contact falls below 0.9 s | 0.179 | 0.001 | -0.177 | 0 / 31 / 1 / 0 | 0 |
-| null: the control again on the next 32 pilot seeds, paired in order | 0.179 | 0.169 | -0.010 | 16 / 16 / 0 / 0 | 0 |
+| null: the control again on the next 32 pilot seeds, paired in order | 0.179 | 0.164 | -0.014 | 16 / 16 / 0 / 0 | 0 |
 
 ### visual_threat: escape_ttc_s
 

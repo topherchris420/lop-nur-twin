@@ -10,7 +10,7 @@ simulated. The brain regions the panel names are a reference layer: where, in a
 real fly, the functions the controller imitates are known to be processed.
 Everything the simulator reports describes the simulator, not a fly.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/5`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/6`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
@@ -83,9 +83,9 @@ senses, controller).
   continuity (see [Contacts and landings](#contacts-and-landings));
 - heading, with saccades as 80 ms bell-shaped turns (mean amplitude 90°,
   Tammero & Dickinson 2002) and a refractory period;
-- mode: rest, groom, walk, takeoff, escape, flight (cruise, saccade, hover) and
-  land (approach, legs extended at a 60° target size, van Breugel & Dickinson
-  2012);
+- mode: rest, groom, walk, feed, takeoff, escape, flight (cruise, saccade,
+  hover) and land (approach, legs extended at a 60° target size, van Breugel &
+  Dickinson 2012);
 - grooming: a bout starts at a body site drawn by weight (eyes 0.3, antennae
   0.25, abdomen 0.2, wings 0.15, notum 0.1) and cleans it; then the legs that
   cleaned it rub each other (the front legs after the eyes or antennae, the
@@ -124,7 +124,11 @@ senses, controller).
   4 cm/s, shifting from tetrapod to tripod coordination as speed rises;
 - habituation of the escape proxy (Engel & Wu 1996): each escape removes 22 %
   of the responsiveness left, which recovers toward full with a 30 s time
-  constant.
+  constant;
+- the energy reserve, drawn on at each mode's metabolic power and refilled by
+  feeding, and what the controller believes and remembers: its path-integrated
+  position, the places it fed, the squares it has been in (see
+  [Energy, food, shelter and navigation](#energy-food-shelter-and-navigation)).
 
 **Derived for drawing** (computed from the simulated state, never fed back):
 body pitch and roll that turn the hover thrust axis (FlyBody's 47.5° body
@@ -146,8 +150,8 @@ FlyBody calls an approximation; the trained flight pattern is GPL and not
 used); halteres in antiphase.
 
 **Not simulated at all**: aerodynamics and wing forces, leg contact forces,
-muscles, neurons, haltere sensing, olfaction, temperature, humidity, wind,
-taste and sound.
+muscles, neurons, haltere sensing, olfaction beyond one food-odour level,
+temperature, humidity, wind, taste beyond food or none, and sound.
 
 ## Contacts and landings
 
@@ -203,20 +207,24 @@ size, expansion rate and a giant-fiber **proxy** — a weighted sum of expansion
 rate and a size tuning, after Ache et al. 2019 and von Reyn et al. 2014), the
 number of moving things in view, times to contact ahead-left, ahead-right and
 ahead, clearance, a relative light level and its bearing, the surface below
-and the altitude. Nothing is special-cased by what it is: a pedestrian, a car,
+and the altitude, the food odour (a still-air proxy), whether it is under an
+open sky (its compass), the landmarks in view and, in flight under a sun, the
+bearing of the nearest shade on the ground. Nothing is special-cased by what
+it is: a pedestrian, a car,
 the visitor and an arena stimulus are all moving things that loom or do not.
 Moving things are seen, never touched: they can set off an escape, but the
 body's ray casts and the solidity and landing tests leave them out, so they
 pass through the fly, and one that contains the fly is not seen at all.
 
-| World input                    | In Bethesda                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | In a lab arena                                     |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| Surfaces and obstacles         | OSM building footprints and heights, with their courtyards open and the rooftop units and shop awnings drawn on them; bare-earth terrain; the mapped benches, picnic tables, lamps and trees; and the procedural footpath trees and sidewalk lamps, benches and planters; each placed where the renderer draws it (`furniture.ts`): benches (slat by slat), tables, planters, rooftop units and awnings as their drawn boxes, poles and trunks as tapered cylinders, and lamp globes, crowns and shrubs as ellipsoids (below) | walls, ceiling, pillars, platforms                 |
-| Moving things                  | city pedestrians and vehicles and the visitor, interpolated between city ticks; seen, never touched                                                                                                                                                                                                                                                                                                                                                                                                                           | looming spheres on a schedule; seen, never touched |
-| Light                          | **proxy**: open sun or building shade along the renderer's sun direction, dimmed in a storm by the renderer's storm/clear ratio                                                                                                                                                                                                                                                                                                                                                                                               | point lights and ambient                           |
-| Windows                        | **unsupported**: not in the map data; facades are opaque                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | glass panes: invisible, solid                      |
-| Facade relief                  | **unsupported**: drawn, not solid; a facade is a flat wall                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | none                                               |
-| Odour, temperature, wind, food | **unsupported**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **unsupported**                                    |
+| World input            | In Bethesda                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | In a lab arena                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Surfaces and obstacles | OSM building footprints and heights, with their courtyards open and the rooftop units and shop awnings drawn on them; bare-earth terrain; the mapped benches, picnic tables, lamps and trees; and the procedural footpath trees and sidewalk lamps, benches and planters; each placed where the renderer draws it (`furniture.ts`): benches (slat by slat), tables, planters, rooftop units and awnings as their drawn boxes, poles and trunks as tapered cylinders, and lamp globes, crowns and shrubs as ellipsoids (below) | walls, ceiling, pillars, platforms                 |
+| Moving things          | city pedestrians and vehicles and the visitor, interpolated between city ticks; seen, never touched                                                                                                                                                                                                                                                                                                                                                                                                                           | looming spheres on a schedule; seen, never touched |
+| Light                  | **proxy**: open sun or building shade along the renderer's sun direction, dimmed in a storm by the renderer's storm/clear ratio                                                                                                                                                                                                                                                                                                                                                                                               | point lights and ambient                           |
+| Windows                | **unsupported**: not in the map data; facades are opaque                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | glass panes: invisible, solid                      |
+| Facade relief          | **unsupported**: drawn, not solid; a facade is a flat wall                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | none                                               |
+| Food and its odour     | **proxy**: a patch on the ground at the door of every mapped place that sells or serves food or drink; its odour falls off as e^(−d/5 m) in still air and does not pass through solids                                                                                                                                                                                                                                                                                                                                        | **unsupported**                                    |
+| Temperature, wind      | **unsupported**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **unsupported**                                    |
 
 The street furniture and trees, and the rooftop units and awnings on the
 buildings, are placed and sized in one module, `src/bethesda/furniture.ts`,
@@ -247,9 +255,11 @@ pilasters, window frames, sills, rails), so facades are flat walls; and the
 other street objects: traffic-signal poles and mast arms, bus stops and
 shelters, bike-share docks, street-name blades and signs, monuments and art,
 the metro entrance, construction fencing, the Bethesda Lane ring lights, tree
-pits and limbs. Only the rooftop units and awnings within reach of the fly's
-home range are in its world (as for the street furniture); the buildings
-themselves are there out to 60 m farther, for the shade they cast.
+pits and limbs. The whole mapped city is in the fly's world: 2 739 boxes,
+1 168 cylinders, 3 866 ellipsoids and 1 166 building prisms, built in 0.1–0.2 s
+in a cloud container, and kept in a grid of 4 m cells by their footprints, so a
+query looks only at the cells it crosses and finds what a scan of every
+primitive finds (a test checks every kind of query).
 
 Every world query is bounded: a ray or perch query with an input that is not
 a finite number finds nothing, a point that is not finite counts as solid, and
@@ -259,10 +269,126 @@ The city fly reads the city and never writes to it. It is not a recorded
 command, not in the city's state hash and not in a city replay; a replayed
 city gets a fly placed fresh. `cityFly.test.ts` checks that a city run with
 the fly and one without end with the same state hash. The fly is placed on the
-mapped bench or picnic table nearest the arrival point and tethered to an 18 m
-home range around it (a simulator constraint, named as such). There is exactly
+mapped bench or picnic table nearest the arrival point and may go anywhere in
+the mapped city. It is kept 20 m inside the map's edge (`CITY_EDGE_M`), past
+which the model has no city, and below a ceiling 10 m above the tallest
+building on the highest ground: a simulator constraint, named as such, where
+the fixed 18 m home range of `digital-fly/5` and earlier was. There is exactly
 one fly in the city; the lab's experiments use their own arena flies, which
 never appear in the city.
+
+## Energy, food, shelter and navigation
+
+`digital-fly/6` gives the fly a body that runs down and must eat, a sense of
+where it is and has been, and a preference for shade, so that it can live in
+the whole city instead of an 18 m tether. Every value below is a parameter
+with its class and source (`params.ts`) or a fixed choice listed under
+[Parameters](#parameters); none is fitted.
+
+**Energy.** A carbohydrate reserve, full at `reserveJ` (1.41 J): two hours of
+flight at `flightPowerMw`, as a well-fed fly can fly for about 2 h (Warren,
+Giraldo & Dickinson 2019). Flight and landing cost `flightPowerMw` (0.196 mW:
+the hovering cost of 664 W per kg of flight muscle in Lehmann & Dickinson
+1997, times its flight-muscle share of 0.30 and FlyBody's 0.983 mg), rest and
+feeding `restPowerMw` (0.025 mW, the same paper's 85 W/kg), and walking,
+grooming and preparing a takeoff `walkPowerMw` (0.05 mW, a model choice). The
+fly feels its reserve as a share of full; hunger is one minus that share.
+Hunger multiplies the rates of spontaneous walking and takeoff by
+1 + 0.6 × hunger (starved flies are about 60 % more active, Yu et al. 2016; the
+linear scaling is a model choice); above `hungerSeek` (0.2) the fly is
+hungry; below `flightReserveFloor` (5 %) it no longer takes off on its own,
+though it still escapes. A fly is placed full (`startReserve`), except in the
+city, where it starts at 0.6 (`CITY_START_RESERVE`) so that it forages. The
+fat a fly also stores is not modelled, so the reserve is all the energy there
+is, and a fly whose reserve runs out still walks and rests: nothing here
+dies.
+
+**Food.** A world may hold food patches; in Bethesda there is one, 50 cm
+across, on the ground 0.4 m out from the wall of every mapped place that sells
+or serves food or drink (restaurants, cafes, bakeries, bars, grocers and the
+like: 140 of them), standing for its bins, spills and tables. The feet taste
+the patch they stand on (within 1 cm of its height); `feed` is a mode, which
+the gate allows from rest or walking only with food under the feet. Feeding
+takes in `feedIntakeMw` (2.25 mW: the 0.21 µL meal of 100 mM sucrose, 0.12 J,
+that Qi et al. 2015's starved flies drank over the 52.8 s they spent feeding)
+until the reserve is full; a meal lasts an exponential draw of mean `mealS`
+(52.8 s, the same paper's mean bout) and ends sooner at 98 % of full. A
+hungry fly on food eats; a fed one does not. Patches are landing sites too,
+landed on at their centre, and a hungry fly that sees one lands on it.
+
+**Odour.** Each patch adds e^(−d/5 m) at a distance d, out to 30 m: a
+still-air proxy with no wind or plume, so it carries no direction but its
+gradient. It does not pass through solids: a patch adds nothing where the
+line to the air 0.3 m above it is blocked (no odour flows round a building
+here either). A hungry fly responds from `odourDetect` (0.01: about 23 m from
+one patch). It follows the odour by klinokinesis: walking, it turns at 0.3
+times its usual rate while the odour rises and 3 times while it falls; flying,
+it makes spontaneous saccades at 0.25 and 3 times their rate. In odour a
+hungry fly gives up a long flight, and its flight bout runs on to 20 s, the
+longest bout the body draws. Leaving food still hungry, it searches locally
+for `localSearchS` (120 s; flies search locally for minutes after food,
+Corfas, Sharma & Dickinson 2019): its walking turns back toward the food, by
+its own estimate, once more than `localSearchM` (4.5 cm, about 15 body
+lengths, the mean excursion just after food in Behbahani et al. 2021) from it.
+
+**Shelter.** A fly that is not hungry lands to rest, and rests in shade:
+flies' daytime sleep is nearly all in the shade, with a preference index of
+0.98 in Meyerhof et al. 2024 (`shadePreference`). When a flight bout ends and
+the sun is on a site on offer or on the ground below, the fly draws once, with
+P(shade) = (1 + 0.98) / 2, whether to look for shade. If it does, it lands
+only in shade; with none on offer it flies on, steering toward shade on the
+ground that its eyes see (on two rings round it at half and all of
+`landingSearchM`, in eight directions, nearest ahead first), until its flight
+has lasted 40 s. A hungry fly forages instead. Without a sun (an arena, the
+lab) there is no shade to prefer.
+
+**Path integration.** The fly adds up its own travel every decision
+(`navigation.ts`). Its distance has a relative error drawn afresh for each
+walking bout or flight (a standard deviation of 0.29 × `odometryNoise`) and
+held through it, so the error grows with the distance. Its heading holds to a
+compass, the sky (a world with a sun: the sun or its polarization, in sun or
+shade) or the dominant light (a lamp in an arena), within a spread of
+0.29 × `compassNoiseDeg` (3°; flies hold a heading to the sun for up to 2 h,
+Giraldo et al. 2018), and wanders as a random walk ten times faster without
+either. So the estimate wanders from the truth, as path integration does
+(Behbahani et al. 2021 for walking flies near food).
+
+**Places and landmarks.** Where the fly fed is remembered at its estimated
+position with up to three landmarks then in view: upright posts, poles and
+trunks at least 1 m tall, within `landmarkRangeM` (8 m), in an eye's field
+and in clear view, looked for ten times a second. Seeing one of them again
+tells the fly where it is: its estimate is reset to the truth, as recognizing
+a place would (flies keep visual place memories for at least 2 h, Ofstad,
+Zuker & Reiser 2011). A place is forgotten after `placeMemoryS` (2 h), or
+after the fly has come back to it twice and found neither food in view nor its
+odour; at most 12 are kept.
+
+**Where it has been, and long flights.** The fly keeps the last 400 of the
+10 m squares of its own estimate it has been in. A share `exploreShare` (0.3)
+of its spontaneous takeoffs start a long flight. Hungry, and remembering food
+at least 5 m away, it flies back to it; otherwise to a point an exponential
+draw of mean `exploreDistanceM` (60 m) away, toward whichever of eight
+directions (at a random offset) crosses the fewest squares it has been in,
+kept inside its extent and off headings that stalled near there. Steering by
+its own heading estimate (menotaxis), it holds its course without spontaneous
+saccades, at `dispersalCmS` (1 m/s, the groundspeed of flies dispersing in
+still air in Leitch et al. 2021) while more than 5 m from the goal (clutter
+still slows it). After turning from a surface it holds the new course for 3 s
+before turning back toward the goal. It arrives within 3 m of the goal by its
+estimate. A long flight that has not come a metre closer in 20 s has stalled:
+that heading is then avoided within 10 m of there for 60 s, and the fly tries
+another, landing when none is left. A landing site whose approach was
+abandoned or aborted is not chosen again for 60 s. No cited study shows flies
+avoiding where they have been or giving up headings: these are model choices,
+there so that a fly does not keep retrying what it cannot do.
+
+**The extent.** Instead of a home range, a world gives the fly an extent: an
+arena's floor, or the mapped city 20 m inside its edge. Outside it, the fly
+turns back at 1.2 rad/s per metre outside, counting at most 2 m; long flights
+are aimed inside it. Everything above is part of the fly's state and hash, and
+its random draws come from a stream of its own, so a world with no food, no
+landmarks and no room for long flights draws nothing from the controller's
+main stream on its account.
 
 ## In the city
 
@@ -291,8 +417,8 @@ never appear in the city.
   requested, and the walker's heading and pitch come back unchanged when it
   closes.
 - The panel separates **this run's simulation observations** (behaviour,
-  movement, sensory input, recent decisions, counts, with each collision
-  counted once and the seconds spent touching) from **the model's biological
+  movement, sensory input, energy, navigation and memory, recent decisions,
+  counts, with each collision counted once and the seconds spent touching) from **the model's biological
   evidence** (FlyBody, VFB regions and connectivity, every parameter with its
   class, source and, where it can vary, range). Confidence is "not reported":
   the controller has no calibrated estimate. Evidence classes: _FlyBody model_
@@ -469,17 +595,17 @@ physics with the browser's plan as controller, not FlyBody's controller.
 ## Parameters
 
 `params.ts` holds the rates, thresholds, gains, time constants, speeds and
-sizes the behaviour is built on: 67 values, each with a kind, a unit, an
+sizes the behaviour is built on: 88 values, each with a kind, a unit, an
 inclusive range and, where there is one, a source. 10 are FlyBody's (its
-model's values: 7 cite the paper and 3 the code file at the pinned commit), 6
-are published values for real flies (each with its DOI), and 51 are model
-choices (some informed by a cited paper, which the note says). FlyBody and
+model's values: 7 cite the paper and 3 the code file at the pinned commit),
+11 are published values for real flies (each with its DOI), and 67 are model
+choices (some informed or derived from a cited paper, which the note says). FlyBody and
 published values are fixed. Experiments may override **model** values only,
 each within its range; `resolveParams` refuses a FlyBody or published value,
 an unknown name, a number that is not finite, a value outside the range, and a
 cruise band whose floor is above its ceiling, and it returns a frozen table.
-Two model values are fixed as well: `standingCrouch` (the drawn legs are
-solved for it) and `homeRadiusM`. The ranges keep every run well defined: the
+One model value is fixed as well: `standingCrouch` (the drawn legs are
+solved for it). The ranges keep every run well defined: the
 velocity time constant may be 0 (the body then follows at once), but the
 approach time constant, the acceleration limit, the landing timeout and the
 touchdown speed may not, and a short-mode preparation stays under the 100 ms
@@ -520,13 +646,13 @@ The body (`fly.ts`):
 
 The controller (`controller.ts`):
 
-- the home tether turns at 1.2 rad/s per metre outside the home range, counting
+- the extent's tether turns at 1.2 rad/s per metre outside the extent, counting
   at most 2 m;
 - spontaneous takeoff headings within ±0.3 rad of the current heading; a
   walking bout's speed from the lower 80 % of the walking range;
 - walking turns: ±3 rad/s for 0.4–0.8 s at an edge, up to ±2 rad/s for
   0.15–0.45 s spontaneously, and at most ±6 rad/s in all;
-- cruise: kept 0.3 m below the home range's ceiling (gain 2 /s, at most
+- cruise: kept 0.3 m below the extent's ceiling (gain 2 /s, at most
   `climbMaxMS` down); yaw rate at most ±3 rad/s;
 - saccades: amplitudes clamped to 30–170°;
 - grooming: the start-site weights (eyes 0.3, antennae 0.25, abdomen 0.2,
@@ -534,13 +660,37 @@ The controller (`controller.ts`):
 - a hover pause lasting 0.5–1.5 times `hoverMeanS`;
 - landing: sites nearer than 5 cm are skipped; a site scores the cosine of its
   bearing, plus up to 0.5 at random, minus its distance over `landingSearchM`;
-  the point is drawn within 60 % of the site's half-widths from its centre; the
+  the point is drawn within 60 % of the site's half-widths from its centre (a
+  food patch's is its centre, which lies on the surface even where it slopes); the
   approach turns at 4 /s times the bearing error (at most ±6 rad/s), and not at
   all within 3 cm horizontally; the time an approach needs is counted to
   within 1 mm of its target; an abandoned landing leaves at 0.15 m/s forward
   and 0.1 m/s up;
 - starting values the first decision replaces: a 1 m cruise altitude and a
-  2 cm/s walking speed.
+  2 cm/s walking speed;
+- feeding: a meal ends at 98 % of a full reserve;
+- odour: walking turns at 0.3 and 3 times `walkTurnHz` while the odour rises
+  and falls, spontaneous saccades at 0.25 and 3 times their rate; a hungry
+  fly's flight bout in odour lasts 20 s; local search turns at 2.5 rad/s;
+- shade: a fly looking for shade flies on until its flight has lasted 40 s,
+  steering at 2 /s times the shade's bearing;
+- long flights: steering at 2 /s times the goal's bearing; the dispersal speed
+  beyond 5 m of the goal; a goal reached within 3 m; a 3 s detour after an
+  avoidance saccade; given up after 20 s without coming a metre closer.
+
+Navigation (`navigation.ts`):
+
+- 10 m squares, the last 400 kept; at most 12 places, each with at most 3
+  landmarks; a place forgotten after 2 returns that found nothing; remembered
+  food nearer than 5 m searched for, not flown to;
+- eight directions for a long flight, each scored by the squares it has been
+  in at a quarter, half, three quarters and all of the way, plus a tenth at
+  random to break ties; no long flight shorter than 2 m;
+- a heading that stalled avoided within 10 m and ±22.5° of it for 60 s, and a
+  failed landing site for 60 s;
+- the odometry and compass errors' spreads of 0.29 times their parameters (half
+  the sum of four uniform draws), and the heading drifting ten times faster
+  without a compass.
 
 The senses (`senses.ts`):
 
@@ -549,8 +699,15 @@ The senses (`senses.ts`):
   downward ray that meets a top is not an obstacle ahead;
 - expansion measured only between samples less than 0.1 s apart;
 - sensing noise: relative, with a standard deviation of 0.58 times the noise
-  level (the sum of four uniform draws), except for the light's bearing, which
-  is turned by an angle with that standard deviation in radians.
+  level (the sum of four uniform draws), except for the light's, landmarks' and
+  shade's bearings, which are turned by an angle with that standard deviation
+  in radians;
+- landmarks and shade looked for every tenth sample; a landmark in clear view
+  when the line to half its height (or eye level, if lower) ends on it or within
+  0.3 m of it; shade at 0.5 and 1 times `landingSearchM`, in eight directions
+  (0°, ±45°, ±90°, ±135°, 180°), the inner ring and the direction nearest ahead
+  first, a point in view when the line to 1 cm above it is clear to within
+  5 cm.
 
 The world queries (`world.ts`):
 
@@ -566,7 +723,16 @@ The world queries (`world.ts`):
 - the primitives near a ray's origin listed for reaches of 0.5, 3 and 13 m,
   with 25 cm to spare, and kept until the origin has moved 25 cm (a speed-up
   only; a test checks it finds what a check of every primitive finds, from
-  origins far apart and from origins a few centimetres apart).
+  origins far apart and from origins a few centimetres apart);
+- the grid: 4 m cells, footprints widened by a micrometre (a speed-up only; a
+  test checks every query against a scan of every primitive);
+- food: a fly stands on a patch within 1 cm of its height; odour falls off over
+  5 m, counts out to 30 m, and reaches a point with a clear line to 0.3 m above
+  the patch; landmarks are upright cylinders at least 1 m tall;
+- the city (`bethesdaWorld.ts`): food patches 25 cm in radius, 0.4 m out from
+  their building's wall at the door; the edge 20 m inside the map's bounds; the
+  ceiling 10 m above the tallest building on the highest ground; the fly placed
+  at 0.6 of a full reserve.
 
 The gate (`neural.ts`, `LIMITS`): 1.5 m/s, 4π rad/s, a 180° saccade, 10–500 ms
 of preparation, 3 mm for a landing point, and 500 characters for a reason and
@@ -594,7 +760,10 @@ In flight and while landing, the body offers the flat tops within
 `landingSearchM` that its eyes resolve from where they were when the sample
 the decision gets was taken: inside the eye field, at least one ommatidium
 (4.6°) across, and with a clear line to the site's centre. It also offers the
-surface straight below the fly and the site it is approaching. An interrupt
+surface straight below the fly and the site it is approaching; in a world with
+a sun, each site says whether the sun is on it, as its brightness would. A
+food patch is a site on the surface it lies on, so a landing on it is checked
+against that surface. A `feed` command needs food under the feet. An interrupt
 between decisions is offered no new sites, only the one being approached, and
 what it commands passes the same gate. A refused command, or a decision maker
 that throws, is counted and logged, and the body holds in a way that suits its
@@ -618,7 +787,14 @@ costs about a third of the city's own step, 0.16 ms against 0.51 ms per 0.1 s
 tick at `digital-fly/3` on an idle machine (400 s of city time after a
 warm-up). In alternating 10-minute runs on a loaded machine it took 0.30–0.31
 of the city's step at `digital-fly/3` and 0.33–0.35 at `digital-fly/4`, whose
-interrupt freezes a copy of the body for each sample between decisions.
+interrupt freezes a copy of the body for each sample between decisions. In a
+cloud container (x86-64, Node 22, the same profile, 10 minutes of city time
+after a minute's warm-up, twice each), `digital-fly/5` took 0.37 ms per tick
+against the city's 0.79–0.82 ms, and `digital-fly/6` 0.67–0.69 ms against
+0.87–0.90 ms. The difference is the whole city in its world (rays toward the
+sun cross more of it, and every city tick lists the city's moving things,
+keeping those whose path comes within sight of the fly) and its smell (a ray
+from the fly to each food patch within 30 m, every sample).
 Sensing dominates it: each sample casts its short rays against lists of the
 primitives near the fly, kept until it has moved 25 cm, instead of against the
 whole neighbourhood; a test checks that the lists never miss a surface a check
@@ -692,8 +868,12 @@ frame: the panel reads the fly four times a second.
 - the drawn pose: feet on the surface and lifted in swing, stance feet that do
   not slide on the ground (under 0.05 cm/s) walking, turning on the spot and
   both, joints within FlyBody's ranges;
-- the city hash with and without the fly, home range, same city same fly, and
-  pausing;
+- the city hash with and without the fly, the city's edge, same city same fly,
+  and pausing;
+- every query through the city's grid answered as a scan of every primitive
+  answers it;
+- the city fly foraging: in its first half hour it smells food, finds it and
+  feeds on a patch at a food shop's door.
 - the drawn street trees, lamps and benches near the fly are solid to it, with
   the gaps between a bench's slats open; the rooftop units and awnings are
   solid and stood on, and a courtyard is open; the ray lists find the nearest
@@ -702,6 +882,27 @@ frame: the panel reads the fly four times a second.
   the visitor interpolated across the span;
 - a visitor walking straight at the fly makes it escape through the looming
   pathway, and one standing 3 m away for 20 s does not.
+
+`src/bethesda/fly/foraging.test.ts`:
+
+- food tasted only on a patch; its odour e^(−d/5 m) in the open, nothing behind
+  a screen and something round its end;
+- feeding allowed only with food under the feet, from rest or walking;
+- the reserve spent at each mode's power (rest, flight) and refilled by
+  feeding, never past full;
+- hungry flies finding food by its odour in a yard within 5 minutes, and fed
+  ones leaving it alone for 10;
+- shade on the ground seen in flight under a sun, and not on the ground or
+  without a sun; a fly that is not hungry resting in shade more than 60 % of
+  the time where 30 % of the ground is shaded;
+- path integration: the heading error held within its bound under the sky and
+  far larger without it;
+- a place remembered with its landmarks, known again by one of them and not
+  by another, and forgotten after misses and after `placeMemoryS`;
+- remembered food flown back to only when hungry and at least 5 m away;
+- long flights never aimed where the fly has been all over, always inside its
+  extent, never back along a heading that stalled, and none in an arena too
+  small for one.
 
 `src/bethesda/fly/calibration/calibration.test.ts`:
 
@@ -749,6 +950,17 @@ frame: the panel reads the fly four times a second.
   to collision at the escape decision does
   ([the lab guide](RAIN_LAB_BETHESDA.md#the-digital-fly-backend)).
 - Light is a proxy without day, night or spectrum; storms only dim it.
+- Food is a patch at each food place's door, the same everywhere, and its
+  odour a still-air proxy: no wind, no plume, nothing round a building. Real
+  flies find food downwind over far greater distances.
+- The energy reserve is carbohydrate only: no fat, no water, no starvation.
+  Metabolic rates are derived from published figures for flight muscle, not
+  measured on this fly; walking's is a model choice.
+- Path integration, place memory and the squares visited are bookkeeping with
+  stated errors, not a model of the central complex or the mushroom body; a
+  place is recognized by a landmark's identity, not by its appearance.
+- Shade is preferred for rest by a published index, chosen through the landing
+  rule; the fly does not seek shade on foot, nor avoid heat (there is none).
 - Moving things are seen, never touched: people and vehicles pass through the
   fly. People are two spheres (legs and torso), smaller to the fly than a real
   body, so a visitor walking at it gets within about a metre before it
