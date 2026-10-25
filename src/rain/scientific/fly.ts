@@ -1,9 +1,10 @@
+import { runEchoBlock } from "./echoRig.js";
 /**
  * The digital-fly backend: matched-seed behavioural experiments on the digital
  * fly (src/bethesda/fly/) in closed arenas.
  *
  * The rule is the lab's: models propose, the host writes. A design is a closed
- * object naming one of six protocols and how many seeds; the host builds the
+ * object naming one of the closed protocols and how many seeds; the host builds the
  * arenas, stimuli and both arms, writes the question and hypothesis, freezes
  * the criteria and binds the fly's version, parameter table and source digest.
  *
@@ -128,6 +129,42 @@ const STILL: FlyControllerConfig = { takeoffHz: 0, walkStartHz: 0, groomHz: 0 };
  * presentations and not others in every pilot seed.
  */
 export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
+  echo_impairment: {
+    id: "echo_impairment",
+    arena: { size: [8, 2.5, 8], ambient: 0.6, pillars: [] },
+    fixed_config: {},
+    start_half_width_m: 0,
+    tick_s: 0.05,
+    duration_s: 12,
+    trials: 4,
+    light_at: null,
+    near_miss_m: null,
+    stimulus: null,
+  },
+  echo_causation: {
+    id: "echo_causation",
+    arena: { size: [8, 2.5, 8], ambient: 0.6, pillars: [] },
+    fixed_config: {},
+    start_half_width_m: 0,
+    tick_s: 0.05,
+    duration_s: 12,
+    trials: 6,
+    light_at: null,
+    near_miss_m: null,
+    stimulus: null,
+  },
+  echo_memory: {
+    id: "echo_memory",
+    arena: { size: [8, 2.5, 8], ambient: 0.6, pillars: [] },
+    fixed_config: {},
+    start_half_width_m: 0,
+    tick_s: 0.05,
+    duration_s: 24,
+    trials: 4,
+    light_at: null,
+    near_miss_m: null,
+    stimulus: null,
+  },
   clutter: {
     id: "clutter",
     arena: {
@@ -257,6 +294,10 @@ const looming = (lOverVMs: number) =>
 
 export function describeFlyTreatment(t: FlyTreatment): string {
   switch (t.kind) {
+    case "echo_impairment":
+    case "echo_causation":
+    case "echo_memory":
+      return `experimental ECHO self-model (${t.variant})`;
     case "obstacle_avoidance":
       return `turning away from surfaces whose time to contact falls below ${t.avoid_ttc_s} s`;
     case "light_preference":
@@ -274,6 +315,11 @@ export function describeFlyTreatment(t: FlyTreatment): string {
 
 export function describeFlyBaseline(t: FlyTreatment): string {
   switch (t.kind) {
+    case "echo_impairment":
+    case "echo_causation":
+      return "the same motor probe with its self-model disabled";
+    case "echo_memory":
+      return "self-model reset at re-exposure";
     case "obstacle_avoidance":
       return "avoidance off (avoidTtcS = 0)";
     case "light_preference":
@@ -302,6 +348,11 @@ function armsOf(t: FlyTreatment): FlyArm[] {
     { ...base, ...treatment, id: "treatment" },
   ];
   switch (t.kind) {
+    case "echo_impairment":
+    case "echo_causation":
+      return arms({ echo_variant: "disabled" }, { echo_variant: t.variant });
+    case "echo_memory":
+      return arms({ echo_variant: "reset_memory" }, { echo_variant: t.variant });
     case "obstacle_avoidance":
       return arms({ config: { avoidTtcS: 0 } }, { config: { avoidTtcS: t.avoid_ttc_s } });
     case "light_preference":
@@ -341,6 +392,10 @@ const longestApproachS = (stim: Stimulus, lOverVMs: number) =>
 function runSeconds(block: FlyBlockSpec, arm: FlyArm): number {
   const s = block.stimulus;
   switch (block.id) {
+    case "echo_impairment":
+    case "echo_causation":
+    case "echo_memory":
+      return block.trials * block.duration_s;
     case "clutter":
     case "light":
       return block.duration_s;
@@ -535,7 +590,7 @@ export function compileFlyExperiment(
       "the fly's version, controller, full parameter table and source digest are bound into the plan digest",
     ],
     parameter_constraints: [
-      "six closed protocols with host-built arenas and stimuli",
+      `${FLY_PROTOCOLS.length} closed protocols with host-built arenas and stimuli`,
       "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
       "the integration settings (physics, sensing and decision periods) are never varied",
       `at most ${MAX_SIMULATED_SECONDS} simulated fly-seconds per experiment`,
@@ -1134,6 +1189,9 @@ const BLOCK_SALT: Record<FlyBlockId, number> = {
   light: 0x6c6967,
   escape: 0x657363,
   repeat: 0x726570,
+  echo_impairment: 0x656331,
+  echo_causation: 0x656332,
+  echo_memory: 0x656333,
 };
 
 const finite = (x: number | null): number | null =>
@@ -1524,6 +1582,9 @@ function runRepeat(block: FlyBlockSpec, arm: FlyArm, seed: number): FlyRun {
 
 const RUNNERS: Record<FlyBlockId, (b: FlyBlockSpec, a: FlyArm, seed: number) => FlyRun> =
   {
+    echo_impairment: runEchoBlock,
+    echo_causation: runEchoBlock,
+    echo_memory: runEchoBlock,
     clutter: runClutter,
     light: runLight,
     escape: runEscape,

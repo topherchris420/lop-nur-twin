@@ -10,10 +10,14 @@ simulated. The brain regions the panel names are a reference layer: where, in a
 real fly, the functions the controller imitates are known to be processed.
 Everything the simulator reports describes the simulator, not a fly.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/7`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/8`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
+
+Project ECHO adds an opt-in computational self-model, local motion feedback, and
+three native experiments. See [architecture, assumptions and protocols](PROJECT_ECHO.md).
+It does not establish subjective consciousness or durable identity.
 
 Next development: [fly priorities and acceptance criteria](FLY_PRIORITIES.md).
 Reliable movement in physical simulation comes first; independent recordings

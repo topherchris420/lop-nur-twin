@@ -114,6 +114,18 @@ senses and behavior. Virtual Fly Brain supplies an anatomical reference layer. I
 controller simulates no neurons, synapses, or muscles; its results do not validate
 biological behavior. See the [digital-fly guide](docs/DIGITAL_FLY.md).
 
+### Project ECHO: learning what its movements can do
+
+An optional self-model predicts the fly's walking response, compares it with
+local motion feedback, and uses the error to revise its next commands. It includes
+bounded experience memory, uncertainty-sensitive actions and three native R.A.I.N.
+protocols with baselines and ablations. Open `/?echo=1` before entering Bethesda
+and inspect **Fly → Self-Model**. This is experimental computational self-modeling;
+subjective consciousness and durable identity are not established.
+
+[Architecture and protocols](docs/PROJECT_ECHO.md) ·
+[Retained experiment records](docs/benchmarks/project-echo/README.md)
+
 ## Run locally
 
 Use **Node.js 22.18+**. **Bun 1.3+** is the preferred package manager; CI installs from

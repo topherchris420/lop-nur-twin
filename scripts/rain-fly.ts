@@ -380,6 +380,9 @@ async function main() {
     // demonstration of the pipeline, never a person's review. The last two
     // must be refused, and are archived as refusals.
     const designs: [string, FlyDesign, boolean][] = [
+      ["scripted: ECHO-01", flyExample("echo_impairment"), false],
+      ["scripted: ECHO-02", flyExample("echo_causation"), false],
+      ["scripted: ECHO-03", flyExample("echo_memory"), false],
       ["scripted: obstacle avoidance", flyExample("obstacle_avoidance"), false],
       ["scripted: light preference", flyExample("light_preference"), false],
       ["scripted: visual threat", flyExample("visual_threat"), false],
@@ -403,7 +406,24 @@ async function main() {
         true,
       ],
     ];
-    for (const [label, design, mustRefuse] of designs)
+    const selected = args.includes("--echo")
+      ? designs.filter(([, d]) => d.parameters.treatment.kind.startsWith("echo_"))
+      : designs;
+    if (args.includes("--echo")) {
+      // These are fixed host-authored ablations, not model/human proposals.
+      for (const protocol of [
+        "echo_impairment",
+        "echo_causation",
+        "echo_memory",
+      ] as const)
+        for (const variant of ["no_learning", "no_memory", "no_uncertainty"] as const)
+          selected.push([
+            `scripted: ${protocol}/${variant}`,
+            flyExample(protocol, { treatment: { kind: protocol, variant } }),
+            false,
+          ]);
+    }
+    for (const [label, design, mustRefuse] of selected)
       try {
         if (mustRefuse) {
           const compiled = compileFlyExperiment(design, EVIDENCE);

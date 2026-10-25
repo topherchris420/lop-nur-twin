@@ -23,6 +23,12 @@
  */
 import { canonicalHash } from "../../game/pilot/hash.js";
 import { mulberry32 } from "../../lib/noise.js";
+import {
+  checkedPerturbation,
+  NO_PERTURBATION,
+  type MotionPerturbation,
+} from "./echo/apparatus.js";
+import { gauss } from "./senses.js";
 import { ReducedOrderController } from "./controller.js";
 import {
   coordination,
@@ -59,7 +65,7 @@ import {
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/7";
+export const FLY_VERSION = "digital-fly/8";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
@@ -189,6 +195,8 @@ export interface DigitalFlyOptions {
   /** Builds the decision maker from its random stream; defaults to the reduced-order controller. */
   adapter?: (rng: () => number, streams: AdapterStreams) => FlyNeuralAdapter;
   logSize?: number;
+  /** Experimental kinematic apparatus, hidden from the adapter. */
+  perturbation?: (t: number) => MotionPerturbation;
 }
 
 const NO_SITES: readonly LandingSite[] = Object.freeze([]);
@@ -262,9 +270,23 @@ export class DigitalFly {
   private gait: GaitParams;
   private surface: GateContext["surface"];
   private food: NonNullable<GateContext["food"]>;
+  private perturbation?: (t: number) => MotionPerturbation;
+  private intervention = NO_PERTURBATION;
+  private motionRng: () => number;
+  private motion = {
+    forward: 0,
+    lateral: 0,
+    vertical: 0,
+    turn: 0,
+    dt: 0,
+    clear: true,
+    mode: "rest" as Mode,
+  };
 
   constructor(o: DigitalFlyOptions) {
     this.seed = o.seed >>> 0;
+    this.perturbation = o.perturbation;
+    this.motionRng = mulberry32(this.seed ^ 0x510e527f);
     this.world = o.world;
     this.params = resolveParams(o.config);
     this.adapterParams = Object.freeze({ ...this.params });
@@ -490,8 +512,54 @@ export class DigitalFly {
       // Every sample between decisions goes to the decision maker's fast pathway.
       if (!deciding) this.interrupt(this.senseEvery * h);
     }
-    if (deciding) this.decide(this.decideEvery * h);
+    if (this.perturbation)
+      this.intervention = checkedPerturbation(this.perturbation(s.t));
+    if (deciding) {
+      if (this.adapter.observeMotion) {
+        const m = this.motion,
+          q = this.intervention;
+        this.adapter.observeMotion(
+          frozen({
+            tick: s.step,
+            t: s.t,
+            dt: m.dt,
+            forwardM:
+              m.forward +
+              ((q.sensorBiasCmS + q.sensorNoiseCmS * gauss(this.motionRng)) * m.dt) / 100,
+            lateralM: m.lateral,
+            verticalM: m.vertical,
+            turnRad: m.turn,
+            reserve: s.reserve / P.reserveJ,
+            mode: s.mode,
+            clear: m.clear && m.mode === s.mode,
+          }),
+        );
+        this.motion = {
+          forward: 0,
+          lateral: 0,
+          vertical: 0,
+          turn: 0,
+          dt: 0,
+          clear: true,
+          mode: s.mode,
+        };
+      }
+      this.decide(this.decideEvery * h);
+    }
+    const before = this.adapter.observeMotion ? { p: [...s.p], yaw: s.yaw } : null;
     this.integrate(h);
+    if (before) {
+      const dx = s.p[0] - before.p[0]!,
+        dz = s.p[2] - before.p[2]!;
+      const m = this.motion;
+      m.forward += Math.cos(s.yaw) * dx - Math.sin(s.yaw) * dz;
+      m.lateral += Math.sin(s.yaw) * dx + Math.cos(s.yaw) * dz;
+      m.vertical += s.p[1] - before.p[1]!;
+      m.turn += wrapAngle(s.yaw - before.yaw);
+      m.dt += h;
+      m.clear =
+        m.clear && !s.edge && s.contact === null && !s.saccade && m.mode === s.mode;
+    }
     this.metabolize(h);
     s.responsiveness +=
       (1 - s.responsiveness) * (1 - Math.exp(-h / P.habituationRecoveryS));
@@ -595,6 +663,7 @@ export class DigitalFly {
     }
     this.lastCommand = verdict.command;
     this.apply(verdict.command, sites);
+    this.adapter.acceptedMotion?.(verdict.command, this.motionParams(), false);
   }
 
   /**
@@ -633,6 +702,16 @@ export class DigitalFly {
     this.lastFrame = frame;
     this.lastCommand = verdict.command;
     this.apply(verdict.command, sites);
+    this.adapter.acceptedMotion?.(verdict.command, this.motionParams(), true);
+  }
+
+  /** Actual rounded integration clock, not the requested parameter periods. */
+  private motionParams(): ResolvedParams {
+    return Object.freeze({
+      ...this.adapterParams,
+      physicsStepMs: this.stepUs / 1000,
+      decisionPeriodMs: (this.decideEvery * this.stepUs) / 1000,
+    });
   }
 
   /** Count and log a refusal, and hold safely: the last accepted command does not keep running. */
@@ -641,6 +720,7 @@ export class DigitalFly {
     const from = this.label();
     s.counts.rejected++;
     this.command = this.hold();
+    this.adapter.invalidateMotion?.();
     if (s.mode === "flight" && s.sub === "cruise") s.sub = "hover";
     this.record("refused", from, this.label(), reason);
   }
@@ -878,20 +958,20 @@ export class DigitalFly {
     const target = s.edge ? 0 : (cmd.walkSpeed ?? s.walkSpeed);
     s.walkSpeed +=
       (target - s.walkSpeed) * (1 - Math.exp(-h / this.params.walkSpeedTauS));
-    s.yawRate = cmd.yawRate ?? 0;
+    s.yawRate = (cmd.yawRate ?? 0) * this.intervention.turningGain;
     s.yaw = wrapAngle(s.yaw + s.yawRate * h);
     s.wingsOpen = 0;
     s.legs = 1;
     s.pitch = 0;
     s.roll = 0;
-    const speed = s.walkSpeed / 100;
+    const speed = (s.walkSpeed / 100) * this.intervention.movementGain;
     // The legs step at the speed the feet pass over the ground, so a turn on the spot is stepped.
     const stepping = steppingSpeedCmS(s.walkSpeed, s.yawRate, FOOT_RADIUS_CM);
     if (stepping >= STEPPING_MIN_CMS)
       s.gaitClock = (s.gaitClock + h / stepPeriodS(stepping, this.gait)) % 1;
     const f = forward(s.yaw);
-    const nx = s.p[0] + f[0] * speed * h,
-      nz = s.p[2] + f[2] * speed * h;
+    const nx = s.p[0] + (f[0] * speed + this.intervention.driftMPerS[0]) * h,
+      nz = s.p[2] + (f[2] * speed + this.intervention.driftMPerS[2]) * h;
     const perch = this.world.perchAt(nx, nz, s.p[1] + STEP_HEIGHT_M);
     const ok =
       perch !== null &&
@@ -1016,7 +1096,8 @@ export class DigitalFly {
         s.saccade = null;
         if (s.mode === "flight" && s.sub === "saccade") s.sub = "cruise";
       }
-    } else s.yaw = wrapAngle(s.yaw + (cmd.yawRate ?? 0) * h);
+    } else
+      s.yaw = wrapAngle(s.yaw + (cmd.yawRate ?? 0) * this.intervention.turningGain * h);
     const yawRate = wrapAngle(s.yaw - yaw0) / h;
     const yawAcc = (yawRate - s.yawRate) / h;
     s.yawRate = yawRate;
@@ -1029,6 +1110,10 @@ export class DigitalFly {
       vd = [f[0] * speed, vd[1], f[2] * speed];
     }
     if (s.mode === "flight" && s.sub === "hover") vd = [0, vd[1], 0];
+    if (this.perturbation)
+      vd = vd.map(
+        (v, i) => v * this.intervention.movementGain + this.intervention.driftMPerS[i]!,
+      ) as V3;
     // A contact lasts while its surface stays within reach; its normal follows a curved surface.
     this.keepContact();
     // An exponential approach to the desired velocity, stable for any time
@@ -1258,6 +1343,8 @@ export class DigitalFly {
       controller: ctrl,
       pendingUs: this.pendingUs,
       frames: this.frames.length,
+      ...(this.adapter.observeMotion ? { motion: this.motion } : {}),
+      ...(this.perturbation ? { intervention: this.intervention } : {}),
     });
   }
 }

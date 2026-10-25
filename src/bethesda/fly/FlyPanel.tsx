@@ -1,3 +1,4 @@
+import { EchoController } from "./echo/controller";
 /**
  * The fly's inspection panel. Two halves, kept apart on purpose: what this
  * run of the simulator is doing (simulation observations), and what the model
@@ -7,7 +8,7 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "../../lib/safeUrl";
-import { REDUCED_ORDER_DESCRIPTOR, ReducedOrderController } from "./controller";
+import { ReducedOrderController } from "./controller";
 import source from "./data/flybody.source.json" with { type: "json" };
 import { FLY_VERSION } from "./fly";
 import type { FlyViewControl } from "./FlyView";
@@ -156,8 +157,9 @@ export function FlyPanel({
   const reserve = s.reserve / PARAMS.reserveJ.value;
   const hungry = 1 - reserve > PARAMS.hungerSeek.value;
   // What the built-in controller believes and remembers; another controller reports none.
-  const nav =
-    fly.adapter instanceof ReducedOrderController ? fly.adapter.state.nav : null;
+  const native = fly.adapter instanceof EchoController ? fly.adapter.inner : fly.adapter;
+  const echo = fly.adapter instanceof EchoController ? fly.adapter.model.inspect() : null;
+  const nav = native instanceof ReducedOrderController ? native.state.nav : null;
   const byEstimate = (q: readonly number[]) =>
     nav ? Math.hypot(q[0]! - nav.est[0], q[1]! - nav.est[1]) : 0;
   const nearestPlace = nav?.places.reduce<number | null>(
@@ -410,6 +412,77 @@ export function FlyPanel({
           </Row>
         </dl>
 
+        <details className="mt-3" aria-label="Project ECHO self-model">
+          <summary className="cursor-pointer text-teal-200">
+            Self-Model · {echo ? "ECHO experimental" : "baseline (ECHO off)"}
+          </summary>
+          <p className="mt-1 text-slate-300">
+            Internal estimates come from idealized local motion feedback. Researcher truth
+            is shown separately. This view is read-only.
+          </p>
+          {echo ? (
+            <dl className="mt-2 space-y-1">
+              <Row label="Configuration">{fly.adapter.descriptor.id}</Row>
+              <Row label="Estimated motion">
+                {echo.estimate.speedCmS.toFixed(2)} cm/s; origin-relative position{" "}
+                {echo.estimate.positionM.map((n) => n.toFixed(3)).join(", ")} m
+              </Row>
+              <Row label="Researcher truth">
+                {(speed * 100).toFixed(2)} cm/s; world position{" "}
+                {s.p.map((n) => n.toFixed(3)).join(", ")} m (unavailable to self-model)
+              </Row>
+              <Row label="Next prediction">
+                {echo.pending
+                  ? `${(echo.pending.forwardM * 1000).toFixed(2)} mm in ${(echo.pending.dt * 1000).toFixed(0)} ms`
+                  : "No walking prediction pending"}
+              </Row>
+              <Row label="Prediction error">
+                {echo.errorCmS === null
+                  ? "No eligible observations yet"
+                  : `${echo.errorCmS.toFixed(3)} cm/s`}
+              </Row>
+              <Row label="Uncertainty">
+                {echo.sigmaCmS.toFixed(3)} cm/s residual scale; reliability is not a
+                calibrated probability
+              </Row>
+              <Row label="Interval coverage">
+                {echo.predictions
+                  ? `${((100 * echo.covered) / echo.predictions).toFixed(1)}% of ${echo.predictions} observations (nominal 90%)`
+                  : "Not measured yet"}
+              </Row>
+              <Row label="Capabilities">
+                Movement ×{echo.gain.toFixed(3)}; turning ×{echo.turnGain.toFixed(3)};
+                inferred drift {echo.driftCmS.toFixed(3)} cm/s
+              </Row>
+              <Row label="Current hypothesis">
+                {echo.attribution}; {echo.adaptedActions} actions adjusted
+              </Row>
+              <Row label="Memory">
+                {echo.history.length} short-term samples; {echo.episodes.length} episodes;{" "}
+                {echo.recalled} recalls
+              </Row>
+              <Row label="Recent beliefs">
+                <ul>
+                  {echo.episodes
+                    .slice(-3)
+                    .reverse()
+                    .map((e) => (
+                      <li key={e.tick}>
+                        Tick {e.tick}: movement ×{e.before.toFixed(2)} → ×
+                        {e.after.toFixed(2)}, error {e.errorCmS.toFixed(2)} cm/s
+                      </li>
+                    ))}
+                </ul>
+              </Row>
+            </dl>
+          ) : (
+            <p className="mt-1 text-slate-300">
+              For a new experimental local run, open this site with ?echo=1 before
+              entering Bethesda. The baseline remains the default.
+            </p>
+          )}
+        </details>
+
         <h3 className="mt-3 font-mono text-[9px] tracking-[.2em] text-teal-200">
           THE MODEL · BIOLOGICAL EVIDENCE AND ITS LIMITS
         </h3>
@@ -425,9 +498,9 @@ export function FlyPanel({
             {source.lods.map((l) => l.triangles).join(" / ")} triangles.
           </Row>
           <Row label="Controller" evidence="model">
-            {REDUCED_ORDER_DESCRIPTOR.label}: {REDUCED_ORDER_DESCRIPTOR.fidelity} Not a
-            neural simulation. Wingbeat, leg placement and body attitude are drawn, not
-            simulated as aerodynamics or contact.
+            {fly.adapter.descriptor.label}: {fly.adapter.descriptor.fidelity} Not a neural
+            simulation. Wingbeat, leg placement and body attitude are drawn, not simulated
+            as aerodynamics or contact.
           </Row>
           <Row label="Neuroanatomical reference" evidence="published">
             <Term id={VFB_REFERENCE.template} /> ({VFB_REFERENCE.template}), via{" "}
@@ -477,7 +550,7 @@ export function FlyPanel({
           </ul>
           <p className="mt-2 font-semibold">What the controller cites</p>
           <ul>
-            {REDUCED_ORDER_DESCRIPTOR.regions.map((r) => (
+            {fly.adapter.descriptor.regions.map((r) => (
               <li key={r.module} className="mt-1">
                 {r.module} — {r.relation}: {r.note}
               </li>

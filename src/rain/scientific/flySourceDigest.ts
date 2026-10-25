@@ -25,8 +25,12 @@ import { sha256, sha256Json } from "../sha256.js";
 
 /** The generated module, relative to the repository root. */
 export const FLY_SOURCE_MODULE = "src/rain/scientific/flySource.ts";
-const ENTRIES = ["src/bethesda/fly/fly.ts", "src/bethesda/fly/arena.ts"];
-const WHOLE = ["src/rain/scientific/fly.ts"];
+const ENTRIES = [
+  "src/bethesda/fly/fly.ts",
+  "src/bethesda/fly/arena.ts",
+  "src/bethesda/fly/echo/controller.ts",
+];
+const WHOLE = ["src/rain/scientific/fly.ts", "src/rain/scientific/echoRig.ts"];
 const SECTION = {
   path: "src/bethesda/rain/scientificProtocol.ts",
   banner:

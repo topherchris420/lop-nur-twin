@@ -25,6 +25,7 @@
  * as published associations, with the VFB terms to look them up; it is a
  * reading list, not a claim that those circuits are simulated.
  */
+import type { MotionObservation } from "./echo/model.js";
 import type { ResolvedParams } from "./params.js";
 import type { SenseFrame } from "./senses.js";
 import type { V3 } from "./units.js";
@@ -167,6 +168,14 @@ export interface AdapterStreams {
 
 export interface FlyNeuralAdapter {
   readonly descriptor: AdapterDescriptor;
+  /** Closed motion-sensor port: no authoritative pose or research labels. */
+  observeMotion?(observation: MotionObservation): void;
+  acceptedMotion?(
+    command: MotorCommand,
+    params: ResolvedParams,
+    interrupted: boolean,
+  ): void;
+  invalidateMotion?(): void;
   /** Called once with the body as placed (at rest or in flight), before the first decision. */
   start?(body: BodySnapshot): void;
   /** Must be deterministic given its inputs and the random stream it was built with. */

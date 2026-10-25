@@ -94,7 +94,10 @@
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
     "validate:model-history": "node scripts/run-ts.mjs scripts/validate-model-history.ts",
     "verify:bethesda": "node tools/bethesda.mjs",
-    "verify:rain-lab": "node tools/rain-lab.mjs"
+    "verify:rain-lab": "node tools/rain-lab.mjs",
+    "rain:echo:demo": "node scripts/run-ts.mjs scripts/rain-fly.ts --scripted --echo --archive docs/benchmarks/project-echo --state .rain-research/echo",
+    "rain:echo:verify": "node scripts/run-ts.mjs scripts/rain-fly.ts --verify --archive docs/benchmarks/project-echo",
+    "bethesda:echo:smoke": "node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100 --echo"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

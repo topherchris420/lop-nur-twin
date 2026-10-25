@@ -1,3 +1,6 @@
+import { ReducedOrderController } from "./controller.js";
+import { EchoController } from "./echo/controller.js";
+import { EchoModel, type EchoVariant } from "./echo/model.js";
 /**
  * The one digital fly that lives in Bethesda, stepped with the city.
  *
@@ -20,7 +23,7 @@ import { BENCH, PICNIC_TABLE } from "../furniture";
 import { DT, type CitySimulation } from "../simulation";
 import { groundAt } from "../terrain";
 import { BethesdaFlyWorld, homeSeat } from "./bethesdaWorld.js";
-import { DigitalFly } from "./fly.js";
+import { DigitalFly, FLY_VERSION } from "./fly.js";
 import { People } from "./people.js";
 import type { V3 } from "./units.js";
 
@@ -42,7 +45,7 @@ export class CityFly {
   private sim: CitySimulation;
   private lastTick: number;
 
-  constructor(sim: CitySimulation) {
+  constructor(sim: CitySimulation, options: { echo?: EchoVariant } = {}) {
     this.sim = sim;
     const seat = homeSeat(arrival);
     const at = seat?.point ?? arrival;
@@ -64,6 +67,16 @@ export class CityFly {
       world: this.world,
       start: { p: [at.x, groundAt(at) + top + 0.002, at.z], yaw: Math.PI / 2 },
       config: { startReserve: CITY_START_RESERVE },
+      ...(options.echo
+        ? {
+            adapter: (rng: () => number, streams: { navigation: () => number }) =>
+              new EchoController(
+                new ReducedOrderController(rng, streams.navigation),
+                options.echo,
+                new EchoModel(options.echo, { seed: this.seed, simulator: FLY_VERSION }),
+              ),
+          }
+        : {}),
     });
     this.people = new People({
       seed: this.seed,

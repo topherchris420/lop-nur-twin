@@ -18,10 +18,11 @@ import { TimelineControl } from "@/components/hud/TimelineControl";
 import { useKeyboardShortcuts } from "@/lib/useKeyboardShortcuts";
 import { STRUCTURES, getStructure } from "@/lib/layout";
 import { flyToPoint, flyToStructure } from "@/lib/flyTo";
-import { parseIdValue, readSitePointParam } from "@/lib/params";
+import { parseIdValue, readSitePointParam, parseBooleanValue } from "@/lib/params";
 import { useTwinStore } from "@/lib/store";
 
 interface TwinSearch {
+  echo?: boolean;
   /** `?structure=<id>` opens that dossier — the deep link `/analysis` hands back. */
   structure?: string;
 }
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): TwinSearch => {
     const id = parseIdValue(search["structure"]);
     return {
+      echo: parseBooleanValue(search["echo"]) ?? undefined,
       structure:
         id !== null && STRUCTURES.some((structure) => structure.id === id)
           ? id

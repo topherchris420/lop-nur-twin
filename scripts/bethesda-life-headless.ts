@@ -25,8 +25,10 @@ function parseMode(args: string[]): { continuous: boolean; ticks: number } {
 }
 
 async function run() {
-  const mode = parseMode(process.argv.slice(2));
-  const life = new HeadlessBethesdaLife();
+  const args = process.argv.slice(2);
+  const echo = args.includes("--echo");
+  const mode = parseMode(args.filter((arg) => arg !== "--echo"));
+  const life = new HeadlessBethesdaLife(undefined, echo ? { echo: "full" } : {});
   if (!mode.continuous) {
     life.advanceTicks(mode.ticks);
     process.stdout.write(JSON.stringify(life.status()) + "\n");

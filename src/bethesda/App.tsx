@@ -1,3 +1,4 @@
+import { readFlag } from "../lib/params";
 import {
   Component,
   lazy,
@@ -214,7 +215,7 @@ function placeFly(city: CitySimulation, view: ViewControl): void {
   import("./fly/cityFly")
     .then(({ CityFly }) => {
       view.fly = {
-        city: new CityFly(city),
+        city: new CityFly(city, readFlag("echo") ? { echo: "full" } : {}),
         marker: false,
         inspect: false,
         slow: false,

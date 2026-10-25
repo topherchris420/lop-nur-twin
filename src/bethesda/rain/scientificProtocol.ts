@@ -328,7 +328,7 @@ export const BACKEND_CAPABILITIES: readonly BackendCapability[] = [
     version: "digital-fly-behavior/v3",
     supported: [
       "matched-seed paired arms of the digital fly in closed arenas",
-      "six fixed protocols: obstacle avoidance, light preference, a looming dose series (visual threat), noisy sensing, adaptation to repeated looms and controller comparison",
+      "nine fixed protocols: obstacle avoidance, light preference, a looming dose series (visual threat), noisy sensing, adaptation to repeated looms, controller comparison and three Project ECHO self-model protocols",
       "seeds drawn by the host after preregistration, never by the design; pilot seeds never",
       "an exact one-sided sign test on untied seeds at a host-fixed alpha of 0.05",
       "controller configurations that override model parameters only, within their ranges; FlyBody and published values stay fixed",
@@ -666,7 +666,15 @@ export const FLY_PILOT_SEED_COUNT = 64;
  * them as evidence.
  */
 export const FLY_LEGACY_RECORD = "rain-fly-record/v1" as const;
-export const FLY_BLOCKS = ["clutter", "light", "escape", "repeat"] as const;
+export const FLY_BLOCKS = [
+  "clutter",
+  "light",
+  "escape",
+  "repeat",
+  "echo_impairment",
+  "echo_causation",
+  "echo_memory",
+] as const;
 export type FlyBlockId = (typeof FLY_BLOCKS)[number];
 
 /** The host's decision rule: an exact one-sided sign test on untied matched seeds. */
@@ -910,11 +918,353 @@ export const FLY_METRICS = [
     minimum_effect: null,
     description: "mean angular size of the repeated stimulus at the escape decision",
   },
+  {
+    id: "echo_impairment_tracking_error_cms",
+    block: "echo_impairment",
+    unit: "cm/s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.1,
+    description: "mean absolute target movement error after adaptation",
+  },
+  {
+    id: "echo_impairment_prediction_error_cms",
+    block: "echo_impairment",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean absolute forward prediction error",
+  },
+  {
+    id: "echo_impairment_attribution_accuracy",
+    block: "echo_impairment",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of correct causal hypotheses after adaptation; ambiguous counts incorrect",
+  },
+  {
+    id: "echo_impairment_false_self_attribution",
+    block: "echo_impairment",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of external or noisy conditions attributed to changed action response",
+  },
+  {
+    id: "echo_impairment_interval_coverage",
+    block: "echo_impairment",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "empirical coverage of nominal 90 percent movement intervals",
+  },
+  {
+    id: "echo_impairment_detection_latency_s",
+    block: "echo_impairment",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "latency to first bodily-change hypothesis; missing detections remain null",
+  },
+  {
+    id: "echo_impairment_recovery_latency_s",
+    block: "echo_impairment",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "latency to return to unchanged hypothesis after intervention removal",
+  },
+  {
+    id: "echo_impairment_recall_error_cms",
+    block: "echo_impairment",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "early movement error on re-exposure, with retained versus reset self-model",
+  },
+  {
+    id: "echo_impairment_recalls",
+    block: "echo_impairment",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "bounded episodic recall events",
+  },
+  {
+    id: "echo_impairment_adapted_actions",
+    block: "echo_impairment",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "motor actions changed by the self-model",
+  },
+  {
+    id: "echo_impairment_checkpoint_verified",
+    block: "echo_impairment",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "self-model checkpoint round trips verified; not full fly recovery",
+  },
+  {
+    id: "echo_causation_tracking_error_cms",
+    block: "echo_causation",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean absolute target movement error after adaptation",
+  },
+  {
+    id: "echo_causation_prediction_error_cms",
+    block: "echo_causation",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean absolute forward prediction error",
+  },
+  {
+    id: "echo_causation_attribution_accuracy",
+    block: "echo_causation",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.1,
+    description:
+      "fraction of correct causal hypotheses after adaptation; ambiguous counts incorrect",
+  },
+  {
+    id: "echo_causation_false_self_attribution",
+    block: "echo_causation",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of external or noisy conditions attributed to changed action response",
+  },
+  {
+    id: "echo_causation_interval_coverage",
+    block: "echo_causation",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "empirical coverage of nominal 90 percent movement intervals",
+  },
+  {
+    id: "echo_causation_detection_latency_s",
+    block: "echo_causation",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "latency to first bodily-change hypothesis; missing detections remain null",
+  },
+  {
+    id: "echo_causation_recovery_latency_s",
+    block: "echo_causation",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "latency to return to unchanged hypothesis after intervention removal",
+  },
+  {
+    id: "echo_causation_recall_error_cms",
+    block: "echo_causation",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "early movement error on re-exposure, with retained versus reset self-model",
+  },
+  {
+    id: "echo_causation_recalls",
+    block: "echo_causation",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "bounded episodic recall events",
+  },
+  {
+    id: "echo_causation_adapted_actions",
+    block: "echo_causation",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "motor actions changed by the self-model",
+  },
+  {
+    id: "echo_causation_checkpoint_verified",
+    block: "echo_causation",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "self-model checkpoint round trips verified; not full fly recovery",
+  },
+  {
+    id: "echo_memory_tracking_error_cms",
+    block: "echo_memory",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean absolute target movement error after adaptation",
+  },
+  {
+    id: "echo_memory_prediction_error_cms",
+    block: "echo_memory",
+    unit: "cm/s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean absolute forward prediction error",
+  },
+  {
+    id: "echo_memory_attribution_accuracy",
+    block: "echo_memory",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of correct causal hypotheses after adaptation; ambiguous counts incorrect",
+  },
+  {
+    id: "echo_memory_false_self_attribution",
+    block: "echo_memory",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of external or noisy conditions attributed to changed action response",
+  },
+  {
+    id: "echo_memory_interval_coverage",
+    block: "echo_memory",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "empirical coverage of nominal 90 percent movement intervals",
+  },
+  {
+    id: "echo_memory_detection_latency_s",
+    block: "echo_memory",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "latency to first bodily-change hypothesis; missing detections remain null",
+  },
+  {
+    id: "echo_memory_recovery_latency_s",
+    block: "echo_memory",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "latency to return to unchanged hypothesis after intervention removal",
+  },
+  {
+    id: "echo_memory_recall_error_cms",
+    block: "echo_memory",
+    unit: "cm/s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.05,
+    description:
+      "early movement error on re-exposure, with retained versus reset self-model",
+  },
+  {
+    id: "echo_memory_recalls",
+    block: "echo_memory",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "bounded episodic recall events",
+  },
+  {
+    id: "echo_memory_adapted_actions",
+    block: "echo_memory",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "motor actions changed by the self-model",
+  },
+  {
+    id: "echo_memory_checkpoint_verified",
+    block: "echo_memory",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description: "self-model checkpoint round trips verified; not full fly recovery",
+  },
 ] as const;
 export type FlyMetricId = (typeof FLY_METRICS)[number]["id"];
 
 /**
- * The six protocols. `caveat` says plainly what a protocol cannot show as
+ * The closed protocols. `caveat` says plainly what a protocol cannot show as
  * designed; it travels into every plan's limitations. The v3 redesign chose
  * the apparatus of four of them with pilots so that their primary measures
  * discriminate (docs/benchmarks/fly-pilots/); what is left is what the pilots
@@ -974,6 +1324,36 @@ export const FLY_PROTOCOLS = [
     baseline: "a first controller configuration on the same seeds",
     caveat: null,
   },
+  {
+    id: "echo_impairment",
+    title: "ECHO-01: recognition of bodily impairment",
+    blocks: ["echo_impairment"],
+    independent:
+      "adaptive self-model configuration under host-hidden kinematic interventions",
+    baseline: "disabled self-model",
+    caveat:
+      "Scripted motor excitation and idealized local odometry in reduced-order walking. Causal inference can remain ambiguous; no biological motor-control, consciousness or durable identity claim.",
+  },
+  {
+    id: "echo_causation",
+    title: "ECHO-02: self versus external causation",
+    blocks: ["echo_causation"],
+    independent:
+      "adaptive self-model configuration under host-hidden kinematic interventions",
+    baseline: "disabled self-model",
+    caveat:
+      "Scripted motor excitation and idealized local odometry in reduced-order walking. Causal inference can remain ambiguous; no biological motor-control, consciousness or durable identity claim.",
+  },
+  {
+    id: "echo_memory",
+    title: "ECHO-03: retained learning through time",
+    blocks: ["echo_memory"],
+    independent:
+      "adaptive self-model configuration under host-hidden kinematic interventions",
+    baseline: "self-model reset at re-exposure",
+    caveat:
+      "Scripted motor excitation and idealized local odometry in reduced-order walking. Causal inference can remain ambiguous; no biological motor-control, consciousness or durable identity claim.",
+  },
 ] as const satisfies readonly {
   id: string;
   title: string;
@@ -986,7 +1366,9 @@ export type FlyProtocolId = (typeof FLY_PROTOCOLS)[number]["id"];
 
 /** Overrides of the fly's parameters by name; the compiler admits model parameters only. */
 export type FlyControllerConfig = Record<string, number>;
+export type EchoAblation = "full" | "no_learning" | "no_memory" | "no_uncertainty";
 export type FlyTreatment =
+  | { kind: "echo_impairment" | "echo_causation" | "echo_memory"; variant: EchoAblation }
   | { kind: "obstacle_avoidance"; avoid_ttc_s: number }
   | { kind: "light_preference"; light_intensity: number }
   | {
@@ -1060,6 +1442,7 @@ export interface FlyBlockSpec {
   } | null;
 }
 export interface FlyArm {
+  echo_variant?: EchoAblation | "disabled" | "reset_memory";
   id: "control" | "treatment";
   config: FlyControllerConfig;
   noise: number;
@@ -1079,6 +1462,19 @@ export interface FlyExperiment {
   arms: FlyArm[];
 }
 export interface FlyRun {
+  /** Retained researcher diagnostics, never provided to the controller. */
+  echo_trials?: {
+    hashes: string[];
+    trackingErrorCmS: number;
+    condition: {
+      gain: number;
+      turnGain: number;
+      driftMPerS: [number, number, number];
+      noiseCmS: number;
+      truth: string;
+      arenaM: [number, number, number];
+    };
+  }[];
   arm: "control" | "treatment";
   seed: number;
   block: FlyBlockId;
@@ -1195,6 +1591,16 @@ export const FLY_DESIGN_SCHEMA = closed({
     seed_count: integer(FLY_SEED_COUNT.min, FLY_SEED_COUNT.max),
     treatment: {
       oneOf: [
+        closed({
+          kind: {
+            type: "string",
+            enum: ["echo_impairment", "echo_causation", "echo_memory"],
+          },
+          variant: {
+            type: "string",
+            enum: ["full", "no_learning", "no_memory", "no_uncertainty"],
+          },
+        }),
         closed({
           kind: { const: "obstacle_avoidance", type: "string" },
           avoid_ttc_s: number(0.05, 2),

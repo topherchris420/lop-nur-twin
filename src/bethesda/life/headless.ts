@@ -1,3 +1,4 @@
+import type { EchoVariant } from "../fly/echo/model.js";
 /**
  * A headless Bethesda clock: city and its one fly advance together without a
  * mounted React scene, a browser, or a visitor. This is an in-memory foundation,
@@ -43,9 +44,9 @@ export class HeadlessBethesdaLife {
   readonly city: CitySimulation;
   readonly cityFly: CityFly;
 
-  constructor(config: Config = PROFILES[1]!) {
+  constructor(config: Config = PROFILES[1]!, options: { echo?: EchoVariant } = {}) {
     this.city = new CitySimulation({ ...config });
-    this.cityFly = new CityFly(this.city);
+    this.cityFly = new CityFly(this.city, options);
   }
 
   advanceTicks(count: number): void {

@@ -32,6 +32,44 @@ interface Example {
  * the script's, at or above the host's minimum effect for the metric.
  */
 const EXAMPLES: Record<FlyProtocolId, Example> = {
+  echo_impairment: {
+    treatment: { kind: "echo_impairment", variant: "full" },
+    metric: "echo_impairment_tracking_error_cms",
+    direction: "decrease",
+    minimumEffect: 0.1,
+    seedCount: 8,
+    question: "[scripted] Does ECHO compensate for held-out movement loss?",
+    hypothesis:
+      "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+    competing:
+      "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  },
+  echo_causation: {
+    treatment: { kind: "echo_causation", variant: "full" },
+    metric: "echo_causation_attribution_accuracy",
+    direction: "increase",
+    minimumEffect: 0.1,
+    seedCount: 8,
+    question:
+      "[scripted] Does ECHO distinguish action-response changes from external drift and noisy sensing?",
+    hypothesis:
+      "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+    competing:
+      "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  },
+  echo_memory: {
+    treatment: { kind: "echo_memory", variant: "full" },
+    metric: "echo_memory_recall_error_cms",
+    direction: "decrease",
+    minimumEffect: 0.05,
+    seedCount: 8,
+    question:
+      "[scripted] Does retained ECHO learning improve early regulation on re-exposure?",
+    hypothesis:
+      "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+    competing:
+      "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  },
   obstacle_avoidance: {
     treatment: { kind: "obstacle_avoidance", avoid_ttc_s: 0.45 },
     // Cruise only: the avoidance rule does not act during a landing approach.
