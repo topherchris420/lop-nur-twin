@@ -37,8 +37,12 @@ async function run() {
     "Development-only in-memory clock; no durable checkpoint or single-writer lease.\n",
   );
   let stopping = false;
-  process.once("SIGTERM", () => { stopping = true; });
-  process.once("SIGINT", () => { stopping = true; });
+  process.once("SIGTERM", () => {
+    stopping = true;
+  });
+  process.once("SIGINT", () => {
+    stopping = true;
+  });
   const start = performance.now();
   let lastLog = start;
   while (!stopping) {
