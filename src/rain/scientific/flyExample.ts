@@ -119,6 +119,48 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     competing:
       "[scripted] Steering gain matters less than how often the fly flies, which both configurations share.",
   },
+  // Project ECHO: each a lesion of the self-model against the full one. The
+  // treatment, metric and direction were fixed before any held-out run; the
+  // pilots size the seed count and minimum effect.
+  echo_impairment: {
+    treatment: { kind: "echo_impairment", variant: "reactive" },
+    metric: "impaired_path_error",
+    direction: "increase",
+    minimumEffect: 0.01, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    question:
+      "[scripted] ECHO-01: does the fly's self-model let it walk where it intends after an impairment it is never told about?",
+    hypothesis:
+      "[scripted] Without its self-model, the fly's walking strays further from its intended path after a hidden impairment, from held-out conditions, than with it.",
+    competing:
+      "[scripted] The reduced-order controller's own feedback (turning back from edges, its tether) keeps its path as close to its intentions as a self-model would.",
+  },
+  echo_attribution: {
+    treatment: { kind: "echo_attribution", variant: "motion_gated" },
+    metric: "attribution_accuracy",
+    direction: "decrease",
+    minimumEffect: 0.05, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    question:
+      "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+    hypothesis:
+      "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+    competing:
+      "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+  },
+  echo_retention: {
+    treatment: { kind: "echo_retention", variant: "memory_reset" },
+    metric: "reexposure_latency_s",
+    direction: "increase",
+    minimumEffect: 0.05, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    question:
+      "[scripted] ECHO-03: does what the fly learned about an earlier impairment let it recognize the same impairment sooner when it returns?",
+    hypothesis:
+      "[scripted] A self-model reset to an innate one before a remembered held-out impairment returns takes longer to conclude that it changed itself than one with its memory intact.",
+    competing:
+      "[scripted] Learning an impairment from scratch is as fast as recognizing it, so memory does not shorten the time to conclude.",
+  },
 };
 
 /**

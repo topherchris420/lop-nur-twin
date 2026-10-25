@@ -50,7 +50,13 @@ import type {
   Perch,
   PrimitiveWorld,
 } from "../../bethesda/fly/world.js";
+import { VARIANT_LABELS } from "../../bethesda/fly/echo/selfModel.js";
 import { FLY_SOURCE } from "./flySource.js";
+import {
+  ECHO_EVALUATION_CONDITIONS as HELD_OUT,
+  ECHO_TICK_S,
+  runEchoBlock,
+} from "./flyEcho.js";
 import {
   boundedData,
   closed,
@@ -115,6 +121,57 @@ const ROOM: [number, number, number] = [4, 2.5, 4];
 const GRID = [-1.2, -0.4, 0.4, 1.2];
 /** Spontaneous takeoff, walking and grooming off: the fly stands still until the stimulus. */
 const STILL: FlyControllerConfig = { takeoffHz: 0, walkStartHz: 0, groomHz: 0 };
+
+/**
+ * Project ECHO's arena: the held-out environment. The self-model was
+ * developed in an open 4 m room (scripts/echo-develop.ts); this one is 3 m
+ * across with four posts, which the walking fly meets as edges it feels.
+ */
+const ECHO_ARENA: FlyBlockSpec["arena"] = {
+  size: [3, 2.5, 3],
+  ambient: 0.6,
+  pillars: [-0.75, 0.75].flatMap((x) => [-0.75, 0.75].map((z) => ({ x, z, r: 0.05 }))),
+};
+/** The fly walks in bouts and rests between them; it neither flies nor grooms. */
+const WALKING: FlyControllerConfig = {
+  takeoffHz: 0,
+  groomHz: 0,
+  walkStartHz: 1,
+  walkStopHz: 0.1,
+};
+/** Timing shared by the ECHO schedules (each uses its own part). */
+const ECHO_TIMING = {
+  onset_s: [30, 40] as [number, number],
+  onsets_s: [20, 55, 90, 125],
+  jitter_s: 3,
+  episode_s: [15, 22] as [number, number],
+  persistent_last: 0.5,
+  phases_s: [25, 65, 90, 125, 150, 185, 210],
+  window_s: 1,
+  reexposure_s: 10,
+};
+const echoBlock = (
+  id: "impairment" | "attribution" | "retention",
+  duration: number,
+  conditions: (keyof typeof HELD_OUT)[],
+): FlyBlockSpec => ({
+  id,
+  arena: ECHO_ARENA,
+  fixed_config: WALKING,
+  start_half_width_m: 0.4,
+  tick_s: ECHO_TICK_S,
+  duration_s: duration,
+  trials: 1,
+  light_at: null,
+  near_miss_m: null,
+  stimulus: null,
+  echo: {
+    schedule: id,
+    conditions: "evaluation",
+    condition_set: conditions.map((c) => structuredClone(HELD_OUT[c])),
+    ...structuredClone(ECHO_TIMING),
+  },
+});
 
 /**
  * The fixed apparatus. A plan copies the blocks it uses, so changing any value
@@ -205,7 +262,34 @@ export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
       l_over_v_ms: 80,
     },
   },
+  // ECHO: the held-out evaluation conditions only, in the held-out arena.
+  impairment: echoBlock("impairment", 120, [
+    "speed_gain",
+    "turn_gain",
+    "turn_bias",
+    "speed_and_turn_gain",
+    "speed_gain_and_turn_bias",
+  ]),
+  attribution: echoBlock("attribution", 160, [
+    "speed_gain",
+    "turn_bias",
+    "push",
+    "spin",
+    "sensor_noise",
+    "speed_gain_and_push",
+    "obstacle",
+    "misleading_sense",
+  ]),
+  retention: echoBlock("retention", 245, [
+    "speed_gain",
+    "turn_gain",
+    "turn_bias",
+    "speed_and_turn_gain",
+    "speed_gain_and_turn_bias",
+  ]),
 };
+/** ECHO-03's reset falls this long before the remembered change returns (s). */
+const RESET_BEFORE_S = 5;
 const LIGHT_INTENSITY = 2;
 
 /**
@@ -269,6 +353,13 @@ export function describeFlyTreatment(t: FlyTreatment): string {
       return `repeating a looming stimulus every ${t.isi_s} s on a fixed schedule`;
     case "controller_comparison":
       return `controller configuration B (${configText(t.treatment)})`;
+    case "echo_impairment":
+    case "echo_attribution":
+      return `the ECHO controller with ${VARIANT_LABELS[t.variant]}`;
+    case "echo_retention":
+      return t.variant === "memory_reset"
+        ? `the full ECHO self-model reset to an innate one ${RESET_BEFORE_S} s before a remembered change returns`
+        : `the ECHO controller with ${VARIANT_LABELS[t.variant]}`;
   }
 }
 
@@ -286,6 +377,11 @@ export function describeFlyBaseline(t: FlyTreatment): string {
       return `the same stimuli every ${BASELINE_ISI_S} s on the same schedule`;
     case "controller_comparison":
       return `controller configuration A (${configText(t.baseline)})`;
+    case "echo_impairment":
+    case "echo_attribution":
+      return "the full ECHO self-model under the same hidden conditions";
+    case "echo_retention":
+      return "the full ECHO self-model with its memory intact, on the same schedule";
   }
 }
 
@@ -320,6 +416,24 @@ function armsOf(t: FlyTreatment): FlyArm[] {
         { config: structuredClone(t.baseline) },
         { config: structuredClone(t.treatment) },
       );
+    case "echo_impairment":
+    case "echo_attribution":
+      return arms(
+        { echo: { variant: "full", reset_s: null } },
+        { echo: { variant: t.variant, reset_s: null } },
+      );
+    case "echo_retention": {
+      const back = FLY_APPARATUS.retention.echo!.phases_s[4]!;
+      return arms(
+        { echo: { variant: "full", reset_s: null } },
+        {
+          echo:
+            t.variant === "memory_reset"
+              ? { variant: "full", reset_s: back - RESET_BEFORE_S }
+              : { variant: t.variant, reset_s: null },
+        },
+      );
+    }
   }
 }
 
@@ -343,6 +457,9 @@ function runSeconds(block: FlyBlockSpec, arm: FlyArm): number {
   switch (block.id) {
     case "clutter":
     case "light":
+    case "impairment":
+    case "attribution":
+    case "retention":
       return block.duration_s;
     case "escape":
       return (
@@ -535,7 +652,7 @@ export function compileFlyExperiment(
       "the fly's version, controller, full parameter table and source digest are bound into the plan digest",
     ],
     parameter_constraints: [
-      "six closed protocols with host-built arenas and stimuli",
+      `${FLY_PROTOCOLS.length} closed protocols with host-built arenas, stimuli and hidden perturbation schedules`,
       "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
       "the integration settings (physics, sensing and decision periods) are never varied",
       `at most ${MAX_SIMULATED_SECONDS} simulated fly-seconds per experiment`,
@@ -569,6 +686,14 @@ export function compileFlyExperiment(
       ...(t.kind === "light_preference" || t.kind === "controller_comparison"
         ? [
             "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+          ]
+        : []),
+      ...(protocol.id.startsWith("echo_")
+        ? [
+            "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+            "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+            "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+            "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
           ]
         : []),
       ...(protocol.blocks.some((b) => b === "escape" || b === "repeat")
@@ -1134,6 +1259,9 @@ const BLOCK_SALT: Record<FlyBlockId, number> = {
   light: 0x6c6967,
   escape: 0x657363,
   repeat: 0x726570,
+  impairment: 0x696d70,
+  attribution: 0x617474,
+  retention: 0x726574,
 };
 
 const finite = (x: number | null): number | null =>
@@ -1528,6 +1656,9 @@ const RUNNERS: Record<FlyBlockId, (b: FlyBlockSpec, a: FlyArm, seed: number) => 
     light: runLight,
     escape: runEscape,
     repeat: runRepeat,
+    impairment: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.impairment),
+    attribution: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.attribution),
+    retention: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.retention),
   };
 
 /**

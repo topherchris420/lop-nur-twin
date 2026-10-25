@@ -4,12 +4,14 @@
  *
  * Covered, each file LF-normalized before hashing:
  * - the fly's simulation, found by following relative imports from
- *   `src/bethesda/fly/fly.ts` and the experiment arena `arena.ts`, with the
+ *   `src/bethesda/fly/fly.ts`, the experiment arena `arena.ts` and Project
+ *   ECHO's controller `echo/adapter.ts` (its self-model with it), with the
  *   data and library modules they import (`src/lib/noise.ts`, the skeleton
  *   data, the state hash). The drawn fly (FlyView, FlyPanel, pose, meshCodec),
  *   the city's world (bethesdaWorld, cityFly) and the VFB reference stay out
  *   until the simulation imports them;
- * - the backend's rig and analysis, `src/rain/scientific/fly.ts`;
+ * - the backend's rig and analysis, `src/rain/scientific/fly.ts`, and
+ *   ECHO's rig, `src/rain/scientific/flyEcho.ts`;
  * - the fly section of the contracts, from the "digital fly" banner of
  *   `src/bethesda/rain/scientificProtocol.ts` to the next banner.
  * Packages (simplex-noise) are pinned by the lockfile, not hashed here.
@@ -25,8 +27,12 @@ import { sha256, sha256Json } from "../sha256.js";
 
 /** The generated module, relative to the repository root. */
 export const FLY_SOURCE_MODULE = "src/rain/scientific/flySource.ts";
-const ENTRIES = ["src/bethesda/fly/fly.ts", "src/bethesda/fly/arena.ts"];
-const WHOLE = ["src/rain/scientific/fly.ts"];
+const ENTRIES = [
+  "src/bethesda/fly/fly.ts",
+  "src/bethesda/fly/arena.ts",
+  "src/bethesda/fly/echo/adapter.ts",
+];
+const WHOLE = ["src/rain/scientific/fly.ts", "src/rain/scientific/flyEcho.ts"];
 const SECTION = {
   path: "src/bethesda/rain/scientificProtocol.ts",
   banner:

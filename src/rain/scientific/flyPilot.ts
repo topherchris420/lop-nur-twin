@@ -57,10 +57,22 @@ export const FLY_PILOT_SEEDS_USED = 32;
 export const FLY_PILOT_POWER = 0.9;
 /** Confidence of the one-sided bounds the sizing puts on pilot proportions. */
 const CONFIDENCE = 0.95;
-/** Metrics the v3 redesign added: their host minimum effects come from the pilots. */
+/** Metrics the v3 redesign and Project ECHO added: their host minimum effects come from the pilots. */
 export const FLY_PILOT_SIZED_METRICS: readonly FlyMetricId[] = [
   "near_miss_fraction",
   "escape_ttc_s",
+  "impaired_path_error",
+  "late_path_error",
+  "baseline_path_error",
+  "detection_latency_s",
+  "identification_error",
+  "attribution_accuracy",
+  "false_self_attribution",
+  "attribution_brier",
+  "attribution_path_error",
+  "reexposure_path_error",
+  "reexposure_latency_s",
+  "unfamiliar_path_error",
 ];
 
 /** The doses a pilot runs against the control, the demonstration's among them. */
@@ -79,6 +91,16 @@ export const FLY_PILOT_SERIES: Partial<Record<FlyProtocolId, FlyTreatment[]>> = 
     noise,
   })),
   adaptation: [5, 10, 20, 40].map((isi_s) => ({ kind: "adaptation" as const, isi_s })),
+  // ECHO: the full self-model is the control; each dose removes one mechanism.
+  echo_impairment: (
+    ["reactive", "no_learning", "no_uncertainty", "no_memory"] as const
+  ).map((variant) => ({ kind: "echo_impairment" as const, variant })),
+  echo_attribution: (
+    ["naive_self", "motion_gated", "no_uncertainty", "no_memory"] as const
+  ).map((variant) => ({ kind: "echo_attribution" as const, variant })),
+  echo_retention: (["memory_reset", "no_memory", "no_learning", "reactive"] as const).map(
+    (variant) => ({ kind: "echo_retention" as const, variant }),
+  ),
 };
 
 /** What a pilot runs, recorded in full so that it can be re-run exactly. */
@@ -357,8 +379,15 @@ export function sizeFlyDesign(
 
 /** The host minimum effect a null arm implies for `metric`. */
 function floorFor(metric: FlyMetricId, nullMetric: FlyPilotMetric): FlyPilotFloor {
-  // Escapes are decided on sensory samples, so a timing is resolved to one sample period.
-  const resolution = metric === "escape_ttc_s" ? PARAMS.sensePeriodMs.value / 1000 : 0;
+  // Escapes are decided on sensory samples, so a timing is resolved to one
+  // sample period; the self-model notices and concludes at decisions, so its
+  // latencies resolve to one decision period.
+  const resolution =
+    metric === "escape_ttc_s"
+      ? PARAMS.sensePeriodMs.value / 1000
+      : metric.endsWith("latency_s")
+        ? PARAMS.decisionPeriodMs.value / 1000
+        : 0;
   const bound = (2 * (nullMetric.sd_difference ?? 0)) / Math.sqrt(FLY_SEED_COUNT.min);
   const larger = Math.max(resolution, bound);
   return {
