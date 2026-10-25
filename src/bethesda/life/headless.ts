@@ -6,13 +6,7 @@
  * Preserve the city's and fly's existing deterministic engines and isolation:
  * CityFly observes CitySimulation, and CitySimulation never observes CityFly.
  */
-import {
-  CitySimulation,
-  DT,
-  PROFILES,
-  SIM_VERSION,
-  type Config,
-} from "../simulation.js";
+import { CitySimulation, DT, PROFILES, SIM_VERSION, type Config } from "../simulation.js";
 import { CityFly } from "../fly/cityFly.js";
 import { FLY_VERSION } from "../fly/fly.js";
 import type { Mode } from "../fly/neural.js";
