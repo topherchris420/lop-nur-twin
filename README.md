@@ -2,139 +2,168 @@
 
 # R.A.I.N. Lab
 
-### Ask a question. Run the experiment. Inspect the evidence.
+### Simulated worlds. Testable questions. Inspectable evidence.
+
+**An open-source research environment from [Vers3Dynamics](https://vers3dynamics.com), created by Christopher Woodyard.**
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Explore the lab](https://img.shields.io/badge/explore-the%20lab-0B5D63)](https://lop-nur-twin.vercel.app/)
+[![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Explore](https://img.shields.io/badge/enter-the%20twin-0B5D63)](https://lop-nur-twin.vercel.app/)
 
-[Enter the twin](https://lop-nur-twin.vercel.app/) ·
-[Inspect the evidence](https://lop-nur-twin.vercel.app/analysis) ·
-[Play Noeterra](https://lop-nur-twin.vercel.app/noeterra) ·
-[Meet R.A.I.N.](https://rainlabteam.vercel.app/)
+**[Explore the twin](https://lop-nur-twin.vercel.app/)** ·
+**[Inspect the evidence](https://lop-nur-twin.vercel.app/analysis)** ·
+**[Watch the fly film](https://lop-nur-twin.vercel.app/film/)** ·
+**[Meet R.A.I.N.](https://rainlabteam.vercel.app/)**
 
 </div>
 
-**R.A.I.N. Lab is an open-source research environment where AI can propose experiments,
-simulations produce measurements, and every conclusion has a record you can inspect.**
-Explore a source-linked reconstruction of Lop Nur, enter a research lab in a walkable
-Bethesda, or investigate the behavior of simulated civilizations and a digital fly.
+R.A.I.N. Lab turns simulated worlds into places where ideas can be tested and
+their limits examined. Walk through a **source-linked reconstruction of Lop
+Nur**, discover a research laboratory in **Bethesda, Maryland**, study a
+**digital fly that models its own movement**, or run experiments in a
+**civilization simulator**.
 
-Built by **Christopher Woodyard at Vers3Dynamics**, the project pursues a digital Bell
-Labs inside simulated worlds. James, Jasmine, Luca, and Elena bring four research
-perspectives to a shared workspace of papers, mathematical context, protocols, and
-retained results. The repository keeps its original name, `lop-nur-twin`, as the lab
-grows around the airfield reconstruction.
+The aim is a small, open digital Bell Labs: a place to ask difficult
+questions, design bounded tests, preserve the attempts that fail, and leave
+enough evidence for someone else to check the answer.
 
-> Models propose. Host code validates. Simulations produce observations.
-> Preregistered criteria determine what the evidence supports.
+> **Models propose. Host code validates. Simulations produce observations.
+> The evidence—not the model's confidence—determines what can be concluded.**
 
-![Reconstructed Lop Nur airfield with its site map, evidence timeline, and status panels](docs/screenshot-overview.png)
+[![3D Lop Nur reconstruction with evidence timeline, site map and inspectable claims](docs/screenshot-overview.png)](https://lop-nur-twin.vercel.app/)
+
+## Choose your entrance
+
+No account, database or model API key is needed for the public reconstruction
+and scripted experiences. Some 3D routes need WebGL; the evidence tables do not.
+
+| Enter                                                                  | What you will find                                                                                                                 |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **[Lop Nur · 3D twin](https://lop-nur-twin.vercel.app/)**              | Explore the reconstructed airfield, inspect structures, measure modeled distances and scrub the evidence timeline.                 |
+| **[Evidence inspector](https://lop-nur-twin.vercel.app/analysis)**     | Read the underlying claims, sources, classifications and uncertainty—even without WebGL.                                           |
+| **[Compare model revisions](https://lop-nur-twin.vercel.app/compare)** | See how placement, sourcing and uncertainty changed between recorded releases.                                                     |
+| **[Bethesda · R.A.I.N. Lab](docs/BETHESDA_ANOMALY.md)**                | Find the hidden, walkable city and enter the laboratory where James, Jasmine, Luca and Elena represent four research perspectives. |
+| **[Project ECHO · digital fly](docs/PROJECT_ECHO.md)**                 | Examine a fly controller that predicts its own movement, detects discrepancies and updates its functional self-model.              |
+| **[Noeterra](https://lop-nur-twin.vercel.app/noeterra)**               | Explore rule-based civilizations in the Mediterranean (264 BC) or Tarim Basin (77 BC), including Loulan.                           |
+| **[Blacksite](https://lop-nur-twin.vercel.app/play)**                  | Try an illustrative first-person simulation with human, scripted and optionally configured model-controlled player seats.          |
+| **[Evaluation](https://lop-nur-twin.vercel.app/evaluation)**           | Inspect recorded decisions, experiment outcomes and comparisons.                                                                   |
+
+**First five minutes:** [open the twin](https://lop-nur-twin.vercel.app/),
+select a structure to read its dossier, press `L` to show the evidence lens,
+then [open the inspector](https://lop-nur-twin.vercel.app/analysis) to trace a
+claim to its sources. Press `H` for help, or `1` / `2` / `3` to change
+camera mode. [Full controls](docs/CONTROLS.md).
 
 <details>
-<summary>Watch the 15-second introduction</summary>
+<summary>How to find Bethesda and the hidden lab (spoiler)</summary>
 
-![R.A.I.N. Lab introduction: evidence ledger, research panel, and end card](docs/media/rain-lab-ad.webp)
+In the twin, press **backtick** (usually below Escape) and submit
+`38.9847,-77.0947` or `resolve bethesda`. Or press `I` to open the
+Site Index and search for those coordinates. The city loads on demand; the
+lab is inside a building, behind a door.
 
-[Watch with sound (MP4)](docs/media/rain-lab-ad.mp4). Music: “Supernova” by Scott
-Buckley, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+See the [Bethesda guide](docs/BETHESDA_ANOMALY.md) and
+[R.A.I.N. Lab guide](docs/RAIN_LAB_BETHESDA.md).
+
+</details>
+
+## Featured research · Project ECHO
+
+### Can a simulated organism learn what *it* can do?
+
+ECHO (**Emergent Computational Self-Modeling**) extends the digital fly with
+a functional model of its own sensorimotor capabilities. Every 50 ms in the
+research protocol, it compares the movement it expected after an action with
+the movement its simulated senses reported. When those disagree, it can test
+whether the cause seems to be **its body, its environment or its sensing**,
+revise its estimates, act more cautiously under uncertainty and retain
+bounded memories of earlier changes.
+
+The experimenter knows the hidden causes. **The fly does not receive its true
+position, heading or the perturbation labels.** ECHO is evaluated against
+simpler controllers and versions with parts of its self-model removed.
+
+| Preregistered experiment                                  | Recorded finding                                                                                                                                                  | Verdict                                 |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **ECHO-01 · compensate for a hidden impairment**          | Path error rose from **0.036 with the self-model to 0.399 without it**, across nine paired seeds.                                                                 | **Supported** under its frozen criteria |
+| **ECHO-02 · distinguish self-change from outside change** | Attribution accuracy was **0.891 vs. 0.567** for a simpler motion-gated rule, but missed the prespecified minimum effect; held-out calibration also deteriorated. | **Inconclusive**                        |
+| **ECHO-03 · recognize a returning impairment**            | Memory shortened re-identification by **0.82 seconds** in the registered comparison, below the required effect; it did not establish better subsequent movement.  | **Inconclusive**                        |
+
+These are **results inside a reduced-order simulator**, not measurements
+of living fruit flies. Functional self-modeling is **not evidence of
+consciousness, subjective experience, neural fidelity or biological
+equivalence**. Reproducible negative and inconclusive results remain part
+of the record.
+
+**[Read the ECHO design and limitations](docs/PROJECT_ECHO.md)** ·
+[Inspect the seeded evaluation](docs/benchmarks/fly-echo/README.md) ·
+[Study the digital fly](docs/DIGITAL_FLY.md)
+
+### A life three millimeters long
+
+[![A Life Three Millimeters Long — watch the 58-second illustrated fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)
+
+**[Watch the 58-second film with sound](https://lop-nur-twin.vercel.app/film/)** ·
+[Open the live fly garden](http://150.136.49.49/) ·
+[Download the MP4](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long.mp4) ·
+[Vertical edition](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4)
+
+The film is an illustrated interpretation, not footage of a living insect or
+a continuous recording of the Bethesda simulator. Its garden inset uses a
+recorded observation from the deployed garden.
+[Credits, playback options and production notes](docs/media/fly-film/README.md).
+
+#### Two fly experiences, different runtimes
+
+|                  | **Live garden**                                                                                                                        | **Bethesda research fly**                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Where            | [Separate server-side garden](http://150.136.49.49/)                                                                                   | The interactive 3D Bethesda simulation                                                                                                 |
+| Continuity       | Server-side state can advance without a viewer while the service is running; availability and restart recovery are **not guaranteed**. | Runs as part of the simulator; replacing or restoring ECHO does **not** establish the same persistent individual.                      |
+| Purpose          | An observable, stylized ongoing digital life experiment.                                                                               | Controlled studies of sensing, behavior, locomotion and functional self-modeling.                                                      |
+| Scientific scope | Not a validated biological or consciousness model.                                                                                     | Reduced-order behavior using FlyBody-derived anatomy and Virtual Fly Brain reference regions; it simulates **no neurons or synapses**. |
+
+The garden currently uses a plain-HTTP address, which some browsers or
+networks may block. The [hosted film page](https://lop-nur-twin.vercel.app/film/)
+is a separate viewing option, not the live garden.
+
+## One lab, four experiment backends
+
+| Backend               | Question it can investigate                                                                           | Boundary                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Bethesda**          | How do specified interventions change programmed city behavior?                                       | Simulated pedestrians and rules, not observations of residents. |
+| **Numerical physics** | Does a driven, damped oscillator match its analytic reference within stated tolerances?               | A bounded equation system, not a physical apparatus.            |
+| **Noeterra**          | How do memory, diplomacy and rule changes affect simulated civilizations?                             | Deterministic agents in illustrative historical settings.       |
+| **Digital fly**       | How do sensing, avoidance, adaptation and self-model variants compare under controlled perturbations? | A reduced-order controller, not a neural simulation.            |
+
+Noeterra's core runs in Rust/WebAssembly in the browser. Optional model
+rulers require its local workbench; public seats use human, rule-based or
+random control. [Noeterra guide](docs/NOETERRA.md).
+
+### Meet the research team
+
+James, Jasmine, Luca and Elena are four computational research perspectives
+that work with a shared set of papers, mathematical context, protocol
+definitions and retained results. Their suggestions are **proposals**, not
+authoritative findings. The laboratory uses a validation gate, explicit
+authorization and replay before results enter the research registry.
+
+<details>
+<summary>Watch the 15-second R.A.I.N. Lab introduction</summary>
+
+![R.A.I.N. Lab introduction showing its evidence ledger and research panel](docs/media/rain-lab-ad.webp)
+
+[Watch with sound (MP4)](docs/media/rain-lab-ad.mp4).
+Music: “Supernova” by Scott Buckley,
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
 [scottbuckley.com.au](https://www.scottbuckley.com.au).
 
 </details>
 
-### A life three millimeters long
-
-An enormous world, experienced by something extraordinarily small. Meet the digital
-fly in a **58-second illustrated film** with narration and an original soundtrack.
-
-[![Watch A Life Three Millimeters Long — the digital fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)
-
-**[Watch the film with sound](https://lop-nur-twin.vercel.app/film/)** ·
-[Watch the fly live ↗](http://150.136.49.49/) ·
-[Download MP4](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long.mp4) ·
-[Vertical edition](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4) ·
-[JavaScript player, subtitles and production notes](docs/media/fly-film/README.md)
-
-The film is an illustrated interpretation of simulated behavior. Its garden inset
-uses the deployed renderer and a recorded observation. The live garden runs a
-separate server-side simulation; it is distinct from the research fly in 3D Bethesda.
-
-### Project ECHO: a fly that models itself
-
-Project ECHO gives the digital fly a computational model of its own
-sensorimotor capabilities. The fly predicts what its own movements will do,
-notices when the prediction fails, asks whether its body, its surroundings or
-its senses changed (and stops or starts walking to find out when it cannot
-tell), revises its model, compensates, acts cautiously while unsure, and keeps
-episodic memories of what it concluded. It never sees its true position, its
-heading or the perturbations the experimenter hides from it.
-
-Three R.A.I.N. experiments test it on held-out conditions against ablations
-and simpler baselines. With a hidden impairment, removing the self-model
-raised path error from **0.036 to 0.399** (supported, 9 of 9 seeds). Telling
-its own changes from external ones was far better than a motion-gated rule
-(**0.89 vs 0.57** correct) but short of the pre-set minimum effect
-(inconclusive), and overconfident on held-out causes. Memory shortened
-re-identification of a returning impairment by under a second (inconclusive,
-under-powered by design). This is functional self-modelling in a reduced-order
-simulator, not consciousness. Read the
-[architecture, protocols, results and failures](docs/PROJECT_ECHO.md) and the
-[evaluation report](docs/benchmarks/fly-echo/README.md).
-
-**Start here:** [Explore](#explore) · [Run locally](#run-locally) ·
-[Research loop](#how-the-research-loop-works) · [Recorded results](#recorded-results) ·
-[Validation](#validation) · [Documentation](#documentation)
-
-## Explore
-
-The default reconstruction and scripted experiences need no account, database, or model
-API key. Live model research is optional and requires a configured local workbench.
-
-| Experience                                                     | What you can do                                                                                                                    |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| [Lop Nur twin](https://lop-nur-twin.vercel.app/)               | Explore the airfield in 3D, inspect structures, measure modeled distances, and move through the evidence timeline.                 |
-| [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Read claims, sources, classifications, uncertainty, and revisions in an accessible table that works without WebGL.                 |
-| [Model comparison](https://lop-nur-twin.vercel.app/compare)    | Compare release manifests to see changes in placement, evidence, wording, and uncertainty.                                         |
-| [Blacksite](https://lop-nur-twin.vercel.app/play)              | Enter an illustrative first-person simulation where humans, scripted policies, and configured models use the same player controls. |
-| [Evaluation](https://lop-nur-twin.vercel.app/evaluation)       | Inspect recorded decisions, outcomes, and experiment comparisons.                                                                  |
-| [Noeterra](https://lop-nur-twin.vercel.app/noeterra)           | Rule a nation among autonomous civilizations in the Mediterranean in 264 BC or the Tarim Basin in 77 BC, including Loulan.         |
-| Bethesda and R.A.I.N.                                          | Discover the hidden city, meet the four research perspectives, inspect the digital fly, and open the lab's workbench.              |
-
-**A first visit:** enter the twin, click a building to open its dossier, then press `L`
-to see the evidence lens. Open the evidence inspector to follow a claim back to its
-sources. Press `H` for help; `1`, `2`, and `3` switch between orbit, walking, and
-cinematic cameras. [All controls and URL parameters](docs/CONTROLS.md).
-
-<details>
-<summary>Find Bethesda and enter the R.A.I.N. Lab (spoiler)</summary>
-
-In the twin at `/`, press **backtick** (usually the key below Escape), enter
-`38.9847,-77.0947` or `resolve bethesda`, and submit. Alternatively, open the **Site
-Index** with `I` and search for those coordinates. The city loads lazily; the lab is
-behind a door inside it.
-
-Follow the [Bethesda guide](docs/BETHESDA_ANOMALY.md) and
-[Lab guide](docs/RAIN_LAB_BETHESDA.md) for navigation and the research controls.
-
-</details>
-
-### One lab, four experiment backends
-
-| Backend               | What it tests                                                                                                          | What its results describe                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Bethesda**          | Matched interventions in a simulated city, including changes to pedestrian movement.                                   | The city's programmed agents and rules.                                          |
-| **Numerical physics** | A bounded driven, damped oscillator, checked against an independent analytic reference.                                | Numerical behavior under the specified equations and tolerances.                 |
-| **Noeterra**          | Civilization experiments using deterministic rule-based agents, memory, and diplomacy.                                 | An illustrative simulation, with historical settings and game-valued parameters. |
-| **Digital fly**       | Enclosed-arena studies of avoidance, visual threat, sensing, light preference, adaptation, and controller differences. | A reduced-order behavioral controller using FlyBody-derived anatomy.             |
-
-Noeterra's Rust engine runs in the browser through WebAssembly. Model rulers are
-available in its separate local workbench; the public Noeterra page uses human,
-rule-based, or random seats. See [Noeterra](docs/NOETERRA.md).
-
-The digital fly is one adult _Drosophila_ at true scale in Bethesda, with inspectable
-senses and behavior. Virtual Fly Brain supplies an anatomical reference layer. Its
-controller simulates no neurons, synapses, or muscles; its results do not validate
-biological behavior. See the [digital-fly guide](docs/DIGITAL_FLY.md).
+**Next:** [Run locally](#run-locally) ·
+[Research method](#how-the-research-loop-works) ·
+[Recorded results](#recorded-results) ·
+[Validation](#validation) ·
+[Documentation](#documentation)
 
 ## Run locally
 
