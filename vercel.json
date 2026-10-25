@@ -109,8 +109,15 @@
       "destination": "/api/rain/math?op=:op"
     },
     {
-      "source": "/((?!api/|assets/).*)",
+      "source": "/((?!api/|assets/|film(?:/|$)).*)",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/film",
+      "destination": "/film/",
+      "permanent": true
     }
   ]
 }

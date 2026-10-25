@@ -47,11 +47,12 @@ Buckley, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
 An enormous world, experienced by something extraordinarily small. Meet the digital
 fly in a **58-second illustrated film** with narration and an original soundtrack.
 
-[![Watch A Life Three Millimeters Long — the digital fly film](docs/media/fly-film/poster.jpg)](https://github.com/topherchris420/lop-nur-twin/blob/main/docs/media/fly-film/a-life-three-millimeters-long.mp4)
+[![Watch A Life Three Millimeters Long — the digital fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)
 
-**[Watch the film (MP4)](https://github.com/topherchris420/lop-nur-twin/blob/main/docs/media/fly-film/a-life-three-millimeters-long.mp4)** ·
+**[Watch the film with sound](https://lop-nur-twin.vercel.app/film/)** ·
 [Watch the fly live ↗](http://150.136.49.49/) ·
-[Vertical edition](docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4) ·
+[Download MP4](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long.mp4) ·
+[Vertical edition](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4) ·
 [JavaScript player, subtitles and production notes](docs/media/fly-film/README.md)
 
 The film is an illustrated interpretation of simulated behavior. Its garden inset

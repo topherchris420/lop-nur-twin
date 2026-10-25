@@ -149,3 +149,10 @@ summary:focus-visible {
     font-size: 18px;
   }
 }
+
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #183a38;
+}

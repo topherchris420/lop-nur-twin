@@ -2,15 +2,22 @@
 
 A 58-second animated field film for the digital fly, by Vers3Dynamics.
 
+**[Watch with sound in your browser](https://lop-nur-twin.vercel.app/film/)**.
+
 - [Landscape film](a-life-three-millimeters-long.mp4): 1920 × 1080, 30 fps, stereo sound, visible captions and a selectable subtitle track.
 - [Vertical social edition](a-life-three-millimeters-long-vertical.mp4): 1080 × 1920, individually composed layouts.
 - [JavaScript player](index.html): explicit sound control, pause, scrub, captions, transcript and reduced motion.
 - [Watch the fly live](http://150.136.49.49/).
 - [WebVTT](captions.vtt) · [SRT](captions.srt) · [Poster](poster.jpg).
 
-GitHub displays a linked poster in the repository README. It does not execute the
-JavaScript film inside Markdown. Download the MP4 to play it, or serve this folder
-from any static server. The local player needs no model key or build step.
+The repository README poster opens the hosted `/film/` page, where a native HTML
+video player supplies playback, seeking and sound without JavaScript. Direct MP4
+downloads remain available. GitHub itself does not play repository binary files.
+
+The build copies an explicit asset list into `dist/film/`; Vercel serves this path
+outside the app rewrite. The JavaScript player is available at `/film/animation.html`.
+For local use, serve this folder from any static server. The local JavaScript player
+needs no model key or build step.
 
 ```sh
 # From the repository root; open http://localhost:8080/docs/media/fly-film/
