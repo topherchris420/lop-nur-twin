@@ -1,0 +1,3487 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "echo_impairment",
+  "fly_version": "digital-fly/7",
+  "fly": "digital-fly/7 reduced-order-fsm/v1",
+  "fly_sha256": "1f4bac8d974fedb2d431462a95342952bf56997aeb848b7346ba385c9020961f",
+  "fly_source_sha256": "f24877bd26d4eaf17828aa623e4c6676e23c1f751cb1f58379fb909a38939c14",
+  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
+  "code": {
+    "commit": "737b9148ea27de52866f996feaef625a59123c15",
+    "dirty": false
+  },
+  "definition": {
+    "protocol": "echo_impairment",
+    "demonstration": {
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "reactive"
+      },
+      "metric": "impaired_path_error",
+      "direction": "increase"
+    },
+    "blocks": [
+      {
+        "id": "impairment",
+        "arena": {
+          "size": [
+            3,
+            2.5,
+            3
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": -0.75,
+              "z": 0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": 0.75,
+              "r": 0.05
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "groomHz": 0,
+          "walkStartHz": 1,
+          "walkStopHz": 0.1
+        },
+        "start_half_width_m": 0.4,
+        "tick_s": 0.05,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": null,
+        "echo": {
+          "schedule": "impairment",
+          "conditions": "evaluation",
+          "condition_set": [
+            {
+              "id": "speed_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.45
+                    ],
+                    [
+                      0.65,
+                      0.75
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.5
+                    ],
+                    [
+                      0.7,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.4,
+                      0.6
+                    ],
+                    [
+                      1,
+                      1.4
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            },
+            {
+              "id": "speed_and_turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.5,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "speed_gain_and_turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.5,
+                      1.2
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            }
+          ],
+          "onset_s": [
+            30,
+            40
+          ],
+          "onsets_s": [
+            20,
+            55,
+            90,
+            125
+          ],
+          "jitter_s": 3,
+          "episode_s": [
+            15,
+            22
+          ],
+          "persistent_last": 0.5,
+          "phases_s": [
+            25,
+            65,
+            90,
+            125,
+            150,
+            185,
+            210
+          ],
+          "window_s": 1,
+          "reexposure_s": 10
+        }
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "echo": {
+        "variant": "full",
+        "reset_s": null
+      },
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "echo_impairment",
+          "variant": "reactive"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "reactive",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_impairment",
+          "variant": "no_learning"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_learning",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_impairment",
+          "variant": "no_uncertainty"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_uncertainty",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_impairment",
+          "variant": "no_memory"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_memory",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "the full ECHO self-model under the same hidden conditions",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "impaired_path_error": 0.00945546446079753,
+          "late_path_error": 0.008533695973917411,
+          "baseline_path_error": 0.01748530284074092,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 2.0500000000000043,
+          "identification_error": 0.0056005087125652955,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.6129451965222836,
+          "coverage_90": 0.9037843876553554
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "impaired_path_error": 0.010799774076678172,
+          "late_path_error": 0.008324596127323308,
+          "baseline_path_error": 0.006353667021034428,
+          "detection_latency_s": 0.15000000000000213,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.0036759196893685654,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.672783475780055,
+          "coverage_90": 0.9011311269375786
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "impaired_path_error": 0.007390079753755021,
+          "late_path_error": 0.007875691468881004,
+          "baseline_path_error": 0.012620832628253278,
+          "detection_latency_s": 1,
+          "attribution_latency_s": 2.8500000000000014,
+          "identification_error": 0.037741359530177654,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1315169711803974,
+          "coverage_90": 0.9038407625455565
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "impaired_path_error": 0.04948472817982134,
+          "late_path_error": 0.03352780137303005,
+          "baseline_path_error": 0.020351194641507017,
+          "detection_latency_s": 0.3000000000000007,
+          "attribution_latency_s": 2.1999999999999993,
+          "identification_error": 0.0058837009415697765,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.6699759608683418,
+          "coverage_90": 0.9097397145256088
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "impaired_path_error": 0.24738949582588904,
+          "late_path_error": 0.23113353921390128,
+          "baseline_path_error": 0.012466689811627607,
+          "detection_latency_s": 0.19999999999999574,
+          "attribution_latency_s": 4.899999999999999,
+          "identification_error": 0.004217545791002284,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4167633832552158,
+          "coverage_90": 0.9068729959570612
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "impaired_path_error": 0.008367353164711475,
+          "late_path_error": 0.00946800952133729,
+          "baseline_path_error": 0.009112118738277383,
+          "detection_latency_s": 0.3999999999999986,
+          "attribution_latency_s": 2.25,
+          "identification_error": 0.004963001457018245,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4761769000895821,
+          "coverage_90": 0.9062018759624807
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "impaired_path_error": 0.16124129998472445,
+          "late_path_error": 0.16421651223466296,
+          "baseline_path_error": 0.021852462636562108,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 3.299999999999997,
+          "identification_error": 0.009197795667010568,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.8403839369163411,
+          "coverage_90": 0.907703081232493
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "impaired_path_error": 0.00708249189401587,
+          "late_path_error": 0.006015030258346761,
+          "baseline_path_error": 0.012675347426807508,
+          "detection_latency_s": 1.3500000000000014,
+          "attribution_latency_s": 3.299999999999997,
+          "identification_error": 0.021171417646168842,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4304633652056653,
+          "coverage_90": 0.9083298451234826
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "impaired_path_error": 0.19391475421508586,
+          "late_path_error": 0.2600552440925634,
+          "baseline_path_error": 0.01786539355941795,
+          "detection_latency_s": 0.09999999999999432,
+          "attribution_latency_s": 1.8499999999999943,
+          "identification_error": 0.019442782581016803,
+          "false_alarms_per_min": 1.6574585635359114,
+          "impaired_walked_m": 1.5858222018456176,
+          "coverage_90": 0.9037843876553554
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "impaired_path_error": 0.009752107175641254,
+          "late_path_error": 0.0074919505070821365,
+          "baseline_path_error": 0.013229171807359084,
+          "detection_latency_s": 0.29999999999999716,
+          "attribution_latency_s": 2.049999999999997,
+          "identification_error": 0.00208385240552268,
+          "false_alarms_per_min": 1.589403973509934,
+          "impaired_walked_m": 1.3312963783617051,
+          "coverage_90": 0.9104498463257893
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "impaired_path_error": 0.028875654755159796,
+          "late_path_error": 0.006756744585562957,
+          "baseline_path_error": 0.013936025750682082,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 7.900000000000006,
+          "identification_error": 0.0018564497506839092,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2503019565748588,
+          "coverage_90": 0.9069345611832008
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "impaired_path_error": 0.15793438149902808,
+          "late_path_error": 0.11778643192747475,
+          "baseline_path_error": 0.026005470357464918,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.1999999999999957,
+          "identification_error": 0.007358213533022517,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2236924563547846,
+          "coverage_90": 0.9023809523809524
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "impaired_path_error": 0.0057339163292252065,
+          "late_path_error": 0.0046115763010661824,
+          "baseline_path_error": 0.015420988891855898,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 2.25,
+          "identification_error": 0.0033455302890716245,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3836174091660467,
+          "coverage_90": 0.9067169389750035
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "impaired_path_error": 0.350370035473982,
+          "late_path_error": 0.4978934752026888,
+          "baseline_path_error": 0.010350228451281295,
+          "detection_latency_s": 0.14999999999999858,
+          "attribution_latency_s": 1.4499999999999957,
+          "identification_error": 0.0006372576227387745,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.7506010749406973,
+          "coverage_90": 0.9076406381192276
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "impaired_path_error": 0.2119598743811432,
+          "late_path_error": 0.25997206260632977,
+          "baseline_path_error": 0.011891648761840904,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.013040643132129178,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2122886215657849,
+          "coverage_90": 0.8940092165898618
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "impaired_path_error": 0.02947896702125553,
+          "late_path_error": 0.02900434795641716,
+          "baseline_path_error": 0.0064850943308954025,
+          "detection_latency_s": 0.05000000000000426,
+          "attribution_latency_s": 2.200000000000003,
+          "identification_error": 0.00135016798902414,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4714396093166542,
+          "coverage_90": 0.9037223621606493
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "impaired_path_error": 0.010317090658938028,
+          "late_path_error": 0.008352285355323636,
+          "baseline_path_error": 0.0184622800835743,
+          "detection_latency_s": 0.05000000000000071,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.0009601232579440077,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.9777790624180718,
+          "coverage_90": 0.9073446327683616
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "impaired_path_error": 0.006007764412807147,
+          "late_path_error": 0.0035477097011500846,
+          "baseline_path_error": 0.00816171448090618,
+          "detection_latency_s": 0.25,
+          "attribution_latency_s": 1.9500000000000028,
+          "identification_error": 0.014945098599289079,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.454392433915119,
+          "coverage_90": 0.9029465158497416
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "impaired_path_error": 0.024235911029650246,
+          "late_path_error": 0.00958202186957071,
+          "baseline_path_error": 0.011791914381242734,
+          "detection_latency_s": 0.14999999999999858,
+          "attribution_latency_s": 3.700000000000003,
+          "identification_error": 0.011368837386389094,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.320836466448484,
+          "coverage_90": 0.8976718248989265
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "impaired_path_error": 0.009836522774130168,
+          "late_path_error": 0.007295408481173197,
+          "baseline_path_error": 0.010028549242669098,
+          "detection_latency_s": 0.45000000000000284,
+          "attribution_latency_s": 2.5,
+          "identification_error": 0.014101008084714097,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.520609377222299,
+          "coverage_90": 0.9054205085219335
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "impaired_path_error": 0.008440618997399538,
+          "late_path_error": 0.006137710260649356,
+          "baseline_path_error": 0.011031943726613406,
+          "detection_latency_s": 8.549999999999997,
+          "attribution_latency_s": 10.299999999999997,
+          "identification_error": 0.009461446499754077,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.6498798237057424,
+          "coverage_90": 0.9126851075719474
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "impaired_path_error": 0.01280434471447928,
+          "late_path_error": 0.005809645443263593,
+          "baseline_path_error": 0.012306154309367547,
+          "detection_latency_s": 15.699999999999996,
+          "attribution_latency_s": 17.35,
+          "identification_error": 0.011926898011015112,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.8343329157110897,
+          "coverage_90": 0.9064938684503902
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "impaired_path_error": 0.006823251123494135,
+          "late_path_error": 0.004794556637054191,
+          "baseline_path_error": 0.0168058539920313,
+          "detection_latency_s": 0.19999999999999574,
+          "attribution_latency_s": 2.1999999999999957,
+          "identification_error": 0.0035750252448272096,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4961183538322829,
+          "coverage_90": 0.9090146750524108
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "impaired_path_error": 0.01832397901722162,
+          "late_path_error": 0.018635376582712214,
+          "baseline_path_error": 0.009256801195485187,
+          "detection_latency_s": 0.3500000000000014,
+          "attribution_latency_s": 2.3500000000000014,
+          "identification_error": 0.007712401611399741,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4004234246438954,
+          "coverage_90": 0.9098154362416108
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "impaired_path_error": 0.12468714808599621,
+          "late_path_error": 0.09727844696689013,
+          "baseline_path_error": 0.018648626354392572,
+          "detection_latency_s": 0.19999999999999574,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.0018788342304753031,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.8069751171102733,
+          "coverage_90": 0.900572545733836
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "impaired_path_error": 0.012042305073008432,
+          "late_path_error": 0.00841660643007973,
+          "baseline_path_error": 0.021730180726428048,
+          "detection_latency_s": 1.1499999999999986,
+          "attribution_latency_s": 5.149999999999999,
+          "identification_error": 0.028582914583623116,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.0826184745752945,
+          "coverage_90": 0.9116331096196868
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "impaired_path_error": 0.05008384026618341,
+          "late_path_error": 0.04275373391894533,
+          "baseline_path_error": 0.009759435324499742,
+          "detection_latency_s": 1.2999999999999972,
+          "attribution_latency_s": 3.549999999999997,
+          "identification_error": 0.026937404236898988,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2077314766513223,
+          "coverage_90": 0.9064597315436241
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "impaired_path_error": 0.20034512416376196,
+          "late_path_error": 0.22674639773716204,
+          "baseline_path_error": 0.00591275630026498,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.005873086850596801,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2318484135970544,
+          "coverage_90": 0.904463040446304
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "impaired_path_error": 0.10660524299437801,
+          "late_path_error": 0.18384553513587573,
+          "baseline_path_error": 0.01715777809910897,
+          "detection_latency_s": 0.14999999999999858,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.008764189233883984,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.7550854036640882,
+          "coverage_90": 0.904642409033877
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "impaired_path_error": 0.00630811640837203,
+          "late_path_error": 0.0037398307454881465,
+          "baseline_path_error": 0.008516282109450954,
+          "detection_latency_s": 0.09999999999999787,
+          "attribution_latency_s": 2.2499999999999964,
+          "identification_error": 0.017024835233637067,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.5192144215349672,
+          "coverage_90": 0.9062369192130598
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "impaired_path_error": 0.007514226990806536,
+          "late_path_error": 0.004446314616439874,
+          "baseline_path_error": 0.008996158805248263,
+          "detection_latency_s": 1.6000000000000014,
+          "attribution_latency_s": 3.549999999999997,
+          "identification_error": 0.009184548572569024,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3212211042289266,
+          "coverage_90": 0.9089009611366485
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "impaired_path_error": 0.007786865029267781,
+          "late_path_error": 0.004744382199929775,
+          "baseline_path_error": 0.01234449188077453,
+          "detection_latency_s": 6.850000000000001,
+          "attribution_latency_s": 8.199999999999996,
+          "identification_error": 0.011747124023430157,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.5166247387494136,
+          "coverage_90": 0.9076170510132774
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "the ECHO controller with no self-model (the reduced-order controller alone)",
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "reactive"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "impaired_path_error": 0.5818980723177501,
+            "late_path_error": 0.5809106343420474,
+            "baseline_path_error": 0.0007910993985720623,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.5277986558566479,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "impaired_path_error": 0.5465270871056067,
+            "late_path_error": 0.5464813228970117,
+            "baseline_path_error": 0.0002642814496219918,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.6721860396904908,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "impaired_path_error": 0.24748541958902975,
+            "late_path_error": 0.24781530595702644,
+            "baseline_path_error": 0.003290981689805502,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.1864662597766873,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "impaired_path_error": 0.303467567282942,
+            "late_path_error": 0.30428533020421733,
+            "baseline_path_error": 0.000015316869996278185,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.2535221940642132,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "impaired_path_error": 0.4870394764122454,
+            "late_path_error": 0.4857291595339223,
+            "baseline_path_error": 0.0002810859017798722,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.9665827159032725,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "impaired_path_error": 0.27886858883091975,
+            "late_path_error": 0.2796514196651077,
+            "baseline_path_error": 0.0005122155618046207,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.1220229645448885,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "impaired_path_error": 0.5625586473934876,
+            "late_path_error": 0.5638089239060118,
+            "baseline_path_error": 0.003451744564777572,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.6915805613100944,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "impaired_path_error": 0.0786983456782921,
+            "late_path_error": 0.07312285528931607,
+            "baseline_path_error": 0.003519227944112264,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.3267412504714717,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "impaired_path_error": 0.5264171772317905,
+            "late_path_error": 0.5265064475967429,
+            "baseline_path_error": 0.000018652803909278502,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.2175891548437963,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "impaired_path_error": 0.09319889597252544,
+            "late_path_error": 0.06890642697435997,
+            "baseline_path_error": 0.0027979595793125533,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.2667877365323101,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "impaired_path_error": 0.5081743036639889,
+            "late_path_error": 0.5083346593908405,
+            "baseline_path_error": 0.0036692020682127357,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.7308673099972559,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "impaired_path_error": 0.503690891000518,
+            "late_path_error": 0.5018401280086374,
+            "baseline_path_error": 0.006742470366669289,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.7991071440306505,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "impaired_path_error": 0.5550413062093682,
+            "late_path_error": 0.5549190540029684,
+            "baseline_path_error": 0.0020446042762293816,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.4305864958818097,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "impaired_path_error": 0.6417397931815177,
+            "late_path_error": 0.6420801948979034,
+            "baseline_path_error": 0.0014518253954694765,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.4885710460396863,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "impaired_path_error": 0.5853684964050149,
+            "late_path_error": 0.5841581700759115,
+            "baseline_path_error": 0.0002718680371127533,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.8311199845436982,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "impaired_path_error": 0.5660842889524851,
+            "late_path_error": 0.5644190613927124,
+            "baseline_path_error": 0.000044382677457013315,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.9874348846085274,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "impaired_path_error": 0.509085275073068,
+            "late_path_error": 0.5098372340822608,
+            "baseline_path_error": 0.0014345978351076039,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 2.019023543394096,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "impaired_path_error": 0.07752372885364035,
+            "late_path_error": 0.07459368207289728,
+            "baseline_path_error": 0.0010404174464580373,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.4988211086869911,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "impaired_path_error": 0.582188902567855,
+            "late_path_error": 0.5838837906246177,
+            "baseline_path_error": 0.000009239161463697448,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.3310843083465491,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "impaired_path_error": 0.6223926790043041,
+            "late_path_error": 0.6203566315728786,
+            "baseline_path_error": 0.00047892489239802964,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.4799224427346136,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "impaired_path_error": 0.03543087162547626,
+            "late_path_error": 0.03198717909676688,
+            "baseline_path_error": 0.0007916015742907521,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.694258752110571,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "impaired_path_error": 0.028279760746617935,
+            "late_path_error": 0.02383992060969058,
+            "baseline_path_error": 0.002574475234456465,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.6986218324244684,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "impaired_path_error": 0.30069466777241355,
+            "late_path_error": 0.2996302798229437,
+            "baseline_path_error": 0.0015728605135523184,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.0616748939347387,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "impaired_path_error": 0.07376231632269278,
+            "late_path_error": 0.07766231342381401,
+            "baseline_path_error": 0.0005971914896722673,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.463212990780379,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "impaired_path_error": 0.3509084534065021,
+            "late_path_error": 0.34963008096754516,
+            "baseline_path_error": 0.0002606576095331798,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.3066008350159273,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "impaired_path_error": 0.21002052809265748,
+            "late_path_error": 0.2098250467239725,
+            "baseline_path_error": 0.002671979889456707,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.0361771135415756,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "impaired_path_error": 0.5231963312771704,
+            "late_path_error": 0.5240248513898134,
+            "baseline_path_error": 0.0008677545628776218,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.9193715542829058,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "impaired_path_error": 0.569254993330461,
+            "late_path_error": 0.5704827253299367,
+            "baseline_path_error": 0.000005011309991021657,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 0.7136423435284183,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "impaired_path_error": 0.4483134335031153,
+            "late_path_error": 0.44607337326528723,
+            "baseline_path_error": 0.00004011859865100262,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.2934177506225875,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "impaired_path_error": 0.5361727373896601,
+            "late_path_error": 0.5371959385697334,
+            "baseline_path_error": 0.00005946057808500458,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.5937137595203235,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "impaired_path_error": 0.08711716109940829,
+            "late_path_error": 0.09744356789234042,
+            "baseline_path_error": 0.00007799559980170472,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.3435483315507473,
+            "coverage_90": null
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "impaired_path_error": 0.03369746872976113,
+            "late_path_error": 0.031049201440153155,
+            "baseline_path_error": 0.0008496854506237042,
+            "detection_latency_s": null,
+            "attribution_latency_s": null,
+            "identification_error": null,
+            "false_alarms_per_min": null,
+            "impaired_walked_m": 1.4323542454060685,
+            "coverage_90": null
+          }
+        }
+      ],
+      "metrics": {
+        "impaired_path_error": {
+          "control_mean": 0.06566852281033776,
+          "treatment_mean": 0.37669680206319633,
+          "mean_difference": 0.3110282792528587,
+          "sd_difference": 0.18875338897655877,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_path_error": {
+          "control_mean": 0.07152477098225918,
+          "treatment_mean": 0.3756401534693557,
+          "mean_difference": 0.30411538248709674,
+          "sd_difference": 0.19261323653488313,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "baseline_path_error": {
+          "control_mean": 0.013406642458364551,
+          "treatment_mean": 0.0013280903228519304,
+          "mean_difference": -0.012078552135512621,
+          "sd_difference": 0.004399007161694471,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "detection_latency_s": {
+          "control_mean": null,
+          "treatment_mean": null,
+          "mean_difference": null,
+          "sd_difference": null,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 32,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "identification_error": {
+          "control_mean": null,
+          "treatment_mean": null,
+          "mean_difference": null,
+          "sd_difference": null,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 32,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with predictive learning disabled (beliefs never revised)",
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "no_learning"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "impaired_path_error": 0.5842231370538412,
+            "late_path_error": 0.5903555463601703,
+            "baseline_path_error": 0.0007910993985720623,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.45389436558248597,
+            "coverage_90": 0.8445965212432278
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "impaired_path_error": 0.5217523315396977,
+            "late_path_error": 0.5354359241756674,
+            "baseline_path_error": 0.0002642814496219918,
+            "detection_latency_s": 0.15000000000000213,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.4823619631909835,
+            "coverage_90": 0.8469735720375107
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "impaired_path_error": 0.2527503731020354,
+            "late_path_error": 0.25846075328863627,
+            "baseline_path_error": 0.003290981689805502,
+            "detection_latency_s": 1.2999999999999972,
+            "attribution_latency_s": 3.049999999999997,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.6155240935172297,
+            "coverage_90": 0.8880352824014796
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "impaired_path_error": 0.307700116308536,
+            "late_path_error": 0.3056879085750118,
+            "baseline_path_error": 0.000015316869996278185,
+            "detection_latency_s": 0.34999999999999787,
+            "attribution_latency_s": 2.349999999999998,
+            "identification_error": 0.4387229685087164,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.4141092967267604,
+            "coverage_90": 0.922771152754117
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "impaired_path_error": 0.4916867773058466,
+            "late_path_error": 0.5005266476300813,
+            "baseline_path_error": 0.0002810859017798722,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 4.849999999999994,
+            "identification_error": 0.8996186037299192,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.2473688357920572,
+            "coverage_90": 0.893271133729149
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "impaired_path_error": 0.28153917461476885,
+            "late_path_error": 0.2821639963821037,
+            "baseline_path_error": 0.0005122155618046207,
+            "detection_latency_s": 0.44999999999999574,
+            "attribution_latency_s": 2.25,
+            "identification_error": 0.3912866080874859,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.40437854002228474,
+            "coverage_90": 0.9304495335029687
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "impaired_path_error": 0.5687746593233846,
+            "late_path_error": 0.5767623114952094,
+            "baseline_path_error": 0.003451744564777572,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 3.25,
+            "identification_error": 1.3050715541890787,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.18954301701636686,
+            "coverage_90": 0.9018518518518519
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "impaired_path_error": 0.0694985780987454,
+            "late_path_error": 0.06980946601362217,
+            "baseline_path_error": 0.003519227944112264,
+            "detection_latency_s": 1.3500000000000014,
+            "attribution_latency_s": 3.299999999999997,
+            "identification_error": 1.709266537415506,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.7388260594805587,
+            "coverage_90": 0.9405367231638418
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "impaired_path_error": 0.5258846288795728,
+            "late_path_error": null,
+            "baseline_path_error": 0.000018652803909278502,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 1.8999999999999986,
+            "identification_error": 0.8772345907318074,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.227299423351348,
+            "coverage_90": 0.8274443025400879
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "impaired_path_error": 0.04451456330862225,
+            "late_path_error": 0.0436081694873643,
+            "baseline_path_error": 0.0027979595793125533,
+            "detection_latency_s": 0.3500000000000014,
+            "attribution_latency_s": 2.049999999999997,
+            "identification_error": 1.0747838201177276,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.830398935677563,
+            "coverage_90": 0.9415179835740584
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "impaired_path_error": 0.5124722552936376,
+            "late_path_error": 0.49776253942487525,
+            "baseline_path_error": 0.0036692020682127357,
+            "detection_latency_s": 0.15000000000000568,
+            "attribution_latency_s": 7.900000000000006,
+            "identification_error": 0.755665022376721,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.2060013916520094,
+            "coverage_90": 0.8999574286930608
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "impaired_path_error": 0.5062293127901414,
+            "late_path_error": 0.504708865912525,
+            "baseline_path_error": 0.006742470366669289,
+            "detection_latency_s": 0.09999999999999432,
+            "attribution_latency_s": 2.1999999999999957,
+            "identification_error": 0.7138642203218646,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.2883855883403653,
+            "coverage_90": 0.8729344729344729
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "impaired_path_error": 0.5617863070371694,
+            "late_path_error": null,
+            "baseline_path_error": 0.0020446042762293816,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.25,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.41090035931538843,
+            "coverage_90": 0.8602104664391353
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "impaired_path_error": 0.644393532748884,
+            "late_path_error": null,
+            "baseline_path_error": 0.0014518253954694765,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 2.6999999999999957,
+            "identification_error": 1.83510323368123,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.17614917226203436,
+            "coverage_90": 0.8790081231295426
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "impaired_path_error": 0.6154752285353922,
+            "late_path_error": 0.5937835079550209,
+            "baseline_path_error": 0.0002718680371127533,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.961877823210578,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.23279159763154744,
+            "coverage_90": 0.8136628319840932
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "impaired_path_error": 0.5533082735896834,
+            "late_path_error": 0.5533082735896834,
+            "baseline_path_error": 0.000044382677457013315,
+            "detection_latency_s": 0.05000000000000426,
+            "attribution_latency_s": 2.200000000000003,
+            "identification_error": 0.7919574447875246,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.27337950432660646,
+            "coverage_90": 0.8374608596641048
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "impaired_path_error": 0.5087882034696678,
+            "late_path_error": 0.5113307596193388,
+            "baseline_path_error": 0.0014345978351076039,
+            "detection_latency_s": 0.05000000000000071,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.3913851313411132,
+            "coverage_90": 0.857893242475866
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "impaired_path_error": 0.048381291113755644,
+            "late_path_error": 0.057564331057947164,
+            "baseline_path_error": 0.0010404174464580373,
+            "detection_latency_s": 0.29999999999999716,
+            "attribution_latency_s": 1.8999999999999986,
+            "identification_error": 1.1391782192010977,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.8879582408608295,
+            "coverage_90": 0.9345741680767061
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "impaired_path_error": 0.5908007631926699,
+            "late_path_error": 0.5949829993830982,
+            "baseline_path_error": 0.000009239161463697448,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 3.3500000000000014,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.3965340168446439,
+            "coverage_90": 0.8472753007784855
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "impaired_path_error": 0.6072074126610341,
+            "late_path_error": 0.6072074126610341,
+            "baseline_path_error": 0.00047892489239802964,
+            "detection_latency_s": 0.5,
+            "attribution_latency_s": 2.5,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.3989417872907167,
+            "coverage_90": 0.8626030122193805
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "impaired_path_error": 0.039192730953827484,
+            "late_path_error": 0.029744641714682784,
+            "baseline_path_error": 0.0007916015742907521,
+            "detection_latency_s": 8.549999999999997,
+            "attribution_latency_s": 10.299999999999997,
+            "identification_error": 0.3332986753543688,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.36305976214399,
+            "coverage_90": 0.9483193277310924
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "impaired_path_error": 0.023933305335012537,
+            "late_path_error": 0.01925034157938863,
+            "baseline_path_error": 0.002574475234456465,
+            "detection_latency_s": 10.399999999999999,
+            "attribution_latency_s": 17.6,
+            "identification_error": 0.307485974540319,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.057501871883811,
+            "coverage_90": 0.9473765432098765
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "impaired_path_error": 0.3069948402286956,
+            "late_path_error": 0.30699953980841316,
+            "baseline_path_error": 0.0015728605135523184,
+            "detection_latency_s": 0.25,
+            "attribution_latency_s": 2.1999999999999957,
+            "identification_error": 0.49755341348253446,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.36815105202578835,
+            "coverage_90": 0.9228591648973815
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "impaired_path_error": 0.06730909816870242,
+            "late_path_error": 0.054369185865401834,
+            "baseline_path_error": 0.0005971914896722673,
+            "detection_latency_s": 0.3500000000000014,
+            "attribution_latency_s": 2.3500000000000014,
+            "identification_error": 1.123339285342233,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.7874647058665599,
+            "coverage_90": 0.9407187323146576
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "impaired_path_error": 0.35389970298058876,
+            "late_path_error": 0.35149552102507103,
+            "baseline_path_error": 0.0002606576095331798,
+            "detection_latency_s": 0.25,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.4310096832341967,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.45343006151804965,
+            "coverage_90": 0.9016439909297053
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "impaired_path_error": 0.21480018366646547,
+            "late_path_error": 0.22131883201331384,
+            "baseline_path_error": 0.002671979889456707,
+            "detection_latency_s": 1.1999999999999957,
+            "attribution_latency_s": 2.799999999999997,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.4731572998519028,
+            "coverage_90": 0.9033631332481907
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "impaired_path_error": 0.5351141263851188,
+            "late_path_error": 0.5270960021740941,
+            "baseline_path_error": 0.0008677545628776218,
+            "detection_latency_s": 1.2999999999999972,
+            "attribution_latency_s": 3.950000000000003,
+            "identification_error": 0.7283167725880395,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.19623130800935615,
+            "coverage_90": 0.8642238318420679
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "impaired_path_error": 0.6116087782066271,
+            "late_path_error": 0.6116087782066271,
+            "baseline_path_error": 0.000005011309991021657,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 1.340275258909833,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.17335251544604063,
+            "coverage_90": 0.9011925042589438
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "impaired_path_error": 0.45344186589171703,
+            "late_path_error": 0.5008802540735408,
+            "baseline_path_error": 0.00004011859865100262,
+            "detection_latency_s": 0.1999999999999993,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.7884412010550945,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.2769124306550333,
+            "coverage_90": 0.8372390285470814
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "impaired_path_error": 0.5453460073779943,
+            "late_path_error": 0.5572520610758562,
+            "baseline_path_error": 0.00005946057808500458,
+            "detection_latency_s": 0.09999999999999787,
+            "attribution_latency_s": 2.2499999999999964,
+            "identification_error": 1,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.4282991916842213,
+            "coverage_90": 0.8609450612012525
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "impaired_path_error": 0.04985924462167087,
+            "late_path_error": 0.05665979024529176,
+            "baseline_path_error": 0.00007799559980170472,
+            "detection_latency_s": 1.6000000000000014,
+            "attribution_latency_s": 3.549999999999997,
+            "identification_error": 1.7618188928796938,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.7984086366298508,
+            "coverage_90": 0.9342643532233037
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "impaired_path_error": 0.03626559941759,
+            "late_path_error": 0.036387156378821055,
+            "baseline_path_error": 0.0008496854506237042,
+            "detection_latency_s": 12.25,
+            "attribution_latency_s": 15.25,
+            "identification_error": 0.31537735225175334,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.1280339467286227,
+            "coverage_90": 0.9506795572369343
+          }
+        }
+      ],
+      "metrics": {
+        "impaired_path_error": {
+          "control_mean": 0.06566852281033776,
+          "treatment_mean": 0.3760916376000342,
+          "mean_difference": 0.3104231147896965,
+          "sd_difference": 0.1944085456777791,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_path_error": {
+          "control_mean": 0.0526287026150336,
+          "treatment_mean": 0.35712143162661697,
+          "mean_difference": 0.3044927290115833,
+          "sd_difference": 0.19992886702127569,
+          "increase": 29,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 3,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "baseline_path_error": {
+          "control_mean": 0.013406642458364551,
+          "treatment_mean": 0.0013280903228519304,
+          "mean_difference": -0.012078552135512621,
+          "sd_difference": 0.004399007161694471,
+          "increase": 0,
+          "decrease": 32,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "detection_latency_s": {
+          "control_mean": 1.3015624999999993,
+          "treatment_mean": 1.3374999999999995,
+          "mean_difference": 0.03593750000000007,
+          "sd_difference": 1.360101655059934,
+          "increase": 17,
+          "decrease": 2,
+          "tie": 13,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "identification_error": {
+          "control_mean": 0.010175310074954305,
+          "treatment_mean": 0.9225170986249166,
+          "mean_difference": 0.912341788549962,
+          "sd_difference": 0.3937998144740357,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with uncertainty estimation disabled (fixed trust in its sense, best-fit explanations, no caution or probes)",
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "no_uncertainty"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "impaired_path_error": 0.018529844632133537,
+            "late_path_error": 0.009297211758962243,
+            "baseline_path_error": 0.017338949207216917,
+            "detection_latency_s": 0.05000000000000426,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.014178434994728116,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.525638340869713,
+            "coverage_90": 0.8958246055020248
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "impaired_path_error": 0.007884636487097307,
+            "late_path_error": 0.00682186126531159,
+            "baseline_path_error": 0.006627442915914034,
+            "detection_latency_s": 0.15000000000000213,
+            "attribution_latency_s": 0.40000000000000213,
+            "identification_error": 0.01295729019009046,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.675555833753723,
+            "coverage_90": 0.8941488618907973
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "impaired_path_error": 0.012638490580227578,
+            "late_path_error": 0.01680701177893309,
+            "baseline_path_error": 0.028467811589841734,
+            "detection_latency_s": 1.3500000000000014,
+            "attribution_latency_s": 1.3500000000000014,
+            "identification_error": 0.021293210423686412,
+            "false_alarms_per_min": 1.7341040462427746,
+            "impaired_walked_m": 1.1812495865265311,
+            "coverage_90": 0.9008933556672251
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "impaired_path_error": 0.059564455716293895,
+            "late_path_error": 0.04432356335486147,
+            "baseline_path_error": 0.02004193246779869,
+            "detection_latency_s": 0.3000000000000007,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.0005718825679647857,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.8293693454507844,
+            "coverage_90": 0.8969594594594594
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "impaired_path_error": 0.23057365470453897,
+            "late_path_error": 0.23144442132067272,
+            "baseline_path_error": 0.012832421381847758,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 0.19999999999999574,
+            "identification_error": 0.00462538838087587,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4493030767811548,
+            "coverage_90": 0.9005016722408027
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "impaired_path_error": 0.010811350167911366,
+            "late_path_error": 0.01044481986278566,
+            "baseline_path_error": 0.009359599366863067,
+            "detection_latency_s": 0.3499999999999943,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.007190274698703458,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.48755181121715,
+            "coverage_90": 0.897347670250896
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "impaired_path_error": 0.2537601061299152,
+            "late_path_error": 0.17183597619390661,
+            "baseline_path_error": 0.02126383160668413,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 0.25,
+            "identification_error": 0.009321865296589234,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.054679095794133,
+            "coverage_90": 0.9050013970382789
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "impaired_path_error": 0.016335508088852643,
+            "late_path_error": 0.007885081436344843,
+            "baseline_path_error": 0.012659198539431085,
+            "detection_latency_s": 1.3500000000000014,
+            "attribution_latency_s": 1.5,
+            "identification_error": 0.0060189564469740955,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.3953455793411476,
+            "coverage_90": 0.9048435490784398
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "impaired_path_error": 0.1841277097578167,
+            "late_path_error": 0.25999799756212066,
+            "baseline_path_error": 0.03214797830942889,
+            "detection_latency_s": 0.09999999999999432,
+            "attribution_latency_s": 0.09999999999999432,
+            "identification_error": 0.018127619944250956,
+            "false_alarms_per_min": 3.3149171270718227,
+            "impaired_walked_m": 1.6980638727094939,
+            "coverage_90": 0.9004474272930649
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "impaired_path_error": 0.02412676773102791,
+            "late_path_error": 0.011447732001427943,
+            "baseline_path_error": 0.0260787463094237,
+            "detection_latency_s": 0.29999999999999716,
+            "attribution_latency_s": 0.29999999999999716,
+            "identification_error": 0.0052575855855492735,
+            "false_alarms_per_min": 1.589403973509934,
+            "impaired_walked_m": 1.2569064676033481,
+            "coverage_90": 0.903824678950307
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "impaired_path_error": 0.061667935631509414,
+            "late_path_error": 0.009351576609439083,
+            "baseline_path_error": 0.01465707399161635,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 0.10000000000000142,
+            "identification_error": 0.004088183445845115,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.378172686188726,
+            "coverage_90": 0.8972965440356745
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "impaired_path_error": 0.1928633012656324,
+            "late_path_error": 0.11907111802738159,
+            "baseline_path_error": 0.026352196332343904,
+            "detection_latency_s": 0.04999999999999716,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.0030821301991926773,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2590184243924782,
+            "coverage_90": 0.8986845787853345
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "impaired_path_error": 0.007740080596248866,
+            "late_path_error": 0.004439037158850903,
+            "baseline_path_error": 0.0152633477979066,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 0.44999999999999574,
+            "identification_error": 0.014159573265038286,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.423142095318343,
+            "coverage_90": 0.898465829846583
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "impaired_path_error": 0.34208730357084766,
+            "late_path_error": 0.495480523828226,
+            "baseline_path_error": 0.010248325681432677,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 0.14999999999999858,
+            "identification_error": 0.0004009424036540391,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.7763255855263472,
+            "coverage_90": 0.9002657714365645
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "impaired_path_error": 0.18863633087674034,
+            "late_path_error": 0.2464195760818317,
+            "baseline_path_error": 0.011960559078822462,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.02667422113572641,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2594973446908846,
+            "coverage_90": 0.8924686192468619
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "impaired_path_error": 0.03719883485308505,
+            "late_path_error": 0.029456010563847758,
+            "baseline_path_error": 0.006454588258470758,
+            "detection_latency_s": 0.05000000000000426,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.004292779224393588,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4896912207752857,
+            "coverage_90": 0.9000560695262125
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "impaired_path_error": 0.008814735419147979,
+            "late_path_error": 0.005470651999332166,
+            "baseline_path_error": 0.017849607708805424,
+            "detection_latency_s": 0.05000000000000071,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.0015801444573915195,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 2.0234793240383957,
+            "coverage_90": 0.904044630404463
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "impaired_path_error": 0.013053978233410002,
+            "late_path_error": 0.005579661981246973,
+            "baseline_path_error": 0.007844264433731426,
+            "detection_latency_s": 0.25,
+            "attribution_latency_s": 0.25,
+            "identification_error": 0.01363309255371894,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4860641192228397,
+            "coverage_90": 0.8949867336964111
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "impaired_path_error": 0.02626991618510052,
+            "late_path_error": 0.010894025567436154,
+            "baseline_path_error": 0.011462690630705308,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.011029445842957541,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.3416207261716673,
+            "coverage_90": 0.8921404682274248
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "impaired_path_error": 0.016104366399000633,
+            "late_path_error": 0.015709410968968582,
+            "baseline_path_error": 0.010005387799309188,
+            "detection_latency_s": 0.45000000000000284,
+            "attribution_latency_s": 0.75,
+            "identification_error": 0.011961433619150386,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4833962003183585,
+            "coverage_90": 0.8985628575415097
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "impaired_path_error": 0.015474158410761978,
+            "late_path_error": 0.00839150180323176,
+            "baseline_path_error": 0.011318660874112195,
+            "detection_latency_s": 8.549999999999997,
+            "attribution_latency_s": 8.549999999999997,
+            "identification_error": 0.007696107224147022,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6771690721043433,
+            "coverage_90": 0.9054601312665829
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "impaired_path_error": 0.017528392659060532,
+            "late_path_error": 0.008432499007058267,
+            "baseline_path_error": 0.01223049150959763,
+            "detection_latency_s": 15.699999999999996,
+            "attribution_latency_s": 15.699999999999996,
+            "identification_error": 0.009991491380414469,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6963590181465296,
+            "coverage_90": 0.8960423634336678
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "impaired_path_error": 0.025996784490159647,
+            "late_path_error": 0.008472822334589592,
+            "baseline_path_error": 0.016537658874018122,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.012719441856553923,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.538931521033338,
+            "coverage_90": 0.9013121161362367
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "impaired_path_error": 0.0344983242394526,
+            "late_path_error": 0.0215882643049893,
+            "baseline_path_error": 0.009237741506204543,
+            "detection_latency_s": 0.3500000000000014,
+            "attribution_latency_s": 0.5500000000000043,
+            "identification_error": 0.002498144068976624,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4479212744719483,
+            "coverage_90": 0.9046820405310971
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "impaired_path_error": 0.11463039931472367,
+            "late_path_error": 0.0925823149196215,
+            "baseline_path_error": 0.01871370227138372,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.0024198471016306823,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.769174716229437,
+            "coverage_90": 0.8940536013400335
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "impaired_path_error": 0.015691132764348116,
+            "late_path_error": 0.008137566166887121,
+            "baseline_path_error": 0.021789767003268647,
+            "detection_latency_s": 1.1499999999999986,
+            "attribution_latency_s": 1.1499999999999986,
+            "identification_error": 0.002717020181658152,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.0383034777745384,
+            "coverage_90": 0.9086336965632859
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "impaired_path_error": 0.05864361528753848,
+            "late_path_error": 0.05809149325969236,
+            "baseline_path_error": 0.009531785175437122,
+            "detection_latency_s": 1.2999999999999972,
+            "attribution_latency_s": 1.2999999999999972,
+            "identification_error": 0.0178802778431013,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2621676734432528,
+            "coverage_90": 0.9031267448352875
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "impaired_path_error": 0.2092471295533593,
+            "late_path_error": 0.22739597968790468,
+            "baseline_path_error": 0.005959882170153922,
+            "detection_latency_s": 0.04999999999999716,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.01714245616615456,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2609041274688646,
+            "coverage_90": 0.8998049052396878
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "impaired_path_error": 0.11188484042365171,
+            "late_path_error": 0.18396758127967486,
+            "baseline_path_error": 0.017268747842821272,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 0.3999999999999986,
+            "identification_error": 0.026704258426291948,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.7654019439842534,
+            "coverage_90": 0.9011984392419174
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "impaired_path_error": 0.011263403274043309,
+            "late_path_error": 0.0038334114467626717,
+            "baseline_path_error": 0.008490165132298342,
+            "detection_latency_s": 0.09999999999999787,
+            "attribution_latency_s": 0.4499999999999993,
+            "identification_error": 0.019821306345443948,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6061116511579654,
+            "coverage_90": 0.9040256303106282
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "impaired_path_error": 0.011175753126448525,
+            "late_path_error": 0.0035942035896059646,
+            "baseline_path_error": 0.00878090568585234,
+            "detection_latency_s": 1.6000000000000014,
+            "attribution_latency_s": 1.75,
+            "identification_error": 0.010382514068266346,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.351464317808966,
+            "coverage_90": 0.9007240323029797
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "impaired_path_error": 0.013423623621893206,
+            "late_path_error": 0.005718920213118217,
+            "baseline_path_error": 0.012233385845784267,
+            "detection_latency_s": 6.799999999999997,
+            "attribution_latency_s": 6.799999999999997,
+            "identification_error": 0.0071379062693699815,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4205995375483635,
+            "coverage_90": 0.9013591144738685
+          }
+        }
+      ],
+      "metrics": {
+        "impaired_path_error": {
+          "control_mean": 0.06566852281033776,
+          "treatment_mean": 0.07350771450599934,
+          "mean_difference": 0.007839191695661583,
+          "sd_difference": 0.019362841301320304,
+          "increase": 25,
+          "decrease": 7,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_path_error": {
+          "control_mean": 0.07152477098225918,
+          "treatment_mean": 0.07319949460421951,
+          "mean_difference": 0.0016747236219603462,
+          "sd_difference": 0.004965787121622175,
+          "increase": 23,
+          "decrease": 9,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "baseline_path_error": {
+          "control_mean": 0.013406642458364551,
+          "treatment_mean": 0.01471902647807895,
+          "mean_difference": 0.0013123840197143944,
+          "sd_difference": 0.004278260442558331,
+          "increase": 14,
+          "decrease": 18,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "detection_latency_s": {
+          "control_mean": 1.3015624999999993,
+          "treatment_mean": 1.3062499999999992,
+          "mean_difference": 0.004687499999999956,
+          "sd_difference": 0.06520362027352655,
+          "increase": 1,
+          "decrease": 4,
+          "tie": 27,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "identification_error": {
+          "control_mean": 0.010175310074954305,
+          "treatment_mean": 0.010236100800265316,
+          "mean_difference": 0.00006079072531101263,
+          "sd_difference": 0.008789449474552867,
+          "increase": 17,
+          "decrease": 15,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with episodic memory disabled",
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "no_memory"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "impaired_path_error": 0.00945546446079753,
+            "late_path_error": 0.008533695973917411,
+            "baseline_path_error": 0.01748530284074092,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.0500000000000043,
+            "identification_error": 0.0056005087125652955,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6129451965222836,
+            "coverage_90": 0.9037843876553554
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "impaired_path_error": 0.010799774076678172,
+            "late_path_error": 0.008324596127323308,
+            "baseline_path_error": 0.006353667021034428,
+            "detection_latency_s": 0.15000000000000213,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.0036759196893685654,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.672783475780055,
+            "coverage_90": 0.9011311269375786
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "impaired_path_error": 0.007390079753755021,
+            "late_path_error": 0.007875691468881004,
+            "baseline_path_error": 0.012620832628253278,
+            "detection_latency_s": 1,
+            "attribution_latency_s": 2.8500000000000014,
+            "identification_error": 0.037741359530177654,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.1315169711803974,
+            "coverage_90": 0.9038407625455565
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "impaired_path_error": 0.04948472817982134,
+            "late_path_error": 0.03352780137303005,
+            "baseline_path_error": 0.020351194641507017,
+            "detection_latency_s": 0.3000000000000007,
+            "attribution_latency_s": 2.1999999999999993,
+            "identification_error": 0.0058837009415697765,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6699759608683418,
+            "coverage_90": 0.9097397145256088
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "impaired_path_error": 0.24738949582588904,
+            "late_path_error": 0.23113353921390128,
+            "baseline_path_error": 0.012466689811627607,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 4.899999999999999,
+            "identification_error": 0.004217545791002284,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4167633832552158,
+            "coverage_90": 0.9068729959570612
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "impaired_path_error": 0.008367353164711475,
+            "late_path_error": 0.00946800952133729,
+            "baseline_path_error": 0.009112118738277383,
+            "detection_latency_s": 0.3999999999999986,
+            "attribution_latency_s": 2.25,
+            "identification_error": 0.004963001457018245,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4761769000895821,
+            "coverage_90": 0.9062018759624807
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "impaired_path_error": 0.16124129998472445,
+            "late_path_error": 0.16421651223466296,
+            "baseline_path_error": 0.021852462636562108,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 3.299999999999997,
+            "identification_error": 0.009197795667010568,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.8403839369163411,
+            "coverage_90": 0.907703081232493
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "impaired_path_error": 0.00708249189401587,
+            "late_path_error": 0.006015030258346761,
+            "baseline_path_error": 0.012675347426807508,
+            "detection_latency_s": 1.3500000000000014,
+            "attribution_latency_s": 3.299999999999997,
+            "identification_error": 0.021171417646168842,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4304633652056653,
+            "coverage_90": 0.9083298451234826
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "impaired_path_error": 0.19391475421508586,
+            "late_path_error": 0.2600552440925634,
+            "baseline_path_error": 0.01786539355941795,
+            "detection_latency_s": 0.09999999999999432,
+            "attribution_latency_s": 1.8499999999999943,
+            "identification_error": 0.019442782581016803,
+            "false_alarms_per_min": 1.6574585635359114,
+            "impaired_walked_m": 1.5858222018456176,
+            "coverage_90": 0.9037843876553554
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "impaired_path_error": 0.009752107175641254,
+            "late_path_error": 0.0074919505070821365,
+            "baseline_path_error": 0.013229171807359084,
+            "detection_latency_s": 0.29999999999999716,
+            "attribution_latency_s": 2.049999999999997,
+            "identification_error": 0.00208385240552268,
+            "false_alarms_per_min": 1.589403973509934,
+            "impaired_walked_m": 1.3312963783617051,
+            "coverage_90": 0.9104498463257893
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "impaired_path_error": 0.028875654755159796,
+            "late_path_error": 0.006756744585562957,
+            "baseline_path_error": 0.013936025750682082,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 7.900000000000006,
+            "identification_error": 0.0018564497506839092,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2503019565748588,
+            "coverage_90": 0.9069345611832008
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "impaired_path_error": 0.15793438149902808,
+            "late_path_error": 0.11778643192747475,
+            "baseline_path_error": 0.026005470357464918,
+            "detection_latency_s": 0.04999999999999716,
+            "attribution_latency_s": 2.1999999999999957,
+            "identification_error": 0.007358213533022517,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2236924563547846,
+            "coverage_90": 0.9023809523809524
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "impaired_path_error": 0.0057339163292252065,
+            "late_path_error": 0.0046115763010661824,
+            "baseline_path_error": 0.015420988891855898,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.25,
+            "identification_error": 0.0033455302890716245,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.3836174091660467,
+            "coverage_90": 0.9067169389750035
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "impaired_path_error": 0.34917496573788875,
+            "late_path_error": 0.4977804571251849,
+            "baseline_path_error": 0.010350228451281295,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 1.4499999999999957,
+            "identification_error": 0.001324023493518071,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 0.751227256193507,
+            "coverage_90": 0.9072208228379512
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "impaired_path_error": 0.2119598743811432,
+            "late_path_error": 0.25997206260632977,
+            "baseline_path_error": 0.011891648761840904,
+            "detection_latency_s": 0.10000000000000142,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.013040643132129178,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2122886215657849,
+            "coverage_90": 0.8940092165898618
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "impaired_path_error": 0.02947896702125553,
+            "late_path_error": 0.02900434795641716,
+            "baseline_path_error": 0.0064850943308954025,
+            "detection_latency_s": 0.05000000000000426,
+            "attribution_latency_s": 2.200000000000003,
+            "identification_error": 0.00135016798902414,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4714396093166542,
+            "coverage_90": 0.9037223621606493
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "impaired_path_error": 0.010317090658938028,
+            "late_path_error": 0.008352285355323636,
+            "baseline_path_error": 0.0184622800835743,
+            "detection_latency_s": 0.05000000000000071,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.0009601232579440077,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.9777790624180718,
+            "coverage_90": 0.9073446327683616
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "impaired_path_error": 0.006007764412807147,
+            "late_path_error": 0.0035477097011500846,
+            "baseline_path_error": 0.00816171448090618,
+            "detection_latency_s": 0.25,
+            "attribution_latency_s": 1.9500000000000028,
+            "identification_error": 0.014945098599289079,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.454392433915119,
+            "coverage_90": 0.9029465158497416
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "impaired_path_error": 0.024235911029650246,
+            "late_path_error": 0.00958202186957071,
+            "baseline_path_error": 0.011791914381242734,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 3.700000000000003,
+            "identification_error": 0.011368837386389094,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.320836466448484,
+            "coverage_90": 0.8976718248989265
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "impaired_path_error": 0.009836522774130168,
+            "late_path_error": 0.007295408481173197,
+            "baseline_path_error": 0.010028549242669098,
+            "detection_latency_s": 0.45000000000000284,
+            "attribution_latency_s": 2.5,
+            "identification_error": 0.014101008084714097,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.520609377222299,
+            "coverage_90": 0.9054205085219335
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "impaired_path_error": 0.008440618997399538,
+            "late_path_error": 0.006137710260649356,
+            "baseline_path_error": 0.011031943726613406,
+            "detection_latency_s": 8.549999999999997,
+            "attribution_latency_s": 10.299999999999997,
+            "identification_error": 0.009461446499754077,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.6498798237057424,
+            "coverage_90": 0.9126851075719474
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "impaired_path_error": 0.01280434471447928,
+            "late_path_error": 0.005809645443263593,
+            "baseline_path_error": 0.012306154309367547,
+            "detection_latency_s": 15.699999999999996,
+            "attribution_latency_s": 17.35,
+            "identification_error": 0.011926898011015112,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.8343329157110897,
+            "coverage_90": 0.9064938684503902
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "impaired_path_error": 0.006823251123494135,
+            "late_path_error": 0.004794556637054191,
+            "baseline_path_error": 0.0168058539920313,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 2.1999999999999957,
+            "identification_error": 0.0035750252448272096,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4961183538322829,
+            "coverage_90": 0.9090146750524108
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "impaired_path_error": 0.01832397901722162,
+            "late_path_error": 0.018635376582712214,
+            "baseline_path_error": 0.009256801195485187,
+            "detection_latency_s": 0.3500000000000014,
+            "attribution_latency_s": 2.3500000000000014,
+            "identification_error": 0.007712401611399741,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.4004234246438954,
+            "coverage_90": 0.9098154362416108
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "impaired_path_error": 0.12502200893709117,
+            "late_path_error": 0.09729889602282236,
+            "baseline_path_error": 0.018648626354392572,
+            "detection_latency_s": 0.19999999999999574,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.001652364298150855,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.811338669269417,
+            "coverage_90": 0.900572545733836
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "impaired_path_error": 0.012042305073008432,
+            "late_path_error": 0.00841660643007973,
+            "baseline_path_error": 0.021730180726428048,
+            "detection_latency_s": 1.1499999999999986,
+            "attribution_latency_s": 5.149999999999999,
+            "identification_error": 0.028582914583623116,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.0826184745752945,
+            "coverage_90": 0.9116331096196868
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "impaired_path_error": 0.05008384026618341,
+            "late_path_error": 0.04275373391894533,
+            "baseline_path_error": 0.009759435324499742,
+            "detection_latency_s": 1.2999999999999972,
+            "attribution_latency_s": 3.549999999999997,
+            "identification_error": 0.026937404236898988,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2077314766513223,
+            "coverage_90": 0.9064597315436241
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "impaired_path_error": 0.20034512416376196,
+            "late_path_error": 0.22674639773716204,
+            "baseline_path_error": 0.00591275630026498,
+            "detection_latency_s": 0.04999999999999716,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.005873086850596801,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.2318484135970544,
+            "coverage_90": 0.904463040446304
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "impaired_path_error": 0.10660524299437801,
+            "late_path_error": 0.18384553513587573,
+            "baseline_path_error": 0.01715777809910897,
+            "detection_latency_s": 0.14999999999999858,
+            "attribution_latency_s": 2.1499999999999986,
+            "identification_error": 0.008764189233883984,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.7550854036640882,
+            "coverage_90": 0.904642409033877
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "impaired_path_error": 0.00630811640837203,
+            "late_path_error": 0.0037398307454881465,
+            "baseline_path_error": 0.008516282109450954,
+            "detection_latency_s": 0.09999999999999787,
+            "attribution_latency_s": 2.2499999999999964,
+            "identification_error": 0.017024835233637067,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.5192144215349672,
+            "coverage_90": 0.9062369192130598
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "impaired_path_error": 0.007514226990806536,
+            "late_path_error": 0.004446314616439874,
+            "baseline_path_error": 0.008996158805248263,
+            "detection_latency_s": 1.6000000000000014,
+            "attribution_latency_s": 3.549999999999997,
+            "identification_error": 0.009184548572569024,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.3212211042289266,
+            "coverage_90": 0.9089009611366485
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "impaired_path_error": 0.007786865029267781,
+            "late_path_error": 0.004744382199929775,
+            "baseline_path_error": 0.01234449188077453,
+            "detection_latency_s": 6.850000000000001,
+            "attribution_latency_s": 8.199999999999996,
+            "identification_error": 0.011747124023430157,
+            "false_alarms_per_min": 0,
+            "impaired_walked_m": 1.5166247387494136,
+            "coverage_90": 0.9076170510132774
+          }
+        }
+      ],
+      "metrics": {
+        "impaired_path_error": {
+          "control_mean": 0.06566852281033776,
+          "treatment_mean": 0.06564164128268157,
+          "mean_difference": -0.000026881527656195947,
+          "sd_difference": 0.0002212282236259732,
+          "increase": 1,
+          "decrease": 1,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "late_path_error": {
+          "control_mean": 0.07152477098225918,
+          "treatment_mean": 0.07152187820033505,
+          "mean_difference": -0.0000028927819241131303,
+          "sd_difference": 0.000020417787737460966,
+          "increase": 1,
+          "decrease": 1,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "baseline_path_error": {
+          "control_mean": 0.013406642458364551,
+          "treatment_mean": 0.013406642458364551,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "detection_latency_s": {
+          "control_mean": 1.3015624999999993,
+          "treatment_mean": 1.3015624999999993,
+          "mean_difference": 0,
+          "sd_difference": 0,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 32,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "identification_error": {
+          "control_mean": 0.010175310074954305,
+          "treatment_mean": 0.01018969432303102,
+          "mean_difference": 0.00001438424807671401,
+          "sd_difference": 0.00012905549950747582,
+          "increase": 1,
+          "decrease": 1,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "impaired_path_error": 0.20338833392755384,
+          "late_path_error": 0.22088628690857257,
+          "baseline_path_error": 0.014170146574856301,
+          "detection_latency_s": 0.15000000000000213,
+          "attribution_latency_s": 2.1000000000000014,
+          "identification_error": 0.00779189416487689,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1600188240732907,
+          "coverage_90": 0.9059184812953657
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "impaired_path_error": 0.006693536750164861,
+          "late_path_error": 0.007383126137758057,
+          "baseline_path_error": 0.011476133588349475,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 2.200000000000003,
+          "identification_error": 0.0016414941691091371,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3102856382836219,
+          "coverage_90": 0.902806870548806
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "impaired_path_error": 0.014947712657733401,
+          "late_path_error": 0.015209517764911017,
+          "baseline_path_error": 0.011604441682834478,
+          "detection_latency_s": 0.3000000000000007,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.019561557390097406,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2890602484045026,
+          "coverage_90": 0.9070190156599552
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "impaired_path_error": 0.02637633104885165,
+          "late_path_error": 0.025700705020549226,
+          "baseline_path_error": 0.00794146542957612,
+          "detection_latency_s": 0.3500000000000014,
+          "attribution_latency_s": 2.1000000000000014,
+          "identification_error": 0.001994909290793551,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1619101046106224,
+          "coverage_90": 0.9038837664151997
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "impaired_path_error": 0.010987282733465869,
+          "late_path_error": 0.004973596556504769,
+          "baseline_path_error": 0.010602106745412225,
+          "detection_latency_s": 0.3000000000000007,
+          "attribution_latency_s": 2.1999999999999993,
+          "identification_error": 0.0015605911262964788,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.232315608324187,
+          "coverage_90": 0.9047619047619048
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "impaired_path_error": 0.05184875672099202,
+          "late_path_error": 0.058837938109524215,
+          "baseline_path_error": 0.01576080679502025,
+          "detection_latency_s": 0.14999999999999858,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.02285392312548562,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.5217168290957088,
+          "coverage_90": 0.9006289308176101
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "impaired_path_error": 0.06862910176705452,
+          "late_path_error": 0.08718195629932912,
+          "baseline_path_error": 0.012508379780447733,
+          "detection_latency_s": 0.25,
+          "attribution_latency_s": 2.099999999999998,
+          "identification_error": 0.013658457559215898,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.31364299262425,
+          "coverage_90": 0.9035639412997903
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "impaired_path_error": 0.011389475790642152,
+          "late_path_error": 0.010834724345058316,
+          "baseline_path_error": 0.011322892433907212,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.25,
+          "identification_error": 0.025740347927984103,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.474718478285342,
+          "coverage_90": 0.9036228843194852
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "impaired_path_error": 0.12551780319647315,
+          "late_path_error": 0.12145071166746195,
+          "baseline_path_error": 0.013114047999297699,
+          "detection_latency_s": 0.20000000000000284,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.019953465178522086,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.7986945831675334,
+          "coverage_90": 0.9052396878483835
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "impaired_path_error": 0.017402831800705863,
+          "late_path_error": 0.006699967810910681,
+          "baseline_path_error": 0.018062897297258636,
+          "detection_latency_s": 1.8500000000000014,
+          "attribution_latency_s": 3.6499999999999986,
+          "identification_error": 0.004281415466617374,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2110528127794302,
+          "coverage_90": 0.9063153492262651
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "impaired_path_error": 0.006856994261832294,
+          "late_path_error": 0.007915419021196662,
+          "baseline_path_error": 0.011617221792858373,
+          "detection_latency_s": 0.5499999999999972,
+          "attribution_latency_s": 2.549999999999997,
+          "identification_error": 0.011921361156854713,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.7374116890197344,
+          "coverage_90": 0.9069345611832008
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "impaired_path_error": 0.04991846436679288,
+          "late_path_error": 0.022945933232384207,
+          "baseline_path_error": 0.008104734222554337,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.1999999999999957,
+          "identification_error": 0.010215555049097378,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.7484025352507584,
+          "coverage_90": 0.9022746419545071
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "impaired_path_error": 0.04665964803617774,
+          "late_path_error": 0.028751011904622006,
+          "baseline_path_error": 0.01298303156811575,
+          "detection_latency_s": 0.3000000000000007,
+          "attribution_latency_s": 2.25,
+          "identification_error": 0.005214155170335236,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.7273920563443164,
+          "coverage_90": 0.903824678950307
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "impaired_path_error": 0.014082384728801115,
+          "late_path_error": 0.0053733487680318335,
+          "baseline_path_error": 0.011096136153567353,
+          "detection_latency_s": 0.3499999999999943,
+          "attribution_latency_s": 2.3499999999999943,
+          "identification_error": 0.006517099083185858,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.382196068055415,
+          "coverage_90": 0.9066555043951444
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "impaired_path_error": 0.007758405032464194,
+          "late_path_error": 0.003869299193187624,
+          "baseline_path_error": 0.019748811065775765,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.299999999999997,
+          "identification_error": 0.007252153511217196,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.571430857012339,
+          "coverage_90": 0.9097513271863649
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "impaired_path_error": 0.010258991037296812,
+          "late_path_error": 0.0036246222130798464,
+          "baseline_path_error": 0.008835387005717487,
+          "detection_latency_s": 0.15000000000000568,
+          "attribution_latency_s": 1.9500000000000028,
+          "identification_error": 0.014826374649952,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1770455314183972,
+          "coverage_90": 0.9034646549315452
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "impaired_path_error": 0.253396679136858,
+          "late_path_error": 0.36529100139294735,
+          "baseline_path_error": 0.010729182872274591,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.01929855812419034,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.9066539538784495,
+          "coverage_90": 0.902092050209205
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "impaired_path_error": 0.007262744472080953,
+          "late_path_error": 0.003761854648548716,
+          "baseline_path_error": 0.008321996288920533,
+          "detection_latency_s": 0.05000000000000426,
+          "attribution_latency_s": 2.200000000000003,
+          "identification_error": 0.004167560953496547,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.47587275912165,
+          "coverage_90": 0.902231520223152
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "impaired_path_error": 0.014719571980434483,
+          "late_path_error": 0.008304080573849624,
+          "baseline_path_error": 0.012898450706789667,
+          "detection_latency_s": 11.799999999999997,
+          "attribution_latency_s": 13.549999999999997,
+          "identification_error": 0.009881784213112518,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.4361206558933435,
+          "coverage_90": 0.9051206920608343
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "impaired_path_error": 0.012647827732584107,
+          "late_path_error": 0.012972267700269054,
+          "baseline_path_error": 0.011029953765211428,
+          "detection_latency_s": 0.8000000000000007,
+          "attribution_latency_s": 2.8500000000000014,
+          "identification_error": 0.007774345911779702,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1780088150500134,
+          "coverage_90": 0.9083298451234826
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "impaired_path_error": 0.014908632481988161,
+          "late_path_error": 0.013200308347292532,
+          "baseline_path_error": 0.007915959667375566,
+          "detection_latency_s": 0.3999999999999986,
+          "attribution_latency_s": 2.1999999999999957,
+          "identification_error": 0.0039660272721202365,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.7801596636044271,
+          "coverage_90": 0.9101813110181312
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "impaired_path_error": 0.015583787047357306,
+          "late_path_error": 0.008025840127564922,
+          "baseline_path_error": 0.016900059815703923,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 2.6999999999999957,
+          "identification_error": 0.013653978892172892,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.0409012238402273,
+          "coverage_90": 0.9076557697680916
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "impaired_path_error": 0.011418227832710584,
+          "late_path_error": 0.010982389574880706,
+          "baseline_path_error": 0.00957443359995597,
+          "detection_latency_s": 0.3999999999999986,
+          "attribution_latency_s": 2.3000000000000043,
+          "identification_error": 0.02870168900462424,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1341498830177155,
+          "coverage_90": 0.9073840549250385
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "impaired_path_error": 0.008529846207159675,
+          "late_path_error": 0.00649105692845621,
+          "baseline_path_error": 0.018554504507243847,
+          "detection_latency_s": 1.6000000000000014,
+          "attribution_latency_s": 3.6499999999999986,
+          "identification_error": 0.009377060395432896,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.8854592195756917,
+          "coverage_90": 0.906158357771261
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "impaired_path_error": 0.10200175064357171,
+          "late_path_error": 0.00963130706053417,
+          "baseline_path_error": 0.013644972966496683,
+          "detection_latency_s": 1.4500000000000028,
+          "attribution_latency_s": 3.3999999999999986,
+          "identification_error": 0.004631527391318622,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.245614905606717,
+          "coverage_90": 0.9060973908190316
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "impaired_path_error": 0.046409890387097495,
+          "late_path_error": 0.0460951600875443,
+          "baseline_path_error": 0.012665555239825143,
+          "detection_latency_s": 0.1999999999999993,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.007198175989813082,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.444789980190451,
+          "coverage_90": 0.9070969544565521
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "impaired_path_error": 0.005225994343004598,
+          "late_path_error": 0.004881882683701159,
+          "baseline_path_error": 0.01845362117024369,
+          "detection_latency_s": 0.30000000000000426,
+          "attribution_latency_s": 2.200000000000003,
+          "identification_error": 0.0012932781834990867,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.9332361828013193,
+          "coverage_90": 0.9037440625873149
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "impaired_path_error": 0.02027874075974833,
+          "late_path_error": 0.03007946017296507,
+          "baseline_path_error": 0.02519958512728241,
+          "detection_latency_s": 0.29999999999999716,
+          "attribution_latency_s": 2.1499999999999986,
+          "identification_error": 0.0038230042454661093,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2739637692042072,
+          "coverage_90": 0.9071358748778103
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "impaired_path_error": 0.01831095180127834,
+          "late_path_error": 0.012729467797667338,
+          "baseline_path_error": 0.015102034128204586,
+          "detection_latency_s": 1.25,
+          "attribution_latency_s": 3.299999999999997,
+          "identification_error": 0.018298096913348848,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.9996924907881385,
+          "coverage_90": 0.9096351991088834
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "impaired_path_error": 0.20281517612464683,
+          "late_path_error": 0.16980435074273872,
+          "baseline_path_error": 0.016780406572182414,
+          "detection_latency_s": 0.05000000000000071,
+          "attribution_latency_s": 2.1999999999999993,
+          "identification_error": 0.006406021132891822,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3297007674909873,
+          "coverage_90": 0.9
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "impaired_path_error": 0.054106787426980454,
+          "late_path_error": 0.09239011737337856,
+          "baseline_path_error": 0.027287742242244648,
+          "detection_latency_s": 0.20000000000000284,
+          "attribution_latency_s": 3.049999999999997,
+          "identification_error": 0.004391375695377706,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 0.9859485765262843,
+          "coverage_90": 0.9074306426878572
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "impaired_path_error": 0.04113735755115942,
+          "late_path_error": 0.014685886879441957,
+          "baseline_path_error": 0.006767186008923489,
+          "detection_latency_s": 0.19999999999999574,
+          "attribution_latency_s": 1.9499999999999957,
+          "identification_error": 0.0017089412025177108,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.299683373417345,
+          "coverage_90": 0.9068401174989509
+        }
+      }
+    ],
+    "metrics": {
+      "impaired_path_error": {
+        "control_mean": 0.06566852281033776,
+        "treatment_mean": 0.04692093811830196,
+        "mean_difference": -0.01874758469203579,
+        "sd_difference": 0.11531781676770281,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "late_path_error": {
+        "control_mean": 0.07152477098225918,
+        "treatment_mean": 0.04503014365765195,
+        "mean_difference": -0.026494627324607205,
+        "sd_difference": 0.14607488509515884,
+        "increase": 16,
+        "decrease": 16,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "baseline_path_error": {
+        "control_mean": 0.013406642458364551,
+        "treatment_mean": 0.013461696400450873,
+        "mean_difference": 0.000055053942086318925,
+        "sd_difference": 0.008030375749395875,
+        "increase": 15,
+        "decrease": 17,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "detection_latency_s": {
+        "control_mean": 1.3015624999999993,
+        "treatment_mean": 0.759375,
+        "mean_difference": -0.5421874999999993,
+        "sd_difference": 3.997340030388757,
+        "increase": 18,
+        "decrease": 13,
+        "tie": 1,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "identification_error": {
+        "control_mean": 0.010175310074954305,
+        "treatment_mean": 0.009986130610650104,
+        "mean_difference": -0.00018917946430420054,
+        "sd_difference": 0.01093259951462182,
+        "increase": 17,
+        "decrease": 15,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "impaired_path_error",
+    "direction": "increase",
+    "treatment": {
+      "kind": "echo_impairment",
+      "variant": "reactive"
+    },
+    "outcomes": {
+      "expected": 32,
+      "opposite": 0,
+      "uninformative": 0
+    },
+    "seed_count": 9,
+    "pass_probability": 0.9272,
+    "minimum_effect": 0.19,
+    "host_minimum_effect": 0.09,
+    "design_minimum_effect": 0.19,
+    "s1_probability": 0.9554,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "impaired_path_error",
+      "resolution": 0,
+      "divergence_bound": 0.08154201022807041,
+      "floor": 0.09,
+      "host_minimum_effect": 0.09
+    },
+    {
+      "metric": "late_path_error",
+      "resolution": 0,
+      "divergence_bound": 0.10329054181183255,
+      "floor": 0.2,
+      "host_minimum_effect": 0.2
+    },
+    {
+      "metric": "baseline_path_error",
+      "resolution": 0,
+      "divergence_bound": 0.005678333147873826,
+      "floor": 0.006,
+      "host_minimum_effect": 0.006
+    },
+    {
+      "metric": "detection_latency_s",
+      "resolution": 0.05,
+      "divergence_bound": 2.82654624219633,
+      "floor": 3,
+      "host_minimum_effect": 3
+    },
+    {
+      "metric": "identification_error",
+      "resolution": 0,
+      "divergence_bound": 0.007730515252785846,
+      "floor": 0.008,
+      "host_minimum_effect": 0.008
+    }
+  ],
+  "runs_sha256": "5976d8c2b2a86b7dbc036d85ff47f21beaf4767c51179ed60ab0a2a3833407d8",
+  "outputs_sha256": "329d9145ec648da434567c6932d4007d4dfcbbe6f8ce6cadff1e7e2109e066af",
+  "generated_at": "2026-10-25T19:29:09.573Z",
+  "sha256": "7a100594e0a91c890fcc83923273a446d0426a36e2c8804365bde38d6e6731cb"
+}

@@ -13,9 +13,9 @@ eight 32-bit seeds per digest), a null arm (the control again on the next
 32 pilot seeds, paired in order: the same code and arm with every random
 stream independent, the apparatus's draws included, so an upper bound on what
 trajectory divergence alone can produce), and what the pilot sized. The scripted demonstrations of the four redesigned
-protocols (`src/rain/scientific/flyExample.ts`) take their seed counts and
+protocols and the three Project ECHO ones (`src/rain/scientific/flyExample.ts`) take their seed counts and
 minimum effects from `sized`, and the host's minimum effects for the metrics
-the redesign added (FLY_METRICS) come from `floors`;
+the redesign and ECHO added (FLY_METRICS) come from `floors`;
 `src/rain/scientific/fly.test.ts` checks both against these files.
 
 ## What each pilot ran on
@@ -23,6 +23,9 @@ the redesign added (FLY_METRICS) come from `floors`;
 | pilot | fly version | flySource digest | fly identity | engine | code | runs digest | outputs digest |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | adaptation | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `73752965e854` | `e2882f456e4a` |
+| echo_attribution | digital-fly/7 | `f24877bd26d4` | `1f4bac8d974f` | node 22.22.0 (V8 12.4.254.21-node.33) | `737b9148ea27` | `3de73c4b2466` | `a51ddf67957a` |
+| echo_impairment | digital-fly/7 | `f24877bd26d4` | `1f4bac8d974f` | node 22.22.0 (V8 12.4.254.21-node.33) | `737b9148ea27` | `5976d8c2b2a8` | `329d9145ec64` |
+| echo_retention | digital-fly/7 | `f24877bd26d4` | `1f4bac8d974f` | node 22.22.0 (V8 12.4.254.21-node.33) | `737b9148ea27` | `6bb149e47abb` | `abc103fce4d1` |
 | noisy_sensing | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `65ae5b4d32af` | `3bf02c19ae9d` |
 | obstacle_avoidance | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `358e3f7e0d50` | `97b352b3a0b4` |
 | visual_threat | digital-fly/7 | `d77a3a3961b0` | `247197565afa` | node 22.22.0 (V8 12.4.254.21-node.33) | `c099a8b816d2` + uncommitted changes | `9d5eec4ec291` | `0e4e54818d99` |
@@ -38,17 +41,33 @@ sized; any difference fails the check.
 | protocol | demonstration dose | metric | pilot seeds expected / opposite / uninformative | seed count | pass probability | sized minimum effect | host minimum effect | design minimum effect | S1 probability |
 | :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
 | adaptation | repeating a looming stimulus every 10 s on a fixed schedule | repeat_escape_probability (decrease) | 28 / 0 / 4 | 13 | 0.9254 | 0.13 | 0.1 | 0.13 | 0.9534 |
+| echo_attribution | the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) | attribution_accuracy (decrease) | 32 / 0 / 0 | 10 | 0.9045 | 0.34 | 0.2 | 0.34 | 0.9518 |
+| echo_impairment | the ECHO controller with no self-model (the reduced-order controller alone) | impaired_path_error (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.19 | 0.09 | 0.19 | 0.9554 |
+| echo_retention | the full ECHO self-model reset to an innate one 5 s before a remembered change returns | reexposure_latency_s (increase) | 19 / 4 / 9 | none | — | — | 4 | — | — |
 | noisy_sensing | sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | escape_ttc_s (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.24 | 0.02 | 0.24 | 0.9679 |
 | obstacle_avoidance | turning away from surfaces whose time to contact falls below 0.45 s | cruise_collision_episodes_per_m (decrease) | 31 / 0 / 1 | 10 | 0.9077 | 0.12 | 0.01 | 0.12 | 0.9567 |
 | visual_threat | a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s) | escape_ttc_s (decrease) | 32 / 0 / 0 | 9 | 0.9272 | 0.28 | 0.02 | 0.28 | 0.9993 |
 
 - **Seed count**: the smallest of 8-16 whose chance of passing G3, G4 (at least 6 untied seeds) and the exact sign test at alpha 0.05 is at least 0.9. The share of seeds in the expected direction is its one-sided 95% lower bound from the pilot, the rest is split between the opposite direction and no information in the pilot's proportions (each counted once more), and the chance that the control sits at a bound in every seed uses the one-sided 95% upper bound.
+- **No seed count**: when no seed count in the host's range reaches that chance, the pilot sizes nothing, and its demonstration runs under-powered, at the host's largest seed count (16) and the host's minimum effect; it is expected to come out inconclusive or failed.
 - **Minimum effect**: the pilot's mean paired difference less 1.645 standard errors (of the pilot and of an experiment at that seed count), rounded down to two significant figures: an effect the size of the pilot's clears it with about 95% probability. A design may not go below the host's minimum effect for the metric, so it uses the larger of the two. The S1 probability is the chance that an experiment at that seed count clears the design's minimum effect if the effect is the pilot's.
 
-## Host minimum effects for the metrics the redesign added
+## Host minimum effects for the metrics the redesign and Project ECHO added
 
 | metric | pilot | resolution | divergence bound | floor | in force |
 | :--- | :--- | ---: | ---: | ---: | ---: |
+| attribution_accuracy | echo_attribution | 0 | 0.126 | 0.2 | 0.2 |
+| false_self_attribution | echo_attribution | 0 | 0.0629 | 0.07 | 0.07 |
+| attribution_brier | echo_attribution | 0 | 0.122 | 0.2 | 0.2 |
+| attribution_path_error | echo_attribution | 0 | 0.0883 | 0.09 | 0.09 |
+| impaired_path_error | echo_impairment | 0 | 0.0815 | 0.09 | 0.09 |
+| late_path_error | echo_impairment | 0 | 0.103 | 0.2 | 0.2 |
+| baseline_path_error | echo_impairment | 0 | 0.00568 | 0.006 | 0.006 |
+| detection_latency_s | echo_impairment | 0.05 | 2.83 | 3 | 3 |
+| identification_error | echo_impairment | 0 | 0.00773 | 0.008 | 0.008 |
+| reexposure_path_error | echo_retention | 0 | 0.100 | 0.1 | 0.1 |
+| reexposure_latency_s | echo_retention | 0.05 | 3.79 | 4 | 4 |
+| unfamiliar_path_error | echo_retention | 0 | 0.131 | 0.2 | 0.2 |
 | near_miss_fraction | noisy_sensing | 0 | 0.0264 | 0.03 | 0.09 |
 | escape_ttc_s | noisy_sensing | 0.01 | 0.00831 | 0.01 | 0.02 |
 | near_miss_fraction | obstacle_avoidance | 0 | 0.0805 | 0.09 | 0.09 |
@@ -58,7 +77,7 @@ The floor is the larger of the simulator's resolution (an escape is decided on
 a sensory sample, so a timing resolves to one sample period) and twice the
 standard error of the mean null paired difference over 8 seeds
 (the divergence bound), rounded up to one significant figure. The host uses the
-largest floor any pilot found: near_miss_fraction 0.09, escape_ttc_s 0.02.
+largest floor any pilot found: attribution_accuracy 0.2, false_self_attribution 0.07, attribution_brier 0.2, attribution_path_error 0.09, impaired_path_error 0.09, late_path_error 0.2, baseline_path_error 0.006, detection_latency_s 3, identification_error 0.008, reexposure_path_error 0.1, reexposure_latency_s 4, unfamiliar_path_error 0.2, near_miss_fraction 0.09, escape_ttc_s 0.02.
 
 ## Dose series (pilot means over 32 seeds; never tested)
 
@@ -73,6 +92,42 @@ Control: the same stimuli every 90 s on the same schedule (gate refusals 0).
 | repeating a looming stimulus every 20 s on a fixed schedule | 0.568 | 0.464 | -0.104 | 0 / 22 / 10 / 0 | 0 |
 | repeating a looming stimulus every 40 s on a fixed schedule | 0.568 | 0.539 | -0.029 | 0 / 11 / 21 / 0 | 0 |
 | null: the control again on the next 32 pilot seeds, paired in order | 0.568 | 0.609 | 0.042 | 16 / 11 / 5 / 0 | 0 |
+
+### echo_attribution: attribution_accuracy
+
+Control: the full ECHO self-model under the same hidden conditions (gate refusals 0).
+
+| arm | control mean | arm mean | mean difference | up / down / tie / undefined | gate refusals |
+| :--- | ---: | ---: | ---: | :--- | ---: |
+| the ECHO controller with a self-only baseline (every unexplained change is its own) | 0.899 | 0.322 | -0.577 | 0 / 32 / 0 / 0 | 0 |
+| the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) | 0.899 | 0.411 | -0.488 | 0 / 32 / 0 / 0 | 0 |
+| the ECHO controller with uncertainty estimation disabled (fixed trust in its sense, best-fit explanations, no caution or probes) | 0.899 | 0.260 | -0.639 | 0 / 31 / 1 / 0 | 0 |
+| the ECHO controller with episodic memory disabled | 0.899 | 0.899 | 0.000 | 0 / 0 / 32 / 0 | 0 |
+| null: the control again on the next 32 pilot seeds, paired in order | 0.899 | 0.873 | -0.026 | 10 / 12 / 10 / 0 | 0 |
+
+### echo_impairment: impaired_path_error
+
+Control: the full ECHO self-model under the same hidden conditions (gate refusals 0).
+
+| arm | control mean | arm mean | mean difference | up / down / tie / undefined | gate refusals |
+| :--- | ---: | ---: | ---: | :--- | ---: |
+| the ECHO controller with no self-model (the reduced-order controller alone) | 0.066 | 0.377 | 0.311 | 32 / 0 / 0 / 0 | 0 |
+| the ECHO controller with predictive learning disabled (beliefs never revised) | 0.066 | 0.376 | 0.310 | 32 / 0 / 0 / 0 | 0 |
+| the ECHO controller with uncertainty estimation disabled (fixed trust in its sense, best-fit explanations, no caution or probes) | 0.066 | 0.074 | 0.008 | 25 / 7 / 0 / 0 | 0 |
+| the ECHO controller with episodic memory disabled | 0.066 | 0.066 | -0.000 | 1 / 1 / 30 / 0 | 0 |
+| null: the control again on the next 32 pilot seeds, paired in order | 0.066 | 0.047 | -0.019 | 16 / 16 / 0 / 0 | 0 |
+
+### echo_retention: reexposure_latency_s
+
+Control: the full ECHO self-model with its memory intact, on the same schedule (gate refusals 0).
+
+| arm | control mean | arm mean | mean difference | up / down / tie / undefined | gate refusals |
+| :--- | ---: | ---: | ---: | :--- | ---: |
+| the full ECHO self-model reset to an innate one 5 s before a remembered change returns | 3.162 | 3.387 | 0.225 | 19 / 4 / 7 / 2 | 0 |
+| the ECHO controller with episodic memory disabled | 3.978 | 4.541 | 0.563 | 19 / 3 / 10 / 0 | 0 |
+| the ECHO controller with predictive learning disabled (beliefs never revised) | 3.978 | 5.100 | 1.122 | 19 / 11 / 2 / 0 | 0 |
+| the ECHO controller with no self-model (the reduced-order controller alone) | — | — | — | 0 / 0 / 0 / 32 | 0 |
+| null: the control again on the next 32 pilot seeds, paired in order | 3.978 | 3.306 | -0.672 | 17 / 15 / 0 / 0 | 0 |
 
 ### noisy_sensing: escape_ttc_s
 
