@@ -6,7 +6,13 @@
  * Preserve the city's and fly's existing deterministic engines and isolation:
  * CityFly observes CitySimulation, and CitySimulation never observes CityFly.
  */
-import { CitySimulation, DT, PROFILES, SIM_VERSION, type Config } from "../simulation.js";
+import {
+  CitySimulation,
+  DT,
+  PROFILES,
+  SIM_VERSION,
+  type Config,
+} from "../simulation.js";
 import { CityFly } from "../fly/cityFly.js";
 import { FLY_VERSION } from "../fly/fly.js";
 import type { Mode } from "../fly/neural.js";
@@ -53,11 +59,15 @@ export class HeadlessBethesdaLife {
       throw new Error("Headless tick count must be an integer from 0 to 10,000");
     }
     if (this.city.paused) throw new Error("A headless living city cannot be paused");
-    if (this.cityFly.failed) throw new Error(`Digital fly stopped: ${this.cityFly.failed}`);
+    if (this.cityFly.failed) {
+      throw new Error(`Digital fly stopped: ${this.cityFly.failed}`);
+    }
     for (let i = 0; i < count; i++) {
       this.city.step();
       this.cityFly.tick();
-      if (this.cityFly.failed) throw new Error(`Digital fly stopped: ${this.cityFly.failed}`);
+      if (this.cityFly.failed) {
+        throw new Error(`Digital fly stopped: ${this.cityFly.failed}`);
+      }
     }
   }
 
@@ -72,7 +82,7 @@ export class HeadlessBethesdaLife {
       cityHash: this.city.stateHash(),
       flyHash: this.cityFly.stateHash(),
       fly: {
-        position: [...fly.p],
+        position: [fly.p[0], fly.p[1], fly.p[2]],
         mode: fly.mode,
         energyFraction: fly.reserve / this.cityFly.fly.params.reserveJ,
         meals: fly.counts.meals,
