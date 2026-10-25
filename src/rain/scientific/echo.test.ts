@@ -63,7 +63,9 @@ describe("ECHO native scientific boundary", () => {
       plan.value.experiment.arms[0]!,
       2832889622,
     );
-    const trials = run.echo_trials!;
+    const trials = Array.from({ length: 6 }, (_, trial) =>
+      runEchoTrial("echo_causation", 2832889622, trial, "disabled"),
+    );
     expect(trials.map((t) => t.falseSelfAttribution === null)).toEqual([
       true,
       false,
@@ -95,7 +97,10 @@ describe("ECHO native scientific boundary", () => {
         plan.value.experiment.arms[0]!,
         9173,
       );
-      expect(run.echo_trials!.every((t) => t.falseSelfAttribution === null)).toBe(true);
+      expect(
+        runEchoTrial(kind, 9173, 0, plan.value.experiment.arms[0]!.echo_variant!)
+          .falseSelfAttribution,
+      ).toBeNull();
       expect(run.metrics[`${kind}_false_self_attribution`]).toBeNull();
     },
   );
