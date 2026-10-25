@@ -114,6 +114,11 @@ a temporary solid obstacle, and misleading sensor bias. The controller receives
 none of these labels or settings. Drift is a kinematic displacement proxy, not
 simulated aerodynamic wind.
 
+The generic ECHO block carries an 8 m arena envelope; its source-bound rig draws
+the smaller trial rooms above. The actual dimensions and interventions are
+retained in every `echo_trials[].condition` record. These protocols use scripted
+motor excitation, rather than measuring spontaneous exploration.
+
 All motor probes alternate bounded walking speeds and turns. Baseline occupies
 0–2 s, intervention 2–8 s, recovery 8–12 s. Memory trials continue through a
 neutral washout, re-expose at 14–20 s, and recover to 24 s. Tracking and attribution
@@ -162,6 +167,8 @@ exploratory simulator findings, with unadjusted tests.
 
 See [evaluation findings and intervals](PROJECT_ECHO_RESULTS.md) and
 [retained ECHO records](benchmarks/project-echo/README.md) for all outcomes.
+
+See [completed verification and reproduction commands](PROJECT_ECHO_VERIFICATION.md).
 
 ## Scope and remaining limitations
 
