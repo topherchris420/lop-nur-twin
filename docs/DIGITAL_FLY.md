@@ -16,6 +16,16 @@ and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
 
 Next development: [fly priorities and acceptance criteria](FLY_PRIORITIES.md).
+
+[Project ECHO](PROJECT_ECHO.md) adds an opt-in computational self-model
+(`src/bethesda/fly/echo/`): the reduced-order controller with a forward model
+of its own self-motion, Bayesian estimates of its own movement gains, change
+detection, causal attribution, caution and episodic memory between its
+intentions and the body. It reads a self-motion sense and experimenters'
+perturbations act on the body (`selfMotion.ts`, `perturbation.ts`); a fly
+whose controller does not ask for them runs exactly as before. The city's fly
+keeps the reduced-order controller unless the panel's experimental choice
+places one with ECHO's.
 Reliable movement in physical simulation comes first; independent recordings
 guide the locomotion, aerodynamic and sensory milestones.
 
@@ -510,10 +520,12 @@ visitor is the person at the screen, and the fly sees them as it sees anyone.
 ## Experiments and the lab
 
 The R.A.I.N. Lab runs the fly as a fourth experiment backend
-(`digital-fly-behavior/v3`). It has six protocols: obstacle avoidance, light
+(`digital-fly-behavior/v3`). It has nine protocols: obstacle avoidance, light
 preference, visual threat (a looming dose series in approach speed, l/v),
-noisy sensing, adaptation to looms repeated on a fixed schedule, and
-controller comparison. Each is a preregistered design with a baseline arm on
+noisy sensing, adaptation to looms repeated on a fixed schedule, controller
+comparison, and Project ECHO's three (a hidden impairment, self versus
+external causation, learning retained through time; see
+[Project ECHO](PROJECT_ECHO.md)). Each is a preregistered design with a baseline arm on
 the same seeds, run in enclosed arenas.
 
 - A design says how many seeds to run, never which. The host draws them after
