@@ -1,0 +1,279 @@
+{
+  "schema": "rain-fly-plan/v2",
+  "design": {
+    "schema": "rain-fly-design/v3",
+    "question": "[scripted] Does ECHO compensate for held-out movement loss?",
+    "hypothesis": "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+    "competing_hypothesis": "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+    "parameters": {
+      "seed_count": 8,
+      "treatment": {
+        "kind": "echo_impairment",
+        "variant": "no_uncertainty"
+      }
+    },
+    "analysis": {
+      "method": "matched_seed_sign_test",
+      "metric": "echo_impairment_tracking_error_cms",
+      "expected_direction": "decrease",
+      "minimum_effect": 0.1
+    },
+    "budget": {
+      "max_simulated_seconds": 16000
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    }
+  },
+  "ir": {
+    "schema": "rain-scientific-experiment/v1",
+    "domain": "fly-behavior-simulation",
+    "backend": "digital-fly",
+    "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+    "question": "In the digital fly simulator, how does experimental ECHO self-model (no_uncertainty) change mean absolute target movement error after adaptation, against the same motor probe with its self-model disabled on matched seeds?",
+    "hypothesis": "Experimental ECHO self-model (no_uncertainty) will decrease echo_impairment_tracking_error_cms by at least 0.1 cm/s on average over 8 matched seeds drawn after preregistration, compared with the same motor probe with its self-model disabled, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "observables": [
+      {
+        "id": "echo_impairment_tracking_error_cms",
+        "unit": "cm/s",
+        "description": "mean absolute target movement error after adaptation"
+      },
+      {
+        "id": "echo_impairment_prediction_error_cms",
+        "unit": "cm/s",
+        "description": "mean absolute forward prediction error"
+      },
+      {
+        "id": "echo_impairment_attribution_accuracy",
+        "unit": "fraction",
+        "description": "fraction of correct causal hypotheses after adaptation; ambiguous counts incorrect"
+      },
+      {
+        "id": "echo_impairment_false_self_attribution",
+        "unit": "fraction",
+        "description": "fraction of external or noisy conditions attributed to changed action response"
+      },
+      {
+        "id": "echo_impairment_interval_coverage",
+        "unit": "fraction",
+        "description": "empirical coverage of nominal 90 percent movement intervals"
+      },
+      {
+        "id": "echo_impairment_detection_latency_s",
+        "unit": "s",
+        "description": "latency to first bodily-change hypothesis; missing detections remain null"
+      },
+      {
+        "id": "echo_impairment_recovery_latency_s",
+        "unit": "s",
+        "description": "latency to return to unchanged hypothesis after intervention removal"
+      },
+      {
+        "id": "echo_impairment_recall_error_cms",
+        "unit": "cm/s",
+        "description": "early movement error on re-exposure, with retained versus reset self-model"
+      },
+      {
+        "id": "echo_impairment_recalls",
+        "unit": "count",
+        "description": "bounded episodic recall events"
+      },
+      {
+        "id": "echo_impairment_adapted_actions",
+        "unit": "count",
+        "description": "motor actions changed by the self-model"
+      },
+      {
+        "id": "echo_impairment_checkpoint_verified",
+        "unit": "fraction",
+        "description": "self-model checkpoint round trips verified; not full fly recovery"
+      },
+      {
+        "id": "mean_paired_delta",
+        "unit": "cm/s",
+        "description": "treatment minus control echo_impairment_tracking_error_cms, averaged over the seeds where both are defined"
+      },
+      {
+        "id": "sign_test_p_expected",
+        "unit": "probability",
+        "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+      },
+      {
+        "id": "sign_test_p_opposite",
+        "unit": "probability",
+        "description": "the same test in the opposite direction"
+      }
+    ],
+    "independent_variables": [
+      "experimental ECHO self-model (no_uncertainty)"
+    ],
+    "dependent_variables": [
+      "echo_impairment_tracking_error_cms"
+    ],
+    "controls": [
+      "baseline arm: the same motor probe with its self-model disabled",
+      "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+      "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+      "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+    ],
+    "parameter_constraints": [
+      "9 closed protocols with host-built arenas and stimuli",
+      "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+      "the integration settings (physics, sensing and decision periods) are never varied",
+      "at most 16000 simulated fly-seconds per experiment",
+      "8-16 seeds, drawn by the host after preregistration",
+      "a minimum effect at or above the host's 0.1 cm/s for echo_impairment_tracking_error_cms"
+    ],
+    "resource_budget": {
+      "execution_steps": 153600,
+      "replay_steps": 153600,
+      "max_samples": 16
+    },
+    "statistical_analysis": {
+      "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+      "independent_replicates": 8,
+      "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+    },
+    "falsification": {
+      "metric": "sign_test_p_opposite",
+      "op": "<=",
+      "value": 0.05,
+      "unit": "probability"
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    },
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "Scripted motor excitation and idealized local odometry in reduced-order walking. Causal inference can remain ambiguous; no biological motor-control, consciousness or durable identity claim.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila."
+    ]
+  },
+  "fly": "digital-fly/8 reduced-order-fsm/v1",
+  "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+  "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+  "experiment": {
+    "schema": "digital-fly-experiment/v3",
+    "protocol": "echo_impairment",
+    "seed_count": 8,
+    "blocks": [
+      {
+        "id": "echo_impairment",
+        "arena": {
+          "size": [
+            8,
+            2.5,
+            8
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {},
+        "start_half_width_m": 0,
+        "tick_s": 0.05,
+        "duration_s": 12,
+        "trials": 4,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": null
+      }
+    ],
+    "arms": [
+      {
+        "config": {},
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 90,
+        "echo_variant": "disabled",
+        "id": "control"
+      },
+      {
+        "config": {},
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 90,
+        "echo_variant": "no_uncertainty",
+        "id": "treatment"
+      }
+    ]
+  },
+  "simulated_seconds": 768,
+  "criteria": {
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 16,
+        "note": "Every matched run completes"
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "note": "An independent re-simulation reproduces every state hash and measurement"
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "note": "Enough seeds differ between the arms for the sign test"
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "note": "The fly's gate refused no command in any run"
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.1,
+        "note": "Mean paired difference beyond the minimum effect"
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test in the expected direction"
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test finds the opposite direction"
+      }
+    ]
+  },
+  "definition_sha256": "3920e819007546cd014b23c6e1cab0edfd77b781eb7f7eb3346436f228b19d7c",
+  "experiment_id": "FLY-3920e819007546cd014b23c6"
+}

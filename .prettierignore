@@ -70,6 +70,7 @@ docs/benchmarks/noeterra-civilization/
 # Digital-fly experiments the lab archives: records are evidence whose exact
 # bytes are hashed, written by `npm run rain:fly`, never by hand.
 docs/benchmarks/fly-behavior/
+docs/benchmarks/project-echo/
 
 # Digital-fly pilots: exploratory sizing runs, never evidence, written by
 # `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.

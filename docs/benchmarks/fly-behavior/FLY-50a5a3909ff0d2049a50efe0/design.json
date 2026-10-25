@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does retained ECHO learning improve early regulation on re-exposure?",
+  "hypothesis": "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+  "competing_hypothesis": "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  "parameters": {
+    "seed_count": 8,
+    "treatment": {
+      "kind": "echo_memory",
+      "variant": "full"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "echo_memory_recall_error_cms",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.05
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

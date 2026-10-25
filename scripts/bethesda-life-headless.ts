@@ -25,7 +25,9 @@ function parseMode(args: string[]): { continuous: boolean; ticks: number } {
 }
 
 async function run() {
-  const args = process.argv.slice(2);
+  const args = process.argv.slice(
+    process.argv[2]?.endsWith("bethesda-life-headless.ts") ? 3 : 2,
+  );
   const echo = args.includes("--echo");
   const mode = parseMode(args.filter((arg) => arg !== "--echo"));
   const life = new HeadlessBethesdaLife(undefined, echo ? { echo: "full" } : {});

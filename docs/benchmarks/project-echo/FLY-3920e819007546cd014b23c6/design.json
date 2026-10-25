@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does ECHO compensate for held-out movement loss?",
+  "hypothesis": "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+  "competing_hypothesis": "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  "parameters": {
+    "seed_count": 8,
+    "treatment": {
+      "kind": "echo_impairment",
+      "variant": "no_uncertainty"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "echo_impairment_tracking_error_cms",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.1
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

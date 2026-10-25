@@ -152,7 +152,16 @@ npm run bethesda:life:smoke
 npx vitest run src/bethesda/fly/echo/echo.test.ts
 ```
 
-See [retained ECHO records](benchmarks/project-echo/README.md) for all outcomes.
+Initial held-out results support movement compensation and causal attribution:
+mean target-speed error fell from 0.4297 to 0.1934 cm/s, and attribution accuracy
+rose from 0.1417 to 0.7920. Retaining the model worsened early re-exposure error
+by 0.0285 cm/s versus resetting it; ECHO-03 was not supported. Learning-disabled
+ablations failed, while these evaluations do not establish additional benefit
+from episodic memory or uncertainty over simpler adaptive variants. These are
+exploratory simulator findings, with unadjusted tests.
+
+See [evaluation findings and intervals](PROJECT_ECHO_RESULTS.md) and
+[retained ECHO records](benchmarks/project-echo/README.md) for all outcomes.
 
 ## Scope and remaining limitations
 

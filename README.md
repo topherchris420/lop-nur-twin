@@ -124,6 +124,7 @@ and inspect **Fly → Self-Model**. This is experimental computational self-mode
 subjective consciousness and durable identity are not established.
 
 [Architecture and protocols](docs/PROJECT_ECHO.md) ·
+[Evaluation findings](docs/PROJECT_ECHO_RESULTS.md) ·
 [Retained experiment records](docs/benchmarks/project-echo/README.md)
 
 ## Run locally

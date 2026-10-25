@@ -423,6 +423,7 @@ export function FlyPanel({
           {echo ? (
             <dl className="mt-2 space-y-1">
               <Row label="Configuration">{fly.adapter.descriptor.id}</Row>
+              <Row label="Model tick">{echo.tick}</Row>
               <Row label="Estimated motion">
                 {echo.estimate.speedCmS.toFixed(2)} cm/s; origin-relative position{" "}
                 {echo.estimate.positionM.map((n) => n.toFixed(3)).join(", ")} m

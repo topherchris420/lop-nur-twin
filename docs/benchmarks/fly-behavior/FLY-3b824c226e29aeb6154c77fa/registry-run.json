@@ -1,0 +1,1186 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0008",
+  "run_id": "V3D-EXP-0008-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "passed",
+  "hypothesis_verdict": "supported",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-25T17:30:00.773Z",
+  "finished_at": "2026-10-25T17:30:27.815Z",
+  "duration_ms": 27042,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "3b824c226e29aeb6154c77fab3e9a31f95606139e92d900c7562a2ac7b5f85be"
+  },
+  "definition": {
+    "created_at": "2026-10-25T17:30:00.759Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "note": "Exact one-sided sign test finds the opposite direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 26
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash and measurement",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "note": "Enough seeds differ between the arms for the sign test",
+          "op": ">=",
+          "value": 6
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "note": "The fly's gate refused no command in any run",
+          "op": "<=",
+          "value": 0
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Mean paired difference beyond the minimum effect",
+          "op": "<=",
+          "value": -0.13
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "note": "Exact one-sided sign test in the expected direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0008",
+    "experiment_version": 1,
+    "hypothesis": "Repeating a looming stimulus every 10 s on a fixed schedule will decrease repeat_escape_probability by at least 0.13 fraction on average over 13 matched seeds drawn after preregistration, compared with the same stimuli every 90 s on the same schedule, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
+      "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+      "Seeds are replicates of one model, not samples of real flies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs (seed x arm x block) that completed",
+        "deterministic": true,
+        "name": "runs_completed",
+        "unit": "count"
+      },
+      {
+        "description": "a second simulation reached every recorded state hash and measurement",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds, drawn by the host after preregistration",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "fly-seconds simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_seconds",
+        "unit": "s"
+      },
+      {
+        "description": "commands the fly's gate refused, over every run",
+        "deterministic": true,
+        "name": "gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the control arm",
+        "deterministic": true,
+        "name": "control_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "mean repeat_escape_probability in the control arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "mean repeat_escape_probability in the treatment arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment minus control repeat_escape_probability, averaged over seeds defined in both arms",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "fraction"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference (ties)",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "seeds where the metric is undefined in an arm; they drop out of the test",
+        "deterministic": true,
+        "name": "seeds_undefined",
+        "unit": "count"
+      },
+      {
+        "description": "seeds that differ between the arms",
+        "deterministic": true,
+        "name": "untied_pairs",
+        "unit": "count"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the expected direction",
+        "deterministic": true,
+        "name": "sign_test_p_expected",
+        "unit": "probability"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the opposite direction",
+        "deterministic": true,
+        "name": "sign_test_p_opposite",
+        "unit": "probability"
+      },
+      {
+        "description": "0 when the control arm sits at the metric's floor or ceiling in every seed",
+        "deterministic": true,
+        "name": "control_informative",
+        "unit": "1 if informative"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of the presentations shown to the standing fly that it answered by an escape",
+        "deterministic": true,
+        "name": "control_repeat_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of the presentations shown to the standing fly that it answered by an escape",
+        "deterministic": true,
+        "name": "treatment_repeat_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: the same fraction over the second half of the schedule's presentations",
+        "deterministic": true,
+        "name": "control_late_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: the same fraction over the second half of the schedule's presentations",
+        "deterministic": true,
+        "name": "treatment_late_escape_probability",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: presentations shown, each on the schedule while the fly stood",
+        "deterministic": true,
+        "name": "control_presentations",
+        "unit": "count"
+      },
+      {
+        "description": "treatment arm, mean over seeds: presentations shown, each on the schedule while the fly stood",
+        "deterministic": true,
+        "name": "treatment_presentations",
+        "unit": "count"
+      },
+      {
+        "description": "control arm, mean over seeds: presentations the schedule skipped because the fly was still in the air when they were due",
+        "deterministic": true,
+        "name": "control_airborne_presentations",
+        "unit": "count"
+      },
+      {
+        "description": "treatment arm, mean over seeds: presentations the schedule skipped because the fly was still in the air when they were due",
+        "deterministic": true,
+        "name": "treatment_airborne_presentations",
+        "unit": "count"
+      },
+      {
+        "description": "control arm, mean over seeds: mean angular size of the repeated stimulus at the escape decision",
+        "deterministic": true,
+        "name": "control_repeat_size_at_escape_deg",
+        "unit": "deg"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean angular size of the repeated stimulus at the escape decision",
+        "deterministic": true,
+        "name": "treatment_repeat_size_at_escape_deg",
+        "unit": "deg"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "sign_test_p_opposite",
+              "note": "Exact one-sided sign test finds the opposite direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "runs_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 26
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash and measurement",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G3",
+              "metric": "control_informative",
+              "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G4",
+              "metric": "untied_pairs",
+              "note": "Enough seeds differ between the arms for the sign test",
+              "op": ">=",
+              "value": 6
+            },
+            {
+              "id": "G5",
+              "metric": "gate_refusals",
+              "note": "The fly's gate refused no command in any run",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Mean paired difference beyond the minimum effect",
+              "op": "<=",
+              "value": -0.13
+            },
+            {
+              "id": "S2",
+              "metric": "sign_test_p_expected",
+              "note": "Exact one-sided sign test in the expected direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ]
+        },
+        "definition_sha256": "3b824c226e29aeb6154c77fab3e9a31f95606139e92d900c7562a2ac7b5f85be",
+        "design": {
+          "analysis": {
+            "expected_direction": "decrease",
+            "method": "matched_seed_sign_test",
+            "metric": "repeat_escape_probability",
+            "minimum_effect": 0.13
+          },
+          "budget": {
+            "max_simulated_seconds": 16000
+          },
+          "competing_hypothesis": "[scripted] Responsiveness recovers within 10 s, so the interval leaves the escape probability unchanged.",
+          "hypothesis": "[scripted] Repeating the stimuli every 10 s lowers the fraction answered by an escape, compared with the same stimuli every 90 s.",
+          "parameters": {
+            "seed_count": 13,
+            "treatment": {
+              "isi_s": 10,
+              "kind": "adaptation"
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats every 10 s on a fixed schedule?",
+          "schema": "rain-fly-design/v3"
+        },
+        "experiment": {
+          "arms": [
+            {
+              "config": {},
+              "id": "control",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            },
+            {
+              "config": {},
+              "id": "treatment",
+              "isi_s": 10,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            }
+          ],
+          "blocks": [
+            {
+              "arena": {
+                "ambient": 0.6,
+                "pillars": [],
+                "size": [
+                  4,
+                  1,
+                  4
+                ]
+              },
+              "duration_s": 0.3,
+              "fixed_config": {
+                "flightBoutMeanS": 0.5,
+                "groomHz": 0,
+                "takeoffHz": 0,
+                "walkStartHz": 0
+              },
+              "id": "repeat",
+              "light_at": null,
+              "near_miss_m": null,
+              "start_half_width_m": 0.5,
+              "stimulus": {
+                "azimuth_deg": [
+                  -90,
+                  90
+                ],
+                "elevation_deg": [
+                  10,
+                  30
+                ],
+                "final_size_deg": [
+                  30,
+                  55
+                ],
+                "l_over_v_ms": 80,
+                "onset_s": 1,
+                "radius_m": 0.04,
+                "start_distance_m": 1
+              },
+              "tick_s": 0.005,
+              "trials": 12
+            }
+          ],
+          "protocol": "adaptation",
+          "schema": "digital-fly-experiment/v3",
+          "seed_count": 13
+        },
+        "experiment_id": "FLY-3b824c226e29aeb6154c77fa",
+        "fly": "digital-fly/8 reduced-order-fsm/v1",
+        "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+        "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+        "ir": {
+          "backend": "digital-fly",
+          "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+          "controls": [
+            "baseline arm: the same stimuli every 90 s on the same schedule",
+            "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+            "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+            "fixed apparatus settings, both arms — repeat block: flightBoutMeanS = 0.5, groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+            "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "repeat_escape_probability"
+          ],
+          "domain": "fly-behavior-simulation",
+          "falsification": {
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "unit": "probability",
+            "value": 0.05
+          },
+          "hypothesis": "Repeating a looming stimulus every 10 s on a fixed schedule will decrease repeat_escape_probability by at least 0.13 fraction on average over 13 matched seeds drawn after preregistration, compared with the same stimuli every 90 s on the same schedule, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+          "independent_variables": [
+            "repeating a looming stimulus every 10 s on a fixed schedule"
+          ],
+          "limitations": [
+            "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+            "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+            "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+            "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+            "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
+            "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+            "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+            "A result characterizes the simulator and is never empirical evidence about Drosophila."
+          ],
+          "observables": [
+            {
+              "description": "fraction of the presentations shown to the standing fly that it answered by an escape",
+              "id": "repeat_escape_probability",
+              "unit": "fraction"
+            },
+            {
+              "description": "the same fraction over the second half of the schedule's presentations",
+              "id": "late_escape_probability",
+              "unit": "fraction"
+            },
+            {
+              "description": "presentations shown, each on the schedule while the fly stood",
+              "id": "presentations",
+              "unit": "count"
+            },
+            {
+              "description": "presentations the schedule skipped because the fly was still in the air when they were due",
+              "id": "airborne_presentations",
+              "unit": "count"
+            },
+            {
+              "description": "mean angular size of the repeated stimulus at the escape decision",
+              "id": "repeat_size_at_escape_deg",
+              "unit": "deg"
+            },
+            {
+              "description": "treatment minus control repeat_escape_probability, averaged over the seeds where both are defined",
+              "id": "mean_paired_delta",
+              "unit": "fraction"
+            },
+            {
+              "description": "exact one-sided sign test p-value for a decrease, over untied seeds",
+              "id": "sign_test_p_expected",
+              "unit": "probability"
+            },
+            {
+              "description": "the same test in the opposite direction",
+              "id": "sign_test_p_opposite",
+              "unit": "probability"
+            }
+          ],
+          "parameter_constraints": [
+            "9 closed protocols with host-built arenas and stimuli",
+            "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+            "the integration settings (physics, sensing and decision periods) are never varied",
+            "at most 16000 simulated fly-seconds per experiment",
+            "8-16 seeds, drawn by the host after preregistration",
+            "a minimum effect at or above the host's 0.1 fraction for repeat_escape_probability"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the digital fly simulator, how does repeating a looming stimulus every 10 s on a fixed schedule change fraction of the presentations shown to the standing fly that it answered by an escape, against the same stimuli every 90 s on the same schedule on matched seeds?",
+          "resource_budget": {
+            "execution_steps": 2876400,
+            "max_samples": 26,
+            "replay_steps": 2876400
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 13,
+            "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+            "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+          }
+        },
+        "schema": "rain-fly-plan/v2",
+        "simulated_seconds": 14382
+      }
+    },
+    "procedure": [
+      "Preregister the exact fly plan; the registry's receipt fixes when.",
+      "A person at a terminal (or, for the host's demonstration designs, the demonstration script) authorizes the plan once; the authorization binds the receipt and draws a random nonce.",
+      "Derive the seeds from SHA-256 of the receipt digest and the nonce, and refuse any this fly has already run.",
+      "Run every seed in both arms on the host-built arenas and stimuli of the protocol, counting the gate's refusals.",
+      "Simulate every run a second time and require each state hash and measurement.",
+      "Recompile and re-simulate again before registry admission, from committed code only."
+    ],
+    "question": "In the digital fly simulator, how does repeating a looming stimulus every 10 s on a fixed schedule change fraction of the presentations shown to the standing fly that it answered by an escape, against the same stimuli every 90 s on the same schedule on matched seeds?",
+    "rationale": "Bounded experiment on the digital fly's reduced-order controller in a closed arena: seeds drawn by the host after preregistration, an exact one-sided sign test at alpha 0.05 on at least 6 untied seeds, and independent re-simulation.",
+    "runner": {
+      "adapter": "digital-fly-behavior/v3",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "digital-fly",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed digital fly behaviour",
+    "variables": {
+      "controls": [
+        "baseline arm: the same stimuli every 90 s on the same schedule",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — repeat block: flightBoutMeanS = 0.5, groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "dependent": [
+        "repeat_escape_probability"
+      ],
+      "independent": [
+        "repeating a looming stimulus every 10 s on a fixed schedule"
+      ]
+    }
+  },
+  "definition_sha256": "f318b390bef450e15759d603dc866bda3816353178878c92a8c4f4c522560206",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-fly-plan/v2",
+      "design": {
+        "schema": "rain-fly-design/v3",
+        "question": "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats every 10 s on a fixed schedule?",
+        "hypothesis": "[scripted] Repeating the stimuli every 10 s lowers the fraction answered by an escape, compared with the same stimuli every 90 s.",
+        "competing_hypothesis": "[scripted] Responsiveness recovers within 10 s, so the interval leaves the escape probability unchanged.",
+        "parameters": {
+          "seed_count": 13,
+          "treatment": {
+            "kind": "adaptation",
+            "isi_s": 10
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_sign_test",
+          "metric": "repeat_escape_probability",
+          "expected_direction": "decrease",
+          "minimum_effect": 0.13
+        },
+        "budget": {
+          "max_simulated_seconds": 16000
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "fly-behavior-simulation",
+        "backend": "digital-fly",
+        "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+        "question": "In the digital fly simulator, how does repeating a looming stimulus every 10 s on a fixed schedule change fraction of the presentations shown to the standing fly that it answered by an escape, against the same stimuli every 90 s on the same schedule on matched seeds?",
+        "hypothesis": "Repeating a looming stimulus every 10 s on a fixed schedule will decrease repeat_escape_probability by at least 0.13 fraction on average over 13 matched seeds drawn after preregistration, compared with the same stimuli every 90 s on the same schedule, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+        "observables": [
+          {
+            "id": "repeat_escape_probability",
+            "unit": "fraction",
+            "description": "fraction of the presentations shown to the standing fly that it answered by an escape"
+          },
+          {
+            "id": "late_escape_probability",
+            "unit": "fraction",
+            "description": "the same fraction over the second half of the schedule's presentations"
+          },
+          {
+            "id": "presentations",
+            "unit": "count",
+            "description": "presentations shown, each on the schedule while the fly stood"
+          },
+          {
+            "id": "airborne_presentations",
+            "unit": "count",
+            "description": "presentations the schedule skipped because the fly was still in the air when they were due"
+          },
+          {
+            "id": "repeat_size_at_escape_deg",
+            "unit": "deg",
+            "description": "mean angular size of the repeated stimulus at the escape decision"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "fraction",
+            "description": "treatment minus control repeat_escape_probability, averaged over the seeds where both are defined"
+          },
+          {
+            "id": "sign_test_p_expected",
+            "unit": "probability",
+            "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+          },
+          {
+            "id": "sign_test_p_opposite",
+            "unit": "probability",
+            "description": "the same test in the opposite direction"
+          }
+        ],
+        "independent_variables": [
+          "repeating a looming stimulus every 10 s on a fixed schedule"
+        ],
+        "dependent_variables": [
+          "repeat_escape_probability"
+        ],
+        "controls": [
+          "baseline arm: the same stimuli every 90 s on the same schedule",
+          "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+          "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+          "fixed apparatus settings, both arms — repeat block: flightBoutMeanS = 0.5, groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+          "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "9 closed protocols with host-built arenas and stimuli",
+          "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+          "the integration settings (physics, sensing and decision periods) are never varied",
+          "at most 16000 simulated fly-seconds per experiment",
+          "8-16 seeds, drawn by the host after preregistration",
+          "a minimum effect at or above the host's 0.1 fraction for repeat_escape_probability"
+        ],
+        "resource_budget": {
+          "execution_steps": 2876400,
+          "replay_steps": 2876400,
+          "max_samples": 26
+        },
+        "statistical_analysis": {
+          "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+          "independent_replicates": 13,
+          "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+        },
+        "falsification": {
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "unit": "probability"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+          "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+          "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+          "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+          "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
+          "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+          "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+          "A result characterizes the simulator and is never empirical evidence about Drosophila."
+        ]
+      },
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+      "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+      "experiment": {
+        "schema": "digital-fly-experiment/v3",
+        "protocol": "adaptation",
+        "seed_count": 13,
+        "blocks": [
+          {
+            "id": "repeat",
+            "arena": {
+              "size": [
+                4,
+                1,
+                4
+              ],
+              "ambient": 0.6,
+              "pillars": []
+            },
+            "fixed_config": {
+              "takeoffHz": 0,
+              "walkStartHz": 0,
+              "groomHz": 0,
+              "flightBoutMeanS": 0.5
+            },
+            "start_half_width_m": 0.5,
+            "tick_s": 0.005,
+            "duration_s": 0.3,
+            "trials": 12,
+            "light_at": null,
+            "near_miss_m": null,
+            "stimulus": {
+              "radius_m": 0.04,
+              "start_distance_m": 1,
+              "final_size_deg": [
+                30,
+                55
+              ],
+              "elevation_deg": [
+                10,
+                30
+              ],
+              "azimuth_deg": [
+                -90,
+                90
+              ],
+              "onset_s": 1,
+              "l_over_v_ms": 80
+            }
+          }
+        ],
+        "arms": [
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "id": "control"
+          },
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 10,
+            "id": "treatment"
+          }
+        ]
+      },
+      "simulated_seconds": 14382,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "runs_completed",
+            "op": ">=",
+            "value": 26,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash and measurement"
+          },
+          {
+            "id": "G3",
+            "metric": "control_informative",
+            "op": ">=",
+            "value": 1,
+            "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+          },
+          {
+            "id": "G4",
+            "metric": "untied_pairs",
+            "op": ">=",
+            "value": 6,
+            "note": "Enough seeds differ between the arms for the sign test"
+          },
+          {
+            "id": "G5",
+            "metric": "gate_refusals",
+            "op": "<=",
+            "value": 0,
+            "note": "The fly's gate refused no command in any run"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": -0.13,
+            "note": "Mean paired difference beyond the minimum effect"
+          },
+          {
+            "id": "S2",
+            "metric": "sign_test_p_expected",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test in the expected direction"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test finds the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "3b824c226e29aeb6154c77fab3e9a31f95606139e92d900c7562a2ac7b5f85be",
+      "experiment_id": "FLY-3b824c226e29aeb6154c77fa"
+    },
+    "preregistration": {
+      "experiment_id": "V3D-EXP-0008",
+      "registry_definition_sha256": "f318b390bef450e15759d603dc866bda3816353178878c92a8c4f4c522560206",
+      "plan_sha256": "3b824c226e29aeb6154c77fab3e9a31f95606139e92d900c7562a2ac7b5f85be",
+      "created_at": "2026-10-25T17:30:00.759Z"
+    },
+    "authorization": {
+      "schema": "rain-fly-authorization/v2",
+      "experiment_id": "FLY-3b824c226e29aeb6154c77fa",
+      "definition_sha256": "3b824c226e29aeb6154c77fab3e9a31f95606139e92d900c7562a2ac7b5f85be",
+      "registry_experiment_id": "V3D-EXP-0008",
+      "preregistration_sha256": "40638ef746596cdc928261318f134de8bc686859e426ac9a361d4922b05804b2",
+      "registered_at": "2026-10-25T17:30:00.759Z",
+      "nonce": "e81367458600b615288a4c805577fca93380d002a29ed389ac39862fc46b4b1c",
+      "channel": "script",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "demonstration-script",
+      "identity_verified": false,
+      "human_design_attested": false,
+      "scope": "fly-behavior-simulation",
+      "confirmed_prefix": "3b824c22",
+      "authorized_at": "2026-10-25T17:30:00.772Z",
+      "expires_at": "2026-10-25T18:30:00.772Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "seeds": [
+      1790005426,
+      2117303785,
+      1096443579,
+      4279869587,
+      504601940,
+      4090514237,
+      1114913874,
+      4227408981,
+      319907617,
+      761334826,
+      3730563230,
+      1307006263,
+      95066670
+    ],
+    "engine": {
+      "runtime": "node",
+      "version": "24.22.1",
+      "js": "V8 13.6.233.17-node.58"
+    },
+    "replay_sha256": "595f75ba79bb047c962b515ec5dac82a983ad8b247e29732cb8dc7438edd4a6c",
+    "final_state_hashes": [
+      "repeat/control/1790005426/8133edd51d7835e6730a7fe30a80d9e1e804350595ba692686623ae4b1bad48a",
+      "repeat/treatment/1790005426/72b8b42bde3dec738743d8e2ad3146cdb6083bd2ee83387c157c919643bd112e",
+      "repeat/control/2117303785/c088375c734d463cdf8ebabaa3afa5fdfdb8094cab5dad51f2d56a8c6b76feec",
+      "repeat/treatment/2117303785/635a0857cc43443850456b3708209a8d0b11ebaf0f9f55456ed3b32e4e942b2b",
+      "repeat/control/1096443579/1eafac561b3aa466bffe347cf6b805ef7659385050c9e1050068d6935d60818d",
+      "repeat/treatment/1096443579/c2ab1624ed629ed177d3dda28292bddd294a54d4cd73dbd1971c46e940a9e11f",
+      "repeat/control/4279869587/accaacf62b76ae49f568b56b5139b4ad3fc2235374284092009e314388d58117",
+      "repeat/treatment/4279869587/e2f86994c51ef6a1df53b7bf00c6488fcf59915817dd4dc03d7799219e112a45",
+      "repeat/control/504601940/5897a02ff976e0f47d898af27d59e706506d8de791efc79a5a37b6b366b64579",
+      "repeat/treatment/504601940/0503a57898528848726395812f5b824d4a78b7d99df0c4d8f0225143a39f08f5",
+      "repeat/control/4090514237/24e8c43e692e9d205e3c4a658aa95781368e390dc9a121e34d07c8c6b128bc2e",
+      "repeat/treatment/4090514237/32957290f352691c5999263540c24bc9be510251eceae75472b4a1e884d59025",
+      "repeat/control/1114913874/c72ed230cfc41132ff53e0e9370878cf1bdf9bebe0e00cef5a94118112f83a47",
+      "repeat/treatment/1114913874/4f6f05eeeef0889b71385ac9a4c152b6f09afa125bbc0671a03c4ce3d7673ad8",
+      "repeat/control/4227408981/b86abbf8ff227ecbb023aa566d1f0738b39bfa41b7d0e389d7de7d2e62d945be",
+      "repeat/treatment/4227408981/12ce17fe7a82c66dd53ce397be0402b9791e398215ff6978fc4efcc9b0b04eb8",
+      "repeat/control/319907617/f8d5f832692493f249c545381b51b2e4a19eab346315504bcbde84c89c1d1e9d",
+      "repeat/treatment/319907617/d1c1a44ea27a5cddd7ec2ad8b2ba05ce6ad650261bd9e0e244337681af072390",
+      "repeat/control/761334826/d782a4f139e7a8adf851f4a7000b1e3503c54143270c2ba7962acea81a401215",
+      "repeat/treatment/761334826/55946ea849ad2fd51c111719529066fce5ac943356df563b7e7bee1d35f5ab29",
+      "repeat/control/3730563230/17b71e5769f8abf2b6c9f57d71543c586bb23b10903434e07f694e1c740728a0",
+      "repeat/treatment/3730563230/ab2a0bd97a5165f76443ca812987c0a7c4dd6444af69a96f15477970ae142df2",
+      "repeat/control/1307006263/5ac82518e5e05c715e8c298a36a5926bcb6da28e57739d319a52f1dc935eedab",
+      "repeat/treatment/1307006263/48460ebb3f922f6b26baee2f62624564b6ded15f925c8c21bdbe936b7d58cdd9",
+      "repeat/control/95066670/da2ee2606dda5c04ec210342801e683ec3687a65f4817dfd752ba30b1f125db0",
+      "repeat/treatment/95066670/e56e5367533995447e65c33c611b74cdf1f7ad48aacc323c92ff0097758ea66d"
+    ]
+  },
+  "measurements": {
+    "control_airborne_presentations": 0,
+    "control_gate_refusals": 0,
+    "control_informative": 1,
+    "control_late_escape_probability": 0.6282051282051282,
+    "control_mean": 0.5961538461538463,
+    "control_presentations": 12,
+    "control_repeat_escape_probability": 0.5961538461538463,
+    "control_repeat_size_at_escape_deg": 46.28119469887887,
+    "determinism_check": 1,
+    "gate_refusals": 0,
+    "mean_paired_delta": -0.19871794871794876,
+    "runs_completed": 26,
+    "seeds": 13,
+    "seeds_expected_direction": 13,
+    "seeds_opposite": 0,
+    "seeds_unchanged": 0,
+    "seeds_undefined": 0,
+    "sign_test_p_expected": 0.0001220703125,
+    "sign_test_p_opposite": 1,
+    "simulated_seconds": 14381.25,
+    "treatment_airborne_presentations": 0,
+    "treatment_gate_refusals": 0,
+    "treatment_late_escape_probability": 0.37179487179487175,
+    "treatment_mean": 0.39743589743589747,
+    "treatment_presentations": 12,
+    "treatment_repeat_escape_probability": 0.39743589743589747,
+    "treatment_repeat_size_at_escape_deg": 49.029184451451556,
+    "untied_pairs": 13
+  },
+  "series": {
+    "control_primary": [
+      0.75,
+      0.5833333333333334,
+      0.5833333333333334,
+      0.5833333333333334,
+      0.5833333333333334,
+      0.4166666666666667,
+      0.3333333333333333,
+      0.4166666666666667,
+      0.8333333333333334,
+      0.5,
+      0.75,
+      0.75,
+      0.6666666666666666
+    ],
+    "paired_delta": [
+      -0.3333333333333333,
+      -0.25000000000000006,
+      -0.16666666666666669,
+      -0.16666666666666669,
+      -0.08333333333333337,
+      -0.16666666666666669,
+      -0.08333333333333331,
+      -0.08333333333333337,
+      -0.16666666666666674,
+      -0.16666666666666669,
+      -0.25,
+      -0.3333333333333333,
+      -0.3333333333333333
+    ],
+    "treatment_primary": [
+      0.4166666666666667,
+      0.3333333333333333,
+      0.4166666666666667,
+      0.4166666666666667,
+      0.5,
+      0.25,
+      0.25,
+      0.3333333333333333,
+      0.6666666666666666,
+      0.3333333333333333,
+      0.5,
+      0.4166666666666667,
+      0.3333333333333333
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 13,
+      "mean": 0.596153846,
+      "median": 0.583333333,
+      "min": 0.333333333,
+      "max": 0.833333333,
+      "stdev": 0.151558852,
+      "variance": 0.022970085,
+      "note": null
+    },
+    "paired_delta": {
+      "n": 13,
+      "mean": -0.198717949,
+      "median": -0.166666667,
+      "min": -0.333333333,
+      "max": -0.083333333,
+      "stdev": 0.09340809,
+      "variance": 0.008725071,
+      "note": null
+    },
+    "treatment_primary": {
+      "n": 13,
+      "mean": 0.397435897,
+      "median": 0.416666667,
+      "min": 0.25,
+      "max": 0.666666667,
+      "stdev": 0.113620175,
+      "variance": 0.012909544,
+      "note": null
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 26,
+        "observed": 26,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "observed": 13,
+        "holds": true
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "observed": 0,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.13,
+        "observed": -0.19871794871794876,
+        "holds": true
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 0.0001220703125,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 1,
+        "holds": false
+      }
+    ],
+    "summary": "All 2 success criteria held and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the digital fly simulator (a reduced-order controller that simulates no neurons) in a closed arena; no animal was observed.",
+    "Seeds drawn by the host after preregistration; authorized by the demonstration script (Scripted.DemoOperator), not a person.",
+    "Independent re-simulation reproduced every state hash and measurement: 595f75ba79bb047c962b515ec5dac82a983ad8b247e29732cb8dc7438edd4a6c"
+  ],
+  "interpretation": {
+    "deterministic": "All 2 success criteria held and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+    "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+    "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+    "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+    "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
+    "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+    "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+    "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+    "Seeds are replicates of one model, not samples of real flies.",
+    "Matched seeds of one model; the sign test's p-values describe consistency across this simulator's seeds, not a population."
+  ],
+  "artifacts": [
+    {
+      "name": "fly-record.json",
+      "sha256": "2527d4d020aeae3ca69b9a84a9076f171b553cbfcdf2dd06fbef1c48997c669a",
+      "bytes": 20045,
+      "kind": "fly-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "3867cb7daff02718e14f2e22d0a180bd94616a934694a58c16c5d8fc8c053328",
+    "producer": {
+      "producer": "R.A.I.N.FlyHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "a71066264ba3ff3a6949316bdc0f0bcee92c5520",
+      "dirty": false,
+      "fly_record_sha256": "900a7dd0a9af4874e83643e5fcdef1272e52063324f383f0dfd7f60285acc4b0",
+      "fly_run_id": "FR-1dd6c70bafcc6313ff7c81d1",
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+      "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+      "engine": "node 24.22.1 (V8 13.6.233.17-node.58)",
+      "approval_channel": "script"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "a71066264ba3ff3a6949316bdc0f0bcee92c5520",
+        "branch": "HEAD",
+        "dirty": false,
+        "changed_paths": 0,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "24.22.1",
+        "os": "linux",
+        "os_release": "6.18.55",
+        "machine": "x64",
+        "cpu_count": 9
+      }
+    },
+    "recorded_at": "2026-10-25T17:30:53.505Z"
+  }
+}

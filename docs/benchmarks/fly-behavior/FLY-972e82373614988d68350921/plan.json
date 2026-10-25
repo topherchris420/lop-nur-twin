@@ -1,0 +1,455 @@
+{
+  "schema": "rain-fly-plan/v2",
+  "design": {
+    "schema": "rain-fly-design/v3",
+    "question": "[scripted] Does a controller with stronger phototaxis and later avoidance stay closer to the light than the default?",
+    "hypothesis": "[scripted] Configuration B (phototaxisGain 1.5, avoidTtcS 0.3) lowers the mean distance to the light.",
+    "competing_hypothesis": "[scripted] Steering gain matters less than how often the fly flies, which both configurations share.",
+    "parameters": {
+      "seed_count": 12,
+      "treatment": {
+        "kind": "controller_comparison",
+        "baseline": {},
+        "treatment": {
+          "phototaxisGain": 1.5,
+          "avoidTtcS": 0.3
+        }
+      }
+    },
+    "analysis": {
+      "method": "matched_seed_sign_test",
+      "metric": "mean_light_distance_m",
+      "expected_direction": "decrease",
+      "minimum_effect": 0.1
+    },
+    "budget": {
+      "max_simulated_seconds": 16000
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    }
+  },
+  "ir": {
+    "schema": "rain-scientific-experiment/v1",
+    "domain": "fly-behavior-simulation",
+    "backend": "digital-fly",
+    "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+    "question": "In the digital fly simulator, how does controller configuration B (avoidTtcS = 0.3, phototaxisGain = 1.5) change mean horizontal distance from the fly to the point below the light position, against controller configuration A (the default parameters) on matched seeds?",
+    "hypothesis": "Controller configuration B (avoidTtcS = 0.3, phototaxisGain = 1.5) will decrease mean_light_distance_m by at least 0.1 m on average over 12 matched seeds drawn after preregistration, compared with controller configuration A (the default parameters), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "observables": [
+      {
+        "id": "collision_episodes_per_m",
+        "unit": "1/m",
+        "description": "collision episodes per metre flown in pillar clutter"
+      },
+      {
+        "id": "cruise_collision_episodes_per_m",
+        "unit": "1/m",
+        "description": "collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter"
+      },
+      {
+        "id": "collision_episodes",
+        "unit": "count",
+        "description": "collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)"
+      },
+      {
+        "id": "near_miss_fraction",
+        "unit": "fraction",
+        "description": "fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry"
+      },
+      {
+        "id": "flown_m",
+        "unit": "m",
+        "description": "distance flown in pillar clutter"
+      },
+      {
+        "id": "saccades_per_flight_s",
+        "unit": "1/s",
+        "description": "body saccades per second of flight in pillar clutter"
+      },
+      {
+        "id": "contact_s",
+        "unit": "s",
+        "description": "time spent pressed against a surface while flying or landing in pillar clutter"
+      },
+      {
+        "id": "escape_probability",
+        "unit": "fraction",
+        "description": "fraction of single-stimulus trials answered by an escape takeoff"
+      },
+      {
+        "id": "escape_ttc_s",
+        "unit": "s",
+        "description": "mean time to collision at the escape decision, over escapes: how long the sphere's centre would still have taken to reach the fly at its approach speed (negative once it would have passed)"
+      },
+      {
+        "id": "escape_latency_s",
+        "unit": "s",
+        "description": "mean time from stimulus onset to the escape decision, over escapes"
+      },
+      {
+        "id": "size_at_escape_deg",
+        "unit": "deg",
+        "description": "mean angular size of the stimulus at the escape decision"
+      },
+      {
+        "id": "short_mode_fraction",
+        "unit": "fraction",
+        "description": "fraction of escapes that took the short (fast) takeoff"
+      },
+      {
+        "id": "mean_light_distance_m",
+        "unit": "m",
+        "description": "mean horizontal distance from the fly to the point below the light position"
+      },
+      {
+        "id": "time_near_light",
+        "unit": "fraction",
+        "description": "fraction of time within 1 m (horizontally) of the point below the light position"
+      },
+      {
+        "id": "active_fraction",
+        "unit": "fraction",
+        "description": "fraction of time walking, taking off or flying rather than resting or grooming"
+      },
+      {
+        "id": "mean_paired_delta",
+        "unit": "m",
+        "description": "treatment minus control mean_light_distance_m, averaged over the seeds where both are defined"
+      },
+      {
+        "id": "sign_test_p_expected",
+        "unit": "probability",
+        "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+      },
+      {
+        "id": "sign_test_p_opposite",
+        "unit": "probability",
+        "description": "the same test in the opposite direction"
+      }
+    ],
+    "independent_variables": [
+      "controller configuration B (avoidTtcS = 0.3, phototaxisGain = 1.5)"
+    ],
+    "dependent_variables": [
+      "mean_light_distance_m"
+    ],
+    "controls": [
+      "baseline arm: controller configuration A (the default parameters)",
+      "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+      "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+      "fixed apparatus settings, both arms — escape block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+      "fixed apparatus settings, both arms — clutter block: takeoffHz = 0.5",
+      "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+    ],
+    "parameter_constraints": [
+      "9 closed protocols with host-built arenas and stimuli",
+      "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+      "the integration settings (physics, sensing and decision periods) are never varied",
+      "at most 16000 simulated fly-seconds per experiment",
+      "8-16 seeds, drawn by the host after preregistration",
+      "a minimum effect at or above the host's 0.1 m for mean_light_distance_m"
+    ],
+    "resource_budget": {
+      "execution_steps": 1216800,
+      "replay_steps": 1216800,
+      "max_samples": 72
+    },
+    "statistical_analysis": {
+      "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+      "independent_replicates": 12,
+      "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+    },
+    "falsification": {
+      "metric": "sign_test_p_opposite",
+      "op": "<=",
+      "value": 0.05,
+      "unit": "probability"
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    },
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+      "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila."
+    ]
+  },
+  "fly": "digital-fly/8 reduced-order-fsm/v1",
+  "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+  "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+  "experiment": {
+    "schema": "digital-fly-experiment/v3",
+    "protocol": "controller_comparison",
+    "seed_count": 12,
+    "blocks": [
+      {
+        "id": "escape",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "walkStartHz": 0,
+          "groomHz": 0
+        },
+        "start_half_width_m": 0.8,
+        "tick_s": 0.005,
+        "duration_s": 0.3,
+        "trials": 6,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": {
+          "radius_m": 0.04,
+          "start_distance_m": 1,
+          "final_size_deg": [
+            90,
+            90
+          ],
+          "elevation_deg": [
+            10,
+            40
+          ],
+          "azimuth_deg": [
+            -180,
+            180
+          ],
+          "onset_s": 1,
+          "l_over_v_ms": 40
+        }
+      },
+      {
+        "id": "clutter",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -1.2,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": -0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 0.4,
+              "z": 1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -1.2,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": -0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 0.4,
+              "r": 0.15
+            },
+            {
+              "x": 1.2,
+              "z": 1.2,
+              "r": 0.15
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0.5
+        },
+        "start_half_width_m": 0.25,
+        "tick_s": 0.005,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": 0.05,
+        "stimulus": null
+      },
+      {
+        "id": "light",
+        "arena": {
+          "size": [
+            4,
+            2.5,
+            4
+          ],
+          "ambient": 0.3,
+          "pillars": []
+        },
+        "fixed_config": {},
+        "start_half_width_m": 0.3,
+        "tick_s": 0.05,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": [
+          1,
+          2.3,
+          -1
+        ],
+        "near_miss_m": null,
+        "stimulus": null
+      }
+    ],
+    "arms": [
+      {
+        "config": {},
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 90,
+        "id": "control"
+      },
+      {
+        "config": {
+          "phototaxisGain": 1.5,
+          "avoidTtcS": 0.3
+        },
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 90,
+        "id": "treatment"
+      }
+    ]
+  },
+  "simulated_seconds": 6084,
+  "criteria": {
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 72,
+        "note": "Every matched run completes"
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "note": "An independent re-simulation reproduces every state hash and measurement"
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "note": "Enough seeds differ between the arms for the sign test"
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "note": "The fly's gate refused no command in any run"
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.1,
+        "note": "Mean paired difference beyond the minimum effect"
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test in the expected direction"
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test finds the opposite direction"
+      }
+    ]
+  },
+  "definition_sha256": "972e82373614988d683509212f8373be4dc34bed8e5069d789bf0961c5f6b9a3",
+  "experiment_id": "FLY-972e82373614988d68350921"
+}

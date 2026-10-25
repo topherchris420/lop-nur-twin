@@ -1,0 +1,3208 @@
+{
+  "schema": "rain-fly-record/v2",
+  "run_id": "FR-b0309a536ed0f41bc3907431",
+  "plan": {
+    "schema": "rain-fly-plan/v2",
+    "design": {
+      "schema": "rain-fly-design/v3",
+      "question": "[scripted] Does retained ECHO learning improve early regulation on re-exposure?",
+      "hypothesis": "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+      "competing_hypothesis": "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+      "parameters": {
+        "seed_count": 8,
+        "treatment": {
+          "kind": "echo_memory",
+          "variant": "no_learning"
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_sign_test",
+        "metric": "echo_memory_recall_error_cms",
+        "expected_direction": "decrease",
+        "minimum_effect": 0.05
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does experimental ECHO self-model (no_learning) change early movement error on re-exposure, with retained versus reset self-model, against self-model reset at re-exposure on matched seeds?",
+      "hypothesis": "Experimental ECHO self-model (no_learning) will decrease echo_memory_recall_error_cms by at least 0.05 cm/s on average over 8 matched seeds drawn after preregistration, compared with self-model reset at re-exposure, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+      "observables": [
+        {
+          "id": "echo_memory_tracking_error_cms",
+          "unit": "cm/s",
+          "description": "mean absolute target movement error after adaptation"
+        },
+        {
+          "id": "echo_memory_prediction_error_cms",
+          "unit": "cm/s",
+          "description": "mean absolute forward prediction error"
+        },
+        {
+          "id": "echo_memory_attribution_accuracy",
+          "unit": "fraction",
+          "description": "fraction of correct causal hypotheses after adaptation; ambiguous counts incorrect"
+        },
+        {
+          "id": "echo_memory_false_self_attribution",
+          "unit": "fraction",
+          "description": "fraction of external or noisy conditions attributed to changed action response"
+        },
+        {
+          "id": "echo_memory_interval_coverage",
+          "unit": "fraction",
+          "description": "empirical coverage of nominal 90 percent movement intervals"
+        },
+        {
+          "id": "echo_memory_detection_latency_s",
+          "unit": "s",
+          "description": "latency to first bodily-change hypothesis; missing detections remain null"
+        },
+        {
+          "id": "echo_memory_recovery_latency_s",
+          "unit": "s",
+          "description": "latency to return to unchanged hypothesis after intervention removal"
+        },
+        {
+          "id": "echo_memory_recall_error_cms",
+          "unit": "cm/s",
+          "description": "early movement error on re-exposure, with retained versus reset self-model"
+        },
+        {
+          "id": "echo_memory_recalls",
+          "unit": "count",
+          "description": "bounded episodic recall events"
+        },
+        {
+          "id": "echo_memory_adapted_actions",
+          "unit": "count",
+          "description": "motor actions changed by the self-model"
+        },
+        {
+          "id": "echo_memory_checkpoint_verified",
+          "unit": "fraction",
+          "description": "self-model checkpoint round trips verified; not full fly recovery"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "cm/s",
+          "description": "treatment minus control echo_memory_recall_error_cms, averaged over the seeds where both are defined"
+        },
+        {
+          "id": "sign_test_p_expected",
+          "unit": "probability",
+          "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+        },
+        {
+          "id": "sign_test_p_opposite",
+          "unit": "probability",
+          "description": "the same test in the opposite direction"
+        }
+      ],
+      "independent_variables": [
+        "experimental ECHO self-model (no_learning)"
+      ],
+      "dependent_variables": [
+        "echo_memory_recall_error_cms"
+      ],
+      "controls": [
+        "baseline arm: self-model reset at re-exposure",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "9 closed protocols with host-built arenas and stimuli",
+        "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 seeds, drawn by the host after preregistration",
+        "a minimum effect at or above the host's 0.05 cm/s for echo_memory_recall_error_cms"
+      ],
+      "resource_budget": {
+        "execution_steps": 307200,
+        "replay_steps": 307200,
+        "max_samples": 16
+      },
+      "statistical_analysis": {
+        "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+        "independent_replicates": 8,
+        "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "unit": "probability"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "Scripted motor excitation and idealized local odometry in reduced-order walking. Causal inference can remain ambiguous; no biological motor-control, consciousness or durable identity claim.",
+        "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/8 reduced-order-fsm/v1",
+    "fly_sha256": "7032c32c68a11620b6dca563137872b5cdeaef39ec651b4a8a187e74461a6ca2",
+    "fly_source_sha256": "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+    "experiment": {
+      "schema": "digital-fly-experiment/v3",
+      "protocol": "echo_memory",
+      "seed_count": 8,
+      "blocks": [
+        {
+          "id": "echo_memory",
+          "arena": {
+            "size": [
+              8,
+              2.5,
+              8
+            ],
+            "ambient": 0.6,
+            "pillars": []
+          },
+          "fixed_config": {},
+          "start_half_width_m": 0,
+          "tick_s": 0.05,
+          "duration_s": 24,
+          "trials": 4,
+          "light_at": null,
+          "near_miss_m": null,
+          "stimulus": null
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo_variant": "reset_memory",
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo_variant": "no_learning",
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 1536,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 16,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "note": "Enough seeds differ between the arms for the sign test"
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "note": "The fly's gate refused no command in any run"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.05,
+          "note": "Mean paired difference beyond the minimum effect"
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test in the expected direction"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test finds the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "2bb84f207338d226b7d6bbe61d867d46023e4c9bf2dc982317a67ce7a081b192",
+    "experiment_id": "FLY-2bb84f207338d226b7d6bbe6"
+  },
+  "preregistration": {
+    "experiment_id": "V3D-EXP-0010",
+    "registry_definition_sha256": "333ea079fb4a40f8c8a43cadb1ba0afacd0b9245de5afb6981da580ce095032a",
+    "plan_sha256": "2bb84f207338d226b7d6bbe61d867d46023e4c9bf2dc982317a67ce7a081b192",
+    "created_at": "2026-10-25T17:23:17.272Z"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v2",
+    "experiment_id": "FLY-2bb84f207338d226b7d6bbe6",
+    "definition_sha256": "2bb84f207338d226b7d6bbe61d867d46023e4c9bf2dc982317a67ce7a081b192",
+    "registry_experiment_id": "V3D-EXP-0010",
+    "preregistration_sha256": "18e4591f2761bb2b9206cd6a0c9080fa728a7099c6558fe2868251f09fdb2029",
+    "registered_at": "2026-10-25T17:23:17.272Z",
+    "nonce": "216caff80b766eefb5f6ed8aba356ff9b88cf3bd5840ee63a0815e9af09b05ba",
+    "channel": "script",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "demonstration-script",
+    "identity_verified": false,
+    "human_design_attested": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "2bb84f20",
+    "authorized_at": "2026-10-25T17:23:17.284Z",
+    "expires_at": "2026-10-25T18:23:17.284Z",
+    "authorization_sha256": "cd4021e7a30d60e513111286161c4ae1364e708df97f444b01382599ca87c82f"
+  },
+  "seeds": [
+    3264667210,
+    1166128698,
+    369548491,
+    1722025816,
+    3945412491,
+    1624997904,
+    1234546184,
+    2532981924
+  ],
+  "engine": {
+    "runtime": "node",
+    "version": "24.22.1",
+    "js": "V8 13.6.233.17-node.58"
+  },
+  "code": {
+    "commit": "a71066264ba3ff3a6949316bdc0f0bcee92c5520",
+    "dirty": false
+  },
+  "development": false,
+  "started_at": "2026-10-25T17:23:17.284Z",
+  "finished_at": "2026-10-25T17:23:32.563Z",
+  "result": {
+    "runs": [
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "ddb9c2453868e2d8"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19390828961416448,
+            "predictionErrorCmS": 0.03535878457685934,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9447236180904522,
+            "detectionLatencyS": 0.25,
+            "recoveryLatencyS": 1.25,
+            "earlyRecallErrorCmS": 0.39167456414205154,
+            "recalled": 0,
+            "adaptedActions": 155,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4707314114877954,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06790443567559123,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.74432052555494,
+                2.5,
+                5.106300637125969
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "6a0980e683f9a75e"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19366374812315268,
+            "predictionErrorCmS": 0.02954357190255496,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9547738693467337,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.3476098482707623,
+            "recalled": 1,
+            "adaptedActions": 164,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5739387561986222,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.056707955123856665,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.228033812018111,
+                2.5,
+                5.745624429080635
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "4a7386dc2e83bb89"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19388397256402903,
+            "predictionErrorCmS": 0.037990870270738546,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.964824120603015,
+            "detectionLatencyS": 0.3999999999999999,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.2912230505645035,
+            "recalled": 1,
+            "adaptedActions": 158,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7392983733350411,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07314743605442345,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.274161571636796,
+                2.5,
+                5.394366892986
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "a2a321c9fb2f7c9e"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19328326935089982,
+            "predictionErrorCmS": 0.024557123011847367,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9849246231155779,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.2735539427192039,
+            "recalled": 1,
+            "adaptedActions": 146,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8023515202011914,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.047314385352656245,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.3517548479139805,
+                2.5,
+                5.128495771205053
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 3264667210,
+        "block": "echo_memory",
+        "final_hashes": [
+          "ddb9c2453868e2d8",
+          "6a0980e683f9a75e",
+          "4a7386dc2e83bb89",
+          "a2a321c9fb2f7c9e"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.1936848199130615,
+          "echo_memory_prediction_error_cms": 0.03186258744050006,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9623115577889447,
+          "echo_memory_detection_latency_s": 0.35,
+          "echo_memory_recovery_latency_s": 1.1875,
+          "echo_memory_recall_error_cms": 0.32601535142413035,
+          "echo_memory_recalls": 0.75,
+          "echo_memory_adapted_actions": 155.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "f01ca49794678dd0"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.6163532620427574,
+            "predictionErrorCmS": 0.6443454628175658,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9728033472803347,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6521904392632069,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4707314114877954,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06790443567559123,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.74432052555494,
+                2.5,
+                5.106300637125969
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "63a1e8bea7bb0aa0"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.4975033849767506,
+            "predictionErrorCmS": 0.5187559515847534,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9728033472803347,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5344848441641492,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5739387561986222,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.056707955123856665,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.228033812018111,
+                2.5,
+                5.745624429080635
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "85626b960650a629"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.3331981902704706,
+            "predictionErrorCmS": 0.31850747948553365,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9707112970711297,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3701567752503784,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7392983733350411,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07314743605442345,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.274161571636796,
+                2.5,
+                5.394366892986
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "c7ba31949efcae5c"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2841318006640887,
+            "predictionErrorCmS": 0.24124324300826389,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.31985641873672677,
+            "recalled": 0,
+            "adaptedActions": 1,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8023515202011914,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.047314385352656245,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.3517548479139805,
+                2.5,
+                5.128495771205053
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 3264667210,
+        "block": "echo_memory",
+        "final_hashes": [
+          "f01ca49794678dd0",
+          "63a1e8bea7bb0aa0",
+          "85626b960650a629",
+          "c7ba31949efcae5c"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.4327966594885168,
+          "echo_memory_prediction_error_cms": 0.4307130342240292,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.973326359832636,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.46917211935361525,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 1.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "086c6f11a372e2d6"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.186741755998282,
+            "predictionErrorCmS": 0.03348828347933719,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.949748743718593,
+            "detectionLatencyS": 0.25,
+            "recoveryLatencyS": 1.3499999999999996,
+            "earlyRecallErrorCmS": 0.3815062523741133,
+            "recalled": 0,
+            "adaptedActions": 155,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4779467987921089,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07139931684359908,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.993205451173708,
+                2.5,
+                5.836562249576673
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "9780b55ddbd20883"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1881392447432422,
+            "predictionErrorCmS": 0.0242633205442707,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.3443613312037292,
+            "recalled": 1,
+            "adaptedActions": 154,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5662886600056662,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.051764518674463036,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.572593380929902,
+                2.5,
+                5.050614173291251
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "696d385ee301558b"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18671375506766513,
+            "predictionErrorCmS": 0.03181938435131893,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748743718592965,
+            "detectionLatencyS": 0.3500000000000001,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.28844684888100136,
+            "recalled": 1,
+            "adaptedActions": 153,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7330869199894369,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0674608551338315,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.5036490126512945,
+                2.5,
+                5.0690609163139015
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "aaecd614e6e6e42f"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18840107689852212,
+            "predictionErrorCmS": 0.021785441921714683,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9849246231155779,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.270422338908845,
+            "recalled": 1,
+            "adaptedActions": 148,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.803325664177537,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04614790415391326,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.047468279488385,
+                2.5,
+                5.151285390369594
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 1166128698,
+        "block": "echo_memory",
+        "final_hashes": [
+          "086c6f11a372e2d6",
+          "9780b55ddbd20883",
+          "696d385ee301558b",
+          "aaecd614e6e6e42f"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.18749895817692788,
+          "echo_memory_prediction_error_cms": 0.027839107574160377,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9673366834170856,
+          "echo_memory_detection_latency_s": 0.3375,
+          "echo_memory_recovery_latency_s": 1.2249999999999996,
+          "echo_memory_recall_error_cms": 0.32118419284192223,
+          "echo_memory_recalls": 0.75,
+          "echo_memory_adapted_actions": 152.5,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "776a805e5ecc972d"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.6076698712114401,
+            "predictionErrorCmS": 0.628049779289639,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6560157048373688,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4779467987921089,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07139931684359908,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.993205451173708,
+                2.5,
+                5.836562249576673
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "849ca457de054d1b"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.5061815465984115,
+            "predictionErrorCmS": 0.5223654133965289,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9790794979079498,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5430001297099861,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5662886600056662,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.051764518674463036,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.572593380929902,
+                2.5,
+                5.050614173291251
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "e60955235c7fe11c"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.3381477035118901,
+            "predictionErrorCmS": 0.3186709146111945,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9728033472803347,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3889663690196352,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7330869199894369,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0674608551338315,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.5036490126512945,
+                2.5,
+                5.0690609163139015
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "7fb09ef451d9e205"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2833736614027435,
+            "predictionErrorCmS": 0.2350921256780423,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3190792132376575,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.803325664177537,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04614790415391326,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.047468279488385,
+                2.5,
+                5.151285390369594
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 1166128698,
+        "block": "echo_memory",
+        "final_hashes": [
+          "776a805e5ecc972d",
+          "849ca457de054d1b",
+          "e60955235c7fe11c",
+          "7fb09ef451d9e205"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.4338431956811213,
+          "echo_memory_prediction_error_cms": 0.4260445582438512,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9764644351464435,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.4767653542011619,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 5,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "c6e63ded903f48aa"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18863781986628028,
+            "predictionErrorCmS": 0.03285783906687113,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.3842684356315455,
+            "recalled": 0,
+            "adaptedActions": 165,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4857511152233928,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06900493517518044,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.535094857215881,
+                2.5,
+                5.738234415883198
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "0b996f9ff51b48d2"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18843319568562092,
+            "predictionErrorCmS": 0.03403492116056848,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.964824120603015,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.3387692522561379,
+            "recalled": 1,
+            "adaptedActions": 167,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5748676177812739,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0714628556650132,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.420751218451187,
+                2.5,
+                5.638307685032487
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "3e5461f7bb65571c"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18929083536744296,
+            "predictionErrorCmS": 0.025409442607317072,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9849246231155779,
+            "detectionLatencyS": 0.3999999999999999,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.28651956370050297,
+            "recalled": 1,
+            "adaptedActions": 164,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.744370897244662,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0533424783218652,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.829907547915354,
+                2.5,
+                5.15237801684998
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "d663cc886b5e0806"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18923106203169202,
+            "predictionErrorCmS": 0.02566805230684984,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.5499999999999998,
+            "recoveryLatencyS": 0.9499999999999993,
+            "earlyRecallErrorCmS": 0.26749739650030124,
+            "recalled": 2,
+            "adaptedActions": 163,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8166966828331352,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.05388461153022945,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.0387475453317165,
+                2.5,
+                5.042646954068914
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 369548491,
+        "block": "echo_memory",
+        "final_hashes": [
+          "c6e63ded903f48aa",
+          "0b996f9ff51b48d2",
+          "3e5461f7bb65571c",
+          "d663cc886b5e0806"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.18889822823775906,
+          "echo_memory_prediction_error_cms": 0.029492563785401632,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9723618090452261,
+          "echo_memory_detection_latency_s": 0.38749999999999984,
+          "echo_memory_recovery_latency_s": 1.1124999999999998,
+          "echo_memory_recall_error_cms": 0.31926366202212186,
+          "echo_memory_recalls": 1,
+          "echo_memory_adapted_actions": 164.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "05f3a2c40c4f0394"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.5982777307336387,
+            "predictionErrorCmS": 0.6299691255533546,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9790794979079498,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6342859616426764,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4857511152233928,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06900493517518044,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.535094857215881,
+                2.5,
+                5.738234415883198
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "a29c89ff7a0caf7f"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.4964496976984746,
+            "predictionErrorCmS": 0.5220053169214458,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5334509327714739,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5748676177812739,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0714628556650132,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.420751218451187,
+                2.5,
+                5.638307685032487
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "1e6ff71f3abc063a"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.32925040048787246,
+            "predictionErrorCmS": 0.31474610075635123,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.36610970309602603,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.744370897244662,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0533424783218652,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.829907547915354,
+                2.5,
+                5.15237801684998
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "86ca08efe28049d2"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.273018862210894,
+            "predictionErrorCmS": 0.22700252441821372,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748953974895398,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3084113556318192,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8166966828331352,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.05388461153022945,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.0387475453317165,
+                2.5,
+                5.042646954068914
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 369548491,
+        "block": "echo_memory",
+        "final_hashes": [
+          "05f3a2c40c4f0394",
+          "a29c89ff7a0caf7f",
+          "1e6ff71f3abc063a",
+          "86ca08efe28049d2"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.4242491727827199,
+          "echo_memory_prediction_error_cms": 0.4234307669123413,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9769874476987448,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.4605644882854989,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 4,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "ea3d67015e99cee9"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18686848435521058,
+            "predictionErrorCmS": 0.0421592167780326,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9447236180904522,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.3499999999999996,
+            "earlyRecallErrorCmS": 0.39973770862438557,
+            "recalled": 0,
+            "adaptedActions": 156,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.47116961036808785,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07991968231275678,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.05906620528549,
+                2.5,
+                5.080536403460428
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "c8fc27a05a4ba8fc"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18721379007838465,
+            "predictionErrorCmS": 0.03675004140423615,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9547738693467337,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.340203884549257,
+            "recalled": 1,
+            "adaptedActions": 156,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.569984299284406,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06958660098724068,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.564200926106423,
+                2.5,
+                5.95815577195026
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "3a4dcc73ed68579a"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1886169930703057,
+            "predictionErrorCmS": 0.025270130777357406,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748743718592965,
+            "detectionLatencyS": 0.3999999999999999,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.28525992230855146,
+            "recalled": 2,
+            "adaptedActions": 153,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7497454031696543,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04781053651124239,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.980866354657337,
+                2.5,
+                5.863886844366789
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "0c2ded753079668a"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18717116638942038,
+            "predictionErrorCmS": 0.03548489247273137,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9698492462311558,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1,
+            "earlyRecallErrorCmS": 0.26829835228158194,
+            "recalled": 2,
+            "adaptedActions": 150,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8109633956197649,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06710352909751237,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.937533356482163,
+                2.5,
+                5.615464156726375
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 1722025816,
+        "block": "echo_memory",
+        "final_hashes": [
+          "ea3d67015e99cee9",
+          "c8fc27a05a4ba8fc",
+          "3a4dcc73ed68579a",
+          "0c2ded753079668a"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.18746760847333033,
+          "echo_memory_prediction_error_cms": 0.034916070358089385,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9610552763819096,
+          "echo_memory_detection_latency_s": 0.36249999999999993,
+          "echo_memory_recovery_latency_s": 1.1874999999999996,
+          "echo_memory_recall_error_cms": 0.32337496694094403,
+          "echo_memory_recalls": 1.25,
+          "echo_memory_adapted_actions": 153.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "2c6f64381fc8b13a"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.6158259097682239,
+            "predictionErrorCmS": 0.635292097091226,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748953974895398,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6516680772923152,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.47116961036808785,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07991968231275678,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.05906620528549,
+                2.5,
+                5.080536403460428
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "e4656fb7ce9d6093"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.5019892654390805,
+            "predictionErrorCmS": 0.5162044919671784,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748953974895398,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5388865312741898,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.569984299284406,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06958660098724068,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.564200926106423,
+                2.5,
+                5.95815577195026
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "c79944c6b3c25970"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.3250675874447573,
+            "predictionErrorCmS": 0.29980944936004034,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748953974895398,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3618216970343727,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7497454031696543,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04781053651124239,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.980866354657337,
+                2.5,
+                5.863886844366789
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "f7632d64f0ebcb9e"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.27742950596033145,
+            "predictionErrorCmS": 0.22390948886121104,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9623430962343096,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.29961128452041236,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8109633956197649,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06710352909751237,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.937533356482163,
+                2.5,
+                5.615464156726375
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 1722025816,
+        "block": "echo_memory",
+        "final_hashes": [
+          "2c6f64381fc8b13a",
+          "e4656fb7ce9d6093",
+          "c79944c6b3c25970",
+          "f7632d64f0ebcb9e"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.43007806715309826,
+          "echo_memory_prediction_error_cms": 0.41880388181991396,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9717573221757322,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.4629968975303225,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 3.5,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "daffbedd4caa1ce5"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1905945910305853,
+            "predictionErrorCmS": 0.028533485022250938,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.25,
+            "recoveryLatencyS": 1.25,
+            "earlyRecallErrorCmS": 0.3867584829156858,
+            "recalled": 0,
+            "adaptedActions": 157,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4764493544399738,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.059035251624882226,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.105518084950745,
+                2.5,
+                5.418698626104742
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "eb5517acab5fe1f1"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1901669317234965,
+            "predictionErrorCmS": 0.03571059928128903,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.34489948063975545,
+            "recalled": 1,
+            "adaptedActions": 158,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5786188837746158,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07403718670830131,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.438981720246375,
+                2.5,
+                5.0580505155958235
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "ad40cbc3b9205a23"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19086872258793708,
+            "predictionErrorCmS": 0.02206725916673938,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.3500000000000001,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.29399645864493046,
+            "recalled": 1,
+            "adaptedActions": 156,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7365117680002004,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04580883932299912,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.16277810675092,
+                2.5,
+                5.220330571057275
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "95941d5182e10d73"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1903170889795113,
+            "predictionErrorCmS": 0.030347915750573235,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.3999999999999999,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.27864824207468614,
+            "recalled": 1,
+            "adaptedActions": 149,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8010951645905152,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06311380986124276,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.318461418850347,
+                2.5,
+                5.31786348274909
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 3945412491,
+        "block": "echo_memory",
+        "final_hashes": [
+          "daffbedd4caa1ce5",
+          "eb5517acab5fe1f1",
+          "ad40cbc3b9205a23",
+          "95941d5182e10d73"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.19048683358038254,
+          "echo_memory_prediction_error_cms": 0.029164814805213143,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9698492462311558,
+          "echo_memory_detection_latency_s": 0.32499999999999996,
+          "echo_memory_recovery_latency_s": 1.1875,
+          "echo_memory_recall_error_cms": 0.3260756660687644,
+          "echo_memory_recalls": 0.75,
+          "echo_memory_adapted_actions": 155,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "cc57f77505a5bb6d"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.609471977499256,
+            "predictionErrorCmS": 0.6254506019185109,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.657761824148657,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4764493544399738,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.059035251624882226,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.105518084950745,
+                2.5,
+                5.418698626104742
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "61decc1cc07e3836"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.49219431437738076,
+            "predictionErrorCmS": 0.49888741633312816,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5416344606171482,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5786188837746158,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07403718670830131,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.438981720246375,
+                2.5,
+                5.0580505155958235
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "67d6be888a1ab12e"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.33536691961912113,
+            "predictionErrorCmS": 0.3120353382741731,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.38602067557968495,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7365117680002004,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04580883932299912,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.16277810675092,
+                2.5,
+                5.220330571057275
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "670a8c27791d0e7d"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2851095742755148,
+            "predictionErrorCmS": 0.230702694042671,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9707112970711297,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.33434592380540656,
+            "recalled": 0,
+            "adaptedActions": 6,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8010951645905152,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06311380986124276,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.318461418850347,
+                2.5,
+                5.31786348274909
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 3945412491,
+        "block": "echo_memory",
+        "final_hashes": [
+          "cc57f77505a5bb6d",
+          "61decc1cc07e3836",
+          "67d6be888a1ab12e",
+          "670a8c27791d0e7d"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.43053569644281814,
+          "echo_memory_prediction_error_cms": 0.41676901264212085,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9754184100418409,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.47994072103772417,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 6,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "8f252f77af0b51dd"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19220939357724254,
+            "predictionErrorCmS": 0.026547036168634172,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.25,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.39105696969525067,
+            "recalled": 0,
+            "adaptedActions": 159,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4731445639906451,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.054788243975490335,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.161126522812992,
+                2.5,
+                5.041393159888685
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "2c9200e6f9760b4e"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19230067610758436,
+            "predictionErrorCmS": 0.022134103417110338,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.34230205515117496,
+            "recalled": 1,
+            "adaptedActions": 163,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5741228293441235,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04568494231440127,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.983624814311042,
+                2.5,
+                5.626996103674173
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "bbd08cb513f438cb"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1922177553764704,
+            "predictionErrorCmS": 0.02474613640366302,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.3999999999999999,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.28749220555972727,
+            "recalled": 1,
+            "adaptedActions": 158,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.749206048771739,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.051046061031520366,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.879133004462346,
+                2.5,
+                5.749643951188773
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "ee5c0e00f339ee84"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19208899302984553,
+            "predictionErrorCmS": 0.03192823929972775,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9849246231155779,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.0500000000000007,
+            "earlyRecallErrorCmS": 0.27010620077371006,
+            "recalled": 2,
+            "adaptedActions": 155,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8178442813549192,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06584134923294187,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.535685088485479,
+                2.5,
+                5.656489169923589
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 1624997904,
+        "block": "echo_memory",
+        "final_hashes": [
+          "8f252f77af0b51dd",
+          "2c9200e6f9760b4e",
+          "bbd08cb513f438cb",
+          "ee5c0e00f339ee84"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.1922042045227857,
+          "echo_memory_prediction_error_cms": 0.02633887882228382,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.971105527638191,
+          "echo_memory_detection_latency_s": 0.35,
+          "echo_memory_recovery_latency_s": 1.15,
+          "echo_memory_recall_error_cms": 0.32273935779496576,
+          "echo_memory_recalls": 1,
+          "echo_memory_adapted_actions": 158.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "f7ca47e772fbeeb1"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.6134491425714418,
+            "predictionErrorCmS": 0.6410554639294753,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9707112970711297,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.649313802297332,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4731445639906451,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.054788243975490335,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.161126522812992,
+                2.5,
+                5.041393159888685
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "c58456f9e80f18b8"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.4972945749923643,
+            "predictionErrorCmS": 0.518229138955241,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9707112970711297,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5342799532247562,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5741228293441235,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04568494231440127,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.983624814311042,
+                2.5,
+                5.626996103674173
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "59419441e1bd91c5"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.32548735049906413,
+            "predictionErrorCmS": 0.3058659108934187,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9686192468619247,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3622520165762942,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.749206048771739,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.051046061031520366,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.879133004462346,
+                2.5,
+                5.749643951188773
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "1a6c623453b173f9"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2721739795307129,
+            "predictionErrorCmS": 0.2229739221823496,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9644351464435147,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.2941242048033032,
+            "recalled": 0,
+            "adaptedActions": 1,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8178442813549192,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06584134923294187,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.535685088485479,
+                2.5,
+                5.656489169923589
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 1624997904,
+        "block": "echo_memory",
+        "final_hashes": [
+          "f7ca47e772fbeeb1",
+          "c58456f9e80f18b8",
+          "59419441e1bd91c5",
+          "1a6c623453b173f9"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.4271012618983957,
+          "echo_memory_prediction_error_cms": 0.4220311089901212,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9686192468619247,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.4599924942254214,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 1.75,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "137719fd13e7681d"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19312743067329294,
+            "predictionErrorCmS": 0.01941213368115652,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9597989949748744,
+            "detectionLatencyS": 0.25,
+            "recoveryLatencyS": 1.25,
+            "earlyRecallErrorCmS": 0.39229760832584887,
+            "recalled": 0,
+            "adaptedActions": 162,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.47015461130067704,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.046772396676242355,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.711805127793923,
+                2.5,
+                5.02952586999163
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "8b8e7336454afd82"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19319856469554464,
+            "predictionErrorCmS": 0.02691204192586087,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.964824120603015,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.33852604421054394,
+            "recalled": 1,
+            "adaptedActions": 159,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5799860486993565,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06489024471491575,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.951191703090444,
+                2.5,
+                5.721665779594332
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "0431c8c975310bff"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19308053342309628,
+            "predictionErrorCmS": 0.02861332477750577,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.3500000000000001,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.28665467333270195,
+            "recalled": 1,
+            "adaptedActions": 156,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7495558964880183,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0690282564982772,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.2431606953032315,
+                2.5,
+                5.487420245306566
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "3a9c79b642f20db8"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.19309954580051114,
+            "predictionErrorCmS": 0.03027258196683271,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.1500000000000004,
+            "earlyRecallErrorCmS": 0.2727019203803847,
+            "recalled": 1,
+            "adaptedActions": 151,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8075552726490424,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07302317318506539,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.29660069802776,
+                2.5,
+                5.544228512560949
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 1234546184,
+        "block": "echo_memory",
+        "final_hashes": [
+          "137719fd13e7681d",
+          "8b8e7336454afd82",
+          "0431c8c975310bff",
+          "3a9c79b642f20db8"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.19312651864811126,
+          "echo_memory_prediction_error_cms": 0.026302520587838968,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9711055276381909,
+          "echo_memory_detection_latency_s": 0.3375,
+          "echo_memory_recovery_latency_s": 1.1875,
+          "echo_memory_recall_error_cms": 0.32254506156236984,
+          "echo_memory_recalls": 0.75,
+          "echo_memory_adapted_actions": 157,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "eb62d519daed82f9"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.6170474150608302,
+            "predictionErrorCmS": 0.6439042831293023,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9769874476987448,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6528780231346191,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.47015461130067704,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.046772396676242355,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.711805127793923,
+                2.5,
+                5.02952586999163
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "dd30abb79646ba88"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.49064342151379065,
+            "predictionErrorCmS": 0.5108926475403648,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9686192468619247,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.5277536317552702,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.5799860486993565,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.06489024471491575,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.951191703090444,
+                2.5,
+                5.721665779594332
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "f0d5ef9331dcec72"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.325215074756703,
+            "predictionErrorCmS": 0.30513787715046875,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9707112970711297,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3619728934068217,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7495558964880183,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.0690282564982772,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.2431606953032315,
+                2.5,
+                5.487420245306566
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "c7f7402801cbda08"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2800819183103405,
+            "predictionErrorCmS": 0.23480481633390932,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9665271966527197,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3023866082440088,
+            "recalled": 0,
+            "adaptedActions": 1,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8075552726490424,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07302317318506539,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.29660069802776,
+                2.5,
+                5.544228512560949
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 1234546184,
+        "block": "echo_memory",
+        "final_hashes": [
+          "eb62d519daed82f9",
+          "dd30abb79646ba88",
+          "f0d5ef9331dcec72",
+          "c7f7402801cbda08"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.4282469574104161,
+          "echo_memory_prediction_error_cms": 0.4236849060385113,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9707112970711297,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.46124778913517994,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 2.25,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "2f62f6cf720b1a20"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18807488118214252,
+            "predictionErrorCmS": 0.030703746876757015,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.949748743718593,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.3860766623681676,
+            "recalled": 0,
+            "adaptedActions": 161,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4880413164151832,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.05834732667542994,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.627871744567528,
+                2.5,
+                5.435128226643428
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "6dbe80e6ffcae82f"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.18739786864184002,
+            "predictionErrorCmS": 0.03916177409918785,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.949748743718593,
+            "detectionLatencyS": 0.2999999999999998,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.3491377734500697,
+            "recalled": 1,
+            "adaptedActions": 160,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.573781695975922,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07439040096476673,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.642602488398552,
+                2.5,
+                5.129374578595161
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "d1e3e8da0e199c79"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1887841496783039,
+            "predictionErrorCmS": 0.023643620090472914,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9798994974874372,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.1999999999999993,
+            "earlyRecallErrorCmS": 0.28845830856437066,
+            "recalled": 1,
+            "adaptedActions": 160,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7461931240698323,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04487940727733076,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.290053982287645,
+                2.5,
+                5.585855304263532
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "41e447956a87dd2b"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.1873162537415315,
+            "predictionErrorCmS": 0.03864802906779416,
+            "attributionAccuracy": 1,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9698492462311558,
+            "detectionLatencyS": 0.4500000000000002,
+            "recoveryLatencyS": 1.0999999999999996,
+            "earlyRecallErrorCmS": 0.27288291572351675,
+            "recalled": 2,
+            "adaptedActions": 156,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8037463889271022,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07336022099480033,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.751754277851433,
+                2.5,
+                5.081911871442571
+              ]
+            }
+          }
+        ],
+        "arm": "control",
+        "seed": 2532981924,
+        "block": "echo_memory",
+        "final_hashes": [
+          "2f62f6cf720b1a20",
+          "6dbe80e6ffcae82f",
+          "d1e3e8da0e199c79",
+          "41e447956a87dd2b"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.18789328831095448,
+          "echo_memory_prediction_error_cms": 0.033039292533552984,
+          "echo_memory_attribution_accuracy": 1,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9623115577889447,
+          "echo_memory_detection_latency_s": 0.375,
+          "echo_memory_recovery_latency_s": 1.1749999999999994,
+          "echo_memory_recall_error_cms": 0.32413891502653114,
+          "echo_memory_recalls": 1,
+          "echo_memory_adapted_actions": 159.25,
+          "echo_memory_checkpoint_verified": 1
+        }
+      },
+      {
+        "echo_trials": [
+          {
+            "hashes": [
+              "7222a3ae52a796cf"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.5955215775836321,
+            "predictionErrorCmS": 0.6117181274286329,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9790794979079498,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.6315558907500031,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.4880413164151832,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.05834732667542994,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.627871744567528,
+                2.5,
+                5.435128226643428
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "fa554ee4872489a0"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.49768155210354714,
+            "predictionErrorCmS": 0.5049803945648857,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9811715481171548,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.53465966714811,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.573781695975922,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07439040096476673,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.642602488398552,
+                2.5,
+                5.129374578595161
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "545472dc169bde4f"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.3278322172654086,
+            "predictionErrorCmS": 0.3006120149566412,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9811715481171548,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.364655854169066,
+            "recalled": 0,
+            "adaptedActions": 4,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.7461931240698323,
+              "turnGain": 0.65,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.04487940727733076,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.290053982287645,
+                2.5,
+                5.585855304263532
+              ]
+            }
+          },
+          {
+            "hashes": [
+              "bf543381bf14c0aa"
+            ],
+            "gateRefusals": 0,
+            "simulatedS": 24,
+            "trackingErrorCmS": 0.2830462274319521,
+            "predictionErrorCmS": 0.22602075686576895,
+            "attributionAccuracy": 0,
+            "falseSelfAttribution": 0,
+            "intervalCoverage": 0.9748953974895398,
+            "detectionLatencyS": null,
+            "recoveryLatencyS": null,
+            "earlyRecallErrorCmS": 0.3187435445922613,
+            "recalled": 0,
+            "adaptedActions": 2,
+            "checkpointVerified": true,
+            "condition": {
+              "gain": 0.8037463889271022,
+              "turnGain": 1,
+              "driftMPerS": [
+                0,
+                0,
+                0
+              ],
+              "noiseCmS": 0.07336022099480033,
+              "truth": "action response changed",
+              "sensorBiasCmS": 0,
+              "temporaryObstacle": false,
+              "arenaM": [
+                6.751754277851433,
+                2.5,
+                5.081911871442571
+              ]
+            }
+          }
+        ],
+        "arm": "treatment",
+        "seed": 2532981924,
+        "block": "echo_memory",
+        "final_hashes": [
+          "7222a3ae52a796cf",
+          "fa554ee4872489a0",
+          "545472dc169bde4f",
+          "bf543381bf14c0aa"
+        ],
+        "simulated_s": 96,
+        "gate_refusals": 0,
+        "metrics": {
+          "echo_memory_tracking_error_cms": 0.42602039359613497,
+          "echo_memory_prediction_error_cms": 0.4108328234539822,
+          "echo_memory_attribution_accuracy": 0,
+          "echo_memory_false_self_attribution": 0,
+          "echo_memory_interval_coverage": 0.9790794979079498,
+          "echo_memory_detection_latency_s": null,
+          "echo_memory_recovery_latency_s": null,
+          "echo_memory_recall_error_cms": 0.46240373916486005,
+          "echo_memory_recalls": 0,
+          "echo_memory_adapted_actions": 3.5,
+          "echo_memory_checkpoint_verified": 1
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 16,
+      "determinism_check": 1,
+      "seeds": 8,
+      "simulated_seconds": 1536,
+      "gate_refusals": 0,
+      "control_gate_refusals": 0,
+      "treatment_gate_refusals": 0,
+      "control_mean": 0.3231671467102187,
+      "treatment_mean": 0.466635450366723,
+      "mean_paired_delta": 0.14346830365650431,
+      "seeds_expected_direction": 0,
+      "seeds_opposite": 8,
+      "seeds_unchanged": 0,
+      "seeds_undefined": 0,
+      "untied_pairs": 8,
+      "sign_test_p_expected": 1,
+      "sign_test_p_opposite": 0.00390625,
+      "control_informative": 1,
+      "control_echo_memory_tracking_error_cms": 0.1901575574829141,
+      "treatment_echo_memory_tracking_error_cms": 0.42910892555665264,
+      "control_echo_memory_prediction_error_cms": 0.029869479488380046,
+      "treatment_echo_memory_prediction_error_cms": 0.421538761540609,
+      "control_echo_memory_attribution_accuracy": 1,
+      "treatment_echo_memory_attribution_accuracy": 0,
+      "control_echo_memory_false_self_attribution": 0,
+      "treatment_echo_memory_false_self_attribution": 0,
+      "control_echo_memory_interval_coverage": 0.967179648241206,
+      "treatment_echo_memory_interval_coverage": 0.9740455020920503,
+      "control_echo_memory_detection_latency_s": 0.3531249999999999,
+      "treatment_echo_memory_detection_latency_s": null,
+      "control_echo_memory_recovery_latency_s": 1.1765624999999997,
+      "treatment_echo_memory_recovery_latency_s": null,
+      "control_echo_memory_recall_error_cms": 0.3231671467102187,
+      "treatment_echo_memory_recall_error_cms": 0.466635450366723,
+      "control_echo_memory_recalls": 0.90625,
+      "treatment_echo_memory_recalls": 0,
+      "control_echo_memory_adapted_actions": 157.09375,
+      "treatment_echo_memory_adapted_actions": 3.46875,
+      "control_echo_memory_checkpoint_verified": 1,
+      "treatment_echo_memory_checkpoint_verified": 1
+    },
+    "status": "failed",
+    "verdict": "not_supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 16,
+          "observed": 16,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "observed": 8,
+          "holds": true
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "observed": 0,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.05,
+          "observed": 0.14346830365650431,
+          "holds": false
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 1,
+          "holds": false
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.00390625,
+          "holds": true
+        }
+      ],
+      "summary": "Failure criterion triggered: F1. The hypothesis is not supported."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "23564a26c3aa9b8325c2b295389ed7823bb25346081b5bb89b7efae3cab5d67f"
+}

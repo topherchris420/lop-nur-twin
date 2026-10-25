@@ -44,23 +44,38 @@ try {
   for (const enabled of [false, true]) {
     const page = await browser.newPage();
     page.setDefaultTimeout(60000);
-    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("pageerror", (e) => {
+      // This one error is the explicitly injected no-WebGL fault, whose fallback is asserted below.
+      if (String(e) !== "Error: THREE.WebGLRenderer: Error creating WebGL context.")
+        errors.push(String(e));
+    });
     await page.setViewport({ width: 1100, height: 800 });
     // Both routes must keep working without a GPU. This also bounds test cost.
-    await page.evaluateOnNewDocument(() => {
+    const disableWebGL = () => {
       const original = HTMLCanvasElement.prototype.getContext;
       HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
         return /webgl/.test(kind) ? null : original.call(this, kind, ...args);
       };
-    });
+    };
     await page.goto(`${origin}/?quality=1${enabled ? "&echo=1" : ""}`, {
       waitUntil: "domcontentloaded",
     });
+    await page.waitForFunction(
+      () => document.body.innerText.includes("EVIDENCE TIMELINE"),
+      { polling: 100 },
+    );
+    await page.evaluate(disableWebGL);
     await page.keyboard.press("Backquote");
     await page.waitForSelector("#anomaly-coordinate");
     await page.type("#anomaly-coordinate", "38.9847,-77.0947");
     await page.keyboard.press("Enter");
     await page.waitForSelector('[data-bethesda="active"]');
+    check(
+      "injected WebGL failure has a visible fallback",
+      (await page.evaluate(() => document.body.innerText)).includes(
+        "3D rendering is unavailable",
+      ),
+    );
     await page.waitForFunction(
       () =>
         [...document.querySelectorAll("button")].some(
@@ -92,20 +107,31 @@ try {
         "uncertainty and memory visible",
         text.includes("Uncertainty") && text.includes("Memory"),
       );
-      const readTick = () =>
-        page.$eval('section[aria-label="Digital fly"]', (el) =>
+      const modelTick = () =>
+        page.$eval('details[aria-label="Project ECHO self-model"]', (el) =>
           Number(
-            /Tick (\d+)/.exec(el.innerText)?.[1] ??
-              /placed at city tick (\d+)/.exec(el.innerText)?.[1],
+            [...el.querySelectorAll("dt")].find((dt) => dt.textContent === "Model tick")
+              ?.nextElementSibling?.textContent,
           ),
         );
-      const before = await readTick();
-      await delay(350);
-      check(
-        "panel refresh remains responsive",
-        Number.isFinite(await readTick()) && Number.isFinite(before),
+      const before = await modelTick();
+      await page.waitForFunction(
+        (tick) => {
+          const el = document.querySelector(
+            'details[aria-label="Project ECHO self-model"]',
+          );
+          return (
+            Number(
+              [...el.querySelectorAll("dt")].find((dt) => dt.textContent === "Model tick")
+                ?.nextElementSibling?.textContent,
+            ) > tick
+          );
+        },
+        { polling: 100 },
+        before,
       );
-      await page.addScriptTag({ content: axe });
+      check("opening the panel does not pause the clock", Number.isFinite(before));
+      await page.evaluate(axe);
       const violations = await page.evaluate(async () =>
         (
           await globalThis.axe.run(
@@ -138,7 +164,7 @@ try {
     }
     await page.close();
   }
-  check("no browser exceptions", errors.length === 0, errors.join("; "));
+  check("no unexpected browser exceptions", errors.length === 0, errors.join("; "));
   await writeFile(
     "shots/project-echo/verification.json",
     JSON.stringify({ results, errors }, null, 2) + "\n",

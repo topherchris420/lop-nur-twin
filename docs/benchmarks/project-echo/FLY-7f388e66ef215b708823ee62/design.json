@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does ECHO distinguish action-response changes from external drift and noisy sensing?",
+  "hypothesis": "[scripted] The adaptive self-model improves the specified held-out simulator metric.",
+  "competing_hypothesis": "[scripted] The baseline performs equally well or better; the mechanism adds no measurable value.",
+  "parameters": {
+    "seed_count": 8,
+    "treatment": {
+      "kind": "echo_causation",
+      "variant": "no_learning"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "echo_causation_attribution_accuracy",
+    "expected_direction": "increase",
+    "minimum_effect": 0.1
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}
