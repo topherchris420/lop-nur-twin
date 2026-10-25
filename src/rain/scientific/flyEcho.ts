@@ -23,6 +23,7 @@
 import { mulberry32 } from "../../lib/noise.js";
 import { arenaWorld, type ArenaSpec } from "../../bethesda/fly/arena.js";
 import { EchoAdapter } from "../../bethesda/fly/echo/adapter.js";
+import { serializeEchoCheckpoint } from "../../bethesda/fly/echo/checkpoint.js";
 import { X } from "../../bethesda/fly/echo/forward.js";
 import type { EchoEvent } from "../../bethesda/fly/echo/selfModel.js";
 import { DigitalFly } from "../../bethesda/fly/fly.js";
@@ -427,6 +428,12 @@ export interface EchoTrialSpec {
   arm: EchoArmSpec;
   seed: number;
   geometry: () => number;
+  /**
+   * Checkpoint recovery: at this time (on the host's tick), serialize the
+   * self-model's checkpoint, parse it and restore it into the same running
+   * fly. Absent: never.
+   */
+  checkpointAt?: number;
 }
 
 export interface EchoTrial {
@@ -500,6 +507,10 @@ export function runEchoTrial(spec: EchoTrialSpec): EchoTrial {
         if (fly.world.solid(p)) world.clear();
       }
       if (o.until !== null && Math.abs(t - o.until) < 1e-9) world.clear();
+    }
+    if (spec.checkpointAt !== undefined && Math.abs(t - spec.checkpointAt) < 1e-9) {
+      const errors = echo.restore(serializeEchoCheckpoint(echo.checkpoint()!));
+      if (errors.length) throw new Error(`checkpoint refused: ${errors.join("; ")}`);
     }
     if (!reset && spec.arm.reset_s !== null && t >= spec.arm.reset_s - 1e-9) {
       echo.reset();

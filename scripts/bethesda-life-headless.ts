@@ -4,6 +4,7 @@
  *
  * Finite mode: node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100
  * Continuous development mode: ... --continuous
+ * Either with Project ECHO's experimental controller: ... --controller echo
  */
 import { setTimeout as delay } from "node:timers/promises";
 import { HeadlessBethesdaLife } from "../src/bethesda/life/headless.js";
@@ -11,7 +12,21 @@ import { HeadlessBethesdaLife } from "../src/bethesda/life/headless.js";
 const TICK_MS = 100;
 const MAX_BACKLOG_TICKS = 300;
 
-function parseMode(args: string[]): { continuous: boolean; ticks: number } {
+function parseMode(all: string[]): {
+  continuous: boolean;
+  ticks: number;
+  controller: "reduced-order" | "echo";
+} {
+  const at = all.indexOf("--controller");
+  const named = at >= 0 ? all[at + 1] : "reduced-order";
+  if (named !== "reduced-order" && named !== "echo")
+    throw new Error("--controller is reduced-order (the default) or echo");
+  const controller = named;
+  const args = at >= 0 ? [...all.slice(0, at), ...all.slice(at + 2)] : all;
+  return { ...parseClock(args), controller };
+}
+
+function parseClock(args: string[]): { continuous: boolean; ticks: number } {
   if (args.length === 1 && args[0] === "--continuous") {
     return { continuous: true, ticks: 0 };
   }
@@ -21,12 +36,16 @@ function parseMode(args: string[]): { continuous: boolean; ticks: number } {
       return { continuous: false, ticks: value };
     }
   }
-  throw new Error("Use --ticks N (0–10000) or --continuous (development only)");
+  throw new Error(
+    "Use --ticks N (0–10000) or --continuous (development only), optionally with --controller echo",
+  );
 }
 
 async function run() {
-  const mode = parseMode(process.argv.slice(2));
-  const life = new HeadlessBethesdaLife();
+  // Under scripts/run-ts.mjs the script's own path is still in argv: read what follows it.
+  const self = process.argv.findIndex((a) => a.endsWith("bethesda-life-headless.ts"));
+  const mode = parseMode(process.argv.slice(self + 1));
+  const life = new HeadlessBethesdaLife(undefined, { flyController: mode.controller });
   if (!mode.continuous) {
     life.advanceTicks(mode.ticks);
     process.stdout.write(JSON.stringify(life.status()) + "\n");
