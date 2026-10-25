@@ -699,9 +699,9 @@ eight 32-bit seeds per digest), a null arm (the control again on the next
 ${FLY_PILOT_SEEDS_USED} pilot seeds, paired in order: the same code and arm with every random
 stream independent, the apparatus's draws included, so an upper bound on what
 trajectory divergence alone can produce), and what the pilot sized. The scripted demonstrations of the four redesigned
-protocols (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
+protocols and the three Project ECHO ones (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
 minimum effects from \`sized\`, and the host's minimum effects for the metrics
-the redesign added (FLY_METRICS) come from \`floors\`;
+the redesign and ECHO added (FLY_METRICS) come from \`floors\`;
 \`src/rain/scientific/fly.test.ts\` checks both against these files.
 
 ## What each pilot ran on
@@ -723,9 +723,10 @@ sized; any difference fails the check.
 ${sizedRows.join("\n")}
 
 - **Seed count**: the smallest of ${FLY_SEED_COUNT.min}-${FLY_SEED_COUNT.max} whose chance of passing G3, G4 (at least ${FLY_MIN_UNTIED_PAIRS} untied seeds) and the exact sign test at alpha ${FLY_ALPHA} is at least ${FLY_PILOT_POWER}. The share of seeds in the expected direction is its one-sided 95% lower bound from the pilot, the rest is split between the opposite direction and no information in the pilot's proportions (each counted once more), and the chance that the control sits at a bound in every seed uses the one-sided 95% upper bound.
+- **No seed count**: when no seed count in the host's range reaches that chance, the pilot sizes nothing, and its demonstration runs under-powered, at the host's largest seed count (${FLY_SEED_COUNT.max}) and the host's minimum effect; it is expected to come out inconclusive or failed.
 - **Minimum effect**: the pilot's mean paired difference less 1.645 standard errors (of the pilot and of an experiment at that seed count), rounded down to two significant figures: an effect the size of the pilot's clears it with about 95% probability. A design may not go below the host's minimum effect for the metric, so it uses the larger of the two. The S1 probability is the chance that an experiment at that seed count clears the design's minimum effect if the effect is the pilot's.
 
-## Host minimum effects for the metrics the redesign added
+## Host minimum effects for the metrics the redesign and Project ECHO added
 
 | metric | pilot | resolution | divergence bound | floor | in force |
 | :--- | :--- | ---: | ---: | ---: | ---: |

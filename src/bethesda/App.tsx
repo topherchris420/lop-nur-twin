@@ -208,21 +208,32 @@ function world(sim?: CitySimulation, replayOf: ReplayOrigin | null = null) {
 /**
  * The city's one digital fly, placed at whatever tick the city has reached
  * when the fly's code arrives; without a surface to stand on (or without its
- * code) there is none, and the city carries on.
+ * code) there is none, and the city carries on. Its controller is the
+ * reduced-order one unless the visitor chooses Project ECHO's experimental
+ * one in the fly's panel, which places a new fly in its stead (never turns
+ * the living one into another).
  */
-function placeFly(city: CitySimulation, view: ViewControl): void {
+function placeFly(
+  city: CitySimulation,
+  view: ViewControl,
+  controller: "reduced-order" | "echo" = "reduced-order",
+  done?: () => void,
+): void {
   import("./fly/cityFly")
     .then(({ CityFly }) => {
+      const before = view.fly;
       view.fly = {
-        city: new CityFly(city),
-        marker: false,
+        city: new CityFly(city, { controller }),
+        marker: before?.marker ?? false,
         inspect: false,
-        slow: false,
-        drawn: "loading",
+        slow: before?.slow ?? false,
+        drawn: before?.drawn ?? "loading",
       };
+      done?.();
     })
     .catch(() => {
       view.fly = undefined;
+      done?.();
     });
 }
 class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -899,6 +910,9 @@ export default function Bethesda({
                       : sim.player
                 }
                 canDraw={rendering && !view.failed}
+                onController={(controller) =>
+                  placeFly(sim, view, controller, () => refresh((n) => n + 1))
+                }
                 onClose={() => {
                   if (view.fly) view.fly.marker = view.fly.inspect = false;
                   setFlyOpen(false);

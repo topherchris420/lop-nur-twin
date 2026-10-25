@@ -989,7 +989,9 @@ export const FLY_METRICS = [
   // Project ECHO. Path error: over 1 s windows of steady walking, the distance
   // between where the fly ended and where an unimpaired body following its own
   // intentions from the same start would have, over that intended path's
-  // length. Host minimum effects are the pilots' floors.
+  // length. The primary metrics' host minimum effects are the pilots' floors
+  // (docs/benchmarks/fly-pilots/echo_*.json): large, because each seed draws
+  // its own hidden condition, so seeds differ widely.
   {
     id: "impaired_path_error",
     block: "impairment",
@@ -997,7 +999,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.09,
     description:
       "mean path error of steady walking from the hidden impairment's onset to the end of the run",
   },
@@ -1008,7 +1010,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.2,
     description: "mean path error of steady walking over the run's last 40 s",
   },
   {
@@ -1018,7 +1020,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.006,
     description: "mean path error of steady walking before the hidden impairment",
   },
   {
@@ -1028,7 +1030,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.05,
+    minimum_effect: 3,
     description:
       "time from the hidden impairment's onset to the fly's first noticing that its predictions fail (undefined without a self-model or if never noticed)",
   },
@@ -1050,7 +1052,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.008,
     description:
       "relative error of the fly's final beliefs about the impaired gains and biases against the hidden values (undefined without a self-model)",
   },
@@ -1092,7 +1094,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: 1,
-    minimum_effect: 0.05,
+    minimum_effect: 0.2,
     description:
       "fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out",
   },
@@ -1103,7 +1105,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: 1,
-    minimum_effect: 0.05,
+    minimum_effect: 0.07,
     description:
       "fraction of external changes (a push, a turning surface) the fly blamed on its own body",
   },
@@ -1114,7 +1116,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: 1,
-    minimum_effect: 0.01,
+    minimum_effect: 0.2,
     description:
       "mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)",
   },
@@ -1125,7 +1127,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.09,
     description: "mean path error of steady walking over the whole run",
   },
   {
@@ -1167,7 +1169,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.1,
     description:
       "mean path error over the first 10 s after a self-change met before comes back",
   },
@@ -1178,7 +1180,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.05,
+    minimum_effect: 4,
     description:
       "time from that return to the fly's concluding that it changed itself (undefined without one)",
   },
@@ -1210,7 +1212,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.01,
+    minimum_effect: 0.2,
     description: "mean path error over the first 10 s of an unfamiliar combined change",
   },
   {

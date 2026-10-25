@@ -20,12 +20,14 @@ interface Example {
 /**
  * One scripted demonstration per protocol. The treatment, metric and
  * direction are the script's choices, not a model's. For the four redesigned
- * protocols the minimum effect and the seed count are the pilot's
+ * protocols and the three ECHO ones the minimum effect and the seed count are the pilot's
  * (docs/benchmarks/fly-pilots/<protocol>.json, `sized`): the seed count is
  * the smallest that passes G3, G4 and the sign test with margin under the
  * pilot's outcomes, and the minimum effect the pilot's mean paired difference
  * less 1.645 standard errors at that seed count, rounded down (or the host's
- * minimum effect for the metric, if larger). Pilots run on
+ * minimum effect for the metric, if larger). A pilot that finds no seed count
+ * with that margin leaves its demonstration under-powered, at the host's
+ * largest seed count and the host's minimum effect. Pilots run on
  * the public pilot seeds, which the host never draws for an archived run, and
  * fly.test.ts checks these numbers against the pilot files. Light preference
  * and controller comparison were not redesigned; their thresholds are still
@@ -126,8 +128,8 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_impairment", variant: "reactive" },
     metric: "impaired_path_error",
     direction: "increase",
-    minimumEffect: 0.01, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
-    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    minimumEffect: 0.19, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    seedCount: 9, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
     question:
       "[scripted] ECHO-01: does the fly's self-model let it walk where it intends after an impairment it is never told about?",
     hypothesis:
@@ -139,8 +141,8 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_attribution", variant: "motion_gated" },
     metric: "attribution_accuracy",
     direction: "decrease",
-    minimumEffect: 0.05, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
-    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    minimumEffect: 0.34, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    seedCount: 10, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
     question:
       "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
     hypothesis:
@@ -152,7 +154,10 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_retention", variant: "memory_reset" },
     metric: "reexposure_latency_s",
     direction: "increase",
-    minimumEffect: 0.05, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    // UNDER-POWERED: its pilot found no seed count that passes with 0.9
+    // probability, so it runs at the host's largest seed count and the host's
+    // minimum effect, and is expected to come out inconclusive or failed.
+    minimumEffect: 4, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
     seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
     question:
       "[scripted] ECHO-03: does what the fly learned about an earlier impairment let it recognize the same impairment sooner when it returns?",

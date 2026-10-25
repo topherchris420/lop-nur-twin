@@ -13,7 +13,7 @@
  *                                       never by a person
  *   --verify                            check every archived folder against its
  *                                       record and re-simulate what this code can
- *   --pilot [--protocol p] [--check | --readme]
+ *   --pilot [--protocol p[,q…]] [--check | --readme]
  *                                       run the redesigned protocols' pilots on the
  *                                       public pilot seeds and write them, labelled
  *                                       not evidence, to docs/benchmarks/fly-pilots/;
@@ -490,9 +490,11 @@ async function main() {
  * identical and this code would still run the same definition.
  */
 function pilot() {
-  const only = value("--protocol");
+  // One protocol, or several separated by commas: one process, so a pilot
+  // written earlier in the run does not make the later ones' tree dirty.
+  const only = value("--protocol")?.split(",");
   const protocols = (Object.keys(FLY_PILOT_SERIES) as FlyProtocolId[]).filter(
-    (p) => !only || p === only,
+    (p) => !only || only.includes(p),
   );
   if (!protocols.length) throw new Error(`no pilot for ${only}`);
   const kept = () =>

@@ -3,11 +3,17 @@
  * run of the simulator is doing (simulation observations), and what the model
  * is built from (FlyBody's body model, published parameters, this simulator's
  * own choices and the Virtual Fly Brain reference). It reads the fly four
- * times a second; nothing here writes to the fly or the city.
+ * times a second; nothing here writes to the fly or the city. With Project
+ * ECHO's experimental controller it also shows the fly's self-model
+ * (SelfModelPanel.tsx), apart from the ground truth only researchers see.
+ * Choosing a controller asks the city for a new fly; the panel never changes
+ * the one that is living.
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { EXTERNAL_LINK_PROPS, safeExternalHref } from "../../lib/safeUrl";
 import { REDUCED_ORDER_DESCRIPTOR, ReducedOrderController } from "./controller";
+import { EchoAdapter } from "./echo/adapter";
+import { SelfModelPanel } from "./SelfModelPanel";
 import source from "./data/flybody.source.json" with { type: "json" };
 import { FLY_VERSION } from "./fly";
 import type { FlyViewControl } from "./FlyView";
@@ -120,6 +126,7 @@ export function FlyPanel({
   button,
   viewer,
   canDraw,
+  onController,
   onClose,
 }: {
   control: FlyViewControl;
@@ -129,6 +136,8 @@ export function FlyPanel({
   viewer: () => { x: number; z: number };
   /** False without a 3D view: the fly still lives, but cannot be drawn or inspected. */
   canDraw: boolean;
+  /** Ask the city for a new fly with this controller (the living one is never changed). */
+  onController?: (controller: "reduced-order" | "echo") => void;
   onClose: () => void;
 }) {
   const [, tick] = useState(0);
@@ -156,8 +165,13 @@ export function FlyPanel({
   const reserve = s.reserve / PARAMS.reserveJ.value;
   const hungry = 1 - reserve > PARAMS.hungerSeek.value;
   // What the built-in controller believes and remembers; another controller reports none.
+  const echo = fly.adapter instanceof EchoAdapter ? fly.adapter : null;
   const nav =
-    fly.adapter instanceof ReducedOrderController ? fly.adapter.state.nav : null;
+    fly.adapter instanceof ReducedOrderController
+      ? fly.adapter.state.nav
+      : echo
+        ? echo.inner.state.nav
+        : null;
   const byEstimate = (q: readonly number[]) =>
     nav ? Math.hypot(q[0]! - nav.est[0], q[1]! - nav.est[1]) : 0;
   const nearestPlace = nav?.places.reduce<number | null>(
@@ -251,6 +265,36 @@ export function FlyPanel({
         <p className="mt-1 text-slate-300">
           Drag to turn the close-up. FlyBody&apos;s mesh at full detail.
         </p>
+      ) : null}
+
+      {onController ? (
+        <fieldset className="mt-2">
+          <legend className="text-slate-300">Controller</legend>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {(
+              [
+                ["reduced-order", "Reduced-order (baseline)"],
+                ["echo", "ECHO self-model (experimental)"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={button}
+                aria-pressed={city.controller === id}
+                disabled={city.controller === id}
+                onClick={() => onController(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-slate-300">
+            Changing it places a new fly with that controller on its bench at the
+            city&apos;s current tick. This fly&apos;s history, energy and memories do not
+            carry over: it is a different fly, not this one changed.
+          </p>
+        </fieldset>
       ) : null}
 
       <div id="fly-details" className={folded ? "max-sm:hidden" : undefined}>
@@ -394,7 +438,9 @@ export function FlyPanel({
             </ul>
           </Row>
           <Row label="Confidence">
-            Not reported: the controller has no calibrated estimate of its own confidence.
+            {echo
+              ? "Reported by its self-model below, which checks it against its own prediction errors."
+              : "Not reported: the controller has no calibrated estimate of its own confidence."}
           </Row>
           <Row label="So far" evidence="simulated">
             {s.counts.takeoffs} takeoffs ({s.counts.escapes} escapes), {s.counts.landings}{" "}
@@ -405,10 +451,20 @@ export function FlyPanel({
             gate
           </Row>
           <Row label="Run">
-            {FLY_VERSION}, seed {city.seed}, placed at city tick {city.placedAtTick}. Not
+            {FLY_VERSION}, seed {city.seed}, placed at city tick {city.placedAtTick} with
+            the {city.controller === "echo" ? "ECHO" : "reduced-order"} controller. Not
             part of the city&apos;s state, hash or replay.
           </Row>
         </dl>
+
+        {echo ? (
+          <>
+            <h3 className="mt-3 font-mono text-[9px] tracking-[.2em] text-teal-200">
+              SELF-MODEL · THE FLY&apos;S OWN ESTIMATES
+            </h3>
+            <SelfModelPanel fly={fly} echo={echo} />
+          </>
+        ) : null}
 
         <h3 className="mt-3 font-mono text-[9px] tracking-[.2em] text-teal-200">
           THE MODEL · BIOLOGICAL EVIDENCE AND ITS LIMITS
@@ -425,6 +481,7 @@ export function FlyPanel({
             {source.lods.map((l) => l.triangles).join(" / ")} triangles.
           </Row>
           <Row label="Controller" evidence="model">
+            {echo ? `${echo.descriptor.label}: ${echo.descriptor.fidelity} ` : ""}
             {REDUCED_ORDER_DESCRIPTOR.label}: {REDUCED_ORDER_DESCRIPTOR.fidelity} Not a
             neural simulation. Wingbeat, leg placement and body attitude are drawn, not
             simulated as aerodynamics or contact.

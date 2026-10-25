@@ -14,12 +14,19 @@
  * reads the city and never writes to it: it is not a recorded command, not in
  * the city's state hash and not in a city replay. A replayed city gets a fly
  * placed fresh at the replay's tick.
+ *
+ * Its controller is the reduced-order one unless an explicit experimental
+ * configuration asks for Project ECHO's (`controller: "echo"`,
+ * docs/PROJECT_ECHO.md): the same controller with a self-model between its
+ * intentions and the body. Changing the controller places a new fly; it
+ * never turns the fly that was living into another.
  */
 import { arrival } from "../model";
 import { BENCH, PICNIC_TABLE } from "../furniture";
 import { DT, type CitySimulation } from "../simulation";
 import { groundAt } from "../terrain";
 import { BethesdaFlyWorld, homeSeat } from "./bethesdaWorld.js";
+import { EchoAdapter } from "./echo/adapter.js";
 import { DigitalFly } from "./fly.js";
 import { People } from "./people.js";
 import type { V3 } from "./units.js";
@@ -29,6 +36,14 @@ export const CITY_START_RESERVE = 0.6;
 /** The people look at the fly this many times per city tick (20 Hz). */
 const LOOKS_PER_TICK = 2;
 
+/** Which controller drives the city's fly: the baseline, or Project ECHO's (experimental). */
+export const CITY_CONTROLLERS = ["reduced-order", "echo"] as const;
+export type CityController = (typeof CITY_CONTROLLERS)[number];
+export interface CityFlyOptions {
+  /** The reduced-order controller unless set. */
+  controller?: CityController;
+}
+
 export class CityFly {
   readonly fly: DigitalFly;
   readonly world: BethesdaFlyWorld;
@@ -37,13 +52,16 @@ export class CityFly {
   readonly seed: number;
   readonly placedAtTick: number;
   readonly placedOn: string;
+  /** The controller this fly was placed with; it never changes for this fly. */
+  readonly controller: CityController;
   /** Set if the fly ever threw; it then stops, and the city carries on without it. */
   failed: string | null = null;
   private sim: CitySimulation;
   private lastTick: number;
 
-  constructor(sim: CitySimulation) {
+  constructor(sim: CitySimulation, options: CityFlyOptions = {}) {
     this.sim = sim;
+    this.controller = options.controller ?? "reduced-order";
     const seat = homeSeat(arrival);
     const at = seat?.point ?? arrival;
     const top =
@@ -64,6 +82,9 @@ export class CityFly {
       world: this.world,
       start: { p: [at.x, groundAt(at) + top + 0.002, at.z], yaw: Math.PI / 2 },
       config: { startReserve: CITY_START_RESERVE },
+      ...(this.controller === "echo"
+        ? { adapter: EchoAdapter.factory({ variant: "full", seed: this.seed }) }
+        : {}),
     });
     this.people = new People({
       seed: this.seed,

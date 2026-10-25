@@ -28,6 +28,7 @@ import {
   FLY_METRICS,
   FLY_MIN_UNTIED_PAIRS,
   FLY_PILOT,
+  FLY_SEED_COUNT,
   FLY_PILOT_SEED_COUNT,
   FLY_PROTOCOLS,
   FLY_SCRIPT_OPERATOR,
@@ -1267,11 +1268,21 @@ describe("pilots: exploratory sizing, never evidence", { timeout: 300000 }, () =
       expect(design.parameters.treatment).toEqual(p.sized.treatment);
       expect(design.analysis.metric).toBe(p.sized.metric);
       expect(design.analysis.expected_direction).toBe(p.sized.direction);
-      expect(design.parameters.seed_count, p.protocol).toBe(p.sized.seed_count);
-      expect(design.analysis.minimum_effect, p.protocol).toBe(
-        p.sized.design_minimum_effect,
-      );
-      expect(p.sized.pass_probability!).toBeGreaterThanOrEqual(0.9);
+      if (p.sized.seed_count === null) {
+        // The pilot sized nothing: the demonstration runs under-powered, at the
+        // host's largest seed count and the host's minimum effect.
+        expect(design.parameters.seed_count, p.protocol).toBe(FLY_SEED_COUNT.max);
+        expect(design.analysis.minimum_effect, p.protocol).toBe(
+          p.sized.host_minimum_effect,
+        );
+        expect(p.sized.pass_probability).toBeNull();
+      } else {
+        expect(design.parameters.seed_count, p.protocol).toBe(p.sized.seed_count);
+        expect(design.analysis.minimum_effect, p.protocol).toBe(
+          p.sized.design_minimum_effect,
+        );
+        expect(p.sized.pass_probability!).toBeGreaterThanOrEqual(0.9);
+      }
       expect(compileFlyExperiment(design).ok).toBe(true);
     }
   });
