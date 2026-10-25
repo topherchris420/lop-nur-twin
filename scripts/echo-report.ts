@@ -118,6 +118,17 @@ are different hypotheses: compare no_memory descriptively and retain failures.
 
 ## Diagnostics of the full configuration
 
+**Historical diagnostic correction:** the v1 apparatus counted ineligible trials
+as zero for false self-attribution. The sealed values below are retained for
+provenance, but are not valid estimates of that diagnostic: causation values
+are two thirds of the eligible-trial average; impairment and memory values
+should be “not measured”, not zero. Apparatus v2 returns null for ineligible
+trials and excludes them from aggregation. This diagnostic is not a primary
+endpoint or acceptance criterion; the outcomes above are unaffected.
+For example, the full-configuration control at seed 2832889622 changes from
+0.4095 to 0.6143 when averaged over its four eligible trials.
+
+
 | Protocol | Prediction MAE (cm/s) | Nominal 90% interval coverage | False self-attribution | Detection latency (s) | Recovery latency (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
 ${diagnostics}
@@ -138,7 +149,9 @@ ${failures || "All designs met their native criteria; this is still exploratory 
 ## Reproduction and scope
 
 \`npm run rain:echo:verify\` checks retained seals, compilation, source provenance,
-and exact re-simulation. Original per-design reports, preregistrations, seeds,
+and exact re-simulation when the source matches. These original v1 records
+must be replayed at their producing commit; current v2 source correctly
+classifies them as other-code records. Original per-design reports, preregistrations, seeds,
 trial diagnostics, final hashes and native registry runs remain in the archive.
 The original results were not retuned or replaced after inspection.
 

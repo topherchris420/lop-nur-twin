@@ -15,7 +15,7 @@ import type {
 import { mulberry32 } from "../../lib/noise.js";
 import type { FlyArm, FlyBlockSpec, FlyRun } from "./contracts.js";
 
-export const ECHO_PROTOCOL_VERSION = "echo-apparatus/v1";
+export const ECHO_PROTOCOL_VERSION = "echo-apparatus/v2";
 export const ECHO_TIMING = { onset: 2, recovery: 8, repeat: 14, end: 24 } as const;
 const SPEEDS = [0.6, 1.8, 1, 1.4];
 /** Engineering probe: same sensory/action seam as the native city controller,
@@ -70,7 +70,8 @@ export interface EchoTrial {
   trackingErrorCmS: number;
   predictionErrorCmS: number | null;
   attributionAccuracy: number;
-  falseSelfAttribution: number;
+  /** Null when no observations have an unimpaired action response. */
+  falseSelfAttribution: number | null;
   intervalCoverage: number | null;
   detectionLatencyS: number | null;
   recoveryLatencyS: number | null;
@@ -229,7 +230,7 @@ export function runEchoTrial(
     trackingErrorCmS: mean(tracking),
     predictionErrorCmS: errors.length ? mean(errors) : null,
     attributionAccuracy: mean(attribution),
-    falseSelfAttribution: mean(falseSelf),
+    falseSelfAttribution: falseSelf.length ? mean(falseSelf) : null,
     intervalCoverage: s.predictions ? s.covered / s.predictions : null,
     detectionLatencyS: detected,
     recoveryLatencyS: recovered,

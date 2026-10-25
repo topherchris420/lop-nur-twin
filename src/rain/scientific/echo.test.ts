@@ -4,7 +4,7 @@ import { flyExample } from "./flyExample.js";
 import { FLY_SOURCE } from "./flySource.js";
 import { temporaryObstacleWorld } from "./echoRig.js";
 import { arenaWorld } from "../../bethesda/fly/arena.js";
-import { runEchoTrial } from "./echoRig.js";
+import { runEchoTrial, runEchoBlock } from "./echoRig.js";
 
 describe("ECHO native scientific boundary", () => {
   it("compiles protocols and ablations with fixed acceptance criteria and host-owned seeds", () => {
@@ -55,6 +55,50 @@ describe("ECHO native scientific boundary", () => {
     active = false;
     expect(world.raycast([0, 0.05, 0], [1, 0, 0], 0.2)).toBeNull();
   });
+  it("averages false self-attribution over eligible causation trials only", () => {
+    const plan = compileFlyExperiment(flyExample("echo_causation"));
+    if (!plan.ok) throw new Error(plan.errors.join(";"));
+    const run = runEchoBlock(
+      plan.value.experiment.blocks[0]!,
+      plan.value.experiment.arms[0]!,
+      2832889622,
+    );
+    const trials = run.echo_trials!;
+    expect(trials.map((t) => t.falseSelfAttribution === null)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+    ]);
+    const eligible = trials.flatMap((t) =>
+      t.falseSelfAttribution === null ? [] : [t.falseSelfAttribution],
+    );
+    expect(eligible).toHaveLength(4);
+    expect(run.metrics.echo_causation_false_self_attribution).toBeCloseTo(
+      eligible.reduce((a, b) => a + b, 0) / 4,
+      12,
+    );
+    expect(run.metrics.echo_causation_false_self_attribution).toBeCloseTo(
+      0.6142857142857143,
+      12,
+    );
+  });
+  it.each(["echo_impairment", "echo_memory"] as const)(
+    "reports unmeasured false self-attribution as null for %s",
+    (kind) => {
+      const plan = compileFlyExperiment(flyExample(kind));
+      if (!plan.ok) throw new Error(plan.errors.join(";"));
+      const run = runEchoBlock(
+        plan.value.experiment.blocks[0]!,
+        plan.value.experiment.arms[0]!,
+        9173,
+      );
+      expect(run.echo_trials!.every((t) => t.falseSelfAttribution === null)).toBe(true);
+      expect(run.metrics[`${kind}_false_self_attribution`]).toBeNull();
+    },
+  );
   it("development trials use the actual body, compensate, replay and keep gate refusals at zero", () => {
     const a = runEchoTrial("echo_impairment", 9173, 0, "full", "development");
     const baseline = runEchoTrial("echo_impairment", 9173, 0, "disabled", "development");

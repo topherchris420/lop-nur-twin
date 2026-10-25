@@ -10,7 +10,7 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "00fb736cbacd1a73e05be653ccd063921b3b8348f54e91f207fce7e34fc3d2cb",
+  sha256: "9899fc6aafe0b1a5ef197d2f952b60d7886c1b8b67a6fc6f6dc3698b388d816e",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
@@ -57,7 +57,7 @@ export const FLY_SOURCE: {
     "src/rain/experiments/jsonSchema.ts":
       "0cb983dbfa5ca0efdeb4740867f549d0d58d67b65575bfd2f974d21415223ac0",
     "src/rain/scientific/echoRig.ts":
-      "8fe360055ea4279acfc66780665273223d72aa0756571debef3656aa93224845",
+      "01402fac34005054f6111a2b1816fc562a00e73f5ff67d543694a0f4fd09f345",
     "src/rain/scientific/fly.ts":
       "323c5cab0ef0f4a03f9507fb1f194bd9deabfe7d3d202cfd6ace5f6e30a0ff7d",
     "src/rain/sha256.ts":
